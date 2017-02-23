@@ -15,13 +15,13 @@ on make.
 
 There will be three main components of Ravenports.
 
-  1. Source ports
+  1. **Source ports:**
 This component is not seen or utilized by regular users.  It resembles
 the ports tree seen in FreeBSD and pkgsrc, but only at the individual
 port directory level.  It is not arranged in categories.  The contents
 of each port directory is used to generate a port buildsheet.
 
-  2. Conspiracy
+  2. **Conspiracy:**
 The conspiracy directory contains all the buildsheets.  These single
 files are the complete recipe for building the software for which they
 were created.  These buildsheets are not meant to be viewed directly,
@@ -29,12 +29,12 @@ as their information can be queries by the raven tool.  The conspiracy
 buildsheets are "compiled" from source ports and getting the latest
 ports is accomplished by updating this directory.
 
-  3. Raven tool
+  3. **Raven tool:**
 Raven is the administration tool for Ravenports.  It can query the
 ports for many types of information like a database.  It can build
 packages in parallel (think synth interface).  It controls the build
 environment such that it is the same across users, even if those
-users are on different Operating Systems.  Raven also plays a part
+users are on different operating systems.  Raven also plays a part
 in the development of ports and features inbuilt lint, sanity checks
 and compile checks.  If somebody develops a buildsheet that passes
 all checks and builds, it likely can be incorporated in the source
