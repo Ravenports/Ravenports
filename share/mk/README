@@ -1,0 +1,193 @@
+This directory contains the makefile logic for the Ravenports universal
+package builder system.  The individual port makefiles are generated
+and thus should conform to the definitions documented below.
+Please ensure editor is set to 8-column hard tabs before modification.
+
+--------------------------------------------------------------------------
+--  System definitions
+--------------------------------------------------------------------------
+
+RAVENBASE		Ravenports base for hierarchy
+			Default: /raven
+WRKDIRPREFIX		Root of the temporary working directory hierarchy
+			Default: /usr/obj/raven
+DISTDIR			Directory to store original distribution sources
+			Default: ${RAVENBASE}/distfiles
+PACKAGES		Top-level directory holding built packages
+			Default: ${RAVENBASE}/packages
+
+--------------------------------------------------------------------------
+--  Port identifiers and directories
+--------------------------------------------------------------------------
+
+NAMEBASE		The unique first segment of the package origin
+			triplet.  It must be defined by the generated
+			port makefile.
+VERSION			Version of the port, usually identical to the
+			version designated by the vendor
+REVISION		Iteration of port at the defined version
+			Default: 0
+EPOCH			Whenever versions numerically regress, the epoch
+			must be incremented to show the older version is
+			actually the newest.  The epoch can never regress.
+			Default: 0
+KEYWORDS		At least one keyword from the list below must be
+			used to describe the functionality of the port.
+			There are no limits to how many keywords are used.
+WRKDIR			Temporary working directory to port the port
+			Default: ${WRKDIRPREFIX}/${NAMEBASE}
+WRKSRC			Subdirectory to where distribution extracts
+			Default: ${WRKDIR}/${DISTNAME}
+WRKSRC_SUBDIR		Subdirectory where distribution builds from
+			Default: unset
+NO_WRKSUBDIR		Define when distribution extracts without of a
+			subdirectory to force extraction to ${WRKSRC}
+			instead of ${WRKDIR}
+DIST_SUBDIR		Optional private subdirectory of ${DISTDIR}.
+			Used for tidiness and reroll disambiguity.
+
+--------------------------------------------------------------------------
+--  Related to distribution
+--------------------------------------------------------------------------
+
+DF_INDEX		List of integers corresponding to complete set
+			of distfiles to used in the current configuration.
+			May be empty string if there are no distfiles
+DISTFILE_<#>		Full filename plus mandatory group identifier.
+			.e.g. mysql-5.6.35.tar.gz:main
+
+--------------------------------------------------------------------------
+--  Fetching
+--------------------------------------------------------------------------
+
+FORCE_FETCH_LIST	Used by scripts to specify which distfiles to
+			unconditionally refetch.  Not used by humans.
+
+DL_SITE_BACKUP		Backup locations(s) for distribution and patch
+			files if not locally cached and attempts to fetch
+			from DL_SITES and PATCH_SITES fail.
+			Default: TBD (currently unset)
+DL_SITE_OVERRIDE	If set, prepend DL_SITES* with this value
+DL_SITE_DISABLE		Exclusively use official backup site for downloads
+FETCH_REGET		Times to retry fetching after checksum errors.
+			Default: 1
+SKIP_CHECKSUM		If defined, allows fetching a file that is not
+			listed in the distinfo file.  This can never be
+			present the port makefile
+
+--------------------------------------------------------------------------
+--  Extraction
+--------------------------------------------------------------------------
+
+EXTRACT_HEAD_<#>	Extract command and leading arguments for
+			distfile <#>.  Default: "${TAR} -xf"
+EXTRACT_TAIL_<#>	Trailing arguments for extract command for
+			distfile <#>.  Default: "--no-same-owner
+			--no-same-permissions"
+EXTRACT_ONLY		Set of indices related to distfiles to be extracted
+			Default: ${DF_INDEX}
+
+--------------------------------------------------------------------------
+--  Github Support
+--------------------------------------------------------------------------
+
+USE_GITHUB		Define to activate ability to pull distribution
+			tarballs from github.com
+GH_ACCOUNT		Github's project account user
+			Default: ${NAMEBASE}
+GH_PROJECT		Github's project name
+			Default: ${NAMEBASE}
+GH_TAGNAME		Name of tag to download (2.0.1, <hash>, ...)
+			Using branch name is incorrect.
+			Default: ${VERSION}
+GH_TUPLE		alternative to above
+			account:project:tagname[:group][/subdir]
+
+--------------------------------------------------------------------------
+--  Debugging
+--------------------------------------------------------------------------
+
+ECHO_MSG		Used to print the '===>' style comments.
+			Override to turn them off.
+			Default: ${ECHO_CMD}
+DO_NADA			Command on how to do nothing
+			Default: ${TRUE}
+
+--------------------------------------------------------------------------
+--  Keyword Descriptions
+--------------------------------------------------------------------------
+	 
+accessibility		Targeted at disabled users
+archivers		Utilities for archiving and recovering data
+astro			Targeted at users interested in astronomy
+audio			Utilities related to sound
+benchmarks		Utilities for measuring system performance
+biology			Targeted at users interested in biology
+cad			Targeted at users of computer aided design
+comms			Utilities related to communications (e.g. radio)
+converters		Utilities related to conversions
+databases		Data servers, clients, and related tools
+deskutils		Applications for the desktop
+devel			Software development libraries and utilities
+dns			DNS servers, clients, and related tools
+editors			Text editors
+emulators		Tools for emulating other op. systems
+finance			Monetary and financial tools
+ftp			FTP servers, clients, and related tools
+games			self-explanatory
+graphics		Graphics libraries and utilities
+irc			Internet Relay Chat servers and clients
+lang			Computer languages and compilers
+mail			email servers, clients and related tools
+math			Mathematical computation software
+misc			Miscellaneous (hard to classify)
+multimedia		self-explanatory
+net			Networking utilities
+net_im			Instant messaging software
+net_mgmt		Network management utilities
+net_p2p			Peer-to-Peer networking software
+news			USENET news support software
+print			Utilities dealing with printing
+raven			Tools related to Ravenports dev. and mgmt.
+science			Software targeted at scientists
+security		System security software
+shells			Command line interpreters
+sysutils		System utilities (often OS-specific)
+textproc		text processing and search utiltiies
+www			Web browsers, http servers, and utilities
+x11			X-Windows system utilities
+x11_clocks		X-Windows clock applications
+x11_drivers		X-Windows drivers (all types)
+x11_fm			X-Windows file managers
+x11_fonts		X-Windows fonts and utilities
+x11_servers		X-Windows servers
+x11_toolkits		X-Windows development tools
+x11_wm			X-Windows windows managers
+
+Computer language subcategories
+----------------------------------
+ada
+c++
+csharp
+java
+javascript
+lisp
+perl
+php
+python
+ruby
+scheme
+
+Language/Region specific categories
+-----------------------------------
+Arabic
+Chinese
+French
+German
+Italian
+Japanese
+Korean
+Portuguese
+Russian
+Spanish
+Vietnamese
