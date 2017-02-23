@@ -83,8 +83,8 @@ for _file in "${@}"; do
 			case ${dp_TARGET} in
 				do-fetch|makesum)
 					${dp_ECHO_MSG} "===> /!\\ Error /!\\"
-					${dp_ECHO_MSG} "     The :${group} group used for $file is missing"
-					${dp_ECHO_MSG} "     DL_SITES_${group} definition. Check for typos, or errors."
+					${dp_ECHO_MSG} "     The ${file} of ${group} group is not present."
+					${dp_ECHO_MSG} "     Check for typos, or errors."
 					exit 1
 					;;
 			esac

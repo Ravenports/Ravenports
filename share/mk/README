@@ -17,6 +17,19 @@ PACKAGES		Top-level directory holding built packages
 			Default: ${RAVENBASE}/packages
 
 --------------------------------------------------------------------------
+--  Operating System Definitions (overridable)
+--------------------------------------------------------------------------
+
+ARCH			The architecture of the target machine, such as
+			would be returned by "uname -p".
+OPSYS			The name of the operating system, such as would
+			be returned by "uname -s".
+OSVERSION		An OS-specific kernel version.
+			FreeBSD can return with "uname -K"
+OSREL			The <major>.<minor> version of the release/dev
+			branch of the operating system.
+
+--------------------------------------------------------------------------
 --  Port identifiers and directories
 --------------------------------------------------------------------------
 
@@ -34,6 +47,20 @@ EPOCH			Whenever versions numerically regress, the epoch
 KEYWORDS		At least one keyword from the list below must be
 			used to describe the functionality of the port.
 			There are no limits to how many keywords are used.
+VARIANT			Specified by Raven tool as part of build command
+			Must conform to options listed in buildsheet.
+			Default: standard (but always override)
+PKGNAME_<SPKG>		Name of generated package minus extension. It is
+			always defined as: ${NB}__${VAR}__${SPKG}-${VER}
+			where NB=NAMEBASE, VAR=VARIANT, SPKG=subpackage,
+			VER=VERSION
+TWO_PART_ID		Port reference, always defined as:
+			${NAMEBASE}-${VARIANT}
+DISTVER_PREFIX		Optional distfile prefix to ${VERSION}
+DISTVER_SUFFIX		Optional distfile suffix to ${VERSION}
+DISTNAME		Defined as ${NB}-${PRE}${VER}${SUFF} where
+			NB=NAMEBASE, PRE=DISTVER_PREFIX, VER=VERSION,
+			SUF=DISTVER_SUFFIX.  Cannot be overwritten.
 WRKDIR			Temporary working directory to port the port
 			Default: ${WRKDIRPREFIX}/${NAMEBASE}
 WRKSRC			Subdirectory to where distribution extracts
@@ -88,6 +115,17 @@ EXTRACT_ONLY		Set of indices related to distfiles to be extracted
 			Default: ${DF_INDEX}
 
 --------------------------------------------------------------------------
+--  Patching
+--------------------------------------------------------------------------
+
+PATCH_WRKSRC		Directory to apply patches in
+			Default: ${WRKSRC}
+PATCH_STRIP		How many elements are stripped from port patches
+			Default: -p0
+PATCH_DIST_STRIP	How many elements are stripped from vendor patches
+			Default: -p0
+
+--------------------------------------------------------------------------
 --  Github Support
 --------------------------------------------------------------------------
 
@@ -112,6 +150,8 @@ ECHO_MSG		Used to print the '===>' style comments.
 			Default: ${ECHO_CMD}
 DO_NADA			Command on how to do nothing
 			Default: ${TRUE}
+PATCH_DEBUG		If set, print out more information about the
+			patches as it attempts to apply them.
 
 --------------------------------------------------------------------------
 --  Keyword Descriptions

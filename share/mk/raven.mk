@@ -13,15 +13,55 @@ PACKAGES?=		${RAVENBASE}/packages
 .include "${RAVENBASE}/share/mk/raven.commands.mk"
 
 NAMEBASE?=		undefined	# dummy, must be defined by port makefile
+VARIANT?=		standard	# must be defined by raven tool
+TWO_PART_ID=		${NAMEBASE}-${VARIANT}
+PKGNAMEBASE=		${NAMEBASE}__${VARIANT}
+DISTNAME=		${NAMEBASE}-${DISTVER_PREFIX}${VERSION}${DISTVER_SUFFIX}
 WRKDIR=			${WRKDIRPREFIX}/${NAMEBASE}
 SCRIPTSDIR=		${RAVENBASE}/share/mk/Scripts
 
 .if defined(DIST_SUBDIR)
-_DISTDIR=		${DISTDIR}
-.else
 _DISTDIR=		${DISTDIR}/${DIST_SUBDIR}
+.else
+_DISTDIR=		${DISTDIR}
 .endif
 _DISTINFO_FILE=		${.CURDIR}/distinfo
+
+.if defined(USE_GITHUB)
+WRKSRC?=		${WRKDIR}/${GH_PROJECT}-${GH_TAGNAME_EXTRACT}
+.endif
+.if defined(NO_WRKSUBDIR)
+WRKSRC?=		${WRKDIR}/${TWO_PART_ID}
+EXTRACT_WRKDIR:=	${WRKSRC}
+.else
+WRKSRC?=		${WRKDIR}/${DISTNAME}
+EXTRACT_WRKDIR:=	${WRKDIR}
+.endif
+.if defined(WRKSRC_SUBDIR)
+WRKSRC:=		${WRKSRC}/${WRKSRC_SUBDIR}
+.endif
+
+# --------------------------------------------------------------------------
+# --  Common Definitions
+# --------------------------------------------------------------------------
+
+# These require modification to bmake (which Ravenports have)
+
+.if !defined(OPSYS)
+OPSYS=			${.MAKE.OS.NAME}
+.endif
+
+.if !defined(OSVERSION)
+OSVERSION=		${.MAKE.OS.VERSION}
+.endif
+
+.if !defined(OSREL)
+OSREL=			${.MAKE.OS.RELEASE}
+.endif
+
+.if !defined(ARCH)
+ARCH=			${.MAKE.OS.ARCHITECTURE}
+.endif
 
 # --------------------------------------------------------------------------
 # --  Debugging
@@ -193,14 +233,104 @@ EXTRACT_TAIL_${N}?=	--no-same-owner --no-same-permissions
 clean-wrkdir:
 	@${RM} -r ${WRKDIR}
 
+${EXTRACT_WRKDIR}:
+	@${MKDIR} ${.TARGET}
+
+extract-message:
+	@${ECHO_MSG} "===>  Extracting for ${TWO_PART_ID}"
+
 .if !target(do-extract)
-do-extract:
-	@for N in ${EXTRACT_ONLY}; do \
-		if ! (cd ${EXTRACT_WRKDIR} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}} ${EXTRACT_TAIL_${N}}); \
-		then \
-			exit 1; \
+do-extract: ${EXTRACT_WRKDIR}
+.  for N in ${EXTRACT_ONLY}
+	@if ! (cd ${EXTRACT_WRKDIR} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
+	then \
+		exit 1; \
+	fi
+.  endfor
+	@${CHMOD} -R ug-s ${WRKDIR}
+	@${CHOWN} -R 0:0 ${WRKDIR}
+.endif
+
+.if !target(extract)
+.ORDER: extract-message do-extract
+extract: extract-message do-extract		# add sequence TODO
+.endif
+
+# --------------------------------------------------------------------------
+# --  Phase: Patch
+# --------------------------------------------------------------------------
+
+PATCH_WRKSRC?=		${WRKSRC}
+PATCH_STRIP?=		-p0
+PATCH_DIST_STRIP?=	-p0
+.if defined(PATCH_DEBUG)
+PATCH_ARGS=		-E ${PATCH_STRIP} --batch
+PATCH_DIST_ARGS=	--suffix .bak.orig -E ${PATCH_DIST_STRIP} --batch
+.else
+PATCH_ARGS=		--forward --quiet -E ${PATCH_STRIP} --batch
+PATCH_DIST_ARGS=	--suffix .bak.orig --forward --quiet -E ${PATCH_DIST_STRIP} --batch
+.endif
+
+patch-message:
+	@${ECHO_MSG} "===>  Patching for ${TWO_PART_ID}"
+
+.if !target(do-patch)
+do-patch:
+	@${SETENV} \
+		dp_BZCAT="${BZCAT}" \
+		dp_CAT="${CAT}" \
+		dp_DISTDIR="${_DISTDIR}" \
+		dp_ECHO_MSG="${ECHO_MSG}" \
+		dp_GZCAT="${GZCAT}" \
+		dp_OPSYS="${OPSYS}" \
+		dp_PATCH="${PATCH}" \
+		dp_PATCHDIR="${.CURDIR}/patches" \
+		dp_OPSYS_PATCHDIR="${.CURDIR}/opsys" \
+		dp_PATCHFILES="${_PATCHFILES:C/:.*//}" \
+		dp_PATCH_ARGS=${PATCH_ARGS:Q} \
+		dp_PATCH_DEBUG_TMP="${PATCH_DEBUG:Dyes}" \
+		dp_PATCH_DIST_ARGS="${PATCH_DIST_ARGS}" \
+		dp_PATCH_SILENT="yes" \
+		dp_PATCH_WRKSRC=${PATCH_WRKSRC} \
+		dp_PORTID="${TWO_PART_ID}" \
+		dp_SCRIPTSDIR="${SCRIPTSDIR}" \
+		dp_UNZIP_CMD="${UNZIP_CMD}" \
+		dp_XZCAT="${XZCAT}" \
+		${SH} ${SCRIPTSDIR}/do-patch.sh
+.endif
+
+.if !target(patch)
+.ORDER: patch-message do-patch
+patch: patch-message do-patch		# add sequence TODO
+.endif
+
+# --------------------------------------------------------------------------
+# --  Clean routines
+# --------------------------------------------------------------------------
+
+clean-msg:
+	@${ECHO_MSG} "===>  Cleaning for ${TWO_PART_ID}"
+
+.for T in pre-clean post-clean
+.  if !target(${T})
+${T}:
+	@${DO_NADA}
+.  endif
+.endfor
+
+.if !target(do-clean)
+do-clean:
+	@if [ -d ${WRKDIR} ]; then \
+		if [ -w ${WRKDIR} ]; then \
+			${RM} -r ${WRKDIR}; \
+			${FIND} ${WRKDIR:H} -type d -maxdepth 1 -empty -delete; \
+		else \
+			${ECHO_MSG} "===>   ${WRKDIR} not writable, skipping"; \
 		fi; \
-	done
-	${CHMOD} -R ug-s ${WRKDIR}
-	${CHOWN} -R 0:0 ${WRKDIR}
+	fi
+.endif
+
+.if !target(clean)
+.ORDER: clean-msg pre-clean do-clean post-clean
+clean: clean-msg pre-clean do-clean post-clean
 .endif
