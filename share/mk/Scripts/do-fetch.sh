@@ -11,6 +11,8 @@ validate_env dp_DISTDIR dp_DISTINFO_FILE dp_DISABLE_CHECKSUM dp_DISABLE_SIZE \
 
 [ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_DO_FETCH}" ] && set -x
 
+. "${dp_SCRIPTSDIR}/sites.sh"
+
 set -u
 
 if [ ! -d "${dp_DISTDIR}" ]; then
@@ -75,15 +77,16 @@ for _file in "${@}"; do
 		# Disable nounset for this, it may come up empty, but
 		# we don't want to fail with a strange error here.
 		set +u
-		eval ___MASTER_SITES_TMP="\${_DOWNLOAD_SITES_${group}}"
+		eval __MASTER_SITES_TMP3="\${_DOWNLOAD_SITES_${group}}"
 		set -u
-		if [ -n "${___MASTER_SITES_TMP}" ] ; then
-			__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${___MASTER_SITES_TMP}"
+		if [ -n "${__MASTER_SITES_TMP3}" ] ; then
+			__MASTER_SITES_TMP4="$(process_site ${__MASTER_SITES_TMP3})"
+			__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${__MASTER_SITES_TMP4}"
 		else
 			case ${dp_TARGET} in
 				do-fetch|makesum)
 					${dp_ECHO_MSG} "===> /!\\ Error /!\\"
-					${dp_ECHO_MSG} "     The ${file} of ${group} group is not present."
+					${dp_ECHO_MSG} "     DL_SITES_${group} group is not defined."
 					${dp_ECHO_MSG} "     Check for typos, or errors."
 					exit 1
 					;;
@@ -91,7 +94,8 @@ for _file in "${@}"; do
 
 		fi
 	done
-	___MASTER_SITES_TMP=
+	__MASTER_SITES_TMP3=
+	__MASTER_SITES_TMP4=
 	SORTED_MASTER_SITES_CMD_TMP="echo ${dp_MASTER_SITE_OVERRIDE} $(echo -n "${__MASTER_SITES_TMP}" | awk "${dp_MASTER_SORT_AWK}") ${dp_MASTER_SITE_BACKUP}"
 	case ${dp_TARGET} in
 		fetch-list)
