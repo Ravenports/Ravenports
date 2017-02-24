@@ -181,6 +181,28 @@ STAGE_COOKIE=		${WRKDIR}/.done_stage
 INSTALL_COOKIE=		${WRKDIR}/.done_install
 PACKAGE_COOKIE=		${WRKDIR}/.done_package
 
+# Disable build
+.if defined(NO_BUILD)
+build: configure
+	@${TOUCH} ${TOUCH_FLAGS} ${BUILD_COOKIE}
+.endif
+
+# Disable test
+.if defined(NO_TEST)
+test: stage
+	@${DO_NADA}
+.endif
+
+# Disable package
+.if defined(NO_PACKAGE)
+package:
+.  if defined(IGNORE_SILENT)
+	@${DO_NADA}
+.  else
+	@${ECHO_MSG} "===>  ${PKGNAME} may not be packaged: "${NO_PACKAGE:Q}.
+.  endif
+.endif
+
 .for target in extract patch configure build stage install package
 
 .  if !target(${target})

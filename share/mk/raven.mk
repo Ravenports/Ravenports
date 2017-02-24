@@ -269,10 +269,12 @@ PATCH_STRIP?=		-p0
 PATCH_DIST_STRIP?=	-p0
 .if defined(PATCH_DEBUG)
 PATCH_ARGS=		-E ${PATCH_STRIP} --batch
-PATCH_DIST_ARGS=	--suffix .bak.orig -E ${PATCH_DIST_STRIP} --batch
+PATCH_DIST_ARGS=	--suffix .orig -E ${PATCH_DIST_STRIP} --batch \
+			-V simple
 .else
 PATCH_ARGS=		--forward --quiet -E ${PATCH_STRIP} --batch
-PATCH_DIST_ARGS=	--suffix .bak.orig --forward --quiet -E ${PATCH_DIST_STRIP} --batch
+PATCH_DIST_ARGS=	--suffix .orig --forward --quiet \
+			-E ${PATCH_DIST_STRIP} --batch -V simple
 .endif
 
 patch-message:
@@ -488,6 +490,94 @@ do-configure:
 			 ${FALSE}; \
 		fi)
 .  endif
+.endif
+
+# --------------------------------------------------------------------------
+# --  Phase: Build
+# --------------------------------------------------------------------------
+
+MAKE_CMD?=		${BSDMAKE}
+MAKEFILE?=		Makefile
+MAKE_ENV+=		PREFIX=${PREFIX} \
+			LOCALBASE=${LOCALBASE} \
+			LIBDIR="${LIBDIR}" \
+			CC="${CC}" CFLAGS="${CFLAGS}" \
+			CPP="${CPP}" CPPFLAGS="${CPPFLAGS}" \
+			LDFLAGS="${LDFLAGS}" LIBS="${LIBS}" \
+			CXX="${CXX}" CXXFLAGS="${CXXFLAGS}" \
+			MANPREFIX="${MANPREFIX}"
+DESTDIRNAME?=		DESTDIR
+STAGEDIR=		${WRKDIR}/stage
+
+.if defined(_DESTDIR_VIA_ENV)
+MAKE_ENV+=		${DESTDIRNAME}=${STAGEDIR}
+.else
+MAKE_ARGS+=		${DESTDIRNAME}=${STAGEDIR}
+.endif
+
+.for lang in C CXX
+.  if defined(USE_${lang}STD)
+${lang}FLAGS:=	${${lang}FLAGS:N-std=*} -std=${USE_${lang}STD}
+.  endif
+
+.  if defined(${lang}FLAGS_${ARCH})
+${lang}FLAGS+=	${${lang}FLAGS_${ARCH}}
+.  endif
+.endfor
+
+.undef (BUILD_FAIL_MESSAGE)
+
+# Multiple make jobs support
+.if defined(DISABLE_MAKE_JOBS) || defined(SINGLE_JOB)
+_MAKE_JOBS=		#
+MAKE_JOBS_NUMBER=	1
+.else
+.  if defined(MAKE_JOBS_NUMBER)
+_MAKE_JOBS_NUMBER:=	${MAKE_JOBS_NUMBER}
+.  else
+.    if !defined(NUMBER_CPUS)
+.error 'NUMBER_CPUS' must be defined in toplevel make.conf
+.    endif
+_MAKE_JOBS_NUMBER=	${NUMBER_CPUS}
+.  endif
+.  if defined(MAKE_JOBS_NUMBER_LIMIT) && ( ${MAKE_JOBS_NUMBER_LIMIT} < ${_MAKE_JOBS_NUMBER} )
+MAKE_JOBS_NUMBER=	${MAKE_JOBS_NUMBER_LIMIT}
+.  else
+MAKE_JOBS_NUMBER=	${_MAKE_JOBS_NUMBER}
+.  endif
+_MAKE_JOBS?=		-j${MAKE_JOBS_NUMBER}
+BUILD_FAIL_MESSAGE=	Try to set SINGLE_JOBS=yes and rebuild before reporting the failure.
+.endif
+
+DO_MAKE_BUILD?=		${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
+			${MAKEFILE} ${_MAKE_JOBS} ${MAKE_ARGS:C,^${DESTDIRNAME}=.*,,g}
+
+.if defined(WITH_CCACHE_BUILD) && !defined(NO_CCACHE) && !defined(NO_BUILD)
+#TODO: Add build dependency on ccache port
+#TODO: Obviously ccache port has to have NO_CCACHE set to avoid cycle
+CCACHE_DIR?=		/root/.ccache
+_CCACHE_PATH=		${LOCALBASE}/libexec/ccache
+
+# Prepend the ccache dir into the PATH and setup ccache env
+PATH:=	${_CCACHE_PATH}:${PATH}
+.  if !${MAKE_ENV:MPATH=*} && !${CONFIGURE_ENV:MPATH=*}
+MAKE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
+CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
+.  endif
+.endif
+
+build-message:
+	@${ECHO_MSG} "===>  Building for ${TWO_PART_ID}"
+
+.if !target(do-build)
+do-build:
+	@(cd ${BUILD_WRKSRC}; if ! ${DO_MAKE_BUILD} ${ALL_TARGET}; then \
+		if [ -n "${BUILD_FAIL_MESSAGE}" ] ; then \
+			${ECHO_MSG} "===> Compilation failed unexpectedly."; \
+			(${ECHO_CMD} "${BUILD_FAIL_MESSAGE}"); \
+		fi; \
+		${FALSE}; \
+	fi)
 .endif
 
 .include "${RAVENBASE}/share/mk/raven.sequence.mk"
