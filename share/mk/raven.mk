@@ -15,7 +15,8 @@ PREFIX?=		${LOCALBASE}
 .include "${RAVENBASE}/share/mk/raven.commands.mk"
 
 NAMEBASE?=		undefined	# dummy, must be defined by port makefile
-VARIANT?=		standard	# must be defined by raven tool
+VARIANT?=		standard	# must be defined by ravenadm
+SUBPACKAGES?=		single		# must be defined by ravenadm; list
 TWO_PART_ID=		${NAMEBASE}-${VARIANT}
 PKGNAMEBASE=		${NAMEBASE}__${VARIANT}
 DISTNAME=		${NAMEBASE}-${DISTVER_PREFIX}${VERSION}${DISTVER_SUFFIX}
@@ -26,6 +27,7 @@ MK_KEYWORDS=		${RAVENBASE}/share/mk/Keywords
 SCRIPTDIR=		${.CURDIR}/scripts
 PATCHDIR=		${.CURDIR}/patches
 FILESDIR=		${.CURDIR}/files
+MANIFESTDIR=		${.CURDIR}/manifests
 PKGMESSAGE?=		${.CURDIR}/files/pkg-message
 PKGINSTALL?=		${.CURDIR}/files/pkg-install
 PKGDEINSTALL?=		${.CURDIR}/files/pkg-deinstall
@@ -253,7 +255,7 @@ extract-fixup-modes:
 
 .if !target(apply-slist)
 .  for i in pkg-message pkg-install pkg-deinstall
-.    if ${SUB_FILES:M${i}.in}
+.    if !empty (${SUB_FILES:M${i}.in})
 ${i:S/-//:tu}=		${WRKDIR}/${SUB_FILES:M${i}}
 .    endif
 .  endfor
@@ -412,6 +414,7 @@ SCRIPTS_ENV+=		${INSTALL_MACROS} \
 # --  Phase: Configure
 # --------------------------------------------------------------------------
 
+INFO_PATH?=		info
 CONFIGURE_WRKSRC?=	${WRKSRC}
 CONFIGURE_SCRIPT?=	configure
 CONFIGURE_CMD=		./${CONFIGURE_SCRIPT}
@@ -643,6 +646,101 @@ do-install:
 	@(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_FLAGS} ${MAKEFILE} ${MAKE_ARGS} \
 		${INSTALL_TARGET})
+.endif
+
+# --------------------------------------------------------------------------
+# --  Manifest handling
+# --------------------------------------------------------------------------
+
+TMP_MANIFESTS=		${SUBPACKAGES:C|(.*)|${WRKDIR}/.manifest.\1.mktmp|}
+TMP_MANIFESTS_SORT=	${TMP_MANIFESTS:.mktmp=.mktmp.sorted}
+
+.for plist in ${TMP_MANIFESTS}
+${plist}.sorted: ${plist}
+	@${SORT} -u ${.ALLSRC} > ${.TARGET}
+.endfor
+
+generate-plist: ${TMP_MANIFESTS}
+
+${TMP_MANIFESTS}:
+	@${ECHO_MSG} "===>   Generating temporary packing list (${.TARGET:R:E})"
+	@${MKDIR} ${.TARGET:H}
+	@${TOUCH} ${.TARGET}
+	@if [ -f ${.CURDIR}/manifests/{.TARGET:R:E}.${VARIANT} ]; then \
+		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
+		${.CURDIR}/manifests/{.TARGET:R:E}.${VARIANT} >> ${.TARGET}; \
+	fi
+
+.undef INFO_USED
+.undef INFO_SUBDIR
+.for sp in ${SUBPACKAGES}
+.  if defined(INFO_${sp}) && !empty(INFO_${sp})
+INFO_USED=	yes
+.    for D in ${INFO_${sp}:H}
+RD:=		${D}
+.      if ${RD} != "."
+.        if !defined(INFO_SUBDIR)
+INFO_SUBDIR:=	${RD}
+.        endif
+.      endif
+.    endfor
+.  endif
+.endfor
+.undef RD
+
+.if defined(INFO_USED)
+# TODO: Add RUN_DEPENDS on indexinfo
+.endif
+
+.if !target(add-plist-info)
+add-plist-info:
+.  for sp in ${SUBPACKAGES}
+.    for i in ${INFO_${sp}}
+	@${LS} ${STAGEDIR}${PREFIX}/${INFO_PATH}/$i.info* | \
+	${SED} -e s:${STAGEDIR}:@info\ :g >> ${.CURDIR}/manifest.${sp}.mktmp
+.    endfor
+.  endfor
+.endif
+
+# If we're installing into a non-standard PREFIX, we need to remove that
+# directory at deinstall-time.  At this time, PREFIX should be prohibited
+# from being "/usr" or "/" but leave the check in anyway.
+
+.if !target(add-plist-post)
+.  if (${PREFIX} != ${LOCALBASE} && ${PREFIX} != "/usr" && ${PREFIX} != "/")
+add-plist-post:
+	@${ECHO_CMD} "@dir ${PREFIX}" >> ${TMPPLIST}
+.  endif
+.endif
+
+# "docs" is a standard subpackage name.
+# All port docs must be located at ${PREFIX}/share/docs/${NAMEBASE}
+# If manifests/docs.${VARIANT} does not exist (which is handled by
+# generate-plist target already), autogeneration is assumed.
+
+.if !target(add-plist-docs)
+.  if ${SUBPACKAGES:Mdocs}
+.    if !exists(${.CURDIR}/manifests/docs.${VARIANT})
+add-plist-docs:
+	@${FIND} -s ${STAGEDIR}${PREFIX}/share/docs \
+	\( -type f -o -type l \) 2>/dev/null >> ${WRKDIR}/.manifest.docs.mktmp
+.    endif
+.  endif
+.endif
+
+# "examples" is a standard subpackage name.
+# All port examples must be located at ${PREFIX}/share/examples/${NAMEBASE}
+# If manifests/examples.${VARIANT} does not exist (which is handled by
+# generate-plist target already), autogeneration is assumed.
+
+.if !target(add-plist-examples)
+.  if ${SUBPACKAGES:Mexamples}
+.    if !exists(${.CURDIR}/manifests/examples.${VARIANT})
+add-plist-examples:
+	@${FIND} -s ${STAGEDIR}${PREFIX}/share/examples \
+	\( -type f -o -type l \) 2>/dev/null >> ${WRKDIR}/.manifest.examples.mktmp
+.    endif
+.  endif
 .endif
 
 .include "${RAVENBASE}/share/mk/raven.sequence.mk"

@@ -25,12 +25,12 @@ of each port directory is used to generate a port buildsheet.
 The conspiracy directory contains all the buildsheets.  These single
 files are the complete recipe for building the software for which they
 were created.  These buildsheets are not meant to be viewed directly,
-as their information can be queries by the raven tool.  The conspiracy
+as their information can be queries by the ravenadm tool.  The conspiracy
 buildsheets are "compiled" from source ports and getting the latest
 ports is accomplished by updating this directory.
 
-  3. **Raven tool:**
-Raven is the administration tool for Ravenports.  It can query the
+  3. **Raven administration tool:**
+The administration tool for Ravenports is ravenadm.  It can query the
 ports for many types of information like a database.  It can build
 packages in parallel (think synth interface).  It controls the build
 environment such that it is the same across users, even if those
@@ -52,7 +52,7 @@ without recursion or shell forking.  Keeping this logic at
 ${RAVENBASE}/share/mk will ensure adaptability.
 
 The options handling and other complex logic that affect package
-dependencies will be done by the Raven tool internally.  This will
+dependencies will be done by the ravenadm internally.  This will
 enable speedups by magnitudes as compared to other ports systems.
 
 ## Updates

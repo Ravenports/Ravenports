@@ -113,9 +113,8 @@ _STAGE_SEQ=		050:stage-message \
 			900:add-plist-info \
 			910:add-plist-docs \
 			920:add-plist-examples \
-			930:add-plist-data \
-			940:add-plist-post \
-			${POST_PLIST:C/^/990:/} \
+			930:add-plist-post \
+			${POST_PLIST_TARGET:C/^/990:/} \
 			${_OPTIONS_install} \
 			${_USES_install} \
 			${_OPTIONS_stage} \
