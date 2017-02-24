@@ -812,4 +812,28 @@ add-plist-examples:
 .  endif
 .endif
 
+# --------------------------------------------------------------------------
+# --  Phase: Test (optional)
+# --------------------------------------------------------------------------
+
+test-message:
+	@${ECHO_MSG} "===>  Testing for ${TWO_PART_ID}"
+
+.if !target(do-test) && defined(TEST_TARGET)
+DO_MAKE_TEST?=		${SETENV} ${TEST_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
+			${MAKEFILE} ${TEST_ARGS:C,^${DESTDIRNAME}=.*,,g}
+do-test:
+	@(cd ${TEST_WRKSRC}; \
+	if ! ${DO_MAKE_TEST} ${TEST_TARGET}; then \
+		if [ -n "${TEST_FAIL_MESSAGE}" ] ; then \
+			${ECHO_MSG} "===> Tests failed unexpectedly."; \
+			(${ECHO_CMD} "${TEST_FAIL_MESSAGE}"); \
+		fi; \
+		${FALSE}; \
+	fi)
+.elif !target(do-test)
+do-test:
+	@${DO_NADA}
+.endif
+
 .include "${RAVENBASE}/share/mk/raven.sequence.mk"
