@@ -108,6 +108,7 @@ _STAGE_SEQ=		050:stage-message \
 			800:post-stage \
 			850:compress-man \
 			860:install-rc-script \
+			870:install-smf-manifest \
 			880:install-license \
 			890:install-desktop-entries \
 			900:add-plist-info \

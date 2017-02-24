@@ -54,6 +54,7 @@ SH=		/bin/sh
 SHA256=		/bin/sha256
 SORT=		/usr/bin/sort
 STRIP_CMD=	/usr/bin/strip
+STAT=		/usr/bin/stat
 TAIL=		/usr/bin/tail
 TEST=		test	# shell builtin
 TOUCH=		/usr/bin/touch

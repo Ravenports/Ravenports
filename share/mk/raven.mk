@@ -415,6 +415,7 @@ SCRIPTS_ENV+=		${INSTALL_MACROS} \
 # --------------------------------------------------------------------------
 
 INFO_PATH?=		info
+MANPREFIX?=		${PREFIX}
 CONFIGURE_WRKSRC?=	${WRKSRC}
 CONFIGURE_SCRIPT?=	configure
 CONFIGURE_CMD=		./${CONFIGURE_SCRIPT}
@@ -610,6 +611,11 @@ do-build:
 # --  Phase: Stage
 # --------------------------------------------------------------------------
 
+MANDIRS=		${MANPREFIX}/man
+.for sect in 1 2 3 4 5 6 7 8 9 L N
+MAN${sect}PREFIX?=	${MANPREFIX}
+.endfor
+
 stage-message:
 	@${ECHO_MSG} "===>  Staging for ${TWO_PART_ID}"
 
@@ -632,6 +638,8 @@ stage-dir:
 		${STAGEDIR}${PREFIX}/man/man7 \
 		${STAGEDIR}${PREFIX}/man/man8 \
 		${STAGEDIR}${PREFIX}/man/man9 \
+		${STAGEDIR}${PREFIX}/man/mann \
+		${STAGEDIR}${PREFIX}/man/manl \
 		${STAGEDIR}${PREFIX}/sbin \
 		${STAGEDIR}${PREFIX}/share/doc \
 		${STAGEDIR}${PREFIX}/share/examples \
@@ -646,6 +654,65 @@ do-install:
 	@(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_FLAGS} ${MAKEFILE} ${MAKE_ARGS} \
 		${INSTALL_TARGET})
+.endif
+
+# Compress all manpage not already compressed and also not hardlinks
+# Find all manpages which are not compressed and are hadlinks, and only
+# get the list of inodes concerned, for each of them compress the first
+# one found and recreate the hardlinks for the others.
+# Fixes all dead symlinks left by the previous round.
+
+.if !target(compress-man)
+compress-man:
+	@${ECHO_MSG} "====> Compressing man pages (compress-man)"
+	@mdirs= ; \
+	for dir in ${MANDIRS:S/^/${STAGEDIR}/} ; do \
+		[ -d $$dir ] && mdirs="$$mdirs $$dir" ;\
+	done ; \
+	for dir in $$mdirs; do \
+		${FIND} $$dir -type f \! -name "*.gz" -links 1 -exec ${GZIP_CMD} {} \; ; \
+		${FIND} $$dir -type f \! -name "*.gz" \! -links 1 -exec ${STAT} -f '%i' {} \; | \
+			${SORT} -u | while read inode ; do \
+				unset ref ; \
+				for f in $$(${FIND} $$dir -type f -inum $${inode} -print); do \
+					if [ -z $$ref ]; then \
+						ref=$${f}.gz ; \
+						${GZIP_CMD} $${f} ; \
+						continue ; \
+					fi ; \
+					${RM} $${f} ; \
+					(cd $${f%/*}; ${LN} -f $${ref##*/} $${f##*/}.gz) ; \
+				done ; \
+			done ; \
+		${FIND} $$dir -type l \! -name "*.gz" | while read link ; do \
+				${LN} -sf $$(readlink $$link).gz $$link.gz ;\
+				${RM} $$link ; \
+		done; \
+	done
+.endif
+
+.if !target(install-rc-script)
+.undef RC_SUBR_USED
+.  for sp in ${SUBPACKAGES}
+.    if defined(RC_SUBR_${sp}) && !empty(RC_SUBR__${sp})
+RC_SUBR_USED=	yes
+.    endif
+.  endfor
+.  if defined(RC_SUBR_USED)
+install-rc-script:
+.    for sp in ${SUBPACKAGES}
+.      if defined(RC_SUBR_${sp}) && !empty(RC_SUBR__${sp})
+	@${ECHO_MSG} "===> Staging rc.d startup scripts (${sp})"
+	@for i in ${RC_SUBR_${sp}}; do \
+		_prefix=${PREFIX}; \
+		[ "${PREFIX}" = "/usr" ] && _prefix="" ; \
+		${INSTALL_SCRIPT} ${WRKDIR}/$${i} ${STAGEDIR}$${_prefix}/etc/rc.d/$${i%.sh}; \
+		${ECHO_CMD} "$${_prefix}/etc/rc.d/$${i%.sh}" \
+		>> >> ${WRKDIR}/.manifest.${sp}.mktmp; \
+	done
+.      endif
+.    endfor
+.  endif
 .endif
 
 # --------------------------------------------------------------------------
@@ -709,7 +776,9 @@ add-plist-info:
 .if !target(add-plist-post)
 .  if (${PREFIX} != ${LOCALBASE} && ${PREFIX} != "/usr" && ${PREFIX} != "/")
 add-plist-post:
-	@${ECHO_CMD} "@dir ${PREFIX}" >> ${TMPPLIST}
+.    for sp in ${SUBPACKAGES}
+	@${ECHO_CMD} "@dir ${PREFIX}" >> ${.CURDIR}/manifest.${sp}.mktmp
+.    endfor
 .  endif
 .endif
 
