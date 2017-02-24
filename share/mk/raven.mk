@@ -155,10 +155,6 @@ do-fetch:
 .  endif
 .endif
 
-.if !target(fetch)
-fetch: do-fetch		# add sequence TODO
-.endif
-
 # --------------------------------------------------------------------------
 # --  Phase: Checksum
 # --------------------------------------------------------------------------
@@ -251,11 +247,6 @@ do-extract: ${EXTRACT_WRKDIR}
 	@${CHOWN} -R 0:0 ${WRKDIR}
 .endif
 
-.if !target(extract)
-.ORDER: extract-message do-extract
-extract: extract-message do-extract		# add sequence TODO
-.endif
-
 # --------------------------------------------------------------------------
 # --  Phase: Patch
 # --------------------------------------------------------------------------
@@ -299,11 +290,6 @@ do-patch:
 		${SH} ${SCRIPTSDIR}/do-patch.sh
 .endif
 
-.if !target(patch)
-.ORDER: patch-message do-patch
-patch: patch-message do-patch		# add sequence TODO
-.endif
-
 # --------------------------------------------------------------------------
 # --  Clean routines
 # --------------------------------------------------------------------------
@@ -334,3 +320,5 @@ do-clean:
 .ORDER: clean-msg pre-clean do-clean post-clean
 clean: clean-msg pre-clean do-clean post-clean
 .endif
+
+.include "${RAVENBASE}/share/mk/raven.sequence.mk"

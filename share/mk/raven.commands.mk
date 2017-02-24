@@ -55,6 +55,7 @@ SORT=		/usr/bin/sort
 STRIP_CMD=	/usr/bin/strip
 TAIL=		/usr/bin/tail
 TEST=		test	# shell builtin
+TOUCH=		/usr/bin/touch
 TR=		/usr/bin/tr
 TRUE=		true	# shell builtin
 TAR=		/usr/bin/tar
