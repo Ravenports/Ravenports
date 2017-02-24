@@ -26,6 +26,9 @@ MK_KEYWORDS=		${RAVENBASE}/share/mk/Keywords
 SCRIPTDIR=		${.CURDIR}/scripts
 PATCHDIR=		${.CURDIR}/patches
 FILESDIR=		${.CURDIR}/files
+PKGMESSAGE?=		${.CURDIR}/files/pkg-message
+PKGINSTALL?=		${.CURDIR}/files/pkg-install
+PKGDEINSTALL?=		${.CURDIR}/files/pkg-deinstall
 
 .if defined(DIST_SUBDIR)
 _DISTDIR=		${DISTDIR}/${DIST_SUBDIR}
@@ -247,6 +250,26 @@ extract-message:
 
 extract-fixup-modes:
 	@${CHMOD} -R u+w,a+rX ${WRKDIR}
+
+.if !target(apply-slist)
+.  for i in pkg-message pkg-install pkg-deinstall
+.    if ${SUB_FILES:M${i}.in}
+${i:S/-//:tu}=		${WRKDIR}/${SUB_FILES:M${i}}
+.    endif
+.  endfor
+_SUB_LIST_TEMP=		${SUB_LIST:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/}
+
+apply-slist:
+.  for file in ${SUB_FILES}
+.    if exists(${FILESDIR}/${file}.in)
+	@${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file}
+.    else
+	@${ECHO_MSG} "** Checked ${FILESDIR}:"; \
+	@${ECHO_MSG} "** Missing ${file}.in for ${TWO_PART_ID}."; \
+	exit 1
+.    endif
+.  endfor
+.endif
 
 .if !target(do-extract)
 do-extract: ${EXTRACT_WRKDIR}
@@ -509,7 +532,7 @@ MAKE_ENV+=		PREFIX=${PREFIX} \
 DESTDIRNAME?=		DESTDIR
 STAGEDIR=		${WRKDIR}/stage
 
-.if defined(_DESTDIR_VIA_ENV)
+.if defined(DESTDIR_VIA_ENV)
 MAKE_ENV+=		${DESTDIRNAME}=${STAGEDIR}
 .else
 MAKE_ARGS+=		${DESTDIRNAME}=${STAGEDIR}
@@ -578,6 +601,48 @@ do-build:
 		fi; \
 		${FALSE}; \
 	fi)
+.endif
+
+# --------------------------------------------------------------------------
+# --  Phase: Stage
+# --------------------------------------------------------------------------
+
+stage-message:
+	@${ECHO_MSG} "===>  Staging for ${TWO_PART_ID}"
+
+.if !target(stage-dir)
+stage-dir:
+	@${MKDIR} \
+		${STAGEDIR}${PREFIX}/bin \
+		${STAGEDIR}${PREFIX}/etc/rc.d \
+		${STAGEDIR}${PREFIX}/include \
+		${STAGEDIR}${PREFIX}/info \
+		${STAGEDIR}${PREFIX}/lib/pkgconfig \
+		${STAGEDIR}${PREFIX}/libdata \
+		${STAGEDIR}${PREFIX}/libexec \
+		${STAGEDIR}${PREFIX}/man/man1 \
+		${STAGEDIR}${PREFIX}/man/man2 \
+		${STAGEDIR}${PREFIX}/man/man3 \
+		${STAGEDIR}${PREFIX}/man/man4 \
+		${STAGEDIR}${PREFIX}/man/man5 \
+		${STAGEDIR}${PREFIX}/man/man6 \
+		${STAGEDIR}${PREFIX}/man/man7 \
+		${STAGEDIR}${PREFIX}/man/man8 \
+		${STAGEDIR}${PREFIX}/man/man9 \
+		${STAGEDIR}${PREFIX}/sbin \
+		${STAGEDIR}${PREFIX}/share/doc \
+		${STAGEDIR}${PREFIX}/share/examples \
+		${STAGEDIR}${PREFIX}/share/locale \
+		${STAGEDIR}${PREFIX}/share/nls \
+		${STAGEDIR}${PREFIX}/www \
+		# end
+.endif
+
+.if !target(do-install) && !defined(NO_INSTALL)
+do-install:
+	@(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${MAKE_CMD} ${MAKE_FLAGS} ${MAKEFILE} ${MAKE_ARGS} \
+		${INSTALL_TARGET})
 .endif
 
 .include "${RAVENBASE}/share/mk/raven.sequence.mk"

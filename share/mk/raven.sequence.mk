@@ -38,6 +38,7 @@ _EXTRACT_SEQ=		050:extract-message \
 			400:pre-extract-opsys \
 			450:pre-extract-script \
 			500:do-extract \
+			600:apply-slist \
 			700:post-extract \
 			750:post-extract-opsys \
 			850:post-extract-script \
@@ -95,20 +96,18 @@ _STAGE_DEP=		build
 _STAGE_SEQ=		050:stage-message \
 			100:stage-dir \
 			150:run-depends \
-			151:lib-depends \
-			200:apply-slist \
+			155:lib-depends \
 			300:pre-install \
+			350:pre-install-opsys \
 			400:generate-plist \
-			450:pre-su-install \
-			475:create-users-groups \
+			450:create-users-groups \
 			500:do-install \
-			550:kmod-post-install \
 			700:post-install \
+			725:post-install-opsys \
 			750:post-install-script \
 			800:post-stage \
 			850:compress-man \
 			860:install-rc-script \
-			870:install-ldconfig-file \
 			880:install-license \
 			890:install-desktop-entries \
 			900:add-plist-info \
@@ -199,7 +198,7 @@ package:
 .  if defined(IGNORE_SILENT)
 	@${DO_NADA}
 .  else
-	@${ECHO_MSG} "===>  ${PKGNAME} may not be packaged: "${NO_PACKAGE:Q}.
+	@${ECHO_MSG} "===>  ${TWO_PART_ID} may not be packaged: "${NO_PACKAGE:Q}.
 .  endif
 .endif
 
