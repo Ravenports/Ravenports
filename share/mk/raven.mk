@@ -836,4 +836,36 @@ do-test:
 	@${DO_NADA}
 .endif
 
+# --------------------------------------------------------------------------
+# --  Phase: Install (to host system)
+# --------------------------------------------------------------------------
+
+install-message:
+	@${ECHO_MSG} "===>  Installing for ${TWO_PART_ID} to system"
+
+.if !target(check-already-installed)
+.  if !defined(NO_PKG_REGISTER) && !defined(FORCE_PKG_REGISTER)
+check-already-installed:
+.    for sp in ${SUBPACKAGES}
+	@${ECHO_MSG} "===>  Checking if ${PKGNAMEBASE}__${sp} already installed"; \
+	pkgname=`${PKG_INFO} -q -O ${PKGNAMEBASE}__${sp}`; \
+	if [ -n "$${pkgname}" ]; then \
+		v=`${PKG_VERSION} -t $${pkgname} ${PKGNAMEBASE}__${sp}-${VERSION}`; \
+		if [ "$${v}" = "<" ]; then \
+			${ECHO_CMD} "===>   An older version of ${PKGNAMEBASE}_${sp} is already installed ($${pkgname})"; \
+		else \
+			${ECHO_CMD} "===>   ${PKGNAMEBASE}__${sp} is already installed"; \
+		fi; \
+		${ECHO_MSG} "      You may wish to \`\`make deinstall'' and install this port again"; \
+		${ECHO_MSG} "      by \`\`make reinstall'' to upgrade it properly."; \
+		${ECHO_MSG} "      If you really wish to overwrite the old port of ${PKGNAMEBASE}__${sp}"; \
+		${ECHO_MSG} "      without deleting it first, set the variable \"FORCE_PKG_REGISTER\""; \
+		${ECHO_MSG} "      in your environment or the \"make install\" command line."; \
+		exit 1; \
+	fi
+.    endfor
+.  endif
+.endif
+
+
 .include "${RAVENBASE}/share/mk/raven.sequence.mk"

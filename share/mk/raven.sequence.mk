@@ -89,8 +89,6 @@ _BUILD_SEQ=		100:build-message \
 
 # STAGE is special in its numbering as it has install and stage,
 # so install is the main, and stage goes after.
-# JRM: I don't know if I like this yet, consider rework
-# Rethink stage-qa target
 
 _STAGE_DEP=		build
 _STAGE_SEQ=		050:stage-message \
@@ -116,6 +114,7 @@ _STAGE_SEQ=		050:stage-message \
 			920:add-plist-examples \
 			930:add-plist-post \
 			${POST_PLIST_TARGET:C/^/990:/} \
+			995:stage-qa \
 			${_OPTIONS_install} \
 			${_USES_install} \
 			${_OPTIONS_stage} \
@@ -160,6 +159,22 @@ _${_t}_REAL_SEQ+=	${s}
 .    endif
 .  endfor
 .ORDER: ${_${_t}_DEP} ${_${_t}_REAL_SEQ}
+.endfor
+
+# --------------------------------------------------------------------------
+# --  pre-* and post-script targets
+# --------------------------------------------------------------------------
+
+.for subphase in pre post
+.  for name in pkg fetch extract patch configure build install package
+.    if exists(${SCRIPTDIR}/${subphase}-${name})
+.      if !target(${subphase}-${name}-script)
+${subphase}-${name}-script:
+	@cd ${.CURDIR} && ${SETENV} ${SCRIPTS_ENV} \
+		${SH} ${SCRIPTDIR}/${subphase}-${name}
+.      endif
+.    endif
+.  endfor
 .endfor
 
 # --------------------------------------------------------------------------
@@ -231,3 +246,19 @@ ${target}: ${_${target:tu}_DEP} ${_${target:tu}_REAL_SEQ}
 .endfor
 
 .PHONY: ${_PHONY_TARGETS}
+
+# --------------------------------------------------------------------------
+# --  Special Targets
+# --------------------------------------------------------------------------
+
+.if !target(restage)
+restage:
+	@${RM} -r ${STAGEDIR} ${STAGE_COOKIE} ${INSTALL_COOKIE} ${PACKAGE_COOKIE}
+	@cd ${.CURDIR} && ${MAKE} stage
+.endif
+
+.if !target(reinstall)
+reinstall:
+	@${RM} ${INSTALL_COOKIE} ${PACKAGE_COOKIE}
+	@cd ${.CURDIR} && DEPENDS_TARGET="${DEPENDS_TARGET}" ${MAKE} -DFORCE_PKG_REGISTER install
+.endif
