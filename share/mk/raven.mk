@@ -245,6 +245,9 @@ ${EXTRACT_WRKDIR}:
 extract-message:
 	@${ECHO_MSG} "===>  Extracting for ${TWO_PART_ID}"
 
+extract-fixup-modes:
+	@${CHMOD} -R u+w,a+rX ${WRKDIR}
+
 .if !target(do-extract)
 do-extract: ${EXTRACT_WRKDIR}
 .  for N in ${EXTRACT_ONLY}
@@ -422,6 +425,31 @@ SET_LATE_CONFIGURE_ARGS= \
 	else \
 		_LATE_CONFIGURE_ARGS="$${_LATE_CONFIGURE_ARGS} ${CONFIGURE_TARGET}" ; \
 	fi;
+.endif
+
+configure-message:
+	@${ECHO_MSG} "===>  Configuring for ${TWO_PART_ID}"
+
+.if !target(run-autotools-fixup)
+run-autotools-fixup:
+.  if ${OPSYS} == FreeBSD && defined(APPLY_F10_FIX)
+	-@for f in `${FIND} ${WRKDIR} -type f \( -name config.libpath -o \
+		-name config.rpath -o -name configure -o -name libtool.m4 -o \
+		-name ltconfig -o -name libtool -o -name aclocal.m4 -o \
+		-name acinclude.m4 \)` ; do \
+			${SED} -i.fbsd10bak \
+				-e 's|freebsd1\*)|freebsd1.\*)|g' \
+				-e 's|freebsd\[12\]\*)|freebsd[12].*)|g' \
+				-e 's|freebsd\[123\]\*)|freebsd[123].*)|g' \
+				-e 's|freebsd\[\[12\]\]\*)|freebsd[[12]].*)|g' \
+				-e 's|freebsd\[\[123\]\]\*)|freebsd[[123]].*)|g' \
+					$${f} ; \
+			cmp -s $${f}.fbsd10bak $${f} || \
+			${ECHO_MSG} "===>   FreeBSD 10 autotools fix applied to $${f}"; \
+			${TOUCH} ${TOUCH_FLAGS} -mr $${f}.fbsd10bak $${f} ; \
+			${RM} $${f}.fbsd10bak ; \
+		done
+.  endif
 .endif
 
 .if !target(do-configure)

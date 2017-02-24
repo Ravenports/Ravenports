@@ -23,23 +23,23 @@ _FETCH_SEQ=		150:fetch-depends \
 			300:pre-fetch \
 			450:pre-fetch-script \
 			500:do-fetch \
-			550:fetch-specials \
 			700:post-fetch \
 			850:post-fetch-script \
 			${_OPTIONS_fetch} \
 			${_USES_fetch}
 
 _EXTRACT_DEP=		fetch
-_EXTRACT_SEQ=		010:check-build-conflicts \
-			050:extract-message \
+_EXTRACT_SEQ=		050:extract-message \
 			100:checksum \
 			150:extract-depends \
 			190:clean-wrkdir \
 			200:${EXTRACT_WRKDIR} \
 			300:pre-extract \
+			400:pre-extract-opsys \
 			450:pre-extract-script \
 			500:do-extract \
 			700:post-extract \
+			750:post-extract-opsys \
 			850:post-extract-script \
 			999:extract-fixup-modes \
 			${_OPTIONS_extract} \
@@ -47,29 +47,29 @@ _EXTRACT_SEQ=		010:check-build-conflicts \
 			${_SITES_extract}
 
 _PATCH_DEP=		extract
-_PATCH_SEQ=		050:ask-license \
-			100:patch-message \
+_PATCH_SEQ=		100:patch-message \
 			150:patch-depends \
 			300:pre-patch \
+			400:pre-patch-opsys \
 			450:pre-patch-script \
 			500:do-patch \
 			700:post-patch \
+			750:post-patch-opsys \
 			850:post-patch-script \
-			880:dfly-patch \
 			${_OPTIONS_patch} \
 			${_USES_patch}
 
-# TODO: standardize dfly-patch
-
 _CONFIGURE_DEP=		patch
 _CONFIGURE_SEQ=		150:build-depends \
-			151:lib-depends \
+			155:lib-depends \
 			200:configure-message \
 			300:pre-configure \
+			400:pre-configure-opsys \
 			450:pre-configure-script \
-			490:run-autotools-fixup \
+			475:run-autotools-fixup \
 			500:do-configure \
 			700:post-configure \
+			750:post-configure-opsys \
 			850:post-configure-script \
 			${_OPTIONS_configure} \
 			${_USES_configure}
@@ -77,9 +77,11 @@ _CONFIGURE_SEQ=		150:build-depends \
 _BUILD_DEP=		configure
 _BUILD_SEQ=		100:build-message \
 			300:pre-build \
+			400:pre-build-opsys \
 			450:pre-build-script \
 			500:do-build \
 			700:post-build \
+			750:post-build-opsys \
 			850:post-build-script \
 			${_OPTIONS_build} \
 			${_USES_build}
