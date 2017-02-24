@@ -72,6 +72,13 @@ NO_WRKSUBDIR		Define when distribution extracts without of a
 			instead of ${WRKDIR}
 DIST_SUBDIR		Optional private subdirectory of ${DISTDIR}.
 			Used for tidiness and reroll disambiguity.
+./patches		Port subdirectory containing common additional
+			patches made by port maintainer.
+./opsys			Port subdirectory containing OS-specific patches.
+			The raven tool dynamically selects the right ones.
+./files			Port subdirectory containing additional
+			(non-patch) files.
+./scripts		Port subdirectory containing auxilliary scripts.
 
 --------------------------------------------------------------------------
 --  Related to distribution
@@ -126,6 +133,35 @@ PATCH_DIST_STRIP	How many elements are stripped from vendor patches
 			Default: -p0
 
 --------------------------------------------------------------------------
+--  Configuration
+--------------------------------------------------------------------------
+
+SCRIPTS_ENV		Additional environment vars passed to scripts in
+			./scripts executed by raven.mk.
+CONFIGURE_WRKSRC	Directory to run configure in
+			Default: ${WRKSRC}
+HAS_CONFIGURE		If set, this port has its own configure script.
+			The configure stage will not do anything if this
+			is not set.
+GNU_CONFIGURE		If set, you are using GNU configure (optional).
+			Implies HAS_CONFIGURE.
+CONFIGURE_SCRIPT	Name of configure script, relative to
+			${CONFIGURE_WRKSRC}. Default: "Makefile.PL"
+			if USES=perl5 and USE_PERL5=configure are set,
+			"configure" otherwise.
+GNU_CONFIGURE_PREFIX	The directory passed as prefix to the configure
+			script if GNU_CONFIGURE is set. Default: ${PREFIX}
+CONFIGURE_ARGS		Pass these arguments to configure if
+			${HAS_CONFIGURE} is set.
+CONFIGURE_ENV		Pass these env (shell-like) to configure if
+			${HAS_CONFIGURE} is set.
+CONFIGURE_LOG		The name of configure log file. It will be printed
+			to the screen if configure fails.
+			Default: config.log
+CONFIGURE_TARGET	The name of target to call when GNU_CONFIGURE is
+			defined. Default: ${ARCH}-raven-${OPSYS:tl}${OSREL}
+
+--------------------------------------------------------------------------
 --  Github Support
 --------------------------------------------------------------------------
 
@@ -152,6 +188,11 @@ DO_NADA			Command on how to do nothing
 			Default: ${TRUE}
 PATCH_DEBUG		If set, print out more information about the
 			patches as it attempts to apply them.
+WITH_DEBUG		If set, debugging flags are added to CFLAGS and the
+			binaries don't get stripped by INSTALL_PROGRAM or
+			INSTALL_LIB.
+DEBUG_FLAGS		When WITH_DEBUG defined, additional flags are
+			passed to compiler.  Default: -g
 
 --------------------------------------------------------------------------
 --  Keyword Descriptions

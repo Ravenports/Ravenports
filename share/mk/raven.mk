@@ -9,6 +9,8 @@ RAVENBASE?=		/raven
 WRKDIRPREFIX?=		/usr/obj/raven
 DISTDIR?=		${RAVENBASE}/distfiles
 PACKAGES?=		${RAVENBASE}/packages
+LOCALBASE?=		/raven
+PREFIX?=		${LOCALBASE}
 
 .include "${RAVENBASE}/share/mk/raven.commands.mk"
 
@@ -18,7 +20,12 @@ TWO_PART_ID=		${NAMEBASE}-${VARIANT}
 PKGNAMEBASE=		${NAMEBASE}__${VARIANT}
 DISTNAME=		${NAMEBASE}-${DISTVER_PREFIX}${VERSION}${DISTVER_SUFFIX}
 WRKDIR=			${WRKDIRPREFIX}/${NAMEBASE}
-SCRIPTSDIR=		${RAVENBASE}/share/mk/Scripts
+MK_SCRIPTS=		${RAVENBASE}/share/mk/Scripts
+MK_TEMPLATES=		${RAVENBASE}/share/mk/Templates
+MK_KEYWORDS=		${RAVENBASE}/share/mk/Keywords
+SCRIPTDIR=		${.CURDIR}/scripts
+PATCHDIR=		${.CURDIR}/patches
+FILESDIR=		${.CURDIR}/files
 
 .if defined(DIST_SUBDIR)
 _DISTDIR=		${DISTDIR}/${DIST_SUBDIR}
@@ -140,7 +147,7 @@ _DO_FETCH_ENV= 		dp_DISTDIR='${_DISTDIR}' \
 			dp_MASTER_SORT_AWK='${MASTER_SORT_AWK}' \
 			dp_DISABLE_CHECKSUM='${SKIP_CHECKSUM}' \
 			dp_DISABLE_SIZE= \
-			dp_SCRIPTSDIR='${SCRIPTSDIR}' \
+			dp_SCRIPTSDIR='${MK_SCRIPTS}' \
 			dp_TARGET='${.TARGET}' \
 			# end
 
@@ -149,12 +156,12 @@ do-fetch:
 .  if !empty(_DISTFILES)
 	@${SETENV} \
 		${_DO_FETCH_ENV} ${_DL_SITES_ENV} \
-		${SH} ${SCRIPTSDIR}/do-fetch.sh ${_DISTFILES:C/.*/'&'/}
+		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_DISTFILES:C/.*/'&'/}
 .  endif
 .  if !empty(_PATCHFILES)
 	@${SETENV} \
 		${_DO_FETCH_ENV} ${_PATCH_SITES_ENV} \
-		${SH} ${SCRIPTSDIR}/do-fetch.sh ${_PATCHFILES:C/:-p[0-9]//:C/.*/'&'/}
+		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_PATCHFILES:C/:-p[0-9]//:C/.*/'&'/}
 .  endif
 .endif
 
@@ -179,10 +186,10 @@ checksum: fetch
 		dp_FETCH_REGET='${FETCH_REGET}' \
 		dp_MAKE='${MAKE}' \
 		dp_MAKEFLAGS='${.MAKEFLAGS}' \
-		dp_SCRIPTSDIR='${SCRIPTSDIR}' \
+		dp_SCRIPTSDIR='${MK_SCRIPTS}' \
 		dp_DISABLE_SIZE= \
 		dp_DISABLE_CHECKSUM= \
-		${SH} ${SCRIPTSDIR}/checksum.sh ${_CKSUMFILES:C/.*/'&'/}
+		${SH} ${MK_SCRIPTS}/checksum.sh ${_CKSUMFILES:C/.*/'&'/}
 .  endif
 .endif
 
@@ -197,14 +204,14 @@ makesum:
 		${_DO_FETCH_ENV} ${_MASTER_SITES_ENV} \
 		dp_DISABLE_CHECKSUM=yes \
 		dp_DISABLE_SIZE=yes \
-		${SH} ${SCRIPTSDIR}/do-fetch.sh ${_DISTFILES:C/.*/'&'/}
+		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_DISTFILES:C/.*/'&'/}
 .  endif
 .  if !empty(PATCHFILES)
 	@${SETENV} \
 		${_DO_FETCH_ENV} ${_PATCH_SITES_ENV} \
 		dp_DISABLE_CHECKSUM=yes \
 		dp_DISABLE_SIZE=yes \
-		${SH} ${SCRIPTSDIR}/do-fetch.sh ${_PATCHFILES:C/:-p[0-9]//:C/.*/'&'/}
+		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_PATCHFILES:C/:-p[0-9]//:C/.*/'&'/}
 .  endif
 	@${SETENV} \
 		${_CHECKSUM_INIT_ENV} \
@@ -213,8 +220,8 @@ makesum:
 		dp_DISTDIR='${_DISTDIR}' \
 		dp_DISTINFO_FILE='${_DISTINFO_FILE}' \
 		dp_ECHO_MSG='${ECHO_MSG}' \
-		dp_SCRIPTSDIR='${SCRIPTSDIR}' \
-		${SH} ${SCRIPTSDIR}/makesum.sh ${_DISTFILES:C/.*/'&'/}
+		dp_SCRIPTSDIR='${MK_SCRIPTS}' \
+		${SH} ${MK_SCRIPTS}/makesum.sh ${_DISTFILES:C/.*/'&'/}
 .endif
 
 # --------------------------------------------------------------------------
@@ -278,7 +285,7 @@ do-patch:
 		dp_GZCAT="${GZCAT}" \
 		dp_OPSYS="${OPSYS}" \
 		dp_PATCH="${PATCH}" \
-		dp_PATCHDIR="${.CURDIR}/patches" \
+		dp_PATCHDIR="${PATCHDIR}" \
 		dp_OPSYS_PATCHDIR="${.CURDIR}/opsys" \
 		dp_PATCHFILES="${_PATCHFILES:C/:.*//}" \
 		dp_PATCH_ARGS=${PATCH_ARGS:Q} \
@@ -287,10 +294,10 @@ do-patch:
 		dp_PATCH_SILENT="yes" \
 		dp_PATCH_WRKSRC=${PATCH_WRKSRC} \
 		dp_PORTID="${TWO_PART_ID}" \
-		dp_SCRIPTSDIR="${SCRIPTSDIR}" \
+		dp_SCRIPTSDIR="${MK_SCRIPTS}" \
 		dp_UNZIP_CMD="${UNZIP_CMD}" \
 		dp_XZCAT="${XZCAT}" \
-		${SH} ${SCRIPTSDIR}/do-patch.sh
+		${SH} ${MK_SCRIPTS}/do-patch.sh
 .endif
 
 # --------------------------------------------------------------------------
@@ -322,6 +329,137 @@ do-clean:
 .if !target(clean)
 .ORDER: clean-msg pre-clean do-clean post-clean
 clean: clean-msg pre-clean do-clean post-clean
+.endif
+
+# --------------------------------------------------------------------------
+# --  Set up environment
+# --------------------------------------------------------------------------
+
+INSTALL=		install
+BINMODE?=		555
+MANMODE?=		444
+SHAREMODE?=		444
+_SHAREMODE?=		0644
+
+.if defined(WITH_DEBUG)
+STRIP=			# none
+STRIP_CMD=		${TRUE}
+DEBUG_FLAGS?=		-g
+MAKE_ENV+=		DONTSTRIP=yes
+CFLAGS:=		${CFLAGS} ${DEBUG_FLAGS}
+
+.  if defined(INSTALL_TARGET)
+INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
+.  endif
+.endif
+
+ALL_TARGET?=		all
+INSTALL_TARGET?=	install
+
+INSTALL_PROGRAM=	${INSTALL} ${STRIP} -m ${BINMODE}
+INSTALL_LIB=		${INSTALL} ${STRIP} -m ${SHAREMODE}
+INSTALL_SCRIPT=		${INSTALL} -m ${BINMODE}
+INSTALL_DATA=		${INSTALL} -m ${_SHAREMODE}
+INSTALL_MAN=		${INSTALL} -m ${MANMODE}
+
+INSTALL_MACROS=		BSD_INSTALL_PROGRAM="${INSTALL_PROGRAM}" \
+			BSD_INSTALL_LIB="${INSTALL_LIB}" \
+			BSD_INSTALL_SCRIPT="${INSTALL_SCRIPT}" \
+			BSD_INSTALL_DATA="${INSTALL_DATA}" \
+			BSD_INSTALL_MAN="${INSTALL_MAN}"
+
+MAKE_ENV+=		${INSTALL_MACROS}
+SCRIPTS_ENV+=		${INSTALL_MACROS} \
+			CURDIR=${.CURDIR} \
+			DISTDIR=${DISTDIR} \
+			WRKDIR=${WRKDIR} \
+			WRKSRC=${WRKSRC} \
+			PATCHDIR=${PATCHDIR} \
+			SCRIPTDIR=${SCRIPTDIR} \
+			FILESDIR=${FILESDIR} \
+			PREFIX=${PREFIX} \
+			LOCALBASE=${LOCALBASE}
+
+# --------------------------------------------------------------------------
+# --  Phase: Configure
+# --------------------------------------------------------------------------
+
+CONFIGURE_WRKSRC?=	${WRKSRC}
+CONFIGURE_SCRIPT?=	configure
+CONFIGURE_CMD=		./${CONFIGURE_SCRIPT}
+CONFIGURE_TARGET?=	${ARCH}-raven-${OPSYS:tl}${OSREL}
+CONFIGURE_TARGET:=	${CONFIGURE_TARGET:S/--build=//}
+CONFIGURE_LOG?=		config.log
+CONFIGURE_FAIL_MESSAGE=	"Please report the problem and attach the\
+\"${CONFIGURE_WRKSRC}/${CONFIGURE_LOG}\" including the output of the\
+failure of your make command."
+
+.if defined(GNU_CONFIGURE)
+HAS_CONFIGURE=			yes
+GNU_CONFIGURE_PREFIX?=		${PREFIX}
+GNU_CONFIGURE_MANPREFIX=	${MANPREFIX}
+CONFIG_SITE=			${MK_TEMPLATES}/config.site
+CONFIGURE_ARGS+=		--prefix=${GNU_CONFIGURE_PREFIX} \
+				$${_LATE_CONFIGURE_ARGS}
+CONFIGURE_ENV+=			CONFIG_SITE=${CONFIG_SITE}
+SET_LATE_CONFIGURE_ARGS= \
+     _LATE_CONFIGURE_ARGS="" ; \
+	if [ -z "${CONFIGURE_ARGS:M--localstatedir=*:Q}" ] && \
+	   ${CONFIGURE_CMD} --help 2>&1 | ${GREP} -- --localstatedir > /dev/null; then \
+	    _LATE_CONFIGURE_ARGS="$${_LATE_CONFIGURE_ARGS} --localstatedir=/var" ; \
+	fi ; \
+	if [ ! -z "`${CONFIGURE_CMD} --help 2>&1 | ${GREP} -- '--mandir'`" ]; then \
+	    _LATE_CONFIGURE_ARGS="$${_LATE_CONFIGURE_ARGS} --mandir=${GNU_CONFIGURE_MANPREFIX}/man" ; \
+	fi ; \
+	if [ ! -z "`${CONFIGURE_CMD} --help 2>&1 | ${GREP} -- '--disable-silent-rules'`" ]; then \
+	    _LATE_CONFIGURE_ARGS="$${_LATE_CONFIGURE_ARGS} --disable-silent-rules" ; \
+	fi ; \
+	if [ ! -z "`${CONFIGURE_CMD} --help 2>&1 | ${GREP} -- '--infodir'`" ]; then \
+	    _LATE_CONFIGURE_ARGS="$${_LATE_CONFIGURE_ARGS} --infodir=${GNU_CONFIGURE_PREFIX}/${INFO_PATH}/${INFO_SUBDIR}" ; \
+	fi ; \
+	if [ -z "`${CONFIGURE_CMD} --version 2>&1 | ${EGREP} -i '(autoconf.*2\.13|Unrecognized option)'`" ]; then \
+		_LATE_CONFIGURE_ARGS="$${_LATE_CONFIGURE_ARGS} --build=${CONFIGURE_TARGET}" ; \
+	else \
+		_LATE_CONFIGURE_ARGS="$${_LATE_CONFIGURE_ARGS} ${CONFIGURE_TARGET}" ; \
+	fi;
+.endif
+
+.if !target(do-configure)
+do-configure:
+	@if [ -f ${SCRIPTDIR}/configure ]; then \
+		cd ${.CURDIR} && ${SETENV} ${SCRIPTS_ENV} ${SH} \
+		  ${SCRIPTDIR}/configure; \
+	fi
+.  if defined(GNU_CONFIGURE)
+	@CONFIG_GUESS_DIRS=$$(${FIND} ${WRKDIR} -name config.guess -o -name config.sub \
+		| ${XARGS} -n 1 ${DIRNAME}); \
+	for _D in $${CONFIG_GUESS_DIRS}; do \
+		${RM} $${_D}/config.guess; \
+		${CP} ${MK_TEMPLATES}/config.guess $${_D}/config.guess; \
+		${CHMOD} a+rx $${_D}/config.guess; \
+		${RM} $${_D}/config.sub; \
+		${CP} ${MK_TEMPLATES}/config.sub $${_D}/config.sub; \
+		${CHMOD} a+rx $${_D}/config.sub; \
+	done
+.  endif
+.  if defined(HAS_CONFIGURE)
+	@${MKDIR} ${CONFIGURE_WRKSRC}
+	@(cd ${CONFIGURE_WRKSRC} && \
+	    ${SET_LATE_CONFIGURE_ARGS} \
+		if ! ${SETENV} CC="${CC}" CPP="${CPP}" CXX="${CXX}" \
+	    CFLAGS="${CFLAGS}" CPPFLAGS="${CPPFLAGS}" CXXFLAGS="${CXXFLAGS}" \
+	    LDFLAGS="${LDFLAGS}" LIBS="${LIBS}" \
+	    INSTALL="/usr/bin/install -c" \
+	    INSTALL_DATA="${INSTALL_DATA}" \
+	    INSTALL_LIB="${INSTALL_LIB}" \
+	    INSTALL_PROGRAM="${INSTALL_PROGRAM}" \
+	    INSTALL_SCRIPT="${INSTALL_SCRIPT}" \
+	    ${CONFIGURE_ENV} ${CONFIGURE_CMD} ${CONFIGURE_ARGS}; then \
+			 ${ECHO_MSG} "===>  Script \"${CONFIGURE_SCRIPT}\" failed unexpectedly."; \
+			 (${ECHO_CMD} ${CONFIGURE_FAIL_MESSAGE}); \
+			 ${FALSE}; \
+		fi)
+.  endif
 .endif
 
 .include "${RAVENBASE}/share/mk/raven.sequence.mk"
