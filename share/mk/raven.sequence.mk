@@ -200,16 +200,11 @@ ${${target:tu}_COOKIE}: ${_${target:tu}_DEP} ${_${target:tu}_REAL_SEQ}
 
 .endfor # foreach(targets)
 
-.PHONY: ${_PHONY_TARGETS} fetch pkg
+.for target in fetch pkg test
+.  if !target(${target})
+_PHONY_TARGETS+= ${target}
+${target}: ${_${target:tu}_DEP} ${_${target:tu}_REAL_SEQ}
+.  endif
+.endfor
 
-.if !target(fetch)
-fetch: ${_FETCH_DEP} ${_FETCH_REAL_SEQ}
-.endif
-
-.if !target(pkg)
-pkg: ${_PKG_DEP} ${_PKG_REAL_SEQ}
-.endif
-
-.if !target(test)
-test: ${_TEST_DEP} ${_TEST_REAL_SEQ}
-.endif
+.PHONY: ${_PHONY_TARGETS}
