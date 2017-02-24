@@ -75,6 +75,8 @@ DO_NADA?=		${TRUE}
 # --------------------------------------------------------------------------
 
 FETCH_REGET?=		1
+FETCH_ENV=		SSL_NO_VERIFY_PEER=1 SSL_NO_VERIFY_HOSTNAME=1
+
 _OFFICIAL_BACKUP=	http://distcache.FreeBSD.org/ports-distfiles/ # placeholder (change this)
 DL_SITE_BACKUP?=	${_OFFICIAL_BACKUP}
 
@@ -130,6 +132,7 @@ _DO_FETCH_ENV= 		dp_DISTDIR='${_DISTDIR}' \
 			dp_DIST_SUBDIR='${DIST_SUBDIR}' \
 			dp_ECHO_MSG='${ECHO_MSG}' \
 			dp_FETCH_CMD='${FETCH_CMD}' \
+			dp_FETCH_ENV=${FETCH_ENV:Q} \
 			dp_FORCE_FETCH_ALL= \
 			dp_FORCE_FETCH_LIST='${FORCE_FETCH_LIST}' \
 			dp_MASTER_SITE_BACKUP='${_DL_SITE_BACKUP}' \

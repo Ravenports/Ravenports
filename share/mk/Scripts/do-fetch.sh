@@ -7,7 +7,7 @@ set -e
 validate_env dp_DISTDIR dp_DISTINFO_FILE dp_DISABLE_CHECKSUM dp_DISABLE_SIZE \
 	dp_DIST_SUBDIR dp_ECHO_MSG dp_FETCH_CMD dp_FORCE_FETCH_ALL \
 	dp_FORCE_FETCH_LIST dp_MASTER_SITE_BACKUP dp_MASTER_SITE_OVERRIDE \
-	dp_MASTER_SORT_AWK dp_TARGET
+	dp_MASTER_SORT_AWK dp_TARGET dp_FETCH_ENV
 
 [ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_DO_FETCH}" ] && set -x
 
@@ -129,7 +129,7 @@ for _file in "${@}"; do
 		case ${dp_TARGET} in
 			do-fetch|makesum)
 				${dp_ECHO_MSG} "=> Attempting to fetch ${site}${file}"
-				if ${_fetch_cmd}; then
+				if env ${dp_FETCH_ENV} ${_fetch_cmd}; then
 					actual_size=$(stat -f %z "${file}")
 					if [ -n "${dp_DISABLE_SIZE}" ] || [ -z "${CKSIZE}" ] || [ "${actual_size}" -eq "${CKSIZE}" ]; then
 						continue 2
