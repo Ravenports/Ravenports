@@ -33,7 +33,7 @@ _EXTRACT_SEQ=		050:extract-message \
 			100:checksum \
 			150:extract-depends \
 			190:clean-wrkdir \
-			200:${EXTRACT_WRKDIR} \
+			200:create-extract-dirs \
 			300:pre-extract \
 			400:pre-extract-opsys \
 			450:pre-extract-script \

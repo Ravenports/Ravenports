@@ -42,15 +42,10 @@ _DISTINFO_FILE=		${.CURDIR}/distinfo
 .if defined(USE_GITHUB)
 WRKSRC=			${WRKDIR}/${GH_PROJECT}-${GH_TAGNAME_EXTRACT}
 .endif
-.if defined(NO_WRKSUBDIR)
-WRKSRC=			${WRKDIR}/${TWO_PART_ID}
-EXTRACT_WRKDIR:=	${WRKSRC}
+.if defined(DIRTY_EXTRACT_1) then
+WRKSRC=			${WRKDIR}/${NAMEBASE}_1
 .else
 WRKSRC=			${WRKDIR}/${DISTNAME}
-EXTRACT_WRKDIR:=	${WRKDIR}
-.endif
-.if defined(WRKSRC_SUBDIR)
-WRKSRC:=		${WRKSRC}/${WRKSRC_SUBDIR}
 .endif
 
 # --------------------------------------------------------------------------
@@ -244,8 +239,13 @@ EXTRACT_TAIL_${N}?=	--no-same-owner --no-same-permissions
 clean-wrkdir:
 	@${RM} -r ${WRKDIR}
 
-${EXTRACT_WRKDIR}:
-	@${MKDIR} ${.TARGET}
+create-extract-dirs:
+	@${MKDIR} ${WRKDIR}
+.for N in ${EXTRACT_ONLY}
+.  if exists (DIRTY_EXTRACT_${N})
+	@${MKDIR} ${WRKDIR}/${NAMEBASE}_${N}
+.  endif
+.endfor
 
 extract-message:
 	@${ECHO_MSG} "===>  Extracting for ${TWO_PART_ID}"
@@ -274,12 +274,15 @@ apply-slist:
 .endif
 
 .if !target(do-extract)
-do-extract: ${EXTRACT_WRKDIR}
+do-extract:
 .  for N in ${EXTRACT_ONLY}
-	@if ! (cd ${EXTRACT_WRKDIR} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
-	then \
-		exit 1; \
-	fi
+.    if exists (DIRTY_EXTRACT_${N})
+	@if ! (cd ${WRKDIR}/${NAMEBASE}_${N} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
+	then exit 1; fi
+.    else
+	@if ! (cd ${WRKDIR} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
+	then exit 1; fi
+.    endif
 .  endfor
 	@${CHMOD} -R ug-s ${WRKDIR}
 	@${CHOWN} -R 0:0 ${WRKDIR}
