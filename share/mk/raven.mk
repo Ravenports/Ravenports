@@ -419,9 +419,14 @@ SCRIPTS_ENV+=		${INSTALL_MACROS} \
 
 INFO_PATH?=		info
 MANPREFIX?=		${PREFIX}
-CONFIGURE_WRKSRC?=	${WRKSRC}
-CONFIGURE_SCRIPT?=	configure
+.if defined(CONFIGURE_OUTSOURCE)
+CONFIGURE_CMD=		${WRKSRC}/${CONFIGURE_SCRIPT}
+CONFIGURE_WRKSRC?=	${WRKDIR}/.build
+.else
 CONFIGURE_CMD=		./${CONFIGURE_SCRIPT}
+CONFIGURE_WRKSRC?=	${WRKSRC}
+.endif
+CONFIGURE_SCRIPT?=	configure
 CONFIGURE_TARGET?=	${ARCH}-raven-${OPSYS:tl}${OSREL}
 CONFIGURE_TARGET:=	${CONFIGURE_TARGET:S/--build=//}
 CONFIGURE_LOG=		config.log
@@ -538,6 +543,11 @@ MAKE_ENV+=		PREFIX=${PREFIX} \
 			MANPREFIX="${MANPREFIX}"
 DESTDIRNAME?=		DESTDIR
 STAGEDIR=		${WRKDIR}/stage
+.if defined(CONFIGURE_OUTSOURCE)
+BUILD_WRKSRC?=		${WRKDIR}/.build
+.else
+BUILD_WRKSRC?=		${WRKSRC}
+.endif
 
 .if defined(DESTDIR_VIA_ENV)
 MAKE_ENV+=		${DESTDIRNAME}=${STAGEDIR}
@@ -618,6 +628,12 @@ MANDIRS=		${MANPREFIX}/man
 .for sect in 1 2 3 4 5 6 7 8 9 L N
 MAN${sect}PREFIX?=	${MANPREFIX}
 .endfor
+
+.if defined(CONFIGURE_OUTSOURCE)
+INSTALL_WRKSRC?=	${WRKDIR}/.build
+.else
+INSTALL_WRKSRC?=	${WRKSRC}
+.endif
 
 stage-message:
 	@${ECHO_MSG} "===>  Staging for ${TWO_PART_ID}"
@@ -818,6 +834,12 @@ add-plist-examples:
 # --------------------------------------------------------------------------
 # --  Phase: Test (optional)
 # --------------------------------------------------------------------------
+
+.if defined(CONFIGURE_OUTSOURCE)
+TEST_WRKSRC?=	${WRKDIR}/.build
+.else
+TEST_WRKSRC?=	${WRKSRC}
+.endif
 
 test-message:
 	@${ECHO_MSG} "===>  Testing for ${TWO_PART_ID}"
