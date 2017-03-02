@@ -424,7 +424,7 @@ CONFIGURE_SCRIPT?=	configure
 CONFIGURE_CMD=		./${CONFIGURE_SCRIPT}
 CONFIGURE_TARGET?=	${ARCH}-raven-${OPSYS:tl}${OSREL}
 CONFIGURE_TARGET:=	${CONFIGURE_TARGET:S/--build=//}
-CONFIGURE_LOG?=		config.log
+CONFIGURE_LOG=		config.log
 CONFIGURE_FAIL_MESSAGE=	"Please report the problem and attach the\
 \"${CONFIGURE_WRKSRC}/${CONFIGURE_LOG}\" including the output of the\
 failure of your make command."
