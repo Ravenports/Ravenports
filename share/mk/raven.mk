@@ -53,22 +53,16 @@ WRKSRC=			${WRKDIR}/${DISTNAME}
 # --------------------------------------------------------------------------
 
 # These require modification to bmake (which Ravenports have)
+# Some systems have different names for same architecture
+#   FreeBSD   ARCH=amd64  ARCH_STANDARD=x86_64
+#   DragonFly ARCH=x86_64 ARCH_STANDARD=x86_64
 
-.if !defined(OPSYS)
-OPSYS=			${.MAKE.OS.NAME}
-.endif
-
-.if !defined(OSVERSION)
-OSVERSION=		${.MAKE.OS.VERSION}
-.endif
-
-.if !defined(OSREL)
-OSREL=			${.MAKE.OS.RELEASE}
-.endif
-
-.if !defined(ARCH)
-ARCH=			${.MAKE.OS.ARCHITECTURE}
-.endif
+OPSYS?=			${.MAKE.OS.NAME}
+OSVERSION?=		${.MAKE.OS.VERSION}
+OSREL?=			${.MAKE.OS.RELEASE}
+MAJOR?=			${.MAKE.OS.MAJOR}
+ARCH?=			${.MAKE.OS.ARCHITECTURE}
+ARCH_STANDARD?=		${.MAKE.OS.ARCH.STANDARD}
 
 # --------------------------------------------------------------------------
 # --  Debugging
