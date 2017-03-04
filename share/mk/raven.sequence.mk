@@ -21,11 +21,16 @@ _TARGETS_STAGES=	FETCH EXTRACT PATCH CONFIGURE BUILD INSTALL TEST \
 _FETCH_DEP=		# none currently
 _FETCH_SEQ=		150:fetch-depends \
 			300:pre-fetch \
+			350:pre-fetch-option \
+			400:pre-fetch-opsys \
 			450:pre-fetch-script \
 			500:do-fetch \
+			525:do-fetch-option \
+			550:do-fetch-opsys \
 			700:post-fetch \
+			750:post-fetch-option \
+			800:post-fetch-opsys \
 			850:post-fetch-script \
-			${_OPTIONS_fetch} \
 			${_USES_fetch}
 
 _EXTRACT_DEP=		fetch
@@ -35,29 +40,34 @@ _EXTRACT_SEQ=		050:extract-message \
 			190:clean-wrkdir \
 			200:create-extract-dirs \
 			300:pre-extract \
+			350:pre-extract-option \
 			400:pre-extract-opsys \
 			450:pre-extract-script \
 			500:do-extract \
+			525:do-extract-option \
+			550:do-extract-opsys \
 			600:apply-slist \
 			700:post-extract \
-			750:post-extract-opsys \
+			750:post-extract-option \
+			800:post-extract-opsys \
 			850:post-extract-script \
 			999:extract-fixup-modes \
-			${_OPTIONS_extract} \
-			${_USES_extract} \
-			${_SITES_extract}
+			${_USES_extract}
 
 _PATCH_DEP=		extract
 _PATCH_SEQ=		100:patch-message \
 			150:patch-depends \
 			300:pre-patch \
+			350:pre-patch-option \
 			400:pre-patch-opsys \
 			450:pre-patch-script \
 			500:do-patch \
+			525:do-patch-option \
+			550:do-patch-opsys \
 			700:post-patch \
-			750:post-patch-opsys \
+			750:post-patch-option \
+			800:post-patch-opsys \
 			850:post-patch-script \
-			${_OPTIONS_patch} \
 			${_USES_patch}
 
 _CONFIGURE_DEP=		patch
@@ -65,26 +75,32 @@ _CONFIGURE_SEQ=		150:build-depends \
 			155:lib-depends \
 			200:configure-message \
 			300:pre-configure \
+			350:pre-configure-option \
 			400:pre-configure-opsys \
 			450:pre-configure-script \
 			475:run-autotools-fixup \
 			500:do-configure \
+			525:do-configure-option \
+			550:do-configure-opsys \
 			700:post-configure \
-			750:post-configure-opsys \
+			750:post-configure-option \
+			800:post-configure-opsys \
 			850:post-configure-script \
-			${_OPTIONS_configure} \
 			${_USES_configure}
 
 _BUILD_DEP=		configure
 _BUILD_SEQ=		100:build-message \
 			300:pre-build \
+			350:pre-build-option \
 			400:pre-build-opsys \
 			450:pre-build-script \
 			500:do-build \
+			525:do-build-option \
+			550:do-build-opsys \
 			700:post-build \
-			750:post-build-opsys \
+			750:post-build-option \
+			800:post-build-opsys \
 			850:post-build-script \
-			${_OPTIONS_build} \
 			${_USES_build}
 
 # STAGE is special in its numbering as it has install and stage,
@@ -96,14 +112,20 @@ _STAGE_SEQ=		050:stage-message \
 			150:run-depends \
 			155:lib-depends \
 			300:pre-install \
+			325:pre-install-option \
 			350:pre-install-opsys \
 			400:generate-plist \
 			450:create-users-groups \
 			500:do-install \
+			525:do-install-option \
+			550:do-install-opsys \
 			700:post-install \
-			725:post-install-opsys \
-			750:post-install-script \
+			725:post-install-option \
+			750:post-install-opsys \
+			775:post-install-script \
 			800:post-stage \
+			820:post-stage-option \
+			840:post-stage-opsys \
 			850:compress-man \
 			860:install-rc-script \
 			870:install-smf-manifest \
@@ -115,18 +137,21 @@ _STAGE_SEQ=		050:stage-message \
 			930:add-plist-post \
 			${POST_PLIST_TARGET:C/^/990:/} \
 			995:stage-qa \
-			${_OPTIONS_install} \
 			${_USES_install} \
-			${_OPTIONS_stage} \
 			${_USES_stage}
 
 _TEST_DEP=		stage
 _TEST_SEQ=		100:test-message \
 			150:test-depends \
 			300:pre-test \
+			325:pre-test-option \
+			350:pre-test-opsys \
 			500:do-test \
-			800:post-test \
-			${_OPTIONS_test} \
+			525:do-test-option \
+			550:do-test-opsys \
+			700:post-test \
+			750:post-test-option \
+			800:post-test-opsys \
 			${_USES_test}
 
 _INSTALL_DEP=		stage
@@ -140,10 +165,15 @@ _INSTALL_SEQ=		100:install-message \
 _PACKAGE_DEP=		stage
 _PACKAGE_SEQ=		100:package-message \
 			300:pre-package \
+			325:pre-package-option \
+			350:pre-package-opsys \
 			450:pre-package-script \
 			500:do-package \
+			525:do-package-option \
+			550:do-package-opsys \
+			750:post-package-option \
+			800:post-package-opsys \
 			850:post-package-script \
-			${_OPTIONS_package} \
 			${_USES_package}
 
 # --------------------------------------------------------------------------

@@ -16,7 +16,8 @@ on make.
 There will be three main components of Ravenports.
 
   1. **Source ports:**
-This component is not seen or utilized by regular users.  It resembles
+This component, known as "ravensource" is not seen or utilized by
+regular users.  It resembles
 the ports tree seen in FreeBSD and pkgsrc, but only at the individual
 port directory level.  It is not arranged in categories.  The contents
 of each port directory is used to generate a port buildsheet.
@@ -30,7 +31,7 @@ buildsheets are "compiled" from source ports and getting the latest
 ports is accomplished by updating this directory.
 
   3. **Raven administration tool:**
-The administration tool for Ravenports is ravenadm.  It can query the
+The administration tool for Ravenports is "ravenadm".  It can query the
 ports for many types of information like a database.  It can build
 packages in parallel (think synth interface).  It controls the build
 environment such that it is the same across users, even if those
