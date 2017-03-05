@@ -15,10 +15,10 @@ validate_env dp_DISTDIR dp_DISTINFO_FILE dp_DISABLE_CHECKSUM dp_DISABLE_SIZE \
 
 set -u
 
-if [ ! -d "${dp_DISTDIR}" ]; then
-	mkdir -p "${dp_DISTDIR}"
+if [ ! -d "${dp_DISTDIR}/${dp_DIST_SUBDIR}" ]; then
+	mkdir -p "${dp_DISTDIR}/${dp_DIST_SUBDIR}"
 fi
-cd "${dp_DISTDIR}"
+cd "${dp_DISTDIR}/${dp_DIST_SUBDIR}"
 
 for _file in "${@}"; do
 	file=${_file%%:*}

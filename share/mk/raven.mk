@@ -32,11 +32,6 @@ PKGMESSAGE?=		${.CURDIR}/files/pkg-message
 PKGINSTALL?=		${.CURDIR}/files/pkg-install
 PKGDEINSTALL?=		${.CURDIR}/files/pkg-deinstall
 
-.if defined(DIST_SUBDIR)
-_DISTDIR=		${DISTDIR}/${DIST_SUBDIR}
-.else
-_DISTDIR=		${DISTDIR}
-.endif
 _DISTINFO_FILE=		${.CURDIR}/distinfo
 
 .for N in ${DF_INDEX}
@@ -137,7 +132,7 @@ _PATCH_SITES_ENV+=	_DOWNLOAD_SITES_${_group}=${DL_SITES_${_group}:Q}
 _CKSUMFILES:=	${_CKSUMFILES:S/^/${DIST_SUBDIR}\//}
 .endif
 
-_DO_FETCH_ENV= 		dp_DISTDIR='${_DISTDIR}' \
+_DO_FETCH_ENV= 		dp_DISTDIR='${DISTDIR}' \
 			dp_DISTINFO_FILE='${_DISTINFO_FILE}' \
 			dp_DIST_SUBDIR='${DIST_SUBDIR}' \
 			dp_ECHO_MSG='${ECHO_MSG}' \
@@ -182,7 +177,7 @@ checksum: fetch
 		${_CHECKSUM_INIT_ENV} \
 		dp_CHECKSUM_ALGORITHMS='SHA256' \
 		dp_CURDIR='${.CURDIR}' \
-		dp_DISTDIR='${_DISTDIR}' \
+		dp_DISTDIR='${DISTDIR}' \
 		dp_DISTINFO_FILE='${_DISTINFO_FILE}' \
 		dp_DIST_SUBDIR='${DIST_SUBDIR}' \
 		dp_ECHO_MSG='${ECHO_MSG}' \
@@ -204,7 +199,7 @@ checksum: fetch
 makesum:
 .  if !empty(_DISTFILES)
 	@${SETENV} \
-		${_DO_FETCH_ENV} ${_MASTER_SITES_ENV} \
+		${_DO_FETCH_ENV} ${_DL_SITES_ENV} \
 		dp_DISABLE_CHECKSUM=yes \
 		dp_DISABLE_SIZE=yes \
 		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_DISTFILES:C/.*/'&'/}
@@ -220,7 +215,7 @@ makesum:
 		${_CHECKSUM_INIT_ENV} \
 		dp_CHECKSUM_ALGORITHMS='SHA256' \
 		dp_CKSUMFILES='${_CKSUMFILES}' \
-		dp_DISTDIR='${_DISTDIR}' \
+		dp_DISTDIR='${DISTDIR}' \
 		dp_DISTINFO_FILE='${_DISTINFO_FILE}' \
 		dp_ECHO_MSG='${ECHO_MSG}' \
 		dp_SCRIPTSDIR='${MK_SCRIPTS}' \
@@ -279,7 +274,7 @@ apply-slist:
 .if !target(do-extract)
 do-extract:
 .  for N in ${EXTRACT_ONLY}
-	@if ! (cd ${EXTRACT_WRKDIR_${N}} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
+	@if ! (cd ${EXTRACT_WRKDIR_${N}} && ${EXTRACT_HEAD_${N}} ${DISTDIR}/${DIST_SUBDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
 	then exit 1; fi
 .  endfor
 	@${CHMOD} -R ug-s ${WRKDIR}
@@ -311,7 +306,7 @@ do-patch:
 	@${SETENV} \
 		dp_BZCAT="${BZCAT}" \
 		dp_CAT="${CAT}" \
-		dp_DISTDIR="${_DISTDIR}" \
+		dp_DISTDIR="${DISTDIR}" \
 		dp_ECHO_MSG="${ECHO_MSG}" \
 		dp_GZCAT="${GZCAT}" \
 		dp_OPSYS="${OPSYS}" \
