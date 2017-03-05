@@ -165,7 +165,7 @@ _${_t}_REAL_SEQ+=	${s}
 # --------------------------------------------------------------------------
 
 .for subphase in pre post
-.  for name in fetch extract patch configure build
+.  for name in fetch extract patch configure build install
 .    if exists(${SCRIPTDIR}/${subphase}-${name})
 .      if !target(${subphase}-${name}-script)
 ${subphase}-${name}-script:
