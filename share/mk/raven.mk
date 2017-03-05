@@ -279,13 +279,8 @@ apply-slist:
 .if !target(do-extract)
 do-extract:
 .  for N in ${EXTRACT_ONLY}
-.    if exists (DIRTY_EXTRACT_${N})
-	@if ! (cd ${WRKDIR}/${NAMEBASE}_${N} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
+	@if ! (cd ${EXTRACT_WRKDIR_${N}} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
 	then exit 1; fi
-.    else
-	@if ! (cd ${WRKDIR} && ${EXTRACT_HEAD_${N}} ${_DISTDIR}/${DISTFILE_${N}:C/:.*//} ${EXTRACT_TAIL_${N}}); \
-	then exit 1; fi
-.    endif
 .  endfor
 	@${CHMOD} -R ug-s ${WRKDIR}
 	@${CHOWN} -R 0:0 ${WRKDIR}
