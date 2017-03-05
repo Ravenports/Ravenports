@@ -4,8 +4,7 @@
 # The order of _TARGET_STAGES is signficant.
 # Consider returning SANITY stage if required
 
-_TARGETS_STAGES=	FETCH EXTRACT PATCH CONFIGURE BUILD INSTALL TEST \
-			PACKAGE STAGE
+_TARGETS_STAGES=	FETCH EXTRACT PATCH CONFIGURE BUILD STAGE TEST
 
 # --------------------------------------------------------------------------
 # --  Sequence definition
@@ -19,8 +18,7 @@ _TARGETS_STAGES=	FETCH EXTRACT PATCH CONFIGURE BUILD INSTALL TEST \
 # The remaining targets are slotted according to sequence requirements.
 
 _FETCH_DEP=		# none currently
-_FETCH_SEQ=		150:fetch-depends \
-			300:pre-fetch \
+_FETCH_SEQ=		300:pre-fetch \
 			350:pre-fetch-option \
 			400:pre-fetch-opsys \
 			450:pre-fetch-script \
@@ -34,11 +32,10 @@ _FETCH_SEQ=		150:fetch-depends \
 			${_USES_fetch}
 
 _EXTRACT_DEP=		fetch
-_EXTRACT_SEQ=		050:extract-message \
-			100:checksum \
-			150:extract-depends \
-			190:clean-wrkdir \
-			200:create-extract-dirs \
+_EXTRACT_SEQ=		100:extract-message \
+			150:checksum \
+			200:clean-wrkdir \
+			250:create-extract-dirs \
 			300:pre-extract \
 			350:pre-extract-option \
 			400:pre-extract-opsys \
@@ -56,7 +53,6 @@ _EXTRACT_SEQ=		050:extract-message \
 
 _PATCH_DEP=		extract
 _PATCH_SEQ=		100:patch-message \
-			150:patch-depends \
 			300:pre-patch \
 			350:pre-patch-option \
 			400:pre-patch-opsys \
@@ -71,9 +67,7 @@ _PATCH_SEQ=		100:patch-message \
 			${_USES_patch}
 
 _CONFIGURE_DEP=		patch
-_CONFIGURE_SEQ=		150:build-depends \
-			155:lib-depends \
-			200:configure-message \
+_CONFIGURE_SEQ=		200:configure-message \
 			300:pre-configure \
 			350:pre-configure-option \
 			400:pre-configure-opsys \
@@ -107,10 +101,8 @@ _BUILD_SEQ=		100:build-message \
 # so install is the main, and stage goes after.
 
 _STAGE_DEP=		build
-_STAGE_SEQ=		050:stage-message \
-			100:stage-dir \
-			150:run-depends \
-			155:lib-depends \
+_STAGE_SEQ=		100:stage-message \
+			200:stage-dir \
 			300:pre-install \
 			325:pre-install-option \
 			350:pre-install-opsys \
@@ -142,7 +134,6 @@ _STAGE_SEQ=		050:stage-message \
 
 _TEST_DEP=		stage
 _TEST_SEQ=		100:test-message \
-			150:test-depends \
 			300:pre-test \
 			325:pre-test-option \
 			350:pre-test-opsys \
@@ -153,28 +144,6 @@ _TEST_SEQ=		100:test-message \
 			750:post-test-option \
 			800:post-test-opsys \
 			${_USES_test}
-
-_INSTALL_DEP=		stage
-_INSTALL_SEQ=		100:install-message \
-			150:run-depends \
-			151:lib-depends \
-			200:check-already-installed \
-			300:fake-pkg \
-			500:security-check
-
-_PACKAGE_DEP=		stage
-_PACKAGE_SEQ=		100:package-message \
-			300:pre-package \
-			325:pre-package-option \
-			350:pre-package-opsys \
-			450:pre-package-script \
-			500:do-package \
-			525:do-package-option \
-			550:do-package-opsys \
-			750:post-package-option \
-			800:post-package-opsys \
-			850:post-package-script \
-			${_USES_package}
 
 # --------------------------------------------------------------------------
 # --  Target ordering
@@ -196,7 +165,7 @@ _${_t}_REAL_SEQ+=	${s}
 # --------------------------------------------------------------------------
 
 .for subphase in pre post
-.  for name in pkg fetch extract patch configure build install package
+.  for name in fetch extract patch configure build
 .    if exists(${SCRIPTDIR}/${subphase}-${name})
 .      if !target(${subphase}-${name}-script)
 ${subphase}-${name}-script:
@@ -222,8 +191,6 @@ PATCH_COOKIE=		${WRKDIR}/.done_patch
 CONFIGURE_COOKIE=	${WRKDIR}/.done_configure
 BUILD_COOKIE=		${WRKDIR}/.done_build
 STAGE_COOKIE=		${WRKDIR}/.done_stage
-INSTALL_COOKIE=		${WRKDIR}/.done_install
-PACKAGE_COOKIE=		${WRKDIR}/.done_package
 
 # Disable build
 .if defined(NO_BUILD)
@@ -237,17 +204,7 @@ test: stage
 	@${DO_NADA}
 .endif
 
-# Disable package
-.if defined(NO_PACKAGE)
-package:
-.  if defined(IGNORE_SILENT)
-	@${DO_NADA}
-.  else
-	@${ECHO_MSG} "===>  ${TWO_PART_ID} may not be packaged: "${NO_PACKAGE:Q}.
-.  endif
-.endif
-
-.for target in extract patch configure build stage install package
+.for target in extract patch configure build stage
 
 .  if !target(${target})
 _PHONY_TARGETS+= ${target}
@@ -268,7 +225,7 @@ ${${target:tu}_COOKIE}: ${_${target:tu}_DEP} ${_${target:tu}_REAL_SEQ}
 
 .endfor # foreach(targets)
 
-.for target in fetch pkg test
+.for target in fetch test
 .  if !target(${target})
 _PHONY_TARGETS+= ${target}
 ${target}: ${_${target:tu}_DEP} ${_${target:tu}_REAL_SEQ}
@@ -285,10 +242,4 @@ ${target}: ${_${target:tu}_DEP} ${_${target:tu}_REAL_SEQ}
 restage:
 	@${RM} -r ${STAGEDIR} ${STAGE_COOKIE} ${INSTALL_COOKIE} ${PACKAGE_COOKIE}
 	@cd ${.CURDIR} && ${MAKE} stage
-.endif
-
-.if !target(reinstall)
-reinstall:
-	@${RM} ${INSTALL_COOKIE} ${PACKAGE_COOKIE}
-	@cd ${.CURDIR} && DEPENDS_TARGET="${DEPENDS_TARGET}" ${MAKE} -DFORCE_PKG_REGISTER install
 .endif
