@@ -39,13 +39,16 @@ _DISTDIR=		${DISTDIR}
 .endif
 _DISTINFO_FILE=		${.CURDIR}/distinfo
 
-.if defined(USE_GITHUB)
-WRKSRC=			${WRKDIR}/${GH_PROJECT}-${GH_TAGNAME_EXTRACT}
-.endif
-.if defined(DIRTY_EXTRACT_1) then
+.if defined(DIRTY_EXTRACT_1)
 WRKSRC=			${WRKDIR}/${NAMEBASE}_1
+EXTRACT_WRKSRC=		${WRKDIR}/${NAMEBASE}_1
 .else
+.  if defined(USE_GITHUB)
+WRKSRC=			${WRKDIR}/${GH_PROJECT}-${GH_TAGNAME_EXTRACT}
+.  else
 WRKSRC=			${WRKDIR}/${DISTNAME}
+.  endif
+EXTRACT_WRKSRC=		${WRKDIR}
 .endif
 
 # --------------------------------------------------------------------------
