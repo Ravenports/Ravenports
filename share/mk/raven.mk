@@ -39,16 +39,22 @@ _DISTDIR=		${DISTDIR}
 .endif
 _DISTINFO_FILE=		${.CURDIR}/distinfo
 
+.for N in ${DF_INDEX}
+.  if defined(DIRTY_EXTRACT_${N})
+EXTRACT_WRKDIR_${N}=	${WRKDIR}/${NAMEBASE}_${N}
+.  else
+EXTRACT_WRKDIR_${N}=	${WRKDIR}
+.  endif
+.endfor
+
 .if defined(DIRTY_EXTRACT_1)
 WRKSRC=			${WRKDIR}/${NAMEBASE}_1
-EXTRACT_WRKSRC=		${WRKDIR}/${NAMEBASE}_1
 .else
 .  if defined(USE_GITHUB)
 WRKSRC=			${WRKDIR}/${GH_PROJECT}-${GH_TAGNAME_EXTRACT}
 .  else
 WRKSRC=			${WRKDIR}/${DISTNAME}
 .  endif
-EXTRACT_WRKSRC=		${WRKDIR}
 .endif
 
 # --------------------------------------------------------------------------
