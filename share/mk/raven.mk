@@ -240,7 +240,7 @@ clean-wrkdir:
 create-extract-dirs:
 	@${MKDIR} ${WRKDIR}
 .for N in ${EXTRACT_ONLY}
-.  if exists (DIRTY_EXTRACT_${N})
+.  if defined (DIRTY_EXTRACT_${N})
 	@${MKDIR} ${WRKDIR}/${NAMEBASE}_${N}
 .  endif
 .endfor
@@ -379,7 +379,7 @@ INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
 .  endif
 .endif
 
-ALL_TARGET?=		all
+BUILD_TARGET?=		all
 INSTALL_TARGET?=	install
 
 INSTALL_PROGRAM=	${INSTALL} ${STRIP} -m ${BINMODE}
@@ -604,7 +604,7 @@ build-message:
 
 .if !target(do-build)
 do-build:
-	@(cd ${BUILD_WRKSRC}; if ! ${DO_MAKE_BUILD} ${ALL_TARGET}; then \
+	@(cd ${BUILD_WRKSRC}; if ! ${DO_MAKE_BUILD} ${BUILD_TARGET}; then \
 		if [ -n "${BUILD_FAIL_MESSAGE}" ] ; then \
 			${ECHO_MSG} "===> Compilation failed unexpectedly."; \
 			(${ECHO_CMD} "${BUILD_FAIL_MESSAGE}"); \
@@ -855,35 +855,11 @@ do-test:
 .endif
 
 # --------------------------------------------------------------------------
-# --  Phase: Install (to host system)
+# --  Phase: Miscellaneous
 # --------------------------------------------------------------------------
 
-install-message:
-	@${ECHO_MSG} "===>  Installing for ${TWO_PART_ID} to system"
-
-.if !target(check-already-installed)
-.  if !defined(NO_PKG_REGISTER) && !defined(FORCE_PKG_REGISTER)
-check-already-installed:
-.    for sp in ${SUBPACKAGES}
-	@${ECHO_MSG} "===>  Checking if ${PKGNAMEBASE}__${sp} already installed"; \
-	pkgname=`${PKG_INFO} -q -O ${PKGNAMEBASE}__${sp}`; \
-	if [ -n "$${pkgname}" ]; then \
-		v=`${PKG_VERSION} -t $${pkgname} ${PKGNAMEBASE}__${sp}-${VERSION}`; \
-		if [ "$${v}" = "<" ]; then \
-			${ECHO_CMD} "===>   An older version of ${PKGNAMEBASE}_${sp} is already installed ($${pkgname})"; \
-		else \
-			${ECHO_CMD} "===>   ${PKGNAMEBASE}__${sp} is already installed"; \
-		fi; \
-		${ECHO_MSG} "      You may wish to \`\`make deinstall'' and install this port again"; \
-		${ECHO_MSG} "      by \`\`make reinstall'' to upgrade it properly."; \
-		${ECHO_MSG} "      If you really wish to overwrite the old port of ${PKGNAMEBASE}__${sp}"; \
-		${ECHO_MSG} "      without deleting it first, set the variable \"FORCE_PKG_REGISTER\""; \
-		${ECHO_MSG} "      in your environment or the \"make install\" command line."; \
-		exit 1; \
-	fi
-.    endfor
-.  endif
-.endif
-
+# Macro for doing in-place file editing using regexps
+REINPLACE_ARGS?=	-i.bak
+REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
 
 .include "${RAVENBASE}/share/mk/raven.sequence.mk"
