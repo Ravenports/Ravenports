@@ -366,17 +366,20 @@ BINMODE?=		555
 MANMODE?=		444
 SHAREMODE?=		444
 _SHAREMODE?=		0644
+OPTIMIZER_LEVEL?=	2
 
 .if defined(WITH_DEBUG)
 STRIP=			# none
 STRIP_CMD=		${TRUE}
 DEBUG_FLAGS?=		-g
 MAKE_ENV+=		DONTSTRIP=yes
-CFLAGS:=		${CFLAGS} ${DEBUG_FLAGS}
+CFLAGS=			-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS}
 
 .  if defined(INSTALL_TARGET)
 INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
 .  endif
+.else
+CFLAGS=			-pipe -O${OPTIMIZER_LEVEL}
 .endif
 
 BUILD_TARGET?=		all
