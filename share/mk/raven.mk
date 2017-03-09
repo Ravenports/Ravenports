@@ -414,7 +414,7 @@ SCRIPTS_ENV+=		${INSTALL_MACROS} \
 # --------------------------------------------------------------------------
 
 INFO_PATH?=		info
-MANPREFIX?=		${PREFIX}
+MANPREFIX?=		${PREFIX}/share
 .if defined(CONFIGURE_OUTSOURCE)
 CONFIGURE_CMD=		${WRKSRC}/${CONFIGURE_SCRIPT}
 CONFIGURE_WRKSRC?=	${WRKDIR}/.build
