@@ -413,7 +413,7 @@ SCRIPTS_ENV+=		${INSTALL_MACROS} \
 # --  Phase: Configure
 # --------------------------------------------------------------------------
 
-INFO_PATH?=		info
+INFO_PATH?=		share/info
 MANPREFIX?=		${PREFIX}/share
 .if defined(CONFIGURE_OUTSOURCE)
 CONFIGURE_CMD=		${WRKSRC}/${CONFIGURE_SCRIPT}
