@@ -79,8 +79,10 @@ DO_NADA?=		${TRUE}
 # --  Phase: Fetch
 # --------------------------------------------------------------------------
 
-FETCH_REGET?=		1
+.if !make(makesum)
 FETCH_ENV=		SSL_NO_VERIFY_PEER=1 SSL_NO_VERIFY_HOSTNAME=1
+.endif
+FETCH_REGET?=		1
 
 _OFFICIAL_BACKUP=	http://distcache.FreeBSD.org/ports-distfiles/ # placeholder (change this)
 DL_SITE_BACKUP?=	${_OFFICIAL_BACKUP}
