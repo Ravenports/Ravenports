@@ -23,12 +23,13 @@ port directory level.  It is not arranged in categories.  The contents
 of each port directory is used to generate a port buildsheet.
 
   2. **Conspiracy:**
-The conspiracy directory contains all the buildsheets.  These single
-files are the complete recipe for building the software for which they
-were created.  These buildsheets are not meant to be viewed directly,
-as their information can be queries by the ravenadm tool.  The conspiracy
-buildsheets are "compiled" from source ports and getting the latest
-ports is accomplished by updating this directory.
+The conspiracy repository contains all the buildsheets, separated into
+256 bucket directories.  These single files are the complete recipe for
+building the software for which they were created.  These buildsheets
+are not meant to be viewed directly, as their information can be queried
+by the ravenadm tool.  The conspiracy buildsheets are "compiled" from
+ravensource and getting the latest ports is accomplished by updating the
+repository.  This README is contained within the Conspiracy repository.
 
   3. **Raven administration tool:**
 The administration tool for Ravenports is "ravenadm".  It can query the
