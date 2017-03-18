@@ -750,9 +750,12 @@ ${TMP_MANIFESTS}:
 	@${ECHO_MSG} "===>   Generating temporary packing list (${.TARGET:R:E})"
 	@${MKDIR} ${.TARGET:H}
 	@${TOUCH} ${.TARGET}
-	@if [ -f ${.CURDIR}/manifests/{.TARGET:R:E}.${VARIANT} ]; then \
+	@if [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E} ]; then \
 		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
-		${.CURDIR}/manifests/{.TARGET:R:E}.${VARIANT} >> ${.TARGET}; \
+		${.CURDIR}/manifests/plist.${.TARGET:R:E} >> ${.TARGET}; \
+	elif [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} ]; then \
+		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
+		${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} >> ${.TARGET}; \
 	fi
 
 .undef INFO_USED
@@ -860,11 +863,12 @@ do-test:
 .endif
 
 # --------------------------------------------------------------------------
-# --  Phase: Miscellaneous
+# --  Miscellaneous
 # --------------------------------------------------------------------------
 
 # Macro for doing in-place file editing using regexps
 REINPLACE_ARGS?=	-i.bak
 REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
+PLIST_SUB+=		OPSYS=${OPSYS}
 
 .include "/xports/Mk/raven.sequence.mk"
