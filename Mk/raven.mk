@@ -12,7 +12,7 @@ PACKAGES?=		${RAVENBASE}/packages
 LOCALBASE?=		/raven
 PREFIX?=		${LOCALBASE}
 
-.include "${RAVENBASE}/share/mk/raven.commands.mk"
+.include "/xports/Mk/raven.commands.mk"
 
 NAMEBASE?=		undefined	# dummy, must be defined by port makefile
 VARIANT?=		standard	# must be defined by ravenadm
@@ -21,9 +21,9 @@ TWO_PART_ID=		${NAMEBASE}-${VARIANT}
 PKGNAMEBASE=		${NAMEBASE}__${VARIANT}
 DISTNAME?=		${NAMEBASE}-${VERSION}
 WRKDIR=			${WRKDIRPREFIX}/${NAMEBASE}
-MK_SCRIPTS=		${RAVENBASE}/share/mk/Scripts
-MK_TEMPLATES=		${RAVENBASE}/share/mk/Templates
-MK_KEYWORDS=		${RAVENBASE}/share/mk/Keywords
+MK_SCRIPTS=		/xports/Mk/Scripts
+MK_TEMPLATES=		/xports/Mk/Templates
+MK_KEYWORDS=		/xports/Mk/Keywords
 SCRIPTDIR=		${.CURDIR}/scripts
 PATCHDIR=		${.CURDIR}/patches
 FILESDIR=		${.CURDIR}/files
@@ -375,13 +375,13 @@ STRIP=			# none
 STRIP_CMD=		${TRUE}
 DEBUG_FLAGS?=		-g
 MAKE_ENV+=		DONTSTRIP=yes
-CFLAGS=			-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS}
+CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS} ${CFLAGS}
 
 .  if defined(INSTALL_TARGET)
 INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
 .  endif
 .else
-CFLAGS=			-pipe -O${OPTIMIZER_LEVEL}
+CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${CFLAGS}
 .endif
 
 BUILD_TARGET?=		all
@@ -642,25 +642,25 @@ stage-dir:
 		${STAGEDIR}${PREFIX}/bin \
 		${STAGEDIR}${PREFIX}/etc/rc.d \
 		${STAGEDIR}${PREFIX}/include \
-		${STAGEDIR}${PREFIX}/info \
 		${STAGEDIR}${PREFIX}/lib/pkgconfig \
 		${STAGEDIR}${PREFIX}/libdata \
 		${STAGEDIR}${PREFIX}/libexec \
-		${STAGEDIR}${PREFIX}/man/man1 \
-		${STAGEDIR}${PREFIX}/man/man2 \
-		${STAGEDIR}${PREFIX}/man/man3 \
-		${STAGEDIR}${PREFIX}/man/man4 \
-		${STAGEDIR}${PREFIX}/man/man5 \
-		${STAGEDIR}${PREFIX}/man/man6 \
-		${STAGEDIR}${PREFIX}/man/man7 \
-		${STAGEDIR}${PREFIX}/man/man8 \
-		${STAGEDIR}${PREFIX}/man/man9 \
-		${STAGEDIR}${PREFIX}/man/mann \
-		${STAGEDIR}${PREFIX}/man/manl \
 		${STAGEDIR}${PREFIX}/sbin \
 		${STAGEDIR}${PREFIX}/share/doc \
 		${STAGEDIR}${PREFIX}/share/examples \
+		${STAGEDIR}${PREFIX}/share/info \
 		${STAGEDIR}${PREFIX}/share/locale \
+		${STAGEDIR}${PREFIX}/share/man/man1 \
+		${STAGEDIR}${PREFIX}/share/man/man2 \
+		${STAGEDIR}${PREFIX}/share/man/man3 \
+		${STAGEDIR}${PREFIX}/share/man/man4 \
+		${STAGEDIR}${PREFIX}/share/man/man5 \
+		${STAGEDIR}${PREFIX}/share/man/man6 \
+		${STAGEDIR}${PREFIX}/share/man/man7 \
+		${STAGEDIR}${PREFIX}/share/man/man8 \
+		${STAGEDIR}${PREFIX}/share/man/man9 \
+		${STAGEDIR}${PREFIX}/share/man/mann \
+		${STAGEDIR}${PREFIX}/share/man/manl \
 		${STAGEDIR}${PREFIX}/share/nls \
 		${STAGEDIR}${PREFIX}/www \
 		# end
@@ -867,4 +867,4 @@ do-test:
 REINPLACE_ARGS?=	-i.bak
 REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
 
-.include "${RAVENBASE}/share/mk/raven.sequence.mk"
+.include "/xports/Mk/raven.sequence.mk"

@@ -213,7 +213,7 @@ ${target}: ${${target:tu}_COOKIE}
 
 .  if exists(${${target:tu}_COOKIE})
 ${${target:tu}_COOKIE}::
-	if [ -e ${.TARGET} ]; then \
+	@if [ -e ${.TARGET} ]; then \
 		${DO_NADA}; \
 	else \
 		cd ${.CURDIR} && ${MAKE} ${.TARGET}; \
