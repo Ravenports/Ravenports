@@ -28,10 +28,6 @@ SCRIPTDIR=		${.CURDIR}/scripts
 PATCHDIR=		${.CURDIR}/patches
 FILESDIR=		${.CURDIR}/files
 MANIFESTDIR=		${.CURDIR}/manifests
-PKGMESSAGE?=		${.CURDIR}/files/pkg-message
-PKGINSTALL?=		${.CURDIR}/files/pkg-install
-PKGDEINSTALL?=		${.CURDIR}/files/pkg-deinstall
-
 _DISTINFO_FILE=		${.CURDIR}/distinfo
 
 .for N in ${DF_INDEX}
@@ -254,11 +250,6 @@ extract-fixup-modes:
 	@${CHMOD} -R u+w,a+rX ${WRKDIR}
 
 .if !target(apply-slist)
-.  for i in pkg-message pkg-install pkg-deinstall
-.    if !empty (${SUB_FILES:M${i}.in})
-${i:S/-//:tu}=		${WRKDIR}/${SUB_FILES:M${i}}
-.    endif
-.  endfor
 _SUB_LIST_TEMP=		${SUB_LIST:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/}
 
 apply-slist:
@@ -269,6 +260,64 @@ apply-slist:
 	@${ECHO_MSG} "** Checked ${FILESDIR}:"; \
 	@${ECHO_MSG} "** Missing ${file}.in for ${TWO_PART_ID}."; \
 	exit 1
+.    endif
+.  endfor
+.endif
+
+.if !target(compile-package-desc)
+_PKGMESSAGE=		${.CURDIR}/files/pkg-message-xxx
+_PKGMESSAGEOPSYS=	${.CURDIR}/files/pkg-message-xxx-opsys
+_PKGMESSAGEOPSYSARCH=	${.CURDIR}/files/pkg-message-xxx-opsys-arch
+_PKGMESSAGEARCH=	${.CURDIR}/files/pkg-message-xxx-arch
+_PKGINSTALL=		${.CURDIR}/files/pkg-zzzinstall-xxx
+_PKGUPGRADE=		${.CURDIR}/files/pkg-zzzupgrade-xxx
+_PKGDEINSTALL=		${.CURDIR}/files/pkg-zzzdeinstall-xxx
+_IN_PKGMESSAGE=		${WRKDIR}/pkg-message-xxx
+_IN_PKGMESSAGEOPSYS=	${WRKDIR}/pkg-message-xxx-opsys
+_IN_PKGMESSAGEOPSYSARCH=${WRKDIR}/pkg-message-xxx-opsys-arch
+_IN_PKGMESSAGEARCH=	${WRKDIR}/pkg-message-xxx-arch
+_IN_PKGINSTALL=		${WRKDIR}/pkg-zzzinstall-xxx
+_IN_PKGUPGRADE=		${WRKDIR}/pkg-zzzupgrade-xxx
+_IN_PKGDEINSTALL=	${WRKDIR}/pkg-zzzdeinstall-xxx
+
+_MESSAGE_FILE=		${WRKDIR}/PKG_DISPLAY
+_DESC_FILE=		${WRKDIR}/PKG_DESC
+
+_CPDLIST=		AGE AGEOPSYS AGEOPSYSARCH AGEARCH
+_MSGLIST=		install upgrade deinstall
+
+compile-package-desc:
+.  for sp in ${SUBPACKAGES}
+	@${RM} ${_MESSAGE_FILE}.${sp}
+	@${RM} ${_DESC_FILE}.${sp}
+	@${ECHO_MSG} "===>   Creating package metadata (${sp})"
+.    for suffix in ${_CPDLIST}
+.      if exists(${_IN_PKGMESS${suffix}:S/xxx/${sp}/})
+	@${CAT} ${_IN_PKGMESS${suffix}:S/xxx/${sp}/} >> ${_MESSAGE_FILE}.${sp}
+.      elif exists(${_PKGMESS${suffix}:S/xxx/${sp}/})
+	@${CAT} ${_PKGMESS${suffix}:S/xxx/${sp}/} >> ${_MESSAGE_FILE}.${sp}
+.      endif
+.    endfor
+.    for suffix in ${_MSGLIST}
+.      for psp in pre- "" post-
+.        if exists(${_IN_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/})
+	@${CP} ${_IN_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/} ${WRKDIR}/pkg-${psp}${suffix}.${sp}
+.        elif exists(${_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/})
+	@${CP} ${_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/} ${WRKDIR}/pkg-${psp}${suffix}.${sp}
+.        endif
+.      endfor
+.    endfor
+.    if exists(${.CURDIR}/descriptions/desc.${sp}.${VARIANT})
+	@${CP} ${.CURDIR}/descriptions/desc.${sp}.${VARIANT} ${_DESC_FILE}.${sp}
+.    elif exists(${WRKDIR}/descriptions/desc.${sp})
+	@${CP} ${.CURDIR}/descriptions/desc.${sp} ${_DESC_FILE}.${sp}
+.    elif ${sp:Mdocs}
+	@${ECHO} "This is the documents subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
+.    elif ${sp:Mexamples}
+	@${ECHO} "This is the examples subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
+.    elif ${sp:Mcomplete}
+	@${ECHO} "This is the ${TWO_PART_ID} metapackage." > ${_DESC_FILE}.${sp}
+	@${ECHO} "It pulls in all subpackages of ${TWO_PART_ID}." > ${_DESC_FILE}.${sp}
 .    endif
 .  endfor
 .endif

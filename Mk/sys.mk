@@ -14,7 +14,6 @@ LEX?=		lex
 LD?=		ld
 MAKE?=		make
 SHELL?=		sh
-YFLAGS?=	-d
 
 .sh:
 	cp -p ${.IMPSRC} ${.TARGET}
@@ -40,7 +39,7 @@ YFLAGS?=	-d
 
 # XXX not -j safe
 .y.o:
-	${YACC} ${YFLAGS} ${.IMPSRC}
+	${YACC:Uyacc -d} ${YFLAGS} ${.IMPSRC}
 	${CC} ${CFLAGS} -c y.tab.c -o ${.TARGET}
 	rm -f y.tab.c
 
@@ -62,7 +61,7 @@ YFLAGS?=	-d
 
 # XXX not -j safe
 .y.out:
-	${YACC} ${YFLAGS} ${.IMPSRC}
+	${YACC:Uyacc -d} ${YFLAGS} ${.IMPSRC}
 	${CC} ${CFLAGS} ${LDFLAGS} y.tab.c ${LDLIBS} -ly -o ${.TARGET}
 	rm -f y.tab.c
 

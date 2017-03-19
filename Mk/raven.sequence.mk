@@ -44,6 +44,7 @@ _EXTRACT_SEQ=		100:extract-message \
 			525:do-extract-option \
 			550:do-extract-opsys \
 			600:apply-slist \
+			650:compile-package-desc \
 			700:post-extract \
 			750:post-extract-option \
 			800:post-extract-opsys \
