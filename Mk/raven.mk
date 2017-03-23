@@ -309,7 +309,7 @@ compile-package-desc:
 .    endfor
 .    if exists(${.CURDIR}/descriptions/desc.${sp}.${VARIANT})
 	@${CP} ${.CURDIR}/descriptions/desc.${sp}.${VARIANT} ${_DESC_FILE}.${sp}
-.    elif exists(${WRKDIR}/descriptions/desc.${sp})
+.    elif exists(${.CURDIR}/descriptions/desc.${sp})
 	@${CP} ${.CURDIR}/descriptions/desc.${sp} ${_DESC_FILE}.${sp}
 .    elif ${sp:Mdocs}
 	@${ECHO} "This is the documents subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
