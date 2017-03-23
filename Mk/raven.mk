@@ -774,7 +774,7 @@ install-rc-script:
 		[ "${PREFIX}" = "/usr" ] && _prefix="" ; \
 		${INSTALL_SCRIPT} ${WRKDIR}/$${i} ${STAGEDIR}$${_prefix}/etc/rc.d/$${i%.sh}; \
 		${ECHO_CMD} "$${_prefix}/etc/rc.d/$${i%.sh}" \
-		>> >> ${WRKDIR}/.manifest.${sp}.mktmp; \
+		>> ${WRKDIR}/.manifest.${sp}.mktmp; \
 	done
 .      endif
 .    endfor
@@ -858,7 +858,7 @@ add-plist-post:
 
 .if !target(add-plist-docs)
 .  if ${SUBPACKAGES:Mdocs}
-.    if !exists(${.CURDIR}/manifests/docs.${VARIANT})
+.    if !exists(${.CURDIR}/manifests/plist.docs) && !exists(${.CURDIR}/manifests/plist.docs.${VARIANT})
 add-plist-docs:
 	@${FIND} -s ${STAGEDIR}${PREFIX}/share/docs \
 	\( -type f -o -type l \) 2>/dev/null >> ${WRKDIR}/.manifest.docs.mktmp
@@ -873,7 +873,7 @@ add-plist-docs:
 
 .if !target(add-plist-examples)
 .  if ${SUBPACKAGES:Mexamples}
-.    if !exists(${.CURDIR}/manifests/examples.${VARIANT})
+.    if !exists(${.CURDIR}/manifests/plist.examples) && !exists(${.CURDIR}/manifests/plist.examples.${VARIANT})
 add-plist-examples:
 	@${FIND} -s ${STAGEDIR}${PREFIX}/share/examples \
 	\( -type f -o -type l \) 2>/dev/null >> ${WRKDIR}/.manifest.examples.mktmp
