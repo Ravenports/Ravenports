@@ -6,6 +6,7 @@ _INCLUDE_CMD_MK=    yes
 
 AWK=		/usr/bin/awk
 BASENAME=	/usr/bin/basename
+BSDCAT=		/usr/bin/bsdcat
 BSDMAKE=	/usr/bin/make
 BZCAT=		/usr/bin/bzcat
 BZIP2=		/usr/bin/bzip2

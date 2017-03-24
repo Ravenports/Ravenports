@@ -931,6 +931,8 @@ do-test:
 # Macro for doing in-place file editing using regexps
 REINPLACE_ARGS?=	-i.bak
 REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
-PLIST_SUB+=		OPSYS=${OPSYS}
+
+# ensure PLIST_SUB has at least one value
+PLIST_SUB+=		OPSYS=${OPSYS} DOCSDIR=${STD_DOCDIR}
 
 .include "/xports/Mk/raven.sequence.mk"
