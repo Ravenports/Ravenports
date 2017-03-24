@@ -25,6 +25,7 @@ STD_DOCDIR=		${PREFIX}/share/doc/${NAMEBASE}
 MK_SCRIPTS=		/xports/Mk/Scripts
 MK_TEMPLATES=		/xports/Mk/Templates
 MK_KEYWORDS=		/xports/Mk/Keywords
+USESDIR=		/xports/Mk/Uses
 SCRIPTDIR=		${.CURDIR}/scripts
 PATCHDIR=		${.CURDIR}/patches
 FILESDIR=		${.CURDIR}/files
@@ -934,5 +935,25 @@ REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
 
 # ensure PLIST_SUB has at least one value
 PLIST_SUB+=		OPSYS=${OPSYS} DOCSDIR=${STD_DOCDIR}
+
+# --------------------------------------------------------------------------
+# --  USES handling
+# --------------------------------------------------------------------------
+
+# setup empty variables for USES targets
+.for target in fetch extract patch configure build install stage test
+_USES_${target}?=
+.endfor
+
+# Loading features
+.for f in ${USES}
+_f:=		${f:C/\:.*//}
+.  if !defined(${_f}_ARGS)
+${_f}_ARGS:=	${f:C/^[^\:]*(\:|\$)//:S/,/ /g}
+.  endif
+.endfor
+.for f in ${USES}
+.include "${USESDIR}/${f:C/\:.*//}.mk"
+.endfor
 
 .include "/xports/Mk/raven.sequence.mk"
