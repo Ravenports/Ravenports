@@ -21,6 +21,7 @@ TWO_PART_ID=		${NAMEBASE}-${VARIANT}
 PKGNAMEBASE=		${NAMEBASE}__${VARIANT}
 DISTNAME?=		${NAMEBASE}-${VERSION}
 WRKDIR=			${WRKDIRPREFIX}/${NAMEBASE}
+STD_DOCDIR=		${PREFIX}/share/doc/${NAMEBASE}
 MK_SCRIPTS=		/xports/Mk/Scripts
 MK_TEMPLATES=		/xports/Mk/Templates
 MK_KEYWORDS=		/xports/Mk/Keywords
@@ -80,7 +81,7 @@ FETCH_ENV=		SSL_NO_VERIFY_PEER=1 SSL_NO_VERIFY_HOSTNAME=1
 .endif
 FETCH_REGET?=		1
 
-_OFFICIAL_BACKUP=	http://distcache.FreeBSD.org/ports-distfiles/ # placeholder (change this)
+_OFFICIAL_BACKUP=	http://distcache.DragonFlyBSD.org/ports-distfiles/ # placeholder (change this)
 DL_SITE_BACKUP?=	${_OFFICIAL_BACKUP}
 
 .if defined(DL_SITE_DISABLE)
@@ -97,11 +98,27 @@ MASTER_SORT_AWK= 	BEGIN { RS = " "; ORS = " "; IGNORECASE = 1 ; gl = "${MSR:S|\\
 			/${MSR:S|/|\\/|g}/ { good["${MSR:S|\\|\\\\|g}"] = good["${MSR:S|\\|\\\\|g}"] " " $$0 ; next; } \
 			{ rest = rest " " $$0; } END { n=split(gl, gla); for(i=1;i<=n;i++) { print good[gla[i]]; } print rest; }
 
+_MAKESUMFILES:=
 _DISTFILES:=
 _PATCHFILES:=
 _CKSUMFILES:=
+_MSCKSUMFILES:=
 _DL_SITES_ENV:=
+_MS_SITES_ENV:=
 _PATCH_SITES_ENV:=
+
+.for N in ${MAKESUM_INDEX}
+_F=		${DISTFILE_${N}}
+_F_TEMP=	${_F:S/^${_F:C/:[^:]+$//}//:S/^://}
+_MAKESUMFILES:=	${_MAKESUMFILES} ${_F}
+_MSCKSUMFILES:=	${_MSCKSUMFILES} ${_F:C/:.*//}
+.  for _group in ${_F_TEMP:S/,/ /g}
+.    if defined(DL_SITES_${_group})
+_MS_SITES_ENV+=		_DOWNLOAD_SITES_${_group}=${DL_SITES_${_group}:Q}
+.    endif
+.  endfor
+.endfor
+
 .for N in ${DF_INDEX}
 _F=		${DISTFILE_${N}}
 _F_TEMP=	${_F:S/^${_F:C/:[^:]+$//}//:S/^://}
@@ -113,6 +130,7 @@ _DL_SITES_ENV+=		_DOWNLOAD_SITES_${_group}=${DL_SITES_${_group}:Q}
 .    endif
 .  endfor
 .endfor
+
 .for N in ${PF_INDEX}
 _F=		${PATCHFILE_${N}}
 _F_TEMP=	${_F:S/^${_F:C/:[^-:][^:]*$//}//:S/^://}
@@ -126,8 +144,10 @@ _PATCH_SITES_ENV+=	_DOWNLOAD_SITES_${_group}=${DL_SITES_${_group}:Q}
 .    endfor
 .  endif
 .endfor
+
 .if defined(DIST_SUBDIR)
 _CKSUMFILES:=	${_CKSUMFILES:S/^/${DIST_SUBDIR}\//}
+_MSCKSUMFILES:=	${_MSCKSUMFILES:S/^/${DIST_SUBDIR}\//}
 .endif
 
 _DO_FETCH_ENV= 		dp_DISTDIR='${DISTDIR}' \
@@ -195,29 +215,22 @@ checksum: fetch
 
 .if !target(makesum)
 makesum:
-.  if !empty(_DISTFILES)
+.  if !empty(_MAKESUMFILES)
 	@${SETENV} \
-		${_DO_FETCH_ENV} ${_DL_SITES_ENV} \
+		${_DO_FETCH_ENV} ${_MS_SITES_ENV} \
 		dp_DISABLE_CHECKSUM=yes \
 		dp_DISABLE_SIZE=yes \
-		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_DISTFILES:C/.*/'&'/}
-.  endif
-.  if !empty(PATCHFILES)
-	@${SETENV} \
-		${_DO_FETCH_ENV} ${_PATCH_SITES_ENV} \
-		dp_DISABLE_CHECKSUM=yes \
-		dp_DISABLE_SIZE=yes \
-		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_PATCHFILES:C/:-p[0-9]//:C/.*/'&'/}
+		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_MAKESUMFILES:C/.*/'&'/}
 .  endif
 	@${SETENV} \
 		${_CHECKSUM_INIT_ENV} \
 		dp_CHECKSUM_ALGORITHMS='SHA256' \
-		dp_CKSUMFILES='${_CKSUMFILES}' \
+		dp_CKSUMFILES='${_MSCKSUMFILES}' \
 		dp_DISTDIR='${DISTDIR}' \
 		dp_DISTINFO_FILE='${_DISTINFO_FILE}' \
 		dp_ECHO_MSG='${ECHO_MSG}' \
 		dp_SCRIPTSDIR='${MK_SCRIPTS}' \
-		${SH} ${MK_SCRIPTS}/makesum.sh ${_DISTFILES:C/.*/'&'/}
+		${SH} ${MK_SCRIPTS}/makesum.sh ${_MAKESUMFILES:C/.*/'&'/}
 .endif
 
 # --------------------------------------------------------------------------
