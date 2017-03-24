@@ -101,9 +101,27 @@ _BUILD_SEQ=		100:build-message \
 # STAGE is special in its numbering as it has install and stage,
 # so install is the main, and stage goes after.
 
+# Some ports use the compiler and binutils in stage, which means
+# they are still building when they should be installing.  To force
+# correctness, provide an alternative sequence where pre-install
+# and do-install are done during the build stage.
+
+.if defined(INSTALL_REQ_TOOLCHAIN)
+_BUILD_SEQ+=		852:stage-dir \
+			854:pre-install \
+			856:pre-install-option \
+			858:pre-install-opsys \
+			860:generate-plist \
+			862:create-users-groups \
+			864:do-install \
+			866:do-install-option \
+			868:do-install-opsys
+.endif
+
 _STAGE_DEP=		build
-_STAGE_SEQ=		100:stage-message \
-			200:stage-dir \
+_STAGE_SEQ=		100:stage-message
+.if !defined(INSTALL_REQ_TOOLCHAIN)
+_STAGE_SEQ+=		200:stage-dir \
 			300:pre-install \
 			325:pre-install-option \
 			350:pre-install-opsys \
@@ -111,8 +129,9 @@ _STAGE_SEQ=		100:stage-message \
 			450:create-users-groups \
 			500:do-install \
 			525:do-install-option \
-			550:do-install-opsys \
-			700:post-install \
+			550:do-install-opsys
+.endif
+_STAGE_SEQ+=		700:post-install \
 			725:post-install-option \
 			750:post-install-opsys \
 			775:post-install-script \
