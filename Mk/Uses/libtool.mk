@@ -14,13 +14,13 @@
 _INCLUDE_USES_LIBTOOL_MK=	yes
 _USES_POST+=	libtool
 
-.if ${libtool_ARGS:Mbuild}
-BUILD_DEPENDS+=	libtool:single:standard
-.endif
-.endif
-
-.if defined(_POSTMKINCLUDED) && !defined(_INCLUDE_USES_LIBTOOL_POST_MK)
-_INCLUDE_USES_LIBTOOL_POST_MK=	yes
+# -----------------------------------------------
+# Incorporated in ravenadm
+# -----------------------------------------------
+#.if ${libtool_ARGS:Mbuild}
+# BUILD_DEPENDS+=	libtool:single:standard
+#.endif
+# -----------------------------------------------
 
 _USES_configure+=	480:patch-libtool
 patch-libtool:

@@ -11,7 +11,11 @@ _INCLUDE_USES_GMAKE_MK=	yes
 IGNORE=	Incorrect 'USES+= gmake:${gmake_ARGS}' gmake takes no arguments
 .endif
 
-BUILD_DEPENDS+=		gmake:single:lite
+# -----------------------------------------------
+# Incorporated in ravenadm
+# -----------------------------------------------
+# BUILD_DEPENDS+=	gmake:single:lite
+# -----------------------------------------------
 CONFIGURE_ENV+=		MAKE=gmake
 MAKE_CMD=		gmake
 
