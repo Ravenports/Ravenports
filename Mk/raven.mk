@@ -744,7 +744,7 @@ do-install:
 
 .if !target(compress-man)
 compress-man:
-	@${ECHO_MSG} "====> Compressing man pages (compress-man)"
+	@${ECHO_MSG} "====> Start compressing man pages"
 	@mdirs= ; \
 	for dir in ${MANDIRS:S/^/${STAGEDIR}/} ; do \
 		[ -d $$dir ] && mdirs="$$mdirs $$dir" ;\
@@ -769,6 +769,7 @@ compress-man:
 				${RM} $$link ; \
 		done; \
 	done
+	@${ECHO_MSG} "====> Man page compression complete"
 .endif
 
 .if !target(install-rc-script)
@@ -874,8 +875,8 @@ add-plist-post:
 .  if ${SUBPACKAGES:Mdocs}
 .    if !exists(${.CURDIR}/manifests/plist.docs) && !exists(${.CURDIR}/manifests/plist.docs.${VARIANT})
 add-plist-docs:
-	@${FIND} -s ${STAGEDIR}${PREFIX}/share/docs \
-	\( -type f -o -type l \) 2>/dev/null >> ${WRKDIR}/.manifest.docs.mktmp
+	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/docs \
+	\( -type f -o -type l \) 2>/dev/null | ${SORT}) >> ${WRKDIR}/.manifest.docs.mktmp
 .    endif
 .  endif
 .endif
@@ -889,8 +890,8 @@ add-plist-docs:
 .  if ${SUBPACKAGES:Mexamples}
 .    if !exists(${.CURDIR}/manifests/plist.examples) && !exists(${.CURDIR}/manifests/plist.examples.${VARIANT})
 add-plist-examples:
-	@${FIND} -s ${STAGEDIR}${PREFIX}/share/examples \
-	\( -type f -o -type l \) 2>/dev/null >> ${WRKDIR}/.manifest.examples.mktmp
+	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/examples \
+	\( -type f -o -type l \) 2>/dev/null | ${SORT}) >> ${WRKDIR}/.manifest.examples.mktmp
 .    endif
 .  endif
 .endif
