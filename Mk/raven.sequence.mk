@@ -50,6 +50,7 @@ _EXTRACT_SEQ=		100:extract-message \
 			800:post-extract-opsys \
 			850:post-extract-script \
 			999:extract-fixup-modes \
+			${_SITES_extract} \
 			${_USES_extract}
 
 _PATCH_DEP=		extract

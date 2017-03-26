@@ -43,11 +43,7 @@ EXTRACT_WRKDIR_${N}=	${WRKDIR}
 .if defined(DIRTY_EXTRACT_1)
 WRKSRC=			${WRKDIR}/${NAMEBASE}_1
 .else
-.  if defined(USE_GITHUB)
-WRKSRC=			${WRKDIR}/${GH_PROJECT}-${GH_TAGNAME_EXTRACT}
-.  else
 WRKSRC=			${WRKDIR}/${DISTNAME}
-.  endif
 .endif
 
 # --------------------------------------------------------------------------
@@ -77,9 +73,11 @@ DO_NADA?=		${TRUE}
 # --  Phase: Fetch
 # --------------------------------------------------------------------------
 
-.if !make(makesum)
+# makesum guards break "ravenadm dev distinfo" because root_ca_nss is
+# not installed in the slave jail
+#.if !make(makesum)
 FETCH_ENV=		SSL_NO_VERIFY_PEER=1 SSL_NO_VERIFY_HOSTNAME=1
-.endif
+#.endif
 FETCH_REGET?=		1
 
 _OFFICIAL_BACKUP=	http://distcache.DragonFlyBSD.org/ports-distfiles/ # placeholder (change this)
@@ -822,25 +820,16 @@ ${TMP_MANIFESTS}:
 		${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} >> ${.TARGET}; \
 	fi
 
-.undef INFO_USED
-.undef INFO_SUBDIR
-.for sp in ${SUBPACKAGES}
-.  if defined(INFO_${sp}) && !empty(INFO_${sp})
-INFO_USED=	yes
-.    for D in ${INFO_${sp}:H}
-RD:=		${D}
-.      if ${RD} != "."
-.        if !defined(INFO_SUBDIR)
-INFO_SUBDIR:=	${RD}
-.        endif
-.      endif
-.    endfor
-.  endif
-.endfor
-.undef RD
-
-.if defined(INFO_USED)
-# TODO: Add RUN_DEPENDS on indexinfo
+.if defined(INFO)
+# -----------------------------------------------
+# Incorporated in ravenadm
+# -----------------------------------------------
+# 1) .if defined(INFO)
+#    BUILD_DEPENDS+= indexinfo:single:standard
+#    .endif
+# 2) validation of a single unique INFO_SUBDIR
+# 3) definition of INFO_SUBDIR (default = ".")
+# -----------------------------------------------
 .endif
 
 .if !target(add-plist-info)

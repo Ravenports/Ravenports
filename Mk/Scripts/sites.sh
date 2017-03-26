@@ -123,6 +123,38 @@ expand_GNU()
     done
 }
 
+expand_GITHUB()
+{
+    # pattern [element]/%ACCOUNT%/%PROJECT%/tar.gz/%HASH/TAG%?dummy=/
+    local SUBDIR
+    if [ ${2} -eq 1 ]; then
+	SUBDIR=${1##GITHUB/}
+    else
+	SUBDIR=${1##GH/}
+    fi
+    OLD_IFS=${IFS}
+    IFS=:
+    set -- ${SUBDIR}
+    IFS=${OLD_IFS}
+    echo "https://codeload.github.com/${1}/${2}/tar.gz/${3}?dummy=/"
+}
+
+expand_GITHUB_CLOUD()
+{
+    # pattern [element]/%ACCOUNT%/%PROJECT%/
+    local SUBDIR
+    if [ ${2} -eq 1 ]; then
+	SUBDIR=${1##GITHUB_CLOUD/}
+    else
+	SUBDIR=${1##GHC/}
+    fi
+    OLD_IFS=${IFS}
+    IFS=:
+    set -- ${SUBDIR}
+    IFS=${OLD_IFS}
+    echo "https://cloud.github.com/downloads/${1}/${2}/"
+}
+
 process_site()
 {
     case "${1}" in
@@ -131,6 +163,10 @@ process_site()
 	APACHE_COMMONS_SOURCE/*)   expand_APACHE_COMMONS_SOURCE "${1}" ;;
 	APACHE_HTTPD/*)            expand_APACHE_HTTPD "${1}" ;;
 	APACHE_JAKARTA/*)          expand_APACHE_JAKARTA "${1}" ;;
+	GITHUB/*)                  expand_GITHUB "${1}" 1 ;;
+	GH/*)                      expand_GITHUB "${1}" 2 ;;
+	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
+	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
 	GNU/*)                     expand_GNU "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
