@@ -292,8 +292,8 @@ _IN_PKGINSTALL=		${WRKDIR}/pkg-zzzinstall-xxx
 _IN_PKGUPGRADE=		${WRKDIR}/pkg-zzzupgrade-xxx
 _IN_PKGDEINSTALL=	${WRKDIR}/pkg-zzzdeinstall-xxx
 
-_MESSAGE_FILE=		${WRKDIR}/PKG_DISPLAY
-_DESC_FILE=		${WRKDIR}/PKG_DESC
+_MESSAGE_FILE=		${WRKDIR}/.PKG_DISPLAY
+_DESC_FILE=		${WRKDIR}/.PKG_DESC
 
 _CPDLIST=		AGE AGEOPSYS AGEOPSYSARCH AGEARCH
 _MSGLIST=		install upgrade deinstall
@@ -436,14 +436,18 @@ STRIP=			# none
 STRIP_CMD=		${TRUE}
 DEBUG_FLAGS?=		-g
 MAKE_ENV+=		DONTSTRIP=yes
-CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS} ${CFLAGS}
+CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS} \
+			${CFLAGS} -I${LOCALBASE}/include
 
 .  if defined(INSTALL_TARGET)
 INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
 .  endif
 .else
-CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${CFLAGS}
+CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
+			${CFLAGS} -I${LOCALBASE}/include
 .endif
+CPPFLAGS+=		-I${LOCALBASE}/include
+LDFLAGS+=		-I${LOCALBASE}/lib
 
 BUILD_TARGET?=		all
 INSTALL_TARGET?=	install
