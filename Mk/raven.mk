@@ -837,7 +837,7 @@ add-plist-info:
 .  for sp in ${SUBPACKAGES}
 .    for i in ${INFO_${sp}}
 	@${LS} ${STAGEDIR}${PREFIX}/${INFO_PATH}/$i.info* | \
-	${SED} -e s:${STAGEDIR}:@info\ :g >> ${.CURDIR}/manifest.${sp}.mktmp
+	${SED} -e s:${STAGEDIR}:@info\ :g >> ${WRKDIR}/.manifest.${sp}.mktmp
 .    endfor
 .  endfor
 .endif
@@ -850,7 +850,7 @@ add-plist-info:
 .  if (${PREFIX} != ${LOCALBASE} && ${PREFIX} != "/usr" && ${PREFIX} != "/")
 add-plist-post:
 .    for sp in ${SUBPACKAGES}
-	@${ECHO_CMD} "@dir ${PREFIX}" >> ${.CURDIR}/manifest.${sp}.mktmp
+	@${ECHO_CMD} "@dir ${PREFIX}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .    endfor
 .  endif
 .endif
