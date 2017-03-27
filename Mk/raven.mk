@@ -809,12 +809,16 @@ install-license:
 	@${ECHO} "This package is ${LICENSE_SCHEME}-licensed:" \
 		> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}
 .        for lic in ${LICENSE_${sp}}
-.          if exists(${LICENSE_FILE_${lic}})
+.          if defined(LICENSE_FILE_${lic})
+.            if exists(${LICENSE_FILE_${lic}})
 	@${ECHO_MSG} "====> Install ${lic} license (${sp})"
 	@${INSTALL_DATA} ${LICENSE_FILE_${lic}} \
 		${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}
 	@${ECHO} " * ${lic} (${LICENSE_NAME_${lic}})" \
 		>> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}
+.            else
+	@${ECHO_MSG} "====> Failed to locate ${lic} license (${LICENSE_FILE_${lic}})"
+.            endif
 .          endif
 .        endfor
 .      endif
