@@ -147,7 +147,8 @@ _STAGE_SEQ+=		700:post-install \
 			900:add-plist-info \
 			910:add-plist-docs \
 			920:add-plist-examples \
-			930:add-plist-post \
+			930:add-plist-licenses \
+			940:add-plist-post \
 			${POST_PLIST_TARGET:C/^/990:/} \
 			995:stage-qa \
 			${_USES_install} \

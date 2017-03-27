@@ -798,6 +798,30 @@ install-rc-script:
 .  endif
 .endif
 
+_LICENSE_DIR=		share/licenses/${NAMEBASE}
+
+.if !target(install-license)
+install-license:
+.  if defined(LICENSE_SET)
+.    for sp in ${SUBPACKAGES}
+.      if defined(LICENSE_${sp})
+	@${MKDIR} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}
+	@${ECHO} "This package is ${LICENSE_SCHEME}-licensed:" \
+		> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}
+.        for lic in ${LICENSE_${sp}}
+.          if exists(${LICENSE_FILE_${lic}})
+	@${ECHO_MSG} "====> Install ${lic} license (${sp})"
+	@${INSTALL_DATA} ${LICENSE_FILE_${lic}} \
+		${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}
+	@${ECHO} " * ${lic} (${LICENSE_NAME_${lic}})" \
+		>> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}
+.          endif
+.        endfor
+.      endif
+.    endfor
+.  endif
+.endif
+
 # --------------------------------------------------------------------------
 # --  Manifest handling
 # --------------------------------------------------------------------------
@@ -886,6 +910,23 @@ add-plist-examples:
 	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/examples \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) >> ${WRKDIR}/.manifest.examples.mktmp
 .    endif
+.  endif
+.endif
+
+# add licenses to package manifest
+.if !target(add-plist-licenses)
+add-plist-licenses:
+.  if defined(LICENSE_SET)
+.    for sp in ${SUBPACKAGES}
+.      if defined(LICENSE_${sp})
+	@echo "${_LICENSE_DIR}/summary.${sp}" >> ${WRKDIR}/.manifest.${sp}.mktmp
+.        for lic in ${LICENSE_${sp}}
+.          if exists(${LICENSE_FILE_${lic}})
+	@echo "${_LICENSE_DIR}/${lic}" >> ${WRKDIR}/.manifest.${sp}.mktmp
+.          endif
+.        endfor
+.      endif
+.    endfor
 .  endif
 .endif
 
