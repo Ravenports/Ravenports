@@ -26,11 +26,17 @@ SKIP_CCACHE=		yes
 
 MUST_CONFIGURE=		gnu
 
+PLIST_SUB=		CCLINKDIR="libexec/ccache"
+
 CPPFLAGS=		-DCC_IS_GCC
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/ccache ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_MAN} ${WRKSRC}/ccache.1 ${STAGEDIR}${PREFIX}/share/man/man1
+	@${MKDIR} ${STAGEDIR}${PREFIX}/libexec/ccache
+.for compiler in cc c++ CC gcc g++
+	${LN} -sf ${PREFIX}/bin/ccache ${STAGEDIR}${PREFIX}/libexec/ccache/${compiler}
+.endfor
 	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_DATA} ${WRKSRC}/MANUAL.html ${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_DATA} ${WRKSRC}/MANUAL.txt  ${STAGEDIR}${STD_DOCDIR}
@@ -46,9 +52,15 @@ times speedup in common compilations.
 1348b54e7c35dd2f8d17923389e03c546e599cfbde6459d2f31cf6f1521ec538       449905 ccache-3.3.4.tar.gz
 
 
-[FILE:38:manifests/plist.primary]
+[FILE:76:manifests/plist.primary]
 bin/ccache
 share/man/man1/ccache.1.gz
+%%CCLINKDIR%%/
+ cc
+ gcc
+ c++
+ g++
+ CC
 
 
 [FILE:43:manifests/plist.docs]

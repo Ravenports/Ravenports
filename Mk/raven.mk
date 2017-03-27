@@ -655,20 +655,6 @@ BUILD_FAIL_MESSAGE=	Try to set SINGLE_JOBS=yes and rebuild before reporting the 
 DO_MAKE_BUILD?=		${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
 			${MAKEFILE} ${_MAKE_JOBS} ${MAKE_ARGS:C,^${DESTDIRNAME}=.*,,g}
 
-.if defined(WITH_CCACHE_BUILD) && !defined(NO_CCACHE) && !defined(NO_BUILD)
-#TODO: Add build dependency on ccache port
-#TODO: Obviously ccache port has to have NO_CCACHE set to avoid cycle
-CCACHE_DIR?=		/root/.ccache
-_CCACHE_PATH=		${LOCALBASE}/libexec/ccache
-
-# Prepend the ccache dir into the PATH and setup ccache env
-PATH:=	${_CCACHE_PATH}:${PATH}
-.  if !${MAKE_ENV:MPATH=*} && !${CONFIGURE_ENV:MPATH=*}
-MAKE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
-CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
-.  endif
-.endif
-
 build-message:
 	@${ECHO_MSG} "===>  Building for ${TWO_PART_ID}"
 
@@ -994,5 +980,42 @@ ${_f}_ARGS:=	${f:C/^[^\:]*(\:|\$)//:S/,/ /g}
 .for f in ${USES}
 .include "${USESDIR}/${f:C/\:.*//}.mk"
 .endfor
+
+# --------------------------------------------------------------------------
+# --  CCACHE handling
+# --------------------------------------------------------------------------
+
+.if defined(BUILD_WITH_CCACHE)
+CCACHE_DIR?=	/root/.ccache
+
+# Double guard against using ccache to build itself.
+# The port specification should list NO_CCACHE though
+
+.  if ${NAMEBASE:Nccache} && !defined(NO_CCACHE) && !defined(NO_BUILD)
+
+# -----------------------------------------------
+# Incorporated in ravenadm
+# -----------------------------------------------
+# .if defined(BUILD_WITH_CCACHE) &&
+#    !defined(NO_BUILD) &&
+#    !defined(NO_CCACHE) &&
+#    ${NAMEBASE:Nccache}
+# BUILD_DEPENDS+= ccache:primary:standard
+# .endif
+# -----------------------------------------------
+
+_CCACHE_PATH=   ${LOCALBASE}/libexec/ccache
+
+# Prepend the ccache dir into the PATH and setup ccache env
+PATH:=			${_CCACHE_PATH}:${PATH}
+
+MAKE_ENV:=		${MAKE_ENV:NPATH=*}
+CONFIGURE_ENV:=		${CONFIGURE_ENV:NPATH=*}
+
+MAKE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
+CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
+
+.  endif
+.endif
 
 .include "/xports/Mk/raven.sequence.mk"
