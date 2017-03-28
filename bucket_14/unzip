@@ -27,15 +27,15 @@ OPTIONS_STANDARD=	ICONV
 VOPTS[russian]=		CHINESE=OFF
 			KOREAN=OFF
 			RUSSIAN=ON
-			ICONV=ON
+			ICONV=OFF
 VOPTS[chinese]=		CHINESE=ON
 			KOREAN=OFF
 			RUSSIAN=OFF
-			ICONV=ON
+			ICONV=OFF
 VOPTS[korean]=		CHINESE=OFF
 			KOREAN=ON
 			RUSSIAN=OFF
-			ICONV=ON
+			ICONV=OFF
 
 BUILD_DEPENDS=		bzip2:static:standard
 			zlib:static:standard
@@ -70,26 +70,35 @@ VAR_OPSYS[openbsd]=	CPPFLAGS=-DBSD
 			CPPFLAGS=-DNO_LCHMOD
 VAR_OPSYS[dragonfly]=	CPPFLAGS=-DBSD
 
-[RUSSIAN].EXTRA_PATCHES_ON=		{{FILESDIR}}/extra-ru-patch-ebcdic.h
+[RUSSIAN].EXTRA_PATCHES_ON=		extra-ru-patch-ebcdic.h
 [RUSSIAN].KEYWORDS_ON=			russian
 
-[KOREAN].EXTRA_PATCHES_ON=		{{FILESDIR}}/extra-ko-patch-fileio.c
-					{{FILESDIR}}/extra-ko-patch-unzip.c
-					{{FILESDIR}}/extra-ko-patch-unzip.h
+[KOREAN].EXTRA_PATCHES_ON=		extra-ko-patch-fileio.c
+					extra-ko-patch-unzip.c
+					extra-ko-patch-unzip.h
 [KOREAN].KEYWORDS_ON=			korean
 
-[CHINESE].EXTRA_PATCHES_ON=		{{FILESDIR}}/extra-zh-patch-fileio.c
+[CHINESE].EXTRA_PATCHES_ON=		extra-zh-patch-fileio.c
 [CHINESE].KEYWORDS_ON=			chinese
 
 [ICONV].CFLAGS_ON=			-I{{LOCALBASE}}/include
 					-DNATIVE
-[ICONV].EXTRA_PATCHES_ON=		{{FILESDIR}}/extra-iconv-patch-unix_unix.c
-					{{FILESDIR}}/extra-iconv-patch-unix_unxcfg.h
-					{{FILESDIR}}/extra-iconv-patch-unzip.c
-					{{FILESDIR}}/extra-iconv-patch-unzpriv.h
-					{{FILESDIR}}/extra-iconv-patch-zipinfo.c
+[ICONV].EXTRA_PATCHES_ON=		extra-iconv-patch-unix_unix.c
+					extra-iconv-patch-unix_unxcfg.h
+					extra-iconv-patch-unzip.c
+					extra-iconv-patch-unzpriv.h
+					extra-iconv-patch-zipinfo.c
 [ICONV].MAKE_ARGS_ON=			LFLAGS1="-L{{LOCALBASE}}/lib {{ICONV_LIB}}"
 [ICONV].USES_ON=			iconv
+
+post-install-KOREAN-ON:
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+
+post-install-RUSSIAN-ON:
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+
+post-install-CHINESE-ON:
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/unzip ${STAGEDIR}${PREFIX}/bin
