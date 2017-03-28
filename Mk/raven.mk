@@ -447,7 +447,7 @@ CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
 			${CFLAGS} -I${LOCALBASE}/include
 .endif
 CPPFLAGS+=		-I${LOCALBASE}/include
-LDFLAGS+=		-I${LOCALBASE}/lib
+LDFLAGS+=		-L${LOCALBASE}/lib
 
 BUILD_TARGET?=		all
 INSTALL_TARGET?=	install
@@ -596,6 +596,7 @@ do-configure:
 
 MAKE_CMD?=		${BSDMAKE}
 MAKEFILE?=		Makefile
+MAKE_FLAGS?=		-f
 MAKE_ENV+=		PREFIX=${PREFIX} \
 			LOCALBASE=${LOCALBASE} \
 			LIBDIR="${LIBDIR}" \
@@ -628,8 +629,6 @@ ${lang}FLAGS+=	${${lang}FLAGS_${ARCH}}
 .  endif
 .endfor
 
-.undef (BUILD_FAIL_MESSAGE)
-
 # Multiple make jobs support
 .if defined(DISABLE_MAKE_JOBS) || defined(SINGLE_JOB)
 _MAKE_JOBS=		#
@@ -649,7 +648,6 @@ MAKE_JOBS_NUMBER=	${MAKE_JOBS_NUMBER_LIMIT}
 MAKE_JOBS_NUMBER=	${_MAKE_JOBS_NUMBER}
 .  endif
 _MAKE_JOBS?=		-j${MAKE_JOBS_NUMBER}
-BUILD_FAIL_MESSAGE=	Try to set SINGLE_JOBS=yes and rebuild before reporting the failure.
 .endif
 
 DO_MAKE_BUILD?=		${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
@@ -661,10 +659,7 @@ build-message:
 .if !target(do-build)
 do-build:
 	@(cd ${BUILD_WRKSRC}; if ! ${DO_MAKE_BUILD} ${BUILD_TARGET}; then \
-		if [ -n "${BUILD_FAIL_MESSAGE}" ] ; then \
-			${ECHO_MSG} "===> Compilation failed unexpectedly."; \
-			(${ECHO_CMD} "${BUILD_FAIL_MESSAGE}"); \
-		fi; \
+		${ECHO_MSG} "===> Compilation failed unexpectedly."; \
 		${FALSE}; \
 	fi)
 .endif
