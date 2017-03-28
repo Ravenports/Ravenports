@@ -27,15 +27,15 @@ OPTIONS_STANDARD=	ICONV
 VOPTS[russian]=		CHINESE=OFF
 			KOREAN=OFF
 			RUSSIAN=ON
-			ICONV=OFF
+			ICONV=ON
 VOPTS[chinese]=		CHINESE=ON
 			KOREAN=OFF
 			RUSSIAN=OFF
-			ICONV=OFF
+			ICONV=ON
 VOPTS[korean]=		CHINESE=OFF
 			KOREAN=ON
 			RUSSIAN=OFF
-			ICONV=OFF
+			ICONV=ON
 
 BUILD_DEPENDS=		bzip2:static:standard
 			zlib:static:standard
@@ -81,14 +81,14 @@ VAR_OPSYS[dragonfly]=	CPPFLAGS=-DBSD
 [CHINESE].EXTRA_PATCHES_ON=		extra-zh-patch-fileio.c
 [CHINESE].KEYWORDS_ON=			chinese
 
-[ICONV].CFLAGS_ON=			-I{{LOCALBASE}}/include
-					-DNATIVE
+[ICONV].CFLAGS_ON=			-DNATIVE
+					-I{{ICONV_INCLUDE_PATH}}
 [ICONV].EXTRA_PATCHES_ON=		extra-iconv-patch-unix_unix.c
 					extra-iconv-patch-unix_unxcfg.h
 					extra-iconv-patch-unzip.c
 					extra-iconv-patch-unzpriv.h
 					extra-iconv-patch-zipinfo.c
-[ICONV].MAKE_ARGS_ON=			LFLAGS1="-L{{LOCALBASE}}/lib {{ICONV_LIB}}"
+[ICONV].MAKE_ARGS_ON=			LFLAGS1="-L{{ICONV_LIBRARY_PATH}} {{ICONV_LIB}} -Wl,-rpath,{{ICONV_LIBRARY_PATH}}"
 [ICONV].USES_ON=			iconv
 
 post-install-KOREAN-ON:

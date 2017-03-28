@@ -447,7 +447,7 @@ CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
 			${CFLAGS} -I${LOCALBASE}/include
 .endif
 CPPFLAGS+=		-I${LOCALBASE}/include
-LDFLAGS+=		-L${LOCALBASE}/lib
+LDFLAGS+=		-L${LOCALBASE}/lib -Wl,-rpath,${LOCALBASE}/lib
 
 BUILD_TARGET?=		all
 INSTALL_TARGET?=	install
