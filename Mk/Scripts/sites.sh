@@ -155,6 +155,22 @@ expand_GITHUB_CLOUD()
     echo "https://cloud.github.com/downloads/${1}/${2}/"
 }
 
+expand_OPENBSD()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##OPENBSD/}
+    local cluster="\
+    https://ftp.OpenBSD.org/pub/OpenBSD/ \
+    https://ftp.eu.openbsd.org/pub/OpenBSD/ \
+    https://ftp3.usa.openbsd.org/pub/OpenBSD/ \
+    https://openbsd.hk/pub/OpenBSD/ \
+    https://mirror.aarnet.edu.au/pub/OpenBSD/ \
+    https://mirrors.evowise.com/pub/OpenBSD/"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 process_site()
 {
     case "${1}" in
@@ -168,6 +184,7 @@ process_site()
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
 	GNU/*)                     expand_GNU "${1}" ;;
+	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	*)                         echo "${1}" ;;
