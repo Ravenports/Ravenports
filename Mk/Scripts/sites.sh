@@ -81,7 +81,6 @@ expand_SOURCEFORGE()
     	SUBDIR=${1##SF/}
     fi
     local cluster="\
-    http://downloads.dl.sourceforge.net/project \
     http://heanet.dl.sourceforge.net/project \
     http://iweb.dl.sourceforge.net/project \
     http://freefr.dl.sourceforge.net/project \
@@ -96,6 +95,7 @@ expand_SOURCEFORGE()
     http://tenet.dl.sourceforge.net/project \
     http://netcologne.dl.sourceforge.net/project \
     http://ignum.dl.sourceforge.net/project \
+    http://downloads.dl.sourceforge.net/project \
     http://kent.dl.sourceforge.net/project"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
