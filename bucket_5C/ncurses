@@ -54,6 +54,7 @@ CONFIGURE_ARGS=		--datadir={{PREFIX}}/share/misc
 			--without-manpage-renames
 			--mandir={{MANPREFIX}}/man
 			--with-hashed-db
+			--datadir={{PREFIX}}/share/misc
 CONFIGURE_ENV=		gnat_exists="no"
 
 BUILD_WRKSRC=		{{WRKSRC}}/build.nowidec
@@ -65,9 +66,9 @@ PLIST_SUB=		ABI_VER=6
 			REL_VER=6.0
 
 [RAVENSYS].CONFIGURE_ARGS_ON=		--enable-shared=no
-					--datadir=/usr/share
+					--with-default-terminfo-dir=/usr/share/terminfo
+					--with-terminfo-dirs=/usr/share/terminfo
 [RAVENSYS].CONFIGURE_ARGS_OFF=		--with-shared=yes
-					--datadir={{PREFIX}}/share/misc
 
 post-patch:
 	${REINPLACE_CMD} -e 's,$$(INSTALL_PROG) ncurses-config,@INSTALL_SCRIPT@ ncurses-config,' ${WRKSRC}/misc/Makefile.in
@@ -96,9 +97,10 @@ post-install-RAVENSYS-OFF:
 .endfor
 
 post-install-RAVENSYS-ON:
+	${RM} -r ${STAGEDIR}${MANPREFIX}/man
 	${MV} ${STAGEDIR}/usr/share/terminfo.db \
 		${STAGEDIR}${PREFIX}/share/misc/terminfo.db.default
-	${MV} ${STAGEDIR}/usr/share/tabset ${STAGEDIR}${PREFIX}/share/misc/
+	${RMDIR} ${STAGEDIR}/usr/share ${STAGEDIR}/usr
 
 post-build:
 	(cd ${.CURDIR} && ${MAKE} ${.MAKEFLAGS} \
@@ -1109,6 +1111,75 @@ share/misc/tabset/
 share/misc/terminfo.db.default
 
 
+[FILE:745:manifests/plist.primary.ravensys]
+bin/
+ clear
+ infocmp
+ reset
+ tabs
+ tput
+ tset
+ tic
+ toe
+ infotocap
+ captoinfo
+ ncurses%%ABI_VER%%-config
+ ncursesw%%ABI_VER%%-config
+include/ncurses/
+ curses.h
+ cursesapp.h
+ cursesf.h
+ cursesm.h
+ cursesp.h
+ cursesw.h
+ cursslk.h
+ eti.h
+ etip.h
+ form.h
+ menu.h
+ nc_tparm.h
+ ncurses.h
+ ncurses_dll.h
+ panel.h
+ term.h
+ term_entry.h
+ termcap.h
+ tic.h
+ unctrl.h
+lib/
+ libform.a
+ libmenu.a
+ libncurses++.a
+ libncurses.a
+ libpanel.a
+ libtinfo.a
+ libformw.a
+ libmenuw.a
+ libncurses++w.a
+ libncursesw.a
+ libpanelw.a
+ libtinfow.a
+lib/pkgconfig/
+ form.pc
+ formw.pc
+ menu.pc
+ menuw.pc
+ ncurses++.pc
+ ncurses++w.pc
+ ncurses.pc
+ ncursesw.pc
+ panel.pc
+ panelw.pc
+ tinfo.pc
+ tinfow.pc
+share/misc/tabset/
+ std
+ stdcrt
+ vt100
+ vt300
+share/misc/terminfo.db.default
+
+
 [FILE:661:patches/patch-configure]
 # Based on upstream 6.0 patch 20160220:
 #
@@ -1134,4 +1205,27 @@ share/misc/terminfo.db.default
  	;;
  (netbsd*)
  	LD_RPATH_OPT="-Wl,-rpath,"
+
+
+[FILE:1041:patches/patch-misc_terminfo.src]
+--- misc/terminfo.src.orig	2015-07-25 19:27:20 UTC
++++ misc/terminfo.src
+@@ -4143,7 +4143,7 @@ xterm-basic|modern xterm terminal emulat
+ 	il=\E[%p1%dL, il1=\E[L, ind=^J, invis=\E[8m,
+ 	is2=\E[!p\E[?3;4l\E[4l\E>, kmous=\E[M, meml=\El,
+ 	memu=\Em, op=\E[39;49m, rc=\E8, rev=\E[7m, ri=\EM,
+-	ritm=\E[23m, rmacs=\E(B, rmam=\E[?7l, rmcup=\E[?1049l,
++	ritm=\E[23m, rmacs=\E(B, rmam=\E[?7l,
+ 	rmir=\E[4l, rmkx=\E[?1l\E>, rmm=\E[?1034l, rmso=\E[27m,
+ 	rmul=\E[24m, rs1=\Ec, rs2=\E[!p\E[?3;4l\E[4l\E>, sc=\E7,
+ 	setab=\E[4%p1%dm, setaf=\E[3%p1%dm,
+@@ -4151,7 +4151,7 @@ xterm-basic|modern xterm terminal emulat
+ 	setf=\E[3%?%p1%{1}%=%t4%e%p1%{3}%=%t6%e%p1%{4}%=%t1%e%p1%{6}%=%t3%e%p1%d%;m,
+ 	sgr=%?%p9%t\E(0%e\E(B%;\E[0%?%p6%t;1%;%?%p5%t;2%;%?%p2%t;4%;%?%p1%p3%|%t;7%;%?%p4%t;5%;%?%p7%t;8%;m,
+ 	sgr0=\E(B\E[m, sitm=\E[3m, smacs=\E(0, smam=\E[?7h,
+-	smcup=\E[?1049h, smir=\E[4h, smkx=\E[?1h\E=,
++	smir=\E[4h, smkx=\E[?1h\E=,
+ 	smm=\E[?1034h, smso=\E[7m, smul=\E[4m, tbc=\E[3g,
+ 	vpa=\E[%i%p1%dd, E3=\E[3J, use=ansi+pp, use=xterm+kbs,
+ 	use=vt100+enq,
 
