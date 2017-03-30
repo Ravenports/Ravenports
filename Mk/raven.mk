@@ -869,7 +869,7 @@ add-plist-post:
 .endif
 
 # "docs" is a standard subpackage name.
-# All port docs must be located at ${PREFIX}/share/docs/${NAMEBASE}
+# All port docs must be located at ${PREFIX}/share/doc/${NAMEBASE}
 # If manifests/docs.${VARIANT} does not exist (which is handled by
 # generate-plist target already), autogeneration is assumed.
 
@@ -877,7 +877,7 @@ add-plist-post:
 .  if ${SUBPACKAGES:Mdocs}
 .    if !exists(${.CURDIR}/manifests/plist.docs) && !exists(${.CURDIR}/manifests/plist.docs.${VARIANT})
 add-plist-docs:
-	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/docs \
+	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/doc \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) >> ${WRKDIR}/.manifest.docs.mktmp
 .    endif
 .  endif

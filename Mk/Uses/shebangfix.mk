@@ -70,19 +70,21 @@ _SHEBANG_REINPLACE_ARGS+=	-e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}$$|\#!${${lan
 
 _USES_patch+=	210:fix-shebang
 fix-shebang:
+	@${ECHO_MSG} "====> Invoking shebangfix"
 .  if defined(SHEBANG_REGEX)
 	@cd ${WRKSRC}; \
 		${FIND} -E . -type f -iregex '${SHEBANG_REGEX}' \
-		-exec ${SED} -i '' ${_SHEBANG_REINPLACE_ARGS} {} +
+		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
 .  elif defined(SHEBANG_GLOB)
 .    for f in ${SHEBANG_GLOB}
 	@cd ${WRKSRC}; \
 		${FIND} . -type f -name '${f}' \
-		-exec ${SED} -i '' ${_SHEBANG_REINPLACE_ARGS} {} +
+		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
 .    endfor
 .  else
-	@cd ${WRKSRC}; \
-		${ECHO_CMD} ${SHEBANG_FILES} | ${XARGS} ${SED} -i '' ${_SHEBANG_REINPLACE_ARGS}
+	(cd ${WRKSRC} && \
+		${ECHO_CMD} ${SHEBANG_FILES} | \
+		${XARGS} ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS})
 .  endif
 
 .endif
