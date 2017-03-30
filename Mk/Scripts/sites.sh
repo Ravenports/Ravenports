@@ -13,7 +13,7 @@ apache_cluster="\
 	http://apache.mirror.uber.com.au \
 	http://apache.spd.co.il \
 	http://ftp.mirrorservice.org/sites/ftp.apache.org \
-	http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.apache.org/dist \
+	http://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist \
 	ftp://mir1.ovh.net/ftp.apache.org/dist \
 	ftp://ftp.forthnet.gr/pub/www/apache \
 	ftp://xenia.sote.hu/pub/mirrors/www.apache.org \
