@@ -1,0 +1,32 @@
+# handle dependency on the ncurses port
+#
+# Feature:	ncurses
+# Usage:	USES=ncurses
+# Valid ARGS:	none or "static"
+#
+# use/port can now set this options to the makefiles
+# NCURSES_RPATH= defined	- pass RFLAGS options to CFLAGS
+#
+# The makefile sets the following variables:
+# NCURSESBASE		- "/usr" or ${LOCALBASE}
+# NCURSESLIB		- path to the libs
+# NCURSESINC		- path to the matching includes
+# NCURSESRPATH		- rpath for dynamic linker
+#
+# BUILDRUN_DEPENDS	- are added by ravenadm (version based on ARGS)
+#
+
+.if !defined(_INCLUDE_USES_NCURSES_MK)
+_INCLUDE_USES_NCURSES_MK=	yes
+
+NCURSESBASE=	${LOCALBASE}
+NCURSESINC=	${NCURSESBASE}/include/ncurses
+NCURSESLIB=	${NCURSESBASE}/lib
+
+.  if defined(NCURSES_RPATH)
+CFLAGS+=	-Wl,-rpath,${NCURSESRPATH}
+.  else
+LDFLAGS+=	-Wl,-rpath=${NCURSESRPATH}
+.  endif
+
+.endif

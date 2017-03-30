@@ -3,9 +3,9 @@
 NAMEBASE=		ncurses
 VERSION=		6.0
 KEYWORDS=		devel
-VARIANTS=		standard ravensys
-SDESC[ravensys]=	Static ncurses with relocated terminfo database
+VARIANTS=		standard static
 SDESC[standard]=	Terminal-independent lib for full-screen output
+SDESC[static]=		Minimal static-only version of ncurses
 HOMEPAGE=		http://invisible-island.net/ncurses/ncurses.html
 CONTACT=		nobody
 
@@ -14,15 +14,15 @@ SITES[main]=		http://invisible-mirror.net/archives/ncurses/
 			ftp://invisible-island.net/ncurses/
 DISTFILE[1]=		ncurses-6.0.tar.gz:main
 DF_INDEX=		1
-SPKGS[ravensys]=	primary
 SPKGS[standard]=	complete
 			primary
 			examples
 			docs
+SPKGS[static]=		primary
 
-OPTIONS_AVAILABLE=	RAVENSYS
+OPTIONS_AVAILABLE=	STATIC
 OPTIONS_STANDARD=	none
-VOPTS[ravensys]=	RAVENSYS=ON
+VOPTS[static]=		STATIC=ON
 
 USES=			pkgconfig terminfo:primary shebangfix
 
@@ -55,6 +55,8 @@ CONFIGURE_ARGS=		--datadir={{PREFIX}}/share/misc
 			--mandir={{MANPREFIX}}/man
 			--with-hashed-db
 			--datadir={{PREFIX}}/share/misc
+			--with-default-terminfo-dir={{PREFIX}}/share/misc/terminfo
+			--with-terminfo-dirs={{PREFIX}}/share/misc/terminfo
 CONFIGURE_ENV=		gnat_exists="no"
 
 BUILD_WRKSRC=		{{WRKSRC}}/build.nowidec
@@ -65,16 +67,10 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		ABI_VER=6
 			REL_VER=6.0
 
-[RAVENSYS].CONFIGURE_ARGS_ON=		--enable-shared=no
-					--with-default-terminfo-dir=/usr/share/terminfo
-					--with-terminfo-dirs=/usr/share/terminfo
-[RAVENSYS].CONFIGURE_ARGS_OFF=		--with-shared=yes
+[STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
+[STATIC].CONFIGURE_ARGS_OFF=		--with-shared=yes
 
-post-patch:
-	${REINPLACE_CMD} -e 's,$$(INSTALL_PROG) ncurses-config,@INSTALL_SCRIPT@ ncurses-config,' ${WRKSRC}/misc/Makefile.in
-	${REINPLACE_CMD} -e 's,/usr/include,${PREFIX}/include,g' ${WRKSRC}/misc/ncurses-config.in
-
-post-install-RAVENSYS-OFF:
+post-install-STATIC-OFF:
 	${RM} ${STAGEDIR}${PREFIX}/lib/libncurses.so \
 		${STAGEDIR}${PREFIX}/lib/libncursesw.so
 	${ECHO} "INPUT(libncurses.so.${PORTVERSION:R} AS_NEEDED(-ltinfo))" > ${STAGEDIR}${PREFIX}/lib/libncurses.so
@@ -96,11 +92,14 @@ post-install-RAVENSYS-OFF:
 	${INSTALL_DATA} ${WRKSRC}/${f} ${STAGEDIR}${STD_DOCDIR}/
 .endfor
 
-post-install-RAVENSYS-ON:
-	${RM} -r ${STAGEDIR}${MANPREFIX}/man
-	${MV} ${STAGEDIR}/usr/share/terminfo.db \
+post-patch:
+	${REINPLACE_CMD} -e 's,$$(INSTALL_PROG) ncurses-config,@INSTALL_SCRIPT@ ncurses-config,' ${WRKSRC}/misc/Makefile.in
+	${REINPLACE_CMD} -e 's,/usr/include,${PREFIX}/include,g' ${WRKSRC}/misc/ncurses-config.in
+
+post-install-STATIC-ON:
+	${MV} ${STAGEDIR}${PREFIX}/share/misc/terminfo.db \
 		${STAGEDIR}${PREFIX}/share/misc/terminfo.db.default
-	${RMDIR} ${STAGEDIR}/usr/share ${STAGEDIR}/usr
+	${RM} -r ${STAGEDIR}${MANPREFIX}/man
 
 post-build:
 	(cd ${.CURDIR} && ${MAKE} ${.MAKEFLAGS} \
@@ -1111,7 +1110,7 @@ share/misc/tabset/
 share/misc/terminfo.db.default
 
 
-[FILE:745:manifests/plist.primary.ravensys]
+[FILE:745:manifests/plist.primary.static]
 bin/
  clear
  infocmp
