@@ -7,14 +7,10 @@
 .if !defined(_INCLUDE_USES_GMAKE_MK)
 _INCLUDE_USES_GMAKE_MK=	yes
 
-.if !empty(gmake_ARGS)
-IGNORE=	Incorrect 'USES+= gmake:${gmake_ARGS}' gmake takes no arguments
-.endif
-
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	gmake:single:lite
+# BUILD_DEPENDS+=	gmake:single:standard
 # -----------------------------------------------
 CONFIGURE_ENV+=		MAKE=gmake
 MAKE_CMD=		gmake
