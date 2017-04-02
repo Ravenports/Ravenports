@@ -9,6 +9,6 @@ _INCLUDE_USES_PKGCONFIG_MK=	yes
 
 # The logic is contained in ravenadm.
 # The presence of USES=pkgconf turns it on.
-# pkgconf:single:standard
+# pkgconfig:single:standard
 
 .endif

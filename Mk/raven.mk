@@ -824,12 +824,12 @@ ${TMP_MANIFESTS}:
 	@${ECHO_MSG} "===>   Generating temporary packing list (${.TARGET:R:E})"
 	@${MKDIR} ${.TARGET:H}
 	@${TOUCH} ${.TARGET}
-	@if [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E} ]; then \
-		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
-		${.CURDIR}/manifests/plist.${.TARGET:R:E} >> ${.TARGET}; \
-	elif [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} ]; then \
+	@if [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} ]; then \
 		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
 		${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} >> ${.TARGET}; \
+	elif [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E} ]; then \
+		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
+		${.CURDIR}/manifests/plist.${.TARGET:R:E} >> ${.TARGET}; \
 	fi
 
 .if defined(INFO)

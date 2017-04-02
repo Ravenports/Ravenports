@@ -3,8 +3,9 @@
 NAMEBASE=		libarchive
 VERSION=		3.2.2
 KEYWORDS=		archivers
-VARIANTS=		standard static
+VARIANTS=		standard static extended
 SDESC[standard]=	Library to handle many streaming archive formats
+SDESC[extended]=	Extended libarchive with lzo and lz4 capability
 SDESC[static]=		Static build of libarchive
 HOMEPAGE=		http://libarchive.org/
 CONTACT=		nobody
@@ -14,17 +15,19 @@ SITES[main]=		http://libarchive.org/downloads/
 DISTFILE[1]=		libarchive-3.2.2.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
+SPKGS[extended]=	single
 SPKGS[static]=		single
 
-OPTIONS_AVAILABLE=	STATIC
+OPTIONS_AVAILABLE=	STATIC EXTENDED
 OPTIONS_STANDARD=	none
+VOPTS[extended]=	STATIC=OFF
+			EXTENDED=ON
 VOPTS[static]=		STATIC=ON
+			EXTENDED=OFF
 
 BUILD_DEPENDS=		bzip2:static:standard
 			zlib:static:standard
 			expat:static:standard
-			lzo:static:standard
-			lz4:static:standard
 USES=			cpe libtool
 
 LICENSE=		BSD2CLAUSE:single BSD3CLAUSE:single PUBDOM:single
@@ -35,18 +38,14 @@ LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-xml2
-			--with-lzo2
-			--with-lz4
 
 INSTALL_TARGET=		install-strip
 
-[STATIC].BUILD_DEPENDS_OFF=		libressl:single:standard
+[STATIC].BUILDRUN_DEPENDS_OFF=		libressl:single:standard
 					xz:single:standard
 					bzip2:shared:standard
 					zlib:shared:standard
 					expat:shared:standard
-					lzo:shared:standard
-					lz4:shared:standard
 [STATIC].BUILD_DEPENDS_ON=		libressl:single:static
 					xz:single:static
 [STATIC].CONFIGURE_ARGS_OFF=		--enable-shared=yes
@@ -54,6 +53,13 @@ INSTALL_TARGET=		install-strip
 					--enable-static=yes
 					--without-iconv
 [STATIC].USES_OFF=			iconv
+
+[EXTENDED].BUILDRUN_DEPENDS_ON=		lzo:shared:standard
+					lz4:shared:standard
+[EXTENDED].BUILD_DEPENDS_ON=		lzo:static:standard
+					lz4:static:standard
+[EXTENDED].CONFIGURE_ARGS_ON=		--with-lzo2
+					--with-lz4
 
 do-test:
 	@(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} check)
@@ -86,7 +92,7 @@ performance-competitive with other tar and cpio implementations:
 691c194ee132d1f0f7a42541f091db811bc2e56f7107e9121be2bc8c04f1060f      5458241 libarchive-3.2.2.tar.gz
 
 
-[FILE:1240:manifests/plist.single.standard]
+[FILE:1240:manifests/plist.single]
 bin/
  bsdcat
  bsdcpio
