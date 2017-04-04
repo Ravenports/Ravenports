@@ -6,8 +6,9 @@
 #              buildmod (implies build, do not use with buildmodtiny)
 #              buildmodtiny (implies build, do not use with buildmod)
 #              run (do not use with configure)
+#              none (just sets BUILDRUN_DEPENDS) 
 #
-# Internal ravenadm makefile will set this variable:
+# Internal ravenadm makefile may preset this variable:
 # PERL5_DEFAULT
 #
 # The makefile sets the following variables:
@@ -36,10 +37,9 @@
 .if !defined(_INCLUDE_USES_PERL_MK)
 _INCLUDE_USES_PERL_MK=	yes
 
-.include "/xports/Mk/raven.versions.mk"
-
 PERL_VERSION=	${PERL_${PERL5_DEFAULT}_VERSION}
 PERL_VER=	${PERL_VERSION:C/\.[0-9]+$//}
+PERL_ARCH=	mach
 
 SITE_PERL_REL=	lib/perl5/site_perl
 SITE_PERL=	${LOCALBASE}/${SITE_PERL_REL}
@@ -52,7 +52,6 @@ SITE_MAN3=	${PREFIX}/${SITE_MAN3_REL}
 
 PERL5=		${LOCALBASE}/bin/perl${PERL_VERSION}
 PERL=		${LOCALBASE}/bin/perl
-PERL_ARCH=	mach
 MANDIRS+=	${PREFIX}/${SITE_PERL_REL}/man
 
 CONFIGURE_ENV+=	ac_cv_path_PERL=${PERL} \
@@ -215,22 +214,22 @@ fix-perl-things:
 # --------------------------------------------------------------------------
 
 # if perl_ARGS contain ("buildmod" or "buildmodtiny"), but not "run":
-# BUILD_DEPENDS+=	perl${PERL5_DEFAULT}:single:standard
+# BUILD_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
 #
 # if perl_ARGS contain "run" and "buildmod" or "buildmodtiny"):
-# BUILDRUN_DEPENDS+=	perl${PERL5_DEFAULT}:single:standard
+# BUILDRUN_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
 #
-# if perl ARGS contain only "configure":
-# BUILDRUN_DEPENDS+=	perl${PERL5_DEFAULT}:single:standard
+# if perl ARGS contain only "configure" or are empty.
+# BUILDRUN_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
 #
 # if perl_ARGS contain only "run"
-# RUN_DEPENDS+=		perl${PERL5_DEFAULT}:single:standard
+# RUN_DEPENDS+=		perl${PERL5_DEFAULT}:primary:standard
 #
 # if perl_ARGS contain "buildmod"
-# BUILD_DEPENDS+=	p5-Module-Build:single:standard
+# BUILD_DEPENDS+=	p5-Module-Build:primary:standard
 #
 # if perl_ARGS contain "buildmodtiny"
-# BUILD_DEPENDS+=	p5-Module-Build-Tiny:single:standard
+# BUILD_DEPENDS+=	p5-Module-Build-Tiny:primary:standard
 #
 
 .endif	# defined(_INCLUDE_USES_PERL_MK)

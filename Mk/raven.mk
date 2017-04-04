@@ -261,20 +261,6 @@ extract-message:
 extract-fixup-modes:
 	@${CHMOD} -R u+w,a+rX ${WRKDIR}
 
-.if !target(apply-slist)
-_SUB_LIST_TEMP=		${SUB_LIST:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/}
-
-apply-slist:
-.  for file in ${SUB_FILES}
-.    if exists(${FILESDIR}/${file}.in)
-	@${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file}
-.    else
-	@${ECHO_MSG} "** Checked ${FILESDIR}:"; \
-	@${ECHO_MSG} "** Missing ${file}.in for ${TWO_PART_ID}."; \
-	exit 1
-.    endif
-.  endfor
-.endif
 
 .if !target(compile-package-desc)
 _PKGMESSAGE=		${.CURDIR}/files/pkg-message-xxx
@@ -667,7 +653,7 @@ do-build:
 # --  Phase: Stage
 # --------------------------------------------------------------------------
 
-MANDIRS=		${MANPREFIX}/man
+MANDIRS+=		${MANPREFIX}/man
 .for sect in 1 2 3 4 5 6 7 8 9 L N
 MAN${sect}PREFIX?=	${MANPREFIX}
 .endfor
@@ -964,6 +950,8 @@ PLIST_SUB+=		OPSYS=${OPSYS} DOCSDIR=${STD_DOCDIR}
 _USES_${target}?=
 .endfor
 
+.include "/xports/Mk/raven.versions.mk"
+
 # Loading features
 .for f in ${USES}
 _f:=		${f:C/\:.*//}
@@ -1010,6 +998,27 @@ MAKE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
 CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
 
 .  endif
+.endif
+
+# --------------------------------------------------------------------------
+# --  Post-USES handling
+# --------------------------------------------------------------------------
+
+.if !target(apply-slist)
+
+SUB_LIST+=		PREFIX=${PREFIX} LOCALBASE=${LOCALBASE}
+_SUB_LIST_TEMP=		${SUB_LIST:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/}
+
+apply-slist:
+.  for file in ${SUB_FILES}
+.    if exists(${FILESDIR}/${file}.in)
+	@${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file}
+.    else
+	@${ECHO_MSG} "** Checked ${FILESDIR}:"; \
+	@${ECHO_MSG} "** Missing ${file}.in for ${TWO_PART_ID}."; \
+	exit 1
+.    endif
+.  endfor
 .endif
 
 .include "/xports/Mk/raven.sequence.mk"
