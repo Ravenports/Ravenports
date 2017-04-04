@@ -1,10 +1,10 @@
-# handle dependency on the ncurses port
+# Handle dependency on the ncurses port
 #
 # Feature:	ncurses
 # Usage:	USES=ncurses
 # Valid ARGS:	none or "static"
 #
-# use/port can now set this options to the makefiles
+# Port makefile can now set this variable
 # NCURSES_RPATH= defined	- pass RFLAGS options to CFLAGS
 #
 # The makefile sets the following variables:

@@ -171,6 +171,45 @@ expand_OPENBSD()
     done
 }
 
+expand_CPAN()
+{
+    # pattern [element]/modules/by-module/%SUBDIR%/
+    local SUBDIR AUTHID
+    local _PERL_CPAN_SORT=modules/by-module
+    if [ ${2} -eq 1 ]; then
+	SUBDIR=${1##PERL_CPAN/}
+	AUTHID=${1##PERL_CPAN/ID:}
+    else
+	SUBDIR=${1##CPAN/}
+	AUTHID=${1##CPAN/ID:}
+    fi
+    local cluster="\
+    http://cpan.metacpan.org \
+    http://www.cpan.org \
+    ftp://ftp.cpan.org/pub/CPAN \
+    http://www.cpan.dk \
+    ftp://ftp.kddlabs.co.jp/lang/perl/CPAN \
+    http://ftp.jaist.ac.jp/pub/CPAN \
+    ftp://ftp.sunet.se/pub/lang/perl/CPAN \
+    ftp://ftp.mirrorservice.org/sites/cpan.perl.org/CPAN \
+    ftp://ftp.auckland.ac.nz/pub/perl/CPAN \
+    http://backpan.perl.org \
+    ftp://ftp.funet.fi/pub/languages/perl/CPAN \
+    http://ftp.twaren.net/Unix/Lang/CPAN \
+    ftp://ftp.cpan.org"
+
+    if [ "${AUTHID}" != "${1}" ]; then
+	for site in ${cluster}; do
+	    echo ${site}/modules/by-authors/id/${AUTHID}/
+	done
+    else
+	# Possible to-do: Implement alternative _PERL_CPAN_SORT=authors/id
+	for site in ${cluster}; do
+	    echo ${site}/${_PERL_CPAN_SORT}/${SUBDIR}/
+	done
+    fi;
+}
+
 process_site()
 {
     case "${1}" in
@@ -179,6 +218,8 @@ process_site()
 	APACHE_COMMONS_SOURCE/*)   expand_APACHE_COMMONS_SOURCE "${1}" ;;
 	APACHE_HTTPD/*)            expand_APACHE_HTTPD "${1}" ;;
 	APACHE_JAKARTA/*)          expand_APACHE_JAKARTA "${1}" ;;
+	PERL_CPAN/*)               expand_CPAN "${1}" 1 ;;
+	CPAN/*)                    expand_CPAN "${1}" 2 ;;
 	GITHUB/*)                  expand_GITHUB "${1}" 1 ;;
 	GH/*)                      expand_GITHUB "${1}" 2 ;;
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
