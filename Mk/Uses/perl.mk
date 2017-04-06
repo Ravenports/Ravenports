@@ -12,7 +12,7 @@
 # Internal ravenadm makefile may preset this variable:
 # PERL5_DEFAULT
 #
-# The makefile sets the following variables:
+# This module sets the following variables:
 # PERL_VERSION   - Full version of perl5
 # PERL_VER       - Short version of perl5 (major.minor without patchlevel)
 # PERL5	         - Set to full path of perl5

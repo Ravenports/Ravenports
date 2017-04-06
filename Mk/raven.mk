@@ -594,7 +594,7 @@ MAKE_ENV+=		PREFIX=${PREFIX} \
 DESTDIRNAME?=		DESTDIR
 STAGEDIR=		${WRKDIR}/stage
 .if defined(CONFIGURE_OUTSOURCE)
-BUILD_WRKSRC?=		${WRKDIR}/.build
+BUILD_WRKSRC?=		${CONFIGURE_WRKSRC}
 .else
 BUILD_WRKSRC?=		${WRKSRC}
 .endif
@@ -660,7 +660,7 @@ MAN${sect}PREFIX?=	${MANPREFIX}
 .endfor
 
 .if defined(CONFIGURE_OUTSOURCE)
-INSTALL_WRKSRC?=	${WRKDIR}/.build
+INSTALL_WRKSRC?=	${CONFIGURE_WRKSRC}
 .else
 INSTALL_WRKSRC?=	${WRKSRC}
 .endif
@@ -906,7 +906,7 @@ add-plist-licenses:
 # --------------------------------------------------------------------------
 
 .if defined(CONFIGURE_OUTSOURCE)
-TEST_WRKSRC?=	${WRKDIR}/.build
+TEST_WRKSRC?=	${CONFIGURE_WRKSRC}
 .else
 TEST_WRKSRC?=	${WRKSRC}
 .endif
