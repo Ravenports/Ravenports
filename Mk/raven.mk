@@ -942,6 +942,24 @@ REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
 # ensure PLIST_SUB has at least one value
 PLIST_SUB+=		OPSYS=${OPSYS} DOCSDIR=${STD_DOCDIR}
 
+# Macro for copying entire directory tree with correct permissions
+# In the -exec shell commands, we add add a . as the first argument, it would
+# end up being $0 aka the script name, which is not part of $@, so we force it
+# to be able to use $@ directly.
+
+COPYTREE_BIN=	${SH} -c '(${FIND} $$0 $$2 -depth | \
+		${CPIO} -dumpl $$1 >/dev/null 2>&1) && \
+		${FIND} $$0 $$2 -depth \( -type d -exec ${SH} -c \
+		'\''cd '\''$$1'\'' && chmod 755 "$$@"'\'' -- . {} + \
+		-o -type f -exec ${SH} -c '\''cd '\''$$1'\'' && \
+		chmod ${BINMODE} "$$@"'\'' -- . {} + \)' --
+COPYTREE_SHARE=	${SH} -c '(${FIND} $$0 $$2 -depth | \
+		${CPIO} -dumpl $$1 >/dev/null 2>&1) && \
+		${FIND} $$0 $$2 -depth \(   -type d -exec ${SH} -c \
+		'\''cd '\''$$1'\'' && chmod 755 "$$@"'\'' -- . {} + \
+		-o -type f -exec ${SH} -c '\''cd '\''$$1'\'' && \
+		chmod ${_SHAREMODE} "$$@"'\'' -- . {} + \)' --
+
 # --------------------------------------------------------------------------
 # --  USES handling
 # --------------------------------------------------------------------------
