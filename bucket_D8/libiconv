@@ -14,7 +14,9 @@ SITES[main]=		GNU/libiconv
 DISTFILE[1]=		libiconv-1.14.tar.gz:main
 DISTFILE[2]=		libiconv-1.14-ja-1.patch.gz:patch
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			static
+			shared
 
 OPTIONS_AVAILABLE=	ENCODINGS PATCHES
 OPTIONS_STANDARD=	ENCODINGS PATCHES
@@ -22,7 +24,7 @@ OPT_ON[all]=		ENCODINGS
 
 USES=			libtool
 
-LICENSE=		GPLv3:single
+LICENSE=		GPLv3:static
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING
 
@@ -56,7 +58,7 @@ post-patch:
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-[FILE:631:descriptions/desc.single]
+[FILE:621:descriptions/desc.static]
 This library provides an iconv() implementation, for use on systems which
 don't have one, or whose implementation cannot convert from/to Unicode.
 
@@ -68,7 +70,14 @@ be approximated through one or several similarly looking characters.
 libiconv is for you if your application needs to support multiple character
 encodings, but that support lacks from your system.
 
-See either README or website for the list of supported encodings.
+This package contains the headers and static libraries.
+
+
+[FILE:213:descriptions/desc.shared]
+This library provides an iconv() implementation, for use on systems which
+don't have one, or whose implementation cannot convert from/to Unicode.
+
+This package contains the iconv program and the shared libraries.
 
 
 [FILE:205:distinfo]
@@ -76,8 +85,7 @@ See either README or website for the list of supported encodings.
 1fb7afc12b1f76c86340b29df65891b82c6dc4d579167125bf9be39854aef53e          970 libiconv-1.14-ja-1.patch.gz
 
 
-[FILE:330:manifests/plist.single]
-bin/iconv
+[FILE:220:manifests/plist.static]
 include/
  iconv.h
  libcharset.h
@@ -85,13 +93,7 @@ include/
 lib/
  charset.alias
  libcharset.a
- libcharset.so
- libcharset.so.1
- libcharset.so.1.0.0
  libiconv.a
- libiconv.so
- libiconv.so.2
- libiconv.so.2.5.1
 share/man/man1/iconv.1.gz
 share/man/man3/
  iconv.3.gz
@@ -99,6 +101,17 @@ share/man/man3/
  iconv_open_into.3.gz
  iconv_close.3.gz
  iconvctl.3.gz
+
+
+[FILE:115:manifests/plist.shared]
+bin/iconv
+lib/
+ libcharset.so
+ libcharset.so.1
+ libcharset.so.1.0.0
+ libiconv.so
+ libiconv.so.2
+ libiconv.so.2.5.1
 
 
 [FILE:2344:patches/patch-include-iconv.h.in]

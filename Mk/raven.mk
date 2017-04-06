@@ -47,6 +47,10 @@ WRKSRC=			${WRKDIR}/${NAMEBASE}_1
 WRKSRC=			${WRKDIR}/${DISTNAME}
 .endif
 
+.if exists(${.CURDIR}/opsys/special.mk)
+.include "${.CURDIR}/opsys/special.mk)
+.endif
+
 # --------------------------------------------------------------------------
 # --  Common Definitions
 # --------------------------------------------------------------------------
