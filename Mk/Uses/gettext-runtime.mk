@@ -14,7 +14,7 @@ _INCLUDE_USES_GETTEXT_RUNTIME_MK=	yes
 # if ARGS :build (but not :run, :buildrun)
 # BUILD_DEPENDS+=	gettext:runtime:standard
 # -----------------------------------------------------
-# if ARGS or none or contain :buildrun (or :build and :run)
+# if ARGS are none or contain :buildrun (or :build and :run)
 # BUILDRUN_DEPENDS+=   gettext:runtime:standard
 # -----------------------------------------------------
 # if ARGS contains :run (and not :build, :buildrun)

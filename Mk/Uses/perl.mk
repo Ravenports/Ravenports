@@ -5,8 +5,9 @@
 # Valid ARGS:  configure (implies build & run)
 #              buildmod (implies build, do not use with buildmodtiny)
 #              buildmodtiny (implies build, do not use with buildmod)
-#              run (do not use with configure)
-#              none (just sets BUILDRUN_DEPENDS) 
+#              build (do not use with configure or run)
+#              run   (do not use with configure or build)
+#              none  (just sets BUILDRUN_DEPENDS)
 #
 # Internal ravenadm makefile may preset this variable:
 # PERL5_DEFAULT
@@ -144,7 +145,7 @@ do-install:
 		${PERL5} ${PL_BUILD} ${INSTALL_TARGET} ${MAKE_ARGS})
 .      endif	# !target(do-install)
 .    endif 	# ! USES=gmake
-.  end		# buildmod* in ARGS
+.  endif	# buildmod* in ARGS
 
 # --------------------------------------------------------------------------
 # --  Test
@@ -224,6 +225,9 @@ fix-perl-things:
 #
 # if perl_ARGS contain only "run"
 # RUN_DEPENDS+=		perl${PERL5_DEFAULT}:primary:standard
+#
+# if perl_ARGS contain only "build"
+# BUILD_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
 #
 # if perl_ARGS contain "buildmod"
 # BUILD_DEPENDS+=	p5-Module-Build:primary:standard
