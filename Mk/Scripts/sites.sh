@@ -210,6 +210,20 @@ expand_CPAN()
     fi;
 }
 
+expand_SOURCEWARE()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##SOURCEWARE/}
+    local cluster="\
+    http://mirrors.kernel.org/sourceware \
+    http://gd.tuwien.ac.at/gnu/sourceware \
+    ftp://ftp.funet.fi/pub/mirrors/sourceware.org/pub"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+
 process_site()
 {
     case "${1}" in
@@ -228,6 +242,7 @@ process_site()
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
+	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
 	*)                         echo "${1}" ;;
     esac
 }
