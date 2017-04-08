@@ -223,6 +223,35 @@ expand_SOURCEWARE()
     done
 }
 
+expand_GCC()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##GCC/}
+    local cluster="\
+        http://mirrors.kernel.org/sourceware/gcc \
+	http://gcc.parentingamerica.com \
+	http://gcc.skazkaforyou.com \
+	http://gcc.cybermirror.org \
+	http://gcc-uk.internet.bs \
+	http://www.netgull.com/gcc \
+	http://robotlab.itk.ppke.hu/gcc \
+	http://gcc.fyxm.net \
+	http://ftp-stud.hs-esslingen.de/pub/Mirrors/sourceware.org/gcc \
+	ftp://ftp.funet.fi/pub/mirrors/sourceware.org/pub/gcc \
+	ftp://gcc.gnu.org/pub/gcc \
+	ftp://ftp.lip6.fr/pub/gcc \
+	ftp://ftp.irisa.fr/pub/mirrors/gcc.gnu.org/gcc \
+	ftp://ftp.uvsq.fr/pub/gcc \
+	ftp://ftp.gwdg.de/pub/misc/gcc \
+	ftp://ftp.mpi-sb.mpg.de/pub/gnu/mirror/gcc.gnu.org/pub/gcc \
+	ftp://ftp.nluug.nl/mirror/languages/gcc \
+	ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc \
+	ftp://ftp.ntua.gr/pub/gnu/gcc"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 
 process_site()
 {
@@ -234,6 +263,7 @@ process_site()
 	APACHE_JAKARTA/*)          expand_APACHE_JAKARTA "${1}" ;;
 	PERL_CPAN/*)               expand_CPAN "${1}" 1 ;;
 	CPAN/*)                    expand_CPAN "${1}" 2 ;;
+	GCC/*)                     expand_GCC "${1}" ;;
 	GITHUB/*)                  expand_GITHUB "${1}" 1 ;;
 	GH/*)                      expand_GITHUB "${1}" 2 ;;
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;

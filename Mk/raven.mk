@@ -839,7 +839,7 @@ ${TMP_MANIFESTS}:
 add-plist-info:
 .  for sp in ${SUBPACKAGES}
 .    for i in ${INFO_${sp}}
-	@${LS} ${STAGEDIR}${PREFIX}/${INFO_PATH}/$i.info* | \
+	${LS} ${STAGEDIR}${PREFIX}/${INFO_PATH}/$i.info* | \
 	${SED} -e s:${STAGEDIR}:@info\ :g >> ${WRKDIR}/.manifest.${sp}.mktmp
 .    endfor
 .  endfor
