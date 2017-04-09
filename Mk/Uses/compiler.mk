@@ -6,12 +6,12 @@
 #
 
 .if !defined(_INCLUDE_USES_COMPILER_MK)
-_INCLUDE_USES_COMPILER_MK=	yes
+_INCLUDE_USES_COMPILER_MK=	subpackage (at least one required)
 
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# RUN_DEPENDS=		gcc6:complete:standard
+# EXRUN[subpackage]=	gcc6:complete:standard
 # -----------------------------------------------
 
 .endif
