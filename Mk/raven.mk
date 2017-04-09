@@ -839,7 +839,7 @@ ${TMP_MANIFESTS}:
 add-plist-info:
 .  for sp in ${SUBPACKAGES}
 .    for i in ${INFO_${sp}}
-	${LS} ${STAGEDIR}${PREFIX}/${INFO_PATH}/$i.info* | \
+	@${LS} ${STAGEDIR}${PREFIX}/${INFO_PATH}/$i.info* | \
 	${SED} -e s:${STAGEDIR}:@info\ :g >> ${WRKDIR}/.manifest.${sp}.mktmp
 .    endfor
 .  endfor
@@ -964,6 +964,11 @@ COPYTREE_SHARE=	${SH} -c '(${FIND} $$0 $$2 -depth | \
 		-o -type f -exec ${SH} -c '\''cd '\''$$1'\'' && \
 		chmod ${_SHAREMODE} "$$@"'\'' -- . {} + \)' --
 
+MAKE_ENV+=		ADA_PROJECT_PATH=${LOCALBASE}/lib/gnat\
+			F77="gfortran" FC="gfortran"
+CONFIGURE_ENV+=		ADA_PROJECT_PATH=${LOCALBASE}/lib/gnat\
+			F77="gfortran" FC="gfortran"
+
 # --------------------------------------------------------------------------
 # --  USES handling
 # --------------------------------------------------------------------------
@@ -1019,7 +1024,6 @@ CONFIGURE_ENV:=		${CONFIGURE_ENV:NPATH=*}
 
 MAKE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
 CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
-
 .  endif
 .endif
 
