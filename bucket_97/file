@@ -3,7 +3,8 @@
 NAMEBASE=		file
 VERSION=		5.29
 KEYWORDS=		sysutils
-VARIANTS=		standard
+VARIANTS=		standard ravensys
+SDESC[ravensys]=	Static file type utility based at /usr
 SDESC[standard]=	Utility to determine file type
 HOMEPAGE=		http://darwinsys.com/file
 CONTACT=		nobody
@@ -13,10 +14,12 @@ SITES[main]=		ftp://ftp.astron.com/pub/file/
 			ftp://ftp.fu-berlin.de/unix/tools/file/
 DISTFILE[1]=		file-5.29.tar.gz:main
 DF_INDEX=		1
+SPKGS[ravensys]=	single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	RAVENSYS
 OPTIONS_STANDARD=	none
+VOPTS[ravensys]=	RAVENSYS=ON
 
 BUILD_DEPENDS=		zlib:static:standard
 USES=			libtool
@@ -27,13 +30,25 @@ LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-fsect-man5
-			--enable-shared=no
+			--enable-static
 
 MAKE_ENV=		INSTALL_STRIP_FLAG="{{STRIP}}"
+
+INSTALL_TARGET=		install-strip
+
+[RAVENSYS].BUILD_DEPENDS_OFF=		zlib:shared:standard
+[RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-shared=yes
+[RAVENSYS].CONFIGURE_ARGS_ON=		--enable-shared=no
+					--datarootdir=/usr/share
 
 post-patch:
 	@${REINPLACE_CMD} -e 's|$$(datadir)/misc|$$(datadir)/file|g' \
 		${WRKSRC}/configure
+
+post-install-RAVENSYS-ON:
+	${MV} ${STAGEDIR}/usr/share/file ${STAGEDIR}${PREFIX}/share/
+	${RMDIR} ${STAGEDIR}/usr/share
+	${RMDIR} ${STAGEDIR}/usr
 
 do-test:
 	@(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} check)
@@ -53,7 +68,11 @@ The first test that succeeds causes the file type to be printed.
 ea661277cd39bf8f063d3a83ee875432cc3680494169f952787e002bdd3884c0       783919 file-5.29.tar.gz
 
 
-[FILE:141:manifests/plist.single]
+[FILE:209:manifests/plist.single]
+%%RAVENSYS-OFF%%lib/
+ libmagic.so.1
+ libmagic.so
+ libmagic.so.1.0.0
 bin/file
 include/magic.h
 lib/libmagic.a
