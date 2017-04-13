@@ -968,9 +968,9 @@ COPYTREE_SHARE=	${SH} -c '(${FIND} $$0 $$2 -depth | \
 		-o -type f -exec ${SH} -c '\''cd '\''$$1'\'' && \
 		chmod ${_SHAREMODE} "$$@"'\'' -- . {} + \)' --
 
-MAKE_ENV+=		ADA_PROJECT_PATH=${LOCALBASE}/lib/gnat\
+MAKE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/lib/gnat"\
 			F77="gfortran" FC="gfortran"
-CONFIGURE_ENV+=		ADA_PROJECT_PATH=${LOCALBASE}/lib/gnat\
+CONFIGURE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/lib/gnat"\
 			F77="gfortran" FC="gfortran"
 
 # --------------------------------------------------------------------------

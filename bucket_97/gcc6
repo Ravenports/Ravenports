@@ -20,8 +20,9 @@ SPKGS[standard]=	complete
 			libs
 			infopages
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	ALLSTAGES
 OPTIONS_STANDARD=	none
+OPT_ON[all]=		ALLSTAGES
 
 BUILD_DEPENDS=		gmp:static:standard
 			mpfr:static:standard
@@ -82,6 +83,9 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 INSTALL_TARGET=		install-strip
 PLIST_SUB=		GCCVER=6.3.1
 			TARGET={{CONFIGURE_TARGET}}
+
+[ALLSTAGES].DESCRIPTION=		Three stage build (full bootstrap)
+[ALLSTAGES].CONFIGURE_ARGS_OFF=		--disable-bootstrap
 
 post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
@@ -5476,7 +5480,7 @@ share/man/man1/
 -end;
 
 
-[FILE:13567:patches/patch-diff-core]
+[FILE:13624:patches/patch-diff-core]
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
@@ -5484,7 +5488,7 @@ share/man/man1/
     %{static:-Bstatic} \
    } \
 -  %{!static:--hash-style=gnu} \
-+  %{!static:--hash-style=gnu -rpath @PREFIX@/@GCCAUX@/lib} \
++  %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib} \
    %{symbolic:-Bsymbolic}"
  
  #undef  LINK_SPEC
@@ -5501,7 +5505,7 @@ share/man/man1/
      %{symbolic:-Bsymbolic}                                      \
      %{static:-Bstatic}                                          \
      %{!static:                                                  \
-+    %{!static:--hash-style=gnu -rpath @PREFIX@/@GCCAUX@/lib}   \
++    %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib}   \
        %{rdynamic:-export-dynamic}                               \
        %{!shared:-dynamic-linker " FBSD_DYNAMIC_LINKER " }}      \
      -X" SUBTARGET_EXTRA_LINK_SPEC "                             \
@@ -5518,7 +5522,7 @@ share/man/man1/
          %{rdynamic:-export-dynamic} \
          -dynamic-linker %(fbsd_dynamic_linker) } \
      %{static:-Bstatic}} \
-+  %{!static:--hash-style=gnu -rpath @PREFIX@/@GCCAUX@/lib} \
++  %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib} \
    %{symbolic:-Bsymbolic}"
  
  /* A C statement to output to the stdio stream FILE an assembler

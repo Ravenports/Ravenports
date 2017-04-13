@@ -22,6 +22,7 @@ INVALID_RPATH=		yes
 
 SKIP_BUILD=		yes
 MAKE_ENV=		COMPVER=6.20170202
+			TARGET={{CONFIGURE_TARGET}}
 
 PLIST_SUB=		COMPVER=6.20170202
 			GCCVER=6.3.1
@@ -30,6 +31,11 @@ PLIST_SUB=		COMPVER=6.20170202
 do-extract:
 	${MKDIR} ${WRKSRC}
 	${CP} ${FILESDIR}/Makefile ${WRKSRC}/
+
+post-install:
+	@${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
+		${SED} -e 's,^${STAGEDIR}${PREFIX}/,,' \
+		>> ${WRKDIR}/.manifest.single.mktmp
 
 [FILE:179:descriptions/desc.single]
 This assembles a toolchain of the default compiler and binutils, and
@@ -3426,7 +3432,7 @@ share/
  gcc6-libs-standard-%%COMPVER%%.txz
 
 
-[FILE:571:files/Makefile]
+[FILE:638:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -3442,6 +3448,7 @@ install:
 	tar -xf /packages/All/binutils-single-ravensys-*.txz ${LOCALBASE}
 
 	cp -a ${LOCALBASE:T}/toolchain/bin  ${DESTDIR}${PREFIX}/
+	cp -a ${LOCALBASE:T}/toolchain/${TARGET}/lib ${DESTDIR}${PREFIX}/
 	cp -a ${LOCALBASE:T}/toolchain/gcc6 ${DESTDIR}${PREFIX}/
 	rm -rf ${DESTDIR}${PREFIX}/gcc6/share/licenses
 	cp /packages/All/gcc6-*-${COMPVER}.txz ${DESTDIR}${PREFIX}/share/
