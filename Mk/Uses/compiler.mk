@@ -6,7 +6,7 @@
 #
 
 .if !defined(_INCLUDE_USES_COMPILER_MK)
-_INCLUDE_USES_COMPILER_MK=	subpackage (at least one required)
+_INCLUDE_USES_COMPILER_MK=	yes
 
 # -----------------------------------------------
 # Incorporated in ravenadm

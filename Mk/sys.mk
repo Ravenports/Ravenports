@@ -2,6 +2,7 @@
 
 .SUFFIXES:	.out .o .c .cc .cpp .cxx .y .l .S .s .sh
 
+AR?=		ar
 AS?=		as
 CC?=		cc
 CC_LINK?=	${CC}
