@@ -8,7 +8,7 @@
 # NCURSES_RPATH= defined	- pass RFLAGS options to CFLAGS
 #
 # The makefile sets the following variables:
-# NCURSESBASE		- "/usr" or ${LOCALBASE}
+# NCURSESBASE		- ${LOCALBASE}
 # NCURSESLIB		- path to the libs
 # NCURSESINC		- path to the matching includes
 # NCURSESRPATH		- rpath for dynamic linker
