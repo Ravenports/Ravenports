@@ -15,8 +15,8 @@ _INCLUDE_BSD_DEFAULT_VERSIONS_MK=	yes
 .  endfor
 
 .  for base in ${DEFAULT_VERSIONS}
-_l=			${lang:C/=.*//g}
-${_l:tu}_DEFAULT=	${lang:C/.*=//g}
+_l=			${base:C/=.*//g}
+${_l:tu}_DEFAULT=	${base:C/.*=//g}
 .  endfor
 
 #-------------------------------------

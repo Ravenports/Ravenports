@@ -3,8 +3,7 @@
 NAMEBASE=		ravensys-root
 VERSION=		1.0
 KEYWORDS=		raven
-VARIANTS=		standard dragonfly freebsd64
-SDESC[standard]=	OS-specific system root for Ravenports build env
+VARIANTS=		dragonfly freebsd64
 SDESC[freebsd64]=	FreeBSD64 system root for Ravenports build env
 SDESC[dragonfly]=	DragonFly64 system root for Ravenports build env
 HOMEPAGE=		none
@@ -15,19 +14,15 @@ SITES[main]=		http://dummy.org
 SITES[avalon]=		http://avalon.dragonflybsd.org/snapshots/x86_64/images/
 DISTFILE[1]=		DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2:avalon
 DF_INDEX=		1
-SPKGS[standard]=	single
 SPKGS[freebsd64]=	single
 SPKGS[dragonfly]=	single
 
-OPTIONS_AVAILABLE=	STD DRAGONFLY FREEBSD
-OPTIONS_STANDARD=	STD
-VOPTS[freebsd64]=	STD=OFF
-			DRAGONFLY=OFF
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD
+OPTIONS_STANDARD=	none
+VOPTS[freebsd64]=	DRAGONFLY=OFF
 			FREEBSD=ON
-VOPTS[dragonfly]=	STD=OFF
-			DRAGONFLY=ON
+VOPTS[dragonfly]=	DRAGONFLY=ON
 			FREEBSD=OFF
-OPT_ON[all]=		STD
 
 BUILD_DEPENDS=		nawk:single:standard
 			bzip2:static:standard
@@ -56,6 +51,7 @@ BUILD_DEPENDS=		nawk:single:standard
 			binutils:single:standard
 			ncurses:primary:static
 			pkg-bsd:static:standard
+			makewhatis:single:standard
 
 EXTRACT_DIRTY=		1
 
@@ -77,9 +73,6 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBUSB={{Libusb_{{OPSYS}}}}
 			SONAME_LIBUSBHID={{Libusbhid_{{OPSYS}}}}
 			BASE=share/raven/sysroot/{{OPSYS}}
-
-[STD].DESCRIPTION=			Dummy option to mark standard variant unused
-[STD].BROKEN_ON=			Only build non-standard variants
 
 [DRAGONFLY].DESCRIPTION=		Ravenports system root for DragonFly
 [DRAGONFLY].DF_INDEX_ON=		1
@@ -131,7 +124,7 @@ Ravenports.
 157a06bec1885a007ffd85d39e40364976579e30bd2aedc345336c1fdb3028fb    270896484 DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2
 
 
-[FILE:7035:manifests/plist.single.dragonfly]
+[FILE:7047:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -204,6 +197,7 @@ Ravenports.
  lzma
  m4
  make
+ makewhatis
  mkfifo
  mktemp
  more
@@ -816,7 +810,7 @@ Ravenports.
 @dir %%BASE%%/usr/local
 
 
-[FILE:8820:files/Makefile]
+[FILE:8831:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -1159,7 +1153,7 @@ install:
 	grep fetch file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
 	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
 	unlzma unxz xz xzcat xzcmp xzdiff xzegrep xzfgrep xzgrep yacc \
-	unzip less mtree bsdcat
+	unzip less mtree bsdcat makewhatis
 	cp ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/
 .endfor
 	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
