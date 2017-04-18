@@ -31,9 +31,27 @@ PERL_5.24_VERSION=	5.24.1
 
 #-------------------------------------
 # RUBY
-# Possible values: 2.2, 2.3, 2.4
+# Possible values: 2.3, 2.4
 #-------------------------------------
 
 RUBY_DEFAULT?=		2.4
+
+#-------------------------------------
+# PYTHON
+# Possible values: 2.7, 3.4, 3.5
+#-------------------------------------
+
+PYTHON3_DEFAULT?=	3.5
+
+PYTHON_2.7_VERSION=	2.7.13
+PYTHON_3.4_VERSION=	3.4.6
+PYTHON_3.5_VERSION=	3.5.3
+
+#-------------------------------------
+# SSL
+# Possible values: openssl, openssl-devel, libressl, libressl-devel
+#-------------------------------------
+
+SSL_DEFAULT?=		libressl
 
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)

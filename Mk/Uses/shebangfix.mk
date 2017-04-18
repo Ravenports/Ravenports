@@ -18,18 +18,18 @@
 # To define custom shebangs to replace, use the following (note that
 # shebangs with spaces should be quoted):
 #
-#   perl_OLD_CMD=	/usr/bin/perl5.005 "/usr/bin/setenv perl5.005"
+#   SHEBANG_OLD_PERL=	/usr/bin/perl5.005 "/usr/bin/setenv perl5.005"
 #
 # To define a new shebang scheme add the following to the port Makefile:
 #
 #   SHEBANG_LANG=	lua
-#   lua_OLD_CMD=	/usr/bin/lua
-#   lua_CMD=	${LOCALBASE}/bin/lua
+#   SHEBANG_OLD_LUA=	/usr/bin/lua
+#   SHEBANG_NEW_LUA=	${LOCALBASE}/bin/lua
 #
 # To override a definition, for example replacing /usr/bin/perl by
 # /usr/bin/env perl, add the following:
 #
-#   perl_CMD=	${SETENV} perl
+#   SHEBANG_NEW_PERL=	${SETENV} perl
 #
 
 .if !defined(_INCLUDE_USES_SHEBANGFIX_MK)
@@ -38,31 +38,31 @@ _INCLUDE_USES_SHEBANGFIX_MK=	yes
 SHEBANG_LANG+=	bash java ksh perl php python ruby tcl tk
 
 .  if ${USES:Mlua*}
-SHEBANG_LANG+=	lua
-lua_CMD?=	${LOCALBASE}/bin/${LUA_CMD}
+SHEBANG_LANG+=		lua
+SHEBANG_NEW_LUA?=	${LOCALBASE}/bin/${LUA_CMD}
 .  endif
 
-tcl_OLD_CMD+=	/usr/bin/tclsh
-tcl_CMD?=	${TCLSH}
+SHEBANG_OLD_TCL+=	/usr/bin/tclsh
+SHEBANG_NEW_TCL?=	${TCLSH}
 
-tk_OLD_CMD+=	/usr/bin/wish
-tk_CMD?=	${WISH}
+SHEBANG_OLD_TK+=	/usr/bin/wish
+SHEBANG_NEW_TK?=	${WISH}
 
 .  if ${USES:Mpython*}
-python_CMD?=	${PYTHON_CMD}
+SHEBANG_NEW_PYTHON?=	${PYTHON_CMD}
 .  endif
 
 # Replace the same patterns for all langs and setup a default, that may have
 # been set already above with ?=.
 .  for lang in ${SHEBANG_LANG}
-${lang}_CMD?= ${LOCALBASE}/bin/${lang}
-${lang}_OLD_CMD+= "/usr/bin/env ${lang}"
-${lang}_OLD_CMD+= /bin/${lang}
-${lang}_OLD_CMD+= /usr/bin/${lang}
+SHEBANG_NEW_${lang:tu}?= ${LOCALBASE}/bin/${lang}
+SHEBANG_OLD_${lang:tu}+= "/usr/bin/env ${lang}"
+SHEBANG_OLD_${lang:tu}+= /bin/${lang}
+SHEBANG_OLD_${lang:tu}+= /usr/bin/${lang}
 .  endfor
 
 .  for lang in ${SHEBANG_LANG}
-.    for old_cmd in ${${lang}_OLD_CMD}
+.    for old_cmd in ${SHEBANG_OLD_${lang:tu}}
 _SHEBANG_REINPLACE_ARGS+=	-e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}\([[:space:]]\)|\#!${${lang}_CMD}\1|"
 _SHEBANG_REINPLACE_ARGS+=	-e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}$$|\#!${${lang}_CMD}|"
 .    endfor
