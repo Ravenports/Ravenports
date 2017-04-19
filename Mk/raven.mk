@@ -298,19 +298,19 @@ compile-package-desc:
 	@${RM} ${_DESC_FILE}.${sp}
 	@${ECHO_MSG} "===>   Creating package metadata (${sp})"
 .    for suffix in ${_CPDLIST}
-.      if exists(${_IN_PKGMESS${suffix}:S/xxx/${sp}/})
-	@${CAT} ${_IN_PKGMESS${suffix}:S/xxx/${sp}/} >> ${_MESSAGE_FILE}.${sp}
-.      elif exists(${_PKGMESS${suffix}:S/xxx/${sp}/})
-	@${CAT} ${_PKGMESS${suffix}:S/xxx/${sp}/} >> ${_MESSAGE_FILE}.${sp}
-.      endif
+	@if [ -f "${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/}" ]; then \
+	   ${CAT} ${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
+	elif [ -f "${_PKGMESS${suffix}:S/-xxx/-${sp}/}" ]; then \
+	   @${CAT} ${_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
+	fi
 .    endfor
 .    for suffix in ${_MSGLIST}
-.      for psp in pre- "" post-
-.        if exists(${_IN_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/})
-	@${CP} ${_IN_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/} ${WRKDIR}/pkg-${psp}${suffix}.${sp}
-.        elif exists(${_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/})
-	@${CP} ${_PKG${suffix}:S/zzz/${psp}/:S/xxx/${sp}/} ${WRKDIR}/pkg-${psp}${suffix}.${sp}
-.        endif
+.      for psp in pre- x post-
+	@if [ -f "${_IN_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/}" ]; then \
+	   @${CP} ${_IN_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
+	elif [ -f "${_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/}" ]; then \
+	   @${CP} ${_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
+	fi
 .      endfor
 .    endfor
 .    if exists(${.CURDIR}/descriptions/desc.${sp}.${VARIANT})
