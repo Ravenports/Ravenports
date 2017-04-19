@@ -63,17 +63,18 @@ SHEBANG_OLD_${lang:tu}+= /usr/bin/${lang}
 
 .  for lang in ${SHEBANG_LANG}
 .    for old_cmd in ${SHEBANG_OLD_${lang:tu}}
-_SHEBANG_REINPLACE_ARGS+=	-e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}\([[:space:]]\)|\#!${${lang}_CMD}\1|"
-_SHEBANG_REINPLACE_ARGS+=	-e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}$$|\#!${${lang}_CMD}|"
+_SHEBANG_REINPLACE_ARGS+= -e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}\([[:space:]]\)|\#!${SHEBANG_NEW_${lang:tu}}\1|"
+_SHEBANG_REINPLACE_ARGS+= -e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}$$|\#!${SHEBANG_NEW_${lang:tu}}|"
 .    endfor
 .  endfor
 
 _USES_patch+=	210:fix-shebang
+
 fix-shebang:
 	@${ECHO_MSG} "====> Invoking shebangfix"
 .  if defined(SHEBANG_REGEX)
 	@cd ${WRKSRC}; \
-		${FIND} -E . -type f -iregex '${SHEBANG_REGEX}' \
+		${FIND} . -type f -iregex '${SHEBANG_REGEX}' \
 		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
 .  elif defined(SHEBANG_GLOB)
 .    for f in ${SHEBANG_GLOB}
@@ -82,7 +83,7 @@ fix-shebang:
 		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
 .    endfor
 .  else
-	(cd ${WRKSRC} && \
+	@(cd ${WRKSRC} && \
 		${ECHO_CMD} ${SHEBANG_FILES} | \
 		${XARGS} ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS})
 .  endif

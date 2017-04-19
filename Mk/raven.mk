@@ -801,6 +801,44 @@ install-license:
 .  endif
 .endif
 
+.if !target(stage-qa)
+.  if defined(DEVELOPER)
+
+.    undef(_PLIST_LIST)
+.    for sp in ${SUBPACKAGES}
+_PLIST_LIST+=	${WRKDIR}/.manifest.${sp}.mktmp
+.    endfor
+
+QA_ENV+=	STAGEDIR=${STAGEDIR} \
+		PREFIX=${PREFIX} \
+		LOCALBASE=${LOCALBASE} \
+		STRIP="${STRIP}" \
+		TMPPLIST="${_PLIST_LIST}" \
+		BUNDLE_LIBS="${BUNDLE_LIBS}"
+
+.    if !empty(USES:Mssl)
+QA_ENV+=	USESSSL=yes
+.    endif
+.    if !empty(USES:Mdesktop-file-utils)
+QA_ENV+=	USESDESKTOPFILEUTILS=yes
+.    endif
+.    if !empty(USES:Mlibtool*)
+QA_ENV+=	USESLIBTOOL=yes
+.    endif
+.    if !empty(USES:Mshared-mime-info)
+QA_ENV+=	USESSHAREDMIMEINFO=yes
+.    endif
+.    if !empty(USES:Mterminfo)
+QA_ENV+=	USESTERMINFO=yes
+.    endif
+
+stage-qa:
+	@${ECHO_MSG} "====> Running Q/A tests (stage-qa)"
+	@${SETENV} ${QA_ENV} ${SH} ${MK_SCRIPTS}/qa.sh
+
+.  endif
+.endif
+
 # --------------------------------------------------------------------------
 # --  Manifest handling
 # --------------------------------------------------------------------------
