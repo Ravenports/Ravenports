@@ -74,7 +74,7 @@ _INCLUDE_USES_PYTHON_MK=	yes
 # Incorporated in ravenadm
 # ------------------------------------------------------
 # BUILDRUN_DEPENDS+=	pythonXX:single:standard
-# BUILD_DEPENDS+=	python-setuptools:single:pyXX
+# BUILDRUN_DEPENDS+=	python-setuptools:single:pyXX
 # ------------------------------------------------------
 
 .  if !empty(python_ARGS:Mpy35)

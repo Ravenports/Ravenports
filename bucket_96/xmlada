@@ -19,13 +19,14 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		python-Sphinx:single:python_default
 USES=			cclibs:primary
 
 LICENSE=		GPLv3:primary
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING3
 
-BUILD_TARGET=		schema_libs
+BUILD_TARGET=		schema_libs gen-docs
 MAKEFILE=		Makefile.bsd
 MAKE_ARGS=		LIBVER=17.1.0
 			PROCESSORS={{MAKE_JOBS_NUMBER}}
@@ -1053,7 +1054,7 @@ lib/xmlada/static/
  unicode.ali
 
 
-[FILE:11065:files/Makefile.bsd]
+[FILE:11074:files/Makefile.bsd]
 .if target(schema_libs)
 ADALIB!=	gnatls -v | grep adalib | awk '{print $$1}'
 .endif
@@ -1329,9 +1330,9 @@ install: distrib/xmlada_unicode.gpr distrib/xmlada_input_sources.gpr \
 
 	${BSD_INSTALL_DATA} distrib/xml*.gpr ${DESTDIR}${PREFIX}/lib/gnat
 
-#	cp -a docs/_build/html ${DESTDIR}${STD_DOCDIR}
-#	rm -rf {DESTDIR}${STD_DOCDIR}/_sources
-#	rm -rf ${DESTDIR}{STD_DOCDIR}/.buildinfo
+	cp -a docs/_build/html ${DESTDIR}${STD_DOCDIR}
+	rm -rf ${DESTDIR}${STD_DOCDIR}/html/_sources
+	rm -rf ${DESTDIR}${STD_DOCDIR}/html/.buildinfo
 
 
 [FILE:638:files/generic_gpr.in]
