@@ -252,6 +252,17 @@ expand_GCC()
     done
 }
 
+expand_PYPI()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##PYPI/}
+    local cluster="\
+    https://files.pythonhosted.org/packages \
+    https://pypi.python.org/packages"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
 
 process_site()
 {
@@ -273,6 +284,7 @@ process_site()
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
+	PYPI/*)			   expand_PYPI "${1}" ;;
 	*)                         echo "${1}" ;;
     esac
 }
