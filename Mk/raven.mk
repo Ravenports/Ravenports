@@ -71,11 +71,83 @@ ARCH?=			${.MAKE.OS.ARCHITECTURE}
 ARCH_STANDARD?=		${.MAKE.OS.ARCH.STANDARD}
 
 # --------------------------------------------------------------------------
-# --  Debugging
+# --  Set up environment
 # --------------------------------------------------------------------------
 
-# How to do nothing.  Override to make it do nothing differently
-DO_NADA?=		${TRUE}
+INSTALL=		install
+BINMODE?=		555
+MANMODE?=		444
+SHAREMODE?=		444
+_SHAREMODE?=		0644
+OPTIMIZER_LEVEL?=	2
+STRIP?=			-s
+
+.if defined(WITH_DEBUG)
+STRIP=			# none
+STRIP_CMD=		${TRUE}
+DEBUG_FLAGS?=		-g
+MAKE_ENV+=		DONTSTRIP=yes
+CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS} \
+			${CFLAGS} -I${LOCALBASE}/include
+
+.  if defined(INSTALL_TARGET)
+INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
+.  endif
+.else
+CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
+			${CFLAGS} -I${LOCALBASE}/include
+.endif
+CPPFLAGS+=		-I${LOCALBASE}/include
+LDFLAGS+=		-L${LOCALBASE}/lib -Wl,-rpath,${LOCALBASE}/lib
+
+BUILD_TARGET?=		all
+INSTALL_TARGET?=	install
+
+INSTALL_PROGRAM=	${INSTALL} ${STRIP} -m ${BINMODE}
+INSTALL_LIB=		${INSTALL} ${STRIP} -m ${SHAREMODE}
+INSTALL_SCRIPT=		${INSTALL} -m ${BINMODE}
+INSTALL_DATA=		${INSTALL} -m ${_SHAREMODE}
+INSTALL_MAN=		${INSTALL} -m ${MANMODE}
+
+INSTALL_MACROS=		BSD_INSTALL_PROGRAM="${INSTALL_PROGRAM}" \
+			BSD_INSTALL_LIB="${INSTALL_LIB}" \
+			BSD_INSTALL_SCRIPT="${INSTALL_SCRIPT}" \
+			BSD_INSTALL_DATA="${INSTALL_DATA}" \
+			BSD_INSTALL_MAN="${INSTALL_MAN}"
+
+MAKE_ENV+=		${INSTALL_MACROS}
+SCRIPTS_ENV+=		${INSTALL_MACROS} \
+			CURDIR=${.CURDIR} \
+			DISTDIR=${DISTDIR} \
+			WRKDIR=${WRKDIR} \
+			WRKSRC=${WRKSRC} \
+			PATCHDIR=${PATCHDIR} \
+			SCRIPTDIR=${SCRIPTDIR} \
+			FILESDIR=${FILESDIR} \
+			PREFIX=${PREFIX} \
+			LOCALBASE=${LOCALBASE}
+
+# --------------------------------------------------------------------------
+# --  USES handling
+# --------------------------------------------------------------------------
+
+# setup empty variables for USES targets
+.for target in fetch extract patch configure build install stage test
+_USES_${target}?=
+.endfor
+
+.include "/xports/Mk/raven.versions.mk"
+
+# Loading features
+.for f in ${USES}
+_f:=		${f:C/\:.*//}
+.  if !defined(${_f}_ARGS)
+${_f}_ARGS:=	${f:C/^[^\:]*(\:|\$)//:S/,/ /g}
+.  endif
+.endfor
+.for f in ${USES}
+.include "${USESDIR}/${f:C/\:.*//}.mk"
+.endfor
 
 # --------------------------------------------------------------------------
 # --  Phase: Fetch
@@ -413,63 +485,6 @@ do-clean:
 .ORDER: clean-msg pre-clean do-clean post-clean
 clean: clean-msg pre-clean do-clean post-clean
 .endif
-
-# --------------------------------------------------------------------------
-# --  Set up environment
-# --------------------------------------------------------------------------
-
-INSTALL=		install
-BINMODE?=		555
-MANMODE?=		444
-SHAREMODE?=		444
-_SHAREMODE?=		0644
-OPTIMIZER_LEVEL?=	2
-STRIP?=			-s
-
-.if defined(WITH_DEBUG)
-STRIP=			# none
-STRIP_CMD=		${TRUE}
-DEBUG_FLAGS?=		-g
-MAKE_ENV+=		DONTSTRIP=yes
-CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS} \
-			${CFLAGS} -I${LOCALBASE}/include
-
-.  if defined(INSTALL_TARGET)
-INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
-.  endif
-.else
-CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
-			${CFLAGS} -I${LOCALBASE}/include
-.endif
-CPPFLAGS+=		-I${LOCALBASE}/include
-LDFLAGS+=		-L${LOCALBASE}/lib -Wl,-rpath,${LOCALBASE}/lib
-
-BUILD_TARGET?=		all
-INSTALL_TARGET?=	install
-
-INSTALL_PROGRAM=	${INSTALL} ${STRIP} -m ${BINMODE}
-INSTALL_LIB=		${INSTALL} ${STRIP} -m ${SHAREMODE}
-INSTALL_SCRIPT=		${INSTALL} -m ${BINMODE}
-INSTALL_DATA=		${INSTALL} -m ${_SHAREMODE}
-INSTALL_MAN=		${INSTALL} -m ${MANMODE}
-
-INSTALL_MACROS=		BSD_INSTALL_PROGRAM="${INSTALL_PROGRAM}" \
-			BSD_INSTALL_LIB="${INSTALL_LIB}" \
-			BSD_INSTALL_SCRIPT="${INSTALL_SCRIPT}" \
-			BSD_INSTALL_DATA="${INSTALL_DATA}" \
-			BSD_INSTALL_MAN="${INSTALL_MAN}"
-
-MAKE_ENV+=		${INSTALL_MACROS}
-SCRIPTS_ENV+=		${INSTALL_MACROS} \
-			CURDIR=${.CURDIR} \
-			DISTDIR=${DISTDIR} \
-			WRKDIR=${WRKDIR} \
-			WRKSRC=${WRKSRC} \
-			PATCHDIR=${PATCHDIR} \
-			SCRIPTDIR=${SCRIPTDIR} \
-			FILESDIR=${FILESDIR} \
-			PREFIX=${PREFIX} \
-			LOCALBASE=${LOCALBASE}
 
 # --------------------------------------------------------------------------
 # --  Phase: Configure
@@ -1012,26 +1027,11 @@ CONFIGURE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/lib/gnat"\
 			F77="gfortran" FC="gfortran"
 
 # --------------------------------------------------------------------------
-# --  USES handling
+# --  Debugging
 # --------------------------------------------------------------------------
 
-# setup empty variables for USES targets
-.for target in fetch extract patch configure build install stage test
-_USES_${target}?=
-.endfor
-
-.include "/xports/Mk/raven.versions.mk"
-
-# Loading features
-.for f in ${USES}
-_f:=		${f:C/\:.*//}
-.  if !defined(${_f}_ARGS)
-${_f}_ARGS:=	${f:C/^[^\:]*(\:|\$)//:S/,/ /g}
-.  endif
-.endfor
-.for f in ${USES}
-.include "${USESDIR}/${f:C/\:.*//}.mk"
-.endfor
+# How to do nothing.  Override to make it do nothing differently
+DO_NADA?=		${TRUE}
 
 # --------------------------------------------------------------------------
 # --  CCACHE handling
