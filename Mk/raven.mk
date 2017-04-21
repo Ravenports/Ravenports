@@ -977,7 +977,8 @@ TEST_WRKSRC?=	${WRKSRC}
 test-message:
 	@${ECHO_MSG} "===>  Testing for ${TWO_PART_ID}"
 
-.if !target(do-test) && defined(TEST_TARGET)
+.if !target(do-test)
+.  if defined(TEST_TARGET)
 DO_MAKE_TEST?=		${SETENV} ${TEST_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
 			${MAKEFILE} ${TEST_ARGS:C,^${DESTDIRNAME}=.*,,g}
 do-test:
@@ -989,9 +990,10 @@ do-test:
 		fi; \
 		${FALSE}; \
 	fi)
-.elif !target(do-test)
+.  else
 do-test:
 	@${DO_NADA}
+.  endif
 .endif
 
 # --------------------------------------------------------------------------
