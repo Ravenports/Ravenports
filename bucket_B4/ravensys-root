@@ -126,7 +126,7 @@ Ravenports.
 157a06bec1885a007ffd85d39e40364976579e30bd2aedc345336c1fdb3028fb    270896484 DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2
 
 
-[FILE:7093:manifests/plist.single.dragonfly]
+[FILE:7107:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -188,8 +188,10 @@ Ravenports.
  head
  id
  install
+ join
  ldd
  less
+ lorder
  lzcat
  lzcmp
  lzdiff
@@ -815,7 +817,7 @@ Ravenports.
 @dir %%BASE%%/usr/local
 
 
-[FILE:8915:files/Makefile]
+[FILE:9016:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -912,6 +914,7 @@ Usr_Bin_DragonFly= \
 		/usr/bin/head \
 		/usr/bin/id \
 		/usr/bin/install \
+		/usr/bin/join \
 		/usr/bin/ldd \
 		/usr/bin/mkfifo \
 		/usr/bin/mktemp \
@@ -1152,7 +1155,8 @@ install:
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/libdata/pkgconfig/${item} \
 		${DESTDIR}${BASE}/usr/lib/pkgconfig/
 .endfor
-
+	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/lorder \
+		${DESTDIR}${BASE}/usr/bin/
 .for item in md5 sha256 
 	cp ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
 .endfor
