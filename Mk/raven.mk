@@ -211,7 +211,7 @@ _DL_SITES_ENV+=		_DOWNLOAD_SITES_${_group}=${DL_SITES_${_group}:Q}
 .endfor
 
 .for N in ${PF_INDEX}
-_F=		${PATCHFILE_${N}}
+_F=		${DISTFILE_${N}}
 _F_TEMP=	${_F:S/^${_F:C/:[^-:][^:]*$//}//:S/^://}
 _PATCHFILES:=	${_PATCHFILES} ${_F}
 _CKSUMFILES:=	${_CKSUMFILES} ${_F:C/:.*//}
