@@ -264,6 +264,20 @@ expand_PYPI()
     done
 }
 
+expand_FREELOCAL()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##FREELOCAL/}
+    local cluster="\
+    http://distcache.FreeBSD.org/local-distfiles \
+    http://distcache.us-east.FreeBSD.org/local-distfiles \
+    http://distcache.eu.FreeBSD.org/local-distfiles \
+    http://distcache.us-west.FreeBSD.org/local-distfiles"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 process_site()
 {
     case "${1}" in
@@ -274,6 +288,7 @@ process_site()
 	APACHE_JAKARTA/*)          expand_APACHE_JAKARTA "${1}" ;;
 	PERL_CPAN/*)               expand_CPAN "${1}" 1 ;;
 	CPAN/*)                    expand_CPAN "${1}" 2 ;;
+	FREELOCAL/*)               expand_FREELOCAL "${1}" ;;
 	GCC/*)                     expand_GCC "${1}" ;;
 	GITHUB/*)                  expand_GITHUB "${1}" 1 ;;
 	GH/*)                      expand_GITHUB "${1}" 2 ;;
@@ -281,10 +296,10 @@ process_site()
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
 	GNU/*)                     expand_GNU "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
+	PYPI/*)			   expand_PYPI "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
-	PYPI/*)			   expand_PYPI "${1}" ;;
 	*)                         echo "${1}" ;;
     esac
 }
