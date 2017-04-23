@@ -373,15 +373,15 @@ compile-package-desc:
 	@if [ -f "${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/}" ]; then \
 	   ${CAT} ${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
 	elif [ -f "${_PKGMESS${suffix}:S/-xxx/-${sp}/}" ]; then \
-	   @${CAT} ${_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
+	   ${CAT} ${_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
 	fi
 .    endfor
 .    for suffix in ${_MSGLIST}
 .      for psp in pre- x post-
 	@if [ -f "${_IN_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/}" ]; then \
-	   @${CP} ${_IN_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
+	   ${CP} ${_IN_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
 	elif [ -f "${_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/}" ]; then \
-	   @${CP} ${_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
+	   ${CP} ${_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
 	fi
 .      endfor
 .    endfor
@@ -1087,8 +1087,8 @@ apply-slist:
 .    if exists(${FILESDIR}/${file}.in)
 	@${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file}
 .    else
-	@${ECHO_MSG} "** Checked ${FILESDIR}:"; \
-	@${ECHO_MSG} "** Missing ${file}.in for ${TWO_PART_ID}."; \
+	@${ECHO_MSG} "** Checked ${FILESDIR}:"
+	@${ECHO_MSG} "** Missing ${file}.in for ${TWO_PART_ID}."
 	exit 1
 .    endif
 .  endfor
