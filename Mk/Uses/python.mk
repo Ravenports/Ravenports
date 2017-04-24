@@ -157,6 +157,8 @@ PLIST_SUB+=	PYTHON_INCLUDEDIR=${PYTHON_INCLUDEDIR:S;${PREFIX}/;;} \
 
 CMAKE_ARGS+=	-DPython_ADDITIONAL_VERSIONS=${PYTHON_VER}
 
+.  if exists(${PYDISTUTILS_SETUP})
+
 POST_PLIST_TARGET+=	setuptools-autolist
 
 setuptools-autolist:
@@ -164,22 +166,24 @@ setuptools-autolist:
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
 	>> ${WRKDIR}/.manifest.single.mktmp
 
-.if !target(do-configure) && !defined(HAS_CONFIGURE) && !defined(GNU_CONFIGURE)
+
+.    if !target(do-configure) && !defined(HAS_CONFIGURE) && !defined(GNU_CONFIGURE)
 do-configure:
 	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} ${PYDISTUTILS_SETUP} ${PYDISTUTILS_CONFIGURE_TARGET} ${PYDISTUTILS_CONFIGUREARGS})
-.endif
+.    endif
 
-.if !target(do-build)
+.    if !target(do-build)
 do-build:
 	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} ${PYDISTUTILS_SETUP} ${PYDISTUTILS_BUILD_TARGET} ${PYDISTUTILS_BUILDARGS})
-.endif
+.    endif
 
-.if !target(do-install)
+.    if !target(do-install)
 do-install:
 	@(cd ${INSTALL_WRKSRC}; ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} ${PYDISTUTILS_SETUP} ${PYDISTUTILS_INSTALL_TARGET} ${PYDISTUTILS_INSTALLARGS})
-.endif
+.    endif
+.  endif
 
 .endif	# _INCLUDE_USES_PYTHON_MK
