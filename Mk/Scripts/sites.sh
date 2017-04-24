@@ -278,6 +278,29 @@ expand_FREELOCAL()
     done
 }
 
+expand_GNUPG()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##GNUPG/}
+    local cluster="\
+    https://gnupg.org/ftp/gcrypt \
+    http://ftp.heanet.ie/mirrors/ftp.gnupg.org/gcrypt \
+    ftp://ftp.sunet.se/pub/security/gnupg \
+    ftp://ftp.franken.de/pub/crypt/mirror/ftp.gnupg.org/gcrypt \
+    ftp://mirror.switch.ch/mirror/gnupg \
+    http://gd.tuwien.ac.at/privacy/gnupg \
+    http://mirrors.dotsrc.org/gcrypt \
+    ftp://ftp.freenet.de/pub/ftp.gnupg.org/gcrypt \
+    ftp://ftp.crysys.hu/pub/gnupg \
+    http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt \
+    http://artfiles.org/gnupg.org \
+    ftp://ftp.gnupg.org/gcrypt \
+    http://mirror.tje.me.uk/pub/mirrors/ftp.gnupg.org"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 process_site()
 {
     case "${1}" in
@@ -295,6 +318,7 @@ process_site()
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
 	GNU/*)                     expand_GNU "${1}" ;;
+	GNUPG/*)                   expand_GNUPG "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
