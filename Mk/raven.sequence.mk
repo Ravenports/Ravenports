@@ -18,7 +18,8 @@ _TARGETS_STAGES=	FETCH EXTRACT PATCH CONFIGURE BUILD STAGE TEST
 # The remaining targets are slotted according to sequence requirements.
 
 _FETCH_DEP=		# none currently
-_FETCH_SEQ=		300:pre-fetch \
+_FETCH_SEQ=		100:fetch-message \
+			300:pre-fetch \
 			350:pre-fetch-option \
 			400:pre-fetch-opsys \
 			450:pre-fetch-script \
