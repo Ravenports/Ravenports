@@ -1086,6 +1086,11 @@ SUB_LIST+=		PREFIX=${PREFIX} LOCALBASE=${LOCALBASE}
 _SUB_LIST_TEMP=		${SUB_LIST:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/}
 
 apply-slist:
+.  for sp in ${SUBPACKAGES}
+.    if defined(RC_SUBR_${sp}) && !empty(RC_SUBR__${sp})
+SUB_FILES+= 		${RC_SUBR_${sp}}
+.    endif
+.  endfor
 .  for file in ${SUB_FILES}
 .    if exists(${FILESDIR}/${file}.in)
 	@${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file}
