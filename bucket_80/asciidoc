@@ -3,9 +3,7 @@
 NAMEBASE=		asciidoc
 VERSION=		8.6.9
 KEYWORDS=		textproc python
-VARIANTS=		py27 py34 py35
-SDESC[py34]=		Text document format for short documents (PY 34)
-SDESC[py35]=		Text document format for short documents (PY 35)
+VARIANTS=		py27
 SDESC[py27]=		Text document format for short documents (PY 27)
 HOMEPAGE=		http://asciidoc.org/
 CONTACT=		nobody
@@ -14,21 +12,11 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/asciidoc/asciidoc/8.6.9
 DISTFILE[1]=		asciidoc-8.6.9.tar.gz:main
 DF_INDEX=		1
-SPKGS[py34]=		single
-SPKGS[py35]=		single
 SPKGS[py27]=		single
 
-OPTIONS_AVAILABLE=	PY27 PY34 PY35
+OPTIONS_AVAILABLE=	PY27
 OPTIONS_STANDARD=	none
-VOPTS[py34]=		PY27=OFF
-			PY34=ON
-			PY35=OFF
-VOPTS[py35]=		PY27=OFF
-			PY34=OFF
-			PY35=ON
 VOPTS[py27]=		PY27=ON
-			PY34=OFF
-			PY35=OFF
 
 RUN_DEPENDS=		docbook-xsl:primary:standard
 USES=			gmake shebangfix
@@ -41,16 +29,11 @@ SHEBANG_GLOB=		*.py
 
 MUST_CONFIGURE=		gnu
 
-[PY34].USES_ON=				python:py34
-
-[PY35].USES_ON=				python:py35
-
 [PY27].USES_ON=				python:py27
 
 post-patch:
 	@${REINPLACE_CMD} -e '/^INSTALL_PROG/ s|INSTALL_PROGRAM|INSTALL_SCRIPT|;\
 		s|\.conf|&.sample|' ${WRKSRC}/Makefile.in
-	${FIND} ${WRKSRC} -name "*.conf"
 	CONF_FILES=$$(${FIND} ${WRKSRC} -name "*.conf"); \
 	for conf_file in $${CONF_FILES}; do \
 		${MV} $${conf_file} $${conf_file}.sample; \
