@@ -2,7 +2,7 @@
 #
 # Feature:	python
 # Usage:	USES=python
-# Valid ARGS:	py27, py34, py35
+# Valid ARGS:	(py27 or py34 or py35), build
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -93,13 +93,11 @@ PYTHON_MAJOR_VER=	${PYTHON_VER:R}
 PYTHON_REL=		${PYTHON_${_PYTHON_VERSION}_VERSION:S/.//}
 PYTHON_CMD=		${LOCALBASE}/bin/python${PYTHON_VER}
 
+PYTHON_ABIVER:=		# empty (unset or python2.7)
 .  if ${PYTHON_VER:N2.7}
 .    if exists(${PYTHON_CMD}-config)
 PYTHON_ABIVER!=		${PYTHON_CMD}-config --abiflags
-.    else
-PYTHON_ABIVER=		m	# default for python 3.x
 .    endif
-PYTHON_ABIVER=		# empty (python 2.7)
 .  endif
 
 PYTHON_PLATFORM=	${OPSYS:tl}${MAJOR:R}

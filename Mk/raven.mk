@@ -398,7 +398,7 @@ compile-package-desc:
 	@${ECHO} "This is the examples subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
 .    elif ${sp:Mcomplete}
 	@${ECHO} "This is the ${TWO_PART_ID} metapackage." > ${_DESC_FILE}.${sp}
-	@${ECHO} "It pulls in all subpackages of ${TWO_PART_ID}." > ${_DESC_FILE}.${sp}
+	@${ECHO} "It pulls in all subpackages of ${TWO_PART_ID}." >> ${_DESC_FILE}.${sp}
 .    endif
 .  endfor
 .endif
@@ -513,7 +513,7 @@ failure of your make command."
 .if defined(GNU_CONFIGURE)
 HAS_CONFIGURE=			yes
 GNU_CONFIGURE_PREFIX?=		${PREFIX}
-GNU_CONFIGURE_MANPREFIX=	${MANPREFIX}
+GNU_CONFIGURE_MANPREFIX?=	${MANPREFIX}
 CONFIG_SITE=			${MK_TEMPLATES}/config.site
 CONFIGURE_ARGS+=		--prefix=${GNU_CONFIGURE_PREFIX} \
 				$${_LATE_CONFIGURE_ARGS}
