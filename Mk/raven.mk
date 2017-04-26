@@ -772,18 +772,19 @@ compress-man:
 .if !target(install-rc-script)
 .undef RC_SUBR_USED
 .  for sp in ${SUBPACKAGES}
-.    if defined(RC_SUBR_${sp}) && !empty(RC_SUBR__${sp})
+.    if defined(RC_SUBR_${sp}) && !empty(RC_SUBR_${sp})
 RC_SUBR_USED=	yes
 .    endif
 .  endfor
 .  if defined(RC_SUBR_USED)
 install-rc-script:
 .    for sp in ${SUBPACKAGES}
-.      if defined(RC_SUBR_${sp}) && !empty(RC_SUBR__${sp})
-	@${ECHO_MSG} "===> Staging rc.d startup scripts (${sp})"
+.      if defined(RC_SUBR_${sp}) && !empty(RC_SUBR_${sp})
+	@${ECHO_MSG} "====> Staging rc.d startup scripts (${sp})"
 	@for i in ${RC_SUBR_${sp}}; do \
 		_prefix=${PREFIX}; \
 		[ "${PREFIX}" = "/usr" ] && _prefix="" ; \
+		${MKDIR} ${STAGEDIR}$${_prefix}/etc/rc.d; \
 		${INSTALL_SCRIPT} ${WRKDIR}/$${i} ${STAGEDIR}$${_prefix}/etc/rc.d/$${i%.sh}; \
 		${ECHO_CMD} "$${_prefix}/etc/rc.d/$${i%.sh}" \
 		>> ${WRKDIR}/.manifest.${sp}.mktmp; \
@@ -802,15 +803,15 @@ install-license:
 .      if defined(LICENSE_${sp})
 	@${MKDIR} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}
 	@${ECHO} "This package is ${LICENSE_SCHEME}-licensed:" \
-		> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}
+		> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
 .        for lic in ${LICENSE_${sp}}
 .          if defined(LICENSE_FILE_${lic})
 .            if exists(${LICENSE_FILE_${lic}})
 	@${ECHO_MSG} "====> Install ${lic} license (${sp})"
 	@${INSTALL_DATA} ${LICENSE_FILE_${lic}} \
-		${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}
+		${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}.${VARIANT}
 	@${ECHO} " * ${lic} (${LICENSE_NAME_${lic}})" \
-		>> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}
+		>> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
 .            else
 	@${ECHO_MSG} "====> Failed to locate ${lic} license (${LICENSE_FILE_${lic}})"
 .            endif
@@ -956,10 +957,10 @@ add-plist-licenses:
 .  if defined(LICENSE_SET)
 .    for sp in ${SUBPACKAGES}
 .      if defined(LICENSE_${sp})
-	@echo "${_LICENSE_DIR}/summary.${sp}" >> ${WRKDIR}/.manifest.${sp}.mktmp
+	@echo "${_LICENSE_DIR}/summary.${sp}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .        for lic in ${LICENSE_${sp}}
 .          if exists(${LICENSE_FILE_${lic}})
-	@echo "${_LICENSE_DIR}/${lic}" >> ${WRKDIR}/.manifest.${sp}.mktmp
+	@echo "${_LICENSE_DIR}/${lic}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .          endif
 .        endfor
 .      endif
@@ -1085,12 +1086,13 @@ CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
 SUB_LIST+=		PREFIX=${PREFIX} LOCALBASE=${LOCALBASE}
 _SUB_LIST_TEMP=		${SUB_LIST:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/}
 
-apply-slist:
 .  for sp in ${SUBPACKAGES}
-.    if defined(RC_SUBR_${sp}) && !empty(RC_SUBR__${sp})
+.    if defined(RC_SUBR_${sp}) && !empty(RC_SUBR_${sp})
 SUB_FILES+= 		${RC_SUBR_${sp}}
 .    endif
 .  endfor
+
+apply-slist:
 .  for file in ${SUB_FILES}
 .    if exists(${FILESDIR}/${file}.in)
 	@${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file}
