@@ -54,4 +54,14 @@ PYTHON_3.5_VERSION=	3.5.3
 
 SSL_DEFAULT?=		libressl
 
+#-------------------------------------
+# LUA
+# Possible values: 5.2, 5.3
+#-------------------------------------
+
+LUA_DEFAULT?=		5.3
+
+LUA_5.2_VERSION=	5.2.4
+LUA_5.3_VERSION=	5.3.4
+
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)
