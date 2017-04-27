@@ -301,6 +301,20 @@ expand_GNUPG()
     done
 }
 
+expand_PGSQL()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##PGSQL/}
+    local cluster="\
+    http://ftp.postgresql.org/pub \
+    https://ftp.postgresql.org/pub \
+    ftp://ftp.postgresql.org/pub"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+
 process_site()
 {
     case "${1}" in
@@ -320,6 +334,7 @@ process_site()
 	GNU/*)                     expand_GNU "${1}" ;;
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
+	PGSQL/*)                   expand_PGSQL "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;

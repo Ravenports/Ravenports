@@ -66,6 +66,8 @@
 #	PYTHON_SUFFIX=${PYTHON_SUFFIX}
 #	PYTHON_VER=${PYTHON_VER}
 #	PYTHON_VERSION=python${PYTHON_VER}
+#	PYTHON2=<blank>/"@comment "
+#	PYTHON3=<blank>/"@comment "
 
 .if !defined(_INCLUDE_USES_PYTHON_MK)
 _INCLUDE_USES_PYTHON_MK=	yes
@@ -148,7 +150,14 @@ PLIST_SUB+=	PYTHON_INCLUDEDIR=${PYTHON_INCLUDEDIR:S;${PREFIX}/;;} \
 		PYTHON_SITELIBDIR=${PYTHON_SITELIBDIR:S;${PREFIX}/;;} \
 		PYTHON_SUFFIX=${PYTHON_SUFFIX} \
 		PYTHON_VER=${PYTHON_VER} \
-		PYTHON_VERSION=python${PYTHON_VER}
+		PYTHON_VERSION=python${PYTHON_VER} \
+		PYTHON_MAJOR_VER=${PYTHON_MAJOR_VER}
+
+.if ${PYTHON_MAJOR_VER:M3}
+PLIST_SUB+=	PYTHON3="" PYTHON2="@comment "
+.else
+PLIST_SUB+=	PYTHON2="" PYTHON3="@comment "
+.endif
 
 # By default CMake picks up the highest available version of Python package.
 # Enforce the version required by the port or the default.

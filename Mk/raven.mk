@@ -1009,7 +1009,7 @@ REINPLACE_ARGS?=	-i.bak
 REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
 
 # ensure PLIST_SUB has at least one value
-PLIST_SUB+=		OPSYS=${OPSYS} DOCSDIR=${STD_DOCDIR}
+PLIST_SUB+=		OPSYS=${OPSYS}
 
 # Macro for copying entire directory tree with correct permissions
 # In the -exec shell commands, we add add a . as the first argument, it would

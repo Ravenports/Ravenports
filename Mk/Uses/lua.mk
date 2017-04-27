@@ -7,7 +7,7 @@
 .if !defined(_INCLUDE_USES_LUA_MK)
 _INCLUDE_USES_LUA_MK=	yes
 
-.  if {lua_ARGS:M5.3}
+.  if ${lua_ARGS:M5.3}
 LUA_VER=	5.3
 .  elif ${lua_ARGS:M5.2}
 LUA_VER=	5.2

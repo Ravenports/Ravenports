@@ -17,17 +17,9 @@ apply_one_patch() {
 	local file="$1"
 	local msg="$2"
 	shift 2
-	local patch_strip=""
-
-	case ${file} in
-		*:-p[0-9])
-			patch_strip=${file##*:}
-			file=${file%:-p[0-9]}
-			;;
-	esac
 
 	if [ -n "${msg}" ]; then
-		${dp_ECHO_MSG} "===>  ${msg} ${file}${patch_strip:+ with ${patch_strip}}"
+		${dp_ECHO_MSG} "===>  ${msg} ${file} $@"
 	fi
 
 	case "${file}" in
@@ -46,7 +38,7 @@ apply_one_patch() {
 		*)
 			${dp_CAT} "${file}"
 			;;
-	esac | do_patch "$@" ${patch_strip}
+	esac | do_patch "$@"
 }
 
 do_patch() {
