@@ -30,6 +30,8 @@ BROKEN_SSL=		openssl-devel
 
 BUILD_DEPENDS=		docbook-sgml:single:standard
 			docbook-dsssl:single:standard
+			openjade:single:standard
+			OpenSP:single:standard
 BUILDRUN_DEPENDS=	zlib:complete:standard
 USES=			bison gmake perl ssl python
 GNOME_COMPONENTS=	libxslt
@@ -48,13 +50,15 @@ CONFIGURE_ARGS=		--with-libraries={{PREFIX}}/lib
 			--with-libxslt
 			--with-perl
 			--with-python
-			--without-gssagi
+			--without-gssapi
 			{{TEMPLATE_ARG}}
 			{{UUID_ARG}}
 CONFIGURE_ENV=		PTHREAD_LIBS="-lpthread"
+			pgac_cv_path_stylesheets={{PREFIX}}/share/sgml/docbook/dsssl/modular
 
 BUILD_TARGET=		world
 
+INSTALL_TARGET=		install-world
 RC_SUBR=		postgresql:server
 SUB_FILES=		502.pgsql
 
@@ -63,6 +67,11 @@ LDFLAGS=		-lpthread
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
 [NLS].USES_ON=				gettext-runtime
 					gettext-tools
+
+post-install:
+	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/periodic/daily
+	${INSTALL_SCRIPT} ${WRKDIR}/502.pgsql \
+		${STAGEDIR}${PREFIX}/etc/periodic/daily
 
 [FILE:1220:descriptions/desc.server]
 PostgreSQL is a sophisticated Object-Relational DBMS, supporting
@@ -948,7 +957,7 @@ share/postgresql/tsearch_data/
  turkish.stop
 
 
-[FILE:18575:manifests/plist.client]
+[FILE:18579:manifests/plist.client]
 %%NLS-ON%%share/locale/cs/LC_MESSAGES/
  ecpg-9.6.mo
  ecpglib6-9.6.mo
@@ -1244,6 +1253,7 @@ include/postgresql/server/catalog/
  pg_type.h
  pg_type_fn.h
  pg_user_mapping.h
+ schemapg.h
  storage.h
  storage_xlog.h
  toasting.h
@@ -1754,20 +1764,17 @@ lib/
  libecpg.a
  libecpg.so
  libecpg.so.6
- libecpg.so.6.8
  libecpg_compat.a
  libecpg_compat.so
  libecpg_compat.so.3
- libecpg_compat.so.3.8
+ libpgfeutils.a
  libpgport.a
  libpgtypes.a
  libpgtypes.so
  libpgtypes.so.3
- libpgtypes.so.3.7
  libpq.a
  libpq.so
  libpq.so.5
- libpq.so.5.9
 lib/pkgconfig/
  libecpg.pc
  libecpg_compat.pc
@@ -1782,6 +1789,7 @@ lib/postgresql/pgxs/src/
  Makefile.shlib
 lib/postgresql/pgxs/src/makefiles/pgxs.mk
  nls-global.mk
+lib/postgresql/pgxs/src/test/regress/pg_regress
 share/man/man1/
  clusterdb.1.gz
  createdb.1.gz
@@ -2296,7 +2304,7 @@ share/postgresql/tsearch_data/
  xsyn_sample.rules
 
 
-[FILE:1016:manifests/plist.plperl]
+[FILE:1132:manifests/plist.plperl]
 %%NLS-ON%%share/locale/cs/LC_MESSAGES/plperl-9.6.mo
 %%NLS-ON%%share/locale/de/LC_MESSAGES/plperl-9.6.mo
 %%NLS-ON%%share/locale/es/LC_MESSAGES/plperl-9.6.mo
@@ -2315,8 +2323,14 @@ share/postgresql/tsearch_data/
 include/postgresql/server/
  plperl.h
  ppport.h
-lib/postgresql/plperl.so
+lib/postgresql/
+ hstore_plperl.so
+ plperl.so
 share/postgresql/extension/
+ hstore_plperl--1.0.sql
+ hstore_plperl.control
+ hstore_plperlu--1.0.sql
+ hstore_plperlu.control
  plperl--1.0.sql
  plperl--unpackaged--1.0.sql
  plperl.control
@@ -2325,7 +2339,7 @@ share/postgresql/extension/
  plperlu.control
 
 
-[FILE:958:manifests/plist.plpython]
+[FILE:1359:manifests/plist.plpython]
 %%NLS-ON%%share/locale/cs/LC_MESSAGES/plpython-9.6.mo
 %%NLS-ON%%share/locale/de/LC_MESSAGES/plpython-9.6.mo
 %%NLS-ON%%share/locale/es/LC_MESSAGES/plpython-9.6.mo
@@ -2344,8 +2358,23 @@ share/postgresql/extension/
 include/postgresql/server/
  plpy_util.h
  plpython.h
-lib/postgresql/plpython%%PYTHON_MAJOR_VER%%.so
+lib/postgresql/
+ hstore_plpython%%PYTHON_MAJOR_VER%%.so
+ ltree_plpython%%PYTHON_MAJOR_VER%%.so
+ plpython%%PYTHON_MAJOR_VER%%.so
 share/postgresql/extension/
+ hstore_plpython2u--1.0.sql
+ hstore_plpython2u.control
+ hstore_plpython3u--1.0.sql
+ hstore_plpython3u.control
+ hstore_plpythonu--1.0.sql
+ hstore_plpythonu.control
+ ltree_plpython2u--1.0.sql
+ ltree_plpython2u.control
+ ltree_plpython3u--1.0.sql
+ ltree_plpython3u.control
+ ltree_plpythonu--1.0.sql
+ ltree_plpythonu.control
  plpython%%PYTHON_MAJOR_VER%%u--1.0.sql
  plpython%%PYTHON_MAJOR_VER%%u--unpackaged--1.0.sql
  plpython%%PYTHON_MAJOR_VER%%u.control
@@ -2367,16 +2396,8 @@ share/postgresql/extension/
 share/postgresql/unknown.pltcl
 
 
-[FILE:253:manifests/plist.docs]
-share/doc/postgresql/
- README-server
- README-client
- README-contrib
- README-plperl
- README-plpython
- README-pltcl
+[FILE:131:manifests/plist.docs]
 share/doc/postgresql/extension/
- README
  autoinc.example
  insert_username.example
  moddatetime.example
@@ -2761,25 +2782,25 @@ run_rc_command "$1"
 
 [FILE:597:files/special.mk]
 .if ${OPSYS:MFreeBSD}
-TEMPLATE_ARG=	--with-template-freebsd
+TEMPLATE_ARG=	--with-template=freebsd
 UUID_ARG=	--with-uuid=bsd
 .elif ${OPSYS:MDragonFly}
-TEMPLATE_ARG=	--with-template-freebsd
+TEMPLATE_ARG=	--with-template=freebsd
 UUID_ARG=	--with-uuid=bsd
 .elif ${OPSYS:MNetBSD}
-TEMPLATE_ARG=	--with-template-netbsd
+TEMPLATE_ARG=	--with-template=netbsd
 UUID_ARG=	--with-uuid=bsd
 .elif ${OPSYS:MOpenBSD}
-TEMPLATE_ARG=	--with-template-openbsd
+TEMPLATE_ARG=	--with-template=openbsd
 UUID_ARG=	--with-uuid=bsd
 .elif ${OPSYS:MDarwin}
-TEMPLATE_ARG=	--with-template-darwin
+TEMPLATE_ARG=	--with-template=darwin
 UUID_ARG=	--with-uuid=e2fs
 .elif ${OPSYS:MSunOS}
-TEMPLATE_ARG=	--with-template-solaris
+TEMPLATE_ARG=	--with-template=solaris
 # UUID?
 .elif ${OPSYS:Linux}
-TEMPLATE_ARG=	--with-template-linux
+TEMPLATE_ARG=	--with-template=linux
 UUID_ARG=	--with-uuid=e2fs
 .endif
 
