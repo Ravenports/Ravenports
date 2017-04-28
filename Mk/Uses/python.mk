@@ -164,12 +164,13 @@ PLIST_SUB+=	PYTHON2="" PYTHON3="@comment "
 
 CMAKE_ARGS+=	-DPython_ADDITIONAL_VERSIONS=${PYTHON_VER}
 
-.  if exists(${PYDISTUTILS_SETUP})
+.  if exists(${WRKSRC}/${PYSETUP})
 
 POST_PLIST_TARGET+=	setuptools-autolist
 
 setuptools-autolist:
-	@(cd ${STAGEDIR}${PREFIX} && ${FIND} lib bin \
+	@(cd ${STAGEDIR}${PREFIX} && \
+	${FIND} lib bin share/man share/doc share/examples \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
 	>> ${WRKDIR}/.manifest.single.mktmp
 
