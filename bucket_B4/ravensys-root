@@ -126,7 +126,7 @@ Ravenports.
 157a06bec1885a007ffd85d39e40364976579e30bd2aedc345336c1fdb3028fb    270896484 DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2
 
 
-[FILE:7107:manifests/plist.single.dragonfly]
+[FILE:7140:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -798,6 +798,9 @@ Ravenports.
  libusb-0.1.pc
  libusb-1.0.pc
  libusb-2.0.pc
+%%BASE%%/usr/sbin/
+ pw
+ pwd_mkdb
 %%BASE%%/usr/share/
  OSMAJOR
  OSRELEASE
@@ -817,7 +820,7 @@ Ravenports.
 @dir %%BASE%%/usr/local
 
 
-[FILE:9016:files/Makefile]
+[FILE:9272:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -933,7 +936,13 @@ Usr_Bin_DragonFly= \
 		/usr/bin/which \
 		# end
 
+Usr_Sbin_DragonFly= \
+		/usr/sbin/pw \
+		/usr/sbin/pwd_mkdb
+		# end
+
 Usr_Bin_FreeBSD=	${Usr_Bin_DragonFly}
+Usr_Sbin_FreeBSD=	${Usr_Sbin_DragonFly}
 
 static_lib_generic=	/usr/lib/libc.a \
 			/usr/lib/libm.a \
@@ -1124,12 +1133,16 @@ install:
 		${DESTDIR}${BASE}/usr/include/netinet6 \
 		${DESTDIR}${BASE}/usr/include/machine \
 		${DESTDIR}${BASE}/usr/include/xlocale \
+		${DESTDIR}${BASE}/usr/sbin \
 		# end
 .for item in ${Bin_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/bin/
 .endfor
 .for item in ${Usr_Bin_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/bin/
+.endfor
+.for item in ${Usr_Sbin_${OPSYS}}
+	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/sbin/
 .endfor
 .for item in ${Libexec_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/libexec/

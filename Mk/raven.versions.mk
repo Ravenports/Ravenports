@@ -64,4 +64,14 @@ LUA_DEFAULT?=		5.3
 LUA_5.2_VERSION=	5.2.4
 LUA_5.3_VERSION=	5.3.4
 
+#-------------------------------------
+# TCL/TK
+# Possible values: 8.5, 8.6
+#-------------------------------------
+
+TCL_DEFAULT?=		8.6
+
+TCL_8.5_VERSION=	8.5.19
+TCL_8.6_VERSION=	8.6.6
+
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)

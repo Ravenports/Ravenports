@@ -1078,6 +1078,44 @@ CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
 .endif
 
 # --------------------------------------------------------------------------
+# --  USERS/GROUPS handling
+# --------------------------------------------------------------------------
+
+UID_OFFSET?=	0
+GID_OFFSET?=	0
+UID_FILES?=	${MK_TEMPLATES}/UID.ravenports
+GID_FILES?=	${MK_TEMPLATES}/GID.ravenports
+_SYSTEM_UID=	${MK_TEMPLATES}/UID.${OPSYS:tl}
+_SYSTEM_GID=	${MK_TEMPLATES}/GID.${OPSYS:tl}
+
+.if !target(create-users-groups)
+.  if defined(GROUPS) || defined(USERS)
+_UG_INSTALL=		${WRKDIR}/users-groups-install.sh
+_UG_DEINSTALL=		${WRKDIR}/users-groups-deinstall.sh
+PW=			/usr/sbin/pw	# FreeBSD/DragonFly
+
+create-users-groups:
+	@${SETENV} \
+			dp_ECHO_MSG="${ECHO_MSG}" \
+			dp_UID_FILES="${UID_FILES}" \
+			dp_GID_FILES="${GID_FILES}" \
+			dp_UID_OFFSET="${UID_OFFSET}" \
+			dp_GID_OFFSET="${GID_OFFSET}" \
+			dp_SYSTEM_UID="${_SYSTEM_UID}" \
+			dp_SYSTEM_GID="${_SYSTEM_GID}" \
+			dp_INSTALL="${INSTALL}" \
+			dp_OPSYS="${OPSYS}" \
+			dp_OSVERSION="${OSVERSION}" \
+			dp_PREFIX="${PREFIX}" \
+			dp_PW="${PW}" \
+			dp_SCRIPTSDIR='${MK_SCRIPTS}' \
+			dp_UG_DEINSTALL="${_UG_DEINSTALL}" \
+			dp_UG_INSTALL="${_UG_INSTALL}" \
+			${SH} ${MK_SCRIPTS}/do-users-groups.sh "${USERS}" "${GROUPS}"
+.  endif
+.endif
+
+# --------------------------------------------------------------------------
 # --  Post-USES handling
 # --------------------------------------------------------------------------
 

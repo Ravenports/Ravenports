@@ -32,9 +32,23 @@ BUILD_DEPENDS=		docbook-sgml:single:standard
 			docbook-dsssl:single:standard
 			openjade:single:standard
 			OpenSP:single:standard
-BUILDRUN_DEPENDS=	zlib:complete:standard
-USES=			bison gmake perl ssl python
-GNOME_COMPONENTS=	libxslt
+			zlib:complete:standard
+			libxslt:single:standard
+BUILDRUN_DEPENDS=	libxml2:single:standard
+EXRUN[client]=		gettext:runtime:standard
+			ssl
+EXRUN[contrib]=		postgresql96:client:standard
+			libxml2:single:standard
+			zlib:complete:standard
+			gettext:runtime:standard
+			ssl
+EXRUN[server]=		postgresql96:client:standard
+
+USERS=			pgsql
+GROUPS=			pgsql
+USERGROUP_SPKG=		server
+
+USES=			bison gmake perl:build tcl:build ssl python:build
 
 DISTNAME=		postgresql-9.6.2
 
@@ -43,24 +57,31 @@ LICENSE_SCHEME=		solo
 LICENSE_FILE=		PostgreSQL:{{WRKSRC}}/COPYRIGHT
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-libraries={{PREFIX}}/lib
-			--with-includes={{PREFIX}}/include
+CONFIGURE_ARGS=		--with-libraries="{{PREFIX}}/lib"
+			--with-includes="{{PREFIX}}/include:{{TCL_INCLUDEDIR}}"
+			--with-tclconfig="{{TCL_LIBDIR}}"
 			--with-openssl
 			--with-libxml
 			--with-libxslt
 			--with-perl
 			--with-python
+			--with-tcl
 			--without-gssapi
 			{{TEMPLATE_ARG}}
 			{{UUID_ARG}}
 CONFIGURE_ENV=		PTHREAD_LIBS="-lpthread"
+			TCLSH="{{TCLSH}}"
 			pgac_cv_path_stylesheets={{PREFIX}}/share/sgml/docbook/dsssl/modular
 
 BUILD_TARGET=		world
+MAKE_ENV=		TCL_INCDIR="{{TCL_INCLUDEDIR}}"
 
 INSTALL_TARGET=		install-world
 RC_SUBR=		postgresql:server
 SUB_FILES=		502.pgsql
+SUB_LIST=		PG_GROUP=pgsql
+			PG_USER=pgsql
+			PG_UID=80000
 
 LDFLAGS=		-lpthread
 
@@ -72,6 +93,12 @@ post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/periodic/daily
 	${INSTALL_SCRIPT} ${WRKDIR}/502.pgsql \
 		${STAGEDIR}${PREFIX}/etc/periodic/daily
+	# install-world doesn't strip (and install-strip won't install enough)
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/pgxs/src/test/regress/pg_regress
+	list=$$(${LS} ${STAGEDIR}${PREFIX}/bin/* | ${GREP} -v pltcl_); \
+		${STRIP_CMD} $${list}
 
 [FILE:1220:descriptions/desc.server]
 PostgreSQL is a sophisticated Object-Relational DBMS, supporting
@@ -2380,12 +2407,26 @@ share/postgresql/extension/
  plpython%%PYTHON_MAJOR_VER%%u.control
 
 
-[FILE:253:manifests/plist.pltcl]
+[FILE:836:manifests/plist.pltcl]
 bin/
  pltcl_delmod
  pltcl_listmod
  pltcl_loadmod
 lib/postgresql/pltcl.so
+share/locale/cs/LC_MESSAGES/pltcl-9.6.mo
+share/locale/de/LC_MESSAGES/pltcl-9.6.mo
+share/locale/es/LC_MESSAGES/pltcl-9.6.mo
+share/locale/fr/LC_MESSAGES/pltcl-9.6.mo
+share/locale/it/LC_MESSAGES/pltcl-9.6.mo
+share/locale/ja/LC_MESSAGES/pltcl-9.6.mo
+share/locale/ko/LC_MESSAGES/pltcl-9.6.mo
+share/locale/pl/LC_MESSAGES/pltcl-9.6.mo
+share/locale/pt_BR/LC_MESSAGES/pltcl-9.6.mo
+share/locale/ro/LC_MESSAGES/pltcl-9.6.mo
+share/locale/ru/LC_MESSAGES/pltcl-9.6.mo
+share/locale/tr/LC_MESSAGES/pltcl-9.6.mo
+share/locale/zh_CN/LC_MESSAGES/pltcl-9.6.mo
+share/locale/zh_TW/LC_MESSAGES/pltcl-9.6.mo
 share/postgresql/extension/
  pltcl--1.0.sql
  pltcl--unpackaged--1.0.sql
@@ -2619,52 +2660,6 @@ case "$daily_pgsql_vacuum_enable" in
 esac
 
 exit $rc
-
-
-[FILE:288:files/dot.cshrc.in]
-setenv PGLIB %%PREFIX%%/lib
-
-# note: PGDATA can be overridden by the -D startup option
-setenv PGDATA $HOME/data96
-
-#You might want to set some locale stuff here
-#setenv PGDATESTYLE ISO
-#setenv LC_ALL sv_SE.ISO_8859-1
-
-# if you want to make regression tests use this TZ
-#setenv TZ PST8PDT
-
-
-[FILE:531:files/dot.profile.in]
-PGLIB=%%PREFIX%%/lib
-
-# note: PGDATA can be overridden by the -D startup option
-PGDATA=${HOME}/data96
-
-export PATH PGLIB PGDATA
-
-# if you use the periodic script from share/postgresql/502.pgsql, you
-# can set these
-#PGDUMP_ARGS="-b -F c"
-#PGBACKUPDIR=${HOME}/backups
-#PGBACKUP_SAVE_DAYS=7
-#export PGBACKUPDIR PGDUMP_ARGS PGBACKUP_SAVE_DAYS
-
-#You might want to set some locale stuff here
-#PGDATESTYLE=ISO
-#LC_ALL=sv_SE.ISO_8859-1
-#export PGDATESTYLE LC_ALL
-
-# if you want to make regression tests use this TZ
-#TZ=PST8PDT
-#export TZ
-
-
-[FILE:222:files/pkgIndex.tcl.in]
-# Package-index file for Pgtcl-package. Enables you to load PostgreSQL
-# interface functions right into you TCL-interpreter as simply as
-#	package require Pgtcl
-package ifneeded Pgtcl 1.3 "load %%PREFIX%%/lib/libpgtcl.so"
 
 
 [FILE:3094:files/postgresql.in]
