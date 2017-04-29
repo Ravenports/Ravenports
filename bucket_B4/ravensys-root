@@ -67,6 +67,7 @@ MAKE_ENV=		OPSYS="{{OPSYS}}"
 			libusb={{Libusb_{{OPSYS}}}}
 			libusbhid={{Libusbhid_{{OPSYS}}}}
 			libcrypt={{Libcrypt_{{OPSYS}}}}
+			libkvm={{Libkvm_{{OPSYS}}}}
 
 PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBC={{Libc_{{OPSYS}}}}
@@ -74,6 +75,7 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBUSB={{Libusb_{{OPSYS}}}}
 			SONAME_LIBUSBHID={{Libusbhid_{{OPSYS}}}}
 			SONAME_LIBCRYPT={{Libcrypt_{{OPSYS}}}}
+			SONAME_LIBKVM={{Libkvm_{{OPSYS}}}}
 			BASE=share/raven/sysroot/{{OPSYS}}
 
 [DRAGONFLY].DESCRIPTION=		Ravenports system root for DragonFly
@@ -126,7 +128,7 @@ Ravenports.
 157a06bec1885a007ffd85d39e40364976579e30bd2aedc345336c1fdb3028fb    270896484 DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2
 
 
-[FILE:7153:manifests/plist.single.dragonfly]
+[FILE:7193:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -773,6 +775,7 @@ Ravenports.
 %%BASE%%/usr/lib/
  %%SONAME_LIBC%%
  %%SONAME_LIBM%%
+ %%SONAME_LIBKVM%%
  %%SONAME_LIBCRYPT%%
  %%SONAME_LIBUSB%%
  %%SONAME_LIBUSBHID%%
@@ -785,6 +788,8 @@ Ravenports.
  libcrypt.a
  libcrypt.so
  libdl.a
+ libkvm.a
+ libkvm.so
  libm.a
  libm.so
  libpthread.a
@@ -822,7 +827,7 @@ Ravenports.
 @dir %%BASE%%/usr/local
 
 
-[FILE:9318:files/Makefile]
+[FILE:9394:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -953,6 +958,7 @@ static_lib_generic=	/usr/lib/libc.a \
 			/usr/lib/libm.a \
 			/usr/lib/libutil.a \
 			/usr/lib/libcrypt.a \
+			/usr/lib/libkvm.a \
 			/usr/lib/libpthread.a
 static_lib_FreeBSD=	${static_lib_generic} \
 			/usr/lib/libusb.a \
@@ -967,6 +973,7 @@ dynamic_generic=	/lib/${libc} \
 			/lib/${libm} \
 			/lib/${libutil} \
 			/lib/${libcrypt} \
+			/lib/${libkvm} \
 			/usr/lib/libpthread.so
 dynamic_lib_FreeBSD=	${dynamic_generic} \
 			/usr/lib/${libusb} \
@@ -1162,6 +1169,7 @@ install:
 	(cd ${DESTDIR}${BASE}/usr/lib && \
 		ln -s ${libc} libc.so && \
 		ln -s ${libm} libm.so && \
+		ln -s ${libkvm} libkvm.so && \
 		ln -s ${libcrypt} libcrypt.so && \
 		ln -s ${libutil} libutil.so)
 .if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
@@ -1215,7 +1223,7 @@ extra-includes:
 .endfor
 
 
-[FILE:443:files/special.mk]
+[FILE:503:files/special.mk]
 Libc_DragonFly=		libc.so.8
 Libc_FreeBSD=		libc.so.7
 
@@ -1232,7 +1240,10 @@ Libusbhid_DragonFly=	libusbhid.so.4
 Libusbhid_FreeBSD=	libusbhid.so.4
 
 Libcrypt_DragonFly=	libcrypt.so.4
-Libcrypt_FreeBSD=	libcrypt.so.3
+Libcrypt_FreeBSD=	libcrypt.so.5
+
+Libkvm_DragonFly=	libkvm.so.3
+Libkvm_FreeBSD=		libkvm.so.6
 
 RSYS=			${PREFIX}/share/raven/sysroot/${OPSYS}
 FOS=			${WRKDIR}/${OPSYS:tl}

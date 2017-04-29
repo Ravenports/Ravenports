@@ -1,6 +1,6 @@
 # sys.mk required by bmake
 
-.SUFFIXES:	.out .o .c .cc .cpp .cxx .y .l .S .s .sh
+.SUFFIXES:	.out .o .c .cc .cpp .cxx .C .y .l .S .s .sh
 
 AR?=		ar
 AS?=		as
