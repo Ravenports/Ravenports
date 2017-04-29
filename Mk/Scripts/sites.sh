@@ -314,6 +314,18 @@ expand_PGSQL()
     done
 }
 
+expand_MOZILLA()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##MOZILLA/}
+    local cluster="\
+    http://download.cdn.mozilla.net/pub \
+    https://archive.mozilla.org/pub"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 
 process_site()
 {
@@ -333,6 +345,7 @@ process_site()
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
 	GNU/*)                     expand_GNU "${1}" ;;
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
+	MOZILLA/*)                 expand_MOZILLA "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
 	PGSQL/*)                   expand_PGSQL "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
