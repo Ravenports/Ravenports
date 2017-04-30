@@ -68,7 +68,7 @@ _USES_stage+=	790:patch-lafiles
 patch-lafiles:
 .if ${libtool_ARGS:Mkeepla}
 	@${FIND} ${STAGEDIR} -type f -name '*.la' |			\
-		${XARGS} ${SED} -i '' -e "/dependency_libs=/s/=.*/=''/"
+		${XARGS} ${SED} -i'' -e "/dependency_libs=/s/=.*/=''/"
 .else
 	@${FIND} ${STAGEDIR} -type l -exec ${SH} -c			\
 		'case `${REALPATH} -q "{}"` in				\

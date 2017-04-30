@@ -1012,22 +1012,12 @@ REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
 PLIST_SUB+=		OPSYS=${OPSYS}
 
 # Macro for copying entire directory tree with correct permissions
-# In the -exec shell commands, we add add a . as the first argument, it would
-# end up being $0 aka the script name, which is not part of $@, so we force it
-# to be able to use $@ directly.
+# Arguments are:  (1) source directory (usually ".")
+#                 (2) target directory
+#                 (3) optional, find command modifiers
 
-COPYTREE_BIN=	${SH} -c '(${FIND} $$0 $$2 -depth | \
-		${CPIO} -dumpl $$1 >/dev/null 2>&1) && \
-		${FIND} $$0 $$2 -depth \( -type d -exec ${SH} -c \
-		'\''cd '\''$$1'\'' && chmod 755 "$$@"'\'' -- . {} + \
-		-o -type f -exec ${SH} -c '\''cd '\''$$1'\'' && \
-		chmod ${BINMODE} "$$@"'\'' -- . {} + \)' --
-COPYTREE_SHARE=	${SH} -c '(${FIND} $$0 $$2 -depth | \
-		${CPIO} -dumpl $$1 >/dev/null 2>&1) && \
-		${FIND} $$0 $$2 -depth \(   -type d -exec ${SH} -c \
-		'\''cd '\''$$1'\'' && chmod 755 "$$@"'\'' -- . {} + \
-		-o -type f -exec ${SH} -c '\''cd '\''$$1'\'' && \
-		chmod ${_SHAREMODE} "$$@"'\'' -- . {} + \)' --
+COPYTREE_BIN=	${SH} ${MK_SCRIPTS}/copytree.sh {BINMODE}
+COPYTREE_SHARE=	${SH} ${MK_SCRIPTS}/copytree.sh ${_SHAREMODE}
 
 MAKE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/lib/gnat"\
 			F77="gfortran" FC="gfortran"
