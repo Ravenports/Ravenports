@@ -314,6 +314,30 @@ expand_PGSQL()
     done
 }
 
+expand_MYSQL()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##MYSQL/}
+    local cluster="\
+    http://mysql.mirrors.hoobly.com/Downloads \
+    http://www.mirrorservice.org/sites/ftp.mysql.com/Downloads \
+    http://mysql.mirrors.ovh.net/ftp.mysql.com/Downloads \
+    http://ftp.jaist.ac.jp/pub/mysql/Downloads \
+    http://mysql.mirrors.pair.com/Downloads \
+    http://mirror.switch.ch/ftp/mirror/mysql/Downloads \
+    http://mirrors.ukfast.co.uk/sites/ftp.mysql.com/Downloads \
+    http://ftp.ntua.gr/pub/databases/mysql/Downloads \
+    http://ftp.heanet.ie/mirrors/www.mysql.com/Downloads \
+    ftp://na.mirror.garr.it/mirrors/MySQL/Downloads \
+    ftp://mirrors.dotsrc.org/mysql/Downloads \
+    ftp://sunsite.informatik.rwth-aachen.de/pub/mirror/www.mysql.com/Downloads \
+    ftp://mirror.csclub.uwaterloo.ca/mysql/Downloads"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+
 expand_MOZILLA()
 {
     # pattern [element]/%SUBDIR%/
@@ -346,6 +370,7 @@ process_site()
 	GNU/*)                     expand_GNU "${1}" ;;
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
 	MOZILLA/*)                 expand_MOZILLA "${1}" ;;
+	MYSQL/*)                   expand_MYSQL "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
 	PGSQL/*)                   expand_PGSQL "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
