@@ -506,9 +506,12 @@ CONFIGURE_SCRIPT?=	configure
 CONFIGURE_TARGET?=	${ARCH}-raven-${OPSYS:tl}${OSREL}
 CONFIGURE_TARGET:=	${CONFIGURE_TARGET:S/--build=//}
 CONFIGURE_LOG=		config.log
+.if defined(GNU_CONFIGURE)
 CONFIGURE_FAIL_MESSAGE=	"Please report the problem and attach the\
-\"${CONFIGURE_WRKSRC}/${CONFIGURE_LOG}\" including the output of the\
-failure of your make command."
+\"${CONFIGURE_WRKSRC}/${CONFIGURE_LOG}\" and this log."
+.else
+CONFIGURE_FAIL_MESSAGE=	"Please report the problem and provide all pertinent logs"
+.endif
 
 .if defined(GNU_CONFIGURE)
 HAS_CONFIGURE=			yes
