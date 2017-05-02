@@ -37,7 +37,6 @@ post-patch:
 	${INSTALL_DATA} ${FILESDIR}/Makefile.BSD ${BUILD_WRKSRC}/Makefile
 	${SED} -i"" -e "s|@LOCALBASE@|${LOCALBASE}|" \
 		${WRKSRC}/share/gprconfig/compilers.xml
-	@${MV} ${WRKSRC}/share/gprconfig/*.orig ${WRKDIR}/trash
 
 [FILE:532:descriptions/desc.primary]
 GPRbuild is an advanced software tool designed to help automate the
@@ -84,10 +83,10 @@ share/gprconfig/
  windres.xml
 
 
-[FILE:1205:patches/patch-share_gprconfig_compilers.xml]
---- share/gprconfig/compilers.xml.orig	2015-04-28 15:02:41 UTC
+[FILE:1200:patches/patch-share_gprconfig_compilers.xml]
+--- share/gprconfig/compilers.xml.orig	2016-12-23 15:59:49 UTC
 +++ share/gprconfig/compilers.xml
-@@ -693,17 +693,15 @@
+@@ -746,17 +746,15 @@
      </version>
      <languages>Ada</languages>
      <variable name="gcc_version">
@@ -101,7 +100,7 @@ share/gprconfig/
 -       <directory group="2" >\.\./lib/gcc(-lib)?/$TARGET/$gcc_version/rts-(.*)/adalib/</directory>
 -       <directory group="1" >\.\./$TARGET/lib/gnat/(.*)/adalib/</directory>
 +       <directory group="default">\.\./lib/gcc/$TARGET/$gcc_version/adalib</directory>
-+       <directory group="0">@LOCALBASE@/toolchain/gcc6/lib/gcc/$TARGET/$gcc_version/adalib</directory>
++       <directory group="0">/raven/toolchain/gcc6/lib/gcc/$TARGET/$gcc_version/adalib</directory>
      </runtimes>
      <target>
 -      <external>${PREFIX}gcc -dumpmachine</external>
@@ -112,9 +111,9 @@ share/gprconfig/
 
 
 [FILE:473:patches/patch-share_gprconfig_gnat.xml]
---- share/gprconfig/gnat.xml.orig	2014-10-13 22:03:37 UTC
+--- share/gprconfig/gnat.xml.orig	2016-12-23 15:59:49 UTC
 +++ share/gprconfig/gnat.xml
-@@ -75,7 +75,7 @@
+@@ -74,7 +74,7 @@
     end Naming;
  
     package Compiler is
@@ -125,10 +124,10 @@ share/gprconfig/
        for Leading_Required_Switches        ("Ada") use
 
 
-[FILE:1676:patches/patch-share_gprconfig_linker.xml]
---- share/gprconfig/linker.xml.orig	2015-04-28 14:21:56 UTC
+[FILE:1680:patches/patch-share_gprconfig_linker.xml]
+--- share/gprconfig/linker.xml.orig	2016-12-23 15:59:49 UTC
 +++ share/gprconfig/linker.xml
-@@ -687,11 +687,14 @@
+@@ -1026,11 +1026,14 @@
      </config>
    </configuration>
  
@@ -144,7 +143,7 @@ share/gprconfig/
         <target name="^.*irix.*$" />
      </targets>
      <config>
-@@ -763,10 +766,13 @@
+@@ -1108,10 +1111,13 @@
      </config>
    </configuration>
  
@@ -159,7 +158,7 @@ share/gprconfig/
      </targets>
      <config>
     for Run_Path_Option  use ("-Wl,-rpath,");
-@@ -1308,6 +1314,12 @@
+@@ -1686,6 +1692,12 @@
         <target name="^.*mingw.*$" />
         <target name="^.*linux.*$" />
         <target name="^.*freebsd.*$" />
@@ -172,7 +171,7 @@ share/gprconfig/
       </targets>
      <compilers negate="true">
         <compiler language="C++" />
-@@ -1392,6 +1404,9 @@
+@@ -1773,6 +1785,9 @@
         <target name="^.*mingw.*$" />
         <target name="^.*linux.*$" />
         <target name="^.*freebsd.*$" />
@@ -185,9 +184,9 @@ share/gprconfig/
 
 
 [FILE:1361:patches/patch-share_gprconfig_targetset.xml]
---- share/gprconfig/targetset.xml.orig	2014-09-11 13:36:47 UTC
+--- share/gprconfig/targetset.xml.orig	2016-12-23 15:59:49 UTC
 +++ share/gprconfig/targetset.xml
-@@ -66,8 +66,8 @@
+@@ -92,8 +92,8 @@
  
    <!-- x86-solaris -->
    <targetset>
@@ -198,7 +197,7 @@ share/gprconfig/
    </targetset>
  
    <!-- x86-windows (mingw) -->
-@@ -162,19 +162,34 @@
+@@ -201,19 +201,34 @@
      <target>pent.*-cygwin.*</target>
    </targetset>
  
@@ -241,10 +240,28 @@ share/gprconfig/
  
 
 
-[FILE:1832:patches/patch-src_gprlib.adb]
---- src/gprlib.adb.orig	2016-12-23 15:59:49.000000000 +0000
-+++ src/gprlib.adb	2017-04-13 22:45:53.000000000 +0000
-@@ -413,6 +413,11 @@
+[FILE:626:patches/patch-src_gprbuild-post__compile.adb]
+--- src/gprbuild-post_compile.adb.orig	2016-12-23 15:59:49 UTC
++++ src/gprbuild-post_compile.adb
+@@ -1794,11 +1794,7 @@ package body Gprbuild.Post_Compile is
+                      end if;
+ 
+                      if not OK then
+-                        Error_Msg
+-                          (Msg           => "unknown object file " &
+-                                             Name_Buffer (1 .. Name_Len),
+-                           Flag_Location => Library_Options.Location);
+-                        Success := False;
++                        null;
+                      end if;
+ 
+                      List := Elem.Next;
+
+
+[FILE:2238:patches/patch-src_gprlib.adb]
+--- src/gprlib.adb.orig	2016-12-23 15:59:49 UTC
++++ src/gprlib.adb
+@@ -413,6 +413,11 @@ procedure Gprlib is
  
     Separate_Run_Path_Options : Boolean := False;
  
@@ -256,7 +273,7 @@ share/gprconfig/
     Rpath : String_List_Access := null;
     --  Allocated only if Path Option is supported
  
-@@ -908,7 +913,7 @@
+@@ -908,7 +913,7 @@ procedure Gprlib is
           Library_Switches_Table.Append
             (new String'("-L" & Imported_Library_Directories.Table (J).all));
  
@@ -265,7 +282,18 @@ share/gprconfig/
              Add_Rpath (Imported_Library_Directories.Table (J));
           end if;
  
-@@ -2160,7 +2165,12 @@
+@@ -1720,10 +1725,6 @@ procedure Gprlib is
+ 
+                if Is_Regular_File (Object_Path.all) then
+                   Object_Files.Append (Object_Path);
+-               else
+-                  Fail_Program
+-                    (null,
+-                     "unknown object file """ & Object_Path.all & """");
+                end if;
+             end;
+          end loop;
+@@ -2160,7 +2161,12 @@ procedure Gprlib is
                    Use_GNAT_Lib := False;
                 end if;
  
@@ -279,7 +307,7 @@ share/gprconfig/
  
              when Gprexch.Library_Rpath_Options =>
                 Library_Rpath_Options_Table.Append
-@@ -2295,10 +2305,10 @@
+@@ -2295,10 +2301,10 @@ procedure Gprlib is
  
                       Libgnat :=
                         new String'

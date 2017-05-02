@@ -2,6 +2,7 @@
 #
 # Feature:		gmake
 # Usage:		USES=gmake
+# Arguments:		none
 #
 
 .if !defined(_INCLUDE_USES_GMAKE_MK)

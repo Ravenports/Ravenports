@@ -421,13 +421,11 @@ PATCH_WRKSRC?=		${WRKSRC}
 PATCH_STRIP?=		-p0
 PATCH_DIST_STRIP?=	-p0
 .if defined(PATCH_DEBUG)
-PATCH_ARGS=		-E ${PATCH_STRIP} --batch
-PATCH_DIST_ARGS=	--suffix .orig -E ${PATCH_DIST_STRIP} --batch \
-			-V simple
+PATCH_ARGS=		--backup -E ${PATCH_STRIP} --batch
+PATCH_DIST_ARGS=	--backup -E ${PATCH_DIST_STRIP} --batch
 .else
-PATCH_ARGS=		--forward --quiet -E ${PATCH_STRIP} --batch
-PATCH_DIST_ARGS=	--suffix .orig --forward --quiet \
-			-E ${PATCH_DIST_STRIP} --batch -V simple
+PATCH_ARGS=		--backup --forward --quiet -E ${PATCH_STRIP} --batch
+PATCH_DIST_ARGS=	--backup --forward --quiet -E ${PATCH_DIST_STRIP} --batch
 .endif
 
 patch-message:

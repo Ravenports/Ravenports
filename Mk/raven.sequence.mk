@@ -44,6 +44,7 @@ _EXTRACT_SEQ=		100:extract-message \
 			500:do-extract \
 			525:do-extract-option \
 			550:do-extract-opsys \
+			575:github-relocation \
 			600:apply-slist \
 			650:compile-package-desc \
 			700:post-extract \

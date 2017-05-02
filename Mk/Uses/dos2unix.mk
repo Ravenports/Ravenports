@@ -1,8 +1,12 @@
-# Provide support to convert files from dos2unix
+# Provide support to convert files from DOS line feeds to UNIX line feeds
+#
+# Feature:		dos2unix
+# Usage:		USES=dos2unix
+# Arguments:		none
 #
 # DOS2UNIX_REGEX	a regular expression to match files that needs to be converted
-# DOS2UNIX_FILES	list of files of glob pattern relative to ${WRKSRC}
-# DOS2UNIX_GLOB		list of glob pattern find(1) will match with
+# DOS2UNIX_FILES	list of files of glob pattern relative to ${DOS2UNIX_WRKSRC}
+# DOS2UNIX_GLOB		list of glob patterns find(1) will use to match
 # DOS2UNIX_WRKSRC	top-level path for directory traversal instead of ${WRKSRC}
 
 .if !defined(_INCLUDE_USES_DOS2UNIX_MK)
