@@ -48,7 +48,6 @@ CONFIGURE_ARGS=		prefix={{PREFIX}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-[DEBUG].DESCRIPTION=			Build as development project rather than release
 [DEBUG].CONFIGURE_ARGS_ON=		DEBUG=true
 
 [IPV6].DESCRIPTION=			Support IPv6 instead of IPv4
@@ -70,7 +69,7 @@ post-patch:
 	@${REINPLACE_CMD} -e 's|latexpdf||' ${WRKSRC}/Makefile
 
 do-build:
-	# We cannot use a redefined ALL_TARGET because MAKE_JOBS_SAFE is set
+	# We cannot use a redefined BUILD_TARGET because MAKE_JOBS_SAFE is set
 	# for PROCESSORS, but that also sets -j for gmake which breaks build
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_ARGS} build build-doc)
@@ -97,6 +96,11 @@ post-install:
 do-configure:
 	(cd ${WRKSRC} && ${SETENV} ${CONFIGURE_ENV} \
 		${MAKE_CMD} setup ${CONFIGURE_ARGS})
+
+do-test:
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		GPR_PROJECT_PATH="${STAGEDIR}${PREFIX}/lib/gnat:${LOCALBASE}/lib/gnat" \
+		${MAKE_CMD} ${CONFIGURE_ARGS} run_regtests)
 
 [FILE:1035:descriptions/desc.primary]
 AWS stands for Ada Web Server, but it is more than just another webserver...

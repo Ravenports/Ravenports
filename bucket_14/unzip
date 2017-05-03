@@ -22,23 +22,24 @@ SPKGS[standard]=	complete
 SPKGS[chinese]=		core
 SPKGS[korean]=		core
 
-OPTIONS_AVAILABLE=	CHINESE KOREAN RUSSIAN ICONV
+OPTIONS_AVAILABLE=	LANG_CN LANG_KO LANG_RU ICONV
 OPTIONS_STANDARD=	ICONV
-VOPTS[russian]=		CHINESE=OFF
-			KOREAN=OFF
-			RUSSIAN=ON
+VOPTS[russian]=		LANG_CN=OFF
+			LANG_KO=OFF
+			LANG_RU=ON
 			ICONV=ON
-VOPTS[chinese]=		CHINESE=ON
-			KOREAN=OFF
-			RUSSIAN=OFF
+VOPTS[chinese]=		LANG_CN=ON
+			LANG_KO=OFF
+			LANG_RU=OFF
 			ICONV=ON
-VOPTS[korean]=		CHINESE=OFF
-			KOREAN=ON
-			RUSSIAN=OFF
+VOPTS[korean]=		LANG_CN=OFF
+			LANG_KO=ON
+			LANG_RU=OFF
 			ICONV=ON
 
 BUILD_DEPENDS=		bzip2:static:standard
 			zlib:static:standard
+
 USES=			cpe
 
 DISTNAME=		unzip60
@@ -70,16 +71,16 @@ VAR_OPSYS[openbsd]=	CPPFLAGS=-DBSD
 			CPPFLAGS=-DNO_LCHMOD
 VAR_OPSYS[dragonfly]=	CPPFLAGS=-DBSD
 
-[RUSSIAN].EXTRA_PATCHES_ON=		extra-ru-patch-ebcdic.h
-[RUSSIAN].KEYWORDS_ON=			russian
-
-[KOREAN].EXTRA_PATCHES_ON=		extra-ko-patch-fileio.c
+[LANG_KO].EXTRA_PATCHES_ON=		extra-ko-patch-fileio.c
 					extra-ko-patch-unzip.c
 					extra-ko-patch-unzip.h
-[KOREAN].KEYWORDS_ON=			korean
+[LANG_KO].KEYWORDS_ON=			korean
 
-[CHINESE].EXTRA_PATCHES_ON=		extra-zh-patch-fileio.c
-[CHINESE].KEYWORDS_ON=			chinese
+[LANG_RU].EXTRA_PATCHES_ON=		extra-ru-patch-ebcdic.h
+[LANG_RU].KEYWORDS_ON=			russian
+
+[LANG_CN].EXTRA_PATCHES_ON=		extra-zh-patch-fileio.c
+[LANG_CN].KEYWORDS_ON=			chinese
 
 [ICONV].CFLAGS_ON=			-DNATIVE
 					-I{{ICONV_INCLUDE_PATH}}
@@ -91,13 +92,10 @@ VAR_OPSYS[dragonfly]=	CPPFLAGS=-DBSD
 [ICONV].MAKE_ARGS_ON=			LFLAGS1="-L{{ICONV_LIBRARY_PATH}} {{ICONV_LIB}} -Wl,-rpath,{{ICONV_LIBRARY_PATH}}"
 [ICONV].USES_ON=			iconv
 
-post-install-KOREAN-ON:
+post-install-LANG_CN-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-post-install-RUSSIAN-ON:
-	${RM} -r ${STAGEDIR}${STD_DOCDIR}
-
-post-install-CHINESE-ON:
+post-install-LANG_RU-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 do-install:
@@ -111,6 +109,9 @@ do-install:
 		zipinfo.1 ${STAGEDIR}${PREFIX}/share/man/man1)
 	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	(cd ${WRKSRC} && ${INSTALL_DATA} README WHERE ${STAGEDIR}${STD_DOCDIR})
+
+post-install-LANG_KO-ON:
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 [FILE:1010:descriptions/desc.core.standard]
 Unzip will list, test, or extract files from a ZIP archive, commonly
