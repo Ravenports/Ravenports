@@ -46,7 +46,7 @@ chmod 755 ${target_dirs}
 [ $? -eq 0 ] || (echo "failed to change directory modes" && exit 1)
 
 # Get list of new files
-target_files=$(find ${DESTINO} -depth -type f)
+target_files=$(find ${DESTINO}/${SEARCH_PATH} -depth -type f)
 [ $? -eq 0 ] || (echo "failed target_files step" && exit 1)
 
 chmod ${FILE_MODE} ${target_files}
