@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.0
-REVISION=		3
+REVISION=		4
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd64
 SDESC[freebsd64]=	FreeBSD64 system root for Ravenports build env
@@ -130,7 +130,7 @@ Ravenports.
 157a06bec1885a007ffd85d39e40364976579e30bd2aedc345336c1fdb3028fb    270896484 DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2
 
 
-[FILE:8186:manifests/plist.single.dragonfly]
+[FILE:8439:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -333,8 +333,10 @@ Ravenports.
  grp.h
  ieeefp.h
  iconv.h
+ ifaddrs.h
  inttypes.h
  iso646.h
+ kvm.h
  langinfo.h
  libgen.h
  libusb.h
@@ -428,6 +430,7 @@ Ravenports.
  ndbm.h
 %%BASE%%/usr/include/net/
  if.h
+ if_dl.h
  if_var.h
 %%BASE%%/usr/include/
  netconfig.h
@@ -440,6 +443,7 @@ Ravenports.
 %%BASE%%/usr/include/netinet6/in6.h
 %%BASE%%/usr/include/
  nl_types.h
+ nlist.h
  osreldate.h
  paths.h
  poll.h
@@ -843,7 +847,24 @@ Ravenports.
  util.h
  utime.h
  utmpx.h
+ uuid.h
  vis.h
+%%BASE%%/usr/include/vm/
+ pmap.h
+ swap_pager.h
+ vm.h
+ vm_extern.h
+ vm_kern.h
+ vm_map.h
+ vm_object.h
+ vm_page.h
+ vm_page2.h
+ vm_pageout.h
+ vm_pager.h
+ vm_param.h
+ vm_zone.h
+ vnode_pager.h
+%%BASE%%/usr/include/
  wchar.h
  wctype.h
  wordexp.h
@@ -916,7 +937,7 @@ Ravenports.
 @dir %%BASE%%/usr/local
 
 
-[FILE:11214:files/Makefile]
+[FILE:11579:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -1179,14 +1200,18 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			fts.h \
 			getopt.h \
 			ieeefp.h \
+			ifaddrs.h \
+			kvm.h \
 			link.h \
 			memory.h \
+			nlist.h \
 			osreldate.h \
 			paths.h \
 			resolv.h \
 			util.h \
 			vis.h \
 			libusb.h \
+			net/if_dl.h \
 			net/if_var.h \
 			netconfig.h \
 			netinet/in_systm.h \
@@ -1274,6 +1299,21 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			sysexits.h \
 			ttyent.h \
 			ucontext.h \
+			uuid.h \
+			vm/pmap.h \
+			vm/swap_pager.h \
+			vm/vm.h \
+			vm/vm_extern.h \
+			vm/vm_kern.h \
+			vm/vm_map.h \
+			vm/vm_object.h \
+			vm/vm_page.h \
+			vm/vm_page2.h \
+			vm/vm_pageout.h \
+			vm/vm_pager.h \
+			vm/vm_param.h \
+			vm/vm_zone.h \
+			vm/vnode_pager.h \
 			xlocale.h \
 			xlocale/_ctype.h \
 			xlocale/_inttypes.h \
@@ -1316,6 +1356,7 @@ install:
 		${DESTDIR}${BASE}/usr/include/netinet \
 		${DESTDIR}${BASE}/usr/include/netinet6 \
 		${DESTDIR}${BASE}/usr/include/machine \
+		${DESTDIR}${BASE}/usr/include/vm \
 		${DESTDIR}${BASE}/usr/include/xlocale \
 		${DESTDIR}${BASE}/usr/sbin \
 		# end
