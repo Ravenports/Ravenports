@@ -257,8 +257,8 @@ expand_PYPI()
     # pattern [element]/%SUBDIR%/
     local SUBDIR=${1##PYPI/}
     local cluster="\
-    https://files.pythonhosted.org/packages \
-    https://pypi.python.org/packages"
+    https://files.pythonhosted.org/packages/source \
+    https://pypi.python.org/packages/source"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
     done
