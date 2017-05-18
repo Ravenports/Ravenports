@@ -5,13 +5,13 @@ set -e
 . "${dp_SCRIPTSDIR}/functions.sh"
 
 validate_env dp_CHECKSUM_ALGORITHMS dp_CKSUMFILES dp_DISTDIR dp_DISTINFO_FILE \
-	dp_ECHO_MSG
+	dp_ECHO_MSG dp_OPSYS
 
 [ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_MAKESUM}" ] && set -x
 
 set -u
 
-DISTINFO_NEW=$(mktemp -t makesum-new)
+DISTINFO_NEW=$(mktemp -t makesum.XXXX)
 
 trap 'rm -f ${DISTINFO_NEW}' EXIT INT TERM
 
@@ -25,7 +25,11 @@ for file in ${dp_CKSUMFILES}; do
 
 		if [ "$alg_executable" != "NO" ]; then
 			hash=$($alg_executable -q "$file")
-			size=$(stat -f %z "$file")
+			if [ "${dp_OPSYS}" = "Linux" ]; then
+				actual_size=$(stat --printf=%s "${file}")
+			else
+				size=$(stat -f %z "$file")
+			fi
 			echo | awk -v hash="${hash}" -v size="${size}" -v fn="${file}" \
 			'{printf "%s %12s %s\n", hash, size, fn}' >> "${DISTINFO_NEW}"
 		fi

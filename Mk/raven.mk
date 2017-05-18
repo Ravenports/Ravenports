@@ -244,6 +244,7 @@ _DO_FETCH_ENV= 		dp_DISTDIR='${DISTDIR}' \
 			dp_DISABLE_SIZE= \
 			dp_SCRIPTSDIR='${MK_SCRIPTS}' \
 			dp_TARGET='${.TARGET}' \
+			dp_OPSYS='${OPSYS}' \
 			# end
 
 .if !target(do-fetch)
@@ -302,6 +303,7 @@ makesum:
 		${_DO_FETCH_ENV} ${_MS_SITES_ENV} \
 		dp_DISABLE_CHECKSUM=yes \
 		dp_DISABLE_SIZE=yes \
+		dp_OPSYS='${OPSYS}' \
 		${SH} ${MK_SCRIPTS}/do-fetch.sh ${_MAKESUMFILES:C/.*/'&'/}
 .  endif
 	@${SETENV} \
@@ -312,6 +314,7 @@ makesum:
 		dp_DISTINFO_FILE='${_DISTINFO_FILE}' \
 		dp_ECHO_MSG='${ECHO_MSG}' \
 		dp_SCRIPTSDIR='${MK_SCRIPTS}' \
+		dp_OPSYS='${OPSYS}' \
 		${SH} ${MK_SCRIPTS}/makesum.sh ${_MAKESUMFILES:C/.*/'&'/}
 .endif
 
