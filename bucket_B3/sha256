@@ -35,7 +35,7 @@ bin/
  sha256
 
 
-[FILE:822:files/Makefile]
+[FILE:887:files/Makefile]
 # $FreeBSD: src/lib/libmd/Makefile,v 1.42 2005/03/09 19:23:04 cperciva Exp $
 
 SRCS=		md5c.c md5hl.c sha256hl.c
@@ -43,6 +43,10 @@ OBJS=		${SRCS:.c=.o}
 PREFIX?=	/usr/local
 LIBS=		${PREFIX}/lib/libcrypto.a
 CFLAGS=		-I${PREFIX}/include -I.	
+
+.if "${OPSYS}" == "Linux"
+LIBS+=		${PREFIX}/lib/libbsd.a
+.endif
 
 all:	program
 
@@ -71,7 +75,7 @@ clean:
 	rm -f md5hl.c sha256hl.c md5 sha256 ${OBJS}
 
 
-[FILE:11448:files/main.c]
+[FILE:11594:files/main.c]
 /*
  * Derived from:
  *
@@ -106,6 +110,10 @@ clean:
 #include <time.h>
 #include <unistd.h>
 #include <sysexits.h>
+
+#ifdef __linux__
+#include <bsd/stdlib.h>
+#endif /* __linux__ */
 
 #include "md5.h"
 #include "sha256.h"
@@ -233,7 +241,11 @@ digestfile(const char *fname, char *buf, const Algorithm_t *alg,
 		else
 			size = end - begin;
 
+#ifdef __linux__
+		map = mmap(NULL, size, PROT_READ, 0, fd, begin);
+#else
 		map = mmap(NULL, size, PROT_READ, MAP_NOCORE, fd, begin);
+#endif
 		if (map == MAP_FAILED) {
 			warn("mmaping of %s between %jd and %jd ",
 			    fname, (intmax_t)begin, (intmax_t)begin + size);
@@ -613,7 +625,7 @@ __END_DECLS
 #endif /* _MD5_H_ */
 
 
-[FILE:9368:files/md5c.c]
+[FILE:9435:files/md5c.c]
 /*
  * MD5C.C - RSA Data Security, Inc., MD5 message-digest algorithm
  *
@@ -647,9 +659,14 @@ __END_DECLS
 #include <sys/types.h>
 #include <string.h>
 
+#ifdef __linux__
+#include <endian.h>
+#include "md5.h"
+#else
 #include <machine/endian.h>
 #include <sys/endian.h>
 #include <sys/md5.h>
+#endif
 
 #if (BYTE_ORDER == LITTLE_ENDIAN)
 #define Encode memcpy

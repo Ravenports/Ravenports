@@ -71,7 +71,7 @@ bin/fetch
  */
 
 
-[FILE:577:files/Makefile]
+[FILE:642:files/Makefile]
 # $FreeBSD: head/lib/libfetch/Makefile 275024 2014-11-25 11:07:26Z bapt $
 
 SRCS=		fetch.c common.c ftp.c http.c file.c ftperr.h httperr.h
@@ -82,6 +82,10 @@ CFLAGS=		-DINET6 -DWITH_SSL -DFTP_COMBINE_CWDS
 CFLAGS+=	-I${PREFIX}/include -I.
 LIBS=		${PREFIX}/lib/libssl.a \
 		${PREFIX}/lib/libcrypto.a \
+
+.if "${OPSYS}" == "Linux"
+LIBS+=		${PREFIX}/lib/libbsd.a
+.endif
 
 all: fetch
 
@@ -98,7 +102,7 @@ install:
 	${BSD_INSTALL_PROGRAM} fetch ${DESTDIR}${PREFIX}/bin/
 
 
-[FILE:31510:files/common.c]
+[FILE:31656:files/common.c]
 #include <sys/cdefs.h>
 
 #include <sys/param.h>
@@ -129,6 +133,14 @@ install:
 
 #ifndef INFTIM
 #define INFTIM (-1)
+#endif
+
+#ifndef __DECONST
+#define __DECONST(type, var)    ((type)(uintptr_t)(const void *)(var))
+#endif
+
+#ifdef __linux__
+#include <bsd/string.h>
 #endif
 
 /*** Local data **************************************************************/
@@ -1475,7 +1487,7 @@ fetch_no_proxy_match(const char *host)
 }
 
 
-[FILE:3027:files/common.h]
+[FILE:3235:files/common.h]
 #ifndef _COMMON_H_INCLUDED
 #define _COMMON_H_INCLUDED
 
@@ -1490,6 +1502,16 @@ fetch_no_proxy_match(const char *host)
 #include <openssl/pem.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#endif
+
+#ifndef __unused
+#define	__unused	__attribute__((__unused__))
+#endif
+
+#ifdef __linux__
+#define EAUTH		80	/* Authentication error */
+#define ENEEDAUTH	81	/* Need authenticator */
+#define MAXLOGNAME	17
 #endif
 
 /* Connection */
@@ -2275,7 +2297,7 @@ fetchListFile(struct url *u, const char *flags __unused)
 }
 
 
-[FILE:26655:files/ftp.c]
+[FILE:27250:files/ftp.c]
 #include <sys/cdefs.h>
 
 /*
@@ -2347,6 +2369,35 @@ fetchListFile(struct url *u, const char *flags __unused)
 #define FTP_FILE_OK			350
 #define FTP_SYNTAX_ERROR		500
 #define FTP_PROTOCOL_ERROR		999
+
+#ifdef __linux__
+#include <bsd/stdio.h>
+static int
+vasprintf(char **strp, const char *fmt, va_list args)
+{
+    va_list args_copy;
+    int status, needed;
+
+    va_copy(args_copy, args);
+    needed = vsnprintf(NULL, 0, fmt, args_copy);
+    va_end(args_copy);
+    if (needed < 0) {
+        *strp = NULL;
+        return needed;
+    }
+    *strp = malloc(needed + 1);
+    if (*strp == NULL)
+        return -1;
+    status = vsnprintf(*strp, needed + 1, fmt, args);
+    if (status >= 0)
+        return status;
+    else {
+        free(*strp);
+        *strp = NULL;
+        return status;
+    }
+}
+#endif
 
 static struct url cached_host;
 static conn_t	*cached_connection;
@@ -3510,7 +3561,7 @@ static struct fetcherr ftp_errlist[] = {
 };
 
 
-[FILE:50050:files/http.c]
+[FILE:50945:files/http.c]
 #include <sys/cdefs.h>
 
 /*
@@ -3548,6 +3599,9 @@ static struct fetcherr ftp_errlist[] = {
 #ifdef __NetBSD__
 #define _NETBSD_SOURCE
 #endif
+#ifdef __linux__
+#define __USE_XOPEN
+#endif
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -3579,6 +3633,49 @@ static struct fetcherr ftp_errlist[] = {
 #include "fetch.h"
 #include "common.h"
 #include "httperr.h"
+
+#ifdef __linux__
+#include <bsd/stdio.h>
+#include <bsd/stdlib.h>
+
+static int
+vasprintf(char **strp, const char *fmt, va_list args)
+{
+    va_list args_copy;
+    int status, needed;
+
+    va_copy(args_copy, args);
+    needed = vsnprintf(NULL, 0, fmt, args_copy);
+    va_end(args_copy);
+    if (needed < 0) {
+        *strp = NULL;
+        return needed;
+    }
+    *strp = malloc(needed + 1);
+    if (*strp == NULL)
+        return -1;
+    status = vsnprintf(*strp, needed + 1, fmt, args);
+    if (status >= 0)
+        return status;
+    else {
+        free(*strp);
+        *strp = NULL;
+        return status;
+    }
+}
+
+static int
+asprintf(char **strp, const char *fmt, ...)
+{
+    va_list args;
+    int status;
+
+    va_start(args, fmt);
+    status = vasprintf(strp, fmt, args);
+    va_end(args);
+    return status;
+}
+#endif
 
 /* Maximum number of redirects to follow */
 #define MAX_REDIRECT 20
@@ -4971,9 +5068,10 @@ http_print_html(FILE *out, FILE *in)
 	size_t len;
 	char *line, *p, *q;
 	int comment, tag;
+	ssize_t chars_read;
 
 	comment = tag = 0;
-	while ((line = fgetln(in, &len)) != NULL) {
+	while ((chars_read = getline(&line, &len, in)) != -1) {
 		while (len && isspace((unsigned char)line[len - 1]))
 			--len;
 		for (p = q = line; q < line + len; ++q) {
@@ -5643,7 +5741,7 @@ static struct fetcherr http_errlist[] = {
 };
 
 
-[FILE:28541:files/main.c]
+[FILE:29635:files/main.c]
 #include <sys/cdefs.h>
 
 #include <sys/param.h>
@@ -5667,6 +5765,52 @@ static struct fetcherr http_errlist[] = {
 
 #define MINBUFSIZE	16384
 #define TIMEOUT		120
+
+#ifdef __linux__
+#include <stdarg.h>
+#include <bsd/unistd.h>
+#include <sys/ioctl.h>
+
+#define	TCSASOFT	0
+
+static int
+vasprintf(char **strp, const char *fmt, va_list args)
+{
+    va_list args_copy;
+    int status, needed;
+
+    va_copy(args_copy, args);
+    needed = vsnprintf(NULL, 0, fmt, args_copy);
+    va_end(args_copy);
+    if (needed < 0) {
+        *strp = NULL;
+        return needed;
+    }
+    *strp = malloc(needed + 1);
+    if (*strp == NULL)
+        return -1;
+    status = vsnprintf(*strp, needed + 1, fmt, args);
+    if (status >= 0)
+        return status;
+    else {
+        free(*strp);
+        *strp = NULL;
+        return status;
+    }
+}
+
+static int
+asprintf(char **strp, const char *fmt, ...)
+{
+    va_list args;
+    int status;
+
+    va_start(args, fmt);
+    status = vasprintf(strp, fmt, args);
+    va_end(args);
+    return status;
+}
+#endif
 
 /* Option flags */
 static int	 A_flag;	/*    -A: do not follow 302 redirects */
@@ -5792,7 +5936,11 @@ sig_handler(int sig)
 	case SIGALRM:
 		sigalrm = 1;
 		break;
+#ifdef __linux__
+	case SIGPWR:
+#else
 	case SIGINFO:
+#endif
 		siginfo = 1;
 		break;
 	case SIGINT:
@@ -6331,7 +6479,11 @@ fetch(char *URL, const char *path)
 
 	/* suck in the data */
 	setvbuf(f, NULL, _IOFBF, B_size);
+#ifdef __linux__
+	signal(SIGPWR, sig_handler);
+#else
 	signal(SIGINFO, sig_handler);
+#endif
 	while (!sigint) {
 		if (us.size != -1 && us.size - count < B_size &&
 		    us.size - count >= 0)
@@ -6366,7 +6518,11 @@ fetch(char *URL, const char *path)
 	}
 	if (!sigalrm)
 		sigalrm = ferror(f) && errno == ETIMEDOUT;
+#ifdef __linux__
+	signal(SIGPWR, SIG_DFL);
+#else
 	signal(SIGINFO, SIG_DFL);
+#endif
 
 	stat_end(&xs);
 
@@ -6478,7 +6634,7 @@ usage(void)
  * Entry point
  */
 int
-main(int argc, char *argv[])
+main(int argc, char *argv[], char *envp[])
 {
 	struct stat sb;
 	struct sigaction sa;
@@ -6486,6 +6642,9 @@ main(int argc, char *argv[])
 	char *end, *q;
 	int c, e, r;
 
+#ifdef __linux__
+	setproctitle_init(argc, argv, envp);
+#endif
 
 	while ((c = getopt_long(argc, argv,
 	    "146AaB:bc:dFf:Hh:i:lMmN:nPpo:qRrS:sT:tUvw:",

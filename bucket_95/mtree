@@ -44,11 +44,16 @@ specification.
 bin/mtree
 
 
-[FILE:292:files/Makefile]
+[FILE:391:files/Makefile]
 PREFIX?=	/usr/local
 SRCS=		compare.c create.c excludes.c misc.c mtree.c spec.c \
 		verify.c crc.c sha1hl.c
 OBJS=		${SRCS:.c=.o}
+STATIC_LIBS=	${PREFIX}/lib/libcrypto.a
+
+.if "${OPSYS}" == "Linux"
+STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
+.endif
 
 .SUFFIXES:	.o .c
 
@@ -56,10 +61,10 @@ OBJS=		${SRCS:.c=.o}
 	${CC} ${_${.IMPSRC:T}_FLAGS} ${CFLAGS} -c ${.IMPSRC}
 
 mtree:	${OBJS}
-		${CC} ${CFLAGS} ${.ALLSRC} -o ${.TARGET} ${PREFIX}/lib/libcrypto.a
+		${CC} ${CFLAGS} ${.ALLSRC} -o ${.TARGET} ${STATIC_LIBS}
 
 
-[FILE:8838:files/compare.c]
+[FILE:9260:files/compare.c]
 /*-
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -216,7 +221,7 @@ typeerr:		LABEL;
 	    s->st_nlink != p->fts_statp->st_nlink) {
 		LABEL;
 		printf("%slink_count expected %u found %u\n",
-		    tab, s->st_nlink, p->fts_statp->st_nlink);
+		    tab, (unsigned int)s->st_nlink, (unsigned int)p->fts_statp->st_nlink);
 		tab = "\t";
 	}
 	if (s->flags & F_SIZE && s->st_size != p->fts_statp->st_size &&
@@ -231,6 +236,16 @@ typeerr:		LABEL;
 	 * Catches nano-second differences, but doesn't display them.
 	 */
 	if ((s->flags & F_TIME) &&
+#ifdef __linux__
+	     ((s->st_mtimespec.tv_sec != p->fts_statp->st_mtim.tv_sec) ||
+	     (s->st_mtimespec.tv_nsec != p->fts_statp->st_mtim.tv_nsec))) {
+		LABEL;
+		printf("%smodification time expected %.24s ",
+		    tab, ctime(&s->st_mtimespec.tv_sec));
+		printf("found %.24s\n",
+		    ctime(&p->fts_statp->st_mtim.tv_nsec));
+		tab = "\t";
+#else
 	     ((s->st_mtimespec.tv_sec != p->fts_statp->st_mtimespec.tv_sec) ||
 	     (s->st_mtimespec.tv_nsec != p->fts_statp->st_mtimespec.tv_nsec))) {
 		LABEL;
@@ -239,6 +254,7 @@ typeerr:		LABEL;
 		printf("found %.24s\n",
 		    ctime(&p->fts_statp->st_mtimespec.tv_sec));
 		tab = "\t";
+#endif
 	}
 	if (s->flags & F_CKSUM) {
 		if ((fd = open(p->fts_accpath, O_RDONLY, 0)) < 0) {
@@ -262,6 +278,7 @@ typeerr:		LABEL;
 			}
 		}
 	}
+#ifndef __linux__
 	/*
 	 * XXX
 	 * since chflags(2) will reset file times, the utimes() above
@@ -288,6 +305,7 @@ typeerr:		LABEL;
 			printf("\n");
 		tab = "\t";
 	}
+#endif /* __linux__ */
 #ifdef USE_MD5
 	if (s->flags & F_MD5) {
 		char *new_digest, buf[33];
@@ -602,7 +620,7 @@ int	crc32(int, uint32_t *, off_t *);
 __END_DECLS
 
 
-[FILE:11006:files/create.c]
+[FILE:11514:files/create.c]
 /*-
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -658,9 +676,19 @@ __END_DECLS
 #include <time.h>
 #include <unistd.h>
 #include <stdarg.h>
+#ifdef __linux__
+#include <bsd/vis.h>
+#else
 #include <vis.h>
+#endif
 #include "mtree.h"
 #include "extern.h"
+
+#ifndef __printflike
+#define	__printflike(fmtarg, firstvararg) \
+            __attribute__((__nonnull__(fmtarg), \
+			  __format__ (__printf__, fmtarg, firstvararg)))
+#endif
 
 #define	INDENTNAMELEN	15
 #define	MAXLINELEN	80
@@ -793,14 +821,19 @@ statf(int indent, FTSENT *p)
 	if (keys & F_MODE && (p->fts_statp->st_mode & MBITS) != mode)
 		output(indent, &offset, "mode=%#o", p->fts_statp->st_mode & MBITS);
 	if (keys & F_NLINK && p->fts_statp->st_nlink != 1)
-		output(indent, &offset, "nlink=%u", p->fts_statp->st_nlink);
+		output(indent, &offset, "nlink=%u", (unsigned int)p->fts_statp->st_nlink);
 	if (keys & F_SIZE)
 		output(indent, &offset, "size=%jd",
 		    (uintmax_t)p->fts_statp->st_size);
 	if (keys & F_TIME)
 		output(indent, &offset, "time=%ld.%ld",
+#ifdef __linux__
+		    p->fts_statp->st_mtim.tv_sec,
+		    p->fts_statp->st_mtim.tv_nsec);
+#else
 		    p->fts_statp->st_mtimespec.tv_sec,
 		    p->fts_statp->st_mtimespec.tv_nsec);
+#endif
 	if (keys & F_CKSUM && S_ISREG(p->fts_statp->st_mode)) {
 		if ((fd = open(p->fts_accpath, O_RDONLY, 0)) < 0 ||
 		    crc(fd, &val, &len))
@@ -847,11 +880,13 @@ statf(int indent, FTSENT *p)
 	if (keys & F_SLINK &&
 	    (p->fts_info == FTS_SL || p->fts_info == FTS_SLNONE))
 		output(indent, &offset, "link=%s", rlink(p->fts_accpath));
+#ifndef __linux__
 	if (keys & F_FLAGS && p->fts_statp->st_flags != flags) {
 		fflags = flags_to_string(p->fts_statp->st_flags);
 		output(indent, &offset, "flags=%s", fflags);
 		free(fflags);
 	}
+#endif /* __linux__ */
 	putchar('\n');
 }
 
@@ -911,6 +946,7 @@ statd(FTS *t, FTSENT *parent, uid_t *puid, gid_t *pgid, mode_t *pmode,
 				maxuid = u[suid];
 			}
 
+#ifndef __linux__
 			/*
 			 * XXX
 			 * note that the below will break when file flags
@@ -924,6 +960,7 @@ statd(FTS *t, FTSENT *parent, uid_t *puid, gid_t *pgid, mode_t *pmode,
 				saveflags = sflags;
 				maxflags = f[FLAGS2IDX(sflags)];
 			}
+#endif /* __linux__ */
 		}
 	}
 	/*
@@ -934,7 +971,9 @@ statd(FTS *t, FTSENT *parent, uid_t *puid, gid_t *pgid, mode_t *pmode,
 	if ((((keys & F_UNAME) | (keys & F_UID)) && (*puid != saveuid)) ||
 	    (((keys & F_GNAME) | (keys & F_GID)) && (*pgid != savegid)) ||
 	    ((keys & F_MODE) && (*pmode != savemode)) || 
+#ifndef __linux__
 	    ((keys & F_FLAGS) && (*pflags != saveflags)) ||
+#endif /* __linux__ */
 	    (first)) {
 		first = 0;
 		if (dflag)
@@ -965,11 +1004,13 @@ statd(FTS *t, FTSENT *parent, uid_t *puid, gid_t *pgid, mode_t *pmode,
 			printf(" mode=%#o", savemode);
 		if (keys & F_NLINK)
 			printf(" nlink=1");
+#ifndef __linux__
 		if (keys & F_FLAGS) {
 			fflags = flags_to_string(saveflags);
 			printf(" flags=%s", fflags);
 			free(fflags);
 		}
+#endif /* __linux__ */
 		printf("\n");
 		*puid = saveuid;
 		*pgid = savegid;
@@ -1009,7 +1050,7 @@ output(int indent, int *offset, const char *fmt, ...)
 }
 
 
-[FILE:3063:files/excludes.c]
+[FILE:3096:files/excludes.c]
 /*
  * Copyright 2000 Massachusetts Institute of Technology
  *
@@ -1079,12 +1120,13 @@ read_excludes_file(const char *name)
 	char *line, *str;
 	struct exclude *e;
 	size_t len;
+	ssize_t chars_read;
 
 	fp = fopen(name, "r");
 	if (fp == NULL)
 		err(1, "%s", name);
 
-	while ((line = fgetln(fp, &len)) != NULL) {
+	while ((chars_read = getline(&line, &len, fp)) != -1) {
 		if (line[len - 1] == '\n')
 			len--;
 		if (len == 0)
@@ -1123,7 +1165,7 @@ check_excludes(const char *fname, const char *path)
 }
 
 
-[FILE:2286:files/extern.h]
+[FILE:2332:files/extern.h]
 /*-
  * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -1156,6 +1198,8 @@ check_excludes(const char *fname, const char *path)
  * $FreeBSD: src/usr.sbin/mtree/extern.h,v 1.3.2.2 2000/06/28 02:33:17 joe Exp $
  */
 
+#include <stdint.h>
+
 #ifdef MAXPATHLEN
 extern char fullpath[MAXPATHLEN];
 #endif
@@ -1168,7 +1212,9 @@ extern u_int keys;
 int	 compare(NODE *, FTSENT *);
 int	 crc(int, u_long *, u_long *);
 void	 cwalk(void);
+#ifndef __linux__
 char	*flags_to_string(u_long);
+#endif
 
 const char *inotype(u_int);
 u_int	 parsekey(char *, int *);
@@ -1181,7 +1227,7 @@ void	 init_excludes(void);
 void	 read_excludes_file(const char *);
 
 
-[FILE:3498:files/misc.c]
+[FILE:3539:files/misc.c]
 /*-
  * Copyright (c) 1991, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -1284,6 +1330,7 @@ keycompare(const void *a, const void *b)
 	return (strcmp(((const KEY *)a)->name, ((const KEY *)b)->name));
 }
 
+#ifndef __linux__
 char *
 flags_to_string(u_long fflags)
 {
@@ -1299,6 +1346,7 @@ flags_to_string(u_long fflags)
 
 	return string;
 }
+#endif /* __linux__ */
 
 
 [FILE:21368:files/mtree.8]
@@ -2279,7 +2327,7 @@ usage(void)
 }
 
 
-[FILE:4002:files/mtree.h]
+[FILE:4051:files/mtree.h]
 /*-
  * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -2312,6 +2360,10 @@ usage(void)
  * $FreeBSD: src/usr.sbin/mtree/mtree.h,v 1.5 1999/12/09 20:38:35 joe Exp $
  * $DragonFly: src/usr.sbin/mtree/mtree.h,v 1.2 2003/06/17 04:29:57 dillon Exp $
  */
+
+#ifdef __linux__
+#include <bsd/unistd.h>
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -2606,7 +2658,7 @@ char *SHA1_Data(const void *, unsigned int, char *);
 __END_DECLS
 
 
-[FILE:7724:files/spec.c]
+[FILE:7840:files/spec.c]
 /*-
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -2650,7 +2702,12 @@ __END_DECLS
 #include <pwd.h>
 #include <stdio.h>
 #include <unistd.h>
+#ifdef __linux__
+#include <bsd/vis.h>
+#include <bsd/unistd.h>
+#else
 #include <vis.h>
+#endif
 #include "mtree.h"
 #include "extern.h"
 
@@ -2810,12 +2867,14 @@ set(char *t, NODE *ip)
 				errx(1, "strdup");
 			}
 			break;
+#ifndef __linux__
 		case F_FLAGS:
 			if (strcmp("none", val) == 0)
 				ip->st_flags = 0;
 			else if (strtofflags(&val, &ip->st_flags, NULL) != 0)
 				errx(1, "line %d: invalid flag %s",lineno, val);
  			break;
+#endif /* __linux__ */
 		case F_GID:
 			ip->st_gid = strtoul(val, &ep, 10);
 			if (*ep)
@@ -2920,7 +2979,7 @@ unset(char *t, NODE *ip)
 }
 
 
-[FILE:6035:files/verify.c]
+[FILE:6076:files/verify.c]
 /*-
  * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -3142,10 +3201,12 @@ miss(NODE *p, char *tail)
 		if (chmod(path, p->st_mode))
 			printf("%s: permissions not set: %s\n",
 			    path, strerror(errno));
+#ifndef __linux__
 		if ((p->flags & F_FLAGS) && p->st_flags &&
 		    chflags(path, p->st_flags))
 			printf("%s: file flags not set: %s\n",
 			    path, strerror(errno));
+#endif /* __linux__ */
 	}
 }
 
