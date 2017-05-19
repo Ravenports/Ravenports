@@ -7,9 +7,6 @@ fi
 
 [ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_QA}" ] && set -x
 
-LF=$(printf '\nX')
-LF=${LF%X}
-
 notice() {
 	echo "Notice: $@" >&2
 }
@@ -113,8 +110,8 @@ shebang() {
 		fi
 	# Use heredoc to avoid losing rc from find|while subshell
 	done <<-EOF
-	$(find ${STAGEDIR}${PREFIX} \
-	    -type l -exec stat -f "%N${LF}%Y" {} + 2>/dev/null)
+	$(find ${STAGEDIR}${PREFIX} -type l \
+		-exec echo {} + -exec readlink {} + 2>/dev/null)
 	EOF
 
 	return ${rc}
@@ -149,7 +146,7 @@ symlinks() {
 		esac
 	# Use heredoc to avoid losing rc from find|while subshell.
 	done <<-EOF
-	$(find ${STAGEDIR} -type l -exec stat -f "%N${LF}%Y" {} +)
+	$(find ${STAGEDIR} -type l -exec echo {} + -exec readlink {} +)
 	EOF
 
 	return ${rc}

@@ -87,7 +87,7 @@ CONFIGURE_ARGS+=	-sde -Dprefix=${PREFIX} \
 			-Dsiteman1dir=${SITE_MAN1} \
 			-Ui_malloc -Ui_iconv -Uinstallusrbinperl -Dusenm=n \
 			-Dcc="${CC}" -Duseshrplib -Dinc_version_list=none \
-			-Dcf_time="`${STAT} -t \"%a %b %d %T %Z %Y\" -f %Sm ${DISTDIR}/${DISTFILE_1:S/:main//}`"
+			#end
 
 # Keep the following two in sync.
 # lddlflags is used for all .so linking.  shrpldflags is used for libperl.so,

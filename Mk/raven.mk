@@ -504,7 +504,7 @@ CONFIGURE_CMD=		./${CONFIGURE_SCRIPT}
 CONFIGURE_WRKSRC?=	${WRKSRC}
 .endif
 CONFIGURE_SCRIPT?=	configure
-CONFIGURE_TARGET?=	${ARCH}-raven-${OPSYS:tl}${OSREL}
+CONFIGURE_TARGET?=	${ARCH_STANDARD}-raven-${OPSYS:tl}${OSREL}
 CONFIGURE_TARGET:=	${CONFIGURE_TARGET:S/--build=//}
 CONFIGURE_LOG=		config.log
 .if defined(GNU_CONFIGURE)
@@ -616,6 +616,7 @@ MAKEFILE?=		Makefile
 MAKE_FLAGS?=		-f
 MAKE_ENV+=		PREFIX=${PREFIX} \
 			LOCALBASE=${LOCALBASE} \
+			OPSYS="${OPSYS}" \
 			CC="${CC}" CFLAGS="${CFLAGS}" \
 			CPP="${CPP}" CPPFLAGS="${CPPFLAGS}" \
 			LDFLAGS="${LDFLAGS}" LIBS="${LIBS}" \
@@ -744,6 +745,13 @@ do-install:
 # Fixes all dead symlinks left by the previous round.
 
 .if !target(compress-man)
+
+.if "${OPSYS}" == "Linux"
+_GET_INODE=	${STAT} -c '%i' {}
+.else
+_GET_INODE=	${STAT} -f '%i' {}
+.endif
+
 compress-man:
 	@${ECHO_MSG} "====> Start compressing man pages"
 	@mdirs= ; \
@@ -752,7 +760,7 @@ compress-man:
 	done ; \
 	for dir in $$mdirs; do \
 		${FIND} $$dir -type f \! -name "*.gz" -links 1 -exec ${GZIP_CMD} {} \; ; \
-		${FIND} $$dir -type f \! -name "*.gz" \! -links 1 -exec ${STAT} -f '%i' {} \; | \
+		${FIND} $$dir -type f \! -name "*.gz" \! -links 1 -exec ${_GET_INODE} \; | \
 			${SORT} -u | while read inode ; do \
 				unset ref ; \
 				for f in $$(${FIND} $$dir -type f -inum $${inode} -print); do \
@@ -837,6 +845,7 @@ _PLIST_LIST+=	${WRKDIR}/.manifest.${sp}.mktmp
 QA_ENV+=	STAGEDIR=${STAGEDIR} \
 		PREFIX=${PREFIX} \
 		LOCALBASE=${LOCALBASE} \
+		OPSYS="${OPSYS}" \
 		STRIP="${STRIP}" \
 		NAMEBASE="${NAMEBASE}" \
 		TMPPLIST="${_PLIST_LIST}" \
