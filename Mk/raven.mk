@@ -1025,6 +1025,15 @@ REINPLACE_CMD?=		${SED} ${REINPLACE_ARGS}
 # ensure PLIST_SUB has at least one value
 PLIST_SUB+=		OPSYS=${OPSYS}
 
+# ONLY-[OPSYS] is "@comment " for inactive platform and blank for active
+PLIST_SUB+=		ONLY-${OPSYS:tu}=""
+
+.for supp in dragonfly linux freebsd # add more as they occur
+.  if empty(PLIST_SUB:MONLY-${supp:tu}=*)
+PLIST_SUB+=		ONLY-${supp:tu}="@comment "
+.  endif
+.endfor
+
 # Macro for copying entire directory tree with correct permissions
 # Arguments are:  (1) source directory (usually ".")
 #                 (2) target directory
