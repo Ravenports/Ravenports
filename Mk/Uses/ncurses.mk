@@ -28,5 +28,6 @@ CFLAGS+=	-Wl,-rpath,${NCURSESRPATH}
 .  else
 LDFLAGS+=	-Wl,-rpath=${NCURSESRPATH}
 .  endif
+LDFLAGS+=	-lpthread
 
 .endif
