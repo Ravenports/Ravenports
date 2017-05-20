@@ -110,7 +110,7 @@ shebang() {
 		fi
 	# Use heredoc to avoid losing rc from find|while subshell
 	done <<-EOF
-	$(find ${STAGEDIR} -type l -print0 | xargs -0 -i sh -c 'echo {} && readlink {}')
+	$(find ${STAGEDIR} -type l -print0 | xargs -0 -i sh -c 'echo "{}" && readlink "{}"')
 	EOF
 
 	return ${rc}
@@ -145,7 +145,7 @@ symlinks() {
 		esac
 	# Use heredoc to avoid losing rc from find|while subshell.
 	done <<-EOF
-	$(find ${STAGEDIR} -type l -print0 | xargs -0 -i sh -c 'echo {} && readlink {}')
+	$(find ${STAGEDIR} -type l -print0 | xargs -0 -i sh -c 'echo "{}" && readlink "{}"')
 	EOF
 
 	return ${rc}
