@@ -349,6 +349,20 @@ expand_MOZILLA()
 	echo ${site}/${SUBDIR}/
     done
 }
+expand_UBUNTU()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##UBUNTU/}
+    local cluster="\
+    http://mirrors.kernel.org/ubuntu/pool/main \
+    http://nl.archive.ubuntu.com/ubuntu/pool/main \
+    http://ubuntu.mirrors.tds.net/ubuntu/pool/main \
+    http://de.archive.ubuntu.com/ubuntu/pool/main \
+    http://mirrors.xmission.com/ubuntu/pool/main"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
 
 
 process_site()
@@ -377,6 +391,7 @@ process_site()
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
+	UBUNTU/*)                  expand_UBUNTU "${1}" ;;
 	*)                         echo "${1}" ;;
     esac
 }
