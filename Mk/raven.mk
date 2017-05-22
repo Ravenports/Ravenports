@@ -1028,6 +1028,15 @@ PLIST_SUB+=		OPSYS=${OPSYS}
 # ONLY-[OPSYS] is "@comment " for inactive platform and blank for active
 PLIST_SUB+=		ONLY-${OPSYS:tu}=""
 
+.if "${OPSYS}" == "Linux"	# only x86_64 supported right now
+MULTILIB=	lib/x86_64-linux-gnu
+ASLIB=		lib64
+.else
+MULTILIB=	lib
+ASLIB=		lib
+.endif
+PLIST_SUB+=	ASLIB="${ASLIB}"
+
 .for supp in dragonfly linux freebsd # add more as they occur
 .  if empty(PLIST_SUB:MONLY-${supp:tu}=*)
 PLIST_SUB+=		ONLY-${supp:tu}="@comment "

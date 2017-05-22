@@ -56,6 +56,11 @@ shebangonefile() {
 	/bin/sh) ;;
 	/bin/csh) ;;	# not in ravensys-root
 	/bin/tcsh) ;;	# not in ravensys-root
+	/bin/dash)	# Only valid for linux
+		if [ "${OPSYS}" != "Linux" ]; then
+			badinterp="${interp}"
+		fi
+		;;
 	/usr/bin/awk) ;;
 	/usr/bin/env)
 		interparg=$(sed -n -e '1s/^#![[:space:]]*[^[:space:]]*[[:space:]]*\([^[:space:]]*\).*/\1/p;2q' "${f}")

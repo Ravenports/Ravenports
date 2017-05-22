@@ -25,10 +25,18 @@ error() {
 
 USERS_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' ${dp_SYSTEM_UID})
 GROUP_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' ${dp_SYSTEM_GID})
+GROUP_SEARCH_PROG="'{if (\$1 == name) found=1} END {exit found?0:1}'"
 
 rm -f "${dp_UG_INSTALL}" "${dp_UG_DEINSTALL}" || :
 
 echo "PW=${dp_PW}" >> "${dp_UG_INSTALL}"
+
+if [ "${dp_OPSYS}" = "Linux" ]; then
+USERADD_CMD="useradd"
+else
+USERADD_CMD="\${PW} useradd"
+fi
+
 
 # Both scripts need to start the same, so
 cp -f "${dp_UG_INSTALL}" "${dp_UG_DEINSTALL}"
@@ -54,14 +62,25 @@ if [ -n "${GROUPS}" ]; then
 				error "Group line for group ${group} has no gid"
 			fi
 			gid=$((gid+dp_GID_OFFSET))
-			cat >> "${dp_UG_INSTALL}" <<-eot2
-			if ! \${PW} groupshow $group >/dev/null 2>&1; then
-			  echo "Creating group '$group' with gid '$gid'."
-			  \${PW} groupadd $group -g $gid
+			if [ "${dp_OPSYS}" = "Linux" ]; then
+				cat >> "${dp_UG_INSTALL}" <<-eot2
+if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
+  echo "Using existing group '$group'."
+else
+  echo "Creating group '$group' with gid '$gid'."
+  groupadd $group -g $gid
+fi
+eot2
 			else
-			  echo "Using existing group '$group'."
+				cat >> "${dp_UG_INSTALL}" <<-eot2
+if ! \${PW} groupshow $group >/dev/null 2>&1; then
+  echo "Creating group '$group' with gid '$gid'."
+  \${PW} groupadd $group -g $gid
+else
+  echo "Using existing group '$group'."
+fi
+eot2
 			fi
-			eot2
 		done <<-eot
 		$(grep -h "^${group}:" ${dp_GID_FILES} | head -n 1)
 		eot
@@ -82,7 +101,8 @@ if [ -n "${USERS}" ]; then
 
 	for user in ${USERS}; do
 	    if ! echo "${USERS_BLACKLIST}" | grep -qw "${user}"; then
-		# _bgpd:*:130:130:BGP Daemon:/var/empty:/sbin/nologin
+	        # Format of Mk/Templates/UID.<opsys> (No login class for Linux, enforced manually)
+	        # smmsp:*:25:25::0:0:Sendmail Submission User:/var/spool/clientmqueue:/usr/sbin/nologin
 		if ! grep -q "^${user}:" ${dp_UID_FILES} ; then
 			error "** Cannot find any information about user \`${user}' in ${dp_UID_FILES}."
 		fi
@@ -99,13 +119,13 @@ if [ -n "${USERS}" ]; then
 			fi
 			homedir=$(echo "$homedir" | sed "s|^LOCALBASE/|${dp_PREFIX}/|")
 			cat >> "${dp_UG_INSTALL}" <<-eot2
-			if ! \${PW} usershow $login >/dev/null 2>&1; then
-			  echo "Creating user '$login' with uid '$uid'."
-			  \${PW} useradd $login -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell
-			else
-			  echo "Using existing user '$login'."
-			fi
-			eot2
+if id ${user} >/dev/null 2>&1; then
+  echo "Using existing user '$login'."
+else
+  echo "Creating user '$login' with uid '$uid'."
+  ${USERADD_CMD} $login -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell
+fi
+eot2
 			case $homedir in
 				/|/nonexistent|/var/empty)
 					;;
@@ -134,12 +154,21 @@ if [ -n "${GROUPS}" ]; then
 			for login in $members; do
 				for user in ${USERS}; do
 					if [ -n "${user}" ] && [ "${user}" = "${login}" ]; then
-						cat >> "${dp_UG_INSTALL}" <<-eot2
-						if ! \${PW} groupshow ${group} | grep -qw ${login}; then
-						  echo "Adding user '${login}' to group '${group}'."
-						  \${PW} groupmod ${group} -m ${login}
+						if [ "${dp_OPSYS}" = "Linux" ]; then
+							cat >> "${dp_UG_INSTALL}" <<-eot2
+if ! \${PW} groupshow ${group} | grep -qw ${login}; then
+  echo "Adding user '${login}' to group '${group}'."
+  usermod -a -G ${group} ${login}
+fi
+eot2
+						else
+							cat >> "${dp_UG_INSTALL}" <<-eot2
+if ! \${PW} groupshow ${group} | grep -qw ${login}; then
+  echo "Adding user '${login}' to group '${group}'."
+  \${PW} groupmod ${group} -m ${login}
+fi
+eot2
 						fi
-						eot2
 					fi
 				done
 			done
@@ -155,10 +184,10 @@ if [ -n "${USERS}" ]; then
 	for user in ${USERS}; do
 		if ! echo "${USERS_BLACKLIST}" | grep -qw "${user}"; then
 			cat >> "${dp_UG_DEINSTALL}" <<-eot
-			if \${PW} usershow ${user} >/dev/null 2>&1; then
-			  echo "==> You should manually remove the \"${user}\" user. "
-			fi
-			eot
+if id ${user} >/dev/null 2>&1; then
+  echo "==> You should manually remove the \"${user}\" user. "
+fi
+eot
 		fi
 	done
 fi
@@ -166,11 +195,19 @@ fi
 if [ -n "${GROUPS}" ]; then
 	for group in ${GROUPS}; do
 		if ! echo "${GROUP_BLACKLIST}" | grep -qw "${group}"; then
-			cat >> "${dp_UG_DEINSTALL}" <<-eot
-			if \${PW} groupshow ${group} >/dev/null 2>&1; then
-			  echo "==> You should manually remove the \"${group}\" group "
+			if [ "${dp_OPSYS}" = "Linux" ]; then
+				cat >> "${dp_UG_DEINSTALL}" <<-eot
+if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
+  echo "==> You should manually remove the \"${group}\" group "
+fi
+eot
+			else
+				cat >> "${dp_UG_DEINSTALL}" <<-eot
+if \${PW} groupshow ${group} >/dev/null 2>&1; then
+  echo "==> You should manually remove the \"${group}\" group "
+fi
+eot
 			fi
-			eot
 		fi
 	done
 fi
