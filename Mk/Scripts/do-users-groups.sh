@@ -68,7 +68,7 @@ if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1
   echo "Using existing group '$group'."
 else
   echo "Creating group '$group' with gid '$gid'."
-  groupadd $group -g $gid
+  groupadd -g $gid $group
 fi
 eot2
 			else
@@ -123,7 +123,7 @@ if id ${user} >/dev/null 2>&1; then
   echo "Using existing user '$login'."
 else
   echo "Creating user '$login' with uid '$uid'."
-  ${USERADD_CMD} $login -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell
+  ${USERADD_CMD} -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell $login
 fi
 eot2
 			case $homedir in
