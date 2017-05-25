@@ -2,6 +2,7 @@
 
 NAMEBASE=		perl-5.22
 VERSION=		5.22.3
+REVISION=		1
 KEYWORDS=		lang perl devel
 VARIANTS=		standard
 SDESC[standard]=	Practical Extraction and Report Language
@@ -23,6 +24,7 @@ OPTIONS_STANDARD=	MULTIPLICITY THREADS BIT64INT DEBUG
 OPT_ON[all]=		MULTIPLICITY THREADS
 OPT_ON[i386]=		BIT64INT
 
+BROKEN[linux]=		Many modules silently fail to build and install
 DEPRECATED=		Support ends three years after .0 release, please upgrade to a more recent version of Perl
 EXPIRATION_DATE=	2018-06-01
 
@@ -62,6 +64,13 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [THREADS].DESCRIPTION=			Build threaded perl
 [THREADS].CONFIGURE_ARGS_OFF=		-Dusethreads=n
 [THREADS].CONFIGURE_ARGS_ON=		-Dusethreads=y
+
+post-patch:
+	# GDBM is missing the runpath
+	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|' \
+		${WRKSRC}/ext/GDBM_File/Makefile.PL \
+		${WRKSRC}/ext/NDBM_File/Makefile.PL \
+		${WRKSRC}/ext/ODBM_File/Makefile.PL
 
 post-stage:
 	# on linux, $SITE_ARCH/machine is created but not used
@@ -2838,6 +2847,42 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  
  '<=>'	=>	sub { my $rc = $_[2] ?
                        ref($_[0])->bcmp($_[1],$_[0]) : 
+
+
+[FILE:428:patches/patch-ext_GDBM__File_Makefile.PL]
+--- ext/GDBM_File/Makefile.PL.orig	2016-07-14 19:07:31 UTC
++++ ext/GDBM_File/Makefile.PL
+@@ -7,6 +7,7 @@ WriteMakefile(
+     VERSION_FROM => 'GDBM_File.pm',
+     realclean => {FILES=> 'const-c.inc const-xs.inc'},
+     XS_VERSION => eval MM->parse_version('GDBM_File.pm'), #silence warnings if we are a dev release
++    dynamic_lib => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
+ );
+ WriteConstants(
+     NAME => 'GDBM_File',
+
+
+[FILE:399:patches/patch-ext_NDBM__File_Makefile.PL]
+--- ext/NDBM_File/Makefile.PL.orig	2016-07-14 19:07:31 UTC
++++ ext/NDBM_File/Makefile.PL
+@@ -4,5 +4,6 @@ WriteMakefile(
+     LIBS => ["-L/usr/local/lib -lndbm", "-ldbm -lucb"],
+     XSPROTOARG => '-noprototypes', 		# XXX remove later?
+     VERSION_FROM => 'NDBM_File.pm',
++    dynamic_lib => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
+     INC => ($^O eq "MacOS" ? "-i ::::db:include" : "")
+ );
+
+
+[FILE:317:patches/patch-ext_ODBM__File_Makefile.PL]
+--- ext/ODBM_File/Makefile.PL.orig	2016-07-14 19:07:31 UTC
++++ ext/ODBM_File/Makefile.PL
+@@ -4,4 +4,5 @@ WriteMakefile(
+     LIBS => ["-ldbm -lucb"],
+     XSPROTOARG => '-noprototypes', 		# XXX remove later?
+     VERSION_FROM => 'ODBM_File.pm', 
++    dynamic_lib => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
+ );
 
 
 [FILE:402:patches/patch-hints_linux.sh]
