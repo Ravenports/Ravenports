@@ -16,8 +16,7 @@ SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	THREADS DEBUG PYMALLOC
 OPTIONS_STANDARD=	THREADS DEBUG PYMALLOC
-OPT_ON[all]=		THREADS
-			PYMALLOC
+OPT_ON[all]=		THREADS PYMALLOC
 
 BROKEN_SSL=		openssl-devel
 
@@ -27,7 +26,7 @@ BUILDRUN_DEPENDS=	libffi:single:standard
 			bzip2:complete:standard
 			xz:single:standard
 
-USES=			cpe ncurses pkgconfig readline ssl shebangfix
+USES=			bdb cpe ncurses pkgconfig readline ssl shebangfix
 
 DISTNAME=		Python-3.4.6
 
@@ -56,7 +55,6 @@ PLIST_SUB=		XYDOT=3.4
 			XY=34
 			XYZDOT=3.4.6
 			LOW_OPSYS={{OPSYS:tl}}
-			OSMAJOR={{MAJOR:R}}
 			ABI={{ABIFLAGS}}
 SUB_FILES=		pkg-message-single
 SUB_LIST=		PYTHON_SUFFIX=34
@@ -64,6 +62,15 @@ SUB_LIST=		PYTHON_SUFFIX=34
 CFLAGS=			-I{{NCURSESINC}}
 TEST_TARGET=		buildbottest
 TEST_ARGS=		TESTOPTS=-j{{MAKE_JOBS_NUMBER}}
+VAR_OPSYS[freebsd]=	PLIST_SUB=SOABI=
+			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+			PLIST_SUB=SHLIB=so.1
+VAR_OPSYS[linux]=	PLIST_SUB=SOABI=.cpython-34m
+			PLIST_SUB=PLAT={{OPSYS:tl}}
+			PLIST_SUB=SHLIB=so.1.0
+VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=
+			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+			PLIST_SUB=SHLIB=so.1
 
 [DEBUG].CONFIGURE_WITH_BOTH=		pydebug
 [DEBUG].MAKEFILE_ON=			ABIFLAGS:=d{{ABIFLAGS}}
@@ -78,6 +85,8 @@ TEST_ARGS=		TESTOPTS=-j{{MAKE_JOBS_NUMBER}}
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/local/bin/python|${python_CMD}|' \
 		${WRKSRC}/Lib/cgi.py
+	${REINPLACE_CMD} -e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
+		${WRKSRC}/setup.py
 
 post-install:
 	for i in ${STAGEDIR}${PREFIX}/lib/python3.4/lib-dynload/*.so; do \
@@ -103,8 +112,8 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 f13428bbe6aa9e3b9b6499502dc488c26096349ed7a21f7a0c1db90911115f40     14473592 Python-3.4.6.tar.xz
 
 
-[FILE:119970:manifests/plist.single]
-%%DEBUG-OFF%%lib/python3.4/lib-dynload/xxlimited.so
+[FILE:120980:manifests/plist.single]
+%%DEBUG-OFF%%lib/python3.4/lib-dynload/xxlimited%%SOABI%%.so
 %%PYMALLOC-OFF%%%%DEBUG-ON%%lib/pkgconfig/python-%%XYDOT%%%%ABI%%.pc
 %%PYMALLOC-OFF%%%%DEBUG-ON%%bin/
  python%%XYDOT%%%%ABI%%
@@ -117,7 +126,7 @@ f13428bbe6aa9e3b9b6499502dc488c26096349ed7a21f7a0c1db90911115f40     14473592 Py
 %%PYMALLOC-ON%%%%DEBUG-ON%%bin/
  python%%XYDOT%%%%ABI%%
  python%%XYDOT%%%%ABI%%-config
-%%THREADS-ON%%lib/python3.4/lib-dynload/_multiprocessing.so
+%%THREADS-ON%%lib/python3.4/lib-dynload/_multiprocessing%%SOABI%%.so
 bin/
  2to3-3.4
  idle3.4
@@ -223,7 +232,7 @@ include/python3.4%%ABI%%/
  weakrefobject.h
 lib/
  libpython3.4%%ABI%%.so
- libpython3.4%%ABI%%.so.1
+ libpython3.4%%ABI%%.%%SHLIB%%
 lib/pkgconfig/python-3.4.pc
 lib/python3.4/
  LICENSE.txt
@@ -2125,64 +2134,65 @@ lib/python3.4/json/
 lib/python3.4/
  keyword.py
 lib/python3.4/lib-dynload/
- _bisect.so
- _bz2.so
- _codecs_cn.so
- _codecs_hk.so
- _codecs_iso2022.so
- _codecs_jp.so
- _codecs_kr.so
- _codecs_tw.so
- _crypt.so
- _csv.so
- _ctypes.so
- _ctypes_test.so
- _curses.so
- _curses_panel.so
- _datetime.so
- _dbm.so
- _decimal.so
- _elementtree.so
- _hashlib.so
- _heapq.so
- _json.so
- _lsprof.so
- _lzma.so
- _md5.so
- _multibytecodec.so
- _opcode.so
- _pickle.so
- _posixsubprocess.so
- _random.so
- _sha1.so
- _sha256.so
- _sha512.so
- _socket.so
- _ssl.so
- _struct.so
- _testbuffer.so
- _testcapi.so
- _testimportmultiple.so
- array.so
- audioop.so
- binascii.so
- cmath.so
- fcntl.so
- grp.so
- math.so
- mmap.so
- nis.so
- ossaudiodev.so
- parser.so
- pyexpat.so
- readline.so
- resource.so
- select.so
- syslog.so
- termios.so
- time.so
- unicodedata.so
- zlib.so
+ _bisect%%SOABI%%.so
+ _bz2%%SOABI%%.so
+ _codecs_cn%%SOABI%%.so
+ _codecs_hk%%SOABI%%.so
+ _codecs_iso2022%%SOABI%%.so
+ _codecs_jp%%SOABI%%.so
+ _codecs_kr%%SOABI%%.so
+ _codecs_tw%%SOABI%%.so
+ _crypt%%SOABI%%.so
+ _csv%%SOABI%%.so
+ _ctypes%%SOABI%%.so
+ _ctypes_test%%SOABI%%.so
+ _curses%%SOABI%%.so
+ _curses_panel%%SOABI%%.so
+ _datetime%%SOABI%%.so
+ _dbm%%SOABI%%.so
+ _decimal%%SOABI%%.so
+ _elementtree%%SOABI%%.so
+ _hashlib%%SOABI%%.so
+ _heapq%%SOABI%%.so
+ _json%%SOABI%%.so
+ _lsprof%%SOABI%%.so
+ _lzma%%SOABI%%.so
+ _md5%%SOABI%%.so
+ _multibytecodec%%SOABI%%.so
+ _opcode%%SOABI%%.so
+ _pickle%%SOABI%%.so
+ _posixsubprocess%%SOABI%%.so
+ _random%%SOABI%%.so
+ _sha1%%SOABI%%.so
+ _sha256%%SOABI%%.so
+ _sha512%%SOABI%%.so
+ _socket%%SOABI%%.so
+ _ssl%%SOABI%%.so
+ _struct%%SOABI%%.so
+ _testbuffer%%SOABI%%.so
+ _testcapi%%SOABI%%.so
+ _testimportmultiple%%SOABI%%.so
+ array%%SOABI%%.so
+ audioop%%SOABI%%.so
+ binascii%%SOABI%%.so
+ cmath%%SOABI%%.so
+ fcntl%%SOABI%%.so
+ grp%%SOABI%%.so
+ math%%SOABI%%.so
+ mmap%%SOABI%%.so
+ nis%%SOABI%%.so
+ ossaudiodev%%SOABI%%.so
+ parser%%SOABI%%.so
+ pyexpat%%SOABI%%.so
+ readline%%SOABI%%.so
+ resource%%SOABI%%.so
+ select%%SOABI%%.so
+%%ONLY-LINUX%%lib/python3.4/lib-dynload/spwd%%SOABI%%.so
+ syslog%%SOABI%%.so
+ termios%%SOABI%%.so
+ time%%SOABI%%.so
+ unicodedata%%SOABI%%.so
+ zlib%%SOABI%%.so
 lib/python3.4/lib2to3/
  Grammar.txt
  Grammar3.4.6.final.0.pickle
@@ -2590,12 +2600,27 @@ lib/python3.4/
  pickletools.py
  pipes.py
  pkgutil.py
-lib/python3.4/plat-%%LOW_OPSYS%%%%OSMAJOR%%/
+lib/python3.4/plat-%%PLAT%%/
  IN.py
-lib/python3.4/plat-%%LOW_OPSYS%%%%OSMAJOR%%/__pycache__/
+lib/python3.4/plat-%%PLAT%%/__pycache__/
  IN.cpython-34.pyc
  IN.cpython-34.pyo
-lib/python3.4/plat-%%LOW_OPSYS%%%%OSMAJOR%%/
+%%ONLY-LINUX%%lib/python3.4/plat-%%PLAT%%/
+ TYPES.py
+%%ONLY-LINUX%%lib/python3.4/plat-%%PLAT%%/__pycache__/
+ TYPES.cpython-34.pyc
+ TYPES.cpython-34.pyo
+%%ONLY-LINUX%%lib/python3.4/plat-%%PLAT%%/
+ DLFCN.py
+%%ONLY-LINUX%%lib/python3.4/plat-%%PLAT%%/__pycache__/
+ DLFCN.cpython-34.pyc
+ DLFCN.cpython-34.pyo
+%%ONLY-LINUX%%lib/python3.4/plat-%%PLAT%%/
+ CDROM.py
+%%ONLY-LINUX%%lib/python3.4/plat-%%PLAT%%/__pycache__/
+ CDROM.cpython-34.pyc
+ CDROM.cpython-34.pyo
+lib/python3.4/plat-%%PLAT%%/
  regen
 lib/python3.4/
  platform.py

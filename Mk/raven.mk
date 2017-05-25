@@ -478,7 +478,7 @@ do-clean:
 	@if [ -d ${WRKDIR} ]; then \
 		if [ -w ${WRKDIR} ]; then \
 			${RM} -r ${WRKDIR}; \
-			${FIND} ${WRKDIR:H} -type d -depth -maxdepth 1 -empty -delete; \
+			${FIND} ${WRKDIR:H} -depth -maxdepth 1 -type d -empty -delete; \
 		else \
 			${ECHO_MSG} "===>   ${WRKDIR} not writable, skipping"; \
 		fi; \

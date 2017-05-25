@@ -14,6 +14,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[linux]=		libbsd:single:standard
+
 LICENSE=		CUSTOM1:single
 LICENSE_NAME=		CUSTOM1:"Sun Microsystems RPC license"
 LICENSE_SCHEME=		solo
@@ -69,12 +71,16 @@ share/man/man1/rpcgen.1.gz
  */
 
 
-[FILE:428:files/Makefile]
+[FILE:489:files/Makefile]
 PROG=		rpcgen
 SRCS=		rpc_main.c rpc_clntout.c rpc_cout.c rpc_hout.c rpc_parse.c \
 		rpc_sample.c rpc_scan.c rpc_svcout.c rpc_tblout.c rpc_util.c
 OBJS=		${SRCS:.c=.o}
 PREFIX?=	/usr/local
+
+.if ${OPSYS} == Linux
+LIBS+=		${PREFIX}/lib/libbsd.a
+.endif
 
 all: ${PROG}
 
@@ -1458,7 +1464,7 @@ undefined2(const char *type, const char *stop)
 }
 
 
-[FILE:28558:files/rpc_main.c]
+[FILE:28607:files/rpc_main.c]
 /*
  * rpc_main.c, Top level of the RPC protocol compiler.
  */
@@ -1474,6 +1480,10 @@ undefined2(const char *type, const char *stop)
 #include "rpc_parse.h"
 #include "rpc_scan.h"
 #include "rpc_util.h"
+
+#ifdef __linux__
+#include <bsd/string.h>
+#endif
 
 static void	c_output(const char *, const char *, int, const char *);
 static void	h_output(const char *, const char *, int, const char *, int);
@@ -5657,7 +5667,7 @@ xstrdup(const char *str)
 }
 
 
-[FILE:3838:files/rpc_util.h]
+[FILE:3915:files/rpc_util.h]
 /*
  * rpc_util.h, Useful definitions for the RPC protocol compiler
  */
@@ -5668,6 +5678,10 @@ xstrdup(const char *str)
 
 #define	s_print	(void) sprintf
 #define	f_print (void) fprintf
+
+#ifndef __unused
+#define __unused        __attribute__((__unused__))
+#endif
 
 struct list {
 	definition *val;

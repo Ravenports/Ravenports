@@ -21,8 +21,8 @@ LICENSE_FILE=		BSD2CLAUSE:{{FILESDIR}}/LICENSE
 do-extract:
 	${MKDIR} ${WRKSRC}
 	${SED} -e 's|@OPSYS@|${OPSYS}|g' \
-		-e 's|@ARCH@|${ARCH}|g' \
-		-e 's|@PLATFORM@|${ARCH}|g' \
+		-e 's|@ARCH@|${SET_ARCH}|g' \
+		-e 's|@PLATFORM@|${SET_PLATFORM}|g' \
 		-e 's|@RELEASE@|${OSREL}-RAVEN|g' \
 		-e 's|@USERVER@|${OSVERSION}|g' \
 		${FILESDIR}/uname.c.in > ${WRKSRC}/uname.c
@@ -76,6 +76,34 @@ bin/ravensys-uname
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+
+[FILE:514:files/special.mk]
+# add ARCH_STANDARD conditions as multiple arches per OPSYS
+# become supported
+
+.if ${OPSYS:MFreeBSD}
+SET_ARCH=	amd64
+SET_PLATFORM=	amd64
+.elif ${OPSYS:MDragonFly}
+SET_ARCH=	x86_64
+SET_PLATFORM=	x86_64
+.elif ${OPSYS:MNetBSD}
+SET_ARCH=	amd64
+SET_PLATFORM=	amd64
+.elif ${OPSYS:MOpenBSD}
+SET_ARCH=	amd64
+SET_PLATFORM=	amd64
+.elif ${OPSYS:MDarwin}
+SET_ARCH=	x86_64
+SET_PLATFORM=	i386
+.elif ${OPSYS:MSunOS}
+SET_ARCH=	x86_64	#check
+SET_PLATFORM=	x86_64
+.elif ${OPSYS:MLinux}
+SET_ARCH=	x86_64
+SET_PLATFORM=	x86_64
+.endif
 
 
 [FILE:2071:files/uname.c.in]

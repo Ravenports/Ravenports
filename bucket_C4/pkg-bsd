@@ -23,6 +23,8 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		zlib:static:standard
 			bzip2:static:standard
 BUILDRUN_DEPENDS=	libarchive:single:standard
+R_DEPS[linux]=		libbsd:single:standard
+
 USES=			libtool
 
 DISTNAME=		pkg-1.10.1
@@ -41,10 +43,13 @@ SINGLE_JOB=		yes
 INSTALL_TARGET=		install-strip
 
 CFLAGS=			-Wno-error
+VAR_OPSYS[linux]=	CONFIGURE_ENV=LIBS="-ldl"
 
 post-patch:
 	${REINPLACE_CMD} -e '/mandir = / s|/man|/share/man|' \
 		${WRKSRC}/docs/Makefile.in
+	${REINPLACE_CMD} -e '/OS_STATIC/ s/false/true/' \
+		${WRKSRC}/configure
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/sbin/pkg2ng
@@ -150,4 +155,135 @@ share/zsh/site-functions/_pkg
 
 [FILE:16:manifests/plist.static]
 sbin/pkg-static
+
+
+[FILE:3078:patches/patch-7eaa671]
+From 7eaa671e88a0636eacffb60db2944a75e3532284 Mon Sep 17 00:00:00 2001
+From: jrmarino <draco@marino.st>
+Date: Wed, 17 May 2017 22:23:51 -0500
+Subject: [PATCH] Another follow-up for issue #1431
+
+The initial problem started with commit 4d53b1 which added the
+AT_SYMLINK_NOFOLLOW flag to fchmodat function.  On Linux, the flag is
+recognized but not implemented.  Setting the flag on Linux causes
+ENOTSUP to return in every case, which issue #1431 reported.
+
+The solution to add a second "fallback" attempt by calling fchmodat was
+accepted, but I think it was not tested on a port that contained
+symbolic links in the packing list.  It doesn't work for symbolic links.
+fchmodat will follow the link and fail with ENOENT (file not found).
+From my limited research, it's not possible to change file modes on
+symbolic links on Linux -- not until AT_SYMLINK_NOFOLLOW is implemented.
+Note that lchmod is not an option because it has not been implemented
+on Linux, nor is it part of the POSIX standard.
+
+Thus this modification which is only seen by platforms that don't
+support AT_SYMLINK_NOFOLLOW (which excludes FreeBSD, DragonFly and
+NetBSD but includes Linux) now skips symbolic links as the attempt to
+change file mode is impossible and fatal.  This is okay because the
+permissions of symlinks have never been evaluated; they are taken from
+the target of the link.  Thus changing permissions of symlinks is
+cosmetic and the impact of not modifying them is nil in all cases.
+---
+ libpkg/pkg_add.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git libpkg/pkg_add.c b/libpkg/pkg_add.c
+index 7c8f9b2fe..a2cb5733f 100644
+--- libpkg/pkg_add.c
++++ libpkg/pkg_add.c
+@@ -228,6 +228,7 @@ set_attrs(int fd, char *path, mode_t perm, uid_t uid, gid_t gid,
+ {
+ 
+ 	struct timeval tv[2];
++	struct stat st;
+ 	int fdcwd;
+ #ifdef HAVE_UTIMENSAT
+ 	struct timespec times[2];
+@@ -285,9 +286,24 @@ set_attrs(int fd, char *path, mode_t perm, uid_t uid, gid_t gid,
+ 	/* zfs drops the setuid on fchownat */
+ 	if (fchmodat(fd, RELATIVE_PATH(path), perm, AT_SYMLINK_NOFOLLOW) == -1) {
+ 		if (errno == ENOTSUP) {
+-			if (fchmodat(fd, RELATIVE_PATH(path), perm, 0) == -1) {
+-				pkg_fatal_errno("Fail to chmod(fallback) %s",
+-				    path);
++			/* 
++			 * Executing fchmodat on a symbolic link results in
++			 * ENOENT (file not found) on platforms that do not
++			 * support AT_SYMLINK_NOFOLLOW. The file mode of
++			 * symlinks cannot be modified via file descriptor
++			 * reference on these systems. The lchmod function is
++			 * also not an option because it is not a posix
++			 * standard, nor is implemented everywhere. Since
++			 * symlink permissions have never been evaluated and
++			 * thus cosmetic, just skip them on these systems.
++			 */
++			if (fstatat(fd, RELATIVE_PATH(path), &st, AT_SYMLINK_NOFOLLOW) == -1) {
++				pkg_fatal_errno("Fail to get file status %s", path);
++			}
++			if (!S_ISLNK(st.st_mode)) {
++				if (fchmodat(fd, RELATIVE_PATH(path), perm, 0) == -1) {
++					pkg_fatal_errno("Fail to chmod(fallback) %s", path);
++				}
+ 			}
+ 		}
+ 		else {
+
+
+[FILE:1551:patches/patch-c05884d]
+From c05884d9fd45e06aa5305eb1ffb7ad074e36228e Mon Sep 17 00:00:00 2001
+From: jrmarino <draco@marino.st>
+Date: Wed, 17 May 2017 10:41:22 -0500
+Subject: [PATCH] Fix drop_privileges() on Linux
+
+As setuid will set the effective user ID as well as the real user ID, it
+is redundant to have to calls to set these IDs.  In the case of Linux,
+it is illegal.  Once the effective ID is changed from "root" to
+"nobody", pkg(8) no longer has the privilege to run setuid, resulting in
+an "Operation not permitted" error when "sudo pkg" is executed.
+
+Similarly, setegid is unnecessary when followed by setgid, but that is
+legal.  Remove both redundant steps to fix operation on the Linux
+platform and fix a spelling error while here.
+---
+ src/utils.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git src/utils.c b/src/utils.c
+index 6e7cb0460..ab4780690 100644
+--- src/utils.c
++++ src/utils.c
+@@ -1027,14 +1027,11 @@ drop_privileges(void)
+ 	if (geteuid() == 0) {
+ 		nobody = getpwnam("nobody");
+ 		if (nobody == NULL)
+-			err(EXIT_FAILURE, "Unable to drop priviledges");
++			err(EXIT_FAILURE, "Unable to drop privileges");
+ 		setgroups(1, &nobody->pw_gid);
+-		if (setegid(nobody->pw_gid) == -1)
+-			err(EXIT_FAILURE, "Unable to setegid");
++		/* setgid also sets egid and setuid also sets euid */
+ 		if (setgid(nobody->pw_gid) == -1)
+ 			err(EXIT_FAILURE, "Unable to setgid");
+-		if (seteuid(nobody->pw_uid) == -1)
+-			err(EXIT_FAILURE, "Unable to seteuid");
+ 		if (setuid(nobody->pw_uid) == -1)
+ 			err(EXIT_FAILURE, "Unable to setuid");
+ 	}
+
+
+[FILE:326:patches/patch-compat_bsd__compat.h]
+--- compat/bsd_compat.h.orig	2017-05-16 10:02:56.425060136 -0500
++++ compat/bsd_compat.h	2017-05-16 10:11:34.539069691 -0500
+@@ -37,6 +37,10 @@
+  #endif
+ #endif
+ 
++#ifndef	__DECONST
++#define	__DECONST(type, var)	((type)(uintptr_t)(const void *)(var))
++#endif
++
+ #ifdef HAVE_BSD_SYS_CDEFS_H
+ #include <bsd/sys/cdefs.h>
+ #endif
 

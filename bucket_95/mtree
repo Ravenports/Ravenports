@@ -15,6 +15,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libressl:single:static
+B_DEPS[linux]=		libbsd:single:standard
 
 CFLAGS=			-DUSE_SHA1
 
@@ -620,7 +621,7 @@ int	crc32(int, uint32_t *, off_t *);
 __END_DECLS
 
 
-[FILE:11514:files/create.c]
+[FILE:11668:files/create.c]
 /*-
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -698,7 +699,11 @@ static uid_t uid;
 static mode_t mode;
 static u_long flags = 0xffffffff;
 
+#ifdef __linux__
+static int	dsort(const FTSENT **, const FTSENT **);
+#else
 static int	dsort(const FTSENT * const *, const FTSENT * const *);
+#endif
 static void	output(int, int *, const char *, ...) __printflike(3, 4);
 static int	statd(FTS *, FTSENT *, uid_t *, gid_t *, mode_t *,
 			   u_long *);
@@ -1021,7 +1026,11 @@ statd(FTS *t, FTSENT *parent, uid_t *puid, gid_t *pgid, mode_t *pmode,
 }
 
 static int
+#ifdef __linux__
+dsort(const FTSENT **a, const FTSENT **b)
+#else
 dsort(const FTSENT * const *a, const FTSENT * const *b)
+#endif
 {
 
 	if (S_ISDIR((*a)->fts_statp->st_mode)) {
@@ -1050,7 +1059,7 @@ output(int indent, int *offset, const char *fmt, ...)
 }
 
 
-[FILE:3096:files/excludes.c]
+[FILE:3107:files/excludes.c]
 /*
  * Copyright 2000 Massachusetts Institute of Technology
  *
@@ -1119,14 +1128,14 @@ read_excludes_file(const char *name)
 	FILE *fp;
 	char *line, *str;
 	struct exclude *e;
-	size_t len;
-	ssize_t chars_read;
+	size_t linecap = 0;
+	ssize_t len;
 
 	fp = fopen(name, "r");
 	if (fp == NULL)
 		err(1, "%s", name);
 
-	while ((chars_read = getline(&line, &len, fp)) != -1) {
+	while ((len = getline(&line, &linecap, fp)) != -1) {
 		if (line[len - 1] == '\n')
 			len--;
 		if (len == 0)
@@ -1145,6 +1154,7 @@ read_excludes_file(const char *name)
 			e->pathname = 0;
 		LIST_INSERT_HEAD(&excludes, e, link);
 	}
+	free(line);
 	fclose(fp);
 }
 

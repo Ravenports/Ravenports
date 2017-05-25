@@ -35,6 +35,7 @@ BUILD_DEPENDS=		docbook-sgml:single:standard
 			zlib:complete:standard
 			libxslt:single:standard
 BUILDRUN_DEPENDS=	libxml2:single:standard
+BR_DEPS[linux]=		ossp-uuid:single:standard
 EXRUN[client]=		gettext:runtime:standard
 			ssl
 EXRUN[contrib]=		postgresql92:client:standard
@@ -2429,6 +2430,21 @@ index b77b8d9..ad356d5 100644
  # creates the exports file when MAKE_EXPORTS = true.
 
 
+[FILE:327:patches/patch-src_Makefile.shlib]
+--- src/Makefile.shlib.orig	2017-02-06 21:45:25 UTC
++++ src/Makefile.shlib
+@@ -211,6 +211,9 @@ endif
+ 
+ ifeq ($(PORTNAME), linux)
+   LINK.shared		= $(COMPILER) -shared
++  ifdef SO_MAJOR_VERSION
++    shlib		= lib$(NAME)$(DLSUFFIX).$(SO_MAJOR_VERSION)
++  endif
+   ifdef soname
+     LINK.shared		+= -Wl,-soname,$(soname)
+   endif
+
+
 [FILE:720:patches/patch-src_backend_utils_misc_postgresql.conf.sample]
 --- src/backend/utils/misc/postgresql.conf.sample.orig	2010-10-01 16:25:44.000000000 +0200
 +++ src/backend/utils/misc/postgresql.conf.sample	2010-10-05 07:37:35.626282933 +0200
@@ -2682,7 +2698,7 @@ postgresql_initdb()
 run_rc_command "$1"
 
 
-[FILE:597:files/special.mk]
+[FILE:616:files/special.mk]
 .if ${OPSYS:MFreeBSD}
 TEMPLATE_ARG=	--with-template=freebsd
 UUID_ARG=	--with-uuid=bsd
@@ -2697,13 +2713,12 @@ TEMPLATE_ARG=	--with-template=openbsd
 UUID_ARG=	--with-uuid=bsd
 .elif ${OPSYS:MDarwin}
 TEMPLATE_ARG=	--with-template=darwin
-UUID_ARG=	--with-uuid=e2fs
+UUID_ARG=	--with-uuid=ossp
 .elif ${OPSYS:MSunOS}
 TEMPLATE_ARG=	--with-template=solaris
-# UUID?
-.elif ${OPSYS:Linux}
+UUID_ARG=	--with-uuid=ossp
+.elif ${OPSYS:MLinux}
 TEMPLATE_ARG=	--with-template=linux
-UUID_ARG=	--with-uuid=e2fs
+UUID_ARG=	--with-uuid=ossp
 .endif
-
 

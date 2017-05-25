@@ -98,28 +98,37 @@ share/vi/tcl/
  
 
 
-[FILE:1507:patches/patch-dist_configure]
+[FILE:1731:patches/patch-dist_configure]
 --- dist/configure.orig	2007-11-18 16:43:54 UTC
 +++ dist/configure
-@@ -23510,7 +23510,7 @@ fi
+@@ -21142,7 +21142,7 @@
+ echo "${ECHO_T}$vi_cv_runpath" >&6; }
+ 
+ if test "X$vi_cv_runpath" = "Xyes"; then
+-	LRscript='s/^\(.*\)/-R\1 -L\1 /'
++	LRscript='s/^\(.*\)/-Wl,-rpath,\1 -L\1 /'
+ else
+ 	LRscript='s/^\(.*\)/-L\1 /'
+ fi
+@@ -23510,7 +23510,7 @@
  	CPPFLAGS="$CURSCPPFLAGS $CPPFLAGS"
  
  	if test "$vi_cv_widechar" = "yes"; then
 -	    for vi_cv_curses in ncurses ncursesw curses; do
-+	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow" curses; do
++	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow -ldb" curses; do
  		as_ac_Lib=`echo "ac_cv_lib_$vi_cv_curses''_waddnwstr" | $as_tr_sh`
  { echo "$as_me:$LINENO: checking for waddnwstr in -l$vi_cv_curses" >&5
  echo $ECHO_N "checking for waddnwstr in -l$vi_cv_curses... $ECHO_C" >&6; }
-@@ -23581,7 +23581,7 @@ fi
+@@ -23581,7 +23581,7 @@
  		vi_cv_curses=unknown
  	    done
  	else
 -	    for vi_cv_curses in ncurses ncursesw curses; do
-+	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow" curses; do
++	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow -ldb" curses; do
  		as_ac_Lib=`echo "ac_cv_lib_$vi_cv_curses''_initscr" | $as_tr_sh`
  { echo "$as_me:$LINENO: checking for initscr in -l$vi_cv_curses" >&5
  echo $ECHO_N "checking for initscr in -l$vi_cv_curses... $ECHO_C" >&6; }
-@@ -27631,6 +27631,8 @@ _ACEOF
+@@ -27631,6 +27631,8 @@
  cat confdefs.h >>conftest.$ac_ext
  cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */
@@ -128,7 +137,7 @@ share/vi/tcl/
  main(){char buf[20]; exit(sprintf(buf, "XXX") != 3);}
  _ACEOF
  rm -f conftest$ac_exeext
-@@ -28624,7 +28626,7 @@ cat confdefs.h >>conftest.$ac_ext
+@@ -28624,7 +28626,7 @@
  cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */
  #include <stdio.h>
@@ -137,7 +146,8 @@ share/vi/tcl/
  
  int
  main ()
-@@ -28755,5 +28757,6 @@
+@@ -28767,6 +28769,7 @@
+ cat confdefs.h >>conftest.$ac_ext
  cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */
 +#include <stddef.h>

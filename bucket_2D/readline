@@ -44,9 +44,12 @@ INFO_SUBDIR=		.
 PATCHFILES=		2 3 4 5 6 7 8 9
 
 MUST_CONFIGURE=		gnu
+CONFIGURE_ARGS=		--with-curses
+
+CFLAGS=			-I{{NCURSESINC}}
 
 post-patch:
-	${REINPLACE_CMD} "s/SHOBJ_LDFLAGS =/SHOBJ_LDFLAGS = -lncurses/" \
+	${REINPLACE_CMD} "s|@SHOBJ_LDFLAGS@|@SHOBJ_LDFLAGS@ -L${NCURSESLIB} -lncurses|" \
 		${WRKSRC}/shlib/Makefile.in
 
 post-install:
@@ -112,25 +115,48 @@ share/readline/
  rlversion.c
 
 
-[FILE:540:patches/patch-support-shobj-conf]
---- support/shobj-conf.orig	2009-10-28 13:20:21 UTC
-+++ support/shobj-conf
-@@ -128,17 +128,10 @@
+[FILE:537:patches/patch-support_shlib-install]
+--- support/shlib-install.orig	2012-07-10 19:58:08.000000000 +0000
++++ support/shlib-install	2017-05-18 20:58:47.492075412 +0000
+@@ -119,16 +119,10 @@
+ #
+ case "$host_os-$host_vendor" in
+ *linux*|freebsd*-gentoo)
+-	# libname.so.M -> libname.so.M.N
+-	${echo} ${RM} ${INSTALLDIR}/$LINK2
+-	if [ -z "$uninstall" ]; then
+-		eval $INSTALL_LINK2
+-	fi
+-
+ 	# libname.so -> libname.so.M
+ 	${echo} ${RM} ${INSTALLDIR}/$LINK1
+ 	if [ -z "$uninstall" ]; then
+-		${echo} cd $INSTALLDIR && ${echo} ${LN} $LINK2 $LINK1
++		eval $INSTALL_LINK1
+ 	fi
+ 	;;
+ 
+
+
+[FILE:608:patches/patch-support_shobj-conf]
+--- support/shobj-conf.orig	2014-02-24 02:06:29.000000000 +0000
++++ support/shobj-conf	2017-05-18 19:31:59.172300977 +0000
+@@ -123,7 +123,7 @@
+ 	;;
+ 
+ # All versions of Linux (including Gentoo/FreeBSD) or the semi-mythical GNU Hurd.
+-linux*-*|gnu*-*|k*bsd*-gnu-*|freebsd*-gentoo)
++gnu*-*|k*bsd*-gnu-*|freebsd*-gentoo)
  	SHOBJ_CFLAGS=-fPIC
  	SHOBJ_LD='${CC}'
- 
--	if [ -x /usr/bin/objformat ] && [ "`/usr/bin/objformat`" = "elf" ]; then
- 		SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
- 
- 		SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir)'
- 		SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
--	else
--		SHOBJ_LDFLAGS='-shared'
--
--		SHLIB_XLDFLAGS='-R$(libdir)'
--		SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)$(SHLIB_MINOR)'
--	fi
+ 	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
+@@ -160,7 +160,7 @@
  	;;
  
  # FreeBSD-4.x and later have only ELF
+-freebsd[4-9]*|freebsd1[0-9]*|freebsdelf*|dragonfly*)
++freebsd1[0-9]*|freebsdelf*|dragonfly*|linux*)
+ 	SHOBJ_CFLAGS=-fPIC
+ 	SHOBJ_LD='${CC}'
+ 
 

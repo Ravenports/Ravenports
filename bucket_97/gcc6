@@ -20,9 +20,8 @@ SPKGS[standard]=	complete
 			libs
 			infopages
 
-OPTIONS_AVAILABLE=	ALLSTAGES
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-OPT_ON[all]=		ALLSTAGES
 
 BUILD_DEPENDS=		gmp:static:standard
 			mpfr:static:standard
@@ -33,6 +32,7 @@ EXRUN[fortran_run]=	gcc6:libs:standard
 EXRUN[cxx_run]=		gcc6:libs:standard
 EXRUN[compilers]=	gcc6:cxx_run:standard
 EXRUN[ada_run]=		gcc6:libs:standard
+
 USES=			cpe gmake iconv:build libtool makeinfo perl:build
 
 DISTNAME=		gcc-6-20170202
@@ -76,6 +76,10 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 			--enable-checking=release
 			--enable-libquadmath
 			--disable-nls
+			--disable-multilib
+			--disable-libsanitizer
+			--disable-libvtv
+			--disable-libmpx
 			--with-ld={{LOCALBASE}}/toolchain/bin/ld
 			--with-as={{LOCALBASE}}/toolchain/bin/as
 			--with-pkgversion="Ravenports"
@@ -83,9 +87,6 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 INSTALL_TARGET=		install-strip
 PLIST_SUB=		GCCVER=6.3.1
 			TARGET={{CONFIGURE_TARGET}}
-
-[ALLSTAGES].DESCRIPTION=		Three stage build (full bootstrap)
-[ALLSTAGES].CONFIGURE_ARGS_OFF=		--disable-bootstrap
 
 post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
@@ -95,6 +96,7 @@ post-patch:
 		${WRKSRC}/gcc/config/dragonfly.h \
 		${WRKSRC}/gcc/config/i386/freebsd64.h \
 		${WRKSRC}/gcc/config/i386/freebsd.h \
+		${WRKSRC}/gcc/config/i386/gnu-user64.h \
 		${WRKSRC}/gcc/config/aarch64/aarch64-freebsd.h
 	# Ensure dwarf4-compatible addr2line
 	${REINPLACE_CMD} -e 's|/usr/bin/addr2line|${PREFIX:H}/bin/addr2line|g'\
@@ -106,7 +108,8 @@ post-install:
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/adalib/libgnat.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libgcc_s.so
+	-[ -d ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/include-fixed/x86_64-linux-gnu ] && \
+		${RMDIR} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/include-fixed/x86_64-linux-gnu
 
 [FILE:329:descriptions/desc.compilers]
 This is series 6 of the GNU Compiler Collection (GCC)
@@ -153,7 +156,7 @@ This package contains the man pages and info pages that come with GCC.
 339411f9ec780ba1f779417ea2a3206b69ee11de293aea27fff4658d7e56d0c5     95743873 gcc-6-20170202.tar.bz2
 
 
-[FILE:23405:manifests/plist.compilers]
+[FILE:24245:manifests/plist.compilers]
 bin/
  %%TARGET%%-c++
  %%TARGET%%-g++
@@ -976,9 +979,17 @@ include/c++/%%GCCVER%%/
  vector
 lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbegin.o
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginT.o
+lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtend.o
  crtendS.o
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtfastmath.o
+ crtprec80.o
+ crtprec64.o
+ crtprec32.o
 lib/gcc/%%TARGET%%/%%GCCVER%%/finclude/
  ieee_arithmetic.mod
  ieee_exceptions.mod
@@ -994,6 +1005,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/finclude/
 lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
  README
  limits.h
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
  syslimits.h
 lib/gcc/%%TARGET%%/%%GCCVER%%/include/
  adxintrin.h
@@ -1089,7 +1101,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/include/
  stdint.h
  stdnoreturn.h
  tbmintrin.h
- tgmath.h
+%%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
  tmmintrin.h
  unwind.h
  varargs.h
@@ -1172,16 +1184,30 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/
  config.h
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  dbxelf.h
+%%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  dragonfly-stdint.h
  dragonfly.h
+lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  elfos.h
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ glibc-stdint.h
+ gnu-user.h
+ linux-android.h
+ linux-protos.h
+ linux.h
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  att.h
  biarch64.h
- dragonfly.h
+%%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
  i386-opts.h
  i386-protos.h
  i386.h
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ gnu-user64.h
+ gnu-user-common.h
+ linux64.h
+ linux-common.h
+lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  stringop.def
  unix.h
  x86-64.h
@@ -1526,7 +1552,7 @@ libexec/gcc/%%TARGET%%/%%GCCVER%%/
 libexec/gcc/%%TARGET%%/%%GCCVER%%/plugin/gengtype
 
 
-[FILE:27024:manifests/plist.ada_run]
+[FILE:27454:manifests/plist.ada_run]
 lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  a-assert.adb
  a-assert.ads
@@ -1699,6 +1725,9 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  a-excpol.adb
  a-exctra.adb
  a-exctra.ads
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
+ a-exetim.adb
+lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  a-exetim.ads
  a-exexda.adb
  a-exexpr.adb
@@ -2449,6 +2478,9 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  s-intman.ads
  s-io.adb
  s-io.ads
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
+ s-linux.ads
+lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  s-llflex.ads
  s-maccod.ads
  s-mantis.adb
@@ -2861,6 +2893,9 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  a-envvar.ali
  a-except.ali
  a-exctra.ali
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
+ a-exetim.ali
+lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  a-finali.ali
  a-flteio.ali
  a-fwteio.ali
@@ -3298,6 +3333,9 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-interr.ali
  s-intman.ali
  s-io.ali
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
+ s-linux.ali
+lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-llflex.ali
  s-maccod.ali
  s-mantis.ali
@@ -3467,8 +3505,8 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  unchdeal.ali
 
 
-[FILE:256:manifests/plist.cxx_run]
-lib/
+[FILE:262:manifests/plist.cxx_run]
+%%ASLIB%%/
  libstdc++.a
  libstdc++.so
  libstdc++.so.6
@@ -3483,8 +3521,8 @@ share/gcc-%%GCCVER%%/python/libstdcxx/v6/
  xmethods.py
 
 
-[FILE:234:manifests/plist.fortran_run]
-lib/
+[FILE:240:manifests/plist.fortran_run]
+%%ASLIB%%/
  libgfortran.a
  libgfortran.so
  libgfortran.so.3
@@ -3501,8 +3539,8 @@ lib/
  libquadmath.so.0.0.0
 
 
-[FILE:356:manifests/plist.libs]
-lib/
+[FILE:362:manifests/plist.libs]
+%%ASLIB%%/
  libatomic.a
  libatomic.so
  libatomic.so.1
@@ -6014,4 +6052,17 @@ share/man/man1/
  puts $f "/* { dg-timeout-factor 4.0 } */"
  set v 0
  for { set v 0 } { $v < 10000 } { incr v } {
+
+
+[FILE:463:patches/patch-gcc_config_i386_gnu-user64.h]
+--- gcc/config/i386/gnu-user64.h.orig	2016-01-04 08:30:50.000000000 -0600
++++ gcc/config/i386/gnu-user64.h	2017-05-19 15:55:41.756608223 -0500
+@@ -57,6 +57,7 @@
+                    %{" SPEC_32 ":-m " GNU_USER_LINK_EMULATION32 "} \
+                    %{" SPEC_X32 ":-m " GNU_USER_LINK_EMULATIONX32 "} \
+   %{shared:-shared} \
++  %{!static:--enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib64} \
+   %{!shared: \
+     %{!static: \
+       %{rdynamic:-export-dynamic} \
 

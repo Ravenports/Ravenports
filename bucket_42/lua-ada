@@ -26,6 +26,8 @@ LICENSE_SCHEME=		multi
 LICENSE_FILE=		GPLv3:{{WRKSRC}}/LICENSE
 			GPLv3RLE:{{WRKSRC}}/LICENSE.RUNTIME
 
+MAKEFILE=		USE_64=1
+
 SUB_FILES=		lua.gpr
 SUB_LIST=		LUA_VER={{LUA_VER}}
 
@@ -94,6 +96,20 @@ lib/lua-ada/
  lua-utils.ali
  lua.ali
 lib/gnat/lua.gpr
+
+
+[FILE:253:patches/patch-lua.gpr]
+--- lua.gpr.orig	2015-08-24 23:49:07 UTC
++++ lua.gpr
+@@ -14,4 +14,8 @@ project Lua is
+                                         "-gnatyg");
+     end Compiler;
+ 
++    package Linker is
++       for Linker_Options use ("-ldl");
++    end Linker;
++
+ end Lua;
 
 
 [FILE:426:files/lua.gpr.in]

@@ -36,8 +36,6 @@ CONFIGURE_WRKSRC=	{{WRKSRC}}/build_unix
 CONFIGURE_SCRIPT=	dist/configure
 CONFIGURE_ARGS=		--enable-cxx
 			--enable-stl
-			--enable-compat185
-			--enable-dump185
 			--enable-sql
 			--enable-sql_codegen
 			--includedir={{PREFIX}}/include/db6
@@ -142,13 +140,12 @@ This package contains the headers and static libraries.
 47612c8991aa9ac2f6be721267c8d3cdccf5ac83105df8e50809daea24e95dc7     44305964 bdb/db-6.2.23.tar.gz
 
 
-[FILE:1323:manifests/plist.shared]
+[FILE:1288:manifests/plist.shared]
 bin/db%%BDBMAJ%%/
  db_archive
  db_checkpoint
  db_deadlock
  db_dump
- db_dump185
  db_hotbackup
  db_load
  db_log_verify
@@ -169,7 +166,6 @@ bin/
  db_checkpoint-%%BDBVER%%
  db_deadlock-%%BDBVER%%
  db_dump-%%BDBVER%%
- db_dump185-%%BDBVER%%
  db_hotbackup-%%BDBVER%%
  db_load-%%BDBVER%%
  db_log_verify-%%BDBVER%%
@@ -214,10 +210,9 @@ lib/
 %%TCL-ON%%lib/libdb_tcl-%%BDBVER%%.so
 
 
-[FILE:640:manifests/plist.static]
+[FILE:630:manifests/plist.static]
 include/db%%BDBMAJ%%/
  db.h
- db_185.h
  db_cxx.h
  dbsql.h
  dbstl_base_iterator.h
@@ -298,18 +293,21 @@ lib/db%%BDBMAJ%%/
 +exit $rc
 
 
-[FILE:786:patches/patch-src_dbinc_mutex__int.h]
+[FILE:847:patches/patch-src_dbinc_mutex__int.h]
 --- src/dbinc/mutex_int.h.orig	2016-03-28 19:45:54 UTC
 +++ src/dbinc/mutex_int.h
-@@ -9,6 +9,7 @@
+@@ -9,6 +9,10 @@
  #ifndef _DB_MUTEX_INT_H_
  #define	_DB_MUTEX_INT_H_
  
++#if defined __DragonFly__ || defined __FreeBSD__
 +#include <machine/atomic.h>
++#endif
++
  #include "dbinc/atomic.h"
  
  #if defined(__cplusplus)
-@@ -506,11 +507,11 @@ typedef unsigned int tsl_t;
+@@ -506,11 +510,11 @@ typedef unsigned int tsl_t;
  #define	MUTEX_UNSET(tsl)	(*(volatile tsl_t *)(tsl) = 0)
  #define	MUTEX_INIT(tsl)         (MUTEX_UNSET(tsl), 0)
  #define	MUTEX_MEMBAR(x) \
@@ -324,7 +322,7 @@ lib/db%%BDBMAJ%%/
  #endif
  #endif
  
-@@ -652,7 +652,7 @@ MUTEX_SET(int *tsl)  {
+@@ -652,7 +656,7 @@ MUTEX_SET(int *tsl)  {
  	 : "=&r" (__r), "+r" (tsl)
  	 :
  	 : "cr0", "memory");

@@ -48,6 +48,7 @@ CMAKE_BUILD_TYPE=	Release
 SHEBANG_FILES=		scripts/*.pl*
 			scripts/*.sh
 
+INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
@@ -123,6 +124,9 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/lib*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/plugin/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/mysqld
+	# Linux doesn't like -R flags
+	${SED} -i'' -e 's| -R| -Wl,-rpath,|g' \
+		${STAGEDIR}${PREFIX}/bin/mysql_config
 	list=$$(cd ${STAGEDIR}${PREFIX}/bin && ${LS} * | ${AWK} \
 		'{ if ($$1 != "mysql_config" && $$1 != "mysqld_mult" && \
 		$$1 != "mysqld_safe" && $$1 != "mysqldumpslow" && \
@@ -153,7 +157,7 @@ This package contains the MySQL client.
 ae6f5e2cf7b936496cf60260cd7fd5a0862c21f48cd240448021c4ea067a0f0c     61612105 mysql-boost-5.7.18.tar.gz
 
 
-[FILE:3573:manifests/plist.server]
+[FILE:3619:manifests/plist.server]
 @dir(mysql,mysql,0750) %%MY_SECDIR%%
 @dir(mysql,mysql,0750) %%MY_TMPDIR%%
 @dir(mysql,mysql,0750) etc/mysql/keyring
@@ -185,6 +189,7 @@ lib/mysql/libmysqld.a
 lib/mysql/plugin/
  adt_null.so
  auth.so
+%%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
  auth_test_plugin.so
  connection_control.so
  daemon_example.ini
@@ -593,7 +598,7 @@ share/man/man1/
  #define MI_MAX_KEY_BUFF  (MI_MAX_KEY_LENGTH+MI_MAX_KEY_SEG*6+8+8)
 
 
-[FILE:428:patches/patch-libmysql_CMakeLists.txt]
+[FILE:434:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2016-11-28 13:32:52 UTC
 +++ libmysql/CMakeLists.txt
 @@ -276,7 +276,7 @@ IF(NOT DISABLE_SHARED)
@@ -601,7 +606,7 @@ share/man/man1/
    IF(UNIX)
      # libtool compatability
 -    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR APPLE)
-+    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly" OR APPLE)
++    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|Linux" OR APPLE)
        SET(OS_SHARED_LIB_VERSION "${SHARED_LIB_MAJOR_VERSION}")
      ELSE()
        SET(OS_SHARED_LIB_VERSION

@@ -18,13 +18,14 @@ SPKGS[standard]=	complete
 			primary
 			manpages
 
-OPTIONS_AVAILABLE=	MULTIPLICITY THREADS BIT64INT DEBUG GDBM
-OPTIONS_STANDARD=	MULTIPLICITY THREADS BIT64INT DEBUG GDBM
-OPT_ON[all]=		MULTIPLICITY
-			THREADS
+OPTIONS_AVAILABLE=	MULTIPLICITY THREADS BIT64INT DEBUG
+OPTIONS_STANDARD=	MULTIPLICITY THREADS BIT64INT DEBUG
+OPT_ON[all]=		MULTIPLICITY THREADS
 OPT_ON[i386]=		BIT64INT
 
-USES=			cpe cclibs:primary perl-interp
+BUILDRUN_DEPENDS=	gdbm:single:standard
+
+USES=			bdb cpe perl-interp cclibs:primary
 
 DISTNAME=		perl-{{VERSION}}
 
@@ -37,17 +38,16 @@ MUST_CONFIGURE=		yes
 CONFIGURE_SCRIPT=	Configure
 CONFIGURE_ARGS=		-Dcf_by="John Marino"
 			-Dcf_email="draco@marino.st"
+			-Di_gdbm
+			-Dlocincpth="{{BDB_INCLUDE_DIR}} {{PREFIX}}/include"
+			-Dloclibpth="{{BDB_LIB_DIR}} {{PREFIX}}/lib"
+			-Aldflags="-Wl,-rpath,{{PREFIX}}/lib"
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-[DEBUG].CONFIGURE_ARGS_OFF=		-Doptimize="{{CFLAGS}}"
+[DEBUG].CONFIGURE_ARGS_OFF=		-Doptimize="-O{{OPTIMIZER_LEVEL}}"
 [DEBUG].CONFIGURE_ARGS_ON=		-Doptimize="-g"
 					-DDEBUGGING
-
-[GDBM].DESCRIPTION=			GDBM_File extension
-[GDBM].BUILDRUN_DEPENDS_ON=		gdbm:single:standard
-[GDBM].CONFIGURE_ARGS_OFF=		-Ui_gdbm
-[GDBM].CONFIGURE_ARGS_ON=		-Di_gdbm
 
 [BIT64INT].DESCRIPTION=			Use 64 bit integers (on i386)
 [BIT64INT].CONFIGURE_ARGS_ON=		-Duse64bitint
@@ -59,6 +59,11 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [THREADS].DESCRIPTION=			Build threaded perl
 [THREADS].CONFIGURE_ARGS_OFF=		-Dusethreads=n
 [THREADS].CONFIGURE_ARGS_ON=		-Dusethreads=y
+
+post-stage:
+	# on linux, $SITE_ARCH/machine is created but not used
+	-[ -d ${STAGEDIR}${SITE_ARCH}/machine ] && \
+		${RMDIR} ${STAGEDIR}${SITE_ARCH}/machine
 
 [FILE:274:descriptions/desc.primary]
 Perl is a language that combines some of the features of C, sed, awk and
@@ -80,7 +85,7 @@ This package contains all the man pages.
 03a77bac4505c270f1890ece75afc7d4b555090b41aa41ea478747e23b2afb3f     11569284 perl5/perl-5.24.1.tar.xz
 
 
-[FILE:25495:manifests/plist.primary]
+[FILE:25516:manifests/plist.primary]
 bin/
  c2ph%%BINSUFFIX%%
  corelist%%BINSUFFIX%%
@@ -983,11 +988,11 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  VMS.pm
  Win32.pm
 %%ARCH_LIB%%/Filter/Util/Call.pm
-%%GDBM-ON%%%%ARCH_LIB%%/GDBM_File.pm
+%%ARCH_LIB%%/
+ GDBM_File.pm
 %%ARCH_LIB%%/Hash/Util.pm
 %%ARCH_LIB%%/Hash/Util/FieldHash.pm
 %%ARCH_LIB%%/I18N/Langinfo.pm
-%%ARCH_LIB%%/
  IO.pm
 %%ARCH_LIB%%/IO/
  Dir.pm
@@ -1015,6 +1020,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 %%ARCH_LIB%%/
  NDBM_File.pm
  O.pm
+ ODBM_File.pm
  Opcode.pm
  POSIX.pm
  POSIX.pod
@@ -1066,7 +1072,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 %%ARCH_LIB%%/auto/File/DosGlob/DosGlob.so
 %%ARCH_LIB%%/auto/File/Glob/Glob.so
 %%ARCH_LIB%%/auto/Filter/Util/Call/Call.so
-%%GDBM-ON%%%%ARCH_LIB%%/auto/GDBM_File/GDBM_File.so
+%%ARCH_LIB%%/auto/GDBM_File/GDBM_File.so
 %%ARCH_LIB%%/auto/Hash/Util/FieldHash/FieldHash.so
 %%ARCH_LIB%%/auto/Hash/Util/Util.so
 %%ARCH_LIB%%/auto/I18N/Langinfo/Langinfo.so
@@ -1076,6 +1082,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 %%ARCH_LIB%%/auto/MIME/Base64/Base64.so
 %%ARCH_LIB%%/auto/Math/BigInt/FastCalc/FastCalc.so
 %%ARCH_LIB%%/auto/NDBM_File/NDBM_File.so
+%%ARCH_LIB%%/auto/ODBM_File/ODBM_File.so
 %%ARCH_LIB%%/auto/Opcode/Opcode.so
 %%ARCH_LIB%%/auto/POSIX/POSIX.so
 %%ARCH_LIB%%/auto/PerlIO/encoding/encoding.so
@@ -1813,7 +1820,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 @dir %%SITE_ARCH%%/auto
 
 
-[FILE:15845:manifests/plist.manpages]
+[FILE:15842:manifests/plist.manpages]
 %%MAN3%%/
  AnyDBM_File.3.gz
  App::Cpan.3.gz
@@ -2003,7 +2010,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  Filter::Simple.3.gz
  Filter::Util::Call.3.gz
  FindBin.3.gz
-%%GDBM-ON%%%%MAN3%%/GDBM_File.3.gz
+ GDBM_File.3.gz
  Getopt::Long.3.gz
  Getopt::Std.3.gz
  HTTP::Tiny.3.gz
@@ -2115,6 +2122,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  Net::protoent.3.gz
  Net::servent.3.gz
  O.3.gz
+ ODBM_File.3.gz
  Opcode.3.gz
  POSIX.3.gz
  Params::Check.3.gz
@@ -2995,6 +3003,22 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  # Dynamic Loading flags have not changed much, so they are separated
  # out here to avoid duplicating them everywhere.
  case "$osvers" in
+
+
+[FILE:429:patches/patch-hints_linux.sh]
+--- hints/linux.sh.bak	2016-07-14 19:07:40.000000000 +0000
++++ hints/linux.sh	2017-05-18 05:59:27.668407063 +0000
+@@ -150,6 +150,10 @@
+     ;;
+ esac
+ 
++lddlflags="-shared "
++ldflags="-Wl,-E "
++cccdlflags='-DPIC -fPIC'
++
+ # Ubuntu 11.04 (and later, presumably) doesn't keep most libraries
+ # (such as -lm) in /lib or /usr/lib.  So we have to ask gcc to tell us
+ # where to look.  We don't want gcc's own libraries, however, so we
 
 
 [FILE:715:patches/patch-perl.c]

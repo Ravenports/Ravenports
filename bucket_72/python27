@@ -16,8 +16,7 @@ SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	THREADS DEBUG PYMALLOC
 OPTIONS_STANDARD=	THREADS DEBUG PYMALLOC
-OPT_ON[all]=		THREADS
-			PYMALLOC
+OPT_ON[all]=		THREADS PYMALLOC
 
 BROKEN_SSL=		openssl-devel
 
@@ -27,7 +26,7 @@ BUILDRUN_DEPENDS=	libffi:single:standard
 			bzip2:complete:standard
 			xz:single:standard
 
-USES=			cpe ncurses pkgconfig readline ssl shebangfix
+USES=			bdb cpe ncurses pkgconfig readline ssl shebangfix
 
 DISTNAME=		Python-2.7.13
 
@@ -87,13 +86,18 @@ PLIST_SUB=		XYDOT=2.7
 			XY=27
 			XYZDOT=2.7.13
 			LOW_OPSYS={{OPSYS:tl}}
-			OSMAJOR={{MAJOR:R}}
 SUB_FILES=		pkg-message-single
 SUB_LIST=		PYTHON_SUFFIX=27
 
 CFLAGS=			-I{{NCURSESINC}}
 TEST_TARGET=		buildbottest
 TEST_ARGS=		TESTOPTS=-j{{MAKE_JOBS_NUMBER}}
+VAR_OPSYS[freebsd]=	PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+			PLIST_SUB=SHLIB=so.1
+VAR_OPSYS[linux]=	PLIST_SUB=PLAT={{OPSYS:tl}}2
+			PLIST_SUB=SHLIB=so.1.0
+VAR_OPSYS[dragonfly]=	PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+			PLIST_SUB=SHLIB=so.1
 VAR_ARCH[aarch64]=	PLIST_SUB=I386-ON="@comment "
 VAR_ARCH[x86_64]=	PLIST_SUB=I386-ON="@comment "
 VAR_ARCH[i386]=		PLIST_SUB=I386-ON=""
@@ -112,6 +116,10 @@ post-patch:
 	@${REINPLACE_CMD} -e \
 		's,/usr/doc/python-docs-,${PREFIX}/share/doc/python,g' \
 		${PATCH_WRKSRC}/Lib/pydoc.py
+	${REINPLACE_CMD} -e '/runtime_library_dirs=dblib_dir/d' \
+		-e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
+		${WRKSRC}/setup.py
+	${REINPLACE_CMD} -e 's|$$$$quiet|--verbose|' ${WRKSRC}/Makefile.pre.in
 
 post-install:
 	for i in ${STAGEDIR}${PREFIX}/lib/python2.7/lib-dynload/*.so; do \
@@ -137,7 +145,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 35d543986882f78261f97787fd3e06274bfa6df29fac9b4a94f73930ff98f731     12495628 Python-2.7.13.tar.xz
 
 
-[FILE:75283:manifests/plist.single]
+[FILE:75590:manifests/plist.single]
 %%I386-ON%%lib/python2.7/lib-dynload/
  dl.so
  imageop.so
@@ -242,7 +250,7 @@ include/python2.7/
  weakrefobject.h
 lib/
  libpython2.7.so
- libpython2.7.so.1
+ libpython2.7.%%SHLIB%%
 lib/pkgconfig/python-2.7.pc
 lib/python2.7/
  BaseHTTPServer.py
@@ -2116,7 +2124,6 @@ lib/python2.7/lib-dynload/
  array.so
  audioop.so
  binascii.so
- bsddb185.so
  bz2.so
  cPickle.so
  cStringIO.so
@@ -2128,6 +2135,9 @@ lib/python2.7/lib-dynload/
  future_builtins.so
  grp.so
  itertools.so
+%%ONLY-LINUX%%lib/python2.7/lib-dynload/
+ linuxaudiodev.so
+lib/python2.7/lib-dynload/
  math.so
  mmap.so
  nis.so
@@ -2138,6 +2148,9 @@ lib/python2.7/lib-dynload/
  readline.so
  resource.so
  select.so
+%%ONLY-LINUX%%lib/python2.7/lib-dynload/
+ spwd.so
+lib/python2.7/lib-dynload/
  strop.so
  syslog.so
  termios.so
@@ -2681,10 +2694,21 @@ lib/python2.7/
  pkgutil.py
  pkgutil.pyc
  pkgutil.pyo
-lib/python2.7/plat-%%LOW_OPSYS%%%%OSMAJOR%%/
+lib/python2.7/plat-%%PLAT%%/
  IN.py
  IN.pyc
  IN.pyo
+%%ONLY-LINUX%%lib/python2.7/plat-%%PLAT%%/
+ CDROM.py
+ CDROM.pyc
+ CDROM.pyo
+ DLFCN.py
+ DLFCN.pyc
+ DLFCN.pyo
+ TYPES.py
+ TYPES.pyc
+ TYPES.pyo
+lib/python2.7/plat-%%PLAT%%/
  regen
 lib/python2.7/
  platform.py

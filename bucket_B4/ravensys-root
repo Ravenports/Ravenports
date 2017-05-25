@@ -4,24 +4,48 @@ NAMEBASE=		ravensys-root
 VERSION=		1.0
 REVISION=		4
 KEYWORDS=		raven
-VARIANTS=		dragonfly freebsd64
+VARIANTS=		dragonfly freebsd64 linux
+SDESC[linux]=		Linux system root for Ravenports build env
 SDESC[freebsd64]=	FreeBSD64 system root for Ravenports build env
 SDESC[dragonfly]=	DragonFly64 system root for Ravenports build env
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main avalon
-SITES[main]=		http://dummy.org
+DOWNLOAD_GROUPS=	main ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 avalon
+SITES[ubuntu1]=		http://security.ubuntu.com/ubuntu/pool/main/g/glibc/
+SITES[ubuntu2]=		UBUNTU/h/hostname
+SITES[ubuntu3]=		UBUNTU/d/dash
+SITES[ubuntu4]=		UBUNTU/p/pax
+SITES[ubuntu5]=		UBUNTU/d/debianutils
+SITES[ubuntu6]=		UBUNTU/b/bsdmainutils
+SITES[ubuntu7]=		http://security.ubuntu.com/ubuntu/pool/main/s/shadow/
+SITES[ubuntu8]=		http://security.ubuntu.com/ubuntu/pool/main/l/linux/
+SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[avalon]=		http://avalon.dragonflybsd.org/snapshots/x86_64/images/
-DISTFILE[1]=		DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2:avalon
+DISTFILE[1]=		dummy-tarball.tar.gz:main
+DISTFILE[2]=		DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2:avalon
+DISTFILE[3]=		libc6_2.23-0ubuntu7_amd64.deb:ubuntu1
+DISTFILE[4]=		libc6-dev_2.23-0ubuntu7_amd64.deb:ubuntu1
+DISTFILE[5]=		hostname_3.16ubuntu2_amd64.deb:ubuntu2
+DISTFILE[6]=		dash_0.5.8-2.1ubuntu2_amd64.deb:ubuntu3
+DISTFILE[7]=		pax_20151013-1_amd64.deb:ubuntu4
+DISTFILE[8]=		debianutils_4.7_amd64.deb:ubuntu5
+DISTFILE[9]=		libc-bin_2.23-0ubuntu7_amd64.deb:ubuntu1
+DISTFILE[10]=		bsdmainutils_9.0.6ubuntu3_amd64.deb:ubuntu6
+DISTFILE[11]=		passwd_4.2-3.1ubuntu5.3_amd64.deb:ubuntu7
+DISTFILE[12]=		linux-libc-dev_4.4.0-78.99_amd64.deb:ubuntu8
+DISTFILE[13]=		libc6-dev-amd64_2.23-0ubuntu7_i386.deb:ubuntu1
+DISTFILE[14]=		libc6-dev_2.23-0ubuntu7_i386.deb:ubuntu1
 DF_INDEX=		1
+SPKGS[linux]=		single
 SPKGS[freebsd64]=	single
 SPKGS[dragonfly]=	single
 
-OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD LINUX
 OPTIONS_STANDARD=	none
-VOPTS[freebsd64]=	DRAGONFLY=OFF FREEBSD=ON
-VOPTS[dragonfly]=	DRAGONFLY=ON FREEBSD=OFF
+VOPTS[linux]=		DRAGONFLY=OFF FREEBSD=OFF LINUX=ON
+VOPTS[freebsd64]=	DRAGONFLY=OFF FREEBSD=ON LINUX=OFF
+VOPTS[dragonfly]=	DRAGONFLY=ON FREEBSD=OFF LINUX=OFF
 
 BUILD_DEPENDS=		nawk:single:standard
 			bzip2:static:standard
@@ -41,7 +65,6 @@ BUILD_DEPENDS=		nawk:single:standard
 			patch:single:standard
 			sed:single:standard
 			byacc:single:standard
-			libdl:single:standard
 			ravensys-uname:single:standard
 			less:single:standard
 			nvi:single:standard
@@ -52,8 +75,12 @@ BUILD_DEPENDS=		nawk:single:standard
 			pkg-bsd:static:standard
 			makewhatis:single:standard
 			genpatch:single:standard
+B_DEPS[freebsd]=	libdl:single:standard
+B_DEPS[linux]=		shadow:single:standard
+B_DEPS[dragonfly]=	libdl:single:standard
 
-EXTRACT_DIRTY=		1
+EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 14
+EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 14
 
 INVALID_RPATH=		yes
 
@@ -68,6 +95,7 @@ MAKE_ENV=		OPSYS="{{OPSYS}}"
 			libusbhid={{Libusbhid_{{OPSYS}}}}
 			libcrypt={{Libcrypt_{{OPSYS}}}}
 			libkvm={{Libkvm_{{OPSYS}}}}
+SINGLE_JOB=		yes
 
 PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBC={{Libc_{{OPSYS}}}}
@@ -79,14 +107,38 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			BASE=share/raven/sysroot/{{OPSYS}}
 
 [DRAGONFLY].DESCRIPTION=		Ravenports system root for DragonFly
-[DRAGONFLY].DF_INDEX_ON=		1
+[DRAGONFLY].DF_INDEX_ON=		2
 [DRAGONFLY].ONLY_FOR_OPSYS_ON=		dragonfly
 
 [FREEBSD].DESCRIPTION=			Ravenports system root for FreeBSD
 [FREEBSD].ONLY_FOR_OPSYS_ON=		freebsd
 
+[LINUX].DESCRIPTION=			Ravenports system root for Linux
+[LINUX].DF_INDEX_ON=			3
+					4
+					5
+					6
+					7
+					8
+					9
+					10
+					11
+					12
+					13
+					14
+[LINUX].ONLY_FOR_OPSYS_ON=		linux
+
+post-extract-LINUX-ON:
+	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
+.for NDX in 4 5 6 7 8 9 10 11 12 13
+	cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
+	${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
+.endfor
+	@${MKDIR} ${WRKSRC}
+	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+
 post-extract-DRAGONFLY-ON:
-	${MV} ${WRKDIR}/${NAMEBASE}_1 ${WRKDIR}/dragonfly
+	${MV} ${WRKDIR}/${NAMEBASE}_2 ${WRKDIR}/dragonfly
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
 
@@ -119,6 +171,20 @@ post-install-DRAGONFLY-ON:
 	${FOS}/usr/bin/make -V .MAKE.DF.VERSION > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
 	echo "x86_64"                           > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 
+post-install-LINUX-ON:
+	${INSTALL_DATA} ${FILESDIR}/linux-group \
+		${STAGEDIR}${RSYS}/usr/share/group
+	${INSTALL_DATA} ${FILESDIR}/linux-passwd \
+		${STAGEDIR}${RSYS}/usr/share/passwd
+	${INSTALL_DATA} ${FOS}/etc/ld.so.conf.d/x86_64-linux-gnu.conf \
+		${STAGEDIR}${RSYS}/usr/share/x86_64-linux-gnu.conf
+	echo "4.4.0"   > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
+	echo "4.4"   > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
+	echo "440053" > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
+	echo "x86_64"           > ${STAGEDIR}${RSYS}/usr/share/STDARCH
+	echo "include /etc/ld.so.conf.d/*.conf" > ${STAGEDIR}${RSYS}/usr/share/ld.so.conf
+	${LN} -s asm-generic ${STAGEDIR}${RSYS}/usr/include/asm
+
 [FILE:102:descriptions/desc.single.dragonfly]
 Raven system root
 
@@ -126,8 +192,27 @@ This is the full environment for DragonFly BSD minus the toolchain for
 Ravenports.
 
 
-[FILE:134:distinfo]
+[FILE:94:descriptions/desc.single.linux]
+Raven system root
+
+This is the full environment for Linux minus the toolchain for Ravenports.
+
+
+[FILE:1559:distinfo]
+7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 157a06bec1885a007ffd85d39e40364976579e30bd2aedc345336c1fdb3028fb    270896484 DragonFly-x86_64-20170412-DEV-v4.9.0.157.g88cde.iso.bz2
+effa6f716cee032e4a2750c7574ba7e9b69645049ad88371c86c82e089c7eb33      2590246 libc6_2.23-0ubuntu7_amd64.deb
+7f3840828129760b27d9b7f7e6358558ee0acba798a16a157b205bb08ee97cfa      2079762 libc6-dev_2.23-0ubuntu7_amd64.deb
+78ffb1d52ec35aafb91eefa09ddd4b66a264c114697b71ddb4867bc86dfe39c3        11548 hostname_3.16ubuntu2_amd64.deb
+c46b4b8c9c952bfeab03993451f7c3c7f5d359ebfbf381e6c36e2870373cde85       103722 dash_0.5.8-2.1ubuntu2_amd64.deb
+73decf418ffc0f02545f0ec62c3030feab9d9a02845c5406000594814b1dea59        78804 pax_20151013-1_amd64.deb
+827d56710cd5259395d9e5c30a5e0fddd831172a76b7f9c4847fc5461c79154f        85428 debianutils_4.7_amd64.deb
+06abbc7eb906d91c8cff041e0b74971820424efd939067e341a4da1f7f32bd95       622428 libc-bin_2.23-0ubuntu7_amd64.deb
+eef7c94de94a9f1b35b8a4c7847ad38530efce453d0819e5235d1a8f8e005b49       174448 bsdmainutils_9.0.6ubuntu3_amd64.deb
+d3018a86cc649ff19dd97258fb50e118d428ee0a631d45c9cd1406c2b28aa16a       779004 passwd_4.2-3.1ubuntu5.3_amd64.deb
+8f1844036725351185093720879a1bfbcad851645d9f70ca5bca293faac9b783       837944 linux-libc-dev_4.4.0-78.99_amd64.deb
+b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 libc6-dev-amd64_2.23-0ubuntu7_i386.deb
+3169104afe3d07aa6658489394e14f0430746550d05cd4014bac8e4af18b3205      1672610 libc6-dev_2.23-0ubuntu7_i386.deb
 
 
 [FILE:8439:manifests/plist.single.dragonfly]
@@ -937,13 +1022,1771 @@ Ravenports.
 @dir %%BASE%%/usr/local
 
 
-[FILE:11579:files/Makefile]
+[FILE:21143:manifests/plist.single.linux]
+%%BASE%%/bin/
+ [
+ cat
+ chmod
+ cp
+ dash
+ date
+ echo
+ expr
+ hostname
+ kill
+ link
+ ln
+ ls
+ md5
+ mkdir
+ mv
+ pax
+ pwd
+ realpath
+ rm
+ rmdir
+ sh
+ sha256
+ sleep
+ test
+ unlink
+%%BASE%%/lib64/ld-linux-x86-64.so.2
+%%BASE%%/lib/x86_64-linux-gnu/
+ ld-2.23.so
+ ld-linux-x86-64.so.2
+ libanl-2.23.so
+ libanl.so.1
+ libc-2.23.so
+ libcrypt-2.23.so
+ libcrypt.so.1
+ libc.so.6
+ libdl-2.23.so
+ libdl.so.2
+ libm-2.23.so
+ libm.so.6
+ libmvec-2.23.so
+ libmvec.so.1
+ libnsl-2.23.so
+ libnsl.so.1
+ libnss_compat-2.23.so
+ libnss_compat.so.2
+ libnss_dns-2.23.so
+ libnss_dns.so.2
+ libnss_files-2.23.so
+ libnss_files.so.2
+ libnss_hesiod-2.23.so
+ libnss_hesiod.so.2
+ libnss_nis-2.23.so
+ libnss_nisplus-2.23.so
+ libnss_nisplus.so.2
+ libnss_nis.so.2
+ libpthread-2.23.so
+ libpthread.so.0
+ libresolv-2.23.so
+ libresolv.so.2
+ librt-2.23.so
+ librt.so.1
+ libutil-2.23.so
+ libutil.so.1
+%%BASE%%/usr/bin/
+ groupadd
+ useradd
+ usermod
+ awk
+ basename
+ bsdcat
+ bunzip2
+ bzcat
+ bzegrep
+ bzfgrep
+ bzgrep
+ bzip2
+ chgrp
+ chown
+ cmp
+ comm
+ cpio
+ cut
+ diff
+ diff3
+ dirname
+ dupe
+ egrep
+ env
+ false
+ fetch
+ fgrep
+ file
+ find
+ flex
+ flex++
+ genpatch
+ grep
+ gunzip
+ gzip
+ head
+ id
+ install
+ join
+ ldd
+ less
+ lorder
+ lzcat
+ lzcmp
+ lzdiff
+ lzegrep
+ lzfgrep
+ lzgrep
+ lzma
+ m4
+ make
+ makewhatis
+ mkfifo
+ mktemp
+ more
+ mtree
+ objdump-sysroot
+ patch
+ pkg-static
+ portfix
+ printenv
+ printf
+ readlink
+ sdiff
+ sed
+ sort
+ stat
+ tail
+ tar
+ tee
+ touch
+ tr
+ true
+ tsort
+ uname
+ uniq
+ unlzma
+ unxz
+ unzip
+ vi
+ wc
+ which
+ whoami
+ xargs
+ xz
+ xzcat
+ xzcmp
+ xzdiff
+ xzegrep
+ xzfgrep
+ xzgrep
+ yacc
+ zcat
+ zcmp
+ zdiff
+ zegrep
+ zfgrep
+ zgrep
+%%BASE%%/usr/include/
+ aio.h
+ aliases.h
+ alloca.h
+ argp.h
+ argz.h
+ ar.h
+%%BASE%%/usr/include/arpa/
+ ftp.h
+ inet.h
+ nameser_compat.h
+ nameser.h
+ telnet.h
+ tftp.h
+%%BASE%%/usr/include/
+ asm
+%%BASE%%/usr/include/asm-generic/
+ auxvec.h
+ bitsperlong.h
+ errno-base.h
+ errno.h
+ fcntl.h
+ int-l64.h
+ int-ll64.h
+ ioctl.h
+ ioctls.h
+ ipcbuf.h
+ kvm_para.h
+ mman-common.h
+ mman.h
+ msgbuf.h
+ param.h
+ poll.h
+ posix_types.h
+ resource.h
+ sembuf.h
+ setup.h
+ shmbuf.h
+ shmparam.h
+ siginfo.h
+ signal-defs.h
+ signal.h
+ socket.h
+ sockios.h
+ statfs.h
+ stat.h
+ swab.h
+ termbits.h
+ termios.h
+ types.h
+ ucontext.h
+ unistd.h
+%%BASE%%/usr/include/
+ assert.h
+ byteswap.h
+ complex.h
+ cpio.h
+ crypt.h
+ ctype.h
+ dirent.h
+ dlfcn.h
+%%BASE%%/usr/include/drm/
+ drm_fourcc.h
+ drm.h
+ drm_mode.h
+ drm_sarea.h
+ exynos_drm.h
+ i810_drm.h
+ i915_drm.h
+ mga_drm.h
+ msm_drm.h
+ nouveau_drm.h
+ qxl_drm.h
+ r128_drm.h
+ radeon_drm.h
+ savage_drm.h
+ sis_drm.h
+ tegra_drm.h
+ via_drm.h
+ virtgpu_drm.h
+ vmwgfx_drm.h
+%%BASE%%/usr/include/
+ elf.h
+ endian.h
+ envz.h
+ err.h
+ errno.h
+ error.h
+ execinfo.h
+ fcntl.h
+ features.h
+ fenv.h
+ fmtmsg.h
+ fnmatch.h
+ fstab.h
+ fts.h
+ ftw.h
+ _G_config.h
+ gconv.h
+ getopt.h
+ glob.h
+ gnu-versions.h
+ grp.h
+ gshadow.h
+ iconv.h
+ ifaddrs.h
+ inttypes.h
+ langinfo.h
+ lastlog.h
+ libgen.h
+ libintl.h
+ libio.h
+ limits.h
+ link.h
+%%BASE%%/usr/include/linux/
+ acct.h
+ adb.h
+ adfs_fs.h
+ affs_hardblocks.h
+ agpgart.h
+ aio_abi.h
+ am437x-vpfe.h
+%%BASE%%/usr/include/linux/android/binder.h
+ a.out.h
+ apm_bios.h
+ arcfb.h
+ atalk.h
+ atmapi.h
+ atmarp.h
+ atmbr2684.h
+ atmclip.h
+ atmdev.h
+ atm_eni.h
+ atm.h
+ atm_he.h
+ atm_idt77105.h
+ atmioc.h
+ atmlec.h
+ atmmpc.h
+ atm_nicstar.h
+ atmppp.h
+ atmsap.h
+ atmsvc.h
+ atm_tcp.h
+ atm_zatm.h
+ audit.h
+ aufs_type.h
+ auto_fs4.h
+ auto_fs.h
+ auxvec.h
+ ax25.h
+ b1lli.h
+ baycom.h
+ bcm933xx_hcs.h
+ bfs_fs.h
+ binfmts.h
+ blkpg.h
+ blktrace_api.h
+ bpf_common.h
+ bpf.h
+ bpqether.h
+ bsg.h
+ btrfs.h
+%%BASE%%/usr/include/linux/byteorder/
+ big_endian.h
+ little_endian.h
+%%BASE%%/usr/include/linux/caif/
+ caif_socket.h
+ if_caif.h
+%%BASE%%/usr/include/linux/can/
+ bcm.h
+ error.h
+ gw.h
+%%BASE%%/usr/include/linux/
+ can.h
+%%BASE%%/usr/include/linux/can/
+ netlink.h
+ raw.h
+%%BASE%%/usr/include/linux/
+ capability.h
+ capi.h
+ cciss_defs.h
+ cciss_ioctl.h
+ cdrom.h
+ cgroupstats.h
+ chio.h
+ cm4000_cs.h
+ cn_proc.h
+ coda.h
+ coda_psdev.h
+ coff.h
+ connector.h
+ const.h
+ cramfs_fs.h
+ cuda.h
+ cyclades.h
+ cycx_cfm.h
+ dcbnl.h
+ dccp.h
+ dlmconstants.h
+ dlm_device.h
+ dlm.h
+ dlm_netlink.h
+ dlm_plock.h
+ dm-ioctl.h
+ dm-log-userspace.h
+ dn.h
+ dqblk_xfs.h
+%%BASE%%/usr/include/linux/dvb/
+ audio.h
+ ca.h
+ dmx.h
+ frontend.h
+ net.h
+ osd.h
+ version.h
+ video.h
+%%BASE%%/usr/include/linux/
+ edd.h
+ efs_fs_sb.h
+ elfcore.h
+ elf-em.h
+ elf-fdpic.h
+ elf.h
+ errno.h
+ errqueue.h
+ ethtool.h
+ eventpoll.h
+ fadvise.h
+ falloc.h
+ fanotify.h
+ fb.h
+ fcntl.h
+ fd.h
+ fdreg.h
+ fib_rules.h
+ fiemap.h
+ filter.h
+ firewire-cdev.h
+ firewire-constants.h
+ flat.h
+ fou.h
+ fs.h
+ fsl_hypervisor.h
+ fuse.h
+ futex.h
+ gameport.h
+ genetlink.h
+ gen_stats.h
+ gfs2_ondisk.h
+ gigaset_dev.h
+ gsmmux.h
+ hdlcdrv.h
+ hdlc.h
+%%BASE%%/usr/include/linux/hdlc/ioctl.h
+ hdreg.h
+ hiddev.h
+ hid.h
+ hidraw.h
+ hpet.h
+%%BASE%%/usr/include/linux/hsi/
+ cs-protocol.h
+ hsi_char.h
+%%BASE%%/usr/include/linux/
+ hsr_netlink.h
+ hw_breakpoint.h
+ hyperv.h
+ hysdn_if.h
+ i2c-dev.h
+ i2c.h
+ i2o-dev.h
+ i8k.h
+ icmp.h
+ icmpv6.h
+ if_addr.h
+ if_addrlabel.h
+ if_alg.h
+ if_arcnet.h
+ if_arp.h
+ if_bonding.h
+ if_bridge.h
+ if_cablemodem.h
+ if_eql.h
+ if_ether.h
+ if_fc.h
+ if_fddi.h
+ if_frad.h
+ if.h
+ if_hippi.h
+ if_infiniband.h
+ if_link.h
+ if_ltalk.h
+ if_packet.h
+ if_phonet.h
+ if_plip.h
+ if_ppp.h
+ if_pppol2tp.h
+ if_pppox.h
+ if_slip.h
+ if_team.h
+ if_tun.h
+ if_tunnel.h
+ if_vlan.h
+ if_x25.h
+ igmp.h
+%%BASE%%/usr/include/linux/iio/
+ events.h
+ types.h
+%%BASE%%/usr/include/linux/
+ ila.h
+ in6.h
+ inet_diag.h
+ in.h
+ inotify.h
+ input-event-codes.h
+ input.h
+ in_route.h
+ ioctl.h
+ ip6_tunnel.h
+ ipc.h
+ ip.h
+ ipmi.h
+ ipmi_msgdefs.h
+ ipsec.h
+ ipv6.h
+ ipv6_route.h
+ ip_vs.h
+ ipx.h
+ irda.h
+ irqnr.h
+%%BASE%%/usr/include/linux/isdn/capicmd.h
+ isdn_divertif.h
+ isdn.h
+ isdnif.h
+ isdn_ppp.h
+ iso_fs.h
+ ivtvfb.h
+ ivtv.h
+ ixjuser.h
+ jffs2.h
+ joystick.h
+ kcmp.h
+ kdev_t.h
+ kd.h
+ kernelcapi.h
+ kernel.h
+ kernel-page-flags.h
+ kexec.h
+ keyboard.h
+ keyctl.h
+ kvm.h
+ kvm_para.h
+ l2tp.h
+ libc-compat.h
+ limits.h
+ llc.h
+ loop.h
+ lp.h
+ lwtunnel.h
+ magic.h
+ major.h
+ map_to_7segment.h
+ matroxfb.h
+ mdio.h
+ media-bus-format.h
+ media.h
+ mei.h
+ membarrier.h
+ memfd.h
+ mempolicy.h
+ meye.h
+ mic_common.h
+ mic_ioctl.h
+ mii.h
+ minix_fs.h
+ mman.h
+%%BASE%%/usr/include/linux/mmc/ioctl.h
+ mmtimer.h
+ mpls.h
+ mpls_iptunnel.h
+ mqueue.h
+ mroute6.h
+ mroute.h
+ msdos_fs.h
+ msg.h
+ mtio.h
+ nbd.h
+ ncp_fs.h
+ ncp.h
+ ncp_mount.h
+ ncp_no.h
+ ndctl.h
+ neighbour.h
+ netconf.h
+ netdevice.h
+ net_dropmon.h
+%%BASE%%/usr/include/linux/netfilter_arp/
+ arp_tables.h
+ arpt_mangle.h
+%%BASE%%/usr/include/linux/
+ netfilter_arp.h
+%%BASE%%/usr/include/linux/netfilter_bridge/
+ ebt_802_3.h
+ ebtables.h
+ ebt_among.h
+ ebt_arp.h
+ ebt_arpreply.h
+ ebt_ip6.h
+ ebt_ip.h
+ ebt_limit.h
+ ebt_log.h
+ ebt_mark_m.h
+ ebt_mark_t.h
+ ebt_nat.h
+ ebt_nflog.h
+ ebt_pkttype.h
+ ebt_redirect.h
+ ebt_stp.h
+ ebt_vlan.h
+%%BASE%%/usr/include/linux/
+ netfilter_bridge.h
+ netfilter_decnet.h
+ netfilter.h
+%%BASE%%/usr/include/linux/netfilter/ipset/
+ ip_set_bitmap.h
+ ip_set.h
+ ip_set_hash.h
+ ip_set_list.h
+%%BASE%%/usr/include/linux/
+ netfilter_ipv4.h
+%%BASE%%/usr/include/linux/netfilter_ipv4/
+ ip_tables.h
+ ipt_ah.h
+ ipt_CLUSTERIP.h
+ ipt_ecn.h
+ ipt_ECN.h
+ ipt_LOG.h
+ ipt_REJECT.h
+ ipt_ttl.h
+ ipt_TTL.h
+%%BASE%%/usr/include/linux/
+ netfilter_ipv6.h
+%%BASE%%/usr/include/linux/netfilter_ipv6/
+ ip6_tables.h
+ ip6t_ah.h
+ ip6t_frag.h
+ ip6t_hl.h
+ ip6t_HL.h
+ ip6t_ipv6header.h
+ ip6t_LOG.h
+ ip6t_mh.h
+ ip6t_NPT.h
+ ip6t_opts.h
+ ip6t_REJECT.h
+ ip6t_rt.h
+%%BASE%%/usr/include/linux/netfilter/
+ nf_conntrack_common.h
+ nf_conntrack_ftp.h
+ nf_conntrack_sctp.h
+ nf_conntrack_tcp.h
+ nf_conntrack_tuple_common.h
+ nf_nat.h
+ nfnetlink_acct.h
+ nfnetlink_compat.h
+ nfnetlink_conntrack.h
+ nfnetlink_cthelper.h
+ nfnetlink_cttimeout.h
+ nfnetlink.h
+ nfnetlink_log.h
+ nfnetlink_queue.h
+ nf_tables_compat.h
+ nf_tables.h
+ x_tables.h
+ xt_addrtype.h
+ xt_AUDIT.h
+ xt_bpf.h
+ xt_cgroup.h
+ xt_CHECKSUM.h
+ xt_CLASSIFY.h
+ xt_cluster.h
+ xt_comment.h
+ xt_connbytes.h
+ xt_connlabel.h
+ xt_connlimit.h
+ xt_connmark.h
+ xt_CONNMARK.h
+ xt_CONNSECMARK.h
+ xt_conntrack.h
+ xt_cpu.h
+ xt_CT.h
+ xt_dccp.h
+ xt_devgroup.h
+ xt_dscp.h
+ xt_DSCP.h
+ xt_ecn.h
+ xt_esp.h
+ xt_hashlimit.h
+ xt_helper.h
+ xt_HMARK.h
+ xt_IDLETIMER.h
+ xt_ipcomp.h
+ xt_iprange.h
+ xt_ipvs.h
+ xt_l2tp.h
+ xt_LED.h
+ xt_length.h
+ xt_limit.h
+ xt_LOG.h
+ xt_mac.h
+ xt_mark.h
+ xt_MARK.h
+ xt_multiport.h
+ xt_nfacct.h
+ xt_NFLOG.h
+ xt_NFQUEUE.h
+ xt_osf.h
+ xt_owner.h
+ xt_physdev.h
+ xt_pkttype.h
+ xt_policy.h
+ xt_quota.h
+ xt_rateest.h
+ xt_RATEEST.h
+ xt_realm.h
+ xt_recent.h
+ xt_rpfilter.h
+ xt_sctp.h
+ xt_SECMARK.h
+ xt_set.h
+ xt_socket.h
+ xt_state.h
+ xt_statistic.h
+ xt_string.h
+ xt_tcpmss.h
+ xt_TCPMSS.h
+ xt_TCPOPTSTRIP.h
+ xt_tcpudp.h
+ xt_TEE.h
+ xt_time.h
+ xt_TPROXY.h
+ xt_u32.h
+%%BASE%%/usr/include/linux/
+ net.h
+ netlink_diag.h
+ netlink.h
+ net_namespace.h
+ netrom.h
+ net_tstamp.h
+ nfc.h
+ nfs2.h
+ nfs3.h
+ nfs4.h
+ nfs4_mount.h
+ nfsacl.h
+%%BASE%%/usr/include/linux/nfsd/
+ cld.h
+ debug.h
+ export.h
+ nfsfh.h
+ stats.h
+%%BASE%%/usr/include/linux/
+ nfs_fs.h
+ nfs.h
+ nfs_idmap.h
+ nfs_mount.h
+ nl80211.h
+ n_r3964.h
+ nubus.h
+ nvme_ioctl.h
+ nvram.h
+ omap3isp.h
+ omapfb.h
+ oom.h
+ openvswitch.h
+ packet_diag.h
+ param.h
+ parport.h
+ patchkey.h
+ pci.h
+ pci_regs.h
+ perf_event.h
+ personality.h
+ pfkeyv2.h
+ pg.h
+ phantom.h
+ phonet.h
+ pktcdvd.h
+ pkt_cls.h
+ pkt_sched.h
+ pmu.h
+ poll.h
+ posix_types.h
+ ppdev.h
+ ppp-comp.h
+ ppp_defs.h
+ ppp-ioctl.h
+ pps.h
+ prctl.h
+ psci.h
+ ptp_clock.h
+ ptrace.h
+ qnx4_fs.h
+ qnxtypes.h
+ quota.h
+ radeonfb.h
+%%BASE%%/usr/include/linux/raid/
+ md_p.h
+ md_u.h
+%%BASE%%/usr/include/linux/
+ random.h
+ raw.h
+ rds.h
+ reboot.h
+ reiserfs_fs.h
+ reiserfs_xattr.h
+ resource.h
+ rfkill.h
+ romfs_fs.h
+ rose.h
+ route.h
+ rtc.h
+ rtnetlink.h
+ scc.h
+ sched.h
+ scif_ioctl.h
+ screen_info.h
+ sctp.h
+ sdla.h
+ seccomp.h
+ securebits.h
+ selinux_netlink.h
+ sem.h
+ serial_core.h
+ serial.h
+ serial_reg.h
+ serio.h
+ shm.h
+ signalfd.h
+ signal.h
+ smiapp.h
+ snmp.h
+ sock_diag.h
+ socket.h
+ sockios.h
+ sonet.h
+ sonypi.h
+ soundcard.h
+ sound.h
+%%BASE%%/usr/include/linux/spi/spidev.h
+ stat.h
+ stddef.h
+ string.h
+%%BASE%%/usr/include/linux/sunrpc/debug.h
+ suspend_ioctls.h
+ swab.h
+ synclink.h
+ sysctl.h
+ sysinfo.h
+ target_core_user.h
+ taskstats.h
+%%BASE%%/usr/include/linux/tc_act/
+ tc_bpf.h
+ tc_connmark.h
+ tc_csum.h
+ tc_defact.h
+ tc_gact.h
+ tc_ipt.h
+ tc_mirred.h
+ tc_nat.h
+ tc_pedit.h
+ tc_skbedit.h
+ tc_vlan.h
+%%BASE%%/usr/include/linux/tc_ematch/
+ tc_em_cmp.h
+ tc_em_meta.h
+ tc_em_nbyte.h
+ tc_em_text.h
+%%BASE%%/usr/include/linux/
+ tcp.h
+ tcp_metrics.h
+ telephony.h
+ termios.h
+ thermal.h
+ time.h
+ times.h
+ timex.h
+ tiocl.h
+ tipc_config.h
+ tipc.h
+ tipc_netlink.h
+ toshiba.h
+ tty_flags.h
+ tty.h
+ types.h
+ udf_fs_i.h
+ udp.h
+ uhid.h
+ uinput.h
+ uio.h
+ ultrasound.h
+ un.h
+ unistd.h
+ unix_diag.h
+%%BASE%%/usr/include/linux/usb/
+ audio.h
+ cdc.h
+ cdc-wdm.h
+ ch11.h
+ ch9.h
+%%BASE%%/usr/include/linux/
+ usbdevice_fs.h
+%%BASE%%/usr/include/linux/usb/
+ functionfs.h
+ gadgetfs.h
+ g_printer.h
+%%BASE%%/usr/include/linux/
+ usbip.h
+%%BASE%%/usr/include/linux/usb/
+ midi.h
+ tmc.h
+ video.h
+%%BASE%%/usr/include/linux/
+ userfaultfd.h
+ utime.h
+ utsname.h
+ uuid.h
+ uvcvideo.h
+ v4l2-common.h
+ v4l2-controls.h
+ v4l2-dv-timings.h
+ v4l2-mediabus.h
+ v4l2-subdev.h
+ version.h
+ veth.h
+ vfio.h
+ vhost.h
+ videodev2.h
+ virtio_9p.h
+ virtio_balloon.h
+ virtio_blk.h
+ virtio_config.h
+ virtio_console.h
+ virtio_gpu.h
+ virtio_ids.h
+ virtio_input.h
+ virtio_net.h
+ virtio_pci.h
+ virtio_ring.h
+ virtio_rng.h
+ virtio_scsi.h
+ virtio_types.h
+ vm_sockets.h
+ vt.h
+ wait.h
+ wanrouter.h
+ watchdog.h
+ wimax.h
+%%BASE%%/usr/include/linux/wimax/i2400m.h
+ wireless.h
+ x25.h
+ xattr.h
+ xfrm.h
+ xilinx-v4l2-controls.h
+ zorro.h
+ zorro_ids.h
+%%BASE%%/usr/include/
+ locale.h
+ malloc.h
+ math.h
+ mcheck.h
+ memory.h
+ mntent.h
+ monetary.h
+ mqueue.h
+%%BASE%%/usr/include/netash/ash.h
+%%BASE%%/usr/include/netatalk/at.h
+%%BASE%%/usr/include/netax25/ax25.h
+ netdb.h
+%%BASE%%/usr/include/neteconet/ec.h
+%%BASE%%/usr/include/net/
+ ethernet.h
+ if_arp.h
+ if.h
+ if_packet.h
+ if_ppp.h
+ if_shaper.h
+ if_slip.h
+%%BASE%%/usr/include/netinet/
+ ether.h
+ icmp6.h
+ if_ether.h
+ if_fddi.h
+ if_tr.h
+ igmp.h
+ in.h
+ in_systm.h
+ ip6.h
+ ip.h
+ ip_icmp.h
+ tcp.h
+ udp.h
+%%BASE%%/usr/include/netipx/ipx.h
+%%BASE%%/usr/include/netiucv/iucv.h
+%%BASE%%/usr/include/netpacket/packet.h
+%%BASE%%/usr/include/net/
+ ppp-comp.h
+ ppp_defs.h
+%%BASE%%/usr/include/netrom/netrom.h
+%%BASE%%/usr/include/netrose/rose.h
+ route.h
+%%BASE%%/usr/include/nfs/nfs.h
+%%BASE%%/usr/include/
+ nl_types.h
+ nss.h
+ obstack.h
+ paths.h
+ poll.h
+ printf.h
+%%BASE%%/usr/include/protocols/
+ routed.h
+ rwhod.h
+ talkd.h
+ timed.h
+%%BASE%%/usr/include/
+ pthread.h
+ pty.h
+ pwd.h
+ re_comp.h
+ regex.h
+ regexp.h
+ resolv.h
+%%BASE%%/usr/include/rpc/
+ auth_des.h
+ auth.h
+ auth_unix.h
+ clnt.h
+ des_crypt.h
+ key_prot.h
+ netdb.h
+ pmap_clnt.h
+ pmap_prot.h
+ pmap_rmt.h
+ rpc_des.h
+ rpc.h
+ rpc_msg.h
+ svc_auth.h
+%%BASE%%/usr/include/rpcsvc/
+ bootparam.h
+ bootparam_prot.h
+ bootparam_prot.x
+%%BASE%%/usr/include/rpc/
+ svc.h
+%%BASE%%/usr/include/rpcsvc/
+ key_prot.h
+ key_prot.x
+ klm_prot.h
+ klm_prot.x
+ mount.h
+ mount.x
+ nfs_prot.h
+ nfs_prot.x
+ nis_callback.h
+ nis_callback.x
+ nis.h
+ nislib.h
+ nis_object.x
+ nis_tags.h
+ nis.x
+ nlm_prot.h
+ nlm_prot.x
+ rex.h
+ rex.x
+ rquota.h
+ rquota.x
+ rstat.h
+ rstat.x
+ rusers.h
+ rusers.x
+ sm_inter.h
+ sm_inter.x
+ spray.h
+ spray.x
+ ypclnt.h
+ yp.h
+ yppasswd.h
+ yppasswd.x
+ yp_prot.h
+ ypupd.h
+ yp.x
+%%BASE%%/usr/include/rpc/
+ types.h
+ xdr.h
+%%BASE%%/usr/include/
+ sched.h
+%%BASE%%/usr/include/scsi/
+ cxlflash_ioctl.h
+%%BASE%%/usr/include/scsi/fc/
+ fc_els.h
+ fc_fs.h
+ fc_gs.h
+ fc_ns.h
+%%BASE%%/usr/include/scsi/
+ scsi_bsg_fc.h
+ scsi.h
+ scsi_ioctl.h
+ scsi_netlink_fc.h
+ scsi_netlink.h
+ sg.h
+%%BASE%%/usr/include/
+ search.h
+ semaphore.h
+ setjmp.h
+ sgtty.h
+ shadow.h
+ signal.h
+ spawn.h
+ stab.h
+ stdc-predef.h
+ stdint.h
+ stdio_ext.h
+ stdio.h
+ stdlib.h
+ string.h
+ strings.h
+ stropts.h
+ syscall.h
+ sysexits.h
+ syslog.h
+%%BASE%%/usr/include/sys/
+ ttychars.h
+ fsuid.h
+ types.h
+ ipc.h
+ ioctl.h
+ gmon.h
+ inotify.h
+ elf.h
+ sendfile.h
+ soundcard.h
+ unistd.h
+ socket.h
+ timerfd.h
+ socketvar.h
+ fanotify.h
+ mman.h
+ syslog.h
+ termios.h
+ statfs.h
+ vm86.h
+ statvfs.h
+ signal.h
+ signalfd.h
+ shm.h
+ prctl.h
+ personality.h
+ sysinfo.h
+ kd.h
+ sysctl.h
+ mtio.h
+ msg.h
+ dir.h
+ swap.h
+ poll.h
+ queue.h
+ syscall.h
+ vtimes.h
+ ustat.h
+ fcntl.h
+ ptrace.h
+ reboot.h
+ select.h
+ timeb.h
+ acct.h
+ debugreg.h
+ ttydefaults.h
+ raw.h
+ times.h
+ timex.h
+ cdefs.h
+ utsname.h
+ epoll.h
+ resource.h
+ quota.h
+ ucontext.h
+ eventfd.h
+ perm.h
+ pci.h
+ vfs.h
+ wait.h
+ procfs.h
+ reg.h
+ time.h
+ bitypes.h
+ uio.h
+ param.h
+ auxv.h
+ vlimit.h
+ stropts.h
+ xattr.h
+ io.h
+ sem.h
+ ultrasound.h
+ file.h
+ errno.h
+ sysmacros.h
+ un.h
+ user.h
+ klog.h
+ stat.h
+ vt.h
+ gmon_out.h
+ mount.h
+ profil.h
+%%BASE%%/usr/include/
+ tar.h
+ termio.h
+ termios.h
+ tgmath.h
+ thread_db.h
+ time.h
+ ttyent.h
+ uchar.h
+ ucontext.h
+ ulimit.h
+ unistd.h
+ ustat.h
+ utime.h
+ utmp.h
+ utmpx.h
+ values.h
+ wait.h
+ wchar.h
+ wctype.h
+ wordexp.h
+%%BASE%%/usr/include/i386-linux-gnu/bits/
+ socket2.h
+ types.h
+ ipc.h
+ stdio_lim.h
+ inotify.h
+ cmathcalls.h
+ mman-linux.h
+ link.h
+ fenv.h
+ endian.h
+ unistd.h
+ libio-ldbl.h
+ printf-ldbl.h
+ socket.h
+ timerfd.h
+ mathinline.h
+ utmp.h
+ stab.def
+ setjmp2.h
+ typesizes.h
+ mman.h
+ byteswap.h
+ waitflags.h
+ semaphore.h
+ syslog.h
+ termios.h
+ siginfo.h
+ signum.h
+ initspin.h
+ statfs.h
+ hwcap.h
+ syslog-ldbl.h
+ statvfs.h
+ signalfd.h
+ shm.h
+ msq.h
+ fenvinline.h
+ locale.h
+ stdlib-float.h
+ sigcontext.h
+ sysctl.h
+ sigset.h
+ waitstatus.h
+ mqueue.h
+ setjmp.h
+ syslog-path.h
+ monetary-ldbl.h
+ huge_val.h
+ sigthread.h
+ stdlib.h
+ byteswap-16.h
+ environments.h
+ stdio2.h
+ poll.h
+ elfclass.h
+ syscall.h
+ ioctls.h
+ inf.h
+ ustat.h
+ fcntl.h
+ math-finite.h
+ huge_valf.h
+ sockaddr.h
+ select.h
+ xtitypes.h
+ mathcalls.h
+ utmpx.h
+ a.out.h
+ select2.h
+ pthreadtypes.h
+ string.h
+ socket_type.h
+ stdio.h
+ math-vector.h
+ timex.h
+ stdlib-ldbl.h
+ utsname.h
+ in.h
+ sys_errlist.h
+ mathdef.h
+ wchar2.h
+ nan.h
+ fcntl2.h
+ epoll.h
+ resource.h
+ eventfd.h
+ stdio-ldbl.h
+ ipctypes.h
+ wchar-ldbl.h
+ xopen_lim.h
+ string2.h
+ mqueue2.h
+ time.h
+ dirent.h
+ uio.h
+ param.h
+ wordsize.h
+ auxv.h
+ posix_opt.h
+ poll2.h
+ stropts.h
+ posix2_lim.h
+ sem.h
+ errno.h
+ dlfcn.h
+ confname.h
+ fcntl-linux.h
+ posix1_lim.h
+ libm-simd-decl-stubs.h
+ sched.h
+ huge_vall.h
+ wchar.h
+ error.h
+ string3.h
+ stat.h
+ sigstack.h
+ netdb.h
+ sigaction.h
+ ioctl-types.h
+ local_lim.h
+ stdlib-bsearch.h
+%%BASE%%/usr/include/i386-linux-gnu/
+ fpu_control.h
+ ieee754.h
+%%BASE%%/usr/include/i386-linux-gnu/gnu/
+ libc-version.h
+ lib-names-32.h
+ stubs.h
+ lib-names.h
+ stubs-32.h
+%%BASE%%/usr/include/i386-linux-gnu/
+ a.out.h
+%%BASE%%/usr/include/i386-linux-gnu/sys/
+ ttychars.h
+ fsuid.h
+ types.h
+ ipc.h
+ ioctl.h
+ gmon.h
+ inotify.h
+ elf.h
+ sendfile.h
+ soundcard.h
+ unistd.h
+ socket.h
+ timerfd.h
+ socketvar.h
+ fanotify.h
+ mman.h
+ syslog.h
+ termios.h
+ statfs.h
+ vm86.h
+ statvfs.h
+ signal.h
+ signalfd.h
+ shm.h
+ prctl.h
+ personality.h
+ sysinfo.h
+ kd.h
+ sysctl.h
+ mtio.h
+ msg.h
+ dir.h
+ swap.h
+ poll.h
+ queue.h
+ syscall.h
+ vtimes.h
+ ustat.h
+ fcntl.h
+ ptrace.h
+ reboot.h
+ select.h
+ timeb.h
+ acct.h
+ debugreg.h
+ ttydefaults.h
+ raw.h
+ times.h
+ timex.h
+ cdefs.h
+ utsname.h
+ epoll.h
+ resource.h
+ quota.h
+ ucontext.h
+ eventfd.h
+ perm.h
+ pci.h
+ vfs.h
+ wait.h
+ procfs.h
+ reg.h
+ time.h
+ bitypes.h
+ uio.h
+ param.h
+ auxv.h
+ vlimit.h
+ stropts.h
+ xattr.h
+ io.h
+ sem.h
+ ultrasound.h
+ file.h
+ errno.h
+ sysmacros.h
+ un.h
+ user.h
+ klog.h
+ stat.h
+ vt.h
+ gmon_out.h
+ mount.h
+ profil.h
+%%BASE%%/usr/include/x86_64-linux-gnu/
+ a.out.h
+%%BASE%%/usr/include/x86_64-linux-gnu/asm/
+ a.out.h
+ auxvec.h
+ bitsperlong.h
+ boot.h
+ bootparam.h
+ byteorder.h
+ debugreg.h
+ e820.h
+ errno.h
+ fcntl.h
+ hw_breakpoint.h
+ hyperv.h
+ ioctl.h
+ ioctls.h
+ ipcbuf.h
+ ist.h
+ kvm.h
+ kvm_para.h
+ kvm_perf.h
+ ldt.h
+ mce.h
+ mman.h
+ msgbuf.h
+ msr.h
+ msr-index.h
+ mtrr.h
+ param.h
+ perf_regs.h
+ poll.h
+ posix_types_32.h
+ posix_types_64.h
+ posix_types.h
+ posix_types_x32.h
+ prctl.h
+ processor-flags.h
+ ptrace-abi.h
+ ptrace.h
+ resource.h
+ sembuf.h
+ setup.h
+ shmbuf.h
+ sigcontext32.h
+ sigcontext.h
+ siginfo.h
+ signal.h
+ socket.h
+ sockios.h
+ statfs.h
+ stat.h
+ svm.h
+ swab.h
+ termbits.h
+ termios.h
+ types.h
+ ucontext.h
+ unistd_32.h
+ unistd_64.h
+ unistd.h
+ unistd_x32.h
+ vm86.h
+ vmx.h
+ vsyscall.h
+%%BASE%%/usr/include/x86_64-linux-gnu/bits/
+ a.out.h
+ auxv.h
+ byteswap-16.h
+ byteswap.h
+ cmathcalls.h
+ confname.h
+ dirent.h
+ dlfcn.h
+ elfclass.h
+ endian.h
+ environments.h
+ epoll.h
+ errno.h
+ error.h
+ eventfd.h
+ fcntl2.h
+ fcntl.h
+ fcntl-linux.h
+ fenv.h
+ fenvinline.h
+ huge_valf.h
+ huge_val.h
+ huge_vall.h
+ hwcap.h
+ inf.h
+ in.h
+ initspin.h
+ inotify.h
+ ioctls.h
+ ioctl-types.h
+ ipc.h
+ ipctypes.h
+ libio-ldbl.h
+ libm-simd-decl-stubs.h
+ link.h
+ locale.h
+ local_lim.h
+ mathcalls.h
+ mathdef.h
+ math-finite.h
+ mathinline.h
+ math-vector.h
+ mman.h
+ mman-linux.h
+ monetary-ldbl.h
+ mqueue2.h
+ mqueue.h
+ msq.h
+ nan.h
+ netdb.h
+ param.h
+ poll2.h
+ poll.h
+ posix1_lim.h
+ posix2_lim.h
+ posix_opt.h
+ printf-ldbl.h
+ pthreadtypes.h
+ resource.h
+ sched.h
+ select2.h
+ select.h
+ semaphore.h
+ sem.h
+ setjmp2.h
+ setjmp.h
+ shm.h
+ sigaction.h
+ sigcontext.h
+ siginfo.h
+ signalfd.h
+ signum.h
+ sigset.h
+ sigstack.h
+ sigthread.h
+ sockaddr.h
+ socket2.h
+ socket.h
+ socket_type.h
+ stab.def
+ statfs.h
+ stat.h
+ statvfs.h
+ stdio2.h
+ stdio.h
+ stdio-ldbl.h
+ stdio_lim.h
+ stdlib-bsearch.h
+ stdlib-float.h
+ stdlib.h
+ stdlib-ldbl.h
+ string2.h
+ string3.h
+ string.h
+ stropts.h
+ syscall.h
+ sysctl.h
+ sys_errlist.h
+ syslog.h
+ syslog-ldbl.h
+ syslog-path.h
+ termios.h
+ time.h
+ timerfd.h
+ timex.h
+ types.h
+ typesizes.h
+ uio.h
+ unistd.h
+ ustat.h
+ utmp.h
+ utmpx.h
+ utsname.h
+ waitflags.h
+ waitstatus.h
+ wchar2.h
+ wchar.h
+ wchar-ldbl.h
+ wordsize.h
+ xopen_lim.h
+ xtitypes.h
+%%BASE%%/usr/include/x86_64-linux-gnu/
+ fpu_control.h
+%%BASE%%/usr/include/x86_64-linux-gnu/gnu/
+ libc-version.h
+ lib-names-64.h
+ lib-names.h
+ stubs-64.h
+ stubs.h
+%%BASE%%/usr/include/x86_64-linux-gnu/
+ ieee754.h
+%%BASE%%/usr/include/x86_64-linux-gnu/sys/
+ acct.h
+ auxv.h
+ bitypes.h
+ cdefs.h
+ debugreg.h
+ dir.h
+ elf.h
+ epoll.h
+ errno.h
+ eventfd.h
+ fanotify.h
+ fcntl.h
+ file.h
+ fsuid.h
+ gmon.h
+ gmon_out.h
+ inotify.h
+ ioctl.h
+ io.h
+ ipc.h
+ kd.h
+ klog.h
+ mman.h
+ mount.h
+ msg.h
+ mtio.h
+ param.h
+ pci.h
+ perm.h
+ personality.h
+ poll.h
+ prctl.h
+ procfs.h
+ profil.h
+ ptrace.h
+ queue.h
+ quota.h
+ raw.h
+ reboot.h
+ reg.h
+ resource.h
+ select.h
+ sem.h
+ sendfile.h
+ shm.h
+ signalfd.h
+ signal.h
+ socket.h
+ socketvar.h
+ soundcard.h
+ statfs.h
+ stat.h
+ statvfs.h
+ stropts.h
+ swap.h
+ syscall.h
+ sysctl.h
+ sysinfo.h
+ syslog.h
+ sysmacros.h
+ termios.h
+ timeb.h
+ time.h
+ timerfd.h
+ times.h
+ timex.h
+ ttychars.h
+ ttydefaults.h
+ types.h
+ ucontext.h
+ uio.h
+ ultrasound.h
+ un.h
+ unistd.h
+ user.h
+ ustat.h
+ utsname.h
+ vfs.h
+ vlimit.h
+ vm86.h
+ vt.h
+ vtimes.h
+ wait.h
+ xattr.h
+%%BASE%%/usr/include/
+ xlocale.h
+%%BASE%%/usr/lib/x86_64-linux-gnu/
+ crt1.o
+ crti.o
+ crtn.o
+ gcrt1.o
+ libanl.a
+ libanl.so
+ libc.a
+ libc_nonshared.a
+ libcrypt.a
+ libcrypt.so
+ libc.so
+ libdl.a
+ libdl.so
+ libieee.a
+ libm.a
+ libm.so
+ libmvec.a
+ libmvec_nonshared.a
+ libmvec.so
+ libnsl.a
+ libnsl.so
+ libnss_compat.so
+ libnss_dns.so
+ libnss_files.so
+ libnss_hesiod.so
+ libnss_nisplus.so
+ libnss_nis.so
+ libpthread.a
+ libpthread_nonshared.a
+ libpthread.so
+ libresolv.a
+ libresolv.so
+ librpcsvc.a
+ librt.a
+ librt.so
+ libutil.a
+ libutil.so
+ Mcrt1.o
+ Scrt1.o
+%%BASE%%/usr/share/file/magic.mgc
+%%BASE%%/usr/share/
+ group
+ ld.so.conf
+ OSMAJOR
+ OSRELEASE
+ OSVERSION
+ passwd
+ STDARCH
+ terminfo.db
+ x86_64-linux-gnu.conf
+@dir %%BASE%%/usr/sbin
+@dir %%BASE%%/usr/lib/pkgconfig
+@dir %%BASE%%/usr/local
+
+
+[FILE:18933:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
 
 Libexec_DragonFly=	/libexec/ld-elf.so.2
 Libexec_FreeBSD=	/libexec/ld-elf.so.1
+Libexec_Linux=		# empty
 
 # /bin/cat    (archivers/libarchive)
 # /bin/md5    (security/sha256)
@@ -996,6 +2839,12 @@ Bin_FreeBSD=	/bin/[ \
 		/bin/sleep \
 		/bin/test \
 		/bin/unlink
+
+Bin_Linux=	/bin/hostname \
+		/bin/pax \
+		/bin/dash \
+		/bin/sh \
+		# rest comes form coreutils
 
 # /usr/bin/awk    (lang/nawk)
 # /usr/bin/cpio	  (archivers/libarchive)
@@ -1056,29 +2905,57 @@ Usr_Bin_DragonFly= \
 		/usr/bin/whoami \
 		# end
 
-Usr_Sbin_DragonFly= \
-		/usr/sbin/pw \
-		/usr/sbin/pwd_mkdb
-		# end
-
 Usr_Bin_FreeBSD=	${Usr_Bin_DragonFly}
+
+Usr_Bin_Linux=	# all come from coreutils except two
+		# /bin/which and /usr/bin/ldd are scripts, special handling
+
+Usr_Sbin_DragonFly= 	/usr/sbin/pw \
+			/usr/sbin/pwd_mkdb \
+			# end
 Usr_Sbin_FreeBSD=	${Usr_Sbin_DragonFly}
+Usr_Sbin_Linux=		# end
 
 static_lib_generic=	/usr/lib/libc.a \
 			/usr/lib/libm.a \
 			/usr/lib/libutil.a \
 			/usr/lib/libcrypt.a \
-			/usr/lib/libkvm.a \
 			/usr/lib/libpthread.a
 static_lib_FreeBSD=	${static_lib_generic} \
+			/usr/lib/libkvm.a \
 			/usr/lib/libusb.a \
 			/usr/lib/libusbhid.a
 static_lib_DragonFly=	${static_lib_generic} \
+			/usr/lib/libkvm.a \
 			/usr/lib/libusb.a \
 			/usr/lib/libusbhid.a \
 			/usr/lib/crt1.o \
 			/usr/lib/crti.o \
 			/usr/lib/crtn.o
+static_lib_Linux=	# Linux doesn't use /usr/lib but a sudirectory, needs special list
+Linux_static_libs=	libc.a \
+			libc_nonshared.a \
+			libm.a \
+			libutil.a \
+			libcrypt.a \
+			libpthread.a \
+			libpthread_nonshared.a \
+			libdl.a \
+			libnsl.a \
+			librt.a \
+			libresolv.a \
+			libanl.a \
+			libmvec.a \
+			libmvec_nonshared.a \
+			librpcsvc.a \
+			libieee.a \
+			Mcrt1.o \
+			Scrt1.o \
+			crt1.o \
+			crti.o \
+			crtn.o \
+			gcrt1.o \
+			# end
 dynamic_generic=	/lib/${libc} \
 			/lib/${libm} \
 			/lib/${libutil} \
@@ -1092,6 +2969,40 @@ dynamic_lib_DragonFly=	${dynamic_generic} \
 			/usr/lib/libpthread.so.0 \
 			/usr/lib/${libusb} \
 			/usr/lib/${libusbhid}
+dynamic_lib_Linux=	# Linux doesn't use /usr/lib, needs special list
+Linux_RTLD=		ld-2.23.so/ld-linux-x86-64.so.2
+Linux_C_lib=		libc-2.23.so/libc.so.6
+Linux_thread_lib=	libpthread-2.23.so/libpthread.so.0
+			# /lib/x86_64-linux-gnu => /lib64
+			# real file / soname (also symlink)
+			# use to create /usr/lib64/<lib>.so => /lib64/soname
+Linux_shared_libs=	${Linux_C_lib} \
+			${Linux_thread_lib} \
+			libm-2.23.so/libm.so.6 \
+			libutil-2.23.so/libutil.so.1 \
+			libcrypt-2.23.so/libcrypt.so.1 \
+			libdl-2.23.so/libdl.so.2 \
+			libnsl-2.23.so/libnsl.so.1 \
+			librt-2.23.so/librt.so.1 \
+			libresolv-2.23.so/libresolv.so.2 \
+			libanl-2.23.so/libanl.so.1 \
+			libmvec-2.23.so/libmvec.so.1 \
+			libnss_compat-2.23.so/libnss_compat.so.2 \
+			libnss_dns-2.23.so/libnss_dns.so.2 \
+			libnss_files-2.23.so/libnss_files.so.2 \
+			libnss_hesiod-2.23.so/libnss_hesiod.so.2 \
+			libnss_nis-2.23.so/libnss_nis.so.2 \
+			libnss_nisplus-2.23.so/libnss_nisplus.so.2 \
+			# end
+Linux_extra_libs1=	# libaudit.so.1.0.0/libaudit.so.1 \
+			# end (/lib)
+Linux_extra_libs2=	# libustr-1.0.so.1.0.4/libustr-1.0.so.1 \
+			# end (/usr/lib)
+Linux_single_libs1=	# libsepol.so.1 \
+			# libselinux.so.1 \
+			# end (/lib)
+Linux_single_libs2=	# libsemanage.so.1 \
+			# end (/usr/lib)
 posix_headers=		aio.h \
 			arpa/inet.h \
 			assert.h \
@@ -1329,8 +3240,142 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			xlocale/_uchar.h \
 			# end
 
-pcfiles_FreeBSD=	\
+headers_Linux_dirs=	arpa \
+			asm-generic \
+			drm \
+			linux \
+			net \
+			netash \
+			netatalk \
+			netax25 \
+			neteconet \
+			netinet \
+			netipx \
+			netiucv \
+			netpacket \
+			netrom \
+			netrose \
+			nfs \
+			protocols \
+			rpc \
+			rpcsvc \
+			scsi \
+			sys \
+			x86_64-linux-gnu \
+			#end
+headers_Linux=		_G_config.h \
+			aio.h \
+			aliases.h \
+			alloca.h \
+			ar.h \
+			argp.h \
+			argz.h \
+			assert.h \
+			byteswap.h \
+			complex.h \
+			cpio.h \
+			crypt.h \
+			ctype.h \
+			dirent.h \
+			dlfcn.h \
+			elf.h \
+			endian.h \
+			envz.h \
+			err.h \
+			errno.h \
+			error.h \
+			execinfo.h \
+			fcntl.h \
+			features.h \
+			fenv.h \
+			fmtmsg.h \
+			fnmatch.h \
+			fstab.h \
+			fts.h \
+			ftw.h \
+			gconv.h \
+			getopt.h \
+			glob.h \
+			gnu-versions.h \
+			grp.h \
+			gshadow.h \
+			iconv.h \
+			ifaddrs.h \
+			inttypes.h \
+			langinfo.h \
+			lastlog.h \
+			libgen.h \
+			libintl.h \
+			libio.h \
+			limits.h \
+			link.h \
+			locale.h \
+			malloc.h \
+			math.h \
+			mcheck.h \
+			memory.h \
+			mntent.h \
+			monetary.h \
+			mqueue.h \
+			netdb.h \
+			nl_types.h \
+			nss.h \
+			obstack.h \
+			paths.h \
+			poll.h \
+			printf.h \
+			pthread.h \
+			pty.h \
+			pwd.h \
+			re_comp.h \
+			regex.h \
+			regexp.h \
+			resolv.h \
+			sched.h \
+			search.h \
+			semaphore.h \
+			setjmp.h \
+			sgtty.h \
+			shadow.h \
+			signal.h \
+			spawn.h \
+			stab.h \
+			stdc-predef.h \
+			stdint.h \
+			stdio.h \
+			stdio_ext.h \
+			stdlib.h \
+			string.h \
+			strings.h \
+			stropts.h \
+			syscall.h \
+			sysexits.h \
+			syslog.h \
+			tar.h \
+			termio.h \
+			termios.h \
+			tgmath.h \
+			thread_db.h \
+			time.h \
+			ttyent.h \
+			uchar.h \
+			ucontext.h \
+			ulimit.h \
+			unistd.h \
+			ustat.h \
+			utime.h \
+			utmp.h \
+			utmpx.h \
+			values.h \
+			wait.h \
+			wchar.h \
+			wctype.h \
+			wordexp.h \
+			xlocale.h \
 			# end
+
+pcfiles_Linux=		# end
+pcfiles_FreeBSD=	# end
 pcfiles_DragonFly=	libusb-0.1.pc \
 			libusb-2.0.pc \
 			libusb-1.0.pc \
@@ -1340,26 +3385,51 @@ sysroot:
 	@echo "building not required"
 
 install:
-	${MKDIR} ${DESTDIR}${BASE}/bin \
-		${DESTDIR}${BASE}/libexec \
+	${MKDIR} \
+		${DESTDIR}${BASE}/bin \
+		${DESTDIR}${BASE}/lib \
 		${DESTDIR}${BASE}/usr/bin \
 		${DESTDIR}${BASE}/usr/include \
 		${DESTDIR}${BASE}/usr/lib/pkgconfig \
 		${DESTDIR}${BASE}/usr/share/file \
 		${DESTDIR}${BASE}/usr/local \
 		${DESTDIR}${BASE}/usr/include/arpa \
-		${DESTDIR}${BASE}/usr/include/cpu \
-		${DESTDIR}${BASE}/usr/include/rpc \
-		${DESTDIR}${BASE}/usr/include/rpcsvc \
-		${DESTDIR}${BASE}/usr/include/sys \
 		${DESTDIR}${BASE}/usr/include/net \
 		${DESTDIR}${BASE}/usr/include/netinet \
+		${DESTDIR}${BASE}/usr/include/rpc \
+		${DESTDIR}${BASE}/usr/include/rpcsvc \
+		${DESTDIR}${BASE}/usr/sbin \
+		# end
+.if "${OPSYS}" == "DragonFly"
+	${MKDIR} \
+		${DESTDIR}${BASE}/libexec \
+		${DESTDIR}${BASE}/usr/include/cpu \
 		${DESTDIR}${BASE}/usr/include/netinet6 \
+		${DESTDIR}${BASE}/usr/include/sys \
 		${DESTDIR}${BASE}/usr/include/machine \
 		${DESTDIR}${BASE}/usr/include/vm \
 		${DESTDIR}${BASE}/usr/include/xlocale \
-		${DESTDIR}${BASE}/usr/sbin \
 		# end
+.endif
+.if "${OPSYS}" == "FreeBSD"
+	${MKDIR} \
+		${DESTDIR}${BASE}/libexec \
+		${DESTDIR}${BASE}/usr/include/cpu \
+		${DESTDIR}${BASE}/usr/include/netinet6 \
+		${DESTDIR}${BASE}/usr/include/sys \
+		${DESTDIR}${BASE}/usr/include/machine \
+		${DESTDIR}${BASE}/usr/include/vm \
+		${DESTDIR}${BASE}/usr/include/xlocale \
+		# end
+.endif
+.if "${OPSYS}" == "Linux"
+	${MKDIR} \
+		${DESTDIR}${BASE}/lib64 \
+		${DESTDIR}${BASE}/lib/x86_64-linux-gnu \
+		${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu \
+		# end
+.endif
+
 .for item in ${Bin_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/bin/
 .endfor
@@ -1373,33 +3443,83 @@ install:
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/libexec/
 .endfor
 .for item in ${dynamic_lib_${OPSYS}}
-	@echo "dynlib item is ${item}"
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/lib/
 .endfor
 .for item in ${static_lib_${OPSYS}}
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/lib/
 .endfor
+.if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
 	(cd ${DESTDIR}${BASE}/usr/lib && \
 		ln -s ${libc} libc.so && \
 		ln -s ${libm} libm.so && \
 		ln -s ${libkvm} libkvm.so && \
 		ln -s ${libcrypt} libcrypt.so && \
-		ln -s ${libutil} libutil.so)
-.if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
-	(cd ${DESTDIR}${BASE}/usr/lib && \
+		ln -s ${libutil} libutil.so && \
 		ln -s ${libusb} libusb.so && \
 		ln -s ${libusbhid} libusbhid.so)
+.endif
+.if ${OPSYS} == Linux
+.  for item in ${Linux_static_libs}
+	${BSD_INSTALL_DATA} ../linux/usr/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_shared_libs}
+	cp -a ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp -a ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp -a ../linux/usr/lib/x86_64-linux-gnu/${item:T:R} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_extra_libs1} ${Linux_RTLD}
+	cp -a ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp -a ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_extra_libs2}
+	cp -a ../linux/usr/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+	cp -a ../linux/usr/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_single_libs1}
+	cp -a ../linux/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_single_libs2}
+	cp -a ../linux/usr/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+	ln -s /lib/x86_64-linux-gnu/${Linux_RTLD:H} ${DESTDIR}${BASE}/lib64/${Linux_RTLD:T}
+	# certain shared libraries must be executable
+	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_RTLD:H}
+	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_C_lib:H}
+	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_thread_lib:H}
+	# use coreutils that FreeBSD and DragonFly passed on (/bin)
+.  for item in [ chmod cp date echo expr kill link ln ls mkdir mv pwd realpath rm rmdir sleep test unlink
+	cp -a ${LOCALBASE}/bin/g${item} ${DESTDIR}${BASE}/bin/${item}
+.  endfor
+	# user coreutils that FreeBSD and DragonFly passed on (/usr/bin)
+.  for item in basename chgrp chown comm cut dirname env false head id install join mkfifo mktemp \
+	printenv printf readlink stat tail tee touch tee tr true tsort uniq wc whoami
+	cp -a ${LOCALBASE}/bin/g${item} ${DESTDIR}${BASE}/usr/bin/${item}
+.  endfor
+	# From linux-only shadow package
+.  for sbinitem in useradd usermod groupadd
+	cp -a ${LOCALBASE}/sbin/${sbinitem} ${DESTDIR}${BASE}/usr/bin/
+.  endfor
+	# ldd and which are scripts, can't be stripped
+	${BSD_INSTALL_SCRIPT} ../linux/usr/bin/ldd ${DESTDIR}${BASE}/usr/bin/
+	${BSD_INSTALL_SCRIPT} ../linux/bin/which ${DESTDIR}${BASE}/usr/bin/
+	# convert ldd from bash to dash
+	sed -i'' -e "s|/bin/bash|/bin/dash|" ${DESTDIR}${BASE}/usr/bin/ldd
+	# for convenience from listing hundreds of files, copy all from specific directories
+.  for hdr in ${headers_Linux_dirs}
+	cp -a ../linux/usr/include/${hdr} ${DESTDIR}${BASE}/usr/include/
+.  endfor
+	# i386 version conflicts with amd64 version, so copy just the i386 files separately
+	cp -a ../ravensys-root_14/usr/include/i386-linux-gnu ${DESTDIR}${BASE}/usr/include/
 .endif
 .for item in ${pcfiles_${OPSYS}}
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/libdata/pkgconfig/${item} \
 		${DESTDIR}${BASE}/usr/lib/pkgconfig/
 .endfor
-	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/lorder \
-		${DESTDIR}${BASE}/usr/bin/
+	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/lorder ${DESTDIR}${BASE}/usr/bin/
 .for item in md5 sha256 
-	cp ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
+	cp -a ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
 .endfor
-	cp ${LOCALBASE}/bin/gcat ${DESTDIR}${BASE}/bin/cat
+	cp -a ${LOCALBASE}/bin/gcat ${DESTDIR}${BASE}/bin/cat
 .for item in bzip2 bunzip2 bzcat bzgrep bzegrep bzfgrep \
 	grep fetch file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
 	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
@@ -1407,13 +3527,15 @@ install:
 	unzip less mtree bsdcat makewhatis dupe genpatch portfix
 	cp ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/
 .endfor
-	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
 .for item in ${headers_${OPSYS}}
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/include/${item} ${DESTDIR}${BASE}/usr/include/${item}
 .endfor
+.if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
+	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/include/cpu/*.h ${DESTDIR}${BASE}/usr/include/cpu/
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/include/machine/*.h ${DESTDIR}${BASE}/usr/include/machine/
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/include/sys/*.h ${DESTDIR}${BASE}/usr/include/sys/
+.endif
 .for item in gsort/sort nawk/awk objdump/objdump-sysroot less/more \
 	bmake/make bsdcpio/cpio bsdtar/tar gcmp/cmp gdiff/diff \
 	gdiff3/diff3 gsdiff/sdiff gfind/find gxargs/xargs gm4/m4 \
@@ -1434,6 +3556,120 @@ extra-includes:
 .for item in ${headers_${OPSYS}}
 	@fgrep "#include" /usr/include/${item} || true
 .endfor
+
+
+[FILE:938:files/linux-group]
+root:x:0:
+daemon:x:1:
+bin:x:2:
+sys:x:3:
+adm:x:4:syslog
+tty:x:5:
+disk:x:6:
+lp:x:7:
+mail:x:8:
+news:x:9:
+uucp:x:10:
+man:x:12:
+proxy:x:13:
+kmem:x:15:
+dialout:x:20:
+fax:x:21:
+voice:x:22:
+cdrom:x:24:
+floppy:x:25:
+tape:x:26:
+sudo:x:27:
+audio:x:29:pulse
+dip:x:30:
+www-data:x:33:
+backup:x:34:
+operator:x:37:
+list:x:38:
+irc:x:39:
+src:x:40:
+gnats:x:41:
+shadow:x:42:
+utmp:x:43:
+video:x:44:
+sasl:x:45:
+plugdev:x:46:
+staff:x:50:
+games:x:60:
+users:x:100:
+nogroup:x:65534:
+systemd-journal:x:101:
+systemd-timesync:x:102:
+systemd-network:x:103:
+systemd-resolve:x:104:
+systemd-bus-proxy:x:105:
+input:x:106:
+crontab:x:107:
+syslog:x:108:
+netdev:x:109:
+messagebus:x:110:
+uuidd:x:111:
+ssl-cert:x:112:
+lpadmin:x:113:
+ntp:x:114:
+mlocate:x:115:
+ssh:x:116:
+avahi-autoipd:x:117:
+avahi:x:118:
+bluetooth:x:119:
+scanner:x:120:saned
+colord:x:121:
+pulse:x:122:
+pulse-access:x:123:
+mdm:x:124:
+nopasswdlogin:x:125:
+nm-openvpn:x:126:
+rtkit:x:127:
+saned:x:128:
+vboxsf:x:129:
+
+
+[FILE:2255:files/linux-passwd]
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false
+systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false
+systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false
+systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false
+syslog:x:104:108::/home/syslog:/bin/false
+_apt:x:105:65534::/nonexistent:/bin/false
+messagebus:x:106:110::/var/run/dbus:/bin/false
+uuidd:x:107:111::/run/uuidd:/bin/false
+ntp:x:108:114::/home/ntp:/bin/false
+avahi-autoipd:x:109:117:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/bin/false
+avahi:x:110:118:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/bin/false
+dnsmasq:x:111:65534:dnsmasq,,,:/var/lib/misc:/bin/false
+colord:x:112:121:colord colour management daemon,,,:/var/lib/colord:/bin/false
+speech-dispatcher:x:113:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false
+hplip:x:114:7:HPLIP system user,,,:/var/run/hplip:/bin/false
+kernoops:x:115:65534:Kernel Oops Tracking Daemon,,,:/:/bin/false
+pulse:x:116:122:PulseAudio daemon,,,:/var/run/pulse:/bin/false
+mdm:x:117:124:MDM Display Manager:/var/lib/mdm:/bin/false
+nm-openvpn:x:118:126:NetworkManager OpenVPN,,,:/var/lib/openvpn/chroot:/bin/false
+rtkit:x:119:127:RealtimeKit,,,:/proc:/bin/false
+saned:x:120:128::/var/lib/saned:/bin/false
+usbmux:x:121:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
 
 
 [FILE:503:files/special.mk]

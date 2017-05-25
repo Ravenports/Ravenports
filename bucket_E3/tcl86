@@ -2127,10 +2127,21 @@ Index: generic/tclEnsemble.c
  install-private-headers:
 
 
-[FILE:689:patches/patch-unix_configure]
+[FILE:1070:patches/patch-unix_configure]
 --- unix/configure.orig	2016-07-26 14:07:18 UTC
 +++ unix/configure
-@@ -7594,7 +7594,7 @@ fi
+@@ -7374,6 +7374,10 @@ fi
+ 	Linux*|GNU*|NetBSD-Debian)
+ 	    SHLIB_CFLAGS="-fPIC"
+ 	    SHLIB_SUFFIX=".so"
++	    TCL_TRIM_DOTS=`echo ${VERSION} | tr -d .`
++	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
++	    SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.so.1'
++	    TCL_LIB_VERSIONS_OK=nodots
+ 
+ 	    CFLAGS_OPTIMIZE="-O2"
+ 	    # egcs-2.91.66 on Redhat Linux 6.0 generates lots of warnings
+@@ -7594,7 +7598,7 @@ fi
  fi
  
  	    ;;
@@ -2139,7 +2150,7 @@ Index: generic/tclEnsemble.c
  	    # This configuration from FreeBSD Ports.
  	    SHLIB_CFLAGS="-fPIC"
  	    SHLIB_LD="${CC} -shared"
-@@ -7617,15 +7617,11 @@ fi
+@@ -7617,15 +7621,11 @@ fi
  		LDFLAGS="$LDFLAGS $PTHREAD_LIBS"
  fi
  

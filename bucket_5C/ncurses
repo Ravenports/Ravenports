@@ -2,6 +2,7 @@
 
 NAMEBASE=		ncurses
 VERSION=		6.0
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard static
 SDESC[standard]=	Terminal-independent lib for full-screen output
@@ -24,7 +25,7 @@ OPTIONS_AVAILABLE=	STATIC
 OPTIONS_STANDARD=	none
 VOPTS[static]=		STATIC=ON
 
-USES=			pkgconfig terminfo:primary shebangfix
+USES=			bdb:static pkgconfig terminfo:primary shebangfix
 
 LICENSE=		MIT:primary
 LICENSE_SCHEME=		solo
@@ -53,10 +54,11 @@ CONFIGURE_ARGS=		--datadir={{PREFIX}}/share/misc
 			--without-debug
 			--without-manpage-renames
 			--mandir={{MANPREFIX}}/man
-			--with-hashed-db
+			--with-hashed-db=db5
+			--with-shlib-version=rel
 			--datadir={{PREFIX}}/share/misc
 			--with-default-terminfo-dir={{PREFIX}}/share/misc/terminfo
-			--with-terminfo-dirs={{PREFIX}}/share/misc/terminfo
+			--with-terminfo-dirs={{PREFIX}}/share/misc/terminfo:/usr/share/terminfo
 CONFIGURE_ENV=		gnat_exists="no"
 
 BUILD_WRKSRC=		{{WRKSRC}}/build.nowidec
@@ -92,6 +94,11 @@ post-patch:
 	${REINPLACE_CMD} -e 's,$$(INSTALL_PROG) ncurses-config,@INSTALL_SCRIPT@ ncurses-config,' ${WRKSRC}/misc/Makefile.in
 	${REINPLACE_CMD} -e 's,/usr/include,${PREFIX}/include,g' ${WRKSRC}/misc/ncurses-config.in
 
+post-stage:
+	${SED} -i'' -e 's|-ldb-5||' -e 's|-Wl,.*/db5||' \
+		${STAGEDIR}${PREFIX}/lib/pkgconfig/*.pc \
+		${STAGEDIR}${PREFIX}/bin/ncurse*-config
+
 post-install-STATIC-ON:
 	${MV} ${STAGEDIR}${PREFIX}/share/misc/terminfo.db \
 		${STAGEDIR}${PREFIX}/share/misc/terminfo.db.default
@@ -104,6 +111,7 @@ post-build:
 	# compiler even there.
 	(cd ${.CURDIR} && ${MAKE} ${.MAKEFLAGS} \
 		INSTALL_WRKSRC=${WRKSRC}/build.widec do-install)
+	# Remove -ldb-5 from pc files.  It's been statically linked in
 
 post-configure:
 	cd ${.CURDIR} && \

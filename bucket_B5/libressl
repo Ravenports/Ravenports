@@ -33,6 +33,8 @@ CPE_VENDOR=		openbsd
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-nc
 			--disable-hardening
+CONFIGURE_ENV=		ac_cv_search_b64_ntop=no
+			ac_cv_search___b64_ntop=no
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -46,9 +48,11 @@ TEST_TARGET=		check
 [SKIP_MANPAGES].DESCRIPTION=		Avoid installing LibreSSL manpages
 [SKIP_MANPAGES].EXTRA_PATCHES_ON=	extra-patch-MAN3
 
+post-install-dragonfly:
+	${INSTALL_SCRIPT} ${WRKSRC}/apps/nc/nc ${STAGEDIR}${PREFIX}/bin/nc
+
 post-install:
 	${RM} -r ${STAGEDIR}/${PREFIX}/etc/ssl/cert.pem
-	${INSTALL_SCRIPT} ${WRKSRC}/apps/nc/nc ${STAGEDIR}${PREFIX}/bin/nc
 
 post-install-SKIP_MANPAGES-ON:
 	${RM} ${STAGEDIR}${PREFIX}/share/man/man1/openssl.1

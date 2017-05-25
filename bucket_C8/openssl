@@ -16,13 +16,8 @@ SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386 THREADS
 OPTIONS_STANDARD=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386 THREADS
-OPT_ON[x86_64]=		ASM
-			EC
-OPT_ON[all]=		SHARED
-			SSE2
-			SSL2
-			SSL3
-			THREADS
+OPT_ON[x86_64]=		ASM EC
+OPT_ON[all]=		SHARED SSE2 SSL2 SSL3 THREADS
 OPT_ON[i386]=		I386
 
 USES=			cpe perl:build
@@ -2072,4 +2067,17 @@ Edit %%PREFIX%%/openssl/openssl.cnf to fit your needs.
    amd64-*-*bsd*)	OUT="BSD-x86_64" ;;
    *86*-*-*bsd*)	
  			case "`(file -L /bin/sh) 2>/dev/null`" in
+
+
+[FILE:1361:linux/patch-Configure]
+--- Configure.intermediate	2017-05-24 14:55:46 UTC
++++ Configure
+@@ -428,6 +428,7 @@ my %table=(
+ "debug-linux-x86_64-clang",	"clang: -DBN_DEBUG -DREF_CHECK -DCONF_DEBUG -DCRYPTO_MDEBUG -m64 -DL_ENDIAN -g -Wall -Wextra $clang_disabled_warnings -Qunused-arguments::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR):::64",
+ "linux-x86_64-icc", "icc:-DL_ENDIAN -O2::-D_REENTRANT::-ldl -no_cpprt:SIXTY_FOUR_BIT_LONG RC4_CHUNK DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR):::64",
+ "linux-x32",	"gcc:-mx32 -DL_ENDIAN -O3 -Wall::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT RC4_CHUNK_LL DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-mx32:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR):::x32",
++"linux-x86_64",	"gcc:-DL_ENDIAN -O3 -Wall::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC::.so.\$(SHLIBVER):::64",
+ "linux64-s390x",	"gcc:-m64 -DB_ENDIAN -O3 -Wall::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHAR RC4_CHUNK DES_INT DES_UNROLL:${s390x_asm}:64:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR):::64",
+ #### So called "highgprs" target for z/Architecture CPUs
+ # "Highgprs" is kernel feature first implemented in Linux 2.6.32, see
 

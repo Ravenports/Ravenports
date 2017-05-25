@@ -15,10 +15,13 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		zlib:static:standard
+B_DEPS[linux]=		libbsd:single:standard
 
 LICENSE=		BSD3CLAUSE:single
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
+
+CFLAGS=			-DMACHINE=\\\"{{ARCH_STANDARD}}\\\"
 
 do-extract:
 	${MKDIR} ${WRKSRC}
@@ -67,12 +70,17 @@ share/man/man8/makewhatis.8.gz
 
 
 
-[FILE:361:files/Makefile]
+[FILE:446:files/Makefile]
 PROG=		makewhatis
 SRCS=		${PROG}.c
 PREFIX?=	/usr/local
 CFLAGS+=	-I${PREFIX}/include -I.
-LIBS=		${PREFIX}/lib/libz.a
+STATIC_LIBS=	${PREFIX}/lib/libz.a
+
+.if "${OPSYS}" == "Linux"
+STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
+.endif
+
 
 all: ${PROG}
 
@@ -80,7 +88,7 @@ clean:
 	rm -f ${OBJS} makewhatis
 
 ${PROG}: ${SRCS}
-	${CC} -o ${PROG} ${.ALLSRC} ${CFLAGS} ${LIBS}
+	${CC} -o ${PROG} ${.ALLSRC} ${CFLAGS} ${STATIC_LIBS}
 
 install:
 	${BSD_INSTALL_PROGRAM} ${PROG} ${DESTDIR}${PREFIX}/bin/
@@ -225,12 +233,18 @@ with additional contributions by
 .An Franco Fichtner Aq Mt franco@lastsummer.de .
 
 
-[FILE:23331:files/makewhatis.c]
+[FILE:24303:files/makewhatis.c]
 /*-
  * $FreeBSD: src/usr.bin/makewhatis/makewhatis.c,v 1.9 2002/09/04 23:29:04 dwmalone Exp $
  */
 
+#ifdef __linux__
+#include <bsd/sys/tree.h>
+#include <bsd/stringlist.h>
+#else
 #include <sys/tree.h>
+#include <stringlist.h>
+#endif
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/queue.h>
@@ -242,9 +256,55 @@ with additional contributions by
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stringlist.h>
 #include <unistd.h>
 #include <zlib.h>
+
+#ifndef __unused
+#define __unused	__attribute__((__unused__))
+#endif
+
+#ifdef __linux__
+#include <bsd/stdio.h>
+#include <bsd/stdlib.h>
+
+static int
+vasprintf(char **strp, const char *fmt, va_list args)
+{
+    va_list args_copy;
+    int status, needed;
+
+    va_copy(args_copy, args);
+    needed = vsnprintf(NULL, 0, fmt, args_copy);
+    va_end(args_copy);
+    if (needed < 0) {
+        *strp = NULL;
+        return needed;
+    }
+    *strp = malloc(needed + 1);
+    if (*strp == NULL)
+        return -1;
+    status = vsnprintf(*strp, needed + 1, fmt, args);
+    if (status >= 0)
+        return status;
+    else {
+        free(*strp);
+        *strp = NULL;
+        return status;
+    }
+}
+
+static int
+asprintf(char **strp, const char *fmt, ...)
+{
+    va_list args;
+    int status;
+
+    va_start(args, fmt);
+    status = vasprintf(strp, fmt, args);
+    va_end(args);
+    return status;
+}
+#endif
 
 #define DEFAULT_MANPATH		"/usr/share/man"
 #define LINE_ALLOC		4096
