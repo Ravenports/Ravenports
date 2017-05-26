@@ -7,7 +7,7 @@ set -e
 validate_env dp_BZCAT dp_CAT dp_DISTDIR dp_ECHO_MSG dp_GZCAT dp_OPSYS \
 	dp_PATCH dp_PATCHDIR dp_OPSYS_PATCHDIR dp_PATCHFILES dp_PATCH_ARGS \
 	dp_PATCH_DEBUG_TMP dp_PATCH_DIST_ARGS dp_PATCH_SILENT \
-	dp_PATCH_WRKSRC dp_PORTID dp_UNZIP_CMD dp_XZCAT
+	dp_PATCH_WRKSRC dp_PORTID dp_UNZIP_CMD dp_XZCAT dp_DIST_SUBDIR
 
 [ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_DO_PATCH}" ] && set -x
 
@@ -85,7 +85,7 @@ patch_from_directory() {
 
 if [ -n "${dp_PATCHFILES}" ]; then
 	${dp_ECHO_MSG} "===>  Applying distribution patches for ${dp_PORTID}"
-	cd "${dp_DISTDIR}"
+	cd "${dp_DISTDIR}/${dp_DIST_SUBDIR}"
 	for i in ${dp_PATCHFILES}; do
 		apply_one_patch "${i}" \
 			"${dp_PATCH_DEBUG_TMP:+ Applying distribution patch}" \

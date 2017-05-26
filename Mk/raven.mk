@@ -440,6 +440,7 @@ do-patch:
 		dp_BZCAT="${BZCAT}" \
 		dp_CAT="${CAT}" \
 		dp_DISTDIR="${DISTDIR}" \
+		dp_DIST_SUBDIR='${DIST_SUBDIR}' \
 		dp_ECHO_MSG="${ECHO_MSG}" \
 		dp_GZCAT="${GZCAT}" \
 		dp_OPSYS="${OPSYS}" \
