@@ -2,6 +2,7 @@
 
 NAMEBASE=		bash
 VERSION=		4.4.12
+REVISION=		1
 KEYWORDS=		shells
 VARIANTS=		standard static nls
 SDESC[nls]=		GNU Bourne Again SHell with native lang support
@@ -75,10 +76,10 @@ CPPFLAGS=		-DDEFAULT_PATH_VALUE='\"{{STANDARD_PATH}}:{{LOCALBASE}}/sbin:{{LOCALB
 
 [NOTSTD].DESCRIPTION=			Non-standard designation
 
-[STATIC].BUILD_DEPENDS_ON=		readline:single:standard
+[STATIC].BUILDRUN_DEPENDS_OFF=		ncurses:primary:standard
+[STATIC].BUILD_DEPENDS_ON=		ncurses:primary:standard
 [STATIC].CFLAGS_OFF=			-Wl,-export-dynamic
 [STATIC].CONFIGURE_ENABLE_BOTH=		static-link
-[STATIC].USES_OFF=			readline
 
 [NLS].CONFIGURE_ARGS_ON=		--with-libiconv-prefix={{ICONV_PREFIX}}
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
@@ -383,3 +384,24 @@ share/doc/bash/
  #if defined (HANDLE_MULTIBYTE)
    memset (line_state_invisible->wrapped_line, 0, line_state_invisible->wbsize * sizeof (int));
 
+
+[FILE:652:files/special.mk]
+# On linux with glibc, we can't build a fully static bash because
+# of absurd restrictions put on static linking with nss, dlopen, etc.
+# So we build it dynamic but with libtinfo static.  Leaving glibc-based
+# libraries like libc, libm, pthread, etc, is okay.
+
+.if ${OPSYS} == Linux
+.  if "${PLIST_SUB:MSTATIC-ON=*}" == "STATIC-ON="
+CONFIGURE_ARGS:=	${CONFIGURE_ARGS:N--enable-static-link}
+CFLAGS+=		-Wl,-export-dynamic
+CONFIGURE_ENV+=		ac_cv_func_dlopen=no
+
+TINFOLIBS=		${LOCALBASE}/lib/libtinfo.a \
+			${LOCALBASE}/lib/db5/libdb.a \
+			-lpthread
+
+post-configure-opsys:
+	${REINPLACE_CMD} -e 's|-ltinfo|${TINFOLIBS}|' ${WRKSRC}/Makefile
+.  endif
+.endif

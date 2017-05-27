@@ -2,6 +2,7 @@
 
 NAMEBASE=		pkg-bsd
 VERSION=		1.10.1
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	BSD binary package manager
@@ -48,8 +49,16 @@ VAR_OPSYS[linux]=	CONFIGURE_ENV=LIBS="-ldl"
 post-patch:
 	${REINPLACE_CMD} -e '/mandir = / s|/man|/share/man|' \
 		${WRKSRC}/docs/Makefile.in
+
+post-patch-linux:
 	${REINPLACE_CMD} -e '/OS_STATIC/ s/false/true/' \
 		${WRKSRC}/configure
+	${REINPLACE_CMD} \
+		-e '/pkg_static_LDFLAGS =/ s/$$/ -Wl,-Bdynamic,-lc,-ldl,-Bstatic/' \
+		${WRKSRC}/src/Makefile.in
+	${REINPLACE_CMD} \
+		-e '/libpkg_static_la_LDFLAGS =/ s/$$/ -Wl,-Bdynamic,-lc,-ldl,-Bstatic/' \
+		${WRKSRC}/libpkg/Makefile.in
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/sbin/pkg2ng
@@ -157,6 +166,59 @@ share/zsh/site-functions/_pkg
 sbin/pkg-static
 
 
+[FILE:1473:patches/patch-163d922]
+From 163d922772bed016de01570c71e4902ee5f75e41 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fran=C3=A7ois=20Tigeot?= <ftigeot@wolfpond.org>
+Date: Fri, 26 May 2017 10:22:11 +0200
+Subject: [PATCH] pkg_elf.c: Only FreeBSD uses FreeBSD binaries
+
+* Only compile a check preventing non-FreeBSD binaries from being
+  recognized as valid shared libraries on FreeBSD systems
+
+* This code was preventing shlibs_provided and shlibs_required entries
+  from being put in newly created packages on non-FreeBSD systems
+
+* This commit should fix issue #1578
+---
+ libpkg/pkg_elf.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git libpkg/pkg_elf.c b/libpkg/pkg_elf.c
+index 4cda48801..c3aca4e1f 100644
+--- libpkg/pkg_elf.c
++++ libpkg/pkg_elf.c
+@@ -216,6 +216,7 @@ shlib_valid_abi(const char *fpath, GElf_Ehdr *hdr, const char *abi)
+ 	return (true);
+ }
+ 
++#ifdef __FreeBSD__
+ static bool
+ is_old_freebsd_armheader(const GElf_Ehdr *e)
+ {
+@@ -234,6 +235,7 @@ is_old_freebsd_armheader(const GElf_Ehdr *e)
+ 	}
+ 	return (false);
+ }
++#endif
+ 
+ static int
+ analyse_elf(struct pkg *pkg, const char *fpath)
+@@ -347,11 +349,13 @@ analyse_elf(struct pkg *pkg, const char *fpath)
+ 		goto cleanup; /* Invalid ABI */
+ 	}
+ 
++#ifdef __FreeBSD__
+ 	if (elfhdr.e_ident[EI_OSABI] != ELFOSABI_FREEBSD &&
+ 	    !is_old_freebsd_armheader(&elfhdr)) {
+ 		ret = EPKG_END;
+ 		goto cleanup;
+ 	}
++#endif
+ 
+ 	if ((data = elf_getdata(dynamic, NULL)) == NULL) {
+ 		ret = EPKG_END; /* Some error occurred, ignore this file */
+
+
 [FILE:3078:patches/patch-7eaa671]
 From 7eaa671e88a0636eacffb60db2944a75e3532284 Mon Sep 17 00:00:00 2001
 From: jrmarino <draco@marino.st>
@@ -228,6 +290,184 @@ index 7c8f9b2fe..a2cb5733f 100644
  			}
  		}
  		else {
+
+
+[FILE:6089:patches/patch-b7d9905]
+From b7d990572ae72577abc6760800f4b10744756179 Mon Sep 17 00:00:00 2001
+From: jrmarino <draco@marino.st>
+Date: Fri, 26 May 2017 14:10:40 -0500
+Subject: [PATCH] Fix ELF note parsing and recognize NT_GNU_ABI_TAG
+
+The logic on the ELF note parsing was incorrect.  It happens to work
+on *BSD, but the issue shows on other platforms (e.g. Linux ABI gets
+set to "GNU:0").
+
+The first mistake is assuming the note always has a namespace and that
+this namespace equals the standard name of the operating system.  In
+fact, having a namespace is not even required as there are default
+definitions for tags: NT_VERSION (=1) and NT_ARCH (=2).
+
+The BSDs (at least FreeBSD, DragonFly, and NetBSD) define their
+own namespace (aka "Owner" on readelf" and the NT_VERSION tag, which
+is a single word.  Pkg currently assumes the namespace is equal to
+the osname and assumes there's a NT_VERSION note defined.  For
+correctness, pkg must check that the namespace length is either zero
+or equal to an operating system name before assume a n_type value of
+1 is equivalent to an NT_VERSION note.
+
+A very popular namespace is "GNU".  The tag values of "GNU" overlap
+with with all other namespaces; for example NT_GNU_ABI_TAG is
+value 1 (same as NT_VERSION) and  NT_GNU_ABI_TAG is value 2 (same as
+the default NT_ARCH).  Thus the namespace has to be checked when
+examining n_type of ELF notes.
+
+The second issue is a lack of support for NT_GNU_ABI_TAG.  Linux
+does not use NT_VERSION note, the only one pkg supports.  The ELF
+note parsing code then mistakenly converts the note namespace "GNU"
+into the osname, thus resulting in "GNU:0:..." ABI for Linux.
+
+This code implements NT_GNU_ABI_TAG along side NT_VERSION.  As a
+result, this is the output on x86_64 Linux:
+
+ABI = "Linux:2.6.32:amd64";
+ALTABI = "linux:2.6.32:x86:64";
+
+This is the correct value in the case of Linux.  The glibc was
+compiled with Linux kernel headers from version 2.6.32 and all
+later kernels should be binary-compatible with it.
+
+It has been verified that FreeBSD and DragonFly still function as
+before with this patch.
+---
+ libpkg/pkg_elf.c            | 70 +++++++++++++++++++++++++++++++++++++++------
+ libpkg/private/elf_tables.h |  1 +
+ 2 files changed, 63 insertions(+), 8 deletions(-)
+
+diff --git libpkg/pkg_elf.c libpkg/pkg_elf.c
+index c3aca4e1f..707a4e0a4 100644
+--- libpkg/pkg_elf.c
++++ libpkg/pkg_elf.c
+@@ -710,12 +710,17 @@ pkg_get_myarch_elfparse(char *dest, size_t sz)
+ 	Elf_Note note;
+ 	Elf_Scn *scn = NULL;
+ 	int fd;
++	int version_style = 1;
+ 	char *src = NULL;
+ 	char *osname;
+ 	uint32_t version = 0;
+ 	int ret = EPKG_OK;
+ 	const char *arch, *abi, *endian_corres_str, *wordsize_corres_str, *fpu;
+ 	const char *path;
++	char invalid_osname[] = "Unknown";
++	char *note_os[6] = {"Linux", "GNU", "Solaris", "FreeBSD", "NetBSD", "Syllable"};
++	char *(*pnote_os)[6] = &note_os;
++	uint32_t gnu_abi_tag[4];
+ 
+ 	path = getenv("ABI_FILE");
+ 	if (path == NULL)
+@@ -768,8 +773,21 @@ pkg_get_myarch_elfparse(char *dest, size_t sz)
+ 	while ((uintptr_t)src < ((uintptr_t)data->d_buf + data->d_size)) {
+ 		memcpy(&note, src, sizeof(Elf_Note));
+ 		src += sizeof(Elf_Note);
+-		if (note.n_type == NT_VERSION)
+-			break;
++		if ((strncmp ((const char *) src, "FreeBSD", note.n_namesz) == 0) ||
++		    (strncmp ((const char *) src, "DragonFly", note.n_namesz) == 0) ||
++ 		    (strncmp ((const char *) src, "NetBSD", note.n_namesz) == 0) ||
++		    (note.n_namesz == 0)) {
++			if (note.n_type == NT_VERSION) {
++				version_style = 1;
++				break;
++			}
++		}
++		if (strncmp ((const char *) src, "GNU", note.n_namesz) == 0) {
++			if (note.n_type == NT_GNU_ABI_TAG) {
++				version_style = 2;
++				break;
++			}
++		}
+ 		src += roundup2(note.n_namesz + note.n_descsz, 4);
+ 	}
+ 	if ((uintptr_t)src >= ((uintptr_t)data->d_buf + data->d_size)) {
+@@ -777,17 +795,52 @@ pkg_get_myarch_elfparse(char *dest, size_t sz)
+ 		pkg_emit_error("failed to find the version elf note");
+ 		goto cleanup;
+ 	}
+-	osname = src;
+-	src += roundup2(note.n_namesz, 4);
+-	if (elfhdr.e_ident[EI_DATA] == ELFDATA2MSB)
+-		version = be32dec(src);
+-	else
+-		version = le32dec(src);
++	if (version_style == 2) {
++		/*
++		 * NT_GNU_ABI_TAG
++		 * Operating system (OS) ABI information.  The
++		 * desc field contains 4 words:
++		 * word 0: OS descriptor (ELF_NOTE_OS_LINUX, ELF_NOTE_OS_GNU, etc)
++		 * word 1: major version of the ABI
++		 * word 2: minor version of the ABI
++		 * word 3: subminor version of the ABI
++		 */
++		src += roundup2(note.n_namesz, 4);
++		if (elfhdr.e_ident[EI_DATA] == ELFDATA2MSB) {
++			for (int wdndx = 0; wdndx < 4; wdndx++) {
++				gnu_abi_tag[wdndx] = be32dec(src);
++				src += 4;
++			}
++		} else {
++			for (int wdndx = 0; wdndx < 4; wdndx++) {
++				gnu_abi_tag[wdndx] = le32dec(src);
++				src += 4;
++			}
++		}
++		if (gnu_abi_tag[0] < 6)
++			osname = (*pnote_os)[gnu_abi_tag[0]];
++		else
++			osname = invalid_osname;
++	} else {
++		if (note.n_namesz == 0)
++			osname = invalid_osname;
++		else
++			osname = src;
++		src += roundup2(note.n_namesz, 4);
++		if (elfhdr.e_ident[EI_DATA] == ELFDATA2MSB)
++			version = be32dec(src);
++		else
++			version = le32dec(src);
++	}
+ 
+ 	wordsize_corres_str = elf_corres_to_string(wordsize_corres,
+ 	    (int)elfhdr.e_ident[EI_CLASS]);
+ 
+ 	arch = elf_corres_to_string(mach_corres, (int) elfhdr.e_machine);
++if (version_style == 2) {
++	snprintf(dest, sz, "%s:%d.%d.%d", osname, gnu_abi_tag[1],
++		 gnu_abi_tag[2], gnu_abi_tag[3]);
++} else {
+ #if defined(__DragonFly__)
+ 	snprintf(dest, sz, "%s:%d.%d",
+ 	    osname, version / 100000, (((version / 100 % 1000)+1)/2)*2);
+@@ -796,6 +849,7 @@ pkg_get_myarch_elfparse(char *dest, size_t sz)
+ #else
+ 	snprintf(dest, sz, "%s:%d", osname, version / 100000);
+ #endif
++}
+ 
+ 	switch (elfhdr.e_machine) {
+ 	case EM_ARM:
+diff --git libpkg/private/elf_tables.h libpkg/private/elf_tables.h
+index 7ff4c7e9c..98210d5bd 100644
+--- libpkg/private/elf_tables.h
++++ libpkg/private/elf_tables.h
+@@ -73,6 +73,7 @@ static const struct _elf_corres os_corres[] = {
+ 
+ #define NT_VERSION	1
+ #define NT_ARCH	2
++#define NT_GNU_ABI_TAG	1
+ 
+ /* All possibilities on FreeBSD as of 5/26/2014 */
+ struct arch_trans {
 
 
 [FILE:1551:patches/patch-c05884d]
