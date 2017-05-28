@@ -2,7 +2,7 @@
 
 NAMEBASE=		pkg-bsd
 VERSION=		1.10.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	BSD binary package manager
@@ -44,21 +44,20 @@ SINGLE_JOB=		yes
 INSTALL_TARGET=		install-strip
 
 CFLAGS=			-Wno-error
-VAR_OPSYS[linux]=	CONFIGURE_ENV=LIBS="-ldl"
 
 post-patch:
 	${REINPLACE_CMD} -e '/mandir = / s|/man|/share/man|' \
 		${WRKSRC}/docs/Makefile.in
+	${REINPLACE_CMD}\
+		-e '/libpkg_static_la_CFLAGS =/ s/$$/ -DSKIP_PLUGINS/' \
+		${WRKSRC}/libpkg/Makefile.in
 
 post-patch-linux:
-	${REINPLACE_CMD} -e '/OS_STATIC/ s/false/true/' \
-		${WRKSRC}/configure
-	${REINPLACE_CMD} \
-		-e '/pkg_static_LDFLAGS =/ s/$$/ -Wl,-Bdynamic,-lc,-ldl,-Bstatic/' \
-		${WRKSRC}/src/Makefile.in
-	${REINPLACE_CMD} \
-		-e '/libpkg_static_la_LDFLAGS =/ s/$$/ -Wl,-Bdynamic,-lc,-ldl,-Bstatic/' \
+	${REINPLACE_CMD} -e '/libpkg_la_LDFLAGS =/ s/= /= -ldl /' \
 		${WRKSRC}/libpkg/Makefile.in
+	${REINPLACE_CMD} -e '/OS_STATIC/ s/false/true/' \
+		-e '/OS_LIBS=/ s/-ldl //' \
+		${WRKSRC}/configure
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/sbin/pkg2ng
@@ -526,4 +525,102 @@ index 6e7cb0460..ab4780690 100644
  #ifdef HAVE_BSD_SYS_CDEFS_H
  #include <bsd/sys/cdefs.h>
  #endif
+
+
+[FILE:436:patches/patch-libpkg_pkg__config.c]
+--- libpkg/pkg_config.c.orig	2017-03-09 12:57:56 UTC
++++ libpkg/pkg_config.c
+@@ -497,6 +497,9 @@ pkg_config_dump(void)
+ static void
+ disable_plugins_if_static(void)
+ {
++#ifdef SKIP_PLUGINS
++	ucl_object_replace_key(config, ucl_object_frombool(false), "PKG_ENABLE_PLUGINS", 18, false);
++#else
+ 	void *dlh;
+ 
+ 	dlh = dlopen(0, RTLD_NOW);
+@@ -507,6 +510,7 @@ disable_plugins_if_static(void)
+ 	else
+ 		dlclose(dlh);
+ 
++#endif
+ 	return;
+ }
+ 
+
+
+[FILE:942:patches/patch-libpkg_plugins.c]
+--- libpkg/plugins.c.orig	2017-03-09 12:57:56 UTC
++++ libpkg/plugins.c
+@@ -70,7 +70,11 @@ static int pkg_plugin_hook_exec(struct p
+ void *
+ pkg_plugin_func(struct pkg_plugin *p, const char *func)
+ {
++#ifdef SKIP_PLUGINS
++	return NULL;
++#else
+ 	return (dlsym(p->lh, func));
++#endif
+ }
+ 
+ static int
+@@ -265,6 +269,7 @@ pkg_plugins(struct pkg_plugin **plugin)
+ int
+ pkg_plugins_init(void)
+ {
++#ifndef SKIP_PLUGINS
+ 	struct pkg_plugin *p = NULL;
+ 	char pluginfile[MAXPATHLEN];
+ 	const ucl_object_t *obj, *cur;
+@@ -315,6 +320,7 @@ pkg_plugins_init(void)
+ 			free(p);
+ 		}
+ 	}
++#endif
+ 
+ 	return (EPKG_OK);
+ }
+@@ -377,6 +383,7 @@ pkg_plugin_parse(struct pkg_plugin *p)
+ void
+ pkg_plugins_shutdown(void)
+ {
++#ifndef SKIP_PLUGINS
+ 	struct pkg_plugin *p = NULL;
+ 	int (*shutdown_func)(struct pkg_plugin *p);
+ 
+@@ -394,6 +401,7 @@ pkg_plugins_shutdown(void)
+ 	 * Deallocate memory used by the plugins
+ 	 */
+ 	pkg_plugin_free();
++#endif
+ 
+ 	return;
+ }
+
+
+[FILE:906:linux/patch-src_Makefile.in]
+--- src/Makefile.in.orig	2017-05-16 18:01:51 UTC
++++ src/Makefile.in
+@@ -710,9 +710,18 @@ pkg$(EXEEXT): $(pkg_OBJECTS) $(pkg_DEPEN
+ 	@rm -f pkg$(EXEEXT)
+ 	$(AM_V_CCLD)$(pkg_LINK) $(pkg_OBJECTS) $(pkg_LDADD) $(LIBS)
+ 
+-pkg-static$(EXEEXT): $(pkg_static_OBJECTS) $(pkg_static_DEPENDENCIES) $(EXTRA_pkg_static_DEPENDENCIES) 
++pkg-static: $(pkg_OBJECTS) $(pkg_DEPENDENCIES) $(EXTRA_pkg_DEPENDENCIES) 
+ 	@rm -f pkg-static$(EXEEXT)
+-	$(AM_V_CCLD)$(pkg_static_LINK) $(pkg_static_OBJECTS) $(pkg_static_LDADD) $(LIBS)
++	$(CCLD) $(pkg_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o ${.TARGET} \
++	$(pkg_OBJECTS) -pthread \
++	../libpkg/.libs/libpkg_static.a \
++	../external/.libs/libelf_static.a \
++	../compat/.libs/libbsd_compat.a \
++	-Wl,-Bstatic \
++	-lutil -lssl -lcrypto -lbsd -lresolv -larchive -lz -lbz2 -llzma \
++	-Wl,-Bdynamic \
++	-lm \
++	-Wl,-rpath -Wl,/raven/lib
+ 
+ mostlyclean-compile:
+ 	-rm -f *.$(OBJEXT)
 
