@@ -2,7 +2,7 @@
 
 NAMEBASE=		perl-5.24
 VERSION=		5.24.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		lang perl devel
 VARIANTS=		standard
 SDESC[standard]=	Practical Extraction and Report Language
@@ -46,6 +46,11 @@ CONFIGURE_ARGS=		-Dcf_by="John Marino"
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+TEST_TARGET=		test_harness
+TEST_ENV=		{{MAKE_ENV}}
+			TEST_JOBS={{MAKE_JOBS_NUMBER}}
+			LD_LIBRARY_PATH={{WRKSRC}}
+
 [DEBUG].CONFIGURE_ARGS_OFF=		-Doptimize="-O{{OPTIMIZER_LEVEL}}"
 [DEBUG].CONFIGURE_ARGS_ON=		-Doptimize="-g"
 					-DDEBUGGING
@@ -64,6 +69,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 post-patch:
 	# GDBM is missing the runpath
 	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|' \
+		${WRKSRC}/cpan/DB_File/Makefile.PL \
 		${WRKSRC}/ext/GDBM_File/Makefile.PL \
 		${WRKSRC}/ext/NDBM_File/Makefile.PL \
 		${WRKSRC}/ext/ODBM_File/Makefile.PL
@@ -93,7 +99,7 @@ This package contains all the man pages.
 03a77bac4505c270f1890ece75afc7d4b555090b41aa41ea478747e23b2afb3f     11569284 perl5/perl-5.24.1.tar.xz
 
 
-[FILE:25516:manifests/plist.primary]
+[FILE:25556:manifests/plist.primary]
 bin/
  c2ph%%BINSUFFIX%%
  corelist%%BINSUFFIX%%
@@ -1028,7 +1034,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 %%ARCH_LIB%%/
  NDBM_File.pm
  O.pm
- ODBM_File.pm
+%%ONLY-LINUX%%%%ARCH_LIB%%/ODBM_File.pm
  Opcode.pm
  POSIX.pm
  POSIX.pod
@@ -1090,7 +1096,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 %%ARCH_LIB%%/auto/MIME/Base64/Base64.so
 %%ARCH_LIB%%/auto/Math/BigInt/FastCalc/FastCalc.so
 %%ARCH_LIB%%/auto/NDBM_File/NDBM_File.so
-%%ARCH_LIB%%/auto/ODBM_File/ODBM_File.so
+%%ONLY-LINUX%%%%ARCH_LIB%%/auto/ODBM_File/ODBM_File.so
 %%ARCH_LIB%%/auto/Opcode/Opcode.so
 %%ARCH_LIB%%/auto/POSIX/POSIX.so
 %%ARCH_LIB%%/auto/PerlIO/encoding/encoding.so
@@ -1828,7 +1834,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 @dir %%SITE_ARCH%%/auto
 
 
-[FILE:15842:manifests/plist.manpages]
+[FILE:15864:manifests/plist.manpages]
 %%MAN3%%/
  AnyDBM_File.3.gz
  App::Cpan.3.gz
@@ -2130,7 +2136,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  Net::protoent.3.gz
  Net::servent.3.gz
  O.3.gz
- ODBM_File.3.gz
+%%ONLY-LINUX%%%%MAN3%%/ODBM_File.3.gz
  Opcode.3.gz
  POSIX.3.gz
  Params::Check.3.gz
@@ -2634,6 +2640,19 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  ldlibpth=''
  DPERL_EXTERNAL_GLOB='-DPERL_EXTERNAL_GLOB'
  DPERL_IS_MINIPERL='-DPERL_IS_MINIPERL'
+
+
+[FILE:458:patches/patch-cpan_DB__File_Makefile.PL]
+--- cpan/DB_File/Makefile.PL.orig	2016-07-14 19:06:57 UTC
++++ cpan/DB_File/Makefile.PL
+@@ -47,6 +47,7 @@ WriteMakefile(
+ 	INC		=> "-I$INC_DIR",
+     VERSION_FROM	=> 'DB_File.pm',
+ 	XS_VERSION      => eval MM->parse_version('DB_File.pm'),
++        dynamic_lib     => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
+ 	XSPROTOARG	=> '-noprototypes',
+ 	DEFINE		=> "-D_NOT_CORE $OS2 $VER_INFO $COMPAT185 $WALL",
+ 	OBJECT		=> 'version$(OBJ_EXT) DB_File$(OBJ_EXT)',
 
 
 [FILE:532:patches/patch-cpan_ExtUtils-Install_lib_ExtUtils_Install.pm]

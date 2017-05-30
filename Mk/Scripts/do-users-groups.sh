@@ -31,12 +31,6 @@ rm -f "${dp_UG_INSTALL}" "${dp_UG_DEINSTALL}" || :
 
 echo "PW=${dp_PW}" >> "${dp_UG_INSTALL}"
 
-if [ "${dp_OPSYS}" = "Linux" ]; then
-USERADD_CMD="useradd"
-else
-USERADD_CMD="\${PW} useradd"
-fi
-
 
 # Both scripts need to start the same, so
 cp -f "${dp_UG_INSTALL}" "${dp_UG_DEINSTALL}"
@@ -123,9 +117,18 @@ if id ${user} >/dev/null 2>&1; then
   echo "Using existing user '$login'."
 else
   echo "Creating user '$login' with uid '$uid'."
-  ${USERADD_CMD} -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell $login
+eot2
+			if [ "${dp_OPSYS}" = "Linux" ]; then
+				cat >> "${dp_UG_INSTALL}" <<-eot2
+  useradd -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell $login
 fi
 eot2
+			else
+				cat >> "${dp_UG_INSTALL}" <<-eot2
+  \${PW} useradd $login -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell
+fi
+eot2
+			fi
 			case $homedir in
 				/|/nonexistent|/var/empty)
 					;;
@@ -156,7 +159,7 @@ if [ -n "${GROUPS}" ]; then
 					if [ -n "${user}" ] && [ "${user}" = "${login}" ]; then
 						if [ "${dp_OPSYS}" = "Linux" ]; then
 							cat >> "${dp_UG_INSTALL}" <<-eot2
-if ! \${PW} groupshow ${group} | grep -qw ${login}; then
+if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Adding user '${login}' to group '${group}'."
   usermod -a -G ${group} ${login}
 fi

@@ -24,7 +24,7 @@ OPTIONS_STANDARD=	MULTIPLICITY THREADS BIT64INT DEBUG
 OPT_ON[all]=		MULTIPLICITY THREADS
 OPT_ON[i386]=		BIT64INT
 
-BROKEN[linux]=		Many modules silently fail to build and install
+BROKEN[all]=		Many CPAN modules silently fail to build and install
 DEPRECATED=		Support ends three years after .0 release, please upgrade to a more recent version of Perl
 EXPIRATION_DATE=	2018-06-01
 
@@ -50,6 +50,11 @@ CONFIGURE_ARGS=		-Dcf_by="John Marino"
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+TEST_TARGET=		test_harness
+TEST_ENV=		{{MAKE_ENV}}
+			TEST_JOBS={{MAKE_JOBS_NUMBER}}
+			LD_LIBRARY_PATH={{WRKSRC}}
+
 [DEBUG].CONFIGURE_ARGS_OFF=		-Doptimize="-O{{OPTIMIZER_LEVEL}}"
 [DEBUG].CONFIGURE_ARGS_ON=		-Doptimize="-g"
 					-DDEBUGGING
@@ -68,6 +73,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 post-patch:
 	# GDBM is missing the runpath
 	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|' \
+		${WRKSRC}/cpan/DB_File/Makefile.PL \
 		${WRKSRC}/ext/GDBM_File/Makefile.PL \
 		${WRKSRC}/ext/NDBM_File/Makefile.PL \
 		${WRKSRC}/ext/ODBM_File/Makefile.PL
@@ -2587,6 +2593,19 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  ldlibpth=''
  DPERL_EXTERNAL_GLOB='-DPERL_EXTERNAL_GLOB'
  DPERL_IS_MINIPERL='-DPERL_IS_MINIPERL'
+
+
+[FILE:458:patches/patch-cpan_DB__File_Makefile.PL]
+--- cpan/DB_File/Makefile.PL.orig	2016-07-14 19:06:57 UTC
++++ cpan/DB_File/Makefile.PL
+@@ -47,6 +47,7 @@ WriteMakefile(
+ 	INC		=> "-I$INC_DIR",
+     VERSION_FROM	=> 'DB_File.pm',
+ 	XS_VERSION      => eval MM->parse_version('DB_File.pm'),
++        dynamic_lib     => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
+ 	XSPROTOARG	=> '-noprototypes',
+ 	DEFINE		=> "-D_NOT_CORE $OS2 $VER_INFO $COMPAT185 $WALL",
+ 	OBJECT		=> 'version$(OBJ_EXT) DB_File$(OBJ_EXT)',
 
 
 [FILE:532:patches/patch-cpan_ExtUtils-Install_lib_ExtUtils_Install.pm]
