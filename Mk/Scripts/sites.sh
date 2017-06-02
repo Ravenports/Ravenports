@@ -349,6 +349,7 @@ expand_MOZILLA()
 	echo ${site}/${SUBDIR}/
     done
 }
+
 expand_UBUNTU()
 {
     # pattern [element]/%SUBDIR%/
@@ -359,6 +360,36 @@ expand_UBUNTU()
     http://ubuntu.mirrors.tds.net/ubuntu/pool/main \
     http://de.archive.ubuntu.com/ubuntu/pool/main \
     http://mirrors.xmission.com/ubuntu/pool/main"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+expand_XORG()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##XORG/}
+    local cluster="\
+    http://xorg.freedesktop.org/releases \
+    http://xorg.mirrors.pair.com \
+    http://mirror.us.leaseweb.net/xorg \
+    http://mirror.csclub.uwaterloo.ca/x.org \
+    http://artfiles.org/x.org/pub \
+    http://ftp.gwdg.de/pub/x11/x.org/pub \
+    http://mi.mirror.garr.it/mirrors/x.org \
+    http://mirror.switch.ch/ftp/mirror/X11/pub \
+    http://mirrors.ircam.fr/pub/x.org \
+    http://www.mirrorservice.org/sites/ftp.x.org/pub \
+    http://www.portal-to-web.de/pub/mirrors/x.org \
+    http://x.cybermirror.org \
+    http://x.europnews.de/pub \
+    http://xorg.mirror.solnet.ch/pub \
+    http://mirror.nl.leaseweb.net/xorg \
+    http://mirror.de.leaseweb.net/xorg \
+    http://mirrors.go-part.com/xorg \
+    http://gd.tuwien.ac.at/X11 \
+    http://ftp.yz.yamagata-u.ac.jp/pub/X11/x.org \
+    http://ftp.kaist.ac.kr/x.org"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
     done
@@ -392,6 +423,7 @@ process_site()
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
 	UBUNTU/*)                  expand_UBUNTU "${1}" ;;
+	XORG/*)                    expand_XORG "${1}" ;;
 	*)                         echo "${1}" ;;
     esac
 }
