@@ -20,7 +20,7 @@ err() {
 }
 
 list_stagedir_elfs() {
-	cd ${STAGEDIR} && find -s . -type f \( -perm /111 -o -name '*.so*' \) "$@"
+	cd ${STAGEDIR} && find . -type f \( -perm /111 -o -name '*.so*' \) "$@" | sort
 }
 
 shebangonefile() {
@@ -278,15 +278,59 @@ proxydeps_suggest_uses() {
 	local lib_file=$2
 
 	# miscellaneous USE clauses
-	if [ ${pkg} = 'devel/gettext-runtime' ]; then
+	if [ ${pkg} = 'gettext:standard' ]; then
 		warn "you need USES+=gettext-runtime"
-	elif [ ${pkg} = 'databases/sqlite3' ]; then
+	elif [ ${pkg} = 'sqlite:standard' ]; then
 		warn "you need USES+=sqlite"
-	elif [ ${pkg} = 'databases/sqlite2' ]; then
-		warn "you need USES+=sqlite:2"
 	# Gnome -> same as port
 	# grep LIB_DEPENDS= Mk/Uses/gnome.mk |sed -e 's|\(.*\)_LIB_DEPENDS.*:\(.*\)\/\(.*\)|[ "\1" = "\3" ] \&\& echo "\\${pkg} = \\\"\2/\3\\\" -o \\\\"|'|sort|sh
-	elif [ ${pkg} = "accessibility/atk" -o \
+	elif [ ${pkg} = "libxml2:standard" -o \
+		${pkg} = "libxslt:standard" ]; then
+		warn "you need XORG_COMPONENTS+=${pkg#*:}"
+	# Xorg-libraries: this should be by XORG_MODULES @ bsd.xorg.mk
+	elif echo ${pkg} | grep -E '/lib(X11|Xau|Xdmcp|Xext|SM|ICE|Xfixes|Xft|Xdamage|Xcomposite|Xcursor|Xinerama|Xmu|Xmuu|Xpm|Xt|Xtst|Xi|Xrandr|Xrender|Xres|XScrnSaver|Xv|Xxf86vm|Xxf86dga|Xxf86misc|xcb)$' > /dev/null; then
+		warn "you need XORG_COMPONENTS+=$(echo ${pkg} | sed -E 's|.*/lib||' | tr '[:upper:]' '[:lower:]')"
+	# postgresql
+	elif expr ${pkg} : "postgresql.*:standard" > /dev/null; then
+		warn "you need USES+=pgsql"
+	# bdb
+	elif expr ${pkg} : "db[56]:standard" > /dev/null; then
+		warn "you need USES+=bdb"
+	# ncurses
+	elif [ ${pkg} = "ncurses:standard" ]; then
+		warn "you need USES+=ncurses"
+	# readline
+	elif [ ${pkg} = "readline:standard" ]; then
+		warn "you need USES+=readline"
+	# ssl
+	elif [ ${pkg} = "openssl:standard" -o \
+		${pkg} = "openssl-devel:standard" -o \
+		${pkg} = "libressl:standard" -o \
+		${pkg} = "libressl-devel:standard" ]; then
+		warn "you need USES=ssl"
+	# lua
+	elif expr ${pkg} : "lua5[2345]:standard" > /dev/null; then
+		warn "you need USES+=lua"
+	# Tcl
+	elif expr ${pkg} = "tcl8[5678]:standard" > /dev/null; then
+		warn "you need USES+=tcl"
+	# MySQL
+	elif expr ${lib_file} : "${LOCALBASE}/lib/mysql/[^/]*$" > /dev/null; then
+		warn "you need USES+=mysql"
+	# default
+	elif expr ${lib_file} : "${LOCALBASE}/lib/[^/]*$" > /dev/null; then
+		warn "you need BUILDRUN_DEPENDS+=${pkg}"
+	fi
+}
+
+proxydeps_suggest_uses_archive() {
+	local pkg=$1
+	local lib_file=$2
+
+	# miscellaneous USE clauses
+	# Gnome -> same as port
+	# grep LIB_DEPENDS= Mk/Uses/gnome.mk |sed -e 's|\(.*\)_LIB_DEPENDS.*:\(.*\)\/\(.*\)|[ "\1" = "\3" ] \&\& echo "\\${pkg} = \\\"\2/\3\\\" -o \\\\"|'|sort|sh
+	if [ ${pkg} = "accessibility/atk" -o \
 		${pkg} = "accessibility/atkmm" -o \
 		${pkg} = "graphics/cairo" -o \
 		${pkg} = "graphics/cairomm" -o \
@@ -331,8 +375,6 @@ proxydeps_suggest_uses() {
 		${pkg} = "x11-toolkits/libwnck" -o \
 		${pkg} = "x11-toolkits/libwnck3" -o \
 		${pkg} = "textproc/libxml++26" -o \
-		${pkg} = "textproc/libxml2" -o \
-		${pkg} = "textproc/libxslt" -o \
 		${pkg} = "x11-wm/metacity" -o \
 		${pkg} = "x11-toolkits/pango" -o \
 		${pkg} = "x11-toolkits/pangomm" -o \
@@ -447,9 +489,7 @@ proxydeps_suggest_uses() {
 		warn "you need USE_GL+=glw"
 	elif [ ${pkg} = 'graphics/freeglut' ]; then
 		warn "you need USE_GL+=glut"
-	# Xorg-libraries: this should be by XORG_MODULES @ bsd.xorg.mk
-	elif echo ${pkg} | grep -E '/lib(X11|Xau|Xdmcp|Xext|SM|ICE|Xfixes|Xft|Xdamage|Xcomposite|Xcursor|Xinerama|Xmu|Xmuu|Xpm|Xt|Xtst|Xi|Xrandr|Xrender|Xres|XScrnSaver|Xv|Xxf86vm|Xxf86dga|Xxf86misc|xcb)$' > /dev/null; then
-		warn "you need USE_XORG+=$(echo ${pkg} | sed -E 's|.*/lib||' | tr '[:upper:]' '[:lower:]')"
+	# last xorg
 	elif [ ${pkg} = 'x11/pixman' ]; then
 		warn "you need USE_XORG+=pixman"
 	# Qt4
@@ -462,15 +502,6 @@ proxydeps_suggest_uses() {
 		warn "you need USE_QT5+=$(echo ${pkg} | sed -E 's|.*/qt5-||')"
 	elif expr ${pkg} : '.*/.*-qt5' > /dev/null; then
 		warn "you need USE_QT5+=$(echo ${pkg} | sed -E 's|.*/(.*)-qt5|\1|')"
-	# MySQL
-	elif expr ${lib_file} : "${LOCALBASE}/lib/mysql/[^/]*$" > /dev/null; then
-		warn "you need USES+=mysql"
-	# postgresql
-	elif expr ${pkg} : "^databases/postgresql.*-client" > /dev/null; then
-		warn "you need USES+=pgsql"
-	# bdb
-	elif expr ${pkg} : "^databases/db[456]" > /dev/null; then
-		warn "you need USES+=bdb"
 	# execinfo
 	elif [ ${pkg} = "devel/libexecinfo" ]; then
 		warn "you need USES+=execinfo"
@@ -499,15 +530,9 @@ proxydeps_suggest_uses() {
 		warn "you need USES+=libarchive"
 	elif [ ${pkg} = "devel/libedit" ]; then
 		warn "you need USES+=libedit"
-	# lua
-	elif expr ${pkg} : "^lang/lua" > /dev/null; then
-		warn "you need USES+=lua"
 	# motif
 	elif [ ${pkg} = "x11-toolkits/lesstif" -o ${pkg} = "x11-toolkits/open-motif" ]; then
 		warn "you need USES+=motif"
-	# ncurses
-	elif [ ${pkg} = "devel/ncurses" ]; then
-		warn "you need USES+=ncurses"
 	# objc
 	elif [ ${pkg} = "lang/libobjc2" ]; then
 		warn "you need USES+=objc"
@@ -517,20 +542,6 @@ proxydeps_suggest_uses() {
 	# pure
 	elif [ ${pkg} = "lang/pure" ]; then
 		warn "you need USES+=pure"
-	# readline
-	elif [ ${pkg} = "devel/readline" ]; then
-		warn "you need USES+=readline"
-	# ssl
-	elif [ ${pkg} = "security/openssl" -o ${pkg} = "security/openssl-devel" \
-	  -o ${pkg} = "security/libressl" -o ${pkg} = "security/libressl-devel" \
-	  ]; then
-		warn "you need USES=ssl"
-	# Tcl
-	elif expr ${pkg} : "^lang/tcl" > /dev/null; then
-		warn "you need USES+=tcl"
-	# Tk
-	elif expr ${pkg} : "^x11-toolkits/tk" > /dev/null; then
-		warn "you need USES+=tk"
 	# Xfce
 	# grep LIB_DEPENDS= Mk/Uses/xfce.mk |sed -e 's|\(.*\)_LIB_DEPENDS.*:\(.*\)\/\(.*\)|elif [ ${pkg} = "\2/\3" ]; then warn "you need USE_XFCE+=\1"|'
 	elif [ ${pkg} = "sysutils/garcon" ]; then warn "you need USE_XFCE+=garcon"
@@ -545,7 +556,7 @@ proxydeps_suggest_uses() {
 	elif expr ${lib_file} : "${LOCALBASE}/lib/[^/]*$" > /dev/null; then
 		lib_file=${lib_file#${LOCALBASE}/lib/}
 		lib_file=${lib_file%.so*}.so
-		warn "you need LIB_DEPENDS+=${lib_file}:${pkg}"
+		warn "you need LIB_DEPENDS+=${pkg}"
 	fi
 }
 
@@ -566,8 +577,8 @@ proxydeps() {
 			if listcontains ${dep_file} "${already}"; then
 				continue
 			fi
-			if $(pkg which -q ${dep_file} > /dev/null 2>&1); then
-				dep_file_pkg=$(pkg which -qo ${dep_file})
+			if $(pkg-static which -q ${dep_file} > /dev/null 2>&1); then
+				dep_file_pkg=$(pkg-static which -qo ${dep_file})
 
 				# Check that the .so we need has a SONAME
 				if [ "${dep_file_pkg}" != "${PKGORIGIN}" ]; then
@@ -597,7 +608,7 @@ proxydeps() {
 	done <<-EOT
 	$(list_stagedir_elfs | \
 		file -F $'\1' -f - | \
-		grep -a 'ELF.*FreeBSD.*dynamically linked' | \
+		grep -a 'ELF.*dynamically linked' | \
 		cut -f 1 -d $'\1'| \
 		sed -e 's/^\.//')
 	EOT
@@ -636,7 +647,7 @@ sonames() {
 
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
-checks="$checks sonames" #proxydeps
+checks="$checks sonames" # proxydeps (requires PKGORIGIN and LIB_RUN_DEPENDS)
 
 ret=0
 cd ${STAGEDIR}

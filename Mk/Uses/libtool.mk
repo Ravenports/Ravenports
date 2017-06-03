@@ -24,7 +24,7 @@ _USES_POST+=	libtool
 
 _USES_configure+=	480:patch-libtool
 patch-libtool:
-	${FIND} ${WRKDIR} \( -name configure -or -name ltconfig \)	\
+	@${FIND} ${WRKDIR} \( -name configure -or -name ltconfig \)	\
 		-type f | while read i; do ${SED} -i.libtool.bak	\
 		-e '/dragonfly\*/!s/^ *freebsd\*[ )]/dragonfly* | &/'	\
 		-e '/gcc_dir=\\`/s/gcc /$$CC /'				\
@@ -51,7 +51,7 @@ patch-libtool:
 		    soname_spec='\$$libname\$$release\$$shared_ext\$$major'/; \
 		    }" $${i} && ${TOUCH} -mr $${i}.libtool.bak $${i}; done
 
-	${FIND} ${WRKDIR} -type f -name ltmain.sh |			\
+	@${FIND} ${WRKDIR} -type f -name ltmain.sh |			\
 		${XARGS} ${REINPLACE_CMD}				\
 		-e '/case $$version_type in/,+2				\
 		    s/darwin|linux|/darwin|freebsd-elf|linux|/'		\

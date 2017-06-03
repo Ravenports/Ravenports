@@ -395,6 +395,29 @@ expand_XORG()
     done
 }
 
+expand_GNOME()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##GNOME/}
+    local cluster="\
+    https://download.gnome.org/sources \
+    http://download.gnome.org/sources \
+    ftp://ftp.belnet.be/mirror/ftp.gnome.org/sources \
+    http://ftp.acc.umu.se/pub/GNOME/sources \
+    ftp://ftp.cse.buffalo.edu/pub/Gnome/sources \
+    http://fr2.rpmfind.net/linux/gnome.org/sources \
+    http://www.gtlib.gatech.edu/pub/gnome/sources \
+    ftp://ftp.dti.ad.jp/pub/X/gnome/sources \
+    http://linorg.usp.br/gnome/sources \
+    http://mirror.aarnet.edu.au/pub/gnome/sources \
+    ftp://ftp.kddlabs.co.jp/pub/GNOME/sources \
+    ftp://ftp.mirrorservice.org/sites/ftp.gnome.org/pub/GNOME/sources \
+    ftp://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources \
+    http://ftp.gnome.org/pub/GNOME/sources"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
 
 process_site()
 {
@@ -412,6 +435,7 @@ process_site()
 	GH/*)                      expand_GITHUB "${1}" 2 ;;
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
+	GNOME/*)                   expand_GNOME "${1}" ;;
 	GNU/*)                     expand_GNU "${1}" ;;
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
 	MOZILLA/*)                 expand_MOZILLA "${1}" ;;
