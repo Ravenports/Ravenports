@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.0
-REVISION=		6
+REVISION=		7
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd64 linux
 SDESC[linux]=		Linux system root for Ravenports build env
@@ -95,6 +95,7 @@ MAKE_ENV=		OPSYS="{{OPSYS}}"
 			libusbhid={{Libusbhid_{{OPSYS}}}}
 			libcrypt={{Libcrypt_{{OPSYS}}}}
 			libkvm={{Libkvm_{{OPSYS}}}}
+			librt={{Librt_{{OPSYS}}}}
 SINGLE_JOB=		yes
 
 PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
@@ -104,6 +105,7 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBUSBHID={{Libusbhid_{{OPSYS}}}}
 			SONAME_LIBCRYPT={{Libcrypt_{{OPSYS}}}}
 			SONAME_LIBKVM={{Libkvm_{{OPSYS}}}}
+			SONAME_LIBRT={{Librt_{{OPSYS}}}}
 			BASE=share/raven/sysroot/{{OPSYS}}
 
 [DRAGONFLY].DESCRIPTION=		Ravenports system root for DragonFly
@@ -215,7 +217,7 @@ b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 li
 3169104afe3d07aa6658489394e14f0430746550d05cd4014bac8e4af18b3205      1672610 libc6-dev_2.23-0ubuntu7_i386.deb
 
 
-[FILE:8442:manifests/plist.single.dragonfly]
+[FILE:8483:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -299,6 +301,7 @@ b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 li
  more
  mtree
  objdump-sysroot
+ od
  patch
  pkg-static
  portfix
@@ -972,6 +975,7 @@ b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 li
  %%SONAME_LIBM%%
  %%SONAME_LIBKVM%%
  %%SONAME_LIBCRYPT%%
+ %%SONAME_LIBRT%%
  %%SONAME_LIBUSB%%
  %%SONAME_LIBUSBHID%%
  %%SONAME_LIBUTIL%%
@@ -990,6 +994,8 @@ b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 li
  libpthread.a
  libpthread.so
  libpthread.so.0
+ librt.a
+ librt.so
  libusb.a
  libusb.so
  libusbhid.a
@@ -1022,7 +1028,7 @@ b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:21149:manifests/plist.single.linux]
+[FILE:21153:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -1147,6 +1153,7 @@ b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 li
  more
  mtree
  objdump-sysroot
+ od
  patch
  pkg-static
  portfix
@@ -2780,7 +2787,7 @@ b82bfa34a1936c4f6475162e9ff9bd41e7c8c053dad2f7671ac079ec9241a9f9      1573734 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:16950:files/Makefile]
+[FILE:17033:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -2919,6 +2926,7 @@ Usr_Sbin_Linux=		# end
 
 static_lib_generic=	/usr/lib/libc.a \
 			/usr/lib/libm.a \
+			/usr/lib/librt.a \
 			/usr/lib/libutil.a \
 			/usr/lib/libcrypt.a \
 			/usr/lib/libpthread.a
@@ -2962,6 +2970,7 @@ dynamic_generic=	/lib/${libc} \
 			/lib/${libutil} \
 			/lib/${libcrypt} \
 			/lib/${libkvm} \
+			/usr/lib/${librt} \
 			/usr/lib/libpthread.so
 dynamic_lib_FreeBSD=	${dynamic_generic} \
 			/usr/lib/${libusb} \
@@ -3359,6 +3368,7 @@ install:
 	(cd ${DESTDIR}${BASE}/usr/lib && \
 		ln -s ${libc} libc.so && \
 		ln -s ${libm} libm.so && \
+		ln -s ${librt} librt.so && \
 		ln -s ${libkvm} libkvm.so && \
 		ln -s ${libcrypt} libcrypt.so && \
 		ln -s ${libutil} libutil.so && \
@@ -3448,7 +3458,7 @@ install:
 .for item in gsort/sort nawk/awk objdump/objdump-sysroot less/more \
 	bmake/make bsdcpio/cpio bsdtar/tar gcmp/cmp gdiff/diff \
 	gdiff3/diff3 gsdiff/sdiff gfind/find gxargs/xargs gm4/m4 \
-	gpatch/patch gsed/sed ravensys-uname/uname nvi/vi
+	gpatch/patch gsed/sed ravensys-uname/uname nvi/vi god/od
 	cp ${LOCALBASE}/bin/${item:H} ${DESTDIR}${BASE}/usr/bin/${item:T}
 .endfor
 	cp ${LOCALBASE}/share/misc/terminfo.db.default ${DESTDIR}${BASE}/usr/share/terminfo.db
@@ -3581,7 +3591,7 @@ saned:x:120:128::/var/lib/saned:/bin/false
 usbmux:x:121:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
 
 
-[FILE:503:files/special.mk]
+[FILE:559:files/special.mk]
 Libc_DragonFly=		libc.so.8
 Libc_FreeBSD=		libc.so.7
 
@@ -3602,6 +3612,9 @@ Libcrypt_FreeBSD=	libcrypt.so.5
 
 Libkvm_DragonFly=	libkvm.so.3
 Libkvm_FreeBSD=		libkvm.so.6
+
+Librt_DragonFly=	librt.so.0
+Librt_FreeBSD=		librt.so.4
 
 RSYS=			${PREFIX}/share/raven/sysroot/${OPSYS}
 FOS=			${WRKDIR}/${OPSYS:tl}

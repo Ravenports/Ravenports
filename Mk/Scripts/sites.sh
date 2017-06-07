@@ -337,7 +337,6 @@ expand_MYSQL()
     done
 }
 
-
 expand_MOZILLA()
 {
     # pattern [element]/%SUBDIR%/
@@ -419,6 +418,23 @@ expand_GNOME()
     done
 }
 
+expand_RUBY()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##RUBY/}
+    local cluster="\
+    http://cache.ruby-lang.org/pub/ruby \
+    http://ftp.ruby-lang.org/pub/ruby \
+    ftp://ftp.ruby-lang.org/pub/ruby \
+    ftp://ftp.fu-berlin.de/unix/languages/ruby \
+    ftp://ftp.kr.FreeBSD.org/pub/ruby \
+    ftp://ftp.iDaemons.org/pub/mirror/ftp.ruby-lang.org/ruby"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+
 process_site()
 {
     case "${1}" in
@@ -443,6 +459,7 @@ process_site()
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
 	PGSQL/*)                   expand_PGSQL "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
+	RUBY/*)			   expand_RUBY "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
