@@ -73,9 +73,7 @@ _USES_stage+=	933:add-plist-fonts
 .  if !target(add-plist-fonts)
 add-plist-fonts:
 	# fonts packages must always have one subpackage: single
-.    if exists(${WRKDIR}/.manifest.single.mktmp)
 	@echo "@${fonts_ARGS} ${FONTSDIR}" >> ${WRKDIR}/.manifest.single.mktmp
-.    endif
 .  endif
 
 .endif	# _INCLUDE_USES_FONTS_MK
