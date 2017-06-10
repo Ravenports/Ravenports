@@ -108,3 +108,35 @@ Among its features are the following:
 [FILE:98:distinfo]
 67527d767dff9a2e2159c501265cff47b6d96d39e036e8b971d6c143ff303197      4670627 Sphinx-1.6.2.tar.gz
 
+
+[FILE:843:patches/patch-handle-docutils-rc]
+From ff1adc7fd10bb2fc2ee021f55e9e121b2e69563e Mon Sep 17 00:00:00 2001
+From: Takeshi KOMIYA <i.tkomiya@gmail.com>
+Date: Mon, 29 May 2017 11:02:49 +0900
+Subject: [PATCH] Fixed #3821: Failed to import sphinx.util.compat with
+ docutils-0.14rc1
+
+---
+ CHANGES               | 2 ++
+ sphinx/util/compat.py | 3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+--- sphinx/util/compat.py
++++ sphinx/util/compat.py
+@@ -12,13 +12,14 @@
+ 
+ import sys
+ import warnings
++from distutils.version import LooseVersion
+ 
+ from docutils.parsers.rst import Directive  # noqa
+ from docutils import __version__ as _du_version
+ 
+ from sphinx.deprecation import RemovedInSphinx17Warning
+ 
+-docutils_version = tuple(int(x) for x in _du_version.split('.')[:2])
++docutils_version = tuple(LooseVersion(_du_version).version)[:2]
+ 
+ if False:
+     # For type annotation
+

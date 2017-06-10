@@ -48,16 +48,15 @@ TEST_TARGET=		check
 [SKIP_MANPAGES].DESCRIPTION=		Avoid installing LibreSSL manpages
 [SKIP_MANPAGES].EXTRA_PATCHES_ON=	extra-patch-MAN3
 
+post-install-dragonfly:
+	${INSTALL_SCRIPT} ${WRKSRC}/apps/nc/nc ${STAGEDIR}${PREFIX}/bin/nc
+
 post-install:
 	${RM} -r ${STAGEDIR}/${PREFIX}/etc/ssl/cert.pem
-	${INSTALL_SCRIPT} ${WRKSRC}/apps/nc/nc ${STAGEDIR}${PREFIX}/bin/nc
 
 post-install-SKIP_MANPAGES-ON:
 	${RM} ${STAGEDIR}${PREFIX}/share/man/man1/openssl.1
-
-post-install-SKIP_MANPAGES-OFF:
-	${INSTALL_MAN} ${WRKSRC}/apps/nc/nc.1 \
-		${STAGEDIR}${PREFIX}/share/man/man1/nc.1
+	${RM} ${STAGEDIR}${PREFIX}/share/man/man1/nc.1
 
 [FILE:536:descriptions/desc.single.standard]
 LibreSSL is an open-source implementation of the Secure Sockets Layer (SSL)
