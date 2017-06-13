@@ -21,13 +21,25 @@ OPTIONS_STANDARD=	none
 VOPTS[522]=		PERL_524=OFF PERL_522=ON
 VOPTS[524]=		PERL_524=ON PERL_522=OFF
 
+BUILD_DEPENDS=		expat:static:standard
+BUILDRUN_DEPENDS=	expat:shared:standard
+
+DISTNAME=		XML-Parser-2.44
+
 GENERATED=		yes
 
-[PERL_522].BUILDRUN_DEPENDS_ON=		perl-LWP-UserAgent:single:522
+CONFIGURE_ARGS=		EXPATLIBPATH={{LOCALBASE}}/lib
+			EXPATINCPATH={{LOCALBASE}}/include
+
+[PERL_522].BUILDRUN_DEPENDS_ON=		perl-libwww-perl:single:522
 [PERL_522].USES_ON=			perl:522,configure
 
-[PERL_524].BUILDRUN_DEPENDS_ON=		perl-LWP-UserAgent:single:524
+[PERL_524].BUILDRUN_DEPENDS_ON=		perl-libwww-perl:single:524
 [PERL_524].USES_ON=			perl:524,configure
+
+post-patch:
+	${REINPLACE_CMD} "s|@PERL_RPATH@|${PREFIX}/lib/perl5/${PERL_VER}/${PERL_ARCH}/CORE|" \
+		${WRKSRC}/Expat/Makefile.PL
 
 [FILE:40:descriptions/desc.single]
 A perl module for parsing XML documents
@@ -35,4 +47,18 @@ A perl module for parsing XML documents
 
 [FILE:101:distinfo]
 1ae9d07ee9c35326b3d9aad56eae71a6730a73a116b9fe9e8a4758b7cc033216       237377 XML-Parser-2.44.tar.gz
+
+
+[FILE:421:patches/patch-Expat_Makefile.PL]
+--- Expat/Makefile.PL.orig	2014-12-11 06:51:11 UTC
++++ Expat/Makefile.PL
+@@ -7,7 +7,7 @@ my @extras = ();
+ 
+ push(@extras, INC => "-I$expat_incpath") if $expat_incpath;
+ 
+-$libs = "-L$expat_libpath $libs" if $expat_libpath;
++$libs = "-L$expat_libpath -Wl,-rpath,$expat_libpath -Wl,-rpath,@PERL_RPATH@ $libs" if $expat_libpath;
+ 
+ push(@extras, CAPI => 'TRUE')
+     if (($PERL_VERSION >= 5.005) and ($OSNAME eq 'MSWin32')
 

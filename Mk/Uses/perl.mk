@@ -8,6 +8,8 @@
 #              build (do not use with configure or run)
 #              run   (do not use with configure or build)
 #              none  (just sets BUILDRUN_DEPENDS)
+#              524   (specify perl-524 for build/run)
+#              526   (specify perl-526 for build/run)
 #
 # Internal ravenadm makefile may preset this variable:
 # PERL5_DEFAULT
@@ -72,12 +74,15 @@ PLIST_SUB+=	PERL_VERSION=${PERL_VERSION} \
 # --------------------------------------------------------------------------
 
 .  if ${perl_ARGS:Mconfigure}
+CONFIGURE_SCRIPT?=	Makefile.PL
+.  endif	# configure in ARGS
+
+.  if ${perl_ARGS:Mconfigure} || ${perl_ARGS:Mbuildmod} || ${perl_ARGS:Mbuildmodtiny}
 
 # Disable AutoInstall from attempting to install from CPAN directly in
 # the case of missing dependencies.  This causes the build to loop on
 # the build cluster asking for interactive input.
 
-CONFIGURE_SCRIPT?=	Makefile.PL
 CONFIGURE_ENV+=		PERL_EXTUTILS_AUTOINSTALL="--skipdeps" \
 			PERL_MM_USE_DEFAULT="YES"
 CONFIGURE_ARGS+=	CC="${CC}" \
@@ -85,7 +90,8 @@ CONFIGURE_ARGS+=	CC="${CC}" \
 			PREFIX="${PREFIX}" \
 			INSTALLPRIVLIB="${PREFIX}/lib" \
 			INSTALLARCHLIB="${PREFIX}/lib" \
-			INSTALLDIRS="site"
+			INSTALLDIRS="site" \
+			LDDLFLAGS="-shared -Wl,-rpath,${PREFIX}/lib/perl5/${PERL_VER}/${PERL_ARCH}/CORE"
 MAN1PREFIX=		${PREFIX}/${SITE_PERL_REL}
 MAN3PREFIX=		${PREFIX}/${SITE_PERL_REL}
 
@@ -103,7 +109,8 @@ do-configure:
 		${PERL5} -pi -e 's/ doc_(perl|site|\$$\(INSTALLDIRS\))_install$$//' Makefile
 .      endif	# buildmod* not in ARGS
 .    endif	# !target(do-configure)
-.  endif	# configure in ARGS
+
+.  endif	# ARGS contain configure or buildmod*
 
 # --------------------------------------------------------------------------
 # --  buildmod and buildmodtiny
@@ -173,16 +180,17 @@ do-test:
 
 _USES_install+=	560:fix-perl-things
 
-fix-perl-things:
-	# Remove STAGEDIR from .packlist and add the file to the plist.
-	# perl packages are always solitary, with the subpackage name of
-	# "single"
+PACKLIST_DIR?=  ${PREFIX}/${SITE_ARCH_REL}/auto
 
+fix-perl-things:
+	# Remove STAGEDIR from .packlist.  The .packlist is added by
+	# perl-autolst.  Perl packages are always solitary, with the
+	# subpackage name of "single"
+
+	@${ECHO_MSG} "... Fix .packlist"
 	@(if [ -d ${STAGEDIR}${PACKLIST_DIR} ] ; then \
 		${FIND} ${STAGEDIR}${PACKLIST_DIR} -name .packlist | while read f ; do \
-			${SED} -i '' 's|^${STAGEDIR}||' "$$f"; \
-			${ECHO} $$f | ${SED} -e 's|^${STAGEDIR}||' \
-			>> ${WRKDIR}/.manifest.single.mktmp; \
+			${SED} -i'' 's|^${STAGEDIR}||' "$$f"; \
 		done \
 	fi) || :
 
@@ -210,30 +218,57 @@ fix-perl-things:
 	@[ -d "${STAGEDIR}${SITE_MAN3}" ] && \
 		${FIND} ${STAGEDIR}${SITE_MAN3} -name '*::README.3' -delete || :
 
+	# Strip all unstripped dynamically linked objects
+
+.if "${STRIP_CMD}" != "${TRUE}"
+	@${ECHO_MSG} "... Handle any unstripped dynamically linked objects"
+	@${FIND} ${STAGEDIR}${PREFIX} -type f | while read f; \
+	do \
+		check=$$(file "$$f" | grep "dynamically linked, not stripped"); \
+		if [ -n "$$check" ]; then \
+			${STRIP_CMD} "$$f"; \
+		fi; \
+	done
+.endif
+
+# --------------------------------------------------------------------------
+# --  auto-generated manifests
+# --------------------------------------------------------------------------
+
+POST_PLIST_TARGET+=	perl-autolist
+
+perl-autolist:
+	@if [ ! -f /port/manifests/plist.single ]; then \
+	    echo "... Generate single subpackage manifest"; \
+	    (cd ${STAGEDIR}${PREFIX} && ${FIND} lib bin \
+		\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+		>> ${WRKDIR}/.manifest.single.mktmp; \
+	fi
+
 # --------------------------------------------------------------------------
 # --  ravenadm logic
 # --------------------------------------------------------------------------
 
 # if perl_ARGS contain ("buildmod" or "buildmodtiny"), but not "run":
-# BUILD_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
+# BUILD_DEPENDS+=	perl-5.XX:primary:standard
 #
 # if perl_ARGS contain "run" and "buildmod" or "buildmodtiny"):
-# BUILDRUN_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
+# BUILDRUN_DEPENDS+=	perl-5.XX:primary:standard
 #
 # if perl ARGS contain only "configure" or are empty.
-# BUILDRUN_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
+# BUILDRUN_DEPENDS+=	perl-5.XX:primary:standard
 #
 # if perl_ARGS contain only "run"
-# RUN_DEPENDS+=		perl${PERL5_DEFAULT}:primary:standard
+# RUN_DEPENDS+=		perl-5.XX:primary:standard
 #
 # if perl_ARGS contain only "build"
-# BUILD_DEPENDS+=	perl${PERL5_DEFAULT}:primary:standard
+# BUILD_DEPENDS+=	perl-5.XX:primary:standard
 #
 # if perl_ARGS contain "buildmod"
-# BUILD_DEPENDS+=	p5-Module-Build:primary:standard
+# BUILD_DEPENDS+=	perl-Module-Build:single:5XX
 #
 # if perl_ARGS contain "buildmodtiny"
-# BUILD_DEPENDS+=	p5-Module-Build-Tiny:primary:standard
+# BUILD_DEPENDS+=	perl-Module-Build-Tiny:single:5XX
 #
 
 .endif	# defined(_INCLUDE_USES_PERL_MK)
