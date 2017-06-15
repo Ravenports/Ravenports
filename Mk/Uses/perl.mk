@@ -90,8 +90,9 @@ CONFIGURE_ARGS+=	CC="${CC}" \
 			PREFIX="${PREFIX}" \
 			INSTALLPRIVLIB="${PREFIX}/lib" \
 			INSTALLARCHLIB="${PREFIX}/lib" \
-			INSTALLDIRS="site" \
-			LDDLFLAGS="-shared -Wl,-rpath,${PREFIX}/lib/perl5/${PERL_VER}/${PERL_ARCH}/CORE"
+			INSTALLDIRS="site"
+#			LDDLFLAGS="-shared -Wl,-rpath,${PREFIX}/lib/perl5/${PERL_VER}/${PERL_ARCH}/CORE -L${PREFIX}/lib -Wl,-rpath,${PREFIX}/lib"
+LDFLAGS+=		-Wl,-rpath,${PREFIX}/lib/perl5/${PERL_VER}/${PERL_ARCH}/CORE
 MAN1PREFIX=		${PREFIX}/${SITE_PERL_REL}
 MAN3PREFIX=		${PREFIX}/${SITE_PERL_REL}
 
