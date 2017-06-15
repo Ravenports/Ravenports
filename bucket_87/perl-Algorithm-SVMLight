@@ -21,6 +21,8 @@ OPTIONS_STANDARD=	none
 VOPTS[522]=		PERL_524=OFF PERL_522=ON
 VOPTS[524]=		PERL_524=ON PERL_522=OFF
 
+BUILDRUN_DEPENDS=	svm_light:single:standard
+
 DISTNAME=		Algorithm-SVMLight-0.09
 
 GENERATED=		yes
@@ -33,10 +35,30 @@ SINGLE_JOB=		yes
 [PERL_524].BUILD_DEPENDS_ON=		perl-Module-Build:single:524
 [PERL_524].USES_ON=			perl:524,buildmod,run
 
+post-patch:
+	@${REINPLACE_CMD} -e "s,%%LOCALBASE%%,${LOCALBASE},g" \
+		${WRKSRC}/Build.PL
+
 [FILE:52:descriptions/desc.single]
 Perl interface to SVMLight Machine-Learning Package
 
 
 [FILE:109:distinfo]
 b0736058c047179beefe6ec5ea7955547edfaf2e5f6da49ceb7cfc10a9a94902        17825 Algorithm-SVMLight-0.09.tar.gz
+
+
+[FILE:475:patches/patch-Build.PL]
+--- Build.PL.orig	Thu Aug  3 12:51:01 2006
++++ Build.PL	Thu Aug  3 12:51:20 2006
+@@ -5,8 +5,8 @@
+   (
+    module_name => 'Algorithm::SVMLight',
+    license => 'perl',
+-   extra_linker_flags => '-lsvmlight',
+-   extra_compiler_flags => '-Wall',
++   extra_linker_flags => '-L%%LOCALBASE%%/lib -lsvmlight',
++   extra_compiler_flags => '-I%%LOCALBASE%%/include/svmlight -Wall',
+    create_makefile_pl => 'passthrough',
+    build_requires => {
+ 		      'Module::Build' => '0.21',
 
