@@ -100,11 +100,9 @@ CONFIGURE_ARGS+=	-Alddlflags='-L${WRKSRC} -L${PREFIX}/${_ARCH_LIB}/CORE -Wl,-rpa
 # change PKGNAME to reflect this
 
 .  if ${PERL_VER} == ${PERL5_DEFAULT}
-PKGNAMESUFFIX=		5
 IAMDEFAULTPERL=		yes
 PLIST_SUB+=		DEFAULT="" BINSUFFIX=""
 .  else
-PKGNAMESUFFIX=		${PERL_VER}
 BINSUFFIX=		${PERL_VERSION}
 PLIST_SUB+=		DEFAULT="@comment " BINSUFFIX=${PERL_VERSION}
 CONFIGURE_ARGS+=	-Dversiononly
@@ -118,13 +116,15 @@ CONFIGURE_ARGS+=	-Accflags=-DPERLIOBUF_DEFAULT_BUFSIZ=${PERLIOBUF_DEFAULT_BUFSIZ
 .  endif
 
 # --------------------------------------------------------------------------
-# --  standard post targets
+# --  perl post targets
 # --------------------------------------------------------------------------
 
 _TC=	${LOCALBASE}/toolchain
 
-.  if !target(post-patch)
-post-patch:
+_USES_patch+= 690:post-patch-perl
+
+.  if !target(post-patch-perl)
+post-patch-perl:
 	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g' \
 		-e 's/objformat=.*//' \
 		${WRKSRC}/Configure \
