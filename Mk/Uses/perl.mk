@@ -8,6 +8,7 @@
 #              build (do not use with configure or run)
 #              run   (do not use with configure or build)
 #              none  (just sets BUILDRUN_DEPENDS)
+#              522   (specify perl-522 for build/run)
 #              524   (specify perl-524 for build/run)
 #              526   (specify perl-526 for build/run)
 #
@@ -40,7 +41,15 @@
 .if !defined(_INCLUDE_USES_PERL_MK)
 _INCLUDE_USES_PERL_MK=	yes
 
+.  if ${perl_ARGS:M524}
+PERL_VERSION=	${PERL_5.24_VERSION}
+.  elif ${perl_ARGS:M526}
+PERL_VERSION=	${PERL_5.26_VERSION}
+.  elif ${perl_ARGS:M522}
+PERL_VERSION=	${PERL_5.22_VERSION}
+.  else
 PERL_VERSION=	${PERL_${PERL5_DEFAULT}_VERSION}
+.  endif
 PERL_VER=	${PERL_VERSION:C/\.[0-9]+$//}
 PERL_ARCH=	mach
 
@@ -57,8 +66,8 @@ PERL5=		${LOCALBASE}/bin/perl${PERL_VERSION}
 PERL=		${LOCALBASE}/bin/perl
 MANDIRS+=	${PREFIX}/${SITE_PERL_REL}/man
 
-CONFIGURE_ENV+=	ac_cv_path_PERL=${PERL} \
-		ac_cv_path_PERL_PATH=${PERL} \
+CONFIGURE_ENV+=	ac_cv_path_PERL=${PERL5} \
+		ac_cv_path_PERL_PATH=${PERL5} \
 		PERL_USE_UNSAFE_INC=1
 MAKE_ENV+=	PERL_USE_UNSAFE_INC=1
 
@@ -132,7 +141,7 @@ CONFIGURE_ARGS+=	--destdir ${STAGEDIR}
 DESTDIRNAME=		--destdir
 
 .    if ${perl_ARGS:Mbuildmod}
-CONFIGURE_ARGS+=	--perl="${PERL}" \
+CONFIGURE_ARGS+=	--perl="${PERL5}" \
 			--create_packlist 1                 
 .    endif	# buildmod in ARGS
 
