@@ -383,8 +383,6 @@ expand_XORG()
     http://x.cybermirror.org \
     http://x.europnews.de/pub \
     http://xorg.mirror.solnet.ch/pub \
-    http://mirror.nl.leaseweb.net/xorg \
-    http://mirror.de.leaseweb.net/xorg \
     http://mirrors.go-part.com/xorg \
     http://gd.tuwien.ac.at/X11 \
     http://ftp.yz.yamagata-u.ac.jp/pub/X11/x.org \

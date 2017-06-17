@@ -239,7 +239,7 @@ fix-perl-things:
 POST_PLIST_TARGET+=	perl-autolist
 
 perl-autolist:
-	@if [ ! -f /port/manifests/plist.single ]; then \
+	@if [ ! -f /port/manifests/plist.single -a ! -f /port/manifests/single.${VARIANT} ]; then \
 	    echo "... Generate single subpackage manifest"; \
 	    (cd ${STAGEDIR}${PREFIX} && ${FIND} lib bin \
 		\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
