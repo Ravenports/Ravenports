@@ -7,8 +7,9 @@
 .if !defined(_INCLUDE_USES_INTLTOOLFIX_MK)
 _INCLUDE_USES_INTLTOOLFIX_MK=	yes
 
-_USES_extract+	855:intlhack
+_USES_extract+=	855:intlhack
 
+.  if !target(intlhack)
 intlhack:
 	${FIND} ${WRKSRC} -name "intltool-merge.in" | \
 	    ${XARGS} ${REINPLACE_CMD} \
@@ -19,5 +20,6 @@ intlhack:
 	${FIND} ${WRKSRC} -name configure | \
 	    ${XARGS} ${REINPLACE_CMD} \
 		's/DATADIRNAME=lib/DATADIRNAME=share/'
+.  endif
 
-.endif
+.endif	# _INCLUDE_USES_INTLTOOLFIX_MK

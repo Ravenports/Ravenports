@@ -11,9 +11,9 @@ _USES_stage+=	932:add-plist-terminfo
 
 .  if !target(add-plist-terminfo)
 add-plist-terminfo:
-.    if exists(${WRKDIR}/.manifest.${terminfo_ARGS}.mktmp)
-	@echo "@terminfo" >> ${WRKDIR}/.manifest.${terminfo_ARGS}.mktmp
-.    endif
+	@if [ -f "${WRKDIR}/.manifest.${terminfo_ARGS}.mktmp" ]; then \
+	  echo "@terminfo" >> ${WRKDIR}/.manifest.${terminfo_ARGS}.mktmp; \
+	fi
 .  endif
 
 .endif

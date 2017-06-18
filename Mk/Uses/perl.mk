@@ -199,8 +199,8 @@ fix-perl-things:
 	# perl-autolst.  Perl packages are always solitary, with the
 	# subpackage name of "single"
 
-	@${ECHO_MSG} "... Fix .packlist"
 	@(if [ -d ${STAGEDIR}${PACKLIST_DIR} ] ; then \
+		echo "... Fix .packlist"; \
 		${FIND} ${STAGEDIR}${PACKLIST_DIR} -name .packlist | while read f ; do \
 			${SED} -i'' 's|^${STAGEDIR}||' "$$f"; \
 		done \
@@ -232,7 +232,8 @@ fix-perl-things:
 
 	# Strip all unstripped dynamically linked objects
 
-.if "${STRIP_CMD}" != "${TRUE}"
+.if "${GENERATED}" == "yes"
+.  if "${STRIP_CMD}" != "${TRUE}"
 	@${ECHO_MSG} "... Handle any unstripped dynamically linked objects"
 	@${FIND} ${STAGEDIR}${PREFIX} -type f | while read f; \
 	do \
@@ -241,6 +242,7 @@ fix-perl-things:
 			${STRIP_CMD} "$$f"; \
 		fi; \
 	done
+.  endif
 .endif
 
 # --------------------------------------------------------------------------
@@ -250,7 +252,7 @@ fix-perl-things:
 POST_PLIST_TARGET+=	perl-autolist
 
 perl-autolist:
-	@if [ ! -f /port/manifests/plist.single -a ! -f /port/manifests/single.${VARIANT} ]; then \
+	@if [ ! -d /port/manifests ]; then \
 	    echo "... Generate single subpackage manifest"; \
 	    (cd ${STAGEDIR}${PREFIX} && ${FIND} lib bin \
 		\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
