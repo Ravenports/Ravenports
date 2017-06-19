@@ -10,23 +10,17 @@
 #
 # PYSETUP		Name of the setup script used by the distutils package
 #			default: setup.py
-# PYDISTUTILS_CONFIGURE_TARGET
-#			Pass this command to distutils on configure stage.
+# PYD_CONFIGURE_TARGET	Pass this command to distutils on configure stage.
 #			default: config
-# PYDISTUTILS_BUILD_TARGET
-#			Pass this command to distutils on build stage.
+# PYD_BUILD_TARGET	Pass this command to distutils on build stage.
 #			default: build
-# PYDISTUTILS_INSTALL_TARGET
-#			Pass this command to distutils on install stage.
+# PYD_INSTALL_TARGET	Pass this command to distutils on install stage.
 #			default: install
-# PYDISTUTILS_CONFIGUREARGS
-#			Arguments to config with distutils.
+# PYD_CONFIGUREARGS	Arguments to config with distutils.
 #			default: <empty>
-# PYDISTUTILS_BUILDARGS
-#			Arguments to build with distutils.
+# PYD_BUILDARGS		Arguments to build with distutils.
 #			default: <empty>
-# PYDISTUTILS_INSTALLARGS
-#			Arguments to install with distutils.
+# PYD_INSTALLARGS	Arguments to install with distutils.
 #			default: refer below
 #
 # --------------------------------------
@@ -122,20 +116,20 @@ PYTHON_PYOEXTENSION=	opt-1.pyc
 _PYTHONPKGLIST=		${WRKDIR}/.PLIST.pymodtmp
 
 PYSETUP?=		setup.py
-PYDISTUTILS_SETUP=	-c "import sys; import setuptools; \
+PYD_SETUP=	-c "import sys; import setuptools; \
 	__file__='${PYSETUP}'; sys.argv[0]='${PYSETUP}'; \
 	exec(compile(open(__file__, 'rb').read().replace(b'\\r\\n', b'\\n'), __file__, 'exec'))"
 
-PYDISTUTILS_CONFIGURE_TARGET?=	config
-PYDISTUTILS_CONFIGUREARGS?=	# empty
-PYDISTUTILS_BUILD_TARGET?=	build
-PYDISTUTILS_BUILDARGS?=		# empty
-PYDISTUTILS_INSTALL_TARGET?=	install
-PYDISTUTILS_INSTALLARGS?=	--record ${_PYTHONPKGLIST} -c -O1 --prefix=${PREFIX} \
+PYD_CONFIGURE_TARGET?=	config
+PYD_CONFIGUREARGS?=	# empty
+PYD_BUILD_TARGET?=	build
+PYD_BUILDARGS?=		# empty
+PYD_INSTALL_TARGET?=	install
+PYD_INSTALLARGS?=	--record ${_PYTHONPKGLIST} -c -O1 --prefix=${PREFIX} \
 				--single-version-externally-managed \
 				--root=${STAGEDIR}
-PYDISTUTILS_EGGINFO?=		${NAMEBASE:C/[^A-Za-z0-9.]+/_/g}-${VERSION:C/[^A-Za-z0-9.]+/_/g}-py${PYTHON_VER}.egg-info
-PYDISTUTILS_EGGINFODIR=		${STAGEDIR}${PYTHON_SITELIBDIR}
+PYD_EGGINFO?=		${NAMEBASE:C/[^A-Za-z0-9.]+/_/g}-${VERSION:C/[^A-Za-z0-9.]+/_/g}-py${PYTHON_VER}.egg-info
+PYD_EGGINFODIR=		${STAGEDIR}${PYTHON_SITELIBDIR}
 
 MAKE_ENV+=	LDSHARED="${CC} -shared" \
 		PYTHONDONTWRITEBYTECODE= \
@@ -178,19 +172,31 @@ setuptools-autolist:
 .    if !target(do-configure) && !defined(HAS_CONFIGURE) && !defined(GNU_CONFIGURE)
 do-configure:
 	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		${PYTHON_CMD} ${PYDISTUTILS_SETUP} ${PYDISTUTILS_CONFIGURE_TARGET} ${PYDISTUTILS_CONFIGUREARGS})
+		${PYTHON_CMD} ${PYD_SETUP} ${PYD_CONFIGURE_TARGET} ${PYD_CONFIGUREARGS})
 .    endif
 
 .    if !target(do-build)
 do-build:
 	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		${PYTHON_CMD} ${PYDISTUTILS_SETUP} ${PYDISTUTILS_BUILD_TARGET} ${PYDISTUTILS_BUILDARGS})
+		${PYTHON_CMD} ${PYD_SETUP} ${PYD_BUILD_TARGET} ${PYD_BUILDARGS})
 .    endif
 
 .    if !target(do-install)
 do-install:
 	@(cd ${INSTALL_WRKSRC}; ${SETENV} ${MAKE_ENV} \
-		${PYTHON_CMD} ${PYDISTUTILS_SETUP} ${PYDISTUTILS_INSTALL_TARGET} ${PYDISTUTILS_INSTALLARGS})
+		${PYTHON_CMD} ${PYD_SETUP} ${PYD_INSTALL_TARGET} ${PYD_INSTALLARGS})
+.    endif
+.    if "${GENERATED}" == "yes"
+.      if "${STRIP_CMD}" != "${TRUE}"
+	@${ECHO_MSG} "... Handle any unstripped dynamically linked objects"
+	@${FIND} ${STAGEDIR}${PREFIX} -type f | while read f; \
+	do \
+		check=$$(file "$$f" | grep "dynamically linked, not stripped"); \
+		if [ -n "$$check" ]; then \
+			${STRIP_CMD} "$$f"; \
+		fi; \
+	done
+.      endif
 .    endif
 .  endif
 
