@@ -48,7 +48,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [PROJECT].BUILDRUN_DEPENDS_OFF=		gmp:shared:standard
 					gtkada:primary:standard
 [PROJECT].BUILD_DEPENDS_OFF=		gmp:static:standard
-					python-pygobject:primary:python_default
+					python-pygobject:primary:py27
 [PROJECT].CONFIGURE_ARGS_OFF=		--with-sqlite=embedded
 					--with-gmp={{PREFIX}}
 					--with-python_exec={{PYTHON_CMD}}
@@ -59,7 +59,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 					--without-gmp
 					--without-gtk
 [PROJECT].MAKEFILE_OFF=			SHEBANG_FILES=src/dborm.py
-[PROJECT].USES_OFF=			python
+[PROJECT].USES_OFF=			python:py27
 					shebangfix
 
 [DOCS].BUILD_DEPENDS_ON=		python-Sphinx:single:python_default
@@ -86,6 +86,10 @@ post-patch:
 	    ${WRKSRC}/src/gnatcoll_readline.gpr.in
 	@${REINPLACE_CMD} -e 's|with "gpr"|with "${WRKDIR}/gprbuild/gpr/gpr"|' \
 		${WRKSRC}/src/gnatcoll__libgpr.gpr
+	@${REINPLACE_CMD} \
+		-e '/PYCONFIG=/ s|$${PYTHON_MAJOR_VERSION}|${PYTHON_VER}|' \
+		-e 's| -lz| -L${PREFIX}/lib -Wl,-rpath,${PREFIX}/lib -lz|g' \
+		${WRKSRC}/configure
 
 pre-build:
 	(cd ${WRKDIR}/gprbuild/gpr && ${SETENV} ${MAKE_ENV} \
@@ -150,7 +154,7 @@ files).  The standard variant should be used for generally instead.
 6f35607ef16e81aa76bb0e5a78bf89d0d54ce691fda50517d50e18540db8aaa5      4254762 AdaCore-gprbuild-a2e9066.tar.gz
 
 
-[FILE:10704:manifests/plist.primary.standard]
+[FILE:10837:manifests/plist.primary.standard]
 bin/
  gnatcoll_db2ada
  gnatinspect
@@ -333,6 +337,7 @@ include/gnatcoll/gnatcoll_gtk.static/
  gnatcoll-scripts-python-gtkada.ads
  gnatcoll-vfs-gtkada.adb
  gnatcoll-vfs-gtkada.ads
+ python_support_gtk.c
 include/gnatcoll/gnatcoll_iconv.static/
  gnatcoll-iconv.adb
  gnatcoll-iconv.ads
@@ -343,10 +348,13 @@ include/gnatcoll/gnatcoll_postgres.static/
  gnatcoll-sql-postgres.adb
  gnatcoll-sql-postgres.ads
 include/gnatcoll/gnatcoll_python.static/
+ gnatcoll-any_types-python.adb
+ gnatcoll-any_types-python.ads
  gnatcoll-python.adb
  gnatcoll-python.ads
  gnatcoll-scripts-python.adb
  gnatcoll-scripts-python.ads
+ python_support.c
 include/gnatcoll/gnatcoll_readline.static/
  gnatcoll-readline.adb
  gnatcoll-readline.ads
@@ -533,6 +541,7 @@ lib/gnatcoll/gnatcoll_postgres.static/
  gnatcoll-sql-postgres.ali
  libgnatcoll_postgres.a
 lib/gnatcoll/gnatcoll_python.static/
+ gnatcoll-any_types-python.ali
  gnatcoll-python.ali
  gnatcoll-scripts-python.ali
  libgnatcoll_python.a

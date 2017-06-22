@@ -30,6 +30,7 @@ USESDIR=		/xports/Mk/Uses
 SCRIPTDIR=		${.CURDIR}/scripts
 PATCHDIR=		${.CURDIR}/patches
 FILESDIR=		${.CURDIR}/files
+OPSYSDIR=		${.CURDIR}/opsys
 MANIFESTDIR=		${.CURDIR}/manifests
 _DISTINFO_FILE=		${.CURDIR}/distinfo
 
