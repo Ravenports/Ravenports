@@ -28,7 +28,8 @@ OPENSSLRPATH=	${OPENSSLLIB}
 .  if defined(OPENSSL_RPATH)
 CFLAGS+=	-Wl,-rpath,${OPENSSLRPATH}
 .  else
-LDFLAGS+=	-Wl,-rpath=${OPENSSLRPATH}
+# rpath already set to this value
+# LDFLAGS+=	-Wl,-rpath=${OPENSSLRPATH}
 MAKE_ENV+=	OPENSSLRPATH=${OPENSSLRPATH}
 .  endif
 

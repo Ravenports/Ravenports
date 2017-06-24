@@ -24,9 +24,10 @@ NCURSESINC=	${NCURSESBASE}/include/ncurses
 NCURSESLIB=	${NCURSESBASE}/lib
 
 .  if defined(NCURSES_RPATH)
-CFLAGS+=	-Wl,-rpath,${NCURSESRPATH}
-.  else
-LDFLAGS+=	-Wl,-rpath=${NCURSESRPATH}
+CFLAGS+=	-Wl,-rpath,${NCURSESLIB}
+# rpath already set to this value
+# .  else
+# LDFLAGS+=	-Wl,-rpath=${NCURSESLIB}
 .  endif
 LDFLAGS+=	-lpthread
 

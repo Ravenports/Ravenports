@@ -14,8 +14,10 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	WATCHDOG
+OPTIONS_STANDARD=	WATCHDOG
+OPT_ON[freebsd]=	WATCHDOG
+OPT_ON[dragonfly]=	WATCHDOG
 
 BUILD_DEPENDS=		adacurses:primary:standard
 
@@ -24,6 +26,13 @@ USES=			gprbuild ncurses
 LICENSE=		ISCL:single
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		ISCL:{{WRKSRC}}/License.txt
+
+[WATCHDOG].DESCRIPTION=			Use "watchdog" monitor to abort stalled builds
+
+post-patch-WATCHDOG-OFF:
+	@${ECHO_MSG} "Disabling watchdog monitor ..."
+	@${REINPLACE_CMD} -e "/hangmonitor :/ s|True|False|" \
+		${WRKSRC}/src/portscan-buildcycle.adb
 
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \

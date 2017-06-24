@@ -186,7 +186,21 @@ share/man/man1/aafire.1.gz
 
 
 
-[FILE:1146:patches/patch-src_aafire.c]
+[FILE:290:patches/patch-src_aaprintf.c]
+--- src/aaprintf.c.orig	Thu Apr 26 23:37:31 2001
++++ src/aaprintf.c	Sat Mar  2 22:54:56 2002
+@@ -7,7 +7,7 @@
+   char buf[1025];
+   int i;
+   va_start(args,fmt);
+-  i=vsprintf(buf,fmt,args);
++  i=vsnprintf(buf,sizeof(buf),fmt,args);
+   va_end(args);
+   aa_puts(c,x,y,attr,buf);
+   return i;
+
+
+[FILE:1146:dragonfly/patch-src_aafire.c]
 --- src/aafire.c.orig	Fri Apr 27 00:30:03 2001
 +++ src/aafire.c	Sat Mar  2 22:51:46 2002
 @@ -48,6 +48,7 @@
@@ -226,21 +240,78 @@ share/man/man1/aafire.1.gz
    firemain ();
 
 
-[FILE:290:patches/patch-src_aaprintf.c]
---- src/aaprintf.c.orig	Thu Apr 26 23:37:31 2001
-+++ src/aaprintf.c	Sat Mar  2 22:54:56 2002
-@@ -7,7 +7,7 @@
-   char buf[1025];
+[FILE:859:dragonfly/patch-src_aarender.c]
+--- src/aarender.c.orig	Thu Apr 26 23:37:31 2001
++++ src/aarender.c	Sat Mar  2 23:02:04 2002
+@@ -27,11 +27,11 @@
+     return (p);
+ }
+ #define MYLONG_MAX 0xffffffffU     /*this is enought for me. */
+-#define myrand() (state = ((state * 1103515245) + 12345) & MYLONG_MAX)
++#define myrand() (random() & MYLONG_MAX)
+ 
+ void aa_renderpalette(aa_context * c, __AA_CONST aa_palette palette, __AA_CONST aa_renderparams * p, int x1, int y1, int x2, int y2)
+ {
+-    static int state;
++    static int rand_init = 0;
+     int x, y;
+     int val;
+     int wi = c->imgwidth;
+@@ -47,6 +47,11 @@
+     int randomval = p->randomval;
+     int dither = p->dither;
+     aa_palette table;
++
++    if (!rand_init) {
++       srandomdev();
++       rand_init = 1;
++    }
+     if (x2 < 0 || y2 < 0 || x1 > aa_scrwidth(c) || y1 > aa_scrheight(c))
+ 	return;
+     if (x2 >= aa_scrwidth(c))
+
+
+[FILE:1146:freebsd/patch-src_aafire.c]
+--- src/aafire.c.orig	Fri Apr 27 00:30:03 2001
++++ src/aafire.c	Sat Mar  2 22:51:46 2002
+@@ -48,6 +48,7 @@
+ initialize (void)
+ {
    int i;
-   va_start(args,fmt);
--  i=vsprintf(buf,fmt,args);
-+  i=vsnprintf(buf,sizeof(buf),fmt,args);
-   va_end(args);
-   aa_puts(c,x,y,attr,buf);
-   return i;
++  srandomdev();
+   context = aa_autoinit (&aa_defparams);
+   if (context == NULL)
+     {
+@@ -114,20 +115,20 @@
+   height++;
+   loop--;
+   if (loop < 0)
+-    loop = rand () % 3, sloop++;;
++    loop = random () % 3, sloop++;;
+   i1 = 1;
+   i2 = 4 * XSIZ + 1;
+   for (p = (char *) bitmap + XSIZ * (YSIZ + 0);
+        p < ((unsigned char *) bitmap + XSIZ * (YSIZ + 1));
+        p++, i1 += 4, i2 -= 4)
+     {
+-      last1 = rand () % min (i1, min (i2, height));
+-      i = rand () % 6;
++      last1 = random () % min (i1, min (i2, height));
++      i = random () % 6;
+       for (; p < (unsigned char *) bitmap + XSIZ * (YSIZ + 1) && i != 0;
+ 	   p++, i--, i1 += 4, i2 -= 4)
+-	*p = last1, last1 += rand () % 6 - 2, *(p + XSIZ) = last1, last1 +=
+-	  rand () % 6 - 2;
+-      *(p + 2 * XSIZ) = last1, last1 += rand () % 6 - 2;
++	*p = last1, last1 += random () % 6 - 2, *(p + XSIZ) = last1, last1 +=
++	  random () % 6 - 2;
++      *(p + 2 * XSIZ) = last1, last1 += random () % 6 - 2;
+     }
+   i = 0;
+   firemain ();
 
 
-[FILE:859:patches/patch-src_aarender.c]
+[FILE:859:freebsd/patch-src_aarender.c]
 --- src/aarender.c.orig	Thu Apr 26 23:37:31 2001
 +++ src/aarender.c	Sat Mar  2 23:02:04 2002
 @@ -27,11 +27,11 @@

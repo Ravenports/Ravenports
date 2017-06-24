@@ -89,6 +89,9 @@ post-patch:
 	${REINPLACE_CMD} -e "s|gnatlink.*|gnatlink rl.ali -L${PREFIX}/lib -lreadline -lhistory|" \
 		${WRKSRC}/src/areadline/Makefile
 
+post-patch-linux:
+	${REINPLACE_CMD} -e "s| -lintl||" ${WRKSRC}/new_configure
+
 post-install:
 	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	@${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
@@ -385,7 +388,7 @@ share/examples/sparforte/
  yuletide.sp
 
 
-[FILE:3247:files/new_configure.in]
+[FILE:3300:files/new_configure.in]
 #!/bin/sh
 # Configure script tailored for FreeBSD ports collection
 
@@ -430,17 +433,17 @@ if [ ${SETAPQ} -eq 1 ]; then
      APQLIBSSUB="${APQLIBSSUB} ./${APQ}/c_mysql.o"
      if [ ${SETPGSQL} -eq 0 ]; then
         echo "Executing APQ's configure (skipping PostgreSQL)"
-        (cd src/${APQ} && /usr/bin/env HAVE_PG=0 ./configure)
+        (cd src/${APQ} && /usr/bin/env HAVE_MY=1 HAVE_PG=0 ./configure)
      fi
   fi
   if [ ${SETPGSQL} -eq 1 ]; then
      PGLIBSSUB="-L@PREFIX@/lib -lintl -lssl -lcrypto"
      if [ ${SETMYSQL} -eq 1 ]; then
         echo "Executing APQ's configure"
-        (cd src/${APQ} && ./configure)
+        (cd src/${APQ} && /usr/bin/env HAVE_MY=1 HAVE_PG=1 ./configure)
      else
         echo "Executing APQ's configure (skipping MySQL)"
-        (cd src/${APQ} && /usr/bin/env HAVE_MY=0 ./configure)
+        (cd src/${APQ} && /usr/bin/env HAVE_MY=0 HAVE_PG=1 ./configure)
      fi
   fi
 else

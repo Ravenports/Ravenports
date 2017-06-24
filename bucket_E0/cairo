@@ -49,7 +49,6 @@ post-patch:
 	@${REINPLACE_CMD} \
 		-e '/strings/s/ - / -a /' \
 		-e '/test/s/==/=/g' \
-		-e '/LIBS/s/-lrt//' \
 		-e '/LIBS/s|-ldld||' ${WRKSRC}/configure
 	@${REINPLACE_CMD} -e 's|-lcairo|-lcairo -lpthread|' \
 		${WRKSRC}/src/*.pc.in
@@ -58,6 +57,12 @@ post-patch:
 	# disable html docs (gnome referencehack)
 	${FIND} ${WRKSRC} -name "Makefile.in" -type f | ${XARGS} ${REINPLACE_CMD} -e \
 		"s|test \"\$$\$$installfiles\" = '\$$(srcdir)/html/\*'|:|"
+
+post-patch-dragonfly:
+	@${REINPLACE_CMD} -e '/LIBS/s/-lrt//' ${WRKSRC}/configure
+
+post-patch-freebsd:
+	@${REINPLACE_CMD} -e '/LIBS/s/-lrt//' ${WRKSRC}/configure
 
 [FILE:637:descriptions/desc.single]
 Cairo is a vector graphics library with cross-device output
@@ -193,7 +198,21 @@ lib/pkgconfig/
  
 
 
-[FILE:291:patches/patch-util_cairo-sphinx_sphinx.c]
+[FILE:291:dragonfly/patch-util_cairo-sphinx_sphinx.c]
+--- util/cairo-sphinx/sphinx.c.orig	2015-03-10 22:21:07 UTC
++++ util/cairo-sphinx/sphinx.c
+@@ -1337,7 +1337,7 @@ client_shm (const char *shm_path)
+ 
+     base = mmap (NULL, DATA_SIZE,
+ 		 PROT_READ | PROT_WRITE,
+-		 MAP_SHARED | MAP_NORESERVE,
++		 MAP_SHARED,
+ 		 fd, 0);
+     close (fd);
+ 
+
+
+[FILE:291:freebsd/patch-util_cairo-sphinx_sphinx.c]
 --- util/cairo-sphinx/sphinx.c.orig	2015-03-10 22:21:07 UTC
 +++ util/cairo-sphinx/sphinx.c
 @@ -1337,7 +1337,7 @@ client_shm (const char *shm_path)
