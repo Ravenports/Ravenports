@@ -31,7 +31,7 @@ shebangonefile() {
 
 	# whitelist some files
 	case "${f}" in
-	*.pm|*.pod|*.txt)
+	*.pm | *.pod | *.txt)
 		return 0
 		;;
 	esac
@@ -40,12 +40,12 @@ shebangonefile() {
 	badinterp=""
 	case "${interp}" in
 	"") ;;
-	${LOCALBASE}/bin/python|${PREFIX}/bin/python)
+	${LOCALBASE}/bin/python | ${PREFIX}/bin/python)
 		badinterp="${interp}"
 		;;
 	${LOCALBASE}/bin/perl5.* | ${PREFIX}/bin/perl5.*)
 		# Non-default perl ports are allowed to have these shebangs.
-		if [ "${NAMEBASE}" != "perl-5.24" ]; then
+		if [ "${NAMEBASE}" != "perl-5.24" -a "${VARIANT}" != "524" ]; then
 			err "'${interp}' is an invalid shebang for '${f#${STAGEDIR}${PREFIX}/}' you must use ${LOCALBASE}/bin/perl."
 			err "Either pass \${PERL} to the build or use USES=shebangfix"
 			rc=1
@@ -56,7 +56,8 @@ shebangonefile() {
 	/bin/sh) ;;
 	/bin/csh) ;;	# not in ravensys-root
 	/bin/tcsh) ;;	# not in ravensys-root
-	/bin/dash)	# Only valid for linux
+	/bin/dash | /bin/bash)
+		# Only valid for linux
 		if [ "${OPSYS}" != "Linux" ]; then
 			badinterp="${interp}"
 		fi
