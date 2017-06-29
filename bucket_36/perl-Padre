@@ -154,3 +154,42 @@ Perl Application Development and Refactoring Environment
 [FILE:96:distinfo]
 cb31404b048c12992eea142613bd560ce7a31199e3e09239fa1539f2fa02b96d      1969274 Padre-1.00.tar.gz
 
+
+[FILE:659:patches/patch-Makefile.PL]
+--- Makefile.PL.orig	2013-11-09 03:10:25 UTC
++++ Makefile.PL
+@@ -46,20 +46,6 @@ configure_requires 'ExtUtils::Embed' => 
+ #	exit 0;
+ #}
+ 
+-# This makes sure that we didn't compile Alien::wxWidgets with the wrong options.
+-configure_requires 'Alien::wxWidgets' => '0.62';
+-
+-my $wxw = eval { use Alien::wxWidgets; 1; };
+-if ( $@ or not $wxw ) {
+-	print STDERR "Warning: prerequisite Alien::wxWidgets not found.\n";
+-	exit 0;
+-}
+-if ( '2.009000' eq Alien::wxWidgets->version ) {
+-	print STDERR "Warning: Alien::wxWidgets was compiled with the development version of\n";
+-	print STDERR "wxWidgets. This is known to cause Padre to crash.\n";
+-	exit 0;
+-}
+-
+ 
+ 
+ 
+
+
+[FILE:299:patches/patch-lib_Padre_Wx.pm]
+--- lib/Padre/Wx.pm.orig	2013-11-09 03:43:41 UTC
++++ lib/Padre/Wx.pm
+@@ -158,6 +158,7 @@ sub aui_pane_info {
+ 
+ sub launch_browser {
+ 	require Padre::Task::LaunchDefaultBrowser;
++	Wx::LaunchDefaultBrowser( $_[0] ); return 1;
+ 	Padre::Task::LaunchDefaultBrowser->new(
+ 		url => $_[0],
+ 	)->schedule;
+

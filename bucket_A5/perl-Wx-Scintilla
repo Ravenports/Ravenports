@@ -21,11 +21,15 @@ OPTIONS_STANDARD=	none
 VOPTS[524]=		PERL_526=OFF PERL_524=ON
 VOPTS[526]=		PERL_526=ON PERL_524=OFF
 
+RUN_DEPENDS=		wxWidgets:single:gtk2
+
 DISTNAME=		Wx-Scintilla-0.39
 
 GENERATED=		yes
 
 SINGLE_JOB=		yes
+
+INSTALL_REQ_TOOLCHAIN=	yes
 
 [PERL_526].BUILD_DEPENDS_ON=		perl-Alien-wxWidgets:single:526
 					perl-ExtUtils-XSpp:single:526
@@ -39,10 +43,70 @@ SINGLE_JOB=		yes
 					perl-Module-Build:single:524
 [PERL_524].USES_ON=			perl:524,buildmod,run
 
+post-patch:
+	${REINPLACE_CMD} -e \
+		'/my /s|wx-config|wxgtk2u-3.0-config|g' \
+		-e '/ret/ s|urn .flags;|urn $$flags . " -std=c++11";|' \
+		${WRKSRC}/inc/Module/Build/Scintilla.pm
+	${REINPLACE_CMD} -e \
+		's|_scintilla-|_scintilla| ; \
+		 s|$$major.*$$release \.|| ; \
+		 /$$major.*$$release;/s|^|#| ; \
+		 s|-lgtk-x11-2.0.*-lpangoft2-1.0|-lm| ; \
+		 /-lgobject-2.0/d ; \
+		 /-lglib-2.0/d ; \
+		 s|{ccflags}|{ccflags} . " -std=c++11"| ; \
+		 s|\\$$ORIGIN|${SITE_ARCH}/auto/Wx/Scintilla|' \
+		${WRKSRC}/inc/Module/Build/Scintilla/GTK.pm
+
 [FILE:44:descriptions/desc.single]
 Scintilla source code editing for wxWidgets
 
 
 [FILE:103:distinfo]
 d6d67528a55552bb3fda2a1f22058c6c94a05eaf632dba5331afb3390defe0ea       848565 Wx-Scintilla-0.39.tar.gz
+
+
+[FILE:1085:patches/patch-fix-stc-with-gcc6]
+From 73e9e18ea09ffffcaac50237def0d9728a213c02 Mon Sep 17 00:00:00 2001
+From: Scott Talbert <swt@techie.net>
+Date: Sat, 20 Feb 2016 00:08:14 -0500
+Subject: [PATCH] Fix STC compilation with GCC6
+
+Use std::abs() from <cmath> instead of abs() from <math.h> to avoid problems
+with ambiguous overloads.
+
+Closes #17147.
+
+Closes https://github.com/wxWidgets/wxWidgets/pull/222
+
+Bug-Debian: https://bugs.debian.org/816571
+Bug: https://rt.cpan.org/Public/Bug/Display.html?id=112742
+
+---
+ src/stc/scintilla/src/Editor.cxx | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+--- wx-scintilla/src/scintilla/src/Editor.cxx
++++ wx-scintilla/src/scintilla/src/Editor.cxx
+@@ -11,6 +11,7 @@
+ #include <ctype.h>
+ #include <assert.h>
+ 
++#include <cmath>
+ #include <string>
+ #include <vector>
+ #include <map>
+@@ -5868,9 +5869,9 @@
+ }
+ 
+ static bool Close(Point pt1, Point pt2) {
+-	if (abs(pt1.x - pt2.x) > 3)
++	if (std::abs(pt1.x - pt2.x) > 3)
+ 		return false;
+-	if (abs(pt1.y - pt2.y) > 3)
++	if (std::abs(pt1.y - pt2.y) > 3)
+ 		return false;
+ 	return true;
+ }
 
