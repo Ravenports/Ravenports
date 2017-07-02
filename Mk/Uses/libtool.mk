@@ -52,7 +52,7 @@ patch-libtool:
 		    }" $${i} && ${TOUCH} -mr $${i}.libtool.bak $${i}; done
 
 	@${FIND} ${WRKDIR} -type f -name ltmain.sh |			\
-		${XARGS} ${REINPLACE_CMD}				\
+		while read i; do ${REINPLACE_CMD}			\
 		-e '/case $$version_type in/,+2				\
 		    s/darwin|linux|/darwin|freebsd-elf|linux|/'		\
 		-e '/freebsd-elf)/,+2 {					\
@@ -62,7 +62,7 @@ patch-libtool:
 		-e '/if.*prog.*linkmode.*relink !=.*mode/s/if.*;/if :;/'\
 		-e '/if.*linkmode.*prog.*mode.* = relink/s/||.*;/;/'	\
 		-e '/if.*prog.*linkmode.*relink = .*mode/s/||.*;/;/'	\
-		-e 's/|-p|-pg|/|-B*|-fstack-protector*|-p|-pg|/'
+		-e 's/|-p|-pg|/|-B*|-fstack-protector*|-p|-pg|/' ; done
 
 _USES_stage+=	790:patch-lafiles
 patch-lafiles:
