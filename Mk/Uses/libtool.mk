@@ -49,7 +49,8 @@ patch-libtool:
 			\$$libname\$$release\$$shared_ext\$$major	\
 			\$$libname\$$shared_ext'			\
 		    soname_spec='\$$libname\$$release\$$shared_ext\$$major'/; \
-		    }" $${i} && ${TOUCH} -mr $${i}.libtool.bak $${i}; done
+		    }" $${i} && ${TOUCH} -mr $${i}.libtool.bak $${i};   \
+		    echo "USES=libtool modified $$i"; done
 
 	@${FIND} ${WRKDIR} -type f -name ltmain.sh |			\
 		while read i; do ${REINPLACE_CMD}			\
@@ -62,7 +63,8 @@ patch-libtool:
 		-e '/if.*prog.*linkmode.*relink !=.*mode/s/if.*;/if :;/'\
 		-e '/if.*linkmode.*prog.*mode.* = relink/s/||.*;/;/'	\
 		-e '/if.*prog.*linkmode.*relink = .*mode/s/||.*;/;/'	\
-		-e 's/|-p|-pg|/|-B*|-fstack-protector*|-p|-pg|/' ; done
+		-e 's/|-p|-pg|/|-B*|-fstack-protector*|-p|-pg|/' $$i;   \
+                echo "USES=libtool modified $$i"; done
 
 _USES_stage+=	790:patch-lafiles
 patch-lafiles:
