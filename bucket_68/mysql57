@@ -2,6 +2,7 @@
 
 NAMEBASE=		mysql57
 VERSION=		5.7.18
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Multithreaded SQL database (server)
@@ -798,6 +799,20 @@ share/man/man1/
           ${CMAKE_CURRENT_BINARY_DIR}/${file} COPYONLY)
 
 
+[FILE:509:patches/patch-sql-common_client__authentication.cc]
+--- sql-common/client_authentication.cc.orig	2017-03-18 07:45:14 UTC
++++ sql-common/client_authentication.cc
+@@ -84,7 +84,7 @@ RSA *rsa_init(MYSQL *mysql)
+ 
+   if (mysql->options.extension != NULL &&
+       mysql->options.extension->server_public_key_path != NULL &&
+-      mysql->options.extension->server_public_key_path != '\0')
++      *mysql->options.extension->server_public_key_path != '\0')
+   {
+     pub_key_file= fopen(mysql->options.extension->server_public_key_path,
+                         "r");
+
+
 [FILE:268:patches/patch-sql_CMakeLists.txt]
 --- sql/CMakeLists.txt.orig	2016-08-25 11:52:06 UTC
 +++ sql/CMakeLists.txt
@@ -968,6 +983,20 @@ share/man/man1/
  
  #include <stdint.h>
  
+
+
+[FILE:453:patches/patch-storage_innobase_row_row0sel.cc]
+--- storage/innobase/row/row0sel.cc.orig	2017-03-18 07:45:14 UTC
++++ storage/innobase/row/row0sel.cc
+@@ -5163,7 +5163,7 @@ rec_loop:
+ 		reporting due to search views etc. */
+ 		if (prev_rec != NULL
+ 		    && prebuilt->m_mysql_handler->end_range != NULL
+-		    && prebuilt->idx_cond == false && end_loop >= 100) {
++		    && !prebuilt->idx_cond && end_loop >= 100) {
+ 
+ 			dict_index_t*	key_index = prebuilt->index;
+ 			bool		clust_templ_for_sec = false;
 
 
 [FILE:985:patches/patch-storage_myisam_mi__dynrec.c]

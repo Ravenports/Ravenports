@@ -35,7 +35,6 @@ GCC6_POINT=			3.1
 GCC6_VERSION=			${GCC6_BRANCH}.${GCC6_POINT}
 GCC6_SNAPSHOT=			20170202
 GCC6_BUILD_RELEASE=		no
-GCC6_PORTVERSION=		${GCC6_BRANCH}.${GCC6_SNAPSHOT}
 GCC6_REVISION=			0
 GCC6_GNAT_UTIL_REVISION=	0
 
@@ -45,9 +44,34 @@ GCC6_IDENTIFICATION=		gcc-${GCC6_BRANCH}-${GCC6_SNAPSHOT}
 GCC6_MS_SUBDIR=			snapshots/${GCC6_BRANCH}-${GCC6_SNAPSHOT}
 GCC6_PHASE=			snapshot
 .else
+GCC7_PORTVERSION=		${GCC6_VERSION}
 GCC6_IDENTIFICATION=		gcc-${GCC6_VERSION}
 GCC6_MS_SUBDIR=			releases/gcc-${GCC6_VERSION}
 GCC6_PHASE=			release
+.endif
+
+# ------------------------------------------------------------------------
+# gcc7
+# ------------------------------------------------------------------------
+
+GCC7_BRANCH=			7
+GCC7_POINT=			1.0
+GCC7_VERSION=			${GCC7_BRANCH}.${GCC7_POINT}
+GCC7_SNAPSHOT=			20170502
+GCC7_BUILD_RELEASE=		yes
+GCC7_REVISION=			0
+GCC7_GNAT_UTIL_REVISION=	0
+
+.if ${GCC7_BUILD_RELEASE:Mno}
+GCC7_PORTVERSION=		${GCC7_BRANCH}.${GCC7_SNAPSHOT}
+GCC7_IDENTIFICATION=		gcc-${GCC7_BRANCH}-${GCC7_SNAPSHOT}
+GCC7_MS_SUBDIR=			snapshots/${GCC7_BRANCH}-${GCC7_SNAPSHOT}
+GCC7_PHASE=			snapshot
+.else
+GCC7_PORTVERSION=		${GCC7_VERSION}
+GCC7_IDENTIFICATION=		gcc-${GCC7_VERSION}
+GCC7_MS_SUBDIR=			releases/gcc-${GCC7_VERSION}
+GCC7_PHASE=			release
 .endif
 
 # ------------------------------------------------------------------------
@@ -95,4 +119,4 @@ GTK3_VERSION=			3.0.0
 # default gcc
 # ------------------------------------------------------------------------
 
-CURRENT_GCC=			gcc6
+CURRENT_GCC=			gcc7

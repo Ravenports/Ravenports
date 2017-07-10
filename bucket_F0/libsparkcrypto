@@ -2,6 +2,7 @@
 
 NAMEBASE=		libsparkcrypto
 VERSION=		0.1.1
+REVISION=		1
 KEYWORDS=		security ada
 VARIANTS=		standard
 SDESC[standard]=	Cryptographic library implemented in SPARK
@@ -12,20 +13,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://senier.net/libsparkcrypto/
 DISTFILE[1]=		libsparkcrypto-0.1.1.tgz:main
 DF_INDEX=		1
-SPKGS[standard]=	complete
-			primary
-			docs
+SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BROKEN[aarch64]=	fails to compile: unsupported architecture: aarch64
 
-BUILD_DEPENDS=		AdaBrowse:primary:standard
-
 USES=			dos2unix gmake
 
-LICENSE=		BSD3CLAUSE:primary
+LICENSE=		BSD3CLAUSE:single
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		BSD3CLAUSE:{{WKRSRC}}/README
 
@@ -38,6 +35,7 @@ MAKE_ENV=		SPARKARCH={{ARCH_STANDARD:S/i386/i686/}}
 			RUNTIME=native
 			NO_TESTS=true
 			NO_PROOF=true
+			NO_APIDOC=true
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
@@ -45,7 +43,7 @@ post-patch:
 	#ports passed unwanted ARCH definition to Makefile
 	@${REINPLACE_CMD} -e 's|ARCH|SPARKARCH|g' ${WRKSRC}/Makefile
 
-[FILE:624:descriptions/desc.primary]
+[FILE:624:descriptions/desc.single]
 libsparkcrypto is a formally verified implementation of several widely used
 symmetric cryptographic algorithms using the SPARK programming language and
 toolset. For the complete library proofs of the absence of run-time errors
@@ -62,7 +60,7 @@ implementations of OpenSSL.
 47582d6910b8c5bb46df51d0e76c27e6fa2b13e8ab73fb4ae0f1d9f7cbd7aa6a       101491 libsparkcrypto-0.1.1.tgz
 
 
-[FILE:1603:manifests/plist.primary]
+[FILE:1603:manifests/plist.single]
 include/libsparkcrypto/adainclude/
  lsc-aes-print.adb
  lsc-aes-print.ads
@@ -149,41 +147,6 @@ lib/libsparkcrypto/
  lsc-test.ali
  lsc-types.ali
  lsc.ali
-
-
-[FILE:602:manifests/plist.docs]
-share/doc/libsparkcrypto/
- apidoc.css
- libsparkcrypto.css
- lsc-aes-cbc.html
- lsc-aes-print.html
- lsc-aes-tables.html
- lsc-aes.html
- lsc-byteorder32.html
- lsc-byteorder64.html
- lsc-byteswap32.html
- lsc-byteswap64.html
- lsc-debug.html
- lsc-hmac_ripemd160.html
- lsc-hmac_sha256.html
- lsc-hmac_sha384.html
- lsc-hmac_sha512.html
- lsc-io.html
- lsc-ops32.html
- lsc-ops64.html
- lsc-pad32.html
- lsc-pad64.html
- lsc-ripemd160-print.html
- lsc-ripemd160.html
- lsc-sha256-tables.html
- lsc-sha256.html
- lsc-sha512-tables.html
- lsc-sha512.html
- lsc-test.html
- lsc-types.html
- lsc.html
- lsc_logo.png
- subprograms.html
 
 
 [FILE:4156:patches/patch-Makefile]

@@ -2,6 +2,7 @@
 
 NAMEBASE=		mysql56
 VERSION=		5.6.36
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Multithreaded SQL database (server)
@@ -685,6 +686,20 @@ share/man/man1/
      MYSQL_HOME=$MY_BASEDIR_VERSION
 
 
+[FILE:509:patches/patch-sql-common_client__authentication.cc]
+--- sql-common/client_authentication.cc.orig	2017-07-10 12:34:21 UTC
++++ sql-common/client_authentication.cc
+@@ -84,7 +84,7 @@ RSA *rsa_init(MYSQL *mysql)
+ 
+   if (mysql->options.extension != NULL &&
+       mysql->options.extension->server_public_key_path != NULL &&
+-      mysql->options.extension->server_public_key_path != '\0')
++      *mysql->options.extension->server_public_key_path != '\0')
+   {
+     pub_key_file= fopen(mysql->options.extension->server_public_key_path,
+                         "r");
+
+
 [FILE:580:patches/patch-sql_CMakeLists.txt]
 --- sql/CMakeLists.txt.orig	2013-04-05 14:27:18.000000000 +0200
 +++ sql/CMakeLists.txt	2013-04-19 15:08:12.000000000 +0200
@@ -704,6 +719,20 @@ share/man/man1/
  
  ADD_CUSTOM_TARGET(show-dist-name
    COMMAND ${CMAKE_COMMAND} -E echo "${CPACK_PACKAGE_FILE_NAME}"
+
+
+[FILE:413:patches/patch-sql_sql__acl.cc]
+--- sql/sql_acl.cc.orig	2017-03-18 06:43:12 UTC
++++ sql/sql_acl.cc
+@@ -3530,7 +3530,7 @@ static int replace_user_table(THD *thd,
+       * An empty password is considered to be of mysql_native type.
+     */
+     
+-    if (combo->plugin.str == NULL || combo->plugin.str == '\0')
++    if (combo->plugin.str == NULL || *combo->plugin.str == '\0')
+     {
+       if (combo->uses_identified_by_password_clause)
+       {
 
 
 [FILE:1905:patches/patch-sql_sql_trigger.cc]
