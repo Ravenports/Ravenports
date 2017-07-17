@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.0
-REVISION=		8
+REVISION=		9
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd64 linux
 SDESC[linux]=		Linux system root for Ravenports build env
@@ -36,7 +36,6 @@ DISTFILE[11]=		passwd_4.2-3.1ubuntu5.3_amd64.deb:ubuntu7
 DISTFILE[12]=		linux-libc-dev_4.4.0-78.99_amd64.deb:ubuntu8
 DISTFILE[13]=		libc6-dev-amd64_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[14]=		libc6-dev_2.23-0ubuntu9_i386.deb:ubuntu1
-DF_INDEX=		1
 SPKGS[linux]=		single
 SPKGS[freebsd64]=	single
 SPKGS[dragonfly]=	single
@@ -217,7 +216,7 @@ d3018a86cc649ff19dd97258fb50e118d428ee0a631d45c9cd1406c2b28aa16a       779004 pa
 d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 libc6-dev_2.23-0ubuntu9_i386.deb
 
 
-[FILE:8483:manifests/plist.single.dragonfly]
+[FILE:9371:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -402,6 +401,7 @@ d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 li
  vframe.h
 %%BASE%%/usr/include/
  ctype.h
+ devstat.h
  dirent.h
  dlfcn.h
  elf.h
@@ -516,19 +516,95 @@ d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 li
  monetary.h
  mqueue.h
  ndbm.h
+%%BASE%%/usr/include/libprop/
+ plistref.h
+ prop_array.h
+ prop_bool.h
+ prop_data.h
+ prop_dictionary.h
+ prop_ingest.h
+ prop_number.h
+ prop_object.h
+ prop_object_impl.h
+ prop_rb_impl.h
+ prop_stack.h
+ prop_string.h
+ proplib.h
 %%BASE%%/usr/include/net/
  if.h
  if_dl.h
+ if_media.h
  if_var.h
+ netmsg.h
+ radix.h
+ route.h
 %%BASE%%/usr/include/
  netconfig.h
  netdb.h
 %%BASE%%/usr/include/netinet/
+ icmp6.h
+ icmp_var.h
+ if_ether.h
+ igmp.h
+ igmp_var.h
  in.h
+ in_gif.h
+ in_pcb.h
  in_systm.h
+ in_var.h
  ip.h
+ ip6.h
+ ip_carp.h
+ ip_divert.h
+ ip_ecn.h
+ ip_encap.h
+ ip_flow.h
+ ip_gre.h
+ ip_icmp.h
+ ip_var.h
+ pim.h
+ pim_var.h
  tcp.h
-%%BASE%%/usr/include/netinet6/in6.h
+ tcp_debug.h
+ tcp_fsm.h
+ tcp_seq.h
+ tcp_timer.h
+ tcp_timer2.h
+ tcp_var.h
+ tcpip.h
+ udp.h
+ udp_var.h
+%%BASE%%/usr/include/netinet6/
+ in6.h
+ ah.h
+ ah6.h
+ esp.h
+ esp6.h
+ esp_aesctr.h
+ esp_camellia.h
+ esp_rijndael.h
+ icmp6.h
+ in6_gif.h
+ in6_ifattach.h
+ in6_pcb.h
+ in6_var.h
+ ip6.h
+ ip6_ecn.h
+ ip6_mroute.h
+ ip6_var.h
+ ip6protosw.h
+ ipcomp.h
+ ipcomp6.h
+ ipsec.h
+ ipsec6.h
+ mld6_var.h
+ nd6.h
+ pim6.h
+ pim6_var.h
+ raw_ip6.h
+ scope6_var.h
+ tcp6_var.h
+ udp6_var.h
 %%BASE%%/usr/include/
  nl_types.h
  nlist.h
@@ -2787,7 +2863,7 @@ d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:17033:files/Makefile]
+[FILE:17098:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -3110,6 +3186,9 @@ headers_FreeBSD=	${posix_headers:Nstropts.h:Ntrace.h} \
 			# end
 
 headers_DragonFly_dirs=	arpa \
+			libprop \
+			netinet \
+			netinet6 \
 			rpc \
 			rpcsvc \
 			vm \
@@ -3122,6 +3201,7 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			usb.h \
 			usbhid.h \
 			ar.h \
+			devstat.h \
 			elf.h \
 			err.h \
 			floatingpoint.h \
@@ -3141,11 +3221,12 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			vis.h \
 			libusb.h \
 			net/if_dl.h \
+			net/if_media.h \
 			net/if_var.h \
+			net/netmsg.h \
+			net/radix.h \
+			net/route.h \
 			netconfig.h \
-			netinet/in_systm.h \
-			netinet/ip.h \
-			netinet6/in6.h \
 			readpassphrase.h \
 			runetype.h \
 			stringlist.h \
