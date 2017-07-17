@@ -33,6 +33,7 @@ RUN_DEPENDS=		librsvg:primary:standard
 			gdb:single:standard
 			python-pep8:single:py27
 			python-jedi:single:py27
+			gcc7:complete:standard
 
 USES=			gprbuild:buildrun gettext-tools gmake pkgconfig zlib perl:build python:py27
 			shebangfix iconv
@@ -63,6 +64,7 @@ post-patch:
 	@${ECHO} "GNAT_SOURCES=" > ${WRKSRC}/Makefile.gnat
 	@${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
 		${WRKSRC}/gps/gps.gpr \
+		${WRKSRC}/gnatdoc/gnatdoc.gpr \
 		${WRKSRC}/widgets/widgets.gpr
 	@${REINPLACE_CMD} -e '/Gdb_Command/ s|"gdb"|"${PREFIX}/bin/gdb"|' \
 		${WRKSRC}/gvd/src/debugger-base_gdb-gdb_mi.adb \
@@ -1148,6 +1150,20 @@ share/gps/templates/stm32f_leds/
  
  install:
  	$(MKDIR) $(docdir)
+
+
+[FILE:331:patches/patch-gnatdoc_gnatdoc.gpr]
+--- gnatdoc/gnatdoc.gpr.orig	2017-05-12 17:58:17 UTC
++++ gnatdoc/gnatdoc.gpr
+@@ -15,5 +15,8 @@ project GNATdoc is
+ 
+    package Compiler renames Shared.Compiler;
+    package Documentation renames Shared.Documentation;
++   package Linker is
++      for Linker_Options use ("-Wl,-rpath,@PREFIX@/lib");
++   end Linker;
+ 
+ end GNATdoc;
 
 
 [FILE:180:patches/patch-gps_Makefile]
