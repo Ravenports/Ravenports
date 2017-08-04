@@ -111,4 +111,14 @@ MYSQL_galera-5.7_VERSION=	5.7.17
 MYSQL_galera-5.6_VERSION=	5.6.35
 MYSQL_galera-5.5_VERSION=	5.5.54
 
+#-------------------------------------------------------------------------
+# Firebird database server
+# Possible values: 2.5, 3.0
+#-------------------------------------------------------------------------
+
+FIREBIRD_DEFAULT?=	2.5
+
+FIREBIRD_2.5_VERSION=	2.5.7
+FIREBIRD_3.0_VERSION=	3.0.2
+
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)
