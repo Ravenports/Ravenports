@@ -1113,6 +1113,10 @@ GID_FILES?=	${MK_TEMPLATES}/GID.ravenports
 _SYSTEM_UID=	${MK_TEMPLATES}/UID.${OPSYS:tl}
 _SYSTEM_GID=	${MK_TEMPLATES}/GID.${OPSYS:tl}
 
+# Owner and group of the WWW user (overridable)
+WWWOWN?=	www
+WWWGRP?=	www
+
 .if !target(create-users-groups)
 .  if defined(GROUPS) || defined(USERS)
 _UG_INSTALL=		${WRKDIR}/users-groups-install.sh

@@ -432,6 +432,26 @@ expand_RUBY()
     done
 }
 
+expand_PHP()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##PHP/}
+    local cluster="\
+    http://us2.php.net \
+    http://de.php.net \
+    http://es.php.net \
+    http://fr.php.net \
+    http://it.php.net \
+    http://jp.php.net \
+    http://se.php.net \
+    http://uk3.php.net \
+    http://br.php.net \
+    http://cn.php.net"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 
 process_site()
 {
@@ -456,6 +476,7 @@ process_site()
 	MYSQL/*)                   expand_MYSQL "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
 	PGSQL/*)                   expand_PGSQL "${1}" ;;
+	PHP/*)                     expand_PHP "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
 	RUBY/*)			   expand_RUBY "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
