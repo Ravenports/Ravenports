@@ -23,7 +23,8 @@ ICONV_LIBRARY=		${LOCALBASE}/lib/libiconv.so
 #.if {iconv_ARGS:Mbuild}
 # BUILD_DEPENDS+=	iconv:static:standard
 #.else
-# BUILDRUN_DEPENDS=	iconv:complete:standard
+# BUILD_DEPENDS+=	iconv:static:standard
+# BUILDRUN_DEPENDS+=	iconv:shared:standard
 #.endif
 # -----------------------------------------------
 
