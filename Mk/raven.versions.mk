@@ -47,7 +47,7 @@ RUBY_2.4_VERSION=	2.4.1
 PYTHON3_DEFAULT?=	3.6
 
 PYTHON_2.7_VERSION=	2.7.13
-PYTHON_3.5_VERSION=	3.5.3
+PYTHON_3.5_VERSION=	3.5.4
 PYTHON_3.6_VERSION=	3.6.2
 
 #-------------------------------------------------------------------------
@@ -84,11 +84,11 @@ TCL_8.6_VERSION=	8.6.7
 
 PGSQL_DEFAULT?=		9.6
 
-PGSQL_9.2_VERSION=	9.2.21
-PGSQL_9.3_VERSION=	9.3.17
-PGSQL_9.4_VERSION=	9.4.12
-PGSQL_9.5_VERSION=	9.5.7
-PGSQL_9.6_VERSION=	9.6.3
+PGSQL_9.2_VERSION=	9.2.22
+PGSQL_9.3_VERSION=	9.3.18
+PGSQL_9.4_VERSION=	9.4.13
+PGSQL_9.5_VERSION=	9.5.8
+PGSQL_9.6_VERSION=	9.6.4
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
