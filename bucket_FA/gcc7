@@ -103,11 +103,16 @@ post-patch:
 	${REINPLACE_CMD} -e 's|/usr/bin/addr2line|${PREFIX:H}/bin/addr2line|g'\
 		${WRKSRC}/gcc/ada/traceback_symbolic.c
 
+post-install-freebsd:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/include-fixed
+
+post-install-dragonfly:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/include-fixed
+
 post-install:
 	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
 	cp ${STAGEDIR}${PREFIX}/bin/g++ ${STAGEDIR}${PREFIX}/bin/CC
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/include-fixed
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/adalib/libgnat.so
 
@@ -156,7 +161,7 @@ This package contains the man pages and info pages that come with GCC.
 1cf7adf8ff4b5aa49041c8734bbcf1ad18cc4c94d0029aae0f4e48841088479a     62312628 gcc-7.2.0.tar.xz
 
 
-[FILE:25600:manifests/plist.compilers]
+[FILE:25762:manifests/plist.compilers]
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  dragonfly-stdint.h
@@ -168,6 +173,11 @@ This package contains the man pages and info pages that come with GCC.
  crtprec32.o
  crtprec64.o
  crtprec80.o
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+ README
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
+ limits.h
+ syslimits.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  glibc-stdint.h
  gnu-user.h
