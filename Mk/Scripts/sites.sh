@@ -484,7 +484,7 @@ process_site()
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
 	UBUNTU/*)                  expand_UBUNTU "${1}" ;;
 	XORG/*)                    expand_XORG "${1}" ;;
-	*)                         echo "${1}" ;;
+	*)                         echo $@ ;;
     esac
 }
 
