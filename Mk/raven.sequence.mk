@@ -76,7 +76,6 @@ _CONFIGURE_SEQ=		200:configure-message \
 			350:pre-configure-option \
 			400:pre-configure-opsys \
 			450:pre-configure-script \
-			475:run-autotools-fixup \
 			500:do-configure \
 			525:do-configure-option \
 			550:do-configure-opsys \

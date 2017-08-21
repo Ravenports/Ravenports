@@ -549,28 +549,6 @@ SET_LATE_CONFIGURE_ARGS= \
 configure-message:
 	@${ECHO_MSG} "===>  Configuring for ${TWO_PART_ID}"
 
-.if !target(run-autotools-fixup)
-run-autotools-fixup:
-.  if ${OPSYS} == FreeBSD && defined(APPLY_F10_FIX)
-	-@for f in `${FIND} ${WRKDIR} -type f \( -name config.libpath -o \
-		-name config.rpath -o -name configure -o -name libtool.m4 -o \
-		-name ltconfig -o -name libtool -o -name aclocal.m4 -o \
-		-name acinclude.m4 \)` ; do \
-			${SED} -i.fbsd10bak \
-				-e 's|freebsd1\*)|freebsd1.\*)|g' \
-				-e 's|freebsd\[12\]\*)|freebsd[12].*)|g' \
-				-e 's|freebsd\[123\]\*)|freebsd[123].*)|g' \
-				-e 's|freebsd\[\[12\]\]\*)|freebsd[[12]].*)|g' \
-				-e 's|freebsd\[\[123\]\]\*)|freebsd[[123]].*)|g' \
-					$${f} ; \
-			cmp -s $${f}.fbsd10bak $${f} || \
-			${ECHO_MSG} "===>   FreeBSD 10 autotools fix applied to $${f}"; \
-			${TOUCH} ${TOUCH_FLAGS} -mr $${f}.fbsd10bak $${f} ; \
-			${RM} $${f}.fbsd10bak ; \
-		done
-.  endif
-.endif
-
 .if !target(do-configure)
 do-configure:
 	@if [ -f ${SCRIPTDIR}/configure ]; then \
