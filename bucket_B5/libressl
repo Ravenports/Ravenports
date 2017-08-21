@@ -2734,6 +2734,25 @@ lib/pkgconfig/
  openssl.pc
 
 
+[FILE:600:patches/patch-configure]
+There is a conflict within the static libcrypto.a with the arc4random,
+arc4random_buf, and arc4random_uniform.  These functions also exist in
+in FreeBSD's system libc.  To resolve, don't use libressl builtin
+versions.  The issue referenced in the patch should be resolved in
+current releases.
+
+--- configure.orig	2017-07-09 11:00:05 UTC
++++ configure
+@@ -12166,7 +12166,6 @@ fi
+ 		HOST_ABI=elf
+ 		# fork detection missing, weak seed on failure
+ 		# https://svnweb.freebsd.org/base/head/lib/libc/gen/arc4random.c?revision=268642&view=markup
+-		USE_BUILTIN_ARC4RANDOM=yes
+ 		PROG_LDADD='-lthr'
+ 
+ 		;;
+
+
 [FILE:481:files/extra-patch-MAN3]
 --- Makefile.in.orig	2016-11-15 22:35:43.105912000 +0100
 +++ Makefile.in	2016-11-15 22:35:43.126013000 +0100

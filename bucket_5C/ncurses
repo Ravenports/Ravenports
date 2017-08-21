@@ -129,6 +129,16 @@ post-extract:
 	@${MKDIR} ${WRKSRC}/build.widec
 	@${MKDIR} ${WRKSRC}/build.nowidec
 
+post-patch-freebsd:
+	# static libdb requires post-linking with pthread library
+	${REINPLACE_CMD} -e 's|(LIBS_TIC)|(LIBS_TIC) -lpthread|' \
+		-e 's|(LIBS_TINFO)|(LIBS_TINFO) -lpthread|' \
+		${WRKSRC}/progs/Makefile.in
+	${REINPLACE_CMD} -e 's|(MATH_LIB)|(MATH_LIB) -lpthread|' \
+		${WRKSRC}/test/Makefile.in
+	${REINPLACE_CMD} -e 's|(TEST_LDFLAGS)|(TEST_LDFLAGS) -lpthread|' \
+		${WRKSRC}/c++/Makefile.in
+
 [FILE:558:descriptions/desc.primary.standard]
 The ncurses software includes a SVr4 and XSI-Curses compatible
 curses library as well as terminfo tools including "tic", "infocmp",

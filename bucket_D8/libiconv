@@ -60,6 +60,19 @@ post-patch:
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
+post-patch-freebsd:
+	${REINPLACE_CMD} \
+		-e 's|freebsd1\*)|freebsd1.\*)|g' \
+		-e 's|freebsd\[123\]\*)|freebsd[123].*)|g' \
+		${WRKSRC}/configure \
+		${WRKSRC}/libcharset/configure \
+		${WRKSRC}/preload/configure
+	${REINPLACE_CMD} \
+		-e 's|freebsd1\*)|freebsd1.\*)|g' \
+		-e 's|freebsd\[\[123\]\]\*)|freebsd[[123]].*)|g' \
+		${WRKSRC}/libcharset/m4/libtool.m4 \
+		${WRKSRC}/m4/libtool.m4
+
 [FILE:621:descriptions/desc.static]
 This library provides an iconv() implementation, for use on systems which
 don't have one, or whose implementation cannot convert from/to Unicode.

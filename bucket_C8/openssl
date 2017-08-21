@@ -114,6 +114,10 @@ post-configure:
 		-e 's|LIBVERSION=[^ ]* |LIBVERSION=9 |' \
 		${WRKSRC}/Makefile
 
+post-patch-freebsd:
+	${REINPLACE_CMD} -e '/define HAVE_CRYPTODEV/d' \
+		${WRKSRC}/crypto/engine/eng_cryptodev.c
+
 post-patch-SSL3-OFF:
 	${REINPLACE_CMD} -e '/for protocol in TLSv1.2 SSLv3;/ s/ SSLv3//' \
 		${WRKSRC}/test/testssl

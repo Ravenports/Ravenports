@@ -10,7 +10,7 @@ CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		GCC/snapshots/6-20170202
-DISTFILE[1]=		gcc-6-20170202.tar.bz2:main
+DISTFILE[1]=		gcc-6-20170202.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			compilers
@@ -83,6 +83,7 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 			--with-ld={{LOCALBASE}}/toolchain/bin/ld
 			--with-as={{LOCALBASE}}/toolchain/bin/as
 			--with-pkgversion="Ravenports"
+			--disable-bootstrap
 
 INSTALL_TARGET=		install-strip
 PLIST_SUB=		GCCVER=6.3.1
@@ -101,6 +102,14 @@ post-patch:
 	# Ensure dwarf4-compatible addr2line
 	${REINPLACE_CMD} -e 's|/usr/bin/addr2line|${PREFIX:H}/bin/addr2line|g'\
 		${WRKSRC}/gcc/ada/traceback_symbolic.c
+	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
+		${WRKSRC}/gcc/config/freebsd-spec.h
+
+post-install-freebsd:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/include-fixed
+
+post-install-dragonfly:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/include-fixed
 
 post-install:
 	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
@@ -108,8 +117,6 @@ post-install:
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/adalib/libgnat.so
-	-[ -d ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/include-fixed/x86_64-linux-gnu ] && \
-		${RMDIR} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.3.1/include-fixed/x86_64-linux-gnu
 
 [FILE:329:descriptions/desc.compilers]
 This is series 6 of the GNU Compiler Collection (GCC)
@@ -152,11 +159,11 @@ This is series 6 of the GNU Compiler Collection (GCC)
 This package contains the man pages and info pages that come with GCC.
 
 
-[FILE:101:distinfo]
-339411f9ec780ba1f779417ea2a3206b69ee11de293aea27fff4658d7e56d0c5     95743873 gcc-6-20170202.tar.bz2
+[FILE:95:distinfo]
+850bf21eafdfe5cd5f6827148184c08c4a0852a37ccf36ce69855334d2c914d4     76156220 gcc-6.4.0.tar.xz
 
 
-[FILE:24245:manifests/plist.compilers]
+[FILE:24603:manifests/plist.compilers]
 bin/
  %%TARGET%%-c++
  %%TARGET%%-g++
@@ -177,6 +184,7 @@ bin/
  gcc-nm
  gcc-ranlib
  gcov
+ gcov-dump
  gcov-tool
  gfortran
  gnat
@@ -1002,7 +1010,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/finclude/
  openacc.mod
  openacc_kinds.mod
  openacc_lib.h
-lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
  README
  limits.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
@@ -1102,6 +1110,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/include/
  stdnoreturn.h
  tbmintrin.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
  tmmintrin.h
  unwind.h
  varargs.h
@@ -1189,6 +1198,10 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  dragonfly.h
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  elfos.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ freebsd-spec.h
+ freebsd-stdint.h
+ freebsd.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  glibc-stdint.h
  gnu-user.h
@@ -1199,6 +1212,10 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  att.h
  biarch64.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ freebsd.h
+ freebsd64.h
+lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  i386-opts.h
  i386-protos.h
  i386.h
@@ -3567,12 +3584,14 @@ share/gcc-%%GCCVER%%/python/libstdcxx/v6/
  libssp_nonshared.a
 
 
-[FILE:72:manifests/plist.infopages]
+[FILE:104:manifests/plist.infopages]
 share/man/man1/
  cpp.1.gz
  g++.1.gz
  gcc.1.gz
  gcov.1.gz
+ gcov-dump.1.gz
+ gcov-tool.1.gz
  gfortran.1.gz
 
 

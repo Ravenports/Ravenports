@@ -116,6 +116,24 @@ post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/${i}/JAVA
 .endfor
 
+post-patch-freebsd:
+	${REINPLACE_CMD} \
+		-e 's|freebsd1\*)|freebsd1.\*)|g' \
+		-e 's|freebsd\[12\]\*)|freebsd[12].*)|g' \
+		-e 's|freebsd\[123\]\*)|freebsd[123].*)|g' \
+		${WRKSRC}/dist/configure \
+		${WRKSRC}/lang/sql/jdbc/configure \
+		${WRKSRC}/lang/sql/sqlite/configure \
+		${WRKSRC}/lang/sql/odbc/configure
+	${REINPLACE_CMD} \
+		-e 's|freebsd1\*)|freebsd1.\*)|g' \
+		-e 's|freebsd\[\[12\]\]\*)|freebsd[[12]].*)|g' \
+		-e 's|freebsd\[\[123\]\]\*)|freebsd[[123]].*)|g' \
+		${WRKSRC}/dist/aclocal/libtool.m4 \
+		${WRKSRC}/lang/sql/jdbc/aclocal.m4 \
+		${WRKSRC}/lang/sql/sqlite/aclocal.m4 \
+		${WRKSRC}/lang/sql/odbc/aclocal.m4
+
 [FILE:296:descriptions/desc.shared]
 Oracle Berkeley DB is a family of open source embeddable databases
 that allows developers to incorporate within their applications a

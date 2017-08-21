@@ -143,6 +143,9 @@ post-install:
 post-extract:
 	@${RM} -rv ${WRKSRC}/sql/sql_hints.yy.cc ${WRKSRC}/sql/sql_hints.yy.h
 
+post-patch-freebsd:
+	${RM} ${WRKSRC}/cmake/os/FreeBSD.cmake
+
 [FILE:294:descriptions/desc.server]
 MySQL is a very fast, multi-threaded, multi-user and robust SQL
 (Structured Query Language) database server.
@@ -1204,4 +1207,25 @@ remember to replace it wit your own
 or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
 
 *****************************************************************************
+
+
+[FILE:531:freebsd/patch-CMakeLists.txt]
+--- CMakeLists.txt.intermediate	2017-08-19 09:55:04 UTC
++++ CMakeLists.txt
+@@ -566,6 +566,7 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+ ENDIF()
+ 
+ # Check for pthread_getthreadid_np()
++set(CMAKE_REQUIRED_LIBRARIES pthread)
+ CHECK_C_SOURCE_COMPILES("
+ #include <pthread_np.h>
+ int main(int ac, char **av)
+@@ -574,6 +575,7 @@ int main(int ac, char **av)
+   return (tid != 0 ? 0 : 1);
+ }"
+ HAVE_PTHREAD_GETTHREADID_NP)
++set(CMAKE_REQUIRED_LIBRARIES "")
+ 
+ # Check for pthread_self() returning an integer type
+ CHECK_C_SOURCE_COMPILES("
 

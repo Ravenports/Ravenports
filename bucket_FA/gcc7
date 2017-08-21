@@ -102,6 +102,8 @@ post-patch:
 	# Ensure dwarf4-compatible addr2line
 	${REINPLACE_CMD} -e 's|/usr/bin/addr2line|${PREFIX:H}/bin/addr2line|g'\
 		${WRKSRC}/gcc/ada/traceback_symbolic.c
+	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
+		${WRKSRC}/gcc/config/freebsd-spec.h
 
 post-install-freebsd:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/include-fixed
@@ -161,12 +163,20 @@ This package contains the man pages and info pages that come with GCC.
 1cf7adf8ff4b5aa49041c8734bbcf1ad18cc4c94d0029aae0f4e48841088479a     62312628 gcc-7.2.0.tar.xz
 
 
-[FILE:25762:manifests/plist.compilers]
+[FILE:26037:manifests/plist.compilers]
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  dragonfly-stdint.h
  dragonfly.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ freebsd-spec.h
+ freebsd-stdint.h
+ freebsd.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ freebsd.h
+ freebsd64.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginT.o
  crtfastmath.o
