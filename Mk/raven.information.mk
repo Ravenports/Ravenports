@@ -22,7 +22,7 @@ APQ_ODBC_REVISION=		0
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.64.0
+BOOST_VERSION=			1.65.0
 BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
@@ -114,7 +114,7 @@ RUBY_2.4_PATCHLEVEL=		0
 
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
-GTK3_PORT_VERSION=		3.22.18
+GTK3_PORT_VERSION=		3.22.19
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
