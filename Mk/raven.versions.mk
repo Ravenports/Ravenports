@@ -84,11 +84,11 @@ TCL_8.6_VERSION=	8.6.7
 
 PGSQL_DEFAULT?=		9.6
 
-PGSQL_9.2_VERSION=	9.2.22
-PGSQL_9.3_VERSION=	9.3.18
-PGSQL_9.4_VERSION=	9.4.13
-PGSQL_9.5_VERSION=	9.5.8
-PGSQL_9.6_VERSION=	9.6.4
+PGSQL_9.2_VERSION=	9.2.23
+PGSQL_9.3_VERSION=	9.3.19
+PGSQL_9.4_VERSION=	9.4.14
+PGSQL_9.5_VERSION=	9.5.9
+PGSQL_9.6_VERSION=	9.6.5
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
