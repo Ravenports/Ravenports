@@ -23,6 +23,7 @@ DISTNAME?=		${NAMEBASE}-${VERSION}
 WRKDIR=			${WRKDIRPREFIX}/${NAMEBASE}
 STD_DOCDIR=		${PREFIX}/share/doc/${NAMEBASE}
 STD_EXAMPLESDIR=	${PREFIX}/share/examples/${NAMEBASE}
+DESKTOPDIR?=		${PREFIX}/share/applications
 MK_SCRIPTS=		/xports/Mk/Scripts
 MK_TEMPLATES=		/xports/Mk/Templates
 MK_KEYWORDS=		/xports/Mk/Keywords
