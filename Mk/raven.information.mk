@@ -86,7 +86,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.9.4
+LIBXML2_VERSION=		2.9.5
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -129,3 +129,11 @@ BINUTILS_VERSION=		2.29
 # ------------------------------------------------------------------------
 
 ASPELL_CORE_VERSION=		0.60.6.1
+
+# ------------------------------------------------------------------------
+# apr1 and other apache projects
+# ------------------------------------------------------------------------
+
+APR1_VERSION=			1.6.2
+APR1_UTIL_VERSION=		1.6.0
+SUBVERSION_VERSION=		1.9.7
