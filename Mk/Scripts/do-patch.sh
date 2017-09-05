@@ -61,18 +61,18 @@ patch_from_directory() {
 			for i in patch-*; do
 				case ${i} in
 					*.orig|*.rej|*~|*,v)
-						${dp_ECHO_MSG} "===>   Ignoring patchfile ${i}"
+						${dp_ECHO_MSG} "====>   Ignoring patchfile ${i}"
 						;;
 					*)
 						if [ -n "${dp_PATCH_DEBUG_TMP}" ]; then
-							${dp_ECHO_MSG} "===>  Applying ${msg} patch ${i}"
+							${dp_ECHO_MSG} "====>  Applying ${msg} patch ${i}"
 						fi
 						if do_patch ${dp_PATCH_ARGS} < ${i}; then
 							PATCHES_APPLIED="${PATCHES_APPLIED} ${i}"
 						else
-							${dp_ECHO_MSG} "=> ${msg} patch ${i} failed to apply cleanly."
+							${dp_ECHO_MSG} "=====> ${msg} patch ${i} failed to apply cleanly."
 							if [ -n "${PATCHES_APPLIED}" -a "${dp_PATCH_SILENT}" != "yes" ]; then
-								${dp_ECHO_MSG} "=> Patch(es) ${PATCHES_APPLIED} applied cleanly."
+								${dp_ECHO_MSG} "=====> Patch(es) ${PATCHES_APPLIED} applied cleanly."
 							fi
 							false
 						fi

@@ -1093,8 +1093,8 @@ _SYSTEM_UID=	${MK_TEMPLATES}/UID.${OPSYS:tl}
 _SYSTEM_GID=	${MK_TEMPLATES}/GID.${OPSYS:tl}
 
 # Owner and group of the WWW user (overridable)
-WWWOWN?=	www
-WWWGRP?=	www
+WWWOWN?=	wwwraven
+WWWGRP?=	wwwraven
 
 .if !target(create-users-groups)
 .  if defined(GROUPS) || defined(USERS)
