@@ -94,7 +94,7 @@ LIBXML2_PYTHON_REVISION=	0
 # libxslt
 # ------------------------------------------------------------------------
 
-LIBXSLT_VERSION=		1.1.29
+LIBXSLT_VERSION=		1.1.30
 LIBXSLT_REVISION=		0
 LIBXSLT_PYTHON_REVISION=	0
 
@@ -114,7 +114,7 @@ RUBY_2.4_PATCHLEVEL=		0
 
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
-GTK3_PORT_VERSION=		3.22.19
+GTK3_PORT_VERSION=		3.22.20
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
