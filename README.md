@@ -60,7 +60,7 @@ enable speedups by magnitudes as compared to other ports systems.
 ## Official Website
 
 Please visit
-(http://ravenports.ironwolf.systems)[http://ravenports.ironwolf.systems]
+[http://ravenports.ironwolf.systems](http://ravenports.ironwolf.systems)
 for additional and current information.
 
 ## License
