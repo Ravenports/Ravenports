@@ -13,7 +13,7 @@ on make.
 
 ## Ravenports Triad
 
-There will be three main components of Ravenports.
+There are three main components of Ravenports.
 
   1. **Source ports:**
 This component, known as "ravensource" is not seen or utilized by
@@ -57,21 +57,31 @@ The options handling and other complex logic that affect package
 dependencies will be done by the ravenadm internally.  This will
 enable speedups by magnitudes as compared to other ports systems.
 
-## Updates
+## Official Website
 
-Unlike other ports systems, the updates will come all at once at
-regular intervals (e.g. weekly or biweekly).  That allows for the
-entire tree to be integrity checked before publishing.
+Please visit
+(http://ravenports.ironwolf.systems)[http://ravenports.ironwolf.systems]
+for additional and current information.
 
-The goal is to automate port updates for specific types of ports
-like all software in CPAN.  These buildsheets can be generated
-by querying CPAN.  Similar approaches can be done for rubygems,
-haskell, python, Go, etc.
+## License
 
-Volunteers will still be needed for many complex ports, but
-similarities with FreeBSD and pkgsrc will ease these tasks.
+The contents of this repository are available under the
+conditions defined by the Internet Systems Consortium (ISC) license:
 
-## Miscellaneous
+---
 
-This is just an initial set of notes.  As progress is made, these notes
-will be updated accordingly.
+```
+Copyright (c) 2017, The Ravenports Project.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+```
