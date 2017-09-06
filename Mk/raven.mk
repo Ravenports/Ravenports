@@ -162,7 +162,7 @@ FETCH_ENV=		SSL_NO_VERIFY_PEER=1 SSL_NO_VERIFY_HOSTNAME=1
 #.endif
 FETCH_REGET?=		1
 
-_OFFICIAL_BACKUP=	http://distcache.DragonFlyBSD.org/ports-distfiles/ # placeholder (change this)
+_OFFICIAL_BACKUP=	http://ravenports.ironwolf.systems/cache-distfiles/
 DL_SITE_BACKUP?=	${_OFFICIAL_BACKUP}
 
 .if defined(DL_SITE_DISABLE)
