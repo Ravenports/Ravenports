@@ -162,11 +162,13 @@ CMAKE_ARGS+=	-DPython_ADDITIONAL_VERSIONS=${PYTHON_VER}
 
 POST_PLIST_TARGET+=	setuptools-autolist
 
+.    if !target(setuptools-autolist)
 setuptools-autolist:
 	@(cd ${STAGEDIR}${PREFIX} && \
 	${FIND} lib bin share/man share/doc share/examples \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
 	>> ${WRKDIR}/.manifest.single.mktmp
+.    endif
 
 
 .    if !target(do-configure) && !defined(HAS_CONFIGURE) && !defined(GNU_CONFIGURE)
