@@ -2,6 +2,7 @@
 
 NAMEBASE=		python-pycairo
 VERSION=		1.15.2
+REVISION=		1
 KEYWORDS=		python devel
 VARIANTS=		py27 py36 py35
 SDESC[py35]=		Bindings for cairo graphics library (PY 35)
@@ -14,8 +15,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/pygobject:pycairo:v1.15.2
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[py35]=		single
-SPKGS[py36]=		single
+SPKGS[py35]=		primary
+			common
+SPKGS[py36]=		primary
 SPKGS[py27]=		single
 
 OPTIONS_AVAILABLE=	PY27 PY36 PY35
@@ -35,6 +37,10 @@ FPC_EQUIVALENT=		graphics/py-cairo
 
 [PY27].USES_ON=				python:py27
 
+post-install-PY36-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/include/pycairo
+	${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/py3cairo.pc
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PYTHON_SITELIBDIR}/cairo/*.so
 
@@ -45,6 +51,17 @@ Since version 1.11.0 pycairo has moved to GitHub and pycairo and py2cairo
 have been merged back into one project.
 
 
+[FILE:189:descriptions/desc.primary]
+Pycairo is a set of Python 2 & 3 bindings for the cairo graphics library.
+
+Since version 1.11.0 pycairo has moved to GitHub and pycairo and py2cairo
+have been merged back into one project.
+
+
+[FILE:75:descriptions/desc.common]
+This package contains files common to the two python3 variants of pycairo.
+
+
 [FILE:110:distinfo]
 adc63481c34342c192656bd23e9ae5249032cccb88502472884110dc05e762c8       176900 pygobject-pycairo-1.15.2.tar.gz
 
@@ -53,6 +70,17 @@ adc63481c34342c192656bd23e9ae5249032cccb88502472884110dc05e762c8       176900 py
 include/pycairo/pycairo.h
 
 
-[FILE:27:manifests/plist.single]
+[FILE:53:manifests/plist.common]
 include/pycairo/py3cairo.h
+lib/pkgconfig/py3cairo.pc
+
+
+[FILE:232:files/special.mk]
+.if ${VARIANT:Mpy3*}
+setuptools-autolist:
+	@(cd ${STAGEDIR}${PREFIX} && \
+	${FIND} lib/python* bin share/man share/doc share/examples \
+	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+	>> ${WRKDIR}/.manifest.primary.mktmp
+.endif
 
