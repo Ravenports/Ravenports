@@ -452,6 +452,34 @@ expand_PHP()
     done
 }
 
+expand_TOR()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##TOR/}
+    local cluster="\
+    https://www.torproject.org/dist \
+    https://archive.torproject.org/tor-package-archive \
+    ftp://ftp.bit.nl/mirror/tor \
+    http://cyberside.net.ee/tor \
+    http://ftp.bit.nl/mirror/tor \
+    http://mirror.hessmo.com/tor/dist \
+    http://mirror.host4site.co.il/torproject.org/dist \
+    http://mirror.open-networx.org/torproject.org/dist \
+    http://mirror.tor.hu/dist \
+    https://mirror.torland.me/torproject.org/dist \
+    http://mirrors.chaos-darmstadt.de/tor-mirror/dist \
+    http://theonionrouter.com/dist \
+    https://www.coevoet.nl/tor/dist \
+    http://www.oignon.net/dist \
+    http://www.torproject.nl/dist \
+    http://www.torproject.org.nyud.net/dist \
+    http://www.torproject.us/dist \
+    http://www.torservers.net/mirrors/torproject.org/dist"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 
 process_site()
 {
@@ -482,6 +510,7 @@ process_site()
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
+	TOR/*)                     expand_TOR "${1}" ;;
 	UBUNTU/*)                  expand_UBUNTU "${1}" ;;
 	XORG/*)                    expand_XORG "${1}" ;;
 	*)                         echo $@ ;;
