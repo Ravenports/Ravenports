@@ -2,6 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.1
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd64 linux
 SDESC[linux]=		Linux system root for Ravenports build env
@@ -88,6 +89,7 @@ SKIP_BUILD=		yes
 MAKE_ARGS=		BASE={{RSYS}}
 MAKE_ENV=		OPSYS="{{OPSYS}}"
 			MKDIR="{{MKDIR}}"
+			GCCX=gcc7
 			libm={{Libm_{{OPSYS}}}}
 			libc={{Libc_{{OPSYS}}}}
 			libutil={{Libutil_{{OPSYS}}}}
@@ -2378,7 +2380,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 @dir %%BASE%%/usr/local
 
 
-[FILE:21153:manifests/plist.single.linux]
+[FILE:21168:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -2419,6 +2421,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
  libc.so.6
  libdl-2.23.so
  libdl.so.2
+ libgcc_s.so.1
  libm-2.23.so
  libm.so.6
  libmvec-2.23.so
@@ -4137,7 +4140,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 @dir %%BASE%%/usr/local
 
 
-[FILE:18443:files/Makefile]
+[FILE:18617:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -4793,6 +4796,8 @@ install:
 	cp -a ../linux/usr/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
 .  endfor
 	ln -s /lib/x86_64-linux-gnu/${Linux_RTLD:H} ${DESTDIR}${BASE}/lib64/${Linux_RTLD:T}
+	# symlink libgcc_s.so.1 which lpthread needs in a specific location
+	ln -s /raven/toolchain/${GCCX}/lib64/libgcc_s.so.1 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/libgcc_s.so.1
 	# certain shared libraries must be executable
 	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_RTLD:H}
 	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_C_lib:H}
