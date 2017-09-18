@@ -480,6 +480,23 @@ expand_TOR()
     done
 }
 
+expand_SAVANNAH()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##SAVANNAH/}
+    local cluster="\
+    http://download.savannah.gnu.org/releases \
+    http://download-mirror.savannah.gnu.org/releases \
+    http://nongnu.askapache.com \
+    http://mirror.lihnidos.org/GNU/savannah \
+    http://ftp.twaren.net/Unix/NonGNU \
+    ftp://ftp.twaren.net/Unix/NonGNU \
+    http://gnu.mirrors.pair.com/savannah/savannah \
+    ftp://gnu.mirrors.pair.com/savannah"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
 
 process_site()
 {
@@ -507,6 +524,7 @@ process_site()
 	PHP/*)                     expand_PHP "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
 	RUBY/*)			   expand_RUBY "${1}" ;;
+	SAVANNAH/*)                expand_SAVANNAH "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
