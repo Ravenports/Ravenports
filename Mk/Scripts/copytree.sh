@@ -49,5 +49,5 @@ chmod 755 ${target_dirs}
 target_files=$(find ${DESTINO}/${SEARCH_PATH} -depth -type f)
 [ $? -eq 0 ] || (echo "failed target_files step" && exit 1)
 
-chmod ${FILE_MODE} ${target_files}
+echo ${target_files} | xargs chmod ${FILE_MODE}
 [ $? -eq 0 ] || (echo "failed to change file modes" && exit 1)

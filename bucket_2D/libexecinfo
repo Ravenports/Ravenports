@@ -2,6 +2,7 @@
 
 NAMEBASE=		libexecinfo
 VERSION=		100
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Backtrace Information Library
@@ -47,7 +48,8 @@ executing thread.
 92bfe36f886024bbc433846483b026c7ce44d553b9b941a0fd13e451911ae297      6717652 elftoolchain-0.7.1.tgz
 
 
-[FILE:84:manifests/plist.single]
+[FILE:103:manifests/plist.single]
+include/execinfo.h
 lib/
  libexecinfo.a
  libexecinfo.so
@@ -89,7 +91,7 @@ share/man/man3/backtrace.3.gz
  */
 
 
-[FILE:2992:files/Makefile]
+[FILE:3091:files/Makefile]
 # libexecinfo has libelf inbuilt from elftoolchain project
 
 .SUFFIXES:	.o .c
@@ -213,10 +215,12 @@ native-elf-format.h: ${COMMON}/native-elf-format
 
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/lib ${DESTDIR}${PREFIX}/share/man/man3
+	mkdir -p ${DESTDIR}${PREFIX}/include
 	${BSD_INSTALL_LIB} ${LIB_SHARED} ${DESTDIR}${PREFIX}/lib
 	${BSD_INSTALL_DATA} ${LIB_STATIC} ${DESTDIR}${PREFIX}/lib
 	ln -s ../${LIB_SHARED} ${DESTDIR}${PREFIX}/lib/${LIB_LINK}
 	${BSD_INSTALL_MAN} backtrace.3 ${DESTDIR}${PREFIX}/share/man/man3/
+	${BSD_INSTALL_DATA} execinfo.h ${DESTDIR}${PREFIX}/include/
 
 
 [FILE:3072:files/backtrace.3]

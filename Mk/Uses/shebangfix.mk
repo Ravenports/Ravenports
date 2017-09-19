@@ -76,13 +76,15 @@ fix-shebang:
 	@cd ${WRKSRC}; \
 		${FIND} . -type f -iregex '${SHEBANG_REGEX}' \
 		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
-.  elif defined(SHEBANG_GLOB)
+.  endif
+.  if defined(SHEBANG_GLOB)
 .    for f in ${SHEBANG_GLOB}
 	@cd ${WRKSRC}; \
 		${FIND} . -type f -name '${f}' \
 		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
 .    endfor
-.  else
+.  endif
+.  if defined(SHEBANG_FILES)
 	@(cd ${WRKSRC} && \
 		${ECHO_CMD} ${SHEBANG_FILES} | \
 		${XARGS} ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS})
