@@ -7107,7 +7107,7 @@ record file nonetheless.
  Lib/distutils/tests/test_install_lib.py |  8 ++++++--
  2 files changed, 19 insertions(+), 6 deletions(-)
 
---- Lib/distutils/command/install_lib.py.orig	2015-12-07 01:39:07 UTC
+--- Lib/distutils/command/install_lib.py.orig	2017-07-08 03:33:27 UTC
 +++ Lib/distutils/command/install_lib.py
 @@ -164,12 +164,21 @@ class install_lib(Command):
              ext = os.path.splitext(os.path.normcase(py_file))[1]
@@ -7151,7 +7151,7 @@ record file nonetheless.
  Lib/distutils/tests/test_install_lib.py |  8 ++++++--
  2 files changed, 19 insertions(+), 6 deletions(-)
 
---- Lib/distutils/tests/test_install_lib.py.orig	2015-12-07 01:39:07 UTC
+--- Lib/distutils/tests/test_install_lib.py.orig	2017-07-08 03:33:27 UTC
 +++ Lib/distutils/tests/test_install_lib.py
 @@ -64,11 +64,15 @@ class InstallLibTestCase(support.Tempdir
          cmd.distribution.ext_modules = [Extension('foo', ['xxx'])]
@@ -7214,7 +7214,7 @@ record file nonetheless.
          return "-l" + lib
 
 
-[FILE:3037:patches/patch-Makefile.pre.in]
+[FILE:4066:patches/patch-Makefile.pre.in]
 # Description: Remove duplicate CFLAGS, CPPFLAGS, LDFLAGS by stripping CONFIGURE_*
 # Submitted by: koobs (r326729)
 # TODO: Upstream
@@ -7223,9 +7223,9 @@ record file nonetheless.
 # Submitted by: antoine@ (r358029)
 # TODO: Upstream
 
---- Makefile.pre.in.orig	2017-01-21 18:48:21.942822000 +0800
-+++ Makefile.pre.in	2017-01-21 18:55:44.342228000 +0800
-@@ -76,23 +76,20 @@
+--- Makefile.pre.in.orig	2017-07-08 03:33:27 UTC
++++ Makefile.pre.in
+@@ -80,23 +80,20 @@ MAKESETUP=      $(srcdir)/Modules/makese
  OPT=		@OPT@
  BASECFLAGS=	@BASECFLAGS@
  BASECPPFLAGS=	@BASECPPFLAGS@
@@ -7252,7 +7252,24 @@ record file nonetheless.
  NO_AS_NEEDED=	@NO_AS_NEEDED@
  LDLAST=		@LDLAST@
  SGI_ABI=	@SGI_ABI@
-@@ -1130,12 +1127,6 @@
+@@ -190,6 +187,8 @@ FILEMODE=	644
+ # configure script arguments
+ CONFIG_ARGS=	@CONFIG_ARGS@
+ 
++# disabled extensions
++DISABLED_EXTENSIONS=	@DISABLED_EXTENSIONS@
+ 
+ # Subdirectories with code
+ SRCDIRS= 	@SRCDIRS@
+@@ -575,6 +574,7 @@ sharedmods: $(BUILDPYTHON) pybuilddir.tx
+ 	esac; \
+ 	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
+ 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
++		DISABLED_EXTENSIONS="$(DISABLED_EXTENSIONS)" \
+ 		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
+ 
+ 
+@@ -1148,12 +1148,6 @@ bininstall: altbininstall
  	else true; \
  	fi
  	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)$(EXE) python3$(EXE))
@@ -7265,7 +7282,7 @@ record file nonetheless.
  	-rm -f $(DESTDIR)$(BINDIR)/python3-config
  	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)-config python3-config)
  	-rm -f $(DESTDIR)$(LIBPC)/python3.pc
-@@ -1412,6 +1403,12 @@
+@@ -1415,6 +1409,12 @@ libainstall:	@DEF_MAKE_RULE@ python-conf
  	$(INSTALL_SCRIPT) $(srcdir)/install-sh $(DESTDIR)$(LIBPL)/install-sh
  	$(INSTALL_SCRIPT) python-config.py $(DESTDIR)$(LIBPL)/python-config.py
  	$(INSTALL_SCRIPT) python-config $(DESTDIR)$(BINDIR)/python$(LDVERSION)-config
@@ -7278,33 +7295,7 @@ record file nonetheless.
  	@if [ -s Modules/python.exp -a \
  		"`echo $(MACHDEP) | sed 's/^\(...\).*/\1/'`" = "aix" ]; then \
  		echo; echo "Installing support files for building shared extension modules on AIX:"; \
-
-
-[FILE:2270:patches/patch-issue20210]
-# Backport patch 0001 from Issue #20210
-# Issue: http://bugs.python.org/issue20210
-# By: Thomas Petazzoni
-
---- ./Makefile.pre.in.orig	2014-03-24 22:45:17.908886504 +1100
-+++ ./Makefile.pre.in	2014-03-24 22:47:55.503779805 +1100
-@@ -172,6 +172,8 @@
- # configure script arguments
- CONFIG_ARGS=	@CONFIG_ARGS@
- 
-+# disabled extensions
-+DISABLED_EXTENSIONS=	@DISABLED_EXTENSIONS@
- 
- # Subdirectories with code
- SRCDIRS= 	@SRCDIRS@
-@@ -555,6 +557,7 @@
- 	esac; \
- 	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
- 		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
-+		DISABLED_EXTENSIONS="$(DISABLED_EXTENSIONS)" \
- 		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
- 
- # Build static library
-@@ -1352,7 +1355,8 @@
+@@ -1434,7 +1434,8 @@ libainstall:	@DEF_MAKE_RULE@ python-conf
  # Install the dynamically loadable modules
  # This goes into $(exec_prefix)
  sharedinstall: sharedmods
@@ -7314,20 +7305,12 @@ record file nonetheless.
  	   	--prefix=$(prefix) \
  		--install-scripts=$(BINDIR) \
  		--install-platlib=$(DESTSHARED) \
---- ./configure.ac.orig	2014-03-24 22:48:10.442551831 +1100
-+++ ./configure.ac	2014-03-24 22:48:42.059827384 +1100
-@@ -2331,6 +2331,8 @@
- 
- AC_PATH_TOOL([PKG_CONFIG], [pkg-config])
- 
-+AC_SUBST(DISABLED_EXTENSIONS)
-+
- # Check for use of the system expat library
- AC_MSG_CHECKING(for --with-system-expat)
- AC_ARG_WITH(system_expat,
---- configure.orig	2015-03-01 13:57:08.000000000 +0300
-+++ configure	2015-03-01 13:57:30.000000000 +0300
-@@ -650,6 +650,7 @@
+
+
+[FILE:211:patches/patch-configure]
+--- configure.orig	2017-07-08 03:33:27 UTC
++++ configure
+@@ -652,6 +652,7 @@ USE_THREAD_MODULE
  TCLTK_LIBS
  TCLTK_INCLUDES
  LIBFFI_INCLUDEDIR
@@ -7335,9 +7318,12 @@ record file nonetheless.
  PKG_CONFIG_LIBDIR
  PKG_CONFIG_PATH
  PKG_CONFIG
---- ./setup.py.orig	2014-03-24 22:48:48.495472513 +1100
-+++ ./setup.py	2014-03-24 22:49:20.076122201 +1100
-@@ -33,7 +33,10 @@
+
+
+[FILE:1431:patches/patch-setup.py]
+--- setup.py.orig	2017-07-08 03:33:27 UTC
++++ setup.py
+@@ -43,7 +43,10 @@ host_platform = get_platform()
  COMPILED_WITH_PYDEBUG = ('--with-pydebug' in sysconfig.get_config_var("CONFIG_ARGS"))
  
  # This global variable is used to hold the list of modules to be disabled.
@@ -7349,12 +7335,7 @@ record file nonetheless.
  
  def add_dir_to_list(dirlist, dir):
      """Add the directory 'dir' to the list 'dirlist' (after any relative
-
-
-[FILE:931:patches/patch-setup.py]
---- setup.py.orig	2015-09-11 22:41:27 UTC
-+++ setup.py
-@@ -1514,6 +1514,10 @@ class PyBuildExt(build_ext):
+@@ -1571,6 +1574,10 @@ class PyBuildExt(build_ext):
              macros = dict()
              libraries = []
  
@@ -7365,7 +7346,7 @@ record file nonetheless.
          elif host_platform in ('freebsd4', 'freebsd5', 'freebsd6', 'freebsd7', 'freebsd8'):
              # FreeBSD's P1003.1b semaphore support is very experimental
              # and has many known problems. (as of June 2008)
-@@ -1553,7 +1557,7 @@ class PyBuildExt(build_ext):
+@@ -1610,7 +1617,7 @@ class PyBuildExt(build_ext):
          # End multiprocessing
  
          # Platform-specific libraries

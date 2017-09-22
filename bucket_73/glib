@@ -532,7 +532,7 @@ share/locale/zh_TW/LC_MESSAGES/glib20.mo
 @postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
 
 
-[FILE:1895:patches/patch-bug739424]
+[FILE:1894:patches/patch-bug739424]
 From 22656f16c29591207c667362e2a42fd348fe8494 Mon Sep 17 00:00:00 2001
 From: Martin Pieuchot <mpi@openbsd.org>
 Date: Fri, 28 Apr 2017 15:06:52 +0200
@@ -551,9 +551,9 @@ when manipulating such items.
 
 diff --git a/gio/kqueue/kqueue-helper.c b/gio/kqueue/kqueue-helper.c
 index d4e66cd4d..84b9ef164 100644
---- gio/kqueue/kqueue-helper.c
+--- gio/kqueue/kqueue-helper.c.orig	2017-03-10 01:36:23 UTC
 +++ gio/kqueue/kqueue-helper.c
-@@ -291,10 +291,10 @@ process_kqueue_notifications (GIOChannel   *gioc,
+@@ -291,10 +291,10 @@ process_kqueue_notifications (GIOChannel
  
    G_LOCK (hash_lock);
    sub = (kqueue_sub *) g_hash_table_lookup (subs_hash_table, GINT_TO_POINTER (n.fd));
@@ -565,7 +565,7 @@ index d4e66cd4d..84b9ef164 100644
        KH_W ("Got a notification for a deleted or non-existing subscription %d",
               n.fd);
        return TRUE;
-@@ -336,6 +336,7 @@ process_kqueue_notifications (GIOChannel   *gioc,
+@@ -336,6 +336,7 @@ process_kqueue_notifications (GIOChannel
          g_file_monitor_source_handle_event (source, mask, NULL, NULL, NULL, g_get_monotonic_time ());
      }
  
@@ -589,9 +589,6 @@ index d4e66cd4d..84b9ef164 100644
    return TRUE;
  }
  
--- 
-2.12.2
-
 
 
 [FILE:354:patches/patch-config.h.in]
@@ -609,23 +606,18 @@ index d4e66cd4d..84b9ef164 100644
  
 
 
-[FILE:424:patches/patch-configure]
---- configure.orig	2017-09-11 00:18:49 UTC
+[FILE:385:patches/patch-configure]
+--- configure.orig	2017-09-22 17:36:36 UTC
 +++ configure
-@@ -27408,9 +27408,12 @@ case $host in
-   *android*)
-     G_THREAD_LIBS_FOR_GTHREAD="$G_THREAD_LIBS"
-     ;;
--  *-*-freebsd*|*-*-linux*)
-+  *-*-linux*)
-     G_THREAD_LIBS_FOR_GTHREAD="`echo $G_THREAD_LIBS | sed s/-pthread/-lpthread/`"
-     ;;
-+  *-*-freebsd*)
-+    LDFLAGS="$LDFLAGS -pthread"
-+    ;;    
-   *)
-     G_THREAD_LIBS_FOR_GTHREAD="$G_THREAD_LIBS"
-     ;;
+@@ -23914,7 +23914,7 @@ _ACEOF
+ fi
+ done
+ 
+-for ac_func in getmntent_r setmntent endmntent hasmntopt getfsstat getvfsstat fallocate
++for ac_func in getmntent_r setmntent endmntent hasmntopt getfsstat fallocate
+ do :
+   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
 
 
 [FILE:329:patches/patch-docs_reference_Makefile.in]
@@ -663,10 +655,10 @@ index d4e66cd4d..84b9ef164 100644
                                            extends, extends_name, list_of);
 
 
-[FILE:661:patches/patch-gio_gunixmount.c]
---- gio/gunixmount.c.orig	2014-09-21 13:00:08.875162804 +0200
-+++ gio/gunixmount.c	2014-09-21 13:00:14.327163623 +0200
-@@ -353,12 +353,17 @@
+[FILE:654:patches/patch-gio_gunixmount.c]
+--- gio/gunixmount.c.orig	2017-07-13 23:03:39 UTC
++++ gio/gunixmount.c
+@@ -356,12 +356,17 @@ g_unix_mount_eject (GMount             *
                      gpointer             user_data)
  {
    GUnixMount *unix_mount = G_UNIX_MOUNT (mount);
@@ -686,10 +678,10 @@ index d4e66cd4d..84b9ef164 100644
  }
 
 
-[FILE:590:patches/patch-gio_gunixvolume.c]
---- gio/gunixvolume.c.orig	2014-03-20 04:50:45.000000000 +0100
-+++ gio/gunixvolume.c	2014-03-24 20:44:40.000000000 +0100
-@@ -356,9 +356,14 @@
+[FILE:571:patches/patch-gio_gunixvolume.c]
+--- gio/gunixvolume.c.orig	2017-07-13 23:03:39 UTC
++++ gio/gunixvolume.c
+@@ -360,9 +360,14 @@ g_unix_volume_eject (GVolume
                       gpointer             user_data)
  {
    GUnixVolume *unix_volume = G_UNIX_VOLUME (volume);
@@ -706,11 +698,11 @@ index d4e66cd4d..84b9ef164 100644
  }
 
 
-[FILE:279:patches/patch-gio_tests_include.c]
---- glib/tests/include.c.orig	2012-03-06 12:11:39.000000000 +0100
-+++ glib/tests/include.c	2012-03-06 12:13:17.000000000 +0100
+[FILE:237:patches/patch-gio_tests_include.c]
+--- glib/tests/include.c.orig	2016-10-22 05:21:44 UTC
++++ glib/tests/include.c
 @@ -3,6 +3,7 @@
- #define _POSIX_C_SOURCE 0
+ #define _POSIX_C_SOURCE 199309L
  #undef _GNU_SOURCE
  #undef _XOPEN_SOURCE
 +#include <sys/types.h>
@@ -719,10 +711,10 @@ index d4e66cd4d..84b9ef164 100644
  
 
 
-[FILE:328:patches/patch-gio_xdgmime_xdgmime.c]
---- gio/xdgmime/xdgmime.c.orig	Mon Nov  8 22:25:27 2004
-+++ gio/xdgmime/xdgmime.c	Sat Nov 13 10:27:22 2004
-@@ -204,7 +204,7 @@
+[FILE:343:patches/patch-gio_xdgmime_xdgmime.c]
+--- gio/xdgmime/xdgmime.c.orig	2017-07-13 23:03:39 UTC
++++ gio/xdgmime/xdgmime.c
+@@ -255,7 +255,7 @@ xdg_run_command_on_dirs (XdgDirectoryFun
  
    xdg_data_dirs = getenv ("XDG_DATA_DIRS");
    if (xdg_data_dirs == NULL)
@@ -733,10 +725,10 @@ index d4e66cd4d..84b9ef164 100644
  
 
 
-[FILE:814:patches/patch-gio_xdgmime_xdgmimecache.h]
---- gio/xdgmime/xdgmimecache.h.orig	2008-06-12 10:25:40.000000000 -0400
-+++ gio/xdgmime/xdgmimecache.h	2008-06-14 00:49:59.000000000 -0400
-@@ -46,6 +46,9 @@ typedef struct _XdgMimeCache XdgMimeCach
+[FILE:766:patches/patch-gio_xdgmime_xdgmimecache.h]
+--- gio/xdgmime/xdgmimecache.h.orig	2017-07-13 23:03:39 UTC
++++ gio/xdgmime/xdgmimecache.h
+@@ -44,6 +44,9 @@ typedef struct _XdgMimeCache XdgMimeCach
  #define _xdg_mime_cache_get_icon                      XDG_RESERVED_ENTRY(cache_get_icon)
  #define _xdg_mime_cache_get_generic_icon              XDG_RESERVED_ENTRY(cache_get_generic_icon)
  #define _xdg_mime_cache_glob_dump                     XDG_RESERVED_ENTRY(cache_glob_dump)
@@ -748,26 +740,26 @@ index d4e66cd4d..84b9ef164 100644
  extern XdgMimeCache **_caches;
 
 
-[FILE:257:patches/patch-glib_fix_hidden]
---- glib/gmem.c.orig	2011-02-10 00:31:42.000000000 +0100
-+++ glib/gmem.c	2011-12-07 00:21:38.000000000 +0100
-@@ -39,6 +39,7 @@
+[FILE:228:patches/patch-glib_fix_hidden]
+--- glib/gmem.c.orig	2017-07-13 23:03:39 UTC
++++ glib/gmem.c
+@@ -38,6 +38,7 @@
  #include "gbacktrace.h"
  #include "gtestutils.h"
  #include "gthread.h"
 +#include "gthreadprivate.h"
  #include "glib_trace.h"
  
- 
+ /* notes on macros:
 
 
-[FILE:582:patches/patch-glib_gconvert.c]
+[FILE:534:patches/patch-glib_gconvert.c]
 Work around our situation of having both libiconv in libc and libiconv from
 ports installed.
 
---- glib/gconvert.c.orig	2014-02-08 10:15:50.000000000 +0100
-+++ glib/gconvert.c	2014-02-08 10:16:52.000000000 +0100
-@@ -62,7 +62,7 @@
+--- glib/gconvert.c.orig	2017-07-13 23:03:39 UTC
++++ glib/gconvert.c
+@@ -55,7 +55,7 @@
  #error GNU libiconv in use but included iconv.h not from libiconv
  #endif
  #if !defined(USE_LIBICONV_GNU) && defined (_LIBICONV_H) \
@@ -778,21 +770,21 @@ ports installed.
  
 
 
-[FILE:762:patches/patch-glib_gutils.c]
---- glib/gutils.c.orig	Wed Mar 23 09:55:02 2005
-+++ glib/gutils.c	Thu Apr  7 01:06:16 2005
-@@ -1929,7 +1929,7 @@ g_get_system_data_dirs (void)
-       data_dirs = (gchar *) g_getenv ("XDG_DATA_DIRS");
+[FILE:648:patches/patch-glib_gutils.c]
+--- glib/gutils.c.orig	2017-08-15 20:27:00 UTC
++++ glib/gutils.c
+@@ -2017,7 +2017,7 @@ g_get_system_data_dirs (void)
  
+ #ifndef G_OS_WIN32
        if (!data_dirs || !data_dirs[0])
 -          data_dirs = "/usr/local/share/:/usr/share/";
 +          data_dirs = "/usr/local/share/";
  
        data_dir_vector = g_strsplit (data_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
- #endif
-@@ -1983,7 +1983,7 @@ g_get_system_config_dirs (void)
-       conf_dirs = (gchar *) g_getenv ("XDG_CONFIG_DIRS");
- 
+ #else
+@@ -2093,7 +2093,7 @@ g_get_system_config_dirs (void)
+ 	}
+ #else
        if (!conf_dirs || !conf_dirs[0])
 -          conf_dirs = "/etc/xdg";
 +          conf_dirs = "/usr/local/etc/xdg:/etc/xdg";
@@ -801,10 +793,10 @@ ports installed.
  #endif
 
 
-[FILE:321:patches/patch-glib_libcharset_Makefile.in]
---- glib/libcharset/Makefile.in.orig	2010-08-08 12:46:01.000000000 +0200
-+++ glib/libcharset/Makefile.in	2010-08-08 12:46:01.000000000 +0200
-@@ -566,7 +566,7 @@ install-dvi: install-dvi-am
+[FILE:275:patches/patch-glib_libcharset_Makefile.in]
+--- glib/libcharset/Makefile.in.orig	2017-09-11 00:18:52 UTC
++++ glib/libcharset/Makefile.in
+@@ -1395,7 +1395,7 @@ install-dvi: install-dvi-am
  
  install-dvi-am:
  
@@ -815,10 +807,10 @@ ports installed.
  
 
 
-[FILE:613:patches/patch-glib_tests_gdatetime.c]
---- glib/tests/gdatetime.c.orig	2014-03-09 10:29:13.925231275 +0000
-+++ glib/tests/gdatetime.c	2014-03-09 10:30:18.235227107 +0000
-@@ -1322,7 +1322,7 @@
+[FILE:615:patches/patch-glib_tests_gdatetime.c]
+--- glib/tests/gdatetime.c.orig	2017-08-19 13:39:20 UTC
++++ glib/tests/gdatetime.c
+@@ -1520,7 +1520,7 @@ test_find_interval (void)
    gint i1, i2;
  
  #ifdef G_OS_UNIX
@@ -827,7 +819,7 @@ ports installed.
  #elif defined G_OS_WIN32
    tz = g_time_zone_new ("Eastern Standard Time");
  #endif
-@@ -1355,7 +1355,7 @@
+@@ -1553,7 +1553,7 @@ test_adjust_time (void)
    gint i1, i2;
  
  #ifdef G_OS_UNIX
@@ -838,10 +830,10 @@ ports installed.
  #endif
 
 
-[FILE:314:patches/patch-glib_tests_utils.c]
---- glib/tests/utils.c.orig	2012-09-24 02:19:54.000000000 +0000
-+++ glib/tests/utils.c	2012-09-24 02:20:48.000000000 +0000
-@@ -416,7 +416,7 @@
+[FILE:287:patches/patch-glib_tests_utils.c]
+--- glib/tests/utils.c.orig	2016-10-22 05:21:44 UTC
++++ glib/tests/utils.c
+@@ -440,7 +440,7 @@ test_xdg_dirs (void)
  
    xdg = (gchar *)g_getenv ("XDG_CONFIG_DIRS");
    if (!xdg)
@@ -852,10 +844,10 @@ ports installed.
  
 
 
-[FILE:464:patches/patch-gmodule_gmodule-dl.c]
---- gmodule/gmodule-dl.c.orig	Sat Feb 17 08:28:07 2001
-+++ gmodule/gmodule-dl.c	Fri Jan 18 09:48:45 2002
-@@ -104,6 +104,7 @@
+[FILE:500:patches/patch-gmodule_gmodule-dl.c]
+--- gmodule/gmodule-dl.c.orig	2017-07-13 23:03:39 UTC
++++ gmodule/gmodule-dl.c
+@@ -106,6 +106,7 @@ _g_module_open (const gchar *file_name,
  static gpointer
  _g_module_self (void)
  {
@@ -863,7 +855,7 @@ ports installed.
    gpointer handle;
    
    /* to query symbols from the program itself, special link options
-@@ -115,6 +116,9 @@
+@@ -127,6 +128,9 @@ _g_module_self (void)
      g_module_set_error (fetch_dlerror (TRUE));
    
    return handle;

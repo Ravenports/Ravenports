@@ -952,10 +952,10 @@ share/themes/Emacs/gtk-3.0/gtk-keys.css
 @dir lib/gtk-3.0/modules
 
 
-[FILE:524:patches/patch-Makefile.in]
---- Makefile.in.orig	2015-03-09 16:12:04.418535000 +0100
-+++ Makefile.in	2015-03-09 16:24:27.861927000 +0100
-@@ -552,7 +552,7 @@
+[FILE:491:patches/patch-Makefile.in]
+--- Makefile.in.orig	2017-09-11 15:20:53 UTC
++++ Makefile.in
+@@ -566,7 +566,7 @@ XVFB_START = \
  	|| { echo "Gtk+Tests:ERROR: Failed to start Xvfb environment for X11 target tests."; exit 1; } \
  	&& DISPLAY=:$$XID && export DISPLAY
  
@@ -966,14 +966,25 @@ share/themes/Emacs/gtk-3.0/gtk-keys.css
  MAINTAINERCLEANFILES = \
 
 
-[FILE:2124:patches/patch-atk-bridge-option]
-# Revert bug 677491 comment 45
+[FILE:349:patches/patch-config.h]
+--- config.h.in.orig	2017-09-11 15:21:09 UTC
++++ config.h.in
+@@ -10,6 +10,9 @@
+ /* Disable deprecation warnings from glib */
+ #undef GLIB_DISABLE_DEPRECATION_WARNINGS
+ 
++/* Define if we're using atk-bridge-2.0 */
++#undef HAVE_ATK_BRIDGE
++
+ /* Define to 1 if you have the `bind_textdomain_codeset' function. */
+ #undef HAVE_BIND_TEXTDOMAIN_CODESET
+ 
 
-diff --git configure configure.ac
-index d4c2262..37b6349 100644
---- configure
+
+[FILE:1437:patches/patch-configure]
+--- configure.orig	2017-09-11 15:20:57 UTC
 +++ configure
-@@ -1039,6 +1039,7 @@ enable_glibtest
+@@ -1057,6 +1057,7 @@ enable_glibtest
  enable_modules
  with_included_immodules
  with_x
@@ -981,7 +992,7 @@ index d4c2262..37b6349 100644
  enable_cups
  enable_papi
  enable_cloudprint
-@@ -1790,6 +1791,7 @@ Optional Packages:
+@@ -1823,6 +1824,7 @@ Optional Packages:
    --with-included-immodules=MODULE1,MODULE2,...
                            build the specified input methods into gtk
    --with-x                use the X Window System
@@ -989,7 +1000,7 @@ index d4c2262..37b6349 100644
    --with-html-dir=PATH    path to installed docs
    --with-xml-catalog=CATALOG
                            path to xml catalog to use
-@@ -24609,8 +24611,20 @@ fi
+@@ -26927,8 +26929,20 @@ fi
  # Check for Accessibility Toolkit flags
  ########################################
  
@@ -1011,48 +1022,7 @@ index d4c2262..37b6349 100644
  else
     ATK_PACKAGES="atk"
  fi
-diff --git config.h.in config.h.in
-index d4c2262..37b6349 100644
---- config.h.in
-+++ config.h.in
-@@ -15,6 +15,9 @@
- /* Define the location where the catalogs will be installed */
- #undef GTK_LOCALEDIR
- 
-+/* Define if we're using atk-bridge-2.0 */
-+#undef HAVE_ATK_BRIDGE
-+
- /* Define to 1 if you have the `bind_textdomain_codeset' function. */
- #undef HAVE_BIND_TEXTDOMAIN_CODESET
- 
-diff --git gtk/a11y/gtkaccessibility.c gtk/a11y/gtkaccessibility.c
-index 4f5028b..ff8450a 100644
---- gtk/a11y/gtkaccessibility.c
-+++ gtk/a11y/gtkaccessibility.c
-@@ -37,7 +37,7 @@
- #include <gtk/gtktogglebutton.h>
- #include <gtk/gtkaccessible.h>
- 
--#ifdef GDK_WINDOWING_X11
-+#ifdef HAVE_ATK_BRIDGE
- #include <atk-bridge.h>
- #endif
- 
-@@ -987,7 +987,7 @@ _gtk_accessibility_init (void)
-   _gtk_accessibility_override_atk_util ();
-   do_window_event_initialization ();
- 
--#ifdef GDK_WINDOWING_X11
-+#ifdef HAVE_ATK_BRIDGE
-   atk_bridge_adaptor_init (NULL, NULL);
- #endif
- 
-
-
-[FILE:436:patches/patch-configure]
---- configure.orig	2016-10-24 05:10:09.000000000 +0200
-+++ configure	2016-11-15 07:54:17.741400000 +0100
-@@ -27913,9 +27913,7 @@ fi
+@@ -27944,9 +27958,7 @@ fi
  if test "$have_cups" = "yes"; then
    GTK_PRINT_BACKENDS="$GTK_PRINT_BACKENDS,cups"
  fi
@@ -1064,11 +1034,11 @@ index 4f5028b..ff8450a 100644
  fi
 
 
-[FILE:615:patches/patch-docs_Makefile.in]
---- docs/Makefile.in.orig	2015-03-09 16:12:04.497272000 +0100
-+++ docs/Makefile.in	2015-03-09 16:23:52.809599000 +0100
-@@ -341,7 +341,7 @@
- LT_CURRENT_MINUS_AGE = @LT_CURRENT_MINUS_AGE@
+[FILE:621:patches/patch-docs_Makefile.in]
+--- docs/Makefile.in.orig	2017-09-11 15:20:53 UTC
++++ docs/Makefile.in
+@@ -351,7 +351,7 @@ LT_CURRENT_MINUS_AGE = @LT_CURRENT_MINUS
+ LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
  LT_VERSION_INFO = @LT_VERSION_INFO@
  MAINT = @MAINT@
 -MAKEINFO = @MAKEINFO@
@@ -1076,7 +1046,7 @@ index 4f5028b..ff8450a 100644
  MANIFEST_TOOL = @MANIFEST_TOOL@
  MATH_LIB = @MATH_LIB@
  MKDIR_P = @MKDIR_P@
-@@ -486,7 +486,7 @@
+@@ -498,7 +498,7 @@ XVFB_START = \
  	|| { echo "Gtk+Tests:ERROR: Failed to start Xvfb environment for X11 target tests."; exit 1; } \
  	&& DISPLAY=:$$XID && export DISPLAY
  
@@ -1087,10 +1057,10 @@ index 4f5028b..ff8450a 100644
  .SUFFIXES:
 
 
-[FILE:409:patches/patch-docs_reference_Makefile.in]
---- docs/reference/Makefile.in.orig	2010-06-27 12:22:03.000000000 +0200
-+++ docs/reference/Makefile.in	2010-06-27 12:22:37.000000000 +0200
-@@ -354,7 +354,7 @@
+[FILE:376:patches/patch-docs_reference_Makefile.in]
+--- docs/reference/Makefile.in.orig	2017-09-11 15:20:53 UTC
++++ docs/reference/Makefile.in
+@@ -495,7 +495,7 @@ XVFB_START = \
  	|| { echo "Gtk+Tests:ERROR: Failed to start Xvfb environment for X11 target tests."; exit 1; } \
  	&& DISPLAY=:$$XID && export DISPLAY
  
@@ -1101,10 +1071,10 @@ index 4f5028b..ff8450a 100644
  
 
 
-[FILE:381:patches/patch-docs_reference_gtk_Makefile.in]
---- docs/reference/gtk/Makefile.in.orig	2014-10-14 15:50:07.675435846 +0200
-+++ docs/reference/gtk/Makefile.in	2014-10-14 15:50:49.218431589 +0200
-@@ -820,7 +820,6 @@
+[FILE:376:patches/patch-docs_reference_gtk_Makefile.in]
+--- docs/reference/gtk/Makefile.in.orig	2017-09-11 15:20:53 UTC
++++ docs/reference/gtk/Makefile.in
+@@ -1010,7 +1010,6 @@ GTK_DOC_V_PDF_0 = @echo "  DOC   Buildin
  ########################################################################
  man_MANS = \
  	gtk-query-immodules-3.0.1	\
@@ -1114,10 +1084,33 @@ index 4f5028b..ff8450a 100644
  	gtk3-demo.1			\
 
 
-[FILE:557:patches/patch-gtk_gtkbuilderparser.c]
---- gtk/gtkbuilderparser.c.orig	2015-11-12 16:34:36.000000000 +0100
-+++ gtk/gtkbuilderparser.c	2015-11-12 23:17:26.500037000 +0100
-@@ -1146,7 +1146,7 @@
+[FILE:500:patches/patch-gtk_a11y_gtkaccessibility.c]
+--- gtk/a11y/gtkaccessibility.c.orig	2017-08-11 19:47:18 UTC
++++ gtk/a11y/gtkaccessibility.c
+@@ -37,7 +37,7 @@
+ #include <gtk/gtktogglebutton.h>
+ #include <gtk/gtkaccessible.h>
+ 
+-#ifdef GDK_WINDOWING_X11
++#ifdef HAVE_ATK_BRIDGE
+ #include <atk-bridge.h>
+ #endif
+ 
+@@ -988,7 +988,7 @@ _gtk_accessibility_init (void)
+   _gtk_accessibility_override_atk_util ();
+   do_window_event_initialization ();
+ 
+-#ifdef GDK_WINDOWING_X11
++#ifdef HAVE_ATK_BRIDGE
+   atk_bridge_adaptor_init (NULL, NULL);
+ #endif
+ 
+
+
+[FILE:579:patches/patch-gtk_gtkbuilderparser.c]
+--- gtk/gtkbuilderparser.c.orig	2017-09-01 22:17:12 UTC
++++ gtk/gtkbuilderparser.c
+@@ -1148,7 +1148,7 @@ end_element (GMarkupParseContext  *conte
  /* Called for character data */
  /* text is not nul-terminated */
  static void
@@ -1126,7 +1119,7 @@ index 4f5028b..ff8450a 100644
        const gchar          *text,
        gsize                 text_len,
        gpointer              user_data,
-@@ -1204,7 +1204,7 @@
+@@ -1206,7 +1206,7 @@ free_info (CommonInfo *info)
  static const GMarkupParser parser = {
    start_element,
    end_element,
@@ -1137,10 +1130,10 @@ index 4f5028b..ff8450a 100644
  
 
 
-[FILE:366:patches/patch-gtk_updateiconcache.c]
---- gtk/updateiconcache.c.orig	2009-05-11 18:05:35.000000000 +0200
-+++ gtk/updateiconcache.c	2009-05-30 12:03:39.000000000 +0200
-@@ -1505,7 +1505,7 @@ opentmp:
+[FILE:318:patches/patch-gtk_updateiconcache.c]
+--- gtk/updateiconcache.c.orig	2017-08-11 19:47:18 UTC
++++ gtk/updateiconcache.c
+@@ -1550,7 +1550,7 @@ opentmp:
    if (!validate_file (tmp_cache_path))
      {
        g_printerr (_("The generated cache was invalid.\n"));

@@ -123,7 +123,7 @@ GTK3_PORT_VERSION=		3.22.21
 
 CURRENT_GCC=			gcc7
 CURRENT_GCC_VERSION=		${GCC7_VERSION}
-BINUTILS_VERSION=		2.29
+BINUTILS_VERSION=		2.29.1
 
 # ------------------------------------------------------------------------
 # aspell

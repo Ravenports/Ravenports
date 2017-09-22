@@ -267,10 +267,10 @@ lib/pkgconfig/nss.pc
 %%ETCSYMLINK-ON%%/etc/ssl/cert.pem
 
 
-[FILE:469:patches/patch-bug1396301]
+[FILE:455:patches/patch-bug1396301]
 --- lib/freebl/verified/kremlib.h.orig	2017-09-20 06:47:27 UTC
 +++ lib/freebl/verified/kremlib.h
-@@ -82,6 +82,11 @@ typedef void *Prims_pos, *Prims_nat, *Prims_nonzero, *
+@@ -82,6 +82,11 @@ typedef void *Prims_pos, *Prims_nat, *Pr
  #if defined(__linux__) || defined(__CYGWIN__)
  #include <endian.h>
  
@@ -284,8 +284,8 @@ lib/pkgconfig/nss.pc
  #include <libkern/OSByteOrder.h>
 
 
-[FILE:421:patches/patch-bug301986]
---- lib/util/nssilckt.h~
+[FILE:449:patches/patch-bug301986]
+--- lib/util/nssilckt.h.orig	2017-09-20 06:47:27 UTC
 +++ lib/util/nssilckt.h
 @@ -163,7 +163,7 @@ typedef enum {
  ** Declare the trace record
@@ -298,27 +298,31 @@ lib/pkgconfig/nss.pc
      PRIntervalTime callTime; /* time spent in function */
 
 
-[FILE:1899:patches/patch-const]
---- cmd/modutil/modutil.h	Sun Apr 25 11:02:47 2004
-+++ cmd/modutil/modutil.h	Fri Jul 22 17:35:20 2005
-@@ -53,6 +53,6 @@
+[FILE:2109:patches/patch-const]
+--- cmd/modutil/modutil.h.orig	2017-09-20 06:47:27 UTC
++++ cmd/modutil/modutil.h
+@@ -22,8 +22,8 @@
  #include "error.h"
  
+ Error LoadMechanismList(void);
 -Error FipsMode(char *arg);
 -Error ChkFipsMode(char *arg);
 +Error FipsMode(const char *arg);
 +Error ChkFipsMode(const char *arg);
  Error AddModule(char *moduleName, char *libFile, char *ciphers,
-       char *mechanisms, char* modparms);
---- cmd/modutil/pk11.c	Sun Apr 25 11:02:47 2004
-+++ cmd/modutil/pk11.c	Fri Jul 22 17:36:48 2005
-@@ -53,5 +53,5 @@
+                 char *mechanisms, char *modparms);
+ Error DeleteModule(char *moduleName);
+--- cmd/modutil/pk11.c.orig	2017-09-20 06:47:27 UTC
++++ cmd/modutil/pk11.c
+@@ -16,7 +16,7 @@
+  * disable FIPS mode on the internal module.
   */
  Error
 -FipsMode(char *arg)
 +FipsMode(const char *arg)
  {
      char *internal_name;
+ 
 @@ -25,16 +25,18 @@ FipsMode(char *arg)
              internal_name = PR_smprintf("%s",
                                          SECMOD_GetInternalModule()->commonName);
@@ -340,17 +344,19 @@ lib/pkgconfig/nss.pc
              PR_fprintf(PR_STDOUT, msgStrings[FIPS_ENABLED_MSG]);
          } else {
              PR_fprintf(PR_STDERR, errStrings[FIPS_ALREADY_ON_ERR]);
-@@ -112,5 +114,5 @@
+@@ -75,7 +77,7 @@ FipsMode(char *arg)
+  * If arg=="false", verify FIPS mode is disabled on the internal module.
   */
  Error
 -ChkFipsMode(char *arg)
 +ChkFipsMode(const char *arg)
  {
-     if(!PORT_Strcasecmp(arg, "true")) {
+     if (!PORT_Strcasecmp(arg, "true")) {
+         if (PK11_IsFIPS()) {
 
 
-[FILE:1325:patches/patch-coreconf_DragonFly.mk]
---- /dev/null	2012-12-27 22:34:01.846650771 +0100
+[FILE:1330:patches/patch-coreconf_DragonFly.mk]
+--- coreconf/DragonFly.mk.orig	2017-09-22 16:21:37 UTC
 +++ coreconf/DragonFly.mk
 @@ -0,0 +1,54 @@
 +#
@@ -409,10 +415,10 @@ lib/pkgconfig/nss.pc
 +ZLIB_LIBS		= -lz
 
 
-[FILE:1143:patches/patch-coreconf_FreeBSD.mk]
---- coreconf/FreeBSD.mk.orig	2009-08-22 07:33:09.000000000 +0200
-+++ coreconf/FreeBSD.mk	2010-03-28 23:01:33.000000000 +0200
-@@ -37,9 +37,9 @@
+[FILE:1125:patches/patch-coreconf_FreeBSD.mk]
+--- coreconf/FreeBSD.mk.orig	2017-09-20 06:47:27 UTC
++++ coreconf/FreeBSD.mk
+@@ -5,9 +5,9 @@
  
  include $(CORE_DEPTH)/coreconf/UNIX.mk
  
@@ -425,7 +431,7 @@ lib/pkgconfig/nss.pc
  RANLIB			= ranlib
  
  CPU_ARCH		= $(OS_TEST)
-@@ -52,6 +52,16 @@ endif
+@@ -20,6 +20,16 @@ endif
  ifeq ($(CPU_ARCH),amd64)
  CPU_ARCH		= x86_64
  endif
@@ -440,7 +446,7 @@ lib/pkgconfig/nss.pc
 +USE_64			= 1
 +endif
  
- OS_CFLAGS		= $(DSO_CFLAGS) -ansi -Wall -Wno-switch -DFREEBSD -DHAVE_STRERROR -DHAVE_BSD_FLOCK
+ OS_CFLAGS		= $(DSO_CFLAGS) -Wall -Wno-switch -DFREEBSD -DHAVE_STRERROR -DHAVE_BSD_FLOCK
  
 @@ -46,7 +56,11 @@ else
  DLL_SUFFIX		= so.1.0
@@ -455,7 +461,7 @@ lib/pkgconfig/nss.pc
  ifdef MAPFILE
  	MKSHLIB += -Wl,--version-script,$(MAPFILE)
  endif
-@@ -87,4 +100,5 @@
+@@ -55,4 +69,5 @@ PROCESS_MAP_FILE = grep -v ';-' $< | \
  
  G++INCLUDES		= -I/usr/include/g++
  
@@ -464,10 +470,10 @@ lib/pkgconfig/nss.pc
 +ZLIB_LIBS		= -lz
 
 
-[FILE:342:patches/patch-coreconf_UNIX.mk]
---- coreconf/UNIX.mk~
+[FILE:370:patches/patch-coreconf_UNIX.mk]
+--- coreconf/UNIX.mk.orig	2017-09-20 06:47:27 UTC
 +++ coreconf/UNIX.mk
-@@ -42,10 +42,8 @@ AR          = ar cr $@
+@@ -10,10 +10,8 @@ AR          = ar cr $@
  LDOPTS     += -L$(SOURCE_LIB_DIR)
  
  ifdef BUILD_OPT
@@ -481,7 +487,7 @@ lib/pkgconfig/nss.pc
 
 
 [FILE:611:patches/patch-coreconf_arch.mk]
---- coreconf/arch.mk.orig	2017-04-20 14:25:50 UTC
+--- coreconf/arch.mk.orig	2017-09-20 06:47:27 UTC
 +++ coreconf/arch.mk
 @@ -26,7 +26,7 @@ OS_ARCH := $(subst /,_,$(shell uname -s)
  # Attempt to differentiate between sparc and x86 Solaris
@@ -505,9 +511,9 @@ lib/pkgconfig/nss.pc
  ifeq ($(OS_ARCH),GNU)
 
 
-[FILE:507:patches/patch-coreconf_command.mk]
---- coreconf/command.mk	Mon Oct 10 19:46:12 2005
-+++ coreconf/command.mk	Wed Jan 18 17:23:28 2006
+[FILE:486:patches/patch-coreconf_command.mk]
+--- coreconf/command.mk.orig	2017-09-20 06:47:27 UTC
++++ coreconf/command.mk
 @@ -12,7 +12,7 @@ AS            = $(CC)
  ASFLAGS      += $(CFLAGS)
  CCF           = $(CC) $(CFLAGS)
@@ -519,8 +525,8 @@ lib/pkgconfig/nss.pc
  RANLIB        = echo
 
 
-[FILE:477:patches/patch-coreconf_config.mk]
---- coreconf/config.mk.orig	2013-06-27 17:58:08.000000000 +0000
+[FILE:465:patches/patch-coreconf_config.mk]
+--- coreconf/config.mk.orig	2017-09-20 06:47:27 UTC
 +++ coreconf/config.mk
 @@ -31,7 +31,7 @@ endif
  #######################################################################
@@ -533,8 +539,8 @@ lib/pkgconfig/nss.pc
  include $(CORE_DEPTH)/coreconf/$(OS_TARGET).mk
 
 
-[FILE:260:patches/patch-coreconf_location.mk]
---- coreconf/location.mk.orig	2013-06-27 17:58:08.000000000 +0000
+[FILE:248:patches/patch-coreconf_location.mk]
+--- coreconf/location.mk.orig	2017-09-20 06:47:27 UTC
 +++ coreconf/location.mk
 @@ -40,7 +40,7 @@ ifdef NSPR_INCLUDE_DIR
  endif
@@ -547,10 +553,10 @@ lib/pkgconfig/nss.pc
  ifdef NSS_INCLUDE_DIR
 
 
-[FILE:280:patches/patch-coreconf_ruleset.mk]
---- coreconf/ruleset.mk~
+[FILE:308:patches/patch-coreconf_ruleset.mk]
+--- coreconf/ruleset.mk.orig	2017-09-20 06:47:27 UTC
 +++ coreconf/ruleset.mk
-@@ -85,7 +85,7 @@
+@@ -53,7 +53,7 @@
  #
  
  ifndef COMPILER_TAG
@@ -562,9 +568,9 @@ lib/pkgconfig/nss.pc
 
 
 [FILE:720:patches/patch-lib_freebl_Makefile]
---- lib/freebl/Makefile.orig	2017-04-20 14:25:50 UTC
+--- lib/freebl/Makefile.orig	2017-09-20 06:47:27 UTC
 +++ lib/freebl/Makefile
-@@ -212,7 +212,7 @@ ifeq ($(CPU_ARCH),x86)
+@@ -213,7 +213,7 @@ ifeq ($(CPU_ARCH),x86)
  endif
  endif # Darwin
  
@@ -573,7 +579,7 @@ lib/pkgconfig/nss.pc
  ifeq ($(CPU_ARCH),x86_64)
      ASFILES  = arcfour-amd64-gas.s mpi_amd64_gas.s
      ASFLAGS += -fPIC -Wa,--noexecstack
-@@ -295,7 +295,7 @@ endif
+@@ -296,7 +296,7 @@ endif
  # to bind the blapi function references in FREEBLVector vector
  # (ldvector.c) to the blapi functions defined in the freebl
  # shared libraries.
@@ -584,9 +590,9 @@ lib/pkgconfig/nss.pc
  
 
 
-[FILE:1089:patches/patch-lib_freebl_mpi_mpcpucache.c]
---- lib/freebl/mpi/mpcpucache.c.orig	2010-06-11 22:39:33.000000000 +0200
-+++ lib/freebl/mpi/mpcpucache.c	2010-06-11 22:40:20.000000000 +0200
+[FILE:1041:patches/patch-lib_freebl_mpi_mpcpucache.c]
+--- lib/freebl/mpi/mpcpucache.c.orig	2017-09-20 06:47:27 UTC
++++ lib/freebl/mpi/mpcpucache.c
 @@ -705,6 +705,32 @@ s_mpi_getProcessorLineSize()
  #endif
  
@@ -630,10 +636,10 @@ lib/pkgconfig/nss.pc
  #endif
 
 
-[FILE:1058:patches/patch-lib_softoken_pkcs11c.c]
---- lib/softoken/pkcs11c.c.orig	2010-05-05 14:36:05.000000000 +0000
-+++ lib/softoken/pkcs11c.c	2010-05-05 14:37:25.000000000 +0000
-@@ -5679,9 +5679,6 @@ sftk_unwrapPrivateKey(SFTKObject *key, S
+[FILE:1023:patches/patch-lib_softoken_pkcs11c.c]
+--- lib/softoken/pkcs11c.c.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/pkcs11c.c
+@@ -5728,9 +5728,6 @@ sftk_unwrapPrivateKey(SFTKObject *key, S
              break;
          case NSSLOWKEYDSAKey:
              keyType = CKK_DSA;
@@ -643,8 +649,8 @@ lib/pkgconfig/nss.pc
              crv = sftk_AddAttributeType(key, CKA_KEY_TYPE, &keyType,
                                          sizeof(keyType));
              if (crv != CKR_OK)
-@@ -5722,9 +5719,6 @@ sftk_unwrapPrivateKey(SFTKObject *key, S
- #ifndef NSS_DISABLE_ECC
+@@ -5770,9 +5767,6 @@ sftk_unwrapPrivateKey(SFTKObject *key, S
+         /* what about fortezza??? */
          case NSSLOWKEYECKey:
              keyType = CKK_EC;
 -            crv = (sftk_hasAttribute(key, CKA_NETSCAPE_DB)) ? CKR_OK : CKR_KEY_TYPE_INCONSISTENT;
@@ -655,10 +661,10 @@ lib/pkgconfig/nss.pc
              if (crv != CKR_OK)
 
 
-[FILE:3951:patches/patch-sysdb]
---- lib/softoken/legacydb/cdbhdl.h.orig	2009-08-31 12:33:12.000000000 +0200
-+++ lib/softoken/legacydb/cdbhdl.h	2009-08-31 12:33:36.000000000 +0200
-@@ -43,7 +43,8 @@
+[FILE:3413:patches/patch-sysdb]
+--- lib/softoken/legacydb/cdbhdl.h.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/legacydb/cdbhdl.h
+@@ -9,7 +9,8 @@
  #define _CDBHDL_H_
  
  #include "nspr.h"
@@ -668,12 +674,11 @@ lib/pkgconfig/nss.pc
  #include "pcertt.h"
  #include "prtypes.h"
  
-
---- lib/softoken/legacydb/dbmshim.c.orig	2009-08-31 10:40:23.000000000 +0200
-+++ lib/softoken/legacydb/dbmshim.c	2009-08-31 10:40:35.000000000 +0200
-@@ -39,7 +39,8 @@
-  *
-  * $Id: dbmshim.c,v 1.2 2007/06/13 00:24:57 rrelyea%redhat.com Exp $
+--- lib/softoken/legacydb/dbmshim.c.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/legacydb/dbmshim.c
+@@ -5,7 +5,8 @@
+ /*
+  * Berkeley DB 1.85 Shim code to handle blobs.
   */
 -#include "mcom_db.h"
 +#include <db.h>
@@ -681,9 +686,9 @@ lib/pkgconfig/nss.pc
  #include "secitem.h"
  #include "nssb64.h"
  #include "blapi.h"
---- lib/softoken/legacydb/keydb.c.orig	2009-08-31 10:40:04.000000000 +0200
-+++ lib/softoken/legacydb/keydb.c	2009-08-31 10:40:08.000000000 +0200
-@@ -43,7 +43,6 @@
+--- lib/softoken/legacydb/keydb.c.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/legacydb/keydb.c
+@@ -9,7 +9,6 @@
  #include "blapi.h"
  #include "secitem.h"
  #include "pcert.h"
@@ -691,9 +696,9 @@ lib/pkgconfig/nss.pc
  #include "secerr.h"
  
  #include "keydbi.h"
---- lib/softoken/legacydb/keydbi.h.orig	2009-08-31 12:33:17.000000000 +0200
-+++ lib/softoken/legacydb/keydbi.h	2009-08-31 12:34:13.000000000 +0200
-@@ -43,5 +43,5 @@
+--- lib/softoken/legacydb/keydbi.h.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/legacydb/keydbi.h
+@@ -10,7 +10,7 @@
  
  #include "nspr.h"
  #include "seccomon.h"
@@ -702,9 +707,9 @@ lib/pkgconfig/nss.pc
  
  /*
   * Handle structure for open key databases
---- lib/softoken/legacydb/pcertdb.c.orig	2009-08-31 10:40:52.000000000 +0200
-+++ lib/softoken/legacydb/pcertdb.c	2009-08-31 10:41:26.000000000 +0200
-@@ -41,7 +41,8 @@
+--- lib/softoken/legacydb/pcertdb.c.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/legacydb/pcertdb.c
+@@ -7,7 +7,8 @@
   */
  #include "lowkeyti.h"
  #include "pcert.h"
@@ -714,21 +719,21 @@ lib/pkgconfig/nss.pc
  #include "pcert.h"
  #include "secitem.h"
  #include "secder.h"
---- lib/softoken/legacydb/pk11db.c.orig	2009-08-31 10:40:57.000000000 +0200
-+++ lib/softoken/legacydb/pk11db.c	2009-08-31 10:41:55.000000000 +0200
-@@ -41,7 +41,8 @@
+--- lib/softoken/legacydb/pk11db.c.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/legacydb/pk11db.c
+@@ -8,7 +8,8 @@
+  */
  
- #include "pk11pars.h"
  #include "lgdb.h"
 -#include "mcom_db.h"
 +#include <db.h>
 +#include <fcntl.h>
  #include "secerr.h"
+ #include "utilpars.h"
  
- #define FREE_CLEAR(p) if (p) { PORT_Free(p); p = NULL; }
---- lib/ckfw/dbm/ckdbm.h.orig	2009-08-31 10:46:00.000000000 +0200
-+++ lib/ckfw/dbm/ckdbm.h	2009-08-31 10:46:22.000000000 +0200
-@@ -59,7 +59,7 @@
+--- lib/ckfw/dbm/ckdbm.h.orig	2017-09-20 06:47:27 UTC
++++ lib/ckfw/dbm/ckdbm.h
+@@ -23,7 +23,7 @@
  #include "ckt.h"
  #endif /* CKT_H */
  
@@ -737,9 +742,9 @@ lib/pkgconfig/nss.pc
  
  NSS_EXTERN_DATA NSSCKMDInstance nss_dbm_mdInstance;
  
---- lib/softoken/legacydb/config.mk.orig	2009-08-31 12:39:49.000000000 +0200
-+++ lib/softoken/legacydb/config.mk	2009-08-31 12:40:03.000000000 +0200
-@@ -40,7 +40,6 @@
+--- lib/softoken/legacydb/config.mk.orig	2017-09-20 06:47:27 UTC
++++ lib/softoken/legacydb/config.mk
+@@ -8,7 +8,6 @@ CRYPTOLIB=$(DIST)/lib/$(LIB_PREFIX)freeb
  
  EXTRA_LIBS += \
  	$(CRYPTOLIB) \
@@ -747,9 +752,9 @@ lib/pkgconfig/nss.pc
  	$(NULL)
  
  # can't do this in manifest.mn because OS_TARGET isn't defined there.
---- lib/certdb/xauthkid.c.orig	2009-08-31 12:43:13.000000000 +0200
-+++ lib/certdb/xauthkid.c	2009-08-31 12:44:21.000000000 +0200
-@@ -39,7 +39,7 @@
+--- lib/certdb/xauthkid.c.orig	2017-09-20 06:47:27 UTC
++++ lib/certdb/xauthkid.c
+@@ -7,7 +7,7 @@
   *
   */
  
@@ -758,10 +763,10 @@ lib/pkgconfig/nss.pc
  #include "seccomon.h"
  #include "secdert.h"
  #include "secoidt.h"
---- lib/certdb/xbsconst.c.orig	2009-08-31 12:43:22.000000000 +0200
-+++ lib/certdb/xbsconst.c	2009-08-31 12:44:41.000000000 +0200
-@@ -38,7 +38,7 @@
-  * X.509 v3 Basic Constraints Extension 
+--- lib/certdb/xbsconst.c.orig	2017-09-20 06:47:27 UTC
++++ lib/certdb/xbsconst.c
+@@ -6,7 +6,7 @@
+  * X.509 v3 Basic Constraints Extension
   */
  
 -#include "prtypes.h"
@@ -769,10 +774,10 @@ lib/pkgconfig/nss.pc
  #include <limits.h> /* for LONG_MAX */
  #include "seccomon.h"
  #include "secdert.h"
---- lib/certdb/xconst.c.orig	2009-08-31 12:43:46.000000000 +0200
-+++ lib/certdb/xconst.c	2009-08-31 12:44:50.000000000 +0200
-@@ -38,7 +38,7 @@
-  * X.509 Extension Encoding  
+--- lib/certdb/xconst.c.orig	2017-09-20 06:47:27 UTC
++++ lib/certdb/xconst.c
+@@ -6,7 +6,7 @@
+  * X.509 Extension Encoding
   */
  
 -#include "prtypes.h"
@@ -780,20 +785,20 @@ lib/pkgconfig/nss.pc
  #include "seccomon.h"
  #include "secdert.h"
  #include "secoidt.h"
---- lib/manifest.mn~
+--- lib/manifest.mn.orig	2017-09-20 06:47:27 UTC
 +++ lib/manifest.mn
-@@ -20,7 +20,7 @@ DIRS = \
- 	$(UTIL_SRCDIR) \
+@@ -20,7 +20,7 @@ ifndef NSS_BUILD_UTIL_ONLY
+ SOFTOKEN_SRCDIRS = \
  	$(FREEBL_SRCDIR) \
  	$(SQLITE_SRCDIR) \
 -	$(DBM_SRCDIR) \
 +	$(NULL) \
  	$(SOFTOKEN_SRCDIR) \
- 	base dev pki \
- 	libpkix \
---- cmd/platlibs.mk.orig	2009-08-31 12:57:13.000000000 +0200
-+++ cmd/platlibs.mk	2009-08-31 12:57:29.000000000 +0200
-@@ -85,7 +85,7 @@
+ 	$(NULL)
+ ifndef NSS_BUILD_SOFTOKEN_ONLY
+--- cmd/platlibs.mk.orig	2017-09-20 06:47:27 UTC
++++ cmd/platlibs.mk
+@@ -29,7 +29,7 @@ endif # BUILD_SUN_PKG
  ifdef NSS_DISABLE_DBM
  DBMLIB = $(NULL)
  else
@@ -801,20 +806,22 @@ lib/pkgconfig/nss.pc
 +DBMLIB = $(NULL)
  endif
  
- ifdef USE_STATIC_LIBS
+ ifeq ($(NSS_BUILD_UTIL_ONLY),1)
 
 
-[FILE:364:patches/patch-tests]
---- tests/common/init.sh	Mon Apr 11 22:24:17 2005
-+++ tests/common/init.sh	Fri Jul 22 16:55:36 2005
-@@ -197,5 +197,6 @@
-     case $HOST in
-         *\.*)
+[FILE:484:patches/patch-tests]
+--- tests/common/init.sh.orig	2017-09-20 06:47:27 UTC
++++ tests/common/init.sh
+@@ -364,7 +364,8 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOU
+             if [ -z "${DOMSUF}" ]; then
+                 DOMSUF=`echo $HOST | sed -e "s/^[^.]*\.//"`
+             fi
 -            HOST=`echo $HOST | sed -e "s/\..*//"`
 +	    DOMSUF=${HOST#*.}	# remove Smallest Prefix matching ``*.''
 +	    HOST=${HOST%%.*}	# remove Largest Suffix ``.*''. See sh(1)
              ;;
          ?*)
+             ;;
 
 
 [FILE:6041:files/MAca-bundle.pl.in]
