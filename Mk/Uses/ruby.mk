@@ -10,10 +10,14 @@
 #
 # RUBY_SETUP		- Set to the alternative name of setup.rb
 #			  (default: setup.rb).
+# RUBY_EXTCONF		- Set to the alternative name of extconf.rb
+#			  (default: extconf.rb)
+# RUBY_FLAGS		- flags passed to ruby (default : blank)
 #
 # --------------------------------------
 # Readonly variables
 # --------------------------------------
+# RUBY			- Set to full path of ruby
 # RUBY_VER		- Set to the alternative short version of ruby in the
 #			  form of `x.y' (see below for current value).
 # RUBY_SUFFIX		- Suffix for ruby binaries and directories
@@ -50,12 +54,15 @@ RUBY_VER=		${_RUBY_VERSION}
 RUBY_VERSION=		${RUBY_${_RUBY_VERSION}_VERSION}
 RUBY_SUFFIX=		${_RUBY_VERSION:S/.//g}
 RUBY_SHLIBVER?=		${RUBY_VER:S/.//}
+RUBY_SETUP?=		setup.rb
+RUBY_EXTCONF?=		extconf.rb
 
 RUBY_NAME=		ruby${RUBY_SUFFIX}
 RUBY_SYSLIBDIR=		${PREFIX}/lib
 RUBY_SITEDIR=		${RUBY_SYSLIBDIR}/ruby/site_ruby
 RUBY_VENDORDIR=		${RUBY_SYSLIBDIR}/ruby/vendor_ruby
 RUBY_ARCH=		${ARCH_STANDARD}-${OPSYS:tl}${MAJOR}
+RUBY=			${LOCALBASE}/bin/${RUBY_NAME}
 
 # Directories
 RUBY_LIBDIR?=		${RUBY_SYSLIBDIR}/ruby/${RUBY_VER}
@@ -95,5 +102,49 @@ RUBY_CONFIGURE_ARGS+=	--with-rubyhdrdir="${PREFIX}/include/ruby-${RUBY_VER}/" \
 			--with-soname=ruby${RUBY_SUFFIX} \
 			--program-prefix="" \
 			--program-suffix="${RUBY_SUFFIX}"
+
+do-configure:	ruby-setup-configure ruby-extconf-configure
+do-build:	ruby-setup-build
+do-install:	ruby-setup-install
+
+ruby-setup-configure:
+.  if exists(${CONFIGURE_WRKSRC}/${RUBY_SETUP})
+	@${ECHO_MSG} "===>  Running ${RUBY_SETUP} to configure"
+	@(cd ${CONFIGURE_WRKSRC} && ${SETENV} ${CONFIGURE_ENV} \
+		${RUBY} ${RUBY_FLAGS} ${RUBY_SETUP} config ${CONFIGURE_ARGS})
+.  endif
+
+ruby-extconf-configure:
+.  if exists(${CONFIGURE_WRKSRC}/${RUBY_EXTCONF})
+.    if defined(RUBY_EXTCONF_SUBDIRS)
+.      for d in ${RUBY_EXTCONF_SUBDIRS}
+	@${ECHO_MSG} "===>  Running ${RUBY_EXTCONF} in ${d} to configure"
+	@(cd ${CONFIGURE_WRKSRC}/${d} && \
+		${SETENV} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \
+		${RUBY} ${RUBY_FLAGS} ${RUBY_EXTCONF} \
+		--with-opt-dir="${LOCALBASE}" ${CONFIGURE_ARGS})
+.      endfor
+.    else
+	@${ECHO_MSG} "===>  Running ${RUBY_EXTCONF} to configure"
+	@(cd ${CONFIGURE_WRKSRC} && \
+		${SETENV} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \
+		${RUBY} ${RUBY_FLAGS} ${RUBY_EXTCONF} \
+		--with-opt-dir="${LOCALBASE}" ${CONFIGURE_ARGS})
+.    endif
+.  endif
+
+ruby-setup-build:
+.  if exists(${BUILD_WRKSRC}/${RUBY_SETUP})
+	@${ECHO_MSG} "===>  Running ${RUBY_SETUP} to build"
+	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${RUBY} ${RUBY_FLAGS} ${RUBY_SETUP} setup)
+.  endif
+
+ruby-setup-install:
+.  if exists(${INSTALL_WRKSRC}/${RUBY_SETUP})
+	@${ECHO_MSG} "===>  Running ${RUBY_SETUP} to install"
+	@(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${RUBY} ${RUBY_FLAGS} ${RUBY_SETUP} install --prefix=${STAGEDIR}
+.  endif
 
 .endif	# _INCLUDE_USES_RUBY_MK
