@@ -41,15 +41,28 @@ PLIST_SUB=		DISTNAME="{{DISTNAME}}"
 			EXT_DIR="lib/ruby/gems/{{RUBY_VER}}/extensions"
 			DOC_DIR="lib/ruby/gems/{{RUBY_VER}}/doc"
 
+[RUBY23].MAKEFILE_ON=			GEMLINK2.3=""
+					GEMLINK2.4="@comment "
 [RUBY23].USES_ON=			ruby:v23
 
+[RUBY24].MAKEFILE_ON=			GEMLINK2.3="@comment "
+					GEMLINK2.4=""
 [RUBY24].USES_ON=			ruby:v24
+
+do-install-RUBY24-ON:
+	if [ "${RUBY_DEFAULT}" = "2.4" ]; then \
+	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem; \
+	fi
 
 do-install:
 	cd ${WRKSRC} && ${SETENV} \
 		GEM_HOME=${STAGEDIR}${PREFIX}/lib/ruby/gems/${RUBY_VER} \
 		${RUBY} ${RUBY_SETUP} --destdir=${STAGEDIR} --no-ri --no-rdoc
-	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem
+
+do-install-RUBY23-ON:
+	if [ "${RUBY_DEFAULT}" = "2.3" ]; then \
+	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem; \
+	fi
 
 [FILE:745:descriptions/desc.single]
 RubyGems is a package manager for the Ruby programming language that
@@ -71,10 +84,9 @@ resolve dependencies and install them.
 d041502ae77e8d49e0a436483fb91f9ad6cc1489e49e0735e7c4a7cf10e728c9       768906 ruby/rubygems-2.6.13.tgz
 
 
-[FILE:4683:manifests/plist.single]
-bin/
- gem
- gem%%SUFFIX%%
+[FILE:4695:manifests/plist.single]
+%%GEMLINK%%bin/gem
+bin/gem%%SUFFIX%%
 %%RUBY_SITELIBDIR%%/
  rubygems.rb
 %%RUBY_SITELIBDIR%%/rubygems/
@@ -290,4 +302,8 @@ bin/
 @dir %%GEMS_DIR%%
 @dir %%SPEC_DIR%%
 @dir %%DOC_DIR%%
+
+
+[FILE:46:files/special.mk]
+PLIST_SUB+= GEMLINK=${GEMLINK${RUBY_DEFAULT}}
 
