@@ -432,6 +432,17 @@ expand_RUBY()
     done
 }
 
+expand_RUBYGEMS()
+{
+    # pattern [element]/%SUBDIR%/
+    # local SUBDIR=${1##RUBYGEMS/}
+    local cluster="\
+    https://rubygems.global.ssl.fastly.net/gems"
+    for site in ${cluster}; do
+	echo ${site}/
+    done
+}
+
 expand_PHP()
 {
     # pattern [element]/%SUBDIR%/
@@ -524,6 +535,7 @@ process_site()
 	PHP/*)                     expand_PHP "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
 	RUBY/*)			   expand_RUBY "${1}" ;;
+	RUBYGEMS/*)                expand_RUBYGEMS "${1}" ;;
 	SAVANNAH/*)                expand_SAVANNAH "${1}" ;;
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
