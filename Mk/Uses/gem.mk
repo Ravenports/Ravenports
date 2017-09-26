@@ -101,15 +101,14 @@ do-install:
 		${STAGEDIR}${PREFIX}/${CACHE_DIR} 2> /dev/null || ${TRUE}
 	${RMDIR} ${STAGEDIR}${PREFIX}/${EXT_DIR} 2> /dev/null || ${TRUE}
 	${RM} -r ${STAGEDIR}${PREFIX}/${DOC_DIR}
+	${FIND} ${STAGEDIR}${PREFIX}/lib -type d -empty -delete
 
 post-install-gem:
 	${FIND} ${STAGEDIR}${PREFIX}/bin \
 		\( -type f -o -type l \) > /tmp/rprograms
 	${CP} /tmp/rprograms /tmp/rconflicts
-	if [ -d ${STAGEDIR}${PREFIX}/lib/ruby/gems/*/gems/*/bin ]; then\
-		${FIND} ${STAGEDIR}${PREFIX}/lib/ruby/gems/*/gems/*/bin \
-		\( -type f -o -type l \) >> /tmp/rprograms;\
-	fi
+	(grep -rl "/usr/bin/env ruby" ${STAGEDIR}${PREFIX}/lib || \
+		/usr/bin/true) >> /tmp/rprograms
 	if [ -s /tmp/rprograms ]; then\
 	  ${SED} -i'' ${RUBY_SB_ARGS} `cat /tmp/rprograms`;\
 	fi
