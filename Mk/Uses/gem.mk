@@ -18,9 +18,11 @@ _INCLUDE_USES_GEM_MK=	yes
 .  if ${gem_ARGS} == "v23"
 GEMS_BASE_DIR=	lib/ruby/gems/2.3
 RUBYGEMBIN=	${LOCALBASE}/bin/gem23
+USING_RUBY=	2.3
 .  else
 GEMS_BASE_DIR=	lib/ruby/gems/2.4
 RUBYGEMBIN=	${LOCALBASE}/bin/gem24
+USING_RUBY=	2.4
 .  endif
 
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -62,6 +64,9 @@ RUBYGEM_ARGS=	-l --no-update-sources \
 		--bindir=${STAGEDIR}${PREFIX}/bin \
 		--no-rdoc --no-ri
 
+RUBY_SB_ARGS=	-e "1s|^\#![[:space:]]*/usr/bin/env ruby\([[:space:]]\)|\#!${LOCALBASE}/bin/ruby${USING_RUBY:S/.//}\1|"
+RUBY_SB_ARGS+=	-e "1s|^\#![[:space:]]*/usr/bin/env ruby$$|\#!${LOCALBASE}/bin/ruby${USING_RUBY:S/.//}|"
+
 .  if !target(do-extract)
 do-extract:
 	@${SETENV} ${GEM_ENV} ${RUBYGEMBIN} unpack --target=${WRKDIR} \
@@ -84,6 +89,8 @@ do-build:
 .  endif
 
 .  if !target(do-install)
+_USES_install+= 780:post-install-gem
+
 do-install:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${GEM_ENV} \
 		${RUBYGEMBIN} install ${RUBYGEM_ARGS} ${GEMFILE} -- --build-args ${CONFIGURE_ARGS})
@@ -94,6 +101,23 @@ do-install:
 		${STAGEDIR}${PREFIX}/${CACHE_DIR} 2> /dev/null || ${TRUE}
 	${RMDIR} ${STAGEDIR}${PREFIX}/${EXT_DIR} 2> /dev/null || ${TRUE}
 	${RM} -r ${STAGEDIR}${PREFIX}/${DOC_DIR}
+
+post-install-gem:
+	${FIND} ${STAGEDIR}${PREFIX}/bin \
+		\( -type f -o -type l \) > /tmp/rprograms
+	${CP} /tmp/rprograms /tmp/rconflicts
+	if [ -d ${STAGEDIR}${PREFIX}/lib/ruby/gems/*/gems/*/bin ]; then\
+		${FIND} ${STAGEDIR}${PREFIX}/lib/ruby/gems/*/gems/*/bin \
+		\( -type f -o -type l \) >> /tmp/rprograms;\
+	fi
+	if [ -s /tmp/rprograms ]; then\
+	  ${SED} -i'' ${RUBY_SB_ARGS} `cat /tmp/rprograms`;\
+	fi
+.    if "${USING_RUBY}" != "${RUBY_DEFAULT}"
+	while read thisfile; do \
+	  mv $${thisfile} $${thisfile}${USING_RUBY:S/.//};\
+	done < /tmp/rconflicts
+.    endif
 .  endif
 
 .  if empty(gem_ARGS:Mskiplist)

@@ -50,6 +50,14 @@ GENERATED=		yes
 					ruby-stud:single:v24
 [RUBY24].USES_ON=			gem:v24
 
+post-patch:
+	# patch won't work, considered binary file
+	# allow usage of newest json and clamp gems
+	${REINPLACE_CMD} \
+		-e 's|"< 2.0", ">= 1.7.7"|"~> 2.0"|' \
+		-e '/clamp/ s|1.0.0|1.0|' \
+		${WRKSRC}/fpm.gemspec
+
 [FILE:186:descriptions/desc.single]
 Convert directories, rpms, python eggs, rubygems, and more to rpms, debs, 
 solaris packages and more. Win at package management without wasting 
