@@ -509,6 +509,30 @@ expand_SAVANNAH()
     done
 }
 
+expand_ISC()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##ISC/}
+    local cluster="\
+    http://ftp.isc.org/isc \
+    ftp://ftp.isc.org/isc \
+    ftp://ftp.ciril.fr/pub/isc \
+    ftp://ftp.freenet.de/pub/ftp.isc.org/isc \
+    ftp://ftp.iij.ad.jp/pub/network/isc \
+    ftp://ftp.dti.ad.jp/pub/net/isc \
+    ftp://ftp.u-aizu.ac.jp/pub/net/isc \
+    ftp://ftp.task.gda.pl/mirror/ftp.isc.org/isc \
+    ftp://ftp.sunet.se/pub/network/isc \
+    ftp://ftp.mirrorservice.org/sites/ftp.isc.org/isc \
+    ftp://ftp.nominum.com/pub/isc \
+    ftp://ftp.ripe.net/mirrors/sites/ftp.isc.org/isc \
+    ftp://ftp.ntua.gr/pub/net/isc/isc \
+    ftp://ftp.funet.fi/pub/mirrors/ftp.isc.org/isc"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 process_site()
 {
     case "${1}" in
@@ -528,6 +552,7 @@ process_site()
 	GNOME/*)                   expand_GNOME "${1}" ;;
 	GNU/*)                     expand_GNU "${1}" ;;
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
+	ISC/*)                     expand_ISC "${1}" ;;
 	MOZILLA/*)                 expand_MOZILLA "${1}" ;;
 	MYSQL/*)                   expand_MYSQL "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;

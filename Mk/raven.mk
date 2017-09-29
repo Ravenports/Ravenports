@@ -1030,7 +1030,7 @@ PLIST_SUB+=		ONLY-${supp:tu}="@comment "
 #                 (2) target directory
 #                 (3) optional, find command modifiers
 
-COPYTREE_BIN=	${SH} ${MK_SCRIPTS}/copytree.sh {BINMODE}
+COPYTREE_BIN=	${SH} ${MK_SCRIPTS}/copytree.sh ${BINMODE}
 COPYTREE_SHARE=	${SH} ${MK_SCRIPTS}/copytree.sh ${_SHAREMODE}
 
 MAKE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/lib/gnat"\
