@@ -46,6 +46,10 @@ rm -rf /tmp/shiny
 /bin/mkdir -p /tmp/shiny
 
 PATCHLIST=/port/patches/patch-*
+if [ -d /port/opsys ]; then
+OSP=/port/opsys/patch-*
+PATCHLIST="${PATCHLIST} ${OSP}"
+fi
 for PFILE in ${PATCHLIST}; do
    ENTRIES=$(${AWK} '/--- / { pn++; print pn }' ${PFILE})
    BNAMEX=$(/usr/bin/basename ${PFILE})
