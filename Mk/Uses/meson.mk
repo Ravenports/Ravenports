@@ -51,4 +51,13 @@ CONFIGURE_ARGS+=	${MESON_ARGS} ${MESON_BUILD_DIR}
 # meson uses ninja
 .include "${USESDIR}/ninja.mk"
 
+.  if defined(GNU_CONFIGURE)
+_USES_configure+=	250:meson_badconfig
+
+meson_badconfig:
+	@${ECHO_MSG} "===> MUST_CONFIGURE=gnu detected.  Remove this line to fix meson build"
+	@${FALSE}
+
+.  endif
+
 .endif
