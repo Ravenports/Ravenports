@@ -1138,6 +1138,11 @@ SUB_FILES+= 		${RC_SUBR_${sp}}
 .    endif
 .  endfor
 
+# transform files like pkg-message-primary-freebsd.in to
+# pkg-message-primary-opsys.in
+
+SUB_FILES:=	${SUB_FILES:S/-${OPSYS:tl}/-opsys/}
+
 apply-slist:
 .  for file in ${SUB_FILES}
 .    if exists(${FILESDIR}/${file}.in)
