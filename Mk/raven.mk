@@ -426,8 +426,8 @@ PATCH_WRKSRC?=		${WRKSRC}
 PATCH_STRIP?=		-p0
 PATCH_DIST_STRIP?=	-p0
 .if defined(PATCH_DEBUG)
-PATCH_ARGS=		--backup -E ${PATCH_STRIP} --batch
-PATCH_DIST_ARGS=	--backup -E ${PATCH_DIST_STRIP} --batch
+PATCH_ARGS=		--backup --forward -E ${PATCH_STRIP} --batch
+PATCH_DIST_ARGS=	--backup --forward -E ${PATCH_DIST_STRIP} --batch
 .else
 PATCH_ARGS=		--backup --forward --quiet -E ${PATCH_STRIP} --batch
 PATCH_DIST_ARGS=	--backup --forward --quiet -E ${PATCH_DIST_STRIP} --batch
