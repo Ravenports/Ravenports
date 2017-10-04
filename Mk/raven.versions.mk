@@ -26,7 +26,7 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 
 PERL5_DEFAULT?=		5.26
 
-PERL_5.24_VERSION=	5.24.2
+PERL_5.24_VERSION=	5.24.3
 PERL_5.26_VERSION=	5.26.1
 
 #-------------------------------------------------------------------------
@@ -48,7 +48,7 @@ PYTHON3_DEFAULT?=	3.6
 
 PYTHON_2.7_VERSION=	2.7.14
 PYTHON_3.5_VERSION=	3.5.4
-PYTHON_3.6_VERSION=	3.6.2
+PYTHON_3.6_VERSION=	3.6.3
 
 #-------------------------------------------------------------------------
 # SSL
