@@ -2,7 +2,7 @@
 
 NAMEBASE=		pkg-bsd
 VERSION=		1.10.1
-REVISION=		4
+REVISION=		5
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	BSD binary package manager
@@ -21,9 +21,10 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		zlib:static:standard
+BUILD_DEPENDS=		libarchive-devel:static:standard
+			zlib:static:standard
 			bzip2:static:standard
-BUILDRUN_DEPENDS=	libarchive:single:standard
+BUILDRUN_DEPENDS=	libarchive-devel:shared:standard
 BR_DEPS[linux]=		libbsd:single:standard
 
 USES=			libtool
@@ -39,7 +40,7 @@ FPC_EQUIVALENT=		ports-mgmt/pkg
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-maintainer-mode
 			--mandir={{MANPREFIX}}/man
-CONFIGURE_ENV=		LIBS="-lpthread"
+CONFIGURE_ENV=		LIBS="-lpthread -lzstd"
 
 SINGLE_JOB=		yes
 
@@ -49,10 +50,16 @@ CFLAGS=			-Wno-error
 
 post-patch:
 	${REINPLACE_CMD} -e '/mandir = / s|/man|/share/man|' \
+		-e 's/larchive/larchive-devel -lzstd/' \
 		${WRKSRC}/docs/Makefile.in
 	${REINPLACE_CMD}\
 		-e '/libpkg_static_la_CFLAGS =/ s/$$/ -DSKIP_PLUGINS/' \
+		-e 's/larchive/larchive-devel -lzstd/' \
 		${WRKSRC}/libpkg/Makefile.in
+	${REINPLACE_CMD} -e 's/larchive/larchive-devel -lzstd/' \
+		${WRKSRC}/src/Makefile.in
+	${REINPLACE_CMD} -e "s/' archive/' archive-devel/" \
+		${WRKSRC}/configure
 
 post-patch-linux:
 	${REINPLACE_CMD} -e '/libpkg_la_LDFLAGS =/ s/= /= -ldl /' \
@@ -222,6 +229,161 @@ index 4cda48801..c3aca4e1f 100644
  
  	if ((data = elf_getdata(dynamic, NULL)) == NULL) {
  		ret = EPKG_END; /* Some error occurred, ignore this file */
+
+
+[FILE:5052:patches/patch-695f072]
+From 695f07277e132e73db985352e2d2e759344c6923 Mon Sep 17 00:00:00 2001
+From: jrmarino <draco@marino.st>
+Date: Tue, 22 Aug 2017 09:44:52 -0500
+Subject: [PATCH] Implement zstandard format
+
+The extension of zstd-compressed packages will be ".tzst" (equivalent of
+".tar.zst")
+---
+ docs/pkg-create.8          |  2 +-
+ libpkg/packing.c           | 10 ++++++++++
+ libpkg/pkg.h.in            |  2 +-
+ libpkg/pkg_jobs.c          |  3 ++-
+ libpkg/pkg_repo_meta.c     |  2 +-
+ scripts/completion/_pkg.in |  2 +-
+ src/create.c               |  9 +++++++--
+ 7 files changed, 23 insertions(+), 7 deletions(-)
+
+diff --git docs/pkg-create.8 docs/pkg-create.8
+index 0d10aac25..fc79d8473 100644
+--- docs/pkg-create.8
++++ docs/pkg-create.8
+@@ -148,7 +148,7 @@ Set
+ .Ar format
+ as the package output format.
+ It can be one of
+-.Ar txz , tbz , tgz
++.Ar tzst , txz , tbz , tgz
+ or
+ .Ar tar
+ which are currently the only supported formats.
+diff --git libpkg/packing.c libpkg/packing.c
+index b1570b377..c82f41c0b 100644
+--- libpkg/packing.c
++++ libpkg/packing.c
+@@ -315,6 +315,11 @@ packing_set_format(struct archive *a, pkg_formats format)
+ 	const char *notsupp_fmt = "%s is not supported, trying %s";
+ 
+ 	switch (format) {
++	case TZS:
++		if (archive_write_add_filter_zstd(a) == ARCHIVE_OK)
++			return ("tzst");
++		else
++			pkg_emit_error(notsupp_fmt, "zstd", "xz");
+ 	case TXZ:
+ 		if (archive_write_add_filter_xz(a) == ARCHIVE_OK)
+ 			return ("txz");
+@@ -342,6 +347,8 @@ packing_format_from_string(const char *str)
+ {
+ 	if (str == NULL)
+ 		return TXZ;
++	if (strcmp(str, "tzst") == 0)
++		return TZS;
+ 	if (strcmp(str, "txz") == 0)
+ 		return TXZ;
+ 	if (strcmp(str, "tbz") == 0)
+@@ -360,6 +367,9 @@ packing_format_to_string(pkg_formats format)
+ 	const char *res = NULL;
+ 
+ 	switch (format) {
++	case TZS:
++		res = "tzst";
++		break;
+ 	case TXZ:
+ 		res = "txz";
+ 		break;
+diff --git libpkg/pkg.h.in libpkg/pkg.h.in
+index 4944b587d..a60f0b745 100644
+--- libpkg/pkg.h.in
++++ libpkg/pkg.h.in
+@@ -1111,7 +1111,7 @@ void pkg_solve_problem_free(struct pkg_solve_problem *problem);
+ /**
+  * Archive formats options.
+  */
+-typedef enum pkg_formats { TAR, TGZ, TBZ, TXZ } pkg_formats;
++typedef enum pkg_formats { TAR, TGZ, TBZ, TXZ, TZS } pkg_formats;
+ 
+ /**
+  * Create package from an installed & registered package
+diff --git libpkg/pkg_jobs.c libpkg/pkg_jobs.c
+index 4b7ee7c23..2034b5d83 100644
+--- libpkg/pkg_jobs.c
++++ libpkg/pkg_jobs.c
+@@ -192,7 +192,8 @@ pkg_jobs_maybe_match_file(struct job_pattern *jp, const char *pattern)
+ 		 * Compare suffix with .txz or .tbz
+ 		 */
+ 		dot_pos ++;
+-		if (strcmp(dot_pos, "txz") == 0 ||
++		if (strcmp(dot_pos, "tzst") == 0 ||
++			strcmp(dot_pos, "txz") == 0 ||
+ 			strcmp(dot_pos, "tbz") == 0 ||
+ 			strcmp(dot_pos, "tgz") == 0 ||
+ 			strcmp(dot_pos, "tar") == 0) {
+diff --git libpkg/pkg_repo_meta.c libpkg/pkg_repo_meta.c
+index a29ab50b6..ea264a4e0 100644
+--- libpkg/pkg_repo_meta.c
++++ libpkg/pkg_repo_meta.c
+@@ -97,7 +97,7 @@ pkg_repo_meta_open_schema_v1()
+ 			"version = {type = integer};\n"
+ 			"maintainer = {type = string};\n"
+ 			"source = {type = string};\n"
+-			"packing_format = {enum = [txz, tbz, tgz, tar]};\n"
++			"packing_format = {enum = [tzst, txz, tbz, tgz, tar]};\n"
+ 			"digest_format = {enum = [sha256_base32, sha256_hex, blake2_base32, blake2s_base32]};\n"
+ 			"digests = {type = string};\n"
+ 			"manifests = {type = string};\n"
+diff --git scripts/completion/_pkg.in scripts/completion/_pkg.in
+index 3913de3f7..814c971e9 100644
+--- scripts/completion/_pkg.in
++++ scripts/completion/_pkg.in
+@@ -236,7 +236,7 @@ _pkg() {
+ 				'(-q --quiet)'{-q,--quiet}'[force quiet output]' \
+ 				'(-v --verbose)'{-v,--verbose}'[be verbose]' \
+ 				'(-n --no-clobber)'{-n,--no-clobber}'[no not overwrite existing packages]' \
+-				'(-f --format)'{-f,--format}'[format]:format:((tar tgz tbz txz))' \
++				'(-f --format)'{-f,--format}'[format]:format:((tar tgz tbz txz tzst))' \
+ 				'(-o --out-dir)'{-o,--out-dir}'[output directory]:outdir:_files -/' \
+ 				'(-r --root-dir)'{-r,--root-dir}'[specify root directory]:rootdir:_files -/' \
+ 				- '(manifest)' \
+diff --git src/create.c src/create.c
+index be76973a9..8aa90cc15 100644
+--- src/create.c
++++ src/create.c
+@@ -104,6 +104,9 @@ pkg_create_matches(int argc, char **argv, match_t match, pkg_formats fmt,
+ 	}
+ 
+ 	switch (fmt) {
++	case TZS:
++		format = "tzst";
++		break;
+ 	case TXZ:
+ 		format = "txz";
+ 		break;
+@@ -185,7 +188,7 @@ pkg_create_matches(int argc, char **argv, match_t match, pkg_formats fmt,
+  * -m: path to dir where to find the metadata
+  * -q: quiet mode
+  * -M: manifest file
+- * -f <format>: format could be txz, tgz, tbz or tar
++ * -f <format>: format could be tzst, txz, tgz, tbz or tar
+  * -o: output directory where to create packages by default ./ is used
+  */
+ 
+@@ -293,7 +296,9 @@ exec_create(int argc, char **argv)
+ 	} else {
+ 		if (format[0] == '.')
+ 			++format;
+-		if (strcmp(format, "txz") == 0)
++		if (strcmp(format, "tzst") == 0)
++			fmt = TZS;
++		else if (strcmp(format, "txz") == 0)
+ 			fmt = TXZ;
+ 		else if (strcmp(format, "tbz") == 0)
+ 			fmt = TBZ;
 
 
 [FILE:3078:patches/patch-7eaa671]
