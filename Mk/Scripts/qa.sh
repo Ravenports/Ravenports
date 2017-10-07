@@ -218,7 +218,11 @@ suidfiles() {
 		\( -perm -u+s -or -perm -g+s \)`
 	if [ -n "${filelist}" ]; then
 		warn "setuid files in the stage directory (are these necessary?):"
-		ls -liTd ${filelist}
+		if [ "${OPSYS}" = "Linux" ]; then
+		   ls -lid --time-style=long-iso ${filelist}
+		else
+		   ls -lidT ${filelist}
+		fi
 	fi
 	return 0
 }
