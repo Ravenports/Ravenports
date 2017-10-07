@@ -35,6 +35,9 @@ INSTALL_TARGET=		install-strip
 PLIST_SUB=		SOVERSION=2.9.7
 			SOMAJOR=2
 
+post-install-linux:
+	${RM} -r ${STAGEDIR}/dev
+
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/include/fuse_kernel.h \
 		${STAGEDIR}${PREFIX}/include/fuse
@@ -72,7 +75,15 @@ This package contains FUSE version 2, the legacy version.
 2a62adb901aae9226ebd5bc40e2201e29f62c3b2a251c67cd1abb17b4d523175       209571 libfuse-libfuse-fuse-2.9.7.tar.gz
 
 
-[FILE:423:manifests/plist.single]
+[FILE:684:manifests/plist.single]
+%%ONLY-LINUX%%/etc/udev/rules.d/99-fuse.rules
+%%ONLY-LINUX%%/etc/init.d/fuse
+%%ONLY-LINUX%%sbin/mount.fuse
+%%ONLY-LINUX%%bin/
+ ulockmgr_server
+ fusermount
+%%ONLY-LINUX%%@preexec mknod -m 0666 /dev/fuse c 10 229 || true
+%%ONLY-LINUX%%@postunexec rm -f /dev/fuse
 include/
  fuse.h
 include/fuse/
@@ -102,7 +113,13 @@ share/man/man1/
  ulockmgr_server.1.gz
 
 
-[FILE:2066:patches/patch-lib_helper.c]
+[FILE:150:files/pkg-message-single-freebsd]
+================ FreeBSD Message ================ 
+Install the fuse kernel module to use this port.
+=================================================
+
+
+[FILE:2066:freebsd/patch-lib_helper.c]
 --- lib/helper.c.orig	2015-05-22 09:24:02 UTC
 +++ lib/helper.c
 @@ -31,7 +31,7 @@ enum  {
@@ -177,7 +194,7 @@ share/man/man1/
  	}
 
 
-[FILE:1611:patches/patch-lib_mount__bsd.c]
+[FILE:1611:freebsd/patch-lib_mount__bsd.c]
 --- lib/mount_bsd.c.orig	2015-05-22 09:24:02 UTC
 +++ lib/mount_bsd.c
 @@ -10,6 +10,8 @@
@@ -257,7 +274,7 @@ share/man/man1/
  
 
 
-[FILE:414:patches/patch-lib_mount__util.c]
+[FILE:414:freebsd/patch-lib_mount__util.c]
 --- lib/mount_util.c.orig	2015-05-22 09:24:02 UTC
 +++ lib/mount_util.c
 @@ -344,20 +344,3 @@ int fuse_mnt_check_empty(const char *pro
@@ -283,7 +300,7 @@ share/man/man1/
 -}
 
 
-[FILE:339:patches/patch-lib_mount__util.h]
+[FILE:339:freebsd/patch-lib_mount__util.h]
 --- lib/mount_util.h.orig	2015-05-22 09:24:02 UTC
 +++ lib/mount_util.h
 @@ -16,4 +16,3 @@ int fuse_mnt_umount(const char *progname
@@ -291,10 +308,4 @@ share/man/man1/
  int fuse_mnt_check_empty(const char *progname, const char *mnt,
  			 mode_t rootmode, off_t rootsize);
 -int fuse_mnt_check_fuseblk(void);
-
-
-[FILE:150:files/pkg-message-single-freebsd]
-================ FreeBSD Message ================ 
-Install the fuse kernel module to use this port.
-=================================================
 

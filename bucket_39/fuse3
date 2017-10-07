@@ -19,7 +19,7 @@ OPTIONS_STANDARD=	none
 
 NOT_FOR_OPSYS=		dragonfly
 
-USES=			meson
+USES=			meson pkgconfig
 
 LICENSE=		LGPL21:single
 LICENSE_SCHEME=		solo
@@ -27,6 +27,9 @@ LICENSE_FILE=		LGPL21:{{WRKSRC}}/COPYING.LIB
 
 PLIST_SUB=		SOVERSION=3.2.0
 			SOMAJOR=3
+
+post-install-linux:
+	${RM} -r ${STAGEDIR}/dev
 
 [FILE:1114:descriptions/desc.single]
 FUSE (Filesystem in Userspace) is an interface for userspace programs to 
@@ -53,7 +56,13 @@ functions.
 f553836969ddbe3bd4fbd8507c0274c088d4c64cc4ea3909ffc5739c7d96a3ec       204110 libfuse-libfuse-fuse-3.2.0.tar.gz
 
 
-[FILE:240:manifests/plist.single]
+[FILE:486:manifests/plist.single]
+%%ONLY-LINUX%%/etc/init.d/fuse3
+%%ONLY-LINUX%%/etc/udev/rules.d/99-fuse3.rules
+%%ONLY-LINUX%%sbin/mount.fuse3
+%%ONLY-LINUX%%bin/fusermount3
+%%ONLY-LINUX%%@preexec mknod -m 0666 /dev/fuse c 10 229 || true
+%%ONLY-LINUX%%@postunexec rm -f /dev/fuse
 include/fuse3/
  cuse_lowlevel.h
  fuse.h
@@ -67,6 +76,35 @@ lib/
 lib/pkgconfig/fuse3.pc
 share/man/man1/fusermount3.1.gz
 share/man/man8/mount.fuse.8.gz
+
+
+[FILE:429:patches/patch-meson.build]
+--- meson.build.orig	2017-09-12 13:50:16 UTC
++++ meson.build
+@@ -44,7 +44,7 @@ endforeach
+ cfg.set('HAVE_SETXATTR', 
+         cc.has_function('setxattr', prefix: '#include <sys/xattr.h>'))
+ cfg.set('HAVE_ICONV', 
+-        cc.has_function('iconv', prefix: '#include <iconv.h>'))
++        cc.has_function('dontuseiconv', prefix: '#include <iconv.h>'))
+ 
+ # Test if structs have specific member
+ cfg.set('HAVE_STRUCT_STAT_ST_ATIM',
+
+
+[FILE:485:patches/patch-util_meson.build]
+--- util/meson.build.orig	2017-09-12 13:50:16 UTC
++++ util/meson.build
+@@ -18,8 +18,7 @@ executable('mount.fuse3', ['mount.fuse.c
+            install: true,
+            install_dir: get_option('sbindir'))
+ 
+-udev = dependency('udev')
+-udevrulesdir = join_paths(udev.get_pkgconfig_variable('udevdir'), 'rules.d')
++udevrulesdir = '/etc/udev/rules.d'
+ 
+ meson.add_install_script('install_helper.sh', get_option('sysconfdir'),
+                          get_option('bindir'), udevrulesdir)
 
 
 [FILE:150:files/pkg-message-single-freebsd]
