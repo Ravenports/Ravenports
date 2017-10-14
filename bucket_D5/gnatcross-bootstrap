@@ -35,12 +35,13 @@ USES=			cpe gmake libtool perl:build
 
 DISTNAME=		gcc-7.2.0
 
-PREFIX=			{{LOCALBASE}}/gcc7-raven
+CC=			{{BSPREFIX}}/bin/{{TGTSYS}}-gcc
+CXX=			{{BSPREFIX}}/bin/{{TGTSYS}}-c++
 
 MUST_CONFIGURE=		yes
 CONFIGURE_OUTSOURCE=	yes
 CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
-			--prefix={{PREFIX}}
+			--prefix={{LOCALBASE}}/gcc7-raven
 			--enable-shared
 			--enable-threads=posix
 			--enable-checking=release
@@ -52,8 +53,8 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 			--disable-libmpx
 			--disable-libcilkrts
 			--with-pkgversion="Ravenports"
-CONFIGURE_ENV=		GNATBIND=gnatbind
-			GNATMAKE=gnatmake
+CONFIGURE_ENV=		build_configargs="CPPFLAGS=\"{{CPPFLAGS}}\""
+			host_configargs="CPPFLAGS=\"{{CPPFLAGS}}\""
 
 INSTALL_TARGET=		install-strip
 PLIST_SUB=		TGTSYS={{TGTSYS}}
@@ -65,8 +66,8 @@ PLIST_SUB=		TGTSYS={{TGTSYS}}
 					--target=aarch64-raven-freebsd11.1
 					--disable-libstdcxx-pch
 [FARM64_R11].MAKEFILE_ON=		TGTSYS=aarch64-raven-freebsd11.1
-					BSPREFIX={{LOCALBASE}}/FreeBSD11_ARM64/{{TGTSYS}}/bin:{{LOCALBASE}}/FreeBSD11_ARM64/bin
-					PREPEND_PATH={{BSPREFIX}}
+					BSPREFIX={{LOCALBASE}}/FreeBSD11_ARM64
+					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
 
 [DISABLE].DESCRIPTION=			Disable building of native compiler (default)
 [DISABLE].BROKEN_ON=			Native compiler building disabled (set option!)
@@ -86,31 +87,31 @@ post-patch:
 post-stage:
 	# package bootstrap compiler with zstd, then relocate files to avoid packaging them
 	@${MKDIR} ${WRKDIR}/bootstrap_compiler
-	(cd ${STAGEDIR}${PREFIX} && \
-		${CP} -a bin ${WRKDIR}/bootstrap_compiler \
-		${CP} -a lib ${WRKDIR}/bootstrap_compiler \
-		${CP} -a include ${WRKDIR}/bootstrap_compiler \
-		${CP} -a libexec ${WRKDIR}/bootstrap_compiler)
+	(cd ${STAGEDIR}${PREFIX}/gcc7-raven \
+		&& ${CP} -a bin ${WRKDIR}/bootstrap_compiler \
+		&& ${CP} -a lib ${WRKDIR}/bootstrap_compiler \
+		&& ${CP} -a include ${WRKDIR}/bootstrap_compiler \
+		&& ${CP} -a libexec ${WRKDIR}/bootstrap_compiler)
 	${RM} ${WRKDIR}/bootstrap_compiler/bin/${TGTSYS}*
 	${MV} ${STAGEDIR} ${STAGEDIR}.old
 	${MKDIR} ${STAGEDIR}${LOCALBASE}/share/${NAMEBASE}
-	(cd ${WRKDIR} && ${TAR} \
-		${STAGEDIR}${LOCALBASE}/share/${NAMEBASE}/bootstrap_pkg/${TGTSYS}-gcc.tar \
+	(cd ${WRKDIR} && ${TAR} -cf \
+		${STAGEDIR}${LOCALBASE}/share/${NAMEBASE}/${TGTSYS}-gcc.tar \
 		bootstrap_compiler)
-	(cd ${STAGEDIR}${LOCALBASE}/share/${NAMEBASE}/bootstrap_pkg && \
-		zstd -7 ${TGTSYS}-gcc.tar)
+	(cd ${STAGEDIR}${LOCALBASE}/share/${NAMEBASE} && \
+		zstd -7 --rm ${TGTSYS}-gcc.tar)
 
 post-install-freebsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/include-fixed
+	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
 
 post-install-dragonfly:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/include-fixed
+	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
 
 post-install:
-	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
-	cp ${STAGEDIR}${PREFIX}/bin/g++ ${STAGEDIR}${PREFIX}/bin/CC
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/adalib/libgnarl.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/adalib/libgnat.so
+	cp ${STAGEDIR}${PREFIX}/gcc7-raven/bin/gcc ${STAGEDIR}${PREFIX}/gcc7-raven/bin/cc
+	cp ${STAGEDIR}${PREFIX}/gcc7-raven/bin/g++ ${STAGEDIR}${PREFIX}/gcc7-raven/bin/CC
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnarl.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnat.so
 
 post-extract:
 	${MKDIR} ${WRKSRC}/libiconv
@@ -130,6 +131,10 @@ cross-compiler.  The target system is determined by the set port option.
 68dadacce515b0f8a54f510edf07c1b636492bcdb8e8d54c56eb216225d16989      1950316 gmp-6.1.0.tar.xz
 617decc6ea09889fb08ede330917a00b16809b8db88c29c31bfbb49cbf88ecc3       669925 mpc-1.0.3.tar.gz
 ccf536620a45458d26ba83887a983b96827001e92a13847b45e4925cc8913178      5264188 libiconv-1.15.tar.gz
+
+
+[FILE:49:manifests/plist.single]
+share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
 
 
 [FILE:39877:patches/patch-diff-ada]
