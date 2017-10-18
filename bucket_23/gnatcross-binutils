@@ -3,8 +3,10 @@
 NAMEBASE=		gnatcross-binutils
 VERSION=		2.29.1
 KEYWORDS=		lang
-VARIANTS=		FARM64_R11
+VARIANTS=		FARM64_R11 FAMD64_R12 SOL10
 SDESC[FARM64_R11]=	C/Ada cross-compiler linker (FreeBSD/ARM64 R11)
+SDESC[SOL10]=		C/Ada cross-compiler linker (Solaris 10)
+SDESC[FAMD64_R12]=	C/Ada cross-compiler linker (FreeBSD/AMD64 R12)
 HOMEPAGE=		http://www.dragonlace.net
 CONTACT=		nobody
 
@@ -13,10 +15,14 @@ SITES[main]=		SOURCEWARE/binutils/releases
 DISTFILE[1]=		binutils-2.29.1.tar.bz2:main
 DF_INDEX=		1
 SPKGS[FARM64_R11]=	single
+SPKGS[SOL10]=		single
+SPKGS[FAMD64_R12]=	single
 
-OPTIONS_AVAILABLE=	FARM64R11
+OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 SOL10
 OPTIONS_STANDARD=	none
-VOPTS[FARM64_R11]=	FARM64R11=ON
+VOPTS[FARM64_R11]=	FARM64R11=ON FAMD64R12=OFF SOL10=OFF
+VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF SOL10=ON
+VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON SOL10=OFF
 
 BUILD_DEPENDS=		zlib:static:standard
 			gmp:static:standard
@@ -49,14 +55,42 @@ PLIST_SUB=		TARGET="{{XCCTARGET}}"
 					BRANCH_PREFIX={{PREFIX}}/{{BRANCH2}}
 					SRPREFIX=gnatcross-sysroot-aarch64
 
+[SOL10].DESCRIPTION=			Create binutils for Solaris 10 (x86-64)
+[SOL10].BUILDRUN_DEPENDS_ON=		gnatcross-sysroot-solaris:single:SOL10
+[SOL10].MAKEFILE_ON=			PREFIX={{LOCALBASE}}/Solaris10_AMD64
+					XCCTARGET=x86_64-raven-solaris2.10
+					BRANCH2=
+					BRANCH_PREFIX={{PREFIX}}/{{BRANCH2}}
+					SRPREFIX=gnatcross-sysroot-amd64
+
+[FAMD64R12].DESCRIPTION=		Create binutils for FreeBSD/AMD64 Release 12
+[FAMD64R12].BUILDRUN_DEPENDS_ON=	gnatcross-sysroot-freebsd:single:AMD64_R12
+[FAMD64R12].MAKEFILE_ON=		PREFIX={{LOCALBASE}}/FreeBSD12_AMD64
+					XCCTARGET=x86_64-raven-freebsd12.0
+					BRANCH2=
+					BRANCH_PREFIX={{PREFIX}}/{{BRANCH2}}
+					SRPREFIX=gnatcross-sysroot-amd64
+
 post-install:
 	# Move the unwanted documentation out of the stage directory
 	${MV} ${STAGEDIR}${BRANCH_PREFIX}/share ${WRKDIR}
 
-[FILE:158:descriptions/desc.single.FARM64_R11]
+[FILE:157:descriptions/desc.single.FARM64_R11]
 This package provides the cross-tools required to build the
-native system -> x86 gnat cross compiler.  This variant is designed
-for FreeBSD/ARM64 Release 11.
+native system -> gnat cross compiler.  This variant sets the target as
+FreeBSD/ARM64 Release 11.
+
+
+[FILE:157:descriptions/desc.single.FAMD64_R12]
+This package provides the cross-tools required to build the
+native system -> gnat cross compiler.  This variant sets the target as
+FreeBSD/AMD64 Release 12.
+
+
+[FILE:152:descriptions/desc.single.SOL10]
+This package provides the cross-tools required to build the
+native system -> gnat cross compiler.  This variant sets the target as
+Solaris 10 (x86_64).
 
 
 [FILE:102:distinfo]
@@ -64,6 +98,23 @@ for FreeBSD/ARM64 Release 11.
 
 
 [FILE:1042:manifests/plist.single.FARM64_R11]
+bin/
+ %%TARGET%%-addr2line
+ %%TARGET%%-ar
+ %%TARGET%%-as
+ %%TARGET%%-c++filt
+ %%TARGET%%-elfedit
+ %%TARGET%%-gprof
+ %%TARGET%%-ld
+ %%TARGET%%-ld.bfd
+ %%TARGET%%-nm
+ %%TARGET%%-objcopy
+ %%TARGET%%-objdump
+ %%TARGET%%-ranlib
+ %%TARGET%%-readelf
+ %%TARGET%%-size
+ %%TARGET%%-strings
+ %%TARGET%%-strip
 %%TARGET%%/bin/
  ar
  as
@@ -115,6 +166,9 @@ for FreeBSD/ARM64 Release 11.
  aarch64fbsdb.xsw
  aarch64fbsdb.xu
  aarch64fbsdb.xw
+
+
+[FILE:2288:manifests/plist.single.FAMD64_R12]
 bin/
  %%TARGET%%-addr2line
  %%TARGET%%-ar
@@ -132,6 +186,268 @@ bin/
  %%TARGET%%-size
  %%TARGET%%-strings
  %%TARGET%%-strip
+%%TARGET%%/bin/
+ ar
+ as
+ ld
+ ld.bfd
+ nm
+ objcopy
+ objdump
+ ranlib
+ readelf
+ strip
+%%TARGET%%/lib/ldscripts/
+ elf_i386.x
+ elf_i386.xbn
+ elf_i386.xc
+ elf_i386.xd
+ elf_i386.xdc
+ elf_i386.xdw
+ elf_i386.xn
+ elf_i386.xr
+ elf_i386.xs
+ elf_i386.xsc
+ elf_i386.xsw
+ elf_i386.xu
+ elf_i386.xw
+ elf_i386_fbsd.x
+ elf_i386_fbsd.xbn
+ elf_i386_fbsd.xc
+ elf_i386_fbsd.xd
+ elf_i386_fbsd.xdc
+ elf_i386_fbsd.xdw
+ elf_i386_fbsd.xn
+ elf_i386_fbsd.xr
+ elf_i386_fbsd.xs
+ elf_i386_fbsd.xsc
+ elf_i386_fbsd.xsw
+ elf_i386_fbsd.xu
+ elf_i386_fbsd.xw
+ elf_iamcu.x
+ elf_iamcu.xbn
+ elf_iamcu.xc
+ elf_iamcu.xd
+ elf_iamcu.xdc
+ elf_iamcu.xdw
+ elf_iamcu.xn
+ elf_iamcu.xr
+ elf_iamcu.xs
+ elf_iamcu.xsc
+ elf_iamcu.xsw
+ elf_iamcu.xu
+ elf_iamcu.xw
+ elf_k1om.x
+ elf_k1om.xbn
+ elf_k1om.xc
+ elf_k1om.xd
+ elf_k1om.xdc
+ elf_k1om.xdw
+ elf_k1om.xn
+ elf_k1om.xr
+ elf_k1om.xs
+ elf_k1om.xsc
+ elf_k1om.xsw
+ elf_k1om.xu
+ elf_k1om.xw
+ elf_k1om_fbsd.x
+ elf_k1om_fbsd.xbn
+ elf_k1om_fbsd.xc
+ elf_k1om_fbsd.xd
+ elf_k1om_fbsd.xdc
+ elf_k1om_fbsd.xdw
+ elf_k1om_fbsd.xn
+ elf_k1om_fbsd.xr
+ elf_k1om_fbsd.xs
+ elf_k1om_fbsd.xsc
+ elf_k1om_fbsd.xsw
+ elf_k1om_fbsd.xu
+ elf_k1om_fbsd.xw
+ elf_l1om.x
+ elf_l1om.xbn
+ elf_l1om.xc
+ elf_l1om.xd
+ elf_l1om.xdc
+ elf_l1om.xdw
+ elf_l1om.xn
+ elf_l1om.xr
+ elf_l1om.xs
+ elf_l1om.xsc
+ elf_l1om.xsw
+ elf_l1om.xu
+ elf_l1om.xw
+ elf_l1om_fbsd.x
+ elf_l1om_fbsd.xbn
+ elf_l1om_fbsd.xc
+ elf_l1om_fbsd.xd
+ elf_l1om_fbsd.xdc
+ elf_l1om_fbsd.xdw
+ elf_l1om_fbsd.xn
+ elf_l1om_fbsd.xr
+ elf_l1om_fbsd.xs
+ elf_l1om_fbsd.xsc
+ elf_l1om_fbsd.xsw
+ elf_l1om_fbsd.xu
+ elf_l1om_fbsd.xw
+ elf_x86_64.x
+ elf_x86_64.xbn
+ elf_x86_64.xc
+ elf_x86_64.xd
+ elf_x86_64.xdc
+ elf_x86_64.xdw
+ elf_x86_64.xn
+ elf_x86_64.xr
+ elf_x86_64.xs
+ elf_x86_64.xsc
+ elf_x86_64.xsw
+ elf_x86_64.xu
+ elf_x86_64.xw
+ elf_x86_64_fbsd.x
+ elf_x86_64_fbsd.xbn
+ elf_x86_64_fbsd.xc
+ elf_x86_64_fbsd.xd
+ elf_x86_64_fbsd.xdc
+ elf_x86_64_fbsd.xdw
+ elf_x86_64_fbsd.xn
+ elf_x86_64_fbsd.xr
+ elf_x86_64_fbsd.xs
+ elf_x86_64_fbsd.xsc
+ elf_x86_64_fbsd.xsw
+ elf_x86_64_fbsd.xu
+ elf_x86_64_fbsd.xw
+
+
+[FILE:1994:manifests/plist.single.SOL10]
+bin/
+ %%TARGET%%-addr2line
+ %%TARGET%%-ar
+ %%TARGET%%-as
+ %%TARGET%%-c++filt
+ %%TARGET%%-elfedit
+ %%TARGET%%-gprof
+ %%TARGET%%-ld
+ %%TARGET%%-ld.bfd
+ %%TARGET%%-nm
+ %%TARGET%%-objcopy
+ %%TARGET%%-objdump
+ %%TARGET%%-ranlib
+ %%TARGET%%-readelf
+ %%TARGET%%-size
+ %%TARGET%%-strings
+ %%TARGET%%-strip
+%%TARGET%%/bin/
+ ar
+ as
+ ld
+ ld.bfd
+ nm
+ objcopy
+ objdump
+ ranlib
+ readelf
+ strip
+%%TARGET%%/lib/ldscripts/
+ elf_i386.x
+ elf_i386.xbn
+ elf_i386.xc
+ elf_i386.xd
+ elf_i386.xdc
+ elf_i386.xdw
+ elf_i386.xn
+ elf_i386.xr
+ elf_i386.xs
+ elf_i386.xsc
+ elf_i386.xsw
+ elf_i386.xu
+ elf_i386.xw
+ elf_i386_ldso.x
+ elf_i386_ldso.xbn
+ elf_i386_ldso.xc
+ elf_i386_ldso.xn
+ elf_i386_ldso.xr
+ elf_i386_ldso.xs
+ elf_i386_ldso.xsc
+ elf_i386_ldso.xsw
+ elf_i386_ldso.xu
+ elf_i386_ldso.xw
+ elf_i386_sol2.x
+ elf_i386_sol2.xbn
+ elf_i386_sol2.xc
+ elf_i386_sol2.xd
+ elf_i386_sol2.xdc
+ elf_i386_sol2.xdw
+ elf_i386_sol2.xn
+ elf_i386_sol2.xr
+ elf_i386_sol2.xs
+ elf_i386_sol2.xsc
+ elf_i386_sol2.xsw
+ elf_i386_sol2.xu
+ elf_i386_sol2.xw
+ elf_iamcu.x
+ elf_iamcu.xbn
+ elf_iamcu.xc
+ elf_iamcu.xd
+ elf_iamcu.xdc
+ elf_iamcu.xdw
+ elf_iamcu.xn
+ elf_iamcu.xr
+ elf_iamcu.xs
+ elf_iamcu.xsc
+ elf_iamcu.xsw
+ elf_iamcu.xu
+ elf_iamcu.xw
+ elf_k1om.x
+ elf_k1om.xbn
+ elf_k1om.xc
+ elf_k1om.xd
+ elf_k1om.xdc
+ elf_k1om.xdw
+ elf_k1om.xn
+ elf_k1om.xr
+ elf_k1om.xs
+ elf_k1om.xsc
+ elf_k1om.xsw
+ elf_k1om.xu
+ elf_k1om.xw
+ elf_l1om.x
+ elf_l1om.xbn
+ elf_l1om.xc
+ elf_l1om.xd
+ elf_l1om.xdc
+ elf_l1om.xdw
+ elf_l1om.xn
+ elf_l1om.xr
+ elf_l1om.xs
+ elf_l1om.xsc
+ elf_l1om.xsw
+ elf_l1om.xu
+ elf_l1om.xw
+ elf_x86_64.x
+ elf_x86_64.xbn
+ elf_x86_64.xc
+ elf_x86_64.xd
+ elf_x86_64.xdc
+ elf_x86_64.xdw
+ elf_x86_64.xn
+ elf_x86_64.xr
+ elf_x86_64.xs
+ elf_x86_64.xsc
+ elf_x86_64.xsw
+ elf_x86_64.xu
+ elf_x86_64.xw
+ elf_x86_64_sol2.x
+ elf_x86_64_sol2.xbn
+ elf_x86_64_sol2.xc
+ elf_x86_64_sol2.xd
+ elf_x86_64_sol2.xdc
+ elf_x86_64_sol2.xdw
+ elf_x86_64_sol2.xn
+ elf_x86_64_sol2.xr
+ elf_x86_64_sol2.xs
+ elf_x86_64_sol2.xsc
+ elf_x86_64_sol2.xsw
+ elf_x86_64_sol2.xu
+ elf_x86_64_sol2.xw
 
 
 [FILE:336:patches/patch-gas__configure.tgt]

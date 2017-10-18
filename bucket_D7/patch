@@ -3,7 +3,8 @@
 NAMEBASE=		patch
 VERSION=		2.7.5
 KEYWORDS=		devel
-VARIANTS=		standard
+VARIANTS=		standard noprefix
+SDESC[noprefix]=	GNU patch utility with unprefixed program name
 SDESC[standard]=	GNU patch utility
 HOMEPAGE=		http://www.gnu.org/software/patch/patch.html
 CONTACT=		nobody
@@ -12,10 +13,12 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/patch
 DISTFILE[1]=		patch-2.7.5.tar.xz:main
 DF_INDEX=		1
+SPKGS[noprefix]=	single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	NOPREFIX
 OPTIONS_STANDARD=	none
+VOPTS[noprefix]=	NOPREFIX=ON
 
 USES=			charsetfix cpe gmake
 
@@ -27,9 +30,11 @@ CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		devel/patch
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--program-prefix=g
 
 CFLAGS=			-D__RAVEN__
+
+[NOPREFIX].DESCRIPTION=			Build without prefixing program with "g"
+[NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
 
 [FILE:187:descriptions/desc.single]
 The patch program takes a patch file containing a difference listing
@@ -41,9 +46,14 @@ more original files, producing patched versions.
 fd95153655d6b95567e623843a0e77b81612d502ecf78a489a4aed7867caa299       727704 patch-2.7.5.tar.xz
 
 
-[FILE:38:manifests/plist.single]
+[FILE:38:manifests/plist.single.standard]
 bin/gpatch
 share/man/man1/gpatch.1.gz
+
+
+[FILE:36:manifests/plist.single.noprefix]
+bin/patch
+share/man/man1/patch.1.gz
 
 
 [FILE:319:patches/patch-lib_Makefile.in]

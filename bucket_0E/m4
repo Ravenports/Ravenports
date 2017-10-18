@@ -3,7 +3,8 @@
 NAMEBASE=		m4
 VERSION=		1.4.18
 KEYWORDS=		devel
-VARIANTS=		standard
+VARIANTS=		standard noprefix
+SDESC[noprefix]=	GNU macro processor with unprefixed program name
 SDESC[standard]=	GNU implementation of the Unix macro processor
 HOMEPAGE=		https://www.gnu.org/software/m4/m4.html
 CONTACT=		nobody
@@ -12,12 +13,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/m4
 DISTFILE[1]=		m4-1.4.18.tar.xz:main
 DF_INDEX=		1
+SPKGS[noprefix]=	complete
+			primary
+			examples
 SPKGS[standard]=	complete
 			primary
 			examples
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	NOPREFIX
 OPTIONS_STANDARD=	none
+VOPTS[noprefix]=	NOPREFIX=ON
 
 BUILD_DEPENDS=		libsigsegv:static:standard
 
@@ -31,7 +36,9 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-libsigsegv-prefix={{LOCALBASE}}
-			--program-prefix=g
+
+[NOPREFIX].DESCRIPTION=			Build without prefixing all programs with "g"
+[NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
 
 post-patch:
 	@${REINPLACE_CMD} -e '/^install-exec-am: / s| .*||' ${WRKSRC}/lib/Makefile.in
@@ -60,7 +67,12 @@ One of the biggest users of GNU M4 is the GNU Autoconf project.
 f2c1e86ca0a404ff281631bdc8377638992744b175afb806e25871a24a934e07      1207688 m4-1.4.18.tar.xz
 
 
-[FILE:32:manifests/plist.primary]
+[FILE:32:manifests/plist.primary.standard]
 bin/gm4
 share/man/man1/gm4.1.gz
+
+
+[FILE:30:manifests/plist.primary.noprefix]
+bin/m4
+share/man/man1/m4.1.gz
 

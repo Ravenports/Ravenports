@@ -3,8 +3,9 @@
 NAMEBASE=		diffutils
 VERSION=		3.6
 KEYWORDS=		textproc
-VARIANTS=		standard nls
+VARIANTS=		standard nls noprefix
 SDESC[nls]=		GNU diff utilities with native language support
+SDESC[noprefix]=	GNU diff utilities with unprefixed program names
 SDESC[standard]=	GNU diff utilities
 HOMEPAGE=		http://www.gnu.org/software/diffutils/diffutils.html
 CONTACT=		nobody
@@ -14,11 +15,13 @@ SITES[main]=		GNU/diffutils
 DISTFILE[1]=		diffutils-3.6.tar.xz:main
 DF_INDEX=		1
 SPKGS[nls]=		single
+SPKGS[noprefix]=	single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	NLS
+OPTIONS_AVAILABLE=	NLS NOPREFIX
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON
+VOPTS[nls]=		NLS=ON NOPREFIX=OFF
+VOPTS[noprefix]=	NLS=ON NOPREFIX=ON
 
 BUILD_DEPENDS=		libsigsegv:static:standard
 
@@ -29,10 +32,12 @@ FPC_EQUIVALENT=		textproc/diffutils
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--program-prefix=g
 
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
 [NLS].USES_ON=				gettext-runtime
+
+[NOPREFIX].DESCRIPTION=			Build without prefixing all programs with "g"
+[NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
 
 post-patch:
 	@${REINPLACE_CMD} -e '/^mkdir/s:@mkdir_p@:${MKDIR}:' \
@@ -110,4 +115,17 @@ share/locale/uk/LC_MESSAGES/diffutils.mo
 share/locale/vi/LC_MESSAGES/diffutils.mo
 share/locale/zh_CN/LC_MESSAGES/diffutils.mo
 share/locale/zh_TW/LC_MESSAGES/diffutils.mo
+
+
+[FILE:91:manifests/plist.single.noprefix]
+bin/
+ cmp
+ diff
+ diff3
+ sdiff
+share/man/man1/
+ cmp.1.gz
+ diff.1.gz
+ diff3.1.gz
+ sdiff.1.gz
 

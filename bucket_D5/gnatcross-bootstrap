@@ -22,11 +22,11 @@ DISTFILE[5]=		libiconv-1.15.tar.gz:iconv
 DF_INDEX=		1 2 3 4 5
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	DISABLE FARM64_R11
-OPTIONS_STANDARD=	DISABLE FARM64_R11
+OPTIONS_AVAILABLE=	DISABLE FARM64_R11 FAMD64_R12 SOL10
+OPTIONS_STANDARD=	DISABLE FARM64_R11 FAMD64_R12 SOL10
 OPTGROUP_RADIO=		TARGET
 OPTDESCR[TARGET]=	Target platform for generated compiler
-OPTGROUP[TARGET]=	DISABLE FARM64_R11
+OPTGROUP[TARGET]=	DISABLE FARM64_R11 FAMD64_R12 SOL10
 OPT_ON[all]=		DISABLE
 
 BUILD_DEPENDS=		Zstandard:single:standard
@@ -36,6 +36,7 @@ USES=			cpe gmake libtool perl:build
 DISTNAME=		gcc-7.2.0
 
 CC=			{{BSPREFIX}}/bin/{{TGTSYS}}-gcc
+CPP=			{{BSPREFIX}}/bin/{{TGTSYS}}-cpp
 CXX=			{{BSPREFIX}}/bin/{{TGTSYS}}-c++
 
 MUST_CONFIGURE=		yes
@@ -69,20 +70,36 @@ PLIST_SUB=		TGTSYS={{TGTSYS}}
 					BSPREFIX={{LOCALBASE}}/FreeBSD11_ARM64
 					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
 
+[SOL10].DESCRIPTION=			Build native compiler for Solaris 10
+[SOL10].BUILD_DEPENDS_ON=		gnatcross:single:SOL10
+[SOL10].CONFIGURE_ARGS_ON=		--build={{CONFIGURE_TARGET}}
+					--host=x86_64-raven-solaris2.10
+					--target=x86_64-raven-solaris2.10
+[SOL10].MAKEFILE_ON=			TGTSYS=x86_64-raven-solaris2.10
+					BSPREFIX={{LOCALBASE}}/Solaris10_AMD64
+					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
+[SOL10].MAKE_ENV_ON=			ac_cv_header_sys_sysctl_h=no
+
 [DISABLE].DESCRIPTION=			Disable building of native compiler (default)
 [DISABLE].BROKEN_ON=			Native compiler building disabled (set option!)
+
+[FAMD64_R12].DESCRIPTION=		Build native compiler for FreeBSD/AMD64 Release 12
+[FAMD64_R12].BUILD_DEPENDS_ON=		gnatcross:single:FAMD64_R12
+[FAMD64_R12].CONFIGURE_ARGS_ON=		--build={{CONFIGURE_TARGET}}
+					--host=x86_64-raven-freebsd12.0
+					--target=x86_64-raven-freebsd12.0
+					--disable-libstdcxx-pch
+[FAMD64_R12].MAKEFILE_ON=		TGTSYS=x86_64-raven-freebsd12.0
+					BSPREFIX={{LOCALBASE}}/FreeBSD12_AMD64
+					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
+
+post-install-SOL10-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
 
 post-patch:
 	# fix FreeBSD spec error
 	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
 		${WRKSRC}/gcc/config/freebsd-spec.h
-	# work around malloc detection issue
-	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
-		${WRKSRC}/libstdc++-v3/config.h.in
-	# work around gnat cross-build bugs
-	# ${REINPLACE_CMD} -e '/GNATMAKE/ s|--GCC=".\(CC\)|--GCC="${TGTSYS}-gcc|' \
-	# ${REINPLACE_CMD} -e '/GCC_LINK=/ s|CXX|${TGTSYS}-c++|' \
-	#	${WRKSRC}/gcc/ada/gcc-interface/Makefile.in
 
 post-stage:
 	# package bootstrap compiler with zstd, then relocate files to avoid packaging them
@@ -101,17 +118,14 @@ post-stage:
 	(cd ${STAGEDIR}${LOCALBASE}/share/${NAMEBASE} && \
 		zstd -7 --rm ${TGTSYS}-gcc.tar)
 
-post-install-freebsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
-
-post-install-dragonfly:
-	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
-
 post-install:
 	cp ${STAGEDIR}${PREFIX}/gcc7-raven/bin/gcc ${STAGEDIR}${PREFIX}/gcc7-raven/bin/cc
 	cp ${STAGEDIR}${PREFIX}/gcc7-raven/bin/g++ ${STAGEDIR}${PREFIX}/gcc7-raven/bin/CC
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnat.so
+
+post-install-FARM64_R11-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
 
 post-extract:
 	${MKDIR} ${WRKSRC}/libiconv
@@ -119,6 +133,19 @@ post-extract:
 	${MV} ${WRKDIR}/mpc-*      ${WRKSRC}/mpc
 	${MV} ${WRKDIR}/mpfr-*     ${WRKSRC}/mpfr
 	${MV} ${WRKDIR}/libiconv-* ${WRKSRC}/libiconv
+
+post-patch-FARM64_R11-ON:
+	# work around malloc detection issue
+	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
+		${WRKSRC}/libstdc++-v3/config.h.in
+
+post-install-FAMD64_R12-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
+
+post-patch-FAMD64_R12-ON:
+	# work around malloc detection issue
+	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
+		${WRKSRC}/libstdc++-v3/config.h.in
 
 [FILE:141:descriptions/desc.single]
 This package contains a native compiler bootstrapped by a gnatcross
@@ -1285,7 +1312,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
  static void
 
 
-[FILE:11205:patches/patch-diff-core]
+[FILE:11602:patches/patch-diff-core]
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
@@ -1304,6 +1331,17 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
  
  
  /* Use --as-needed -lgcc_s for eh support.  */
+--- gcc/config/sol2.h.orig
++++ gcc/config/sol2.h
+@@ -350,7 +350,7 @@
+ #undef  LINK_SPEC
+ #define LINK_SPEC \
+   "%{h*} %{v:-V} \
+-   %{!shared:%{!static:%{rdynamic: " RDYNAMIC_SPEC "}}} \
++   %{!shared:%{!static:--enable-new-dtags %{rdynamic: " RDYNAMIC_SPEC "}}} \
+    %{static:-dn -Bstatic} \
+    %{shared:-G -dy %{!mimpure-text:-z text}} " \
+    LINK_LIBGCC_MAPFILE_SPEC LINK_CLEARCAP_SPEC " \
 --- gcc/config/aarch64/aarch64-freebsd.h.orig
 +++ gcc/config/aarch64/aarch64-freebsd.h
 @@ -41,6 +41,7 @@

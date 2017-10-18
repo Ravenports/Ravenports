@@ -3,8 +3,9 @@
 NAMEBASE=		gmake
 VERSION=		4.2.1
 KEYWORDS=		devel
-VARIANTS=		standard nls
+VARIANTS=		standard nls noprefix
 SDESC[nls]=		GNU make with native language support
+SDESC[noprefix]=	GNU make with unprefixed program name
 SDESC[standard]=	GNU variant of 'make' utility
 HOMEPAGE=		https://www.gnu.org/software/make/
 CONTACT=		nobody
@@ -14,11 +15,13 @@ SITES[main]=		GNU/make
 DISTFILE[1]=		make-4.2.1.tar.bz2:main
 DF_INDEX=		1
 SPKGS[nls]=		single
+SPKGS[noprefix]=	single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	NLS
+OPTIONS_AVAILABLE=	NLS NOPREFIX
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON
+VOPTS[nls]=		NLS=ON NOPREFIX=OFF
+VOPTS[noprefix]=	NLS=ON NOPREFIX=ON
 
 USES=			cpe
 
@@ -34,13 +37,15 @@ FPC_EQUIVALENT=		devel/gmake
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--program-prefix=g
-			--without-guile
+CONFIGURE_ARGS=		--without-guile
 
 [NLS].CONFIGURE_ARGS_ON=		{{ICONV_CONFIGURE_ARG}}
 					--with-libintl-prefix={{LOCALBASE}}
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
 [NLS].USES_ON=				gettext-runtime
+
+[NOPREFIX].DESCRIPTION=			Build without prefixing program with "g"
+[NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
 
 [FILE:166:descriptions/desc.single]
 GNU make is a tool that controls the generation of executables and other
@@ -52,7 +57,7 @@ of the utility make(1).
 d6e262bf3601b42d2b1e4ef8310029e1dcf20083c5446b4b7aa67081fdffc589      1407126 make-4.2.1.tar.bz2
 
 
-[FILE:1210:manifests/plist.single]
+[FILE:1210:manifests/plist.single.standard]
 bin/gmake
 include/gnumake.h
 %%NLS-ON%%share/locale/be/LC_MESSAGES/make.mo
@@ -81,4 +86,10 @@ include/gnumake.h
 %%NLS-ON%%share/locale/vi/LC_MESSAGES/make.mo
 %%NLS-ON%%share/locale/zh_CN/LC_MESSAGES/make.mo
 share/man/man1/gmake.1.gz
+
+
+[FILE:52:manifests/plist.single.noprefix]
+bin/make
+include/gnumake.h
+share/man/man1/make.1.gz
 
