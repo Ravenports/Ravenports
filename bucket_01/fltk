@@ -2,6 +2,7 @@
 
 NAMEBASE=		fltk
 VERSION=		1.3.4-2
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Light-weight cross-platform C++ GUI toolkit
@@ -9,7 +10,7 @@ HOMEPAGE=		http://www.fltk.org/
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		http://fltk.org/pub/fltk/1.3.4-2/
+SITES[main]=		http://fltk.org/pub/fltk/1.3.4/
 DISTFILE[1]=		fltk-1.3.4-2-source.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
@@ -55,7 +56,7 @@ simple yet powerful UI builder. 1.3.x is the current stable branch.
 25d349c18c99508737d48f225a2eb26a43338f9247551cab72a317fa42cda910      5281263 fltk-1.3.4-2-source.tar.gz
 
 
-[FILE:2654:manifests/plist.primary]
+[FILE:2583:manifests/plist.primary]
 bin/
  fltk-config
  fluid
@@ -217,10 +218,6 @@ lib/
  libfltk_images.a
  libfltk_images.so
  libfltk_images.so.1.3
-share/man/cat3/fltk.0.gz
-share/man/cat1/
- fluid.0.gz
- fltk-config.0.gz
 share/man/man3/fltk.3.gz
 share/man/man1/
  fluid.1.gz
@@ -390,6 +387,91 @@ share/examples/fltk/
  tabs.cxx
  native-filechooser.cxx
  unittest_scrollbarsize.cxx
+
+
+[FILE:1268:patches/patch-configure]
+--- configure.orig	2016-11-15 11:57:17 UTC
++++ configure
+@@ -3875,7 +3875,7 @@ if test x$enable_shared = xyes; then
+ 		    DSOLINK="-Wl,-rpath,$libdir"
+ 	    fi
+ 	    ;;
+-	linux* | *bsd*)
++	linux* | *bsd* | dragonfly*)
+ 	    DSONAME="libfltk.so.$FL_DSO_VERSION"
+ 	    FLDSONAME="libfltk_forms.so.$FL_DSO_VERSION"
+ 	    GLDSONAME="libfltk_gl.so.$FL_DSO_VERSION"
+@@ -8189,7 +8189,7 @@ esac
+ 
+ 
+ case "$host_os" in
+-    *bsd* | darwin*)
++    *bsd* | darwin* | dragonfly*)
+ 	# *BSD
+ 	CAT1EXT=0
+ 	CAT3EXT=0
+@@ -8215,7 +8215,7 @@ esac
+ 
+ if test "$mandir" = "\${prefix}/man" -a "$prefix" = "/usr"; then
+     case "$host_os" in
+-	*bsd* | darwin* | linux*)
++	*bsd* | darwin* | linux* | dragonfly*)
+ 	    # *BSD, Darwin, and Linux
+ 	    mandir="\${prefix}/share/man"
+ 	    ;;
+@@ -8276,16 +8276,9 @@ if test -n "$GCC"; then
+ 	#       They all seem to make either no difference or enlarge
+ 	#       the code by a few hundred bytes.
+ 	#
+-	#       "-Os" seems to be the best compromise between speed and
+-	#       code size.  "-O3" and higher seem to make no effective
+-	#       difference in the speed of the code, but does bloat the
+-	#       library 10+%.
+-	#
+ 
+ 	if test "x$with_optim" != x; then
+ 	    OPTIM="$with_optim $OPTIM"
+-	else
+-	    OPTIM="-Os $OPTIM"
+ 	fi
+     fi
+ 
+
+
+[FILE:1631:patches/patch-documentation_Makefile]
+--- documentation/Makefile.orig	2015-06-16 13:18:28 UTC
++++ documentation/Makefile
+@@ -77,7 +77,6 @@ depend:
+ 
+ install: $(MANPAGES)
+ 	echo "Installing documentation files in $(DESTDIR)$(docdir) ..."
+-	-$(INSTALL_DIR) $(DESTDIR)$(docdir)
+ 	if test -f html/index.html ; then \
+ 	  for file in html/* ; do \
+ 		$(INSTALL_DATA) $$file $(DESTDIR)$(docdir); \
+@@ -88,11 +87,6 @@ install: $(MANPAGES)
+ 	  $(INSTALL_DATA) fltk.pdf $(DESTDIR)$(docdir); \
+ 	fi
+ 	echo "Installing man pages in $(DESTDIR)$(mandir) ..."
+-	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/cat1
+-	$(INSTALL_MAN) $(SRC_DOCDIR)/fluid.$(CAT1EXT) $(DESTDIR)$(mandir)/cat1
+-	$(INSTALL_MAN) $(SRC_DOCDIR)/fltk-config.$(CAT1EXT) $(DESTDIR)$(mandir)/cat1
+-	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/cat3
+-	$(INSTALL_MAN) $(SRC_DOCDIR)/fltk.$(CAT3EXT) $(DESTDIR)$(mandir)/cat3
+ 	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/man1
+ 	$(INSTALL_MAN) $(SRC_DOCDIR)/fluid.man $(DESTDIR)$(mandir)/man1/fluid.1
+ 	$(INSTALL_MAN) $(SRC_DOCDIR)/fltk-config.man $(DESTDIR)$(mandir)/man1/fltk-config.1
+@@ -100,10 +94,6 @@ install: $(MANPAGES)
+ 	$(INSTALL_MAN) $(SRC_DOCDIR)/fltk.man $(DESTDIR)$(mandir)/man3/fltk.3
+ 
+ install-linux install-osx:
+-	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/cat6
+-	$(INSTALL_MAN) $(SRC_DOCDIR)/blocks.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
+-	$(INSTALL_MAN) $(SRC_DOCDIR)/checkers.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
+-	$(INSTALL_MAN) $(SRC_DOCDIR)/sudoku.$(CAT6EXT) $(DESTDIR)$(mandir)/cat6
+ 	-$(INSTALL_DIR) $(DESTDIR)$(mandir)/man6
+ 	$(INSTALL_MAN) $(SRC_DOCDIR)/blocks.man $(DESTDIR)$(mandir)/man6/blocks.6
+ 	$(INSTALL_MAN) $(SRC_DOCDIR)/checkers.man $(DESTDIR)$(mandir)/man6/checkers.6
 
 
 [FILE:1405:patches/patch-src_Makefile]
