@@ -40,19 +40,13 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ENV=		PEKWM_CXXFLAGS="-fpermissive"
 
 post-patch:
-			${REINPLACE_CMD} -e \
-				"s|__LDFLAGS__|${LDFLAGS}|" \
-				${WRKSRC}/build/Program.jam
-			${REINPLACE_CMD} -e \
-				"s|__LDFLAGS__|${LDFLAGS}|" \
-				${WRKSRC}/evoke/Jamfile
-			${REINPLACE_CMD} -e \
-				"s|__LDFLAGS__|${LDFLAGS}|" \
-				${WRKSRC}/pekwm/Jamfile
+	${REINPLACE_CMD} -e "s|__LDFLAGS__|${LDFLAGS}|" \
+		${WRKSRC}/build/Program.jam
+	${REINPLACE_CMD} -e "s|__LDFLAGS__|${LDFLAGS}|" ${WRKSRC}/evoke/Jamfile
+	${REINPLACE_CMD} -e "s|__LDFLAGS__|${LDFLAGS}|" ${WRKSRC}/pekwm/Jamfile
 
 do-build:
-			(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-				jam)
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} jam)
 
 post-install:
 .for i in about autostart bell-conf bug-report calc conf crasher desktop desktop-conf dialog image-view keyboard-conf launch notify-daemon panel preferred-applications screensaver-conf shutdown timedate tip tip-compiler
@@ -63,9 +57,8 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/share/ede/panel-applets/*.so
 
 do-install:
-			(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-				prefix="${STAGEDIR}${PREFIX}" \
-				jam install)
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		prefix="${STAGEDIR}${PREFIX}" jam install)
 
 [FILE:398:descriptions/desc.single]
 EDE (The "Equinox Desktop Environment") is an extremely light-weight 
