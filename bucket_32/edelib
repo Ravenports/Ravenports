@@ -17,7 +17,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		ftjam:single:standard
+BUILD_DEPENDS=		jam:primary:standard
 BUILDRUN_DEPENDS=	fltk:primary:standard
 			dbus:single:standard
 
@@ -35,8 +35,7 @@ post-patch:
 		${CP} ${FILESDIR}/scheme.h ${WRKSRC}/edelib/ts
 
 post-stage:
-		${MV} /construction/edelib/stage/raven/share/doc \
-			/construction/edelib/stage/raven/share/docs
+		${RM} -r ${STAGEDIR}${PREFIX}/share/doc
 
 do-build:
 		(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -44,7 +43,8 @@ do-build:
 
 do-install:
 		(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-			jam prefix="/construction/edelib/stage/${PREFIX}" install)
+			prefix="${STAGEDIR}${PREFIX}" \
+			jam install)
 
 [FILE:235:descriptions/desc.single]
 Edelib is the support library for Equinox Desktop Environment. It provides 
@@ -57,7 +57,7 @@ that use FLTK.
 38030d964affece5363edaf8e8f1ac2441f1a860472537a0501f6844e383f35c      1054649 edelib-2.1.tar.gz
 
 
-[FILE:1358:manifests/plist.single]
+[FILE:1307:manifests/plist.single]
 include/edelib/
  DirWatch.h
  EdbusList.h
@@ -152,10 +152,6 @@ lib/pkgconfig/
  edelib-gui-no-images.pc
  edelib-gui.pc
  edelib-dbus.pc
-share/docs/edelib-2.1.0/
- COPYING
- README
- INSTALL
 share/edelib/colors/rgb.txt
 
 
