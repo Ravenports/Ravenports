@@ -2,7 +2,7 @@
 
 NAMEBASE=		gamin
 VERSION=		0.1.10
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Monitor files and directories for changes
@@ -26,6 +26,9 @@ FPC_EQUIVALENT=		devel/gamin
 MUST_CONFIGURE=		gnu
 
 CPPFLAGS=		-DHAVE_LINUX
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so*
 
 [FILE:284:descriptions/desc.single]
 Gamin is a file and directory monitoring system defined to be a subset of 
@@ -82,4 +85,1034 @@ libexec/gam_server
  typedef enum {
  	GAMIN_EVENT_CHANGED = 1 << 4,
  	GAMIN_EVENT_CREATED = 1 << 5,
+
+
+[FILE:4380:freebsd/patch-libgamin_gam__api.c]
+--- libgamin/gam_api.c.orig	2007-08-27 03:21:03.000000000 -0700
++++ libgamin/gam_api.c	2013-02-16 15:51:11.927100135 -0800
+@@ -14,6 +14,7 @@
+ #include <sys/socket.h>
+ #include <sys/un.h>
+ #include <sys/uio.h>
++#include <string.h>
+ #include "fam.h"
+ #include "gam_protocol.h"
+ #include "gam_data.h"
+@@ -117,7 +118,11 @@
+     if (user_name[0] != 0)
+         return (user_name);
+ 
++#ifdef RUN_AS_EUID
++    pw = getpwuid(geteuid());
++#else
+     pw = getpwuid(getuid());
++#endif
+ 
+     if (pw != NULL) {
+ 	strncpy(user_name, pw->pw_name, 99);
+@@ -224,7 +229,11 @@
+ 	free(dir);
+ 	return(0);
+     }
++#ifdef RUN_AS_EUID
++    if (st.st_uid != geteuid()) {
++#else
+     if (st.st_uid != getuid()) {
++#endif
+ 	gam_error(DEBUG_INFO,
+ 		  "Socket directory %s has different owner\n",
+ 		  dir);
+@@ -301,7 +310,11 @@
+     if (ret < 0)
+ 	return(0);
+     
++#ifdef RUN_AS_EUID
++    if (st.st_uid != geteuid()) {
++#else
+     if (st.st_uid != getuid()) {
++#endif
+ 	gam_error(DEBUG_INFO,
+ 		  "Socket %s has different owner\n",
+ 		  path);
+@@ -428,10 +441,10 @@
+ {
+     char data[2] = { 0, 0 };
+     int written;
+-#if defined(HAVE_CMSGCRED) && !defined(LOCAL_CREDS)
+-    struct {
++#if defined(HAVE_CMSGCRED) && (!defined(LOCAL_CREDS) || defined(__FreeBSD__))
++    union {
+ 	    struct cmsghdr hdr;
+-	    struct cmsgcred cred;
++	    char cred[CMSG_SPACE (sizeof (struct cmsgcred))];
+     } cmsg;
+     struct iovec iov;
+     struct msghdr msg;
+@@ -443,16 +456,16 @@
+     msg.msg_iov = &iov;
+     msg.msg_iovlen = 1;
+ 
+-    msg.msg_control = &cmsg;
+-    msg.msg_controllen = sizeof (cmsg);
++    msg.msg_control = (caddr_t) &cmsg;
++    msg.msg_controllen = CMSG_SPACE (sizeof (struct cmsgcred));
+     memset (&cmsg, 0, sizeof (cmsg));
+-    cmsg.hdr.cmsg_len = sizeof (cmsg);
++    cmsg.hdr.cmsg_len = CMSG_LEN (sizeof (struct cmsgcred));
+     cmsg.hdr.cmsg_level = SOL_SOCKET;
+     cmsg.hdr.cmsg_type = SCM_CREDS;
+ #endif
+ 
+ retry:
+-#if defined(HAVE_CMSGCRED) && !defined(LOCAL_CREDS)
++#if defined(HAVE_CMSGCRED) && (!defined(LOCAL_CREDS) || defined(__FreeBSD__))
+     written = sendmsg(fd, &msg, 0);
+ #else
+     written = write(fd, &data[0], 1);
+@@ -654,15 +667,20 @@
+     gid_t c_gid;
+ 
+ #ifdef HAVE_CMSGCRED
+-    struct {
++    struct cmsgcred *cred;
++    union {
+ 	    struct cmsghdr hdr;
+-	    struct cmsgcred cred;
++	    char cred[CMSG_SPACE (sizeof (struct cmsgcred))];
+     } cmsg;
+ #endif
+ 
++#ifdef RUN_AS_EUID
++    s_uid = geteuid();
++#else
+     s_uid = getuid();
++#endif
+ 
+-#if defined(LOCAL_CREDS) && defined(HAVE_CMSGCRED)
++#if defined(LOCAL_CREDS) && defined(HAVE_CMSGCRED) && !defined(__FreeBSD__)
+     /* Set the socket to receive credentials on the next message */
+     {
+         int on = 1;
+@@ -683,8 +701,8 @@
+ 
+ #ifdef HAVE_CMSGCRED
+     memset(&cmsg, 0, sizeof(cmsg));
+-    msg.msg_control = &cmsg;
+-    msg.msg_controllen = sizeof(cmsg);
++    msg.msg_control = (caddr_t) &cmsg;
++    msg.msg_controllen = CMSG_SPACE (sizeof (struct cmsgcred));
+ #endif
+ 
+ retry:
+@@ -701,7 +719,7 @@
+         goto failed;
+     }
+ #ifdef HAVE_CMSGCRED
+-    if (cmsg.hdr.cmsg_len < sizeof(cmsg) || cmsg.hdr.cmsg_type != SCM_CREDS) {
++    if (cmsg.hdr.cmsg_len < CMSG_LEN (sizeof (struct cmsgcred)) || cmsg.hdr.cmsg_type != SCM_CREDS) {
+         GAM_DEBUG(DEBUG_INFO,
+                   "Message from recvmsg() was not SCM_CREDS\n");
+         goto failed;
+@@ -727,9 +745,10 @@
+             goto failed;
+         }
+ #elif defined(HAVE_CMSGCRED)
+-        c_pid = cmsg.cred.cmcred_pid;
+-        c_uid = cmsg.cred.cmcred_euid;
+-        c_gid = cmsg.cred.cmcred_groups[0];
++        cred = (struct cmsgcred *) CMSG_DATA (&cmsg);
++        c_pid = cred->cmcred_pid;
++        c_uid = cred->cmcred_euid;
++        c_gid = cred->cmcred_groups[0];
+ #else /* !SO_PEERCRED && !HAVE_CMSGCRED */
+         GAM_DEBUG(DEBUG_INFO,
+                   "Socket credentials not supported on this OS\n");
+@@ -1288,14 +1307,17 @@
+ 
+     // FIXME: drop and reacquire lock while blocked?
+     gamin_data_lock(conn);
+-    if (!gamin_data_event_ready(conn)) {
++    while ((ret = gamin_data_event_ready(conn)) == 0) {
+         if (gamin_read_data(conn, fc->fd, 1) < 0) {
+ 	    gamin_try_reconnect(conn, fc->fd);
+ 	    FAMErrno = FAM_CONNECT;
+ 	    return (-1);
+ 	}
+     }
+-    ret = gamin_data_read_event(conn, fe);
++
++    if (ret > 0)
++        ret = gamin_data_read_event(conn, fe);
++
+     gamin_data_unlock(conn);
+ 
+     if (ret < 0) {
+
+
+[FILE:3112:freebsd/patch-libgamin_gam__fork.c]
+--- libgamin/gam_fork.c.orig	2007-07-04 06:36:48.000000000 -0700
++++ libgamin/gam_fork.c	2013-02-16 20:37:31.298176973 -0800
+@@ -42,6 +42,78 @@
+     return NULL;
+ }
+ 
++#ifdef RUN_AS_EUID
++/**
++ * gamin_drop_privileges
++ *
++ * Attempt to drop privileges to another user and group before forking
++ * a copy of the gam server
++ * 
++ * Return 0 in case of success or -1 in case of detected error.
++ */
++int
++gamin_drop_privileges(int to_uid, int to_gid)
++{
++    GAM_DEBUG(DEBUG_INFO, "Dropping privileges to %d:%d before forking server\n", to_uid, to_gid);
++
++    /* Get the current real user and group */
++    int from_uid = getuid();
++    int from_gid = getgid();
++
++    /* Make sure we were able to get the user and group values */
++    if ( from_uid == -1 || to_uid == -1 || from_gid == -1 || to_gid == -1 ) {
++        gam_error(DEBUG_INFO, "failed to get user or group info, unable to drop privileges\n");
++        return(-1);
++    }
++
++    /* Refuse to run setuid if it would escalate privileges */
++    if ( from_uid != 0 && to_uid == 0 )
++    {
++        gam_error(DEBUG_INFO, "refusing to escalate user privileges from=%d to=%d\n", from_uid, to_uid);
++        return(-1);
++    }
++
++    /* Refuse to run setgid if it would escalate privileges */
++    if ( from_gid != 0 && to_gid == 0 )
++    {
++        gam_error(DEBUG_INFO, "refusing to escalate group privileges from=%d to=%d\n", from_gid, to_gid);
++        return(-1);
++    }
++
++    /* Run setuid to drop privileges to the effective user */
++    if ( from_uid != to_uid ) {
++        GAM_DEBUG(DEBUG_INFO, "Attempting setuid from=%d to=%d\n", from_uid, to_uid);
++
++        /* run setuid and check for errors */
++        if (setuid(to_uid) == -1) {
++            gam_error(DEBUG_INFO, "failed to run setuid from=%d to=%d\n", from_uid, to_uid);
++            return(-1);
++        }
++    }
++    else {
++        GAM_DEBUG(DEBUG_INFO, "Already running as effective user, skipping setuid\n");
++    }
++
++    /* Run setgid to drop privileges to the effective group */
++    if ( from_gid != to_gid ) {
++        GAM_DEBUG(DEBUG_INFO, "Attempting setgid from=%d to=%d\n", from_gid, to_gid);
++
++        /* run setuid and check for errors */
++        if (setgid(to_gid) == -1) {
++            gam_error(DEBUG_INFO, "failed to run setgid from=%d to=%d\n", from_gid, to_gid);
++            return(-1);
++        }
++    }
++    else {
++        GAM_DEBUG(DEBUG_INFO, "Already running as effective group, skipping setgid\n");
++    }
++
++    GAM_DEBUG(DEBUG_INFO, "Succeeded in dropping privileges from %d:%d to %d:%d\n", from_uid, from_gid, to_uid, to_gid);
++
++    return(0);
++}
++#endif
++
+ /**
+  * gamin_fork_server:
+  * @fam_client_id: the client ID string to use
+@@ -71,6 +143,13 @@
+         long open_max;
+ 	long i;
+ 
++#ifdef RUN_AS_EUID
++        /* Drop privileges to the current effective uid/gid and return on failure */
++        if(gamin_drop_privileges( geteuid(), getegid() ) == -1) {
++            return(-1);
++        }
++#endif
++
+         /* don't hold open fd opened from the client of the library */
+ 	open_max = sysconf (_SC_OPEN_MAX);
+ 	for (i = 0; i < open_max; i++)
+
+
+[FILE:313:freebsd/patch-libgamin_gam__fork.h]
+--- libgamin/gam_fork.h.orig	2007-07-04 06:36:48.000000000 -0700
++++ libgamin/gam_fork.h	2013-02-16 20:38:00.328594608 -0800
+@@ -32,6 +32,9 @@
+ #endif
+ 
+ int		gamin_fork_server	(const char *fam_client_id);
++#ifdef RUN_AS_EUID
++int		gamin_drop_privileges	(int to_uid, int to_gid);
++#endif
+ 
+ #ifdef __cplusplus
+ }
+
+
+[FILE:4065:freebsd/patch-server_gam__channel.c]
+--- server/gam_channel.c.orig	Tue Aug  9 12:17:39 2005
++++ server/gam_channel.c	Fri Feb 10 01:22:46 2006
+@@ -7,6 +7,7 @@
+ #include <sys/stat.h>
+ #include <sys/un.h>
+ #include <sys/uio.h>
++#include <string.h>
+ #include "gam_error.h"
+ #include "gam_connection.h"
+ #include "gam_channel.h"
+@@ -30,10 +31,10 @@ gam_client_conn_send_cred(int fd)
+ {
+     char data[2] = { 0, 0 };
+     int written;
+-#if defined(HAVE_CMSGCRED) && !defined(LOCAL_CREDS)
+-    struct {
++#if defined(HAVE_CMSGCRED) && (!defined(LOCAL_CREDS) || defined(__FreeBSD__))
++    union {
+ 	    struct cmsghdr hdr;
+-	    struct cmsgcred cred;
++	    char cred[CMSG_SPACE (sizeof (struct cmsgcred))];
+     } cmsg;
+     struct iovec iov;
+     struct msghdr msg;
+@@ -45,16 +46,16 @@ gam_client_conn_send_cred(int fd)
+     msg.msg_iov = &iov;
+     msg.msg_iovlen = 1;
+ 
+-    msg.msg_control = &cmsg;
+-    msg.msg_controllen = sizeof (cmsg);
++    msg.msg_control = (caddr_t) &cmsg;
++    msg.msg_controllen = CMSG_SPACE (sizeof (struct cmsgcred));
+     memset (&cmsg, 0, sizeof (cmsg));
+-    cmsg.hdr.cmsg_len = sizeof (cmsg);
++    cmsg.hdr.cmsg_len = CMSG_LEN (sizeof (struct cmsgcred));
+     cmsg.hdr.cmsg_level = SOL_SOCKET;
+     cmsg.hdr.cmsg_type = SCM_CREDS;
+ #endif
+ 
+ retry:
+-#if defined(HAVE_CMSGCRED) && !defined(LOCAL_CREDS)
++#if defined(HAVE_CMSGCRED) && (!defined(LOCAL_CREDS) || defined(__FreeBSD__))
+     written = sendmsg(fd, &msg, 0);
+ #else
+     written = write(fd, &data[0], 1);
+@@ -95,15 +96,16 @@ gam_client_conn_check_cred(GIOChannel * 
+     gid_t c_gid;
+ 
+ #ifdef HAVE_CMSGCRED
+-    struct {
++    struct cmsgcred *cred;
++    union {
+ 	    struct cmsghdr hdr;
+-	    struct cmsgcred cred;
++	    char cred[CMSG_SPACE (sizeof (struct cmsgcred))];
+     } cmsg;
+ #endif
+ 
+     s_uid = getuid();
+ 
+-#if defined(LOCAL_CREDS) && defined(HAVE_CMSGCRED)
++#if defined(LOCAL_CREDS) && defined(HAVE_CMSGCRED) && !defined(__FreeBSD__)
+     /* Set the socket to receive credentials on the next message */
+     {
+         int on = 1;
+@@ -124,8 +126,8 @@ gam_client_conn_check_cred(GIOChannel * 
+ 
+ #ifdef HAVE_CMSGCRED
+     memset(&cmsg, 0, sizeof(cmsg));
+-    msg.msg_control = &cmsg;
+-    msg.msg_controllen = sizeof(cmsg);
++    msg.msg_control = (caddr_t) &cmsg;
++    msg.msg_controllen = CMSG_SPACE (sizeof (struct cmsgcred));
+ #endif
+ 
+   retry:
+@@ -142,7 +144,7 @@ gam_client_conn_check_cred(GIOChannel * 
+         goto failed;
+     }
+ #ifdef HAVE_CMSGCRED
+-    if (cmsg.hdr.cmsg_len < sizeof(cmsg) || cmsg.hdr.cmsg_type != SCM_CREDS) {
++    if (cmsg.hdr.cmsg_len < CMSG_LEN (sizeof (struct cmsgcred)) || cmsg.hdr.cmsg_type != SCM_CREDS) {
+         GAM_DEBUG(DEBUG_INFO,
+                   "Message from recvmsg() was not SCM_CREDS\n");
+         goto failed;
+@@ -168,9 +170,10 @@ gam_client_conn_check_cred(GIOChannel * 
+             goto failed;
+         }
+ #elif defined(HAVE_CMSGCRED)
+-	c_pid = cmsg.cred.cmcred_pid;
+-	c_uid = cmsg.cred.cmcred_euid;
+-	c_gid = cmsg.cred.cmcred_groups[0];
++	cred = (struct cmsgcred *) CMSG_DATA (&cmsg);
++	c_pid = cred->cmcred_pid;
++	c_uid = cred->cmcred_euid;
++	c_gid = cred->cmcred_groups[0];
+ #else /* !SO_PEERCRED && !HAVE_CMSGCRED */
+         GAM_DEBUG(DEBUG_INFO,
+                   "Socket credentials not supported on this OS\n");
+@@ -620,6 +621,7 @@ gam_listen_unix_socket(const char *path)
+ {
+     int fd;
+     struct sockaddr_un addr;
++    struct stat st;
+ 
+     fd = socket(PF_UNIX, SOCK_STREAM, 0);
+     if (fd < 0) {
+@@ -640,8 +642,18 @@ gam_listen_unix_socket(const char *path)
+      * some extra protection checks. Also make sure the socket is created
+      * with restricted mode
+      */
+-    if (!gam_check_secure_path(path)) {
++    if (!gam_check_secure_dir()) {
++	close(fd);
+ 	return (-1);
++    }
++
++    if (stat(path, &st) == 0) {
++        /* bind() will fail if the socket already exists */
++        if (unlink(path) < 0) {
++            GAM_DEBUG(DEBUG_INFO, "Failed to remove %s\n", path);
++            close(fd);
++            return (-1);
++        }
+     }
+     strncpy(&addr.sun_path[0], path, (sizeof(addr) - 4) - 1);
+     umask(0077);
+
+
+[FILE:376:freebsd/patch-server_gam__eq.c]
+--- server/gam_eq.c.orig	2012-05-13 19:42:20.257794534 +0400
++++ server/gam_eq.c	2012-05-13 19:44:41.228799909 +0400
+@@ -124,7 +124,7 @@ gam_eq_flush (gam_eq_t *eq, GamConnDataP
+ {
+ 	gboolean done_work = FALSE;
+ 	if (!eq)
+-		return;
++		return FALSE;
+ 
+ #ifdef GAM_EQ_VERBOSE
+ 	GAM_DEBUG(DEBUG_INFO, "gam_eq: Flushing event queue for %s\n", gam_connection_get_pidname (conn));
+
+
+[FILE:3702:freebsd/patch-server_gam__fs.c]
+--- server/gam_fs.c.orig	2007-07-04 09:36:49.000000000 -0400
++++ server/gam_fs.c	2007-08-10 15:05:41.000000000 -0400
+@@ -7,6 +7,11 @@
+ #include <string.h>
+ #include <errno.h>
+ #include <glib.h>
++#ifdef __FreeBSD__
++#include <sys/param.h>
++#include <sys/ucred.h>
++#include <sys/mount.h>
++#endif
+ #include "gam_error.h"
+ #include "gam_fs.h"
+ 
+@@ -21,9 +26,13 @@ typedef struct _gam_fs_properties {
+ typedef struct _gam_fs {
+ 	char *path;
+ 	char *fsname;
++	guint64 flags;
+ } gam_fs;
+ 
+ static gboolean initialized = FALSE;
++#ifdef __FreeBSD__
++static gboolean initializing = FALSE;
++#endif
+ static GList *filesystems = NULL;
+ static GList *fs_props = NULL;
+ static struct stat mtab_sbuf;
+@@ -110,6 +119,7 @@ gam_fs_filesystem_sort_cb (gconstpointer
+ 	return strlen(fsb->path) - strlen (fsa->path);
+ }
+ 
++#ifdef __linux__
+ static void
+ gam_fs_scan_mtab (void)
+ {
+@@ -165,10 +175,41 @@ gam_fs_scan_mtab (void)
+ 	gam_fs_free_filesystems ();
+ 	filesystems = g_list_sort (new_filesystems, gam_fs_filesystem_sort_cb);
+ }
++#endif
++
++#ifdef __FreeBSD__
++static void
++gam_fs_getmntinfo (void)
++{
++	struct statfs *stat;
++	GList *new_filesystems = NULL;
++	gam_fs *fs = NULL;
++        int i, n;
++
++	n = getmntinfo(&stat, MNT_NOWAIT);
++	if (n == -1)
++		return;
++
++	for (i = 0; i < n; i++)
++	{
++		fs = g_new0 (gam_fs, 1);
++		fs->path = g_strdup (stat[i].f_mntonname);
++		fs->fsname = g_strdup (stat[i].f_fstypename);
++		fs->flags = stat[i].f_flags;
++
++		new_filesystems = g_list_prepend (new_filesystems, fs);
++	}
++
++        /* Replace the old file systems list with the new one */
++        gam_fs_free_filesystems ();
++        filesystems = g_list_sort (new_filesystems, gam_fs_filesystem_sort_cb);
++}
++#endif
+ 
+ void
+ gam_fs_init (void)
+ {
++#if defined(__linux__)
+ 	if (initialized == FALSE)
+ 	{
+ 		initialized = TRUE;
+@@ -181,6 +222,7 @@ gam_fs_init (void)
+ 		if (stat("/etc/mtab", &mtab_sbuf) != 0)
+ 		{
+ 			GAM_DEBUG(DEBUG_INFO, "Could not stat /etc/mtab\n");
++                        return;
+ 		}
+ 		gam_fs_scan_mtab ();
+ 	} else {
+@@ -189,6 +231,7 @@ gam_fs_init (void)
+ 		if (stat("/etc/mtab", &sbuf) != 0)
+ 		{
+ 			GAM_DEBUG(DEBUG_INFO, "Could not stat /etc/mtab\n");
++                        return;
+ 		}
+ 
+ 		/* /etc/mtab has changed */
+@@ -199,6 +242,54 @@ gam_fs_init (void)
+ 
+ 		mtab_sbuf = sbuf;
+ 	}
++#elif defined(__FreeBSD__)
++	if (initialized == FALSE && initializing == FALSE)
++	{
++		GList *iterator = NULL;
++		GHashTable *fs_hash = NULL;
++		gam_fs *fs = NULL;
++
++		initialized = TRUE;
++		initializing = TRUE;
++
++		gam_fs_getmntinfo ();
++
++		iterator = filesystems;
++		fs_hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
++
++		while (iterator) {
++			fs = iterator->data;
++
++			if (!g_hash_table_lookup (fs_hash, fs->fsname)) {
++				if (fs->flags & MNT_LOCAL)
++					gam_fs_set (fs->fsname, GFS_MT_DEFAULT, 0);
++				else
++					gam_fs_set (fs->fsname, GFS_MT_POLL, 5);
++
++				g_hash_table_insert (fs_hash, g_strdup (fs->fsname), GINT_TO_POINTER (1));
++			}
++
++			iterator = g_list_next (iterator);
++		}
++
++		g_hash_table_destroy (fs_hash);
++		initializing = FALSE;
++	} else if (initializing == FALSE) {
++		struct stat sbuf;
++
++		if (stat ("/etc/fstab", &sbuf) != 0) {
++			GAM_DEBUG(DEBUG_INFO, "Could not stat /etc/fstab\n");
++			return;
++		}
++
++		if (sbuf.st_mtime != mtab_sbuf.st_mtime) {
++			GAM_DEBUG(DEBUG_INFO, "Updating list of mounted filesystems\n");
++			gam_fs_getmntinfo ();
++		}
++
++		mtab_sbuf = sbuf;
++	}
++#endif
+ }
+ 
+ gam_fs_mon_type
+@@ -210,7 +301,11 @@ gam_fs_get_mon_type (const char *path)
+ 	props = gam_fs_find_fs_props (path);
+ 
+ 	if (!props)
++#ifdef USE_GAMIN_POLLER
++		return GFS_MT_POLL;
++#else
+ 		return GFS_MT_DEFAULT;
++#endif
+ 
+ 	return props->mon_type;
+ }
+
+
+[FILE:10104:freebsd/patch-server_gam__kqueue.c]
+--- server/gam_kqueue.c.orig	2007-07-04 09:50:41.000000000 -0400
++++ server/gam_kqueue.c	2009-06-03 13:43:38.000000000 -0400
+@@ -5,7 +5,8 @@
+  *
+  *     * http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi?coll=0650&db=bks&fname=/SGI_Developer/books/IIDsktp_IG/sgi_html/ch08.html
+  *       states that FAM does not follow monitored symbolic links: we
+- *       do the same (note that regarding
++ *       do NOT do the same to preserve compatibility with SGI FAM (note
++ *       that regarding
+  *       http://oss.sgi.com/bugzilla/show_bug.cgi?id=405, we do what
+  *       FAM should do: we do not call g_dir_open() if the file is a
+  *       symbolic link).
+@@ -28,10 +29,9 @@
+  *           - kqueue needs to be augmented with a filename-based
+  *             monitoring facility;
+  *
+- *           - kqueue needs to be moved out the UFS code.
+- *
+  * Copyright (C) 2005 Joe Marcus Clarke <marcus@FreeBSD.org>
+- * Copyright (C) 2005 Jean-Yves Lefort <jylefort@FreeBSD.org>
++ * Copyright (C) 2005, 2006 Jean-Yves Lefort <jylefort@FreeBSD.org>
++ * Copyright (C) 2006 Alex Dupre <ale@FreeBSD.org>
+  *
+  * This library is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU Lesser General Public
+@@ -53,6 +53,9 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <sys/param.h>
++#ifndef USE_GAMIN_POLLER
++#include <sys/mount.h>
++#endif
+ #include <sys/types.h>
+ #include <sys/sysctl.h>
+ #include <sys/stat.h>
+@@ -62,6 +65,7 @@
+ #include "gam_error.h"
+ #include "gam_kqueue.h"
+ #include "gam_event.h"
++#include "gam_excludes.h"
+ #include "gam_server.h"
+ #include "gam_poll_basic.h"
+ 
+@@ -130,7 +134,7 @@ typedef struct
+   HashTableRemoveFunc		remove;
+   HashTablePostRemoveFunc	post_remove;
+ } HashTableMethods;
+-  
++
+ /*
+  * A hash table which can be modified while iterating over it.
+  */
+@@ -281,8 +285,8 @@ static void
+ gam_kqueue_mini_lstat (const char *pathname, MiniStat *mini_sb)
+ {
+   struct stat sb;
+-  
+-  if (lstat(pathname, &sb) < 0)
++
++  if (stat(pathname, &sb) < 0)
+     memset(mini_sb, 0, sizeof(*mini_sb));
+   else
+     {
+@@ -319,14 +323,14 @@ gam_kqueue_isdir (const char *pathname, 
+   else
+     {
+       struct stat sb;
+-      return lstat(pathname, &sb) >= 0 && (sb.st_mode & S_IFDIR) != 0;
++      return stat(pathname, &sb) >= 0 && (sb.st_mode & S_IFDIR) != 0;
+     }
+ }
+ 
+ static gboolean
+ gam_kqueue_get_uint_sysctl (const char *name, unsigned int *value)
+ {
+-  unsigned int value_len = sizeof(*value);
++  size_t value_len = sizeof(*value);
+ 
+   if (sysctlbyname(name, value, &value_len, (void *)NULL, 0) < 0)
+     {
+@@ -406,7 +410,7 @@ gam_kqueue_hash_table_foreach (HashTable
+   table->iterating = TRUE;
+   g_hash_table_foreach(table->main, func, user_data);
+   table->iterating = FALSE;
+-  
++
+   if (table->pending_additions)
+     {
+       GSList *l;
+@@ -509,33 +513,52 @@ static gboolean
+ gam_kqueue_monitor_enable_kqueue (Monitor *mon)
+ {
+   struct kevent ev[1];
++#ifndef USE_GAMIN_POLLER
++  struct statfs sb;
++#endif
+ 
+   if (open_files == max_open_files)
+     {
+       GAM_DEBUG(DEBUG_INFO, "cannot open %s (max_open_files limit reached), falling back to poll\n", mon->pathname);
+       return FALSE;
+     }
+-  
+-  mon->fd = open(mon->pathname, O_RDONLY | O_NOFOLLOW);
++
++  if (gam_exclude_check(mon->pathname))
++    {
++      GAM_DEBUG(DEBUG_INFO, "not using kqueue for %s since it is excluded, falling back to poll\n", mon->pathname);
++      return FALSE;
++    }
++
++  mon->fd = open(mon->pathname, O_RDONLY | O_NONBLOCK | O_NOFOLLOW);
+   if (mon->fd < 0)
+     {
+       GAM_DEBUG(DEBUG_INFO, "cannot open %s (%s), falling back to poll\n", mon->pathname, g_strerror(errno));
+       return FALSE;
+     }
+ 
++#ifndef USE_GAMIN_POLLER
++  if (fstatfs(mon->fd, &sb) == 0 && (sb.f_flags & MNT_LOCAL) == 0)
++    {
++      GAM_DEBUG(DEBUG_INFO, "%s resides on a remote file system, falling back to poll\n", mon->pathname);
++      goto poll;
++    }
++#endif
++
+   EV_SET(ev, mon->fd, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_CLEAR, VN_NOTE_ALL, 0, mon);
+   if (kevent(kq, ev, G_N_ELEMENTS(ev), NULL, 0, NULL) < 0)
+     {
+       GAM_DEBUG(DEBUG_INFO, "cannot enable kqueue notification for %s (%s), falling back to poll\n", mon->pathname, g_strerror(errno));
+-
+-      close(mon->fd);
+-      mon->fd = -1;
+-
+-      return FALSE;
++      goto poll;
+     }
+ 
+   open_files++;
+   return TRUE;
++
++ poll:
++  close(mon->fd);
++  mon->fd = -1;
++
++  return FALSE;
+ }
+ 
+ static void
+@@ -612,7 +635,7 @@ gam_kqueue_sub_monitor_free (SubMonitor 
+   gam_kqueue_poller_remove_sub_monitor(&missing_smon_poller, smon);
+   gam_kqueue_poller_remove_sub_monitor(&unsupported_smon_poller, smon);
+   /* unsupported_dirs_poller is handled by _clear_fmons() below */
+-  
++
+   gam_kqueue_sub_monitor_clear_fmons(smon);
+   gam_kqueue_monitor_free(MONITOR(smon));
+ }
+@@ -700,7 +723,7 @@ gam_kqueue_sub_monitor_enable_notificati
+     {
+       struct stat sb;
+ 
+-      exists = lstat(mon->pathname, &sb) >= 0;
++      exists = stat(mon->pathname, &sb) >= 0;
+       flags |= (exists && (sb.st_mode & S_IFDIR) != 0) ? MONITOR_ISDIR : MONITOR_ISNOTDIR;
+     }
+ 
+@@ -715,21 +738,21 @@ gam_kqueue_sub_monitor_enable_notificati
+ 	{
+ 	  GDir *dir;
+ 	  GError *err = NULL;
+-	  
++
+ 	  dir = g_dir_open(mon->pathname, 0, &err);
+ 	  if (dir)
+ 	    {
+ 	      const char *filename;
+-	      
++
+ 	      while ((filename = g_dir_read_name(dir)))
+ 		{
+ 		  FileMonitor *fmon;
+ 		  FileMonitorFlags fmon_flags;
+-		  
++
+ 		  fmon = gam_kqueue_file_monitor_new(smon, filename, &fmon_flags);
+ 		  gam_kqueue_file_monitor_emit_event(fmon, gevent, fmon_flags);
+ 		}
+-	      
++
+ 	      g_dir_close(dir);
+ 	    }
+ 	  else
+@@ -749,7 +772,7 @@ gam_kqueue_sub_monitor_enable_notificati
+ 
+       return;
+     }
+-    
++
+   /* then we enable kqueue notification, falling back to poll if necessary */
+ 
+   if (! gam_kqueue_monitor_enable_kqueue(mon))
+@@ -774,7 +797,7 @@ gam_kqueue_sub_monitor_handle_directory_
+ 
+   filenames = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+ 
+-  if (isdir)			/* do not follow symbolic links */
++  if (isdir)
+     {
+       GDir *dir;
+       GError *err = NULL;
+@@ -783,7 +806,7 @@ gam_kqueue_sub_monitor_handle_directory_
+       if (dir)
+ 	{
+ 	  const char *filename;
+-	  
++
+ 	  while ((filename = g_dir_read_name(dir)))
+ 	    {
+ 	      g_hash_table_insert(filenames, g_strdup(filename), GINT_TO_POINTER(TRUE));
+@@ -793,12 +816,12 @@ gam_kqueue_sub_monitor_handle_directory_
+ 		{
+ 		  FileMonitor *fmon;
+ 		  FileMonitorFlags fmon_flags;
+-		  
++
+ 		  fmon = gam_kqueue_file_monitor_new(smon, filename, &fmon_flags);
+ 		  gam_kqueue_file_monitor_emit_event(fmon, GAMIN_EVENT_CREATED, fmon_flags);
+ 		}
+ 	    }
+-	  
++
+ 	  g_dir_close(dir);
+ 	}
+       else
+@@ -840,6 +863,8 @@ gam_kqueue_sub_monitor_emit_event (SubMo
+     case GAMIN_EVENT_MOVED:
+       gam_kqueue_sub_monitor_set_missing(smon);
+       break;
++    default:
++      break;
+     }
+ 
+   gam_server_emit_event(mon->pathname, isdir, event, smon->subs, 1);
+@@ -931,11 +956,11 @@ gam_kqueue_file_monitor_emit_event (File
+   gboolean isdir;
+   gboolean stat_done;
+   gboolean stat_succeeded;
+-  
++
+   if ((flags & MONITOR_ISDIR) == 0 && (flags & MONITOR_ISNOTDIR) == 0)
+     {
+       stat_done = TRUE;
+-      stat_succeeded = lstat(mon->pathname, &sb) >= 0;
++      stat_succeeded = stat(mon->pathname, &sb) >= 0;
+       isdir = stat_succeeded && (sb.st_mode & S_IFDIR) != 0;
+     }
+   else
+@@ -943,7 +968,7 @@ gam_kqueue_file_monitor_emit_event (File
+       stat_done = FALSE;
+       isdir = (flags & MONITOR_ISDIR) != 0;
+     }
+-  
++
+   gam_server_emit_event(mon->pathname, isdir, event, fmon->smon->subs, 1);
+ 
+   switch (event)
+@@ -962,7 +987,7 @@ gam_kqueue_file_monitor_emit_event (File
+ 	    {
+ 	      FileMonitor *new_fmon;
+ 	      FileMonitorFlags new_fmon_flags;
+-	      
++
+ 	      /*
+ 	       * The file exists again. It means that kqueue has
+ 	       * aggregated a removal+creation into a single event. We
+@@ -978,9 +1003,11 @@ gam_kqueue_file_monitor_emit_event (File
+ 	      break;		/* do not remove the fmon we've just created */
+ 	    }
+ 	}
+-	
++
+       gam_kqueue_hash_table_remove(fmon->smon->fmons, fmon);
+       break;
++    default:
++      break;
+     }
+ }
+ 
+@@ -1033,7 +1060,7 @@ gam_kqueue_kevent_cb (GIOChannel *source
+ 
+   for (i = 0; i < nevents; i++)
+     MONITOR(ev[i].udata)->handle_kevent(MONITOR(ev[i].udata), &ev[i]);
+-  
++
+   return TRUE;			/* keep source */
+ }
+ 
+@@ -1042,7 +1069,7 @@ gam_kqueue_missing_smon_poll (SubMonitor
+ {
+   struct stat sb;
+ 
+-  if (lstat(MONITOR(smon)->pathname, &sb) >= 0)
++  if (stat(MONITOR(smon)->pathname, &sb) >= 0)
+     {
+       gam_kqueue_poller_remove_sub_monitor(&missing_smon_poller, smon);
+       gam_kqueue_sub_monitor_enable_notification(smon, SUB_MONITOR_WAS_MISSING | ((sb.st_mode & S_IFDIR) != 0 ? MONITOR_ISDIR : MONITOR_ISNOTDIR));
+@@ -1062,16 +1089,16 @@ gam_kqueue_unsupported_smon_poll (SubMon
+       if (gam_kqueue_monitor_enable_kqueue(mon))
+ 	gam_kqueue_poller_remove_sub_monitor(&missing_smon_poller, smon);
+     }
+-  
++
+   gam_kqueue_mini_lstat(mon->pathname, &sb);
+-  
++
+   if (! sb.exists && mon->sb.exists)
+     event = GAMIN_EVENT_DELETED;
+   else if (gam_kqueue_differs(&sb, &mon->sb))
+     event = GAMIN_EVENT_CHANGED;
+   else
+     return;
+-	
++
+   memcpy(&mon->sb, &sb, sizeof(sb));
+   gam_kqueue_sub_monitor_emit_event(smon, event, (sb.mode & S_IFDIR) != 0 ? MONITOR_ISDIR : MONITOR_ISNOTDIR);
+ }
+@@ -1167,7 +1194,10 @@ gam_kqueue_init (void)
+   channel = g_io_channel_unix_new(kq);
+   g_io_add_watch(channel, G_IO_IN, gam_kqueue_kevent_cb, NULL);
+ 
+-  
++#ifdef USE_GAMIN_POLLER
++  gam_poll_basic_init ();
++#endif
++
+   gam_server_install_kernel_hooks(GAMIN_K_KQUEUE,
+   				  gam_kqueue_add_subscription,
+ 				  gam_kqueue_remove_subscription,
+@@ -1200,7 +1230,7 @@ gam_kqueue_add_subscription (GamSubscrip
+       smon->subs = g_list_append(smon->subs, sub);
+       return TRUE;
+     }
+-  
++
+   smon = gam_kqueue_sub_monitor_new(sub);
+   smon->subs = g_list_append(smon->subs, sub);
+ 
+@@ -1260,6 +1290,6 @@ gam_kqueue_remove_all_for (GamListener *
+       success = FALSE;
+ 
+   g_list_free(subs);
+-  
++
+   return success;
+ }
+
+
+[FILE:581:freebsd/patch-server_gam__poll__basic.c]
+--- server/gam_poll_basic.c.orig	2007-08-10 15:12:29.000000000 -0400
++++ server/gam_poll_basic.c	2007-08-10 15:16:07.000000000 -0400
+@@ -345,7 +345,7 @@ gam_poll_basic_poll_file(GamNode * node)
+ #ifdef ST_MTIM_NSEC
+ 		GAM_DEBUG(DEBUG_INFO, "%d %d : %d %d\n", node->sbuf.st_mtim.tv_sec, node->sbuf.st_mtim.tv_nsec, sbuf.st_mtim.tv_sec, sbuf.st_mtim.tv_nsec);
+ #else
+-		GAM_DEBUG(DEBUG_INFO, "%d : %d\n", node->sbuf.st_mtime, sbuf.st_mtim.tv_nsec);
++		GAM_DEBUG(DEBUG_INFO, "%d : %d\n", node->sbuf.st_mtime, sbuf.st_mtime);
+ #endif /* ST_MTIM_NSEC */
+ #endif /* VERBOSE_POLL */
+ 	}
+
+
+
+[FILE:1209:freebsd/patch-server_gam__server.c]
+--- server/gam_server.c.orig	2007-07-04 09:36:49.000000000 -0400
++++ server/gam_server.c	2009-05-01 20:25:41.000000000 -0400
+@@ -32,7 +32,7 @@
+ #include "gam_server.h"
+ #include "gam_channel.h"
+ #include "gam_subscription.h"
+-#include "gam_poll_generic.h"
++#include "gam_poll_basic.h"
+ #ifdef ENABLE_INOTIFY
+ #include "gam_inotify.h"
+ #endif
+@@ -200,7 +200,8 @@ gam_add_subscription(GamSubscription * s
+ 			return gam_poll_add_subscription (sub);
+ 		else
+ #endif
+-			return gam_kernel_add_subscription (sub);
++			/*return gam_kernel_add_subscription (sub);*/
++			return gam_poll_add_subscription (sub);
+ 	} else {
+ 		gam_fs_mon_type type;
+ 		type = gam_fs_get_mon_type (path);
+@@ -243,7 +244,8 @@ gam_remove_subscription(GamSubscription 
+ 			return gam_poll_remove_subscription (sub);
+ 		else
+ #endif
+-			return gam_kernel_remove_subscription(sub);
++			/*return gam_kernel_remove_subscription(sub);*/
++			return gam_poll_remove_subscription (sub);
+ 	} else {
+ 		gam_fs_mon_type type;
+ 		type = gam_fs_get_mon_type (path);
+@@ -438,7 +440,7 @@ gam_server_get_kernel_handler (void)
+ GamPollHandler
+ gam_server_get_poll_handler (void)
+ {
+-	return __gam_kernel_handler;
++	return __gam_poll_handler;
+ }
+ 
+ gboolean
+
+
+[FILE:997:freebsd/patch-tests_testing.c]
+--- tests/testing.c.orig	Thu Oct 27 10:51:03 2005
++++ tests/testing.c	Tue Feb 14 17:46:01 2006
+@@ -376,11 +376,11 @@ processCommand(char *line, int no)
+         }
+         printf("chmod %s to %s\n", arg, arg2);
+     } else if (!strcmp(command, "chown")) {
++	struct stat sb;
+         if (args != 3) {
+             fprintf(stderr, "chown line %d: lacks path and owner\n", no);
+             return (-1);
+         }
+-		struct stat sb;
+ 		if (!lstat (arg, &sb)) {
+ 			ret = (S_ISLNK (sb.st_mode)) ?
+ 				lchown(arg, strtol(arg2, NULL, 10), -1) :
+@@ -486,9 +486,9 @@ processCommand(char *line, int no)
+             return (-1);
+         }
+         /*
+-         * wait at most 3 secs before declaring failure
++         * wait at most 7 secs before declaring failure
+          */
+-        while ((delay < 30) && (testState.nb_events < nb_events + count)) {
++        while ((delay < 70) && (testState.nb_events < nb_events + count)) {
+             debugLoop(100);
+ 
+ /*	    printf("+"); fflush(stdout); */
 
