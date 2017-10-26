@@ -382,3 +382,59 @@ share/man/man1/sbcl.1.gz
  #endif
    #include <sys/time.h>
 
+
+[FILE:2071:freebsd/patch-zzlate-fix-immobile-space]
+From 8603d89d6bafb0dcd3f453c259dbf8c9f3ab9fb6 Mon Sep 17 00:00:00 2001
+From: Douglas Katzman <dougk@google.com>
+Date: Sun, 1 Oct 2017 00:23:02 -0400
+Subject: [PATCH] Force immobile space to a low address on FreeBSD
+
+lp#1720599
+---
+ src/runtime/bsd-os.c        | 10 +++++++++-
+ src/runtime/x86-64-bsd-os.c |  2 +-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git src/runtime/bsd-os.c src/runtime/bsd-os.c
+index 8dfd2a631..7ae9d119f 100644
+--- src/runtime/bsd-os.c
++++ src/runtime/bsd-os.c
+@@ -144,8 +144,14 @@ os_validate(int movable, os_vm_address_t addr, os_vm_size_t len)
+      * OpenBSD says:
+        Except for MAP_FIXED mappings, the system will never replace existing mappings. */
+ 
+-    if (!movable && addr)
++    if (addr && movable != MOVABLE) {
++        /* MOVABLE_LOW will use MAP_FIXED because if you don't,
++         * there is no chance of getting the hinted address */
+         flags |= MAP_FIXED;
++#ifdef MAP_EXCL /* I think every *BSD has this but I'm not sure */
++        flags |= MAP_EXCL;
++#endif
++    }
+ 
+ #ifdef __NetBSD__
+     if (addr) {
+@@ -177,6 +183,8 @@ os_validate(int movable, os_vm_address_t addr, os_vm_size_t len)
+         addr = mmap(addr, len, OS_VM_PROT_ALL, flags, -1, 0);
+     }
+ 
++    /* FIXME: if MOVABLE_LOW, probe for other possible addresses,
++     * since the combination of (MAP_FIXED | MAP_EXCL) won't */
+     if (addr == MAP_FAILED) {
+         perror("mmap");
+         return NULL;
+diff --git src/runtime/x86-64-bsd-os.c src/runtime/x86-64-bsd-os.c
+index b3941182c..33987ea45 100644
+--- src/runtime/x86-64-bsd-os.c
++++ src/runtime/x86-64-bsd-os.c
+@@ -160,7 +160,7 @@ int arch_os_thread_init(struct thread *thread) {
+     /* Signal handlers are run on the control stack, so if it is exhausted
+      * we had better use an alternate stack for whatever signal tells us
+      * we've exhausted it */
+-    sigstack.ss_sp=((void *) thread)+dynamic_values_bytes;
++    sigstack.ss_sp=((char *) thread)+dynamic_values_bytes;
+     sigstack.ss_flags=0;
+     sigstack.ss_size = 32*SIGSTKSZ;
+     sigaltstack(&sigstack,0);
+
