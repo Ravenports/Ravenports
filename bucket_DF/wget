@@ -3,8 +3,9 @@
 NAMEBASE=		wget
 VERSION=		1.19.2
 KEYWORDS=		ftp www
-VARIANTS=		standard
+VARIANTS=		standard raven
 SDESC[standard]=	Program to retrieve files via http/s and ftp
+SDESC[raven]=		Minimal alias for fetch for Solaris Ravensys root
 HOMEPAGE=		https://www.gnu.org/software/wget/
 CONTACT=		nobody
 
@@ -15,43 +16,55 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			docs
+SPKGS[raven]=		primary
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	RAVENSYS
 OPTIONS_STANDARD=	none
+VOPTS[raven]=		RAVENSYS=ON
 
-BUILD_DEPENDS=		pcre:static:standard
-BUILDRUN_DEPENDS=	pcre:shared:standard
-			libidn2:primary:standard
-			libunistring:primary:standard
-			libmetalink:primary:standard
-
-USES=			charsetfix cpe iconv makeinfo gettext-runtime ssl
-			zlib pkgconfig perl:build
+USES=			charsetfix cpe pkgconfig
 
 LICENSE=		GPLv3+:primary
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 
-INFO=			primary:wget
 CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		ftp/wget
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-libidn={{LOCALBASE}}
-			--with-libunistring-prefix={{LOCALBASE}}
-			--with-metalink
-			--with-ssl=openssl
+CONFIGURE_ARGS=		--with-ssl=openssl
 			--with-ssl-prefix={{OPENSSLBASE}}
 			--without-libpsl
-			--enable-nls
 			--enable-iri
-			--enable-ipv6
-			--enable-pcre
 CONFIGURE_ENV=		MAKEINFO="{{MAKEINFO}}"
 
 CPPFLAGS=		-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
+
+[RAVENSYS].DESCRIPTION=			Minimal static version used as alias for fetch
+[RAVENSYS].BUILDRUN_DEPENDS_OFF=	pcre:shared:standard
+					libmetalink:primary:standard
+					libidn2:primary:standard
+					libunistring:primary:standard
+[RAVENSYS].BUILD_DEPENDS_OFF=		pcre:static:standard
+[RAVENSYS].BUILD_DEPENDS_ON=		zlib:static:standard
+					libressl:single:static
+[RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-pcre
+					--enable-nls
+					--with-metalink
+					--with-libidn={{LOCALBASE}}
+					--with-libunistring-prefix={{LOCALBASE}}
+[RAVENSYS].INFO_OFF=			primary:wget
+[RAVENSYS].RUN_DEPENDS_ON=		nss:caroot:standard
+[RAVENSYS].SUB_FILES_ON=		fetch
+[RAVENSYS].USES_OFF=			gettext-runtime
+					perl:build
+					makeinfo
+					zlib
+					ssl
+					iconv
+[RAVENSYS].USES_ON=			iconv:build
 
 post-patch:
 	${REINPLACE_CMD} -e 's,WGETRC = $$(sysconfdir)/wgetrc,&.sample,' \
@@ -59,6 +72,17 @@ post-patch:
 	${REINPLACE_CMD} -e 's,/usr/local/etc/wgetrc,${PREFIX}/etc/wgetrc,' \
 		${WRKSRC}/doc/sample.wgetrc* \
 		${WRKSRC}/doc/wget.texi
+
+post-install-RAVENSYS-ON:
+	${RM} ${STAGEDIR}${PREFIX}/etc/wgetrc.sample
+	${INSTALL_SCRIPT} ${WRKDIR}/fetch ${STAGEDIR}${PREFIX}/bin
+
+post-patch-RAVENSYS-ON:
+	${REINPLACE_CMD} \
+		-e '/^all: wget.info/ s,wget.info,,' \
+		-e '/^all-am:/ s, $$(INFO_DEPS),,' \
+		-e '/^install-data-am:/ s, install-info-am,,' \
+		${WRKSRC}/doc/Makefile.in
 
 [FILE:996:descriptions/desc.primary]
 GNU wget is a free software package for retrieving files using HTTP,
@@ -87,7 +111,7 @@ entire web or FTP sites easy, including:
 4f4a673b6d466efa50fbfba796bd84a46ae24e370fa562ede5b21ab53c11a920      4349267 wget-1.19.2.tar.gz
 
 
-[FILE:1476:manifests/plist.primary]
+[FILE:1476:manifests/plist.primary.standard]
 @sample etc/wgetrc.sample
 bin/wget
 share/locale/be/LC_MESSAGES/wget.mo
@@ -130,4 +154,94 @@ share/locale/vi/LC_MESSAGES/wget.mo
 share/locale/zh_CN/LC_MESSAGES/wget.mo
 share/locale/zh_TW/LC_MESSAGES/wget.mo
 share/man/man1/wget.1.gz
+
+
+[FILE:18:manifests/plist.primary.raven]
+bin/
+ wget
+ fetch
+
+
+[FILE:1843:files/fetch.in]
+#!/bin/sh
+#
+# Make wget masquerade as fetch
+# look for:
+#   -q : (quiet),       wget=--quiet
+#   -o : (output=file), wget=--output-document
+#   --no-verify-peer,   wget=--no-check-certificate
+#   -Fpr : (force-restart, passive (default), restart, keep output),
+#          wget=
+#   --require-size,     wget= NOT SUPPORTED (mimickable?)
+#  assume env: SSL_NO_VERIFY_PEER=1 SSL_NO_VERIFY_HOSTNAME=1
+
+VERBOSITY="--no-verbose"
+CERTS="--no-check-certificate --ca-certificate %%PREFIX%%/share/certs/ca-root-nss.crt"
+REQUIRE_SIZE=0
+OUTPUT_FILE=
+SENDTO=
+URL=not-defined
+
+while test ${#} -gt 0
+do
+   case "${1}" in
+      -q|--quiet)
+      		VERBOSITY="--quiet"
+      		;;
+      --no-verify-peer)
+      		;;
+      -F|-p|-r|-Fpr|-Fp|-pF|-Fr|-rF|-pr|-rp|-rpF|-rFp|-pFr|-prF)
+      		;;
+      -S|--require-size)
+		shift
+      		REQUIRE_SIZE=${1}
+      		;;
+      -o)
+      		shift
+      		OUTPUT_FILE="${1}"
+      		;;
+      *)
+      		URL="${1}"
+      		;;
+   esac
+   shift
+done
+
+GETLENGTH='\
+BEGIN { remotelen = 0 }\
+/^Length:/ { remotelen = $2}\
+{ next }\
+END {\
+  if (!remotelen) { print "continue" }\
+  else {\
+    if (remotelen != knownlen)\
+      { printf ("size mismatch: expected %d, actual %d\n", knownlen, remotelen) }\
+    else\
+      { print "continue" }\
+  }\
+}'
+
+LASTSEG='{ print $NF }'
+
+WGET="%%PREFIX%%/bin/wget"
+
+if [ -n "${OUTPUT_FILE}" ]; then
+	SENDTO="--output-document ${OUTPUT_FILE}"
+else
+	# pre-delete any existing file (top level only)
+	checkfile=$(echo ${URL} | awk -F'/' "${LASTSEG}")
+	if [ -f "${checkfile}" ]; then
+	   rm -f ${checkfile}
+	fi
+fi
+if [ ${REQUIRE_SIZE} -gt 0 ]; then
+   message=$(${WGET} --spider ${URL} 2>&1 | awk -vknownlen=${REQUIRE_SIZE} "${GETLENGTH}")
+   if [ "${message}" != "continue" ]; then
+      echo ${message}
+      exit 1
+   fi
+fi
+COMMAND="${WGET} ${VERBOSITY} ${CERTS} ${URL} ${SENDTO}"
+
+${COMMAND}
 
