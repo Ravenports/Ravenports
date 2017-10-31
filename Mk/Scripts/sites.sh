@@ -406,7 +406,6 @@ expand_GNOME()
     http://www.gtlib.gatech.edu/pub/gnome/sources \
     ftp://ftp.dti.ad.jp/pub/X/gnome/sources \
     http://linorg.usp.br/gnome/sources \
-    http://mirror.aarnet.edu.au/pub/gnome/sources \
     ftp://ftp.kddlabs.co.jp/pub/GNOME/sources \
     ftp://ftp.mirrorservice.org/sites/ftp.gnome.org/pub/GNOME/sources \
     ftp://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources \
