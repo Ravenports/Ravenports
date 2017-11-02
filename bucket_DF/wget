@@ -162,7 +162,7 @@ bin/
  fetch
 
 
-[FILE:1843:files/fetch.in]
+[FILE:2109:files/fetch.in]
 #!/bin/sh
 #
 # Make wget masquerade as fetch
@@ -222,10 +222,16 @@ END {\
 }'
 
 LASTSEG='{ print $NF }'
-
-WGET="%%PREFIX%%/bin/wget"
+BPATH1=$(/usr/bin/dirname ${0})
+BASEPATH=$(cd ${BPATH1} && /bin/pwd)
+WGET="${BASEPATH}/wget"
 
 if [ -n "${OUTPUT_FILE}" ]; then
+	# If this is a directory, calculate the full output file name
+	if [ -d "${OUTPUT_FILE}" ]; then
+	   checkfile=$(echo ${URL} | awk -F'/' "${LASTSEG}")
+	   OUTPUT_FILE="${OUTPUT_FILE}/${checkfile}"
+	fi
 	SENDTO="--output-document ${OUTPUT_FILE}"
 else
 	# pre-delete any existing file (top level only)
