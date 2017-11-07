@@ -45,10 +45,13 @@ AWK=/usr/bin/awk
 rm -rf /tmp/shiny
 /bin/mkdir -p /tmp/shiny
 
-PATCHLIST=/port/patches/patch-*
+PATCHLIST=
+if [ -d /port/patches ]; then
+   PATCHLIST=/port/patches/patch-*
+fi
 if [ -d /port/opsys ]; then
-OSP=/port/opsys/patch-*
-PATCHLIST="${PATCHLIST} ${OSP}"
+   OSP=/port/opsys/patch-*
+   PATCHLIST="${PATCHLIST} ${OSP}"
 fi
 for PFILE in ${PATCHLIST}; do
    ENTRIES=$(${AWK} '/--- / { pn++; print pn }' ${PFILE})
