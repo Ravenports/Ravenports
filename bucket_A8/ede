@@ -2,6 +2,7 @@
 
 NAMEBASE=		ede
 VERSION=		2.1
+REVISION=		1
 KEYWORDS=		x11_wm
 VARIANTS=		standard
 SDESC[standard]=	Extremely light-weight desktop environment
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/ede/ede/2.1/
 DISTFILE[1]=		ede-2.1.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			wallpapers
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,6 +24,7 @@ BUILD_DEPENDS=		jam:primary:standard
 			asciidoc:single:py27
 BUILDRUN_DEPENDS=	edelib:single:standard
 			fltk:primary:standard
+			pekwm:single:standard
 			xorg-setxkbmap:single:standard
 			xorg-xpm:single:standard
 			xorg-xrandr:single:standard
@@ -31,38 +35,34 @@ BR_DEPS[freebsd]=	gamin:single:standard
 BR_DEPS[sunos]=		gamin:single:standard
 BR_DEPS[dragonfly]=	gamin:single:standard
 
-USES=			gettext-tools iconv pkgconfig png zlib
-XORG_COMPONENTS=	x11 xcursor xext xfixes xft xinerama
+USES=			gettext-tools pkgconfig png zlib
+XORG_COMPONENTS=	x11 xcursor xext xfixes xft xkbfile xinerama
 
 FPC_EQUIVALENT=		x11-wm/ede
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ENV=		PEKWM_CXXFLAGS="-fpermissive"
 
-LDFLAGS=		-liconv
-
 post-patch:
 	${REINPLACE_CMD} -e "s|__LDFLAGS__|${LDFLAGS}|" \
 		${WRKSRC}/build/Program.jam \
-		${WRKSRC}/evoke/Jamfile \
-		${WRKSRC}/pekwm/Jamfile
+		${WRKSRC}/evoke/Jamfile
 
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} jam)
 
 post-install:
-.for i in about autostart bell-conf bug-report calc conf crasher desktop desktop-conf dialog image-view keyboard-conf launch notify-daemon panel preferred-applications screensaver-conf shutdown timedate tip tip-compiler
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/ede-${i}
+.for f in about autostart bell-conf bug-report calc conf crasher desktop desktop-conf dialog image-view keyboard-conf launch notify-daemon panel preferred-applications screensaver-conf shutdown timedate tip tip-compiler
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/ede-${f}
 .endfor
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/evoke
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/pekwm
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/share/ede/panel-applets/*.so
 
 do-install:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		prefix="${STAGEDIR}${PREFIX}" jam install)
 
-[FILE:398:descriptions/desc.single]
+[FILE:398:descriptions/desc.primary]
 EDE (The "Equinox Desktop Environment") is an extremely light-weight 
 desktop environment based on the FLTK toolkit. Built to not get in the 
 users way, it deliberately values pure functionality over eyecandy.
@@ -72,11 +72,15 @@ than that EDE doesn't come bundeled with a lot of default applications but
 leaves the choice to the user instead.
 
 
+[FILE:70:descriptions/desc.wallpapers]
+This package contains a couple of high-resolution wallpapers for EDE.
+
+
 [FILE:93:distinfo]
 3361af07d17f79bd0d12daf34059c9e6449ddf23a8843f2b6e17268a80298a0e     12854852 ede-2.1.tar.gz
 
 
-[FILE:29253:manifests/plist.single]
+[FILE:28091:manifests/plist.primary]
 bin/
  ede-preferred-applications
  ede-screensaver-conf
@@ -104,7 +108,6 @@ bin/
  ede-dialog
  ede-bell-conf
  ede-tip-compiler
- pekwm
 share/icons/edeneu/22x22/devices/
  media-dvdrw.png
  media-floppy.png
@@ -1474,10 +1477,6 @@ share/ede/themes/splash-themes/scape/
  emountd.png
  background.png
  ede-notify-daemon.png
-share/wallpapers/
- summer-dreamin-3352x2304.jpg
- winter-sunset-3456x2304.jpg
- raindrops-1600x1200.jpg
 share/desktop-directories/
  ede-graphics.directory
  ede-system.directory
@@ -1492,61 +1491,6 @@ share/desktop-directories/
  ede-games.directory
 share/mime/packages/x-fluid.xml
 share/dbus-1/services/org.equinoxproject.Launch.service
-share/pekwm/themes/default/
- close-unfocus.png
- close-press.png
- title-unfocus.png
- max.png
- theme
- max-unfocus.png
- min-press.png
- arrow-sel.png
- close.png
- arrow-focus.png
- min.png
- bottom-menu.png
- max-press.png
- title.png
- min-unfocus.png
- top-menu.png
- menuline.png
- border.png
-share/pekwm/themes/pekwm/
- button_hover.png
- menu-bottom.png
- button.png
- bottom-right.png
- top-right_unfocus.png
- button_unfocus.png
- top-left.png
- right-border_unfocus.png
- bottom-right_unfocus.png
- theme
- right-border.png
- menu-bottom_unfocus.png
- top-border.png
- top-border_unfocus.png
- left-border.png
- bottom-border.png
- arrow_focus.png
- tab-separator_unfocus.png
- arrow.png
- button_press.png
- top-right.png
- bottom-left_unfocus.png
- item_focus.png
- bottom-left.png
- top-left_unfocus.png
- tab-separator.png
- bottom-border_unfocus.png
- title.png
- item.png
- title_unfocus.png
- menuline.png
- left-border_unfocus.png
-share/pekwm/scripts/
- pekwm_themeset.sh
- pekwm_ws_menu.sh
 share/xsessions/ede.desktop
 share/applications/
  ede-image-view.desktop
@@ -1564,20 +1508,18 @@ etc/xdg/ede/
  ede-conf.conf
  ede-settings.conf
 etc/xdg/menus/ede-applications.menu
-etc/pekwm/
- mouse
- autoproperties_typerules
- start
- autoproperties
- vars
- menu
- config
- keys
 
 
-[FILE:311:patches/patch-Jamfile]
---- Jamfile.orig	2017-10-18 17:06:35.660090000 +0200
-+++ Jamfile	2017-10-18 17:06:48.213577000 +0200
+[FILE:102:manifests/plist.wallpapers]
+share/wallpapers/
+ summer-dreamin-3352x2304.jpg
+ winter-sunset-3456x2304.jpg
+ raindrops-1600x1200.jpg
+
+
+[FILE:412:patches/patch-Jamfile]
+--- Jamfile.orig	2014-06-21 23:24:23.000000000 +0200
++++ Jamfile	2017-11-12 21:39:35.298194000 +0100
 @@ -35,7 +35,7 @@
  SubInclude TOP ede-tip ;
  SubInclude TOP ede-preferred-applications ;
@@ -1587,6 +1529,12 @@ etc/pekwm/
  SubInclude TOP data ;
  SubInclude TOP services ;
  
+@@ -44,4 +44,4 @@
+ 	SubInclude TOP ede-panel ;
+ }
+ 
+-SubInclude TOP pekwm ;
++#SubInclude TOP pekwm ;
 
 
 [FILE:332:patches/patch-build_Program.jam]
@@ -1603,16 +1551,17 @@ etc/pekwm/
  	if $(3) != "noinstall" {
 
 
-[FILE:364:patches/patch-data_Jamfile]
---- data/Jamfile.orig	2017-10-18 19:14:56.383357000 +0200
-+++ data/Jamfile	2017-10-18 19:15:32.249551000 +0200
+[FILE:394:patches/patch-data_Jamfile]
+--- data/Jamfile.orig	2014-06-21 23:24:23.000000000 +0200
++++ data/Jamfile	2017-11-12 21:27:35.958930000 +0100
 @@ -22,6 +22,6 @@
  SubInclude TOP data mime-types ;
  SubInclude TOP data icon-themes ;
  SubInclude TOP data menu ;
 -SubInclude TOP data desktop-links ;
+-SubInclude TOP data pekwm ;
 +#SubInclude TOP data desktop-links ;
- SubInclude TOP data pekwm ;
++#SubInclude TOP data pekwm ;
  SubInclude TOP data wallpapers ;
 
 
@@ -1628,98 +1577,6 @@ etc/pekwm/
  
  InstallEdeProgram ede-settings-apply ;
  
-
-
-[FILE:454:patches/patch-pekwm_Jamfile]
---- pekwm/Jamfile.orig	2017-10-19 23:30:25.443220000 +0200
-+++ pekwm/Jamfile	2017-10-19 23:31:02.829786000 +0200
-@@ -65,5 +65,5 @@
- 
- Program pekwm : $(SOURCE) ;
- ObjectC++Flags $(SOURCE) : $(GLOBALFLAGS) $(PEKWM_CXXFLAGS) -DDATADIR=\\\"$(datadir)\\\" -DSYSCONFDIR=\\\"$(PEKWM_CONFIG_DIR)\\\" -DVERSION=\\\"0.1.13\\\"  ;
--LinkAgainst pekwm : $(PEKWM_LIBS) $(STDLIB) ;
-+LinkAgainst pekwm : __LDFLAGS__ $(PEKWM_LIBS) $(STDLIB) ;
- InstallEdeProgram pekwm ;
-
-
-[FILE:1323:patches/patch-pekwm_Observable.cc]
---- pekwm/Observable.cc.orig    2014-06-21 21:24:41 UTC
-+++ pekwm/Observable.cc
-@@ -10,10 +10,12 @@
- #include "config.h"
- #endif // HAVE_CONFIG_H
- 
-+#include <algorithm>
-+
- #include "Observable.hh"
- #include "Observer.hh"
- 
--using SLIST_NAMESPACE::slist;
-+using std::vector;
- 
- /**
-  * Notify all observers.
-@@ -21,11 +23,10 @@ using SLIST_NAMESPACE::slist;
- void
- Observable::notifyObservers(Observation *observation)
- {
--    if (_observers.size()) {
--        slist<Observer*>::iterator it(_observers.begin());
--        for (; it != _observers.end(); ++it) {
--            (*it)->notify(this, observation);
--        }
-+    vector<Observer*>::const_iterator it(_observers.begin());
-+    vector<Observer*>::const_iterator end(_observers.end());
-+    for (; it != end; ++it) {
-+        (*it)->notify(this, observation);
-     }
- }
- 
-@@ -35,7 +36,7 @@ Observable::notifyObservers(Observation 
- void
- Observable::addObserver(Observer *observer)
- {
--    _observers.push_front(observer);
-+    _observers.push_back(observer);
- }
- 
- /**
-@@ -44,7 +45,5 @@ Observable::addObserver(Observer *observ
- void
- Observable::removeObserver(Observer *observer)
- {
--    if (_observers.size()) {
--        _observers.remove(observer);
--    }
-+    _observers.erase(std::remove(_observers.begin(), _observers.end(), observer), _observers.end());
- }
-
-
-[FILE:558:patches/patch-pekwm_Observable.hh]
---- pekwm/Observable.hh.orig    2014-06-21 21:24:41 UTC
-+++ pekwm/Observable.hh
-@@ -9,11 +9,7 @@
- #ifndef _OBSERVABLE_HH_
- #define _OBSERVABLE_HH_
- 
--#ifdef HAVE_SLIST
--#include <slist>
--#else // HAVE_EXT_SLIST
--#include <ext/slist>
--#endif // HAVE_SLIST
-+#include <vector>
- 
- class Observer;
- 
-@@ -36,7 +32,7 @@ public:
-     void removeObserver(Observer *observer); 
- 
- private:
--    SLIST_NAMESPACE::slist<Observer*> _observers; /**< List of observers. */
-+    std::vector<Observer*> _observers; /**< List of observers. */
- };
- 
- #endif // _OBSERVABLE_HH_
 
 
 [FILE:197:files/pkg-message-single.in]
