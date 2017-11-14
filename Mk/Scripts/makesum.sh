@@ -25,7 +25,7 @@ for file in ${dp_CKSUMFILES}; do
 
 		if [ "$alg_executable" != "NO" ]; then
 			hash=$($alg_executable -q "$file")
-			if [ "${dp_OPSYS}" = "Linux" ]; then
+			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
 				size=$(stat --printf=%s "${file}")
 			else
 				size=$(stat -f %z "$file")

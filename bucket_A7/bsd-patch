@@ -457,12 +457,13 @@ extern int	posix;
 
 
 
-[FILE:9787:files/inp.c]
+[FILE:9806:files/inp.c]
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 
+#include <fcntl.h>
 #include <ctype.h>
 #include <libgen.h>
 #include <stddef.h>
@@ -1657,7 +1658,7 @@ will think it is a reversed patch, and offer to un-apply the patch.
 This could be construed as a feature.
 
 
-[FILE:26000:files/patch.c]
+[FILE:26069:files/patch.c]
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -1675,6 +1676,10 @@ This could be construed as a feature.
 #include "inp.h"
 #include "backupfile.h"
 #include "pathnames.h"
+
+#ifndef NAME_MAX
+#define NAME_MAX	255
+#endif
 
 mode_t		filemode = 0644;
 
@@ -2135,7 +2140,9 @@ get_some_switches(void)
 	Argv_last = Argv;
 	if (!Argc)
 		return;
+#ifndef __sun__
 	optreset = optind = 1;
+#endif
 	while ((ch = getopt_long(Argc, Argv, options, longopts, NULL)) != -1) {
 		switch (ch) {
 		case  2 :
@@ -4356,7 +4363,7 @@ char		pch_char(LINENUM);
 void		do_ed_script(void);
 
 
-[FILE:7885:files/util.c]
+[FILE:7988:files/util.c]
 #include <sys/stat.h>
 
 #include <ctype.h>
@@ -4627,18 +4634,22 @@ ask(const char *fmt, ...)
 void
 set_signals(int reset)
 {
-	static sig_t	hupval, intval;
+	static int hup_exit = 0;
+	static int int_exit = 0;
 
-	if (!reset) {
-		hupval = signal(SIGHUP, SIG_IGN);
-		if (hupval != SIG_IGN)
-			hupval = my_exit;
-		intval = signal(SIGINT, SIG_IGN);
-		if (intval != SIG_IGN)
-			intval = my_exit;
+	if (reset) {
+		signal (SIGHUP, hup_exit ? my_exit : SIG_IGN);
+		signal (SIGINT, int_exit ? my_exit : SIG_IGN);
+	} else {
+		if (signal(SIGHUP, SIG_IGN) != SIG_IGN) {
+			hup_exit = 1;
+			signal (SIGHUP, my_exit);
+		}
+		if (signal(SIGINT, SIG_IGN) != SIG_IGN) {
+			int_exit = 1;
+			signal (SIGINT, my_exit);
+		}
 	}
-	signal(SIGHUP, hupval);
-	signal(SIGINT, intval);
 }
 
 /*
