@@ -2,6 +2,7 @@
 
 NAMEBASE=		pkg-bsd
 VERSION=		1.10.99.6
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	BSD binary package manager
@@ -9,7 +10,7 @@ HOMEPAGE=		https://github.com/freebsd/pkg/blob/master/README.md
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		GITHUB/jrmarino:pkg:e4f05af
+SITES[main]=		GITHUB/jrmarino:pkg:8570648
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
@@ -46,17 +47,18 @@ INSTALL_TARGET=		install-strip
 
 CFLAGS=			-Wno-error
 
-post-patch:
+post-patch-linux:
+	${REINPLACE_CMD} -e '/libpkg_la_LDFLAGS =/ s/= /= -ldl /' \
+		${WRKSRC}/libpkg/Makefile.in
+
+pre-patch:
 	${REINPLACE_CMD} -e 's/larchive/larchive-devel/' \
 		${WRKSRC}/libpkg/Makefile.am \
 		${WRKSRC}/tests/Makefile.am \
 		${WRKSRC}/src/Makefile.am
 	${REINPLACE_CMD} -e 's/\[archive\]/[archive-devel]/' \
 		${WRKSRC}/configure.ac
-
-post-patch-linux:
-	${REINPLACE_CMD} -e '/libpkg_la_LDFLAGS=/ s/-ver/-ldl -ver/' \
-		${WRKSRC}/libpkg/Makefile.am
+	(cd ${WRKSRC} && ./autogen.sh)
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/sbin/pkg2ng
@@ -71,9 +73,6 @@ post-install:
 	${INSTALL_SCRIPT} ${WRKSRC}/scripts/periodic/400.status-pkg \
 		${STAGEDIR}${PREFIX}/etc/periodic/weekly/
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/pkg/repos
-
-pre-configure:
-	(cd ${WRKSRC} && ./autogen.sh)
 
 [FILE:290:descriptions/desc.shared]
 The pkg program is the package management tool used natively on FreeBSD and
@@ -96,7 +95,7 @@ This package contains just the statically-linked version (pkg-static).
 
 
 [FILE:106:distinfo]
-b8d8b2fc05f2b19ed2910d02ec06eee41beb9c24e0c36290cf8c82162f9cf5be      3397549 jrmarino-pkg-e4f05af.tar.gz
+e2c6e2233bdefc8faad94f6d92d1ca439e210a0999b84c834b4198d492d75e52      3397661 jrmarino-pkg-8570648.tar.gz
 
 
 [FILE:1040:manifests/plist.shared]
@@ -166,7 +165,7 @@ share/zsh/site-functions/_pkg
 sbin/pkg-static
 
 
-[FILE:906:linux/patch-src_Makefile.in]
+[FILE:919:linux/patch-src_Makefile.in]
 --- src/Makefile.in.orig	2017-05-16 18:01:51 UTC
 +++ src/Makefile.in
 @@ -710,9 +710,18 @@ pkg$(EXEEXT): $(pkg_OBJECTS) $(pkg_DEPEN
@@ -183,7 +182,7 @@ sbin/pkg-static
 +	../external/.libs/libelf_static.a \
 +	../compat/.libs/libbsd_compat.a \
 +	-Wl,-Bstatic \
-+	-lutil -lssl -lcrypto -lbsd -lresolv -larchive -lz -lbz2 -llzma \
++	-lutil -lssl -lcrypto -lbsd -lresolv -larchive-devel -lzstd -lz -lbz2 -llzma \
 +	-Wl,-Bdynamic \
 +	-lm \
 +	-Wl,-rpath -Wl,/raven/lib
