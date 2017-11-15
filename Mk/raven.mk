@@ -727,7 +727,7 @@ do-install:
 
 .if !target(compress-man)
 
-.if "${OPSYS}" == "Linux"
+.if "${OPSYS}" == "Linux" || "${OPSYS}" == "SunOS"
 _GET_INODE=	${STAT} -c '%i' {}
 .else
 _GET_INODE=	${STAT} -f '%i' {}
@@ -1093,8 +1093,15 @@ CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
 # --  USERS/GROUPS handling
 # --------------------------------------------------------------------------
 
+.if "${OPSYS}" == "SunOS"
+# Solaris reserves 60001-60003 for nobody, noaccess, and aiuser
+# So shift all the UIDs and GIDs to start at 50001 instead on SunOS
+UID_OFFSET?=	-10000
+GID_OFFSET?=	-10000
+.else
 UID_OFFSET?=	0
 GID_OFFSET?=	0
+.endif
 UID_FILES?=	${MK_TEMPLATES}/UID.ravenports
 GID_FILES?=	${MK_TEMPLATES}/GID.ravenports
 _SYSTEM_UID=	${MK_TEMPLATES}/UID.${OPSYS:tl}
