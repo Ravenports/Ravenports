@@ -162,7 +162,7 @@ bin/
  fetch
 
 
-[FILE:2110:files/fetch.in]
+[FILE:2014:files/fetch.in]
 #!/bin/sh
 #
 # Make wget masquerade as fetch
@@ -222,23 +222,20 @@ END {\
 }'
 
 LASTSEG='{ print $NF }'
+checkfile=$(echo ${URL} | awk -F'/' "${LASTSEG}")
 BPATH1=$(/usr/bin/dirname ${0})
 BASEPATH=$(cd ${BPATH1} && /bin/pwd)
 WGET="${BASEPATH}/wget"
 
 if [ -n "${OUTPUT_FILE}" ]; then
-	# If this is a directory, calculate the full output file name
+	# If this is a directory, set directory prefix
 	if [ -d "${OUTPUT_FILE}" ]; then
-	   checkfile=$(echo ${URL} | awk -F'/' "${LASTSEG}")
-	   OUTPUT_FILE="${OUTPUT_FILE}/${checkfile}"
+	   SENDTO="--directory-prefix ${OUTPUT_FILE} --output-document ${checkfile}"
+	else
+	   SENDTO="--output-document ${OUTPUT_FILE}"
 	fi
-	SENDTO="--output-document ${OUTPUT_FILE}"
 else
-	# pre-delete any existing file (top level only)
-	checkfile=$(echo ${URL} | awk -F'/' "${LASTSEG}")
-	if [ -f "${checkfile}" ]; then
-	   rm -f ${checkfile}
-	fi
+	SENDTO="--output-document ${checkfile}"
 fi
 if [ ${REQUIRE_SIZE} -gt 0 ]; then
    message=$(${WGET} --spider ${URL} 2>&1 | awk -v knownlen=${REQUIRE_SIZE} "${GETLENGTH}")
