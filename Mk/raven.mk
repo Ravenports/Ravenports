@@ -1025,6 +1025,13 @@ PLIST_SUB+=		ONLY-${supp:tu}="@comment "
 .  endif
 .endfor
 
+# support for optional SOVERSION keyword
+# If present, add to PLIST substitutions along with SOMAJOR
+
+.if defined(SOVERSION)
+PLIST_SUB+=	SOVERSION=${SOVERSION} SOMAJOR=${SOVERSION:R:R}
+.endif
+
 # Macro for copying entire directory tree with correct permissions
 # Arguments are:  (1) source directory (usually ".")
 #                 (2) target directory
