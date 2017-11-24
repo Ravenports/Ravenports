@@ -70,6 +70,9 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		ABI_VER=6
 			REL_VER=6.0
 
+CPPFLAGS=		-P
+VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS="-lrt -lresolv -lsocket"
+
 [STATIC].CONFIGURE_ARGS_OFF=		--with-shared=yes
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 
@@ -116,6 +119,7 @@ post-build:
 
 post-configure:
 	cd ${.CURDIR} && \
+	    ${SET_LATE_CONFIGURE_ARGS} \
 	    ${MAKE} ${.MAKEFLAGS} CONFIGURE_WRKSRC=${WRKSRC}/build.widec \
 	    CONFIGURE_ARGS="${CONFIGURE_ARGS} --enable-widec" \
 	    do-configure

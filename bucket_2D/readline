@@ -108,10 +108,10 @@ share/readline/
  rlversion.c
 
 
-[FILE:537:patches/patch-support_shlib-install]
---- support/shlib-install.orig	2012-07-10 19:58:08.000000000 +0000
-+++ support/shlib-install	2017-05-18 20:58:47.492075412 +0000
-@@ -119,16 +119,10 @@
+[FILE:530:patches/patch-support_shlib-install]
+--- support/shlib-install.orig	2012-07-10 19:58:08 UTC
++++ support/shlib-install
+@@ -119,16 +119,10 @@ INSTALL_LINK2='${echo} cd $INSTALLDIR &&
  #
  case "$host_os-$host_vendor" in
  *linux*|freebsd*-gentoo)
@@ -131,19 +131,38 @@ share/readline/
  
 
 
-[FILE:608:patches/patch-support_shobj-conf]
---- support/shobj-conf.orig	2014-02-24 02:06:29.000000000 +0000
-+++ support/shobj-conf	2017-05-18 19:31:59.172300977 +0000
-@@ -123,7 +123,7 @@
+[FILE:1142:patches/patch-support_shobj-conf]
+--- support/shobj-conf.orig	2014-02-24 02:06:29 UTC
++++ support/shobj-conf
+@@ -95,7 +95,7 @@ sunos4*)
+ 	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)$(SHLIB_MINOR)'
  	;;
  
+-sunos5*-*gcc*|solaris2*-*gcc*)
++sunos5*|solaris2*)
+ 	SHOBJ_LD='${CC}'
+ 	ld_used=`gcc -print-prog-name=ld`
+ 	if ${ld_used} -V 2>&1 | grep GNU >/dev/null 2>&1; then
+@@ -113,17 +113,8 @@ sunos5*-*gcc*|solaris2*-*gcc*)
+ 	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
+ 	;;
+ 
+-sunos5*|solaris2*)
+-	SHOBJ_CFLAGS='-K pic'
+-	SHOBJ_LD=/usr/ccs/bin/ld
+-	SHOBJ_LDFLAGS='-G -dy -z text -i -h $@'
+-
+-#	SHLIB_XLDFLAGS='-R $(libdir)'
+-	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
+-	;;
+-
  # All versions of Linux (including Gentoo/FreeBSD) or the semi-mythical GNU Hurd.
 -linux*-*|gnu*-*|k*bsd*-gnu-*|freebsd*-gentoo)
 +gnu*-*|k*bsd*-gnu-*|freebsd*-gentoo)
  	SHOBJ_CFLAGS=-fPIC
  	SHOBJ_LD='${CC}'
  	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
-@@ -160,7 +160,7 @@
+@@ -160,7 +151,7 @@ freebsd3*|freebsdaout*)
  	;;
  
  # FreeBSD-4.x and later have only ELF

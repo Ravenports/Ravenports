@@ -2,7 +2,7 @@
 
 NAMEBASE=		db5
 VERSION=		5.3.28
-REVISION=		2
+REVISION=		3
 KEYWORDS=		databases java
 VARIANTS=		standard
 SDESC[standard]=	Oracle Berkeley DB, revision 5
@@ -23,7 +23,7 @@ OPTIONS_AVAILABLE=	CRYPTO TCL
 OPTIONS_STANDARD=	CRYPTO TCL
 OPT_ON[all]=		CRYPTO
 
-USES=			gmake libtool c++:shared
+USES=			gmake libtool c++:shared fbsd10fix
 
 DISTNAME=		db-5.3.28
 
@@ -40,9 +40,9 @@ CONFIGURE_WRKSRC=	{{WRKSRC}}/build_unix
 CONFIGURE_SCRIPT=	dist/configure
 CONFIGURE_ARGS=		--enable-dbm
 			--enable-cxx
-			--enable-stl
 			--enable-sql
 			--enable-sql_codegen
+			--disable-stl
 			--includedir={{PREFIX}}/include/db5
 			--libdir={{PREFIX}}/lib/db5
 			--bindir={{PREFIX}}/bin/db5
@@ -96,7 +96,7 @@ post-install-TCL-ON:
 	     " > ${STAGEDIR}${PREFIX}/lib/db5/pkgIndex.tcl
 
 post-install:
-.for i in libdb libdb_cxx libdb_stl libdb_sql
+.for i in libdb libdb_cxx libdb_sql
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/db5/${i}-5.3.so.0.0.0
 	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
 		${STAGEDIR}${PREFIX}/lib/${i}-5.3.so.0
@@ -117,23 +117,9 @@ post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/${i}/JAVA
 .endfor
 
-post-patch-freebsd:
-	${REINPLACE_CMD} \
-		-e 's|freebsd1\*)|freebsd1.\*)|g' \
-		-e 's|freebsd\[12\]\*)|freebsd[12].*)|g' \
-		-e 's|freebsd\[123\]\*)|freebsd[123].*)|g' \
-		${WRKSRC}/dist/configure \
-		${WRKSRC}/lang/sql/jdbc/configure \
-		${WRKSRC}/lang/sql/sqlite/configure \
-		${WRKSRC}/lang/sql/odbc/configure
-	${REINPLACE_CMD} \
-		-e 's|freebsd1\*)|freebsd1.\*)|g' \
-		-e 's|freebsd\[\[12\]\]\*)|freebsd[[12]].*)|g' \
-		-e 's|freebsd\[\[123\]\]\*)|freebsd[[123]].*)|g' \
-		${WRKSRC}/dist/aclocal/libtool.m4 \
-		${WRKSRC}/lang/sql/jdbc/aclocal.m4 \
-		${WRKSRC}/lang/sql/sqlite/aclocal.m4 \
-		${WRKSRC}/lang/sql/odbc/aclocal.m4
+post-patch-sunos:
+	${REINPLACE_CMD} -e '/_XOPEN_SOURCE/ s/500/600/' \
+		${WRKSRC}/util/db_sql_codegen/sqlite/sqliteInt.h
 
 [FILE:296:descriptions/desc.shared]
 Oracle Berkeley DB is a family of open source embeddable databases
@@ -162,7 +148,7 @@ This package contains the headers and static libraries.
 e0a992d740709892e81f9d93f06daf305cf73fb81b545afe72478043172c3628     35090431 bdb/db-5.3.28.tar.gz
 
 
-[FILE:1821:manifests/plist.shared]
+[FILE:1595:manifests/plist.shared]
 bin/db5/
  db_archive
  db_checkpoint
@@ -229,11 +215,6 @@ lib/db5/
  libdb_sql-%%BDBVER%%.so.0.0.0
  libdb_sql.so
  libdb_sql-%%BDBMAJ%%.so
- libdb_stl-%%BDBVER%%.so
- libdb_stl-%%BDBVER%%.so.0
- libdb_stl-%%BDBVER%%.so.0.0.0
- libdb_stl-%%BDBMAJ%%.so
- libdb_stl.so
 lib/
  libdb-%%BDBMAJ%%.so
  libdb-%%BDBMAJ%%.so.0
@@ -247,30 +228,13 @@ lib/
  libdb_sql-%%BDBMAJ%%.so.0
  libdb_sql-%%BDBVER%%.so
  libdb_sql-%%BDBVER%%.so.0
- libdb_stl-%%BDBMAJ%%.so
- libdb_stl-%%BDBMAJ%%.so.0
- libdb_stl-%%BDBVER%%.so
- libdb_stl-%%BDBVER%%.so.0
 
 
-[FILE:511:manifests/plist.static]
+[FILE:218:manifests/plist.static]
 include/db5/
  db.h
  db_cxx.h
  dbsql.h
- dbstl_base_iterator.h
- dbstl_common.h
- dbstl_container.h
- dbstl_dbc.h
- dbstl_dbt.h
- dbstl_element_ref.h
- dbstl_exception.h
- dbstl_inner_utility.h
- dbstl_map.h
- dbstl_resource_manager.h
- dbstl_set.h
- dbstl_utility.h
- dbstl_vector.h
 lib/db5/
  libdb-%%BDBVER%%.a
  libdb-%%BDBMAJ%%.a
@@ -281,9 +245,6 @@ lib/db5/
  libdb_sql-%%BDBVER%%.a
  libdb_sql-%%BDBMAJ%%.a
  libdb_sql.a
- libdb_stl-%%BDBVER%%.a
- libdb_stl-%%BDBMAJ%%.a
- libdb_stl.a
 
 
 [FILE:1421:patches/patch-dist_configure]

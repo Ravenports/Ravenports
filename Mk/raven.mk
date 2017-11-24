@@ -507,7 +507,11 @@ CONFIGURE_CMD?=		./${CONFIGURE_SCRIPT}
 CONFIGURE_WRKSRC?=	${WRKSRC}
 .endif
 CONFIGURE_SCRIPT?=	configure
+.if ${OPSYS:MSunOS}
+CONFIGURE_TARGET?=	${ARCH_STANDARD}-raven-solaris2.10
+.else
 CONFIGURE_TARGET?=	${ARCH_STANDARD}-raven-${OPSYS:tl}${MAJOR}
+.endif
 CONFIGURE_TARGET:=	${CONFIGURE_TARGET:S/--build=//}
 CONFIGURE_LOG=		config.log
 .if defined(GNU_CONFIGURE)
@@ -1019,7 +1023,8 @@ ASLIB=		lib
 .endif
 PLIST_SUB+=	ASLIB="${ASLIB}"
 
-.for supp in dragonfly linux freebsd # add more as they occur
+# Define ONLY-<OPSYS:tu> for all supported systems
+.for supp in dragonfly linux freebsd sunos
 .  if empty(PLIST_SUB:MONLY-${supp:tu}=*)
 PLIST_SUB+=		ONLY-${supp:tu}="@comment "
 .  endif
