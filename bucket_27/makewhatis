@@ -15,6 +15,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		zlib:static:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 B_DEPS[linux]=		libbsd:single:standard
 
 LICENSE=		BSD3CLAUSE:single
@@ -70,17 +71,17 @@ share/man/man8/makewhatis.8.gz
 
 
 
-[FILE:446:files/Makefile]
+[FILE:503:files/Makefile]
 PROG=		makewhatis
 SRCS=		${PROG}.c
 PREFIX?=	/usr/local
 CFLAGS+=	-I${PREFIX}/include -I.
 STATIC_LIBS=	${PREFIX}/lib/libz.a
 
-.if "${OPSYS}" == "Linux"
+.if "${OPSYS}" == "Linux" || "${OPSYS}" == "SunOS"
 STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
+CFLAGS+=	-I${PREFIX}/include/bsd
 .endif
-
 
 all: ${PROG}
 
@@ -233,18 +234,13 @@ with additional contributions by
 .An Franco Fichtner Aq Mt franco@lastsummer.de .
 
 
-[FILE:24303:files/makewhatis.c]
+[FILE:24282:files/makewhatis.c]
 /*-
  * $FreeBSD: src/usr.bin/makewhatis/makewhatis.c,v 1.9 2002/09/04 23:29:04 dwmalone Exp $
  */
 
-#ifdef __linux__
-#include <bsd/sys/tree.h>
-#include <bsd/stringlist.h>
-#else
 #include <sys/tree.h>
 #include <stringlist.h>
-#endif
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/queue.h>
@@ -252,6 +248,10 @@ with additional contributions by
 
 #include <ctype.h>
 #include <dirent.h>
+#ifdef __sun__
+#include <signal.h>
+#include <strings.h>
+#endif
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
