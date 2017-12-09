@@ -58,7 +58,7 @@ shebangonefile() {
 	/bin/tcsh) ;;	# not in ravensys-root
 	/bin/dash | /bin/bash)
 		# Only valid for linux
-		if [ "${OPSYS}" != "Linux" ]; then
+		if [ "${OPSYS}" != "Linux" -a "${OPSYS}" != "SunOS" ]; then
 			badinterp="${interp}"
 		fi
 		;;
@@ -218,7 +218,7 @@ suidfiles() {
 		\( -perm -u+s -or -perm -g+s \)`
 	if [ -n "${filelist}" ]; then
 		warn "setuid files in the stage directory (are these necessary?):"
-		if [ "${OPSYS}" = "Linux" ]; then
+		if [ "${OPSYS}" = "Linux" -o "${OPSYS}" = "SunOS" ]; then
 		   ls -lid --time-style=long-iso ${filelist}
 		else
 		   ls -lidT ${filelist}

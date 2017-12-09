@@ -237,6 +237,46 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 +Cflags: -I${includedir}
 
 
+[FILE:1032:patches/patch-configure]
+--- configure.orig	2017-09-19 16:32:26.000000000 +0000
++++ configure	2017-12-08 18:43:17.349325345 +0000
+@@ -7525,7 +7525,6 @@
+     CPU_ARCH=`uname -p`
+     MDCPUCFG_H=_solaris.cfg
+     PR_MD_CSRCS=solaris.c
+-    LD=/usr/ccs/bin/ld
+     MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
+     RESOLVE_LINK_SYMBOLS=1
+     case "${OS_RELEASE}" in
+@@ -7533,7 +7532,6 @@
+         ;;
+     *)
+         # It is safe to use the -Bdirect linker flag on Solaris 10 or later.
+-        USE_B_DIRECT=1
+         ;;
+     esac
+     if test -n "$GNU_CC"; then
+@@ -8544,17 +8542,7 @@
+ 
+         $as_echo "#define HAVE_POINTER_LOCALTIME_R 1" >>confdefs.h
+ 
+-        if test "$OS_TEST" = "i86pc"; then
+-            if test -n "$USE_64"; then
+-               PR_MD_ASFILES=os_SunOS_x86_64.s
+-            else
+-               PR_MD_ASFILES=os_SunOS_x86.s
+-            fi
+-        else
+-            if test -n "$USE_64"; then
+-                PR_MD_ASFILES=os_SunOS_sparcv9.s
+-            fi
+-        fi
++        PR_MD_ASFILES=os_SunOS_x86_64.s
+     fi
+     ;;
+ *-nto*)
+
+
 [FILE:29847:patches/patch-libtests]
 --- lib/tests/arena.c.orig	2015-10-16 13:22:19 UTC
 +++ lib/tests/arena.c

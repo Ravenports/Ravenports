@@ -293,7 +293,7 @@ share/doc/bash/
  /* Undefine this if you don't want the ksh-compatible behavior of reprinting
 
 
-[FILE:748:patches/patch-doc_Makefile.in]
+[FILE:747:patches/patch-doc_Makefile.in]
 --- doc/Makefile.in.orig	2015-12-07 00:55:56 UTC
 +++ doc/Makefile.in
 @@ -175,7 +175,7 @@ pdf: ${PDFFILES}
@@ -305,7 +305,7 @@ share/doc/bash/
  	$(MAKEINFO) --no-split -I$(TEXINPUTDIR) $(srcdir)/bashref.texi
  
  # experimental
-@@ -188,9 +188,6 @@ bashref.pdf: $(BASHREF_FILES) $(HSUSER) 
+@@ -188,9 +188,6 @@ bashref.pdf: $(BASHREF_FILES) $(HSUSER)
  bashref.html: $(BASHREF_FILES) $(HSUSER) $(RLUSER)
  	$(MAKEINFO) --html --no-split -I$(TEXINPUTDIR) $(srcdir)/bashref.texi
  
@@ -317,10 +317,10 @@ share/doc/bash/
  bash.html: bash.1
 
 
-[FILE:500:patches/patch-doc_bash.1]
---- doc/bash.1.orig	2016-09-29 22:30:30 UTC
+[FILE:498:patches/patch-doc_bash.1]
+--- doc/bash.1.orig	2016-08-26 13:45:17 UTC
 +++ doc/bash.1
-@@ -2364,7 +2364,7 @@ The value of this parameter is expanded 
+@@ -2364,7 +2364,7 @@ The value of this parameter is expanded
  .SM
  .B PROMPTING
  below) and used as the primary prompt string.  The default value is
@@ -329,7 +329,7 @@ share/doc/bash/
  .TP
  .B PS2
  The value of this parameter is expanded as with
-@@ -10556,7 +10556,7 @@ http://tiswww.case.edu/~chet/bash/POSIX 
+@@ -10544,7 +10544,7 @@ http://tiswww.case.edu/~chet/bash/POSIX
  .SH FILES
  .PD 0
  .TP
@@ -340,8 +340,8 @@ share/doc/bash/
  .FN /etc/profile
 
 
-[FILE:945:patches/patch-doc_bashref.texi]
---- doc/bashref.texi.orig	2016-09-29 22:30:30 UTC
+[FILE:944:patches/patch-doc_bashref.texi]
+--- doc/bashref.texi.orig	2016-09-07 21:13:36 UTC
 +++ doc/bashref.texi
 @@ -1,6 +1,6 @@
  \input texinfo.tex @c -*- texinfo -*-
@@ -360,7 +360,7 @@ share/doc/bash/
  
  This is Edition @value{EDITION}, last updated @value{UPDATED},
  of @cite{The GNU Bash Reference Manual},
-@@ -5443,7 +5443,7 @@ A null directory name may appear as two 
+@@ -5438,7 +5438,7 @@ A null directory name may appear as two
  or trailing colon.
  
  @item PS1
@@ -387,6 +387,29 @@ share/doc/bash/
    memset (line_state_invisible->wrapped_line, 0, line_state_invisible->wbsize * sizeof (int));
 
 
+[FILE:558:patches/patch-support_shobj-conf]
+--- support/shobj-conf.orig	2014-02-24 02:06:29 UTC
++++ support/shobj-conf
+@@ -113,7 +113,7 @@ sunos5*-*gcc*|solaris2*-*gcc*)
+ 	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
+ 	;;
+ 
+-sunos5*|solaris2*)
++sunos5*)
+ 	SHOBJ_CFLAGS='-K pic'
+ 	SHOBJ_LD=/usr/ccs/bin/ld
+ 	SHOBJ_LDFLAGS='-G -dy -z text -i -h $@'
+@@ -160,7 +160,7 @@ freebsd3*|freebsdaout*)
+ 	;;
+ 
+ # FreeBSD-4.x and later have only ELF
+-freebsd[4-9]*|freebsd1[0-9]*|freebsdelf*|dragonfly*)
++freebsd[4-9]*|freebsd1[0-9]*|freebsdelf*|dragonfly*|solaris*)
+ 	SHOBJ_CFLAGS=-fPIC
+ 	SHOBJ_LD='${CC}'
+ 
+
+
 [FILE:652:files/special.mk]
 # On linux with glibc, we can't build a fully static bash because
 # of absurd restrictions put on static linking with nss, dlopen, etc.
@@ -407,3 +430,82 @@ post-configure-opsys:
 	${REINPLACE_CMD} -e 's|-ltinfo|${TINFOLIBS}|' ${WRKSRC}/Makefile
 .  endif
 .endif
+
+[FILE:2505:sunos/patch-configure]
+--- configure.orig	2016-09-07 20:57:01.000000000 +0000
++++ configure
+@@ -4936,14 +4936,18 @@
+ if test "$opt_static_link" = yes; then
+ 	prefer_static=yes
+ 	prefer_shared=no
++	TINFO_LIBRARY=${prefix}/lib/libtinfo.a
+ 	# if we're using gcc, add `-static' to LDFLAGS, except on Solaris >= 2
+ 	if test -n "$GCC" || test "$ac_cv_c_compiler_gnu" = "yes"; then
+-		STATIC_LD="-static"
+ 		case "$host_os" in
+-		solaris2*)	;;
+-		*)		LDFLAGS="$LDFLAGS -static" ;;	# XXX experimental
++		solaris*)	STATIC_LD=
++				;;
++		*)		STATIC_LD="-static"
++				LDFLAGS="$LDFLAGS -static" ;;	# XXX experimental
+ 		esac
+ 	fi
++else
++	TINFO_LIBRARY=-ltinfo
+ fi
+ 
+ # set the appropriate make variables for building the "build tools"
+@@ -5079,13 +5083,13 @@
+ if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
+   bash_cv_termcap_lib=libtermcap
+ else
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltinfo" >&5
+-$as_echo_n "checking for tgetent in -ltinfo... " >&6; }
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in ${TINFO_LIBRARY}" >&5
++$as_echo_n "checking for tgetent in ${TINFO_LIBRARY}... " >&6; }
+ if ${ac_cv_lib_tinfo_tgetent+:} false; then :
+   $as_echo_n "(cached) " >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-ltinfo  $LIBS"
++LIBS="${TINFO_LIBRARY}  $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -5223,7 +5227,7 @@
+ TERMCAP_LIB=-ltermcap
+ TERMCAP_DEP=
+ elif test $bash_cv_termcap_lib = libtinfo; then
+-TERMCAP_LIB=-ltinfo
++TERMCAP_LIB=${TINFO_LIBRARY}
+ TERMCAP_DEP=
+ elif test $bash_cv_termcap_lib = libncurses; then
+ TERMCAP_LIB=-lncurses
+@@ -15772,13 +15776,13 @@
+ if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
+   bash_cv_termcap_lib=libtermcap
+ else
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltinfo" >&5
+-$as_echo_n "checking for tgetent in -ltinfo... " >&6; }
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in ${TINFO_LIBRARY}" >&5
++$as_echo_n "checking for tgetent in ${TINFO_LIBRARY}... " >&6; }
+ if ${ac_cv_lib_tinfo_tgetent+:} false; then :
+   $as_echo_n "(cached) " >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-ltinfo  $LIBS"
++LIBS="${TINFO_LIBRARY}  $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -15916,7 +15920,7 @@
+ TERMCAP_LIB=-ltermcap
+ TERMCAP_DEP=
+ elif test $bash_cv_termcap_lib = libtinfo; then
+-TERMCAP_LIB=-ltinfo
++TERMCAP_LIB=${TINFO_LIBRARY}
+ TERMCAP_DEP=
+ elif test $bash_cv_termcap_lib = libncurses; then
+ TERMCAP_LIB=-lncurses
+
