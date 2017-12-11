@@ -80,7 +80,7 @@ GCC7_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			60.1
+ICU_VERSION=			60.2
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 

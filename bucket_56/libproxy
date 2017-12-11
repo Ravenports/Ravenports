@@ -25,6 +25,7 @@ USES=			cclibs:single c++:single cmake pkgconfig
 
 FPC_EQUIVALENT=		net/libproxy
 
+CXXFLAGS=		-std=c++03
 CMAKE_ARGS=		-DBIPR:BOOL=OFF
 			-DWITH_DOTNET:BOOL=OFF
 			-DWITH_NATUS:BOOL=OFF
@@ -84,4 +85,43 @@ share/cmake/Modules/Findlibproxy.cmake
 %%PERL-ON%%%%SITE_ARCH%%/auto/Net/Libproxy/Libproxy.so
 %%PYTHON-ON%%%%PYTHON_SITELIBDIR%%/libproxy.py
 %%VALA-ON%%share/vala/vapi/libproxy-1.0.vapi
+
+
+[FILE:709:patches/patch-fix-typo]
+From e636fff0d58afbc2d2ef417db914f866978da7ec Mon Sep 17 00:00:00 2001
+From: David King <amigadave@amigadave.com>
+Date: Mon, 24 Jul 2017 05:25:12 +0100
+Subject: [PATCH] get-pac-test: Fix typo
+
+Closes: #64
+---
+ libproxy/test/get-pac-test.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libproxy/test/get-pac-test.cpp b/libproxy/test/get-pac-test.cpp
+index 00b4564..0059dfb 100644
+--- libproxy/test/get-pac-test.cpp
++++ libproxy/test/get-pac-test.cpp
+@@ -130,7 +130,7 @@ class TestServer {
+ 
+ #ifdef SO_NOSIGPIPE
+ 			int i = 1;
+-			setsockopt(c_sock, SOL_SOCKET, SO_NOSIGPIPE, &i, sizeof(i));
++			setsockopt(csock, SOL_SOCKET, SO_NOSIGPIPE, &i, sizeof(i));
+ #endif
+ 
+ 			// Read request
+
+
+[FILE:329:dragonfly/patch-libproxy_CMakeLists.txt]
+--- libproxy/CMakeLists.txt.orig	2017-05-11 09:33:33 UTC
++++ libproxy/CMakeLists.txt
+@@ -6,7 +6,6 @@ set_project_version(0 4 15)
+ if (WIN32)
+   add_definitions(-D_CRT_SECURE_NO_WARNINGS=1)
+ else(WIN32)
+-  add_definitions(-D_POSIX_C_SOURCE=200112L)
+   set(CMAKE_CXX_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
+ endif(WIN32)
+ 
 
