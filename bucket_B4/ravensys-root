@@ -178,7 +178,7 @@ post-install-FREEBSD-ON:
 post-install-SUNOS-ON:
 	${ECHO} 5.10      > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
 	${ECHO} 5.10      > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
-	${ECHO} 510201301 > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
+	${ECHO} 510200611 > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
 	${ECHO} x86_64    > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 
 post-extract-SUNOS-ON:
@@ -4293,7 +4293,6 @@ share/raven/sysroot/SunOS/bin/
  sleep
  test
  unlink
- wget
  which
 share/raven/sysroot/SunOS/lib/
  32
@@ -4631,6 +4630,7 @@ share/raven/sysroot/SunOS/usr/bin/
  unzip
  vi
  wc
+ wget
  whoami
  xargs
  xz
@@ -6467,7 +6467,7 @@ share/raven/sysroot/SunOS/usr/share/
 @dir %%BASE%%/usr/local
 
 
-[FILE:20094:files/Makefile]
+[FILE:20147:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7079,11 +7079,11 @@ install:
 	# use BSD's which
 	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/which ${DESTDIR}${BASE}/bin/
 	# fetch is just a wrapper for wget (for now)
-	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/wget ${DESTDIR}${BASE}/bin/
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/wget ${DESTDIR}${BASE}/usr/bin/
 #	${BSD_INSTALL_DATA} ${LOCALBASE}/share/certs/ca-root-nss.crt ${DESTDIR}${BASE}/usr/share/
 	# This fetch is a wrapper for wget; it's a script
-	sed -e "s|/raven/share/certs/|/usr/share/|" ${LOCALBASE}/bin/fetch \
-		> ${DESTDIR}${BASE}/usr/bin/fetch
+	${BSD_INSTALL_SCRIPT} ${LOCALBASE}/bin/fetch ${DESTDIR}${BASE}/usr/bin/
+	sed -i'' -e "s|/raven/share/certs/|/usr/share/|" ${DESTDIR}${BASE}/usr/bin/fetch
 .else
 .  for item in ${Bin_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/bin/

@@ -1210,7 +1210,7 @@ share/misc/tabset/
 share/misc/terminfo.db.default
 
 
-[FILE:661:patches/patch-configure]
+[FILE:1247:patches/patch-configure]
 # Based on upstream 6.0 patch 20160220:
 #
 #  + modify configure macro for shared-library rules to use -Wl,-rpath
@@ -1226,15 +1226,36 @@ share/misc/terminfo.db.default
 
 --- configure.orig	2015-08-05 09:20:32 UTC
 +++ configure
-@@ -5863,7 +5863,7 @@ case $cf_cv_system_name in
+@@ -5862,8 +5862,8 @@ case $cf_cv_system_name in
+ (openbsd[2-9].*|mirbsd*)
  	LD_RPATH_OPT="-Wl,-rpath,"
  	;;
- (dragonfly*|freebsd*)
+-(dragonfly*|freebsd*)
 -	LD_RPATH_OPT="-rpath "
++(dragonfly*|freebsd*|solaris2*)
 +	LD_RPATH_OPT="-Wl,-rpath,"
  	;;
  (netbsd*)
  	LD_RPATH_OPT="-Wl,-rpath,"
+@@ -5871,9 +5871,6 @@ case $cf_cv_system_name in
+ (osf*|mls+*)
+ 	LD_RPATH_OPT="-rpath "
+ 	;;
+-(solaris2*)
+-	LD_RPATH_OPT="-R"
+-	;;
+ (*)
+ 	;;
+ esac
+@@ -6257,7 +6254,7 @@ CF_EOF
+ 		MK_SHARED_LIB='${LD} -Bshareable -o $@'
+ 		test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
+ 		;;
+-	(dragonfly*|freebsd*)
++	(dragonfly*|freebsd*|solaris2*)
+ 		CC_SHARED_OPTS="$CC_SHARED_OPTS -DPIC"
+ 		if test "$DFT_LWR_MODEL" = "shared" && test "$cf_cv_enable_rpath" = yes ; then
+ 			LOCAL_LDFLAGS="${cf_ld_rpath_opt}\$(LOCAL_LIBDIR)"
 
 
 [FILE:1041:patches/patch-misc_terminfo.src]

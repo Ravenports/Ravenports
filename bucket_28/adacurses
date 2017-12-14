@@ -10,8 +10,8 @@ HOMEPAGE=		http://invisible-island.net/ncurses/ncurses-Ada95.html
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		ftp://invisible-island.net/AdaCurses/
-			https://www.mirrorservice.org/sites/lynx.invisible-island.net/AdaCurses/
+SITES[main]=		https://www.mirrorservice.org/sites/lynx.invisible-island.net/AdaCurses/
+			ftp://invisible-island.net/AdaCurses/
 DISTFILE[1]=		AdaCurses-20150808.tgz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
@@ -193,6 +193,37 @@ lib/adacurses/
  terminal_interface.ali
 lib/gnat/adacurses.gpr
 share/man/man1/adacurses-config.1.gz
+
+
+[FILE:705:patches/patch-configure]
+--- configure.orig	2015-08-08 14:26:00 UTC
++++ configure
+@@ -8955,15 +8955,12 @@ case $cf_cv_system_name in
+ (dragonfly*|freebsd*)
+ 	LD_RPATH_OPT="-rpath "
+ 	;;
+-(netbsd*)
++(netbsd*|solaris2*)
+ 	LD_RPATH_OPT="-Wl,-rpath,"
+ 	;;
+ (osf*|mls+*)
+ 	LD_RPATH_OPT="-rpath "
+ 	;;
+-(solaris2*)
+-	LD_RPATH_OPT="-R"
+-	;;
+ (*)
+ 	;;
+ esac
+@@ -9347,7 +9344,7 @@ CF_EOF
+ 		MK_SHARED_LIB='${LD} -Bshareable -o $@'
+ 		test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
+ 		;;
+-	(dragonfly*|freebsd*)
++	(dragonfly*|freebsd*|solaris2*)
+ 		CC_SHARED_OPTS="$CC_SHARED_OPTS -DPIC"
+ 		if test "$DFT_LWR_MODEL" = "shared" && test "$cf_cv_enable_rpath" = yes ; then
+ 			LOCAL_LDFLAGS="${cf_ld_rpath_opt}\$(LOCAL_LIBDIR)"
 
 
 [FILE:425:patches/patch-src_c__threaded__variables.h]
