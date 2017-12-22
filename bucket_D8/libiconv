@@ -21,6 +21,7 @@ OPTIONS_STANDARD=	ENCODINGS
 OPT_ON[all]=		ENCODINGS
 
 USES=			libtool fbsd10fix
+C_USES[sunos]=		cclibs:shared
 
 LICENSE=		GPLv3:static
 LICENSE_SCHEME=		solo
@@ -51,11 +52,17 @@ post-patch:
 		${WRKSRC}/libcharset/configure \
 		${WRKSRC}/preload/configure
 
+post-install-linux:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/preloadable_libiconv.so
+
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 	# install-strip doesn't seem to work
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libcharset.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libiconv.so
+
+post-install-sunos:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/preloadable_libiconv.so
 
 [FILE:621:descriptions/desc.static]
 This library provides an iconv() implementation, for use on systems which
