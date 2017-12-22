@@ -2,6 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.4
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd64 linux sunos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -185,6 +186,8 @@ post-extract-SUNOS-ON:
 	${MV} ${WRKDIR}/solaris_root_10_u8 ${WRKDIR}/sunos
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+	${RM} ${WRKDIR}/sunos/usr/include/png.h
+	${RM} ${WRKDIR}/sunos/usr/include/pngconf.h
 
 post-extract-DRAGONFLY-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_2 ${WRKDIR}/dragonfly
@@ -282,7 +285,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 solaris_root_10_u8.v04.tar.xz
 
 
-[FILE:10737:manifests/plist.single.dragonfly]
+[FILE:10742:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -377,6 +380,7 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
  readlink
  sdiff
  sed
+ seq
  sort
  stat
  tail
@@ -1267,7 +1271,7 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
 @dir %%BASE%%/usr/local
 
 
-[FILE:14156:manifests/plist.single.freebsd64]
+[FILE:14161:manifests/plist.single.freebsd64]
 %%BASE%%/bin/
  [
  cat
@@ -1362,6 +1366,7 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
  readlink
  sdiff
  sed
+ seq
  sort
  stat
  tail
@@ -2504,7 +2509,7 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
 @dir %%BASE%%/usr/local
 
 
-[FILE:21180:manifests/plist.single.linux]
+[FILE:21185:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -2641,6 +2646,7 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
  readlink
  sdiff
  sed
+ seq
  sort
  stat
  tail
@@ -4266,7 +4272,7 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
 @dir %%BASE%%/usr/local
 
 
-[FILE:33525:manifests/plist.single.sunos]
+[FILE:33512:manifests/plist.single.sunos]
 share/raven/sysroot/SunOS/bin/
  [
  bash
@@ -4632,6 +4638,7 @@ share/raven/sysroot/SunOS/usr/bin/
  readlink
  sdiff
  sed
+ seq
  sort
  stat
  tail
@@ -5234,8 +5241,6 @@ share/raven/sysroot/SunOS/usr/include/
  pkgstrct.h
  pkgtrans.h
  plot.h
- png.h
- pngconf.h
  poll.h
  pool.h
  popt.h
@@ -6794,7 +6799,7 @@ share/raven/sysroot/SunOS/usr/share/
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20147:files/Makefile]
+[FILE:20156:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7551,7 +7556,7 @@ install:
 .for item in gsort/sort nawk/awk objdump/objdump-sysroot less/more \
 	bmake/make bsdcpio/cpio bsdtar/tar gcmp/cmp gdiff/diff \
 	gdiff3/diff3 gsdiff/sdiff gfind/find gxargs/xargs gm4/m4 \
-	gsed/sed ravensys-uname/uname nvi/vi god/od gmknod/mknod
+	gsed/sed ravensys-uname/uname nvi/vi god/od gmknod/mknod gseq/seq
 	cp ${LOCALBASE}/bin/${item:H} ${DESTDIR}${BASE}/usr/bin/${item:T}
 .endfor
 	ln -s m4 ${DESTDIR}${BASE}/usr/bin/gm4

@@ -1017,6 +1017,9 @@ PLIST_SUB+=		ONLY-${OPSYS:tu}=""
 .if "${OPSYS}" == "Linux"	# only x86_64 supported right now
 MULTILIB=	lib/x86_64-linux-gnu
 ASLIB=		lib64
+.elif "${OPSYS}" == "SunOS"
+MULTILIB=	lib/amd64
+ASLIB=		lib/amd64
 .else
 MULTILIB=	lib
 ASLIB=		lib

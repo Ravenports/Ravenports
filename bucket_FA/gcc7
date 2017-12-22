@@ -121,6 +121,12 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.2.0/adalib/libgnat.so
 
+post-patch-sunos:
+	${REINPLACE_CMD} -e 's|cp -p -r |cp -RP |' \
+		${WRKSRC}/gcc/Makefile.in
+	${REINPLACE_CMD} -e 's| install-gcc-specs||' \
+		${WRKSRC}/gcc/ada/gcc-interface/Makefile.in
+
 [FILE:329:descriptions/desc.compilers]
 This is series 6 of the GNU Compiler Collection (GCC)
 
@@ -166,12 +172,18 @@ This package contains the man pages and info pages that come with GCC.
 1cf7adf8ff4b5aa49041c8734bbcf1ad18cc4c94d0029aae0f4e48841088479a     62312628 gcc-7.2.0.tar.xz
 
 
-[FILE:26037:manifests/plist.compilers]
+[FILE:27416:manifests/plist.compilers]
+%%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtendS.o
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  dragonfly-stdint.h
  dragonfly.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtendS.o
 %%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  freebsd-spec.h
@@ -181,15 +193,17 @@ This package contains the man pages and info pages that come with GCC.
  freebsd.h
  freebsd64.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
  crtbeginT.o
+ crtendS.o
  crtfastmath.o
  crtprec32.o
  crtprec64.o
  crtprec80.o
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
  README
-%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
  limits.h
+%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
  syslimits.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  glibc-stdint.h
@@ -203,6 +217,54 @@ This package contains the man pages and info pages that come with GCC.
  linux-android.h
  linux-protos.h
  linux.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtfastmath.o
+ crtprec32.o
+ crtprec64.o
+ crtprec80.o
+ gmon.o
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+ README
+ complex.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/dat/dat_platform_specific.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/iso/
+ math_c99.h
+ math_iso.h
+ setjmp_iso.h
+ stdio_iso.h
+ stdlib_iso.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+ limits.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/mps/secport.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/netinet/
+ ip_compat.h
+ ip_fil.h
+ ip_lookup.h
+ ip_nat.h
+ ip_pool.h
+ ip_proxy.h
+ ip_state.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+ pthread.h
+ spawn.h
+ stdio.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/sys/
+ feature_tests.h
+ int_const.h
+ int_limits.h
+ varargs.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+ syslimits.h
+ wchar.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ sol2.h
+ sysv4.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ sol2-protos.h
+ sol2.h
+ usegas.h
+ usegld.h
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/cilk.h
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/cilk_api.h
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/cilk_api_linux.h
@@ -1062,9 +1124,7 @@ include/c++/%%GCCVER%%/
  vector
 lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbegin.o
- crtbeginS.o
  crtend.o
- crtendS.o
 lib/gcc/%%TARGET%%/%%GCCVER%%/finclude/
  ieee_arithmetic.mod
  ieee_exceptions.mod
@@ -5482,7 +5542,7 @@ share/man/man1/
 -end;
 
 
-[FILE:11767:patches/patch-diff-core]
+[FILE:11773:patches/patch-diff-core]
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
@@ -5490,7 +5550,7 @@ share/man/man1/
     %{static:-Bstatic} \
    } \
 -  %{!static:--hash-style=gnu} \
-+  %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib} \
++  %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib/amd64} \
    %{symbolic:-Bsymbolic}"
  
  #undef  LINK_SPEC
@@ -5937,4 +5997,18 @@ share/man/man1/
  puts $f "/* { dg-timeout-factor 4.0 } */"
  set v 0
  for { set v 0 } { $v < 10000 } { incr v } {
+
+
+[FILE:286:sunos/patch-gcc_config.build]
+--- gcc/config.build.orig	2017-01-01 12:07:43 UTC
++++ gcc/config.build
+@@ -45,7 +45,7 @@
+ build_xm_file=
+ build_xm_defines=
+ build_exeext=
+-build_install_headers_dir=install-headers-tar
++build_install_headers_dir=install-headers-cp
+ build_file_translate=
+ 
+ # System-specific settings.
 
