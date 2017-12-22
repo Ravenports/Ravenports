@@ -102,7 +102,7 @@ assemble and disassemble machine instructions.
 e7010a46969f9d3e53b650a518663f98a5dde3c3ae21b7d71e5e6803bc36b577     19886772 binutils-2.29.1.tar.xz
 
 
-[FILE:2980:manifests/plist.single]
+[FILE:3058:manifests/plist.single]
 %%GOLD%%bin/
  dwp
  ld.gold
@@ -114,31 +114,6 @@ e7010a46969f9d3e53b650a518663f98a5dde3c3ae21b7d71e5e6803bc36b577     19886772 bi
 %%NLS-ON%%%%GOLD%%share/locale/it/LC_MESSAGES/gold.mo
 %%NLS-ON%%%%GOLD%%share/locale/vi/LC_MESSAGES/gold.mo
 %%NLS-ON%%%%GOLD%%share/locale/zh_CN/LC_MESSAGES/gold.mo
-bin/
- addr2line
- ar
- as
- c++filt
- elfedit
- gprof
- ld
- ld.bfd
- nm
- objcopy
- objdump
- ranlib
- readelf
- size
- strings
- strip
-include/
- bfd.h
- bfdlink.h
- dis-asm.h
- symcat.h
-lib/
- libbfd.a
- libopcodes.a
 %%NLS-ON%%share/locale/bg/LC_MESSAGES/
  binutils.mo
  gprof.mo
@@ -152,6 +127,7 @@ lib/
  opcodes.mo
 %%NLS-ON%%share/locale/de/LC_MESSAGES/
  gprof.mo
+ ld.mo
  opcodes.mo
 %%NLS-ON%%share/locale/eo/LC_MESSAGES/gprof.mo
 %%NLS-ON%%share/locale/es/LC_MESSAGES/
@@ -179,7 +155,9 @@ lib/
  gprof.mo
  ld.mo
  opcodes.mo
-%%NLS-ON%%share/locale/hr/LC_MESSAGES/binutils.mo
+%%NLS-ON%%share/locale/hr/LC_MESSAGES/
+ bfd.mo
+ binutils.mo
 %%NLS-ON%%share/locale/hu/LC_MESSAGES/gprof.mo
 %%NLS-ON%%share/locale/id/LC_MESSAGES/
  bfd.mo
@@ -197,6 +175,7 @@ lib/
  bfd.mo
  binutils.mo
  gas.mo
+ gold.mo
  gprof.mo
  ld.mo
 %%NLS-ON%%share/locale/ms/LC_MESSAGES/gprof.mo
@@ -216,6 +195,7 @@ lib/
  binutils.mo
  gas.mo
  gprof.mo
+ ld.mo
 %%NLS-ON%%share/locale/rw/LC_MESSAGES/
  bfd.mo
  binutils.mo
@@ -226,9 +206,13 @@ lib/
  bfd.mo
  binutils.mo
  gprof.mo
+ ld.mo
+ opcodes.mo
 %%NLS-ON%%share/locale/sv/LC_MESSAGES/
  bfd.mo
  binutils.mo
+ gas.mo
+ gold.mo
  gprof.mo
  ld.mo
  opcodes.mo
@@ -243,6 +227,7 @@ lib/
  bfd.mo
  binutils.mo
  gas.mo
+ gold.mo
  gprof.mo
  ld.mo
  opcodes.mo
@@ -261,6 +246,31 @@ lib/
 %%NLS-ON%%share/locale/zh_TW/LC_MESSAGES/
  binutils.mo
  ld.mo
+bin/
+ addr2line
+ ar
+ as
+ c++filt
+ elfedit
+ gprof
+ ld
+ ld.bfd
+ nm
+ objcopy
+ objdump
+ ranlib
+ readelf
+ size
+ strings
+ strip
+include/
+ bfd.h
+ bfdlink.h
+ dis-asm.h
+ symcat.h
+lib/
+ libbfd.a
+ libopcodes.a
 share/man/man1/
  addr2line.1.gz
  ar.1.gz
@@ -387,6 +397,45 @@ For loader.efi linking support.
    '\0',			// wrap_char
 -  "/lib/ld64.so.1",     // program interpreter
 +  "/libexec/ld-elf.so.2",     // program interpreter
+   0x400000,		// default_text_segment_address
+   0x1000,		// abi_pagesize (overridable by -z max-page-size)
+   0x1000,		// common_pagesize (overridable by -z common-page-size)
+
+
+[FILE:577:sunos/patch-bfd_elf64-x86-64.c]
+--- bfd/elf64-x86-64.c.orig	2017-09-19 07:11:58 UTC
++++ bfd/elf64-x86-64.c
+@@ -531,8 +531,8 @@ elf_x86_64_write_core_note (bfd *abfd, c
+ /* The name of the dynamic interpreter.	 This is put in the .interp
+    section.  */
+ 
+-#define ELF64_DYNAMIC_INTERPRETER "/lib/ld64.so.1"
+-#define ELF32_DYNAMIC_INTERPRETER "/lib/ldx32.so.1"
++#define ELF64_DYNAMIC_INTERPRETER "/lib/amd64/ld.so.1"
++#define ELF32_DYNAMIC_INTERPRETER "/lib/ld.so.1"
+ 
+ /* If ELIMINATE_COPY_RELOCS is non-zero, the linker will try to avoid
+    copying dynamic variables from a shared lib into an app's dynbss
+
+
+[FILE:951:sunos/patch-gold_x86__64.cc]
+--- gold/x86_64.cc.orig	2017-07-10 09:54:42 UTC
++++ gold/x86_64.cc
+@@ -1259,7 +1259,7 @@ const Target::Target_info Target_x86_64<
+   true,			// is_default_stack_executable
+   true,			// can_icf_inline_merge_sections
+   '\0',			// wrap_char
+-  "/lib/ld64.so.1",     // program interpreter
++  "/lib/amd64/ld.so.1",	// program interpreter
+   0x400000,		// default_text_segment_address
+   0x1000,		// abi_pagesize (overridable by -z max-page-size)
+   0x1000,		// common_pagesize (overridable by -z common-page-size)
+@@ -1287,7 +1287,7 @@ const Target::Target_info Target_x86_64<
+   true,			// is_default_stack_executable
+   true,			// can_icf_inline_merge_sections
+   '\0',			// wrap_char
+-  "/libx32/ldx32.so.1", // program interpreter
++  "/lib/ld.so.1",	// program interpreter
    0x400000,		// default_text_segment_address
    0x1000,		// abi_pagesize (overridable by -z max-page-size)
    0x1000,		// common_pagesize (overridable by -z common-page-size)
