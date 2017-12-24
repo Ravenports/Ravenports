@@ -2,6 +2,7 @@
 
 NAMEBASE=		m4
 VERSION=		1.4.18
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard noprefix
 SDESC[noprefix]=	GNU macro processor with unprefixed program name
@@ -30,7 +31,6 @@ LICENSE=		GPLv3:primary
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING
 
-INFO=			primary:m4
 FPC_EQUIVALENT=		devel/m4
 INFO_SUBDIR=		.
 
@@ -39,6 +39,8 @@ CONFIGURE_ARGS=		--with-libsigsegv-prefix={{LOCALBASE}}
 
 [NOPREFIX].DESCRIPTION=			Build without prefixing all programs with "g"
 [NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
+[NOPREFIX].INFO_OFF=			primary:gm4
+[NOPREFIX].INFO_ON=			primary:m4
 
 post-patch:
 	@${REINPLACE_CMD} -e '/^install-exec-am: / s| .*||' ${WRKSRC}/lib/Makefile.in
@@ -46,6 +48,12 @@ post-patch:
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/examples/m4
 	${INSTALL_DATA} ${WRKSRC}/examples/*.m4 ${STAGEDIR}${PREFIX}/share/examples/m4
+
+post-patch-NOPREFIX-OFF:
+	${REINPLACE_CMD} -e 's|/m4.info|/gm4.info|' ${WRKSRC}/doc/Makefile.in
+.for EXT in info info-1 info-2
+	${MV} ${WRKSRC}/doc/m4.${EXT} ${WRKSRC}/doc/gm4.${EXT}
+.endfor
 
 [FILE:839:descriptions/desc.primary]
 GNU M4 is an implementation of the traditional Unix macro processor. It is

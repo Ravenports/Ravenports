@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd64 linux sunos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -65,7 +65,7 @@ BUILD_DEPENDS=		nawk:single:standard
 			gzip:single:standard
 			xz:single:static
 			unzip:core:standard
-			m4:primary:standard
+			m4:primary:noprefix
 			bmake:single:standard
 			bsd-patch:single:standard
 			sed:single:standard
@@ -285,7 +285,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 solaris_root_10_u8.v04.tar.xz
 
 
-[FILE:10742:manifests/plist.single.dragonfly]
+[FILE:12708:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -553,6 +553,54 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
  vframe.h
 %%BASE%%/usr/include/
  ctype.h
+%%BASE%%/usr/include/dev/acpica/acpiio.h
+%%BASE%%/usr/include/dev/disk/dm/
+ dm.h
+ netbsd-dm.h
+%%BASE%%/usr/include/dev/disk/mpt/mpilib/
+ mpi.h
+ mpi_cnfg.h
+ mpi_fc.h
+ mpi_init.h
+ mpi_ioc.h
+ mpi_lan.h
+ mpi_raid.h
+ mpi_sas.h
+ mpi_targ.h
+ mpi_tool.h
+ mpi_type.h
+%%BASE%%/usr/include/dev/misc/lpt/
+ lpt.h
+ lptio.h
+%%BASE%%/usr/include/dev/misc/ppi/ppi.h
+%%BASE%%/usr/include/dev/misc/putter/
+ putter.h
+ putter_sys.h
+%%BASE%%/usr/include/dev/netif/wi/
+ if_wavelan_ieee.h
+ if_wireg.h
+ if_wivar.h
+%%BASE%%/usr/include/dev/raid/ciss/
+ cissio.h
+ cissreg.h
+ cissvar.h
+%%BASE%%/usr/include/dev/raid/mfi/
+ mfi_ioctl.h
+ mfireg.h
+ mfivar.h
+%%BASE%%/usr/include/dev/smbus/smb/smb.h
+%%BASE%%/usr/include/dev/video/bktr/
+ bktr_audio.h
+ bktr_card.h
+ bktr_core.h
+ bktr_i2c.h
+ bktr_mem.h
+ bktr_os.h
+ bktr_reg.h
+ bktr_tuner.h
+ ioctl_bt848.h
+%%BASE%%/usr/include/dev/video/meteor/ioctl_meteor.h
+%%BASE%%/usr/include/
  devstat.h
  dirent.h
  dlfcn.h
@@ -767,6 +815,72 @@ e8deca66d8732775b43543af05a49531106d0b0ba19d77098b7ea0faafd76a88      9731292 so
  scope6_var.h
  tcp6_var.h
  udp6_var.h
+%%BASE%%/usr/include/netproto/802_11/
+ _ieee80211.h
+ ieee80211.h
+ ieee80211_action.h
+ ieee80211_adhoc.h
+ ieee80211_ageq.h
+ ieee80211_alq.h
+ ieee80211_amrr.h
+ ieee80211_crypto.h
+ ieee80211_dfs.h
+ ieee80211_dragonfly.h
+ ieee80211_hostap.h
+ ieee80211_ht.h
+ ieee80211_input.h
+ ieee80211_ioctl.h
+ ieee80211_mesh.h
+ ieee80211_monitor.h
+ ieee80211_node.h
+ ieee80211_phy.h
+ ieee80211_power.h
+ ieee80211_proto.h
+ ieee80211_radiotap.h
+ ieee80211_ratectl.h
+ ieee80211_regdomain.h
+ ieee80211_rssadapt.h
+ ieee80211_scan.h
+ ieee80211_scan_sw.h
+ ieee80211_sta.h
+ ieee80211_superg.h
+ ieee80211_tdma.h
+ ieee80211_var.h
+ ieee80211_wds.h
+%%BASE%%/usr/include/netproto/ipsec/
+ ah.h
+ ah_var.h
+ esp.h
+ esp_var.h
+ ipcomp.h
+ ipcomp_var.h
+ ipip_var.h
+ ipsec.h
+ ipsec6.h
+ key.h
+ key_debug.h
+ key_var.h
+ keydb.h
+ keysock.h
+ xform.h
+%%BASE%%/usr/include/netproto/key/
+ key.h
+ key_debug.h
+ key_var.h
+ keydb.h
+ keysock.h
+%%BASE%%/usr/include/netproto/mpls/
+ mpls.h
+ mpls_var.h
+%%BASE%%/usr/include/netproto/smb/
+ netbios.h
+ smb.h
+ smb_conn.h
+ smb_dev.h
+ smb_rq.h
+ smb_subr.h
+ smb_tran.h
+ smb_trantcp.h
 %%BASE%%/usr/include/
  nl_types.h
  nlist.h
@@ -6799,7 +6913,7 @@ share/raven/sysroot/SunOS/usr/share/
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20156:files/Makefile]
+[FILE:20175:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7144,9 +7258,11 @@ headers_FreeBSD_dirs=	arpa \
 
 headers_DragonFly_dirs=	arpa \
 			bus \
+			dev \
 			libprop \
 			netinet \
 			netinet6 \
+			netproto \
 			rpc \
 			rpcsvc \
 			vm \
@@ -7529,7 +7645,7 @@ install:
 	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
 .endfor
 	cp ${CPA} ${LOCALBASE}/bin/gcat ${DESTDIR}${BASE}/bin/cat
-.for item in bzip2 bunzip2 bzcat bzgrep bzegrep bzfgrep \
+.for item in m4 bzip2 bunzip2 bzcat bzgrep bzegrep bzfgrep \
 	grep file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
 	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
 	unlzma unxz xz xzcat xzcmp xzdiff xzegrep xzfgrep xzgrep yacc \
@@ -7555,7 +7671,7 @@ install:
 .endif
 .for item in gsort/sort nawk/awk objdump/objdump-sysroot less/more \
 	bmake/make bsdcpio/cpio bsdtar/tar gcmp/cmp gdiff/diff \
-	gdiff3/diff3 gsdiff/sdiff gfind/find gxargs/xargs gm4/m4 \
+	gdiff3/diff3 gsdiff/sdiff gfind/find gxargs/xargs \
 	gsed/sed ravensys-uname/uname nvi/vi god/od gmknod/mknod gseq/seq
 	cp ${LOCALBASE}/bin/${item:H} ${DESTDIR}${BASE}/usr/bin/${item:T}
 .endfor
