@@ -2,7 +2,7 @@
 
 NAMEBASE=		ncurses
 VERSION=		6.0
-REVISION=		2
+REVISION=		3
 KEYWORDS=		devel
 VARIANTS=		standard static
 SDESC[standard]=	Terminal-independent lib for full-screen output
@@ -78,6 +78,12 @@ VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS="-lrt -lresolv -lsocket"
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 
 post-install-STATIC-OFF:
+	${RM} ${STAGEDIR}${PREFIX}/lib/libncurses.so
+	${RM} ${STAGEDIR}${PREFIX}/lib/libncursesw.so
+	${ECHO} "INPUT(libncurses.so.6 AS_NEEDED(-ltinfo))" \
+		> ${STAGEDIR}${PREFIX}/lib/libncurses.so
+	${ECHO} "INPUT(libncursesw.so.6 AS_NEEDED(-ltinfow))" \
+		> ${STAGEDIR}${PREFIX}/lib/libncursesw.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so.6.0
 	${MV} ${STAGEDIR}${PREFIX}/share/misc/terminfo.db \
 		${STAGEDIR}${PREFIX}/share/misc/terminfo.db.default
