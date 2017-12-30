@@ -2,6 +2,7 @@
 
 NAMEBASE=		nss
 VERSION=		3.34.1
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Application security development libraries
@@ -42,6 +43,7 @@ MAKE_ENV=		LIBRARY_PATH="{{LOCALBASE}}/lib"
 			NSS_DISABLE_DBM=1
 			NSS_USE_SYSTEM_SQLITE=1
 			USE_64=1
+			BUILD_OPT=1
 SINGLE_JOB=		yes
 
 PLIST_SUB=		CERTDIR=share/certs
@@ -53,6 +55,8 @@ SUB_LIST=		VERSION_NSS=3.34.1
 
 CFLAGS=			-I{{LOCALBASE}}/include/nspr
 LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/nss
+VAR_OPSYS[sunos]=	MAKE_ENV=NS_USE_GCC=1
+			MAKE_ENV=NO_MDUPDATE=1
 
 [ETCSYMLINK].DESCRIPTION=		Add symlink to /etc/ssl/cert.pem
 
@@ -61,8 +65,10 @@ post-patch:
 		${WRKSRC}/lib/sysinit/nsssysinit.c
 	@cd ${WRKSRC} && \
 		${FIND} . -name "*.c" -o -name "*.h" | \
+		${XARGS} ${GREP} -l -F '"nspr.h"' | \
 		${XARGS} ${REINPLACE_CMD} -e 's|"nspr.h"|<nspr.h>|'
-	${FIND} ${WRKSRC}/tests -name '*.sh' | ${XARGS} ${GREP} -l -F '/bin/bash' | \
+	${FIND} ${WRKSRC}/tests -name '*.sh' | \
+		${XARGS} ${GREP} -l -F '/bin/bash' | \
 		${XARGS} ${REINPLACE_CMD} -e 's|#! */bin/bash|#!${SH}|'
 	${REINPLACE_CMD} -e 's/@OS_RELEASE@/${OSREL}/' ${WRKSRC}/coreconf/arch.mk
 
@@ -78,26 +84,26 @@ do-install:
 		${STAGEDIR}${PREFIX}/openssl
 	${FIND} ${WRKDIR}/nss-3.34.1/dist/public/nss -type l \
 		-exec ${INSTALL_DATA} {} ${STAGEDIR}${PREFIX}/include/nss/nss \;
-	${INSTALL_LIB} ${WRKDIR}/nss-3.34.1/dist/${OPSYS}*_DBG.OBJ/lib/*.so \
+	${INSTALL_LIB} ${WRKDIR}/nss-3.34.1/dist/${OPSYS}*_OPT.OBJ/lib/*.so \
 		${STAGEDIR}${PREFIX}/lib/nss
-	${INSTALL_DATA} ${WRKDIR}/nss-3.34.1/dist/${OPSYS}*_DBG.OBJ/lib/libcrmf.a \
+	${INSTALL_DATA} ${WRKDIR}/nss-3.34.1/dist/${OPSYS}*_OPT.OBJ/lib/libcrmf.a \
 		${STAGEDIR}${PREFIX}/lib/nss
 .for bin in certcgi certutil cmsutil crlutil derdump makepqg mangle modutil ocspclnt oidcalc p7content p7env p7sign p7verify pk12util rsaperf shlibsign signtool signver ssltap strsclnt symkeyutil vfychain vfyserv
-	${INSTALL_PROGRAM} ${WRKDIR}/nss-3.34.1/dist/${OPSYS}*_DBG.OBJ/bin/${bin} \
+	${INSTALL_PROGRAM} ${WRKDIR}/nss-3.34.1/dist/${OPSYS}*_OPT.OBJ/bin/${bin} \
 		${STAGEDIR}${PREFIX}/bin
 .endfor
 	${INSTALL_SCRIPT} ${WRKDIR}/nss-config ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_DATA} ${WRKDIR}/nss.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig
 	# CA ROOT CERT
 	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt ${STAGEDIR}${PREFIX}/share/certs
-	${LN} -sf ../../share/certs/ca-root-nss.crt \
+	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
 		${STAGEDIR}${PREFIX}/etc/ssl/cert.pem.sample
-	${LN} -sf ../share/certs/ca-root-nss.crt \
+	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
 		${STAGEDIR}${PREFIX}/openssl/cert.pem.sample
 
 post-install-ETCSYMLINK-ON:
 	@${MKDIR} ${STAGEDIR}/etc/ssl
-	${LN} -sf ${PREFIX}/share/certs/ca-root-nss.crt \
+	${LN} -sf ../../share/certs/ca-root-nss.crt \
 		${STAGEDIR}/etc/ssl/cert.pem
 
 [FILE:301:descriptions/desc.primary]
@@ -470,6 +476,85 @@ lib/pkgconfig/nss.pc
 +ZLIB_LIBS		= -lz
 
 
+[FILE:1995:patches/patch-coreconf_SunOS5.mk]
+--- coreconf/SunOS5.mk.orig	2017-11-22 19:31:28 UTC
++++ coreconf/SunOS5.mk
+@@ -14,14 +14,14 @@ ifeq ($(USE_64), 1)
+   ifdef NS_USE_GCC
+       ARCHFLAG=-m64
+   else
+-      ifeq ($(OS_TEST),i86pc)
++      ifeq ($(OS_TEST),x86_64)
+         ARCHFLAG=-xarch=amd64
+       else
+         ARCHFLAG=-xarch=v9
+       endif
+   endif
+ else
+-  ifneq ($(OS_TEST),i86pc)
++  ifneq ($(OS_TEST),x86_64)
+     ifdef NS_USE_GCC
+       ARCHFLAG=-mcpu=v9
+     else
+@@ -33,9 +33,9 @@ endif
+ DEFAULT_COMPILER = cc
+ 
+ ifdef NS_USE_GCC
+-	CC         = gcc
++	CC         ?= gcc
+ 	OS_CFLAGS += -Wall -Wno-format -Werror-implicit-function-declaration -Wno-switch
+-	CCC        = g++
++	CCC        ?= g++
+ 	CCC       += -Wall -Wno-format
+ 	ASFLAGS	  += -x assembler-with-cpp
+ 	OS_CFLAGS += $(NOMD_OS_CFLAGS) $(ARCHFLAG)
+@@ -67,7 +67,7 @@ RANLIB      = echo
+ CPU_ARCH    = sparc
+ OS_DEFINES += -DSVR4 -DSYSV -D__svr4 -D__svr4__ -DSOLARIS -D_REENTRANT
+ 
+-ifeq ($(OS_TEST),i86pc)
++ifeq ($(OS_TEST),x86_64)
+ ifeq ($(USE_64),1)
+     CPU_ARCH		= x86_64
+ else
+@@ -109,15 +109,11 @@ endif
+ 	DSO_LDOPTS += -shared -h $(notdir $@)
+ else
+ ifeq ($(USE_64), 1)
+-	ifeq ($(OS_TEST),i86pc)
+-	    DSO_LDOPTS +=-xarch=amd64
+-	else
+-	    DSO_LDOPTS +=-xarch=v9
+-	endif
++	DSO_LDOPTS += -m64
+ endif
+ 	DSO_LDOPTS += -G -h $(notdir $@)
+ endif
+-DSO_LDOPTS += -z combreloc -z defs -z ignore
++# DSO_LDOPTS += -Wl,-z,origin
+ 
+ # -KPIC generates position independent code for use in shared libraries.
+ # (Similarly for -fPIC in case of gcc.)
+@@ -129,16 +125,4 @@ endif
+ 
+ NOSUCHFILE   = /solaris-rm-f-sucks
+ 
+-ifeq ($(BUILD_SUN_PKG), 1)
+-# The -R '$ORIGIN' linker option instructs this library to search for its
+-# dependencies in the same directory where it resides.
+-ifeq ($(USE_64), 1)
+-RPATH = -R '$$ORIGIN:/usr/lib/mps/secv1/64:/usr/lib/mps/64'
+-else
+-RPATH = -R '$$ORIGIN:/usr/lib/mps/secv1:/usr/lib/mps'
+-endif
+-else
+-RPATH = -R '$$ORIGIN'
+-endif
+-
+-OS_LIBS += -lthread -lnsl -lsocket -lposix4 -ldl -lc
++RPATH = $(LDFLAGS) #-Wl,-rpath,$(PREFIX)/lib/nss
+
+
 [FILE:370:patches/patch-coreconf_UNIX.mk]
 --- coreconf/UNIX.mk.orig	2017-09-20 06:47:27 UTC
 +++ coreconf/UNIX.mk
@@ -634,6 +719,48 @@ lib/pkgconfig/nss.pc
  
  #define MPI_GET_PROCESSOR_LINE_SIZE_DEFINED 1
  #endif
+
+
+[FILE:1293:patches/patch-lib_freebl_verified_kremlib.h]
+--- lib/freebl/verified/kremlib.h.orig	2017-11-22 19:31:28.000000000 +0000
++++ lib/freebl/verified/kremlib.h	2017-12-08 19:34:46.446495189 +0000
+@@ -105,6 +110,36 @@
+ #define htobe32(x) OSSwapHostToBigInt32(x)
+ #define be32toh(x) OSSwapBigToHostInt32(x)
+ 
++#elif defined(__sun__)
++#include <sys/byteorder.h>
++#define	BE_IN16(xa) htons(*((uint16_t *)(void *)(xa)))
++#define	BE_IN32(xa) htonl(*((uint32_t *)(void *)(xa)))
++#define	BE_IN64(xa) (((uint64_t)BE_IN32(xa) << 32) | BE_IN32((uint8_t *)(xa) + 4))
++
++#define	LE_IN8(xa) \
++	*((uint8_t *)(xa))
++#define	LE_IN16(xa) \
++	(((uint16_t)LE_IN8((uint8_t *)(xa) + 1) << 8) | LE_IN8(xa))
++#define	LE_IN32(xa) \
++	(((uint32_t)LE_IN16((uint8_t *)(xa) + 2) << 16) | LE_IN16(xa))
++#define	LE_IN64(xa) \
++	(((uint64_t)LE_IN32((uint8_t *)(xa) + 4) << 32) | LE_IN32(xa))
++
++#define htole64(x) LE_64(x)
++#define le64toh(x) LE_IN64(x)
++#define htobe64(x) BE_64(x)
++#define be64toh(x) BE_IN64(x)
++
++#define htole16(x) LE_16(x)
++#define le16toh(x) LE_IN16(x)
++#define htobe16(x) BE_16(x)
++#define be16toh(x) BE_IN16(x)
++
++#define htole32(x) LE_32(x)
++#define le32toh(x) LE_IN32(x)
++#define htobe32(x) BE_32(x)
++#define be32toh(x) BE_IN32(x)
++
+ // ... for Windows
+ #elif (defined(_WIN16) || defined(_WIN32) || defined(_WIN64)) && \
+     !defined(__WINDOWS__)
 
 
 [FILE:1023:patches/patch-lib_softoken_pkcs11c.c]

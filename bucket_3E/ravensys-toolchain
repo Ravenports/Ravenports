@@ -16,6 +16,7 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		binutils:single:ravensys
 			Zstandard:single:standard
+			ravensys-selector:single:standard
 
 PREFIX=			{{LOCALBASE}}/share/raven/toolchain
 
@@ -24,8 +25,9 @@ INVALID_RPATH=		yes
 SKIP_BUILD=		yes
 MAKE_ENV=		COMPVER=7.2.0
 			TARGET={{CONFIGURE_TARGET}}
-			GCCX=gcc7
+			OPSYS={{OPSYS}}
 			BUVER=2.29.1
+			GCCX=gcc7
 
 PLIST_SUB=		COMPVER=7.2.0
 			GCCVER=7.2.0
@@ -48,7 +50,7 @@ relocates it to the share/raven directory.  It's purpose is to be the
 toolchain mount for build environments.
 
 
-[FILE:55493:manifests/plist.single]
+[FILE:55518:manifests/plist.single]
 %%GCCX%%/%%ASLIB%%/
  libatomic.a
  libatomic.so
@@ -3508,6 +3510,7 @@ toolchain mount for build environments.
  sol2.h
  usegas.h
  usegld.h
+%%ONLY-SUNOS%%bin/ld.sun
 bin/
  addr2line
  ar
@@ -3544,7 +3547,7 @@ share/
  binutils-single-ravensys-%%BUVER%%.tzst
 
 
-[FILE:1424:files/Makefile]
+[FILE:1587:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -3578,4 +3581,10 @@ install:
 	cp -a ${LOCALBASE:T}/toolchain/${GCCX} ${DESTDIR}${PREFIX}/
 	cp -a ${LOCALBASE:T}/toolchain/include ${DESTDIR}${PREFIX}/
 	rm -rf ${DESTDIR}${PREFIX}/${GCCX}/share/licenses
+
+.if "${OPSYS}" == "SunOS"
+	rm ${DESTDIR}${PREFIX}/bin/ld
+	cp ${LOCALBASE}/libexec/ld ${DESTDIR}${PREFIX}/bin/
+	cp /usr/bin/ld.sun ${DESTDIR}${PREFIX}/bin/
+.endif
 

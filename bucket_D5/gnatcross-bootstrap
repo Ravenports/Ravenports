@@ -1327,7 +1327,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
  static void
 
 
-[FILE:11602:patches/patch-diff-core]
+[FILE:12286:patches/patch-diff-core]
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
@@ -1348,6 +1348,24 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
  /* Use --as-needed -lgcc_s for eh support.  */
 --- gcc/config/sol2.h.orig
 +++ gcc/config/sol2.h
+@@ -245,7 +245,7 @@
+ 	   %{!p:%{!pg:-Y P,%R/lib:%R/usr/lib}}}"
+ 
+ #undef LINK_ARCH32_SPEC
+-#define LINK_ARCH32_SPEC LINK_ARCH32_SPEC_BASE
++#define LINK_ARCH32_SPEC LINK_ARCH32_SPEC_BASE "%{!static: -rpath-link %R/lib}"
+ 
+ /* This should be the same as LINK_ARCH32_SPEC_BASE, except with
+    ARCH64_SUBDIR appended to the paths.  */
+@@ -262,7 +262,7 @@
+ /* FIXME: Used to be SPARC-only.  Not SPARC-specfic but for the model name!  */
+ #define LINK_ARCH64_SPEC \
+   "%{mcmodel=medlow:-M /usr/lib/ld/" ARCH64_SUBDIR "/map.below4G} " \
+-  LINK_ARCH64_SPEC_BASE
++  LINK_ARCH64_SPEC_BASE "%{!static: -rpath-link %R/lib/amd64}"
+ #else
+ #define LINK_ARCH64_SPEC LINK_ARCH64_SPEC_BASE
+ #endif
 @@ -350,7 +350,7 @@
  #undef  LINK_SPEC
  #define LINK_SPEC \
