@@ -184,10 +184,10 @@ paths() {
 desktopfileutils() {
 	if [ -z "${USESDESKTOPFILEUTILS}" ]; then
 		grep -q MimeType= ${STAGEDIR}${PREFIX}/share/applications/*.desktop 2>/dev/null &&
-		warn "you need USES=desktop-file-utils"
+		warn "you need USES=desktop-utils"
 	else
 		grep -q MimeType= ${STAGEDIR}${PREFIX}/share/applications/*.desktop 2>/dev/null ||
-		warn "you may not need USES=desktop-file-utils"
+		warn "you may not need USES=desktop-utils"
 	fi
 	return 0
 }

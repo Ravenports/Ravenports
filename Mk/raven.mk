@@ -840,7 +840,7 @@ QA_ENV+=	STAGEDIR=${STAGEDIR} \
 .    if !empty(USES:Mssl)
 QA_ENV+=	USESSSL=yes
 .    endif
-.    if !empty(USES:Mdesktop-file-utils)
+.    if !empty(USES:Mdesktop-utils)
 QA_ENV+=	USESDESKTOPFILEUTILS=yes
 .    endif
 .    if !empty(USES:Mlibtool*)
