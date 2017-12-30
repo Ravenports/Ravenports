@@ -27,18 +27,13 @@ BUILD_DEPENDS=		zlib:static:standard
 			mpfr:static:standard
 			gmp:static:standard
 
-USES=			bison gmake libtool
+USES=			bison gmake libtool c++:single
 
 LICENSE=		GPLv3:single LGPL3:single
 LICENSE_SCHEME=		multi
 LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING3
 			LGPL3:{{WRKSRC}}/COPYING3.LIB
 
-INFO=			single:as
-			single:binutils
-			single:gprof
-			single:bfd
-			single:ld
 FPC_EQUIVALENT=		devel/binutils
 INFO_SUBDIR=		.
 
@@ -66,11 +61,24 @@ VAR_ARCH[i386]=		PLIST_SUB=GOLD="@comment "
 [RAVENSYS].MAKEFILE_ON=			PREFIX={{LOCALBASE}}/toolchain
 
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
+[NLS].INFO_ON=				single:as
+					single:binutils
+					single:gprof
+					single:bfd
+					single:ld
 [NLS].USES_ON=				gettext-runtime
 
 [RELRO].DESCRIPTION=			enable -z relro in ELF linker by default
 [RELRO].CONFIGURE_ARGS_OFF=		--enable-relro=no
 [RELRO].CONFIGURE_ARGS_ON=		--enable-relro
+
+post-patch-NLS-OFF:
+	${REINPLACE_CMD} -e '/INFO_DEPS =/d' \
+		${WRKSRC}/ld/Makefile.in \
+		${WRKSRC}/gprof/Makefile.in \
+		${WRKSRC}/bfd/doc/Makefile.in \
+		${WRKSRC}/binutils/doc/Makefile.in \
+		${WRKSRC}/gas/doc/Makefile.in
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/include/plugin-api.h \
