@@ -2,6 +2,7 @@
 
 NAMEBASE=		mpc
 VERSION=		1.0.3
+REVISION=		1
 KEYWORDS=		math devel
 VARIANTS=		standard
 SDESC[standard]=	High-precision complex number library
@@ -74,4 +75,78 @@ lib/
  libmpc.so
  libmpc.so.3
  libmpc.so.3.0.0
+
+
+[FILE:722:patches/patch-configure.ac]
+--- configure.ac.orig	2015-02-16 12:38:34 UTC
++++ configure.ac
+@@ -165,6 +165,22 @@ AC_LINK_IFELSE(
+         AC_MSG_ERROR([libmpfr not found or uses a different ABI (including static vs shared).])
+         ])
+ 
++AC_MSG_CHECKING(for mpfr_fmma)
++LIBS="-lmpfr $LIBS"
++AC_LINK_IFELSE(
++	[AC_LANG_PROGRAM(
++		[[#include "mpfr.h"]],
++		[[mpfr_t x; mpfr_fmma (x, x, x, x, x, 0);]]
++	)],
++	[
++	AC_MSG_RESULT(yes)
++	AC_DEFINE(HAVE_MPFR_FMMA, 1, [mpfr_fmma is present])
++	],
++	[
++	AC_MSG_RESULT(no)
++	AC_DEFINE(HAVE_MPFR_FMMA, 0, [mpfr_fmma is not present])
++	])
++
+ # Check for a recent GMP
+ # We only guarantee that with a *functional* and recent enough GMP version,
+ # MPC will compile; we do not guarantee that GMP will compile.
+
+
+[FILE:1578:patches/patch-src_mul.c]
+--- src/mul.c.orig	2015-02-16 12:37:30 UTC
++++ src/mul.c
+@@ -170,9 +170,9 @@ mul_imag (mpc_ptr z, mpc_srcptr x, mpc_s
+    return MPC_INEX (inex_re, inex_im);
+ }
+ 
+-
++#if HAVE_MPFR_FMMA == 0
+ static int
+-mpfr_fmma (mpfr_ptr z, mpfr_srcptr a, mpfr_srcptr b, mpfr_srcptr c,
++mpc_fmma (mpfr_ptr z, mpfr_srcptr a, mpfr_srcptr b, mpfr_srcptr c,
+            mpfr_srcptr d, int sign, mpfr_rnd_t rnd)
+ {
+    /* Computes z = ab+cd if sign >= 0, or z = ab-cd if sign < 0.
+@@ -319,7 +319,7 @@ mpfr_fmma (mpfr_ptr z, mpfr_srcptr a, mp
+ 
+    return inex;
+ }
+-
++#endif
+ 
+ int
+ mpc_mul_naive (mpc_ptr z, mpc_srcptr x, mpc_srcptr y, mpc_rnd_t rnd)
+@@ -337,10 +337,17 @@ mpc_mul_naive (mpc_ptr z, mpc_srcptr x,
+    else
+       rop [0] = z [0];
+ 
+-   inex = MPC_INEX (mpfr_fmma (mpc_realref (rop), mpc_realref (x), mpc_realref (y), mpc_imagref (x),
+-                               mpc_imagref (y), -1, MPC_RND_RE (rnd)),
++#if HAVE_MPFR_FMMA
++   inex = MPC_INEX (mpfr_fmms (mpc_realref (rop), mpc_realref (x), mpc_realref (y), mpc_imagref (x),
++				mpc_imagref (y), MPC_RND_RE (rnd)),
+                     mpfr_fmma (mpc_imagref (rop), mpc_realref (x), mpc_imagref (y), mpc_imagref (x),
++				mpc_realref (y), MPC_RND_IM (rnd)));
++#else
++   inex = MPC_INEX (mpc_fmma (mpc_realref (rop), mpc_realref (x), mpc_realref (y), mpc_imagref (x),
++				mpc_imagref (y), -1, MPC_RND_RE (rnd)),
++		mpc_fmma (mpc_imagref (rop), mpc_realref (x), mpc_imagref (y), mpc_imagref (x),
+                                mpc_realref (y), +1, MPC_RND_IM (rnd)));
++#endif
+ 
+    mpc_set (z, rop, MPC_RNDNN);
+    if (overlap)
 
