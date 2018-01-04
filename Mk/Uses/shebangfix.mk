@@ -35,11 +35,12 @@
 .if !defined(_INCLUDE_USES_SHEBANGFIX_MK)
 _INCLUDE_USES_SHEBANGFIX_MK=	yes
 
-SHEBANG_LANG+=	bash java ksh perl php python ruby tcl tk
+SHEBANG_LANG+=	bash java ksh perl php python ruby tcl tk lua
 
 .  if ${USES:Mlua*}
-SHEBANG_LANG+=		lua
 SHEBANG_NEW_LUA?=	${LOCALBASE}/bin/${LUA_CMD}
+.else
+SHEBANG_NEW_LUA?=	${LOCALBASE}/bin/lua${LUA_DEFAULT:S/.//}
 .  endif
 
 SHEBANG_OLD_TCL+=	/usr/bin/tclsh
@@ -50,6 +51,8 @@ SHEBANG_NEW_TK?=	${WISH}
 
 .  if ${USES:Mpython*}
 SHEBANG_NEW_PYTHON?=	${PYTHON_CMD}
+.  else
+SHEBANG_NEW_PYTHON?=	${LOCALBASE}/bin/python${PYTHON3_DEFAULT}
 .  endif
 
 # Replace the same patterns for all langs and setup a default, that may have

@@ -73,10 +73,10 @@ _INCLUDE_USES_PYTHON_MK=	yes
 # BUILDRUN_DEPENDS+=	python-setuptools:single:pyXX
 # ------------------------------------------------------
 
-.  if !empty(python_ARGS:Mpy35)
+.  if !empty(python_ARGS:Mpy36)
+_PYTHON_VERSION=	3.6
+.  elif !empty(python_ARGS:Mpy35)
 _PYTHON_VERSION=	3.5
-.  elif !empty(python_ARGS:Mpy34)
-_PYTHON_VERSION=	3.4
 .  elif !empty(python_ARGS:Mpy27)
 _PYTHON_VERSION=	2.7
 .  else
