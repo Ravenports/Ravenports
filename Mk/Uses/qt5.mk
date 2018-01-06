@@ -3,6 +3,7 @@
 # Feature:	qt5
 # Usage:	USES=qt5
 # Valid ARGS:	none
+#
 
 .if !defined(_INCLUDE_USES_QT5_MK)
 _INCLUDE_USES_QT5_MK=	yes
@@ -10,9 +11,7 @@ _INCLUDE_USES_QT5_MK=	yes
 # stage support
 DESTDIRNAME=	INSTALL_ROOT
 
-# common configuration
-HAS_CONFIGURE=	yes
-
+# When configure used, set common switches
 CONFIGURE_ARGS+=\
 	-opensource\
 	-confirm-license\
@@ -35,6 +34,8 @@ CONFIGURE_ARGS+=\
 	-translationdir "${PREFIX}/share/qt5/translations"\
 	-nomake examples\
 	-nomake tests
+
+QMAKE_CMD=		${LOCALBASE}/lib/qt5/bin/qmake
 
 . if defined(WITH_DEBUG)
 CONFIGURE_ARGS+=	-debug -separate-debug-info
@@ -74,6 +75,15 @@ QMAKE_X11_SYS_LIBS=	-lm
 
 QMAKESPEC=	unsupported-OS
 
+. endif
+
+. if "${NAMEBASE}" == "qt5-qtbase"
+HAS_CONFIGURE=		yes
+. else
+.  if !target(do-configure)
+do-configure:
+	(cd ${WRKSRC} && ${QMAKE_CMD} -o Makefile)
+.  endif
 . endif
 
 .endif		# _INCLUDE_USES_QT5_MK

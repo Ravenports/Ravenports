@@ -17,7 +17,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	qt5-qtbase:single:standard
+BUILDRUN_DEPENDS=	qt5-qttools:single:standard
+			qscintilla:primary:standard
 
 USES=			cmake sqlite desktop-utils gnome-icons
 
@@ -28,9 +29,10 @@ LICENSE_FILE=		MPL:{{WRKSRC}}/LICENSE
 
 FPC_EQUIVALENT=		databases/sqlitebrowser
 
-CMAKE_ARGS=		-DFORCE_INTERNAL_QSCINTILLA:BOOL=ON
-			-DFORCE_INTERNAL_ANTLR:BOOL=ON
-			-DCMAKE_MODULE_PATH="{{LOCALBASE}}/lib/qt5"
+CMAKE_ARGS=		-DFORCE_INTERNAL_ANTLR:BOOL=ON
+			-DQT_INCLUDE_DIR:PATH="{{PREFIX}}/include/qt5"
+			-DQT_LIBRARY_DIR:PATH="{{PREFIX}}/lib/qt5"
+			-DCMAKE_PREFIX_PATH:PATH="{{PREFIX}}/lib/qt5/cmake/"
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%DATADIR%%|${PREFIX}/share/${NAMEBASE}|' \
@@ -71,6 +73,20 @@ bin/sqlitebrowser
 share/appdata/sqlitebrowser.desktop.appdata.xml
 share/applications/sqlitebrowser.desktop
 share/icons/hicolor/256x256/apps/sqlitebrowser.png
+
+
+[FILE:299:patches/patch-cmake_FindQScintilla.cmake]
+--- cmake/FindQScintilla.cmake.orig	2017-09-20 13:59:51 UTC
++++ cmake/FindQScintilla.cmake
+@@ -80,7 +80,7 @@ endif ()
+ 
+ 
+ find_library ( QSCINTILLA_LIBRARY
+-  NAMES qscintilla qscintilla2 libqscintilla2
++  NAMES qscintilla qscintilla2 qscintilla2_qt5 libqscintilla2
+   HINTS ${QT_LIBRARY_DIR}
+ )
+ 
 
 
 [FILE:657:patches/patch-src_Application.cpp]
