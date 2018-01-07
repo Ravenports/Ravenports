@@ -18,6 +18,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			autoreconf pkgconfig gmake gettext-tools
+			gettext-runtime
 GNOME_COMPONENTS=	gtk2 intltool
 XORG_COMPONENTS=	x11
 
@@ -31,7 +32,9 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-appindicator
 
 LDFLAGS=		-lgio-2.0
-			-lintl
+VAR_OPSYS[freebsd]=	LDFLAGS=-lintl
+VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+VAR_OPSYS[dragonfly]=	LDFLAGS=-lintl
 
 post-patch:
 	${REINPLACE_CMD} -e 's|$$(DATADIRNAME)/locale|share/locale|' \
