@@ -158,7 +158,9 @@ GNATCROSS_FREEBSD_11=		11.1
 GNATCROSS_FREEBSD_12=		12.0
 
 # ------------------------------------------------------------------------
-# Qt versions
+# Qt and Lumina versions
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.10.0
+LUMINA_VERSION=			1.4.1
+LUMINA_RELEASE_TAG=		b6536c1

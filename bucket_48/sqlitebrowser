@@ -17,8 +17,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	qt5-qttools:single:standard
-			qscintilla:primary:standard
+BUILD_DEPENDS=		qt5-qttools:single:standard
+BUILDRUN_DEPENDS=	qscintilla:primary:standard
 
 USES=			cmake sqlite desktop-utils gnome-icons
 
@@ -38,6 +38,9 @@ post-patch:
 	${REINPLACE_CMD} -e 's|%%DATADIR%%|${PREFIX}/share/${NAMEBASE}|' \
 		${WRKSRC}/src/PreferencesDialog.cpp \
 		${WRKSRC}/src/Application.cpp
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/sqlitebrowser
 
 [FILE:911:descriptions/desc.single]
 DB Browser for SQLite is a high quality, visual, open source tool to create,

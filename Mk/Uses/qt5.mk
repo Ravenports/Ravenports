@@ -82,7 +82,7 @@ HAS_CONFIGURE=		yes
 . else
 .  if !target(do-configure)
 do-configure:
-	(cd ${WRKSRC} && ${QMAKE_CMD} -o Makefile)
+	(cd ${WRKSRC} && ${QMAKE_CMD} ${QMAKE_ARGS} -o Makefile)
 .  endif
 . endif
 
