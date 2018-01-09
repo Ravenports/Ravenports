@@ -2,6 +2,7 @@
 
 NAMEBASE=		poppler
 VERSION=		0.62.0
+REVISION=		1
 KEYWORDS=		graphics print
 VARIANTS=		standard
 SDESC[standard]=	PDF rendering library
@@ -12,21 +13,40 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://poppler.freedesktop.org/
 DISTFILE[1]=		poppler-0.62.0.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			cpp
+			glib
+			qt5
+			utils
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		cairo:single:standard
+			gobject-introspection:single:standard
+			python27:single:standard
+			qt5-qttools:single:standard
+			qt5-qtbase:single:standard
 BUILDRUN_DEPENDS=	tiff:primary:standard
 			lcms2:primary:standard
 			fontconfig:primary:standard
 			openjpeg:single:standard
 			poppler-data:single:standard
+			curl:primary:standard
+EXRUN[cpp]=		poppler:primary:standard
+EXRUN[qt5]=		poppler:primary:standard
+			qt5-qtbase:single:standard
+EXRUN[utils]=		poppler:primary:standard
+			cairo:single:standard
+			lcms2:primary:standard
+EXRUN[glib]=		poppler:primary:standard
+			cairo:single:standard
 
 USES=			cmake cpe png jpeg libtool pkgconfig zlib
-GNOME_COMPONENTS=	libxml2 cairo
+			python:build
 
-LICENSE=		GPLv2:single
+LICENSE=		GPLv2:primary
 LICENSE_SCHEME=		solo
 LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
 
@@ -34,28 +54,77 @@ CPE_VENDOR=		freedesktop
 FPC_EQUIVALENT=		graphics/poppler
 
 SOVERSION=		73.0.0
+PLIST_SUB=		CPP_SOVERSION=0.3.0
+			CPP_SOMAJOR=0
+			QT5_SOVERSION=1.12.0
+			QT5_SOMAJOR=1
+			GLIB_SOVERSION=8.9.0
+			GLIB_SOMAJOR=8
 
-CMAKE_ARGS=		-DENABLE_GLIB=OFF
-			-DENABLE_UTILS=OFF
-			-DENABLE_QT5=OFF
-			-DENABLE_LIBCURL=OFF
+CMAKE_ARGS=		-DENABLE_GLIB=ON
+			-DENABLE_UTILS=ON
+			-DENABLE_QT5=ON
+			-DENABLE_LIBCURL=ON
 			-DBUILD_GTK_TESTS=OFF
+			-DENABLE_GTK_DOC=OFF
+			-DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
+			-DCMAKE_PREFIX_PATH:PATH="{{PREFIX}}/lib/qt5/cmake/"
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libpop*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/pdf*
 
-[FILE:274:descriptions/desc.single]
+[FILE:315:descriptions/desc.primary]
 Poppler is a fork of the xpdf PDF viewer developed by Derek Noonburg
 of Glyph and Cog, LLC.  It provides PDF rendering functionality as a
 shared library, and uses modern components from Freedesktop.org such as
 fontconfig and cairo to take advantage of modern UNIX desktops.
+
+This package contains the main library.
+
+
+[FILE:65:descriptions/desc.cpp]
+These are the c++ bindings for poppler, a PDF rendering library.
+
+
+[FILE:67:descriptions/desc.glib]
+These are the gnome bindings for poppler, a PDF rendering library.
+
+
+[FILE:65:descriptions/desc.qt5]
+These are the Qt5 bindings for poppler, a PDF rendering library.
+
+
+[FILE:565:descriptions/desc.utils]
+This provides PDF (Portable Document Format) utilities from the
+poppler project. Some of these are based on the versions from xpdf.
+
+This poppler-utils package provides:
+
+pdffonts  - lists fonts used in PDF files with details
+pdfimages - saves images from a PDF file as PPM, PBM or JPEG
+pdfinfo   - prints document information from 'Info' dictionary
+pdftohtml - convert PDF files into HTML, XML and PNG images
+pdftoppm  - converts PDF files to PPM, PGM, or PBM image files
+pdftops   - converts a PDF file to PostScript
+pdftotext - converts a PDF file to plain text
 
 
 [FILE:100:distinfo]
 5b9a73dfd4d6f61d165ada1e4f0abd2d420494bf9d0b1c15d0db3f7b83a729c6      1423372 poppler-0.62.0.tar.xz
 
 
-[FILE:461:manifests/plist.single]
+[FILE:122:manifests/plist.primary]
+lib/
+ libpoppler.so
+ libpoppler.so.%%SOMAJOR%%
+ libpoppler.so.%%SOVERSION%%
+lib/pkgconfig/
+ poppler-splash.pc
+ poppler.pc
+
+
+[FILE:365:manifests/plist.cpp]
 include/poppler/cpp/
  poppler-document.h
  poppler-embedded-file.h
@@ -70,14 +139,78 @@ include/poppler/cpp/
  poppler-version.h
 lib/
  libpoppler-cpp.so
- libpoppler-cpp.so.0
- libpoppler-cpp.so.0.3.0
- libpoppler.so
- libpoppler.so.%%SOMAJOR%%
- libpoppler.so.%%SOVERSION%%
+ libpoppler-cpp.so.%%CPP_SOMAJOR%%
+ libpoppler-cpp.so.%%CPP_SOVERSION%%
+lib/pkgconfig/poppler-cpp.pc
+
+
+[FILE:505:manifests/plist.glib]
+include/poppler/glib/
+ poppler-action.h
+ poppler-annot.h
+ poppler-attachment.h
+ poppler-date.h
+ poppler-document.h
+ poppler-enums.h
+ poppler-features.h
+ poppler-form-field.h
+ poppler-layer.h
+ poppler-media.h
+ poppler-movie.h
+ poppler-page.h
+ poppler-structure-element.h
+ poppler.h
+lib/girepository-1.0/Poppler-0.18.typelib
+lib/
+ libpoppler-glib.so
+ libpoppler-glib.so.%%GLIB_SOMAJOR%%
+ libpoppler-glib.so.%%GLIB_SOVERSION%%
 lib/pkgconfig/
  poppler-cairo.pc
- poppler-cpp.pc
- poppler-splash.pc
- poppler.pc
+ poppler-glib.pc
+share/gir-1.0/Poppler-0.18.gir
+
+
+[FILE:299:manifests/plist.qt5]
+include/poppler/qt5/
+ poppler-annotation.h
+ poppler-export.h
+ poppler-form.h
+ poppler-link.h
+ poppler-media.h
+ poppler-optcontent.h
+ poppler-page-transition.h
+ poppler-qt5.h
+lib/
+ libpoppler-qt5.so
+ libpoppler-qt5.so.%%QT5_SOMAJOR%%
+ libpoppler-qt5.so.%%QT5_SOVERSION%%
+lib/pkgconfig/poppler-qt5.pc
+
+
+[FILE:310:manifests/plist.utils]
+bin/
+ pdfdetach
+ pdffonts
+ pdfimages
+ pdfinfo
+ pdfseparate
+ pdftocairo
+ pdftohtml
+ pdftoppm
+ pdftops
+ pdftotext
+ pdfunite
+share/man/man1/
+ pdfdetach.1.gz
+ pdffonts.1.gz
+ pdfimages.1.gz
+ pdfinfo.1.gz
+ pdfseparate.1.gz
+ pdftocairo.1.gz
+ pdftohtml.1.gz
+ pdftoppm.1.gz
+ pdftops.1.gz
+ pdftotext.1.gz
+ pdfunite.1.gz
 
