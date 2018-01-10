@@ -149,6 +149,9 @@ LIBFM_VERSION=			1.2.5
 FREI0R_VERSION=			1.6.1
 M17N_VERSION=			1.7.0
 GLIBC_VERSION=			2.26
+GSTREAMER1_VERSION=		1.12.4
+GSTREAMER1_GST=			1.0
+GSTREAMER1_SOVERSION=		0.1204.0
 
 # ------------------------------------------------------------------------
 # Gnatcross options
