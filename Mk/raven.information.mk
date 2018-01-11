@@ -146,6 +146,7 @@ SUBVERSION_VERSION=		1.9.7
 # ------------------------------------------------------------------------
 
 LIBFM_VERSION=			1.2.5
+LIBTOOL_VERSION=		2.4.6
 FREI0R_VERSION=			1.6.1
 M17N_VERSION=			1.7.0
 GLIBC_VERSION=			2.26
