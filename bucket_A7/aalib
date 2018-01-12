@@ -2,6 +2,7 @@
 
 NAMEBASE=		aalib
 VERSION=		1.4rc5
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	ASCII art library
@@ -31,8 +32,11 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-x=no
+			--with-ncurses={{LOCALBASE}}
 
 INSTALL_TARGET=		install-strip
+
+CFLAGS=			-I{{NCURSESINC}}
 
 post-patch:
 	@${RM} ${WRKSRC}/config.cache
@@ -43,6 +47,7 @@ post-patch:
 		-e 's|AC_DEFUN(AM_PATH_AALIB|AC_DEFUN([AM_PATH_AALIB]|g' \
 		${WRKSRC}/aalib.m4
 	@${FIND} ${WRKSRC} \( -name '*.[ch]' \! -name acconfig.h \) \
+		| ${XARGS} ${GREP} -l '<malloc.h>' \
 		| ${XARGS} ${REINPLACE_CMD} -e 's|<malloc.h>|<stdlib.h>|g'
 
 post-install:
@@ -184,6 +189,21 @@ share/man/man1/aafire.1.gz
  Display driver is the most significant driver (of course) so it is recomended
  to implement it first. Its structure is as follows:
 
+
+
+[FILE:510:patches/patch-src_Makefile.in]
+--- src/Makefile.in.orig	2001-04-26 15:33:09 UTC
++++ src/Makefile.in
+@@ -254,6 +254,9 @@ maintainer-clean-libtool:
+ 
+ libaa.la: $(libaa_la_OBJECTS) $(libaa_la_DEPENDENCIES)
+ 	$(LINK) -rpath $(libdir) $(libaa_la_LDFLAGS) $(libaa_la_OBJECTS) $(libaa_la_LIBADD) $(LIBS)
++	# relink shared library because libtool won't pass rpath to la files
++	rm .libs/libaa.so.1.0.4
++	$(CC) -shared $(CFLAGS) $(LDFLAGS) $(libaa_la_OBJECTS) $(LIBS) -Wl,-soname -Wl,libaa.so.1 -o .libs/libaa.so.1.0.4
+ 
+ mostlyclean-binPROGRAMS:
+ 
 
 
 [FILE:290:patches/patch-src_aaprintf.c]
