@@ -3,9 +3,10 @@
 NAMEBASE=		ruby-rubygems
 VERSION=		2.7.4
 KEYWORDS=		ruby devel
-VARIANTS=		v23 v24
+VARIANTS=		v23 v24 v25
 SDESC[v23]=		Package management framework for Ruby (v2.3)
 SDESC[v24]=		Package management framework for Ruby (v2.4)
+SDESC[v25]=		Package management framework for Ruby (v2.5)
 HOMEPAGE=		https://rubygems.org/
 CONTACT=		nobody
 
@@ -16,11 +17,13 @@ DIST_SUBDIR=		ruby
 DF_INDEX=		1
 SPKGS[v23]=		single
 SPKGS[v24]=		single
+SPKGS[v25]=		single
 
-OPTIONS_AVAILABLE=	RUBY23 RUBY24
+OPTIONS_AVAILABLE=	RUBY23 RUBY24 RUBY25
 OPTIONS_STANDARD=	none
-VOPTS[v23]=		RUBY23=ON RUBY24=OFF
-VOPTS[v24]=		RUBY23=OFF RUBY24=ON
+VOPTS[v23]=		RUBY23=ON RUBY24=OFF RUBY25=OFF
+VOPTS[v24]=		RUBY23=OFF RUBY24=ON RUBY25=OFF
+VOPTS[v25]=		RUBY23=OFF RUBY24=OFF RUBY25=ON
 
 DISTNAME=		rubygems-2.7.4
 
@@ -38,14 +41,26 @@ PLIST_SUB=		DISTNAME="{{DISTNAME}}"
 
 [RUBY23].MAKEFILE_ON=			GEMLINK2.3=""
 					GEMLINK2.4="@comment "
+					GEMLINK2.5="@comment "
 [RUBY23].USES_ON=			ruby:v23
 
 [RUBY24].MAKEFILE_ON=			GEMLINK2.3="@comment "
 					GEMLINK2.4=""
+					GEMLINK2.5="@comment "
 [RUBY24].USES_ON=			ruby:v24
+
+[RUBY25].MAKEFILE_ON=			GEMLINK2.3="@comment "
+					GEMLINK2.4="@comment "
+					GEMLINK2.5=""
+[RUBY25].USES_ON=			ruby:v25
 
 do-install-RUBY24-ON:
 	if [ "${RUBY_DEFAULT}" = "2.4" ]; then \
+	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem; \
+	fi
+
+do-install-RUBY25-ON:
+	if [ "${RUBY_DEFAULT}" = "2.5" ]; then \
 	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem; \
 	fi
 

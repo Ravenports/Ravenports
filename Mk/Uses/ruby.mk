@@ -2,7 +2,7 @@
 #
 # Feature:	ruby
 # Usage:	USES=ruby
-# Valid ARGS:	(v23 or v24), build, interp
+# Valid ARGS:	(v23, v24, v25), build, interp
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -42,7 +42,10 @@ _INCLUDE_USES_RUBY_MK=	yes
 # BUILD/RUN_DEPENDS+=	rubyXX:single:standard
 # ------------------------------------------------------
 
-.  if !empty(ruby_ARGS:Mv24)
+
+.  if !empty(ruby_ARGS:Mv25)
+_RUBY_VERSION=	2.5
+.  elif !empty(ruby_ARGS:Mv24)
 _RUBY_VERSION=	2.4
 .  elif !empty(ruby_ARGS:Mv23)
 _RUBY_VERSION=	2.3
