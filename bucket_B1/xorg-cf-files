@@ -22,7 +22,7 @@ FPC_EQUIVALENT=		x11/xorg-cf-files
 MUST_CONFIGURE=		gnu
 
 post-patch:
-		@${REINPLACE_CMD} 's|\(define ExtraXaw[^ ]*\) [$$].*|\1 /**/|' \
+	@${REINPLACE_CMD} 's|\(define ExtraXaw[^ ]*\) [$$].*|\1 /**/|' \
 			${WRKSRC}/X11.tmpl
 
 [FILE:48:descriptions/desc.single]
@@ -365,4 +365,83 @@ lib/X11/config/
  # if defined(LargePICTable) && LargePICTable && defined(LargePositionIndependentCFlags)
     PICFLAGS = LargePositionIndependentCFlags
  # endif
+
+
+[FILE:1175:patches/patch-linux.cf]
+--- linux.cf.orig	2015-12-22 01:28:02 UTC
++++ linux.cf
+@@ -44,6 +44,9 @@ XCOMM platform:  $XFree86: xc/config/cf/
+ # define OSTeenyVersion		DefaultOSTeenyVersion
+ #endif
+ 
++#undef	UseRpath
++#define UseRpath YES
++
+ #ifndef LinuxDistribution
+ # define LinuxDistribution	DefaultLinuxDistribution
+ /*
+@@ -577,6 +580,9 @@ InstallNamedTargetNoClobber(install,file
+ 
+ #define MkdirHierCmd		mkdir -p
+ 
++#undef	HaveLib64
++#define HaveLib64	NO
++
+ #ifndef HaveLib64
+ # if defined (AMD64Architecture) || defined (s390xArchitecture) || defined (Ppc64Architecture) || defined (AArch64Architecture)
+ #  define HaveLib64	YES
+@@ -1030,19 +1036,19 @@ InstallNamedTargetNoClobber(install,file
+ 
+ /* Some of these man page defaults are overriden in the above OS sections */
+ #ifndef ManSuffix
+-# define ManSuffix	1x
++# define ManSuffix	1
+ #endif
+ #ifndef ManDir
+ # define ManDir		$(MANSOURCEPATH)1
+ #endif
+ #ifndef LibManSuffix
+-# define LibManSuffix	3x
++# define LibManSuffix	3
+ #endif
+ #ifndef LibmanDir
+ # define LibmanDir	$(MANSOURCEPATH)3
+ #endif
+ #ifndef FileManSuffix
+-# define FileManSuffix	5x
++# define FileManSuffix	5
+ #endif
+ #ifndef FileManDir
+ # define FileManDir	$(MANSOURCEPATH)5
+
+
+[FILE:992:patches/patch-lnxLib.rules]
+--- lnxLib.rules.orig	2015-12-22 01:28:02 UTC
++++ lnxLib.rules
+@@ -78,7 +78,7 @@ XCOMM $XFree86: xc/config/cf/lnxLib.rule
+ #define LibraryRpathLoadFlags RpathLoadFlags
+ #endif
+ # ifndef SharedLibraryLoadFlags
+-#  define SharedLibraryLoadFlags -shared
++#  define SharedLibraryLoadFlags -shared LibraryRpathLoadFlags
+ # endif
+ # ifndef PositionIndependentCFlags
+ #  define PositionIndependentCFlags -fPIC
+@@ -87,14 +87,8 @@ XCOMM $XFree86: xc/config/cf/lnxLib.rule
+ #  define PositionIndependentCplusplusFlags -fPIC
+ # endif
+ # ifndef ExtraLoadFlags
+-#  if LinuxBinUtilsMajorVersion >= 26
+-#   ifdef UseInstalled
+-#    if LinuxBinUtilsMajorVersion < 27
+-#     define ExtraLoadFlags RpathLoadFlags -Wl,-rpath-link,$(USRLIBDIRPATH)
+-#    endif
+-#   else
+-#    define ExtraLoadFlags RpathLoadFlags -Wl,-rpath-link,$(BUILDLIBDIR)
+-#   endif
++#  ifdef UseInstalled
++#   define ExtraLoadFlags RpathLoadFlags -Wl,-rpath-link,$(BUILDLIBDIR)
+ #  else
+ #   define ExtraLoadFlags RpathLoadFlags
+ #  endif
 
