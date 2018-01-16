@@ -83,6 +83,7 @@ expand_SOURCEFORGE()
     local cluster="\
     http://heanet.dl.sourceforge.net/project \
     http://iweb.dl.sourceforge.net/project \
+    http://vorboss.dl.sourceforge.net/project \
     http://freefr.dl.sourceforge.net/project \
     http://jaist.dl.sourceforge.net/project \
     http://master.dl.sourceforge.net/project \
