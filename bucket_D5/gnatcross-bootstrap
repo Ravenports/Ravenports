@@ -42,7 +42,7 @@ CXX=			{{BSPREFIX}}/bin/{{TGTSYS}}-c++
 MUST_CONFIGURE=		yes
 CONFIGURE_OUTSOURCE=	yes
 CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
-			--prefix={{LOCALBASE}}/gcc7-raven
+			--prefix={{LOCALBASE}}/toolchain/gcc7
 			--enable-shared
 			--enable-threads=posix
 			--enable-checking=release
@@ -112,6 +112,16 @@ PLIST_SUB=		TGTSYS={{TGTSYS}}
 					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
 
 post-patch:
+	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
+	@${ECHO} "Configuring LINK_SPEC runpath"
+	@${REINPLACE_CMD} -e 's;\@PREFIX\@;${PREFIX:H};' \
+		-e 's;\@GCCAUX\@;${NAMEBASE};' \
+		${WRKSRC}/gcc/config/dragonfly.h \
+		${WRKSRC}/gcc/config/sol2.h \
+		${WRKSRC}/gcc/config/i386/freebsd64.h \
+		${WRKSRC}/gcc/config/i386/freebsd.h \
+		${WRKSRC}/gcc/config/i386/gnu-user64.h \
+		${WRKSRC}/gcc/config/aarch64/aarch64-freebsd.h
 	# fix FreeBSD spec error
 	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
 		${WRKSRC}/gcc/config/freebsd-spec.h
@@ -119,11 +129,13 @@ post-patch:
 post-stage:
 	# package bootstrap compiler with zstd, then relocate files to avoid packaging them
 	@${MKDIR} ${WRKDIR}/bootstrap_compiler
-	(cd ${STAGEDIR}${PREFIX}/gcc7-raven \
+	(cd ${STAGEDIR}${PREFIX}/toolchain/gcc7 \
 		&& ${CP} -a bin ${WRKDIR}/bootstrap_compiler \
 		&& ${CP} -a lib ${WRKDIR}/bootstrap_compiler \
 		&& ${CP} -a include ${WRKDIR}/bootstrap_compiler \
 		&& ${CP} -a libexec ${WRKDIR}/bootstrap_compiler)
+	${ECHO_CMD} "Relocate directories to: ${PREFIX}/toolchain/gcc7" \
+		>> ${WRKDIR}/bootstrap_compiler/README
 	${RM} ${WRKDIR}/bootstrap_compiler/bin/${TGTSYS}*
 	${MV} ${STAGEDIR} ${STAGEDIR}.old
 	${MKDIR} ${STAGEDIR}${LOCALBASE}/share/${NAMEBASE}
@@ -134,13 +146,13 @@ post-stage:
 		zstd -7 --rm ${TGTSYS}-gcc.tar)
 
 post-install:
-	cp ${STAGEDIR}${PREFIX}/gcc7-raven/bin/gcc ${STAGEDIR}${PREFIX}/gcc7-raven/bin/cc
-	cp ${STAGEDIR}${PREFIX}/gcc7-raven/bin/g++ ${STAGEDIR}${PREFIX}/gcc7-raven/bin/CC
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnarl.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnat.so
+	cp ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/gcc ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/cc
+	cp ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/g++ ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/CC
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/toolchain/gcc7/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnarl.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/toolchain/gcc7/lib/gcc/${TGTSYS}/7.2.0/adalib/libgnat.so
 
 post-install-FARM64_R11-ON:
-	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
+	${RM} -r ${STAGEDIR}${PREFIX}/toolchain/gcc7/lib/gcc/${TGTSYS}/7.2.0/include-fixed
 
 post-extract:
 	${MKDIR} ${WRKSRC}/libiconv
@@ -155,7 +167,7 @@ post-patch-FARM64_R11-ON:
 		${WRKSRC}/libstdc++-v3/config.h.in
 
 post-install-FAMD64_R12-ON:
-	${RM} -r ${STAGEDIR}${PREFIX}/gcc7-raven/lib/gcc/${TGTSYS}/7.2.0/include-fixed
+	${RM} -r ${STAGEDIR}${PREFIX}/toolchain/gcc7/lib/gcc/${TGTSYS}/7.2.0/include-fixed
 
 post-patch-FAMD64_R12-ON:
 	# work around malloc detection issue
@@ -1327,7 +1339,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
  static void
 
 
-[FILE:12286:patches/patch-diff-core]
+[FILE:11760:patches/patch-diff-core]
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
@@ -1335,7 +1347,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
     %{static:-Bstatic} \
    } \
 -  %{!static:--hash-style=gnu} \
-+  %{!static:--hash-style=gnu --enable-new-dtags} \
++  %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib} \
    %{symbolic:-Bsymbolic}"
  
  #undef  LINK_SPEC
@@ -1348,30 +1360,12 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
  /* Use --as-needed -lgcc_s for eh support.  */
 --- gcc/config/sol2.h.orig
 +++ gcc/config/sol2.h
-@@ -245,7 +245,7 @@
- 	   %{!p:%{!pg:-Y P,%R/lib:%R/usr/lib}}}"
- 
- #undef LINK_ARCH32_SPEC
--#define LINK_ARCH32_SPEC LINK_ARCH32_SPEC_BASE
-+#define LINK_ARCH32_SPEC LINK_ARCH32_SPEC_BASE "%{!static: -rpath-link %R/lib}"
- 
- /* This should be the same as LINK_ARCH32_SPEC_BASE, except with
-    ARCH64_SUBDIR appended to the paths.  */
-@@ -262,7 +262,7 @@
- /* FIXME: Used to be SPARC-only.  Not SPARC-specfic but for the model name!  */
- #define LINK_ARCH64_SPEC \
-   "%{mcmodel=medlow:-M /usr/lib/ld/" ARCH64_SUBDIR "/map.below4G} " \
--  LINK_ARCH64_SPEC_BASE
-+  LINK_ARCH64_SPEC_BASE "%{!static: -rpath-link %R/lib/amd64}"
- #else
- #define LINK_ARCH64_SPEC LINK_ARCH64_SPEC_BASE
- #endif
 @@ -350,7 +350,7 @@
  #undef  LINK_SPEC
  #define LINK_SPEC \
    "%{h*} %{v:-V} \
 -   %{!shared:%{!static:%{rdynamic: " RDYNAMIC_SPEC "}}} \
-+   %{!shared:%{!static:--enable-new-dtags %{rdynamic: " RDYNAMIC_SPEC "}}} \
++   %{!shared:%{!static:-R/lib/amd64:@PREFIX@/@GCCAUX@/lib/amd64 %{rdynamic: " RDYNAMIC_SPEC "}}} \
     %{static:-dn -Bstatic} \
     %{shared:-G -dy %{!mimpure-text:-z text}} " \
     LINK_LIBGCC_MAPFILE_SPEC LINK_CLEARCAP_SPEC " \
@@ -1381,7 +1375,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
      %{symbolic:-Bsymbolic}                                      \
      %{static:-Bstatic}                                          \
      %{!static:                                                  \
-+    %{!static:--hash-style=gnu --enable-new-dtags}              \
++    %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib}   \
        %{rdynamic:-export-dynamic}                               \
        %{!shared:-dynamic-linker " FBSD_DYNAMIC_LINKER " }}      \
      -X" SUBTARGET_EXTRA_LINK_SPEC "                             \
@@ -1398,7 +1392,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
          %{rdynamic:-export-dynamic} \
          -dynamic-linker %(fbsd_dynamic_linker) } \
      %{static:-Bstatic}} \
-+  %{!static:--hash-style=gnu --enable-new-dtags} \
++  %{!static:--hash-style=gnu --enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib} \
    %{symbolic:-Bsymbolic}"
  
  /* A C statement to output to the stdio stream FILE an assembler
@@ -1408,7 +1402,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
          %{rdynamic:-export-dynamic} \
  	-dynamic-linker %(fbsd_dynamic_linker) } \
      %{static:-Bstatic}} \
-+  %{!static:--hash-style=gnu} \
++  %{!static:--hash-style=gnu -rpath @PREFIX@/@GCCAUX@/lib} \
    %{symbolic:-Bsymbolic}"
 --- gcc/Makefile.in.orig
 +++ gcc/Makefile.in
@@ -1477,7 +1471,7 @@ share/gnatcross-bootstrap/%%TGTSYS%%-gcc.tar.zst
                     %{" SPEC_32 ":-m " GNU_USER_LINK_EMULATION32 "} \
                     %{" SPEC_X32 ":-m " GNU_USER_LINK_EMULATIONX32 "} \
    %{shared:-shared} \
-+  %{!static:--enable-new-dtags} \
++  %{!static:--enable-new-dtags -rpath @PREFIX@/@GCCAUX@/lib64} \
    %{!shared: \
      %{!static: \
        %{rdynamic:-export-dynamic} \
