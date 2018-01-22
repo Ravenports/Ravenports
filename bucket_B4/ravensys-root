@@ -40,7 +40,7 @@ DISTFILE[12]=		linux-libc-dev_4.4.0-78.99_amd64.deb:ubuntu8
 DISTFILE[13]=		libc6-dev-amd64_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[14]=		libc6-dev_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[15]=		FreeBSD-11.1-RELEASE-amd64-disc1.iso:freebsd
-DISTFILE[16]=		solaris_root_10_u8.v05.tar.xz:dragonlace
+DISTFILE[16]=		solaris_root_10_u8.v06.tar.xz:dragonlace
 SPKGS[sunos]=		single
 SPKGS[linux]=		single
 SPKGS[freebsd64]=	single
@@ -282,7 +282,7 @@ d3018a86cc649ff19dd97258fb50e118d428ee0a631d45c9cd1406c2b28aa16a       779004 pa
 4081ba6b17b56b53e93a2e600c0beae8594d6e744f2b4b5cec08a37775ee9842      1574016 libc6-dev-amd64_2.23-0ubuntu9_i386.deb
 d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 libc6-dev_2.23-0ubuntu9_i386.deb
 ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 FreeBSD-11.1-RELEASE-amd64-disc1.iso
-f2755ab7c2a2b63688bfb8904ac478ff4208583e3f697cfdec69c40ffd91233e      9733904 solaris_root_10_u8.v05.tar.xz
+e7fea46ced7f1c055717bfdcbffd7bf96edcf2dc4c935fef46a117223c1e64d1      9777352 solaris_root_10_u8.v06.tar.xz
 
 
 [FILE:12708:manifests/plist.single.dragonfly]
@@ -4418,7 +4418,7 @@ f2755ab7c2a2b63688bfb8904ac478ff4208583e3f697cfdec69c40ffd91233e      9733904 so
 @dir %%BASE%%/usr/local
 
 
-[FILE:33510:manifests/plist.single.sunos]
+[FILE:33739:manifests/plist.single.sunos]
 share/raven/sysroot/SunOS/bin/
  [
  bash
@@ -4820,6 +4820,7 @@ share/raven/sysroot/SunOS/usr/bin/
  zegrep
  zfgrep
  zgrep
+share/raven/sysroot/SunOS/usr/ccs/bin/elfdump
 share/raven/sysroot/SunOS/usr/include/
  af_vfs.h
  aio.h
@@ -4936,6 +4937,10 @@ share/raven/sysroot/SunOS/usr/include/
  getwidth.h
  glob.h
  grp.h
+share/raven/sysroot/SunOS/usr/include/gssapi/
+ gssapi.h
+ gssapi_ext.h
+share/raven/sysroot/SunOS/usr/include/
  hbaapi.h
 share/raven/sysroot/SunOS/usr/include/ia32/sys/
  asm_linkage.h
@@ -6698,6 +6703,7 @@ share/raven/sysroot/SunOS/usr/lib/amd64/
  libld.so.2
  libld.so.3
  liblddbg.so.4
+ libldstab.so.1
  libm.so
  libm.so.1
  libm.so.2
@@ -6837,6 +6843,7 @@ share/raven/sysroot/SunOS/usr/lib/
  libld.so.2
  libld.so.3
  liblddbg.so.4
+ libldstab.so.1
  libm.so
  libm.so.1
  libm.so.2
@@ -6939,12 +6946,13 @@ share/raven/sysroot/SunOS/usr/share/
  passwd
  STDARCH
  terminfo.db
+share/raven/sysroot/SunOS/usr/xpg4/bin/sh
 @dir %%BASE%%/usr/lib/pkgconfig
 @dir %%BASE%%/usr/local
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20189:files/Makefile]
+[FILE:20349:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7564,6 +7572,9 @@ install:
 	# This fetch is a wrapper for wget; it's a script
 	${BSD_INSTALL_SCRIPT} ${LOCALBASE}/bin/fetch ${DESTDIR}${BASE}/usr/bin/
 	sed -i'' -e "s|/raven/share/certs/|/usr/share/|" ${DESTDIR}${BASE}/usr/bin/fetch
+	# have a second copy of bourne shell
+	mkdir -p ${DESTDIR}${BASE}/usr/xpg4/bin
+	${BSD_INSTALL_PROGRAM} ${DESTDIR}${BASE}/bin/sh ${DESTDIR}${BASE}/usr/xpg4/bin/
 .else
 .  for item in ${Bin_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/bin/

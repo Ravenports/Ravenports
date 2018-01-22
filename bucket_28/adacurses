@@ -195,35 +195,55 @@ lib/gnat/adacurses.gpr
 share/man/man1/adacurses-config.1.gz
 
 
-[FILE:705:patches/patch-configure]
+[FILE:970:patches/patch-configure]
 --- configure.orig	2015-08-08 14:26:00 UTC
 +++ configure
-@@ -8955,15 +8955,12 @@ case $cf_cv_system_name in
- (dragonfly*|freebsd*)
- 	LD_RPATH_OPT="-rpath "
- 	;;
--(netbsd*)
-+(netbsd*|solaris2*)
+@@ -8953,7 +8953,7 @@ case $cf_cv_system_name in
  	LD_RPATH_OPT="-Wl,-rpath,"
  	;;
- (osf*|mls+*)
+ (dragonfly*|freebsd*)
+-	LD_RPATH_OPT="-rpath "
++	LD_RPATH_OPT="-Wl,-rpath,"
+ 	;;
+ (netbsd*)
+ 	LD_RPATH_OPT="-Wl,-rpath,"
+@@ -8962,7 +8962,7 @@ case $cf_cv_system_name in
  	LD_RPATH_OPT="-rpath "
  	;;
--(solaris2*)
+ (solaris2*)
 -	LD_RPATH_OPT="-R"
--	;;
++	LD_RPATH_OPT="-Wl,-R"
+ 	;;
  (*)
  	;;
- esac
-@@ -9347,7 +9344,7 @@ CF_EOF
- 		MK_SHARED_LIB='${LD} -Bshareable -o $@'
- 		test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
- 		;;
--	(dragonfly*|freebsd*)
-+	(dragonfly*|freebsd*|solaris2*)
- 		CC_SHARED_OPTS="$CC_SHARED_OPTS -DPIC"
- 		if test "$DFT_LWR_MODEL" = "shared" && test "$cf_cv_enable_rpath" = yes ; then
- 			LOCAL_LDFLAGS="${cf_ld_rpath_opt}\$(LOCAL_LIBDIR)"
+@@ -9433,11 +9433,11 @@ CF_EOF
+ 		# tested with SunOS 5.5.1 (solaris 2.5.1) and gcc 2.7.2
+ 		# tested with SunOS 5.10 (solaris 10) and gcc 3.4.3
+ 		if test "$DFT_LWR_MODEL" = "shared" ; then
+-			LOCAL_LDFLAGS="-R \$(LOCAL_LIBDIR):\${libdir}"
++			LOCAL_LDFLAGS="-Wl,-R\$(LOCAL_LIBDIR):\${libdir}"
+ 			LOCAL_LDFLAGS2="$LOCAL_LDFLAGS"
+ 		fi
+ 		if test "$cf_cv_enable_rpath" = yes ; then
+-			EXTRA_LDFLAGS="-R \${libdir} $EXTRA_LDFLAGS"
++			EXTRA_LDFLAGS="-Wl,-R\${libdir} $EXTRA_LDFLAGS"
+ 		fi
+ 
+ 	test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
+
+
+[FILE:413:patches/patch-doc_Makefile.in]
+--- doc/Makefile.in.orig	2015-08-05 23:15:41 UTC
++++ doc/Makefile.in
+@@ -68,7 +68,7 @@ uninstall uninstall.man :
+ 
+ # HTML documentation is optional, usually in a separate package.
+ install.html : $(DOCDIR)
+-	cd $(srcdir) && tar -cf - *.htm* ada | tar -C $(DOCDIR) -xf -
++	cd $(srcdir) && tar -cf - *.htm* ada | tar -C $(DOCDIR) -xf - --no-same-owner --no-same-permissions
+ 
+ uninstall.html :
+ 	-rm -rf $(DOCDIR)
 
 
 [FILE:425:patches/patch-src_c__threaded__variables.h]
@@ -312,7 +332,7 @@ share/man/man1/adacurses-config.1.gz
  
 
 
-[FILE:1848:files/adacurses.gpr.in]
+[FILE:1859:files/adacurses.gpr.in]
 library project ADACURSES is
 
    for Languages use ("Ada");
@@ -331,7 +351,7 @@ library project ADACURSES is
    for Library_Kind use "static";
    for Externally_Built use "True";
 
-   D_Base_Flags := ("-L@PREFIX@/lib", "-Wl,-R,@PREFIX@/lib", "-lncurses");
+   D_Base_Flags := ("-L@PREFIX@/lib", "-Wl,-R,@PREFIX@/lib", "-lncurses", "-ltinfo");
    S_Base_Flags := ("@PREFIX@/lib/libncurses.a", "@PREFIX@/lib/libtinfo.a",
                     "@PREFIX@/lib/db5/libdb.a");
 

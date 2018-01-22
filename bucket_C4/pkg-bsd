@@ -79,6 +79,8 @@ post-patch-sunos:
 	${REINPLACE_CMD} -e 's|-lutil ||' \
 		${WRKSRC}/libpkg/Makefile.in \
 		${WRKSRC}/tests/Makefile.in
+	${REINPLACE_CMD} -e '/enable-new-dtags/d' \
+		${WRKSRC}/src/Makefile.in
 
 [FILE:290:descriptions/desc.shared]
 The pkg program is the package management tool used natively on FreeBSD and
@@ -171,7 +173,7 @@ share/zsh/site-functions/_pkg
 sbin/pkg-static
 
 
-[FILE:1260:sunos/patch-src_Makefile.in]
+[FILE:1251:sunos/patch-src_Makefile.in]
 --- src/Makefile.in.orig	2017-11-29 15:11:29.492036841 +0000
 +++ src/Makefile.in	2017-11-29 15:14:04.599048348 +0000
 @@ -602,7 +602,7 @@
@@ -200,7 +202,7 @@ sbin/pkg-static
 +	-lfts -lssl -lcrypto -lbsd -larchive-devel -lz -lbz2 -llzma -lzstd \
 +	-Wl,-Bdynamic \
 +	-lm -lrt -lresolv -lsocket -lgen \
-+	-Wl,-rpath -Wl,${prefix}/lib
++	-Wl,-R${prefix}/lib
  
  mostlyclean-compile:
  	-rm -f *.$(OBJEXT)

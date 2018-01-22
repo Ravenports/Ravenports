@@ -62,13 +62,17 @@ PLIST_SUB=		XYDOT=3.6
 SUB_FILES=		pkg-message-single
 SUB_LIST=		PYTHON_SUFFIX=36
 
-CFLAGS=			-I{{NCURSESINC}}
+CPPFLAGS=		-I{{NCURSESINC}}
 TEST_TARGET=		buildbottest
 TEST_ARGS=		TESTOPTS=-j{{MAKE_JOBS_NUMBER}}
 VAR_OPSYS[freebsd]=	PLIST_SUB=SOABI=
 			PLIST_SUB=SCD=
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
 			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+VAR_OPSYS[sunos]=	PLIST_SUB=SOABI=
+			PLIST_SUB=SCD=
+			PLIST_SUB=PLAT=sunos5
+			PLIST_SUB=FULLABI={{ABIFLAGS}}
 VAR_OPSYS[linux]=	PLIST_SUB=SOABI=.cpython-36m-x86_64-linux-gnu
 			PLIST_SUB=SCD=x86_64-linux-gnu
 			PLIST_SUB=FULLABI={{ABIFLAGS}}-x86_64-linux-gnu
@@ -120,9 +124,14 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 159b932bf56aeaa76fd66e7420522d8c8853d486b8567c459b84fe2ed13bcaba     16992824 Python-3.6.4.tar.xz
 
 
-[FILE:207760:manifests/plist.single]
+[FILE:207971:manifests/plist.single]
 %%DEBUG-OFF%%lib/python%%XYDOT%%/lib-dynload/xxlimited%%SOABI%%.so
-%%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.so
+%%ONLY-DRAGONFLY%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
+%%ONLY-FREEBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
+%%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/
+ ossaudiodev%%SOABI%%.so
+ spwd%%SOABI%%.so
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.so
 bin/
  2to3-%%XYDOT%%
  idle%%XYDOT%%
@@ -2921,7 +2930,6 @@ lib/python%%XYDOT%%/lib-dynload/
  math%%SOABI%%.so
  mmap%%SOABI%%.so
  nis%%SOABI%%.so
- ossaudiodev%%SOABI%%.so
  parser%%SOABI%%.so
  pyexpat%%SOABI%%.so
  readline%%SOABI%%.so
@@ -7141,6 +7149,22 @@ lib/python%%XYDOT%%/
 share/man/man1/python%%XYDOT%%.1.gz
 
 
+[FILE:298:patches/patch-Include_py__curses.h]
+--- Include/py_curses.h.orig	2017-12-19 04:53:56 UTC
++++ Include/py_curses.h
+@@ -12,6 +12,10 @@
+ #endif
+ #endif /* __APPLE__ */
+ 
++#ifdef __sun__
++#define _XOPEN_SOURCE_EXTENDED	1
++#endif /* __sun__ */
++
+ #ifdef __FreeBSD__
+ /*
+ ** On FreeBSD, [n]curses.h and stdlib.h/wchar.h use different guards
+
+
 [FILE:1644:patches/patch-Lib_distutils_command_install__lib.py]
 From 9934ce31b8447667f71c211e559a8de71e8263db Mon Sep 17 00:00:00 2001
 From: Brendan Molloy <brendan@bbqsrc.net>
@@ -7353,6 +7377,20 @@ record file nonetheless.
  	   	--prefix=$(prefix) \
  		--install-scripts=$(BINDIR) \
  		--install-platlib=$(DESTSHARED) \
+
+
+[FILE:475:patches/patch-Modules_nismodule.c]
+--- Modules/nismodule.c.orig	2017-12-19 04:53:56 UTC
++++ Modules/nismodule.c
+@@ -85,7 +85,7 @@ nis_mapname (char *map, int *pfix)
+     return map;
+ }
+ 
+-#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__)
++#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+ typedef int (*foreachfunc)(unsigned long, char *, int, char *, int, void *);
+ #else
+ typedef int (*foreachfunc)(int, char *, int, char *, int, char *);
 
 
 [FILE:211:patches/patch-configure]

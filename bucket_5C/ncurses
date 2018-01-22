@@ -78,24 +78,26 @@ VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS="-lrt -lresolv -lsocket"
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 
 post-install-STATIC-OFF:
-	${RM} ${STAGEDIR}${PREFIX}/lib/libncurses.so
-	${RM} ${STAGEDIR}${PREFIX}/lib/libncursesw.so
+	if [ "${OPSYS}" != "SunOS" ]; then \
+	${RM} ${STAGEDIR}${PREFIX}/lib/libncurses.so; \
+	${RM} ${STAGEDIR}${PREFIX}/lib/libncursesw.so; \
 	${ECHO} "INPUT(libncurses.so.6 AS_NEEDED(-ltinfo))" \
-		> ${STAGEDIR}${PREFIX}/lib/libncurses.so
+		> ${STAGEDIR}${PREFIX}/lib/libncurses.so; \
 	${ECHO} "INPUT(libncursesw.so.6 AS_NEEDED(-ltinfow))" \
-		> ${STAGEDIR}${PREFIX}/lib/libncursesw.so
+		> ${STAGEDIR}${PREFIX}/lib/libncursesw.so; \
+	fi
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so.6.0
 	${MV} ${STAGEDIR}${PREFIX}/share/misc/terminfo.db \
 		${STAGEDIR}${PREFIX}/share/misc/terminfo.db.default
 	@${MKDIR} ${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/c++
-. for f in Makefile README blue.c bs.6 bs.c cardfile.c cardfile.dat ditto.c dots.c filter.c firework.c firstlast.c gdc.6 gdc.c hanoi.c hashtest.c knight.c lrtest.c ncurses.c newdemo.c railroad.c rain.c tclock.c test.priv.h testaddch.c testcurs.c testscanw.c view.c worm.c xmas.c
+.for f in Makefile README blue.c bs.6 bs.c cardfile.c cardfile.dat ditto.c dots.c filter.c firework.c firstlast.c gdc.6 gdc.c hanoi.c hashtest.c knight.c lrtest.c ncurses.c newdemo.c railroad.c rain.c tclock.c test.priv.h testaddch.c testcurs.c testscanw.c view.c worm.c xmas.c
 	${INSTALL_DATA} ${WRKSRC}/build.nowidec/test/${f} \
 		${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/
-. endfor
-. for f in Makefile NEWS PROBLEMS README-first cursesapp.cc cursesapp.h cursesf.cc cursesf.h cursesm.cc cursesm.h cursesmain.cc cursesp.cc cursesp.h cursesw.cc cursesw.h cursslk.cc cursslk.h demo.cc etip.h internal.h
+.endfor
+.for f in Makefile NEWS PROBLEMS README-first cursesapp.cc cursesapp.h cursesf.cc cursesf.h cursesm.cc cursesm.h cursesmain.cc cursesp.cc cursesp.h cursesw.cc cursesw.h cursslk.cc cursslk.h demo.cc etip.h internal.h
 	${INSTALL_DATA} ${WRKSRC}/build.nowidec/c++/${f} \
 		${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/c++/
-. endfor
+.endfor
 	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 .for f in ANNOUNCE NEWS README doc/html/announce.html doc/hackguide.doc doc/html/hackguide.html doc/html/index.html doc/ncurses-intro.doc doc/html/ncurses-intro.html
 	${INSTALL_DATA} ${WRKSRC}/${f} ${STAGEDIR}${STD_DOCDIR}/
@@ -1217,52 +1219,41 @@ share/misc/tabset/
 share/misc/terminfo.db.default
 
 
-[FILE:1247:patches/patch-configure]
-# Based on upstream 6.0 patch 20160220:
-#
-#  + modify configure macro for shared-library rules to use -Wl,-rpath
-#    rather than -rpath to work around a bug in scons (FreeBSD #178732,
-#  cf: 20061021).
-#
-# See Also:
-#
-#  http://lists.gnu.org/archive/html/bug-ncurses/2016-02/msg00009.html
-#  http://lists.gnu.org/archive/html/bug-ncurses/2016-02/msg00006.html
-#
-# TODO: Remove patch on 6.1 update
-
+[FILE:970:patches/patch-configure]
 --- configure.orig	2015-08-05 09:20:32 UTC
 +++ configure
-@@ -5862,8 +5862,8 @@ case $cf_cv_system_name in
- (openbsd[2-9].*|mirbsd*)
+@@ -5863,7 +5863,7 @@ case $cf_cv_system_name in
  	LD_RPATH_OPT="-Wl,-rpath,"
  	;;
--(dragonfly*|freebsd*)
+ (dragonfly*|freebsd*)
 -	LD_RPATH_OPT="-rpath "
-+(dragonfly*|freebsd*|solaris2*)
 +	LD_RPATH_OPT="-Wl,-rpath,"
  	;;
  (netbsd*)
  	LD_RPATH_OPT="-Wl,-rpath,"
-@@ -5871,9 +5871,6 @@ case $cf_cv_system_name in
- (osf*|mls+*)
+@@ -5872,7 +5872,7 @@ case $cf_cv_system_name in
  	LD_RPATH_OPT="-rpath "
  	;;
--(solaris2*)
+ (solaris2*)
 -	LD_RPATH_OPT="-R"
--	;;
++	LD_RPATH_OPT="-Wl,-R"
+ 	;;
  (*)
  	;;
- esac
-@@ -6257,7 +6254,7 @@ CF_EOF
- 		MK_SHARED_LIB='${LD} -Bshareable -o $@'
- 		test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
- 		;;
--	(dragonfly*|freebsd*)
-+	(dragonfly*|freebsd*|solaris2*)
- 		CC_SHARED_OPTS="$CC_SHARED_OPTS -DPIC"
- 		if test "$DFT_LWR_MODEL" = "shared" && test "$cf_cv_enable_rpath" = yes ; then
- 			LOCAL_LDFLAGS="${cf_ld_rpath_opt}\$(LOCAL_LIBDIR)"
+@@ -6343,11 +6343,11 @@ CF_EOF
+ 		# tested with SunOS 5.5.1 (solaris 2.5.1) and gcc 2.7.2
+ 		# tested with SunOS 5.10 (solaris 10) and gcc 3.4.3
+ 		if test "$DFT_LWR_MODEL" = "shared" ; then
+-			LOCAL_LDFLAGS="-R \$(LOCAL_LIBDIR):\${libdir}"
++			LOCAL_LDFLAGS="-Wl,-R\$(LOCAL_LIBDIR):\${libdir}"
+ 			LOCAL_LDFLAGS2="$LOCAL_LDFLAGS"
+ 		fi
+ 		if test "$cf_cv_enable_rpath" = yes ; then
+-			EXTRA_LDFLAGS="-R \${libdir} $EXTRA_LDFLAGS"
++			EXTRA_LDFLAGS="-Wl,-R\${libdir} $EXTRA_LDFLAGS"
+ 		fi
+ 
+ 	test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
 
 
 [FILE:1041:patches/patch-misc_terminfo.src]
