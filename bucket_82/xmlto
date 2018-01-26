@@ -2,7 +2,7 @@
 
 NAMEBASE=		xmlto
 VERSION=		0.0.28
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	Front-end to an XSL toolchain
@@ -21,8 +21,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	bash:primary:standard
-			getopt:single:standard
+BUILDRUN_DEPENDS=	getopt:single:standard
 			libpaper:single:standard
 			w3m:primary:standard
 			docbook-xsl:primary:standard
@@ -35,7 +34,7 @@ EXTRACT_ONLY=		1
 FPC_EQUIVALENT=		textproc/xmlto
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		BASH={{LOCALBASE}}/bin/bash
+CONFIGURE_ARGS=		BASH={{SH}}
 			GETOPT={{LOCALBASE}}/bin/getopt
 			PDFXMLTEX={{LOCALBASE}}/bin/pdftex
 
@@ -140,12 +139,75 @@ share/xmlto/
    [ -e "$XSLT_PROCESSED" ] && rm "$XSLT_PROCESSED"
 
 
-[FILE:334:patches/patch-xmlto.in]
+[FILE:662:patches/patch-xmlif_xmlif.c]
+--- xmlif/xmlif.c.orig	2015-11-10 12:05:27 UTC
++++ xmlif/xmlif.c
+@@ -1306,7 +1306,7 @@ static void process_else()
+ 
+ #define INITIAL 0
+ #define attrib 1
+-#define val 2
++#define unique_val 2
+ 
+ #ifndef YY_NO_UNISTD_H
+ /* Special case for "unistd.h", since it is non-ANSI. We include it way
+@@ -1594,7 +1594,7 @@ YY_RULE_SETUP
+ case 8:
+ YY_RULE_SETUP
+ #line 217 "xmlif/xmlif.l"
+-{BEGIN(val);}
++{BEGIN(unique_val);}
+ 	YY_BREAK
+ case 9:
+ YY_RULE_SETUP
+@@ -1636,7 +1636,7 @@ ECHO;
+ #line 1637 "xmlif/xmlif.c"
+ case YY_STATE_EOF(INITIAL):
+ case YY_STATE_EOF(attrib):
+-case YY_STATE_EOF(val):
++case YY_STATE_EOF(unique_val):
+ 	yyterminate();
+ 
+ 	case YY_END_OF_BUFFER:
+
+
+[FILE:1210:patches/patch-xmlto.in]
 This patch makes sure that w3m or others will not pollute $HOME/
 
---- ./xmlto.in.orig	2011-11-29 12:49:57.000000000 +0100
-+++ ./xmlto.in	2013-10-07 23:52:57.000000000 +0200
-@@ -611,4 +611,6 @@
+Avoid pointless bashisms.
+Avoid use of non POSIX local builtin.
+
+--- xmlto.in.orig	2015-11-16 14:07:10 UTC
++++ xmlto.in
+@@ -78,13 +78,15 @@ EOF
+ #  * Remembers the temporary file's name so it can be deleted on exit
+ #  * If the failure message is empty or missing, exits on failure
+ make_temp () {
+-  local dirflag="" prefix="@PACKAGE@"
++  dirflag="" prefix="@PACKAGE@"
+   [ "$1" = "-d" ] && { dirflag="-d"; shift; }
+   [ -n "$1" ] && prefix="@PACKAGE@-$1"
+ 
+-  if eval $2='$(${MKTEMP} $dirflag "${TMPDIR:-/tmp}/${prefix}.XXXXXX")'
++  tmpnam=$(${MKTEMP} $dirflag "${TMPDIR:-/tmp}/${prefix}.XXXXXX")
++  if [ $? = 0 ]
+   then
+-    CLEANFILES="$CLEANFILES ${!2}"
++    eval $2="$tmpnam"
++    CLEANFILES="$CLEANFILES $tmpnam"
+     return 0
+   elif [ -z "$3" ]
+   then
+@@ -97,7 +99,7 @@ make_temp () {
+ }
+ 
+ compute_searchpath () {
+-  local oldIFS="${IFS}"
++  oldIFS="${IFS}"
+   IFS=":"
+   for asearchpath in "$1"; do
+     # wrangle relative paths into absolute ones so that the user
+@@ -651,4 +653,6 @@ then
    # Extremely verbose
    BASH="${BASH} -x"
  fi

@@ -154,3 +154,37 @@ lib/
  libgit2.so.%%SOVERSION%%
 lib/pkgconfig/libgit2.pc
 
+
+[FILE:364:patches/patch-src_unix_posix.h]
+--- src/unix/posix.h.orig	2017-06-14 11:31:20 UTC
++++ src/unix/posix.h
+@@ -81,6 +81,11 @@ GIT_INLINE(int) p_futimes(int f, const s
+ 	s[1].tv_nsec = t[1].tv_usec * 1000;
+ 	return futimens(f, s);
+ }
++#elif defined __sun__
++GIT_INLINE(int) p_futimes(int f, const struct p_timeval t[2])
++{
++	return futimesat(f, NULL, t);
++}
+ #else
+ # define p_futimes futimes
+ #endif
+
+
+[FILE:365:patches/patch-tests_clar_sandbox.h]
+--- tests/clar/sandbox.h.orig	2017-06-14 11:31:20 UTC
++++ tests/clar/sandbox.h
+@@ -113,6 +113,11 @@ static int build_sandbox_path(void)
+ 
+ 	if (mkdir(_clar_path, 0700) != 0)
+ 		return -1;
++#elif defined __sun__
++	if (mktemp(_clar_path) == NULL)
++		return -1;
++	if (mkdir(_clar_path, 0700) != 0)
++		return -1;
+ #else
+ 	if (mkdtemp(_clar_path) == NULL)
+ 		return -1;
+

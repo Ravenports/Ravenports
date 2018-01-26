@@ -5,6 +5,7 @@
 # Valid ARGS:	skiplist (Don't generate package list automatically)
 #               v23      (requires Ruby 2.3)
 #               v24      (requires Ruby 2.4) (implicit)
+#		v25	 (requires Ruby 2.5)
 
 .if !defined(_INCLUDE_USES_GEM_MK)
 _INCLUDE_USES_GEM_MK=	yes
@@ -12,13 +13,17 @@ _INCLUDE_USES_GEM_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v2[34]
+# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v2[345]
 # -----------------------------------------------
 
 .  if ${gem_ARGS} == "v23"
 GEMS_BASE_DIR=	lib/ruby/gems/2.3
 RUBYGEMBIN=	${LOCALBASE}/bin/gem23
 USING_RUBY=	2.3
+.  elif ${gem_ARGS} == "v25"
+GEMS_BASE_DIR=	lib/ruby/gems/2.5
+RUBYGEMBIN=	${LOCALBASE}/bin/gem25
+USING_RUBY=	2.5
 .  else
 GEMS_BASE_DIR=	lib/ruby/gems/2.4
 RUBYGEMBIN=	${LOCALBASE}/bin/gem24

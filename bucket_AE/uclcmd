@@ -18,6 +18,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libucl:single:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 B_DEPS[linux]=		libbsd:single:standard
 
 USES=			pkgconfig
@@ -27,6 +28,8 @@ LICENSE_SCHEME=		solo
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
 
 FPC_EQUIVALENT=		devel/uclcmd
+
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/uclcmd
@@ -103,4 +106,18 @@ bin/uclcmd
  /* 
   * This method is called with the arguments of asprintf() as parameter.
   * It handles error checking all instances of asprintf()
+
+
+[FILE:291:sunos/patch-Makefile]
+--- Makefile.orig	2017-04-28 04:19:05 UTC
++++ Makefile
+@@ -12,7 +12,7 @@ EXECUTABLE=uclcmd
+ all: $(SRCS) $(EXECUTABLE)
+ 
+ $(EXECUTABLE): $(OBJS)
+-	$(CC) $(LDFLAGS) $(LIBS) -o $(EXECUTABLE) $(OBJS)
++	$(CC) $(LDFLAGS) $(LIBS) -o $(EXECUTABLE) $(OBJS) -lbsd
+ 
+ clean:
+ 	rm -f *.o $(EXECUTABLE)
 

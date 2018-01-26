@@ -2,6 +2,7 @@
 
 NAMEBASE=		ruby-rubygems
 VERSION=		2.7.4
+REVISION=		1
 KEYWORDS=		ruby devel
 VARIANTS=		v23 v24 v25
 SDESC[v23]=		Package management framework for Ruby (v2.3)
@@ -38,6 +39,7 @@ SKIP_BUILD=		yes
 
 PLIST_SUB=		DISTNAME="{{DISTNAME}}"
 			SUFFIX="{{RUBY_SUFFIX}}"
+			GEMS_BASE_DIR="lib/ruby/gems/{{RUBY_VER}}"
 
 [RUBY23].MAKEFILE_ON=			GEMLINK2.3=""
 					GEMLINK2.4="@comment "
@@ -65,6 +67,7 @@ do-install-RUBY25-ON:
 	fi
 
 do-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/ruby/gems/${RUBY_VER}
 	cd ${WRKSRC} && ${SETENV} \
 		GEM_HOME=${STAGEDIR}${PREFIX}/lib/ruby/gems/${RUBY_VER} \
 		${RUBY} ${RUBY_SETUP} --destdir=${STAGEDIR} \
@@ -96,7 +99,7 @@ resolve dependencies and install them.
 bbe35ce6646e4168fcb1071d5f83b2d1154924f5150df0f5fca0f37d2583a182       908282 ruby/rubygems-2.7.4.tgz
 
 
-[FILE:10705:manifests/plist.single]
+[FILE:10895:manifests/plist.single]
 %%GEMLINK%%bin/gem
 bin/gem%%SUFFIX%%
 %%RUBY_SITELIBDIR%%/
@@ -572,6 +575,12 @@ bin/gem%%SUFFIX%%
  version_option.rb
 %%RUBY_SITELIBDIR%%/
  ubygems.rb
+@dir %%GEMS_BASE_DIR%%/build_info
+@dir %%GEMS_BASE_DIR%%/cache
+@dir %%GEMS_BASE_DIR%%/doc
+@dir %%GEMS_BASE_DIR%%/extensions
+@dir %%GEMS_BASE_DIR%%/gems
+@dir %%GEMS_BASE_DIR%%/specifications
 
 
 [FILE:46:files/special.mk]

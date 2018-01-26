@@ -29,6 +29,8 @@ MUST_CONFIGURE=		gnu
 
 INSTALL_TARGET=		install-strip
 
+VAR_OPSYS[sunos]=	CFLAGS=-DSUNOS_NO_IFADDRS
+
 pre-configure:
 	${ECHO_CMD} "m4_define([UV_EXTRA_AUTOMAKE_FLAGS], [ serial-tests])" \
 		> ${WRKSRC}/m4/libuv-extra-automake-flags.m4
@@ -54,10 +56,11 @@ Feature highlights:
 8d96a6230af4f9f33d6ec021b599e157279a2af72ed38cf4a8c25e6d58d952ef      1174572 libuv-libuv-1.19.1.tar.gz
 
 
-[FILE:245:manifests/plist.single]
+[FILE:278:manifests/plist.single]
 %%ONLY-DRAGONFLY%%include/uv-bsd.h
 %%ONLY-FREEBSD%%include/uv-bsd.h
 %%ONLY-LINUX%%include/uv-linux.h
+%%ONLY-SUNOS%%include/uv-sunos.h
 include/
  uv-errno.h
  uv-threadpool.h
@@ -70,6 +73,50 @@ lib/
  libuv.so.1
  libuv.so.1.0.0
 lib/pkgconfig/libuv.pc
+
+
+[FILE:352:patches/patch-src_unix_fs.c]
+--- src/unix/fs.c.orig	2018-01-19 20:17:23 UTC
++++ src/unix/fs.c
+@@ -259,7 +259,15 @@ skip:
+ 
+ 
+ static ssize_t uv__fs_mkdtemp(uv_fs_t* req) {
++#ifdef __sun__
++  char *tmplt;
++  tmplt = mktemp((char*) req->path);
++  if (tmplt == NULL)
++	return (-1);
++  return (mkdir (tmplt, 0700));
++#else
+   return mkdtemp((char*) req->path) ? 0 : -1;
++#endif
+ }
+ 
+ 
+
+
+[FILE:405:patches/patch-src_unix_getaddrinfo.c]
+--- src/unix/getaddrinfo.c.orig	2018-01-19 20:17:23 UTC
++++ src/unix/getaddrinfo.c
+@@ -37,6 +37,17 @@
+ /* EAI_* constants. */
+ #include <netdb.h>
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
+ 
+ int uv__getaddrinfo_translate_error(int sys_err) {
+   switch (sys_err) {
 
 
 [FILE:725:dragonfly/patch-src_unix_freebsd.c]

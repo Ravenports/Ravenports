@@ -18,6 +18,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
+
 USES=			cclibs:single
 
 DISTNAME=		libexecinfo
@@ -57,6 +59,65 @@ lib/
 share/man/man3/backtrace.3.gz
 
 
+[FILE:1091:patches/patch-elftoolchain-0.7.1_common___elftc.h]
+--- ../elftoolchain-0.7.1/common/_elftc.h.orig	2015-08-31 19:53:08 UTC
++++ ../elftoolchain-0.7.1/common/_elftc.h
+@@ -294,6 +294,10 @@ struct name {							\
+ #define	ELFTC_VCSID(ID)		__FBSDID(ID)
+ #endif
+ 
++#if defined(__sun__)
++#define	ELFTC_VCSID(ID)		/**/
++#endif
++
+ #if defined(__APPLE__) || defined(__GLIBC__) || defined(__GNU__) || \
+     defined(__linux__)
+ #if defined(__GNUC__)
+@@ -332,7 +336,7 @@ struct name {							\
+ #ifndef	ELFTC_GETPROGNAME
+ 
+ #if defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || \
+-    defined(__minix) || defined(__NetBSD__)
++    defined(__minix) || defined(__NetBSD__) || defined(__sun__)
+ 
+ #include <stdlib.h>
+ 
+@@ -400,6 +404,15 @@ extern const char *__progname;
+ 
+ #endif
+ 
++#if defined(__sun__)
++#define ELFTC_BYTE_ORDER			1234
++#define ELFTC_BYTE_ORDER_LITTLE_ENDIAN		1234
++#define ELFTC_BYTE_ORDER_BIG_ENDIAN		4321
++#define ELFTC_HAVE_MMAP				1
++#define roundup(x, y)		((((x)+((y)-1))/(y))*(y))
++#define roundup2(x, y)		(((x)+((y)-1))&(~((y)-1)))
++#endif
++ 
+ #if defined(__GLIBC__) || defined(__linux__)
+ 
+ #include <endian.h>
+
+
+[FILE:345:patches/patch-elftoolchain-0.7.1_libelf___libelf__config.h]
+--- ../elftoolchain-0.7.1/libelf/_libelf_config.h.orig	2015-02-24 19:17:47 UTC
++++ ../elftoolchain-0.7.1/libelf/_libelf_config.h
+@@ -40,6 +40,12 @@
+ 
+ #endif	/* __DragonFly__ */
+ 
++#if defined(__sun__)
++# define LIBELF_ARCH		EM_X86_64
++# define LIBELF_BYTEORDER	ELFDATA2LSB
++# define LIBELF_CLASS		ELFCLASS64
++#endif
++
+ #ifdef __FreeBSD__
+ 
+ /*
+
+
 [FILE:1648:files/LICENSE]
 /*	$NetBSD: execinfo.h,v 1.2 2012/06/09 21:22:17 christos Exp $	*/
 /*	$FreeBSD: head/contrib/libexecinfo/execinfo.h 255177 2013-09-03 13:38:41Z emaste $ */
@@ -91,7 +152,7 @@ share/man/man3/backtrace.3.gz
  */
 
 
-[FILE:3105:files/Makefile]
+[FILE:3205:files/Makefile]
 # libexecinfo has libelf inbuilt from elftoolchain project
 
 .SUFFIXES:	.o .c
@@ -121,7 +182,7 @@ CFLAGS+=	-I. -I${SRCDIR} -I${COMMON}
 
 all: ${LIB_STATIC} ${LIB_SHARED}
 
-.if ${OPSYS} == Linux
+.if ${OPSYS} == Linux || ${OPSYS} == SunOS
 TSORT=		tsort 2>/dev/null
 .else
 TSORT=		tsort -q
@@ -193,6 +254,11 @@ libelf_msize.c:		elf_types.m4 libelf_msize.m4
 ${SRCS}: native-elf-format.h
 .endif
 
+.if "${OPSYS}" == "SunOS"
+CFLAGS+=	-I${PREFIX}/include/bsd
+SRCS+=		progname.c
+.endif
+
 # libexec sources
 PREFIX?=	/usr/local
 SRCS+=		backtrace.c symtab.c unwind.c
@@ -206,7 +272,7 @@ ${LIB_STATIC}: ${OBJS}
 
 ${LIB_SHARED}: ${SOBJS}
 	@${ECHO} building shared ${LIB} library
-	${CC_LINK} ${LDFLAGS} -shared -Wl,-x \
+	${CC_LINK} ${LDFLAGS} -shared \
 	    -o ${.TARGET} -Wl,-soname,${.TARGET} \
 	    `lorder ${SOBJS} | ${TSORT}`
 
@@ -351,7 +417,7 @@ arguments.
 .El
 
 
-[FILE:4516:files/backtrace.c]
+[FILE:4638:files/backtrace.c]
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <assert.h>
@@ -370,6 +436,8 @@ arguments.
 
 #ifdef __linux__
 #define SELF	"/proc/self/exe"
+#elif defined __sun__
+#define SELF	"/proc/self/path/a.out"
 #else
 #include <sys/sysctl.h>
 #define SELF	"/proc/curproc/file"
@@ -379,6 +447,10 @@ arguments.
 #define	__printflike(fmtarg, firstvararg) \
             __attribute__((__nonnull__(fmtarg), \
 			  __format__ (__printf__, fmtarg, firstvararg)))
+#endif
+
+#ifndef MAX
+#define MAX(a, b)	((a) >= (b) ? (a) : (b))
 #endif
 
 static int
@@ -591,6 +663,29 @@ int backtrace_symbols_fd_fmt(void *const *, size_t, int, const char *);
 __END_DECLS
 
 #endif /* _EXECINFO_H_ */
+
+
+[FILE:523:files/progname.c]
+#include <libgen.h>
+#include <string.h>
+#include <stdlib.h>
+
+const char *getprogname () {
+    static const char *progname;
+
+    if (progname == NULL) {
+        const char *e = getexecname();
+        if (e != NULL) {
+            /* Have to make a copy since getexecname can return a readonly
+               string, but basename expects to be able to modify its arg. */
+            char *n = strdup(e);
+            if (n != NULL) {
+                progname = basename(n);
+            }
+        }
+    }
+    return progname;
+}
 
 
 [FILE:3049:files/symtab.c]

@@ -94,11 +94,13 @@ PLIST_SUB=		XYDOT=2.7
 SUB_FILES=		pkg-message-single
 SUB_LIST=		PYTHON_SUFFIX=27
 
-CFLAGS=			-I{{NCURSESINC}}
+CPPFLAGS=		-I{{NCURSESINC}}
 TEST_TARGET=		buildbottest
 TEST_ARGS=		TESTOPTS=-j{{MAKE_JOBS_NUMBER}}
 VAR_OPSYS[freebsd]=	PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
 			PLIST_SUB=SHLIB=so.1
+VAR_OPSYS[sunos]=	PLIST_SUB=PLAT=sunos5
+			PLIST_SUB=SHLIB=so.1.0
 VAR_OPSYS[linux]=	PLIST_SUB=PLAT={{OPSYS:tl}}2
 			PLIST_SUB=SHLIB=so.1.0
 VAR_OPSYS[dragonfly]=	PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
@@ -150,7 +152,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 71ffb26e09e78650e424929b2b457b9c912ac216576e6bd9e7d204ed03296a66     12576112 Python-2.7.14.tar.xz
 
 
-[FILE:75891:manifests/plist.single]
+[FILE:76365:manifests/plist.single]
 %%I386-ON%%lib/python2.7/lib-dynload/
  dl.so
  imageop.so
@@ -164,6 +166,25 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
  DLFCN.py
  DLFCN.pyc
  DLFCN.pyo
+ TYPES.py
+ TYPES.pyc
+ TYPES.pyo
+%%ONLY-SUNOS%%lib/python2.7/lib-dynload/
+ spwd.so
+ sunaudiodev.so
+%%ONLY-SUNOS%%lib/python2.7/plat-%%PLAT%%/
+ CDIO.py
+ CDIO.pyc
+ CDIO.pyo
+ DLFCN.py
+ DLFCN.pyc
+ DLFCN.pyo
+ STROPTS.py
+ STROPTS.pyc
+ STROPTS.pyo
+ SUNAUDIODEV.py
+ SUNAUDIODEV.pyc
+ SUNAUDIODEV.pyo
  TYPES.py
  TYPES.pyc
  TYPES.pyo
@@ -2157,7 +2178,11 @@ lib/python2.7/lib-dynload/
  mmap.so
  nis.so
  operator.so
+%%ONLY-DRAGONFLY%%lib/python2.7/lib-dynload/ossaudiodev.so
+%%ONLY-FREEBSD%%lib/python2.7/lib-dynload/ossaudiodev.so
+%%ONLY-LINUX%%lib/python2.7/lib-dynload/
  ossaudiodev.so
+lib/python2.7/lib-dynload/
  parser.so
  pyexpat.so
  readline.so
@@ -4862,6 +4887,22 @@ share/man/man1/python2.7.1.gz
     the relevant C header files.
 
 
+[FILE:298:patches/patch-Include_py__curses.h]
+--- Include/py_curses.h.orig	2017-12-19 04:53:56 UTC
++++ Include/py_curses.h
+@@ -12,6 +12,10 @@
+ #endif
+ #endif /* __APPLE__ */
+ 
++#ifdef __sun__
++#define _XOPEN_SOURCE_EXTENDED	1
++#endif /* __sun__ */
++
+ #ifdef __FreeBSD__
+ /*
+ ** On FreeBSD, [n]curses.h and stdlib.h/wchar.h use different guards
+
+
 [FILE:643:patches/patch-Lib_distutils_command_build__scripts.py]
 # Description: A non-invasive partial backport of the Python3 distutils behaviour.
 # This allows Python's scripts to be properly suffixed (similar to Python 3.x) on
@@ -5062,6 +5103,24 @@ record file nonetheless.
  #define FFI_INIT_TRAMPOLINE(TRAMP,FUN,CTX)				\
  ({ unsigned char *__tramp = (unsigned char*)(TRAMP);			\
     unsigned int  __fun = (unsigned int)(FUN);				\
+
+
+[FILE:540:patches/patch-Modules___multiprocessing_multiprocessing.h]
+$NetBSD: patch-Modules___multiprocessing_multiprocessing.h,v 1.1 2017/05/22 16:45:19 jperkin Exp $
+
+Only define _XOPEN_SOURCE if we aren't already using newer.
+
+--- Modules/_multiprocessing/multiprocessing.h.orig	2016-12-17 20:05:07.000000000 +0000
++++ Modules/_multiprocessing/multiprocessing.h
+@@ -3,7 +3,7 @@
+ 
+ #define PY_SSIZE_T_CLEAN
+ 
+-#ifdef __sun
++#if defined(__sun) && !(__STDC_VERSION__ - 0 >= 199901L)
+ /* The control message API is only available on Solaris 
+    if XPG 4.2 or later is requested. */
+ #define _XOPEN_SOURCE 500
 
 
 [FILE:2281:patches/patch-Modules__fcntlmodule.c]

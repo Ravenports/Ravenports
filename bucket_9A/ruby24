@@ -1428,10 +1428,10 @@ share/examples/ruby%%XY%%/webrick/
  httpsd.rb
 
 
-[FILE:820:patches/patch-configure.in]
---- configure.in.orig	2017-08-04 14:39:29 UTC
+[FILE:1160:patches/patch-configure.in]
+--- configure.in.orig	2017-09-14 22:22:39 UTC
 +++ configure.in
-@@ -3877,8 +3877,8 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3879,21 +3879,17 @@ AS_CASE("$enable_shared", [yes], [
  	LIBRUBY_ALIASES='lib$(RUBY_SO_NAME).so.$(MAJOR).$(MINOR) lib$(RUBY_SO_NAME).so'
  	],
      [linux* | gnu* | k*bsd*-gnu | atheos* | kopensolaris*-gnu | haiku*], [
@@ -1442,6 +1442,20 @@ share/examples/ruby%%XY%%/webrick/
  	if test "$load_relative" = yes; then
  	    libprefix="'\$\${ORIGIN}/../${libdir_basename}'"
  	    LIBRUBY_RPATHFLAGS="-Wl,-rpath,${libprefix}"
+ 	    LIBRUBY_RELATIVE=yes
+ 	fi
+ 	],
+-    [freebsd*|dragonfly*], [
++    [freebsd*|dragonfly*|solaris*], [
+ 	SOLIBS='$(LIBS)'
+ 	LIBRUBY_SO='lib$(RUBY_SO_NAME).so.$(MAJOR)$(MINOR)'
+-	if test "$rb_cv_binary_elf" != "yes" ; then
+-	    LIBRUBY_SO="$LIBRUBY_SO.\$(TEENY)"
+-	    LIBRUBY_ALIASES=''
+-	fi
+ 	],
+     [netbsd*], [
+ 	SOLIBS='$(LIBS)'
 
 
 [FILE:469:patches/patch-lib_mkmf.rb]

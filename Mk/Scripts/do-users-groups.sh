@@ -1,5 +1,5 @@
 #!/bin/sh
-# This script is specific to FreeBSD/DragonFly
+# This script is specific to FreeBSD/DragonFly/Linux/Solaris
 # This script will need augmentation for other OS.
 
 set -e
@@ -56,7 +56,7 @@ if [ -n "${GROUPS}" ]; then
 				error "Group line for group ${group} has no gid"
 			fi
 			gid=$((gid+dp_GID_OFFSET))
-			if [ "${dp_OPSYS}" = "Linux" ]; then
+			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
 				cat >> "${dp_UG_INSTALL}" <<-eot2
 if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Using existing group '$group'."
@@ -118,7 +118,7 @@ if id ${user} >/dev/null 2>&1; then
 else
   echo "Creating user '$login' with uid '$uid'."
 eot2
-			if [ "${dp_OPSYS}" = "Linux" ]; then
+			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
 				cat >> "${dp_UG_INSTALL}" <<-eot2
   useradd -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell $login
 fi
@@ -164,6 +164,14 @@ if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1
   usermod -a -G ${group} ${login}
 fi
 eot2
+						elif [ "${dp_OPSYS}" = "SunOS" ]; then
+							cat >> "${dp_UG_INSTALL}" <<-eot2
+if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
+  echo "Adding user '${login}' to group '${group}'."
+  -- determine 2ndary group list here group_list=
+  usermod -G ${group_list} ${login}
+fi
+eot2
 						else
 							cat >> "${dp_UG_INSTALL}" <<-eot2
 if ! \${PW} groupshow ${group} | grep -qw ${login}; then
@@ -198,7 +206,7 @@ fi
 if [ -n "${GROUPS}" ]; then
 	for group in ${GROUPS}; do
 		if ! echo "${GROUP_BLACKLIST}" | grep -qw "${group}"; then
-			if [ "${dp_OPSYS}" = "Linux" ]; then
+			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
 				cat >> "${dp_UG_DEINSTALL}" <<-eot
 if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "==> You should manually remove the \"${group}\" group "

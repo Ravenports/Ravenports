@@ -182,8 +182,8 @@ reverting https://github.com/hunspell/hunspell/commit/dd4b14899bfb
  
 
 
-[FILE:2031:patches/patch-src_tools_hunspell.cxx]
---- src/tools/hunspell.cxx.orig	2017-03-25 21:20:45 UTC
+[FILE:2323:patches/patch-src_tools_hunspell.cxx]
+--- src/tools/hunspell.cxx.orig	2017-09-03 11:38:44 UTC
 +++ src/tools/hunspell.cxx
 @@ -115,29 +115,23 @@
  #include "xmlparser.hxx"
@@ -230,4 +230,17 @@ reverting https://github.com/hunspell/hunspell/commit/dd4b14899bfb
  #define HOME getenv("HOME")
  #define DICBASENAME ".hunspell_"
  #define LOGFILE "/tmp/hunspell.log"
+@@ -643,6 +637,12 @@ char* mymkdtemp(char *templ) {
+     return NULL;
+   }
+   return odftmpdir;
++#elif defined __sun__
++  char *tmplt;
++  tmplt = mktemp(templ);
++  if (tmplt == NULL)
++	return NULL;
++  return (mkdir (tmplt, 0700) == 0) ? tmplt : NULL;
+ #else
+   return mkdtemp(templ);
+ #endif
 

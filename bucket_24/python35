@@ -63,11 +63,13 @@ PLIST_SUB=		XYDOT=3.5
 SUB_FILES=		pkg-message-single
 SUB_LIST=		PYTHON_SUFFIX=35
 
-CFLAGS=			-I{{NCURSESINC}}
+CPPFLAGS=		-I{{NCURSESINC}}
 TEST_TARGET=		buildbottest
 TEST_ARGS=		TESTOPTS=-j{{MAKE_JOBS_NUMBER}}
 VAR_OPSYS[freebsd]=	PLIST_SUB=SOABI=
 			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+VAR_OPSYS[sunos]=	PLIST_SUB=SOABI=
+			PLIST_SUB=PLAT=sunos5
 VAR_OPSYS[linux]=	PLIST_SUB=SOABI=.cpython-35m-x86_64-linux-gnu
 			PLIST_SUB=PLAT={{OPSYS:tl}}
 VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=
@@ -115,7 +117,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 94d93bfabb3b109f8a10365a325f920f9ec98c6e2380bf228f9700a14054c84c     15332320 Python-3.5.4.tar.xz
 
 
-[FILE:203974:manifests/plist.single]
+[FILE:205142:manifests/plist.single]
 %%DEBUG-OFF%%lib/python%%XYDOT%%/lib-dynload/xxlimited%%SOABI%%.so
 %%PYMALLOC-OFF%%%%DEBUG-ON%%lib/pkgconfig/python-%%XYDOT%%%%ABI%%.pc
 %%PYMALLOC-OFF%%%%DEBUG-ON%%bin/
@@ -2872,13 +2874,20 @@ lib/python%%XYDOT%%/lib-dynload/
  math%%SOABI%%.so
  mmap%%SOABI%%.so
  nis%%SOABI%%.so
+%%ONLY-DRAGONFLY%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
+%%ONLY-FREEBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
+%%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/
  ossaudiodev%%SOABI%%.so
+lib/python%%XYDOT%%/lib-dynload/
  parser%%SOABI%%.so
  pyexpat%%SOABI%%.so
  readline%%SOABI%%.so
  resource%%SOABI%%.so
  select%%SOABI%%.so
-%%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.so
+%%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/
+ spwd%%SOABI%%.so
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.so
+lib/python%%XYDOT%%/lib-dynload/
  syslog%%SOABI%%.so
  termios%%SOABI%%.so
  unicodedata%%SOABI%%.so
@@ -3420,6 +3429,30 @@ lib/python%%XYDOT%%/plat-%%PLAT%%/__pycache__/
  CDROM.cpython-%%XY%%.opt-1.pyc
  CDROM.cpython-%%XY%%.opt-2.pyc
  CDROM.cpython-%%XY%%.pyc
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/
+ CDIO.py
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/__pycache__/
+ CDIO.cpython-%%XY%%.opt-1.pyc
+ CDIO.cpython-%%XY%%.opt-2.pyc
+ CDIO.cpython-%%XY%%.pyc
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/
+ DLFCN.py
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/__pycache__/
+ DLFCN.cpython-%%XY%%.opt-1.pyc
+ DLFCN.cpython-%%XY%%.opt-2.pyc
+ DLFCN.cpython-%%XY%%.pyc
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/
+ STROPTS.py
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/__pycache__/
+ STROPTS.cpython-%%XY%%.opt-1.pyc
+ STROPTS.cpython-%%XY%%.opt-2.pyc
+ STROPTS.cpython-%%XY%%.pyc
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/
+ TYPES.py
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/plat-%%PLAT%%/__pycache__/
+ TYPES.cpython-%%XY%%.opt-1.pyc
+ TYPES.cpython-%%XY%%.opt-2.pyc
+ TYPES.cpython-%%XY%%.pyc
 lib/python%%XYDOT%%/plat-%%PLAT%%/
  regen
 lib/python%%XYDOT%%/
@@ -6991,6 +7024,22 @@ lib/python%%XYDOT%%/
  zipapp.py
  zipfile.py
 share/man/man1/python%%XYDOT%%.1.gz
+
+
+[FILE:298:patches/patch-Include_py__curses.h]
+--- Include/py_curses.h.orig	2017-12-19 04:53:56 UTC
++++ Include/py_curses.h
+@@ -12,6 +12,10 @@
+ #endif
+ #endif /* __APPLE__ */
+ 
++#ifdef __sun__
++#define _XOPEN_SOURCE_EXTENDED	1
++#endif /* __sun__ */
++
+ #ifdef __FreeBSD__
+ /*
+ ** On FreeBSD, [n]curses.h and stdlib.h/wchar.h use different guards
 
 
 [FILE:1644:patches/patch-Lib_distutils_command_install__lib.py]

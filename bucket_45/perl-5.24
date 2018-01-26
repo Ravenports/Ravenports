@@ -44,7 +44,7 @@ CONFIGURE_ARGS=		-Dcf_by="John Marino"
 			-Di_gdbm
 			-Dlocincpth="{{BDB_INCLUDE_DIR}} {{PREFIX}}/include"
 			-Dloclibpth="{{BDB_LIB_DIR}} {{PREFIX}}/lib"
-			-Aldflags="-Wl,-rpath,{{PREFIX}}/lib"
+			-Aldflags="-Wl,-rpath,{{PREFIX}}/lib:{{PREFIX}}/toolchain/gcc7/{{MULTILIB}}"
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
@@ -101,7 +101,7 @@ This package contains all the man pages.
 03fe3e4ea39d2a4982703572599a80f3d5f368a1359ed89746ea1d8bec6cfbba     11574740 perl5/perl-5.24.3.tar.xz
 
 
-[FILE:25632:manifests/plist.primary]
+[FILE:25727:manifests/plist.primary]
 bin/
  c2ph%%BINSUFFIX%%
  corelist%%BINSUFFIX%%
@@ -1037,6 +1037,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  NDBM_File.pm
  O.pm
 %%ONLY-LINUX%%%%ARCH_LIB%%/ODBM_File.pm
+%%ONLY-SUNOS%%%%ARCH_LIB%%/ODBM_File.pm
  Opcode.pm
  POSIX.pm
  POSIX.pod
@@ -1099,6 +1100,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 %%ARCH_LIB%%/auto/Math/BigInt/FastCalc/FastCalc.so
 %%ARCH_LIB%%/auto/NDBM_File/NDBM_File.so
 %%ONLY-LINUX%%%%ARCH_LIB%%/auto/ODBM_File/ODBM_File.so
+%%ONLY-SUNOS%%%%ARCH_LIB%%/auto/ODBM_File/ODBM_File.so
 %%ARCH_LIB%%/auto/Opcode/Opcode.so
 %%ARCH_LIB%%/auto/POSIX/POSIX.so
 %%ARCH_LIB%%/auto/PerlIO/encoding/encoding.so
@@ -1840,7 +1842,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
 @dir %%SITE_ARCH%%/auto
 
 
-[FILE:15944:manifests/plist.manpages]
+[FILE:15982:manifests/plist.manpages]
 %%MAN3%%/
  AnyDBM_File.3.gz
  App::Cpan.3.gz
@@ -2143,6 +2145,7 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  Net::servent.3.gz
  O.3.gz
 %%ONLY-LINUX%%%%MAN3%%/ODBM_File.3.gz
+%%ONLY-SUNOS%%%%MAN3%%/ODBM_File.3.gz
  Opcode.3.gz
  POSIX.3.gz
  Params::Check.3.gz
@@ -3092,6 +3095,21 @@ etc/man.d/perl%%PKGNAMESUFFIX%%.conf
  # Ubuntu 11.04 (and later, presumably) doesn't keep most libraries
  # (such as -lm) in /lib or /usr/lib.  So we have to ask gcc to tell us
  # where to look.  We don't want gcc's own libraries, however, so we
+
+
+[FILE:344:patches/patch-hints_solaris__2.sh]
+--- hints/solaris_2.sh.orig	2017-07-18 22:50:01 UTC
++++ hints/solaris_2.sh
+@@ -20,6 +20,9 @@
+ #  gcc will occasionally emit warnings about "unused prefix", but
+ #  these ought to be harmless.  See below for more details.
+ 
++lddlflags="-shared "
++cccdlflags='-DPIC -fPIC'
++
+ # Solaris has secure SUID scripts
+ d_suidsafe=${d_suidsafe:-define}
+ 
 
 
 [FILE:715:patches/patch-perl.c]

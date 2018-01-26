@@ -37,8 +37,8 @@ PLIST_SUB=		SHLIB_MAJOR=5
 			SHLIB_MINOR=3.42
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|<malloc.h>|<stdlib.h>|' \
-		${WRKSRC}/*.[chl] ${WRKSRC}/zlib/*.h
+	${GREP} -l "<malloc.h>" ${WRKSRC}/*.[chl] ${WRKSRC}/zlib/*.h |\
+		${XARGS} ${REINPLACE_CMD} -e 's|<malloc.h>|<stdlib.h>|'
 	${REINPLACE_CMD} -e "/SHLIB_LD}/ s|$$| -L${LOCALBASE}/lib -Wl,-rpath,${LOCALBASE}/lib -lz|g" \
 		${WRKSRC}/Makefile.in
 
@@ -86,7 +86,7 @@ lib/
 lib/pkgconfig/cfitsio.pc
 
 
-[FILE:207:patches/patch-configure]
+[FILE:217:patches/patch-configure]
 --- configure.orig	2016-11-28 21:29:35 UTC
 +++ configure
 @@ -3540,7 +3540,7 @@ case $host in
@@ -94,7 +94,7 @@ lib/pkgconfig/cfitsio.pc
  	EXT="darwin"
  	;;
 -    *freebsd*)
-+    *dragonfly*|*freebsd*)
++    *dragonfly*|*freebsd*|*solaris*)
  	ARCH="linux"
  	EXT="lnx"
  	;;
