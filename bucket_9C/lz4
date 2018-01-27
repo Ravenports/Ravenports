@@ -31,12 +31,17 @@ FPC_EQUIVALENT=		archivers/liblz4
 BUILD_TARGET=		default
 MAKE_ARGS=		MANDIR={{MANPREFIX}}/man/man1
 			PKGCONFIGDIR={{PREFIX}}/lib/pkgconfig
+			INSTALL=install
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.8.1
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lrt
+
 post-patch:
-	@${REINPLACE_CMD} -e '/^all:/s/$$/ liblz4.pc/' \
+	@${REINPLACE_CMD} \
+		-e '/^all:/s/$$/ liblz4.pc/' \
+		-e 's/soname=/soname,/' \
 		${WRKSRC}/lib/Makefile
 
 post-install:

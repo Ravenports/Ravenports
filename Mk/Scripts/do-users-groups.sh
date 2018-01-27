@@ -26,6 +26,20 @@ error() {
 USERS_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' ${dp_SYSTEM_UID})
 GROUP_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' ${dp_SYSTEM_GID})
 GROUP_SEARCH_PROG="'{if (\$1 == name) found=1} END {exit found?0:1}'"
+SUNOS_GROUPLIST_PROG="'\
+{n=split(\$4,ray,\"(\");\
+ for (x=2; x<=n; x++) {\
+  j=split(ray[x], tray, \")\");\
+  if (tray[1] == newgroup) { seen=1 };\
+  g++; answer[g] = tray[1];\
+ };\
+ if (!seen && newgroup != \"\") { g++; answer[g] = newgroup };\
+}\
+END \
+{result=answer[1];\
+ for (x=2; x<=g; x++) { result = result \",\" answer[x] };\
+ printf (\"%s\\n\", result);\
+}'"
 
 rm -f "${dp_UG_INSTALL}" "${dp_UG_DEINSTALL}" || :
 
@@ -134,7 +148,12 @@ eot2
 					;;
 				*)
 					group=$(awk -F: -v gid=${gid} '$3 == gid { print $1 }' ${dp_GID_FILES})
-					echo "${dp_INSTALL} -d -g $group -o $login $homedir" >> "${dp_UG_INSTALL}"
+					if [ "${dp_OPSYS}" = "SunOS" ]; then
+					  echo "mkdir -p $homedir" >> "${dp_UG_INSTALL}"
+					  echo "chown $login:$group $homedir" >> "${dp_UG_INSTALL}"
+					else
+					  echo "${dp_INSTALL} -d -g $group -o $login $homedir" >> "${dp_UG_INSTALL}"
+					fi
 					;;
 			esac
 		done <<-eot
@@ -168,7 +187,7 @@ eot2
 							cat >> "${dp_UG_INSTALL}" <<-eot2
 if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Adding user '${login}' to group '${group}'."
-  -- determine 2ndary group list here group_list=
+  group_list=`id -a ${login} | awk -F'=' -vnewgroup=${group} ${SUNOS_GROUPLIST_PROG}`
   usermod -G ${group_list} ${login}
 fi
 eot2

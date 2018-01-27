@@ -273,3 +273,47 @@ share/doc/glew/
  LIB.STATIC    = lib$(NAME).a
  LDFLAGS.SO    = -shared -soname $(LIB.SONAME)
 
+
+[FILE:1105:patches/patch-config_Makefile.linux]
+--- config/Makefile.linux.orig	2017-07-31 11:25:39 UTC
++++ config/Makefile.linux
+@@ -1,5 +1,5 @@
+ NAME = $(GLEW_NAME)
+-CC = cc
++CC ?= cc
+ LD = cc
+ M_ARCH ?= $(shell uname -m)
+ ARCH64 = false
+@@ -9,26 +9,21 @@ endif
+ ifeq (ppc64,${M_ARCH})
+   ARCH64 = true
+ endif
+-ifeq (${ARCH64},true)
+-  LDFLAGS.EXTRA = -L/usr/X11R6/lib64 -L/usr/lib64
+-  LIBDIR = $(GLEW_DEST)/lib64
+-else
+-  LDFLAGS.EXTRA = -L/usr/X11R6/lib -L/usr/lib
+-  LIBDIR = $(GLEW_DEST)/lib
+-endif
++LDFLAGS.EXTRA = -L${LOCALBASE}/lib
++LIBDIR = $(GLEW_DEST)/lib
+ LDFLAGS.GL = -lGL -lX11
+ LDFLAGS.STATIC = -Wl,-Bstatic
+ LDFLAGS.DYNAMIC = -Wl,-Bdynamic
+ NAME = GLEW
+ WARN = -Wall -W
+ POPT = -O2
+-CFLAGS.EXTRA += -fPIC
++CFLAGS.EXTRA += -I${LOCALBASE}/include -fPIC
+ CFLAGS.EXTRA += -Wcast-qual
+ CFLAGS.EXTRA += -ansi -pedantic
+ CFLAGS.EXTRA += -fno-stack-protector
+ BIN.SUFFIX =
+-LIB.SONAME = lib$(NAME).so.$(SO_MAJOR)
++LIB.SONAME = lib$(NAME).so.$(GLEW_MAJOR)
+ LIB.DEVLNK = lib$(NAME).so
+-LIB.SHARED = lib$(NAME).so.$(SO_VERSION)
++LIB.SHARED = lib$(NAME).so.$(GLEW_VERSION)
+ LIB.STATIC = lib$(NAME).a
+ LDFLAGS.SO = -shared -Wl,-soname=$(LIB.SONAME)
+

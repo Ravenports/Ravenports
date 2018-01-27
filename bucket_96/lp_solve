@@ -21,6 +21,10 @@ DISTNAME=		lp_solve_5.5
 
 FPC_EQUIVALENT=		math/lp_solve
 
+post-patch:
+	${REINPLACE_CMD} -e "s/ FALSE/ LP_FALSE/; s/ TRUE/ LP_TRUE/" \
+		${WRKSRC}/shared/commonlib.[ch] ${WRKSRC}/shared/myblas.c
+
 pre-build:
 	${FIND} ${WRKSRC} -name "ccc" | ${XARGS} ${REINPLACE_CMD} -e \
 		"s|^c=.*$$|c='${CC}'|g ; \
@@ -93,7 +97,7 @@ lib/
  liblpsolve55.so.1
 
 
-[FILE:1969:patches/patch-lp__solve55_ccc]
+[FILE:1976:patches/patch-lp__solve55_ccc]
 Respect TMPDIR
 
 --- lpsolve55/ccc.orig	2009-03-25 00:27:18 UTC
@@ -133,7 +137,7 @@ Respect TMPDIR
 +echo '#include <stdio.h>'>>"${tmp}"/isnan.c
 +echo '#include <stdlib.h>'>>"${tmp}"/isnan.c
 +echo '#include <math.h>'>>"${tmp}"/isnan.c
-+echo 'main(){isnan(0);}'>>"${tmp}"/isnan.c
++echo 'void main(){isnan(0.0);}'>>"${tmp}"/isnan.c
 +$c "${tmp}"/isnan.c -o "${tmp}"/isnan $math >/dev/null 2>&1
  if [ $? = 0 ]
  then NOISNAN=
@@ -146,7 +150,7 @@ Respect TMPDIR
  so=
 
 
-[FILE:1993:patches/patch-lp__solve_ccc]
+[FILE:2000:patches/patch-lp__solve_ccc]
 Respect TMPDIR
 
 --- lp_solve/ccc.orig	2009-01-25 18:39:03 UTC
@@ -188,7 +192,7 @@ Respect TMPDIR
 +echo '#include <stdio.h>'>>"${tmp}"/isnan.c
 +echo '#include <stdlib.h>'>>"${tmp}"/isnan.c
 +echo '#include <math.h>'>>"${tmp}"/isnan.c
-+echo 'main(){isnan(0);}'>>"${tmp}"/isnan.c
++echo 'void main(){isnan(0.0);}'>>"${tmp}"/isnan.c
 +$c "${tmp}"/isnan.c -o "${tmp}"/isnan $math >/dev/null 2>&1
  if [ $? = 0 ]
  then NOISNAN=

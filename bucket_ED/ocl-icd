@@ -75,6 +75,20 @@ share/doc/ocl-icd/html/libOpenCL.html
 share/doc/ocl-icd/examples/ocl_icd_bindings.c
 
 
+[FILE:366:patches/patch-icd__generator.rb]
+--- icd_generator.rb.orig	2015-12-16 14:59:05 UTC
++++ icd_generator.rb
+@@ -441,7 +441,7 @@ EOF
+   end
+ 
+   def self.generate_ocl_icd_loader_map
+-    ocl_icd_loader_map = "/**\n#{$license}\n*/\n\n"
++    ocl_icd_loader_map = "\n"
+     prev_version=""
+     $versions_entries.keys.sort.each { |version|
+       ocl_icd_loader_map += "OPENCL_#{version.sub('_','.')} {\n";
+
+
 [FILE:469:patches/patch-ocl__icd__debug.h]
 --- ocl_icd_debug.h.orig	2016-04-24 12:11:57 UTC
 +++ ocl_icd_debug.h
@@ -93,10 +107,10 @@ share/doc/ocl-icd/examples/ocl_icd_bindings.c
  #    pragma GCC diagnostic push
 
 
-[FILE:459:patches/patch-ocl__icd__loader.c]
+[FILE:744:patches/patch-ocl__icd__loader.c]
 --- ocl_icd_loader.c.orig	2017-01-19 13:55:12 UTC
 +++ ocl_icd_loader.c
-@@ -53,7 +53,7 @@ int debug_ocl_icd_mask=0;
+@@ -53,11 +53,23 @@ int debug_ocl_icd_mask=0;
  
  typedef __typeof__(clGetPlatformInfo) *clGetPlatformInfo_fn;
  
@@ -105,4 +119,20 @@ share/doc/ocl-icd/examples/ocl_icd_bindings.c
    debug(D_DUMP, "%s %p={ num=%i, handle=%p, f=%p}\n", info,
  	v, v->num_platforms, v->dl_handle, v->ext_fn_ptr);
  }
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ struct vendor_icd *_icds=NULL;
+ struct platform_icd *_picds=NULL;
+ static cl_uint _num_icds = 0;
 
