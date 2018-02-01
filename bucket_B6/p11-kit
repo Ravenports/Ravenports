@@ -23,6 +23,7 @@ OPTIONS_STANDARD=	none
 BUILDRUN_DEPENDS=	nss:caroot:standard
 			libtasn1:primary:standard
 			libffi:single:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 
 USES=			gmake libtool pkgconfig
 
@@ -38,6 +39,8 @@ CONFIGURE_ARGS=		--disable-nls
 			--with-trust-paths={{LOCALBASE}}/share/certs/ca-root-nss.crt
 
 INSTALL_TARGET=		install-strip
+
+VAR_OPSYS[sunos]=	CPPFLAGS=-I{{LOCALBASE}}/include/bsd
 
 post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/share/doc
@@ -138,10 +141,22 @@ share/doc/p11-kit/
 share/examples/p11-kit/pkcs11.conf.example
 
 
-[FILE:198:patches/patch-common_compat.c]
+[FILE:506:patches/patch-common_compat.c]
 --- common/compat.c.orig	2017-09-26 14:25:48 UTC
 +++ common/compat.c
-@@ -52,6 +52,7 @@
+@@ -38,7 +38,11 @@
+  * This is needed to expose pthread_mutexattr_settype and PTHREAD_MUTEX_DEFAULT
+  * on older pthreads implementations
+  */
++#ifdef __sun__
++#define _XOPEN_SOURCE 600
++#else
+ #define _XOPEN_SOURCE 700
++#endif
+ 
+ #if defined(HAVE_ISSETUGID) && defined(__FreeBSD__)
+ #define __BSD_VISIBLE 1
+@@ -52,6 +56,7 @@
  #include <errno.h>
  #include <stdint.h>
  #include <stdlib.h>
@@ -149,4 +164,22 @@ share/examples/p11-kit/pkcs11.conf.example
  #include <string.h>
  
  /*-
+
+
+[FILE:334:patches/patch-p11-kit_server.c]
+--- p11-kit/server.c.orig	2017-09-26 14:25:48 UTC
++++ p11-kit/server.c
+@@ -74,6 +74,12 @@ typedef void (*sighandler_t)(int);
+ 
+ #endif /* OS_UNIX */
+ 
++#ifdef __sun__
++# ifndef SUN_LEN
++# define SUN_LEN(su)	(sizeof (sa_family_t) + strlen((su)->sun_path))
++# endif
++#endif
++
+ typedef struct {
+ 	const char **tokens;
+ 	size_t n_tokens;
 

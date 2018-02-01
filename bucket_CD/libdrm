@@ -24,6 +24,7 @@ BUILD_DEPENDS=		libpthread-stubs:single:standard
 			docbook-xsl:primary:standard
 			libxslt:single:standard
 			libxml2:single:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 
 USES=			gmake libtool pkgconfig
 XORG_COMPONENTS=	pciaccess
@@ -44,7 +45,9 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [ARM].DESCRIPTION=			DRM Drivers for AARCH64 architecture
 
 post-patch:
-	${REINPLACE_CMD} -e '/^MANPAGES_STYLESHEET=/ s|".*"|"http://cdn.docbook.org/release/xsl/current/manpages/docbook.xsl"|' \
+	${REINPLACE_CMD} \
+		-e '/^MANPAGES_STYLESHEET=/ s|".*"|"http://cdn.docbook.org/release/xsl/current/manpages/docbook.xsl"|' \
+		-e '/_MAN_SUFFIX/ s/solaris/no-solaris/' \
 		${WRKSRC}/configure
 
 [FILE:70:descriptions/desc.single]
@@ -55,11 +58,13 @@ Userspace interface to kernel DRM (Direct Rendering Module) services.
 629f9782aabbb4809166de5f24d26fe0766055255038f16935602d89f136a02e       792940 libdrm-2.4.89.tar.bz2
 
 
-[FILE:1993:manifests/plist.single]
+[FILE:2396:manifests/plist.single]
 bin/
  kms-steal-crtc
  kms-universal-planes
- kmstest
+%%ONLY-DRAGONFLY%%bin/kmstest
+%%ONLY-FREEBSD%%bin/kmstest
+%%ONLY-LINUX%%bin/kmstest
  modeprint
  modetest
  proptest
@@ -120,7 +125,9 @@ include/libdrm/
  via_drm.h
  virtgpu_drm.h
  vmwgfx_drm.h
-include/libkms/libkms.h
+%%ONLY-DRAGONFLY%%include/libkms/libkms.h
+%%ONLY-FREEBSD%%include/libkms/libkms.h
+%%ONLY-LINUX%%include/libkms/libkms.h
 include/
  libsync.h
  xf86drm.h
@@ -147,12 +154,19 @@ lib/
  libdrm_radeon.so
  libdrm_radeon.so.1
  libdrm_radeon.so.1.0.1
-lib/
+%%ONLY-DRAGONFLY%%lib/
  libkms.so
  libkms.so.1
  libkms.so.1.0.0
-lib/pkgconfig/
- libdrm.pc
+%%ONLY-FREEBSD%%lib/
+ libkms.so
+ libkms.so.1
+ libkms.so.1.0.0
+%%ONLY-LINUX%%lib/
+ libkms.so
+ libkms.so.1
+ libkms.so.1.0.0
+lib/pkgconfig/libdrm.pc
 %%X86-ON%%lib/pkgconfig/
  libdrm_amdgpu.pc
 %%ARM-ON%%lib/pkgconfig/
@@ -163,8 +177,9 @@ lib/pkgconfig/
  libdrm_radeon.pc
 %%ARM-ON%%lib/pkgconfig/
  libdrm_vc4.pc
-lib/pkgconfig/
- libkms.pc
+%%ONLY-DRAGONFLY%%lib/pkgconfig/libkms.pc
+%%ONLY-FREEBSD%%lib/pkgconfig/libkms.pc
+%%ONLY-LINUX%%lib/pkgconfig/libkms.pc
 %%X86-ON%%share/libdrm/amdgpu.ids
 share/man/man3/
  drmAvailable.3.gz
@@ -179,6 +194,98 @@ share/man/man7/
  drm.7.gz
 
 
+[FILE:546:patches/patch-amdgpu_Makefile.in]
+--- amdgpu/Makefile.in.orig	2017-12-18 01:33:21 UTC
++++ amdgpu/Makefile.in
+@@ -433,7 +433,7 @@ CAIRO_CFLAGS = @CAIRO_CFLAGS@
+ CAIRO_LIBS = @CAIRO_LIBS@
+ CC = @CC@
+ CCDEPMODE = @CCDEPMODE@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -I$(prefix)/include/bsd
+ CLOCK_LIB = @CLOCK_LIB@
+ CPP = @CPP@
+ CPPFLAGS = @CPPFLAGS@
+@@ -464,7 +464,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_P
+ LD = @LD@
+ LDFLAGS = @LDFLAGS@
+ LIBOBJS = @LIBOBJS@
+-LIBS = @LIBS@
++LIBS = @LIBS@ -lbsd
+ LIBTOOL = @LIBTOOL@
+ LIB_MAN_DIR = @LIB_MAN_DIR@
+ LIB_MAN_SUFFIX = @LIB_MAN_SUFFIX@
+
+
+[FILE:283:patches/patch-include_drm_drm.h]
+--- include/drm/drm.h.orig	2017-12-18 01:33:10 UTC
++++ include/drm/drm.h
+@@ -681,7 +681,11 @@ struct drm_set_client_cap {
+ };
+ 
+ #define DRM_RDWR O_RDWR
++#ifdef __sun__
++#define DRM_CLOEXEC 0
++#else
+ #define DRM_CLOEXEC O_CLOEXEC
++#endif
+ struct drm_prime_handle {
+ 	__u32 handle;
+ 
+
+
+[FILE:691:patches/patch-intel_intel__bufmgr__gem.c]
+--- intel/intel_bufmgr_gem.c.orig	2017-12-18 01:33:10 UTC
++++ intel/intel_bufmgr_gem.c
+@@ -1009,6 +1009,27 @@ drm_intel_gem_bo_alloc_userptr(drm_intel
+ 	return &bo_gem->bo;
+ }
+ 
++#ifdef __sun__
++#define posix_memalign	illumos_memalign
++static int
++posix_memalign(void **memptr, size_t alignment, size_t size)
++{
++	void *ptr = NULL;
++	int error = 0;
++
++	if (alignment == 0 ||
++	    (alignment & (sizeof (void *) - 1)) != 0 ||
++	    (alignment & (alignment - 1)) != 0)
++		error = EINVAL;
++	else if (size != 0 &&
++	    (ptr = memalign(alignment, size)) == NULL)
++		error = ENOMEM;
++
++	*memptr = ptr;
++	return (error);
++}
++#endif
++
+ static bool
+ has_userptr(drm_intel_bufmgr_gem *bufmgr_gem)
+ {
+
+
+[FILE:379:patches/patch-intel_test__decode.c]
+--- intel/test_decode.c.orig	2017-12-18 01:33:10 UTC
++++ intel/test_decode.c
+@@ -32,7 +32,13 @@
+ #include <fcntl.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#ifdef __sun__
++#define errx(exitcode, format, args...) \
++	{ fprintf(stderr, format "\n", ## args); \
++	  exit(exitcode); }
++#else
+ #include <err.h>
++#endif
+ 
+ #include "libdrm_macros.h"
+ #include "intel_bufmgr.h"
+
+
 [FILE:801:patches/patch-libkms_vmwgfx.c]
 # the defintion of ERESTART is behind a check for _KERNEL, but
 # defining that causes errno to not be defined. fortunately, there's
@@ -186,7 +293,7 @@ share/man/man7/
 # _WANT_KERNEL_ERRNO is too recent to be part of any release, so just
 # define ERESTART if we still don't have it after including errno.h 
 #
---- libkms/vmwgfx.c.orig	2017-04-14 23:29:46 UTC
+--- libkms/vmwgfx.c.orig	2017-12-18 01:33:10 UTC
 +++ libkms/vmwgfx.c
 @@ -30,10 +30,18 @@
  #include "config.h"
@@ -212,7 +319,7 @@ share/man/man7/
 [FILE:283:patches/patch-libsync.h]
 # define ETIME as ETIMEOUT same as done in Mesa
 #
---- libsync.h.orig	2017-04-14 23:29:46 UTC
+--- libsync.h.orig	2017-12-18 01:33:10 UTC
 +++ libsync.h
 @@ -35,6 +35,9 @@
  #include <sys/ioctl.h>
@@ -226,8 +333,54 @@ share/man/man7/
  extern "C" {
 
 
-[FILE:24053:patches/patch-xf86drm.c]
---- xf86drm.c.orig	2017-07-19 09:37:32 UTC
+[FILE:562:patches/patch-tests_modetest_Makefile.in]
+--- tests/modetest/Makefile.in.orig	2017-12-18 01:33:21 UTC
++++ tests/modetest/Makefile.in
+@@ -195,7 +195,7 @@ CAIRO_CFLAGS = @CAIRO_CFLAGS@
+ CAIRO_LIBS = @CAIRO_LIBS@
+ CC = @CC@
+ CCDEPMODE = @CCDEPMODE@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -I$(prefix)/include/bsd
+ CLOCK_LIB = @CLOCK_LIB@
+ CPP = @CPP@
+ CPPFLAGS = @CPPFLAGS@
+@@ -226,7 +226,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_P
+ LD = @LD@
+ LDFLAGS = @LDFLAGS@
+ LIBOBJS = @LIBOBJS@
+-LIBS = @LIBS@
++LIBS = @LIBS@ -lbsd
+ LIBTOOL = @LIBTOOL@
+ LIB_MAN_DIR = @LIB_MAN_DIR@
+ LIB_MAN_SUFFIX = @LIB_MAN_SUFFIX@
+
+
+[FILE:562:patches/patch-tests_proptest_Makefile.in]
+--- tests/proptest/Makefile.in.orig	2017-12-18 01:33:21 UTC
++++ tests/proptest/Makefile.in
+@@ -194,7 +194,7 @@ CAIRO_CFLAGS = @CAIRO_CFLAGS@
+ CAIRO_LIBS = @CAIRO_LIBS@
+ CC = @CC@
+ CCDEPMODE = @CCDEPMODE@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -I$(prefix)/include/bsd
+ CLOCK_LIB = @CLOCK_LIB@
+ CPP = @CPP@
+ CPPFLAGS = @CPPFLAGS@
+@@ -225,7 +225,7 @@ INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_P
+ LD = @LD@
+ LDFLAGS = @LDFLAGS@
+ LIBOBJS = @LIBOBJS@
+-LIBS = @LIBS@
++LIBS = @LIBS@ -lbsd
+ LIBTOOL = @LIBTOOL@
+ LIB_MAN_DIR = @LIB_MAN_DIR@
+ LIB_MAN_SUFFIX = @LIB_MAN_SUFFIX@
+
+
+[FILE:24731:patches/patch-xf86drm.c]
+--- xf86drm.c.orig	2017-12-18 01:33:10 UTC
 +++ xf86drm.c
 @@ -49,6 +49,9 @@
  #include <signal.h>
@@ -279,7 +432,7 @@ share/man/man7/
   */
  int
  drmIoctl(int fd, unsigned long request, void *arg)
-@@ -223,6 +220,89 @@ drmHashEntry *drmGetEntry(int fd)
+@@ -223,6 +220,103 @@ drmHashEntry *drmGetEntry(int fd)
      return entry;
  }
  
@@ -297,10 +450,12 @@ share/man/man7/
 +
 +static int drmGetMinorType(int minor)
 +{
++    int type;
++
 +    if (minor < 0)
 +        return -1;
 +
-+    int type = minor >> 6;
++    type = minor >> 6;
 +    switch (type) {
 +        case DRM_NODE_PRIMARY:
 +        case DRM_NODE_CONTROL:
@@ -341,6 +496,18 @@ share/man/man7/
 +    }
 +}
 +
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
 +static int drmGetNodeNumber(const char *name)
 +{
 +    size_t name_len = strnlen(name, DRM_NODE_NAME_MAX);
@@ -369,7 +536,7 @@ share/man/man7/
  /**
   * Compare two busid strings
   *
-@@ -290,7 +370,7 @@ static int drmMatchBusID(const char *id1
+@@ -290,7 +384,7 @@ static int drmMatchBusID(const char *id1
   *
   * \internal
   * Checks for failure. If failure was caused by signal call chown again.
@@ -378,7 +545,7 @@ share/man/man7/
   * drmMsg() call.
   */
  #if !defined(UDEV)
-@@ -327,8 +407,8 @@ static int chown_check_return(const char
+@@ -327,8 +421,8 @@ static int chown_check_return(const char
  static int drmOpenDevice(dev_t dev, int minor, int type)
  {
      stat_t          st;
@@ -389,7 +556,7 @@ share/man/man7/
      int             fd;
      mode_t          devmode = DRM_DEV_MODE, serv_mode;
      gid_t           serv_group;
-@@ -338,21 +418,14 @@ static int drmOpenDevice(dev_t dev, int
+@@ -338,21 +432,14 @@ static int drmOpenDevice(dev_t dev, int
      gid_t           group   = DRM_DEV_GID;
  #endif
  
@@ -416,7 +583,7 @@ share/man/man7/
      drmMsg("drmOpenDevice: node name is %s\n", buf);
  
      if (drm_server_info && drm_server_info->get_perms) {
-@@ -456,27 +529,20 @@ wait_for_udev:
+@@ -456,27 +543,20 @@ wait_for_udev:
  static int drmOpenMinor(int minor, int create, int type)
  {
      int  fd;
@@ -451,7 +618,7 @@ share/man/man7/
      if ((fd = open(buf, O_RDWR, 0)) >= 0)
          return fd;
      return -errno;
-@@ -517,51 +583,6 @@ int drmAvailable(void)
+@@ -517,51 +597,6 @@ int drmAvailable(void)
      return retval;
  }
  
@@ -503,7 +670,16 @@ share/man/man7/
  /**
   * Open the device by bus ID.
   *
-@@ -2703,33 +2724,40 @@ int drmDropMaster(int fd)
+@@ -2565,7 +2600,7 @@ int drmCommandNone(int fd, unsigned long
+ {
+     unsigned long request;
+ 
+-    request = DRM_IO( DRM_COMMAND_BASE + drmCommandIndex);
++    request = DRM_IO( (DRM_COMMAND_BASE + drmCommandIndex) );
+ 
+     if (drmIoctl(fd, request, NULL)) {
+         return -errno;
+@@ -2740,33 +2775,41 @@ int drmDropMaster(int fd)
  
  char *drmGetDeviceNameFromFd(int fd)
  {
@@ -518,9 +694,9 @@ share/man/man7/
       * discover the device file name. */
  
 +    stat_t sbuf;
++    dev_t d;
      fstat(fd, &sbuf);
--    d = sbuf.st_rdev;
-+    dev_t d = sbuf.st_rdev;
+     d = sbuf.st_rdev;
  
 -    for (i = 0; i < DRM_MAX_MINOR; i++) {
 +    for (int i = 0; i < DRM_MAX_MINOR; i++) {
@@ -557,7 +733,7 @@ share/man/man7/
      int maj, min, type;
  
      if (fstat(fd, &sbuf))
-@@ -2747,6 +2775,7 @@ int drmGetNodeTypeFromFd(int fd)
+@@ -2784,6 +2827,7 @@ int drmGetNodeTypeFromFd(int fd)
      if (type == -1)
          errno = ENODEV;
      return type;
@@ -565,7 +741,7 @@ share/man/man7/
  }
  
  int drmPrimeHandleToFD(int fd, uint32_t handle, uint32_t flags, int *prime_fd)
-@@ -2786,7 +2815,7 @@ static char *drmGetMinorNameForFD(int fd
+@@ -2823,7 +2867,7 @@ static char *drmGetMinorNameForFD(int fd
  #ifdef __linux__
      DIR *sysdir;
      struct dirent *pent, *ent;
@@ -574,7 +750,7 @@ share/man/man7/
      const char *name = drmGetMinorName(type);
      int len;
      char dev_name[64], buf[64];
-@@ -2837,13 +2866,35 @@ static char *drmGetMinorNameForFD(int fd
+@@ -2874,13 +2918,35 @@ static char *drmGetMinorNameForFD(int fd
  
  out_close_dir:
      closedir(sysdir);
@@ -613,7 +789,7 @@ share/man/man7/
      if (fstat(fd, &sbuf))
          return NULL;
  
-@@ -2853,20 +2904,6 @@ out_close_dir:
+@@ -2890,26 +2956,12 @@ out_close_dir:
      if (maj != DRM_MAJOR || !S_ISCHR(sbuf.st_mode))
          return NULL;
  
@@ -634,7 +810,14 @@ share/man/man7/
      base = drmGetMinorBase(type);
      if (base < 0)
          return NULL;
-@@ -2964,7 +3001,7 @@ static int drmParseSubsystemType(int maj
+ 
+     n = snprintf(buf, sizeof(buf), dev_name, DRM_DIR_NAME, min - base);
+-    if (n == -1 || n >= sizeof(buf))
++    if (n == -1 || n >= (int)sizeof(buf))
+         return NULL;
+ 
+     return strdup(buf);
+@@ -3001,7 +3053,7 @@ static int drmParseSubsystemType(int maj
          return DRM_BUS_HOST1X;
  
      return -EINVAL;
@@ -643,7 +826,7 @@ share/man/man7/
      return DRM_BUS_PCI;
  #else
  #warning "Missing implementation of drmParseSubsystemType"
-@@ -2972,7 +3009,8 @@ static int drmParseSubsystemType(int maj
+@@ -3009,7 +3061,8 @@ static int drmParseSubsystemType(int maj
  #endif
  }
  
@@ -653,7 +836,7 @@ share/man/man7/
  {
  #ifdef __linux__
      unsigned int domain, bus, dev, func;
-@@ -3021,6 +3059,60 @@ static int drmParsePciBusInfo(int maj, i
+@@ -3058,6 +3111,60 @@ static int drmParsePciBusInfo(int maj, i
      info->func = pinfo.func;
  
      return 0;
@@ -714,7 +897,7 @@ share/man/man7/
  #else
  #warning "Missing implementation of drmParsePciBusInfo"
      return -EINVAL;
-@@ -3055,32 +3147,6 @@ int drmDevicesEqual(drmDevicePtr a, drmD
+@@ -3092,32 +3199,6 @@ int drmDevicesEqual(drmDevicePtr a, drmD
      return 0;
  }
  
@@ -747,7 +930,7 @@ share/man/man7/
  #ifdef __linux__
  static int parse_separate_sysfs_files(int maj, int min,
                                        drmPciDeviceInfoPtr device,
-@@ -3150,6 +3216,7 @@ static int parse_config_sysfs_file(int m
+@@ -3187,6 +3268,7 @@ static int parse_config_sysfs_file(int m
  #endif
  
  static int drmParsePciDeviceInfo(int maj, int min,
@@ -755,7 +938,7 @@ share/man/man7/
                                   drmPciDeviceInfoPtr device,
                                   uint32_t flags)
  {
-@@ -3186,6 +3253,43 @@ static int drmParsePciDeviceInfo(int maj
+@@ -3223,6 +3305,43 @@ static int drmParsePciDeviceInfo(int maj
      device->subdevice_id = pinfo.subdevice_id;
  
      return 0;
@@ -799,7 +982,7 @@ share/man/man7/
  #else
  #warning "Missing implementation of drmParsePciDeviceInfo"
      return -EINVAL;
-@@ -3266,7 +3370,7 @@ static drmDevicePtr drmDeviceAlloc(unsig
+@@ -3303,7 +3422,7 @@ static drmDevicePtr drmDeviceAlloc(unsig
      unsigned int i;
      char *ptr;
  
@@ -808,7 +991,7 @@ share/man/man7/
      extra = DRM_NODE_MAX * (sizeof(void *) + max_node_length);
  
      size = sizeof(*device) + extra + bus_size + device_size;
-@@ -3312,7 +3416,7 @@ static int drmProcessPciDevice(drmDevice
+@@ -3349,7 +3468,7 @@ static int drmProcessPciDevice(drmDevice
  
      dev->businfo.pci = (drmPciBusInfoPtr)addr;
  
@@ -817,7 +1000,7 @@ share/man/man7/
      if (ret)
          goto free_device;
  
-@@ -3321,7 +3425,7 @@ static int drmProcessPciDevice(drmDevice
+@@ -3358,7 +3477,7 @@ static int drmProcessPciDevice(drmDevice
          addr += sizeof(drmPciBusInfo);
          dev->deviceinfo.pci = (drmPciDeviceInfoPtr)addr;
  
@@ -826,7 +1009,7 @@ share/man/man7/
          if (ret)
              goto free_device;
      }
-@@ -3671,7 +3775,7 @@ static void drmFoldDuplicatedDevices(drm
+@@ -3708,7 +3827,7 @@ static void drmFoldDuplicatedDevices(drm
                  local_devices[i]->available_nodes |= local_devices[j]->available_nodes;
                  node_type = log2(local_devices[j]->available_nodes);
                  memcpy(local_devices[i]->nodes[node_type],
@@ -835,7 +1018,7 @@ share/man/man7/
                  drmFreeDevice(&local_devices[j]);
              }
          }
-@@ -3689,7 +3793,7 @@ drm_device_validate_flags(uint32_t flags
+@@ -3726,7 +3845,7 @@ drm_device_validate_flags(uint32_t flags
   * Get information about the opened drm device
   *
   * \param fd file descriptor of the drm device
@@ -844,7 +1027,7 @@ share/man/man7/
   * \param device the address of a drmDevicePtr where the information
   *               will be allocated in stored
   *
-@@ -3707,8 +3811,8 @@ int drmGetDevice2(int fd, uint32_t flags
+@@ -3744,8 +3863,8 @@ int drmGetDevice2(int fd, uint32_t flags
       * Avoid stat'ing all of /dev needlessly by implementing this custom path.
       */
      drmDevicePtr     d;
@@ -855,7 +1038,7 @@ share/man/man7/
      const char      *dev_name;
      int              node_type, subsystem_type;
      int              maj, min, n, ret, base;
-@@ -3729,26 +3833,16 @@ int drmGetDevice2(int fd, uint32_t flags
+@@ -3766,26 +3885,16 @@ int drmGetDevice2(int fd, uint32_t flags
      if (node_type == -1)
          return -ENODEV;
  
@@ -886,7 +1069,7 @@ share/man/man7/
        return -errno;
      if (stat(node, &sbuf))
          return -EINVAL;
-@@ -3769,8 +3863,8 @@ int drmGetDevice2(int fd, uint32_t flags
+@@ -3806,8 +3915,8 @@ int drmGetDevice2(int fd, uint32_t flags
      drmDevicePtr d;
      DIR *sysdir;
      struct dirent *dent;
@@ -897,7 +1080,7 @@ share/man/man7/
      int node_type, subsystem_type;
      int maj, min;
      int ret, i, node_count;
-@@ -3790,7 +3884,7 @@ int drmGetDevice2(int fd, uint32_t flags
+@@ -3827,7 +3936,7 @@ int drmGetDevice2(int fd, uint32_t flags
      maj = major(sbuf.st_rdev);
      min = minor(sbuf.st_rdev);
  
@@ -906,7 +1089,7 @@ share/man/man7/
          return -EINVAL;
  
      subsystem_type = drmParseSubsystemType(maj, min);
-@@ -3811,14 +3905,14 @@ int drmGetDevice2(int fd, uint32_t flags
+@@ -3848,14 +3957,14 @@ int drmGetDevice2(int fd, uint32_t flags
          if (node_type < 0)
              continue;
  
@@ -923,7 +1106,7 @@ share/man/man7/
              continue;
  
          if (drmParseSubsystemType(maj, min) != subsystem_type)
-@@ -3916,7 +4010,7 @@ int drmGetDevice(int fd, drmDevicePtr *d
+@@ -3953,7 +4062,7 @@ int drmGetDevice(int fd, drmDevicePtr *d
  /**
   * Get drm devices on the system
   *
@@ -932,7 +1115,7 @@ share/man/man7/
   * \param devices the array of devices with drmDevicePtr elements
   *                can be NULL to get the device number first
   * \param max_devices the maximum number of devices for the array
-@@ -3935,8 +4029,8 @@ int drmGetDevices2(uint32_t flags, drmDe
+@@ -3972,8 +4081,8 @@ int drmGetDevices2(uint32_t flags, drmDe
      drmDevicePtr device;
      DIR *sysdir;
      struct dirent *dent;
@@ -943,7 +1126,7 @@ share/man/man7/
      int node_type, subsystem_type;
      int maj, min;
      int ret, i, node_count, device_count;
-@@ -3961,14 +4055,14 @@ int drmGetDevices2(uint32_t flags, drmDe
+@@ -3998,14 +4107,14 @@ int drmGetDevices2(uint32_t flags, drmDe
          if (node_type < 0)
              continue;
  
@@ -960,7 +1143,7 @@ share/man/man7/
              continue;
  
          subsystem_type = drmParseSubsystemType(maj, min);
-@@ -4076,7 +4170,7 @@ int drmGetDevices(drmDevicePtr devices[]
+@@ -4113,7 +4222,7 @@ int drmGetDevices(drmDevicePtr devices[]
  char *drmGetDeviceNameFromFd2(int fd)
  {
  #ifdef __linux__
@@ -969,7 +1152,7 @@ share/man/man7/
      char path[PATH_MAX + 1], *value;
      unsigned int maj, min;
  
-@@ -4099,9 +4193,26 @@ char *drmGetDeviceNameFromFd2(int fd)
+@@ -4136,9 +4245,26 @@ char *drmGetDeviceNameFromFd2(int fd)
      free(value);
  
      return strdup(path);
@@ -998,7 +1181,7 @@ share/man/man7/
      const char      *dev_name;
      int              node_type;
      int              maj, min, n, base;
-@@ -4119,26 +4230,16 @@ char *drmGetDeviceNameFromFd2(int fd)
+@@ -4156,26 +4282,16 @@ char *drmGetDeviceNameFromFd2(int fd)
      if (node_type == -1)
          return NULL;
  
@@ -1025,16 +1208,26 @@ share/man/man7/
 -    n = snprintf(node, PATH_MAX, dev_name, DRM_DIR_NAME, min - base);
 -    if (n == -1 || n >= PATH_MAX)
 +    n = snprintf(node, sizeof(node), dev_name, DRM_DIR_NAME, min - base);
-+    if (n == -1 || n >= sizeof(node))
++    if (n == -1 || n >= (int)sizeof(node))
        return NULL;
  
      return strdup(node);
 
 
-[FILE:1334:patches/patch-xf86drm.h]
---- xf86drm.h.orig	2017-04-07 08:49:13 UTC
+[FILE:1674:patches/patch-xf86drm.h]
+--- xf86drm.h.orig	2017-12-18 01:33:10 UTC
 +++ xf86drm.h
-@@ -78,17 +78,27 @@ extern "C" {
+@@ -59,6 +59,9 @@ extern "C" {
+ #else /* One of the *BSDs */
+ 
+ #include <sys/ioccom.h>
++#ifdef __sun__
++#define _IOC(inout,group,num,len)	(inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
++#endif
+ #define DRM_IOCTL_NR(n)         ((n) & 0xff)
+ #define DRM_IOC_VOID            IOC_VOID
+ #define DRM_IOC_READ            IOC_OUT
+@@ -78,17 +81,27 @@ extern "C" {
  
  #ifdef __OpenBSD__
  #define DRM_DIR_NAME  "/dev"
@@ -1072,7 +1265,7 @@ share/man/man7/
 
 
 [FILE:3299:patches/patch-xf86drmMode.c]
---- xf86drmMode.c.orig	2017-04-07 08:49:13 UTC
+--- xf86drmMode.c.orig	2017-12-18 01:33:10 UTC
 +++ xf86drmMode.c
 @@ -47,6 +47,7 @@
  #include <stdlib.h>

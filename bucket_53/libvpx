@@ -55,12 +55,16 @@ VAR_ARCH[x86_64]=	CONFIGURE_ARGS=--target=x86_64-linux-gcc
 VAR_ARCH[i386]=		CONFIGURE_ARGS=--target=x86-linux-gcc
 
 post-patch:
-	@${REINPLACE_CMD} 's|\(link_with_cc\)=gcc|\1=$${CC}|' \
+	${REINPLACE_CMD} 's|\(link_with_cc\)=gcc|\1=$${CC}|' \
 		${WRKSRC}/build/make/configure.sh
 
 post-install:
-	@${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/vpx*
-	@${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libvpx.so.*.*.*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/vpx*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libvpx.so.*.*.*
+
+post-patch-sunos:
+	${REINPLACE_CMD} -e 's/-Wl,--no-undefined//' \
+		${WRKSRC}/build/make/Makefile
 
 [FILE:53:descriptions/desc.single]
 This package contains libvpx, the VP8/VP9 Codec SDK.
@@ -93,10 +97,10 @@ lib/
 lib/pkgconfig/vpx.pc
 
 
-[FILE:328:patches/patch-build_make_Makefile]
---- build/make/Makefile.orig
+[FILE:358:patches/patch-build_make_Makefile]
+--- build/make/Makefile.orig	2018-01-24 22:25:44 UTC
 +++ build/make/Makefile
-@@ -230,8 +230,8 @@
+@@ -280,8 +280,8 @@ endef
  define install_map_template
  $(DIST_DIR)/$(1): $(2)
  	$(if $(quiet),@echo "    [INSTALL] $$@")

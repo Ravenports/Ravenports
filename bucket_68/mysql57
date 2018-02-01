@@ -492,10 +492,26 @@ share/man/man1/
  mysqlslap.1.gz
 
 
-[FILE:928:patches/patch-CMakeLists.txt]
+[FILE:1384:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2017-12-28 03:46:26 UTC
 +++ CMakeLists.txt
-@@ -676,7 +676,6 @@ IF(NOT WITHOUT_SERVER)
+@@ -582,6 +582,7 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+ ENDIF()
+ 
+ # Check for pthread_getthreadid_np()
++set(CMAKE_REQUIRED_LIBRARIES pthread)
+ CHECK_C_SOURCE_COMPILES("
+ #include <pthread_np.h>
+ int main(int ac, char **av)
+@@ -590,6 +591,7 @@ int main(int ac, char **av)
+   return (tid != 0 ? 0 : 1);
+ }"
+ HAVE_PTHREAD_GETTHREADID_NP)
++set(CMAKE_REQUIRED_LIBRARIES "")
+ 
+ # Check for pthread_self() returning an integer type
+ CHECK_C_SOURCE_COMPILES("
+@@ -676,7 +678,6 @@ IF(NOT WITHOUT_SERVER)
    OPTION (WITH_EMBEDDED_SERVER "Compile MySQL with embedded server" OFF)
    IF(WITH_EMBEDDED_SERVER) 
     ADD_SUBDIRECTORY(libmysqld)
@@ -503,7 +519,7 @@ share/man/man1/
    ENDIF(WITH_EMBEDDED_SERVER)
  ENDIF()
  
-@@ -737,7 +736,6 @@ ELSE()
+@@ -737,7 +738,6 @@ ELSE()
    SET(CPACK_GENERATOR "TGZ")
  ENDIF() 
  ADD_SUBDIRECTORY(packaging/WiX)
@@ -511,7 +527,7 @@ share/man/man1/
  
  IF(UNIX)
    INSTALL(FILES Docs/mysql.info DESTINATION ${INSTALL_INFODIR} OPTIONAL COMPONENT Info)
-@@ -745,6 +743,7 @@ ENDIF()
+@@ -745,6 +745,7 @@ ENDIF()
  #
  # RPM installs documentation directly from the source tree
  #
@@ -519,7 +535,7 @@ share/man/man1/
  IF(NOT INSTALL_LAYOUT MATCHES "RPM")
    INSTALL(FILES COPYING LICENSE.mysql 
    DESTINATION ${INSTALL_DOCREADMEDIR} 
-@@ -767,6 +766,7 @@ IF(NOT INSTALL_LAYOUT MATCHES "RPM")
+@@ -767,6 +768,7 @@ IF(NOT INSTALL_LAYOUT MATCHES "RPM")
      PATTERN "sp-imp-spec.txt" EXCLUDE
    )
  ENDIF()
@@ -1179,41 +1195,4 @@ remember to replace it wit your own
 or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
 
 *****************************************************************************
-
-
-[FILE:928:freebsd/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2017-12-28 03:46:26 UTC
-+++ CMakeLists.txt
-@@ -676,7 +676,6 @@ IF(NOT WITHOUT_SERVER)
-   OPTION (WITH_EMBEDDED_SERVER "Compile MySQL with embedded server" OFF)
-   IF(WITH_EMBEDDED_SERVER) 
-    ADD_SUBDIRECTORY(libmysqld)
--   ADD_SUBDIRECTORY(libmysqld/examples)
-   ENDIF(WITH_EMBEDDED_SERVER)
- ENDIF()
- 
-@@ -737,7 +736,6 @@ ELSE()
-   SET(CPACK_GENERATOR "TGZ")
- ENDIF() 
- ADD_SUBDIRECTORY(packaging/WiX)
--ADD_SUBDIRECTORY(packaging/solaris)
- 
- IF(UNIX)
-   INSTALL(FILES Docs/mysql.info DESTINATION ${INSTALL_INFODIR} OPTIONAL COMPONENT Info)
-@@ -745,6 +743,7 @@ ENDIF()
- #
- # RPM installs documentation directly from the source tree
- #
-+IF(FALSE)
- IF(NOT INSTALL_LAYOUT MATCHES "RPM")
-   INSTALL(FILES COPYING LICENSE.mysql 
-   DESTINATION ${INSTALL_DOCREADMEDIR} 
-@@ -767,6 +766,7 @@ IF(NOT INSTALL_LAYOUT MATCHES "RPM")
-     PATTERN "sp-imp-spec.txt" EXCLUDE
-   )
- ENDIF()
-+ENDIF()
- 
- INCLUDE(CPack)
- 
 

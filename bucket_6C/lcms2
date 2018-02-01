@@ -36,6 +36,10 @@ CONFIGURE_ARGS=		--with-jpeg
 INSTALL_TARGET=		install-strip
 SOVERSION=		2.0.8
 
+post-patch:
+	# evaluates to empty string which sun shell chokes on in a loop
+	${REINPLACE_CMD} -e '/PLUGIN_DIRECTORIES/d' ${WRKSRC}/Makefile.in
+
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}/
 	(cd ${WRKSRC}/utils/ && \

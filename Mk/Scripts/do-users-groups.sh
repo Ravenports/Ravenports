@@ -125,6 +125,9 @@ if [ -n "${USERS}" ]; then
 			if [ -n "$class" ]; then
 				class="-L $class"
 			fi
+			if [ "${dp_OPSYS}" = "SunOS" -a "$shell" = "/usr/sbin/nologin" ]; then
+				shell="/usr/bin/false"
+			fi
 			homedir=$(echo "$homedir" | sed "s|^LOCALBASE/|${dp_PREFIX}/|")
 			cat >> "${dp_UG_INSTALL}" <<-eot2
 if id ${user} >/dev/null 2>&1; then

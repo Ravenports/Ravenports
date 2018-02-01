@@ -65,3 +65,86 @@ lib/
  libx265.so.%%SOVERSION%%
 lib/pkgconfig/x265.pc
 
+
+[FILE:1067:patches/patch-CMakeLists.txt]
+$NetBSD: patch-CMakeLists.txt,v 1.1 2017/02/13 13:39:55 fhajny Exp $
+
+Solaris ld: Provided assembler is not PIC, so we pass "-mimpure-text"
+            to the compiler so it doesn't send "-ztext" to ld.
+
+Solaris ld: Passing "-Wa,--noexecstack" to gcc will generate an ELF section
+            requesting a non executable stack. I don't know if Solaris ld
+            is complying or just ignoring it.
+
+--- CMakeLists.txt.orig	2017-11-29 03:21:40 UTC
++++ CMakeLists.txt
+@@ -605,7 +605,11 @@ if(ENABLE_SHARED)
+         elseif(CYGWIN)
+             # Cygwin is not officially supported or tested. MinGW with msys is recommended.
+         else()
+-            list(APPEND LINKER_OPTIONS "-Wl,-Bsymbolic,-znoexecstack")
++            if(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
++                list(APPEND LINKER_OPTIONS "-mimpure-text -Wa,--noexecstack")
++            else()
++                list(APPEND LINKER_OPTIONS "-Wl,-Bsymbolic,-znoexecstack")
++            endif()
+         endif()
+     endif()
+     set_target_properties(x265-shared PROPERTIES SOVERSION ${X265_BUILD})
+
+
+[FILE:627:patches/patch-common_common.cpp]
+--- common/common.cpp.orig	2017-11-29 03:21:40 UTC
++++ common/common.cpp
+@@ -35,6 +35,27 @@
+ #include <sys/time.h>
+ #endif
+ 
++#ifdef __sun__
++#define posix_memalign	illumos_memalign
++static int
++posix_memalign(void **memptr, size_t alignment, size_t size)
++{
++	void *ptr = NULL;
++	int error = 0;
++
++	if (alignment == 0 ||
++	    (alignment & (sizeof (void *) - 1)) != 0 ||
++	    (alignment & (alignment - 1)) != 0)
++		error = EINVAL;
++	else if (size != 0 &&
++	    (ptr = memalign(alignment, size)) == NULL)
++		error = ENOMEM;
++
++	*memptr = ptr;
++	return (error);
++}
++#endif
++
+ namespace X265_NS {
+ 
+ #if CHECKED_BUILD || _DEBUG
+
+
+[FILE:1718:patches/patch-encoder_encoder.cpp]
+--- encoder/encoder.cpp.orig	2017-11-29 03:21:40 UTC
++++ encoder/encoder.cpp
+@@ -575,7 +575,7 @@ int Encoder::setAnalysisDataAfterZScan(x
+                             {
+                                 int mv_x = ((analysis_inter_data *)curFrame->m_analysisData.interData)->mv[k][(mbIndex * 16) + cuOffset].x;
+                                 int mv_y = ((analysis_inter_data *)curFrame->m_analysisData.interData)->mv[k][(mbIndex * 16) + cuOffset].y;
+-                                double mv = sqrt(mv_x*mv_x + mv_y*mv_y);
++                                double mv = sqrt((double)(mv_x*mv_x + mv_y*mv_y));
+                                 if (numPU == PU_2Nx2N && ((srcInterData)->depth[cuPos + cuOffset] == (m_param->maxCUSize >> 5)) && mv <= MVTHRESHOLD)
+                                     memset(&curFrame->m_analysisData.modeFlag[k][cuPos + cuOffset], 1, bytes);
+                             }
+@@ -658,7 +658,7 @@ int Encoder::setAnalysisData(x265_analys
+                                     {
+                                         int mv_x = ((analysis_inter_data *)curFrame->m_analysisData.interData)->mv[i][count + pu].x;
+                                         int mv_y = ((analysis_inter_data *)curFrame->m_analysisData.interData)->mv[i][count + pu].y;
+-                                        double mv = sqrt(mv_x*mv_x + mv_y*mv_y);
++                                        double mv = sqrt((double)(mv_x*mv_x + mv_y*mv_y));
+                                         if (numPU == PU_2Nx2N && m_param->num4x4Partitions <= 16 && mv <= MVTHRESHOLD)
+                                             memset(&curFrame->m_analysisData.modeFlag[i][count + pu], 1, bytes);
+                                     }
+

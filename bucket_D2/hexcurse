@@ -28,6 +28,10 @@ CFLAGS=			-I{{NCURSESINC}}
 post-patch:
 	${REINPLACE_CMD} -e 's/ -Werror//' ${WRKSRC}/src/Makefile.in
 
+post-patch-sunos:
+	${REINPLACE_CMD} -e '/LIBS=/ s/-lncurses /-lncurses -ltinfo /' \
+		${WRKSRC}/configure
+
 [FILE:255:descriptions/desc.single]
 HexCurse is a versatile ncurses-based hex editor written in C that provides
 the user with many features. It currently supports searching, hex, and

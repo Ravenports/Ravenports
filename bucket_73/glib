@@ -57,7 +57,8 @@ post-patch:
 		${WRKSRC}/glib/tests/utils.c
 	@${REINPLACE_CMD} -e 's|inotify_support=yes|inotify_support=no| ; \
 		s|-Werror|| ; \
-		s|#define HAVE_SYS_INOTIFY_H 1||' ${WRKSRC}/configure
+		s|#define HAVE_SYS_INOTIFY_H 1|| ; \
+		/_XOPEN_SOURCE 2/d' ${WRKSRC}/configure
 
 post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/share/GConf/gsettings
@@ -646,6 +647,22 @@ index d4e66cd4d..84b9ef164 100644
                                            extends, extends_name, list_of);
 
 
+[FILE:285:patches/patch-gio_gsocket.c]
+--- gio/gsocket.c.orig	2018-01-08 20:00:42 UTC
++++ gio/gsocket.c
+@@ -52,6 +52,10 @@
+ #include <sys/uio.h>
+ #endif
+ 
++#ifdef __sun__
++#define _XPG4_2	1
++#endif
++
+ #define GOBJECT_COMPILATION
+ #include "gobject/gtype-private.h" /* For _PRELUDE type define */
+ #undef GOBJECT_COMPILATION
+
+
 [FILE:654:patches/patch-gio_gunixmount.c]
 --- gio/gunixmount.c.orig	2017-07-13 23:03:39 UTC
 +++ gio/gunixmount.c
@@ -759,6 +776,23 @@ ports installed.
  #error GNU libiconv not in use but included iconv.h is from libiconv
  #endif
  
+
+
+[FILE:290:patches/patch-glib_giounix.c]
+--- glib/giounix.c.orig	2017-09-11 00:09:54 UTC
++++ glib/giounix.c
+@@ -32,6 +32,11 @@
+ #include "config.h"
+ 
+ #define _POSIX_SOURCE		/* for SSIZE_MAX */
++#ifdef __sun__
++#undef _XOPEN_SOURCE
++#define _XOPEN_SOURCE	600
++#define _XPG6
++#endif
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
 
 
 [FILE:648:patches/patch-glib_gutils.c]

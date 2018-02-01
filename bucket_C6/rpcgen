@@ -14,6 +14,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
 B_DEPS[linux]=		libbsd:single:standard
 
 LICENSE=		CUSTOM1:single
@@ -71,7 +72,7 @@ share/man/man1/rpcgen.1.gz
  */
 
 
-[FILE:489:files/Makefile]
+[FILE:552:files/Makefile]
 PROG=		rpcgen
 SRCS=		rpc_main.c rpc_clntout.c rpc_cout.c rpc_hout.c rpc_parse.c \
 		rpc_sample.c rpc_scan.c rpc_svcout.c rpc_tblout.c rpc_util.c
@@ -80,6 +81,10 @@ PREFIX?=	/usr/local
 
 .if ${OPSYS} == Linux
 LIBS+=		${PREFIX}/lib/libbsd.a
+.endif
+
+.if ${OPSYS} == SunOS
+CFLAGS+=	-I${PREFIX}/include/bsd
 .endif
 
 all: ${PROG}

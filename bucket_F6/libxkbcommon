@@ -17,6 +17,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
+
 USES=			bison gmake libtool
 XORG_COMPONENTS=	xcb
 
@@ -29,6 +31,20 @@ CONFIGURE_ARGS=		--without-doxygen
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
+
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
+
+post-patch:
+	${REINPLACE_CMD} -e '/version-script=/ s/script=/script,/' \
+		${WRKSRC}/Makefile.in \
+		${WRKSRC}/configure \
+		${WRKSRC}/meson.build
+	${REINPLACE_CMD} \
+		-e 's|DFLT_XKB_CONFIG_ROOT|"${PREFIX}/share/X11/xkb"|' \
+		${WRKSRC}/src/context.c
+	${REINPLACE_CMD} \
+		-e 's|= XLOCALEDIR|= "${PREFIX}/lib/X11/locale"|' \
+		${WRKSRC}/src/compose/paths.c
 
 [FILE:286:descriptions/desc.single]
 xkbcommon is a library to handle keyboard descriptions, including loading
@@ -61,4 +77,18 @@ lib/
 lib/pkgconfig/
  xkbcommon-x11.pc
  xkbcommon.pc
+
+
+[FILE:415:patches/patch-Makefile.in]
+--- Makefile.in.orig	2017-12-15 19:45:07 UTC
++++ Makefile.in
+@@ -836,8 +836,6 @@ EXTRA_DIST = \
+ # The constants are added here instead of using AC_DEFINE_UNQUOTED
+ # because it does not expand variables recursively.
+ AM_CPPFLAGS = \
+-	-DDFLT_XKB_CONFIG_ROOT='"$(XKBCONFIGROOT)"' \
+-	-DXLOCALEDIR='"$(XLOCALEDIR)"' \
+ 	-I$(top_srcdir)/src \
+ 	-I$(top_builddir)/src/xkbcomp \
+ 	-include $(top_builddir)/src/config.h
 

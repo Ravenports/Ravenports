@@ -23,7 +23,9 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
 BR_DEPS[freebsd]=	argp-standalone:single:standard
+BR_DEPS[sunos]=		argp-standalone:single:standard
 BR_DEPS[dragonfly]=	argp-standalone:single:standard
 EXRUN[utils]=		video4linux:primary:standard
 
@@ -86,6 +88,21 @@ post-patch-freebsd:
 		s|__u16|uint16_t|g; s|__s16|int16_t|g; \
 		s|__u32|uint32_t|g; s|__s32|int32_t|g; \
 		s|__u64|uint64_t|g; s|__s64|int64_t|g'
+
+post-patch-sunos:
+	@${FIND} ${WRKDIR} -type f \( -iname "*.h" ! -iname "input.h" ! -iname "videodev2.h" \) | \
+		${XARGS} -n 10 ${REINPLACE_CMD} \
+		-e 's|linux/types.h|sys/types.h|g; s|__user||g; \
+		s|sys/fcntl.h|fcntl.h|g; \
+		s|__u8|uint8_t|g; s|__s8|int8_t|g; \
+		s|__u16|uint16_t|g; s|__s16|int16_t|g; \
+		s|__u32|uint32_t|g; s|__s32|int32_t|g; \
+		s|__u64|uint64_t|g; s|__s64|int64_t|g'
+	${REINPLACE_CMD} \
+		-e 's|u_int8_t|uint8_t|g' \
+		-e 's|u_int16_t|uint16_t|g' \
+		-e 's|u_int32_t|uint32_t|g' \
+		${WRKSRC}/utils/keytable/keytable.c
 
 [FILE:284:descriptions/desc.primary]
 The Video4Linux library is a wrapper library for accessing Video4Linux
@@ -254,6 +271,29 @@ sbin/v4l2-dbg
  else
 
 
+[FILE:668:patches/patch-contrib_freebsd_include_linux_input.h]
+--- contrib/freebsd/include/linux/input.h.orig	2015-05-06 19:24:59 UTC
++++ contrib/freebsd/include/linux/input.h
+@@ -42,10 +42,16 @@ typedef int8_t __s8;
+ #endif
+ #endif
+ 
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+ #define __user
+ #define	_IOC_READ   IOC_OUT
+ #define	_IOC_WRITE  IOC_IN
++#elif defined __sun__
++#define __user
++#include <sys/ioccom.h>
++#define	_IOC_READ   IOC_OUT
++#define	_IOC_WRITE  IOC_IN
++#define	_IOC(inout,group,num,len)	((unsigned long) ((inout) | (((len) & IOCPARM_MASK) << 16) | ((group) << 8) | (num)))
+ #else
+ #include <linux/types.h>
+ #endif
+
+
 [FILE:642:patches/patch-include_linux_dvb_frontend.h]
 --- include/linux/dvb/frontend.h.orig	2015-01-10 15:04:07.446370686 +0100
 +++ include/linux/dvb/frontend.h	2015-01-10 15:05:20.367365809 +0100
@@ -304,10 +344,20 @@ sbin/v4l2-dbg
  DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am
 
 
-[FILE:660:patches/patch-lib_include_libdvbv5_dvb-frontend.h]
---- ./lib/include/libdvbv5/dvb-frontend.h.orig	2016-09-13 19:57:29.863954000 +0200
-+++ ./lib/include/libdvbv5/dvb-frontend.h	2016-09-13 19:58:07.703108000 +0200
-@@ -553,7 +553,13 @@
+[FILE:789:patches/patch-lib_include_libdvbv5_dvb-frontend.h]
+--- lib/include/libdvbv5/dvb-frontend.h.orig	2014-04-23 06:40:08 UTC
++++ lib/include/libdvbv5/dvb-frontend.h
+@@ -27,6 +27,9 @@
+ #define _DVBFRONTEND_H_
+ 
+ #include <linux/types.h>
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
+ 
+ typedef enum fe_type {
+ 	FE_QPSK,
+@@ -553,7 +556,13 @@ struct dtv_properties {
  };
  
  #define FE_SET_PROPERTY		   _IOW('o', 82, struct dtv_properties)
@@ -324,10 +374,171 @@ sbin/v4l2-dbg
  /**
 
 
-[FILE:882:patches/patch-lib_libv4lconvert_control_libv4lcontrol.c]
---- lib/libv4lconvert/control/libv4lcontrol.c.orig	2014-07-26 21:33:00.000000000 +0200
-+++ lib/libv4lconvert/control/libv4lcontrol.c	2015-01-11 09:40:05.521158993 +0100
-@@ -361,6 +361,16 @@
+[FILE:403:patches/patch-lib_include_libv4l1-videodev.h]
+--- lib/include/libv4l1-videodev.h.orig	2013-06-28 20:10:56 UTC
++++ lib/include/libv4l1-videodev.h
+@@ -6,9 +6,12 @@
+ #include <linux/ioctl.h>
+ #endif
+ 
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+ #include <sys/ioctl.h>
+ #endif
++#if defined __sun__
++#include <sys/ioccom.h>
++#endif
+ 
+ #include <stdint.h>
+ 
+
+
+[FILE:255:patches/patch-lib_include_libv4l1.h]
+--- lib/include/libv4l1.h.orig	2013-06-28 20:10:56 UTC
++++ lib/include/libv4l1.h
+@@ -25,7 +25,9 @@ extern "C" {
+ 
+ #include <stdio.h>
+ #include <stdint.h>
++#ifndef __sun__
+ #include <unistd.h>
++#endif
+ #include <libv4l1-videodev.h>
+ 
+ #if HAVE_VISIBILITY
+
+
+[FILE:231:patches/patch-lib_include_libv4l2.h]
+--- lib/include/libv4l2.h.orig	2013-06-28 20:10:56 UTC
++++ lib/include/libv4l2.h
+@@ -20,7 +20,9 @@
+ #define __LIBV4L2_H
+ 
+ #include <stdio.h>
++#ifndef __sun__
+ #include <unistd.h>
++#endif
+ #include <stdint.h>
+ 
+ #ifdef __cplusplus
+
+
+[FILE:358:patches/patch-lib_include_libv4lconvert.h]
+--- lib/include/libv4lconvert.h.orig	2015-06-16 09:34:09 UTC
++++ lib/include/libv4lconvert.h
+@@ -28,7 +28,7 @@
+ #include <linux/ioctl.h>
+ #endif
+ 
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #include <sys/ioctl.h>
+
+
+[FILE:266:patches/patch-lib_libdvbv5_dvb-demux.c]
+--- lib/libdvbv5/dvb-demux.c.orig	2014-09-07 16:37:14 UTC
++++ lib/libdvbv5/dvb-demux.c
+@@ -37,6 +37,9 @@
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ #include <stdlib.h> /* free */
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
+ 
+ #include <libdvbv5/dvb-demux.h>
+ 
+
+
+[FILE:348:patches/patch-lib_libv4l1_v4l1compat.c]
+--- lib/libv4l1/v4l1compat.c.orig	2013-06-28 20:10:56 UTC
++++ lib/libv4l1/v4l1compat.c
+@@ -29,7 +29,9 @@
+ #include "../libv4lconvert/libv4lsyscall-priv.h" /* for __off_t */
+ 
+ #include <sys/ioctl.h>
++#ifndef __sun__
+ #include <sys/mman.h>
++#endif
+ 
+ /* Check that open/read/mmap is not a define */
+ #if defined open || defined read || defined mmap
+
+
+[FILE:322:patches/patch-lib_libv4l2_v4l2convert.c]
+--- lib/libv4l2/v4l2convert.c.orig	2015-05-06 19:24:59 UTC
++++ lib/libv4l2/v4l2convert.c
+@@ -31,7 +31,9 @@
+ #include <fcntl.h>
+ #include <string.h>
+ #include <sys/ioctl.h>
++#ifndef __sun__
+ #include <sys/mman.h>
++#endif
+ #include "../libv4lconvert/libv4lsyscall-priv.h"
+ #include <linux/videodev2.h>
+ #include <libv4l2.h>
+
+
+[FILE:605:patches/patch-lib_libv4l2rds_libv4l2rds.c]
+--- lib/libv4l2rds/libv4l2rds.c.orig	2014-08-22 14:59:47 UTC
++++ lib/libv4l2rds/libv4l2rds.c
+@@ -1046,12 +1046,14 @@ static time_t rds_decode_mjd(const struc
+ 	new_time.tm_mday = d;
+ 	new_time.tm_mon = m - 1;
+ 	new_time.tm_year = y;
++#ifndef __sun__
+ 	/* offset (submitted by RDS) that was used to compute the local time,
+ 	 * expressed in multiples of half hours, bit 5 indicates -/+ */
+ 	if (priv_state->utc_offset & 0x20)
+ 		new_time.tm_gmtoff = -offset * 1800;
+ 	else
+ 		new_time.tm_gmtoff = offset * 1800;
++#endif
+ 
+ 	/* convert tm struct to time_t value and return it */
+ 	return mktime(&new_time);
+
+
+[FILE:2165:patches/patch-lib_libv4lconvert_control_libv4lcontrol.c]
+--- lib/libv4lconvert/control/libv4lcontrol.c.orig	2015-05-06 19:24:59 UTC
++++ lib/libv4lconvert/control/libv4lcontrol.c
+@@ -37,6 +37,32 @@
+ #include "../libv4lsyscall-priv.h"
+ #include <linux/videodev2.h>
+ 
++#ifdef __sun__
++
++
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++
++static char *strndup (const char *str, size_t max)
++{
++    size_t len = strnlen (str, max);
++    char *res = malloc (len + 1);
++    if (res)
++    {
++        memcpy (res, str, len);
++        res[len] = '\0';
++    }
++    return res;
++}
++#endif
++
+ #define ARRAY_SIZE(x) ((int)sizeof(x) / (int)sizeof((x)[0]))
+ 
+ /* List of cams which need special flags */
+@@ -361,6 +387,19 @@ static int v4lcontrol_get_usb_info(struc
  		unsigned short *vendor_id, unsigned short *product_id,
  		int *speed)
  {
@@ -340,11 +551,14 @@ sbin/v4l2-dbg
 +	    ioctl(data->fd, WEBCAMD_IOCTL_GET_USB_SPEED, speed) == 0)
 +		return (1);
 +	return (0);
++#elif defined __sun__
++	/* implement later? */
++	return (0);
 +#else
  	FILE *f;
  	int i, minor;
  	struct stat st;
-@@ -457,6 +467,7 @@
+@@ -457,6 +496,7 @@ static int v4lcontrol_get_usb_info(struc
  		return 0; /* Should never happen */
  
  	return 1;
@@ -352,6 +566,25 @@ sbin/v4l2-dbg
  }
  
  /*
+@@ -570,6 +610,10 @@ static void v4lcontrol_get_flags_from_db
+ struct v4lcontrol_data *v4lcontrol_create(int fd, void *dev_ops_priv,
+ 	const struct libv4l_dev_ops *dev_ops, int always_needs_conversion)
+ {
++#ifdef __sun__
++	printf("libv4lcontrol: not implemented on sunos yet\n");
++	return NULL;
++#else
+ 	int shm_fd;
+ 	int i, rc, got_usb_info, speed, init = 0;
+ 	char *s, shm_name[256], pwd_buf[1024];
+@@ -771,6 +815,7 @@ struct v4lcontrol_data *v4lcontrol_creat
+ error:
+ 	free(data);
+ 	return NULL;
++#endif
+ }
+ 
+ void v4lcontrol_destroy(struct v4lcontrol_data *data)
 
 
 [FILE:440:patches/patch-lib_libv4lconvert_jpeg__memsrcdest.h]
@@ -371,6 +604,63 @@ sbin/v4l2-dbg
  	unsigned long * outsize);
 +
 +#endif
+
+
+[FILE:1698:patches/patch-lib_libv4lconvert_libv4lsyscall-priv.h]
+--- lib/libv4lconvert/libv4lsyscall-priv.h.orig	2015-05-06 19:24:59 UTC
++++ lib/libv4lconvert/libv4lsyscall-priv.h
+@@ -49,7 +49,7 @@
+ #endif
+ #endif
+ 
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+ #include <sys/time.h>
+ #include <sys/syscall.h>
+ #include <sys/types.h>
+@@ -57,11 +57,28 @@
+ #define	_IOC_NR(cmd) ((cmd) & 0xFF)
+ #define	_IOC_TYPE(cmd) IOCGROUP(cmd)
+ #define	_IOC_SIZE(cmd) IOCPARM_LEN(cmd)
++# ifndef MAP_ANONYMOUS
+ #define	MAP_ANONYMOUS MAP_ANON
++# endif
+ #define	MMAP2_PAGE_SHIFT 0
+ typedef off_t __off_t;
+ #endif
+ 
++#ifdef __sun__
++#include <sys/time.h>
++#include <sys/syscall.h>
++#include <sys/types.h>
++#include <sys/ioctl.h>
++# ifndef MAP_ANONYMOUS
++#define	MAP_ANONYMOUS MAP_ANON
++# endif
++#define	MMAP2_PAGE_SHIFT 0
++#define	_IOC_NR(cmd) ((cmd) & 0x1FFF)
++#define	_IOC_SIZE(cmd) (((cmd) >> 16) & 0x1FFF)
++#define	_IOC_TYPE(cmd) (((cmd) >> 8) & 0xFF)
++typedef off_t __off_t;
++#endif
++
+ #undef SYS_OPEN
+ #undef SYS_CLOSE
+ #undef SYS_IOCTL
+@@ -88,11 +105,11 @@ typedef off_t __off_t;
+ #define SYS_WRITE(fd, buf, len) \
+ 	syscall(SYS_write, (int)(fd), (const void *)(buf), (size_t)(len));
+ 
+-#if defined(__FreeBSD__)
++#if defined __FreeBSD__ || defined __DragonFly__
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	__syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
+ 			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
+-#elif defined(__FreeBSD_kernel__)
++#elif defined __FreeBSD_kernel__ || defined __sun__
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
+ 			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
 
 
 [FILE:841:patches/patch-linux_dvb_ca.h]
@@ -422,6 +712,83 @@ sbin/v4l2-dbg
  	rds-ctl $(am__append_1) $(am__append_2) $(am__append_3)
  all: all-recursive
  
+
+
+[FILE:321:patches/patch-utils_libmedia__dev_get__media__devices.c]
+--- utils/libmedia_dev/get_media_devices.c.orig	2014-03-02 09:11:40 UTC
++++ utils/libmedia_dev/get_media_devices.c
+@@ -26,6 +26,9 @@
+ #include <dirent.h>
+ #include <limits.h>
+ #include "get_media_devices.h"
++#ifdef __sun__
++#include <sys/sysmacros.h>
++#endif
+ 
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+ 
+
+
+[FILE:447:patches/patch-utils_v4l2-compliance_v4l2-compliance.cpp]
+--- utils/v4l2-compliance/v4l2-compliance.cpp.orig	2015-05-06 19:24:59 UTC
++++ utils/v4l2-compliance/v4l2-compliance.cpp
+@@ -236,6 +236,18 @@ const char *ok(int res)
+ 	return buf;
+ }
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ int check_string(const char *s, size_t len)
+ {
+ 	size_t sz = strnlen(s, len);
+
+
+[FILE:417:patches/patch-utils_v4l2-compliance_v4l2-compliance.h]
+--- utils/v4l2-compliance/v4l2-compliance.h.orig	2015-09-22 16:55:50.000000000 +0300
++++ utils/v4l2-compliance/v4l2-compliance.h
+@@ -34,7 +34,7 @@
+ 
+ #include <cv4l-helpers.h>
+ 
+-#if !defined(ENODATA) && (defined(__FreeBSD__) || defined(__FreeBSD_kernel__))
++#if !defined(ENODATA) && (defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined __DragonFly__ || defined __sun__)
+ #define ENODATA ENOTSUP
+ #endif
+ 
+
+
+[FILE:491:patches/patch-utils_v4l2-compliance_v4l2-test-controls.cpp]
+--- utils/v4l2-compliance/v4l2-test-controls.cpp.orig	2015-05-06 19:24:59 UTC
++++ utils/v4l2-compliance/v4l2-test-controls.cpp
+@@ -32,6 +32,18 @@
+ #include <vector>
+ #include "v4l2-compliance.h"
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ static int checkQCtrl(struct node *node, struct test_query_ext_ctrl &qctrl)
+ {
+ 	struct v4l2_querymenu qmenu;
 
 
 [FILE:11162:files/videodev.h]
@@ -767,93 +1134,65 @@ struct video_code
  */
 
 
-[FILE:383:dragonfly/patch-contrib_freebsd_include_linux_input.h]
---- contrib/freebsd/include/linux/input.h.orig	2015-05-06 19:24:59 UTC
-+++ contrib/freebsd/include/linux/input.h
-@@ -42,7 +42,7 @@ typedef int8_t __s8;
- #endif
- #endif
- 
--#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
- #define __user
- #define	_IOC_READ   IOC_OUT
- #define	_IOC_WRITE  IOC_IN
-
-
-[FILE:325:dragonfly/patch-lib_include_libv4l1-videodev.h]
---- lib/include/libv4l1-videodev.h.orig	2015-06-16 09:34:09 UTC
-+++ lib/include/libv4l1-videodev.h
-@@ -6,7 +6,7 @@
- #include <linux/ioctl.h>
- #endif
- 
--#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
- #include <sys/ioctl.h>
- #endif
- 
-
-
-[FILE:358:dragonfly/patch-lib_include_libv4lconvert.h]
---- lib/include/libv4lconvert.h.orig	2015-06-16 09:34:09 UTC
-+++ lib/include/libv4lconvert.h
-@@ -28,7 +28,7 @@
- #include <linux/ioctl.h>
- #endif
- 
--#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+[FILE:354:sunos/patch-contrib_freebsd_include_linux_videodev2.h]
+--- contrib/freebsd/include/linux/videodev2.h.orig	2015-05-06 19:24:59 UTC
++++ contrib/freebsd/include/linux/videodev2.h
+@@ -60,6 +60,9 @@
  #include <sys/time.h>
  #include <sys/types.h>
  #include <sys/ioctl.h>
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
+ 
+ #ifndef HAVE_LINUX_INTEGER_TYPES
+ /* XXX remove when depending software has been updated */
 
 
-[FILE:1015:dragonfly/patch-lib_libv4lconvert_libv4lsyscall-priv.h]
---- lib/libv4lconvert/libv4lsyscall-priv.h.orig	2015-05-06 19:24:59 UTC
-+++ lib/libv4lconvert/libv4lsyscall-priv.h
-@@ -49,7 +49,7 @@
- #endif
- #endif
- 
--#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined (__DragonFly__)
- #include <sys/time.h>
- #include <sys/syscall.h>
- #include <sys/types.h>
-@@ -57,7 +57,9 @@
- #define	_IOC_NR(cmd) ((cmd) & 0xFF)
- #define	_IOC_TYPE(cmd) IOCGROUP(cmd)
- #define	_IOC_SIZE(cmd) IOCPARM_LEN(cmd)
-+# ifndef MAP_ANONYMOUS
- #define	MAP_ANONYMOUS MAP_ANON
-+# endif
- #define	MMAP2_PAGE_SHIFT 0
- typedef off_t __off_t;
- #endif
-@@ -88,7 +90,7 @@ typedef off_t __off_t;
- #define SYS_WRITE(fd, buf, len) \
- 	syscall(SYS_write, (int)(fd), (const void *)(buf), (size_t)(len));
- 
--#if defined(__FreeBSD__)
-+#if defined(__FreeBSD__) || defined(__DragonFly__)
- #define SYS_MMAP(addr, len, prot, flags, fd, off) \
- 	__syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
- 			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
+[FILE:533:sunos/patch-lib_libdvbv5_Makefile.in]
+--- lib/libdvbv5/Makefile.in.orig	2015-05-06 19:29:45 UTC
++++ lib/libdvbv5/Makefile.in
+@@ -283,7 +283,7 @@ AUTOMAKE = @AUTOMAKE@
+ AWK = @AWK@
+ CC = @CC@
+ CCDEPMODE = @CCDEPMODE@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -I$(prefix)/include/bsd
+ CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
+ CPP = @CPP@
+ CPPFLAGS = @CPPFLAGS@
+@@ -348,7 +348,7 @@ LD = @LD@
+ LDFLAGS = @LDFLAGS@
+ LIBICONV = @LIBICONV@
+ LIBOBJS = @LIBOBJS@
+-LIBS = @LIBS@
++LIBS = @LIBS@ -lbsd
+ LIBTOOL = @LIBTOOL@
+ LIBUDEV_CFLAGS = @LIBUDEV_CFLAGS@
+ LIBUDEV_LIBS = @LIBUDEV_LIBS@
 
 
-[FILE:399:dragonfly/patch-utils_v4l2-compliance_v4l2-compliance.h]
---- utils/v4l2-compliance/v4l2-compliance.h.orig	2015-09-22 16:55:50.000000000 +0300
-+++ utils/v4l2-compliance/v4l2-compliance.h
-@@ -34,7 +34,7 @@
- 
- #include <cv4l-helpers.h>
- 
--#if !defined(ENODATA) && (defined(__FreeBSD__) || defined(__FreeBSD_kernel__))
-+#if !defined(ENODATA) && (defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__))
- #define ENODATA ENOTSUP
- #endif
- 
+[FILE:527:sunos/patch-utils_dvb_Makefile.in]
+--- utils/dvb/Makefile.in.orig	2015-05-06 19:29:46 UTC
++++ utils/dvb/Makefile.in
+@@ -236,7 +236,7 @@ AUTOMAKE = @AUTOMAKE@
+ AWK = @AWK@
+ CC = @CC@
+ CCDEPMODE = @CCDEPMODE@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -I$(prefix)/include/bsd
+ CFLAG_VISIBILITY = @CFLAG_VISIBILITY@
+ CPP = @CPP@
+ CPPFLAGS = @CPPFLAGS@
+@@ -301,7 +301,7 @@ LD = @LD@
+ LDFLAGS = @LDFLAGS@
+ LIBICONV = @LIBICONV@
+ LIBOBJS = @LIBOBJS@
+-LIBS = @LIBS@
++LIBS = @LIBS@ -lbsd
+ LIBTOOL = @LIBTOOL@
+ LIBUDEV_CFLAGS = @LIBUDEV_CFLAGS@
+ LIBUDEV_LIBS = @LIBUDEV_LIBS@
 
 
 [FILE:740:linux/patch-contrib_freebsd_include_linux_videodev2.h]
