@@ -7179,7 +7179,7 @@ record file nonetheless.
  Lib/distutils/tests/test_install_lib.py |  8 ++++++--
  2 files changed, 19 insertions(+), 6 deletions(-)
 
---- Lib/distutils/command/install_lib.py.orig	2017-07-08 03:33:27 UTC
+--- Lib/distutils/command/install_lib.py.orig	2017-12-19 04:53:56 UTC
 +++ Lib/distutils/command/install_lib.py
 @@ -164,12 +164,21 @@ class install_lib(Command):
              ext = os.path.splitext(os.path.normcase(py_file))[1]
@@ -7223,7 +7223,7 @@ record file nonetheless.
  Lib/distutils/tests/test_install_lib.py |  8 ++++++--
  2 files changed, 19 insertions(+), 6 deletions(-)
 
---- Lib/distutils/tests/test_install_lib.py.orig	2017-07-08 03:33:27 UTC
+--- Lib/distutils/tests/test_install_lib.py.orig	2017-12-19 04:53:56 UTC
 +++ Lib/distutils/tests/test_install_lib.py
 @@ -64,11 +64,15 @@ class InstallLibTestCase(support.Tempdir
          cmd.distribution.ext_modules = [Extension('foo', ['xxx'])]
@@ -7246,7 +7246,7 @@ record file nonetheless.
 
 
 [FILE:1801:patches/patch-Lib_distutils_unixccompiler.py]
---- Lib/distutils/unixccompiler.py.orig	2017-07-08 03:33:27 UTC
+--- Lib/distutils/unixccompiler.py.orig	2017-12-19 04:53:56 UTC
 +++ Lib/distutils/unixccompiler.py
 @@ -224,34 +224,7 @@ class UnixCCompiler(CCompiler):
          # the configuration data stored in the Python installation, so
@@ -7295,7 +7295,7 @@ record file nonetheless.
 # Submitted by: antoine@ (r358029)
 # TODO: Upstream
 
---- Makefile.pre.in.orig	2017-07-08 03:33:27 UTC
+--- Makefile.pre.in.orig	2017-12-19 04:53:56 UTC
 +++ Makefile.pre.in
 @@ -80,23 +80,20 @@ MAKESETUP=      $(srcdir)/Modules/makese
  OPT=		@OPT@
@@ -7333,7 +7333,7 @@ record file nonetheless.
  
  # Subdirectories with code
  SRCDIRS= 	@SRCDIRS@
-@@ -575,6 +574,7 @@ sharedmods: $(BUILDPYTHON) pybuilddir.tx
+@@ -586,6 +585,7 @@ sharedmods: $(BUILDPYTHON) pybuilddir.tx
  	esac; \
  	$(RUNSHARED) CC='$(CC)' LDSHARED='$(BLDSHARED)' OPT='$(OPT)' \
  		_TCLTK_INCLUDES='$(TCLTK_INCLUDES)' _TCLTK_LIBS='$(TCLTK_LIBS)' \
@@ -7341,7 +7341,7 @@ record file nonetheless.
  		$(PYTHON_FOR_BUILD) $(srcdir)/setup.py $$quiet build
  
  
-@@ -1148,12 +1148,6 @@ bininstall: altbininstall
+@@ -1180,12 +1180,6 @@ bininstall: altbininstall
  	else true; \
  	fi
  	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)$(EXE) python3$(EXE))
@@ -7354,7 +7354,7 @@ record file nonetheless.
  	-rm -f $(DESTDIR)$(BINDIR)/python3-config
  	(cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)-config python3-config)
  	-rm -f $(DESTDIR)$(LIBPC)/python3.pc
-@@ -1415,6 +1409,12 @@ libainstall:	@DEF_MAKE_RULE@ python-conf
+@@ -1449,6 +1443,12 @@ libainstall:	@DEF_MAKE_RULE@ python-conf
  	$(INSTALL_SCRIPT) $(srcdir)/install-sh $(DESTDIR)$(LIBPL)/install-sh
  	$(INSTALL_SCRIPT) python-config.py $(DESTDIR)$(LIBPL)/python-config.py
  	$(INSTALL_SCRIPT) python-config $(DESTDIR)$(BINDIR)/python$(LDVERSION)-config
@@ -7367,7 +7367,7 @@ record file nonetheless.
  	@if [ -s Modules/python.exp -a \
  		"`echo $(MACHDEP) | sed 's/^\(...\).*/\1/'`" = "aix" ]; then \
  		echo; echo "Installing support files for building shared extension modules on AIX:"; \
-@@ -1434,7 +1434,8 @@ libainstall:	@DEF_MAKE_RULE@ python-conf
+@@ -1468,7 +1468,8 @@ libainstall:	@DEF_MAKE_RULE@ python-conf
  # Install the dynamically loadable modules
  # This goes into $(exec_prefix)
  sharedinstall: sharedmods
@@ -7394,7 +7394,7 @@ record file nonetheless.
 
 
 [FILE:211:patches/patch-configure]
---- configure.orig	2017-07-08 03:33:27 UTC
+--- configure.orig	2017-12-19 04:53:56 UTC
 +++ configure
 @@ -652,6 +652,7 @@ USE_THREAD_MODULE
  TCLTK_LIBS
@@ -7407,7 +7407,7 @@ record file nonetheless.
 
 
 [FILE:1431:patches/patch-setup.py]
---- setup.py.orig	2017-07-08 03:33:27 UTC
+--- setup.py.orig	2017-12-19 04:53:56 UTC
 +++ setup.py
 @@ -43,7 +43,10 @@ host_platform = get_platform()
  COMPILED_WITH_PYDEBUG = ('--with-pydebug' in sysconfig.get_config_var("CONFIG_ARGS"))
@@ -7421,7 +7421,7 @@ record file nonetheless.
  
  def add_dir_to_list(dirlist, dir):
      """Add the directory 'dir' to the list 'dirlist' (after any relative
-@@ -1571,6 +1574,10 @@ class PyBuildExt(build_ext):
+@@ -1613,6 +1616,10 @@ class PyBuildExt(build_ext):
              macros = dict()
              libraries = []
  
@@ -7432,7 +7432,7 @@ record file nonetheless.
          elif host_platform in ('freebsd4', 'freebsd5', 'freebsd6', 'freebsd7', 'freebsd8'):
              # FreeBSD's P1003.1b semaphore support is very experimental
              # and has many known problems. (as of June 2008)
-@@ -1610,7 +1617,7 @@ class PyBuildExt(build_ext):
+@@ -1652,7 +1659,7 @@ class PyBuildExt(build_ext):
          # End multiprocessing
  
          # Platform-specific libraries
