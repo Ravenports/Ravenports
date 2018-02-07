@@ -22,9 +22,9 @@ SPKGS[standard]=	complete
 
 OPTIONS_AVAILABLE=	GOLD OPENMP
 OPTIONS_STANDARD=	GOLD OPENMP
-OPT_ON[freebsd]=	OPENMP//x86_64
-OPT_ON[x86_64]=		GOLD
-OPT_ON[dragonfly]=	OPENMP//x86_64
+OPT_ON[freebsd]=	OPENMP//x86_64 GOLD//x86_64
+OPT_ON[linux]=		GOLD//x86_64
+OPT_ON[dragonfly]=	OPENMP//x86_64 GOLD//x86_64
 
 USES=			cmake:outsource ncurses perl:build python:build
 			shebangfix zlib c++:llvm,clang
@@ -54,6 +54,7 @@ PLIST_SUB=		NAMEBASE="llvm40"
 
 CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
 			-DCMAKE_BUILD_TYPE=Release
+			-DCMAKE_BUILD_WITH_INSTALL_RPATH=1
 			-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm40/lib"
 			-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
 
@@ -135,7 +136,7 @@ da783db1f82d516791179fe103c71706046561f7972b18f0049242dee6712b51     21065652 ll
 ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 openmp-4.0.1.src.tar.xz
 
 
-[FILE:13699:manifests/plist.clang]
+[FILE:13591:manifests/plist.clang]
 %%NAMEBASE%%/bin/
  c-index-test
  clang
@@ -712,9 +713,6 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  intrin.h
  inttypes.h
  iso646.h
-%%ONLY-LINUX%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
- limits.h
-%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
  lzcntintrin.h
  mm3dnow.h
  mm_malloc.h
@@ -723,7 +721,6 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  msa.h
  mwaitxintrin.h
  nmmintrin.h
-%%OPENMP-ON%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/omp.h
  opencl-c.h
  pkuintrin.h
  pmmintrin.h
@@ -734,23 +731,11 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  s390intrin.h
  shaintrin.h
  smmintrin.h
-%%ONLY-LINUX%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
- stdalign.h
- stdarg.h
- stdatomic.h
- stdbool.h
- stddef.h
- stdint.h
- stdnoreturn.h
-%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
  tbmintrin.h
  tgmath.h
  tmmintrin.h
  unwind.h
  vadefs.h
-%%ONLY-LINUX%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
- varargs.h
-%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
  vecintrin.h
  wmmintrin.h
  x86intrin.h
@@ -841,6 +826,27 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  ScanView.py
  bugcatcher.ico
  startfile.py
+%%ONLY-LINUX%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
+ limits.h
+ stdalign.h
+ stdarg.h
+ stdatomic.h
+ stdbool.h
+ stddef.h
+ stdint.h
+ stdnoreturn.h
+ varargs.h
+%%ONLY-SUNOS%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
+ limits.h
+ stdalign.h
+ stdarg.h
+ stdatomic.h
+ stdbool.h
+ stddef.h
+ stdint.h
+ stdnoreturn.h
+ varargs.h
+%%OPENMP-ON%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/omp.h
 
 
 [FILE:24420:manifests/plist.llvm]
@@ -2186,6 +2192,84 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
    set(libomp_expected_library_deps libc.so.12 libpthread.so.1 libm.so.0)
 
 
+[FILE:739:patches/patch-cmake_modules_AddLLVM.cmake]
+--- cmake/modules/AddLLVM.cmake.orig	2017-05-19 01:55:05 UTC
++++ cmake/modules/AddLLVM.cmake
+@@ -182,9 +182,6 @@ function(add_link_opts target_name)
+         # ld64's implementation of -dead_strip breaks tools that use plugins.
+         set_property(TARGET ${target_name} APPEND_STRING PROPERTY
+                      LINK_FLAGS " -Wl,-dead_strip")
+-      elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+-        set_property(TARGET ${target_name} APPEND_STRING PROPERTY
+-                     LINK_FLAGS " -Wl,-z -Wl,discard-unused=sections")
+       elseif(NOT WIN32 AND NOT LLVM_LINKER_IS_GOLD)
+         # Object files are compiled with -ffunction-data-sections.
+         # Versions of bfd ld < 2.23.1 have a bug in --gc-sections that breaks
+
+
+[FILE:569:patches/patch-include_llvm_Support_Host.h]
+--- include/llvm/Support/Host.h.orig	2016-10-13 17:43:20 UTC
++++ include/llvm/Support/Host.h
+@@ -20,6 +20,18 @@
+ #include <endian.h>
+ #elif defined(_AIX)
+ #include <sys/machine.h>
++#elif defined(__sun) & defined(__SVR4)
++# ifndef BYTE_ORDER
++# define LITTLE_ENDIAN 1234
++# define BIG_ENDIAN 4321
++# include <sys/isa_defs.h>
++# ifdef _LITTLE_ENDIAN
++# define BYTE_ORDER LITTLE_ENDIAN
++# endif
++# ifdef _BIG_ENDIAN
++# define BYTE_ORDER BIG_ENDIAN
++# endif
++# endif /* BYTE_ORDER */
+ #else
+ #if !defined(BYTE_ORDER) && !defined(LLVM_ON_WIN32)
+ #include <machine/endian.h>
+
+
+[FILE:420:patches/patch-lib_ObjectYAML_MachOYAML.cpp]
+--- lib/ObjectYAML/MachOYAML.cpp.orig	2016-12-22 21:58:03 UTC
++++ lib/ObjectYAML/MachOYAML.cpp
+@@ -19,6 +19,18 @@
+ 
+ #include <string.h> // For memcpy, memset and strnlen.
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ namespace llvm {
+ 
+ MachOYAML::LoadCommand::~LoadCommand() {}
+
+
+[FILE:262:patches/patch-lib_Support_Unix_Program.inc]
+--- lib/Support/Unix/Program.inc.orig	2016-04-05 20:45:04 UTC
++++ lib/Support/Unix/Program.inc
+@@ -40,9 +40,6 @@
+ #include <unistd.h>
+ #endif
+ #ifdef HAVE_POSIX_SPAWN
+-#ifdef __sun__
+-#define  _RESTRICT_KYWD
+-#endif
+ #include <spawn.h>
+ 
+ #if defined(__APPLE__)
+
+
 [FILE:1721:patches/patch-tools_clang_lib_Driver_Tools.cpp]
 --- tools/clang/lib/Driver/Tools.cpp.orig	2017-04-22 17:20:27 UTC
 +++ tools/clang/lib/Driver/Tools.cpp
@@ -2231,10 +2315,59 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
            // Already diagnosed.
 
 
-[FILE:623:patches/patch-tools_llvm-shlib_CMakeLists.txt]
+[FILE:486:patches/patch-tools_clang_lib_Lex_HeaderMap.cpp]
+--- tools/clang/lib/Lex/HeaderMap.cpp.orig	2016-10-01 16:38:28 UTC
++++ tools/clang/lib/Lex/HeaderMap.cpp
+@@ -24,6 +24,19 @@
+ #include "llvm/Support/Debug.h"
+ #include <cstring>
+ #include <memory>
++
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ using namespace clang;
+ 
+ /// HashHMapKey - This is the 'well known' hash function required by the file
+
+
+[FILE:431:patches/patch-tools_llvm-pdbdump_LLVMOutputStyle.cpp]
+--- tools/llvm-pdbdump/LLVMOutputStyle.cpp.orig	2017-01-11 23:24:22 UTC
++++ tools/llvm-pdbdump/LLVMOutputStyle.cpp
+@@ -37,6 +37,18 @@
+ 
+ #include <unordered_map>
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ using namespace llvm;
+ using namespace llvm::codeview;
+ using namespace llvm::msf;
+
+
+[FILE:874:patches/patch-tools_llvm-shlib_CMakeLists.txt]
 --- tools/llvm-shlib/CMakeLists.txt.orig	2016-11-01 20:19:33 UTC
 +++ tools/llvm-shlib/CMakeLists.txt
-@@ -37,7 +37,7 @@ endif()
+@@ -37,11 +37,13 @@ endif()
  add_llvm_library(LLVM SHARED DISABLE_LLVM_LINK_LLVM_DYLIB SONAME ${SOURCES})
  
  list(REMOVE_DUPLICATES LIB_NAMES)
@@ -2243,6 +2376,36 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
    # GNU ld doesn't resolve symbols in the version script.
    set(LIB_NAMES -Wl,--whole-archive ${LIB_NAMES} -Wl,--no-whole-archive)
  elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+   set(LIB_NAMES -Wl,-all_load ${LIB_NAMES})
++elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "SunOS")
++  set(LIB_NAMES -Wl,-Bsymbolic -Wl,-z -Wl,allextract ${LIB_NAMES} -Wl,-z -Wl,defaultextract)
+ endif()
+ 
+ target_link_libraries(LLVM PRIVATE ${LIB_NAMES})
+
+
+[FILE:384:patches/patch-tools_obj2yaml_macho2yaml.cpp]
+--- tools/obj2yaml/macho2yaml.cpp.orig	2016-12-22 21:58:03 UTC
++++ tools/obj2yaml/macho2yaml.cpp
+@@ -17,6 +17,18 @@
+ 
+ #include <string.h> // for memcpy
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ using namespace llvm;
+ 
+ class MachODumper {
 
 
 [FILE:128:files/special.mk]
