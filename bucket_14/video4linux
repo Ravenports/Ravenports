@@ -89,7 +89,7 @@ post-patch-freebsd:
 		s|__u32|uint32_t|g; s|__s32|int32_t|g; \
 		s|__u64|uint64_t|g; s|__s64|int64_t|g'
 
-post-patch-sunos:
+post-configure-sunos:
 	@${FIND} ${WRKDIR} -type f \( -iname "*.h" ! -iname "input.h" ! -iname "videodev2.h" \) | \
 		${XARGS} -n 10 ${REINPLACE_CMD} \
 		-e 's|linux/types.h|sys/types.h|g; s|__user||g; \
@@ -294,10 +294,35 @@ sbin/v4l2-dbg
  #endif
 
 
-[FILE:642:patches/patch-include_linux_dvb_frontend.h]
---- include/linux/dvb/frontend.h.orig	2015-01-10 15:04:07.446370686 +0100
-+++ include/linux/dvb/frontend.h	2015-01-10 15:05:20.367365809 +0100
-@@ -549,7 +549,13 @@
+[FILE:354:patches/patch-contrib_freebsd_include_linux_videodev2.h]
+--- contrib/freebsd/include/linux/videodev2.h.orig	2015-05-06 19:24:59 UTC
++++ contrib/freebsd/include/linux/videodev2.h
+@@ -60,6 +60,9 @@
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #include <sys/ioctl.h>
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
+ 
+ #ifndef HAVE_LINUX_INTEGER_TYPES
+ /* XXX remove when depending software has been updated */
+
+
+[FILE:789:patches/patch-include_linux_dvb_frontend.h]
+--- include/linux/dvb/frontend.h.orig	2014-09-07 17:18:12 UTC
++++ include/linux/dvb/frontend.h
+@@ -26,6 +26,9 @@
+ #ifndef _DVBFRONTEND_H_
+ #define _DVBFRONTEND_H_
+ 
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
+ #include <linux/types.h>
+ 
+ typedef enum fe_type {
+@@ -549,7 +552,13 @@ struct dtv_properties {
  };
  
  #define FE_SET_PROPERTY		   _IOW('o', 82, struct dtv_properties)
@@ -663,10 +688,21 @@ sbin/v4l2-dbg
  			(int)(prot), (int)(flags), (int)(fd), (__off_t)(off))
 
 
-[FILE:841:patches/patch-linux_dvb_ca.h]
---- linux/dvb/ca.h.orig	2014-12-01 10:58:18.000000000 +0100
+[FILE:1033:patches/patch-linux_dvb_ca.h]
+--- linux/dvb/ca.h.orig	2014-12-01 09:58:18 UTC
 +++ linux/dvb/ca.h
-@@ -80,9 +80,17 @@
+@@ -24,6 +24,10 @@
+ #ifndef _DVBCA_H_
+ #define _DVBCA_H_
+ 
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
++
+ /* slot interface types and info */
+ 
+ typedef struct ca_slot_info {
+@@ -80,9 +84,17 @@ typedef struct ca_pid {
  
  #define CA_RESET          _IO('o', 128)
  #define CA_GET_CAP        _IOR('o', 129, ca_caps_t)
@@ -684,6 +720,21 @@ sbin/v4l2-dbg
  #define CA_SEND_MSG       _IOW('o', 133, ca_msg_t)
  #define CA_SET_DESCR      _IOW('o', 134, ca_descr_t)
  #define CA_SET_PID        _IOW('o', 135, ca_pid_t)
+
+
+[FILE:250:patches/patch-linux_dvb_frontend.h]
+--- linux/dvb/frontend.h.orig	2014-12-01 09:58:18 UTC
++++ linux/dvb/frontend.h
+@@ -26,6 +26,9 @@
+ #ifndef _DVBFRONTEND_H_
+ #define _DVBFRONTEND_H_
+ 
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
+ #include <linux/types.h>
+ 
+ typedef enum fe_type {
 
 
 [FILE:256:patches/patch-linux_dvb_osd.h]
@@ -1132,21 +1183,6 @@ struct video_code
  * c-basic-offset: 8
  * End:
  */
-
-
-[FILE:354:sunos/patch-contrib_freebsd_include_linux_videodev2.h]
---- contrib/freebsd/include/linux/videodev2.h.orig	2015-05-06 19:24:59 UTC
-+++ contrib/freebsd/include/linux/videodev2.h
-@@ -60,6 +60,9 @@
- #include <sys/time.h>
- #include <sys/types.h>
- #include <sys/ioctl.h>
-+#ifdef __sun__
-+#include <sys/ioccom.h>
-+#endif
- 
- #ifndef HAVE_LINUX_INTEGER_TYPES
- /* XXX remove when depending software has been updated */
 
 
 [FILE:533:sunos/patch-lib_libdvbv5_Makefile.in]

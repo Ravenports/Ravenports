@@ -17,11 +17,21 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
+
 USES=			mesa meson pkgconfig
 XORG_COMPONENTS=	x11
 
 FPC_EQUIVALENT=		graphics/libepoxy
 MESON_ARGS=		-Denable-egl=yes
+
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
+			LDFLAGS=-lbsd
+
+post-patch:
+	${REINPLACE_CMD} \
+		-e 's|@MYRPATH@|${PREFIX}/toolchain/gcc7/${ASLIB}|' \
+		${WRKSRC}/src/meson.build
 
 [FILE:333:descriptions/desc.single]
 Epoxy is a library for handling OpenGL function pointer management.
@@ -52,8 +62,21 @@ lib/
 lib/pkgconfig/epoxy.pc
 
 
-[FILE:276:patches/patch-test_dlwrap.c]
---- test/dlwrap.c.orig	2017-03-28 08:56:46 UTC
+[FILE:567:patches/patch-src_meson.build]
+--- src/meson.build.orig	2017-06-06 09:24:13 UTC
++++ src/meson.build
+@@ -84,6 +84,7 @@ if libtype != 'static'
+                                    sources: epoxy_sources + epoxy_headers,
+                                    version: '0.0.0',
+                                    install: true,
++                                   install_rpath: '@MYRPATH@',
+                                    dependencies: epoxy_deps,
+                                    include_directories: libepoxy_inc,
+                                    c_args: common_cflags + visibility_cflags,
+
+
+[FILE:714:patches/patch-test_dlwrap.c]
+--- test/dlwrap.c.orig	2017-06-06 09:24:13 UTC
 +++ test/dlwrap.c
 @@ -34,6 +34,8 @@
  
@@ -64,4 +87,38 @@ lib/pkgconfig/epoxy.pc
  #include <dlfcn.h>
  
  #include <stdbool.h>
+@@ -208,6 +210,10 @@ dlsym(void *handle, const char *name)
+ void *
+ dlwrap_real_dlsym(void *handle, const char *name)
+ {
++#ifdef __sun__
++    fprintf(stderr, "dlwrap_real_dlsym unsupported on SunOS (missing dlvsym)");
++    exit(1);
++#else
+     static fips_dlsym_t real_dlsym = NULL;
+ 
+     if (!real_dlsym) {
+@@ -269,6 +275,7 @@ dlwrap_real_dlsym(void *handle, const ch
+     }
+ 
+     return real_dlsym(handle, name);
++#endif
+ }
+ 
+ void *
+
+
+[FILE:317:sunos/patch-test_meson.build]
+--- test/meson.build.orig	2017-06-06 09:24:13 UTC
++++ test/meson.build
+@@ -3,8 +3,7 @@ has_gles2 = gles2_dep.found()
+ build_x11_tests = build_glx and x11_dep.found()
+ 
+ test_cflags = common_cflags + [
+-  '-D_XOPEN_SOURCE',
+-  '-D_POSIX_C_SOURCE=200809L',
++  '-D_XOPEN_SOURCE=600',
+ ]
+ 
+ # Unconditionally built tests
 

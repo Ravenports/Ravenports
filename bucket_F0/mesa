@@ -39,6 +39,7 @@ BUILDRUN_DEPENDS=	expat:shared:standard
 			libdrm:single:standard
 			ocl-icd:primary:standard
 			opencl:single:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 EXRUN[clover]=		llvm40:llvm:standard
 			zlib:shared:standard
 			libelf:single:standard
@@ -87,11 +88,15 @@ CONFIGURE_ARGS=		--enable-llvm
 			--with-llvm-prefix={{LOCALBASE}}/llvm40
 			--with-dri-drivers="{{DRI_DRIVERS:tl}}"
 			--with-gallium_drivers="{{GALLIUM_DRIVERS:tl}}"
+CONFIGURE_ENV=		ax_cv_check_cflags___Wno_initializer_overrides=no
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 
-LDFLAGS=		-Wl,-rpath={{LOCALBASE}}/llvm40/lib
+LDFLAGS=		-Wl,-rpath,{{LOCALBASE}}/llvm40/lib
+VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
+			CPPFLAGS=-D_POSIX_PTHREAD_SEMANTICS
+			CFLAGS=-DF_DUPFD_CLOEXEC=F_DUPFD
 
 [ARM_DRIVERS].DESCRIPTION=		Build drivers for aarch64 architecture
 [ARM_DRIVERS].MAKEFILE_ON=		GALLIUM_DRIVERS+=FREEDRENO
@@ -110,14 +115,25 @@ LDFLAGS=		-Wl,-rpath={{LOCALBASE}}/llvm40/lib
 					GALLIUM_DRIVERS+=SVGA
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|/etc/|${PREFIX}/etc/|g' \
+	${REINPLACE_CMD} -e 's|/etc/|${PREFIX}/etc/|g' \
 		${WRKSRC}/src/util/xmlconfig.c
 	# Use --link-static until ports/223191 is fixed
-	@${REINPLACE_CMD} -e '/$$LLVM_VERSION_MAJOR -ge 4/s|test |false |' \
+	${REINPLACE_CMD} -e '/$$LLVM_VERSION_MAJOR -ge 4/s|test |false |' \
 		${WRKSRC}/configure
 
 post-patch-freebsd:
-	@${REINPLACE_CMD} -e 's|x86_64|amd64|' ${WRKSRC}/configure
+	${REINPLACE_CMD} -e 's|x86_64|amd64|' ${WRKSRC}/configure
+
+post-patch-sunos:
+	${REINPLACE_CMD}\
+		-e '/^CFLAGS =/ s|$$| -I$$(prefix)/include/bsd|' \
+		-e '/^LDFLAGS =/ s|$$| -lbsd|' \
+		${WRKSRC}/src/egl/Makefile.in \
+		${WRKSRC}/src/gallium/drivers/r600/Makefile.in \
+		${WRKSRC}/src/gallium/drivers/radeon/Makefile.in \
+		${WRKSRC}/src/gallium/drivers/radeonsi/Makefile.in \
+		${WRKSRC}/src/gallium/auxiliary/Makefile.in \
+		${WRKSRC}/src/loader/Makefile.in
 
 [FILE:808:descriptions/desc.libs]
 The Mesa project began as an open-source implementation of the OpenGL
@@ -292,9 +308,18 @@ lib/
 lib/pkgconfig/osmesa.pc
 
 
-[FILE:1408:patches/patch-configure]
+[FILE:2794:patches/patch-configure]
 --- configure.orig	2018-01-18 21:30:38 UTC
 +++ configure
+@@ -21380,7 +21380,7 @@ LDFLAGS=$save_LDFLAGS
+ 
+ 
+ case "$host_os" in
+-openbsd* | darwin* )
++openbsd* | darwin* | solaris* )
+     LD_NO_UNDEFINED="" ;;
+ *)
+     if test "x$enable_sanitize" = xno; then
 @@ -23351,7 +23351,7 @@ fi
  
  
@@ -334,6 +359,24 @@ lib/pkgconfig/osmesa.pc
  fi
   if test "x$enable_opencl" = xyes; then
    HAVE_CLOVER_TRUE=
+@@ -28445,7 +28452,7 @@ if test "x$enable_llvm" = xyes; then
+     LLVM_CXXFLAGS=`strip_unwanted_llvm_flags "$LLVM_CONFIG --cxxflags"`
+ 
+ 
+-    if test $LLVM_VERSION_MAJOR -ge 4 -o $LLVM_VERSION_MAJOR -eq 3 -a $LLVM_VERSION_MINOR -ge 9; then
++    if false $LLVM_VERSION_MAJOR -ge 4 -o $LLVM_VERSION_MAJOR -eq 3 -a $LLVM_VERSION_MINOR -ge 9; then
+         if test "x$enable_llvm_shared_libs" = xyes; then
+             LLVM_LIBS="`$LLVM_CONFIG --link-shared --libs ${LLVM_COMPONENTS}`"
+         else
+@@ -28459,7 +28466,7 @@ if test "x$enable_llvm" = xyes; then
+         else
+             { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Building mesa with statically linked LLVM may cause compilation issues" >&5
+ $as_echo "$as_me: WARNING: Building mesa with statically linked LLVM may cause compilation issues" >&2;}
+-                                    if test $LLVM_VERSION_MAJOR -ge 4 -o $LLVM_VERSION_MAJOR -eq 3 -a $LLVM_VERSION_MINOR -ge 5; then
++                                    if false $LLVM_VERSION_MAJOR -ge 4 -o $LLVM_VERSION_MAJOR -eq 3 -a $LLVM_VERSION_MINOR -ge 5; then
+                 LLVM_LIBS="$LLVM_LIBS `$LLVM_CONFIG --system-libs`"
+             fi
+         fi
 
 
 [FILE:512:patches/patch-include_GL_internal_dri__interface.h]
@@ -355,6 +398,74 @@ in drm.h also, which causes build issues in xorg-server.
 -#endif
  
  #include <stdint.h>
+ 
+
+
+[FILE:629:patches/patch-src_amd_common_ac__debug.c]
+--- src/amd/common/ac_debug.c.orig	2018-01-18 21:30:28 UTC
++++ src/amd/common/ac_debug.c
+@@ -563,6 +563,10 @@ void ac_parse_ib_chunk(FILE *f, uint32_t
+ 		       unsigned trace_id_count, enum chip_class chip_class,
+                        ac_debug_addr_callback addr_callback, void *addr_callback_data)
+ {
++#ifdef __sun__
++	printf("\nac_parse_ib_chunk: open_memstream unsupported on solaris");
++	exit (1);
++#else
+ 	struct ac_ib_parser ib = {};
+ 	ib.ib = ib_ptr;
+ 	ib.num_dw = num_dw;
+@@ -588,6 +592,7 @@ void ac_parse_ib_chunk(FILE *f, uint32_t
+ 		printf("\nPacket ends after the end of IB.\n");
+ 		exit(1);
+ 	}
++#endif
+ }
+ 
+ /**
+
+
+[FILE:787:patches/patch-src_compiler_glsl_linker.cpp]
+--- src/compiler/glsl/linker.cpp.orig	2018-01-18 21:30:28 UTC
++++ src/compiler/glsl/linker.cpp
+@@ -87,6 +87,38 @@
+ #include "main/shaderobj.h"
+ #include "main/enums.h"
+ 
++#ifdef __sun__
++/* uses libbsd4sol prototypes, so can't be static */
++#include <stdlib.h>
++#include <stdint.h>
++#include <string.h>
++
++size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++
++char *
++strndup(const char *str, size_t n)
++{
++    size_t len;
++    char *copy;
++
++    len = strlen(str);
++    if (len <= n)
++        return strdup(str);
++    if ((copy = (char *)malloc(len + 1)) == NULL)
++        return (NULL);
++    memcpy(copy, str, len);
++    copy[len] = '\0';
++    return (copy);
++}
++#endif
+ 
+ namespace {
  
 
 
@@ -496,6 +607,21 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  
 
 
+[FILE:257:patches/patch-src_gallium_auxiliary_util_u__math.h]
+--- src/gallium/auxiliary/util/u_math.h.orig	2018-01-18 21:30:28 UTC
++++ src/gallium/auxiliary/util/u_math.h
+@@ -49,6 +49,9 @@
+ #include "util/bitscan.h"
+ 
+ #ifdef __cplusplus
++# ifdef __sun__
++#define restrict	__restrict__
++# endif
+ extern "C" {
+ #endif
+ 
+
+
 [FILE:504:patches/patch-src_gallium_auxiliary_util_u__network.c]
 --- src/gallium/auxiliary/util/u_network.c.orig	2018-01-18 21:30:28 UTC
 +++ src/gallium/auxiliary/util/u_network.c
@@ -508,6 +634,43 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
     defined(PIPE_OS_APPLE) || defined(PIPE_OS_CYGWIN) || defined(PIPE_OS_SOLARIS)
  #  include <sys/socket.h>
  #  include <netinet/in.h>
+
+
+[FILE:367:patches/patch-src_gallium_drivers_radeonsi_si__shader.c]
+--- src/gallium/drivers/radeonsi/si_shader.c.orig	2018-01-18 21:30:28 UTC
++++ src/gallium/drivers/radeonsi/si_shader.c
+@@ -26,6 +26,10 @@
+  *      Christian König <christian.koenig@amd.com>
+  */
+ 
++#ifdef __sun__
++#include <alloca.h> /* for alloca */
++#endif
++
+ #include "gallivm/lp_bld_const.h"
+ #include "gallivm/lp_bld_gather.h"
+ #include "gallivm/lp_bld_intr.h"
+
+
+[FILE:511:patches/patch-src_gallium_drivers_radeonsi_si__state__shaders.c]
+--- src/gallium/drivers/radeonsi/si_state_shaders.c.orig	2018-01-18 21:30:28 UTC
++++ src/gallium/drivers/radeonsi/si_state_shaders.c
+@@ -1523,6 +1523,7 @@ static void si_build_shader_variant(stru
+ 		return;
+ 	}
+ 
++#ifndef __sun__
+ 	if (shader->compiler_ctx_state.is_debug_context) {
+ 		FILE *f = open_memstream(&shader->shader_log,
+ 					 &shader->shader_log_size);
+@@ -1531,6 +1532,7 @@ static void si_build_shader_variant(stru
+ 			fclose(f);
+ 		}
+ 	}
++#endif
+ 
+ 	si_shader_init_pm4_state(sscreen, shader);
+ }
 
 
 [FILE:360:patches/patch-src_gallium_drivers_vc4_vc4__bufmgr.c]
@@ -651,6 +814,22 @@ See:
     }
 
 
+[FILE:292:patches/patch-src_gallium_winsys_amdgpu_drm_amdgpu__cs.c]
+--- src/gallium/winsys/amdgpu/drm/amdgpu_cs.c.orig	2018-01-18 21:30:28 UTC
++++ src/gallium/winsys/amdgpu/drm/amdgpu_cs.c
+@@ -36,6 +36,10 @@
+ 
+ #include "amd/common/sid.h"
+ 
++#ifdef __sun__
++#include <alloca.h>
++#endif
++
+ DEBUG_GET_ONCE_BOOL_OPTION(noop, "RADEON_NOOP", false)
+ 
+ /* FENCES */
+
+
 [FILE:429:patches/patch-src_gallium_winsys_svga_drm_vmw__screen__ioctl.c]
 --- src/gallium/winsys/svga/drm/vmw_screen_ioctl.c.orig	2018-01-18 21:30:28 UTC
 +++ src/gallium/winsys/svga/drm/vmw_screen_ioctl.c
@@ -706,6 +885,66 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
  	$(AM_CFLAGS) \
 
 
+[FILE:995:patches/patch-src_intel_compiler_brw__eu__validate.c]
+--- src/intel/compiler/brw_eu_validate.c.orig	2018-01-18 21:30:29 UTC
++++ src/intel/compiler/brw_eu_validate.c
+@@ -28,6 +28,39 @@
+ 
+ #include "brw_eu.h"
+ 
++#ifdef __sun__
++#include <string.h>
++
++static void *
++memmem(const void *l, size_t l_len, const void *s, size_t s_len)
++{
++	char *cur, *last;
++	const char *cl = (const char *)l;
++	const char *cs = (const char *)s;
++
++	/* we need something to compare */
++	if (l_len == 0 || s_len == 0)
++		return NULL;
++
++	/* "s" must be smaller or equal to "l" */
++	if (l_len < s_len)
++		return NULL;
++
++	/* special case where s_len == 1 */
++	if (s_len == 1)
++		return memchr(l, (int)*cs, l_len);
++
++	/* the last position where its possible to find "s" in "l" */
++	last = (char *)cl + l_len - s_len;
++
++	for (cur = (char *)cl; cur <= last; cur++)
++		if (cur[0] == cs[0] && memcmp(cur, cs, s_len) == 0)
++			return cur;
++
++	return NULL;
++}
++#endif
++
+ /* We're going to do lots of string concatenation, so this should help. */
+ struct string {
+    char *str;
+
+
+[FILE:225:patches/patch-src_intel_isl_isl.h]
+--- src/intel/isl/isl.h.orig	2018-01-18 21:30:29 UTC
++++ src/intel/isl/isl.h
+@@ -46,6 +46,9 @@
+ #include "util/macros.h"
+ 
+ #ifdef __cplusplus
++# ifdef __sun__
++# define restrict	__restrict__
++# endif
+ extern "C" {
+ #endif
+ 
+
+
 [FILE:302:patches/patch-src_intel_tools_aubinator__error__decode.c]
 # expose getline in FreeBSD's stdio.h
 #
@@ -735,6 +974,63 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
  #define USE_BACKTRACE
  #endif
  
+
+
+[FILE:425:patches/patch-src_mesa_drivers_dri_i965_brw__bufmgr.c]
+--- src/mesa/drivers/dri/i965/brw_bufmgr.c.orig	2018-01-18 21:30:29 UTC
++++ src/mesa/drivers/dri/i965/brw_bufmgr.c
+@@ -74,6 +74,10 @@
+ #define VG(x)
+ #endif
+ 
++#ifndef O_CLOEXEC
++#define O_CLOEXEC	0
++#endif
++
+ /* VALGRIND_FREELIKE_BLOCK unfortunately does not actually undo the earlier
+  * VALGRIND_MALLOCLIKE_BLOCK but instead leaves vg convinced the memory is
+  * leaked. All because it does not call VG(cli_free) from its
+
+
+[FILE:1343:patches/patch-src_mesa_drivers_dri_i965_brw__performance__query.c]
+--- src/mesa/drivers/dri/i965/brw_performance_query.c.orig	2018-01-18 21:30:29 UTC
++++ src/mesa/drivers/dri/i965/brw_performance_query.c
+@@ -1752,9 +1752,17 @@ enumerate_sysfs_metrics(struct brw_conte
+    while ((metric_entry = readdir(metricsdir))) {
+       struct hash_entry *entry;
+ 
++#ifdef __sun__
++      struct stat entry_stat;
++
++      lstat(metric_entry->d_name, &entry_stat);
++      if ((!S_ISDIR(entry_stat.st_mode) && !S_ISLNK(entry_stat.st_mode)) ||
++          metric_entry->d_name[0] == '.') 
++#else
+       if ((metric_entry->d_type != DT_DIR &&
+            metric_entry->d_type != DT_LNK) ||
+           metric_entry->d_name[0] == '.')
++#endif
+          continue;
+ 
+       DBG("metric set: %s\n", metric_entry->d_name);
+@@ -1946,9 +1954,17 @@ get_sysfs_dev_dir(struct brw_context *br
+    }
+ 
+    while ((drm_entry = readdir(drmdir))) {
++#ifdef __sun__
++      struct stat drm_stat;
++
++      lstat(drm_entry->d_name, &drm_stat);
++      if ((S_ISDIR(drm_stat.st_mode) || S_ISLNK(drm_stat.st_mode)) &&
++          strncmp(drm_entry->d_name, "card", 4) == 0)
++#else
+       if ((drm_entry->d_type == DT_DIR ||
+            drm_entry->d_type == DT_LNK) &&
+           strncmp(drm_entry->d_name, "card", 4) == 0)
++#endif
+       {
+          len = snprintf(path_buf, path_buf_len,
+                         "/sys/dev/char/%d:%d/device/drm/%s",
 
 
 [FILE:406:patches/patch-src_mesa_main_compiler.h]
@@ -770,6 +1066,52 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
  #endif
  
  #define ALIGN(val, align)      (((val) + (align) - 1) & ~((align) - 1))
+
+
+[FILE:649:patches/patch-src_util_disk__cache.c]
+--- src/util/disk_cache.c.orig	2018-01-18 21:30:29 UTC
++++ src/util/disk_cache.c
+@@ -50,6 +50,10 @@
+ 
+ #include "disk_cache.h"
+ 
++#ifndef O_CLOEXEC
++#define O_CLOEXEC	0
++#endif
++
+ /* Number of bits to mask off from a cache key to get an index. */
+ #define CACHE_INDEX_KEY_BITS 16
+ 
+@@ -497,7 +501,11 @@ choose_lru_file_matching(const char *dir
+          break;
+ 
+       struct stat sb;
++#ifdef __sun__
++      if (fstatat(dir->dd_fd, entry->d_name, &sb, 0) == 0) {
++#else
+       if (fstatat(dirfd(dir), entry->d_name, &sb, 0) == 0) {
++#endif
+          if (!lru_atime || (sb.st_atime < lru_atime)) {
+             size_t len = strlen(entry->d_name);
+ 
+
+
+[FILE:430:patches/patch-src_util_u__atomic.h]
+--- src/util/u_atomic.h.orig	2018-01-18 21:30:29 UTC
++++ src/util/u_atomic.h
+@@ -19,11 +19,7 @@
+  * locally coded assembly, compiler intrinsic or ultimately a
+  * mutex-based implementation.
+  */
+-#if defined(__sun)
+-#define PIPE_ATOMIC_OS_SOLARIS
+-#elif defined(_MSC_VER)
+-#define PIPE_ATOMIC_MSVC_INTRINSIC
+-#elif defined(__GNUC__)
++#if defined(__GNUC__)
+ #define PIPE_ATOMIC_GCC_INTRINSIC
+ #else
+ #error "Unsupported platform"
 
 
 [FILE:343:patches/patch-src_util_u__endian.h]
@@ -823,4 +1165,113 @@ GALLIUM_DRIVERS+=	SWRAST
     if (gtt == MAP_FAILED) {
        fprintf(stderr, "failed to alloc gtt space: %s\n", strerror(errno));
        exit(EXIT_FAILURE);
+
+
+[FILE:722:sunos/patch-src_amd_Makefile.in]
+--- src/amd/Makefile.in.orig	2018-01-18 21:30:38 UTC
++++ src/amd/Makefile.in
+@@ -332,7 +332,7 @@ CCAS = @CCAS@
+ CCASDEPMODE = @CCASDEPMODE@
+ CCASFLAGS = @CCASFLAGS@
+ CCDEPMODE = @CCDEPMODE@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -I$(prefix)/include/bsd
+ CLANG_RESOURCE_DIR = @CLANG_RESOURCE_DIR@
+ CLOCK_LIB = @CLOCK_LIB@
+ CLOVER_STD_OVERRIDE = @CLOVER_STD_OVERRIDE@
+@@ -739,7 +739,7 @@ addrlib_libamdgpu_addrlib_la_SOURCES = $
+ @HAVE_GALLIUM_LLVM_TRUE@	$(AMD_GENERATED_FILES) \
+ @HAVE_GALLIUM_LLVM_TRUE@	$(AMD_NIR_FILES)
+ 
+-common_libamd_common_la_LIBADD = $(LIBELF_LIBS)
++common_libamd_common_la_LIBADD = $(LIBELF_LIBS) -lbsd
+ BUILT_SOURCES = $(AMD_GENERATED_FILES)
+ all: $(BUILT_SOURCES)
+ 	$(MAKE) $(AM_MAKEFLAGS) all-am
+
+
+[FILE:360:sunos/patch-src_compiler_Makefile.in]
+--- src/compiler/Makefile.in.orig	2018-01-18 21:30:39 UTC
++++ src/compiler/Makefile.in
+@@ -731,7 +731,7 @@ CLANG_RESOURCE_DIR = @CLANG_RESOURCE_DIR
+ CLOCK_LIB = @CLOCK_LIB@
+ CLOVER_STD_OVERRIDE = @CLOVER_STD_OVERRIDE@
+ CPP = @CPP@
+-CPPFLAGS = @CPPFLAGS@
++CPPFLAGS = @CPPFLAGS@ -I$(prefix)/include/bsd
+ CXX = @CXX@
+ CXXCPP = @CXXCPP@
+ CXXDEPMODE = @CXXDEPMODE@
+
+
+[FILE:343:sunos/patch-src_intel_Makefile.in]
+--- src/intel/Makefile.in.orig	2018-02-07 05:00:00 UTC
++++ src/intel/Makefile.in
+@@ -1983,7 +1983,7 @@ tools_aubinator_error_decode_LDADD = \
+ 
+ tools_aubinator_error_decode_CFLAGS = \
+ 	$(AM_CFLAGS) \
+-	$(ZLIB_CFLAGS)
++	$(ZLIB_CFLAGS) -I$(prefix)/include/bsd
+ 
+ 
+ # Due to a what seems like a autoconf bug, we must ensure that the genaration
+
+
+[FILE:760:sunos/patch-src_mesa_drivers_dri_common_Makefile.in]
+--- src/mesa/drivers/dri/common/Makefile.in.orig	2018-01-18 21:30:42 UTC
++++ src/mesa/drivers/dri/common/Makefile.in
+@@ -138,7 +138,7 @@ AM_V_lt = $(am__v_lt_@AM_V@)
+ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+ am__v_lt_0 = --silent
+ am__v_lt_1 = 
+-libmegadriver_stub_la_LIBADD =
++libmegadriver_stub_la_LIBADD = -lbsd
+ am__objects_2 = megadriver_stub.lo
+ am_libmegadriver_stub_la_OBJECTS = $(am__objects_2)
+ libmegadriver_stub_la_OBJECTS = $(am_libmegadriver_stub_la_OBJECTS)
+@@ -224,7 +224,7 @@ CCAS = @CCAS@
+ CCASDEPMODE = @CCASDEPMODE@
+ CCASFLAGS = @CCASFLAGS@
+ CCDEPMODE = @CCDEPMODE@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -I$(prefix)/include/bsd
+ CLANG_RESOURCE_DIR = @CLANG_RESOURCE_DIR@
+ CLOCK_LIB = @CLOCK_LIB@
+ CLOVER_STD_OVERRIDE = @CLOVER_STD_OVERRIDE@
+
+
+[FILE:927:sunos/patch-src_util_Makefile.in]
+--- src/util/Makefile.in.orig	2018-01-18 21:30:42 UTC
++++ src/util/Makefile.in
+@@ -865,6 +865,7 @@ libmesautil_la_CPPFLAGS = \
+ 	-I$(top_srcdir)/src/mesa \
+ 	-I$(top_srcdir)/src/gallium/include \
+ 	-I$(top_srcdir)/src/gallium/auxiliary \
++	-I$(prefix)/include/bsd \
+ 	$(VISIBILITY_CFLAGS) \
+ 	$(MSVC2013_COMPAT_CFLAGS) \
+ 	$(ZLIB_CFLAGS)
+@@ -876,18 +877,19 @@ libmesautil_la_SOURCES = \
+ libmesautil_la_LIBADD = \
+ 	$(CLOCK_LIB) \
+ 	$(ZLIB_LIBS) \
+-	$(LIBATOMIC_LIBS)
++	$(LIBATOMIC_LIBS) -lbsd
+ 
+ libxmlconfig_la_SOURCES = $(XMLCONFIG_FILES)
+ libxmlconfig_la_CFLAGS = \
+ 	$(DEFINES) \
+ 	-I$(top_srcdir)/include \
+ 	-I$(top_srcdir)/src \
++	-I$(prefix)/include/bsd \
+ 	-DSYSCONFDIR=\"$(sysconfdir)\" \
+ 	$(VISIBILITY_CFLAGS) \
+ 	$(EXPAT_CFLAGS)
+ 
+-libxmlconfig_la_LIBADD = $(EXPAT_LIBS) -lm
++libxmlconfig_la_LIBADD = $(EXPAT_LIBS) -lm -lbsd
+ sysconf_DATA = drirc
+ u_atomic_test_LDADD = libmesautil.la
+ roundeven_test_LDADD = -lm
 

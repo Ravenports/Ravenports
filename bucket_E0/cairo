@@ -47,6 +47,8 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		LIBVER=2.11400.12
 
+VAR_OPSYS[sunos]=	CFLAGS=-D_XOPEN_SOURCE=600
+
 post-patch:
 	@${REINPLACE_CMD} \
 		-e '/strings/s/ - / -a /' \
@@ -198,6 +200,18 @@ lib/pkgconfig/
      display->buggy_pad_reflect = FALSE;
      display->buggy_repeat = FALSE;
  
+
+
+[FILE:251:patches/patch-util_cairo-missing_getline.c]
+--- util/cairo-missing/getline.c.orig	2017-12-04 22:24:46 UTC
++++ util/cairo-missing/getline.c
+@@ -87,4 +87,6 @@ getline (char	**lineptr,
+     return ret;
+ }
+ #undef GETLINE_BUFFER_SIZE
++#else
++int solaris_ld_requires_at_least_one_symbol = 0;
+ #endif
 
 
 [FILE:291:dragonfly/patch-util_cairo-sphinx_sphinx.c]
