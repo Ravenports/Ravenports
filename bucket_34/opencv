@@ -547,7 +547,22 @@ share/cmake/Modules/FindOpenCVCore.cmake
  #    define ITT_OS ITT_OS_LINUX
 
 
-[FILE:574:patches/patch-modules_core_include_opencv2_core_utils_filesystem.private.hpp]
+[FILE:452:patches/patch-3rdparty_protobuf_src_google_protobuf_message__lite.cc]
+Needed for INT_MAX on sunos
+
+--- 3rdparty/protobuf/src/google/protobuf/message_lite.cc.orig	2017-12-22 19:46:21 UTC
++++ 3rdparty/protobuf/src/google/protobuf/message_lite.cc
+@@ -38,6 +38,7 @@
+ #include <google/protobuf/message_lite.h>
+ #include <google/protobuf/repeated_field.h>
+ #include <string>
++#include <climits>
+ #include <google/protobuf/stubs/logging.h>
+ #include <google/protobuf/stubs/common.h>
+ #include <google/protobuf/io/coded_stream.h>
+
+
+[FILE:593:patches/patch-modules_core_include_opencv2_core_utils_filesystem.private.hpp]
 --- modules/core/include/opencv2/core/utils/filesystem.private.hpp.orig	2017-12-22 19:46:21 UTC
 +++ modules/core/include/opencv2/core/utils/filesystem.private.hpp
 @@ -10,7 +10,7 @@
@@ -555,13 +570,31 @@ share/cmake/Modules/FindOpenCVCore.cmake
       /* no support */
  #  elif defined __ANDROID__ || defined __linux__ || defined _WIN32 || \
 -        defined __FreeBSD__ || defined __bsdi__
-+        defined __FreeBSD__ || defined __bsdi__ || defined __DragonFly__
++        defined __FreeBSD__ || defined __bsdi__ || defined __DragonFly__ || defined __sun__
  #      define OPENCV_HAVE_FILESYSTEM_SUPPORT 1
  #  elif defined(__APPLE__)
  #    include <TargetConditionals.h>
 
 
-[FILE:890:patches/patch-modules_core_src_system.cpp]
+[FILE:457:patches/patch-modules_core_src_downhill__simplex.cpp]
+Avoid DS conflict on SunOS
+
+--- modules/core/src/downhill_simplex.cpp.orig	2017-12-22 19:46:21 UTC
++++ modules/core/src/downhill_simplex.cpp
+@@ -449,7 +449,9 @@ protected:
+     }
+ };
+ 
+-
++#ifdef __sun__
++#undef DS
++#endif
+ // both minRange & minError are specified by termcrit.epsilon;
+ // In addition, user may specify the number of iterations that the algorithm does.
+ Ptr<DownhillSolver> DownhillSolver::create( const Ptr<MinProblemSolver::Function>& f,
+
+
+[FILE:928:patches/patch-modules_core_src_system.cpp]
 --- modules/core/src/system.cpp.orig	2017-12-22 19:46:21 UTC
 +++ modules/core/src/system.cpp
 @@ -67,7 +67,7 @@ Mutex* __initialization_mutex_initialize
@@ -569,7 +602,7 @@ share/cmake/Modules/FindOpenCVCore.cmake
  #endif
  
 -#if defined __ANDROID__ || defined __linux__ || defined __FreeBSD__ || defined __HAIKU__
-+#if defined __ANDROID__ || defined __linux__ || defined __FreeBSD__ || defined __HAIKU__ || defined __DragonFly__
++#if defined __ANDROID__ || defined __linux__ || defined __FreeBSD__ || defined __HAIKU__ || defined __DragonFly__ || defined __sun__
  #  include <unistd.h>
  #  include <fcntl.h>
  #  include <elf.h>
@@ -578,13 +611,13 @@ share/cmake/Modules/FindOpenCVCore.cmake
  #endif
  
 -#if defined __linux__ || defined __APPLE__ || defined __EMSCRIPTEN__ || defined __FreeBSD__ || defined __GLIBC__ || defined __HAIKU__
-+#if defined __linux__ || defined __APPLE__ || defined __EMSCRIPTEN__ || defined __FreeBSD__ || defined __GLIBC__ || defined __HAIKU__ || defined __DragonFly__
++#if defined __linux__ || defined __APPLE__ || defined __EMSCRIPTEN__ || defined __FreeBSD__ || defined __GLIBC__ || defined __HAIKU__ || defined __DragonFly__ || defined __sun__
  #include <unistd.h>
  #include <stdio.h>
  #include <sys/types.h>
 
 
-[FILE:1347:patches/patch-modules_core_src_utils_filesystem.cpp]
+[FILE:1423:patches/patch-modules_core_src_utils_filesystem.cpp]
 --- modules/core/src/utils/filesystem.cpp.orig	2017-12-22 19:46:21 UTC
 +++ modules/core/src/utils/filesystem.cpp
 @@ -33,7 +33,7 @@
@@ -592,7 +625,7 @@ share/cmake/Modules/FindOpenCVCore.cmake
  #include <io.h>
  #include <stdio.h>
 -#elif defined __linux__ || defined __APPLE__
-+#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__
++#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__ || defined __sun__
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <fcntl.h>
@@ -601,7 +634,7 @@ share/cmake/Modules/FindOpenCVCore.cmake
      return cv::String((char*)buf, (size_t)sz);
  #endif
 -#elif defined __linux__ || defined __APPLE__
-+#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__
++#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__ || defined __sun__
      for(;;)
      {
          char* p = ::getcwd((char*)buf, buf.size());
@@ -610,7 +643,7 @@ share/cmake/Modules/FindOpenCVCore.cmake
      int result = _mkdir(path.c_str());
  #endif
 -#elif defined __linux__ || defined __APPLE__
-+#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__
++#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__ || defined __sun__
      int result = mkdir(path.c_str(), 0777);
  #else
      int result = -1;
@@ -619,7 +652,7 @@ share/cmake/Modules/FindOpenCVCore.cmake
  };
  
 -#elif defined __linux__ || defined __APPLE__
-+#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__
++#elif defined __linux__ || defined __APPLE__ || defined __FreeBSD__ || defined __DragonFly__ || defined __sun__
  
  struct FileLock::Impl
  {
@@ -640,6 +673,21 @@ share/cmake/Modules/FindOpenCVCore.cmake
  #elif defined(__APPLE__)
  #include <malloc/malloc.h>
  #endif
+
+
+[FILE:302:patches/patch-modules_flann_include_opencv2_flann_defines.h]
+--- modules/flann/include/opencv2/flann/defines.h.orig	2017-12-22 19:46:21 UTC
++++ modules/flann/include/opencv2/flann/defines.h
+@@ -58,6 +58,9 @@
+ #define FLANN_PLATFORM_32_BIT
+ #endif
+ 
++#ifdef __sun__
++#undef CS
++#endif
+ 
+ #undef FLANN_ARRAY_LEN
+ #define FLANN_ARRAY_LEN(a) (sizeof(a)/sizeof(a[0]))
 
 
 [FILE:2703:patches/patch-modules_videoio_src_cap__libv4l.cpp]

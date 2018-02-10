@@ -24,6 +24,7 @@ BUILDRUN_DEPENDS=	libunistring:primary:standard
 			p11-kit:primary:standard
 			nettle:primary:standard
 			nss:caroot:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 
 USES=			cpe gmake iconv libtool makeinfo pkgconfig
 			gettext-runtime zlib
@@ -51,16 +52,22 @@ MAKE_ENV=		MAKEINFOFLAGS=--no-split
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
-PLIST_SUB=		SOVERSION=30.20.1
-			SOMAJOR=30
-			SOXXVERSION=28.1.0
+SOVERSION=		30.20.1
+PLIST_SUB=		SOXXVERSION=28.1.0
 			SOXXMAJOR=28
 
+VAR_OPSYS[sunos]=	CPPFLAGS=-I{{LOCALBASE}}/include/bsd
+			LDFLAGS=-lbsd
+
 post-patch:
-	@${RM} ${WRKSRC}/doc/*.info*
+	${RM} ${WRKSRC}/doc/*.info*
 
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+
+post-patch-sunos:
+	${REINPLACE_CMD} -e '/_POSIX_C_SOURCE/d' \
+		${WRKSRC}/tests/pkcs11/pkcs11-mock.h
 
 [FILE:414:descriptions/desc.single]
 GnuTLS is a secure communications library implementing the SSL, TLS and

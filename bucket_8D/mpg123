@@ -26,10 +26,17 @@ FPC_EQUIVALENT=		audio/mpg123
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-optimization=0
 			--with-module-suffix=.so
-			--with-audio=oss
-			--with-default-audio=oss
+			--with-audio={{VAR1}}
+			--with-default-audio={{VAR1}}
 
 INSTALL_TARGET=		install-strip
+
+VAR_OPSYS[freebsd]=	VAR1=oss
+VAR_OPSYS[sunos]=	VAR1=sun
+			CPPFLAGS=-D_XOPEN_SOURCE=600
+			CPPFLAGS=-D__EXTENSIONS__
+VAR_OPSYS[linux]=	VAR1=oss
+VAR_OPSYS[dragonfly]=	VAR1=oss
 
 [FILE:216:descriptions/desc.single]
 The mpg123 reads one or more files (or standard input if "-" is specified)
@@ -41,7 +48,7 @@ stdout.  The file/URL is assumed to be an MPEG-1/2 audio bit stream.
 79da51efae011814491f07c95cb5e46de0476aca7a0bf240ba61cfc27af8499b       920677 mpg123-1.25.8.tar.bz2
 
 
-[FILE:325:manifests/plist.single]
+[FILE:470:manifests/plist.single]
 bin/
  mpg123
  mpg123-id3dump
@@ -58,9 +65,11 @@ lib/
  libout123.so
  libout123.so.0
  libout123.so.0.2.1
-lib/mpg123/
- output_dummy.so
- output_oss.so
+lib/mpg123/output_dummy.so
+%%ONLY-DRAGONFLY%%lib/mpg123/output_oss.so
+%%ONLY-FREEBSD%%lib/mpg123/output_oss.so
+%%ONLY-LINUX%%lib/mpg123/output_oss.so
+%%ONLY-SUNOS%%lib/mpg123/output_sun.so
 lib/pkgconfig/
  libmpg123.pc
  libout123.pc

@@ -2,7 +2,7 @@
 
 NAMEBASE=		gtk-doc
 VERSION=		1.27
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	GTK+ DocBook Documentation Generator
@@ -23,6 +23,7 @@ BUILDRUN_DEPENDS=	jade:primary:standard
 			docbook-xml:single:standard
 			docbook-xsl:primary:standard
 			rarian:single:standard
+RUN_DEPENDS=		python-six:single:python_default
 
 USES=			gmake gettext-tools perl pkgconfig python
 GNOME_COMPONENTS=	libxslt
@@ -37,8 +38,9 @@ CONFIGURE_ENV=		GTKDOC="false"
 MAKE_ARGS=		pkgconfigdir={{PREFIX}}/lib/pkgconfig
 
 post-patch:
-	${REINPLACE_CMD} -e 's/docbook.sourceforge.net/cdn.docbook.org/' \
-		${WRKSRC}/configure
+	${GREP} -rl "http://docbook.sourceforge.net" ${WRKSRC} | \
+		${SED} '/configure\.ac/d' | ${XARGS} \
+		${SED} -i'' -e 's|/docbook.sourceforge.net/|/cdn.docbook.org/|'
 	# itstool segfaults on french and chinese documentation
 	${REINPLACE_CMD} \
 		-e '/HELP_LINGUAS =/ s/ fr / /' \

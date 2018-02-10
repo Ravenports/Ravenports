@@ -29,7 +29,7 @@ FPC_EQUIVALENT=		devel/scons
 SHEBANG_FILES=		script/scons*
 
 post-patch:
-	@${FIND} ${WRKSRC} -name \*.orig -delete
+	${FIND} ${WRKSRC} -name \*.orig -delete
 
 [FILE:351:descriptions/desc.single]
 SCons is an Open Source software construction tool???that is, a
@@ -41,6 +41,60 @@ SCons is an easier, more reliable and faster way to build software.
 
 [FILE:97:distinfo]
 24475e38d39c19683bc88054524df018fe6949d70fbd4c69e298d39a0269f173       634815 scons-3.0.1.tar.gz
+
+
+[FILE:883:patches/patch-engine_SCons_Tool_____init____.py]
+--- engine/SCons/Tool/__init__.py.orig	2017-11-14 21:16:57 UTC
++++ engine/SCons/Tool/__init__.py
+@@ -1146,13 +1146,12 @@ def tool_list(platform, env):
+         ars = ['sgiar']
+     elif str(platform) == 'sunos':
+         "prefer Forte tools on SunOS"
+-        linkers = ['sunlink', 'gnulink']
+-        c_compilers = ['suncc', 'gcc', 'cc']
+-        cxx_compilers = ['suncxx', 'g++', 'cxx']
++        linkers = ['gnulink']
++        c_compilers = ['gcc', 'cc']
++        cxx_compilers = ['g++', 'cxx']
+         assemblers = ['as', 'gas']
+-        fortran_compilers = ['sunf95', 'sunf90', 'sunf77', 'f95', 'f90', 'f77',
+-                             'gfortran', 'g77', 'fortran']
+-        ars = ['sunar']
++        fortran_compilers = ['gfortran', 'g77']
++        ars = ['ar']
+     elif str(platform) == 'hpux':
+         "prefer aCC tools on HP-UX"
+         linkers = ['hplink', 'gnulink']
+
+
+[FILE:421:patches/patch-engine_SCons_Tool_gnulink.py]
+--- engine/SCons/Tool/gnulink.py.orig	2017-11-14 21:16:57 UTC
++++ engine/SCons/Tool/gnulink.py
+@@ -51,7 +51,7 @@ def generate(env):
+ 
+     # __RPATH is set to $_RPATH in the platform specification if that
+     # platform supports it.
+-    env['RPATHPREFIX'] = '-Wl,-rpath='
++    env['RPATHPREFIX'] = '-Wl,-rpath,'
+     env['RPATHSUFFIX'] = ''
+     env['_RPATH'] = '${_concat(RPATHPREFIX, RPATH, RPATHSUFFIX, __env__)}'
+ 
+
+
+[FILE:921:patches/patch-engine_SCons_Tool_link.py]
+--- engine/SCons/Tool/link.py.orig	2017-11-14 21:16:57 UTC
++++ engine/SCons/Tool/link.py
+@@ -265,8 +265,8 @@ def _setup_versioned_lib_variables(env,
+             env['_SHLIBVERSIONFLAGS'] = '$SHLIBVERSIONFLAGS -h $_SHLIBSONAME'
+             env['_LDMODULEVERSIONFLAGS'] = '$LDMODULEVERSIONFLAGS -h $_LDMODULESONAME'
+         else:
+-            env['_SHLIBVERSIONFLAGS'] = '$SHLIBVERSIONFLAGS -Wl,-soname=$_SHLIBSONAME'
+-            env['_LDMODULEVERSIONFLAGS'] = '$LDMODULEVERSIONFLAGS -Wl,-soname=$_LDMODULESONAME'
++            env['_SHLIBVERSIONFLAGS'] = '$SHLIBVERSIONFLAGS -Wl,-soname,$_SHLIBSONAME'
++            env['_LDMODULEVERSIONFLAGS'] = '$LDMODULEVERSIONFLAGS -Wl,-soname,$_LDMODULESONAME'
+         env['_SHLIBSONAME'] = '${ShLibSonameGenerator(__env__,TARGET)}'
+         env['_LDMODULESONAME'] = '${LdModSonameGenerator(__env__,TARGET)}'
+         env['ShLibSonameGenerator'] = SCons.Tool.ShLibSonameGenerator
 
 
 [FILE:451:patches/patch-engine_SCons_Tool_m4.py]

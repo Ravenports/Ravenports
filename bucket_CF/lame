@@ -20,6 +20,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		nasm:primary:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 
 USES=			gmake iconv libtool
 
@@ -36,6 +37,9 @@ CONFIGURE_ARGS=		--enable-nasm
 			--disable-gtktest
 
 SOVERSION=		0.0.0
+
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
+			LDFLAGS=-lbsd
 
 post-patch:
 	${REINPLACE_CMD} -e 's,test -d \.libs || mkdir,mkdir -p,' \

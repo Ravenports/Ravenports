@@ -71,6 +71,8 @@ CONFIGURE_ARGS=		--with-xkb-path={{LOCALBASE}}/share/X11/xkb
 
 INSTALL_TARGET=		install-strip
 
+VAR_OPSYS[sunos]=	CFLAGS=-DO_CLOEXEC=0
+
 [DEVD].DESCRIPTION=			Use devd for autoconfiguration of input devices
 
 [NEST].DESCRIPTION=			Build as nesting X server
@@ -148,7 +150,6 @@ INSTALL_TARGET=		install-strip
 [SUID].DESCRIPTION=			Install the Xorg server with setuid bit set
 
 post-patch:
-	@${REINPLACE_CMD} 's/test.*-traditional.*;/true;/' ${WRKSRC}/configure
 	# build libglx.so but don't install it yet. (done in pre-install)
 	@${REINPLACE_CMD} -e 's|@GLX_TRUE@GLXMODS =|@GLX_BOGUS@GLXMODS =|g' \
 		-e 's|^LTLIBRARIES = |LTLIBRARIES = libglx.la |g' \
@@ -230,7 +231,7 @@ environment.
 a732502f1db000cf36a376cd0c010ffdbf32ecdd7f1fa08ba7f5bdf9601cc197      5984528 xorg-server-1.19.6.tar.bz2
 
 
-[FILE:2433:manifests/plist.single.standard]
+[FILE:2477:manifests/plist.single.standard]
 bin/
  X
 %%SUID-ON%%@(,,4555) bin/Xorg
@@ -344,6 +345,7 @@ include/xorg/
  shadowfb.h
  shmint.h
  site.h
+%%ONLY-SUNOS%%include/xorg/solaris-amd64.il
  syncsdk.h
  validate.h
  vbe.h
@@ -468,7 +470,7 @@ bin/Xwayland
 
 
 [FILE:293:patches/patch-config_config-backends.h]
---- config/config-backends.h.orig	2016-07-15 16:17:45 UTC
+--- config/config-backends.h.orig	2017-12-20 20:32:33 UTC
 +++ config/config-backends.h
 @@ -44,3 +44,8 @@ void config_hal_fini(void);
  int config_wscons_init(void);
@@ -482,7 +484,7 @@ bin/Xwayland
 
 
 [FILE:537:patches/patch-config_config.c]
---- config/config.c.orig	2016-07-19 17:07:29 UTC
+--- config/config.c.orig	2017-12-20 20:32:33 UTC
 +++ config/config.c
 @@ -55,6 +55,9 @@ config_init(void)
  #elif defined(CONFIG_WSCONS)
@@ -505,8 +507,8 @@ bin/Xwayland
  
 
 
-[FILE:12180:patches/patch-config_devd.c]
---- config/devd.c.orig	2017-01-19 15:20:42 UTC
+[FILE:12171:patches/patch-config_devd.c]
+--- /dev/null	2018-02-08 20:22:25 UTC
 +++ config/devd.c
 @@ -0,0 +1,532 @@
 +/*
@@ -1043,10 +1045,51 @@ bin/Xwayland
 +}
 
 
-[FILE:372:patches/patch-configure]
---- configure.orig	2017-03-15 18:05:39 UTC
+[FILE:1457:patches/patch-configure]
+--- configure.orig	2017-12-20 20:32:47 UTC
 +++ configure
-@@ -23280,9 +23280,14 @@ $as_echo "#define USE_ALPHA_PIO 1" >>con
+@@ -12101,7 +12101,6 @@ fi
+ 
+ if test x$FILE_MAN_SUFFIX = x    ; then
+     case $host_os in
+-	solaris*)	FILE_MAN_SUFFIX=4  ;;
+ 	*)		FILE_MAN_SUFFIX=5  ;;
+     esac
+ fi
+@@ -12111,7 +12110,6 @@ fi
+ 
+ if test x$MISC_MAN_SUFFIX = x    ; then
+     case $host_os in
+-	solaris*)	MISC_MAN_SUFFIX=5  ;;
+ 	*)		MISC_MAN_SUFFIX=7  ;;
+     esac
+ fi
+@@ -12121,7 +12119,6 @@ fi
+ 
+ if test x$DRIVER_MAN_SUFFIX = x    ; then
+     case $host_os in
+-	solaris*)	DRIVER_MAN_SUFFIX=7  ;;
+ 	*)		DRIVER_MAN_SUFFIX=4  ;;
+     esac
+ fi
+@@ -12131,7 +12128,6 @@ fi
+ 
+ if test x$ADMIN_MAN_SUFFIX = x    ; then
+     case $host_os in
+-	solaris*)	ADMIN_MAN_SUFFIX=1m ;;
+ 	*)		ADMIN_MAN_SUFFIX=8  ;;
+     esac
+ fi
+@@ -21754,7 +21750,7 @@ if test `${RAWCPP} < conftest.$ac_ext |
+ 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+ $as_echo "no" >&6; }
+ else
+-	if test `${RAWCPP} -traditional < conftest.$ac_ext | grep -c 'preserve   \"'` -eq 1 ; then
++	if true; then
+ 		TRADITIONALCPPFLAGS="-traditional"
+ 		RAWCPPFLAGS="${RAWCPPFLAGS} -traditional"
+ 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+@@ -23263,9 +23259,14 @@ $as_echo "#define USE_ALPHA_PIO 1" >>con
  	esac
  	GLX_ARCH_DEFINES="-D__GLX_ALIGN64 -mieee"
  	;;
@@ -1064,8 +1107,21 @@ bin/Xwayland
  	I386_VIDEO=yes
 
 
+[FILE:256:patches/patch-hw_kdrive_ephyr_hostx.c]
+--- hw/kdrive/ephyr/hostx.c.orig	2017-12-20 20:32:33 UTC
++++ hw/kdrive/ephyr/hostx.c
+@@ -36,7 +36,6 @@
+ #include <string.h>             /* for memset */
+ #include <errno.h>
+ #include <time.h>
+-#include <err.h>
+ 
+ #include <sys/ipc.h>
+ #include <sys/shm.h>
+
+
 [FILE:785:patches/patch-hw_xfree86_common_xf86AutoConfig.c]
---- hw/xfree86/common/xf86AutoConfig.c.orig	2017-01-11 20:00:58 UTC
+--- hw/xfree86/common/xf86AutoConfig.c.orig	2017-12-20 20:32:33 UTC
 +++ hw/xfree86/common/xf86AutoConfig.c
 @@ -276,7 +276,7 @@ listPossibleVideoDrivers(char *matches[]
          i += xf86PciMatchDriver(&matches[i], nmatches - i);
@@ -1091,9 +1147,9 @@ bin/Xwayland
 
 
 [FILE:700:patches/patch-hw_xfree86_common_xf86Config.c]
---- hw/xfree86/common/xf86Config.c.orig	2016-07-19 17:14:30 UTC
+--- hw/xfree86/common/xf86Config.c.orig	2017-12-20 20:32:33 UTC
 +++ hw/xfree86/common/xf86Config.c
-@@ -1410,13 +1410,16 @@ checkCoreInputDevices(serverLayoutPtr se
+@@ -1375,13 +1375,16 @@ checkCoreInputDevices(serverLayoutPtr se
      }
  
      if (!xf86Info.forceInputDevices && !(foundPointer && foundKeyboard)) {
@@ -1114,7 +1170,7 @@ bin/Xwayland
 
 
 [FILE:496:patches/patch-hw_xfree86_common_xf86Globals.c]
---- hw/xfree86/common/xf86Globals.c.orig	2016-07-19 17:07:29 UTC
+--- hw/xfree86/common/xf86Globals.c.orig	2017-12-20 20:32:33 UTC
 +++ hw/xfree86/common/xf86Globals.c
 @@ -122,7 +122,8 @@ xf86InfoRec xf86Info = {
      .pmFlag = TRUE,
@@ -1128,10 +1184,10 @@ bin/Xwayland
      .autoEnableDevices = TRUE,
 
 
-[FILE:688:patches/patch-hw_xfree86_common_xf86Xinput.c]
---- hw/xfree86/common/xf86Xinput.c.orig	2016-07-19 17:07:29 UTC
+[FILE:690:patches/patch-hw_xfree86_common_xf86Xinput.c]
+--- hw/xfree86/common/xf86Xinput.c.orig	2017-12-20 20:32:33 UTC
 +++ hw/xfree86/common/xf86Xinput.c
-@@ -841,7 +841,7 @@ xf86NewInputDevice(InputInfoPtr pInfo, D
+@@ -874,7 +874,7 @@ xf86NewInputDevice(InputInfoPtr pInfo, D
  {
      InputDriverPtr drv = NULL;
      DeviceIntPtr dev = NULL;
@@ -1140,7 +1196,7 @@ bin/Xwayland
      int rval;
      char *path = NULL;
  
-@@ -996,6 +996,7 @@ NewInputDeviceRequest(InputOption *optio
+@@ -1037,6 +1037,7 @@ NewInputDeviceRequest(InputOption *optio
          if (strcmp(key, "_source") == 0 &&
              (strcmp(value, "server/hal") == 0 ||
               strcmp(value, "server/udev") == 0 ||
@@ -1151,7 +1207,7 @@ bin/Xwayland
 
 
 [FILE:450:patches/patch-hw_xfree86_os-support_bsd_bsd__init.c]
---- hw/xfree86/os-support/bsd/bsd_init.c.orig	2016-07-19 17:07:29 UTC
+--- hw/xfree86/os-support/bsd/bsd_init.c.orig	2017-12-20 20:32:33 UTC
 +++ hw/xfree86/os-support/bsd/bsd_init.c
 @@ -230,6 +230,9 @@ xf86OpenConsole()
               * Add cases for other *BSD that behave the same.
@@ -1167,7 +1223,7 @@ bin/Xwayland
 
 [FILE:315:patches/patch-hw_xfree86_os-support_bsd_i386__video.c]
 Index: programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c
---- hw/xfree86/os-support/bsd/i386_video.c.orig	2016-07-15 16:18:11 UTC
+--- hw/xfree86/os-support/bsd/i386_video.c.orig	2017-12-20 20:32:33 UTC
 +++ hw/xfree86/os-support/bsd/i386_video.c
 @@ -32,6 +32,7 @@
  #include "xf86Priv.h"
@@ -1180,7 +1236,7 @@ Index: programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c
 
 
 [FILE:380:patches/patch-hw_xfree86_os-support_bsd_ppc__video.c]
---- hw/xfree86/os-support/bsd/ppc_video.c.orig	2016-07-15 16:18:11 UTC
+--- hw/xfree86/os-support/bsd/ppc_video.c.orig	2017-12-20 20:32:33 UTC
 +++ hw/xfree86/os-support/bsd/ppc_video.c
 @@ -79,7 +79,11 @@ xf86DisableIO()
  {
@@ -1196,10 +1252,104 @@ Index: programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c
  }
 
 
+[FILE:714:patches/patch-hw_xfree86_os-support_solaris_sun__init.c]
+--- hw/xfree86/os-support/solaris/sun_init.c.orig	2017-12-20 20:32:33 UTC
++++ hw/xfree86/os-support/solaris/sun_init.c
+@@ -54,6 +54,22 @@ static int xf86StartVT = -1;
+ static int vtEnabled = 0;
+ #endif
+ 
++#ifdef __sun__
++#define VTIOC		('V'<<8)
++#define VT_OPENQRY	(VTIOC|1)
++#define VT_SETMODE	(VTIOC|2)
++#define VT_GETMODE	(VTIOC|3)
++#define VT_ACTIVATE	(VTIOC|5)
++#define VT_WAITACTIVE	(VTIOC|6)
++#define VT_GETSTATE	(VTIOC|100)
++#define VT_ENABLED	(VTIOC|101)
++#define VT_SETDISPINFO	(VTIOC|103)
++#define VT_GET_CONSUSER	(VTIOC|108)
++#define VT_SET_CONSUSER	(VTIOC|109)
++
++enum { VT_AUTO = 0, VT_PROCESS };
++#endif
++
+ /* Device to open as xf86Info.consoleFd */
+ static char consoleDev[PATH_MAX] = "/dev/fb";
+ 
+
+
+[FILE:193:patches/patch-os_backtrace.c]
+--- os/backtrace.c.orig	2017-12-20 20:32:33 UTC
++++ os/backtrace.c
+@@ -29,6 +29,7 @@
+ #include "misc.h"
+ #include <errno.h>
+ #include <string.h>
++#include <unistd.h>
+ 
+ #ifdef HAVE_LIBUNWIND
+ 
+
+
+[FILE:1021:patches/patch-test_simple-xinit.c]
+--- test/simple-xinit.c.orig	2017-12-20 20:32:33 UTC
++++ test/simple-xinit.c
+@@ -34,6 +34,47 @@
+ #include <sys/wait.h>
+ #include <unistd.h>
+ 
++#ifdef __sun__
++#include <sys/varargs.h>
++static int
++vasprintf(char **strp, const char *fmt, va_list args)
++{
++    va_list args_copy;
++    int status, needed;
++
++    va_copy(args_copy, args);
++    needed = vsnprintf(NULL, 0, fmt, args_copy);
++    va_end(args_copy);
++    if (needed < 0) {
++        *strp = NULL;
++        return needed;
++    }
++    *strp = malloc(needed + 1);
++    if (*strp == NULL)
++        return -1;
++    status = vsnprintf(*strp, needed + 1, fmt, args);
++    if (status >= 0)
++        return status;
++    else {
++        free(*strp);
++        *strp = NULL;
++        return status;
++    }
++}
++
++static int
++asprintf(char **strp, const char *fmt, ...)
++{
++    va_list args;
++    int status;
++
++    va_start(args, fmt);
++    status = vasprintf(strp, fmt, args);
++    va_end(args);
++    return status;
++}
++#endif
++
+ static void
+ kill_server(int server_pid)
+ {
+
+
 [FILE:215:patches/patch-xkb_Makefile.in]
---- xkb/Makefile.in.orig	2017-01-19 15:20:42 UTC
+--- xkb/Makefile.in.orig	2017-12-20 20:32:55 UTC
 +++ xkb/Makefile.in
-@@ -878,7 +878,7 @@ info: info-am
+@@ -886,7 +886,7 @@ info: info-am
  
  info-am:
  
