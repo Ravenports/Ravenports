@@ -42,6 +42,10 @@ FPC_EQUIVALENT=		devel/appstream-glib
 MESON_ARGS=		-Drpm=false
 			-Dstemmer=false
 			-Dgtk-doc=true
+MESON_INSERT_RPATH=	client/meson.build
+			libappstream-glib/meson.build
+			libappstream-builder/meson.build
+			libappstream-builder/plugins/meson.build
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		8.0.10
@@ -50,8 +54,6 @@ post-patch:
 	${REINPLACE_CMD} -e "s/'uuid'/'ossp-uuid'/" ${WRKSRC}/meson.build
 	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net|http://cdn.docbook.org|" \
 		${WRKSRC}/data/meson.build
-	${REINPLACE_CMD} -e "s|install : true|install : true, install_rpath : '${PREFIX}/toolchain/gcc7/${ASLIB}:${PREFIX}/lib'|" \
-		${WRKSRC}/meson.build
 
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR:H}

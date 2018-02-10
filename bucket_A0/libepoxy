@@ -24,14 +24,10 @@ XORG_COMPONENTS=	x11
 
 FPC_EQUIVALENT=		graphics/libepoxy
 MESON_ARGS=		-Denable-egl=yes
+MESON_INSERT_RPATH=	src/meson.build
 
 VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
 			LDFLAGS=-lbsd
-
-post-patch:
-	${REINPLACE_CMD} \
-		-e 's|@MYRPATH@|${PREFIX}/toolchain/gcc7/${ASLIB}|' \
-		${WRKSRC}/src/meson.build
 
 [FILE:333:descriptions/desc.single]
 Epoxy is a library for handling OpenGL function pointer management.
@@ -60,19 +56,6 @@ lib/
  libepoxy.so.0
  libepoxy.so.0.0.0
 lib/pkgconfig/epoxy.pc
-
-
-[FILE:567:patches/patch-src_meson.build]
---- src/meson.build.orig	2017-06-06 09:24:13 UTC
-+++ src/meson.build
-@@ -84,6 +84,7 @@ if libtype != 'static'
-                                    sources: epoxy_sources + epoxy_headers,
-                                    version: '0.0.0',
-                                    install: true,
-+                                   install_rpath: '@MYRPATH@',
-                                    dependencies: epoxy_deps,
-                                    include_directories: libepoxy_inc,
-                                    c_args: common_cflags + visibility_cflags,
 
 
 [FILE:714:patches/patch-test_dlwrap.c]

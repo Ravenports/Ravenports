@@ -16,6 +16,9 @@
 #			format: -Denable_foo=true
 # MESON_BUILD_DIR	Path to the build directory
 #			Default: ${WRKSRC}/_build
+# MESON_INSERT_RPATH	List path relative to WRKSRC for meson.build files that
+#			require rpath adjustments, list.  e.g.
+#			src/meson.build data/meson.build
 #
 
 .if !defined(_INCLUDE_USES_MESON_MK)
@@ -57,6 +60,19 @@ _USES_configure+=	250:meson_badconfig
 meson_badconfig:
 	@${ECHO_MSG} "===> MUST_CONFIGURE=gnu detected.  Remove this line to fix meson build"
 	@${FALSE}
+
+.  endif
+
+.  if defined(MESON_INSERT_RPATH)
+_USES_patch+=		875:meson_build_rpath
+
+# Hardcode RPATH, must follow CURRENT_GCC in raven.information.mk
+COMP_RPATH=		${PREFIX}/toolchain/gcc7/${ASLIB}:${PREFIX}/lib
+
+meson_build_rpath:
+	(cd ${WRKSRC} && ${REINPLACE_CMD} \
+	-E "s|install[ ]?: true|install : true, install_rpath : '${COMP_RPATH}'|"\
+	${MESON_INSERT_RPATH})
 
 .  endif
 
