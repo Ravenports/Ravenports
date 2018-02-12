@@ -25,7 +25,7 @@ OPT_ON[freebsd]=	OPENMP//x86_64
 OPT_ON[x86_64]=		GOLD
 
 USES=			cmake:outsource ncurses perl:build python:build
-			execinfo shebangfix zlib c++:llvm,clang
+			execinfo shebangfix zlib c++:llvm compiler:clang
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		llvm-5.0.1.src
@@ -2333,8 +2333,8 @@ adb635cdd2f9f828351b1e13d892480c657fb12500e69c70e007bddf0fca2653      2075472 op
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
 
 
-[FILE:623:patches/patch-lib_Support_Unix_Path.inc]
---- lib/Support/Unix/Path.inc.orig	2017-09-20 00:07:27 UTC
+[FILE:1013:patches/patch-lib_Support_Unix_Path.inc]
+--- lib/Support/Unix/Path.inc.orig	2017-06-29 13:15:31 UTC
 +++ lib/Support/Unix/Path.inc
 @@ -68,13 +68,13 @@
  
@@ -2352,6 +2352,15 @@ adb635cdd2f9f828351b1e13d892480c657fb12500e69c70e007bddf0fca2653      2075472 op
  #include <sys/mount.h>
  #include <sys/param.h>
  #elif defined(__linux__)
+@@ -427,7 +427,7 @@ std::error_code resize_file(int FD, uint
+   // If we have posix_fallocate use it. Unlike ftruncate it always allocates
+   // space, so we get an error if the disk is full.
+   if (int Err = ::posix_fallocate(FD, 0, Size)) {
+-    if (Err != EOPNOTSUPP)
++    if (Err != EINVAL && Err != EOPNOTSUPP)
+       return std::error_code(Err, std::generic_category());
+   }
+ #endif
 
 
 [FILE:770:patches/patch-tools_clang_lib_Driver_ToolChains_CommonArgs.cpp]
