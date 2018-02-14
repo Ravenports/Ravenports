@@ -55,9 +55,9 @@ GCC6_PHASE=			release
 # ------------------------------------------------------------------------
 
 GCC7_BRANCH=			7
-GCC7_POINT=			2.0
+GCC7_POINT=			3.0
 GCC7_VERSION=			${GCC7_BRANCH}.${GCC7_POINT}
-GCC7_SNAPSHOT=			20170814
+GCC7_SNAPSHOT=			20180125
 GCC7_BUILD_RELEASE=		yes
 GCC7_REVISION=			0
 GCC7_GNAT_UTIL_REVISION=	0
@@ -128,7 +128,7 @@ GTK3_PORT_VERSION=		3.22.26
 
 CURRENT_GCC=			gcc7	# mirror in Uses/meson.mk
 CURRENT_GCC_VERSION=		${GCC7_VERSION}
-BINUTILS_VERSION=		2.29.1
+BINUTILS_VERSION=		2.30
 
 # ------------------------------------------------------------------------
 # aspell
