@@ -41,6 +41,7 @@ DISTFILE[13]=		libc6-dev-amd64_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[14]=		libc6-dev_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[15]=		FreeBSD-11.1-RELEASE-amd64-disc1.iso:freebsd
 DISTFILE[16]=		solaris_root_10_u8.v09.tar.xz:dragonlace
+DISTFILE[17]=		locales_2.23-0ubuntu10_all.deb:ubuntu1
 SPKGS[sunos]=		single
 SPKGS[linux]=		single
 SPKGS[freebsd64]=	single
@@ -87,8 +88,8 @@ B_DEPS[linux]=		shadow:single:standard fetch:single:standard
 			bash:primary:static
 B_DEPS[dragonfly]=	libdl:single:standard fetch:single:standard
 
-EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 14 15
-EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 14
+EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 14 15
+EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 14
 
 INVALID_RPATH=		yes
 
@@ -141,12 +142,13 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 					11
 					12
 					13
+					17
 					14
 [LINUX].ONLY_FOR_OPSYS_ON=		linux
 
 post-extract-LINUX-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
-.for NDX in 4 5 6 7 8 9 10 11 12 13
+.for NDX in 4 5 6 7 8 9 10 11 12 13 17
 	cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
 .endfor
@@ -266,7 +268,7 @@ This is the full environment for Solaris 10 minus the toolchain for
 Ravenports.
 
 
-[FILE:1756:distinfo]
+[FILE:1865:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 88f68615ad7f268377ba229a87649901d81c7c6df71fc238a8b5c89ac05f0d6c    257934249 dfly-x86_64-5.0.0_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
@@ -283,6 +285,7 @@ d3018a86cc649ff19dd97258fb50e118d428ee0a631d45c9cd1406c2b28aa16a       779004 pa
 d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 libc6-dev_2.23-0ubuntu9_i386.deb
 ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 FreeBSD-11.1-RELEASE-amd64-disc1.iso
 e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 solaris_root_10_u8.v09.tar.xz
+1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 locales_2.23-0ubuntu10_all.deb
 
 
 [FILE:12708:manifests/plist.single.dragonfly]
@@ -2655,7 +2658,7 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
 @dir %%BASE%%/usr/local
 
 
-[FILE:21185:manifests/plist.single.linux]
+[FILE:21648:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -2684,16 +2687,15 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  sleep
  test
  unlink
-%%BASE%%/lib64/ld-linux-x86-64.so.2
 %%BASE%%/lib/x86_64-linux-gnu/
  ld-2.23.so
  ld-linux-x86-64.so.2
  libanl-2.23.so
  libanl.so.1
  libc-2.23.so
+ libc.so.6
  libcrypt-2.23.so
  libcrypt.so.1
- libc.so.6
  libdl-2.23.so
  libdl.so.2
  libgcc_s.so.1
@@ -2712,9 +2714,9 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  libnss_hesiod-2.23.so
  libnss_hesiod.so.2
  libnss_nis-2.23.so
+ libnss_nis.so.2
  libnss_nisplus-2.23.so
  libnss_nisplus.so.2
- libnss_nis.so.2
  libpthread-2.23.so
  libpthread.so.0
  libresolv-2.23.so
@@ -2723,10 +2725,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  librt.so.1
  libutil-2.23.so
  libutil.so.1
+%%BASE%%/lib64/ld-linux-x86-64.so.2
 %%BASE%%/usr/bin/
- groupadd
- useradd
- usermod
  awk
  basename
  bsdcat
@@ -2758,6 +2758,7 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  genpatch
  gm4
  grep
+ groupadd
  gunzip
  gzip
  head
@@ -2807,6 +2808,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  unlzma
  unxz
  unzip
+ useradd
+ usermod
  vi
  wc
  which
@@ -2827,17 +2830,18 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  zfgrep
  zgrep
 %%BASE%%/usr/include/
+ _G_config.h
  aio.h
  aliases.h
  alloca.h
+ ar.h
  argp.h
  argz.h
- ar.h
 %%BASE%%/usr/include/arpa/
  ftp.h
  inet.h
- nameser_compat.h
  nameser.h
+ nameser_compat.h
  telnet.h
  tftp.h
 %%BASE%%/usr/include/
@@ -2870,8 +2874,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  signal.h
  socket.h
  sockios.h
- statfs.h
  stat.h
+ statfs.h
  swab.h
  termbits.h
  termios.h
@@ -2888,8 +2892,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  dirent.h
  dlfcn.h
 %%BASE%%/usr/include/drm/
- drm_fourcc.h
  drm.h
+ drm_fourcc.h
  drm_mode.h
  drm_sarea.h
  exynos_drm.h
@@ -2923,13 +2927,232 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  fstab.h
  fts.h
  ftw.h
- _G_config.h
  gconv.h
  getopt.h
  glob.h
  gnu-versions.h
  grp.h
  gshadow.h
+%%BASE%%/usr/include/i386-linux-gnu/
+ a.out.h
+%%BASE%%/usr/include/i386-linux-gnu/bits/
+ a.out.h
+ auxv.h
+ byteswap-16.h
+ byteswap.h
+ cmathcalls.h
+ confname.h
+ dirent.h
+ dlfcn.h
+ elfclass.h
+ endian.h
+ environments.h
+ epoll.h
+ errno.h
+ error.h
+ eventfd.h
+ fcntl-linux.h
+ fcntl.h
+ fcntl2.h
+ fenv.h
+ fenvinline.h
+ huge_val.h
+ huge_valf.h
+ huge_vall.h
+ hwcap.h
+ in.h
+ inf.h
+ initspin.h
+ inotify.h
+ ioctl-types.h
+ ioctls.h
+ ipc.h
+ ipctypes.h
+ libio-ldbl.h
+ libm-simd-decl-stubs.h
+ link.h
+ local_lim.h
+ locale.h
+ math-finite.h
+ math-vector.h
+ mathcalls.h
+ mathdef.h
+ mathinline.h
+ mman-linux.h
+ mman.h
+ monetary-ldbl.h
+ mqueue.h
+ mqueue2.h
+ msq.h
+ nan.h
+ netdb.h
+ param.h
+ poll.h
+ poll2.h
+ posix1_lim.h
+ posix2_lim.h
+ posix_opt.h
+ printf-ldbl.h
+ pthreadtypes.h
+ resource.h
+ sched.h
+ select.h
+ select2.h
+ sem.h
+ semaphore.h
+ setjmp.h
+ setjmp2.h
+ shm.h
+ sigaction.h
+ sigcontext.h
+ siginfo.h
+ signalfd.h
+ signum.h
+ sigset.h
+ sigstack.h
+ sigthread.h
+ sockaddr.h
+ socket.h
+ socket2.h
+ socket_type.h
+ stab.def
+ stat.h
+ statfs.h
+ statvfs.h
+ stdio-ldbl.h
+ stdio.h
+ stdio2.h
+ stdio_lim.h
+ stdlib-bsearch.h
+ stdlib-float.h
+ stdlib-ldbl.h
+ stdlib.h
+ string.h
+ string2.h
+ string3.h
+ stropts.h
+ sys_errlist.h
+ syscall.h
+ sysctl.h
+ syslog-ldbl.h
+ syslog-path.h
+ syslog.h
+ termios.h
+ time.h
+ timerfd.h
+ timex.h
+ types.h
+ typesizes.h
+ uio.h
+ unistd.h
+ ustat.h
+ utmp.h
+ utmpx.h
+ utsname.h
+ waitflags.h
+ waitstatus.h
+ wchar-ldbl.h
+ wchar.h
+ wchar2.h
+ wordsize.h
+ xopen_lim.h
+ xtitypes.h
+%%BASE%%/usr/include/i386-linux-gnu/
+ fpu_control.h
+%%BASE%%/usr/include/i386-linux-gnu/gnu/
+ lib-names-32.h
+ lib-names.h
+ libc-version.h
+ stubs-32.h
+ stubs.h
+%%BASE%%/usr/include/i386-linux-gnu/
+ ieee754.h
+%%BASE%%/usr/include/i386-linux-gnu/sys/
+ acct.h
+ auxv.h
+ bitypes.h
+ cdefs.h
+ debugreg.h
+ dir.h
+ elf.h
+ epoll.h
+ errno.h
+ eventfd.h
+ fanotify.h
+ fcntl.h
+ file.h
+ fsuid.h
+ gmon.h
+ gmon_out.h
+ inotify.h
+ io.h
+ ioctl.h
+ ipc.h
+ kd.h
+ klog.h
+ mman.h
+ mount.h
+ msg.h
+ mtio.h
+ param.h
+ pci.h
+ perm.h
+ personality.h
+ poll.h
+ prctl.h
+ procfs.h
+ profil.h
+ ptrace.h
+ queue.h
+ quota.h
+ raw.h
+ reboot.h
+ reg.h
+ resource.h
+ select.h
+ sem.h
+ sendfile.h
+ shm.h
+ signal.h
+ signalfd.h
+ socket.h
+ socketvar.h
+ soundcard.h
+ stat.h
+ statfs.h
+ statvfs.h
+ stropts.h
+ swap.h
+ syscall.h
+ sysctl.h
+ sysinfo.h
+ syslog.h
+ sysmacros.h
+ termios.h
+ time.h
+ timeb.h
+ timerfd.h
+ times.h
+ timex.h
+ ttychars.h
+ ttydefaults.h
+ types.h
+ ucontext.h
+ uio.h
+ ultrasound.h
+ un.h
+ unistd.h
+ user.h
+ ustat.h
+ utsname.h
+ vfs.h
+ vlimit.h
+ vm86.h
+ vt.h
+ vtimes.h
+ wait.h
+ xattr.h
+%%BASE%%/usr/include/
  iconv.h
  ifaddrs.h
  inttypes.h
@@ -2941,6 +3164,7 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  limits.h
  link.h
 %%BASE%%/usr/include/linux/
+ a.out.h
  acct.h
  adb.h
  adfs_fs.h
@@ -2949,32 +3173,31 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  aio_abi.h
  am437x-vpfe.h
 %%BASE%%/usr/include/linux/android/binder.h
- a.out.h
  apm_bios.h
  arcfb.h
  atalk.h
+ atm.h
+ atm_eni.h
+ atm_he.h
+ atm_idt77105.h
+ atm_nicstar.h
+ atm_tcp.h
+ atm_zatm.h
  atmapi.h
  atmarp.h
  atmbr2684.h
  atmclip.h
  atmdev.h
- atm_eni.h
- atm.h
- atm_he.h
- atm_idt77105.h
  atmioc.h
  atmlec.h
  atmmpc.h
- atm_nicstar.h
  atmppp.h
  atmsap.h
  atmsvc.h
- atm_tcp.h
- atm_zatm.h
  audit.h
  aufs_type.h
- auto_fs4.h
  auto_fs.h
+ auto_fs4.h
  auxvec.h
  ax25.h
  b1lli.h
@@ -2984,8 +3207,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  binfmts.h
  blkpg.h
  blktrace_api.h
- bpf_common.h
  bpf.h
+ bpf_common.h
  bpqether.h
  bsg.h
  btrfs.h
@@ -2995,13 +3218,12 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
 %%BASE%%/usr/include/linux/caif/
  caif_socket.h
  if_caif.h
+%%BASE%%/usr/include/linux/
+ can.h
 %%BASE%%/usr/include/linux/can/
  bcm.h
  error.h
  gw.h
-%%BASE%%/usr/include/linux/
- can.h
-%%BASE%%/usr/include/linux/can/
  netlink.h
  raw.h
 %%BASE%%/usr/include/linux/
@@ -3025,11 +3247,11 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  cycx_cfm.h
  dcbnl.h
  dccp.h
- dlmconstants.h
- dlm_device.h
  dlm.h
+ dlm_device.h
  dlm_netlink.h
  dlm_plock.h
+ dlmconstants.h
  dm-ioctl.h
  dm-log-userspace.h
  dn.h
@@ -3046,10 +3268,10 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
 %%BASE%%/usr/include/linux/
  edd.h
  efs_fs_sb.h
- elfcore.h
  elf-em.h
  elf-fdpic.h
  elf.h
+ elfcore.h
  errno.h
  errqueue.h
  ethtool.h
@@ -3073,17 +3295,17 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  fuse.h
  futex.h
  gameport.h
- genetlink.h
  gen_stats.h
+ genetlink.h
  gfs2_ondisk.h
  gigaset_dev.h
  gsmmux.h
- hdlcdrv.h
  hdlc.h
 %%BASE%%/usr/include/linux/hdlc/ioctl.h
+ hdlcdrv.h
  hdreg.h
- hiddev.h
  hid.h
+ hiddev.h
  hidraw.h
  hpet.h
 %%BASE%%/usr/include/linux/hsi/
@@ -3100,6 +3322,7 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  i8k.h
  icmp.h
  icmpv6.h
+ if.h
  if_addr.h
  if_addrlabel.h
  if_alg.h
@@ -3113,7 +3336,6 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  if_fc.h
  if_fddi.h
  if_frad.h
- if.h
  if_hippi.h
  if_infiniband.h
  if_link.h
@@ -3136,43 +3358,43 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  types.h
 %%BASE%%/usr/include/linux/
  ila.h
- in6.h
- inet_diag.h
  in.h
+ in6.h
+ in_route.h
+ inet_diag.h
  inotify.h
  input-event-codes.h
  input.h
- in_route.h
  ioctl.h
- ip6_tunnel.h
- ipc.h
  ip.h
+ ip6_tunnel.h
+ ip_vs.h
+ ipc.h
  ipmi.h
  ipmi_msgdefs.h
  ipsec.h
  ipv6.h
  ipv6_route.h
- ip_vs.h
  ipx.h
  irda.h
  irqnr.h
+ isdn.h
 %%BASE%%/usr/include/linux/isdn/capicmd.h
  isdn_divertif.h
- isdn.h
- isdnif.h
  isdn_ppp.h
+ isdnif.h
  iso_fs.h
- ivtvfb.h
  ivtv.h
+ ivtvfb.h
  ixjuser.h
  jffs2.h
  joystick.h
  kcmp.h
- kdev_t.h
  kd.h
- kernelcapi.h
- kernel.h
+ kdev_t.h
  kernel-page-flags.h
+ kernel.h
+ kernelcapi.h
  kexec.h
  keyboard.h
  keyctl.h
@@ -3207,34 +3429,131 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  mpls.h
  mpls_iptunnel.h
  mqueue.h
- mroute6.h
  mroute.h
+ mroute6.h
  msdos_fs.h
  msg.h
  mtio.h
+ n_r3964.h
  nbd.h
- ncp_fs.h
  ncp.h
+ ncp_fs.h
  ncp_mount.h
  ncp_no.h
  ndctl.h
  neighbour.h
+ net.h
+ net_dropmon.h
+ net_namespace.h
+ net_tstamp.h
  netconf.h
  netdevice.h
- net_dropmon.h
+ netfilter.h
+%%BASE%%/usr/include/linux/netfilter/ipset/
+ ip_set.h
+ ip_set_bitmap.h
+ ip_set_hash.h
+ ip_set_list.h
+%%BASE%%/usr/include/linux/netfilter/
+ nf_conntrack_common.h
+ nf_conntrack_ftp.h
+ nf_conntrack_sctp.h
+ nf_conntrack_tcp.h
+ nf_conntrack_tuple_common.h
+ nf_nat.h
+ nf_tables.h
+ nf_tables_compat.h
+ nfnetlink.h
+ nfnetlink_acct.h
+ nfnetlink_compat.h
+ nfnetlink_conntrack.h
+ nfnetlink_cthelper.h
+ nfnetlink_cttimeout.h
+ nfnetlink_log.h
+ nfnetlink_queue.h
+ x_tables.h
+ xt_AUDIT.h
+ xt_CHECKSUM.h
+ xt_CLASSIFY.h
+ xt_CONNMARK.h
+ xt_CONNSECMARK.h
+ xt_CT.h
+ xt_DSCP.h
+ xt_HMARK.h
+ xt_IDLETIMER.h
+ xt_LED.h
+ xt_LOG.h
+ xt_MARK.h
+ xt_NFLOG.h
+ xt_NFQUEUE.h
+ xt_RATEEST.h
+ xt_SECMARK.h
+ xt_TCPMSS.h
+ xt_TCPOPTSTRIP.h
+ xt_TEE.h
+ xt_TPROXY.h
+ xt_addrtype.h
+ xt_bpf.h
+ xt_cgroup.h
+ xt_cluster.h
+ xt_comment.h
+ xt_connbytes.h
+ xt_connlabel.h
+ xt_connlimit.h
+ xt_connmark.h
+ xt_conntrack.h
+ xt_cpu.h
+ xt_dccp.h
+ xt_devgroup.h
+ xt_dscp.h
+ xt_ecn.h
+ xt_esp.h
+ xt_hashlimit.h
+ xt_helper.h
+ xt_ipcomp.h
+ xt_iprange.h
+ xt_ipvs.h
+ xt_l2tp.h
+ xt_length.h
+ xt_limit.h
+ xt_mac.h
+ xt_mark.h
+ xt_multiport.h
+ xt_nfacct.h
+ xt_osf.h
+ xt_owner.h
+ xt_physdev.h
+ xt_pkttype.h
+ xt_policy.h
+ xt_quota.h
+ xt_rateest.h
+ xt_realm.h
+ xt_recent.h
+ xt_rpfilter.h
+ xt_sctp.h
+ xt_set.h
+ xt_socket.h
+ xt_state.h
+ xt_statistic.h
+ xt_string.h
+ xt_tcpmss.h
+ xt_tcpudp.h
+ xt_time.h
+ xt_u32.h
+%%BASE%%/usr/include/linux/
+ netfilter_arp.h
 %%BASE%%/usr/include/linux/netfilter_arp/
  arp_tables.h
  arpt_mangle.h
 %%BASE%%/usr/include/linux/
- netfilter_arp.h
+ netfilter_bridge.h
 %%BASE%%/usr/include/linux/netfilter_bridge/
  ebt_802_3.h
- ebtables.h
  ebt_among.h
  ebt_arp.h
  ebt_arpreply.h
- ebt_ip6.h
  ebt_ip.h
+ ebt_ip6.h
  ebt_limit.h
  ebt_log.h
  ebt_mark_m.h
@@ -3245,140 +3564,48 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  ebt_redirect.h
  ebt_stp.h
  ebt_vlan.h
+ ebtables.h
 %%BASE%%/usr/include/linux/
- netfilter_bridge.h
  netfilter_decnet.h
- netfilter.h
-%%BASE%%/usr/include/linux/netfilter/ipset/
- ip_set_bitmap.h
- ip_set.h
- ip_set_hash.h
- ip_set_list.h
-%%BASE%%/usr/include/linux/
  netfilter_ipv4.h
 %%BASE%%/usr/include/linux/netfilter_ipv4/
  ip_tables.h
- ipt_ah.h
  ipt_CLUSTERIP.h
- ipt_ecn.h
  ipt_ECN.h
  ipt_LOG.h
  ipt_REJECT.h
- ipt_ttl.h
  ipt_TTL.h
+ ipt_ah.h
+ ipt_ecn.h
+ ipt_ttl.h
 %%BASE%%/usr/include/linux/
  netfilter_ipv6.h
 %%BASE%%/usr/include/linux/netfilter_ipv6/
  ip6_tables.h
+ ip6t_HL.h
+ ip6t_LOG.h
+ ip6t_NPT.h
+ ip6t_REJECT.h
  ip6t_ah.h
  ip6t_frag.h
  ip6t_hl.h
- ip6t_HL.h
  ip6t_ipv6header.h
- ip6t_LOG.h
  ip6t_mh.h
- ip6t_NPT.h
  ip6t_opts.h
- ip6t_REJECT.h
  ip6t_rt.h
-%%BASE%%/usr/include/linux/netfilter/
- nf_conntrack_common.h
- nf_conntrack_ftp.h
- nf_conntrack_sctp.h
- nf_conntrack_tcp.h
- nf_conntrack_tuple_common.h
- nf_nat.h
- nfnetlink_acct.h
- nfnetlink_compat.h
- nfnetlink_conntrack.h
- nfnetlink_cthelper.h
- nfnetlink_cttimeout.h
- nfnetlink.h
- nfnetlink_log.h
- nfnetlink_queue.h
- nf_tables_compat.h
- nf_tables.h
- x_tables.h
- xt_addrtype.h
- xt_AUDIT.h
- xt_bpf.h
- xt_cgroup.h
- xt_CHECKSUM.h
- xt_CLASSIFY.h
- xt_cluster.h
- xt_comment.h
- xt_connbytes.h
- xt_connlabel.h
- xt_connlimit.h
- xt_connmark.h
- xt_CONNMARK.h
- xt_CONNSECMARK.h
- xt_conntrack.h
- xt_cpu.h
- xt_CT.h
- xt_dccp.h
- xt_devgroup.h
- xt_dscp.h
- xt_DSCP.h
- xt_ecn.h
- xt_esp.h
- xt_hashlimit.h
- xt_helper.h
- xt_HMARK.h
- xt_IDLETIMER.h
- xt_ipcomp.h
- xt_iprange.h
- xt_ipvs.h
- xt_l2tp.h
- xt_LED.h
- xt_length.h
- xt_limit.h
- xt_LOG.h
- xt_mac.h
- xt_mark.h
- xt_MARK.h
- xt_multiport.h
- xt_nfacct.h
- xt_NFLOG.h
- xt_NFQUEUE.h
- xt_osf.h
- xt_owner.h
- xt_physdev.h
- xt_pkttype.h
- xt_policy.h
- xt_quota.h
- xt_rateest.h
- xt_RATEEST.h
- xt_realm.h
- xt_recent.h
- xt_rpfilter.h
- xt_sctp.h
- xt_SECMARK.h
- xt_set.h
- xt_socket.h
- xt_state.h
- xt_statistic.h
- xt_string.h
- xt_tcpmss.h
- xt_TCPMSS.h
- xt_TCPOPTSTRIP.h
- xt_tcpudp.h
- xt_TEE.h
- xt_time.h
- xt_TPROXY.h
- xt_u32.h
 %%BASE%%/usr/include/linux/
- net.h
- netlink_diag.h
  netlink.h
- net_namespace.h
+ netlink_diag.h
  netrom.h
- net_tstamp.h
  nfc.h
+ nfs.h
  nfs2.h
  nfs3.h
  nfs4.h
  nfs4_mount.h
+ nfs_fs.h
+ nfs_idmap.h
+ nfs_mount.h
  nfsacl.h
 %%BASE%%/usr/include/linux/nfsd/
  cld.h
@@ -3387,12 +3614,7 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  nfsfh.h
  stats.h
 %%BASE%%/usr/include/linux/
- nfs_fs.h
- nfs.h
- nfs_idmap.h
- nfs_mount.h
  nl80211.h
- n_r3964.h
  nubus.h
  nvme_ioctl.h
  nvram.h
@@ -3412,16 +3634,16 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  pg.h
  phantom.h
  phonet.h
- pktcdvd.h
  pkt_cls.h
  pkt_sched.h
+ pktcdvd.h
  pmu.h
  poll.h
  posix_types.h
  ppdev.h
  ppp-comp.h
- ppp_defs.h
  ppp-ioctl.h
+ ppp_defs.h
  pps.h
  prctl.h
  psci.h
@@ -3458,13 +3680,13 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  securebits.h
  selinux_netlink.h
  sem.h
- serial_core.h
  serial.h
+ serial_core.h
  serial_reg.h
  serio.h
  shm.h
- signalfd.h
  signal.h
+ signalfd.h
  smiapp.h
  snmp.h
  sock_diag.h
@@ -3472,8 +3694,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  sockios.h
  sonet.h
  sonypi.h
- soundcard.h
  sound.h
+ soundcard.h
 %%BASE%%/usr/include/linux/spi/spidev.h
  stat.h
  stddef.h
@@ -3513,12 +3735,12 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  times.h
  timex.h
  tiocl.h
- tipc_config.h
  tipc.h
+ tipc_config.h
  tipc_netlink.h
  toshiba.h
- tty_flags.h
  tty.h
+ tty_flags.h
  types.h
  udf_fs_i.h
  udp.h
@@ -3531,23 +3753,19 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  unix_diag.h
 %%BASE%%/usr/include/linux/usb/
  audio.h
- cdc.h
  cdc-wdm.h
+ cdc.h
  ch11.h
  ch9.h
-%%BASE%%/usr/include/linux/
- usbdevice_fs.h
-%%BASE%%/usr/include/linux/usb/
  functionfs.h
- gadgetfs.h
  g_printer.h
-%%BASE%%/usr/include/linux/
- usbip.h
-%%BASE%%/usr/include/linux/usb/
+ gadgetfs.h
  midi.h
  tmc.h
  video.h
 %%BASE%%/usr/include/linux/
+ usbdevice_fs.h
+ usbip.h
  userfaultfd.h
  utime.h
  utsname.h
@@ -3600,19 +3818,23 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  mntent.h
  monetary.h
  mqueue.h
-%%BASE%%/usr/include/netash/ash.h
-%%BASE%%/usr/include/netatalk/at.h
-%%BASE%%/usr/include/netax25/ax25.h
- netdb.h
-%%BASE%%/usr/include/neteconet/ec.h
 %%BASE%%/usr/include/net/
  ethernet.h
- if_arp.h
  if.h
+ if_arp.h
  if_packet.h
  if_ppp.h
  if_shaper.h
  if_slip.h
+ ppp-comp.h
+ ppp_defs.h
+ route.h
+%%BASE%%/usr/include/netash/ash.h
+%%BASE%%/usr/include/netatalk/at.h
+%%BASE%%/usr/include/netax25/ax25.h
+%%BASE%%/usr/include/
+ netdb.h
+%%BASE%%/usr/include/neteconet/ec.h
 %%BASE%%/usr/include/netinet/
  ether.h
  icmp6.h
@@ -3622,20 +3844,16 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  igmp.h
  in.h
  in_systm.h
- ip6.h
  ip.h
+ ip6.h
  ip_icmp.h
  tcp.h
  udp.h
 %%BASE%%/usr/include/netipx/ipx.h
 %%BASE%%/usr/include/netiucv/iucv.h
 %%BASE%%/usr/include/netpacket/packet.h
-%%BASE%%/usr/include/net/
- ppp-comp.h
- ppp_defs.h
 %%BASE%%/usr/include/netrom/netrom.h
 %%BASE%%/usr/include/netrose/rose.h
- route.h
 %%BASE%%/usr/include/nfs/nfs.h
 %%BASE%%/usr/include/
  nl_types.h
@@ -3658,8 +3876,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  regexp.h
  resolv.h
 %%BASE%%/usr/include/rpc/
- auth_des.h
  auth.h
+ auth_des.h
  auth_unix.h
  clnt.h
  des_crypt.h
@@ -3668,17 +3886,17 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  pmap_clnt.h
  pmap_prot.h
  pmap_rmt.h
- rpc_des.h
  rpc.h
+ rpc_des.h
  rpc_msg.h
+ svc.h
  svc_auth.h
+ types.h
+ xdr.h
 %%BASE%%/usr/include/rpcsvc/
  bootparam.h
  bootparam_prot.h
  bootparam_prot.x
-%%BASE%%/usr/include/rpc/
- svc.h
-%%BASE%%/usr/include/rpcsvc/
  key_prot.h
  key_prot.x
  klm_prot.h
@@ -3687,13 +3905,13 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  mount.x
  nfs_prot.h
  nfs_prot.x
+ nis.h
+ nis.x
  nis_callback.h
  nis_callback.x
- nis.h
- nislib.h
  nis_object.x
  nis_tags.h
- nis.x
+ nislib.h
  nlm_prot.h
  nlm_prot.x
  rex.h
@@ -3708,16 +3926,13 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  sm_inter.x
  spray.h
  spray.x
- ypclnt.h
  yp.h
+ yp.x
+ yp_prot.h
+ ypclnt.h
  yppasswd.h
  yppasswd.x
- yp_prot.h
  ypupd.h
- yp.x
-%%BASE%%/usr/include/rpc/
- types.h
- xdr.h
 %%BASE%%/usr/include/
  sched.h
 %%BASE%%/usr/include/scsi/
@@ -3728,11 +3943,11 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  fc_gs.h
  fc_ns.h
 %%BASE%%/usr/include/scsi/
- scsi_bsg_fc.h
  scsi.h
+ scsi_bsg_fc.h
  scsi_ioctl.h
- scsi_netlink_fc.h
  scsi_netlink.h
+ scsi_netlink_fc.h
  sg.h
 %%BASE%%/usr/include/
  search.h
@@ -3745,101 +3960,101 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  stab.h
  stdc-predef.h
  stdint.h
- stdio_ext.h
  stdio.h
+ stdio_ext.h
  stdlib.h
  string.h
  strings.h
  stropts.h
+%%BASE%%/usr/include/sys/
+ acct.h
+ auxv.h
+ bitypes.h
+ cdefs.h
+ debugreg.h
+ dir.h
+ elf.h
+ epoll.h
+ errno.h
+ eventfd.h
+ fanotify.h
+ fcntl.h
+ file.h
+ fsuid.h
+ gmon.h
+ gmon_out.h
+ inotify.h
+ io.h
+ ioctl.h
+ ipc.h
+ kd.h
+ klog.h
+ mman.h
+ mount.h
+ msg.h
+ mtio.h
+ param.h
+ pci.h
+ perm.h
+ personality.h
+ poll.h
+ prctl.h
+ procfs.h
+ profil.h
+ ptrace.h
+ queue.h
+ quota.h
+ raw.h
+ reboot.h
+ reg.h
+ resource.h
+ select.h
+ sem.h
+ sendfile.h
+ shm.h
+ signal.h
+ signalfd.h
+ socket.h
+ socketvar.h
+ soundcard.h
+ stat.h
+ statfs.h
+ statvfs.h
+ stropts.h
+ swap.h
+ syscall.h
+ sysctl.h
+ sysinfo.h
+ syslog.h
+ sysmacros.h
+ termios.h
+ time.h
+ timeb.h
+ timerfd.h
+ times.h
+ timex.h
+ ttychars.h
+ ttydefaults.h
+ types.h
+ ucontext.h
+ uio.h
+ ultrasound.h
+ un.h
+ unistd.h
+ user.h
+ ustat.h
+ utsname.h
+ vfs.h
+ vlimit.h
+ vm86.h
+ vt.h
+ vtimes.h
+ wait.h
+ xattr.h
+%%BASE%%/usr/include/
  syscall.h
  sysexits.h
  syslog.h
-%%BASE%%/usr/include/sys/
- ttychars.h
- fsuid.h
- types.h
- ipc.h
- ioctl.h
- gmon.h
- inotify.h
- elf.h
- sendfile.h
- soundcard.h
- unistd.h
- socket.h
- timerfd.h
- socketvar.h
- fanotify.h
- mman.h
- syslog.h
- termios.h
- statfs.h
- vm86.h
- statvfs.h
- signal.h
- signalfd.h
- shm.h
- prctl.h
- personality.h
- sysinfo.h
- kd.h
- sysctl.h
- mtio.h
- msg.h
- dir.h
- swap.h
- poll.h
- queue.h
- syscall.h
- vtimes.h
- ustat.h
- fcntl.h
- ptrace.h
- reboot.h
- select.h
- timeb.h
- acct.h
- debugreg.h
- ttydefaults.h
- raw.h
- times.h
- timex.h
- cdefs.h
- utsname.h
- epoll.h
- resource.h
- quota.h
- ucontext.h
- eventfd.h
- perm.h
- pci.h
- vfs.h
- wait.h
- procfs.h
- reg.h
- time.h
- bitypes.h
- uio.h
- param.h
- auxv.h
- vlimit.h
- stropts.h
- xattr.h
- io.h
- sem.h
- ultrasound.h
- file.h
- errno.h
- sysmacros.h
- un.h
- user.h
- klog.h
- stat.h
- vt.h
- gmon_out.h
- mount.h
- profil.h
-%%BASE%%/usr/include/
  tar.h
  termio.h
  termios.h
@@ -3860,224 +4075,6 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  wchar.h
  wctype.h
  wordexp.h
-%%BASE%%/usr/include/i386-linux-gnu/bits/
- socket2.h
- types.h
- ipc.h
- stdio_lim.h
- inotify.h
- cmathcalls.h
- mman-linux.h
- link.h
- fenv.h
- endian.h
- unistd.h
- libio-ldbl.h
- printf-ldbl.h
- socket.h
- timerfd.h
- mathinline.h
- utmp.h
- stab.def
- setjmp2.h
- typesizes.h
- mman.h
- byteswap.h
- waitflags.h
- semaphore.h
- syslog.h
- termios.h
- siginfo.h
- signum.h
- initspin.h
- statfs.h
- hwcap.h
- syslog-ldbl.h
- statvfs.h
- signalfd.h
- shm.h
- msq.h
- fenvinline.h
- locale.h
- stdlib-float.h
- sigcontext.h
- sysctl.h
- sigset.h
- waitstatus.h
- mqueue.h
- setjmp.h
- syslog-path.h
- monetary-ldbl.h
- huge_val.h
- sigthread.h
- stdlib.h
- byteswap-16.h
- environments.h
- stdio2.h
- poll.h
- elfclass.h
- syscall.h
- ioctls.h
- inf.h
- ustat.h
- fcntl.h
- math-finite.h
- huge_valf.h
- sockaddr.h
- select.h
- xtitypes.h
- mathcalls.h
- utmpx.h
- a.out.h
- select2.h
- pthreadtypes.h
- string.h
- socket_type.h
- stdio.h
- math-vector.h
- timex.h
- stdlib-ldbl.h
- utsname.h
- in.h
- sys_errlist.h
- mathdef.h
- wchar2.h
- nan.h
- fcntl2.h
- epoll.h
- resource.h
- eventfd.h
- stdio-ldbl.h
- ipctypes.h
- wchar-ldbl.h
- xopen_lim.h
- string2.h
- mqueue2.h
- time.h
- dirent.h
- uio.h
- param.h
- wordsize.h
- auxv.h
- posix_opt.h
- poll2.h
- stropts.h
- posix2_lim.h
- sem.h
- errno.h
- dlfcn.h
- confname.h
- fcntl-linux.h
- posix1_lim.h
- libm-simd-decl-stubs.h
- sched.h
- huge_vall.h
- wchar.h
- error.h
- string3.h
- stat.h
- sigstack.h
- netdb.h
- sigaction.h
- ioctl-types.h
- local_lim.h
- stdlib-bsearch.h
-%%BASE%%/usr/include/i386-linux-gnu/
- fpu_control.h
- ieee754.h
-%%BASE%%/usr/include/i386-linux-gnu/gnu/
- libc-version.h
- lib-names-32.h
- stubs.h
- lib-names.h
- stubs-32.h
-%%BASE%%/usr/include/i386-linux-gnu/
- a.out.h
-%%BASE%%/usr/include/i386-linux-gnu/sys/
- ttychars.h
- fsuid.h
- types.h
- ipc.h
- ioctl.h
- gmon.h
- inotify.h
- elf.h
- sendfile.h
- soundcard.h
- unistd.h
- socket.h
- timerfd.h
- socketvar.h
- fanotify.h
- mman.h
- syslog.h
- termios.h
- statfs.h
- vm86.h
- statvfs.h
- signal.h
- signalfd.h
- shm.h
- prctl.h
- personality.h
- sysinfo.h
- kd.h
- sysctl.h
- mtio.h
- msg.h
- dir.h
- swap.h
- poll.h
- queue.h
- syscall.h
- vtimes.h
- ustat.h
- fcntl.h
- ptrace.h
- reboot.h
- select.h
- timeb.h
- acct.h
- debugreg.h
- ttydefaults.h
- raw.h
- times.h
- timex.h
- cdefs.h
- utsname.h
- epoll.h
- resource.h
- quota.h
- ucontext.h
- eventfd.h
- perm.h
- pci.h
- vfs.h
- wait.h
- procfs.h
- reg.h
- time.h
- bitypes.h
- uio.h
- param.h
- auxv.h
- vlimit.h
- stropts.h
- xattr.h
- io.h
- sem.h
- ultrasound.h
- file.h
- errno.h
- sysmacros.h
- un.h
- user.h
- klog.h
- stat.h
- vt.h
- gmon_out.h
- mount.h
- profil.h
 %%BASE%%/usr/include/x86_64-linux-gnu/
  a.out.h
 %%BASE%%/usr/include/x86_64-linux-gnu/asm/
@@ -4104,15 +4101,15 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  mce.h
  mman.h
  msgbuf.h
- msr.h
  msr-index.h
+ msr.h
  mtrr.h
  param.h
  perf_regs.h
  poll.h
+ posix_types.h
  posix_types_32.h
  posix_types_64.h
- posix_types.h
  posix_types_x32.h
  prctl.h
  processor-flags.h
@@ -4122,23 +4119,23 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  sembuf.h
  setup.h
  shmbuf.h
- sigcontext32.h
  sigcontext.h
+ sigcontext32.h
  siginfo.h
  signal.h
  socket.h
  sockios.h
- statfs.h
  stat.h
+ statfs.h
  svm.h
  swab.h
  termbits.h
  termios.h
  types.h
  ucontext.h
+ unistd.h
  unistd_32.h
  unistd_64.h
- unistd.h
  unistd_x32.h
  vm86.h
  vmx.h
@@ -4159,44 +4156,44 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  errno.h
  error.h
  eventfd.h
- fcntl2.h
- fcntl.h
  fcntl-linux.h
+ fcntl.h
+ fcntl2.h
  fenv.h
  fenvinline.h
- huge_valf.h
  huge_val.h
+ huge_valf.h
  huge_vall.h
  hwcap.h
- inf.h
  in.h
+ inf.h
  initspin.h
  inotify.h
- ioctls.h
  ioctl-types.h
+ ioctls.h
  ipc.h
  ipctypes.h
  libio-ldbl.h
  libm-simd-decl-stubs.h
  link.h
- locale.h
  local_lim.h
+ locale.h
+ math-finite.h
+ math-vector.h
  mathcalls.h
  mathdef.h
- math-finite.h
  mathinline.h
- math-vector.h
- mman.h
  mman-linux.h
+ mman.h
  monetary-ldbl.h
- mqueue2.h
  mqueue.h
+ mqueue2.h
  msq.h
  nan.h
  netdb.h
  param.h
- poll2.h
  poll.h
+ poll2.h
  posix1_lim.h
  posix2_lim.h
  posix_opt.h
@@ -4204,12 +4201,12 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  pthreadtypes.h
  resource.h
  sched.h
- select2.h
  select.h
- semaphore.h
+ select2.h
  sem.h
- setjmp2.h
+ semaphore.h
  setjmp.h
+ setjmp2.h
  shm.h
  sigaction.h
  sigcontext.h
@@ -4220,31 +4217,31 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  sigstack.h
  sigthread.h
  sockaddr.h
- socket2.h
  socket.h
+ socket2.h
  socket_type.h
  stab.def
- statfs.h
  stat.h
+ statfs.h
  statvfs.h
- stdio2.h
- stdio.h
  stdio-ldbl.h
+ stdio.h
+ stdio2.h
  stdio_lim.h
  stdlib-bsearch.h
  stdlib-float.h
- stdlib.h
  stdlib-ldbl.h
+ stdlib.h
+ string.h
  string2.h
  string3.h
- string.h
  stropts.h
+ sys_errlist.h
  syscall.h
  sysctl.h
- sys_errlist.h
- syslog.h
  syslog-ldbl.h
  syslog-path.h
+ syslog.h
  termios.h
  time.h
  timerfd.h
@@ -4259,18 +4256,18 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  utsname.h
  waitflags.h
  waitstatus.h
- wchar2.h
- wchar.h
  wchar-ldbl.h
+ wchar.h
+ wchar2.h
  wordsize.h
  xopen_lim.h
  xtitypes.h
 %%BASE%%/usr/include/x86_64-linux-gnu/
  fpu_control.h
 %%BASE%%/usr/include/x86_64-linux-gnu/gnu/
- libc-version.h
  lib-names-64.h
  lib-names.h
+ libc-version.h
  stubs-64.h
  stubs.h
 %%BASE%%/usr/include/x86_64-linux-gnu/
@@ -4293,8 +4290,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  gmon.h
  gmon_out.h
  inotify.h
- ioctl.h
  io.h
+ ioctl.h
  ipc.h
  kd.h
  klog.h
@@ -4321,13 +4318,13 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  sem.h
  sendfile.h
  shm.h
- signalfd.h
  signal.h
+ signalfd.h
  socket.h
  socketvar.h
  soundcard.h
- statfs.h
  stat.h
+ statfs.h
  statvfs.h
  stropts.h
  swap.h
@@ -4337,8 +4334,8 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  syslog.h
  sysmacros.h
  termios.h
- timeb.h
  time.h
+ timeb.h
  timerfd.h
  times.h
  timex.h
@@ -4362,7 +4359,23 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  xattr.h
 %%BASE%%/usr/include/
  xlocale.h
+%%BASE%%/usr/lib/locale/C.UTF-8/
+ LC_ADDRESS
+ LC_COLLATE
+ LC_CTYPE
+ LC_IDENTIFICATION
+ LC_MEASUREMENT
+%%BASE%%/usr/lib/locale/C.UTF-8/LC_MESSAGES/SYS_LC_MESSAGES
+ LC_MONETARY
+ LC_NAME
+ LC_NUMERIC
+ LC_PAPER
+ LC_TELEPHONE
+ LC_TIME
+%%BASE%%/usr/lib/locale/locale-archive
 %%BASE%%/usr/lib/x86_64-linux-gnu/
+ Mcrt1.o
+ Scrt1.o
  crt1.o
  crti.o
  crtn.o
@@ -4370,29 +4383,29 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  libanl.a
  libanl.so
  libc.a
+ libc.so
  libc_nonshared.a
  libcrypt.a
  libcrypt.so
- libc.so
  libdl.a
  libdl.so
  libieee.a
  libm.a
  libm.so
  libmvec.a
- libmvec_nonshared.a
  libmvec.so
+ libmvec_nonshared.a
  libnsl.a
  libnsl.so
  libnss_compat.so
  libnss_dns.so
  libnss_files.so
  libnss_hesiod.so
- libnss_nisplus.so
  libnss_nis.so
+ libnss_nisplus.so
  libpthread.a
- libpthread_nonshared.a
  libpthread.so
+ libpthread_nonshared.a
  libresolv.a
  libresolv.so
  librpcsvc.a
@@ -4400,22 +4413,42 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  librt.so
  libutil.a
  libutil.so
- Mcrt1.o
- Scrt1.o
-%%BASE%%/usr/share/file/magic.mgc
 %%BASE%%/usr/share/
- group
- ld.so.conf
  OSMAJOR
  OSRELEASE
  OSVERSION
- passwd
  STDARCH
+%%BASE%%/usr/share/file/magic.mgc
+ group
+%%BASE%%/usr/share/i18n/charmaps/UTF-8.gz
+%%BASE%%/usr/share/i18n/locales/
+ C
+ POSIX
+ en_GB
+ en_US
+ i18n
+ iso14651_t1
+ iso14651_t1_common
+ translit_circle
+ translit_cjk_compat
+ translit_cjk_variants
+ translit_combining
+ translit_compat
+ translit_font
+ translit_fraction
+ translit_hangul
+ translit_narrow
+ translit_neutral
+ translit_small
+ translit_wide
+%%BASE%%/usr/share/
+ ld.so.conf
+ passwd
  terminfo.db
  x86_64-linux-gnu.conf
-@dir %%BASE%%/usr/sbin
 @dir %%BASE%%/usr/lib/pkgconfig
 @dir %%BASE%%/usr/local
+@dir %%BASE%%/usr/sbin
 
 
 [FILE:34943:manifests/plist.single.sunos]
@@ -7019,7 +7052,7 @@ share/raven/sysroot/SunOS/usr/xpg4/bin/sh
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20353:files/Makefile]
+[FILE:21003:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7728,6 +7761,16 @@ install:
 	sed -i'' -e "s|/bin/bash|/bin/dash|" ${DESTDIR}${BASE}/usr/bin/ldd
 	# i386 version conflicts with amd64 version, so copy just the i386 files separately
 	cp ${CPA} ../ravensys-root_14/usr/include/i386-linux-gnu ${DESTDIR}${BASE}/usr/include/
+	# locales
+	mkdir -p ${DESTDIR}${BASE}/usr/lib/locale
+	mkdir -p ${DESTDIR}${BASE}/usr/share/i18n/charmaps
+	mkdir -p ${DESTDIR}${BASE}/usr/share/i18n/locales
+	cp ${CPA} ../linux/usr/share/i18n/charmaps/UTF-8.gz ${DESTDIR}${BASE}/usr/share/i18n/charmaps/
+	cp ${CPA} ../linux/usr/lib/locale/C.UTF-8 ${DESTDIR}${BASE}/usr/lib/locale/
+.  for locale in C POSIX en_US en_GB iso14651_t1 iso14651_t1_common i18n translit_*
+	cp ${CPA} ../linux/usr/share/i18n/locales/${locale} ${DESTDIR}${BASE}/usr/share/i18n/locales/
+.  endfor
+	env I18NPATH=${DESTDIR}${BASE}/usr/share/i18n ../linux/usr/bin/localedef --prefix=${DESTDIR}${BASE} -f UTF-8 -i en_US en_US.UTF-8
 .endif
 .if ${OPSYS} == Linux || ${OPSYS} == SunOS
 	# use coreutils that FreeBSD and DragonFly passed on (/bin)

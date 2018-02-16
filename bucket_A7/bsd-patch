@@ -87,7 +87,7 @@ share/man/man1/patch.1.gz
  */
 
 
-[FILE:536:files/Makefile]
+[FILE:581:files/Makefile]
 PROG=		patch
 SRCS=		${PROG}.c pch.c inp.c util.c backupfile.c mkpath.c \
 		linux_support.c
@@ -95,7 +95,10 @@ PREFIX?=	/usr/local
 CFLAGS+=	-I${PREFIX}/include -I.
 STATIC_LIBS=	
 
-.if "${OPSYS}" == "Linux" || "${OPSYS}" == "SunOS"
+.if "${OPSYS}" == "Linux"
+STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
+.endif
+.if "${OPSYS}" == "SunOS"
 STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
 CFLAGS+=	-I${PREFIX}/include/bsd
 .endif

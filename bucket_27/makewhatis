@@ -71,14 +71,17 @@ share/man/man8/makewhatis.8.gz
 
 
 
-[FILE:503:files/Makefile]
+[FILE:549:files/Makefile]
 PROG=		makewhatis
 SRCS=		${PROG}.c
 PREFIX?=	/usr/local
 CFLAGS+=	-I${PREFIX}/include -I.
 STATIC_LIBS=	${PREFIX}/lib/libz.a
 
-.if "${OPSYS}" == "Linux" || "${OPSYS}" == "SunOS"
+.if "${OPSYS}" == "Linux"
+STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
+.endif 
+.if "${OPSYS}" == "SunOS"
 STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
 CFLAGS+=	-I${PREFIX}/include/bsd
 .endif
@@ -234,13 +237,18 @@ with additional contributions by
 .An Franco Fichtner Aq Mt franco@lastsummer.de .
 
 
-[FILE:24282:files/makewhatis.c]
+[FILE:24372:files/makewhatis.c]
 /*-
  * $FreeBSD: src/usr.bin/makewhatis/makewhatis.c,v 1.9 2002/09/04 23:29:04 dwmalone Exp $
  */
 
+#ifdef __linux__		
+#include <bsd/sys/tree.h>		
+#include <bsd/stringlist.h>		
+#else
 #include <sys/tree.h>
 #include <stringlist.h>
+#endif
 #include <sys/types.h>
 #include <sys/param.h>
 #include <sys/queue.h>
