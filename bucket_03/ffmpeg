@@ -32,7 +32,6 @@ BUILDRUN_DEPENDS=	gmp:shared:standard
 			libgcrypt:single:standard
 			gnutls:single:standard
 			video4linux:primary:standard
-			opencv:core:standard
 			rtmpdump:library:standard
 			libtheora:single:standard
 			libva:single:standard
@@ -126,7 +125,6 @@ CONFIGURE_ARGS=		--cc="{{CC}}"
 			--enable-gmp
 			--enable-iconv
 			--enable-libv4l2
-			--enable-libopencv
 			--enable-optimizations
 			--enable-runtime-cpudetect
 			--enable-librtmp
@@ -169,11 +167,8 @@ RC_SUBR=		ffserver:primary
 
 post-patch:
 	# {C,LD}FLAGS safeness
-	@${REINPLACE_CMD} -e 's|/etc/ffserver.conf|${PREFIX}/etc/ffserver.conf|' \
+	${REINPLACE_CMD} -e 's|/etc/ffserver.conf|${PREFIX}/etc/ffserver.conf|' \
 		${WRKSRC}/fftools/ffserver.c
-	@${REINPLACE_CMD} -E \
-		-e 's|require_pkg_config opencv|require_pkg_config opencv-core|g' \
-		${CONFIGURE_WRKSRC}/${CONFIGURE_SCRIPT}
 
 post-install:
 	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
@@ -445,7 +440,7 @@ share/ffmpeg/examples/
 
 
 [FILE:1079:patches/patch-configure]
---- configure.orig	2017-10-15 15:59:36 UTC
+--- configure.orig	2018-02-12 00:29:18 UTC
 +++ configure
 @@ -482,7 +482,7 @@ log(){
  
@@ -456,7 +451,7 @@ share/ffmpeg/examples/
      log END $1
  }
  
-@@ -3371,12 +3371,7 @@ target_os_default=$(tolower $(uname -s))
+@@ -3372,12 +3372,7 @@ target_os_default=$(tolower $(uname -s))
  host_os=$target_os_default
  
  # machine
@@ -470,7 +465,7 @@ share/ffmpeg/examples/
  cpu="generic"
  intrinsics="none"
  
-@@ -3531,7 +3526,7 @@ die_unknown(){
+@@ -3532,7 +3527,7 @@ die_unknown(){
  
  print_in_columns() {
      cols=$(expr $ncols / 24)
@@ -479,7 +474,7 @@ share/ffmpeg/examples/
  }
  
  show_list() {
-@@ -6491,6 +6486,9 @@ elif enabled llvm_gcc; then
+@@ -6492,6 +6487,9 @@ elif enabled llvm_gcc; then
  elif enabled clang; then
      check_cflags -mllvm -stack-alignment=16
      check_cflags -mstack-alignment=16
@@ -492,7 +487,7 @@ share/ffmpeg/examples/
 
 
 [FILE:287:patches/patch-doc_Makefile]
---- doc/Makefile.orig	2017-10-15 15:59:36 UTC
+--- doc/Makefile.orig	2018-02-12 00:29:03 UTC
 +++ doc/Makefile
 @@ -119,7 +119,7 @@ install-html: $(HTMLPAGES)
  endif
@@ -506,7 +501,7 @@ share/ffmpeg/examples/
 
 
 [FILE:199:patches/patch-ffbuild_libversion.sh]
---- ffbuild/libversion.sh.orig	2017-10-15 15:59:36 UTC
+--- ffbuild/libversion.sh.orig	2018-02-12 00:29:04 UTC
 +++ ffbuild/libversion.sh
 @@ -1,3 +1,5 @@
 +#!/bin/sh
@@ -517,7 +512,7 @@ share/ffmpeg/examples/
 
 
 [FILE:1842:patches/patch-libavformat_rtsp.c]
---- libavformat/rtsp.c.orig	2017-10-15 15:59:38 UTC
+--- libavformat/rtsp.c.orig	2018-02-12 00:29:06 UTC
 +++ libavformat/rtsp.c
 @@ -1610,7 +1610,12 @@ int ff_rtsp_make_setup_request(AVFormatC
              }
@@ -564,7 +559,7 @@ share/ffmpeg/examples/
 
 
 [FILE:331:patches/patch-libavutil_common.h]
---- libavutil/common.h.orig	2017-09-12 00:51:35 UTC
+--- libavutil/common.h.orig	2017-12-31 22:35:49 UTC
 +++ libavutil/common.h
 @@ -50,6 +50,10 @@
  #   define AV_NE(be, le) (le)

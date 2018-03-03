@@ -2,6 +2,7 @@
 
 NAMEBASE=		libav
 VERSION=		12.3
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	Realtime audio/video conversion library
@@ -22,7 +23,6 @@ BUILD_DEPENDS=		yasm:single:standard
 			bzip2:static:standard
 BUILDRUN_DEPENDS=	gmp:shared:standard
 			bzip2:shared:standard
-			opencv:primary:standard
 			libvdpau:single:standard
 			nettle:primary:standard
 			frei0r:single:standard
@@ -61,7 +61,6 @@ CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
 			--enable-frei0r
 			--enable-libfreetype
 			--enable-gnutls
-			--enable-libopencv
 			--enable-librtmp
 			--enable-libschroedinger
 			--enable-avplay
@@ -99,13 +98,7 @@ CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
 			--disable-libx264
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|freetype/freetype.h|freetype2/freetype.h|' \
-		-e 's|-ldc1394 -lraw1394|-ldc1394|' \
-		${WRKSRC}/configure
-	@${REINPLACE_CMD} -e 's|gsm/gsm.h|gsm.h|' \
-		${WRKSRC}/configure \
-		${WRKSRC}/libavcodec/libgsmdec.c
-	@${REINPLACE_CMD} -e 's|$$(LIBDIR)/pkgconfig|${STAGEDIR}${PREFIX}/lib/pkgconfig|' \
+	${REINPLACE_CMD} -e 's|$$(LIBDIR)/pkgconfig|${STAGEDIR}${PREFIX}/lib/pkgconfig|' \
 		${WRKSRC}/library.mak
 
 post-install:
@@ -113,7 +106,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libav/*.so
 
 post-configure:
-	@${REINPLACE_CMD} -e 's|CONFIG_TEXI2HTML=yes|!CONFIG_TEXI2HTML=yes|' \
+	${REINPLACE_CMD} -e 's|CONFIG_TEXI2HTML=yes|!CONFIG_TEXI2HTML=yes|' \
 		${WRKSRC}/config.mak
 
 [FILE:288:descriptions/desc.single]
@@ -299,10 +292,10 @@ share/libav/
  libx264-veryslow_firstpass.avpreset
 
 
-[FILE:1721:patches/patch-configure]
---- configure.orig	2017-05-14 19:25:01 UTC
+[FILE:1714:patches/patch-configure]
+--- configure.orig	2018-02-12 21:25:59 UTC
 +++ configure
-@@ -832,8 +832,8 @@ ld_o(){
+@@ -837,8 +837,8 @@ ld_o(){
  
  check_ld(){
      log check_ld "$@"
@@ -313,16 +306,16 @@ share/libav/
      check_cc $($cflags_filter $flags) || return
      flags=$($ldflags_filter $flags)
      libs=$($ldflags_filter $libs)
-@@ -4606,7 +4606,7 @@ enabled libfaac           && require2 li
+@@ -4614,7 +4614,7 @@ enabled libfaac           && require2 li
  enabled libfdk_aac        && require_pkg_config fdk-aac "fdk-aac/aacenc_lib.h" aacEncOpen
  enabled libfontconfig     && require_pkg_config fontconfig "fontconfig/fontconfig.h" FcInit
  enabled libfreetype       && require_pkg_config freetype2 "ft2build.h FT_FREETYPE_H" FT_Init_FreeType
 -enabled libgsm            && { for gsm_hdr in "gsm.h" "gsm/gsm.h"; do
-+enabled libgsm            && { for gsm_hdr in "gsm.h" "gsm.h"; do
++enabled libgsm            && { for gsm_hdr in "gsm.h" ; do
                                     check_lib "${gsm_hdr}" gsm_create -lgsm && break;
                                 done || die "ERROR: libgsm not found"; }
  enabled libhdcd           && require_pkg_config libhdcd "hdcd/hdcd_simple.h" hdcd_new
-@@ -4948,6 +4948,7 @@ elif enabled llvm_gcc; then
+@@ -4956,6 +4956,7 @@ elif enabled llvm_gcc; then
      check_cflags -mllvm -stack-alignment=16
  elif enabled clang; then
      check_cflags -mllvm -stack-alignment=16
@@ -330,7 +323,7 @@ share/libav/
      check_cflags -Qunused-arguments
      check_cflags -Werror=implicit-function-declaration
      check_cflags -Werror=missing-prototypes
-@@ -5389,7 +5390,7 @@ pkgconfig_generate(){
+@@ -5398,7 +5399,7 @@ pkgconfig_generate(){
      requires=${requires%, }
      enabled ${name#lib} || return 0
      mkdir -p $name
@@ -342,7 +335,7 @@ share/libav/
 
 
 [FILE:393:patches/patch-library.mak]
---- library.mak.orig	2017-05-14 19:25:01 UTC
+--- library.mak.orig	2018-02-12 21:25:59 UTC
 +++ library.mak
 @@ -71,7 +71,7 @@ install-lib$(NAME)-headers: $(addprefix
  	$(Q)mkdir -p "$(INCINSTDIR)"
