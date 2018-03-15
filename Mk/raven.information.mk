@@ -120,7 +120,7 @@ RUBY_2.5_PATCHLEVEL=		0
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK2_PORT_VERSION=		2.24.32
-GTK3_PORT_VERSION=		3.22.28
+GTK3_PORT_VERSION=		3.22.29
 
 # ------------------------------------------------------------------------
 # default gcc and binutils

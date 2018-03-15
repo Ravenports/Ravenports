@@ -3,10 +3,11 @@
 NAMEBASE=		pinentry
 VERSION=		1.1.0
 KEYWORDS=		security
-VARIANTS=		standard ncurses qt5 gtk2 fltk
+VARIANTS=		standard ncurses qt5 gtk2 fltk gnome3
 SDESC[qt5]=		Assuan passphrase entry dialog (Qt5)
 SDESC[ncurses]=		Assuan passphrase entry dialog (ncurses)
 SDESC[fltk]=		Assuan passphrase entry dialog (FLTK)
+SDESC[gnome3]=		Assuan passphrase entry dialog (GNOME3)
 SDESC[standard]=	Assuan passphrase entry dialog (console)
 SDESC[gtk2]=		Assuan passphrase entry dialog (GTK2)
 HOMEPAGE=		https://www.gnupg.org/aegypten2/
@@ -19,15 +20,22 @@ DF_INDEX=		1
 SPKGS[qt5]=		single
 SPKGS[ncurses]=		single
 SPKGS[fltk]=		single
+SPKGS[gnome3]=		single
 SPKGS[standard]=	single
 SPKGS[gtk2]=		single
 
-OPTIONS_AVAILABLE=	NCURSES QT5 GTK2 FLTK NOTSTD
+OPTIONS_AVAILABLE=	NCURSES QT5 GTK2 FLTK NOTSTD GNOME3
 OPTIONS_STANDARD=	none
 VOPTS[qt5]=		NCURSES=OFF QT5=ON GTK2=OFF FLTK=OFF NOTSTD=ON
+			GNOME3=OFF
 VOPTS[ncurses]=		NCURSES=ON QT5=OFF GTK2=OFF FLTK=OFF NOTSTD=ON
+			GNOME3=OFF
 VOPTS[fltk]=		NCURSES=OFF QT5=OFF GTK2=OFF FLTK=ON NOTSTD=ON
+			GNOME3=OFF
+VOPTS[gnome3]=		NCURSES=OFF QT5=OFF GTK2=OFF FLTK=OFF NOTSTD=ON
+			GNOME3=ON
 VOPTS[gtk2]=		NCURSES=OFF QT5=OFF GTK2=ON FLTK=OFF NOTSTD=ON
+			GNOME3=OFF
 
 BUILDRUN_DEPENDS=	libsecret:primary:standard
 			libassuan:single:standard
@@ -52,6 +60,10 @@ CONFIGURE_ARGS=		--enable-libsecret
 					--disable-pinentry-emacs
 					--disable-inside-emacs
 [NOTSTD].INFO_OFF=			single:pinentry
+
+[GNOME3].DESCRIPTION=			Build GNOME3 variant
+[GNOME3].BUILDRUN_DEPENDS_ON=		gcr:primary:standard
+[GNOME3].CONFIGURE_ENABLE_BOTH=		pinentry-gnome3
 
 [FLTK].DESCRIPTION=			Build FLTK variant
 [FLTK].BUILDRUN_DEPENDS_ON=		fltk:primary:standard
@@ -108,6 +120,10 @@ bin/pinentry-gtk-2
 
 [FILE:18:manifests/plist.single.fltk]
 bin/pinentry-fltk
+
+
+[FILE:20:manifests/plist.single.gnome3]
+bin/pinentry-gnome3
 
 
 [FILE:776:patches/patch-fltk_pinwindow.cxx]
