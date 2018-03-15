@@ -2,7 +2,7 @@
 
 NAMEBASE=		fontconfig
 VERSION=		2.12.6
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_fonts
 VARIANTS=		standard
 SDESC[standard]=	XML-based font configuration API for X Windows
@@ -18,9 +18,9 @@ SPKGS[standard]=	complete
 			docs
 
 OPTIONS_AVAILABLE=	HINTING_NONE HINTING_SLIGHT HINTING_MEDIUM
-			HINTING_FULL
+			HINTING_FULL NO_BITMAPS
 OPTIONS_STANDARD=	HINTING_NONE HINTING_SLIGHT HINTING_MEDIUM
-			HINTING_FULL
+			HINTING_FULL NO_BITMAPS
 OPTGROUP_RADIO=		HINTING
 OPTDESCR[HINTING]=	Preferred pixel hinting configuration
 OPTGROUP[HINTING]=	HINTING_NONE HINTING_SLIGHT HINTING_MEDIUM
@@ -63,6 +63,8 @@ SUB_FILES=		pkg-install-primary
 [HINTING_MEDIUM].DESCRIPTION=		Medium hinting
 [HINTING_MEDIUM].MAKEFILE_ON=		PREFERRED_HINTING=medium
 
+[NO_BITMAPS].DESCRIPTION=		Reject bitmap fonts by default
+
 [HINTING_NONE].DESCRIPTION=		No hinting
 [HINTING_NONE].MAKEFILE_ON=		PREFERRED_HINTING=none
 
@@ -83,6 +85,11 @@ post-install:
 .for doc in fontconfig-user.html fontconfig-user.pdf fontconfig-user.txt
 	${INSTALL_DATA} ${WRKSRC}/doc/${doc} ${STAGEDIR}${STD_DOCDIR}/
 .endfor
+
+post-patch-NO_BITMAPS-ON:
+	${SED} -i'.bitmaps.bak' -e \
+		'/^CONF_LINKS =/s|$$|\${.newline}       70-no-bitmaps.conf \\|' \
+		${WRKSRC}/conf.d/Makefile.in
 
 [FILE:799:descriptions/desc.primary]
 Fontconfig does the following:
@@ -105,7 +112,7 @@ Fontconfig does the following:
 cf0c30807d08f6a28ab46c61b8dbd55c97d2f292cf88f3a07d3384687f31f017      1624683 fontconfig-2.12.6.tar.bz2
 
 
-[FILE:1625:manifests/plist.primary]
+[FILE:1678:manifests/plist.primary]
 bin/
  fc-cache
  fc-cat
@@ -166,6 +173,7 @@ etc/fonts/conf.d/
  65-fonts-persian.conf
  65-nonlatin.conf
  69-unifont.conf
+%%NO_BITMAPS-ON%%etc/fonts/conf.d/70-no-bitmaps.conf
  80-delicious.conf
  90-synthetic.conf
  README
