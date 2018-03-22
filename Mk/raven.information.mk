@@ -153,9 +153,9 @@ LIBTOOL_VERSION=		2.4.6
 FREI0R_VERSION=			1.6.1
 M17N_VERSION=			1.8.0
 GLIBC_VERSION=			2.26
-GSTREAMER1_VERSION=		1.13.1
+GSTREAMER1_VERSION=		1.14.0
 GSTREAMER1_GST=			1.0
-GSTREAMER1_SOVERSION=		0.1301.0
+GSTREAMER1_SOVERSION=		0.1400.0
 
 # ------------------------------------------------------------------------
 # Gnatcross options

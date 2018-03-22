@@ -26,6 +26,7 @@ BUILDRUN_DEPENDS=	nss:caroot:standard
 			libproxy:single:standard
 
 USES=			gettext-tools libtool meson pkgconfig python
+			shebangfix
 GNOME_COMPONENTS=	glib intltool
 
 FPC_EQUIVALENT=		net/glib-networking
@@ -35,12 +36,13 @@ MESON_ARGS=		-Dca_certificates_path={{PREFIX}}/etc/ssl
 MESON_INSERT_RPATH=	tls/gnutls/meson.build
 			proxy/libproxy/meson.build
 			proxy/gnome/meson.build
+SHEBANG_FILES=		meson_post_install.py
+			find-ca-certificates
 
 INSTALL_TARGET=		install-strip
 
 post-patch:
-	${REINPLACE_CMD} -e 's|#!/usr/bin/env python3|#!${PREFIX}/bin/python${PYTHON_VER}|' \
-		${WRKSRC}/meson_post_install.py \
+	${CHMOD} ${BINMODE} ${WRKSRC}/meson_post_install.py \
 		${WRKSRC}/find-ca-certificates
 
 post-install:

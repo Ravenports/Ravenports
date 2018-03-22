@@ -25,6 +25,7 @@ BUILD_DEPENDS=		docbook-xsl:primary:standard
 BUILDRUN_DEPENDS=	dbus:single:standard
 
 USES=			gettext-runtime gmake meson pkgconfig python:build
+			shebangfix
 GNOME_COMPONENTS=	glib libxslt
 
 FPC_EQUIVALENT=		devel/dconf
@@ -33,6 +34,7 @@ MESON_INSERT_RPATH=	bin/meson.build
 			client/meson.build
 			gsettings/meson.build
 			service/meson.build
+SHEBANG_FILES=		meson_post_install.py
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.0.0
@@ -41,6 +43,7 @@ post-patch:
 	${REINPLACE_CMD} -e \
 		's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' \
 		${WRKSRC}/docs/meson.build
+	${CHMOD} ${BINMODE} ${WRKSRC}/meson_post_install.py
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/dconf \
@@ -129,15 +132,4 @@ share/doc/dconf/
      '--stringparam', 'man.output.quietly', '1',
      '--stringparam', 'funcsynopsis.style', 'ansi',
      '--stringparam', 'man.th.extra1.suppress', '1',
-
-
-[FILE:225:patches/patch-meson_post_install.py]
---- meson_post_install.py.orig	2018-03-16 10:49:08.955597000 +0100
-+++ meson_post_install.py	2018-03-16 10:49:39.411538000 +0100
-@@ -1,4 +1,4 @@
--#!/usr/bin/env python3
-+#!/raven/bin/python3.6
- 
- import os
- import subprocess
 

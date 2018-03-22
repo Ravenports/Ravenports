@@ -64,6 +64,11 @@ SHEBANG_OLD_${lang:tu}+= /bin/${lang}
 SHEBANG_OLD_${lang:tu}+= /usr/bin/${lang}
 .  endfor
 
+# Additional old patterns for python3
+SHEBANG_OLD_PYTHON+=	"/usr/bin/env python3"
+SHEBANG_OLD_PYTHON+=	/bin/python3
+SHEBANG_OLD_PYTHON+=	/usr/bin/python3
+
 .  for lang in ${SHEBANG_LANG}
 .    for old_cmd in ${SHEBANG_OLD_${lang:tu}}
 _SHEBANG_REINPLACE_ARGS+= -e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}\([[:space:]]\)|\#!${SHEBANG_NEW_${lang:tu}}\1|"
