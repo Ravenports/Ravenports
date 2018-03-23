@@ -50,18 +50,12 @@ VAR_ARCH[x86_64]=	CFLAGS=-fpic
 			CFLAGS=-DPIC
 
 post-patch:
-	@${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_file.c
-	@${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_impl.h
-	@${REINPLACE_CMD} "s#^swig_pydir =.*#swig_pydir = ${PYTHON_SITELIBDIR}/libsvn#" ${WRKSRC}/Makefile.in
-	@${REINPLACE_CMD} "s#^swig_pydir_extra =.*#swig_pydir_extra = ${PYTHON_SITELIBDIR}/svn#" ${WRKSRC}/Makefile.in
-	# shebangfix
-	@${FIND} ${WRKSRC}/tools/ -type f -exec ${GREP} -l -e '#!/bin/b' -e '#!/bin/env' \
-		-e '#!/usr/bin/p' {} + | ${XARGS} ${REINPLACE_CMD} -e \
-		'1s|#\!/bin/b|#\!/usr/local/bin/b|' \
-		-e '1s|#\!/bin/env|#\!/usr/bin/env|' \
-		-e '1s|#\!/usr/bin/p|#\!/usr/local/bin/p|'
+	${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_file.c
+	${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_impl.h
+	${REINPLACE_CMD} "s#^swig_pydir =.*#swig_pydir = ${PYTHON_SITELIBDIR}/libsvn#" ${WRKSRC}/Makefile.in
+	${REINPLACE_CMD} "s#^swig_pydir_extra =.*#swig_pydir_extra = ${PYTHON_SITELIBDIR}/svn#" ${WRKSRC}/Makefile.in
 	# remove all .bak files to clean the stage
-	@${FIND} ${WRKSRC} -name '*.bak' -delete
+	${FIND} ${WRKSRC} -name '*.bak' -delete
 
 post-install:
 	(cd ${WRKSRC}/tools.examples && \
@@ -80,10 +74,10 @@ post-build:
 
 post-configure:
 	# Enable GNOME Keyring / KWallet support in main code, as it is harmless
-	@${REINPLACE_CMD} -E 's%.*#undef SVN_HAVE_(GNOME_KEYRING|KWALLET).*%#define SVN_HAVE_\1 1%' ${WRKSRC}/subversion/svn_private_config.h
+	${REINPLACE_CMD} -E 's%.*#undef SVN_HAVE_(GNOME_KEYRING|KWALLET).*%#define SVN_HAVE_\1 1%' ${WRKSRC}/subversion/svn_private_config.h
 	# ugly hack: save tools directory so we don't have to cleanup before installing
-	@${CP} -R ${WRKSRC}/tools ${WRKSRC}/tools.examples
-	@${CHMOD} -R a-st,o+rX ${WRKSRC}/tools.examples
+	${CP} -R ${WRKSRC}/tools ${WRKSRC}/tools.examples
+	${CHMOD} -R a-st,o+rX ${WRKSRC}/tools.examples
 
 [FILE:407:descriptions/desc.single]
 Subversion is an open source version control system.

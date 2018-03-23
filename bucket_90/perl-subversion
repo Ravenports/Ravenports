@@ -65,18 +65,12 @@ VAR_ARCH[x86_64]=	CFLAGS=-fpic
 [PERL_524].USES_ON=			perl:524
 
 post-patch:
-	@${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_file.c
-	@${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_impl.h
-	@${REINPLACE_CMD} "s#^swig_pydir =.*#swig_pydir = ${PYTHON_SITELIBDIR}/libsvn#" ${WRKSRC}/Makefile.in
-	@${REINPLACE_CMD} "s#^swig_pydir_extra =.*#swig_pydir_extra = ${PYTHON_SITELIBDIR}/svn#" ${WRKSRC}/Makefile.in
-	# shebangfix
-	@${FIND} ${WRKSRC}/tools/ -type f -exec ${GREP} -l -e '#!/bin/b' -e '#!/bin/env' \
-		-e '#!/usr/bin/p' {} + | ${XARGS} ${REINPLACE_CMD} -e \
-		'1s|#\!/bin/b|#\!/usr/local/bin/b|' \
-		-e '1s|#\!/bin/env|#\!/usr/bin/env|' \
-		-e '1s|#\!/usr/bin/p|#\!/usr/local/bin/p|'
+	${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_file.c
+	${REINPLACE_CMD} "s#/etc/subversion#${PREFIX}/etc/subversion#g" ${WRKSRC}/subversion/libsvn_subr/config_impl.h
+	${REINPLACE_CMD} "s#^swig_pydir =.*#swig_pydir = ${PYTHON_SITELIBDIR}/libsvn#" ${WRKSRC}/Makefile.in
+	${REINPLACE_CMD} "s#^swig_pydir_extra =.*#swig_pydir_extra = ${PYTHON_SITELIBDIR}/svn#" ${WRKSRC}/Makefile.in
 	# remove all .bak files to clean the stage
-	@${FIND} ${WRKSRC} -name '*.bak' -delete
+	${FIND} ${WRKSRC} -name '*.bak' -delete
 
 pre-install:
 	${REINPLACE_CMD} '/SWIG_PL_DIR/s, install$$, all pure_install,g' \
