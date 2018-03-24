@@ -21,7 +21,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe libtool gettext-runtime cclibs:primary
+USES=			cpe libtool gettext-runtime cclibs:primary zlib
 
 LICENSE=		CUSTOM1:primary
 LICENSE_NAME=		CUSTOM1:"Sudo License"
@@ -37,17 +37,20 @@ CONFIGURE_ARGS=		--sysconfdir={{PREFIX}}/etc
 			--with-ignore-dot
 			--with-tty-tickets
 			--with-env-editor
-			--with-logincap
 			--with-long-otp-prompt
+			--with-logfac=authpriv
 			--enable-nls
+			--disable-noargs-shell
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--enable-hardening=no
+
 post-patch:
-	@${REINPLACE_CMD} -E '/install-(binaries|noexec):/,/^$$/ \
+	${REINPLACE_CMD} -E '/install-(binaries|noexec):/,/^$$/ \
 		s/\$$\(INSTALL\)/& ${STRIP}/;s/-b\~/-b ~/' \
 		${WRKSRC}/src/Makefile.in
-	@${REINPLACE_CMD} -e 's,$$(srcdir)/sudoers2ldif $$(DESTDIR)$$(docdir),$$(srcdir)/sudoers2ldif $$(DESTDIR)$$(bindir),' \
+	${REINPLACE_CMD} -e 's,$$(srcdir)/sudoers2ldif $$(DESTDIR)$$(docdir),$$(srcdir)/sudoers2ldif $$(DESTDIR)$$(bindir),' \
 		${WRKSRC}/plugins/sudoers/Makefile.in
 
 post-install:
