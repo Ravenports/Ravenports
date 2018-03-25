@@ -613,21 +613,30 @@ logtstamp after 1
  static slot_t
 
 
-[FILE:705:freebsd/patch-os.h]
---- os.h.orig	2016-06-19 12:41:03.000000000 -0700
-+++ os.h	2016-06-21 04:13:47.509485000 -0700
-@@ -252,7 +252,9 @@
+[FILE:915:freebsd/patch-os.h]
+--- os.h.orig	2017-10-23 11:32:41 UTC
++++ os.h
+@@ -250,9 +250,7 @@ extern int errno;
+ #endif
+ 
  #if defined(UTMPOK) || defined(BUGGYGETLOGIN)
- # if defined(SVR4) && !defined(DGUX) && !defined(__hpux) && !defined(linux)
+-# if defined(SVR4) && !defined(DGUX) && !defined(__hpux) && !defined(linux)
  #  include <utmpx.h>
 -#  define UTMPFILE	UTMPX_FILE
-+#  ifdef UTMPX_FILE /* GNU extension */
-+#   define UTMPFILE	UTMPX_FILE
-+#  endif
  #  define utmp		utmpx
  #  define getutent	getutxent
  #  define getutid	getutxid
-@@ -524,6 +526,6 @@
+@@ -261,9 +259,6 @@ extern int errno;
+ #  define setutent	setutxent
+ #  define endutent	endutxent
+ #  define ut_time	ut_xtime
+-# else /* SVR4 */
+-#  include <utmp.h>
+-# endif /* SVR4 */
+ # ifdef apollo
+    /* 
+     * We don't have GETUTENT, so we dig into utmp ourselves.
+@@ -524,6 +519,6 @@ typedef struct fd_set { int fds_bits[1];
  /* Changing those you won't be able to attach to your old sessions
   * when changing those values in official tree don't forget to bump
   * MSG_VERSION */
