@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.4
-REVISION=		2
+REVISION=		3
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd64 linux sunos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -12,7 +12,7 @@ SDESC[dragonfly]=	DragonFly64 system root for Ravenports build env
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main freebsd ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 dragonlace avalon
+DOWNLOAD_GROUPS=	main freebsd ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9 dragonlace avalon
 SITES[freebsd]=		https://download.freebsd.org/ftp/releases/amd64/amd64/ISO-IMAGES/11.1/
 SITES[ubuntu1]=		http://security.ubuntu.com/ubuntu/pool/main/g/glibc/
 SITES[ubuntu2]=		UBUNTU/h/hostname
@@ -23,6 +23,7 @@ SITES[ubuntu6]=		UBUNTU/b/bsdmainutils
 SITES[ubuntu7]=		http://security.ubuntu.com/ubuntu/pool/main/s/shadow/
 SITES[ubuntu8]=		http://security.ubuntu.com/ubuntu/pool/main/l/linux/
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
+SITES[ubuntu9]=		UBUNTU/a/attr
 SITES[dragonlace]=	http://downloads.dragonlace.net/misc/
 SITES[avalon]=		http://mirror-master.dragonflybsd.org/iso-images/
 DISTFILE[1]=		dummy-tarball.tar.gz:main
@@ -42,6 +43,8 @@ DISTFILE[14]=		libc6-dev_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[15]=		FreeBSD-11.1-RELEASE-amd64-disc1.iso:freebsd
 DISTFILE[16]=		solaris_root_10_u8.v09.tar.xz:dragonlace
 DISTFILE[17]=		locales_2.23-0ubuntu10_all.deb:ubuntu1
+DISTFILE[18]=		libattr1-dev_2.4.47-2_amd64.deb:ubuntu9
+DISTFILE[19]=		libattr1_2.4.47-2_amd64.deb:ubuntu9
 SPKGS[sunos]=		single
 SPKGS[linux]=		single
 SPKGS[freebsd64]=	single
@@ -88,8 +91,8 @@ B_DEPS[linux]=		shadow:single:standard fetch:single:standard
 			bash:primary:static
 B_DEPS[dragonfly]=	libdl:single:standard fetch:single:standard
 
-EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 14 15
-EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 14
+EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 14 15
+EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 18 19 14
 
 INVALID_RPATH=		yes
 
@@ -143,12 +146,14 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 					12
 					13
 					17
+					18
+					19
 					14
 [LINUX].ONLY_FOR_OPSYS_ON=		linux
 
 post-extract-LINUX-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
-.for NDX in 4 5 6 7 8 9 10 11 12 13 17
+.for NDX in 4 5 6 7 8 9 10 11 12 13 17 18 19
 	cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
 .endfor
@@ -268,7 +273,7 @@ This is the full environment for Solaris 10 minus the toolchain for
 Ravenports.
 
 
-[FILE:1865:distinfo]
+[FILE:2081:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 88f68615ad7f268377ba229a87649901d81c7c6df71fc238a8b5c89ac05f0d6c    257934249 dfly-x86_64-5.0.0_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
@@ -286,6 +291,8 @@ d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 li
 ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 FreeBSD-11.1-RELEASE-amd64-disc1.iso
 e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 solaris_root_10_u8.v09.tar.xz
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 locales_2.23-0ubuntu10_all.deb
+ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 libattr1-dev_2.4.47-2_amd64.deb
+6b34040173acef1b806b128bc258b130519b2a7eb167ff1c3f3cb98fa1ddc648         9756 libattr1_2.4.47-2_amd64.deb
 
 
 [FILE:13928:manifests/plist.single.dragonfly]
@@ -2726,7 +2733,7 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
 @dir %%BASE%%/usr/local
 
 
-[FILE:21648:manifests/plist.single.linux]
+[FILE:21770:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -2760,6 +2767,9 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  ld-linux-x86-64.so.2
  libanl-2.23.so
  libanl.so.1
+ libattr.so
+ libattr.so.1
+ libattr.so.1.1.0
  libc-2.23.so
  libc.so.6
  libcrypt-2.23.so
@@ -2950,6 +2960,11 @@ e57f775b226bcd36676c749b36d1e6fd0524c4552555984ef4d308d773a777ea     11019820 so
  types.h
  ucontext.h
  unistd.h
+%%BASE%%/usr/include/attr/
+ attributes.h
+ error_context.h
+ libattr.h
+ xattr.h
 %%BASE%%/usr/include/
  assert.h
  byteswap.h
@@ -7120,7 +7135,7 @@ share/raven/sysroot/SunOS/usr/xpg4/bin/sh
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20830:files/Makefile]
+[FILE:21136:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7358,7 +7373,7 @@ Linux_shared_libs=	${Linux_C_lib} \
 			libnss_nis-2.23.so/libnss_nis.so.2 \
 			libnss_nisplus-2.23.so/libnss_nisplus.so.2 \
 			# end
-Linux_extra_libs1=	# libaudit.so.1.0.0/libaudit.so.1 \
+Linux_extra_libs1=	libattr.so.1.1.0/libattr.so.1 \
 			# end (/lib)
 Linux_extra_libs2=	# libustr-1.0.so.1.0.4/libustr-1.0.so.1 \
 			# end (/usr/lib)
@@ -7524,6 +7539,7 @@ headers_FreeBSD=	${headers_DragonFly:Nnet/*:Nutil.h} \
 			# end
 
 headers_Linux_dirs=	arpa \
+			attr \
 			asm-generic \
 			drm \
 			linux \
@@ -7783,9 +7799,14 @@ install:
 	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
 	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:T:R} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
 .  endfor
-.  for item in ${Linux_extra_libs1} ${Linux_RTLD}
+.  for item in ${Linux_RTLD}
 	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
 	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_extra_libs1}
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T:R} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
 .  endfor
 .  for item in ${Linux_extra_libs2}
 	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/

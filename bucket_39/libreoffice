@@ -77,6 +77,7 @@ RUN_DEPENDS=		fonts-crosextra-caladea:single:standard
 			fonts-gentium-basic:single:standard
 			fonts-liberation2:single:standard
 			fonts-linuxlibertine:single:standard
+BR_DEPS[linux]=		gpgme:cpp:standard
 
 USES=			autoreconf:build perl:build gmake jpeg pkgconfig
 			python mesa gnome-icons zlib shebangfix
@@ -152,6 +153,10 @@ post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|' \
 		${WRKSRC}/shell/source/unix/exec/shellexec.cxx
 
+post-install-linux:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/libreoffice/share/uno_packages
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/libreoffice/sdk/share
+
 post-patch-dragonfly:
 	# Avoid stripping in /tmp, it takes too much space
 	# Also, ooinstall is fed wrong TMPDIR which is redefined a few times
@@ -176,6 +181,8 @@ post-install:
 
 pre-configure:
 	${TOUCH} ${WRKSRC}/autogen.lastrun
+	${REINPLACE_CMD} -e 's|/usr/include/gpgme++|${PREFIX}/include/gpgme++|' \
+		${WRKSRC}/configure
 
 post-configure:
 	${TOUCH} ${WRKSRC}/src.downloaded
@@ -199,7 +206,8 @@ most powerful Free and Open Source office suite on the market:
 4466ffc014f5dd3bc7b2676c18e25687c95b00f0379b61c8db988091a4a5d647      2972872 libreoffice-help-6.0.1.1.tar.xz
 
 
-[FILE:212126:manifests/plist.primary]
+[FILE:212189:manifests/plist.primary]
+%%ONLY-LINUX%%share/bash-completion/completions/libreoffice.sh
 bin/
  libreoffice
  lobase
