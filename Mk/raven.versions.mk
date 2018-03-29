@@ -38,7 +38,7 @@ RUBY_DEFAULT?=		2.4
 
 RUBY_2.3_VERSION=	2.3.6
 RUBY_2.4_VERSION=	2.4.3
-RUBY_2.5_VERSION=	2.5.0
+RUBY_2.5_VERSION=	2.5.1
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -49,7 +49,7 @@ PYTHON3_DEFAULT?=	3.6
 
 PYTHON_2.7_VERSION=	2.7.14
 PYTHON_3.5_VERSION=	3.5.5
-PYTHON_3.6_VERSION=	3.6.4
+PYTHON_3.6_VERSION=	3.6.5
 
 #-------------------------------------------------------------------------
 # SSL
@@ -128,8 +128,8 @@ FIREBIRD_3.0_VERSION=	3.0.3
 
 PHP_DEFAULT?=		5.6
 
-PHP_5.6_VERSION=	5.6.34
-PHP_7.1_VERSION=	7.1.15
-PHP_7.2_VERSION=	7.2.3
+PHP_5.6_VERSION=	5.6.35
+PHP_7.1_VERSION=	7.1.16
+PHP_7.2_VERSION=	7.2.4
 
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)
