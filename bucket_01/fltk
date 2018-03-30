@@ -21,8 +21,6 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libGLU:single:standard
-			desktop-file-utils:single:standard
-			shared-mime-info:single:standard
 
 USES=			gmake jpeg libtool pkgconfig png zlib
 XORG_COMPONENTS=	x11 xcursor xext xfixes xft xinerama
@@ -31,12 +29,14 @@ FPC_EQUIVALENT=		x11-toolkits/fltk
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-shared
-			--docdir=/raven/share/examples/fltk
+			--docdir={{STD_EXAMPLESDIR}}
 
-post-stage:
-	${MKDIR} /construction/fltk/stage/raven/share/examples/fltk
-	${MV} /construction/fltk/stage/raven/share/doc/fltk/examples/* /construction/fltk/stage/raven/share/examples/fltk
-	${RM} -r  /construction/fltk/stage/raven/share/doc
+post-install:
+	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
+	${MV} ${STAGEDIR}${STD_DOCDIR}/examples/* ${STAGEDIR}${STD_EXAMPLESDIR}
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fluid
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
 
 [FILE:536:descriptions/desc.primary]
 FLTK (short for "Fast Light ToolKit") is a cross-platform graphical user 
