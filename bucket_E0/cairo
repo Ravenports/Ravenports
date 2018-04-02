@@ -50,23 +50,23 @@ PLIST_SUB=		LIBVER=2.11400.12
 VAR_OPSYS[sunos]=	CFLAGS=-D_XOPEN_SOURCE=600
 
 post-patch:
-	@${REINPLACE_CMD} \
+	${REINPLACE_CMD} \
 		-e '/strings/s/ - / -a /' \
 		-e '/test/s/==/=/g' \
 		-e '/LIBS/s|-ldld||' ${WRKSRC}/configure
-	@${REINPLACE_CMD} -e 's|-lcairo|-lcairo -lpthread|' \
+	${REINPLACE_CMD} -e 's|-lcairo|-lcairo -lpthread|' \
 		${WRKSRC}/src/*.pc.in
-	@${REINPLACE_CMD} -e '/@CAIRO_HAS_PNG_FUNCTIONS_TRUE@.*=/d' \
+	${REINPLACE_CMD} -e '/@CAIRO_HAS_PNG_FUNCTIONS_TRUE@.*=/d' \
 		${WRKSRC}/Makefile.in
 	# disable html docs (gnome referencehack)
 	${FIND} ${WRKSRC} -name "Makefile.in" -type f | ${XARGS} ${REINPLACE_CMD} -e \
 		"s|test \"\$$\$$installfiles\" = '\$$(srcdir)/html/\*'|:|"
 
 post-patch-dragonfly:
-	@${REINPLACE_CMD} -e '/LIBS/s/-lrt//' ${WRKSRC}/configure
+	${REINPLACE_CMD} -e '/LIBS/s/-lrt//' ${WRKSRC}/configure
 
 post-patch-freebsd:
-	@${REINPLACE_CMD} -e '/LIBS/s/-lrt//' ${WRKSRC}/configure
+	${REINPLACE_CMD} -e '/LIBS/s/-lrt//' ${WRKSRC}/configure
 
 [FILE:637:descriptions/desc.single]
 Cairo is a vector graphics library with cross-device output

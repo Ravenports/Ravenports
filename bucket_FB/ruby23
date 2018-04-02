@@ -71,7 +71,7 @@ LDFLAGS=		-L{{LOCALBASE}}/lib
 			-lpthread
 
 post-patch:
-	@${REINPLACE_CMD} -E \
+	${REINPLACE_CMD} -E \
 		-e 's,-l$$pthread_lib,-lpthread,g' \
 		-e '/^RUBY_LIB_PATH/s,\.\$$\{TEENY\},,' \
 		-e '/^RUBY_SITE_LIB_PATH2/s,\.\$$\{TEENY\},,' \
@@ -80,11 +80,11 @@ post-patch:
 	${FIND} ${WRKSRC}/ -name "*.orig" -delete
 	# We install these from other ports
 .for d in bin/rake doc/rake lib/rake test/rake man/rake.1 lib/rake.rb ext/win32ole bin/gem
-	@${RM} -r ${BUILD_WRKSRC}/${d}
+	${RM} -r ${BUILD_WRKSRC}/${d}
 .endfor
 	# Prepare modules we are wanting to build via external ports
 .for d in gdbm tk
-	@${MV} ${BUILD_WRKSRC}/ext/${d} ${WRKDIR}/
+	${MV} ${BUILD_WRKSRC}/ext/${d} ${WRKDIR}/
 .endfor
 
 pre-install:

@@ -64,28 +64,28 @@ SUB_LIST=		ADA_PATH={{PREFIX}}/toolchain/gcc7/bin
 [DEBUG].CONFIGURE_ARGS_ON=		Build=Debug
 
 post-patch:
-	@${RM} ${WRKSRC}/share/plug-ins/*.orig
-	@${ECHO} "GNAT_SOURCES=" > ${WRKSRC}/Makefile.gnat
-	@${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
+	${RM} ${WRKSRC}/share/plug-ins/*.orig
+	${ECHO} "GNAT_SOURCES=" > ${WRKSRC}/Makefile.gnat
+	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
 		${WRKSRC}/gps/gps.gpr \
 		${WRKSRC}/gnatdoc/gnatdoc.gpr \
 		${WRKSRC}/widgets/widgets.gpr
-	@${REINPLACE_CMD} -e '/Gdb_Command/ s|"gdb"|"${PREFIX}/bin/gdb"|' \
+	${REINPLACE_CMD} -e '/Gdb_Command/ s|"gdb"|"${PREFIX}/bin/gdb"|' \
 		${WRKSRC}/gvd/src/debugger-base_gdb-gdb_mi.adb \
 		${WRKSRC}/gvd/src/debugger-base_gdb-gdb_cli.adb
-	@${REINPLACE_CMD} -i'' -e 's|ISO-8859|ISO8859|' \
+	${REINPLACE_CMD} -i'' -e 's|ISO-8859|ISO8859|' \
 		${WRKSRC}/kernel/src/gps-kernel-charsets.adb \
 		${WRKSRC}/share/support/core/os_utils.py \
 		${WRKSRC}/configure*
-	@${REINPLACE_CMD} -e 's|iso-8859|ISO8859|' \
+	${REINPLACE_CMD} -e 's|iso-8859|ISO8859|' \
 		${WRKSRC}/cli/src/gps-cli_scripts.adb \
 		${WRKSRC}/cli/src/gnatdoc_main.adb
-	@${REINPLACE_CMD} \
+	${REINPLACE_CMD} \
 		-e 's|-lclang|-Wl,-rpath,${LOCALBASE}/llvm40/lib -lclang|' \
 		${WRKSRC}/configure
 
 do-build:
-	@${CP} ${PREFIX}/include/gnat-util/impunit.* ${WRKSRC}/distrib
+	${CP} ${PREFIX}/include/gnat-util/impunit.* ${WRKSRC}/distrib
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_ARGS} ${ALL_TARGET}
 	cd ${WRKSRC}/docs && ${SETENV} ${MAKE_ENV} \
@@ -103,8 +103,8 @@ post-install:
 	${FIND} ${STAGEDIR}${PREFIX} -type d -empty -delete
 
 post-extract:
-	@${MV} ${WRKSRC}/Makefile.gnat ${WRKSRC}/Makefile.gnat.ignore
-	@${FIND} ${WRKSRC}/share -name "*.pyc" -delete
+	${MV} ${WRKSRC}/Makefile.gnat ${WRKSRC}/Makefile.gnat.ignore
+	${FIND} ${WRKSRC}/share -name "*.pyc" -delete
 	${RM} ${WRKSRC}/share/support/core/cross_references.py
 
 [FILE:1056:descriptions/desc.primary]

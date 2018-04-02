@@ -50,13 +50,13 @@ SUB_LIST=		USER="{{USERS}}"
 			GROUP="{{GROUPS}}"
 
 post-patch:
-	@${REINPLACE_CMD} -E -e "s@(-z) (relro|now)@-Wl,\1,\2@g" \
+	${REINPLACE_CMD} -E -e "s@(-z) (relro|now)@-Wl,\1,\2@g" \
 		${WRKSRC}/configure
-	@${REINPLACE_CMD} -e 's|lib/tor|db/tor|' \
+	${REINPLACE_CMD} -e 's|lib/tor|db/tor|' \
 		${WRKSRC}/src/config/torrc.*.in \
 		${WRKSRC}/doc/tor.1.* \
 		${WRKSRC}/doc/tor.html.in
-	@${REINPLACE_CMD} -e "s@-ltcmalloc@${LOCALBASE}/lib/libtcmalloc.so@" \
+	${REINPLACE_CMD} -e "s@-ltcmalloc@${LOCALBASE}/lib/libtcmalloc.so@" \
 		${WRKSRC}/configure
 
 post-install:

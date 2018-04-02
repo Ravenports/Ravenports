@@ -151,7 +151,7 @@ VAR_OPSYS[sunos]=	CFLAGS=-DO_CLOEXEC=0
 
 post-patch:
 	# build libglx.so but don't install it yet. (done in pre-install)
-	@${REINPLACE_CMD} -e 's|@GLX_TRUE@GLXMODS =|@GLX_BOGUS@GLXMODS =|g' \
+	${REINPLACE_CMD} -e 's|@GLX_TRUE@GLXMODS =|@GLX_BOGUS@GLXMODS =|g' \
 		-e 's|^LTLIBRARIES = |LTLIBRARIES = libglx.la |g' \
 		${WRKSRC}/hw/xfree86/dixmods/Makefile.in
 
@@ -168,10 +168,10 @@ post-install-XORG-OFF:
 	${RM} ${STAGEDIR}${PREFIX}/share/man/man1/Xserver.1
 
 post-configure-DEVD-ON:
-	@${REINPLACE_CMD} -e 's|config\.c|config.c devd.c|g' \
+	${REINPLACE_CMD} -e 's|config\.c|config.c devd.c|g' \
 		-e 's|config\.lo|config.lo devd.lo|g' \
 		${WRKSRC}/config/Makefile
-	@${REINPLACE_CMD} -e 's|^/\* #undef CONFIG_UDEV \*/|#define CONFIG_DEVD 1|' \
+	${REINPLACE_CMD} -e 's|^/\* #undef CONFIG_UDEV \*/|#define CONFIG_DEVD 1|' \
 		${WRKSRC}/include/dix-config.h
 
 do-install-VIRTUAL-ON:

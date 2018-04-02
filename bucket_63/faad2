@@ -27,13 +27,13 @@ CFLAGS=			-D__GNU_LIBRARY__=1
 LDFLAGS=		-lpthread
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|faad.man|faad.1|g' \
+	${REINPLACE_CMD} -e 's|faad.man|faad.1|g' \
 		${WRKSRC}/frontend/Makefile.am
-	@${REINPLACE_CMD} -e 's|^AM_CFLAGS|AM_CPPFLAGS|g ; \
+	${REINPLACE_CMD} -e 's|^AM_CFLAGS|AM_CPPFLAGS|g ; \
 		 s|-iquote |-I|g' ${WRKSRC}/libfaad/Makefile.am
-	@${REINPLACE_CMD} -e 's|= -DUSE_|= -fPIC -DPIC -DUSE_|g' \
+	${REINPLACE_CMD} -e 's|= -DUSE_|= -fPIC -DPIC -DUSE_|g' \
 		${WRKSRC}/common/mp4ff/Makefile.am
-	@${ECHO_CMD} "SUBDIRS = libfaad common frontend" > \
+	${ECHO_CMD} "SUBDIRS = libfaad common frontend" > \
 		${WRKSRC}/Makefile.am
 
 post-install:
@@ -41,10 +41,10 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfaad_drm.so
 
 post-configure:
-	@${REINPLACE_CMD} "s/444/644/g" ${WRKSRC}/common/mp4ff/Makefile
+	${REINPLACE_CMD} "s/444/644/g" ${WRKSRC}/common/mp4ff/Makefile
 
 post-extract:
-	@${LN} -sf faad.man ${WRKSRC}/frontend/faad.1
+	${LN} -sf faad.man ${WRKSRC}/frontend/faad.1
 
 [FILE:266:descriptions/desc.single]
 FAAD2 (Freeware Advanced Audio Decoder) is a MPEG-2, MPEG-4 AAC decoder.

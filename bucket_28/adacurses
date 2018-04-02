@@ -42,16 +42,16 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		atic=adacurses/terminal_interface-curses
 
 post-patch:
-	@${REINPLACE_CMD} -e '/(INSTALL_PROG)/d' \
+	${REINPLACE_CMD} -e '/(INSTALL_PROG)/d' \
 		-e 's|@ADAGEN_LDFLAGS@||' ${WRKSRC}/gen/Makefile.in
-	@${REINPLACE_CMD} -e '/pragma Linker_Options/d' \
+	${REINPLACE_CMD} -e '/pragma Linker_Options/d' \
 		${WRKSRC}/gen/terminal_interface-curses.ads.m4 \
 		${WRKSRC}/gen/terminal_interface-curses-menus.ads.m4 \
 		${WRKSRC}/gen/terminal_interface-curses-forms.ads.m4 \
 		${WRKSRC}/gen/terminal_interface-curses-panels.ads.m4
-	@${REINPLACE_CMD} -e 's|@LIBS@|@LIBS@ -lmenu -lform -lpanel|' \
+	${REINPLACE_CMD} -e 's|@LIBS@|@LIBS@ -lmenu -lform -lpanel|' \
 		${WRKSRC}/samples/Makefile.in
-	@${REINPLACE_CMD} -e "s|@PREFIX@|${NCURSESBASE}|g" \
+	${REINPLACE_CMD} -e "s|@PREFIX@|${NCURSESBASE}|g" \
 		${WRKSRC}/src/library.gpr
 
 post-install:

@@ -78,11 +78,11 @@ VAR_OPSYS[freebsd]=	MAKE_ARGS=pch=off
 [PY27].USES_ON=				python:py27,build
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|$$(RPATH)|${LOCALBASE}/lib|' \
+	${REINPLACE_CMD} -e 's|$$(RPATH)|${LOCALBASE}/lib|' \
 		${WRKSRC}/tools/build/src/tools/gcc.jam
 
 pre-build:
-	@${ECHO_CMD} "using python : " ${PYTHON_VER} " : " ${PYTHON_CMD} " : " ${PYTHON_INCLUDEDIR} ";" \
+	${ECHO_CMD} "using python : " ${PYTHON_VER} " : " ${PYTHON_CMD} " : " ${PYTHON_INCLUDEDIR} ";" \
 		>> ${WRKSRC}/tools/build/src/site-config.jam
 
 do-build:
@@ -94,9 +94,9 @@ do-install:
 		bjam ${MAKE_ARGS:NDESTDIR=*:S,^--prefix=,&${STAGEDIR},} \
 		${INSTALL_TARGET})
 	# For some reasons BJAM forget about the links
-	@cd ${WRKSRC}/stage/ && ${FIND} lib -type l | \
+	cd ${WRKSRC}/stage/ && ${FIND} lib -type l | \
 		${PAX} -rw -p p ${STAGEDIR}${PREFIX}
-	@${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
 
 [FILE:754:descriptions/desc.rest]
 Boost provides free peer-reviewed portable C++ source libraries.

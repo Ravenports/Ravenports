@@ -60,12 +60,12 @@ VAR_OPSYS[sunos]=	MAKE_ENV=NS_USE_GCC=1
 [ETCSYMLINK].DESCRIPTION=		Add symlink to /etc/ssl/cert.pem
 
 post-patch:
-	@${REINPLACE_CMD} '/NSS_DEFAULT_SYSTEM/s,/etc,${PREFIX}&,' \
+	${REINPLACE_CMD} '/NSS_DEFAULT_SYSTEM/s,/etc,${PREFIX}&,' \
 		${WRKSRC}/lib/sysinit/nsssysinit.c
-	@cd ${WRKSRC} && \
+	(cd ${WRKSRC} && \
 		${FIND} . -name "*.c" -o -name "*.h" | \
 		${XARGS} ${GREP} -l -F '"nspr.h"' | \
-		${XARGS} ${REINPLACE_CMD} -e 's|"nspr.h"|<nspr.h>|'
+		${XARGS} ${REINPLACE_CMD} -e 's|"nspr.h"|<nspr.h>|')
 	${FIND} ${WRKSRC}/tests -name '*.sh' | \
 		${XARGS} ${GREP} -l -F '/bin/bash' | \
 		${XARGS} ${REINPLACE_CMD} -e 's|#! */bin/bash|#!${SH}|'

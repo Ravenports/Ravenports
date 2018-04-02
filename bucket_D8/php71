@@ -81,20 +81,20 @@ post-install-CLI-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/php71
 
 post-patch:
-	@${TOUCH} ${WRKSRC}/ext/php_config.h
-	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
-	@${REINPLACE_CMD} -e "/phpincludedir =/ s|/php|/php71|" \
+	${TOUCH} ${WRKSRC}/ext/php_config.h
+	${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
+	${REINPLACE_CMD} -e "/phpincludedir =/ s|/php|/php71|" \
 		${WRKSRC}/scripts/Makefile.frag
-	@${REINPLACE_CMD} -e "/includedir=/ s|php|php71|" \
+	${REINPLACE_CMD} -e "/includedir=/ s|php|php71|" \
 		${WRKSRC}/scripts/phpize.in
-	@${REINPLACE_CMD} -e "/include_dir=/ s|php|php71|" \
+	${REINPLACE_CMD} -e "/include_dir=/ s|php|php71|" \
 		${WRKSRC}/scripts/php-config.in
 
 post-install-DEBUGGER-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/phpdbg71
 
 post-patch-FPM-ON:
-	@${REINPLACE_CMD} -e "s|^;\(pid\)|\1|;s|^;\(pm\.[a-z_]*_servers\)|\1|" \
+	${REINPLACE_CMD} -e "s|^;\(pid\)|\1|;s|^;\(pm\.[a-z_]*_servers\)|\1|" \
 		${WRKSRC}/sapi/fpm/php-fpm.conf.in
 
 post-install:
@@ -105,11 +105,11 @@ post-install:
 		${WRKDIR}/php.conf ${STAGEDIR}${PREFIX}/etc/php71
 
 post-build:
-	@${ECHO_CMD} "PHP_VER=71" > ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_VERSION=7.1.16" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_EXT_INC=pcre spl" >> ${WRKDIR}/php.conf
-	@${SH} ${WRKSRC}/scripts/php-config --extension-dir | \
+	${ECHO_CMD} "PHP_VER=71" > ${WRKDIR}/php.conf
+	${ECHO_CMD} "PHP_VERSION=7.1.16" >> ${WRKDIR}/php.conf
+	${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
+	${ECHO_CMD} "PHP_EXT_INC=pcre spl" >> ${WRKDIR}/php.conf
+	${SH} ${WRKSRC}/scripts/php-config --extension-dir | \
 		${SED} -ne 's,^${PREFIX}/lib/php71/,PHP_EXT_DIR=,p'\
 		>> ${WRKDIR}/php.conf
 

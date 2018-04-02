@@ -52,26 +52,26 @@ MAKE_ENV=		CC.host={{CC}}
 			LINK.target={{CXX}}
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|' \
+	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|' \
 		${WRKSRC}/deps/v8/src/v8.gyp
-	@${GREP} -rl "/usr/local" ${WRKSRC} | \
+	${GREP} -rl "/usr/local" ${WRKSRC} | \
 		${XARGS} ${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g'
-	@${FIND} ${WRKSRC} -name "*.bak" -delete
+	${FIND} ${WRKSRC} -name "*.bak" -delete
 	# So many different ways to run python. Fix them all.
-	@${REINPLACE_CMD} -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
+	${REINPLACE_CMD} -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
 		${WRKSRC}/configure
-	@${FIND} ${WRKSRC} -type f -name '*.gyp*' -print0 | \
+	${FIND} ${WRKSRC} -type f -name '*.gyp*' -print0 | \
 		${XARGS} -0 ${REINPLACE_CMD} \
 			-e "s|'python'|'${PYTHON_CMD}'|" \
 			-e 's|<!(python |<!(${PYTHON_CMD} |' \
 			-e 's|\&\& python |\&\& ${PYTHON_CMD} |'
-	@${FIND} ${WRKSRC} -name "*.bak" -delete
+	${FIND} ${WRKSRC} -name "*.bak" -delete
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/node
 
 post-patch-freebsd:
-	@${REINPLACE_CMD} -e '/define HAVE_CRYPTODEV/d' \
+	${REINPLACE_CMD} -e '/define HAVE_CRYPTODEV/d' \
 		${WRKSRC}/deps/openssl/openssl/crypto/engine/eng_cryptodev.c
 
 [FILE:263:descriptions/desc.primary]

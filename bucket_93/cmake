@@ -53,19 +53,19 @@ post-patch:
 	${REINPLACE_CMD} -e "s@<form.h>@<ncurses/form.h>@g" \
 		${WRKSRC}/Source/CursesDialog/ccmake.cxx \
 		${WRKSRC}/Source/CursesDialog/cmCursesStandardIncludes.h
-	@(${FIND} ${WRKSRC}/Modules -name "*.cmake" -print0; \
+	(${FIND} ${WRKSRC}/Modules -name "*.cmake" -print0; \
 		${FIND} ${WRKSRC}/Tests -name "CMakeLists.txt" -print0 ) | \
 		${XARGS} -0 -n 100 ${REINPLACE_CMD} -e 's,/usr/local,${LOCALBASE},g; \
 			s,/usr/X11R6,${LOCALBASE},g'
-	@${REINPLACE_CMD} -e 's,/usr/local,${LOCALBASE},g' \
+	${REINPLACE_CMD} -e 's,/usr/local,${LOCALBASE},g' \
 		${WRKSRC}/Source/cmLocalGenerator.cxx \
 		${WRKSRC}/Source/CPack/cmCPackGenerator.cxx \
 		${WRKSRC}/bootstrap
-	@${REINPLACE_CMD} -e 's,/opt/kde4,${PREFIX},g' \
+	${REINPLACE_CMD} -e 's,/opt/kde4,${PREFIX},g' \
 		${WRKSRC}/Modules/FindKDE4.cmake
-	@${REINPLACE_CMD} -e 's,/usr/include,${LOCALBASE}/include,' \
+	${REINPLACE_CMD} -e 's,/usr/include,${LOCALBASE}/include,' \
 		${WRKSRC}/Modules/FindDCMTK.cmake
-	@${FIND} ${WRKSRC} -name "*.bak" -delete -o -name "*.orig" -delete
+	${FIND} ${WRKSRC} -name "*.bak" -delete -o -name "*.orig" -delete
 	# cmake-gui(1) will be installed by a separate port.  Remove the man page's
 	# source to prevent it from being built/installed by devel/cmake.
 	${RM} ${WRKSRC}/Help/manual/cmake-gui.1.rst

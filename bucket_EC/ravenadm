@@ -31,7 +31,7 @@ LICENSE_FILE=		ISCL:{{WRKSRC}}/License.txt
 
 post-patch-WATCHDOG-OFF:
 	@${ECHO_MSG} "Disabling watchdog monitor ..."
-	@${REINPLACE_CMD} -e "/hangmonitor :/ s|True|False|" \
+	${REINPLACE_CMD} -e "/hangmonitor :/ s|True|False|" \
 		${WRKSRC}/src/portscan-buildcycle.adb
 
 do-build:
@@ -41,11 +41,11 @@ do-build:
 		${CC} ravenexec.c -o ../build/ravenexec)
 
 post-extract:
-	@${REINPLACE_CMD} -e "s|/raven|${LOCALBASE}|" \
+	${REINPLACE_CMD} -e "s|/raven|${LOCALBASE}|" \
 		-e "s|:= dragonfly|:= ${OPSYS:tl}|" \
 		${WRKSRC}/src/definitions.ads
 	# ensure Tampering_Check is active
-	@${REINPLACE_CMD} -e '/pragma Suppress/ s|--  ||' \
+	${REINPLACE_CMD} -e '/pragma Suppress/ s|--  ||' \
 		${WRKSRC}/src/portscan.ads \
 		${WRKSRC}/src/port_specification.ads
 

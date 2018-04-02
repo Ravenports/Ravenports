@@ -43,13 +43,13 @@ LDFLAGS=		-lgcrypt
 			-lpthread
 
 post-patch:
-	@${FIND} ${WRKSRC} -name "Makefile.am" | ${XARGS} ${REINPLACE_CMD} -e \
+	${FIND} ${WRKSRC} -name "Makefile.am" | ${XARGS} ${REINPLACE_CMD} -e \
 		's|<malloc.h>|<stdlib.h>| ; \
 		 s|/freetds.conf|/freetds.conf.sample|g ; \
 		 s|/locales.conf|/locales.conf.sample|g ; \
 		 s|/pool.conf|/pool.conf.sample|g ; \
 		 s| common.h||g'
-	@${REINPLACE_CMD} -e 's|\(\$with_iodbc/include\)|\1/libiodbc|g' \
+	${REINPLACE_CMD} -e 's|\(\$with_iodbc/include\)|\1/libiodbc|g' \
 		${WRKSRC}/configure.ac
 
 post-install:
@@ -57,9 +57,9 @@ post-install:
 		${STAGEDIR}${PREFIX}/etc/freetds/interfaces.sample
 
 post-extract:
-	@cd ${WRKSRC} && ${LN} -s freetds.conf freetds.conf.sample
-	@cd ${WRKSRC} && ${LN} -s locales.conf locales.conf.sample
-	@cd ${WRKSRC}/src/pool && ${LN} -s pool.conf pool.conf.sample
+	(cd ${WRKSRC} && ${LN} -s freetds.conf freetds.conf.sample)
+	(cd ${WRKSRC} && ${LN} -s locales.conf locales.conf.sample)
+	(cd ${WRKSRC}/src/pool && ${LN} -s pool.conf pool.conf.sample)
 
 [FILE:487:descriptions/desc.primary]
 FreeTDS is a set of libraries for Unix and Linux that allows your

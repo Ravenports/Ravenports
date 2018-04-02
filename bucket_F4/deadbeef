@@ -55,18 +55,18 @@ CPPFLAGS=		-I../dumb/dumb-kode54/include
 
 post-patch:
 	# Do not link to libsupc++ which may be PIC-unsafe (breaks 64-bit arches)
-	@${REINPLACE_CMD} -e 's, -lsupc++,,' \
+	${REINPLACE_CMD} -e 's, -lsupc++,,' \
 		${WRKSRC}/plugins/adplug/Makefile.in \
 		${WRKSRC}/plugins/gme/Makefile.in \
 		${WRKSRC}/plugins/sid/Makefile.in \
 		${WRKSRC}/plugins/supereq/Makefile.in
-	@${REINPLACE_CMD} -e 's,/etc/timidity++/timidity-freepats.cfg:/etc/timidity/freepats.cfg:/etc/timidity/,${LOCALBASE}/share/,' \
+	${REINPLACE_CMD} -e 's,/etc/timidity++/timidity-freepats.cfg:/etc/timidity/freepats.cfg:/etc/timidity/,${LOCALBASE}/share/,' \
 		${WRKSRC}/plugins/wildmidi/wildmidiplug.c
-	@${REINPLACE_CMD} \
+	${REINPLACE_CMD} \
 		-e '/HAVE_OGG" = "yes"/ {n; n; /HAVE_VORBISPLUGIN=yes/d;}' \
 		${WRKSRC}/configure
 	# Fix build with libzip-1.0
-	@${REINPLACE_CMD} 's,zip_file_t,zip_file_DB,g' \
+	${REINPLACE_CMD} 's,zip_file_t,zip_file_DB,g' \
 		${WRKSRC}/plugins/vfs_zip/vfs_zip.c
 
 [FILE:1728:descriptions/desc.single]

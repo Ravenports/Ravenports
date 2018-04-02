@@ -83,20 +83,20 @@ post-install-CLI-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/php56
 
 post-patch:
-	@${TOUCH} ${WRKSRC}/ext/php_config.h
-	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
-	@${REINPLACE_CMD} -e "/phpincludedir =/ s|/php|/php56|" \
+	${TOUCH} ${WRKSRC}/ext/php_config.h
+	${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
+	${REINPLACE_CMD} -e "/phpincludedir =/ s|/php|/php56|" \
 		${WRKSRC}/scripts/Makefile.frag
-	@${REINPLACE_CMD} -e "/includedir=/ s|php|php56|" \
+	${REINPLACE_CMD} -e "/includedir=/ s|php|php56|" \
 		${WRKSRC}/scripts/phpize.in
-	@${REINPLACE_CMD} -e "/include_dir=/ s|php|php56|" \
+	${REINPLACE_CMD} -e "/include_dir=/ s|php|php56|" \
 		${WRKSRC}/scripts/php-config.in
 
 post-install-DEBUGGER-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/phpdbg56
 
 post-patch-FPM-ON:
-	@${REINPLACE_CMD} -e "s|^;\(pid\)|\1|;s|^;\(pm\.[a-z_]*_servers\)|\1|" \
+	${REINPLACE_CMD} -e "s|^;\(pid\)|\1|;s|^;\(pm\.[a-z_]*_servers\)|\1|" \
 		${WRKSRC}/sapi/fpm/php-fpm.conf.in
 
 post-install:
@@ -107,11 +107,11 @@ post-install:
 		${WRKDIR}/php.conf ${STAGEDIR}${PREFIX}/etc/php56
 
 post-build:
-	@${ECHO_CMD} "PHP_VER=56" > ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_VERSION=5.6.35" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_EXT_INC=pcre spl" >> ${WRKDIR}/php.conf
-	@${SH} ${WRKSRC}/scripts/php-config --extension-dir | \
+	${ECHO_CMD} "PHP_VER=56" > ${WRKDIR}/php.conf
+	${ECHO_CMD} "PHP_VERSION=5.6.35" >> ${WRKDIR}/php.conf
+	${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
+	${ECHO_CMD} "PHP_EXT_INC=pcre spl" >> ${WRKDIR}/php.conf
+	${SH} ${WRKSRC}/scripts/php-config --extension-dir | \
 		${SED} -ne 's,^${PREFIX}/lib/php56/,PHP_EXT_DIR=,p'\
 		>> ${WRKDIR}/php.conf
 

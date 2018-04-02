@@ -69,23 +69,23 @@ SOVERSION=		6.16.0
 
 post-patch:
 .if defined(SUBPIXEL_HINTING_MODE)
-	@${REINPLACE_CMD} -i'.hinting.bak1' \
+	${REINPLACE_CMD} -i'.hinting.bak1' \
 		-e 's|^\(#define TT_CONFIG_OPTION_SUBPIXEL_HINTING\).*|\1 \
 	${SELECTED_MODE:sh}|' \
 		${WRKSRC}/include/freetype/config/ftoption.h
 .else
-	@${REINPLACE_CMD} -i'.hinting.bak2' \
+	${REINPLACE_CMD} -i'.hinting.bak2' \
 		-e 's|^\(#define TT_CONFIG_OPTION_SUBPIXEL_HINTING.*\)|/* \1 */|' \
 		${WRKSRC}/include/freetype/config/ftoption.h
 .endif
 
 post-patch-TT_SZ_METRICS-ON:
-	@${REINPLACE_CMD} -i'.metrics.bak' \
+	${REINPLACE_CMD} -i'.metrics.bak' \
 		-e 's|.*\(#define AF_CONFIG_OPTION_TT_SIZE_METRICS\).*|\1|' \
 		${WRKSRC}/include/freetype/config/ftoption.h
 
 post-patch-TAB_VALIDATION-ON:
-	@${REINPLACE_CMD} -e '/valid$$/s|#.*\(AUX_MODULES\)|\1|' \
+	${REINPLACE_CMD} -e '/valid$$/s|#.*\(AUX_MODULES\)|\1|' \
 		${WRKSRC}/modules.cfg
 
 post-install:
@@ -94,7 +94,7 @@ post-install:
 		${COPYTREE_SHARE} "reference CHANGES formats.txt LICENSE.TXT raster.txt" ${STAGEDIR}${STD_DOCDIR})
 
 post-patch-DEBUG-ON:
-	@${REINPLACE_CMD} -i'.debug.bak' \
+	${REINPLACE_CMD} -i'.debug.bak' \
 		-e 's|.*\(#define FT_DEBUG_LEVEL_TRACE\).*|\1|' \
 		-e 's|.*\(#define FT_DEBUG_MEMORY\).*|\1|' \
 		${WRKSRC}/include/freetype/config/ftoption.h

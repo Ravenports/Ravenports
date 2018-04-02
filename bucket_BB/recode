@@ -31,21 +31,21 @@ CONFIGURE_ENV=		ac_cv_func_gettext=no
 LDFLAGS=		{{ICONV_LIB}}
 
 post-patch:
-	@${REINPLACE_CMD} -E \
+	${REINPLACE_CMD} -E \
 		'/Project-Id-Version/ { \
 			s/3\.[45](r|\.[0-9])?/3.6/; \
 			s/: (Free )?recode/: GNU recode/; }' \
 		${WRKSRC}/i18n/*.po
-	@${REINPLACE_CMD} 's,"iconv\.h","${ICONV_PREFIX}/include/iconv.h",' \
+	${REINPLACE_CMD} 's,"iconv\.h","${ICONV_PREFIX}/include/iconv.h",' \
 		${WRKSRC}/src/libiconv.c
-	@${CP} ${WRKSRC}/lib/error.c ${WRKSRC}/src
+	${CP} ${WRKSRC}/lib/error.c ${WRKSRC}/src
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/librecode.so
 
 post-extract:
-	@${CP} ${FILESDIR}/ru.po ${WRKSRC}/i18n
-	@${RM} ${WRKSRC}/doc/${PORTNAME}.info*
+	${CP} ${FILESDIR}/ru.po ${WRKSRC}/i18n
+	${RM} ${WRKSRC}/doc/${PORTNAME}.info*
 
 [FILE:431:descriptions/desc.single]
 The recode program has the purpose of converting files between various

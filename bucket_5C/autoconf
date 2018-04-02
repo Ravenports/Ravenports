@@ -37,18 +37,18 @@ CONFIGURE_ENV=		M4={{LOCALBASE}}/bin/gm4
 PLIST_SUB=		ACVER=2.69
 
 post-patch:
-	@(cd ${WRKSRC}/man && \
+	(cd ${WRKSRC}/man && \
 		for file in *.[1x]; do \
 			${REINPLACE_CMD} -E 's,([^-]auto)(conf|make|reconf|update|header|scan),\1\2-2.69,g ; \
 						s,(config\.guess|config\.sub|ifnames),\1-2.69,g' $$file ; \
 		done)
-	@(cd ${WRKSRC}/doc && ${RM} *.info)
-	@${FIND} ${WRKSRC} -name Makefile.in | ${XARGS} ${REINPLACE_CMD} -e \
+	(cd ${WRKSRC}/doc && ${RM} *.info)
+	${FIND} ${WRKSRC} -name Makefile.in | ${XARGS} ${REINPLACE_CMD} -e \
 		's|@PACKAGE@$$|@PACKAGE@-@VERSION@|'
 
 post-install:
 .for FILE in config.guess config.sub	elisp-comp install-sh mdate-sh missing
-	@${INSTALL_SCRIPT} ${WRKSRC}/build-aux/${FILE} ${STAGEDIR}${PREFIX}/share/autoconf-2.69
+	${INSTALL_SCRIPT} ${WRKSRC}/build-aux/${FILE} ${STAGEDIR}${PREFIX}/share/autoconf-2.69
 .endfor
 
 [FILE:412:descriptions/desc.single]

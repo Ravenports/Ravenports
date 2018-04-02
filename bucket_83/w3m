@@ -39,23 +39,23 @@ CONFIGURE_ENV=		DEFS="-I{{LOCALBASE}}/include"
 SINGLE_JOB=		yes
 
 post-patch:
-	@${REINPLACE_CMD} \
+	${REINPLACE_CMD} \
 		-e 's|\`\(expr\) \(.*\) : \(.*\)`|`\1 \\( \2 : \3 \\)`|' \
 		-e 's|/usr/local|${LOCALBASE}|g' \
 		-e 's|mytinfo|tinfo|g' \
 		${WRKSRC}/configure
-	@${REINPLACE_CMD} -e '/USE_EGD/ s/define/undef/' ${WRKSRC}/config.h.in
-	@${FIND} ${WRKSRC}/doc* -type f \! -name HISTORY \
+	${REINPLACE_CMD} -e '/USE_EGD/ s/define/undef/' ${WRKSRC}/config.h.in
+	${FIND} ${WRKSRC}/doc* -type f \! -name HISTORY \
 		-exec ${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g' {} +
-	@${CP} ${WRKSRC}/doc-jp/README.func ${WRKSRC}/README.func.bak
-	@${ICONV_CMD} -f EUC-JP -t UTF-8 ${WRKSRC}/README.func.bak \
+	${CP} ${WRKSRC}/doc-jp/README.func ${WRKSRC}/README.func.bak
+	${ICONV_CMD} -f EUC-JP -t UTF-8 ${WRKSRC}/README.func.bak \
 		> ${WRKSRC}/doc-jp/README.func
-	@${CP} ${WRKSRC}/scripts/w3mhelp-funcdesc.ja.pl.in \
+	${CP} ${WRKSRC}/scripts/w3mhelp-funcdesc.ja.pl.in \
 		${WRKSRC}/scripts/w3mhelp-funcdesc.ja.pl.in.bak
-	@${ICONV_CMD} -f EUC-JP -t UTF-8 \
+	${ICONV_CMD} -f EUC-JP -t UTF-8 \
 		${WRKSRC}/scripts/w3mhelp-funcdesc.ja.pl.in.bak \
 		> ${WRKSRC}/scripts/w3mhelp-funcdesc.ja.pl.in
-	@${REINPLACE_CMD} -e 's|EUC-JP|UTF-8|g' \
+	${REINPLACE_CMD} -e 's|EUC-JP|UTF-8|g' \
 		${WRKSRC}/scripts/w3mhelp-funcdesc.ja.pl.in
 
 post-install:

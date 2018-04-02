@@ -111,7 +111,7 @@ post-install-LITE-OFF:
 	# Symlink the completions from the contrib directory to where they
 	# will be useful
 	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/bash_completion.d
-	@${LN} -s ../../share/git-core/contrib/completion/git-completion.bash \
+	${LN} -s ../../share/git-core/contrib/completion/git-completion.bash \
 		${STAGEDIR}${PREFIX}/etc/bash_completion.d/git.sh
 	# subtree support
 	(cd ${WRKSRC}/contrib/subtree && ${SETENV} ${MAKE_ENV} \
@@ -157,10 +157,10 @@ post-install-LITE-OFF:
 post-patch-LITE-ON:
 .for FILE in git-citool.1 git-gui.1 gitk.1 git-cvsimport.1 \
 	git-cvsexportcommit.1 git-cvsserver.1
-	@${RM} ${WRKDIR}/man1/${FILE}
+	${RM} ${WRKDIR}/man1/${FILE}
 .endfor
-	@${RM} ${WRKDIR}/man7/gitcvs-migration.7
-	@${REINPLACE_CMD} -e '/git-cvsexportcommit.perl/d; \
+	${RM} ${WRKDIR}/man7/gitcvs-migration.7
+	${REINPLACE_CMD} -e '/git-cvsexportcommit.perl/d; \
 		/git-cvsimport.perl/d; \
 		/git-cvsserver.perl/d; \
 		/documented,gitcvs-migration/d; \
@@ -168,20 +168,20 @@ post-patch-LITE-ON:
 		/^SCRIPT_PYTHON += git-p4.py$$/d; \
 		s/git-cvsserver//' \
 		${WRKSRC}/Makefile
-	@${REINPLACE_CMD} -e "s,/usr/bin/perl,${PERL}," \
+	${REINPLACE_CMD} -e "s,/usr/bin/perl,${PERL}," \
 		${WRKSRC}/t/gitweb-lib.sh
-	@${REINPLACE_CMD} -e 's|/bin/bash|/bin/sh|' \
+	${REINPLACE_CMD} -e 's|/bin/bash|/bin/sh|' \
 		${WRKSRC}/contrib/subtree/git-subtree.sh
 
 post-build-LITE-OFF:
-	@${FIND} ${WRKSRC} -name "*.bak" -delete
+	${FIND} ${WRKSRC} -name "*.bak" -delete
 	${SETENV} ${MAKE_ENV} ${MAKE_CMD} -C ${WRKSRC}/contrib/diff-highlight
 	${RM} ${WRKSRC}/contrib/diff-highlight/shebang.perl
 
 post-install-LITE-ON:
 	# contrib support
 	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/bash_completion.d
-	@${INSTALL_SCRIPT} ${WRKSRC}/contrib/completion/git-completion.bash \
+	${INSTALL_SCRIPT} ${WRKSRC}/contrib/completion/git-completion.bash \
 		${STAGEDIR}${PREFIX}/etc/bash_completion.d/git.sh
 
 post-install:
@@ -196,12 +196,12 @@ post-install:
 	${RMDIR} ${STAGEDIR}${PREFIX}/share/git-core/templates/branches
 
 post-patch-LITE-OFF:
-	@${REINPLACE_CMD} -e "s,/usr/bin/perl,${PERL}," \
+	${REINPLACE_CMD} -e "s,/usr/bin/perl,${PERL}," \
 		${WRKSRC}/contrib/diff-highlight/Makefile
 
 post-patch-SVN-OFF:
-	@${RM} ${WRKDIR}/man1/git-svn.1
-	@${REINPLACE_CMD} -e '/git-svn.perl/d' ${WRKSRC}/Makefile
+	${RM} ${WRKDIR}/man1/git-svn.1
+	${REINPLACE_CMD} -e '/git-svn.perl/d' ${WRKSRC}/Makefile
 
 [FILE:398:descriptions/desc.primary.standard]
 Git is a free and open source distributed version control system designed
