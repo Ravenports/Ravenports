@@ -141,11 +141,11 @@ symlinks() {
 			/*)
 				# Only warn for symlinks within the package.
 				if [ -e "${STAGEDIR}${link}" ]; then
-					warn "Bad symlink '${l#${STAGEDIR}}' pointing to an absolute pathname '${link}'"
+					warn "Absolute symlink '${l#${STAGEDIR}}' pointing to an absolute pathname '${link}'"
 				fi
 				# Also warn if the symlink exists nowhere.
 				if [ ! -e "${STAGEDIR}${link}" -a ! -e "${link}" ]; then
-					warn "Symlink '${l#${STAGEDIR}}' pointing to '${link}' which does not exist in the stage directory or in localbase"
+					warn "Bad symlink '${l#${STAGEDIR}}' pointing to '${link}' which does not exist in the stage directory or in localbase"
 				fi
 				;;
 		esac

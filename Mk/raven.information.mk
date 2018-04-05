@@ -156,6 +156,7 @@ GLIBC_VERSION=			2.26
 GSTREAMER1_VERSION=		1.14.0
 GSTREAMER1_GST=			1.0
 GSTREAMER1_SOVERSION=		0.1400.0
+XORG_VERSION=			7.7
 
 # ------------------------------------------------------------------------
 # Gnatcross options

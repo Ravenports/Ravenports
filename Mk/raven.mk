@@ -23,6 +23,8 @@ DISTNAME?=		${NAMEBASE}-${VERSION}
 WRKDIR=			${WRKDIRPREFIX}/${NAMEBASE}
 STD_DOCDIR=		${PREFIX}/share/doc/${NAMEBASE}
 STD_EXAMPLESDIR=	${PREFIX}/share/examples/${NAMEBASE}
+STD_ETCDIR=		${PREFIX}/etc/${NAMEBASE}
+ETCDIR?=		${STD_ETCDIR}
 DESKTOPDIR?=		${PREFIX}/share/applications
 MK_SCRIPTS=		/xports/Mk/Scripts
 MK_TEMPLATES=		/xports/Mk/Templates
@@ -1159,7 +1161,9 @@ create-users-groups:
 
 .if !target(apply-slist)
 
-SUB_LIST+=		PREFIX=${PREFIX} LOCALBASE=${LOCALBASE}
+SUB_LIST+=		LOCALBASE=${LOCALBASE:Q} \
+			PREFIX=${PREFIX:Q} \
+			ETCDIR=${ETCDIR:Q}
 _SUB_LIST_TEMP=		${SUB_LIST:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/}
 
 .  for sp in ${SUBPACKAGES}

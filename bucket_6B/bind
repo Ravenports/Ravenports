@@ -2,6 +2,7 @@
 
 NAMEBASE=		bind
 VERSION=		9.12.1
+REVISION=		1
 KEYWORDS=		dns net
 VARIANTS=		standard
 SDESC[standard]=	Berkeley Internet Name Domain (Domain Name Server)
@@ -36,7 +37,7 @@ FPC_EQUIVALENT=		dns/bind911
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--localstatedir=/var
-			--sysconfdir={{PREFIX}}/etc/namedb
+			--sysconfdir={{ETCDIR}}
 			--disable-linux-caps
 			--disable-symtable
 			--disable-dnstap
@@ -61,7 +62,7 @@ CONFIGURE_ARGS=		--localstatedir=/var
 
 SINGLE_JOB=		yes
 
-PLIST_SUB=		ETCDIR=etc/namedb
+PLIST_SUB=		ETCDIR={{BIND_ETCDIR}}
 RC_SUBR=		named:server
 SUB_FILES=		pkg-message-server
 			named.conf
@@ -85,8 +86,8 @@ SUB_FILES=		pkg-message-server
 post-patch:
 .  for FILE in check/named-checkconf.8 named/named.8 nsupdate/nsupdate.1 \
 	rndc/rndc.8
-	${REINPLACE_CMD} -e 's#/etc/named.conf#${PREFIX}etc/namedb/named.conf#g' \
-		-e 's#/etc/rndc.conf#${PREFIX}etc/namedb/rndc.conf#g' \
+	${REINPLACE_CMD} -e 's#/etc/named.conf#${PREFIX}${ETCDIR}/named.conf#g' \
+		-e 's#/etc/rndc.conf#${PREFIX}${ETCDIR}/rndc.conf#g' \
 		-e "s#/var\/run\/named\/named.pid#/var/run/named/pid#" \
 		${WRKSRC}/bin/${FILE}
 .  endfor
@@ -94,23 +95,23 @@ post-patch:
 		${WRKSRC}/configure
 
 post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/etc/namedb \
+	${MKDIR} ${STAGEDIR}${ETCDIR} \
 		${STAGEDIR}${STD_DOCDIR}/arm
 .  for i in dynamic master slave working
-	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/namedb/$i
+	@${MKDIR} ${STAGEDIR}${ETCDIR}/$i
 .  endfor
 	${INSTALL_DATA} ${WRKDIR}/named.conf \
-		${STAGEDIR}${PREFIX}/etc/namedb/named.conf.sample
+		${STAGEDIR}${ETCDIR}/named.conf.sample
 	${INSTALL_DATA} ${FILESDIR}/named.root \
-		${STAGEDIR}${PREFIX}/etc/namedb
+		${STAGEDIR}${ETCDIR}
 	${INSTALL_DATA} ${FILESDIR}/empty.db \
-		${STAGEDIR}${PREFIX}/etc/namedb/master
+		${STAGEDIR}${ETCDIR}/master
 	${INSTALL_DATA} ${FILESDIR}/localhost-forward.db \
-		${STAGEDIR}${PREFIX}/etc/namedb/master
+		${STAGEDIR}${ETCDIR}/master
 	${INSTALL_DATA} ${FILESDIR}/localhost-reverse.db \
-		${STAGEDIR}${PREFIX}/etc/namedb/master
+		${STAGEDIR}${ETCDIR}/master
 	${INSTALL_DATA} ${WRKSRC}/bin/rndc/rndc.conf \
-		${STAGEDIR}${PREFIX}/etc/namedb/rndc.conf.sample
+		${STAGEDIR}${ETCDIR}/rndc.conf.sample
 	${RM} -r ${STAGEDIR}/var
 	# documentation
 	${INSTALL_DATA} ${WRKSRC}/doc/arm/*.html ${STAGEDIR}${STD_DOCDIR}/arm
@@ -523,9 +524,9 @@ sbin/
 
 
 [FILE:3093:patches/patch-configure]
---- configure.orig	2018-01-17 06:56:09 UTC
+--- configure.orig	2018-03-08 20:56:40 UTC
 +++ configure
-@@ -14442,27 +14442,9 @@ done
+@@ -14455,27 +14455,9 @@ done
  		# problems start to show up.
  		saved_libs="$LIBS"
  		for TRY_LIBS in \
@@ -555,7 +556,7 @@ sbin/
  		    { $as_echo "$as_me:${as_lineno-$LINENO}: checking linking as $TRY_LIBS" >&5
  $as_echo_n "checking linking as $TRY_LIBS... " >&6; }
  		    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-@@ -14505,47 +14487,7 @@ $as_echo "no" >&6; } ;;
+@@ -14518,47 +14500,7 @@ $as_echo "no" >&6; } ;;
  		no) as_fn_error $? "could not determine proper GSSAPI linkage" "$LINENO" 5 ;;
  		esac
  
@@ -604,7 +605,7 @@ sbin/
  		DNS_GSSAPI_LIBS="$LIBS"
  
  		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using GSSAPI from $use_gssapi/lib and $use_gssapi/include" >&5
-@@ -23145,7 +23087,7 @@ $as_echo "" >&6; }
+@@ -23197,7 +23139,7 @@ $as_echo "" >&6; }
  			# Check other locations for includes.
  			# Order is important (sigh).
  
@@ -1557,4 +1558,9 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:dc3::35
 *    And then restarting syslogd with: service syslogd restart       *
 *                                                                    *
 **********************************************************************
+
+
+[FILE:59:files/special.mk]
+BIND_ETCDIR?=	etc/namedb
+ETCDIR=		${PREFIX}/${BIND_ETCDIR}
 

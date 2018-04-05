@@ -2,6 +2,7 @@
 
 NAMEBASE=		mysql56
 VERSION=		5.6.39
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Multithreaded SQL database (server)
@@ -118,7 +119,7 @@ post-install:
 		${STAGEDIR}/var/db/mysql_secure \
 		${STAGEDIR}/var/db/mysql_tmpdir
 	${INSTALL_DATA} ${WRKDIR}/my.cnf.sample \
-		${STAGEDIR}${PREFIX}/etc/mysql/my.cnf.sample
+		${STAGEDIR}${ETCDIR}/my.cnf.sample
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/lib*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/plugin/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/mysqld
@@ -634,10 +635,25 @@ share/man/man1/
  #include <iostream>
 
 
-[FILE:1150:patches/patch-scripts_CMakeLists.txt]
+[FILE:1655:patches/patch-scripts_CMakeLists.txt]
 --- scripts/CMakeLists.txt.orig	2017-12-09 07:33:37 UTC
 +++ scripts/CMakeLists.txt
-@@ -263,7 +263,7 @@ SET(pkgplugindir ${prefix}/${INSTALL_PLU
+@@ -147,13 +147,9 @@ IF(NOT FIND_PROC AND CMAKE_SYSTEM_NAME M
+     "ps -p $PID | grep -v mysqld_safe | grep -- $MYSQLD > /dev/null")
+ ENDIF()
+ 
+-IF(NOT FIND_PROC)
+-  # BSD style
+-  EXECUTE_PROCESS(COMMAND ps -uaxww OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE result)
+-  IF(result MATCHES 0) 
++IF(NOT FIND_PROC AND CMAKE_SYSTEM_NAME MATCHES "DragonFly|FreeBSD")
+      SET( FIND_PROC
+        "ps -uaxww | grep -v mysqld_safe | grep -- $MYSQLD | grep $PID > /dev/null")
+-  ENDIF()
+ ENDIF()
+ 
+ IF(NOT FIND_PROC)
+@@ -263,7 +259,7 @@ SET(pkgplugindir ${prefix}/${INSTALL_PLU
  SET(localstatedir ${MYSQL_DATADIR})
  
  SET(RPATH_OPTION "")
@@ -646,7 +662,7 @@ share/man/man1/
    SET(RPATH_OPTION "-R$pkglibdir")
  ENDIF()
  
-@@ -304,6 +304,8 @@ MACRO(EXTRACT_LINK_LIBRARIES target var)
+@@ -304,6 +300,8 @@ MACRO(EXTRACT_LINK_LIBRARIES target var)
            GET_FILENAME_COMPONENT(lib "${lib}" NAME_WE)
            STRING(REGEX REPLACE "^lib" "" lib "${lib}")
            SET(${var} "${${var}}-l${lib} " ) 
@@ -655,7 +671,7 @@ share/man/man1/
          ELSE()
            SET(${var} "${${var}}-l${lib} " ) 
          ENDIF()
-@@ -374,7 +376,7 @@ ELSE()
+@@ -374,7 +372,7 @@ ELSE()
    FOREACH(file ${BIN_SCRIPTS})
      IF(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${file}.sh)
        CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${file}.sh
@@ -888,9 +904,7 @@ share/man/man1/
  static Sys_var_plugin Sys_default_storage_engine(
 
 
-[FILE:2284:files/my.cnf.sample.in]
-# $FreeBSD: head/databases/mysql57-server/files/my.cnf.sample.in 414707 2016-05-06 14:39:59Z riggs $
-
+[FILE:2182:files/my.cnf.sample.in]
 [client]
 port                            = 3306
 socket                          = /tmp/mysql.sock
@@ -955,12 +969,9 @@ quote_names
 quick
 
 
-[FILE:2582:files/mysql-server.in]
+[FILE:2478:files/mysql-server.in]
 #!/bin/sh
 #
-# $FreeBSD: head/databases/mysql57-server/files/mysql-server.in 434623 2017-02-22 17:25:22Z mmokhi $
-#
-
 # PROVIDE: mysql
 # REQUIRE: LOGIN
 # KEYWORD: shutdown
@@ -1063,4 +1074,8 @@ remember to replace it wit your own
 or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
 
 *****************************************************************************
+
+
+[FILE:28:files/special.mk]
+ETCDIR=	${PREFIX}/etc/mysql
 
