@@ -2,6 +2,7 @@
 
 NAMEBASE=		lumina-calculator
 VERSION=		1.4.1
+REVISION=		1
 KEYWORDS=		deskutils
 VARIANTS=		standard
 SDESC[standard]=	Scientific calculator from the Lumina Desktop
@@ -32,6 +33,11 @@ QMAKE_ARGS=		PREFIX="{{PREFIX}}"
 			LIBPREFIX="{{PREFIX}}/lib"
 			L_MANDIR="{{PREFIX}}/share/man"
 			CONFIG+=WITH_I18N
+
+post-patch:
+	${GREP} -rl "/usr/local" ${WRKDIR}/lumina-b6536c1 | \
+		${XARGS} ${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g'
+	${FIND} ${WRKDIR}/lumina-b6536c1 -name "*.bak" -type f -delete
 
 [FILE:47:descriptions/desc.single]
 Scientific calculator from the Lumina Desktop.

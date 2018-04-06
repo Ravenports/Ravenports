@@ -2,6 +2,7 @@
 
 NAMEBASE=		cscope
 VERSION=		15.8b
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	C source code tree search and browse tool
@@ -23,6 +24,11 @@ FPC_EQUIVALENT=		devel/cscope
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-ncurses={{NCURSESBASE}}
+
+post-patch:
+	${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g' \
+		${WRKSRC}/contrib/xcscope/cscope-indexer \
+		${WRKSRC}/contrib/ocs
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/emacs/site-lisp \
