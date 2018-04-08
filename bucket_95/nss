@@ -2,6 +2,7 @@
 
 NAMEBASE=		nss
 VERSION=		3.36
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Application security development libraries
@@ -94,7 +95,8 @@ do-install:
 	${INSTALL_SCRIPT} ${WRKDIR}/nss-config ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_DATA} ${WRKDIR}/nss.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig
 	# CA ROOT CERT
-	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt ${STAGEDIR}${PREFIX}/share/certs
+	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
+		${STAGEDIR}${PREFIX}/share/certs
 	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
 		${STAGEDIR}${PREFIX}/etc/ssl/cert.pem.sample
 	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
@@ -102,7 +104,7 @@ do-install:
 
 post-install-ETCSYMLINK-ON:
 	@${MKDIR} ${STAGEDIR}/etc/ssl
-	${LN} -sf ../../share/certs/ca-root-nss.crt \
+	${LN} -sf ${PREFIX}/share/certs/ca-root-nss.crt \
 		${STAGEDIR}/etc/ssl/cert.pem
 
 [FILE:301:descriptions/desc.primary]
