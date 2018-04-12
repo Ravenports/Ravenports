@@ -2,6 +2,7 @@
 
 NAMEBASE=		zsh
 VERSION=		5.5
+REVISION=		1
 KEYWORDS=		shells
 VARIANTS=		standard
 SDESC[standard]=	Interactive Z Shell
@@ -59,7 +60,7 @@ CPPFLAGS=		-DBOOL_DEFINED
 			-I{{NCURSESINC}}
 
 post-patch:
-	${RM} ${WRKSRC}/Completion/Unix/Type/_tar_archive.orig
+	${FIND} ${WRKSRC} -name "*.orig" -delete
 
 post-patch-dragonfly:
 	# DragonFly's clock_gettime(2) is in libc, not librt
@@ -112,10 +113,10 @@ d05606a545672ae8623828802dbcc4c83d9a4d3dbfb960e94a9fd9f62467c159      4576506 zs
 b995c16a2ded516b6e07883932640fcca8b53b1b8a1934094a8a32ef087f52fc      3216400 zsh-5.5-doc.tar.xz
 
 
-[FILE:16713:manifests/plist.primary]
-@dir share/zsh/site-functions
+[FILE:16814:manifests/plist.primary]
 @shell bin/rzsh
 @shell bin/zsh
+%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/attr.so
 bin/zsh-%%ZSH_VER%%
 lib/zsh/%%ZSH_VER%%/zsh/
  cap.so
@@ -420,6 +421,8 @@ share/zsh/%%ZSH_VER%%/functions/Completion/Debian/
  _vim-addons
  _wajig
  _wanna-build
+share/zsh/%%ZSH_VER%%/functions/Completion/
+ Linux.zwc
 share/zsh/%%ZSH_VER%%/functions/Completion/Linux/
  _acpi
  _acpitool
@@ -1456,6 +1459,7 @@ share/zsh/%%ZSH_VER%%/help/
  zstyle
  ztcp
 share/zsh/%%ZSH_VER%%/scripts/newuser
+@dir share/zsh/site-functions
 
 
 [FILE:43:manifests/plist.examples]
@@ -1476,6 +1480,20 @@ share/doc/zsh/
  zsh.dvi
  zsh_abt.html
  zsh_toc.html
+
+
+[FILE:711:patches/patch-Completion_Linux_Command___ss]
+--- Completion/Linux/Command/_ss.orig	2018-04-04 17:03:27 UTC
++++ Completion/Linux/Command/_ss
+@@ -33,7 +33,7 @@ _arguments -C -s \
+   "($info -d --dccp)"{-d,--dccp}'[display DCCP sockets]' \
+   "($info -w --raw)"{-w,--raw}'[display RAW sockets]' \
+   "($info -x --unix)"{-x,--unix}'[display Unix domain sockets]' \
+-  "($info)--vsock[display only vsock sockets]' \
++  "($info --vsock)"{--vsock}'[display only vsock sockets]' \
+   "($info -f --family)"{-f,--family}'[display sockets of specified type]:family:(unix inet inet6 link netlink unix vsock)' \
+   "($info -K --kill)"{-K,--kill}'[forcibly close sockets, display what was closed]' \
+   "($info -H --no-header)"{-H,--no-header}'[suppress header line]' \
 
 
 [FILE:972:patches/patch-Completion_Unix_Type___tar__archive]
