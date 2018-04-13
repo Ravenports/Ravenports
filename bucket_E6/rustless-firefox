@@ -4,7 +4,7 @@ NAMEBASE=		rustless-firefox
 VERSION=		52.7.3
 KEYWORDS=		www
 VARIANTS=		standard
-SDESC[standard]=	Legacy web browser built with Rust compiler
+SDESC[standard]=	Legacy web browser built without Rust compiler
 HOMEPAGE=		https://www.mozilla.org/en-US/firefox/organizations/
 CONTACT=		nobody
 
@@ -18,8 +18,6 @@ OPTIONS_AVAILABLE=	DBUS
 OPTIONS_STANDARD=	DBUS
 OPT_ON[all]=		DBUS
 
-BROKEN[all]=		port is under development
-
 BUILD_DEPENDS=		python-sqlite3:single:py27
 			video4linux:headers:standard
 			autoconf213:single:standard
@@ -30,6 +28,7 @@ BUILDRUN_DEPENDS=	nss:primary:standard
 			libevent:single:standard
 			harfbuzz:primary:standard
 			libvorbis:primary:standard
+			libogg:primary:standard
 			libvpx:single:standard
 			libffi:single:standard
 			sqlite:single:standard
@@ -41,19 +40,28 @@ BUILDRUN_DEPENDS=	nss:primary:standard
 
 USES=			cpe gmake jpeg png pkgconfig zlib perl:build
 			python:py27,build desktop-utils
+GNOME_COMPONENTS=	gdkpixbuf gtk2 gtk3 gconf
 XORG_COMPONENTS=	xcb pixman
 
-DISTNAME=		firefox-52.7.3
+DISTNAME=		firefox-52.7.3esr
 
 CPE_VENDOR=		mozilla
 
 MUST_CONFIGURE=		yes
 CONFIGURE_OUTSOURCE=	yes
-CONFIGURE_ARGS=		--prefix={{PREFIX:Q}}
+
+SUB_FILES=		firefox.desktop
+			pkg-install-single
+			pkg-deinstall-single
+SUB_LIST=		FIREFOX_ICON=firefox.png
+			MOZILLA=firefox
+			MOZILLA_BIN=firefox-bin
+			MOZILLA_NAME=Firefox
+			MOZDIR={{PREFIX}}/lib/firefox
+
+QMAKE_ARGS=		--prefix={{PREFIX:Q}}
 			--disable-rust
 			--disable-updater
-			--disable-optimize
-			--disable-gconf
 			--disable-libproxy
 			--disable-alsa
 			--disable-jack
@@ -63,6 +71,7 @@ CONFIGURE_ARGS=		--prefix={{PREFIX:Q}}
 			--disable-dtrace
 			--disable-profiling
 			--disable-tests
+			--disable-webrtc
 			--enable-system-cairo
 			--enable-system-ffi
 			--enable-system-hunspell
@@ -75,6 +84,7 @@ CONFIGURE_ARGS=		--prefix={{PREFIX:Q}}
 			--with-system-nss
 			--with-system-nspr
 			--with-system-vorbis
+			--with-system-ogg
 			--with-system-libvpx
 			--with-system-zlib
 			--with-system-bz2
@@ -86,18 +96,83 @@ CONFIGURE_ARGS=		--prefix={{PREFIX:Q}}
 			--enable-chrome-format=omni
 			--enable-default-toolkit=cairo-gtk3
 			--enable-update-channel=esr
+			--enable-optimize
+			--enable-gconf
 			--enable-pie
 			--enable-strip
 			--enable-install-strip
-
+			--enable-application=browser
+			--enable-official-branding
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-jemalloc=4
 
 [DBUS].DESCRIPTION=			D-Bus IPC system support
 [DBUS].BUILDRUN_DEPENDS_ON=		dbus:single:standard
+					dbus-glib:primary:standard
 					startup-notification:single:standard
 					libnotify:primary:standard
-[DBUS].CONFIGURE_ARGS_OFF=		--disable-dbus
-[DBUS].CONFIGURE_ARGS_ON=		--enable-startup-notification
+[DBUS].QMAKE_ARGS_OFF=			--disable-dbus
+[DBUS].QMAKE_ARGS_ON=			--enable-startup-notification
+
+post-patch:
+	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
+		${WRKSRC}/browser/app/nsBrowserApp.cpp
+	${REINPLACE_CMD} -e 's|%%MOZILLA%%|firefox|g' \
+		${WRKSRC}/config/baseconfig.mk; \
+	${REINPLACE_CMD} -e 's|%%PREFIX%%|${PREFIX}|g ; \
+		s|%%LOCALBASE%%|${LOCALBASE}|g' \
+			${WRKSRC}/build/unix/run-mozilla.sh
+	${REINPLACE_CMD} -e 's|/usr/local/netscape|${LOCALBASE}|g ; \
+		s|/usr/local/lib/netscape|${LOCALBASE}/lib|g' \
+		${WRKSRC}/xpcom/io/SpecialSystemDirectory.cpp
+	${REINPLACE_CMD} -e 's|/etc|${PREFIX}&|g' \
+		${WRKSRC}/xpcom/build/nsXPCOMPrivate.h
+	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g' \
+		-e 's|mozilla/plugins|browser_plugins|g' \
+		-e 's|share/mozilla/extensions|lib/xpi|g' \
+		${WRKSRC}/xpcom/io/nsAppFileLocationProvider.cpp \
+		${WRKSRC}/toolkit/xre/nsXREDirProvider.cpp
+	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
+		${WRKSRC}/extensions/spellcheck/hunspell/*/mozHunspell.cpp
+	${REINPLACE_CMD} -Ee 's|-lc_r|-pthread|g ; \
+			s|-l?pthread|-pthread|g ; \
+			s|echo aout|echo elf|g ; \
+			s|/usr/X11R6|${LOCALBASE}|g' \
+		${WRKSRC}/js/src/Makefile.in \
+		${WRKSRC}/js/src/configure \
+		${WRKSRC}/configure
+	${REINPLACE_CMD} -Ee '/^MOZ_FIX_LINK_PATHS=/ s|"|"-Wl,-rpath,${PREFIX}/lib/firefox |' \
+		${WRKSRC}/js/src/old-configure.in \
+		${WRKSRC}/old-configure.in
+	# set configuration
+	for arg in ${QMAKE_ARGS} ; do \
+		${ECHO_CMD} ac_add_options $$arg >> ${WRKSRC}/.mozconfig ; \
+	done
+	${ECHO_CMD} mk_add_options MOZ_OBJDIR="${BUILD_WRKSRC}" \
+		>> ${WRKSRC}/.mozconfig
+	${ECHO_CMD} export MOZ_OPTIMIZE_FLAGS="-O${OPTIMIZER_LEVEL}" \
+		>> ${WRKSRC}/.mozconfig
+	${ECHO_CMD} export PERL="${PERL}" >> ${WRKSRC}/.mozconfig
+
+post-install:
+	@${MKDIR} ${STAGEDIR}${PREFIX}/share/pixmaps \
+		${STAGEDIR}${PREFIX}/share/applications
+	${INSTALL_DATA} ${WRKDIR}/firefox.desktop \
+		${STAGEDIR}${PREFIX}/share/applications/
+	${LN} -sf ${PREFIX}/lib/firefox/browser/chrome/icons/default/default48.png \
+		${STAGEDIR}${PREFIX}/share/pixmaps/firefox.png
+
+pre-configure:
+	(cd ${WRKSRC} && ${LOCALBASE}/bin/autoconf-2.13)
+	(cd ${WRKSRC}/js/src/ && ${LOCALBASE}/bin/autoconf-2.13)
+
+post-patch-freebsd:
+	${ECHO_CMD} export MOZ_JEMALLOC4=1 >> ${WRKSRC}/.mozconfig
+	# API keys from www/chromium
+	# http://www.chromium.org/developers/how-tos/api-keys
+	# Note: these are for FreeBSD use ONLY. For another distribution,
+	# please obtain its key instead.
+	${ECHO_CMD} export MOZ_GOOGLE_API_KEY=AIzaSyBsp9n41JLW8jCokwn7vhoaMejDFRd1mp8 \
+		>> ${WRKSRC}/.mozconfig
 
 [FILE:396:descriptions/desc.single]
 Mozilla Firefox 52 is a fast, secure and easy to use web browser. It 
@@ -113,6 +188,3620 @@ It is the last Firefox that does not require a rust compiler to build.
 5cc68c1a7486cfbbf02aec0e9da9f87b55e7bfc68c7d5139bc1e578441aaf19f    213945524 firefox-52.7.3esr.source.tar.xz
 
 
-[FILE:14:manifests/plist.single]
-@comment todo
+[FILE:956:manifests/plist.single]
+bin/firefox
+lib/firefox/
+ application.ini
+lib/firefox/browser/
+ blocklist.xml
+ chrome.manifest
+lib/firefox/browser/chrome/icons/default/
+ default16.png
+ default32.png
+ default48.png
+lib/firefox/browser/extensions/{972ce4c6-7e08-4474-a285-3208198ce6fd}.xpi
+lib/firefox/browser/features/
+ aushelper@mozilla.org.xpi
+ e10srollout@mozilla.org.xpi
+ firefox@getpocket.com.xpi
+ webcompat@mozilla.org.xpi
+lib/firefox/browser/icons/mozicon128.png
+lib/firefox/browser/
+ omni.ja
+lib/firefox/
+ chrome.manifest
+lib/firefox/defaults/pref/channel-prefs.js
+ dependentlibs.list
+lib/firefox/dictionaries/
+ en-US.aff
+ en-US.dic
+lib/firefox/
+ firefox
+ firefox-bin
+lib/firefox/gmp-clearkey/0.1/
+ clearkey.info
+ libclearkey.so
+lib/firefox/gtk2/libmozgtk.so
+lib/firefox/
+ liblgpllibs.so
+ libmozavcodec.so
+ libmozavutil.so
+ libmozgtk.so
+ libxul.so
+ omni.ja
+ platform.ini
+ plugin-container
+ removed-files
+ run-mozilla.sh
+share/applications/firefox.desktop
+share/pixmaps/firefox.png
+
+
+[FILE:445:patches/patch-browser-app-nsBrowserApp.cpp]
+--- browser/app/nsBrowserApp.cpp.orig	2016-09-19 16:19:28 UTC
++++ browser/app/nsBrowserApp.cpp
+@@ -324,6 +324,9 @@ int main(int argc, char* argv[], char* e
+ {
+   mozilla::TimeStamp start = mozilla::TimeStamp::Now();
+ 
++  setenv("MOZ_GMP_PATH", "%%LOCALBASE%%/lib/browser_plugins/symlinks/gecko", 0);
++  setenv("MOZ_PLUGIN_PATH", "%%LOCALBASE%%/lib/browser_plugins/symlinks/gecko", 0);
++
+ #ifdef HAS_DLL_BLOCKLIST
+   DllBlocklist_Initialize();
+ 
+
+
+[FILE:35310:patches/patch-bug1021761]
+diff --git build/moz.configure/old.configure build/moz.configure/old.configure
+index b95dd2b..4cbefd5 100644
+--- build/moz.configure/old.configure
++++ build/moz.configure/old.configure
+@@ -305,6 +305,7 @@ def old_configure_options(*options):
+     '--with-nspr-prefix',
+     '--with-nss-exec-prefix',
+     '--with-nss-prefix',
++    '--with-oss',
+     '--with-pthreads',
+     '--with-qemu-exe',
+     '--with-servo',
+diff --git old-configure.in configure.in
+index 48e60c0..ec08417 100644
+--- old-configure.in
++++ old-configure.in
+@@ -5591,6 +5591,67 @@ fi
+ AC_SUBST(MOZ_WEBM_ENCODER)
+ 
+ dnl ==================================
++dnl = Check OSS availability
++dnl ==================================
++
++dnl If using Linux, Solaris or BSDs, ensure that OSS is available
++case "$OS_TARGET" in
++Linux|SunOS|DragonFly|FreeBSD|NetBSD|GNU/kFreeBSD)
++    MOZ_OSS=1
++    ;;
++esac
++
++MOZ_ARG_WITH_STRING(oss,
++[  --with-oss[=PFX]        Enable OpenSoundSystem support [installed at prefix PFX]],
++   OSSPREFIX=$withval)
++
++if test -n "$OSSPREFIX"; then
++    if test "$OSSPREFIX" != "no"; then
++        MOZ_OSS=1
++    else
++        MOZ_OSS=
++    fi
++fi
++
++_SAVE_CFLAGS=$CFLAGS
++_SAVE_LIBS=$LIBS
++if test -n "$MOZ_OSS"; then
++    dnl Prefer 4Front implementation
++    AC_MSG_CHECKING([MOZ_OSS_CFLAGS])
++    if test "$OSSPREFIX" != "yes"; then
++        oss_conf=${OSSPREFIX%/usr}/etc/oss.conf
++        if test -f "$oss_conf"; then
++            . "$oss_conf"
++        else
++            OSSLIBDIR=$OSSPREFIX/lib/oss
++        fi
++        if test -d "$OSSLIBDIR"; then
++            MOZ_OSS_CFLAGS="$MOZ_OSS_CFLAGS -I$OSSLIBDIR/include"
++        fi
++    fi
++    AC_MSG_RESULT([$MOZ_OSS_CFLAGS])
++
++    CFLAGS="$CFLAGS $MOZ_OSS_CFLAGS"
++    MOZ_CHECK_HEADERS(sys/soundcard.h soundcard.h)
++
++    if test "$ac_cv_header_sys_soundcard_h" != "yes" -a \
++            "$ac_cv_header_soundcard_h" != "yes"; then
++        AC_MSG_ERROR([Need OSS for Ogg, Wave or WebM decoding on $OS_TARGET.  Disable with --without-oss.])
++    fi
++
++    dnl Assume NetBSD implementation over SunAudio
++    AC_CHECK_LIB(ossaudio, _oss_ioctl,
++        [AC_DEFINE_UNQUOTED(CUBEB_OSS_DEFAULT_OUTPUT, "/dev/sound")
++         MOZ_OSS_LIBS="$MOZ_OSS_LIBS -lossaudio"])
++fi
++CFLAGS=$_SAVE_CFLAGS
++LIBS=$_SAVE_LIBS
++
++AC_SUBST(MOZ_OSS)
++AC_SUBST_LIST(MOZ_OSS_CFLAGS)
++AC_SUBST_LIST(MOZ_OSS_LIBS)
++
++dnl ==================================
+ dnl = Check alsa availability on Linux
+ dnl ==================================
+ 
+diff --git media/libcubeb/AUTHORS media/libcubeb/AUTHORS
+index b441e8a..950d9e5 100644
+--- media/libcubeb/AUTHORS
++++ media/libcubeb/AUTHORS
+@@ -4,3 +4,4 @@ Michael Wu <mwu@mozilla.com>
+ Paul Adenot <paul@paul.cx>
+ David Richards <drichards@mozilla.com>
+ Sebastien Alaiwan <sebastien.alaiwan@gmail.com>
++Evgeniy Vodolazskiy <waterlaz@gmail.com>
+diff --git media/libcubeb/src/cubeb.c media/libcubeb/src/cubeb.c
+index 9c3adcc..45d765b 100644
+--- media/libcubeb/src/cubeb.c
++++ media/libcubeb/src/cubeb.c
+@@ -54,6 +54,9 @@ int opensl_init(cubeb ** context, char const * context_name);
+ #if defined(USE_AUDIOTRACK)
+ int audiotrack_init(cubeb ** context, char const * context_name);
+ #endif
++#if defined(USE_OSS)
++int oss_init(cubeb ** context, char const * context_name);
++#endif
+ 
+ int
+ validate_stream_params(cubeb_stream_params stream_params)
+@@ -120,6 +123,9 @@ cubeb_init(cubeb ** context, char const * context_name)
+ #if defined(USE_AUDIOTRACK)
+     audiotrack_init,
+ #endif
++#if defined(USE_OSS)
++    oss_init,
++#endif
+   };
+   int i;
+ 
+diff --git media/libcubeb/src/cubeb_alsa.c media/libcubeb/src/cubeb_alsa.c
+index a962553..1f780f4 100644
+--- media/libcubeb/src/cubeb_alsa.c
++++ media/libcubeb/src/cubeb_alsa.c
+@@ -11,6 +11,7 @@
+ #include <sys/time.h>
+ #include <assert.h>
+ #include <limits.h>
++#include <dlfcn.h>
+ #include <poll.h>
+ #include <unistd.h>
+ #include <alsa/asoundlib.h>
+@@ -24,6 +25,50 @@
+ 
+ #define ALSA_PA_PLUGIN "ALSA <-> PulseAudio PCM I/O Plugin"
+ 
++#ifdef DISABLE_LIBASOUND_DLOPEN
++#define WRAP(x) x
++#else
++#define WRAP(x) cubeb_##x
++#define MAKE_TYPEDEF(x) static typeof(x) * cubeb_##x
++MAKE_TYPEDEF(snd_config);
++MAKE_TYPEDEF(snd_config_add);
++MAKE_TYPEDEF(snd_config_copy);
++MAKE_TYPEDEF(snd_config_delete);
++MAKE_TYPEDEF(snd_config_get_id);
++MAKE_TYPEDEF(snd_config_get_string);
++MAKE_TYPEDEF(snd_config_imake_integer);
++MAKE_TYPEDEF(snd_config_search);
++MAKE_TYPEDEF(snd_config_search_definition);
++MAKE_TYPEDEF(snd_lib_error_set_handler);
++MAKE_TYPEDEF(snd_pcm_avail_update);
++MAKE_TYPEDEF(snd_pcm_close);
++MAKE_TYPEDEF(snd_pcm_delay);
++MAKE_TYPEDEF(snd_pcm_drain);
++MAKE_TYPEDEF(snd_pcm_frames_to_bytes);
++MAKE_TYPEDEF(snd_pcm_get_params);
++/* snd_pcm_hw_params_alloca is actually a macro */
++/* MAKE_TYPEDEF(snd_pcm_hw_params_alloca); */
++MAKE_TYPEDEF(snd_pcm_hw_params_sizeof);
++#define snd_pcm_hw_params_sizeof cubeb_snd_pcm_hw_params_sizeof
++MAKE_TYPEDEF(snd_pcm_hw_params_any);
++MAKE_TYPEDEF(snd_pcm_hw_params_get_channels_max);
++MAKE_TYPEDEF(snd_pcm_hw_params_get_rate);
++MAKE_TYPEDEF(snd_pcm_hw_params_set_rate_near);
++MAKE_TYPEDEF(snd_pcm_nonblock);
++MAKE_TYPEDEF(snd_pcm_open);
++MAKE_TYPEDEF(snd_pcm_open_lconf);
++MAKE_TYPEDEF(snd_pcm_pause);
++MAKE_TYPEDEF(snd_pcm_poll_descriptors);
++MAKE_TYPEDEF(snd_pcm_poll_descriptors_count);
++MAKE_TYPEDEF(snd_pcm_poll_descriptors_revents);
++MAKE_TYPEDEF(snd_pcm_recover);
++MAKE_TYPEDEF(snd_pcm_set_params);
++MAKE_TYPEDEF(snd_pcm_state);
++MAKE_TYPEDEF(snd_pcm_writei);
++
++#undef MAKE_TYPEDEF
++#endif
++
+ /* ALSA is not thread-safe.  snd_pcm_t instances are individually protected
+    by the owning cubeb_stream's mutex.  snd_pcm_t creation and destruction
+    is not thread-safe until ALSA 1.0.24 (see alsa-lib.git commit 91c9c8f1),
+@@ -64,6 +109,8 @@ struct cubeb {
+      workaround is not required. */
+   snd_config_t * local_config;
+   int is_pa;
++
++  void * libasound;
+ };
+ 
+ enum stream_state {
+@@ -260,10 +307,10 @@ alsa_refill_stream(cubeb_stream * stm)
+ 
+   pthread_mutex_lock(&stm->mutex);
+ 
+-  avail = snd_pcm_avail_update(stm->pcm);
++  avail = WRAP(snd_pcm_avail_update)(stm->pcm);
+   if (avail < 0) {
+-    snd_pcm_recover(stm->pcm, avail, 1);
+-    avail = snd_pcm_avail_update(stm->pcm);
++    WRAP(snd_pcm_recover)(stm->pcm, avail, 1);
++    avail = WRAP(snd_pcm_avail_update)(stm->pcm);
+   }
+ 
+   /* Failed to recover from an xrun, this stream must be broken. */
+@@ -286,7 +333,7 @@ alsa_refill_stream(cubeb_stream * stm)
+     return RUNNING;
+   }
+ 
+-  p = calloc(1, snd_pcm_frames_to_bytes(stm->pcm, avail));
++  p = calloc(1, WRAP(snd_pcm_frames_to_bytes)(stm->pcm, avail));
+   assert(p);
+ 
+   pthread_mutex_unlock(&stm->mutex);
+@@ -312,10 +359,10 @@ alsa_refill_stream(cubeb_stream * stm)
+         b[i] *= stm->volume;
+       }
+     }
+-    wrote = snd_pcm_writei(stm->pcm, p, got);
++    wrote = WRAP(snd_pcm_writei)(stm->pcm, p, got);
+     if (wrote < 0) {
+-      snd_pcm_recover(stm->pcm, wrote, 1);
+-      wrote = snd_pcm_writei(stm->pcm, p, got);
++      WRAP(snd_pcm_recover)(stm->pcm, wrote, 1);
++      wrote = WRAP(snd_pcm_writei)(stm->pcm, p, got);
+     }
+     assert(wrote >= 0 && wrote == got);
+     stm->write_position += wrote;
+@@ -342,7 +389,7 @@ alsa_refill_stream(cubeb_stream * stm)
+ 
+     /* Fill the remaining buffer with silence to guarantee one full period
+        has been written. */
+-    snd_pcm_writei(stm->pcm, (char *) p + got, avail - got);
++    WRAP(snd_pcm_writei)(stm->pcm, (char *) p + got, avail - got);
+ 
+     set_timeout(&stm->drain_timeout, buffer_time * 1000);
+ 
+@@ -453,26 +500,26 @@ get_slave_pcm_node(snd_config_t * lconf, snd_config_t * root_pcm)
+ 
+   slave_def = NULL;
+ 
+-  r = snd_config_search(root_pcm, "slave", &slave_pcm);
++  r = WRAP(snd_config_search)(root_pcm, "slave", &slave_pcm);
+   if (r < 0) {
+     return NULL;
+   }
+ 
+-  r = snd_config_get_string(slave_pcm, &string);
++  r = WRAP(snd_config_get_string)(slave_pcm, &string);
+   if (r >= 0) {
+-    r = snd_config_search_definition(lconf, "pcm_slave", string, &slave_def);
++    r = WRAP(snd_config_search_definition)(lconf, "pcm_slave", string, &slave_def);
+     if (r < 0) {
+       return NULL;
+     }
+   }
+ 
+   do {
+-    r = snd_config_search(slave_def ? slave_def : slave_pcm, "pcm", &pcm);
++    r = WRAP(snd_config_search)(slave_def ? slave_def : slave_pcm, "pcm", &pcm);
+     if (r < 0) {
+       break;
+     }
+ 
+-    r = snd_config_get_string(slave_def ? slave_def : slave_pcm, &string);
++    r = WRAP(snd_config_get_string)(slave_def ? slave_def : slave_pcm, &string);
+     if (r < 0) {
+       break;
+     }
+@@ -481,7 +528,7 @@ get_slave_pcm_node(snd_config_t * lconf, snd_config_t * root_pcm)
+     if (r < 0 || r > (int) sizeof(node_name)) {
+       break;
+     }
+-    r = snd_config_search(lconf, node_name, &pcm);
++    r = WRAP(snd_config_search)(lconf, node_name, &pcm);
+     if (r < 0) {
+       break;
+     }
+@@ -490,7 +537,7 @@ get_slave_pcm_node(snd_config_t * lconf, snd_config_t * root_pcm)
+   } while (0);
+ 
+   if (slave_def) {
+-    snd_config_delete(slave_def);
++    WRAP(snd_config_delete)(slave_def);
+   }
+ 
+   return NULL;
+@@ -513,22 +560,22 @@ init_local_config_with_workaround(char const * pcm_name)
+ 
+   lconf = NULL;
+ 
+-  if (snd_config == NULL) {
++  if (*WRAP(snd_config) == NULL) {
+     return NULL;
+   }
+ 
+-  r = snd_config_copy(&lconf, snd_config);
++  r = WRAP(snd_config_copy)(&lconf, *WRAP(snd_config));
+   if (r < 0) {
+     return NULL;
+   }
+ 
+   do {
+-    r = snd_config_search_definition(lconf, "pcm", pcm_name, &pcm_node);
++    r = WRAP(snd_config_search_definition)(lconf, "pcm", pcm_name, &pcm_node);
+     if (r < 0) {
+       break;
+     }
+ 
+-    r = snd_config_get_id(pcm_node, &string);
++    r = WRAP(snd_config_get_id)(pcm_node, &string);
+     if (r < 0) {
+       break;
+     }
+@@ -537,7 +584,7 @@ init_local_config_with_workaround(char const * pcm_name)
+     if (r < 0 || r > (int) sizeof(node_name)) {
+       break;
+     }
+-    r = snd_config_search(lconf, node_name, &pcm_node);
++    r = WRAP(snd_config_search)(lconf, node_name, &pcm_node);
+     if (r < 0) {
+       break;
+     }
+@@ -548,12 +595,12 @@ init_local_config_with_workaround(char const * pcm_name)
+     }
+ 
+     /* Fetch the PCM node's type, and bail out if it's not the PulseAudio plugin. */
+-    r = snd_config_search(pcm_node, "type", &node);
++    r = WRAP(snd_config_search)(pcm_node, "type", &node);
+     if (r < 0) {
+       break;
+     }
+ 
+-    r = snd_config_get_string(node, &string);
++    r = WRAP(snd_config_get_string)(node, &string);
+     if (r < 0) {
+       break;
+     }
+@@ -564,18 +611,18 @@ init_local_config_with_workaround(char const * pcm_name)
+ 
+     /* Don't clobber an explicit existing handle_underrun value, set it only
+        if it doesn't already exist. */
+-    r = snd_config_search(pcm_node, "handle_underrun", &node);
++    r = WRAP(snd_config_search)(pcm_node, "handle_underrun", &node);
+     if (r != -ENOENT) {
+       break;
+     }
+ 
+     /* Disable pcm_pulse's asynchronous underrun handling. */
+-    r = snd_config_imake_integer(&node, "handle_underrun", 0);
++    r = WRAP(snd_config_imake_integer)(&node, "handle_underrun", 0);
+     if (r < 0) {
+       break;
+     }
+ 
+-    r = snd_config_add(pcm_node, node);
++    r = WRAP(snd_config_add)(pcm_node, node);
+     if (r < 0) {
+       break;
+     }
+@@ -583,7 +630,7 @@ init_local_config_with_workaround(char const * pcm_name)
+     return lconf;
+   } while (0);
+ 
+-  snd_config_delete(lconf);
++  WRAP(snd_config_delete)(lconf);
+ 
+   return NULL;
+ }
+@@ -595,9 +642,9 @@ alsa_locked_pcm_open(snd_pcm_t ** pcm, snd_pcm_stream_t stream, snd_config_t * l
+ 
+   pthread_mutex_lock(&cubeb_alsa_mutex);
+   if (local_config) {
+-    r = snd_pcm_open_lconf(pcm, CUBEB_ALSA_PCM_NAME, stream, SND_PCM_NONBLOCK, local_config);
++    r = WRAP(snd_pcm_open_lconf)(pcm, CUBEB_ALSA_PCM_NAME, stream, SND_PCM_NONBLOCK, local_config);
+   } else {
+-    r = snd_pcm_open(pcm, CUBEB_ALSA_PCM_NAME, stream, SND_PCM_NONBLOCK);
++    r = WRAP(snd_pcm_open)(pcm, CUBEB_ALSA_PCM_NAME, stream, SND_PCM_NONBLOCK);
+   }
+   pthread_mutex_unlock(&cubeb_alsa_mutex);
+ 
+@@ -610,7 +657,7 @@ alsa_locked_pcm_close(snd_pcm_t * pcm)
+   int r;
+ 
+   pthread_mutex_lock(&cubeb_alsa_mutex);
+-  r = snd_pcm_close(pcm);
++  r = WRAP(snd_pcm_close)(pcm);
+   pthread_mutex_unlock(&cubeb_alsa_mutex);
+ 
+   return r;
+@@ -667,12 +714,65 @@ alsa_init(cubeb ** context, char const * context_name)
+   pthread_attr_t attr;
+   snd_pcm_t * dummy;
+ 
++  void * libasound = NULL;
++
++#ifndef DISABLE_LIBASOUND_DLOPEN
++  libasound = dlopen("libasound.so", RTLD_LAZY);
++  if (!libasound) {
++    return CUBEB_ERROR;
++  }
++
++#define LOAD(x) do { \
++    cubeb_##x = dlsym(libasound, #x); \
++    if (!cubeb_##x) { \
++      dlclose(libasound); \
++      return CUBEB_ERROR; \
++    } \
++  } while(0)
++
++  LOAD(snd_config);
++  LOAD(snd_config_add);
++  LOAD(snd_config_copy);
++  LOAD(snd_config_delete);
++  LOAD(snd_config_get_id);
++  LOAD(snd_config_get_string);
++  LOAD(snd_config_imake_integer);
++  LOAD(snd_config_search);
++  LOAD(snd_config_search_definition);
++  LOAD(snd_lib_error_set_handler);
++  LOAD(snd_pcm_avail_update);
++  LOAD(snd_pcm_close);
++  LOAD(snd_pcm_delay);
++  LOAD(snd_pcm_drain);
++  LOAD(snd_pcm_frames_to_bytes);
++  LOAD(snd_pcm_get_params);
++  /* snd_pcm_hw_params_alloca is actually a macro */
++  /* LOAD(snd_pcm_hw_params_alloca); */
++  LOAD(snd_pcm_hw_params_sizeof);
++  LOAD(snd_pcm_hw_params_any);
++  LOAD(snd_pcm_hw_params_get_channels_max);
++  LOAD(snd_pcm_hw_params_get_rate);
++  LOAD(snd_pcm_hw_params_set_rate_near);
++  LOAD(snd_pcm_nonblock);
++  LOAD(snd_pcm_open);
++  LOAD(snd_pcm_open_lconf);
++  LOAD(snd_pcm_pause);
++  LOAD(snd_pcm_poll_descriptors);
++  LOAD(snd_pcm_poll_descriptors_count);
++  LOAD(snd_pcm_poll_descriptors_revents);
++  LOAD(snd_pcm_recover);
++  LOAD(snd_pcm_set_params);
++  LOAD(snd_pcm_state);
++  LOAD(snd_pcm_writei);
++
++#undef LOAD
++#endif
+   assert(context);
+   *context = NULL;
+ 
+   pthread_mutex_lock(&cubeb_alsa_mutex);
+   if (!cubeb_alsa_error_handler_set) {
+-    snd_lib_error_set_handler(silent_error_handler);
++    WRAP(snd_lib_error_set_handler)(silent_error_handler);
+     cubeb_alsa_error_handler_set = 1;
+   }
+   pthread_mutex_unlock(&cubeb_alsa_mutex);
+@@ -680,6 +780,8 @@ alsa_init(cubeb ** context, char const * context_name)
+   ctx = calloc(1, sizeof(*ctx));
+   assert(ctx);
+ 
++  ctx->libasound = libasound;
++
+   ctx->ops = &alsa_ops;
+ 
+   r = pthread_mutex_init(&ctx->mutex, NULL);
+@@ -729,7 +831,7 @@ alsa_init(cubeb ** context, char const * context_name)
+        config fails with EINVAL, the PA PCM is too old for this workaround. */
+     if (r == -EINVAL) {
+       pthread_mutex_lock(&cubeb_alsa_mutex);
+-      snd_config_delete(ctx->local_config);
++      WRAP(snd_config_delete)(ctx->local_config);
+       pthread_mutex_unlock(&cubeb_alsa_mutex);
+       ctx->local_config = NULL;
+     } else if (r >= 0) {
+@@ -768,9 +870,13 @@ alsa_destroy(cubeb * ctx)
+   pthread_mutex_destroy(&ctx->mutex);
+   free(ctx->fds);
+ 
++  if (ctx->libasound) {
++    dlclose(ctx->libasound);
++  }
++
+   if (ctx->local_config) {
+     pthread_mutex_lock(&cubeb_alsa_mutex);
+-    snd_config_delete(ctx->local_config);
++    WRAP(snd_config_delete)(ctx->local_config);
+     pthread_mutex_unlock(&cubeb_alsa_mutex);
+   }
+ 
+@@ -838,7 +944,7 @@ alsa_stream_init(cubeb * ctx, cubeb_stream ** stream, char const * stream_name,
+     return CUBEB_ERROR;
+   }
+ 
+-  r = snd_pcm_nonblock(stm->pcm, 1);
++  r = WRAP(snd_pcm_nonblock)(stm->pcm, 1);
+   assert(r == 0);
+ 
+   latency_us = latency_frames * 1e6 / stm->params.rate;
+@@ -855,7 +961,7 @@ alsa_stream_init(cubeb * ctx, cubeb_stre
+     latency_us = latency_us < min_latency ? min_latency: latency_us;
+   }
+ 
+-  r = snd_pcm_set_params(stm->pcm, format, SND_PCM_ACCESS_RW_INTERLEAVED,
++  r = WRAP(snd_pcm_set_params)(stm->pcm, format, SND_PCM_ACCESS_RW_INTERLEAVED,
+                          stm->params.channels, stm->params.rate, 1,
+                          latency_us);
+   if (r < 0) {
+@@ -867,15 +973,15 @@ alsa_stream_init(cubeb * ctx, cubeb_stre
+     return CUBEB_ERROR_INVALID_FORMAT;
+   }
+ 
+-  r = snd_pcm_get_params(stm->pcm, &stm->buffer_size, &period_size);
++  r = WRAP(snd_pcm_get_params)(stm->pcm, &stm->buffer_size, &period_size);
+   assert(r == 0);
+ 
+-  stm->nfds = snd_pcm_poll_descriptors_count(stm->pcm);
++  stm->nfds = WRAP(snd_pcm_poll_descriptors_count)(stm->pcm);
+   assert(stm->nfds > 0);
+ 
+   stm->saved_fds = calloc(stm->nfds, sizeof(struct pollfd));
+   assert(stm->saved_fds);
+-  r = snd_pcm_poll_descriptors(stm->pcm, stm->saved_fds, stm->nfds);
++  r = WRAP(snd_pcm_poll_descriptors)(stm->pcm, stm->saved_fds, stm->nfds);
+   assert((nfds_t) r == stm->nfds);
+ 
+   r = pthread_cond_init(&stm->cond, NULL);
+@@ -895,7 +1001,7 @@ alsa_stream_destroy(cubeb_stream * stm)
+   pthread_mutex_lock(&stm->mutex);
+   if (stm->pcm) {
+     if (stm->state == DRAINING) {
+-      snd_pcm_drain(stm->pcm);
++      WRAP(snd_pcm_drain)(stm->pcm);
+     }
+     alsa_locked_pcm_close(stm->pcm);
+     stm->pcm = NULL;
+@@ -938,12 +1044,12 @@ alsa_get_max_channel_count(cubeb * ctx, uint32_t * max_channels)
+     return CUBEB_ERROR;
+   }
+ 
+-  r = snd_pcm_hw_params_any(stm->pcm, hw_params);
++  r = WRAP(snd_pcm_hw_params_any)(stm->pcm, hw_params);
+   if (r < 0) {
+     return CUBEB_ERROR;
+   }
+ 
+-  r = snd_pcm_hw_params_get_channels_max(hw_params, max_channels);
++  r = WRAP(snd_pcm_hw_params_get_channels_max)(hw_params, max_channels);
+   if (r < 0) {
+     return CUBEB_ERROR;
+   }
+@@ -969,34 +1075,34 @@ alsa_get_preferred_sample_rate(cubeb * c
+ 
+   /* get a pcm, disabling resampling, so we get a rate the
+    * hardware/dmix/pulse/etc. supports. */
+-  r = snd_pcm_open(&pcm, CUBEB_ALSA_PCM_NAME, SND_PCM_STREAM_PLAYBACK, SND_PCM_NO_AUTO_RESAMPLE);
++  r = WRAP(snd_pcm_open)(&pcm, CUBEB_ALSA_PCM_NAME, SND_PCM_STREAM_PLAYBACK, SND_PCM_NO_AUTO_RESAMPLE);
+   if (r < 0) {
+     return CUBEB_ERROR;
+   }
+ 
+-  r = snd_pcm_hw_params_any(pcm, hw_params);
++  r = WRAP(snd_pcm_hw_params_any)(pcm, hw_params);
+   if (r < 0) {
+-    snd_pcm_close(pcm);
++    WRAP(snd_pcm_close)(pcm);
+     return CUBEB_ERROR;
+   }
+ 
+-  r = snd_pcm_hw_params_get_rate(hw_params, rate, &dir);
++  r = WRAP(snd_pcm_hw_params_get_rate)(hw_params, rate, &dir);
+   if (r >= 0) {
+     /* There is a default rate: use it. */
+-    snd_pcm_close(pcm);
++    WRAP(snd_pcm_close)(pcm);
+     return CUBEB_OK;
+   }
+ 
+   /* Use a common rate, alsa may adjust it based on hw/etc. capabilities. */
+   *rate = 44100;
+ 
+-  r = snd_pcm_hw_params_set_rate_near(pcm, hw_params, rate, NULL);
++  r = WRAP(snd_pcm_hw_params_set_rate_near)(pcm, hw_params, rate, NULL);
+   if (r < 0) {
+-    snd_pcm_close(pcm);
++    WRAP(snd_pcm_close)(pcm);
+     return CUBEB_ERROR;
+   }
+ 
+-  snd_pcm_close(pcm);
++  WRAP(snd_pcm_close)(pcm);
+ 
+   return CUBEB_OK;
+ }
+@@ -1013,7 +1119,7 @@ alsa_stream_start(cubeb_stream * stm)
+   ctx = stm->context;
+ 
+   pthread_mutex_lock(&stm->mutex);
+-  snd_pcm_pause(stm->pcm, 0);
++  WRAP(snd_pcm_pause)(stm->pcm, 0);
+   gettimeofday(&stm->last_activity, NULL);
+   pthread_mutex_unlock(&stm->mutex);
+ 
+@@ -1047,7 +1153,7 @@ alsa_stream_stop(cubeb_stream * stm)
+   pthread_mutex_unlock(&ctx->mutex);
+ 
+   pthread_mutex_lock(&stm->mutex);
+-  snd_pcm_pause(stm->pcm, 1);
++  WRAP(snd_pcm_pause)(stm->pcm, 1);
+   pthread_mutex_unlock(&stm->mutex);
+ 
+   return CUBEB_OK;
+@@ -1063,8 +1169,8 @@ alsa_stream_get_position(cubeb_stream * stm, uint64_t * position)
+   pthread_mutex_lock(&stm->mutex);
+ 
+   delay = -1;
+-  if (snd_pcm_state(stm->pcm) != SND_PCM_STATE_RUNNING ||
+-      snd_pcm_delay(stm->pcm, &delay) != 0) {
++  if (WRAP(snd_pcm_state)(stm->pcm) != SND_PCM_STATE_RUNNING ||
++      WRAP(snd_pcm_delay)(stm->pcm, &delay) != 0) {
+     *position = stm->last_position;
+     pthread_mutex_unlock(&stm->mutex);
+     return CUBEB_OK;
+@@ -1089,7 +1195,7 @@ alsa_stream_get_latency(cubeb_stream * stm, uint32_t * latency)
+   snd_pcm_sframes_t delay;
+   /* This function returns the delay in frames until a frame written using
+      snd_pcm_writei is sent to the DAC. The DAC delay should be < 1ms anyways. */
+-  if (snd_pcm_delay(stm->pcm, &delay)) {
++  if (WRAP(snd_pcm_delay)(stm->pcm, &delay)) {
+     return CUBEB_ERROR;
+   }
+ 
+diff --git media/libcubeb/src/cubeb_oss.c media/libcubeb/src/cubeb_oss.c
+new file mode 100644
+index 0000000..5e38e27
+--- /dev/null
++++ media/libcubeb/src/cubeb_oss.c
+@@ -0,0 +1,442 @@
++/*
++ * Copyright © 2014 Mozilla Foundation
++ *
++ * This program is made available under an ISC-style license.  See the
++ * accompanying file LICENSE for details.
++ */
++#if defined(HAVE_SYS_SOUNDCARD_H)
++#include <sys/soundcard.h>
++#else
++#include <soundcard.h>
++#endif
++#include <unistd.h>
++#include <stdlib.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++#include <sys/ioctl.h>
++#include <errno.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <assert.h>
++
++#include "cubeb/cubeb.h"
++#include "cubeb-internal.h"
++
++#ifndef CUBEB_OSS_DEFAULT_OUTPUT
++#define CUBEB_OSS_DEFAULT_OUTPUT "/dev/dsp"
++#endif
++
++#define OSS_BUFFER_SIZE 1024
++
++struct cubeb {
++  struct cubeb_ops const * ops;
++};
++
++struct cubeb_stream {
++  cubeb * context;
++
++  cubeb_data_callback data_callback;
++  cubeb_state_callback state_callback;
++  void * user_ptr;
++  float volume;
++  float panning;
++
++  pthread_mutex_t state_mutex;
++  pthread_cond_t state_cond;
++
++  int running;
++  int stopped;
++  int floating;
++
++  /* These two vars are needed to support old versions of OSS */
++  unsigned int position_bytes;
++  unsigned int last_position_bytes;
++
++  uint64_t written_frags; /* The number of fragments written to /dev/dsp */
++  uint64_t missed_frags; /* fragments output with stopped stream */
++
++  cubeb_stream_params params;
++  int fd;
++  pthread_t th;
++};
++
++static struct cubeb_ops const oss_ops;
++
++int oss_init(cubeb ** context, char const * context_name)
++{
++  cubeb* ctx = (cubeb*)malloc(sizeof(cubeb));
++  ctx->ops = &oss_ops;
++  *context = ctx;
++  return CUBEB_OK;
++}
++
++static void oss_destroy(cubeb *ctx)
++{
++  free(ctx);
++}
++
++static char const * oss_get_backend_id(cubeb * context)
++{
++  static char oss_name[] = "oss";
++  return oss_name;
++}
++
++static int oss_get_max_channel_count(cubeb * ctx, uint32_t * max_channels)
++{
++  *max_channels = 2; /* Let's support only stereo for now */
++  return CUBEB_OK;
++}
++
++static int oss_get_min_latency(cubeb * context, cubeb_stream_params params,
++                               uint32_t * latency_ms)
++{
++  /* 40ms is a big enough number to work ok */
++  *latency_ms = 40;
++  return CUBEB_OK;
++}
++
++static int oss_get_preferred_sample_rate(cubeb *context, uint32_t * rate)
++{
++  /* 48000 seems a prefered choice for most audio devices
++   * and a good choice for OSS */
++  *rate = 48000;
++  return CUBEB_OK;
++}
++
++static void run_state_callback(cubeb_stream *stream, cubeb_state state)
++{
++  if (stream->state_callback) {
++    stream->state_callback(stream, stream->user_ptr, state);
++  }
++}
++
++static long run_data_callback(cubeb_stream *stream, void *buffer, long nframes)
++{
++  long got = 0;
++  pthread_mutex_lock(&stream->state_mutex);
++  if (stream->data_callback && stream->running && !stream->stopped) {
++    pthread_mutex_unlock(&stream->state_mutex);
++    got = stream->data_callback(stream, stream->user_ptr, NULL, buffer, nframes);
++  } else {
++    pthread_mutex_unlock(&stream->state_mutex);
++  }
++  return got;
++}
++
++static void apply_volume_int(int16_t* buffer, unsigned int n,
++                             float volume, float panning)
++{
++  float left = volume;
++  float right = volume;
++  unsigned int i;
++  int pan[2];
++  if (panning<0) {
++    right *= (1+panning);
++  } else {
++    left *= (1-panning);
++  }
++  pan[0] = 128.0*left;
++  pan[1] = 128.0*right;
++  for(i=0; i<n; i++){
++    buffer[i] = ((int)buffer[i])*pan[i%2]/128;
++  }
++}
++
++static void apply_volume_float(float* buffer, unsigned int n,
++                               float volume, float panning)
++{
++  float left = volume;
++  float right = volume;
++  unsigned int i;
++  float pan[2];
++  if (panning<0) {
++    right *= (1+panning);
++  } else {
++    left *= (1-panning);
++  }
++  pan[0] = left;
++  pan[1] = right;
++  for(i=0; i<n; i++){
++    buffer[i] = buffer[i]*pan[i%2];
++  }
++}
++
++
++static void *writer(void *stm)
++{
++  cubeb_stream* stream = (cubeb_stream*)stm;
++  int16_t buffer[OSS_BUFFER_SIZE];
++  float f_buffer[OSS_BUFFER_SIZE];
++  int got;
++  unsigned long i;
++  while (stream->running) {
++    pthread_mutex_lock(&stream->state_mutex);
++    if (stream->stopped) {
++      pthread_mutex_unlock(&stream->state_mutex);
++      run_state_callback(stream, CUBEB_STATE_STOPPED);
++      pthread_mutex_lock(&stream->state_mutex);
++      while (stream->stopped) {
++        pthread_cond_wait(&stream->state_cond, &stream->state_mutex);
++      }
++      pthread_mutex_unlock(&stream->state_mutex);
++      run_state_callback(stream, CUBEB_STATE_STARTED);
++      continue;
++    }
++    pthread_mutex_unlock(&stream->state_mutex);
++    if (stream->floating) {
++      got = run_data_callback(stream, f_buffer,
++                              OSS_BUFFER_SIZE/stream->params.channels);
++      apply_volume_float(f_buffer, got*stream->params.channels,
++                                   stream->volume, stream->panning);
++      for (i=0; i<((unsigned long)got)*stream->params.channels; i++) {
++        /* Clipping is prefered to overflow */
++	if(f_buffer[i]>=1.0){
++	  f_buffer[i]=1.0;
++	}
++        if(f_buffer[i]<=-1.0){
++	  f_buffer[i]=-1.0;
++	}
++        /* One might think that multipling by 32767.0 is logical but results in clipping */
++        buffer[i] = f_buffer[i]*32767.0;
++      }
++    } else {
++      got = run_data_callback(stream, buffer,
++                              OSS_BUFFER_SIZE/stream->params.channels);
++      apply_volume_int(buffer, got*stream->params.channels,
++                               stream->volume, stream->panning);
++    }
++    if (got<0) {
++      run_state_callback(stream, CUBEB_STATE_ERROR);
++      break;
++    }
++    if (!got) {
++      run_state_callback(stream, CUBEB_STATE_DRAINED);
++    }
++    if (got) {
++      size_t i = 0;
++      size_t s = got*stream->params.channels*sizeof(int16_t);
++      while (i < s) {
++        ssize_t n = write(stream->fd, ((char*)buffer) + i, s - i);
++        if (n<=0) {
++          run_state_callback(stream, CUBEB_STATE_ERROR);
++          break;
++        }
++        i+=n;
++      }
++      stream->written_frags+=got;
++    }
++  }
++  return NULL;
++}
++
++static void oss_try_set_latency(cubeb_stream* stream, unsigned int latency)
++{
++  unsigned int latency_bytes, n_frag;
++  int frag;
++  /* fragment size of 1024 is a good choice with good chances to be accepted */
++  unsigned int frag_size=1024;
++  unsigned int frag_log=10; /* 2^frag_log = frag_size */
++  latency_bytes =
++    latency*stream->params.rate*stream->params.channels*sizeof(uint16_t)/1000;
++  n_frag = latency_bytes>>frag_log;
++  frag = (n_frag<<16) | frag_log;
++  /* Even if this fails we wish to continue, not checking for errors */
++  ioctl(stream->fd, SNDCTL_DSP_SETFRAGMENT, &frag);
++}
++
++static int oss_stream_init(cubeb * context, cubeb_stream ** stm,
++                           char const * stream_name,
++                           cubeb_devid input_device,
++                           cubeb_stream_params * input_stream_params,
++                           cubeb_devid output_device,
++                           cubeb_stream_params * output_stream_params,
++                           unsigned int latency,
++                           cubeb_data_callback data_callback,
++                           cubeb_state_callback state_callback, void * user_ptr)
++{
++  cubeb_stream* stream = (cubeb_stream*)malloc(sizeof(cubeb_stream));
++  stream->context = context;
++  stream->data_callback = data_callback;
++  stream->state_callback = state_callback;
++  stream->user_ptr = user_ptr;
++
++  assert(!input_stream_params && "not supported.");
++  if (input_device || output_device) {
++    /* Device selection not yet implemented. */
++    return CUBEB_ERROR_DEVICE_UNAVAILABLE;
++  }
++
++  if ((stream->fd = open(CUBEB_OSS_DEFAULT_OUTPUT, O_WRONLY)) == -1) {
++    free(stream);
++    return CUBEB_ERROR;
++  }
++#define SET(what, to) do { unsigned int i = to; \
++    int j = ioctl(stream->fd, what, &i); \
++    if (j == -1 || i != to) { \
++      close(stream->fd); \
++      free(stream); \
++      return CUBEB_ERROR_INVALID_FORMAT; } } while (0)
++
++  stream->params = *output_stream_params;
++  stream->volume = 1.0;
++  stream->panning = 0.0;
++
++  oss_try_set_latency(stream, latency); 
++
++  stream->floating = 0;
++  SET(SNDCTL_DSP_CHANNELS, stream->params.channels);
++  SET(SNDCTL_DSP_SPEED, stream->params.rate);
++  switch (stream->params.format) {
++    case CUBEB_SAMPLE_S16LE:
++      SET(SNDCTL_DSP_SETFMT, AFMT_S16_LE);
++    break;
++    case CUBEB_SAMPLE_S16BE:
++      SET(SNDCTL_DSP_SETFMT, AFMT_S16_BE);
++    break;
++    case CUBEB_SAMPLE_FLOAT32LE:
++      SET(SNDCTL_DSP_SETFMT, AFMT_S16_NE);
++      stream->floating = 1;
++    break;
++    default:
++      close(stream->fd);
++      free(stream);
++      return CUBEB_ERROR;
++  }
++
++
++  pthread_mutex_init(&stream->state_mutex, NULL);
++  pthread_cond_init(&stream->state_cond, NULL);
++
++  stream->running = 1;
++  stream->stopped = 1;
++  stream->position_bytes = 0;
++  stream->last_position_bytes = 0;
++  stream->written_frags = 0;
++  stream->missed_frags = 0;
++
++  pthread_create(&stream->th, NULL, writer, (void*)stream);
++
++  *stm = stream;
++
++  return CUBEB_OK;
++}
++
++static void oss_stream_destroy(cubeb_stream * stream)
++{
++  pthread_mutex_lock(&stream->state_mutex);
++
++  stream->running = 0;
++  stream->stopped = 0;
++  pthread_cond_signal(&stream->state_cond);
++
++  pthread_mutex_unlock(&stream->state_mutex);
++
++  pthread_join(stream->th, NULL);
++
++  pthread_mutex_destroy(&stream->state_mutex);
++  pthread_cond_destroy(&stream->state_cond);
++  close(stream->fd);
++  free(stream);
++}
++
++static int oss_stream_get_latency(cubeb_stream * stream, uint32_t * latency)
++{
++  if (ioctl(stream->fd, SNDCTL_DSP_GETODELAY, latency)==-1) {
++    return CUBEB_ERROR;
++  }
++  /* Convert latency from bytes to frames */
++  *latency /= stream->params.channels*sizeof(int16_t);
++  return CUBEB_OK;
++}
++
++
++static int oss_stream_current_optr(cubeb_stream * stream, uint64_t * position)
++{
++  count_info ci;
++  /* Unfortunately, this ioctl is only available in OSS 4.x */
++#ifdef SNDCTL_DSP_CURRENT_OPTR
++  oss_count_t count;
++  if (ioctl(stream->fd, SNDCTL_DSP_CURRENT_OPTR, &count) != -1) {
++    *position = count.samples;// + count.fifo_samples;
++    return CUBEB_OK;
++  }
++#endif
++  /* Fall back to this ioctl in case the previous one fails */
++  if (ioctl(stream->fd, SNDCTL_DSP_GETOPTR, &ci) == -1) {
++    return CUBEB_ERROR;
++  }
++  /* ci.bytes is only 32 bit and will start to wrap after arithmetic overflow */
++  stream->position_bytes += ci.bytes - stream->last_position_bytes;
++  stream->last_position_bytes = ci.bytes;
++  *position = stream->position_bytes/stream->params.channels/sizeof(int16_t);
++  return CUBEB_OK;
++}
++
++static int oss_stream_get_position(cubeb_stream * stream, uint64_t * position)
++{
++  if ( oss_stream_current_optr(stream, position) == CUBEB_OK ){
++    *position -= stream->missed_frags;
++    return CUBEB_OK;
++  }
++  /* If no correct method to get position works we resort to this */
++  *position = stream->written_frags;
++  return CUBEB_OK;
++}
++
++
++static int oss_stream_start(cubeb_stream * stream)
++{
++  pthread_mutex_lock(&stream->state_mutex);
++  if (stream->stopped) {
++    uint64_t ptr;
++    oss_stream_current_optr(stream, &ptr);
++    stream->missed_frags = ptr - stream->written_frags;
++    stream->stopped = 0;
++    pthread_cond_signal(&stream->state_cond);
++  }
++  pthread_mutex_unlock(&stream->state_mutex);
++  return CUBEB_OK;
++}
++
++static int oss_stream_stop(cubeb_stream * stream)
++{
++  pthread_mutex_lock(&stream->state_mutex);
++  stream->stopped = 1;
++  pthread_mutex_unlock(&stream->state_mutex);
++  return CUBEB_OK;
++}
++
++int oss_stream_set_panning(cubeb_stream * stream, float panning)
++{
++  if (stream->params.channels == 2) {
++    stream->panning=panning;
++  }
++  return CUBEB_OK;
++}
++
++int oss_stream_set_volume(cubeb_stream * stream, float volume)
++{
++  stream->volume=volume;
++  return CUBEB_OK;
++}
++
++static struct cubeb_ops const oss_ops = {
++  .init = oss_init,
++  .get_backend_id = oss_get_backend_id,
++  .get_max_channel_count = oss_get_max_channel_count,
++  .get_min_latency = oss_get_min_latency,
++  .get_preferred_sample_rate = oss_get_preferred_sample_rate,
++  .destroy = oss_destroy,
++  .stream_init = oss_stream_init,
++  .stream_destroy = oss_stream_destroy,
++  .stream_start = oss_stream_start,
++  .stream_stop = oss_stream_stop,
++  .stream_get_position = oss_stream_get_position,
++  .stream_get_latency = oss_stream_get_latency,
++  .stream_set_volume = oss_stream_set_volume,
++  .stream_set_panning = oss_stream_set_panning,
++  .stream_get_current_device = NULL,
++  .stream_device_destroy = NULL,
++  .stream_register_device_changed_callback = NULL
++};
+diff --git media/libcubeb/src/moz.build media/libcubeb/src/moz.build
+index 8b7a0dd..31212ce 100644
+--- media/libcubeb/src/moz.build
++++ media/libcubeb/src/moz.build
+@@ -17,6 +17,12 @@ if CONFIG['MOZ_ALSA']:
+     ]
+     DEFINES['USE_ALSA'] = True
+ 
++if CONFIG['MOZ_OSS']:
++    SOURCES += [
++        'cubeb_oss.c',
++    ]
++    DEFINES['USE_OSS'] = True
++
+ if CONFIG['MOZ_PULSEAUDIO']:
+     SOURCES += [
+         'cubeb_pulse.c',
+@@ -75,5 +81,6 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gonk':
+ 
+ FAIL_ON_WARNINGS = True
+ 
++CFLAGS += CONFIG['MOZ_OSS_CFLAGS']
+ CFLAGS += CONFIG['MOZ_ALSA_CFLAGS']
+ CFLAGS += CONFIG['MOZ_PULSEAUDIO_CFLAGS']
+ 
+diff --git media/libcubeb/tests/moz.build media/libcubeb/tests/moz.build
+index 1b17c7b..48b56c2 100644
+--- media/libcubeb/tests/moz.build
++++ media/libcubeb/tests/moz.build
+@@ -73,7 +73,6 @@ elif CONFIG['OS_TARGET'] == 'OpenBSD':
+         'sndio',
+     ]
+ else:
+-    OS_LIBS += CONFIG['MOZ_ALSA_LIBS']
+     OS_LIBS += CONFIG['MOZ_PULSEAUDIO_LIBS']
+ 
+ if CONFIG['GNU_CXX']:
+diff --git media/libcubeb/update.sh media/libcubeb/update.sh
+index a96badd..2f9585e 100755
+--- media/libcubeb/update.sh
++++ media/libcubeb/update.sh
+@@ -16,6 +16,7 @@ cp $1/src/cubeb_audiounit.cpp src
+ cp $1/src/cubeb_osx_run_loop.h src
+ cp $1/src/cubeb_jack.cpp src
+ cp $1/src/cubeb_opensl.c src
++cp $1/src/cubeb_oss.c src
+ cp $1/src/cubeb_panner.cpp src
+ cp $1/src/cubeb_panner.h src
+ cp $1/src/cubeb_pulse.c src
+diff --git media/webrtc/signaling/test/common.build media/webrtc/signaling/test/common.build
+index 991f03f..3d99eb5 100644
+--- media/webrtc/signaling/test/common.build
++++ media/webrtc/signaling/test/common.build
+@@ -102,8 +102,8 @@ USE_LIBS += ['mozglue']
+ OS_LIBS += CONFIG['MOZ_WEBRTC_X11_LIBS']
+ OS_LIBS += CONFIG['REALTIME_LIBS']
+ 
+-if CONFIG['MOZ_ALSA']:
+-    OS_LIBS += CONFIG['MOZ_ALSA_LIBS']
++if CONFIG['MOZ_OSS']:
++    OS_LIBS += CONFIG['MOZ_OSS_LIBS']
+ 
+ if CONFIG['MOZ_SYSTEM_JPEG']:
+     OS_LIBS += CONFIG['MOZ_JPEG_LIBS']
+diff --git toolkit/library/moz.build toolkit/library/moz.build
+index e191f13..4fb268a 100644
+--- toolkit/library/moz.build
++++ toolkit/library/moz.build
+@@ -234,8 +234,8 @@ if CONFIG['MOZ_SYSTEM_LIBVPX']:
+ if not CONFIG['MOZ_TREE_PIXMAN']:
+     OS_LIBS += CONFIG['MOZ_PIXMAN_LIBS']
+ 
+-if CONFIG['MOZ_ALSA']:
+-    OS_LIBS += CONFIG['MOZ_ALSA_LIBS']
++if CONFIG['MOZ_OSS']:
++    OS_LIBS += CONFIG['MOZ_OSS_LIBS']
+ 
+ if CONFIG['HAVE_CLOCK_MONOTONIC']:
+     OS_LIBS += CONFIG['REALTIME_LIBS']
+
+
+[FILE:1562:patches/patch-bug1186967]
+commit 64bb4e051b50
+Author: Martin Stransky <stransky@redhat.com>
+Date:   Tue Oct 17 09:50:18 2017 +0200
+
+    Bug 1186967 - ignore double-click on WM without _NET_WM_MOVERESIZE support, r=jhorak
+    
+    MozReview-Commit-ID: 2Vs6i5leero
+    
+    --HG--
+    extra : rebase_source : d8f2bbaf9ef9b2025478f029a68ee7e87e07de79
+---
+ widget/gtk/nsWindow.cpp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git widget/gtk/nsWindow.cpp widget/gtk/nsWindow.cpp
+index eb2f0e5e95cd..955327297ac9 100644
+--- widget/gtk/nsWindow.cpp
++++ widget/gtk/nsWindow.cpp
+@@ -6444,6 +6444,22 @@ nsWindow::GetDragInfo(WidgetMouseEvent* aMouseEvent,
+         return false;
+     }
+ 
++    if (mIsX11Display) {
++      // Workaround for https://bugzilla.gnome.org/show_bug.cgi?id=789054
++      // To avoid crashes disable double-click on WM without _NET_WM_MOVERESIZE.
++      // See _should_perform_ewmh_drag() at gdkwindow-x11.c
++      GdkScreen* screen = gdk_window_get_screen(gdk_window);
++      GdkAtom atom = gdk_atom_intern("_NET_WM_MOVERESIZE", FALSE);
++      if (!gdk_x11_screen_supports_net_wm_hint(screen, atom)) {
++          static unsigned int lastTimeStamp = 0;
++          if (lastTimeStamp != aMouseEvent->mTime) {
++              lastTimeStamp = aMouseEvent->mTime;
++          } else {
++              return false;
++          }
++      }
++    }
++
+     // FIXME: It would be nice to have the widget position at the time
+     // of the event, but it's relatively unlikely that the widget has
+     // moved since the mousedown.  (On the other hand, it's quite likely
+
+
+[FILE:2805:patches/patch-bug1288587]
+diff --git a/build/moz.configure/init.configure b/build/moz.configure/init.configure
+index 855214a..1e91d51 100644
+--- build/moz.configure/init.configure
++++ build/moz.configure/init.configure
+@@ -165,16 +165,17 @@ option(env='PYTHON', nargs=1, help='Python interpreter')
+ # ==============================================================
+ @depends('PYTHON', check_build_environment, mozconfig, '--help')
+ @imports('os')
+ @imports('sys')
+ @imports('subprocess')
+ @imports(_from='mozbuild.configure.util', _import='LineIO')
+ @imports(_from='mozbuild.virtualenv', _import='VirtualenvManager')
+ @imports(_from='mozbuild.virtualenv', _import='verify_python_version')
++@imports(_from='__builtin__', _import='KeyError')
+ @imports('distutils.sysconfig')
+ def virtualenv_python(env_python, build_env, mozconfig, help):
+     if help:
+         return
+ 
+     python = env_python[0] if env_python else None
+ 
+     # Ideally we'd rely on the mozconfig injection from mozconfig_options,
+@@ -184,16 +185,22 @@ def virtualenv_python(env_python, build_env, mozconfig, help):
+         if 'PYTHON' in mozconfig['env']['added']:
+             python = mozconfig['env']['added']['PYTHON']
+         elif 'PYTHON' in mozconfig['env']['modified']:
+             python = mozconfig['env']['modified']['PYTHON'][1]
+         elif 'PYTHON' in mozconfig['vars']['added']:
+             python = mozconfig['vars']['added']['PYTHON']
+         elif 'PYTHON' in mozconfig['vars']['modified']:
+             python = mozconfig['vars']['modified']['PYTHON'][1]
++        for i in ('env', 'vars'):
++            for j in ('added', 'modified'):
++                try:
++                    del mozconfig[i][j]['PYTHON']
++                except KeyError:
++                    pass
+ 
+     with LineIO(lambda l: log.error(l)) as out:
+         verify_python_version(out)
+     topsrcdir, topobjdir = build_env.topsrcdir, build_env.topobjdir
+     if topobjdir.endswith('/js/src'):
+         topobjdir = topobjdir[:-7]
+ 
+     with LineIO(lambda l: log.info(l)) as out:
+@@ -219,17 +226,20 @@ def virtualenv_python(env_python, build_env, mozconfig, help):
+         log.info('Creating Python environment')
+         manager.build(python)
+ 
+     python = normsep(manager.python_path)
+ 
+     if python != normsep(sys.executable):
+         log.info('Reexecuting in the virtualenv')
+         if env_python:
+-            del os.environ['PYTHON']
++            try:
++                del os.environ['PYTHON']
++            except KeyError:
++                pass
+         # One would prefer to use os.execl, but that's completely borked on
+         # Windows.
+         sys.exit(subprocess.call([python] + sys.argv))
+ 
+     # We are now in the virtualenv
+     if not distutils.sysconfig.get_python_lib():
+         die('Could not determine python site packages directory')
+ 
+
+
+[FILE:1390:patches/patch-bug1321877]
+commit a13d95795217
+Author:  <tharvik@gmail.com>
+Date:   Thu Dec 8 18:20:12 2016 -0600
+
+    Bug 1321877. Fix compiler warnings in Downscaler.h when skia is not enabled. r=tnikkel
+---
+ image/Downscaler.h | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git image/Downscaler.h image/Downscaler.h
+index 21179a38f200..0bdef0eaa646 100644
+--- image/Downscaler.h
++++ image/Downscaler.h
+@@ -154,14 +154,14 @@ private:
+ class Downscaler
+ {
+ public:
+-  explicit Downscaler(const nsIntSize&)
++  explicit Downscaler(const nsIntSize&) : mScale(1.0, 1.0)
+   {
+     MOZ_RELEASE_ASSERT(false, "Skia is not enabled");
+   }
+ 
+-  const nsIntSize& OriginalSize() const { return nsIntSize(); }
+-  const nsIntSize& TargetSize() const { return nsIntSize(); }
+-  const gfxSize& Scale() const { return gfxSize(1.0, 1.0); }
++  const nsIntSize& OriginalSize() const { return mSize; }
++  const nsIntSize& TargetSize() const { return mSize; }
++  const gfxSize& Scale() const { return mScale; }
+ 
+   nsresult BeginFrame(const nsIntSize&, const Maybe<nsIntRect>&, uint8_t*, bool, bool = false)
+   {
+@@ -177,6 +177,9 @@ public:
+   DownscalerInvalidRect TakeInvalidRect() { return DownscalerInvalidRect(); }
+   void ResetForNextProgressivePass() { }
+   const nsIntSize FrameSize() const { return nsIntSize(0, 0); }
++private:
++  nsIntSize mSize;
++  gfxSize mScale;
+ };
+ 
+ #endif // MOZ_ENABLE_SKIA
+
+
+[FILE:2359:patches/patch-bug1338655]
+commit bbd48a5613c8
+Author: Ralph Giles <giles@mozilla.com>
+Date:   Fri Feb 10 12:58:18 2017 -0800
+
+    Bug 1338655 - Don't try to build mp4parse bindings. r=froydnj
+    
+    We use the cheddar crate to generate a C header file
+    for our mp4parse_capi wrapper crate. Currently we
+    do this at code check-in time via update-rust.sh.
+    
+    Cargo 0.18 and later will try to execute a build.rs
+    file in the crate source tree regardless of whether
+    it's specified in Cargo.toml so patching out that
+    line just results in 'crate cheddar not found'.
+    
+    This change restores the old behaviour by substituting
+    a 'build = false' line instead.
+    
+    We do have syntex vendored, but we don't currently build
+    it by default, so I prefer this solution to just vendoring
+    cheddar and generating the header at build time. The syntex
+    crate is quite large and adds significantly to our compile
+    time.
+    
+    MozReview-Commit-ID: InJRRODWAdP
+    
+    --HG--
+    extra : rebase_source : 29378fcbc86015ce6cc22dc66d38a43ddbac204e
+---
+ media/libstagefright/binding/mp4parse-cargo.patch     | 5 +++--
+ media/libstagefright/binding/mp4parse_capi/Cargo.toml | 2 ++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git media/libstagefright/binding/mp4parse-cargo.patch media/libstagefright/binding/mp4parse-cargo.patch
+index 1dd13d20472a..bfa0ab74b424 100644
+--- media/libstagefright/binding/mp4parse-cargo.patch
++++ media/libstagefright/binding/mp4parse-cargo.patch
+@@ -25,12 +25,13 @@ diff --git a/media/libstagefright/binding/mp4parse_cap
+ index aeeebc65..5c0836a 100644
+ --- a/media/libstagefright/binding/mp4parse_capi/Cargo.toml
+ +++ b/media/libstagefright/binding/mp4parse_capi/Cargo.toml
+-@@ -18,17 +18,9 @@ exclude = [
++@@ -18,17 +18,11 @@ exclude = [
+    "*.mp4",
+  ]
+  
+ -build = "build.rs"
+--
+++build = false
++ 
+  [dependencies]
+  "mp4parse" = {version = "0.6.0", path = "../mp4parse"}
+  
+diff --git media/libstagefright/binding/mp4parse_capi/Cargo.toml media/libstagefright/binding/mp4parse_capi/Cargo.toml
+index aee7ee947151..d7e3f55119d3 100644
+--- media/libstagefright/binding/mp4parse_capi/Cargo.toml
++++ media/libstagefright/binding/mp4parse_capi/Cargo.toml
+@@ -18,6 +18,8 @@ exclude = [
+   "*.mp4",
+ ]
+ 
++build = false
++
+ [dependencies]
+ byteorder = "1.0.0"
+ "mp4parse" = {version = "0.6.0", path = "../mp4parse"}
+
+
+[FILE:1238:patches/patch-bug1380706]
+commit 10b55207992c
+Author: Kai Engert <kaie@kuix.de>
+Date:   Fri Jul 14 15:31:30 2017 +0200
+
+    Bug 1380706, PSM should depend on mozStorage, as a workaround for a sqlite3_config race, r=keeler
+---
+ security/manager/ssl/nsNSSComponent.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git security/manager/ssl/nsNSSComponent.cpp security/manager/ssl/nsNSSComponent.cpp
+index f51f8af47d51..a82c1ed61fba 100644
+--- security/manager/ssl/nsNSSComponent.cpp
++++ security/manager/ssl/nsNSSComponent.cpp
+@@ -13,6 +13,7 @@
+ #include "SharedSSLState.h"
+ #include "cert.h"
+ #include "certdb.h"
++#include "mozStorageCID.h"
+ #include "mozilla/ArrayUtils.h"
+ #include "mozilla/Assertions.h"
+ #include "mozilla/Casting.h"
+@@ -2032,6 +2033,14 @@ nsNSSComponent::Init()
+     return NS_ERROR_NOT_AVAILABLE;
+   }
+ 
++  // To avoid a sqlite3_config race in NSS init, as a workaround for
++  // bug 730495, we require the storage service to get initialized first.
++  nsCOMPtr<nsISupports> storageService =
++    do_GetService(MOZ_STORAGE_SERVICE_CONTRACTID);
++  if (!storageService) {
++    return NS_ERROR_NOT_AVAILABLE;
++  }
++
+   MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("Beginning NSS initialization\n"));
+ 
+   nsresult rv = InitializePIPNSSBundle();
+
+
+[FILE:341:patches/patch-bug1386957]
+https://github.com/kinetiknz/cubeb/commit/16f9ccc064f2
+
+--- media/libcubeb/src/cubeb_jack.cpp.orig	2017-07-07 05:37:16 UTC
++++ media/libcubeb/src/cubeb_jack.cpp
+@@ -8,7 +8,9 @@
+  */
+ #define _DEFAULT_SOURCE
+ #define _BSD_SOURCE
++#ifndef __FreeBSD__
+ #define _POSIX_SOURCE
++#endif
+ #include <algorithm>
+ #include <dlfcn.h>
+ #include <limits>
+
+
+[FILE:2435:patches/patch-bug1412558]
+diff --git dom/media/flac/FlacDecoder.cpp dom/media/flac/FlacDecoder.cpp
+index 53fc3c9937f7..b23771ab80fa 100644
+--- dom/media/flac/FlacDecoder.cpp
++++ dom/media/flac/FlacDecoder.cpp
+@@ -7,6 +7,7 @@
+ #include "FlacDecoder.h"
+ #include "MediaContainerType.h"
+ #include "MediaPrefs.h"
++#include "PDMFactory.h"
+ 
+ namespace mozilla {
+ 
+@@ -15,6 +16,10 @@ FlacDecoder::IsEnabled()
+ {
+ #ifdef MOZ_FFVPX
+   return MediaPrefs::FlacEnabled();
++#elif defined(MOZ_FFMPEG)
++  RefPtr<PDMFactory> platform = new PDMFactory();
++  return MediaPrefs::FlacEnabled() && platform->SupportsMimeType(NS_LITERAL_CSTRING("audio/flac"),
++                                    /* DecoderDoctorDiagnostics* */ nullptr);
+ #else
+   // Until bug 1295886 is fixed.
+   return false;
+diff --git media/ffvpx/README_MOZILLA media/ffvpx/README_MOZILLA
+index 5d3a6037efe0..43144b726a92 100644
+--- media/ffvpx/README_MOZILLA
++++ media/ffvpx/README_MOZILLA
+@@ -17,14 +17,6 @@ configuration files were generated as follow using the configure script:
+ config*:
+ replace: /HAVE_(MALLOC_H|ARC4RANDOM|LOCALTIME_R|MEMALIGN|POSIX_MEMALIGN)/d
+ 
+-config_darwin32.h:
+-add to configure command: --disable-asm --disable-yasm --cc='clang -m32'
+-
+-config_unix32.h:
+-add to configure command: --disable-asm --disable-yasm --cc='clang -m32'
+-replace: s/HAVE_SYSCTL 1/HAVE_SYSCTL 0/ and s/HAVE_MEMALIGN 1/HAVE_MEMALIGN 0/ and s/HAVE_POSIX_MEMALIGN 1/HAVE_POSIX_MEMALIGN 0/
+-
+-
+ config_unix64.h/config_unix64.asm:
+ replace: s/HAVE_SYSCTL 1/HAVE_SYSCTL 0
+ 
+diff --git media/ffvpx/config.h media/ffvpx/config.h
+index dab01e05cd65..26ebe529bd98 100644
+--- media/ffvpx/config.h
++++ media/ffvpx/config.h
+@@ -27,17 +27,9 @@
+ #define HAVE_LIBC_MSVCRT 0
+ #endif
+ #elif defined(XP_DARWIN)
+-#if defined(HAVE_64BIT_BUILD)
+ #include "config_darwin64.h"
+-#else
+-#include "config_darwin32.h"
+-#endif
+ #elif defined(XP_UNIX)
+-#if defined(HAVE_64BIT_BUILD)
+ #include "config_unix64.h"
+-#else
+-#include "config_unix32.h"
+-#endif
+ #endif
+ #include "config_common.h"
+ #endif // MOZ_FFVPX_CONFIG_H
+diff --git old-configure.in old-configure.in
+index b8ce71278548..410be683c2f6 100644
+--- old-configure.in
++++ old-configure.in
+@@ -3279,11 +3279,11 @@ dnl = FFmpeg's ffvpx configuration
+ dnl ========================================================
+ 
+ MOZ_FFVPX=
+-case "$CPU_ARCH" in
+-  x86)
++case "$OS_ARCH:$CPU_ARCH" in
++  WINNT:x86)
+       MOZ_FFVPX=1
+   ;;
+-  x86_64)
++  *:x86_64)
+       MOZ_FFVPX=1
+   ;;
+ esac
+
+
+[FILE:3265:patches/patch-bug1414440]
+Always build libyuv x86 optimizations with Clang.
+
+diff --git media/libyuv/include/libyuv/compare_row.h media/libyuv/include/libyuv/compare_row.h
+index 38a957b2ce33..59ec4b30c238 100644
+--- media/libyuv/include/libyuv/compare_row.h
++++ media/libyuv/include/libyuv/compare_row.h
+@@ -19,7 +19,7 @@ extern "C" {
+ #endif
+ 
+ #if defined(__pnacl__) || defined(__CLR_VER) || \
+-    (defined(__i386__) && !defined(__SSE2__))
++    (defined(__i386__) && !defined(__SSE__) && !defined(__clang__))
+ #define LIBYUV_DISABLE_X86
+ #endif
+ // MemorySanitizer does not support assembly code yet. http://crbug.com/344505
+diff --git media/libyuv/include/libyuv/planar_functions.h media/libyuv/include/libyuv/planar_functions.h
+index 881b0c5c6473..491c022bfe8f 100644
+--- media/libyuv/include/libyuv/planar_functions.h
++++ media/libyuv/include/libyuv/planar_functions.h
+@@ -450,7 +450,7 @@ int I420Interpolate(const uint8* src0_y, int src0_stride_y,
+                     int width, int height, int interpolation);
+ 
+ #if defined(__pnacl__) || defined(__CLR_VER) || \
+-    (defined(__i386__) && !defined(__SSE2__))
++    (defined(__i386__) && !defined(__SSE__) && !defined(__clang__))
+ #define LIBYUV_DISABLE_X86
+ #endif
+ // MemorySanitizer does not support assembly code yet. http://crbug.com/344505
+diff --git media/libyuv/include/libyuv/rotate_row.h media/libyuv/include/libyuv/rotate_row.h
+index ebc487f9abf4..59fbd10b573c 100644
+--- media/libyuv/include/libyuv/rotate_row.h
++++ media/libyuv/include/libyuv/rotate_row.h
+@@ -19,7 +19,7 @@ extern "C" {
+ #endif
+ 
+ #if defined(__pnacl__) || defined(__CLR_VER) || \
+-    (defined(__i386__) && !defined(__SSE2__))
++    (defined(__i386__) && !defined(__SSE__) && !defined(__clang__))
+ #define LIBYUV_DISABLE_X86
+ #endif
+ // MemorySanitizer does not support assembly code yet. http://crbug.com/344505
+diff --git media/libyuv/include/libyuv/row.h media/libyuv/include/libyuv/row.h
+index 069d73bd3f2e..3616ecd81c3d 100644
+--- media/libyuv/include/libyuv/row.h
++++ media/libyuv/include/libyuv/row.h
+@@ -38,7 +38,7 @@ extern "C" {
+   var = 0
+ 
+ #if defined(__pnacl__) || defined(__CLR_VER) || \
+-    (defined(__i386__) && !defined(__SSE2__))
++    (defined(__i386__) && !defined(__SSE__) && !defined(__clang__))
+ #define LIBYUV_DISABLE_X86
+ #endif
+ // MemorySanitizer does not support assembly code yet. http://crbug.com/344505
+diff --git media/libyuv/include/libyuv/scale_row.h media/libyuv/include/libyuv/scale_row.h
+index df699e6c2282..242f025b1e6e 100644
+--- media/libyuv/include/libyuv/scale_row.h
++++ media/libyuv/include/libyuv/scale_row.h
+@@ -20,7 +20,7 @@ extern "C" {
+ #endif
+ 
+ #if defined(__pnacl__) || defined(__CLR_VER) || \
+-    (defined(__i386__) && !defined(__SSE2__))
++    (defined(__i386__) && !defined(__SSE__) && !defined(__clang__))
+ #define LIBYUV_DISABLE_X86
+ #endif
+ // MemorySanitizer does not support assembly code yet. http://crbug.com/344505
+diff --git media/libyuv/linux.mk media/libyuv/linux.mk
+index ee5a3a70705a..c1a45173c9ab 100644
+--- media/libyuv/linux.mk
++++ media/libyuv/linux.mk
+@@ -78,4 +78,4 @@ cpuid: util/cpuid.c libyuv.a
+ 	$(CC) $(CFLAGS) -o $@ util/cpuid.c libyuv.a
+ 
+ clean:
+-	/bin/rm -f source/*.o *.ii *.s libyuv.a convert cpuid psnr
++	/bin/rm -f source/*.o *.ii *.s libyuv.a yuvconvert cpuid psnr
+
+
+[FILE:445:patches/patch-bug702179]
+--- js/src/moz.build.orig	2015-12-16 12:32:04.574425000 +0100
++++ js/src/moz.build	2015-12-16 12:32:09.032032000 +0100
+@@ -671,10 +671,6 @@ CFLAGS += CONFIG['MOZ_ICU_CFLAGS']
+ CXXFLAGS += CONFIG['MOZ_ICU_CFLAGS']
+ LOCAL_INCLUDES += CONFIG['MOZ_ICU_INCLUDES']
+ 
+-NO_EXPAND_LIBS = True
+-
+-DIST_INSTALL = True
+-
+ # Prepare self-hosted JS code for embedding
+ GENERATED_FILES += ['selfhosted.out.h']
+ selfhosted = GENERATED_FILES['selfhosted.out.h']
+
+
+[FILE:6039:patches/patch-bug826985]
+commit 8024d93
+Author: Henrik Gulbrandsen <henrik@gulbra.net>
+Date:   Fri Jan 4 13:49:22 2013 +0100
+
+    Bug 826985 - Support more video formats for WebRTC via libv4l2 on Linux.
+---
+ config/system-headers                                   |  1 +
+ old-configure.in                                        |  7 +++++++
+ media/webrtc/signaling/test/Makefile.in                 |  1 +
+ .../modules/video_capture/linux/device_info_linux.cc    | 17 +++++++++++++++++
+ .../modules/video_capture/linux/video_capture_linux.cc  | 16 +++++++++++++++-
+ .../webrtc/modules/video_capture/video_capture.gypi     | 11 +++++++++++
+ toolkit/library/Makefile.in                             |  1 +
+ 6 files changed, 52 insertions(+), 1 deletion(-)
+
+diff --git config/system-headers config/system-headers
+index 55e4cd1..76567b3 100644
+--- config/system-headers
++++ config/system-headers
+@@ -624,6 +624,7 @@ libgnome/libgnome.h
+ libgnomeui/gnome-icon-lookup.h
+ libgnomeui/gnome-icon-theme.h
+ libgnomeui/gnome-ui-init.h
++libv4l2.h
+ limits.h
+ link.h
+ #ifdef ANDROID
+diff --git old-configure.in configure.in
+index 55e4cd1..76567b3 100644
+--- old-configure.in
++++ old-configure.in
+@@ -5309,6 +5309,9 @@ if test -n "$MOZ_WEBRTC"; then
+     MOZ_VP8_ENCODER=1
+     MOZ_VP8_ERROR_CONCEALMENT=1
+ 
++    dnl with libv4l2 we can support more cameras
++    PKG_CHECK_MODULES(MOZ_LIBV4L2, libv4l2)
++
+ dnl enable once Signaling lands
+     MOZ_WEBRTC_SIGNALING=1
+     AC_DEFINE(MOZ_WEBRTC_SIGNALING)
+diff --git build/gyp.mozbuild build/gyp.mozbuild
+index b483cd1..f1dd1f0 100644
+--- build/gyp.mozbuild
++++ build/gyp.mozbuild
+@@ -11,6 +11,7 @@ gyp_vars = {
+     'have_ethtool_cmd_speed_hi': 1 if CONFIG['MOZ_WEBRTC_HAVE_ETHTOOL_SPEED_HI'] else 0,
+     'include_alsa_audio': 1 if CONFIG['MOZ_ALSA'] else 0,
+     'include_pulse_audio': 1 if CONFIG['MOZ_PULSEAUDIO'] else 0,
++    'use_libv4l2': 1 if CONFIG['MOZ_LIBV4L2_LIBS'] else 0,
+     # basic stuff for everything
+     'include_internal_video_render': 0,
+     'clang_use_chrome_plugins': 0,
+diff --git media/webrtc/signaling/test/common.build media/webrtc/signaling/test/common.build
+index b483cd1..f1dd1f0 100644
+--- media/webrtc/signaling/test/common.build
++++ media/webrtc/signaling/test/common.build
+@@ -99,6 +99,7 @@ if CONFIG['JS_SHARED_LIBRARY']:
+ 
+ USE_LIBS += ['mozglue']
+ 
++OS_LIBS += CONFIG['MOZ_LIBV4L2_LIBS']
+ OS_LIBS += CONFIG['MOZ_WEBRTC_X11_LIBS']
+ OS_LIBS += CONFIG['REALTIME_LIBS']
+ 
+diff --git media/webrtc/trunk/webrtc/modules/video_capture/linux/device_info_linux.cc media/webrtc/trunk/webrtc/modules/video_capture/linux/device_info_linux.cc
+index 239a292..bab496c 100644
+--- media/webrtc/trunk/webrtc/modules/video_capture/linux/device_info_linux.cc
++++ media/webrtc/trunk/webrtc/modules/video_capture/linux/device_info_linux.cc
+@@ -25,6 +25,9 @@
+ #else
+ #include <linux/videodev2.h>
+ #endif
++#ifdef HAVE_LIBV4L2
++#include <libv4l2.h>
++#endif
+ 
+ #include "webrtc/system_wrappers/interface/ref_count.h"
+ #include "webrtc/system_wrappers/interface/trace.h"
+@@ -34,6 +37,15 @@
+ #define BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
+ #endif
+ 
++#ifdef HAVE_LIBV4L2
++#define open	v4l2_open
++#define close	v4l2_close
++#define dup	v4l2_dup
++#define ioctl	v4l2_ioctl
++#define mmap	v4l2_mmap
++#define munmap	v4l2_munmap
++#endif
++
+ namespace webrtc
+ {
+ namespace videocapturemodule
+@@ -274,6 +286,11 @@ int32_t DeviceInfoLinux::GetDeviceName(
+     memset(deviceNameUTF8, 0, deviceNameLength);
+     memcpy(cameraName, cap.card, sizeof(cap.card));
+ 
++    if (cameraName[0] == '\0')
++    {
++        sprintf(cameraName, "Camera at /dev/video%d", deviceNumber);
++    }
++
+     if (deviceNameLength >= strlen(cameraName))
+     {
+         memcpy(deviceNameUTF8, cameraName, strlen(cameraName));
+diff --git media/webrtc/trunk/webrtc/modules/video_capture/linux/video_capture_linux.cc media/webrtc/trunk/webrtc/modules/video_capture/linux/video_capture_linux.cc
+index 12df1b3..e9863ba 100644
+--- media/webrtc/trunk/webrtc/modules/video_capture/linux/video_capture_linux.cc
++++ media/webrtc/trunk/webrtc/modules/video_capture/linux/video_capture_linux.cc
+@@ -25,6 +25,9 @@
+ #else
+ #include <linux/videodev2.h>
+ #endif
++#ifdef HAVE_LIBV4L2
++#include <libv4l2.h>
++#endif
+ 
+ #include <new>
+ 
+@@ -26,6 +31,15 @@
+ #include "critical_section_wrapper.h"
+ #include "video_capture_linux.h"
+ 
++#ifdef HAVE_LIBV4L2
++#define open	v4l2_open
++#define close	v4l2_close
++#define dup	v4l2_dup
++#define ioctl	v4l2_ioctl
++#define mmap	v4l2_mmap
++#define munmap	v4l2_munmap
++#endif
++
+ namespace webrtc
+ {
+ namespace videocapturemodule
+diff --git media/webrtc/trunk/webrtc/modules/video_capture/video_capture.gypi media/webrtc/trunk/webrtc/modules/video_capture/video_capture.gypi
+index d46b5aa..e452223 100644
+--- media/webrtc/trunk/webrtc/modules/video_capture/video_capture.gypi
++++ media/webrtc/trunk/webrtc/modules/video_capture/video_capture.gypi
+@@ -7,6 +7,9 @@
+ # be found in the AUTHORS file in the root of the source tree.
+ 
+ {
++  'variables': {
++     'use_libv4l2%': 0,
++  },
+   'targets': [
+     {
+       'target_name': 'video_capture_module',
+@@ -75,6 +78,19 @@
+                 'linux/video_capture_linux.cc',
+                 'linux/video_capture_linux.h',
+               ],
++              'conditions': [
++                ['use_libv4l2==1', {
++                  'defines': [
++                    'HAVE_LIBV4L2',
++                  ],
++                  'cflags_mozilla': [
++                    '$(MOZ_LIBV4L2_CFLAGS)',
++                  ],
++                  'libraries': [
++                    '-lv4l2',
++                  ],
++                }],
++              ],
+             }],  # linux
+             ['OS=="mac"', {
+               'sources': [
+diff --git toolkit/library/moz.build toolkit/library/moz.build
+index 9c16ffa..1db3794 100644
+--- toolkit/library/moz.build
++++ toolkit/library/moz.build
+@@ -163,6 +163,7 @@ if CONFIG['OS_ARCH'] == 'Linux' and CONF
+     ]
+ 
+ OS_LIBS += CONFIG['MOZ_CAIRO_OSLIBS']
++OS_LIBS += CONFIG['MOZ_LIBV4L2_LIBS']
+ OS_LIBS += CONFIG['MOZ_WEBRTC_X11_LIBS']
+ OS_LIBS += CONFIG['MOZ_APP_EXTRA_LIBS']
+ 
+
+
+[FILE:9436:patches/patch-bug847568]
+# Allow building against system-wide graphite2/harfbuzz.
+
+diff --git config/Makefile.in config/Makefile.in
+index e2e11dc0e27e..a6206bb0ff30 100644
+--- config/Makefile.in
++++ config/Makefile.in
+@@ -41,6 +41,8 @@ export:: $(export-preqs)
+ 	$(PYTHON) -m mozbuild.action.preprocessor $(DEFINES) $(ACDEFINES) \
+ 		-DMOZ_TREE_CAIRO=$(MOZ_TREE_CAIRO) \
+ 		-DMOZ_TREE_PIXMAN=$(MOZ_TREE_PIXMAN) \
++		-DMOZ_SYSTEM_GRAPHITE2=$(MOZ_SYSTEM_GRAPHITE2) \
++		-DMOZ_SYSTEM_HARFBUZZ=$(MOZ_SYSTEM_HARFBUZZ) \
+ 		-DMOZ_SYSTEM_HUNSPELL=$(MOZ_SYSTEM_HUNSPELL) \
+ 		-DMOZ_SYSTEM_BZ2=$(MOZ_SYSTEM_BZ2) \
+ 		-DMOZ_SYSTEM_ZLIB=$(MOZ_SYSTEM_ZLIB) \
+diff --git config/system-headers config/system-headers
+index a0c53c651a3e..5ee7f71f9634 100644
+--- config/system-headers
++++ config/system-headers
+@@ -1269,6 +1269,15 @@ libsn/sn-launcher.h
+ libsn/sn-monitor.h
+ libsn/sn-util.h
+ #endif
++#if MOZ_SYSTEM_GRAPHITE2==1
++graphite2/Font.h
++graphite2/Segment.h
++#endif
++#if MOZ_SYSTEM_HARFBUZZ==1
++harfbuzz/hb-glib.h
++harfbuzz/hb-ot.h
++harfbuzz/hb.h
++#endif
+ #if MOZ_SYSTEM_HUNSPELL==1
+ hunspell.hxx
+ #endif
+diff --git dom/base/moz.build dom/base/moz.build
+index 8e19020315ae..2fcdbb6f7b42 100644
+--- dom/base/moz.build
++++ dom/base/moz.build
+@@ -464,6 +464,9 @@ if CONFIG['MOZ_BUILD_APP'] in ['browser', 'mobile/android', 'xulrunner']:
+ if CONFIG['MOZ_X11']:
+     CXXFLAGS += CONFIG['TK_CFLAGS']
+ 
++if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    CXXFLAGS += CONFIG['MOZ_HARFBUZZ_CFLAGS']
++
+ GENERATED_FILES += [
+     'PropertyUseCounterMap.inc',
+     'UseCounterList.h',
+diff --git gfx/graphite2/moz-gr-update.sh gfx/graphite2/moz-gr-update.sh
+index faaab1b17971..04eff5f09882 100644
+--- gfx/graphite2/moz-gr-update.sh
++++ gfx/graphite2/moz-gr-update.sh
+@@ -1,6 +1,7 @@
+ #!/bin/bash
+ 
+ # Script used to update the Graphite2 library in the mozilla source tree
++# and bump version for --with-system-graphite2
+ 
+ # This script lives in gfx/graphite2, along with the library source,
+ # but must be run from the top level of the mozilla-central tree.
+@@ -37,12 +38,16 @@ echo "See" $0 "for update procedure." >> gfx/graphite2/README.mozilla
+ #find gfx/graphite2/ -name "*.cpp" -exec perl -p -i -e "s/<cstdio>/<stdio.h>/;s/Windows.h/windows.h/;" {} \;
+ #find gfx/graphite2/ -name "*.h" -exec perl -p -i -e "s/<cstdio>/<stdio.h>/;s/Windows.h/windows.h/;" {} \;
+ 
++# chase version for --with-system-graphite2
++perl -p -i -e "s/[0-9]+\,[0-9]+\,[0-9]+/$RELEASE/ and tr/./,/ \
++  if /GR2_VERSION_REQUIRE/" old-configure.in
++
+ # summarize what's been touched
+ echo Updated to $RELEASE.
+ echo Here is what changed in the gfx/graphite2 directory:
+ echo
+ 
+-hg stat gfx/graphite2
++hg stat old-configure.in gfx/graphite2
+ 
+ echo
+ echo If gfx/graphite2/src/files.mk has changed, please make corresponding
+diff --git gfx/harfbuzz/README-mozilla gfx/harfbuzz/README-mozilla
+index 22c76a7df020..a01490bd49ee 100644
+--- gfx/harfbuzz/README-mozilla
++++ gfx/harfbuzz/README-mozilla
+@@ -19,3 +19,8 @@ the mozilla tree.
+ 
+ If the collection of source files changes, manual updates to moz.build may be
+ needed, as we don't use the upstream makefiles.
++
++The in-tree copy may be omitted during build by --with-system-harfbuzz.
++Make sure to keep pkg-config version check within toolkit/moz.configure in sync
++with checkout version or increment latest tag by one if it's not based
++on upstream release.
+diff --git gfx/moz.build gfx/moz.build
+index 771f652e837a..3b358d84e384 100644
+--- gfx/moz.build
++++ gfx/moz.build
+@@ -10,6 +10,12 @@ with Files('**'):
+ if CONFIG['MOZ_TREE_CAIRO']:
+     DIRS += ['cairo']
+ 
++if not CONFIG['MOZ_SYSTEM_GRAPHITE2']:
++    DIRS += ['graphite2/src' ]
++
++if not CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    DIRS += ['harfbuzz/src']
++
+ DIRS += [
+     '2d',
+     'ycbcr',
+@@ -18,8 +24,6 @@ DIRS += [
+     'qcms',
+     'gl',
+     'layers',
+-    'graphite2/src',
+-    'harfbuzz/src',
+     'ots/src',
+     'thebes',
+     'ipc',
+diff --git gfx/skia/generate_mozbuild.py gfx/skia/generate_mozbuild.py
+index e06ae3457a47..93faa61594a3 100755
+--- gfx/skia/generate_mozbuild.py
++++ gfx/skia/generate_mozbuild.py
+@@ -143,6 +143,9 @@ if CONFIG['CLANG_CXX'] or CONFIG['CLANG_CL']:
+         '-Wno-unused-private-field',
+     ]
+ 
++if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    CXXFLAGS += CONFIG['MOZ_HARFBUZZ_CFLAGS']
++
+ if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('gtk2', 'gtk3', 'android'):
+     CXXFLAGS += CONFIG['MOZ_CAIRO_CFLAGS']
+     CXXFLAGS += CONFIG['CAIRO_FT_CFLAGS']
+diff --git gfx/skia/moz.build gfx/skia/moz.build
+index 2118677ca3a8..e4978b413784 100644
+--- gfx/skia/moz.build
++++ gfx/skia/moz.build
+@@ -753,6 +753,9 @@ if CONFIG['CLANG_CXX'] or CONFIG['CLANG_CL']:
+         '-Wno-unused-private-field',
+     ]
+ 
++if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    CXXFLAGS += CONFIG['MOZ_HARFBUZZ_CFLAGS']
++
+ if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('gtk2', 'gtk3', 'android'):
+     CXXFLAGS += CONFIG['MOZ_CAIRO_CFLAGS']
+     CXXFLAGS += CONFIG['CAIRO_FT_CFLAGS']
+diff --git gfx/thebes/moz.build gfx/thebes/moz.build
+index dee9b7bfa2cb..bd801f3a468e 100644
+--- gfx/thebes/moz.build
++++ gfx/thebes/moz.build
+@@ -273,7 +273,13 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('gtk2', 'gtk3'):
+ 
+ LOCAL_INCLUDES += CONFIG['SKIA_INCLUDES']
+ 
+-DEFINES['GRAPHITE2_STATIC'] = True
++if CONFIG['MOZ_SYSTEM_GRAPHITE2']:
++    CXXFLAGS += CONFIG['MOZ_GRAPHITE2_CFLAGS']
++else:
++    DEFINES['GRAPHITE2_STATIC'] = True
++
++if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    CXXFLAGS += CONFIG['MOZ_HARFBUZZ_CFLAGS']
+ 
+ if CONFIG['CLANG_CXX']:
+     # Suppress warnings from Skia header files.
+diff --git intl/unicharutil/util/moz.build intl/unicharutil/util/moz.build
+index cb1233c56d7e..06fb1f9f174b 100644
+--- intl/unicharutil/util/moz.build
++++ intl/unicharutil/util/moz.build
+@@ -40,4 +40,7 @@ if CONFIG['_MSC_VER']:
+ if CONFIG['ENABLE_INTL_API']:
+     USE_LIBS += ['icu']
+ 
++if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    CXXFLAGS += CONFIG['MOZ_HARFBUZZ_CFLAGS']
++
+ DIST_INSTALL = True
+diff --git netwerk/dns/moz.build netwerk/dns/moz.build
+index 79c26e3e7001..c4d93bc5f7dc 100644
+--- netwerk/dns/moz.build
++++ netwerk/dns/moz.build
+@@ -69,6 +69,9 @@ LOCAL_INCLUDES += [
+     '/netwerk/base',
+ ]
+ 
++if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    CXXFLAGS += CONFIG['MOZ_HARFBUZZ_CFLAGS']
++
+ if CONFIG['ENABLE_INTL_API']:
+     DEFINES['IDNA2008'] = True
+     USE_LIBS += ['icu']
+diff --git old-configure.in old-configure.in
+index 95a58b634593..b614eef85c89 100644
+--- old-configure.in
++++ old-configure.in
+@@ -4888,6 +4888,27 @@ dnl ========================================================
+ AC_SUBST(MOZ_LINUX_32_SSE2_STARTUP_ERROR)
+ 
+ dnl ========================================================
++dnl Check for graphite2
++dnl ========================================================
++if test -n "$MOZ_SYSTEM_GRAPHITE2"; then
++    dnl graphite2.pc has bogus version, check manually
++    _SAVE_CFLAGS=$CFLAGS
++    CFLAGS="$CFLAGS $MOZ_GRAPHITE2_CFLAGS"
++    AC_TRY_COMPILE([ #include <graphite2/Font.h>
++                     #define GR2_VERSION_REQUIRE(major,minor,bugfix)  \
++                             ( GR2_VERSION_MAJOR * 10000 + GR2_VERSION_MINOR \
++                               * 100 + GR2_VERSION_BUGFIX >= \
++                               (major) * 10000 + (minor) * 100 + (bugfix) )
++                   ], [
++                     #if !GR2_VERSION_REQUIRE(1,3,8)
++                     #error "Insufficient graphite2 version."
++                     #endif
++                   ], [],
++                   [AC_MSG_ERROR([--with-system-graphite2 requested but no working libgraphite2 found])])
++    CFLAGS=$_SAVE_CFLAGS
++fi
++
++dnl ========================================================
+ dnl Check for pixman and cairo
+ dnl ========================================================
+ 
+diff --git toolkit/library/moz.build toolkit/library/moz.build
+index 24f940e1ed7e..079a575adec3 100644
+--- toolkit/library/moz.build
++++ toolkit/library/moz.build
+@@ -228,6 +228,12 @@ if CONFIG['MOZ_SYSTEM_JPEG']:
+ if CONFIG['MOZ_SYSTEM_PNG']:
+     OS_LIBS += CONFIG['MOZ_PNG_LIBS']
+ 
++if CONFIG['MOZ_SYSTEM_GRAPHITE2']:
++    OS_LIBS += CONFIG['MOZ_GRAPHITE2_LIBS']
++
++if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
++    OS_LIBS += CONFIG['MOZ_HARFBUZZ_LIBS']
++
+ if CONFIG['MOZ_SYSTEM_HUNSPELL']:
+     OS_LIBS += CONFIG['MOZ_HUNSPELL_LIBS']
+ 
+diff --git toolkit/moz.configure toolkit/moz.configure
+index 9297e4d6f501..d8e273887e4b 100644
+--- toolkit/moz.configure
++++ toolkit/moz.configure
+@@ -343,6 +343,26 @@ add_old_configure_assignment('FT2_LIBS',
+ add_old_configure_assignment('FT2_CFLAGS',
+                              delayed_getattr(ft2_info, 'cflags'))
+ 
++# Graphite2
++# ==============================================================
++option('--with-system-graphite2',
++       help="Use system graphite2 (located with pkgconfig)")
++
++system_graphite2 = pkg_check_modules('MOZ_GRAPHITE2', 'graphite2',
++                                     when='--with-system-graphite2')
++
++set_config('MOZ_SYSTEM_GRAPHITE2', depends_if(system_graphite2)(lambda _: True))
++
++# HarfBuzz
++# ==============================================================
++option('--with-system-harfbuzz',
++       help="Use system harfbuzz (located with pkgconfig)")
++
++system_harfbuzz = pkg_check_modules('MOZ_HARFBUZZ', 'harfbuzz >= 1.4.1',
++                                    when='--with-system-harfbuzz')
++
++set_config('MOZ_SYSTEM_HARFBUZZ', depends_if(system_harfbuzz)(lambda _: True))
++
+ # Apple platform decoder support
+ # ==============================================================
+ @depends(toolkit)
+
+
+[FILE:2582:patches/patch-bug981348]
+diff --git dom/system/OSFileConstants.cpp dom/system/OSFileConstants.cpp
+index 88bba9baa401..99f240952dfe 100644
+--- dom/system/OSFileConstants.cpp
++++ dom/system/OSFileConstants.cpp
+@@ -16,14 +16,17 @@
+ #include "dirent.h"
+ #include "poll.h"
+ #include "sys/stat.h"
+-#if defined(ANDROID)
++#if defined(XP_LINUX)
+ #include <sys/vfs.h>
+ #define statvfs statfs
++#define f_frsize f_bsize
+ #else
+ #include "sys/statvfs.h"
++#endif // defined(XP_LINUX)
++#if !defined(ANDROID)
+ #include "sys/wait.h"
+ #include <spawn.h>
+-#endif // defined(ANDROID)
++#endif // !defined(ANDROID)
+ #endif // defined(XP_UNIX)
+ 
+ #if defined(XP_LINUX)
+@@ -699,7 +702,7 @@ static const dom::ConstantSpec gLibcProperties[] =
+ 
+   { "OSFILE_SIZEOF_STATVFS", JS::Int32Value(sizeof (struct statvfs)) },
+ 
+-  { "OSFILE_OFFSETOF_STATVFS_F_BSIZE", JS::Int32Value(offsetof (struct statvfs, f_bsize)) },
++  { "OSFILE_OFFSETOF_STATVFS_F_FRSIZE", JS::Int32Value(offsetof (struct statvfs, f_frsize)) },
+   { "OSFILE_OFFSETOF_STATVFS_F_BAVAIL", JS::Int32Value(offsetof (struct statvfs, f_bavail)) },
+ 
+ #endif // defined(XP_UNIX)
+diff --git toolkit/components/osfile/modules/osfile_unix_back.jsm toolkit/components/osfile/modules/osfile_unix_back.jsm
+index a028dda7d5ec..f5c632e3d7e5 100644
+--- toolkit/components/osfile/modules/osfile_unix_back.jsm
++++ toolkit/components/osfile/modules/osfile_unix_back.jsm
+@@ -228,8 +228,8 @@
+          let statvfs = new SharedAll.HollowStructure("statvfs",
+            Const.OSFILE_SIZEOF_STATVFS);
+ 
+-         statvfs.add_field_at(Const.OSFILE_OFFSETOF_STATVFS_F_BSIZE,
+-                        "f_bsize", Type.unsigned_long.implementation);
++         statvfs.add_field_at(Const.OSFILE_OFFSETOF_STATVFS_F_FRSIZE,
++                        "f_frsize", Type.unsigned_long.implementation);
+          statvfs.add_field_at(Const.OSFILE_OFFSETOF_STATVFS_F_BAVAIL,
+                         "f_bavail", Type.fsblkcnt_t.implementation);
+ 
+diff --git toolkit/components/osfile/modules/osfile_unix_front.jsm toolkit/components/osfile/modules/osfile_unix_front.jsm
+index bd60d4d8419c..a8cd6b546b0e 100644
+--- toolkit/components/osfile/modules/osfile_unix_front.jsm
++++ toolkit/components/osfile/modules/osfile_unix_front.jsm
+@@ -399,7 +399,7 @@
+        throw_on_negative("statvfs",  (UnixFile.statvfs || UnixFile.statfs)(sourcePath, fileSystemInfoPtr));
+ 
+        let bytes = new Type.uint64_t.implementation(
+-                        fileSystemInfo.f_bsize * fileSystemInfo.f_bavail);
++                        fileSystemInfo.f_frsize * fileSystemInfo.f_bavail);
+ 
+        return bytes.value;
+      };
+
+
+[FILE:610:patches/patch-bug991253]
+--- extensions/spellcheck/hunspell/glue/mozHunspell.cpp~
++++ extensions/spellcheck/hunspell/glue/mozHunspell.cpp
+@@ -392,6 +392,14 @@ mozHunspell::LoadDictionaryList(bool aNo
+     }
+   }
+ 
++  // load system hunspell dictionaries
++  nsCOMPtr<nsIFile> hunDir;
++  NS_NewNativeLocalFile(NS_LITERAL_CSTRING("%%LOCALBASE%%/share/hunspell"),
++                        true, getter_AddRefs(hunDir));
++  if (hunDir) {
++      LoadDictionariesFromDir(hunDir);
++  }
++
+   // find dictionaries from extensions requiring restart
+   nsCOMPtr<nsISimpleEnumerator> dictDirs;
+   rv = dirSvc->Get(DICTIONARY_SEARCH_DIRECTORY_LIST,
+
+
+[FILE:581:patches/patch-build-pgo-profileserver.py]
+--- build/pgo/profileserver.py.orig	2011-02-24 21:49:47.000000000 +0100
++++ build/pgo/profileserver.py	2011-02-24 21:50:30.000000000 +0100
+@@ -59,7 +59,7 @@ if __name__ == '__main__':
+       env["MOZ_JAR_LOG_FILE"] = os.path.abspath(jarlog)
+       print "jarlog: %s" % env["MOZ_JAR_LOG_FILE"]
+ 
+-    cmdargs = ["http://localhost:%d/index.html" % PORT]
++    cmdargs = ["http://127.0.0.1:%d/index.html" % PORT]
+     runner = FirefoxRunner(profile=profile,
+                            binary=build.get_binary_path(where="staged-package"),
+                            cmdargs=cmdargs,
+
+
+[FILE:714:patches/patch-config-baseconfig.mk]
+--- config/baseconfig.mk~
++++ config/baseconfig.mk
+@@ -2,10 +2,10 @@
+ # directly in python/mozbuild/mozbuild/base.py for gmake validation.
+ # We thus use INCLUDED_AUTOCONF_MK to enable/disable some parts depending
+ # whether a normal build is happening or whether the check is running.
+-includedir := $(includedir)/$(MOZ_APP_NAME)-$(MOZ_APP_VERSION)
+-idldir = $(datadir)/idl/$(MOZ_APP_NAME)-$(MOZ_APP_VERSION)
+-installdir = $(libdir)/$(MOZ_APP_NAME)-$(MOZ_APP_VERSION)
+-sdkdir = $(libdir)/$(MOZ_APP_NAME)-devel-$(MOZ_APP_VERSION)
++includedir := $(includedir)/%%MOZILLA%%
++idldir = $(datadir)/idl/%%MOZILLA%%
++installdir = $(libdir)/%%MOZILLA%%
++sdkdir = $(libdir)/%%MOZILLA%%
+ ifeq (.,$(DEPTH))
+ DIST = dist
+ else
+
+
+[FILE:886:patches/patch-env-api-keys]
+# Accept API keys from environment like before bug 1294585
+
+--- build/moz.configure/keyfiles.configure
++++ build/moz.configure/keyfiles.configure
+@@ -18,6 +18,7 @@ def keyfile(desc, help=None, callback=lambda x: x):
+     @checking('for the %s key' % desc, lambda x: x and x is not no_key)
+     @imports(_from='__builtin__', _import='open')
+     @imports(_from='__builtin__', _import='IOError')
++    @imports(_from='os', _import='environ')
+     def keyfile(value):
+         if value:
+             try:
+@@ -28,7 +29,7 @@ def keyfile(desc, help=None, callback=lambda x: x):
+                     raise FatalCheckError("'%s' is empty." % value[0])
+             except IOError as e:
+                 raise FatalCheckError("'%s': %s." % (value[0], e.strerror))
+-        return no_key
++        return environ.get('MOZ_%s_KEY' % desc.upper().replace(' ', '_')) or no_key
+ 
+     return keyfile
+ 
+
+
+[FILE:21645:patches/patch-ijg-libjpeg]
+# Partially revert bug 791305 to allow building with system IJG jpeg library
+
+diff --git old-configure.in configure.in
+index f0aeb5d..1c01010 100644
+--- old-configure.in
++++ old-configure.in
+@@ -4027,11 +4027,7 @@ if test "$MOZ_SYSTEM_JPEG" = 1; then
+                      #include <jpeglib.h> ],
+                    [ #if JPEG_LIB_VERSION < $MOZJPEG
+                      #error "Insufficient JPEG library version ($MOZJPEG required)."
+-                     #endif
+-                     #ifndef JCS_EXTENSIONS
+-                     #error "libjpeg-turbo JCS_EXTENSIONS required"
+-                     #endif
+-                     ],
++                     #endif ],
+                    MOZ_SYSTEM_JPEG=1,
+                    AC_MSG_ERROR([Insufficient JPEG library version for --with-system-jpeg]))
+ fi
+diff --git image/decoders/nsJPEGDecoder.cpp image/decoders/nsJPEGDecoder.cpp
+index 8fa8200..1d2a259 100644
+--- image/decoders/nsJPEGDecoder.cpp
++++ image/decoders/nsJPEGDecoder.cpp
+@@ -21,13 +21,28 @@
+ 
+ extern "C" {
+ #include "iccjpeg.h"
+-}
+ 
++#ifdef JCS_EXTENSIONS
+ #if MOZ_BIG_ENDIAN
+ #define MOZ_JCS_EXT_NATIVE_ENDIAN_XRGB JCS_EXT_XRGB
+ #else
+ #define MOZ_JCS_EXT_NATIVE_ENDIAN_XRGB JCS_EXT_BGRX
+ #endif
++#else
++/* Colorspace conversion (copied from jpegint.h) */
++struct jpeg_color_deconverter {
++  JMETHOD(void, start_pass, (j_decompress_ptr cinfo));
++  JMETHOD(void, color_convert, (j_decompress_ptr cinfo,
++				JSAMPIMAGE input_buf, JDIMENSION input_row,
++				JSAMPARRAY output_buf, int num_rows));
++};
++
++METHODDEF(void)
++ycc_rgb_convert_argb (j_decompress_ptr cinfo,
++                 JSAMPIMAGE input_buf, JDIMENSION input_row,
++                 JSAMPARRAY output_buf, int num_rows);
++#endif
++}
+ 
+ static void cmyk_convert_rgb(JSAMPROW row, JDIMENSION width);
+ 
+@@ -367,6 +382,7 @@ nsJPEGDecoder::WriteInternal(const char*
+         case JCS_GRAYSCALE:
+         case JCS_RGB:
+         case JCS_YCbCr:
++#ifdef JCS_EXTENSIONS
+           // if we're not color managing we can decode directly to
+           // MOZ_JCS_EXT_NATIVE_ENDIAN_XRGB
+           if (mCMSMode != eCMSMode_All) {
+@@ -375,6 +391,9 @@ nsJPEGDecoder::WriteInternal(const char*
+           } else {
+               mInfo.out_color_space = JCS_RGB;
+           }
++#else
++          mInfo.out_color_space = JCS_RGB;
++#endif
+           break;
+         case JCS_CMYK:
+         case JCS_YCCK:
+@@ -448,6 +467,16 @@ nsJPEGDecoder::WriteInternal(const char*
+       return; // I/O suspension
+     }
+ 
++#ifndef JCS_EXTENSIONS
++    /* Force to use our YCbCr to Packed RGB converter when possible */
++    if (!mTransform && (mCMSMode != eCMSMode_All) &&
++        mInfo.jpeg_color_space == JCS_YCbCr && mInfo.out_color_space == JCS_RGB) {
++      /* Special case for the most common case: transform from YCbCr direct into packed ARGB */
++      mInfo.out_color_components = 4; /* Packed ARGB pixels are always 4 bytes...*/
++      mInfo.cconvert->color_convert = ycc_rgb_convert_argb;
++    }
++#endif
++
+     // If this is a progressive JPEG ...
+     mState = mInfo.buffered_image ?
+              JPEG_DECOMPRESS_PROGRESSIVE : JPEG_DECOMPRESS_SEQUENTIAL;
+@@ -605,7 +633,11 @@ nsJPEGDecoder::OutputScanlines(bool* sus
+       uint32_t* imageRow = ((uint32_t*)mImageData) +
+                            (mInfo.output_scanline * mInfo.output_width);
+ 
++#ifdef JCS_EXTENSIONS
+       if (mInfo.out_color_space == MOZ_JCS_EXT_NATIVE_ENDIAN_XRGB) {
++#else
++      if (mInfo.cconvert->color_convert == ycc_rgb_convert_argb) {
++#endif
+         // Special case: scanline will be directly converted into packed ARGB
+         if (jpeg_read_scanlines(&mInfo, (JSAMPARRAY)&imageRow, 1) != 1) {
+           *suspend = true; // suspend
+@@ -920,6 +952,282 @@ term_source (j_decompress_ptr jd)
+ } // namespace mozilla
+ 
+ 
++#ifndef JCS_EXTENSIONS
++/**************** YCbCr -> Cairo's RGB24/ARGB32 conversion: most common case **************/
++
++/*
++ * YCbCr is defined per CCIR 601-1, except that Cb and Cr are
++ * normalized to the range 0..MAXJSAMPLE rather than -0.5 .. 0.5.
++ * The conversion equations to be implemented are therefore
++ *      R = Y                + 1.40200 * Cr
++ *      G = Y - 0.34414 * Cb - 0.71414 * Cr
++ *      B = Y + 1.77200 * Cb
++ * where Cb and Cr represent the incoming values less CENTERJSAMPLE.
++ * (These numbers are derived from TIFF 6.0 section 21, dated 3-June-92.)
++ *
++ * To avoid floating-point arithmetic, we represent the fractional constants
++ * as integers scaled up by 2^16 (about 4 digits precision); we have to divide
++ * the products by 2^16, with appropriate rounding, to get the correct answer.
++ * Notice that Y, being an integral input, does not contribute any fraction
++ * so it need not participate in the rounding.
++ *
++ * For even more speed, we avoid doing any multiplications in the inner loop
++ * by precalculating the constants times Cb and Cr for all possible values.
++ * For 8-bit JSAMPLEs this is very reasonable (only 256 entries per table);
++ * for 12-bit samples it is still acceptable.  It's not very reasonable for
++ * 16-bit samples, but if you want lossless storage you shouldn't be changing
++ * colorspace anyway.
++ * The Cr=>R and Cb=>B values can be rounded to integers in advance; the
++ * values for the G calculation are left scaled up, since we must add them
++ * together before rounding.
++ */
++
++#define SCALEBITS       16      /* speediest right-shift on some machines */
++
++/* Use static tables for color processing. */
++/* Four tables, each 256 entries of 4 bytes totals 4K which is not bad... */
++
++const int Cr_r_tab[(MAXJSAMPLE+1) * sizeof(int)] ={
++       -0xb3,       -0xb2,       -0xb1,       -0xaf,       -0xae,       -0xac,
++       -0xab,       -0xaa,       -0xa8,       -0xa7,       -0xa5,       -0xa4,
++       -0xa3,       -0xa1,       -0xa0,       -0x9e,       -0x9d,       -0x9c,
++       -0x9a,       -0x99,       -0x97,       -0x96,       -0x95,       -0x93,
++       -0x92,       -0x90,       -0x8f,       -0x8e,       -0x8c,       -0x8b,
++       -0x89,       -0x88,       -0x87,       -0x85,       -0x84,       -0x82,
++       -0x81,       -0x80,       -0x7e,       -0x7d,       -0x7b,       -0x7a,
++       -0x79,       -0x77,       -0x76,       -0x74,       -0x73,       -0x72,
++       -0x70,       -0x6f,       -0x6d,       -0x6c,       -0x6b,       -0x69,
++       -0x68,       -0x66,       -0x65,       -0x64,       -0x62,       -0x61,
++       -0x5f,       -0x5e,       -0x5d,       -0x5b,       -0x5a,       -0x58,
++       -0x57,       -0x56,       -0x54,       -0x53,       -0x51,       -0x50,
++       -0x4f,       -0x4d,       -0x4c,       -0x4a,       -0x49,       -0x48,
++       -0x46,       -0x45,       -0x43,       -0x42,       -0x40,       -0x3f,
++       -0x3e,       -0x3c,       -0x3b,       -0x39,       -0x38,       -0x37,
++       -0x35,       -0x34,       -0x32,       -0x31,       -0x30,       -0x2e,
++       -0x2d,       -0x2b,       -0x2a,       -0x29,       -0x27,       -0x26,
++       -0x24,       -0x23,       -0x22,       -0x20,       -0x1f,       -0x1d,
++       -0x1c,       -0x1b,       -0x19,       -0x18,       -0x16,       -0x15,
++       -0x14,       -0x12,       -0x11,       -0x0f,       -0x0e,       -0x0d,
++       -0x0b,       -0x0a,       -0x08,       -0x07,       -0x06,       -0x04,
++       -0x03,       -0x01,        0x00,        0x01,        0x03,        0x04,
++        0x06,        0x07,        0x08,        0x0a,        0x0b,        0x0d,
++        0x0e,        0x0f,        0x11,        0x12,        0x14,        0x15,
++        0x16,        0x18,        0x19,        0x1b,        0x1c,        0x1d,
++        0x1f,        0x20,        0x22,        0x23,        0x24,        0x26,
++        0x27,        0x29,        0x2a,        0x2b,        0x2d,        0x2e,
++        0x30,        0x31,        0x32,        0x34,        0x35,        0x37,
++        0x38,        0x39,        0x3b,        0x3c,        0x3e,        0x3f,
++        0x40,        0x42,        0x43,        0x45,        0x46,        0x48,
++        0x49,        0x4a,        0x4c,        0x4d,        0x4f,        0x50,
++        0x51,        0x53,        0x54,        0x56,        0x57,        0x58,
++        0x5a,        0x5b,        0x5d,        0x5e,        0x5f,        0x61,
++        0x62,        0x64,        0x65,        0x66,        0x68,        0x69,
++        0x6b,        0x6c,        0x6d,        0x6f,        0x70,        0x72,
++        0x73,        0x74,        0x76,        0x77,        0x79,        0x7a,
++        0x7b,        0x7d,        0x7e,        0x80,        0x81,        0x82,
++        0x84,        0x85,        0x87,        0x88,        0x89,        0x8b,
++        0x8c,        0x8e,        0x8f,        0x90,        0x92,        0x93,
++        0x95,        0x96,        0x97,        0x99,        0x9a,        0x9c,
++        0x9d,        0x9e,        0xa0,        0xa1,        0xa3,        0xa4,
++        0xa5,        0xa7,        0xa8,        0xaa,        0xab,        0xac,
++        0xae,        0xaf,        0xb1,        0xb2,
++  };
++
++const int Cb_b_tab[(MAXJSAMPLE+1) * sizeof(int)] ={
++       -0xe3,       -0xe1,       -0xdf,       -0xde,       -0xdc,       -0xda,
++       -0xd8,       -0xd6,       -0xd5,       -0xd3,       -0xd1,       -0xcf,
++       -0xce,       -0xcc,       -0xca,       -0xc8,       -0xc6,       -0xc5,
++       -0xc3,       -0xc1,       -0xbf,       -0xbe,       -0xbc,       -0xba,
++       -0xb8,       -0xb7,       -0xb5,       -0xb3,       -0xb1,       -0xaf,
++       -0xae,       -0xac,       -0xaa,       -0xa8,       -0xa7,       -0xa5,
++       -0xa3,       -0xa1,       -0x9f,       -0x9e,       -0x9c,       -0x9a,
++       -0x98,       -0x97,       -0x95,       -0x93,       -0x91,       -0x90,
++       -0x8e,       -0x8c,       -0x8a,       -0x88,       -0x87,       -0x85,
++       -0x83,       -0x81,       -0x80,       -0x7e,       -0x7c,       -0x7a,
++       -0x78,       -0x77,       -0x75,       -0x73,       -0x71,       -0x70,
++       -0x6e,       -0x6c,       -0x6a,       -0x69,       -0x67,       -0x65,
++       -0x63,       -0x61,       -0x60,       -0x5e,       -0x5c,       -0x5a,
++       -0x59,       -0x57,       -0x55,       -0x53,       -0x52,       -0x50,
++       -0x4e,       -0x4c,       -0x4a,       -0x49,       -0x47,       -0x45,
++       -0x43,       -0x42,       -0x40,       -0x3e,       -0x3c,       -0x3a,
++       -0x39,       -0x37,       -0x35,       -0x33,       -0x32,       -0x30,
++       -0x2e,       -0x2c,       -0x2b,       -0x29,       -0x27,       -0x25,
++       -0x23,       -0x22,       -0x20,       -0x1e,       -0x1c,       -0x1b,
++       -0x19,       -0x17,       -0x15,       -0x13,       -0x12,       -0x10,
++       -0x0e,       -0x0c,       -0x0b,       -0x09,       -0x07,       -0x05,
++       -0x04,       -0x02,        0x00,        0x02,        0x04,        0x05,
++        0x07,        0x09,        0x0b,        0x0c,        0x0e,        0x10,
++        0x12,        0x13,        0x15,        0x17,        0x19,        0x1b,
++        0x1c,        0x1e,        0x20,        0x22,        0x23,        0x25,
++        0x27,        0x29,        0x2b,        0x2c,        0x2e,        0x30,
++        0x32,        0x33,        0x35,        0x37,        0x39,        0x3a,
++        0x3c,        0x3e,        0x40,        0x42,        0x43,        0x45,
++        0x47,        0x49,        0x4a,        0x4c,        0x4e,        0x50,
++        0x52,        0x53,        0x55,        0x57,        0x59,        0x5a,
++        0x5c,        0x5e,        0x60,        0x61,        0x63,        0x65,
++        0x67,        0x69,        0x6a,        0x6c,        0x6e,        0x70,
++        0x71,        0x73,        0x75,        0x77,        0x78,        0x7a,
++        0x7c,        0x7e,        0x80,        0x81,        0x83,        0x85,
++        0x87,        0x88,        0x8a,        0x8c,        0x8e,        0x90,
++        0x91,        0x93,        0x95,        0x97,        0x98,        0x9a,
++        0x9c,        0x9e,        0x9f,        0xa1,        0xa3,        0xa5,
++        0xa7,        0xa8,        0xaa,        0xac,        0xae,        0xaf,
++        0xb1,        0xb3,        0xb5,        0xb7,        0xb8,        0xba,
++        0xbc,        0xbe,        0xbf,        0xc1,        0xc3,        0xc5,
++        0xc6,        0xc8,        0xca,        0xcc,        0xce,        0xcf,
++        0xd1,        0xd3,        0xd5,        0xd6,        0xd8,        0xda,
++        0xdc,        0xde,        0xdf,        0xe1,
++  };
++
++const int Cr_g_tab[(MAXJSAMPLE+1) * sizeof(int)] ={
++    0x5b6900,    0x5ab22e,    0x59fb5c,    0x59448a,    0x588db8,    0x57d6e6,
++    0x572014,    0x566942,    0x55b270,    0x54fb9e,    0x5444cc,    0x538dfa,
++    0x52d728,    0x522056,    0x516984,    0x50b2b2,    0x4ffbe0,    0x4f450e,
++    0x4e8e3c,    0x4dd76a,    0x4d2098,    0x4c69c6,    0x4bb2f4,    0x4afc22,
++    0x4a4550,    0x498e7e,    0x48d7ac,    0x4820da,    0x476a08,    0x46b336,
++    0x45fc64,    0x454592,    0x448ec0,    0x43d7ee,    0x43211c,    0x426a4a,
++    0x41b378,    0x40fca6,    0x4045d4,    0x3f8f02,    0x3ed830,    0x3e215e,
++    0x3d6a8c,    0x3cb3ba,    0x3bfce8,    0x3b4616,    0x3a8f44,    0x39d872,
++    0x3921a0,    0x386ace,    0x37b3fc,    0x36fd2a,    0x364658,    0x358f86,
++    0x34d8b4,    0x3421e2,    0x336b10,    0x32b43e,    0x31fd6c,    0x31469a,
++    0x308fc8,    0x2fd8f6,    0x2f2224,    0x2e6b52,    0x2db480,    0x2cfdae,
++    0x2c46dc,    0x2b900a,    0x2ad938,    0x2a2266,    0x296b94,    0x28b4c2,
++    0x27fdf0,    0x27471e,    0x26904c,    0x25d97a,    0x2522a8,    0x246bd6,
++    0x23b504,    0x22fe32,    0x224760,    0x21908e,    0x20d9bc,    0x2022ea,
++    0x1f6c18,    0x1eb546,    0x1dfe74,    0x1d47a2,    0x1c90d0,    0x1bd9fe,
++    0x1b232c,    0x1a6c5a,    0x19b588,    0x18feb6,    0x1847e4,    0x179112,
++    0x16da40,    0x16236e,    0x156c9c,    0x14b5ca,    0x13fef8,    0x134826,
++    0x129154,    0x11da82,    0x1123b0,    0x106cde,    0x0fb60c,    0x0eff3a,
++    0x0e4868,    0x0d9196,    0x0cdac4,    0x0c23f2,    0x0b6d20,    0x0ab64e,
++    0x09ff7c,    0x0948aa,    0x0891d8,    0x07db06,    0x072434,    0x066d62,
++    0x05b690,    0x04ffbe,    0x0448ec,    0x03921a,    0x02db48,    0x022476,
++    0x016da4,    0x00b6d2,    0x000000,   -0x00b6d2,   -0x016da4,   -0x022476,
++   -0x02db48,   -0x03921a,   -0x0448ec,   -0x04ffbe,   -0x05b690,   -0x066d62,
++   -0x072434,   -0x07db06,   -0x0891d8,   -0x0948aa,   -0x09ff7c,   -0x0ab64e,
++   -0x0b6d20,   -0x0c23f2,   -0x0cdac4,   -0x0d9196,   -0x0e4868,   -0x0eff3a,
++   -0x0fb60c,   -0x106cde,   -0x1123b0,   -0x11da82,   -0x129154,   -0x134826,
++   -0x13fef8,   -0x14b5ca,   -0x156c9c,   -0x16236e,   -0x16da40,   -0x179112,
++   -0x1847e4,   -0x18feb6,   -0x19b588,   -0x1a6c5a,   -0x1b232c,   -0x1bd9fe,
++   -0x1c90d0,   -0x1d47a2,   -0x1dfe74,   -0x1eb546,   -0x1f6c18,   -0x2022ea,
++   -0x20d9bc,   -0x21908e,   -0x224760,   -0x22fe32,   -0x23b504,   -0x246bd6,
++   -0x2522a8,   -0x25d97a,   -0x26904c,   -0x27471e,   -0x27fdf0,   -0x28b4c2,
++   -0x296b94,   -0x2a2266,   -0x2ad938,   -0x2b900a,   -0x2c46dc,   -0x2cfdae,
++   -0x2db480,   -0x2e6b52,   -0x2f2224,   -0x2fd8f6,   -0x308fc8,   -0x31469a,
++   -0x31fd6c,   -0x32b43e,   -0x336b10,   -0x3421e2,   -0x34d8b4,   -0x358f86,
++   -0x364658,   -0x36fd2a,   -0x37b3fc,   -0x386ace,   -0x3921a0,   -0x39d872,
++   -0x3a8f44,   -0x3b4616,   -0x3bfce8,   -0x3cb3ba,   -0x3d6a8c,   -0x3e215e,
++   -0x3ed830,   -0x3f8f02,   -0x4045d4,   -0x40fca6,   -0x41b378,   -0x426a4a,
++   -0x43211c,   -0x43d7ee,   -0x448ec0,   -0x454592,   -0x45fc64,   -0x46b336,
++   -0x476a08,   -0x4820da,   -0x48d7ac,   -0x498e7e,   -0x4a4550,   -0x4afc22,
++   -0x4bb2f4,   -0x4c69c6,   -0x4d2098,   -0x4dd76a,   -0x4e8e3c,   -0x4f450e,
++   -0x4ffbe0,   -0x50b2b2,   -0x516984,   -0x522056,   -0x52d728,   -0x538dfa,
++   -0x5444cc,   -0x54fb9e,   -0x55b270,   -0x566942,   -0x572014,   -0x57d6e6,
++   -0x588db8,   -0x59448a,   -0x59fb5c,   -0x5ab22e,
++ };
++
++const int Cb_g_tab[(MAXJSAMPLE+1) * sizeof(int)] ={
++    0x2c8d00,    0x2c34e6,    0x2bdccc,    0x2b84b2,    0x2b2c98,    0x2ad47e,
++    0x2a7c64,    0x2a244a,    0x29cc30,    0x297416,    0x291bfc,    0x28c3e2,
++    0x286bc8,    0x2813ae,    0x27bb94,    0x27637a,    0x270b60,    0x26b346,
++    0x265b2c,    0x260312,    0x25aaf8,    0x2552de,    0x24fac4,    0x24a2aa,
++    0x244a90,    0x23f276,    0x239a5c,    0x234242,    0x22ea28,    0x22920e,
++    0x2239f4,    0x21e1da,    0x2189c0,    0x2131a6,    0x20d98c,    0x208172,
++    0x202958,    0x1fd13e,    0x1f7924,    0x1f210a,    0x1ec8f0,    0x1e70d6,
++    0x1e18bc,    0x1dc0a2,    0x1d6888,    0x1d106e,    0x1cb854,    0x1c603a,
++    0x1c0820,    0x1bb006,    0x1b57ec,    0x1affd2,    0x1aa7b8,    0x1a4f9e,
++    0x19f784,    0x199f6a,    0x194750,    0x18ef36,    0x18971c,    0x183f02,
++    0x17e6e8,    0x178ece,    0x1736b4,    0x16de9a,    0x168680,    0x162e66,
++    0x15d64c,    0x157e32,    0x152618,    0x14cdfe,    0x1475e4,    0x141dca,
++    0x13c5b0,    0x136d96,    0x13157c,    0x12bd62,    0x126548,    0x120d2e,
++    0x11b514,    0x115cfa,    0x1104e0,    0x10acc6,    0x1054ac,    0x0ffc92,
++    0x0fa478,    0x0f4c5e,    0x0ef444,    0x0e9c2a,    0x0e4410,    0x0debf6,
++    0x0d93dc,    0x0d3bc2,    0x0ce3a8,    0x0c8b8e,    0x0c3374,    0x0bdb5a,
++    0x0b8340,    0x0b2b26,    0x0ad30c,    0x0a7af2,    0x0a22d8,    0x09cabe,
++    0x0972a4,    0x091a8a,    0x08c270,    0x086a56,    0x08123c,    0x07ba22,
++    0x076208,    0x0709ee,    0x06b1d4,    0x0659ba,    0x0601a0,    0x05a986,
++    0x05516c,    0x04f952,    0x04a138,    0x04491e,    0x03f104,    0x0398ea,
++    0x0340d0,    0x02e8b6,    0x02909c,    0x023882,    0x01e068,    0x01884e,
++    0x013034,    0x00d81a,    0x008000,    0x0027e6,   -0x003034,   -0x00884e,
++   -0x00e068,   -0x013882,   -0x01909c,   -0x01e8b6,   -0x0240d0,   -0x0298ea,
++   -0x02f104,   -0x03491e,   -0x03a138,   -0x03f952,   -0x04516c,   -0x04a986,
++   -0x0501a0,   -0x0559ba,   -0x05b1d4,   -0x0609ee,   -0x066208,   -0x06ba22,
++   -0x07123c,   -0x076a56,   -0x07c270,   -0x081a8a,   -0x0872a4,   -0x08cabe,
++   -0x0922d8,   -0x097af2,   -0x09d30c,   -0x0a2b26,   -0x0a8340,   -0x0adb5a,
++   -0x0b3374,   -0x0b8b8e,   -0x0be3a8,   -0x0c3bc2,   -0x0c93dc,   -0x0cebf6,
++   -0x0d4410,   -0x0d9c2a,   -0x0df444,   -0x0e4c5e,   -0x0ea478,   -0x0efc92,
++   -0x0f54ac,   -0x0facc6,   -0x1004e0,   -0x105cfa,   -0x10b514,   -0x110d2e,
++   -0x116548,   -0x11bd62,   -0x12157c,   -0x126d96,   -0x12c5b0,   -0x131dca,
++   -0x1375e4,   -0x13cdfe,   -0x142618,   -0x147e32,   -0x14d64c,   -0x152e66,
++   -0x158680,   -0x15de9a,   -0x1636b4,   -0x168ece,   -0x16e6e8,   -0x173f02,
++   -0x17971c,   -0x17ef36,   -0x184750,   -0x189f6a,   -0x18f784,   -0x194f9e,
++   -0x19a7b8,   -0x19ffd2,   -0x1a57ec,   -0x1ab006,   -0x1b0820,   -0x1b603a,
++   -0x1bb854,   -0x1c106e,   -0x1c6888,   -0x1cc0a2,   -0x1d18bc,   -0x1d70d6,
++   -0x1dc8f0,   -0x1e210a,   -0x1e7924,   -0x1ed13e,   -0x1f2958,   -0x1f8172,
++   -0x1fd98c,   -0x2031a6,   -0x2089c0,   -0x20e1da,   -0x2139f4,   -0x21920e,
++   -0x21ea28,   -0x224242,   -0x229a5c,   -0x22f276,   -0x234a90,   -0x23a2aa,
++   -0x23fac4,   -0x2452de,   -0x24aaf8,   -0x250312,   -0x255b2c,   -0x25b346,
++   -0x260b60,   -0x26637a,   -0x26bb94,   -0x2713ae,   -0x276bc8,   -0x27c3e2,
++   -0x281bfc,   -0x287416,   -0x28cc30,   -0x29244a,   -0x297c64,   -0x29d47e,
++   -0x2a2c98,   -0x2a84b2,   -0x2adccc,   -0x2b34e6,
++ };
++
++
++/* We assume that right shift corresponds to signed division by 2 with
++ * rounding towards minus infinity.  This is correct for typical "arithmetic
++ * shift" instructions that shift in copies of the sign bit.  But some
++ * C compilers implement >> with an unsigned shift.  For these machines you
++ * must define RIGHT_SHIFT_IS_UNSIGNED.
++ * RIGHT_SHIFT provides a proper signed right shift of an INT32 quantity.
++ * It is only applied with constant shift counts.  SHIFT_TEMPS must be
++ * included in the variables of any routine using RIGHT_SHIFT.
++ */
++
++#ifdef RIGHT_SHIFT_IS_UNSIGNED
++#define SHIFT_TEMPS	INT32 shift_temp;
++#define RIGHT_SHIFT(x,shft)  \
++	((shift_temp = (x)) < 0 ? \
++	 (shift_temp >> (shft)) | ((~((INT32) 0)) << (32-(shft))) : \
++	 (shift_temp >> (shft)))
++#else
++#define SHIFT_TEMPS
++#define RIGHT_SHIFT(x,shft)	((x) >> (shft))
++#endif
++
++
++METHODDEF(void)
++ycc_rgb_convert_argb (j_decompress_ptr cinfo,
++                 JSAMPIMAGE input_buf, JDIMENSION input_row,
++                 JSAMPARRAY output_buf, int num_rows)
++{
++  JDIMENSION num_cols = cinfo->output_width;
++  JSAMPLE * range_limit = cinfo->sample_range_limit;
++
++  SHIFT_TEMPS
++
++  /* This is used if we don't have SSE2 */
++
++  while (--num_rows >= 0) {
++    JSAMPROW inptr0 = input_buf[0][input_row];
++    JSAMPROW inptr1 = input_buf[1][input_row];
++    JSAMPROW inptr2 = input_buf[2][input_row];
++    input_row++;
++    uint32_t *outptr = (uint32_t *) *output_buf++;
++    for (JDIMENSION col = 0; col < num_cols; col++) {
++      int y  = GETJSAMPLE(inptr0[col]);
++      int cb = GETJSAMPLE(inptr1[col]);
++      int cr = GETJSAMPLE(inptr2[col]);
++      JSAMPLE * range_limit_y = range_limit + y;
++      /* Range-limiting is essential due to noise introduced by DCT losses. */
++      outptr[col] = 0xFF000000 |
++                    ( range_limit_y[Cr_r_tab[cr]] << 16 ) |
++                    ( range_limit_y[((int) RIGHT_SHIFT(Cb_g_tab[cb] + Cr_g_tab[cr], SCALEBITS))] << 8 ) |
++                    ( range_limit_y[Cb_b_tab[cb]] );
++    }
++  }
++}
++#endif
++
++
+ ///*************** Inverted CMYK -> RGB conversion *************************
+ /// Input is (Inverted) CMYK stored as 4 bytes per pixel.
+ /// Output is RGB stored as 3 bytes per pixel.
+
+
+[FILE:536:patches/patch-sample-type]
+# Let ports handle default sample type
+
+--- old-configure.in~
++++ old-configure.in
+@@ -5144,7 +5144,7 @@ dnl Use integers over floats for audio o
+ dnl (regarless of the CPU architecture, because audio
+ dnl backends for those platforms don't support floats. We also
+ dnl use integers on ARM with other OS, because it's more efficient.
+-if test "$OS_TARGET" = "Android" -o "$CPU_ARCH" = "arm"; then
++if test -n "$MOZ_INTEGER_SAMPLES"; then
+     MOZ_SAMPLE_TYPE_S16=1
+     AC_DEFINE(MOZ_SAMPLE_TYPE_S16)
+     AC_SUBST(MOZ_SAMPLE_TYPE_S16)
+
+
+[FILE:675:patches/patch-toolkit_mozapps_installer_packager_mk]
+$OpenBSD: patch-toolkit_mozapps_installer_packager_mk,v 1.11 2012/06/11 15:29:56 landry Exp $
+install headers/idl/sdk libs only if xulrunner
+--- toolkit/mozapps/installer/packager.mk.orig	Fri Jun  1 14:04:20 2012
++++ toolkit/mozapps/installer/packager.mk	Tue Jun  5 07:55:51 2012
+@@ -127,7 +127,7 @@ endif
+ 	$(NSINSTALL) -D $(DESTDIR)$(bindir)
+ 	$(RM) -f $(DESTDIR)$(bindir)/$(MOZ_APP_NAME)
+ 	ln -s $(installdir)/$(MOZ_APP_NAME) $(DESTDIR)$(bindir)
+-ifdef INSTALL_SDK # Here comes the hard part
++ifeq ($(MOZ_APP_NAME),xulrunner)
+ 	$(NSINSTALL) -D $(DESTDIR)$(includedir)
+ 	(cd $(DIST)/include && tar $(TAR_CREATE_FLAGS) - .) | \
+ 	  (cd $(DESTDIR)$(includedir) && tar -xf -)
+
+
+[FILE:16913:patches/patch-z-bug517422]
+# Allow more config/external/ libs built against system-wide version.
+
+diff --git build/moz.configure/old.configure build/moz.configure/old.configure
+index d0fe7accffe6..c46bdd023225 100644
+--- build/moz.configure/old.configure
++++ build/moz.configure/old.configure
+@@ -288,7 +288,12 @@ def old_configure_options(*options):
+     '--with-system-libvpx',
+     '--with-system-nspr',
+     '--with-system-nss',
++    '--with-system-ogg',
+     '--with-system-png',
++    '--with-system-soundtouch',
++    '--with-system-theora',
++    '--with-system-tremor',
++    '--with-system-vorbis',
+     '--with-system-zlib',
+     '--with-thumb',
+     '--with-thumb-interwork',
+diff --git config/Makefile.in config/Makefile.in
+index a6206bb0ff30..f20987c61754 100644
+--- config/Makefile.in
++++ config/Makefile.in
+@@ -51,6 +51,11 @@ export:: $(export-preqs)
+ 		-DMOZ_SYSTEM_LIBEVENT=$(MOZ_SYSTEM_LIBEVENT) \
+ 		-DMOZ_SYSTEM_LIBVPX=$(MOZ_SYSTEM_LIBVPX) \
+ 		-DMOZ_SYSTEM_ICU=$(MOZ_SYSTEM_ICU) \
++		-DMOZ_SYSTEM_OGG=$(MOZ_SYSTEM_OGG) \
++		-DMOZ_SYSTEM_THEORA=$(MOZ_SYSTEM_THEORA) \
++		-DMOZ_SYSTEM_VORBIS=$(MOZ_SYSTEM_VORBIS) \
++		-DMOZ_SYSTEM_TREMOR=$(MOZ_SYSTEM_TREMOR) \
++		-DMOZ_SYSTEM_SOUNDTOUCH=$(MOZ_SYSTEM_SOUNDTOUCH) \
+ 		$(srcdir)/system-headers $(srcdir)/stl-headers | $(PERL) $(topsrcdir)/nsprpub/config/make-system-wrappers.pl system_wrappers
+ 	$(INSTALL) system_wrappers $(DIST)
+ 
+diff --git config/external/moz.build config/external/moz.build
+index 029ff8504795..2c3a40caa1ba 100644
+--- config/external/moz.build
++++ config/external/moz.build
+@@ -21,12 +21,21 @@ if CONFIG['MOZ_UPDATER']:
+ external_dirs += ['modules/brotli']
+ external_dirs += ['modules/woff2']
+ 
+-if CONFIG['MOZ_VORBIS']:
++if not CONFIG['MOZ_SYSTEM_OGG']:
++    external_dirs += ['media/libogg']
++
++if CONFIG['MOZ_VORBIS'] and not CONFIG['MOZ_SYSTEM_VORBIS']:
+     external_dirs += ['media/libvorbis']
+ 
+-if CONFIG['MOZ_TREMOR']:
++if CONFIG['MOZ_TREMOR'] and not CONFIG['MOZ_SYSTEM_TREMOR']:
+     external_dirs += ['media/libtremor']
+ 
++if not CONFIG['MOZ_SYSTEM_THEORA']:
++    external_dirs += ['media/libtheora']
++
++if not CONFIG['MOZ_SYSTEM_SOUNDTOUCH']:
++    external_dirs += ['media/libsoundtouch']
++
+ if CONFIG['MOZ_WEBM_ENCODER']:
+     external_dirs += ['media/libmkv']
+ 
+@@ -52,12 +61,9 @@ external_dirs += [
+     'media/kiss_fft',
+     'media/libcubeb',
+     'media/libnestegg',
+-    'media/libogg',
+     'media/libopus',
+-    'media/libtheora',
+     'media/libspeex_resampler',
+     'media/libstagefright',
+-    'media/libsoundtouch',
+     'media/psshparser'
+ ]
+ 
+diff --git config/system-headers config/system-headers
+index 5ee7f71f9634..13178ac3b3ab 100644
+--- config/system-headers
++++ config/system-headers
+@@ -1348,3 +1348,17 @@ unicode/utypes.h
+ libutil.h
+ unwind.h
+ fenv.h
++#if MOZ_SYSTEM_OGG==1
++ogg/ogg.h
++ogg/os_types.h
++#endif
++#if MOZ_SYSTEM_THEORA==1
++theora/theoradec.h
++#endif
++#if MOZ_SYSTEM_VORBIS==1
++vorbis/codec.h
++vorbis/vorbisenc.h
++#endif
++#if MOZ_SYSTEM_TREMOR==1
++tremor/ivorbiscodec.h
++#endif
+diff --git dom/media/AudioStream.cpp dom/media/AudioStream.cpp
+index 93ecda4319af..ff674c64ea07 100644
+--- dom/media/AudioStream.cpp
++++ dom/media/AudioStream.cpp
+@@ -115,7 +115,9 @@ AudioStream::AudioStream(DataSource& aSource)
+   : mMonitor("AudioStream")
+   , mChannels(0)
+   , mOutChannels(0)
++#ifndef MOZ_SYSTEM_SOUNDTOUCH
+   , mTimeStretcher(nullptr)
++#endif
+   , mDumpFile(nullptr)
+   , mState(INITIALIZED)
+   , mDataSource(aSource)
+@@ -130,9 +132,11 @@ AudioStream::~AudioStream()
+   if (mDumpFile) {
+     fclose(mDumpFile);
+   }
++#ifndef MOZ_SYSTEM_SOUNDTOUCH
+   if (mTimeStretcher) {
+     soundtouch::destroySoundTouchObj(mTimeStretcher);
+   }
++#endif
+ }
+ 
+ size_t
+@@ -151,7 +155,11 @@ nsresult AudioStream::EnsureTimeStretcherInitializedUnlocked()
+ {
+   mMonitor.AssertCurrentThreadOwns();
+   if (!mTimeStretcher) {
++#ifdef MOZ_SYSTEM_SOUNDTOUCH
++    mTimeStretcher = new soundtouch::SoundTouch();
++#else
+     mTimeStretcher = soundtouch::createSoundTouchObj();
++#endif
+     mTimeStretcher->setSampleRate(mAudioClock.GetInputRate());
+     mTimeStretcher->setChannels(mOutChannels);
+     mTimeStretcher->setPitch(1.0);
+diff --git dom/media/AudioStream.h dom/media/AudioStream.h
+index 7dc1f60f95cc..67d402a4117f 100644
+--- dom/media/AudioStream.h
++++ dom/media/AudioStream.h
+@@ -16,7 +16,11 @@
+ #include "mozilla/TimeStamp.h"
+ #include "mozilla/UniquePtr.h"
+ #include "CubebUtils.h"
++#ifdef MOZ_SYSTEM_SOUNDTOUCH
++#include "soundtouch/SoundTouch.h"
++#else
+ #include "soundtouch/SoundTouchFactory.h"
++#endif
+ 
+ namespace mozilla {
+ 
+@@ -287,7 +291,11 @@ private:
+   uint32_t mChannels;
+   uint32_t mOutChannels;
+   AudioClock mAudioClock;
++#ifdef MOZ_SYSTEM_SOUNDTOUCH
++  nsAutoPtr<soundtouch::SoundTouch> mTimeStretcher;
++#else
+   soundtouch::SoundTouch* mTimeStretcher;
++#endif
+ 
+   // Output file for dumping audio
+   FILE* mDumpFile;
+diff --git dom/media/moz.build dom/media/moz.build
+index 86b051c58d33..fb6186dce78b 100644
+--- dom/media/moz.build
++++ dom/media/moz.build
+@@ -308,6 +308,21 @@ if CONFIG['MOZ_WEBRTC']:
+ 
+ DEFINES['MOZILLA_INTERNAL_API'] = True
+ 
++if CONFIG['MOZ_SYSTEM_OGG']:
++    CXXFLAGS += CONFIG['MOZ_OGG_CFLAGS']
++
++if CONFIG['MOZ_SYSTEM_THEORA']:
++    CXXFLAGS += CONFIG['MOZ_THEORA_CFLAGS']
++
++if CONFIG['MOZ_SYSTEM_VORBIS']:
++    CXXFLAGS += CONFIG['MOZ_VORBIS_CFLAGS']
++
++if CONFIG['MOZ_SYSTEM_TREMOR']:
++    CXXFLAGS += CONFIG['MOZ_TREMOR_CFLAGS']
++
++if CONFIG['MOZ_SYSTEM_SOUNDTOUCH']:
++    CXXFLAGS += CONFIG['MOZ_SOUNDTOUCH_CFLAGS']
++
+ if CONFIG['OS_TARGET'] == 'WINNT':
+     DEFINES['WEBRTC_WIN'] = True
+ else:
+diff --git dom/media/platforms/ffmpeg/ffvpx/FFVPXRuntimeLinker.cpp dom/media/platforms/ffmpeg/ffvpx/FFVPXRuntimeLinker.cpp
+index 078f6ea5ef60..c600db067539 100644
+--- dom/media/platforms/ffmpeg/ffvpx/FFVPXRuntimeLinker.cpp
++++ dom/media/platforms/ffmpeg/ffvpx/FFVPXRuntimeLinker.cpp
+@@ -11,9 +11,13 @@
+ #include "prmem.h"
+ #include "prlink.h"
+ 
++#ifdef MOZ_SYSTEM_SOUNDTOUCH
++#include "nsXPCOMPrivate.h" // for XUL_DLL
++#else
+ // We use a known symbol located in lgpllibs to determine its location.
+ // soundtouch happens to be always included in lgpllibs
+ #include "soundtouch/SoundTouch.h"
++#endif
+ 
+ namespace mozilla {
+ 
+@@ -50,6 +54,12 @@ FFVPXRuntimeLinker::Init()
+ 
+   sLinkStatus = LinkStatus_FAILED;
+ 
++#ifdef MOZ_SYSTEM_SOUNDTOUCH
++  // We retrieve the path of the XUL library as this is where mozavcodec and
++  // mozavutil libs are located.
++  char* path =
++    PR_GetLibraryFilePathname(XUL_DLL, (PRFuncPtr)&FFVPXRuntimeLinker::Init);
++#else
+   // We retrieve the path of the lgpllibs library as this is where mozavcodec
+   // and mozavutil libs are located.
+   char* lgpllibsname = PR_GetLibraryName(nullptr, "lgpllibs");
+@@ -60,6 +70,7 @@ FFVPXRuntimeLinker::Init()
+     PR_GetLibraryFilePathname(lgpllibsname,
+                               (PRFuncPtr)&soundtouch::SoundTouch::getVersionId);
+   PR_FreeLibraryName(lgpllibsname);
++#endif
+   if (!path) {
+     return false;
+   }
+diff --git media/libogg/README_MOZILLA media/libogg/README_MOZILLA
+index 6213fdc7770c..ada799916a17 100644
+--- media/libogg/README_MOZILLA
++++ media/libogg/README_MOZILLA
+@@ -6,3 +6,6 @@ package downloaded from xiph.org and copied using the update.sh script.
+ The int-types.patch address a bug that config_types.h generated from
+ Linux platform can't be used on OpenSolaris directly see Mozilla bug
+ 449754
++
++The in-tree copy may be omitted during build by --with-system-ogg.
++Keep version in old-configure.in in sync on updates.
+diff --git media/libsoundtouch/README_MOZILLA media/libsoundtouch/README_MOZILLA
+index dc0dbe8f6886..ea73b55e3e39 100644
+--- media/libsoundtouch/README_MOZILLA
++++ media/libsoundtouch/README_MOZILLA
+@@ -6,3 +6,5 @@ The whole library is not used, only the relevant files are imported in the tree,
+ using the script `update.sh`. Some changes have been made to the files, using
+ the patch `moz-libsoundtouch.patch`. We also use a custom soundtouch_config.h.
+ 
++The in-tree copy may be omitted during build by --with-system-soundtouch.
++Keep version in old-configure.in in sync on updates.
+diff --git media/libsoundtouch/src/soundtouch_perms.h media/libsoundtouch/src/soundtouch_perms.h
+index 0af2fe618311..10973564e7a4 100644
+--- media/libsoundtouch/src/soundtouch_perms.h
++++ media/libsoundtouch/src/soundtouch_perms.h
+@@ -12,7 +12,9 @@
+ 
+ #pragma GCC visibility push(default)
+ #include "SoundTouch.h"
++#ifndef MOZ_SYSTEM_SOUNDTOUCH
+ #include "SoundTouchFactory.h"
++#endif
+ #pragma GCC visibility pop
+ 
+ #endif // MOZILLA_SOUNDTOUCH_PERMS_H
+diff --git media/libtheora/README_MOZILLA media/libtheora/README_MOZILLA
+index d48dbfa6f63d..6f30f250220e 100644
+--- media/libtheora/README_MOZILLA
++++ media/libtheora/README_MOZILLA
+@@ -3,3 +3,6 @@ using the update.sh script. The changes made were those applied by update.sh,
+ the addition/update of Makefile.in files for the Mozilla build system.
+ 
+ The subversion revision used was r17578.
++
++The in-tree copy may be omitted during build by --with-system-theora.
++Keep version in old-configure.in in sync on updates.
+diff --git media/libtheora/moz.build media/libtheora/moz.build
+index c7f85eebff95..aae7b814adb5 100644
+--- media/libtheora/moz.build
++++ media/libtheora/moz.build
+@@ -21,6 +21,9 @@ FINAL_LIBRARY = 'gkmedias'
+ # The encoder is currently not included.
+ DEFINES['THEORA_DISABLE_ENCODE'] = True
+ 
++if CONFIG['MOZ_SYSTEM_OGG']:
++    CFLAGS += CONFIG['MOZ_OGG_CFLAGS']
++
+ # Suppress warnings in third-party code.
+ if CONFIG['GNU_CC'] or CONFIG['CLANG_CL']:
+     CFLAGS += ['-Wno-type-limits']
+diff --git media/libtremor/README_MOZILLA media/libtremor/README_MOZILLA
+index ee67b53a05c5..81c971773d55 100644
+--- media/libtremor/README_MOZILLA
++++ media/libtremor/README_MOZILLA
+@@ -5,3 +5,6 @@ Makefile.in files for the Mozilla build system.
+ 
+ The upstream release used was http://svn.xiph.org/trunk/Tremor/
+ The subversion revision used was r17547.
++
++The in-tree copy may be omitted during build by --with-system-tremor.
++Keep version in old-configure.in in sync on updates.
+diff --git media/libtremor/moz.build media/libtremor/moz.build
+index 83afc8e37c64..71ef159da3d7 100644
+--- media/libtremor/moz.build
++++ media/libtremor/moz.build
+@@ -9,3 +9,5 @@ with Files('*'):
+ 
+ DIRS += ['include/tremor', 'lib']
+ 
++if CONFIG['MOZ_SYSTEM_OGG']:
++    CFLAGS += CONFIG['MOZ_OGG_CFLAGS']
+diff --git media/libvorbis/README_MOZILLA media/libvorbis/README_MOZILLA
+index 1211ac074b33..eb31084aed25 100644
+--- media/libvorbis/README_MOZILLA
++++ media/libvorbis/README_MOZILLA
+@@ -8,3 +8,6 @@ https://svn.xiph.org/tags/vorbis/libvorbis-1.3.5@19464
+ 
+ Some files are renamed during the copy to prevent clashes with object
+ file names with other Mozilla libraries.
++
++The in-tree copy may be omitted during build by --with-system-vorbis.
++Keep version in old-configure.in in sync on updates.
+diff --git media/libvorbis/moz.build media/libvorbis/moz.build
+index adf393782cc9..923b76231107 100644
+--- media/libvorbis/moz.build
++++ media/libvorbis/moz.build
+@@ -56,3 +56,6 @@ FINAL_LIBRARY = 'gkmedias'
+ # Suppress warnings in third-party code.
+ if CONFIG['GNU_CC']:
+     CFLAGS += ['-Wno-uninitialized']
++
++if CONFIG['MOZ_SYSTEM_OGG']:
++    CFLAGS += CONFIG['MOZ_OGG_CFLAGS']
+diff --git old-configure.in old-configure.in
+index b614eef85c89..85f9099dba4d 100644
+--- old-configure.in
++++ old-configure.in
+@@ -2941,6 +2941,111 @@ if test -n "$MOZ_OMX_PLUGIN"; then
+     fi
+ fi
+ 
++dnl ========================================================
++dnl Check for libogg
++dnl ========================================================
++
++MOZ_ARG_WITH_BOOL(system-ogg,
++[  --with-system-ogg       Use system libogg (located with pkgconfig)],
++MOZ_SYSTEM_OGG=1,
++MOZ_SYSTEM_OGG=)
++
++if test -n "$MOZ_SYSTEM_OGG"; then
++    PKG_CHECK_MODULES(MOZ_OGG, ogg >= 1.3.0)
++
++    _SAVE_LIBS=$LIBS
++    LIBS="$LIBS $MOZ_OGG_LIBS"
++    AC_CHECK_FUNC(ogg_set_mem_functions, [],
++      [AC_DEFINE(MOZ_OGG_NO_MEM_REPORTING)])
++    LIBS=$_SAVE_LIBS
++fi
++
++AC_SUBST(MOZ_SYSTEM_OGG)
++
++dnl ========================================================
++dnl Check for libvorbis
++dnl ========================================================
++
++MOZ_ARG_WITH_BOOL(system-vorbis,
++[  --with-system-vorbis    Use system libvorbis (located with pkgconfig)],
++MOZ_SYSTEM_VORBIS=1,
++MOZ_SYSTEM_VORBIS=)
++
++if test -n "$MOZ_SYSTEM_VORBIS"; then
++    PKG_CHECK_MODULES(MOZ_VORBIS, vorbis vorbisenc >= 1.3.5)
++fi
++
++AC_SUBST(MOZ_SYSTEM_VORBIS)
++
++dnl ========================================================
++dnl Check for integer-only libvorbis aka tremor
++dnl ========================================================
++
++MOZ_ARG_WITH_BOOL(system-tremor,
++[  --with-system-tremor    Use system libtremor (located with pkgconfig)],
++MOZ_SYSTEM_TREMOR=1,
++MOZ_SYSTEM_TREMOR=)
++
++if test -n "$MOZ_SYSTEM_TREMOR"; then
++    PKG_CHECK_MODULES(MOZ_TREMOR, vorbisidec >= 1.2.1)
++fi
++
++AC_SUBST(MOZ_SYSTEM_TREMOR)
++
++dnl ========================================================
++dnl Check for libtheora
++dnl ========================================================
++
++MOZ_ARG_WITH_BOOL(system-theora,
++[  --with-system-theora    Use system libtheora (located with pkgconfig)],
++MOZ_SYSTEM_THEORA=1,
++MOZ_SYSTEM_THEORA=)
++
++if test -n "$MOZ_SYSTEM_THEORA"; then
++    PKG_CHECK_MODULES(MOZ_THEORA, theora >= 1.2)
++fi
++
++AC_SUBST(MOZ_SYSTEM_THEORA)
++
++dnl ========================================================
++dnl Check for libSoundTouch
++dnl ========================================================
++
++MOZ_ARG_WITH_BOOL(system-soundtouch,
++[  --with-system-soundtouch Use system libSoundTouch (located with pkgconfig)],
++MOZ_SYSTEM_SOUNDTOUCH=1,
++MOZ_SYSTEM_SOUNDTOUCH=)
++
++if test -n "$MOZ_SYSTEM_SOUNDTOUCH"; then
++    PKG_CHECK_MODULES(MOZ_SOUNDTOUCH, soundtouch >= 1.9.0)
++
++    AC_LANG_SAVE
++    AC_LANG_CPLUSPLUS
++    _SAVE_CXXFLAGS=$CXXFLAGS
++    CXXFLAGS="$CXXFLAGS $MOZ_SOUNDTOUCH_CFLAGS"
++    AC_CACHE_CHECK(for soundtouch sample type,
++                   ac_cv_soundtouch_sample_type,
++                   [AC_TRY_COMPILE([#include <SoundTouch.h>
++                                    #ifndef SOUNDTOUCH_INTEGER_SAMPLES
++                                    #error soundtouch expects float samples
++                                    #endif],
++                                   [],
++                                   [ac_cv_soundtouch_sample_type=short],
++                                   [ac_cv_soundtouch_sample_type=float])])
++    CXXFLAGS=$_SAVE_CXXFLAGS
++    AC_LANG_RESTORE
++
++    if test \( -n "$MOZ_SAMPLE_TYPE_S16" -a "$ac_cv_soundtouch_sample_type" != short \) \
++         -o \( -n "$MOZ_SAMPLE_TYPE_FLOAT32" -a "$ac_cv_soundtouch_sample_type" != float \) ; then
++        AC_MSG_ERROR([SoundTouch library is built with incompatible sample type. Either rebuild the library with/without --enable-integer-samples, chase default Mozilla sample type or remove --with-system-soundtouch.])
++    fi
++fi
++
++if test -n "$MOZ_SYSTEM_SOUNDTOUCH"; then
++    AC_DEFINE(MOZ_SYSTEM_SOUNDTOUCH)
++fi
++AC_SUBST(MOZ_SYSTEM_SOUNDTOUCH)
++
+ dnl system libvpx Support
+ dnl ========================================================
+ MOZ_ARG_WITH_BOOL(system-libvpx,
+diff --git toolkit/library/moz.build toolkit/library/moz.build
+index 079a575adec3..514d901195de 100644
+--- toolkit/library/moz.build
++++ toolkit/library/moz.build
+@@ -237,6 +237,21 @@ if CONFIG['MOZ_SYSTEM_HARFBUZZ']:
+ if CONFIG['MOZ_SYSTEM_HUNSPELL']:
+     OS_LIBS += CONFIG['MOZ_HUNSPELL_LIBS']
+ 
++if CONFIG['MOZ_SYSTEM_OGG']:
++    OS_LIBS += CONFIG['MOZ_OGG_LIBS']
++
++if CONFIG['MOZ_SYSTEM_THEORA']:
++    OS_LIBS += CONFIG['MOZ_THEORA_LIBS']
++
++if CONFIG['MOZ_SYSTEM_VORBIS']:
++    OS_LIBS += CONFIG['MOZ_VORBIS_LIBS']
++
++if CONFIG['MOZ_SYSTEM_TREMOR']:
++    OS_LIBS += CONFIG['MOZ_TREMOR_LIBS']
++
++if CONFIG['MOZ_SYSTEM_SOUNDTOUCH']:
++    OS_LIBS += CONFIG['MOZ_SOUNDTOUCH_LIBS']
++
+ if CONFIG['MOZ_SYSTEM_LIBEVENT']:
+     OS_LIBS += CONFIG['MOZ_LIBEVENT_LIBS']
+ 
+diff --git xpcom/build/XPCOMInit.cpp xpcom/build/XPCOMInit.cpp
+index c083ab4bc4f3..62b917043a2c 100644
+--- xpcom/build/XPCOMInit.cpp
++++ xpcom/build/XPCOMInit.cpp
+@@ -154,7 +154,9 @@ extern nsresult nsStringInputStreamConstructor(nsISupports*, REFNSIID, void**);
+ 
+ #include "mozilla/ipc/GeckoChildProcessHost.h"
+ 
++#ifndef MOZ_OGG_NO_MEM_REPORTING
+ #include "ogg/ogg.h"
++#endif
+ #if defined(MOZ_VPX) && !defined(MOZ_VPX_NO_MEM_REPORTING)
+ #if defined(HAVE_STDINT_H)
+ // mozilla-config.h defines HAVE_STDINT_H, and then it's defined *again* in
+@@ -664,11 +666,13 @@ NS_InitXPCOM2(nsIServiceManager** aResult,
+   // this oddness.
+   mozilla::SetICUMemoryFunctions();
+ 
++#ifndef MOZ_OGG_NO_MEM_REPORTING
+   // Do the same for libogg.
+   ogg_set_mem_functions(OggReporter::CountingMalloc,
+                         OggReporter::CountingCalloc,
+                         OggReporter::CountingRealloc,
+                         OggReporter::CountingFree);
++#endif
+ 
+ #if defined(MOZ_VPX) && !defined(MOZ_VPX_NO_MEM_REPORTING)
+   // And for VPX.
+
+
+[FILE:6900:files/firefox.desktop.in]
+[Desktop Entry]
+Encoding=UTF-8
+Name=@MOZILLA_NAME@ Web Browser
+Name[am]=
+Name[ar]=
+Name[az]=@MOZILLA_NAME@ Veb Səyyahı
+Name[be]=
+Name[bg]=Интернет браузър @MOZILLA_NAME@
+Name[bn]=
+Name[bs]=@MOZILLA_NAME@ web preglednik
+Name[ca]=Navegador web @MOZILLA_NAME@
+Name[cs]=Prohlížeč WWW @MOZILLA_NAME@
+Name[cy]=Y Porwr Gwe @MOZILLA_NAME@
+Name[da]=@MOZILLA_NAME@ - internetsurfning
+Name[de]=@MOZILLA_NAME@ Webbrowser
+Name[el]=Περιηγητής Διαδικτύου @MOZILLA_NAME@
+Name[en_CA]=@MOZILLA_NAME@ Web Browser
+Name[en_GB]=@MOZILLA_NAME@ Web Browser
+Name[es]=Navegador Web @MOZILLA_NAME@
+Name[et]=@MOZILLA_NAME@ veebibrauser
+Name[eu]=@MOZILLA_NAME@ web arakatzailea
+Name[fi]=@MOZILLA_NAME@, WWW-selain
+Name[fr]=Navigateur Web @MOZILLA_NAME@
+Name[ga]=Brabhsálaí Lín @MOZILLA_NAME@
+Name[gu]=એપીફની વૅબ બ્રાઉઝર
+Name[he]=דפדפן @MOZILLA_NAME@
+Name[hi]=
+Name[hr]=@MOZILLA_NAME@ Web preglednik
+Name[hu]=@MOZILLA_NAME@ webböngésző
+Name[id]=Web Browser @MOZILLA_NAME@
+Name[it]=Browser web @MOZILLA_NAME@
+Name[ja]=@MOZILLA_NAME@ ウェブ・ブラウザ
+Name[ko]=@MOZILLA_NAME@ 웹 브라우저
+Name[li]=@MOZILLA_NAME@ Web Browser
+Name[lt]=@MOZILLA_NAME@ web naršyklė
+Name[mk]=@MOZILLA_NAME@ веб прелистувач
+Name[ml]=എപ്പിഫാനി വെബ്ബ് ബ്രൌസ‌ര്
+Name[mn]=@MOZILLA_NAME@ веб хөтөч
+Name[ms]=Pelungsur Web @MOZILLA_NAME@
+Name[nb]=@MOZILLA_NAME@ nettleser
+Name[nl]=@MOZILLA_NAME@ Webbrowser
+Name[nn]=@MOZILLA_NAME@ nettlesar
+Name[no]=@MOZILLA_NAME@ nettleser
+Name[pa]=ਏਪੀਫਾਨੀ ਵੈੱਬ ਬਰਾਊਜ਼ਰ
+Name[pl]=Przeglądarka WWW @MOZILLA_NAME@
+Name[pt]=Navegador Web @MOZILLA_NAME@
+Name[pt_BR]=Navegador Web @MOZILLA_NAME@
+Name[ro]=Navigatorul @MOZILLA_NAME@
+Name[ru]=Веб-браузер @MOZILLA_NAME@
+Name[sk]=
+Name[sl]=Spletni brskalnik @MOZILLA_NAME@
+Name[sq]=@MOZILLA_NAME@ - Shfletuesi Web
+Name[sr]=
+Name[sr@Latn]=Veb čitač Spoznaja
+Name[sv]=Webbläsaren @MOZILLA_NAME@
+Name[ta]=எபிபனி வலை உலாவி
+Name[tk]=@MOZILLA_NAME@ Web Ahtarçisi
+Name[tr]=@MOZILLA_NAME@ Web Tarayıcı
+Name[uk]=Переглядач web @MOZILLA_NAME@
+Name[vi]=Trình Duyệt Web @MOZILLA_NAME@
+Name[wa]=Betchteu waibe epiphany
+Name[zh_CN]=@MOZILLA_NAME@ Web 浏览器
+Name[zh_TW]=@MOZILLA_NAME@ 網頁瀏覽器
+GenericName=Web Browser
+GenericName[ar]=متصفّح الانترنت
+GenericName[az]=Veb Səyyahı
+GenericName[be]=Вандроўнік па павуціньню
+GenericName[bg]=Браузър
+GenericName[bn]=ওয়েব ব্রাউজার
+GenericName[bs]=Web preglednik
+GenericName[ca]=Navegador web
+GenericName[cs]=Prohlížeč WWW
+GenericName[cy]=Porwr Gwe
+GenericName[da]=Internetsurfning
+GenericName[de]=Webbrowser
+GenericName[el]=Περιηγητής Ιστοσελίδων
+GenericName[en_CA]=Web Browser
+GenericName[en_GB]=Web Browser
+GenericName[es]=Navegador web
+GenericName[et]=Veebilehitseja
+GenericName[eu]=Web arakatzailea
+GenericName[fi]=WWW-selain
+GenericName[fr]=Navigateur Web @MOZILLA_NAME@
+GenericName[ga]=Brabhsálaí Lín
+GenericName[gu]=વેબ બ્રાઉઝર
+GenericName[he]=דפדפן אינטרנט
+GenericName[hi]=वेब ब्राउज़र
+GenericName[hr]=Web preglednik
+GenericName[hu]=Webböngésző
+GenericName[id]=Browser Web
+GenericName[it]=Browser web
+GenericName[ja]=GNOME ウェブ・ブラウザ
+GenericName[ko]=웹 브라우저
+GenericName[li]=Wèb Browser
+GenericName[lt]=Web naršyklė
+GenericName[mk]=Веб прелистувач
+GenericName[mn]=Веб хөтөч
+GenericName[ms]=Pelungsur Web
+GenericName[nb]=Nettleser
+GenericName[nl]=Web-browser
+GenericName[nn]=Nettlesar
+GenericName[no]=Nettleser
+GenericName[pa]=ਵੈਬ ਬਰਾਊਜ਼
+GenericName[pl]=Przeglądarka WWW
+GenericName[pt]=Navegador Web
+GenericName[pt_BR]=Navegador Web
+GenericName[ro]=Navigator Internet
+GenericName[ru]=Веб-браузер
+GenericName[sk]=WWW prehliadač
+GenericName[sl]=Spletni brskalnik
+GenericName[sq]=Shfletuesi Web
+GenericName[sr]=Веб читач
+GenericName[sr@Latn]=Veb čitač
+GenericName[sv]=Webbläsare
+GenericName[ta]=வலை உலாவி
+GenericName[th]=เว็บบราวเซอร์
+GenericName[tk]=Web Ahtarçysy
+GenericName[tr]=Web Tarayıcı
+GenericName[uk]=Переглядач web-сторінок
+GenericName[vi]=Trình duyệt Web
+GenericName[wa]=Betchteu waibe
+GenericName[zh_CN]=Web 浏览器
+GenericName[zh_TW]=網頁瀏覽器
+Comment=Browse the web
+Comment[ar]=تصفح الانترنت
+Comment[az]=Vebi gəzin
+Comment[be]=Вандраваць па павуціньню
+Comment[bg]=Сърфиране в интернет
+Comment[bn]=ওয়েব ব্রাউজ করুন
+Comment[bs]=Pregledaj na internetu
+Comment[ca]=Navegueu per la web
+Comment[cs]=Prohlížet WWW
+Comment[cy]=Pori'r we
+Comment[da]=Surf på internettet
+Comment[de]=Im Web surfen
+Comment[el]=Περιήγηση στον παγκόσμιο ιστό
+Comment[en_CA]=Browse the web
+Comment[en_GB]=Browse the web
+Comment[es]=Navegar por la web
+Comment[et]=Sirvi veebi
+Comment[eu]=Arakatu web-a
+Comment[fi]=Selaa WWW:tä
+Comment[fr]=Naviguer sur Internet
+Comment[ga]=Brabhsáil an Líon
+Comment[gu]=વેબમાં શોધો
+Comment[he]=גלוש ברשת
+Comment[hi]=वेब ब्राउज़ करें
+Comment[hr]=Pregledaj Web
+Comment[hu]=A világháló böngészése
+Comment[id]=Jelajah web
+Comment[it]=Esplora il web
+Comment[ja]=ウェブを閲覧します
+Comment[ko]=웹을 돌아 다닙니다
+Comment[li]=Blajere op internet
+Comment[lt]=Naršyti internete
+Comment[mk]=Прелистувајте на веб
+Comment[ml]=വലക്കെട്ട് തിരയുക
+Comment[mn]=Веб броузе хийх
+Comment[ms]=Layari web
+Comment[nb]=Surf på nettet
+Comment[nl]=Websurfen
+Comment[nn]=Surf på nettet
+Comment[no]=Surf på nettet
+Comment[pa]=ਵੈਬ ਬਰਾਊਜ਼
+Comment[pl]=Przeglądanie stron WWW
+Comment[pt]=Navegar na web
+Comment[pt_BR]=Navegar na web
+Comment[ro]=Navigare Internet
+Comment[ru]=Веб-браузер
+Comment[sk]=Prehliadať internet
+Comment[sl]=Brskaj po spletu
+Comment[sq]=Eksploro web-in
+Comment[sr]=Прегледај веб
+Comment[sr@Latn]=Pregledaj veb
+Comment[sv]=Surfa på nätet
+Comment[ta]=வலையில் உலாவு
+Comment[th]=ใช้งานเว็บบราวเซอร์ @MOZILLA_NAME@
+Comment[tk]=Webi Ahtar
+Comment[tr]=Web'e Gözat
+Comment[uk]=Програма перегляду web-сторінок
+Comment[vi]=Duyệt web
+Comment[wa]=Naivyî avå les waibes
+Comment[zh_CN]=浏览 Web
+Comment[zh_TW]=瀏覽網頁
+Exec=@MOZILLA@ %U
+Icon=@FIREFOX_ICON@
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/vnd.mozilla.xul+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;
+
+
+[FILE:762:files/pkg-deinstall-single.in]
+#!/bin/sh
+#
+#    $MCom: ports/www/mozilla/pkg-deinstall.in,v 1.25 2008/07/26 19:07:07 ahze Exp $
+#
+# Date created:			Mon Nov 29, 2003
+# Whom:				Thierry Thomas (<thierry@pompo.net>)
+# Fix the chrome registry.
+
+umask 022
+PATH=/bin:/usr/bin
+
+[ "x$1" = "x" ] && exit 1
+[ "x$2" != "xDEINSTALL" ] && exit 0
+
+MOZDIR=%%MOZDIR%%
+
+rm -rf ${MOZDIR}/chrome/overlayinfo
+rm -f ${MOZDIR}/chrome/*.rdf
+rm -f ${MOZDIR}/component.reg
+rm -f ${MOZDIR}/components/*.dat
+rm -f ${MOZDIR}/components.ini
+rm -f ${MOZDIR}/defaults.ini
+rm -f ${MOZDIR}/chrome/app-chrome.manifest
+rm -rf ${MOZDIR}/updates
+find %%MOZDIR%%/plugins/ -depth 1 -type l -delete > /dev/null 2>&1
+find %%MOZDIR%%/extensions/ -depth 1 -type l -delete > /dev/null 2>&1
+rmdir ${MOZDIR}/chrome
+rmdir ${MOZDIR}
+
+exit 0
+
+
+[FILE:914:files/pkg-install-single.in]
+#!/bin/sh
+#
+#    $MCom: ports/www/mozilla/pkg-install.in,v 1.26 2008/08/04 16:58:03 mezz Exp $
+#
+# Date created:			Mon Nov 29, 2003
+# Whom:				Thierry Thomas (<thierry@pompo.net>)
+# Fix the chrome registry.
+
+umask 022
+PATH=/bin:/usr/bin
+
+[ "x$1" = "x" ] && exit 1
+[ "x$2" != "xPOST-INSTALL" ] && exit 0
+
+MOZDIR=%%MOZDIR%%
+MOZBIN=${MOZDIR}/%%MOZILLA_BIN%%
+REGXPCOM=${MOZDIR}/regxpcom
+REGCHROME=${MOZDIR}/regchrome
+
+rm -rf ${MOZDIR}/chrome/overlayinfo
+rm -f ${MOZDIR}/chrome/*.rdf
+mkdir -p ${MOZDIR}/chrome/overlayinfo
+rm -f ${MOZDIR}/component.reg
+
+cd ${MOZDIR} || exit 1
+if [ -f ${REGXPCOM} ]; then
+	./run-mozilla.sh ${REGXPCOM} || true
+fi
+if [ -f ${REGCHROME} ]; then
+	./run-mozilla.sh ${REGCHROME} || true
+fi
+if [ -f ${MOZBIN} -a "${1%-*}" = "nvu" ]; then
+	./run-mozilla.sh ${MOZBIN} -register > /dev/null 2>&1
+fi
+cp -R %%LOCALBASE%%/lib/xpi/symlinks/%%MOZILLA%%/ %%MOZDIR%%/extensions/ > /dev/null 2>&1
+
+exit 0
+
+
+[FILE:1280:files/pkg-message-single]
+======================================================================
+
+Some features available on other platforms are not implemented:
+- Native audio (OSS backend is incomplete, doesn't support WebRTC)
+- Encrypted Media Extensions (requires Widevine CDM binary)
+- Process sandboxing (requires Capsicum backend)
+- Reduced memory usage (requires mozjemalloc)
+- Performance profiling (requires GeckoProfiler)
+- Gamepad API (requires libusbhid backend)
+
+======================================================================
+
+To select non-default audio backend open about:config page and create
+media.cubeb.backend preference. Supported values are: alsa, jack,
+pulse, oss, sndio. Currently used backend can be inspected on
+about:support page.
+
+======================================================================
+
+smb:// issues (Gvfs/GIO option):
+Network group, machine, and share browsing does not work correctly.
+
+sftp:// (Gvfs/GIO option):
+Only sftp access using public key authentication works.  To easily
+setup public key authentication to "remote_host":
+
+ssh-keygen
+cat ~/.ssh/id_rsa.pub | ssh remote_host "cat >> .ssh/authorized_keys"
+
+The SSH server on remote_host must allow pub key authentication.
+
+======================================================================
+
+
+[FILE:539:dragonfly/patch-build_moz.configure_memory.configure]
+--- build/moz.configure/memory.configure.orig	2016-09-05 20:12:51 UTC
++++ build/moz.configure/memory.configure
+@@ -66,7 +66,7 @@ def jemalloc_os_define(jemalloc, jemallo
+             return 'MOZ_MEMORY_LINUX'
+         if target.kernel == 'Darwin':
+             return 'MOZ_MEMORY_DARWIN'
+-        if target.kernel in ('kFreeBSD', 'FreeBSD', 'NetBSD'):
++        if target.kernel in ('kFreeBSD', 'FreeBSD', 'NetBSD','DragonFly'):
+             return 'MOZ_MEMORY_BSD'
+         die('--enable-jemalloc is not supported on %s', target.kernel)
+ 
+
+
+[FILE:390:dragonfly/patch-ipc_chromium_src_base_platform__thread__posix.cc]
+--- ipc/chromium/src/base/platform_thread_posix.cc.orig	2016-09-05 23:12:53.000000000 +0300
++++ ipc/chromium/src/base/platform_thread_posix.cc
+@@ -16,6 +16,11 @@
+ #elif defined(OS_LINUX)
+ #include <sys/syscall.h>
+ #include <sys/prctl.h>
++#elif defined(OS_DRAGONFLY)
++#include <sys/param.h>
++#if __DragonFly_version >= 400709
++#include <sys/lwp.h>
++#endif
+ #endif
+ 
+ #if !defined(OS_MACOSX)
+
+
+[FILE:510:dragonfly/patch-js_src_jsnativestack.cpp]
+--- js/src/jsnativestack.cpp.orig	2016-05-12 17:13:19 UTC
++++ js/src/jsnativestack.cpp
+@@ -102,7 +102,8 @@ js::GetNativeStackBaseImpl()
+     pthread_attr_init(&sattr);
+ #  if defined(__OpenBSD__)
+     stack_t ss;
+-#  elif defined(PTHREAD_NP_H) || defined(_PTHREAD_NP_H_) || defined(NETBSD)
++#  elif defined(PTHREAD_NP_H) || defined(_PTHREAD_NP_H_) || defined(NETBSD) \
++     || defined(__DragonFly__)
+     /* e.g. on FreeBSD 4.8 or newer, neundorf@kde.org */
+     pthread_attr_get_np(thread, &sattr);
+ #  else
+
+
+[FILE:579:dragonfly/patch-js_src_old-configure.in]
+--- js/src/old-configure.in.orig	2016-09-05 20:12:56 UTC
++++ js/src/old-configure.in
+@@ -1305,7 +1305,7 @@ dnl Checks for header files.
+ dnl ========================================================
+ AC_HEADER_DIRENT
+ case "$target_os" in
+-freebsd*)
++freebsd*|dragonfly*)
+ # for stuff like -lXshm
+     CPPFLAGS="${CPPFLAGS} ${X_CFLAGS}"
+     ;;
+@@ -1448,7 +1448,7 @@ then
+     fi
+ 
+ 	case "$target" in
+-	    *-*-freebsd*)
++	    *-*-freebsd*|*-*-dragonfly*)
+ 			AC_DEFINE(_REENTRANT)
+ 			AC_DEFINE(_THREAD_SAFE)
+ 			dnl -pthread links in -lpthread, so don't specify it explicitly.
+
+
+[FILE:285:dragonfly/patch-media_libcubeb_src_cubeb__jack.cpp]
+--- media/libcubeb/src/cubeb_jack.cpp.orig	2017-10-06 17:40:00 UTC
++++ media/libcubeb/src/cubeb_jack.cpp
+@@ -8,9 +8,6 @@
+  */
+ #define _DEFAULT_SOURCE
+ #define _BSD_SOURCE
+-#ifndef __FreeBSD__
+-#define _POSIX_SOURCE
+-#endif
+ #include <algorithm>
+ #include <dlfcn.h>
+ #include <limits>
+
+
+[FILE:393:dragonfly/patch-media_webrtc_trunk_webrtc_base_thread__checker__impl.cc]
+--- media/webrtc/trunk/webrtc/base/thread_checker_impl.cc.orig	2016-05-12 20:13:19.000000000 +0300
++++ media/webrtc/trunk/webrtc/base/thread_checker_impl.cc
+@@ -22,6 +22,11 @@
+ #include <lwp.h>
+ #elif defined(__FreeBSD__)
+ #include <pthread_np.h>
++#elif defined(__DragonFly__)
++#include <sys/param.h>
++#if __DragonFly_version >= 400709
++#include <sys/lwp.h>
++#endif
+ #endif
+ 
+ namespace rtc {
 
