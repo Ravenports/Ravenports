@@ -142,7 +142,7 @@ ASPELL_CORE_VERSION=		0.60.6.1
 
 APR1_VERSION=			1.6.3
 APR1_UTIL_VERSION=		1.6.1
-SUBVERSION_VERSION=		1.9.7
+SUBVERSION_VERSION=		1.10.0
 
 # ------------------------------------------------------------------------
 # Miscellaneous master versions
