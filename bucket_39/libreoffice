@@ -9770,6 +9770,54 @@ share/mime/packages/libreoffice.xml
  #else
 
 
+[FILE:1074:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.cxx]
+--- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx.orig	2018-03-29 15:04:09 UTC
++++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx
+@@ -446,7 +446,7 @@ int PDFOutDev::parseFont( long long nNew
+     FontAttributes aNewFont;
+     int nSize = 0;
+ 
+-    GooString* pFamily = gfxFont->getName();
++    const GooString* pFamily = gfxFont->getName();
+     if( pFamily )
+     {
+         aNewFont.familyName.clear();
+@@ -742,7 +742,7 @@ void PDFOutDev::updateFont(GfxState *sta
+         FontAttributes aFont;
+         int nEmbedSize=0;
+ 
+-        Ref* pID = gfxFont->getID();
++        const Ref* pID = gfxFont->getID();
+         // TODO(Q3): Portability problem
+         long long fontID = (long long)pID->gen << 32 | (long long)pID->num;
+         std::unordered_map< long long, FontAttributes >::const_iterator it =
+@@ -932,11 +932,6 @@ void PDFOutDev::drawChar(GfxState *state
+     printf( "\n" );
+ }
+ 
+-void PDFOutDev::drawString(GfxState*, GooString* /*s*/)
+-{
+-    // TODO(F3): NYI
+-}
+-
+ void PDFOutDev::endTextObject(GfxState*)
+ {
+     printf( "endTextObject\n" );
+
+
+[FILE:556:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.hxx]
+--- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx.orig	2018-03-29 15:04:09 UTC
++++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx
+@@ -223,7 +223,6 @@ namespace pdfi
+                               double dx, double dy,
+                               double originX, double originY,
+                               CharCode code, int nBytes, Unicode *u, int uLen) override;
+-        virtual void drawString(GfxState *state, GooString *s) override;
+         virtual void endTextObject(GfxState *state) override;
+ 
+         //----- image drawing
+
+
 [FILE:482:patches/patch-shell_source_unix_exec_shellexec.cxx]
 --- shell/source/unix/exec/shellexec.cxx.orig	2018-02-08 14:35:19 UTC
 +++ shell/source/unix/exec/shellexec.cxx
