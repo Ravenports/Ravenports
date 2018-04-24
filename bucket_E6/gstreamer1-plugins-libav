@@ -2,6 +2,7 @@
 
 NAMEBASE=		gstreamer1-plugins-libav
 VERSION=		1.14.0
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	GStreamer1 AV library plugin
@@ -17,9 +18,9 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		nasm:primary:standard
 BUILDRUN_DEPENDS=	gstreamer1-plugins-base:single:standard
 			gstreamer1:single:standard
-			ffmpeg:primary:standard
 
 USES=			gmake pkgconfig libtool python:build
 GNOME_COMPONENTS=	glib introspection
@@ -29,8 +30,7 @@ DISTNAME=		gst-libav-1.14.0
 FPC_EQUIVALENT=		multimedia/gstreamer1-libav
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-system-libav
-			--enable-gtk-doc-html=no
+CONFIGURE_ARGS=		--enable-gtk-doc-html=no
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -53,4 +53,41 @@ fb134b4d3e054746ef8b922ff157b0c7903d1fdd910708a45add66954da7ef89      9035384 gs
 
 [FILE:40:manifests/plist.single]
 lib/gstreamer-%%GSTVER%%/libgstlibav.so
+
+
+[FILE:744:patches/patch-gst-libs_ext_libav_configure]
+--- gst-libs/ext/libav/configure.orig	2018-03-19 20:25:44 UTC
++++ gst-libs/ext/libav/configure
+@@ -482,7 +482,7 @@ log(){
+ 
+ log_file(){
+     log BEGIN $1
+-    pr -n -t $1 >> $logfile
++    cat $1 >> $logfile
+     log END $1
+ }
+ 
+@@ -3372,12 +3372,7 @@ target_os_default=$(tolower $(uname -s))
+ host_os=$target_os_default
+ 
+ # machine
+-if test "$target_os_default" = aix; then
+-    arch_default=$(uname -p)
+-    strip_default="strip -X32_64"
+-else
+-    arch_default=$(uname -m)
+-fi
++arch_default=$(uname -p)
+ cpu="generic"
+ intrinsics="none"
+ 
+@@ -3532,7 +3527,7 @@ die_unknown(){
+ 
+ print_in_columns() {
+     cols=$(expr $ncols / 24)
+-    cat | tr ' ' '\n' | sort | pr -r "-$cols" -w $ncols -t
++    cat | tr ' ' '\n' | sort
+ }
+ 
+ show_list() {
 
