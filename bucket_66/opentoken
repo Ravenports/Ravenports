@@ -21,10 +21,12 @@ USES=			gprbuild ada:single
 
 DISTNAME=		org.opentoken-6.0b
 
-LICENSE=		GPLv3+:single GPLv3RLE:single
-LICENSE_FILE=		GPLv3+:{{WRKDIR}}/LICENSE
-			GPLv3RLE:{{WRKDIR}}/LICENSE
-LICENSE_SCHEME=		multi
+LICENSE=		GMGPL3:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GMGPL3:stock
+LICENSE_AWK=		TERMS:"^with "
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/opentoken.ads
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		textproc/opentoken
 
@@ -35,10 +37,6 @@ PLIST_SUB=		OTLIBVER=5.0.0
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		gprbuild -p -P opentoken_lib )
-
-post-extract:
-	${AWK} '/^with / {exit}; {print}' ${WRKSRC}/opentoken.ads \
-		> ${WRKDIR}/LICENSE
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \
@@ -257,8 +255,8 @@ lib/opentoken/
  run_ada_lexer.ali
 
 
-[FILE:329:patches/patch-build_common.gpr]
---- build/common.gpr.orig	2014-02-21 20:14:57.000000000 +0000
+[FILE:317:patches/patch-build_common.gpr]
+--- build/common.gpr.orig	2015-05-10 19:22:40 UTC
 +++ build/common.gpr
 @@ -41,7 +41,7 @@ project Common is
           "-O2",
@@ -271,8 +269,8 @@ lib/opentoken/
        --  The project file syntax does not let us set a variable in a
 
 
-[FILE:363:patches/patch-build_release_opentoken.gpr]
---- build/release/opentoken.gpr.orig	2014-02-21 20:14:57.000000000 +0000
+[FILE:381:patches/patch-build_release_opentoken.gpr]
+--- build/release/opentoken.gpr.orig	2015-05-10 19:22:40 UTC
 +++ build/release/opentoken.gpr
 @@ -19,7 +19,6 @@ project OpenToken is
     package Compiler is
@@ -280,8 +278,8 @@ lib/opentoken/
          Common.Compiler.Release_Switches &
 -        Common.Compiler.Style_Checks &
          Common.Compiler'Default_Switches ("Ada");
-    end Compiler;
  
+       -- gnat pro 7.3.1 complains without this
 
 
 [FILE:537:patches/patch-opentoken-production-parser-lalr-parser__lists.adb]

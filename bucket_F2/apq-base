@@ -23,10 +23,12 @@ USES=			gprbuild
 
 DISTNAME=		apq-3.2.0
 
-LICENSE=		GPLv2:single GMGPL:single
-LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
-			GMGPL:{{WRKSRC}}/GMGPL_LICENSE
-LICENSE_SCHEME=		multi
+LICENSE=		GMGPL:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GMGPL:stock
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/apq.ads
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		databases/apq
 
@@ -42,10 +44,6 @@ post-patch:
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's|-ws|-ws --autoconf=dummy.cgpr|' \
 		${WRKSRC}/scripts/buildutil.sh
-
-post-extract:
-	${AWK} '/^$$/ {exit}; {print}' ${WRKSRC}/src/apq.ads \
-		> ${WRKDIR}/GMGPL_LICENSE
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \

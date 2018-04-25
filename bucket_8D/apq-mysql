@@ -23,10 +23,12 @@ BUILDRUN_DEPENDS=	apq-base:single:standard
 
 USES=			gprbuild
 
-LICENSE=		GPLv2:single GMGPL:single
-LICENSE_FILE=		GPLv2:{{WRKSRC}}/GMPGL_LICENSE
-			GMGPL:{{WRKSRC}}/GMGPL_LICENSE
-LICENSE_SCHEME=		multi
+LICENSE=		GMGPL:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GMGPL:stock
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/apq-mysql-client.ads
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		databases/apq-mysql
 
@@ -49,10 +51,6 @@ post-configure:
 	# double underscore variables, which is illegal in Ada
 	${SED} -i'' -e 's|__|_|' \
 		${WRKDIR}/build/include/apq-mysql/apq-mysql.ads
-
-post-extract:
-	${AWK} '/^$$/ {exit}; {print}' ${WRKSRC}/src/apq-mysql-client.ads \
-		> ${WRKDIR}/GMGPL_LICENSE
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \

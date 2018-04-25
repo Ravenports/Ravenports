@@ -447,7 +447,7 @@ extract-licenses:
 .    if defined(LICENSE_FILE_${lic})
 .     if "${LICENSE_FILE_${lic}}" == "stock"
 	@if [ -e "${MK_STOCK_LICENSES}/${lic:S/+//}" ]; then \
-	  echo "===>  Installing stock ${lic} license for ${sp} subpackage";\
+	  echo "===>  Positioning stock ${lic} license for ${sp} subpackage";\
 	  cp ${MK_STOCK_LICENSES}/${lic:S/+//} ${WRKDIR}/LICENSE_${lic}; \
 	else \
 	  echo "===>  Error: Requested stock ${lic} license does not exist (${sp} subpackage).";\
@@ -1014,7 +1014,7 @@ add-plist-licenses:
 .      if defined(LICENSE_${sp})
 	@echo "${_LICENSE_DIR}/summary.${sp}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .        for lic in ${LICENSE_${sp}}
-.          if exists(${LICENSE_FILE_${lic}})
+.          if exists(${LICENSE_FILE_${lic}}) || "${LICENSE_FILE_${lic}}" == "stock"
 	@echo "${_LICENSE_DIR}/${lic}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .          endif
 .        endfor

@@ -22,10 +22,12 @@ USES=			gprbuild
 
 EXTRACT_DIRTY=		1
 
-LICENSE=		GPLv2+:single GMGPL:single
-LICENSE_FILE=		GPLv2+:{{WRKDIR}}/LICENSE
-			GMGPL:{{WRKDIR}}/LICENSE
-LICENSE_SCHEME=		multi
+LICENSE=		GMGPL:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GMGPL:stock
+LICENSE_AWK=		TERMS:"^--___"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/sqlite.ads
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/simple_components
 
@@ -42,10 +44,6 @@ do-build:
 .for PROJECT in components-connections_server-http_server-sqlite_browser components-connections_server-secure components-connections_server-smtp components-connections_server-mqtt components-connections_server-modbus components-connections_server-elv_max_cube components-odbc
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -P${PROJECT})
 .endfor
-
-post-extract:
-	${AWK} '/^--___/ {exit}; {print}' ${WRKSRC}/sqlite.ads \
-		> ${WRKDIR}/LICENSE
 
 do-install:
 	# Work around gprbuild's inability to handle separate package bodies

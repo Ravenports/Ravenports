@@ -23,10 +23,12 @@ BUILDRUN_DEPENDS=	apq-base:single:standard
 
 USES=			gprbuild
 
-LICENSE=		GPLv2:single GMGPL:single
-LICENSE_FILE=		GPLv2:{{WRKSRC}}/GMPGL_LICENSE
-			GMGPL:{{WRKSRC}}/GMGPL_LICENSE
-LICENSE_SCHEME=		multi
+LICENSE=		GMGPL:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GMGPL:stock
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/apq-odbc.ads
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		databases/apq-odbc
 
@@ -48,8 +50,6 @@ post-patch:
 post-extract:
 	${RM} ${WRKSRC}/src/test.adb
 	${ECHO} 3.2.0 > ${WRKSRC}/version
-	${AWK} '/^$$/ {exit}; {print}' ${WRKSRC}/src/apq-odbc.ads \
-		> ${WRKDIR}/GMGPL_LICENSE
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \

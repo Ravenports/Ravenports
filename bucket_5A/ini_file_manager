@@ -26,6 +26,8 @@ EXTRACT_DIRTY=		1
 
 LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKDIR}}/LICENSE
+LICENSE_AWK=		MIT:"^-- Change"
+LICENSE_SOURCE=		MIT:{{WRKSRC}}/config.ads
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		misc/ini_file_manager
@@ -39,8 +41,6 @@ post-extract:
 	${MV} ${WRKSRC}/config.ad[bs] ${WRKSRC}/src
 	${SED} -e "s,@PREFIX@,${LOCALBASE},g" ${FILESDIR}/runme.sh.in \
 		> ${WRKSRC}/runme.sh
-	${AWK} '/^-- Change/ {exit}; {print}' ${WRKSRC}/src/config.ads \
-		> ${WRKDIR}/LICENSE
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \
