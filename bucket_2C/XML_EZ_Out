@@ -24,10 +24,12 @@ USES=			dos2unix gprbuild
 
 DISTNAME=		xml_ez_out
 
-LICENSE=		GPLv2+:primary GMGPL:primary
-LICENSE_SCHEME=		multi
-LICENSE_FILE=		GPLv2+:{{WRKDIR}}/LICENSE
-			GMGPL:{{WRKDIR}}/LICENSE
+LICENSE=		GMGPL:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GMGPL:stock
+LICENSE_AWK=		TERMS:"^package"
+LICENSE_SOURCE=		TERMS:{{BUILD_WRKSRC}}/mckae-xml.ads
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		textproc/xml_ez_out
 
@@ -37,8 +39,6 @@ do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -p -Pxezo_bld)
 
 post-extract:
-	${AWK} '/^package/ {exit}; {print}' ${BUILD_WRKSRC}/mckae-xml.ads \
-		> ${WRKDIR}/LICENSE
 	${CP} ${FILESDIR}/xezo_bld.gpr ${WRKSRC}
 	${SED} -e "s,@PREFIX@,${LOCALBASE},g" ${FILESDIR}/runme.sh.in \
 		> ${WRKSRC}/runme.sh

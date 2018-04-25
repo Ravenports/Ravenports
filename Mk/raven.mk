@@ -379,7 +379,7 @@ compile-package-desc:
 .  for sp in ${SUBPACKAGES}
 	@${RM} ${_MESSAGE_FILE}.${sp}
 	@${RM} ${_DESC_FILE}.${sp}
-	@${ECHO_MSG} "===>   Creating package metadata (${sp})"
+	@${ECHO_MSG} "===>  Creating package metadata (${sp})"
 .    for suffix in ${_CPDLIST}
 	@if [ -f "${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/}" ]; then \
 	   ${CAT} ${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
@@ -430,22 +430,22 @@ extract-licenses:
 .   for lic in ${LICENSE_${sp}}
 .    if defined(LICENSE_AWK_${lic}) && defined(LICENSE_SOURCE_${lic}) && defined(LICENSE_FILE_${lic})
 	@${ECHO_MSG} "===>  Extracting ${lic} license from ${LICENSE_SOURCE_${lic}}"
-	${AWK} '/${LICENSE_AWK_${lic}}/ {exit}; {print}' ${LICENSE_SOURCE_${lic}} > ${LICENSE_FILE_${lic}}
+	@${AWK} '/${LICENSE_AWK_${lic}}/ {exit}; {print}' ${LICENSE_SOURCE_${lic}} > ${LICENSE_FILE_${lic}}
 .    endif
 .   endfor
 .  endif
 
 #  Extract license terms from source file
-.  if defined(LICENSE_AWK_TERMS) && defined(LICENSE_SOURCE_TERMS) && # defined(LICENSE_TERMS_${sp}})
+.  if defined(LICENSE_AWK_TERMS) && defined(LICENSE_SOURCE_TERMS) && defined(LICENSE_TERMS_${sp})
 	@${ECHO_MSG} "===>  Extracting license terms from ${LICENSE_SOURCE_TERMS}"
-	${AWK} '/${LICENSE_AWK_TERMS}/ {exit}; {print}' ${LICENSE_SOURCE_TERMS} > ${LICENSE_TERMS_${sp}}
+	@${AWK} '/${LICENSE_AWK_TERMS}/ {exit}; {print}' ${LICENSE_SOURCE_TERMS} > ${LICENSE_TERMS_${sp}}
 .  endif
 
 #  Install stock licenses as requested
 .  if defined(LICENSE_${sp})
 .   for lic in ${LICENSE_${sp}}
 .    if defined(LICENSE_FILE_${lic})
-.     if "${LICENCE_FILE_${lic}}" == "stock"
+.     if "${LICENSE_FILE_${lic}}" == "stock"
 	@if [ -e "${MK_STOCK_LICENSES}/${lic:S/+//}" ]; then \
 	  echo "===>  Installing stock ${lic} license for ${sp} subpackage";\
 	  cp ${MK_STOCK_LICENSES}/${lic:S/+//} ${WRKDIR}/LICENSE_${lic}; \
@@ -844,12 +844,13 @@ install-license:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}
 	@${ECHO} "This package is ${LICENSE_SCHEME}-licensed:" > ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
 .        if defined(LICENSE_TERMS_${sp})
+	@${ECHO_MSG} "====> Install license terms (${sp})"
 	@${ECHO} " * Described by Terms.${sp}" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
-	${INSTALL_DATA} ${LICENSE_TERMS_${sp} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/Terms.${sp}
+	@${INSTALL_DATA} ${LICENSE_TERMS_${sp}} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/Terms.${sp}
 .        endif
 .        for lic in ${LICENSE_${sp}}
 .          if defined(LICENSE_FILE_${lic})
-.	     if "${LICENCE_FILE_${lic}}" == "stock"
+.	     if "${LICENSE_FILE_${lic}}" == "stock"
 	@${ECHO_MSG} "====> Install stock ${lic} license (${sp})"
 	@if [ -e "${WRKDIR}/LICENSE_${lic}" ]; then \
 		${INSTALL_DATA} ${WRKDIR}/LICENSE_${lic} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}.${VARIANT};\

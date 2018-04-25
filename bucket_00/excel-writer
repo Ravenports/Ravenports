@@ -25,8 +25,10 @@ USES=			dos2unix gprbuild
 DISTNAME=		Excel_Writer
 
 LICENSE=		MIT:primary
-LICENSE_SCHEME=		solo
 LICENSE_FILE=		MIT:{{WRKDIR}}/LICENSE
+LICENSE_AWK=		MIT:"^--  Follow"
+LICENSE_SOURCE=		MIT:{{WRKSRC}}/excel_out.ads
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		misc/excel-writer
 
@@ -47,8 +49,6 @@ post-extract:
 	(cd ${WRKSRC}; ${MV} excel_out.ad[bs] ieee* extras/csv.* src)
 	${SED} -e "s,@PREFIX@,${LOCALBASE},g" ${FILESDIR}/runme.sh.in \
 		> ${WRKSRC}/runme.sh
-	${AWK} '/^--  Follow/ {exit}; {print}' ${WRKSRC}/src/excel_out.ads \
-		> ${WRKDIR}/LICENSE
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \

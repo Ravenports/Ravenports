@@ -24,8 +24,10 @@ BUILD_DEPENDS=		adacurses:primary:standard
 USES=			gprbuild ncurses
 
 LICENSE=		ISCL:single
-LICENSE_SCHEME=		solo
 LICENSE_FILE=		ISCL:{{WRKDIR}}/ISCL
+LICENSE_AWK=		ISCL:"^$$"
+LICENSE_SOURCE=		ISCL:{{WRKSRC}}/dragonfly.ads
+LICENSE_SCHEME=		solo
 
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/local/lib/gnat/||' ${WRKSRC}/slider.gpr
@@ -33,10 +35,6 @@ post-patch:
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		gprbuild -p -P slider)
-
-post-extract:
-	${AWK} '/^$$/ {exit}; {print}' ${WRKSRC}/dragonfly.ads \
-		> ${WRKDIR}/ISCL
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/construction/slider \
