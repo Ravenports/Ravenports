@@ -29,6 +29,7 @@ DESKTOPDIR?=		${PREFIX}/share/applications
 MK_SCRIPTS=		/xports/Mk/Scripts
 MK_TEMPLATES=		/xports/Mk/Templates
 MK_KEYWORDS=		/xports/Mk/Keywords
+MK_STOCK_LICENSES=	/xports/Mk/Stock_licenses
 USESDIR=		/xports/Mk/Uses
 SCRIPTDIR=		${.CURDIR}/scripts
 PATCHDIR=		${.CURDIR}/patches
@@ -420,6 +421,46 @@ do-extract:
 	@${CHOWN} -R 0:0 ${WRKDIR}
 .endif
 
+.if !target(extract-licenses)
+extract-licenses:
+. for sp in ${SUBPACKAGES}
+
+#  Extract licences from source files
+.  if defined(LICENSE_${sp})
+.   for lic in ${LICENSE_${sp}}
+.    if defined(LICENSE_AWK_${lic}) && defined(LICENSE_SOURCE_${lic}) && defined(LICENSE_FILE_${lic})
+	@${ECHO_MSG} "===>  Extracting ${lic} license from ${LICENSE_SOURCE_${lic}}"
+	${AWK} '/${LICENSE_AWK_${lic}}/ {exit}; {print}' ${LICENSE_SOURCE_${lic}} > ${LICENSE_FILE_${lic}}
+.    endif
+.   endfor
+.  endif
+
+#  Extract license terms from source file
+.  if defined(LICENSE_AWK_TERMS) && defined(LICENSE_SOURCE_TERMS) && # defined(LICENSE_TERMS_${sp}})
+	@${ECHO_MSG} "===>  Extracting license terms from ${LICENSE_SOURCE_TERMS}"
+	${AWK} '/${LICENSE_AWK_TERMS}/ {exit}; {print}' ${LICENSE_SOURCE_TERMS} > ${LICENSE_TERMS_${sp}}
+.  endif
+
+#  Install stock licenses as requested
+.  if defined(LICENSE_${sp})
+.   for lic in ${LICENSE_${sp}}
+.    if defined(LICENSE_FILE_${lic})
+.     if "${LICENCE_FILE_${lic}}" == "stock"
+	@if [ -e "${MK_STOCK_LICENSES}/${lic:S/+//}" ]; then \
+	  echo "===>  Installing stock ${lic} license for ${sp} subpackage";\
+	  cp ${MK_STOCK_LICENSES}/${lic:S/+//} ${WRKDIR}/LICENSE_${lic}; \
+	else \
+	  echo "===>  Error: Requested stock ${lic} license does not exist (${sp} subpackage).";\
+	fi
+.     endif
+.    endif
+.   endfor
+.  endif
+
+. endfor
+.endif
+
+
 # --------------------------------------------------------------------------
 # --  Phase: Patch
 # --------------------------------------------------------------------------
@@ -801,18 +842,29 @@ install-license:
 .    for sp in ${SUBPACKAGES}
 .      if defined(LICENSE_${sp})
 	@${MKDIR} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}
-	@${ECHO} "This package is ${LICENSE_SCHEME}-licensed:" \
-		> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
+	@${ECHO} "This package is ${LICENSE_SCHEME}-licensed:" > ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
+.        if defined(LICENSE_TERMS_${sp})
+	@${ECHO} " * Described by Terms.${sp}" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
+	${INSTALL_DATA} ${LICENSE_TERMS_${sp} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/Terms.${sp}
+.        endif
 .        for lic in ${LICENSE_${sp}}
 .          if defined(LICENSE_FILE_${lic})
-.            if exists(${LICENSE_FILE_${lic}})
-	@${ECHO_MSG} "====> Install ${lic} license (${sp})"
-	@${INSTALL_DATA} ${LICENSE_FILE_${lic}} \
-		${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}.${VARIANT}
-	@${ECHO} " * ${lic} (${LICENSE_NAME_${lic}})" \
-		>> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
+.	     if "${LICENCE_FILE_${lic}}" == "stock"
+	@${ECHO_MSG} "====> Install stock ${lic} license (${sp})"
+	@if [ -e "${WRKDIR}/LICENSE_${lic}" ]; then \
+		${INSTALL_DATA} ${WRKDIR}/LICENSE_${lic} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}.${VARIANT};\
+		echo " * ${lic} (${LICENSE_NAME_${lic}})" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT};\
+	else \
+		echo "====> Failed to locate stock ${lic} license";\
+	fi
 .            else
-	@${ECHO_MSG} "====> Failed to locate ${lic} license (${LICENSE_FILE_${lic}})"
+	@if [ -e "${LICENSE_FILE_${lic}}" ]; then \
+		echo "====> Install ${lic} license (${sp})"; \
+		${INSTALL_DATA} ${LICENSE_FILE_${lic}} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/${lic}.${VARIANT};\
+		echo " * ${lic} (${LICENSE_NAME_${lic}})" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT};\
+	else \
+		echo "====> Failed to locate ${lic} license (${LICENSE_FILE_${lic}})";\
+	fi
 .            endif
 .          endif
 .        endfor
@@ -965,6 +1017,9 @@ add-plist-licenses:
 	@echo "${_LICENSE_DIR}/${lic}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .          endif
 .        endfor
+.      endif
+.      if defined(LICENSE_TERMS_${sp})
+	@echo "${_LICENSE_DIR}/Terms.${sp}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .      endif
 .    endfor
 .  endif
