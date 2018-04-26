@@ -85,3 +85,15 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ```
+
+## SHA256 digests for Ravenports bootstrap files
+
+Currently the repositories are only available via HTTP.  The SHA256 digests
+are listed before for confidence the bootstrap pkg(8) binaries are the ones
+we generated.
+
+```
+83d0049c043604cc00d89c37de54463eaee105bda98f1bcfeb0f4d43a622ec8d raven-dragonfly-bootstrap.tar.gz
+495786742e37f87da9c8eeb958b410c7e17cd0d1d2b4ca9151b231f154baf829 raven-freebsd64-bootstrap.tar.gz
+dd2e2dfa04298a963394a2d0db108ad24c14e7d7f70b2bb7b46c3ee7054071d8 raven-linux-bootstrap.tar.gz
+```
