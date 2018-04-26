@@ -845,8 +845,8 @@ install-license:
 	@${ECHO} "This package is ${LICENSE_SCHEME}-licensed:" > ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
 .        if defined(LICENSE_TERMS_${sp})
 	@${ECHO_MSG} "====> Install license terms (${sp})"
-	@${ECHO} " * Described by Terms.${sp}" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
-	@${INSTALL_DATA} ${LICENSE_TERMS_${sp}} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/Terms.${sp}
+	@${ECHO} " * Described by Terms.${sp}.${VARIANT}" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
+	@${INSTALL_DATA} ${LICENSE_TERMS_${sp}} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/Terms.${sp}.${VARIANT}
 .        endif
 .        for lic in ${LICENSE_${sp}}
 .          if defined(LICENSE_FILE_${lic})
@@ -1020,7 +1020,7 @@ add-plist-licenses:
 .        endfor
 .      endif
 .      if defined(LICENSE_TERMS_${sp})
-	@echo "${_LICENSE_DIR}/Terms.${sp}" >> ${WRKDIR}/.manifest.${sp}.mktmp
+	@echo "${_LICENSE_DIR}/Terms.${sp}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
 .      endif
 .    endfor
 .  endif
