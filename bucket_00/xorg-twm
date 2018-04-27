@@ -22,11 +22,28 @@ XORG_COMPONENTS=	xext xt xmu
 
 DISTNAME=		twm-1.0.10
 
+LICENSE=		CUSTOM1:single CUSTOM2:single CUSTOM3:single
+LICENSE_NAME=		CUSTOM1:"The Open Group License"
+			CUSTOM2:"Evans & Sutherland Computer Corp. License"
+			CUSTOM3:"XFree86 License 1.0"
+LICENSE_FILE=		CUSTOM1:{{WRKDIR}}/LICENSE_TOG
+			CUSTOM2:{{WRKDIR}}/LICENSE_ESCC
+			CUSTOM3:{{WRKDIR}}/LICENSE_XFREE86
+LICENSE_AWK=		CUSTOM1:"Sutherland Computer"
+LICENSE_SOURCE=		CUSTOM1:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		multi
+
 FPC_EQUIVALENT=		x11-wm/twm
 
 MUST_CONFIGURE=		gnu
 
 INSTALL_TARGET=		install-strip
+
+post-extract:
+	${AWK} '/Sutherland Computer/,/^OR PERFORMANCE/' \
+		${WRKSRC}/COPYING > ${WRKDIR}/LICENSE_ESCC
+	${AWK} '/XFree86 Project/,/^XFree86 Project/' \
+		${WRKSRC}/COPYING > ${WRKDIR}/LICENSE_XFREE86
 
 [FILE:69:descriptions/desc.single]
 This package contains twm, a Window Manager for the X Window System.

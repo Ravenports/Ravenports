@@ -314,6 +314,11 @@ licterms() {
 	comlic="$comlic LGPL20 LGPL20+ LGPL21 LGPL21+ LGPL3 LGPL3+"
 	licdir="${STAGEDIR}${PREFIX}/share/licenses/${NAMEBASE}"
 
+	if [ ! -d "${licdir}" ]; then
+	  notice "This ravenport is missing its license definition."
+	  return 0
+	fi
+
 	for cl in ${comlic}; do
 	  if [ -f "${licdir}/${cl}.${VARIANT}" ]; then
 	    terms=$(ls ${licdir}/Terms.*.${VARIANT} 2>/dev/null)

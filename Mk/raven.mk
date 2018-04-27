@@ -869,6 +869,14 @@ install-license:
 .            endif
 .          endif
 .        endfor
+.      else
+.       if defined(LICENSE_TERMS_${sp})
+	@${ECHO_MSG} "====> Install license terms (${sp})"
+	@${MKDIR} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}
+	@${ECHO} "This package's licensing is described by Terms.${sp}.${VARIANT}" > ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
+	@${ECHO} "There are no other applicable licenses." >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT}
+	@${INSTALL_DATA} ${LICENSE_TERMS_${sp}} ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/Terms.${sp}.${VARIANT}
+.       endif 
 .      endif
 .    endfor
 .  endif
@@ -1011,8 +1019,10 @@ add-plist-examples:
 add-plist-licenses:
 .  if defined(LICENSE_SET)
 .    for sp in ${SUBPACKAGES}
-.      if defined(LICENSE_${sp})
+.      if defined(LICENSE_${sp}) || defined(LICENSE_TERMS_${sp})
 	@echo "${_LICENSE_DIR}/summary.${sp}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
+.      endif
+.      if defined(LICENSE_${sp})
 .        for lic in ${LICENSE_${sp}}
 .          if exists(${LICENSE_FILE_${lic}}) || "${LICENSE_FILE_${lic}}" == "stock"
 	@echo "${_LICENSE_DIR}/${lic}.${VARIANT}" >> ${WRKDIR}/.manifest.${sp}.mktmp
