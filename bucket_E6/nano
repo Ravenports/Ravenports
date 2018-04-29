@@ -21,12 +21,13 @@ OPTIONS_STANDARD=	none
 
 USES=			ncurses gettext-tools gettext-runtime charsetfix
 
-LICENSE=		GPLv3+:primary
+LICENSE=		GPLv3+:primary CUSTOM1:docs
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+			docs:{{WRKDIR}}/TERMS.DOC
+LICENSE_NAME=		CUSTOM1:"GNU Free Documentation License"
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
-LICENSE_AWK=		TERMS:"^$$"
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/nano.h
-LICENSE_SCHEME=		solo
+			CUSTOM1:{{WRKSRC}}/COPYING.DOC
+LICENSE_SCHEME=		dual
 
 INFO=			primary:nano
 FPC_EQUIVALENT=		editors/nano
@@ -53,6 +54,12 @@ post-build:
 
 post-configure:
 	${REINPLACE_CMD} -e 's/update_revision//g' ${WRKSRC}/src/Makefile
+
+post-extract:
+	# LICENSE_AWK writes to all defined terms, so create them manually
+	${AWK} '/^$$/ {exit}; {print}' ${WRKSRC}/src/nano.h > ${WRKDIR}/TERMS
+	${AWK} '/NANO 1/ {exit}; {print}' \
+		${WRKSRC}/doc/nano.1 > ${WRKDIR}/TERMS.DOC
 
 [FILE:351:descriptions/desc.primary]
 nano is a small, free and friendly editor which aims to replace Pico, the

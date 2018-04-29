@@ -2,6 +2,7 @@
 
 NAMEBASE=		neovim
 VERSION=		0.2.2
+REVISION=		1
 KEYWORDS=		editors
 VARIANTS=		standard
 SDESC[standard]=	Next generation Vim
@@ -27,7 +28,14 @@ BUILDRUN_DEPENDS=	msgpack:single:standard
 			libuv:single:standard
 
 USES=			cmake:outsource gmake libtool pkgconfig lua:5.2
-			gettext-tools gettext-runtime
+			gettext-tools gettext-runtime desktop-utils
+
+LICENSE=		APACHE20:single CUSTOM1:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_NAME=		CUSTOM1:"VIM license"
+LICENSE_FILE=		APACHE20:{{WRKDIR}}/LICENSE_APACHE
+			CUSTOM1:{{WRKDIR}}/LICENSE_VIM
+LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		editors/neovim
 
@@ -40,6 +48,19 @@ CMAKE_ARGS=		-DCMAKE_SKIP_BUILD_RPATH:BOOL=YES
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/nvim
+
+post-extract:
+	${AWK} '/Apache License/,/^====$$/' \
+		${WRKSRC}/LICENSE > ${WRKDIR}/LICENSE_APACHE
+	${AWK} '/^VIM LICENSE/,/at your option/' \
+		${WRKSRC}/LICENSE > ${WRKDIR}/LICENSE_VIM
+	${AWK} '/^====/{exit}; {print}' \
+		${WRKSRC}/LICENSE > ${WRKDIR}/TERMS
+	echo "[See APACHE20.standard file]" >> ${WRKDIR}/TERMS
+	echo >> ${WRKDIR}/TERMS
+	${AWK} '/^The above license/,/^The Vim license follows/' \
+		${WRKSRC}/LICENSE >> ${WRKDIR}/TERMS
+	echo "[See CUSTOM1.standard file]" >> ${WRKDIR}/TERMS
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|STR(|STR_(|g' \

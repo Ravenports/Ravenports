@@ -325,7 +325,7 @@ licterms() {
 	    if [ -n "${terms}" ]; then
 	      case "${cl}" in
 	        GPLv1|GPLv2|GPLv3|LGPL20|LGPL21|LGPL3|AGLv3)
-	          grep --quiet "(at your option) any later version" ${terms}
+	          grep --quiet "option) any later version" ${terms}
 	          if [ $? -eq 0 ]; then
 		    warn "Terms contain 'any later version' clause.  Should ${cl} license be changed to ${cl}+?"
 		  fi
