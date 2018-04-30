@@ -12,14 +12,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://distfiles.gentoo.org/distfiles/
 DISTFILE[1]=		eawpats12_full.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 DISTNAME=		eawpats
+EXTRACT_HEAD[1]=	{{TAR}} -xmf
+EXTRACT_TAIL[1]=	--no-same-owner --no-same-permissions
 
-LICENSE=		CUSTOM1:single
+LICENSE=		CUSTOM1:primary
 LICENSE_NAME=		CUSTOM1:"Eric A. Welsh Fameware license"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/copyrigh.txt
 LICENSE_SCHEME=		solo
@@ -33,27 +37,25 @@ post-patch:
 		-e '1d' ${WRKSRC}/linuxconfig/timidity.cfg
 
 do-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/eawpatches
+	@${MKDIR} ${STAGEDIR}${PREFIX}/share/eawpatches \
+		${STAGEDIR}${STD_DOCDIR} \
+		${STAGEDIR}${PREFIX}/etc/timidity
 	${INSTALL_DATA} ${WRKSRC}/*.cfg ${WRKSRC}/*.pat ${WRKSRC}/*.ini \
 		${STAGEDIR}${PREFIX}/share/eawpatches
 .for d in ethnic mazpat/fx gsdrum08 gsdrum25 gsdrum40 gus power sfx wime
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/eawpatches/${d}
+	@${MKDIR} ${STAGEDIR}${PREFIX}/share/eawpatches/${d}
 	${INSTALL_DATA} ${WRKSRC}/${d}/*.pat \
 		${STAGEDIR}${PREFIX}/share/eawpatches/${d}
 .endfor
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/doc/eawpatches
 	${INSTALL_DATA} ${WRKSRC}/*.txt ${WRKSRC}/*.hlp \
-		${STAGEDIR}${PREFIX}/share/doc/eawpatches
+		${STAGEDIR}${STD_DOCDIR}
 .for d in ethnic gsdrum08 gsdrum25 gsdrum40 power wime
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/doc/eawpatches/${d}
-	${INSTALL_DATA} ${WRKSRC}/${d}/*.txt \
-		${STAGEDIR}${PREFIX}/share/doc/eawpatches/${d}
+	${INSTALL_DATA} ${WRKSRC}/${d}/*.txt ${STAGEDIR}${STD_DOCDIR}
 .endfor
-	${MKDIR} ${STAGEDIR}${PREFIX}/etc/timidity
 	${INSTALL_DATA} ${WRKSRC}/linuxconfig/timidity.cfg \
 		${STAGEDIR}${PREFIX}/etc/timidity/timidity_eawpatches.cfg
 
-[FILE:239:descriptions/desc.single]
+[FILE:239:descriptions/desc.primary]
 This is a package of Gravis UltraSound (GUS) patches collected from 
 various sources by Eric A. Welsh. While these were originally intended to 
 be used with GUS cards, today they are mostly used with softsynth midi 
@@ -64,22 +66,8 @@ players like TiMidity.
 0a1b7368e6e525d62900b34bd061ccc830e6fe1747601ede703e3eb0d1d968b6     32047230 eawpats12_full.tar.gz
 
 
-[FILE:5394:manifests/plist.single]
+[FILE:5035:manifests/plist.primary]
 etc/timidity/timidity_eawpatches.cfg
-share/doc/eawpatches/
- changelog.txt
- copyrigh.txt
- drumsfx.txt
- eawpats.txt
-share/doc/eawpatches/ethnic/tabla.txt
-share/doc/eawpatches/gsdrum08/gsdrum08.txt
-share/doc/eawpatches/gsdrum25/gsdrm25p.txt
-share/doc/eawpatches/gsdrum40/gsdrum40.txt
- install.txt
- patguide.txt
- patref24.hlp
-share/doc/eawpatches/power/e_power.txt
-share/doc/eawpatches/wime/wime.txt
 share/eawpatches/
  acbass.pat
  accordn.pat
@@ -455,4 +443,21 @@ share/eawpatches/
  woodflut.pat
  xgmap2.cfg
  xylophon.pat
+
+
+[FILE:194:manifests/plist.docs]
+share/doc/eawpatches/
+ changelog.txt
+ copyrigh.txt
+ drumsfx.txt
+ eawpats.txt
+ tabla.txt
+ gsdrum08.txt
+ gsdrm25p.txt
+ gsdrum40.txt
+ install.txt
+ patguide.txt
+ patref24.hlp
+ e_power.txt
+ wime.txt
 
