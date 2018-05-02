@@ -118,7 +118,7 @@ MYSQL_galera-5.5_VERSION=	5.5.54
 
 FIREBIRD_DEFAULT?=	2.5
 
-FIREBIRD_2.5_VERSION=	2.5.7
+FIREBIRD_2.5_VERSION=	2.5.8
 FIREBIRD_3.0_VERSION=	3.0.3
 
 #-------------------------------------------------------------------------
