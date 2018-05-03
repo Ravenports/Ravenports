@@ -10,7 +10,8 @@ _INCLUDE_USES_ZLIB_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	zlib:complete:standard
+# BUILD_DEPENDS+=       zlib:static:standard
+# BUILDRUN_DEPENDS+=	zlib:shared:standard
 # -----------------------------------------------
 
 .endif

@@ -77,6 +77,32 @@ GCC7_PHASE=			release
 .endif
 
 # ------------------------------------------------------------------------
+# gcc8
+# ------------------------------------------------------------------------
+
+GCC8_BRANCH=			8
+GCC8_POINT=			1.0
+GCC8_VERSION=			${GCC8_BRANCH}.${GCC8_POINT}
+GCC8_SNAPSHOT=			20180502
+GCC8_BUILD_RELEASE=		yes
+GCC8_REVISION=			0
+GCC8_GNAT_UTIL_REVISION=	0
+GCC8_GNATCROSS_REVISION=	0
+GCC8_BOOTSTRAP_REVISION=	0
+
+.if ${GCC8_BUILD_RELEASE:Mno}
+GCC8_PORTVERSION=		${GCC8_BRANCH}.${GCC8_SNAPSHOT}
+GCC8_IDENTIFICATION=		gcc-${GCC8_BRANCH}-${GCC8_SNAPSHOT}
+GCC8_MS_SUBDIR=			snapshots/${GCC8_BRANCH}-${GCC8_SNAPSHOT}
+GCC8_PHASE=			snapshot
+.else
+GCC8_PORTVERSION=		${GCC8_VERSION}
+GCC8_IDENTIFICATION=		gcc-${GCC8_VERSION}
+GCC8_MS_SUBDIR=			releases/gcc-${GCC8_VERSION}
+GCC8_PHASE=			release
+.endif
+
+# ------------------------------------------------------------------------
 # icu
 # ------------------------------------------------------------------------
 
