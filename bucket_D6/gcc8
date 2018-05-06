@@ -109,6 +109,11 @@ post-patch:
 	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
 		${WRKSRC}/gcc/config/freebsd-spec.h
 
+post-patch-linux:
+	# undo BSD thin socket modification
+	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
+		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
+
 post-install-freebsd:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/8.1.0/include-fixed
 
@@ -1713,7 +1718,7 @@ libexec/gcc/%%TARGET%%/%%GCCVER%%/
 libexec/gcc/%%TARGET%%/%%GCCVER%%/plugin/gengtype
 
 
-[FILE:27491:manifests/plist.ada_run]
+[FILE:27601:manifests/plist.ada_run]
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  a-exetim.adb
  s-linux.ads
@@ -2663,6 +2668,9 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  s-memory.ads
  s-mmap.adb
  s-mmap.ads
+ s-mmauni.ads
+ s-mmosin.adb
+ s-mmosin.ads
  s-mudido.adb
  s-mudido.ads
  s-multip.adb
@@ -3464,6 +3472,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-direio.ali
  s-dmotpr.ali
  s-dsaser.ali
+ s-dwalin.ali
  s-elaall.ali
  s-excdeb.ali
  s-except.ali
@@ -3520,8 +3529,12 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-mastop.ali
  s-memcop.ali
  s-memory.ali
+ s-mmap.ali
+ s-mmauni.ali
+ s-mmosin.ali
  s-mudido.ali
  s-multip.ali
+ s-objrea.ali
  s-os_lib.ali
  s-oscons.ali
  s-osinte.ali

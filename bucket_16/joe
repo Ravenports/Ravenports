@@ -2,6 +2,7 @@
 
 NAMEBASE=		joe
 VERSION=		4.6
+REVISION=		1
 KEYWORDS=		editors
 VARIANTS=		standard
 SDESC[standard]=	Joe's Own Editor
@@ -17,7 +18,9 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			gmake iconv ncurses
+BUILD_DEPENDS=		ncurses60:single:standard
+
+USES=			gmake iconv desktop-utils
 
 FPC_EQUIVALENT=		editors/joe
 
@@ -26,6 +29,10 @@ MUST_CONFIGURE=		gnu
 BUILD_TARGET=		joe
 
 INSTALL_REQ_TOOLCHAIN=	yes
+
+CFLAGS=			-I{{LOCALBASE}}/ncurses60/include
+LDFLAGS=		-L{{LOCALBASE}}/ncurses60/lib
+			-Wl,-rpath,{{LOCALBASE}}/ncurses60/lib
 
 post-patch:
 	${REINPLACE_CMD} -e 's|docs/README.old docs/man.md ||' \
