@@ -36,6 +36,19 @@ USES=			gmake iconv libtool pkgconfig jpeg gettext-tools
 			shebangfix gnome-icons:single desktop-utils:single
 GNOME_COMPONENTS=	intltool gtk3
 
+LICENSE=		GPLv2+:single ZLIB:single CUSTOM1:single
+			CUSTOM2:single
+LICENSE_TERMS=		single:{{WRKSRC}}/plugins/notify/COPYING
+LICENSE_NAME=		CUSTOM1:"Various BSD licenses and copyrights"
+			CUSTOM2:"All plugin licenses and copyrights"
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING.GPLv2
+			CUSTOM1:{{WRKSRC}}/COPYING
+			CUSTOM2:{{WRKDIR}}/LICENSE_PLUGINS
+			ZLIB:{{WRKDIR}}/LICENSE_ZLIB
+LICENSE_AWK=		ZLIB:"__DEADBEEF_H"
+LICENSE_SOURCE=		ZLIB:{{WRKSRC}}/deadbeef.h
+LICENSE_SCHEME=		multi
+
 FPC_EQUIVALENT=		audio/deadbeef
 SHEBANG_FILES=		yasmwrapper.sh
 
@@ -69,6 +82,10 @@ post-patch:
 	# Fix build with libzip-1.0
 	${REINPLACE_CMD} 's,zip_file_t,zip_file_DB,g' \
 		${WRKSRC}/plugins/vfs_zip/vfs_zip.c
+
+post-extract:
+	(cd ${WRKSRC} && ${HEAD} -n 100 plugins/*/COPYING \
+		> ${WRKDIR}/LICENSE_PLUGINS)
 
 [FILE:1728:descriptions/desc.single]
 DeaDBeeF (as in 0xDEADBEEF) is an audio player.
