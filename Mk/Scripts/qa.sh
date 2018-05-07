@@ -182,9 +182,9 @@ paths() {
 }
 
 desktopfileutils() {
-	if [ -z "${USESDESKTOPFILEUTILS}" ]; then
+	if [ -z "${USESDESKTOPUTILS}" ]; then
 		grep -q MimeType= ${STAGEDIR}${PREFIX}/share/applications/*.desktop 2>/dev/null &&
-		warn "you need USES=desktop-utils"
+		warn "you need USES=desktop-utils:<subpackage>"
 	else
 		grep -q MimeType= ${STAGEDIR}${PREFIX}/share/applications/*.desktop 2>/dev/null ||
 		warn "you may not need USES=desktop-utils"
@@ -202,10 +202,10 @@ sharedmimeinfo() {
 		found=1
 		break
 	done
-	if [ -z "${USESSHAREDMIMEINFO}" -a ${found} -eq 1 ]; then
-		warn "you need USES=shared-mime-info"
-	elif [ -n "${USESSHAREDMIMEINFO}" -a ${found} -eq 0 ]; then
-		warn "you may not need USES=shared-mime-info"
+	if [ -z "${USESMIMEINFO}" -a ${found} -eq 1 ]; then
+		warn "you need USES=mime-info:<subpackage>"
+	elif [ -n "${USESMIMEINFO}" -a ${found} -eq 0 ]; then
+		warn "you may not need USES=mime-info"
 	fi
 	return 0
 }
@@ -258,7 +258,7 @@ terminfo() {
 		break
 	done
 	if [ -z "${USESTERMINFO}" -a -n "${found}" ]; then
-		warn "you need USES=terminfo"
+		warn "you need USES=terminfo:<subpackage>"
 	elif [ -n "${USESTERMINFO}" -a -z "${found}" ]; then
 		warn "you may not need USES=terminfo"
 	fi

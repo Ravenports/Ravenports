@@ -903,16 +903,16 @@ QA_ENV+=	STAGEDIR=${STAGEDIR} \
 .    if !empty(USES:Mssl)
 QA_ENV+=	USESSSL=yes
 .    endif
-.    if !empty(USES:Mdesktop-utils)
-QA_ENV+=	USESDESKTOPFILEUTILS=yes
+.    if !empty(USES:Mdesktop-utils\:*)
+QA_ENV+=	USESDESKTOPUTILS=yes
 .    endif
 .    if !empty(USES:Mlibtool*)
 QA_ENV+=	USESLIBTOOL=yes
 .    endif
-.    if !empty(USES:Mshared-mime-info)
-QA_ENV+=	USESSHAREDMIMEINFO=yes
+.    if !empty(USES:Mmime-info\:*)
+QA_ENV+=	USESMIMEINFO=yes
 .    endif
-.    if !empty(USES:Mterminfo)
+.    if !empty(USES:Mterminfo\:*)
 QA_ENV+=	USESTERMINFO=yes
 .    endif
 
