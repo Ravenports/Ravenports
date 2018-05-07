@@ -2,6 +2,7 @@
 
 NAMEBASE=		whowatch
 VERSION=		1.8.6
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	Display information logged on users
@@ -17,7 +18,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-NOT_FOR_OPSYS=		sunos dragonfly
+NOT_FOR_OPSYS=		sunos
 
 USES=			ncurses
 
@@ -70,6 +71,28 @@ share/man/man1/whowatch.1.gz
  $as_echo "no" >&6; }
 
 
+[FILE:897:patches/patch-src_plist.c]
+DragonFly pids go to 1 million, so allocate an extra character
+
+--- src/plist.c.orig	2018-04-11 06:10:50 UTC
++++ src/plist.c
+@@ -152,12 +152,12 @@ static char *prepare_line(struct wdgt *w
+ 		offset = snprintf(w->mwin->gbuf, w->mwin->gbsize, "\x6%4d ", p->line + 1);
+ 	if (offset < 0) return "";
+ 	if(show_owner)
+-		snprintf(w->mwin->gbuf+offset, w->mwin->gbsize-offset ,"\x3%5d %c%c \x3%-8s \x2%s \x3%s",
++		snprintf(w->mwin->gbuf+offset, w->mwin->gbsize-offset ,"\x3%6d %c%c \x3%-8s \x2%s \x3%s",
+ 			p->proc->pid, get_state_color(state),
+ 			state, get_owner_name(proc_pid_uid(p->proc->pid)), tree,
+ 			get_cmdline(p->proc->pid));
+ 	else
+-		snprintf(w->mwin->gbuf+offset, w->mwin->gbsize-offset,"\x3%5d %c%c \x2%s \x3%s",
++		snprintf(w->mwin->gbuf+offset, w->mwin->gbsize-offset,"\x3%6d %c%c \x2%s \x3%s",
+ 			p->proc->pid, get_state_color(state),
+ 			state, tree, get_cmdline(p->proc->pid));
+ 
+
+
 [FILE:267:patches/patch-src_procinfo.h]
 --- src/procinfo.h.orig	2018-04-11 06:10:50 UTC
 +++ src/procinfo.h
@@ -83,6 +106,19 @@ share/man/man1/whowatch.1.gz
  #include <sys/proc.h>
  #include <sys/stat.h>
  #endif
+
+
+[FILE:336:patches/patch-src_proctree.c]
+--- src/proctree.c.orig	2018-04-11 06:10:50 UTC
++++ src/proctree.c
+@@ -172,6 +172,7 @@ int update_tree(void del(void*))
+ #ifdef HAVE_PROCESS_SYSCTL
+ 	el = get_all_info(&pi);
+ 	for(i = 0; i < el; i++) {
++		if (pi[i].kinfo_pid < 1) continue;
+ 		p = validate_proc(pi[i].kinfo_pid, ' ');
+ 		q = validate_proc(pi[i].kinfo_ppid, ' ');
+ #else
 
 
 [FILE:635:patches/patch-src_proctree.h]
