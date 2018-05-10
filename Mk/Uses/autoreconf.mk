@@ -56,6 +56,7 @@ _USES_POST+=	autoreconf
 # -----------------------------------------------
 # BUILD_DEPENDS+=	autoconf:single:standard
 #			automake:single:standard
+# if ARGS does not contain "build", then
 # BUILD_DEPENDS+=	libtool:single:standard
 # -----------------------------------------------
 
