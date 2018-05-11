@@ -157,11 +157,8 @@ This package contains the MySQL client.
 1048a7abedba851efa62868e4d28d0be8828162b53903cd68e4f29546418d92d     32083035 mysql-5.6.40.tar.gz
 
 
-[FILE:2919:manifests/plist.server]
-@dir(mysql,mysql,0750) %%MY_SECDIR%%
-@dir(mysql,mysql,0750) %%MY_TMPDIR%%
-@dir(mysql,mysql,0750) etc/mysql/keyring
-@sample(root,wheel,0644) etc/mysql/my.cnf.sample
+[FILE:2906:manifests/plist.server]
+%%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
 bin/
  innochecksum
  my_print_defaults
@@ -173,14 +170,14 @@ bin/
  mysql_fix_extensions
  mysql_install_db
  mysql_plugin
- mysql_setpermission
  mysql_secure_installation
+ mysql_setpermission
  mysql_tzinfo_to_sql
  mysql_upgrade
- mysqld_multi
- mysqld_safe
  mysql_zap
  mysqlbug
+ mysqld_multi
+ mysqld_safe
  mysqldumpslow
  mysqlhotcopy
  mysqltest
@@ -192,7 +189,6 @@ lib/mysql/libmysqld.a
 lib/mysql/plugin/
  adt_null.so
  auth.so
-%%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
  auth_test_plugin.so
  connection_control.so
  daemon_example.ini
@@ -208,8 +204,8 @@ lib/mysql/plugin/
  validate_password.so
 libexec/mysqld
 share/man/man1/
- my_print_defaults.1.gz
  innochecksum.1.gz
+ my_print_defaults.1.gz
  myisam_ftdump.1.gz
  myisamchk.1.gz
  myisamlog.1.gz
@@ -225,9 +221,9 @@ share/man/man1/
  mysql_tzinfo_to_sql.1.gz
  mysql_upgrade.1.gz
  mysql_zap.1.gz
+ mysqlbug.1.gz
  mysqld_multi.1.gz
  mysqld_safe.1.gz
- mysqlbug.1.gz
  mysqldumpslow.1.gz
  mysqlhotcopy.1.gz
  mysqlman.1.gz
@@ -238,6 +234,19 @@ share/man/man1/
 share/man/man8/mysqld.8.gz
 share/mysql/
  binary-configure
+ dictionary.txt
+ errmsg-utf8.txt
+ fill_help_tables.sql
+ innodb_memcached_config.sql
+ magic
+ my-default.cnf
+ mysql-log-rotate
+ mysql.server
+ mysql_security_commands.sql
+ mysql_system_tables.sql
+ mysql_system_tables_data.sql
+ mysql_test_data_timezone.sql
+ mysqld_multi.server
 share/mysql/bulgarian/errmsg.sys
 share/mysql/charsets/
  Index.xml
@@ -268,32 +277,18 @@ share/mysql/charsets/
  swe7.xml
 share/mysql/czech/errmsg.sys
 share/mysql/danish/errmsg.sys
-share/mysql/
- dictionary.txt
 share/mysql/dutch/errmsg.sys
 share/mysql/english/errmsg.sys
- errmsg-utf8.txt
 share/mysql/estonian/errmsg.sys
- fill_help_tables.sql
 share/mysql/french/errmsg.sys
 share/mysql/german/errmsg.sys
 share/mysql/greek/errmsg.sys
 share/mysql/hungarian/errmsg.sys
- innodb_memcached_config.sql
 share/mysql/italian/errmsg.sys
 share/mysql/japanese/errmsg.sys
 share/mysql/korean/errmsg.sys
- magic
- my-default.cnf
- mysql-log-rotate
- mysql.server
- mysql_security_commands.sql
- mysql_system_tables.sql
- mysql_system_tables_data.sql
- mysql_test_data_timezone.sql
- mysqld_multi.server
-share/mysql/norwegian-ny/errmsg.sys
 share/mysql/norwegian/errmsg.sys
+share/mysql/norwegian-ny/errmsg.sys
 share/mysql/polish/errmsg.sys
 share/mysql/portuguese/errmsg.sys
 share/mysql/romanian/errmsg.sys
@@ -303,9 +298,13 @@ share/mysql/slovak/errmsg.sys
 share/mysql/spanish/errmsg.sys
 share/mysql/swedish/errmsg.sys
 share/mysql/ukrainian/errmsg.sys
+@dir(mysql,mysql,0750) %%MY_SECDIR%%
+@dir(mysql,mysql,0750) %%MY_TMPDIR%%
+@dir(mysql,mysql,0750) etc/mysql/keyring
+@sample(root,wheel,0644) etc/mysql/my.cnf.sample
 
 
-[FILE:1891:manifests/plist.client]
+[FILE:1855:manifests/plist.client]
 bin/
  msql2mysql
  mysql
@@ -313,9 +312,9 @@ bin/
  mysql_config_editor
  mysql_find_rows
  mysql_waitpid
- mysqladmin
  mysqlaccess
  mysqlaccess.conf
+ mysqladmin
  mysqlbinlog
  mysqlcheck
  mysqldump
@@ -348,40 +347,6 @@ include/mysql/
  my_sys.h
  my_xml.h
  mysql.h
-include/mysql/mysql/
- client_authentication.h
- client_plugin.h
- client_plugin.h.pp
- get_password.h
- innodb_priv.h
- plugin.h
- plugin_audit.h
- plugin_audit.h.pp
- plugin_auth.h
- plugin_auth.h.pp
- plugin_auth_common.h
- plugin_ftparser.h
- plugin_ftparser.h.pp
- plugin_validate_password.h
-include/mysql/mysql/psi/
- mysql_file.h
- mysql_idle.h
- mysql_socket.h
- mysql_stage.h
- mysql_statement.h
- mysql_table.h
- mysql_thread.h
- psi.h
-include/mysql/mysql/
- service_my_plugin_log.h
- service_my_snprintf.h
- service_mysql_string.h
- service_thd_alloc.h
- service_thd_wait.h
- service_thread_scheduler.h
- services.h
- thread_pool_priv.h
-include/mysql/
  mysql_com.h
  mysql_com_server.h
  mysql_embed.h
@@ -399,6 +364,38 @@ include/mysql/
  sslopt-longopts.h
  sslopt-vars.h
  typelib.h
+include/mysql/mysql/
+ client_authentication.h
+ client_plugin.h
+ client_plugin.h.pp
+ get_password.h
+ innodb_priv.h
+ plugin.h
+ plugin_audit.h
+ plugin_audit.h.pp
+ plugin_auth.h
+ plugin_auth.h.pp
+ plugin_auth_common.h
+ plugin_ftparser.h
+ plugin_ftparser.h.pp
+ plugin_validate_password.h
+ service_my_plugin_log.h
+ service_my_snprintf.h
+ service_mysql_string.h
+ service_thd_alloc.h
+ service_thd_wait.h
+ service_thread_scheduler.h
+ services.h
+ thread_pool_priv.h
+include/mysql/mysql/psi/
+ mysql_file.h
+ mysql_idle.h
+ mysql_socket.h
+ mysql_stage.h
+ mysql_statement.h
+ mysql_table.h
+ mysql_thread.h
+ psi.h
 lib/mysql/
  libmysqlclient.a
  libmysqlclient.so

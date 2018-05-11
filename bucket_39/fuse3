@@ -62,6 +62,8 @@ a3ea7152a410fb990ffd189eaba071992ec865baff1100e93f8639e14a0fcd38       731662 li
 [FILE:514:manifests/plist.single]
 %%ONLY-LINUX%%/etc/init.d/fuse3
 %%ONLY-LINUX%%/etc/udev/rules.d/99-fuse3.rules
+%%ONLY-LINUX%%@postunexec rm -f /dev/fuse
+%%ONLY-LINUX%%@preexec mknod -m 0666 /dev/fuse c 10 229 || true
 %%ONLY-LINUX%%bin/fusermount3
 %%ONLY-LINUX%%sbin/mount.fuse3
 %%ONLY-LINUX%%share/man/man1/fusermount3.1.gz
@@ -77,8 +79,6 @@ lib/
  libfuse3.so.%%SOMAJOR%%
  libfuse3.so.%%SOVERSION%%
 lib/pkgconfig/fuse3.pc
-%%ONLY-LINUX%%@postunexec rm -f /dev/fuse
-%%ONLY-LINUX%%@preexec mknod -m 0666 /dev/fuse c 10 229 || true
 
 
 [FILE:429:patches/patch-meson.build]

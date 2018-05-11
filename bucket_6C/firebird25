@@ -178,7 +178,11 @@ This package contains the Firebird client and related files.
 d87d774736edb1eacc242c68831edb3575c28cc61378491f42f8932bf9975678     13401870 Firebird-2.5.8.27089-0.tar.bz2
 
 
-[FILE:742:manifests/plist.server]
+[FILE:870:manifests/plist.server]
+@sample %%CONFDIR%%/aliases.conf.sample
+@sample %%LOCALSTATEDIR%%/security2.fdb.sample
+%%CONFDIR%%/fbtrace.conf
+@(firebird,firebird,) %%LOCALSTATEDIR%%/help/help.fdb
 bin/
  fbguard
  fbsplit
@@ -190,37 +194,26 @@ bin/
  gfix
  gsec
  nbackup
+@(,firebird,) libexec/firebird/intl/fbintl.conf
+@(,firebird,) libexec/firebird/intl/fbintl.so
+@(,firebird,) libexec/firebird/plugins/libfbtrace.so
+@(,firebird,) libexec/firebird/udf/fbudf.so
+@(,firebird,) libexec/firebird/udf/fbudf.sql
+@(,firebird,) libexec/firebird/udf/ib_udf.so
+@(,firebird,) libexec/firebird/udf/ib_udf2.sql
 sbin/
  fb_inet_server
  fb_lock_print
  fb_smp_server
  fbserver
-@group firebird
-libexec/firebird/udf/
- ib_udf.so
- fbudf.so
- ib_udf2.sql
- fbudf.sql
-libexec/firebird/plugins/libfbtrace.so
-libexec/firebird/intl/
- fbintl.so
- fbintl.conf
-@group
-@sample %%CONFDIR%%/aliases.conf.sample
-%%CONFDIR%%/fbtrace.conf
-@owner firebird
-@group firebird
-@sample %%LOCALSTATEDIR%%/security2.fdb.sample
-%%LOCALSTATEDIR%%/help/help.fdb
 @preunexec [ -s %%LOCALSTATEDIR%%/firebird.log ] || rm -f %%LOCALSTATEDIR%%/firebird.log
 @rmtry %%LOCALSTATEDIR%%/isc_event1.`hostname`
 @rmtry %%LOCALSTATEDIR%%/isc_init1.`hostname`
 @rmtry %%LOCALSTATEDIR%%/isc_lock1.`hostname`
-@owner
-@group
 
 
 [FILE:443:manifests/plist.client]
+@sample %%CONFDIR%%/firebird.conf.sample
 bin/
  gpre
  isql-fb
@@ -243,7 +236,6 @@ lib/
  libgds.so.%%SOMAJOR%%
  libgds.so.%%SOMINOR%%
  libib_util.so
-@sample %%CONFDIR%%/firebird.conf.sample
 share/firebird/
  de_DE.msg
  firebird.msg

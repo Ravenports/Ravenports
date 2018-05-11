@@ -77,7 +77,8 @@ more.  It is a foundation for writing portable applications.
 40ef3f44f2c651c7a31aedee44259809b6f03d3d20be44545cd7d177221c0b8d      8028716 gnome2/glib-2.56.1.tar.xz
 
 
-[FILE:10055:manifests/plist.single]
+[FILE:10002:manifests/plist.single]
+@comment share/glib-2.0/codegen auto-generated
 bin/
  gapplication
  gdbus
@@ -94,10 +95,6 @@ bin/
  gsettings
  gtester
  gtester-report
-share/bash-completion/completions/
- gdbus
- gsettings
- gresource
 include/gio-unix-2.0/gio/
  gdesktopappinfo.h
  gfiledescriptorbased.h
@@ -109,6 +106,11 @@ include/gio-unix-2.0/gio/
  gunixmounts.h
  gunixoutputstream.h
  gunixsocketaddress.h
+include/glib-2.0/
+ glib-object.h
+ glib-unix.h
+ glib.h
+ gmodule.h
 include/glib-2.0/gio/
  gaction.h
  gactiongroup.h
@@ -258,17 +260,6 @@ include/glib-2.0/gio/
  gvolumemonitor.h
  gzlibcompressor.h
  gzlibdecompressor.h
-include/glib-2.0/
- glib-object.h
- glib-unix.h
- glib.h
-include/glib-2.0/glib/deprecated/
- gallocator.h
- gcache.h
- gcompletion.h
- gmain.h
- grel.h
- gthread.h
 include/glib-2.0/glib/
  galloca.h
  garray.h
@@ -344,8 +335,13 @@ include/glib-2.0/glib/
  gversion.h
  gversionmacros.h
  gwin32.h
-include/glib-2.0/
- gmodule.h
+include/glib-2.0/glib/deprecated/
+ gallocator.h
+ gcache.h
+ gcompletion.h
+ gmain.h
+ grel.h
+ gthread.h
 include/glib-2.0/gobject/
  gbinding.h
  gboxed.h
@@ -367,28 +363,28 @@ include/glib-2.0/gobject/
  gvaluearray.h
  gvaluecollector.h
  gvaluetypes.h
-lib/glib-2.0/include/glibconfig.h
 lib/
  libgio-2.0.a
  libgio-2.0.so
- libgio-2.0.so.0
  libgio-2.0.so.%%LIBVERSION%%
+ libgio-2.0.so.0
  libglib-2.0.a
  libglib-2.0.so
- libglib-2.0.so.0
  libglib-2.0.so.%%LIBVERSION%%
+ libglib-2.0.so.0
  libgmodule-2.0.a
  libgmodule-2.0.so
- libgmodule-2.0.so.0
  libgmodule-2.0.so.%%LIBVERSION%%
+ libgmodule-2.0.so.0
  libgobject-2.0.a
  libgobject-2.0.so
- libgobject-2.0.so.0
  libgobject-2.0.so.%%LIBVERSION%%
+ libgobject-2.0.so.0
  libgthread-2.0.a
  libgthread-2.0.so
- libgthread-2.0.so.0
  libgthread-2.0.so.%%LIBVERSION%%
+ libgthread-2.0.so.0
+lib/glib-2.0/include/glibconfig.h
 lib/pkgconfig/
  gio-2.0.pc
  gio-unix-2.0.pc
@@ -398,34 +394,21 @@ lib/pkgconfig/
  gmodule-no-export-2.0.pc
  gobject-2.0.pc
  gthread-2.0.pc
-share/man/man1/
- gapplication.1.gz
- gdbus-codegen.1.gz
- gdbus.1.gz
- gio-querymodules.1.gz
- glib-compile-resources.1.gz
- glib-compile-schemas.1.gz
- glib-genmarshal.1.gz
- glib-gettextize.1.gz
- glib-mkenums.1.gz
- gobject-query.1.gz
- gresource.1.gz
- gsettings.1.gz
- gtester-report.1.gz
- gtester.1.gz
 share/aclocal/
  glib-2.0.m4
  glib-gettext.m4
  gsettings.m4
 share/bash-completion/completions/
  gapplication
+ gdbus
+ gresource
+ gsettings
 share/gdb/auto-load%%RESETPREFIX%%/lib/
  libglib-2.0.so.%%LIBVERSION%%-gdb.py
  libgobject-2.0.so.%%LIBVERSION%%-gdb.py
 share/gettext/its/
  gschema.its
  gschema.loc
-@comment share/glib-2.0/codegen auto-generated
 share/glib-2.0/gdb/
  glib_gdb.py
  gobject_gdb.py
@@ -530,11 +513,26 @@ share/locale/yi/LC_MESSAGES/glib20.mo
 share/locale/zh_CN/LC_MESSAGES/glib20.mo
 share/locale/zh_HK/LC_MESSAGES/glib20.mo
 share/locale/zh_TW/LC_MESSAGES/glib20.mo
+share/man/man1/
+ gapplication.1.gz
+ gdbus-codegen.1.gz
+ gdbus.1.gz
+ gio-querymodules.1.gz
+ glib-compile-resources.1.gz
+ glib-compile-schemas.1.gz
+ glib-genmarshal.1.gz
+ glib-gettextize.1.gz
+ glib-mkenums.1.gz
+ gobject-query.1.gz
+ gresource.1.gz
+ gsettings.1.gz
+ gtester-report.1.gz
+ gtester.1.gz
 @dir lib/gio/modules
 @dir share/GConf/gsettings
+@postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
 @postexec %D/bin/glib-compile-schemas %D/share/glib-2.0/schemas 2>/dev/null || /usr/bin/true
 @postunexec /bin/rm -f %D/share/glib-2.0/schemas/gschemas.compiled || /usr/bin/true
-@postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
 
 
 [FILE:1894:patches/patch-bug739424]

@@ -162,18 +162,27 @@ version 7.0.x include:
 18f536bf548e909b4e980379d0c4e56d024b2b1eb1c9768fd169360491f1d6dd     12467560 php-5.6.36.tar.xz
 
 
-[FILE:4910:manifests/plist.single]
-%%CLI-ON%%bin/php%%SUFFIX%%
+[FILE:4882:manifests/plist.single]
 %%CGI-ON%%bin/php-cgi%%SUFFIX%%
+%%CGI-ON%%share/man/man1/php-cgi%%SUFFIX%%.1.gz
+%%CLI-ON%%bin/php%%SUFFIX%%
+%%CLI-ON%%include/php%%SUFFIX%%/sapi/cli/cli.h
+%%CLI-ON%%share/man/man1/php%%SUFFIX%%.1.gz
+%%DEBUGGER-ON%%bin/phpdbg%%SUFFIX%%
+%%DEBUGGER-ON%%share/man/man1/phpdbg%%SUFFIX%%.1.gz
+%%EMBED-ON%%include/php%%SUFFIX%%/sapi/embed/php_embed.h
+%%EMBED-ON%%lib/php%%SUFFIX%%/libphp%%SOMAJOR%%.so
+%%FPM-ON%%@sample etc/php%%SUFFIX%%/php-fpm.conf.default etc/php%%SUFFIX%%/php-fpm.conf
+%%FPM-ON%%sbin/php-fpm%%SUFFIX%%
+%%FPM-ON%%share/man/man8/php-fpm%%SUFFIX%%.8.gz
+%%FPM-ON%%share/php%%SUFFIX%%/fpm/status.html
 bin/
  php-config%%SUFFIX%%
-%%DEBUGGER-ON%%bin/phpdbg%%SUFFIX%%
  phpize%%SUFFIX%%
 etc/php%%SUFFIX%%/
  php.conf
  php.ini-development
  php.ini-production
-%%FPM-ON%%@sample etc/php%%SUFFIX%%/php-fpm.conf.default etc/php%%SUFFIX%%/php-fpm.conf
 include/php%%SUFFIX%%/TSRM/
  TSRM.h
  readdir.h
@@ -197,6 +206,7 @@ include/php%%SUFFIX%%/Zend/
  zend_config.w32.h
  zend_constants.h
  zend_dtrace.h
+ zend_dynamic_array.h
  zend_errors.h
  zend_exceptions.h
  zend_execute.h
@@ -208,6 +218,7 @@ include/php%%SUFFIX%%/Zend/
  zend_globals_macros.h
  zend_hash.h
  zend_highlight.h
+ zend_indent.h
  zend_ini.h
  zend_ini_parser.h
  zend_ini_scanner.h
@@ -228,8 +239,10 @@ include/php%%SUFFIX%%/Zend/
  zend_objects_API.h
  zend_operators.h
  zend_ptr_stack.h
+ zend_qsort.h
  zend_signal.h
  zend_stack.h
+ zend_static_allocator.h
  zend_stream.h
  zend_string.h
  zend_strtod.h
@@ -241,15 +254,11 @@ include/php%%SUFFIX%%/Zend/
  zend_vm_def.h
  zend_vm_execute.h
  zend_vm_opcodes.h
- zend_dynamic_array.h
- zend_indent.h
- zend_qsort.h
- zend_static_allocator.h
+include/php%%SUFFIX%%/ext/date/php_date.h
 include/php%%SUFFIX%%/ext/date/lib/
  timelib.h
  timelib_config.h
  timelib_structs.h
-include/php%%SUFFIX%%/ext/date/php_date.h
 include/php%%SUFFIX%%/ext/ereg/
  php_ereg.h
  php_regex.h
@@ -358,8 +367,6 @@ include/php%%SUFFIX%%/ext/standard/
  url.h
  url_scanner_ex.h
  winver.h
-@postexec touch %D/include/php%%SUFFIX%%/ext/php_config.h
-@postunexec [ -s %D/include/php%%SUFFIX%%/ext/php_config.h ] || rm %D/include/php%%SUFFIX%%/ext/php_config.h
 include/php%%SUFFIX%%/main/
  SAPI.h
  build-defs.h
@@ -387,6 +394,8 @@ include/php%%SUFFIX%%/main/
  rfc1867.h
  snprintf.h
  spprintf.h
+ win32_internal_function_disabled.h
+ win95nt.h
 include/php%%SUFFIX%%/main/streams/
  php_stream_context.h
  php_stream_filter_api.h
@@ -396,11 +405,6 @@ include/php%%SUFFIX%%/main/streams/
  php_stream_transport.h
  php_stream_userspace.h
  php_streams_int.h
-include/php%%SUFFIX%%/main/
- win32_internal_function_disabled.h
- win95nt.h
-%%CLI-ON%%include/php%%SUFFIX%%/sapi/cli/cli.h
-%%EMBED-ON%%include/php%%SUFFIX%%/sapi/embed/php_embed.h
 lib/php%%SUFFIX%%/build/
  Makefile.global
  acinclude.m4
@@ -413,16 +417,11 @@ lib/php%%SUFFIX%%/build/
  run-tests.php
  scan_makefile_in.awk
  shtool
-%%EMBED-ON%%lib/php%%SUFFIX%%/libphp%%SOMAJOR%%.so
-%%FPM-ON%%sbin/php-fpm%%SUFFIX%%
-%%CLI-ON%%share/man/man1/php%%SUFFIX%%.1.gz
-%%CGI-ON%%share/man/man1/php-cgi%%SUFFIX%%.1.gz
 share/man/man1/
  php-config%%SUFFIX%%.1.gz
-%%DEBUGGER-ON%%share/man/man1/phpdbg%%SUFFIX%%.1.gz
  phpize%%SUFFIX%%.1.gz
-%%FPM-ON%%share/man/man8/php-fpm%%SUFFIX%%.8.gz
-%%FPM-ON%%share/php%%SUFFIX%%/fpm/status.html
+@postexec touch %D/include/php%%SUFFIX%%/ext/php_config.h
+@postunexec [ -s %D/include/php%%SUFFIX%%/ext/php_config.h ] || rm %D/include/php%%SUFFIX%%/ext/php_config.h
 
 
 [FILE:1176:patches/patch-Makefile.global]

@@ -168,10 +168,7 @@ This package contains the MySQL client.
 
 
 [FILE:3527:manifests/plist.server]
-@dir(mysql,mysql,0750) %%MY_SECDIR%%
-@dir(mysql,mysql,0750) %%MY_TMPDIR%%
-@dir(mysql,mysql,0750) etc/mysql/keyring
-@sample(root,wheel,0644) etc/mysql/my.cnf.sample
+%%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
 bin/
  innochecksum
  lz4_decompress
@@ -199,7 +196,6 @@ lib/mysql/libmysqld.a
 lib/mysql/plugin/
  adt_null.so
  auth.so
-%%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
  auth_test_plugin.so
  connection_control.so
  daemon_example.ini
@@ -247,8 +243,8 @@ lib/mysql/plugin/
  version_token.so
 libexec/mysqld
 share/man/man1/
- my_print_defaults.1.gz
  innochecksum.1.gz
+ my_print_defaults.1.gz
  myisam_ftdump.1.gz
  myisamchk.1.gz
  myisamlog.1.gz
@@ -269,6 +265,22 @@ share/man/man1/
  resolve_stack_dump.1.gz
  resolveip.1.gz
 share/man/man8/mysqld.8.gz
+share/mysql/
+ dictionary.txt
+ errmsg-utf8.txt
+ fill_help_tables.sql
+ innodb_memcached_config.sql
+ install_rewriter.sql
+ magic
+ mysql-log-rotate
+ mysql.server
+ mysql_security_commands.sql
+ mysql_sys_schema.sql
+ mysql_system_tables.sql
+ mysql_system_tables_data.sql
+ mysql_test_data_timezone.sql
+ mysqld_multi.server
+ uninstall_rewriter.sql
 share/mysql/bulgarian/errmsg.sys
 share/mysql/charsets/
  Index.xml
@@ -299,33 +311,18 @@ share/mysql/charsets/
  swe7.xml
 share/mysql/czech/errmsg.sys
 share/mysql/danish/errmsg.sys
-share/mysql/
- dictionary.txt
 share/mysql/dutch/errmsg.sys
 share/mysql/english/errmsg.sys
- errmsg-utf8.txt
 share/mysql/estonian/errmsg.sys
- fill_help_tables.sql
 share/mysql/french/errmsg.sys
 share/mysql/german/errmsg.sys
 share/mysql/greek/errmsg.sys
 share/mysql/hungarian/errmsg.sys
- innodb_memcached_config.sql
- install_rewriter.sql
 share/mysql/italian/errmsg.sys
 share/mysql/japanese/errmsg.sys
 share/mysql/korean/errmsg.sys
- magic
- mysql-log-rotate
- mysql.server
- mysql_security_commands.sql
- mysql_sys_schema.sql
- mysql_system_tables.sql
- mysql_system_tables_data.sql
- mysql_test_data_timezone.sql
- mysqld_multi.server
-share/mysql/norwegian-ny/errmsg.sys
 share/mysql/norwegian/errmsg.sys
+share/mysql/norwegian-ny/errmsg.sys
 share/mysql/polish/errmsg.sys
 share/mysql/portuguese/errmsg.sys
 share/mysql/romanian/errmsg.sys
@@ -335,15 +332,18 @@ share/mysql/slovak/errmsg.sys
 share/mysql/spanish/errmsg.sys
 share/mysql/swedish/errmsg.sys
 share/mysql/ukrainian/errmsg.sys
- uninstall_rewriter.sql
+@dir(mysql,mysql,0750) %%MY_SECDIR%%
+@dir(mysql,mysql,0750) %%MY_TMPDIR%%
+@dir(mysql,mysql,0750) etc/mysql/keyring
+@sample(root,wheel,0644) etc/mysql/my.cnf.sample
 
 
-[FILE:2502:manifests/plist.client]
+[FILE:2466:manifests/plist.client]
 bin/
  mysql
+ mysql_client_test
  mysql_config
  mysql_config_editor
- mysql_client_test
  mysql_ssl_rsa_setup
  mysqladmin
  mysqlbinlog
@@ -379,6 +379,28 @@ include/mysql/
  my_thread_local.h
  my_xml.h
  mysql.h
+ mysql_com.h
+ mysql_com_server.h
+ mysql_embed.h
+ mysql_time.h
+ mysql_version.h
+ mysqld_ername.h
+ mysqld_error.h
+ plugin.h
+ plugin_audit.h
+ plugin_ftparser.h
+ plugin_group_replication.h
+ plugin_keyring.h
+ plugin_validate_password.h
+ sql_common.h
+ sql_state.h
+ sslopt-case.h
+ sslopt-longopts.h
+ sslopt-vars.h
+ thr_cond.h
+ thr_mutex.h
+ thr_rwlock.h
+ typelib.h
 include/mysql/mysql/
  client_authentication.h
  client_plugin.h
@@ -401,23 +423,6 @@ include/mysql/mysql/
  plugin_keyring.h.pp
  plugin_trace.h
  plugin_validate_password.h
-include/mysql/mysql/psi/
- mysql_file.h
- mysql_idle.h
- mysql_mdl.h
- mysql_memory.h
- mysql_ps.h
- mysql_socket.h
- mysql_sp.h
- mysql_stage.h
- mysql_statement.h
- mysql_table.h
- mysql_thread.h
- mysql_transaction.h
- psi.h
- psi_base.h
- psi_memory.h
-include/mysql/mysql/
  service_command.h
  service_locking.h
  service_my_plugin_log.h
@@ -442,29 +447,22 @@ include/mysql/mysql/
  services.h.pp
  thread_pool_priv.h
  thread_type.h
-include/mysql/
- mysql_com.h
- mysql_com_server.h
- mysql_embed.h
- mysql_time.h
- mysql_version.h
- mysqld_ername.h
- mysqld_error.h
- plugin.h
- plugin_audit.h
- plugin_ftparser.h
- plugin_group_replication.h
- plugin_keyring.h
- plugin_validate_password.h
- sql_common.h
- sql_state.h
- sslopt-case.h
- sslopt-longopts.h
- sslopt-vars.h
- thr_cond.h
- thr_mutex.h
- thr_rwlock.h
- typelib.h
+include/mysql/mysql/psi/
+ mysql_file.h
+ mysql_idle.h
+ mysql_mdl.h
+ mysql_memory.h
+ mysql_ps.h
+ mysql_socket.h
+ mysql_sp.h
+ mysql_stage.h
+ mysql_statement.h
+ mysql_table.h
+ mysql_thread.h
+ mysql_transaction.h
+ psi.h
+ psi_base.h
+ psi_memory.h
 lib/mysql/
  libmysqlclient.a
  libmysqlclient.so
