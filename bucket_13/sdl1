@@ -32,8 +32,11 @@ USES=			gmake libtool pkgconfig iconv fbsd10fix
 
 DISTNAME=		SDL-1.2.15
 
-LICENSE=		LGPL21:primary
-LICENSE_FILE=		LGPL21:{{WRKSRC}}/COPYING
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"SDL_config"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/SDL.c
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/sdl12
@@ -63,7 +66,6 @@ CONFIGURE_ENV=		ac_cv_header_libusbhid_h=no
 [X11].XORG_COMPONENTS_ON=		x11
 					xrender
 					xrandr
-					xextproto
 
 post-patch:
 	${REINPLACE_CMD} -e '/EXTRA_LDFLAGS/s/-liconv/${ICONV_LIB}/' \
@@ -318,10 +320,10 @@ share/man/man3/
  SDL_mutexV.3.gz
 
 
-[FILE:566:patches/patch-Makefile.in]
---- Makefile.in.orig	2014-01-22 22:33:52.000000000 +0100
-+++ Makefile.in	2014-01-22 22:34:15.000000000 +0100
-@@ -49,7 +49,7 @@
+[FILE:541:patches/patch-Makefile.in]
+--- Makefile.in.orig	2012-01-19 06:30:05 UTC
++++ Makefile.in
+@@ -49,7 +49,7 @@ LT_AGE      = @LT_AGE@
  LT_CURRENT  = @LT_CURRENT@
  LT_RELEASE  = @LT_RELEASE@
  LT_REVISION = @LT_REVISION@
@@ -332,7 +334,7 @@ share/man/man3/
  
 
 
-[FILE:1033:patches/patch-configure]
+[FILE:1047:patches/patch-configure]
 --- configure.orig	2012-01-19 06:30:12 UTC
 +++ configure
 @@ -2039,12 +2039,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
@@ -357,7 +359,7 @@ share/man/man3/
          BASE_LDFLAGS=""
          ;;
  esac
-@@ -20999,6 +20993,16 @@
+@@ -20999,6 +20993,16 @@ _ACEOF
          fi
      fi
  }
@@ -374,7 +376,7 @@ share/man/man3/
  
  CheckPulseAudio()
  {
-@@ -29551,6 +29555,7 @@
+@@ -29551,6 +29555,7 @@ _ACEOF
          CheckALSA
          CheckARTSC
          CheckESD
@@ -384,14 +386,14 @@ share/man/man3/
          CheckX11
 
 
-[FILE:476:patches/patch-sdl-config.in]
+[FILE:474:patches/patch-sdl-config.in]
 #
 # Temporary hack to provide iconv include directory is well
 # (sdl explicitly includes iconv.h)
 #
---- sdl-config.in.orig	Thu Aug 31 03:54:26 2006
-+++ sdl-config.in	Thu Aug 31 03:54:39 2006
-@@ -45,7 +45,7 @@
+--- sdl-config.in.orig	2012-01-19 06:30:06 UTC
++++ sdl-config.in
+@@ -42,7 +42,7 @@ while test $# -gt 0; do
        echo @SDL_VERSION@
        ;;
      --cflags)
@@ -402,10 +404,10 @@ share/man/man3/
  @ENABLE_SHARED_TRUE@      echo -L@libdir@ @SDL_RLD_FLAGS@ @SDL_LIBS@
 
 
-[FILE:314:patches/patch-sdl.pc.in]
---- sdl.pc.in.orig	2010-01-02 16:56:18.000000000 +0100
-+++ sdl.pc.in	2010-01-02 16:56:37.000000000 +0100
-@@ -12,4 +12,4 @@
+[FILE:276:patches/patch-sdl.pc.in]
+--- sdl.pc.in.orig	2012-01-19 06:30:06 UTC
++++ sdl.pc.in
+@@ -12,4 +12,4 @@ Requires:
  Conflicts:
  Libs: -L${libdir} @SDL_RLD_FLAGS@ @SDL_LIBS@
  Libs.private: @SDL_STATIC_LIBS@
@@ -413,11 +415,11 @@ share/man/man3/
 +Cflags: -I${includedir}/SDL -I${includedir} @SDL_CFLAGS@
 
 
-[FILE:470:patches/patch-src_audio_SDL__audio.c]
+[FILE:478:patches/patch-src_audio_SDL__audio.c]
 $OpenBSD: patch-src_audio_SDL_audio_c,v 1.17 2012/03/02 09:10:38 dcoppa Exp $
 --- src/audio/SDL_audio.c.orig	2012-01-19 06:30:06 UTC
 +++ src/audio/SDL_audio.c
-@@ -36,11 +36,15 @@
+@@ -36,12 +36,16 @@
  
  /* Available audio drivers */
  static AudioBootStrap *bootstrap[] = {
@@ -427,12 +429,13 @@ $OpenBSD: patch-src_audio_SDL_audio_c,v 1.17 2012/03/02 09:10:38 dcoppa Exp $
  #endif
  #if SDL_AUDIO_DRIVER_ALSA
  	&ALSA_bootstrap,
-+#endif
+ #endif
 +#if SDL_AUDIO_DRIVER_SNDIO
 +	&SNDIO_bootstrap,
- #endif
++#endif
  #if SDL_AUDIO_DRIVER_BSD
  	&BSD_AUDIO_bootstrap,
+ #endif
 
 
 [FILE:449:patches/patch-src_audio_SDL__sysaudio.h]
@@ -451,10 +454,10 @@ $OpenBSD: patch-src_audio_SDL_sysaudio_h,v 1.6 2012/03/02 09:10:38 dcoppa Exp $
  #endif
 
 
-[FILE:491:patches/patch-src_cdrom_freebsd_SDL_syscdrom.c]
---- src/cdrom/freebsd/SDL_syscdrom.c.orig	2012-03-14 08:36:58.000000000 +0100
-+++ src/cdrom/freebsd/SDL_syscdrom.c	2012-03-14 08:36:11.000000000 +0100
-@@ -188,7 +188,7 @@
+[FILE:469:patches/patch-src_cdrom_freebsd_SDL_syscdrom.c]
+--- src/cdrom/freebsd/SDL_syscdrom.c.orig	2012-01-19 06:30:06 UTC
++++ src/cdrom/freebsd/SDL_syscdrom.c
+@@ -188,7 +188,7 @@ int  SDL_SYS_CDInit(void)
  			char *insert;
  			exists = 1;
  			for ( j=checklist[i][1]; exists; ++j ) {
@@ -465,9 +468,9 @@ $OpenBSD: patch-src_audio_SDL_sysaudio_h,v 1.6 2012/03/02 09:10:38 dcoppa Exp $
  					*insert = j;
 
 
-[FILE:7749:patches/patch-src_joystick_bsd_SDL_sysjoystick.c]
---- src/joystick/bsd/SDL_sysjoystick.c.orig	2012-01-19 07:30:06.000000000 +0100
-+++ src/joystick/bsd/SDL_sysjoystick.c	2015-05-06 22:52:50.648504057 +0900
+[FILE:7860:patches/patch-src_joystick_bsd_SDL_sysjoystick.c]
+--- src/joystick/bsd/SDL_sysjoystick.c.orig	2012-01-19 06:30:06 UTC
++++ src/joystick/bsd/SDL_sysjoystick.c
 @@ -82,7 +82,9 @@
  #define MAX_JOYS	(MAX_UHID_JOYS + MAX_JOY_JOYS)
  
@@ -479,7 +482,7 @@ $OpenBSD: patch-src_audio_SDL_sysaudio_h,v 1.6 2012/03/02 09:10:38 dcoppa Exp $
  	struct	usb_gen_descriptor *buf;	/* Buffer */
  #else
  	struct	usb_ctl_report *buf;	/* Buffer */
-@@ -148,8 +150,10 @@
+@@ -148,8 +150,10 @@ static char *joydevnames[MAX_JOYS];
  static int	report_alloc(struct report *, struct report_desc *, int);
  static void	report_free(struct report *);
  
@@ -491,7 +494,7 @@ $OpenBSD: patch-src_audio_SDL_sysaudio_h,v 1.6 2012/03/02 09:10:38 dcoppa Exp $
  #elif (defined(__FREEBSD__) && (__FreeBSD_kernel_version > 800063))
  #define REP_BUF_DATA(rep) ((rep)->buf->ugd_data)
  #else
-@@ -411,47 +415,47 @@
+@@ -411,47 +415,47 @@ SDL_SYS_JoystickUpdate(SDL_Joystick *joy
  	struct joystick gameport;
   
  	if (joy->hwdata->type == BSDJOY_JOY) {
@@ -577,7 +580,7 @@ $OpenBSD: patch-src_audio_SDL_sysaudio_h,v 1.6 2012/03/02 09:10:38 dcoppa Exp $
  		}
  		return;
  	}
-@@ -459,65 +463,61 @@
+@@ -459,65 +463,61 @@ SDL_SYS_JoystickUpdate(SDL_Joystick *joy
  	
  	rep = &joy->hwdata->inreport;
  
@@ -687,7 +690,7 @@ $OpenBSD: patch-src_audio_SDL_sysaudio_h,v 1.6 2012/03/02 09:10:38 dcoppa Exp $
  }
  
  /* Function to close a joystick after use */
-@@ -582,8 +582,12 @@
+@@ -582,8 +582,12 @@ report_alloc(struct report *r, struct re
  	r->size = len;
  
  	if (r->size > 0) {
@@ -702,10 +705,10 @@ $OpenBSD: patch-src_audio_SDL_sysaudio_h,v 1.6 2012/03/02 09:10:38 dcoppa Exp $
  			return (-1);
 
 
-[FILE:505:patches/patch-src_video_x11_SDL_x11sym.h]
---- src/video/x11/SDL_x11sym.h.orig	2013-06-05 11:06:34.000000000 +0200
-+++ src/video/x11/SDL_x11sym.h	2013-06-05 11:08:02.000000000 +0200
-@@ -165,7 +165,7 @@
+[FILE:498:patches/patch-src_video_x11_SDL_x11sym.h]
+--- src/video/x11/SDL_x11sym.h.orig	2012-01-19 06:30:06 UTC
++++ src/video/x11/SDL_x11sym.h
+@@ -165,7 +165,7 @@ SDL_X11_SYM(Bool,XShmQueryExtension,(Dis
   */
  #ifdef LONG64
  SDL_X11_MODULE(IO_32BIT)
