@@ -19,8 +19,9 @@ OPTIONS_STANDARD=	none
 
 USES=			gmake perl:build
 
-LICENSE=		GPLv3:single
-LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING
+LICENSE=		GPLv3+:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
 INFO=			single:help2man
@@ -32,6 +33,10 @@ CONFIGURE_ARGS=		--enable-nls=no
 
 post-patch:
 	${REINPLACE_CMD} -e '/^pkglibdir/ s|/help2man$$||' ${WRKSRC}/Makefile.in
+
+post-extract:
+	${AWK} '/^\# Copyright/,/Written by Brendan/' \
+		${WRKSRC}/help2man.PL > ${WRKDIR}/TERMS
 
 [FILE:413:descriptions/desc.single]
 help2man is a tool for automatically generating simple manual pages from

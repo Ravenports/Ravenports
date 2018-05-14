@@ -29,9 +29,10 @@ USES=			bdb cpe perl-interp cclibs:primary
 
 DISTNAME=		perl-{{VERSION}}
 
-LICENSE=		ART10:primary GPLv1:primary
+LICENSE=		ART10:primary GPLv1+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		ART10:{{WRKSRC}}/Artistic
-			GPLv1:{{WRKSRC}}/Copying
+			GPLv1+:{{WRKSRC}}/Copying
 LICENSE_SCHEME=		dual
 
 FPC_EQUIVALENT=		lang/perl5.26
@@ -83,6 +84,10 @@ post-stage:
 	# on linux, $SITE_ARCH/machine is created but not used
 	-[ -d ${STAGEDIR}${SITE_ARCH}/machine ] && \
 		${RMDIR} ${STAGEDIR}${SITE_ARCH}/machine
+
+pre-patch:
+	${AWK} '/^LICENSING/,/^spells all this/' \
+		${WRKSRC}/README > ${WRKDIR}/TERMS
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e '/^libs = / s/= /= -lm /' \
