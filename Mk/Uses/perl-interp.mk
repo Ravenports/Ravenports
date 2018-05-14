@@ -121,7 +121,8 @@ CONFIGURE_ARGS+=	-Accflags=-DPERLIOBUF_DEFAULT_BUFSIZ=${PERLIOBUF_DEFAULT_BUFSIZ
 
 _TC=	${LOCALBASE}/toolchain
 
-_USES_patch+= 690:post-patch-perl
+_USES_patch+= 	690:post-patch-perl
+_USES_extract+=	665:add-perl-symlinks
 
 .  if !target(post-patch-perl)
 post-patch-perl:
@@ -136,8 +137,8 @@ post-patch-perl:
 .    endif
 .  endif
 
-.  if !target(post-extract)
-post-extract:
+.  if !target(add-perl-symlinks)
+add-perl-symlinks:
 	# Put a symlink to the future libperl.so.x.yy so that -lperl works.
 	${LN} -s libperl.so.${PERL_VERSION} ${WRKSRC}/libperl.so
 	${LN} -s libperl.so.${PERL_VERSION} ${WRKSRC}/libperl.so.${PERL_VER}

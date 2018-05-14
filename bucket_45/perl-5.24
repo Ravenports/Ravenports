@@ -30,9 +30,10 @@ USES=			bdb cpe perl-interp cclibs:primary
 
 DISTNAME=		perl-{{VERSION}}
 
-LICENSE=		ART10:primary GPLv1:primary
+LICENSE=		ART10:primary GPLv1+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		ART10:{{WRKSRC}}/Artistic
-			GPLv1:{{WRKSRC}}/Copying
+			GPLv1+:{{WRKSRC}}/Copying
 LICENSE_SCHEME=		dual
 
 FPC_EQUIVALENT=		lang/perl5.24
@@ -80,6 +81,10 @@ post-stage:
 	# on linux, $SITE_ARCH/machine is created but not used
 	-[ -d ${STAGEDIR}${SITE_ARCH}/machine ] && \
 		${RMDIR} ${STAGEDIR}${SITE_ARCH}/machine
+
+post-extract:
+	${AWK} '/^LICENSING/,/^spells all this/' \
+		${WRKSRC}/README > ${WRKDIR}/TERMS
 
 [FILE:274:descriptions/desc.primary]
 Perl is a language that combines some of the features of C, sed, awk and
