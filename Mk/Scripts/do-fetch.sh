@@ -20,6 +20,19 @@ if [ ! -d "${dp_DISTDIR}/${dp_DIST_SUBDIR}" ]; then
 fi
 cd "${dp_DISTDIR}/${dp_DIST_SUBDIR}"
 
+if [ -f /usr/bin/lockf ]; then
+    if [ ! -n "${DO_FETCH_ISLOCKED:=}" ]; then
+	for _file in "${@}"; do
+		file=${_file%%:*}
+		lkfile="`echo "$file" | /bin/md5`"
+		DO_FETCH_ISLOCKED=YES /usr/bin/lockf -s ${lkfile}.lk sh $0 "${_file}" || exit 1
+	done
+	exit 0
+    fi
+else
+    ${dp_ECHO_MSG} "=> Notice: Upgrade ravensys-root; /usr/bin/lockf was not detected."
+fi
+
 for _file in "${@}"; do
 	file=${_file%%:*}
 
