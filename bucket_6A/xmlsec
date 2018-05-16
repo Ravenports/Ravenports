@@ -2,6 +2,7 @@
 
 NAMEBASE=		xmlsec
 VERSION=		1.2.25
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	XML Security Library
@@ -22,6 +23,7 @@ OPTIONS_STANDARD=	none
 BUILDRUN_DEPENDS=	libgcrypt:single:standard
 			libgpg-error:single:standard
 			libltdl:single:standard
+			gnutls:single:standard
 			nspr:single:standard
 			nss:primary:standard
 
@@ -39,6 +41,7 @@ FPC_EQUIVALENT=		security/xmlsec1
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-openssl="{{OPENSSLBASE}}"
 			--with-gcrypt="{{LOCALBASE}}"
+			--with-gnutls="{{LOCALBASE}}"
 			--with-nspr="{{LOCALBASE}}"
 			--with-nss="{{LOCALBASE}}"
 			--enable-soap
@@ -55,7 +58,11 @@ SOVERSION=		1.2.25
 LDFLAGS=		-Wl,-rpath,{{LOCALBASE}}/lib/nss
 
 post-patch:
-	${REINPLACE_CMD} -e 's/mozilla-nss/nss/' -e 's/mozilla-nspr/nspr/' \
+	${REINPLACE_CMD} \
+		-e 's/mozilla-nss/nss/' \
+		-e 's/mozilla-nspr/nspr/' \
+		-e '/^GNUTLS_FOUND/s/no/yes/' \
+		-e '/^GNUTLS_LIBS=/s,"","-L${LOCALBASE}/lib -lgnutls",' \
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's/(CP) -ru/(CP) -r/' -e 's/(CP) -u/(CP)/' \
 		${WRKSRC}/docs/Makefile.am ${WRKSRC}/docs/Makefile.in \
@@ -79,7 +86,7 @@ major XML security standards:
 967ca83edf25ccb5b48a3c4a09ad3405a63365576503bf34290a42de1b92fcd2      1839160 xmlsec1-1.2.25.tar.gz
 
 
-[FILE:1204:manifests/plist.primary]
+[FILE:1403:manifests/plist.primary]
 bin/
  xmlsec1
  xmlsec1-config
@@ -117,6 +124,11 @@ include/xmlsec1/xmlsec/gcrypt/
  app.h
  crypto.h
  symbols.h
+include/xmlsec1/xmlsec/gnutls/
+ app.h
+ crypto.h
+ symbols.h
+ x509.h
 include/xmlsec1/xmlsec/nss/
  app.h
  bignum.h
@@ -138,6 +150,10 @@ lib/
  libxmlsec1-gcrypt.so
  libxmlsec1-gcrypt.so.%%SOMAJOR%%
  libxmlsec1-gcrypt.so.%%SOVERSION%%
+ libxmlsec1-gnutls.a
+ libxmlsec1-gnutls.so
+ libxmlsec1-gnutls.so.%%SOMAJOR%%
+ libxmlsec1-gnutls.so.%%SOVERSION%%
  libxmlsec1-nss.a
  libxmlsec1-nss.so
  libxmlsec1-nss.so.%%SOMAJOR%%
@@ -152,6 +168,7 @@ lib/
  libxmlsec1.so.%%SOVERSION%%
 lib/pkgconfig/
  xmlsec1-gcrypt.pc
+ xmlsec1-gnutls.pc
  xmlsec1-nss.pc
  xmlsec1-openssl.pc
  xmlsec1.pc
