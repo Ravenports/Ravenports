@@ -30,9 +30,18 @@ BUILDRUN_DEPENDS=	gnome-keyring:single:standard
 			freetype:primary:standard
 			libsoup:primary:standard
 			aqbanking:single:standard
+			libdbi-drivers:primary:sqlite
 RUN_DEPENDS=		perl-Date-Manip:single:perl_default
 			perl-Finance-Quote:single:perl_default
 			perl-libwww-perl:single:perl_default
+
+USES=			cmake desktop-utils:primary gnome-icons:primary
+			pkgconfig gettext-tools gettext-runtime libtool perl
+			shebangfix
+GNOME_COMPONENTS=	gtk3 libxslt intltool
+XORG_COMPONENTS=	x11
+
+DISTNAME=		gnucash-3.1
 
 LICENSE=		GPLv2:primary GPLv3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -60,6 +69,14 @@ GLIB_SCHEMAS=		org.gnucash.dialogs.business.gschema.xml
 			org.gnucash.warnings.gschema.xml
 			org.gnucash.window.pages.account.tree.gschema.xml
 			org.gnucash.window.pages.gschema.xml
+SHEBANG_FILES=		common/gnc-test-env.pl
+			libgnucash/quotes/gnc-fq-dump
+
+CMAKE_ARGS=		-DWITH_AQBANKING:BOOL=true
+			-DWITH_SQL:BOOL=true
+			-DWITH_OFX:BOOL=true
+			-DCOMPILE_GSCHEMAS=OFF
+			-DENABLE_BINRELOC=OFF
 
 [FILE:431:descriptions/desc.primary]
 Gnucash is the next generation of money manager created from a merger of
