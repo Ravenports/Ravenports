@@ -22,7 +22,7 @@ BUILDRUN_DEPENDS=	gstreamer1:single:standard
 			orc:primary:standard
 			freetype:primary:standard
 
-USES=			gmake pkgconfig libtool gettext-runtime
+USES=			gmake pkgconfig libtool gettext-runtime mesa
 GNOME_COMPONENTS=	glib introspection
 
 DISTNAME=		gst-plugins-base-1.14.1
@@ -54,7 +54,10 @@ LDFLAGS=		-lpthread
 VAR_OPSYS[sunos]=	CFLAGS=-DHAVE_FIONREAD_IN_SYS_FILIO=1
 
 post-patch:
-	${REINPLACE_CMD} -e 's|FLAGS -Werror|FLAGS|' ${WRKSRC}/configure
+	${REINPLACE_CMD} \
+		-e 's|FLAGS -Werror|FLAGS|' \
+		-e 's|dragonflybsd|dragonfly|' \
+		${WRKSRC}/configure
 
 [FILE:91:descriptions/desc.single]
 This package contains self-contained plugins from the "base" plugin set
@@ -65,7 +68,7 @@ for GStreamer (1).
 1026c7c3082d825d9b5d034c1a6dd8a4ebab60eb3738b0a0afde4ad2dc0b0db5      3689184 gst-plugins-base-1.14.1.tar.xz
 
 
-[FILE:18791:manifests/plist.single]
+[FILE:19987:manifests/plist.single]
 bin/
  gst-device-monitor-%%GSTVER%%
  gst-discoverer-%%GSTVER%%
@@ -116,6 +119,62 @@ include/gstreamer-%%GSTVER%%/gst/fft/
  gstfftf64.h
  gstffts16.h
  gstffts32.h
+include/gstreamer-%%GSTVER%%/gst/gl/
+ gl-prelude.h
+ gl.h
+ gstgl_enums.h
+ gstgl_fwd.h
+ gstglapi.h
+ gstglbasefilter.h
+ gstglbasememory.h
+ gstglbuffer.h
+ gstglbufferpool.h
+ gstglcolorconvert.h
+ gstglcontext.h
+ gstgldebug.h
+ gstgldisplay.h
+ gstglfeature.h
+ gstglfilter.h
+ gstglformat.h
+ gstglframebuffer.h
+ gstglfuncs.h
+ gstglmemory.h
+ gstglmemorypbo.h
+ gstgloverlaycompositor.h
+ gstglquery.h
+ gstglrenderbuffer.h
+ gstglshader.h
+ gstglshaderstrings.h
+ gstglsl.h
+ gstglslstage.h
+ gstglsyncmeta.h
+ gstglupload.h
+ gstglutils.h
+ gstglviewconvert.h
+ gstglwindow.h
+include/gstreamer-%%GSTVER%%/gst/gl/egl/
+ gstegl.h
+ gsteglimage.h
+ gstgldisplay_egl.h
+ gstglmemoryegl.h
+include/gstreamer-%%GSTVER%%/gst/gl/glprototypes/
+ all_functions.h
+ base.h
+ blending.h
+ buffers.h
+ debug.h
+ eglimage.h
+ fbo.h
+ fixedfunction.h
+ gles.h
+ gstgl_compat.h
+ gstgl_gles2compat.h
+ opengl.h
+ query.h
+ shaders.h
+ sync.h
+ vao.h
+include/gstreamer-%%GSTVER%%/gst/gl/x11/gstgldisplay_x11.h
 include/gstreamer-%%GSTVER%%/gst/pbutils/
  codec-utils.h
  descriptions.h
@@ -218,6 +277,9 @@ lib/
  libgstfft-%%GSTVER%%.so
  libgstfft-%%GSTVER%%.so.%%SOMAJOR%%
  libgstfft-%%GSTVER%%.so.%%SOVERSION%%
+ libgstgl-%%GSTVER%%.so
+ libgstgl-%%GSTVER%%.so.%%SOMAJOR%%
+ libgstgl-%%GSTVER%%.so.%%SOVERSION%%
  libgstpbutils-%%GSTVER%%.so
  libgstpbutils-%%GSTVER%%.so.%%SOMAJOR%%
  libgstpbutils-%%GSTVER%%.so.%%SOVERSION%%
@@ -243,6 +305,7 @@ lib/girepository-%%GSTVER%%/
  GstAllocators-%%GSTVER%%.typelib
  GstApp-%%GSTVER%%.typelib
  GstAudio-%%GSTVER%%.typelib
+ GstGL-%%GSTVER%%.typelib
  GstPbutils-%%GSTVER%%.typelib
  GstRtp-%%GSTVER%%.typelib
  GstRtsp-%%GSTVER%%.typelib
@@ -259,6 +322,7 @@ lib/gstreamer-%%GSTVER%%/
  libgstaudiotestsrc.so
  libgstencoding.so
  libgstgio.so
+ libgstopengl.so
  libgstpbtypes.so
  libgstplayback.so
  libgstrawparse.so
@@ -270,11 +334,13 @@ lib/gstreamer-%%GSTVER%%/
  libgstvideoscale.so
  libgstvideotestsrc.so
  libgstvolume.so
+lib/gstreamer-%%GSTVER%%/include/gst/gl/gstglconfig.h
 lib/pkgconfig/
  gstreamer-allocators-%%GSTVER%%.pc
  gstreamer-app-%%GSTVER%%.pc
  gstreamer-audio-%%GSTVER%%.pc
  gstreamer-fft-%%GSTVER%%.pc
+ gstreamer-gl-%%GSTVER%%.pc
  gstreamer-pbutils-%%GSTVER%%.pc
  gstreamer-plugins-base-%%GSTVER%%.pc
  gstreamer-riff-%%GSTVER%%.pc
@@ -287,6 +353,7 @@ share/gir-%%GSTVER%%/
  GstAllocators-%%GSTVER%%.gir
  GstApp-%%GSTVER%%.gir
  GstAudio-%%GSTVER%%.gir
+ GstGL-%%GSTVER%%.gir
  GstPbutils-%%GSTVER%%.gir
  GstRtp-%%GSTVER%%.gir
  GstRtsp-%%GSTVER%%.gir

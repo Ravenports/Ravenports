@@ -19,9 +19,8 @@ OPTIONS_AVAILABLE=	GTK3
 OPTIONS_STANDARD=	none
 VOPTS[gtk3]=		GTK3=ON
 
-BROKEN[all]=		WIP
-
 BUILD_DEPENDS=		gperf:single:standard
+			autoselect-python:single:standard
 BUILDRUN_DEPENDS=	enchant:single:standard
 			fontconfig:primary:standard
 			freetype:primary:standard
@@ -41,6 +40,7 @@ BUILDRUN_DEPENDS=	enchant:single:standard
 
 USES=			jpeg png mesa cmake:outsource pkgconfig sqlite bison
 			perl:build python:py27,build ruby:build
+			gettext-tools
 GNOME_COMPONENTS=	gtk3 gdkpixbuf introspection libxslt
 XORG_COMPONENTS=	x11 xcomposite xdamage xext xrender xt ice
 
@@ -59,10 +59,13 @@ LICENSE_SCHEME=		multi
 FPC_EQUIVALENT=		www/webkit2-gtk3
 
 CONFIGURE_ENV=		XDG_CACHE_HOME={{WRKDIR}}
+			AUTOPYTHON=2.7
+
+MAKE_ENV=		AUTOPYTHON=2.7
 
 INSTALL_TARGET=		install
-SOVERSION=		37.28.0
-PLIST_SUB=		JSSOVERSION=18.7.8
+SOVERSION=		37.28.2
+PLIST_SUB=		JSSOVERSION=18.7.10
 			JSSOMAJOR=18
 			WKAPI=4.0
 			WKAPIMAJOR=4
@@ -107,11 +110,11 @@ and Midori.
 dffe93a241f03f1c73b369f4e323e4d8f12e39d33d5515948cbf454ca4b526e2     16622048 webkitgtk-2.20.2.tar.xz
 
 
-[FILE:8389:manifests/plist.single]
+[FILE:8410:manifests/plist.single]
 bin/
  MiniBrowser-%%WKAPIMAJOR%%
  WebKitWebDriver
- jsc-%%WKIAPIMAJOR%%
+ jsc-%%WKAPIMAJOR%%
 include/webkitgtk-%%WKAPI%%/JavaScriptCore/
  JSBase.h
  JSContextRef.h
@@ -328,6 +331,7 @@ libexec/webkit2gtk-%%WKAPI%%/
  MiniBrowser
  WebKitNetworkProcess
  WebKitPluginProcess
+ WebKitPluginProcess2
  WebKitStorageProcess
  WebKitWebProcess
  jsc
@@ -488,6 +492,19 @@ share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
  #if ENABLE(ACCELERATED_2D_CANVAS)
  // cairo-gl.h includes some definitions from GLX that conflict with
  // the ones provided by us. Since GLContextEGL doesn't use any GLX
+
+
+[FILE:315:patches/patch-Source_WebCore_platform_network_soup_SoupNetworkSession.h]
+--- Source/WebCore/platform/network/soup/SoupNetworkSession.h.orig	2018-05-07 08:56:05 UTC
++++ Source/WebCore/platform/network/soup/SoupNetworkSession.h
+@@ -43,6 +43,7 @@ namespace WebCore {
+ 
+ class CertificateInfo;
+ class ResourceError;
++class URL;
+ struct SoupNetworkProxySettings;
+ 
+ class SoupNetworkSession {
 
 
 [FILE:336:patches/patch-Source_WebDriver_PlatformGTK.cmake]
