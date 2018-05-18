@@ -37,9 +37,10 @@ BUILDRUN_DEPENDS=	enchant:single:standard
 			libtasn1:primary:standard
 			geoclue:single:standard
 			woff2:single:standard
+			gstreamer1-plugins-gl:single:standard
 
 USES=			jpeg png mesa cmake:outsource pkgconfig sqlite bison
-			perl:build python:py27,build
+			perl:build python:py27,build ruby:build
 GNOME_COMPONENTS=	gtk3 gdkpixbuf introspection libxslt
 XORG_COMPONENTS=	x11 xcomposite xdamage xext xrender xt ice
 
@@ -68,11 +69,26 @@ PLIST_SUB=		JSSOVERSION=18.7.8
 
 CXXFLAGS=		-DFIXED_EXECUTABLE_MEMORY_POOL_SIZE_IN_MB=32
 CMAKE_ARGS=		-DPORT=GTK
+			-DNDEBUG=1
 			-DENABLE_GEOLOCATION:BOOL=true
 			-DENABLE_GLES2:BOOL=ON
 			-DENABLE_MINIBROWSER:BOOL=ON
 
 [GTK3].DESCRIPTION=			Build GTK+3 variant
+[GTK3].MAKEFILE_ON=			BROWSER_PLUGIN_DIR={{LOCALBASE}}/lib/browser_plugins/symlinks/webkit-gtk3
+
+post-patch:
+	${REINPLACE_CMD} -e 's|/usr/lib/browser/plugins|${BROWSER_PLUGINS_DIR}|' \
+		${WRKSRC}/Source/WebKit/Shared/Plugins/unix/PluginSearchPath.cpp
+
+post-install:
+	(cd ${STAGEDIR}${PREFIX}/bin && \
+	 ${LN} -s ../libexec/webkit2gtk-4.0/jsc jsc-4 && \
+	 ${LN} -s ../libexec/webkit2gtk-4.0/MiniBrowser MiniBrowser-4)
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so.*.*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/webkit2gtk-4.0/injected-bundle/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/webkit2gtk-4.0/*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/WebKitWebDriver
 
 [FILE:576:descriptions/desc.single]
 WebKitGTK+ is a full-featured port of the WebKit rendering engine, suitable
@@ -367,4 +383,122 @@ share/locale/tr/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
 share/locale/uk/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
 share/locale/vi/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
 share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
+
+
+[FILE:658:patches/patch-Source_JavaScriptCore_CMakeLists.txt]
+--- Source/JavaScriptCore/CMakeLists.txt.orig	2018-04-10 07:33:13 UTC
++++ Source/JavaScriptCore/CMakeLists.txt
+@@ -253,6 +253,7 @@ add_executable(LLIntOffsetsExtractor
+     ${DERIVED_SOURCES_JAVASCRIPTCORE_DIR}/LLIntDesiredOffsets.h ${DERIVED_SOURCES_JAVASCRIPTCORE_DIR}/Bytecodes.h ${DERIVED_SOURCES_JAVASCRIPTCORE_DIR}/BytecodeStructs.h
+ )
+ target_link_libraries(LLIntOffsetsExtractor WTF)
++add_dependencies(LLIntOffsetsExtractor JavaScriptCoreForwardingHeaders) 
+ 
+ # The build system will execute asm.rb every time LLIntOffsetsExtractor's mtime is newer than
+ # LLIntAssembly.h's mtime. The problem we have here is: asm.rb has some built-in optimization
+
+
+[FILE:477:patches/patch-Source_JavaScriptCore_assembler_ARM64Assembler.h]
+--- Source/JavaScriptCore/assembler/ARM64Assembler.h.orig	2018-03-05 09:28:05 UTC
++++ Source/JavaScriptCore/assembler/ARM64Assembler.h
+@@ -2856,6 +2856,8 @@ public:
+     {
+ #if OS(IOS)
+         sys_cache_control(kCacheFunctionPrepareForExecution, code, size);
++#elif OS(FREEBSD) || OS(NETBSD)
++        __clear_cache(code, reinterpret_cast<char*>(code) + size);
+ #elif OS(LINUX)
+         size_t page = pageSize();
+         uintptr_t current = reinterpret_cast<uintptr_t>(code);
+
+
+[FILE:334:patches/patch-Source_WTF_wtf_NumberOfCores.cpp]
+--- Source/WTF/wtf/NumberOfCores.cpp.orig	2018-02-19 07:45:30 UTC
++++ Source/WTF/wtf/NumberOfCores.cpp
+@@ -35,6 +35,7 @@
+ #include <sys/types.h>
+ #include <sys/sysctl.h>
+ #elif OS(LINUX) || OS(AIX) || OS(OPENBSD) || OS(NETBSD) || OS(FREEBSD)
++#include <stdio.h> // sscanf
+ #include <unistd.h>
+ #elif OS(WINDOWS)
+ #include <windows.h>
+
+
+[FILE:416:patches/patch-Source_WebCore_PAL_pal_PlatformGTK.cmake]
+--- Source/WebCore/PAL/pal/PlatformGTK.cmake.orig	2018-02-19 07:45:31 UTC
++++ Source/WebCore/PAL/pal/PlatformGTK.cmake
+@@ -12,6 +12,13 @@ list(APPEND PAL_SOURCES
+     unix/LoggingUnix.cpp
+ )
+ 
++list(APPEND PAL_INCLUDE_DIRECTORIES
++    ${LIBGCRYPT_INCLUDE_DIRS}
++)
++list(APPEND PAL_LIBRARIES
++    ${LIBGCRYPT_LIBRARIES}
++)
++
+ if (ENABLE_SUBTLE_CRYPTO)
+     list(APPEND PAL_SOURCES
+         crypto/tasn1/Utilities.cpp
+
+
+[FILE:610:patches/patch-Source_WebCore_platform_graphics_cpu_arm_filters_FELightingNEON.cpp]
+--- Source/WebCore/platform/graphics/cpu/arm/filters/FELightingNEON.cpp.orig	2018-05-07 07:58:18 UTC
++++ Source/WebCore/platform/graphics/cpu/arm/filters/FELightingNEON.cpp
+@@ -403,7 +403,7 @@ TOSTRING(neonDrawLighting) ":" NL
+     "vmin.f32 " TMP2_D0 ", " TMP2_D0 ", " CONST_ONE_HI_D NL
+     "vmul.f32 " TMP3_Q ", " COLOR_Q ", " TMP2_D0 "[1]" NL
+     "vcvt.u32.f32 " TMP3_Q ", " TMP3_Q NL
+-    "vmov.u32 r2, r3, " TMP3_S0 ", " TMP3_S1 NL
++    "vmov r2, r3, " TMP3_S0 ", " TMP3_S1 NL
+     // The color values are stored in-place.
+     "strb r2, [" PIXELS_R ", #-11]" NL
+     "strb r3, [" PIXELS_R ", #-10]" NL
+
+
+[FILE:839:patches/patch-Source_WebCore_platform_graphics_cpu_arm_filters_FELightingNEON.h]
+--- Source/WebCore/platform/graphics/cpu/arm/filters/FELightingNEON.h.orig	2018-05-07 07:58:18 UTC
++++ Source/WebCore/platform/graphics/cpu/arm/filters/FELightingNEON.h
+@@ -144,9 +144,9 @@ inline void FELighting::platformApplyNeo
+             neonData.flags |= FLAG_CONE_EXPONENT_IS_1;
+     } else {
+         ASSERT(m_lightSource->type() == LS_DISTANT);
+-        floatArguments.lightX = paintingData.lightVector.x();
+-        floatArguments.lightY = paintingData.lightVector.y();
+-        floatArguments.lightZ = paintingData.lightVector.z();
++        floatArguments.lightX = paintingData.initialLightingData.lightVector.x();
++        floatArguments.lightY = paintingData.initialLightingData.lightVector.y();
++        floatArguments.lightZ = paintingData.initialLightingData.lightVector.z();
+         floatArguments.padding2 = 1;
+     }
+ 
+
+
+[FILE:396:patches/patch-Source_WebCore_platform_graphics_egl_GLContextEGL.cpp]
+--- Source/WebCore/platform/graphics/egl/GLContextEGL.cpp.orig	2018-02-19 07:45:32 UTC
++++ Source/WebCore/platform/graphics/egl/GLContextEGL.cpp
+@@ -44,6 +44,8 @@
+ #include "OpenGLShims.h"
+ #endif
+ 
++#include <X11/Xlib.h>
++
+ #if ENABLE(ACCELERATED_2D_CANVAS)
+ // cairo-gl.h includes some definitions from GLX that conflict with
+ // the ones provided by us. Since GLContextEGL doesn't use any GLX
+
+
+[FILE:336:patches/patch-Source_WebDriver_PlatformGTK.cmake]
+--- Source/WebDriver/PlatformGTK.cmake.orig	2018-02-19 07:45:32 UTC
++++ Source/WebDriver/PlatformGTK.cmake
+@@ -5,6 +5,7 @@ add_definitions(-DLIBEXECDIR="${CMAKE_IN
+ list(APPEND WebDriver_SYSTEM_INCLUDE_DIRECTORIES
+     "${GLIB_INCLUDE_DIRS}"
+     "${LIBSOUP_INCLUDE_DIRS}"
++    "${ICU_INCLUDE_DIRS}"
+ )
+ 
+ list(APPEND WebDriver_SOURCES
 
