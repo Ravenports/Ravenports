@@ -201,7 +201,7 @@ utility first appeared in
 .An John Polstra Aq Mt jdp@polstra.com
 
 
-[FILE:6399:files/lockf.c]
+[FILE:6535:files/lockf.c]
 /*
  * Copyright (C) 1997 John D. Polstra.  All rights reserved.
  *
@@ -231,6 +231,7 @@ utility first appeared in
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/file.h>
 
 #include <err.h>
 #include <errno.h>
@@ -240,6 +241,14 @@ utility first appeared in
 #include <stdlib.h>
 #include <sysexits.h>
 #include <unistd.h>
+
+#ifndef O_EXLOCK
+#define O_EXLOCK	0
+#endif
+
+#ifndef __unused
+#define __unused	__attribute__((__unused__))
+#endif
 
 static int acquire_lock(const char *name, int flags);
 static void cleanup(void);
