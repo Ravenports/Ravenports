@@ -33,7 +33,6 @@ CMAKE_ARGS=		-DBUILD_SHARED_LIBS=ON
 			-DBUILD_STATIC_LIBS=ON
 			-DBUILD_TESTS=OFF
 			-DBUILD_PKGCONFIG=ON
-			-DCMAKE_INSTALL_LIBDIR:STRING=lib
 
 post-patch:
 	${TAIL} -n 23 ${WRKSRC}/src/pugixml.hpp >> ${WRKDIR}/LICENSE_MIT
@@ -72,10 +71,10 @@ lib/
  libpugixml.so.%%SOVERSION%%
 
 
-[FILE:1397:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2018-04-04 16:53:16.000000000 +0200
-+++ CMakeLists.txt	2018-05-16 17:20:41.177952000 +0200
-@@ -4,7 +4,7 @@
+[FILE:1415:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2018-04-04 14:53:16 UTC
++++ CMakeLists.txt
+@@ -4,7 +4,7 @@ project(pugixml)
  
  option(BUILD_SHARED_LIBS "Build shared instead of static library" OFF)
  option(BUILD_TESTS "Build tests" OFF)
@@ -84,7 +83,7 @@ lib/
  
  set(BUILD_DEFINES "" CACHE STRING "Build defines")
  
-@@ -55,7 +55,7 @@
+@@ -55,7 +55,7 @@ endif()
  set_target_properties(pugixml PROPERTIES VERSION 1.9 SOVERSION 1)
  get_target_property(PUGIXML_VERSION_STRING pugixml VERSION)
  
@@ -93,7 +92,7 @@ lib/
  	# Install library into its own directory under LIBDIR
  	set(INSTALL_SUFFIX /pugixml-${PUGIXML_VERSION_STRING})
  endif()
-@@ -71,10 +71,8 @@
+@@ -71,10 +71,8 @@ install(TARGETS pugixml EXPORT pugixml-c
  install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}${INSTALL_SUFFIX})
  install(EXPORT pugixml-config DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pugixml)
  
@@ -108,9 +107,9 @@ lib/
  	file(GLOB TEST_SOURCES tests/*.cpp)
 
 
-[FILE:685:patches/patch-scripts_pugixml.pc.in]
---- scripts/pugixml.pc.in.orig	2018-04-04 16:53:16.000000000 +0200
-+++ scripts/pugixml.pc.in	2018-05-16 17:21:06.250986000 +0200
+[FILE:637:patches/patch-scripts_pugixml.pc.in]
+--- scripts/pugixml.pc.in.orig	2018-04-04 14:53:16 UTC
++++ scripts/pugixml.pc.in
 @@ -1,11 +1,11 @@
  prefix=@CMAKE_INSTALL_PREFIX@
  exec_prefix=${prefix}
