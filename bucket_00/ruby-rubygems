@@ -2,6 +2,7 @@
 
 NAMEBASE=		ruby-rubygems
 VERSION=		2.7.6
+REVISION=		1
 KEYWORDS=		ruby devel
 VARIANTS=		v23 v24 v25
 SDESC[v23]=		Package management framework for Ruby (v2.3)
@@ -40,30 +41,11 @@ PLIST_SUB=		DISTNAME="{{DISTNAME}}"
 			SUFFIX="{{RUBY_SUFFIX}}"
 			GEMS_BASE_DIR="lib/ruby/gems/{{RUBY_VER}}"
 
-[RUBY23].MAKEFILE_ON=			GEMLINK2.3=""
-					GEMLINK2.4="@comment "
-					GEMLINK2.5="@comment "
 [RUBY23].USES_ON=			ruby:v23
 
-[RUBY24].MAKEFILE_ON=			GEMLINK2.3="@comment "
-					GEMLINK2.4=""
-					GEMLINK2.5="@comment "
 [RUBY24].USES_ON=			ruby:v24
 
-[RUBY25].MAKEFILE_ON=			GEMLINK2.3="@comment "
-					GEMLINK2.4="@comment "
-					GEMLINK2.5=""
 [RUBY25].USES_ON=			ruby:v25
-
-do-install-RUBY24-ON:
-	if [ "${RUBY_DEFAULT}" = "2.4" ]; then \
-	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem; \
-	fi
-
-do-install-RUBY25-ON:
-	if [ "${RUBY_DEFAULT}" = "2.5" ]; then \
-	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem; \
-	fi
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/ruby/gems/${RUBY_VER}
@@ -72,11 +54,6 @@ do-install:
 		${RUBY} ${RUBY_SETUP} --destdir=${STAGEDIR} \
 		--no-ri --no-rdoc || ${TRUE}
 	${RM} ${STAGEDIR}${PREFIX}/bin/bundle${RUBY_SUFFIX}
-
-do-install-RUBY23-ON:
-	if [ "${RUBY_DEFAULT}" = "2.3" ]; then \
-	${LN} -sf gem${RUBY_SUFFIX} ${STAGEDIR}${PREFIX}/bin/gem; \
-	fi
 
 [FILE:745:descriptions/desc.single]
 RubyGems is a package manager for the Ruby programming language that
@@ -98,8 +75,7 @@ resolve dependencies and install them.
 67f714a582a9ce471bbbcb417374ea9cf9c061271c865dbb0d093f3bc3371eeb       852486 ruby/rubygems-2.7.6.tgz
 
 
-[FILE:9625:manifests/plist.single]
-%%GEMLINK%%bin/gem
+[FILE:9606:manifests/plist.single]
 %%RUBY_SITELIBDIR%%/
  bundler.rb
  rubygems.rb
