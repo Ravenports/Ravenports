@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnucash
 VERSION=		3.1.1
+REVISION=		1
 KEYWORDS=		finance
 VARIANTS=		standard
 SDESC[standard]=	Financial accounting software
@@ -88,14 +89,19 @@ CMAKE_ARGS=		-DWITH_AQBANKING:BOOL=true
 			-DCMAKE_INSTALL_LIBDIR:STRING="lib"
 
 post-patch:
-	# disable testing
+	# disable testing and fix XDG_DATA_DIRS
 	(cd ${WRKSRC} && \
 		${FIND} . -type f -name CMakeLists.txt \
-		-exec ${REINPLACE_CMD} -e '/ADD_SUBDIRECTORY *(test.*)/d' \
-		-e '/ENABLE_TESTING()/d' -e '/INCLUDE (GncAddTest)/d' \
+		-exec ${REINPLACE_CMD} \
+		-e 's|/usr/local/share|${PREFIX}/share|' \
+		-e '/ADD_SUBDIRECTORY *(test.*)/d' \
+		-e '/ENABLE_TESTING()/d' \
+		-e '/INCLUDE (GncAddTest)/d' \
 		-e '/GNC_GTEST_CONFIGURE()/d' {} +)
 
 post-install:
+	(cd ${STAGEDIR}${PREFIX}/etc/gnucash && \
+		${MV} environment environment.sample)
 	(cd ${STAGEDIR}${PREFIX}/share/gnucash/icons/hicolor && \
 		${RMDIR} 22x22 32x32 48x48 64x64 96x96 128x128 256x256 scalable)
 	${RM} ${STAGEDIR}${STD_DOCDIR}/ChangeLog*
@@ -120,7 +126,8 @@ Its features include:
 a1ef66cec3b8b74b7b8bfe791ff12456796a69cc004427e8d9205b6872bdd261     13374530 gnucash-3.1-1.tar.bz2
 
 
-[FILE:30989:manifests/plist.primary]
+[FILE:31004:manifests/plist.primary]
+@sample etc/gnucash/environment.sample
 bin/
  gnc-fq-check
  gnc-fq-dump
@@ -128,7 +135,6 @@ bin/
  gnc-fq-update
  gnucash
  gnucash-valgrind
-etc/gnucash/environment
 include/gnucash/
  Account.h
  FreqSpec.h
