@@ -21,8 +21,11 @@ OPTIONS_STANDARD=	none
 VOPTS[py35]=		PY35=ON PY36=OFF
 VOPTS[py36]=		PY35=OFF PY36=ON
 
+USES=			shebangfix
+
 DISTNAME=		mayan-edms-ng-3.0.2
 
+SHEBANG_FILES=		mayan/bin/mayan-edms.py
 GENERATED=		yes
 
 [PY35].BUILDRUN_DEPENDS_ON=		python-Django:single:py35
@@ -106,6 +109,9 @@ GENERATED=		yes
 					python-sh:single:py36
 					python-swagger-spec-validator:single:py36
 [PY36].USES_ON=				python:py36
+
+post-patch:
+	${REINPLACE_CMD} 's/[\d128-\d255]//g' ${WRKSRC}/HISTORY.rst
 
 [FILE:4745:descriptions/desc.single]
 |pypi| |builds| |coverage| |python| |license|

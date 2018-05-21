@@ -24,8 +24,8 @@ gnome-post-icons:
 	  ${RM} $${splist}.icons1; \
 	  for i in `${GREP} "^share/icons/.*/" $${splist} | ${CUT} -d / -f 1-3 | ${SORT} -u`; do \
 	    echo "@rmtry $${i}/icon-theme.cache" >> $${splist}.icons1; \
-	    echo "@postexec ${LOCALBASE}/bin/gtk-update-icon-cache -q -f %D/$${i} 2>/dev/null || /usr/bin/true"   >> $${splist}; \
-	    echo "@postunexec ${LOCALBASE}/bin/gtk-update-icon-cache -q -f %D/$${i} 2>/dev/null || /usr/bin/true" >> $${splist}; \
+	    echo "@postexec ${LOCALBASE}/bin/gtk-update-icon-cache -q -f %D/$${i} 2>/dev/null || true"   >> $${splist}; \
+	    echo "@postunexec ${LOCALBASE}/bin/gtk-update-icon-cache -q -f %D/$${i} 2>/dev/null || true" >> $${splist}; \
 	  done; \
 	  if [ -f $${splist}.icons1 ]; then \
 	    ${CAT} $${splist}.icons1 $${splist} > $${splist}.icons2; \

@@ -112,8 +112,8 @@ post-install-gem:
 	${FIND} ${STAGEDIR}${PREFIX}/bin \
 		\( -type f -o -type l \) > /tmp/rprograms
 	${CP} /tmp/rprograms /tmp/rconflicts
-	(grep -rl "/usr/bin/env ruby" ${STAGEDIR}${PREFIX}/lib || \
-		/usr/bin/true) >> /tmp/rprograms
+	(grep -rl "/usr/bin/env ruby" ${STAGEDIR}${PREFIX}/lib || true) \
+		>> /tmp/rprograms
 	if [ -s /tmp/rprograms ]; then\
 	  ${SED} -i'' ${RUBY_SB_ARGS} `cat /tmp/rprograms`;\
 	fi
