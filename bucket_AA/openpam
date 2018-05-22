@@ -2,6 +2,7 @@
 
 NAMEBASE=		openpam
 VERSION=		20170430
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Open-source Pluggable Authentication Module
@@ -20,12 +21,23 @@ OPTIONS_STANDARD=	none
 USES=			libtool
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--without-pam-su
+CONFIGURE_ARGS=		--with-su
 			--with-pam-unix
 			--with-modules-dir={{PREFIX}}/lib/openpam
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
+
+SET_DEBUGGING_ON=	yes
+OPTIMIZER_LEVEL=	0
+VAR_OPSYS[freebsd]=	VAR1="/usr/lib/security",
+VAR_OPSYS[dragonfly]=	VAR1="/usr/lib/security",
+
+post-patch:
+	${REINPLACE_CMD} \
+		-e 's|@PREFIX@|${PREFIX}|' \
+		-e 's|@SYSTEM_MODULES@|${VAR1}|' \
+		${WRKSRC}/lib/libpam/openpam_constants.c
 
 [FILE:365:descriptions/desc.single]
 OpenPAM is an open source PAM library that focuses on simplicity,
@@ -40,7 +52,8 @@ compatibility.
 22f65222e9faf5729ee5d2db7796d81f95df1a54b03e89ae4713c85e939be85f       494372 openpam-20170430.tar.gz
 
 
-[FILE:1457:manifests/plist.single]
+[FILE:1487:manifests/plist.single]
+bin/su
 include/security/
  openpam.h
  openpam_attr.h
@@ -66,6 +79,7 @@ lib/openpam/
  pam_unix.so
  pam_unix.so.2
  pam_unix.so.2.0.0
+share/man/man1/su.1.gz
 share/man/man3/
  openpam.3.gz
  openpam_borrow_cred.3.gz
@@ -118,4 +132,31 @@ share/man/man3/
  pam_vinfo.3.gz
  pam_vprompt.3.gz
 share/man/man5/pam.conf.5.gz
+
+
+[FILE:565:patches/patch-lib_libpam_openpam__constants.c]
+--- lib/libpam/openpam_constants.c.orig	2017-04-30 21:34:49 UTC
++++ lib/libpam/openpam_constants.c
+@@ -169,17 +169,13 @@ const char *pam_sm_func_name[PAM_NUM_PRI
+ const char *openpam_policy_path[] = {
+ 	"/etc/pam.d/",
+ 	"/etc/pam.conf",
+-	"/usr/local/etc/pam.d/",
+-	"/usr/local/etc/pam.conf",
++	"@PREFIX@/etc/pam.d/",
++	"@PREFIX@/etc/pam.conf",
+ 	NULL
+ };
+ 
+ const char *openpam_module_path[] = {
+-#ifdef OPENPAM_MODULES_DIRECTORY
+-	OPENPAM_MODULES_DIRECTORY,
+-#else
+-	"/usr/lib",
+-	"/usr/local/lib",
+-#endif
++	"@PREFIX@/lib/openpam",
++	@SYSTEM_MODULES@
+ 	NULL
+ };
 
