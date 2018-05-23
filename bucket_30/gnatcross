@@ -3,9 +3,10 @@
 NAMEBASE=		gnatcross
 VERSION=		7.3.0
 KEYWORDS=		lang
-VARIANTS=		FARM64_R11 FAMD64_R12 SOL10
+VARIANTS=		FARM64_R11 FAMD64_R12 FI386_R12 SOL10
 SDESC[FARM64_R11]=	C/Ada cross-compiler, target: FreeBSD/ARM64 (R11)
 SDESC[SOL10]=		C/Ada cross-compiler, target: Solaris 10 (x86-64)
+SDESC[FI386_R12]=	C/Ada cross-compiler, target: FreeBSD/I386 (R11)
 SDESC[FAMD64_R12]=	C/Ada cross-compiler, target: FreeBSD/AMD64 (R12)
 HOMEPAGE=		http://www.dragonlace.net
 CONTACT=		John_Marino[draco@marino.st]
@@ -16,13 +17,15 @@ DISTFILE[1]=		gcc-7.3.0.tar.xz:main
 DF_INDEX=		1
 SPKGS[FARM64_R11]=	single
 SPKGS[SOL10]=		single
+SPKGS[FI386_R12]=	single
 SPKGS[FAMD64_R12]=	single
 
-OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 SOL10
+OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 FI386R12 SOL10
 OPTIONS_STANDARD=	none
-VOPTS[FARM64_R11]=	FARM64R11=ON FAMD64R12=OFF SOL10=OFF
-VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF SOL10=ON
-VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON SOL10=OFF
+VOPTS[FARM64_R11]=	FARM64R11=ON FAMD64R12=OFF FI386R12=OFF SOL10=OFF
+VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=ON
+VOPTS[FI386_R12]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=ON SOL10=OFF
+VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON FI386R12=OFF SOL10=OFF
 
 BUILD_DEPENDS=		gmp:static:standard
 			mpfr:static:standard
@@ -34,13 +37,11 @@ USES=			gmake libtool perl:build
 
 DISTNAME=		gcc-7.3.0
 
-LICENSE=		GPLv2+:single LGPL21:single GPLv3+:single
-			LGPL3:single GPLv3RLE:single
-LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
-			LGPL21:{{WRKSRC}}/COPYING.LIB
-			GPLv3+:{{WRKSRC}}/COPYING3
-			LGPL3:{{WRKSRC}}/COPYING3.LIB
-			GPLv3RLE:{{WRKSRC}}/COPYING.RUNTIME
+LICENSE=		GPLv3+:single LGPL3+:single GPLv3RLE+:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
+			LGPL3+:{{WRKSRC}}/COPYING3.LIB
+			GPLv3RLE+:{{WRKSRC}}/COPYING.RUNTIME
 LICENSE_SCHEME=		multi
 
 MUST_CONFIGURE=		yes
@@ -93,6 +94,14 @@ SUB_LIST=		TARGET="{{XCCTARGET}}"
 					--with-gnu-as\
 					--enable-multilib
 
+[FI386R12].DESCRIPTION=			Set target to FreeBSD/I386 (Release 12)
+[FI386R12].BUILDRUN_DEPENDS_ON=		gnatcross-binutils:single:FI386_R12
+[FI386R12].MAKEFILE_ON=			OS_LABEL4VERS="[{{OPSYS}}/{{ARCH}} x FreeBSD_12/I386]"
+					PREFIX={{LOCALBASE}}/FreeBSD12_I386
+					SRPREFIX={{PREFIX}}/sysroot
+					XCCTARGET=i386-raven-freebsd12.0
+					TARGET_SPECIFIC=#none
+
 [FAMD64R12].DESCRIPTION=		Set target to FreeBSD/ARM64 (Release 12)
 [FAMD64R12].BUILDRUN_DEPENDS_ON=	gnatcross-binutils:single:FAMD64_R12
 [FAMD64R12].MAKEFILE_ON=		OS_LABEL4VERS="[{{OPSYS}}/{{ARCH}} x FreeBSD_12/AMD64]"
@@ -129,6 +138,11 @@ post-stage:
 		${SED} -e '/^bin\//d' -e '/^${XCCTARGET}\/bin\//d' \
 		>> ${WRKDIR}/.manifest.single.mktmp)
 
+post-patch-FI386R12-ON:
+	# work around malloc detection issue
+	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
+		${WRKSRC}/libstdc++-v3/config.h.in
+
 post-patch-FARM64R11-ON:
 	# work around malloc detection issue
 	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
@@ -142,6 +156,10 @@ post-patch-FAMD64R12-ON:
 post-extract:
 	# Personalize GNAT for each different machine
 	${ECHO} "-=> GNATCROSS ${OS_LABEL4VERS}" > ${WRKSRC}/gcc/REVISION
+	# Create license terms
+	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS
+	${HEAD} -n 31 ${WRKSRC}/gcc/ada/adaint.h >> ${WRKDIR}/TERMS
+	${HEAD} -n 18 ${WRKSRC}/libiberty/hex.c >> ${WRKDIR}/TERMS
 
 do-install:
 	# Buggy makefile; seems to have forgotten this is a cross compiler
@@ -157,6 +175,9 @@ do-install:
 	${MV} ${STAGEDIR}${PREFIX}/bin/ada \
 		${STAGEDIR}${PREFIX}/bin/${XCCTARGET}-ada
 
+post-install-FI386R12-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${XCCTARGET}/7.3.0/include-fixed/
+
 post-install-FARM64R11-ON:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${XCCTARGET}/7.3.0/include-fixed/
 
@@ -168,6 +189,11 @@ that targets the FreeBSD/ARM64 operating system (Release 11).
 [FILE:134:descriptions/desc.single.FAMD64_R12]
 This package contains a C/C++/Fortran/Ada cross-compiler based on GCC 7
 that targets the FreeBSD/AMD64 operating system (Release 12).
+
+
+[FILE:133:descriptions/desc.single.FI386_R12]
+This package contains a C/C++/Fortran/Ada cross-compiler based on GCC 7
+that targets the FreeBSD/I386 operating system (Release 12).
 
 
 [FILE:127:descriptions/desc.single.SOL10]

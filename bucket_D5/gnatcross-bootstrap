@@ -22,11 +22,11 @@ DISTFILE[5]=		libiconv-1.15.tar.gz:iconv
 DF_INDEX=		1 2 3 4 5
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	DISABLE FARM64_R11 FAMD64_R12 SOL10
-OPTIONS_STANDARD=	DISABLE FARM64_R11 FAMD64_R12 SOL10
+OPTIONS_AVAILABLE=	DISABLE FARM64_R11 FAMD64_R12 FI386_R12 SOL10
+OPTIONS_STANDARD=	DISABLE FARM64_R11 FAMD64_R12 FI386_R12 SOL10
 OPTGROUP_RADIO=		TARGET
 OPTDESCR[TARGET]=	Target platform for generated compiler
-OPTGROUP[TARGET]=	DISABLE FARM64_R11 FAMD64_R12 SOL10
+OPTGROUP[TARGET]=	DISABLE FARM64_R11 FAMD64_R12 FI386_R12 SOL10
 OPT_ON[all]=		DISABLE
 
 BUILD_DEPENDS=		Zstandard:single:standard
@@ -98,6 +98,16 @@ PLIST_SUB=		TGTSYS={{TGTSYS}}
 					ac_cv_func_strnlen=no
 					ac_cv_func_madvise=no
 
+[FI386_R12].DESCRIPTION=		Build native compiler for FreeBSD/I386 Release 12
+[FI386_R12].BUILD_DEPENDS_ON=		gnatcross:single:FI386_R12
+[FI386_R12].CONFIGURE_ARGS_ON=		--build={{CONFIGURE_TARGET}}
+					--host=i386-raven-freebsd12.0
+					--target=i386-raven-freebsd12.0
+					--disable-libstdcxx-pch
+[FI386_R12].MAKEFILE_ON=		TGTSYS=i386-raven-freebsd12.0
+					BSPREFIX={{LOCALBASE}}/FreeBSD12_I386
+					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
+
 [DISABLE].DESCRIPTION=			Disable building of native compiler (default)
 [DISABLE].BROKEN_ON=			Native compiler building disabled (set option!)
 
@@ -145,6 +155,11 @@ post-stage:
 	(cd ${STAGEDIR}${LOCALBASE}/share/${NAMEBASE} && \
 		zstd -7 --rm ${TGTSYS}-gcc.tar)
 
+post-patch-FI386_R12-ON:
+	# work around malloc detection issue
+	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
+		${WRKSRC}/libstdc++-v3/config.h.in
+
 post-install:
 	cp ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/gcc ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/cc
 	cp ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/g++ ${STAGEDIR}${PREFIX}/toolchain/gcc7/bin/CC
@@ -165,6 +180,9 @@ post-patch-FARM64_R11-ON:
 	# work around malloc detection issue
 	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
 		${WRKSRC}/libstdc++-v3/config.h.in
+
+post-install-FI386_R12-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/toolchain/gcc7/lib/gcc/${TGTSYS}/7.3.0/include-fixed
 
 post-install-FAMD64_R12-ON:
 	${RM} -r ${STAGEDIR}${PREFIX}/toolchain/gcc7/lib/gcc/${TGTSYS}/7.3.0/include-fixed

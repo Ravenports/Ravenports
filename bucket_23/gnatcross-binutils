@@ -3,9 +3,10 @@
 NAMEBASE=		gnatcross-binutils
 VERSION=		2.30
 KEYWORDS=		lang
-VARIANTS=		FARM64_R11 FAMD64_R12 SOL10
+VARIANTS=		FARM64_R11 FAMD64_R12 FI386_R12 SOL10
 SDESC[FARM64_R11]=	C/Ada cross-compiler linker (FreeBSD/ARM64 R11)
 SDESC[SOL10]=		C/Ada cross-compiler linker (Solaris 10)
+SDESC[FI386_R12]=	C/Ada cross-compiler linker (FreeBSD/I386 R12)
 SDESC[FAMD64_R12]=	C/Ada cross-compiler linker (FreeBSD/AMD64 R12)
 HOMEPAGE=		http://www.dragonlace.net
 CONTACT=		nobody
@@ -16,13 +17,15 @@ DISTFILE[1]=		binutils-2.30.tar.bz2:main
 DF_INDEX=		1
 SPKGS[FARM64_R11]=	single
 SPKGS[SOL10]=		single
+SPKGS[FI386_R12]=	single
 SPKGS[FAMD64_R12]=	single
 
-OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 SOL10
+OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 FI386R12 SOL10
 OPTIONS_STANDARD=	none
-VOPTS[FARM64_R11]=	FARM64R11=ON FAMD64R12=OFF SOL10=OFF
-VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF SOL10=ON
-VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON SOL10=OFF
+VOPTS[FARM64_R11]=	FARM64R11=ON FAMD64R12=OFF FI386R12=OFF SOL10=OFF
+VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=ON
+VOPTS[FI386_R12]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=ON SOL10=OFF
+VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON FI386R12=OFF SOL10=OFF
 
 BUILD_DEPENDS=		zlib:static:standard
 			gmp:static:standard
@@ -67,6 +70,14 @@ PLIST_SUB=		TARGET="{{XCCTARGET}}"
 					dragonfly
 					linux
 
+[FI386R12].DESCRIPTION=			Create binutils for FreeBSD/I386 Release 12
+[FI386R12].BUILDRUN_DEPENDS_ON=		gnatcross-sysroot-freebsd:single:I386_R12
+[FI386R12].MAKEFILE_ON=			PREFIX={{LOCALBASE}}/FreeBSD12_I386
+					XCCTARGET=i386-raven-freebsd12.0
+					BRANCH2=
+					BRANCH_PREFIX={{PREFIX}}/{{BRANCH2}}
+					SRPREFIX=gnatcross-sysroot-i386
+
 [FAMD64R12].DESCRIPTION=		Create binutils for FreeBSD/AMD64 Release 12
 [FAMD64R12].BUILDRUN_DEPENDS_ON=	gnatcross-sysroot-freebsd:single:AMD64_R12
 [FAMD64R12].MAKEFILE_ON=		PREFIX={{LOCALBASE}}/FreeBSD12_AMD64
@@ -89,6 +100,12 @@ FreeBSD/ARM64 Release 11.
 This package provides the cross-tools required to build the
 native system -> gnat cross compiler.  This variant sets the target as
 FreeBSD/AMD64 Release 12.
+
+
+[FILE:156:descriptions/desc.single.FI386_R12]
+This package provides the cross-tools required to build the
+native system -> gnat cross compiler.  This variant sets the target as
+FreeBSD/I386 Release 12.
 
 
 [FILE:152:descriptions/desc.single.SOL10]
@@ -410,6 +427,110 @@ bin/
  elf_x86_64_fbsd.xu
  elf_x86_64_fbsd.xw
  elf_x86_64_fbsd.xwe
+bin/
+ %%TARGET%%-addr2line
+ %%TARGET%%-ar
+ %%TARGET%%-as
+ %%TARGET%%-c++filt
+ %%TARGET%%-elfedit
+ %%TARGET%%-gprof
+ %%TARGET%%-ld
+ %%TARGET%%-ld.bfd
+ %%TARGET%%-nm
+ %%TARGET%%-objcopy
+ %%TARGET%%-objdump
+ %%TARGET%%-ranlib
+ %%TARGET%%-readelf
+ %%TARGET%%-size
+ %%TARGET%%-strings
+ %%TARGET%%-strip
+
+
+[FILE:1516:manifests/plist.single.FI386_R12]
+%%TARGET%%/bin/
+ ar
+ as
+ ld
+ ld.bfd
+ nm
+ objcopy
+ objdump
+ ranlib
+ readelf
+ strip
+%%TARGET%%/lib/ldscripts/
+ elf_i386.x
+ elf_i386.xbn
+ elf_i386.xc
+ elf_i386.xce
+ elf_i386.xd
+ elf_i386.xdc
+ elf_i386.xdce
+ elf_i386.xde
+ elf_i386.xdw
+ elf_i386.xdwe
+ elf_i386.xe
+ elf_i386.xn
+ elf_i386.xr
+ elf_i386.xs
+ elf_i386.xsc
+ elf_i386.xsce
+ elf_i386.xse
+ elf_i386.xsw
+ elf_i386.xswe
+ elf_i386.xu
+ elf_i386.xw
+ elf_i386.xwe
+ elf_i386_fbsd.x
+ elf_i386_fbsd.xbn
+ elf_i386_fbsd.xc
+ elf_i386_fbsd.xce
+ elf_i386_fbsd.xd
+ elf_i386_fbsd.xdc
+ elf_i386_fbsd.xdce
+ elf_i386_fbsd.xde
+ elf_i386_fbsd.xdw
+ elf_i386_fbsd.xdwe
+ elf_i386_fbsd.xe
+ elf_i386_fbsd.xn
+ elf_i386_fbsd.xr
+ elf_i386_fbsd.xs
+ elf_i386_fbsd.xsc
+ elf_i386_fbsd.xsce
+ elf_i386_fbsd.xse
+ elf_i386_fbsd.xsw
+ elf_i386_fbsd.xswe
+ elf_i386_fbsd.xu
+ elf_i386_fbsd.xw
+ elf_i386_fbsd.xwe
+ elf_iamcu.x
+ elf_iamcu.xbn
+ elf_iamcu.xc
+ elf_iamcu.xce
+ elf_iamcu.xd
+ elf_iamcu.xdc
+ elf_iamcu.xdce
+ elf_iamcu.xde
+ elf_iamcu.xdw
+ elf_iamcu.xdwe
+ elf_iamcu.xe
+ elf_iamcu.xn
+ elf_iamcu.xr
+ elf_iamcu.xs
+ elf_iamcu.xsc
+ elf_iamcu.xsce
+ elf_iamcu.xse
+ elf_iamcu.xsw
+ elf_iamcu.xswe
+ elf_iamcu.xu
+ elf_iamcu.xw
+ elf_iamcu.xwe
+ i386bsd.x
+ i386bsd.xbn
+ i386bsd.xe
+ i386bsd.xn
+ i386bsd.xr
+ i386bsd.xu
 bin/
  %%TARGET%%-addr2line
  %%TARGET%%-ar
