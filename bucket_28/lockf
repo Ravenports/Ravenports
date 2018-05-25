@@ -14,18 +14,23 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
+
 LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKDIR}}/LICENSE_BSD
 LICENSE_AWK=		BSD2CLAUSE:"^$$"
 LICENSE_SOURCE=		BSD2CLAUSE:{{FILESDIR}}/lockf.c
 LICENSE_SCHEME=		solo
 
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
+			LDFLAGS=-lbsd
+
 do-extract:
 	@${MKDIR} ${WRKSRC}
 	${CP} ${FILESDIR}/* ${WRKSRC}
 
 do-build:
-	(cd ${WRKSRC} && ${CC} ${CFLAGS} ${LDFLAGS} -o lockf lockf.c)
+	(cd ${WRKSRC} && ${CC} -o lockf lockf.c ${CFLAGS} ${LDFLAGS})
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/lockf   ${STAGEDIR}${PREFIX}/bin/
@@ -201,7 +206,7 @@ utility first appeared in
 .An John Polstra Aq Mt jdp@polstra.com
 
 
-[FILE:6535:files/lockf.c]
+[FILE:6555:files/lockf.c]
 /*
  * Copyright (C) 1997 John D. Polstra.  All rights reserved.
  *
@@ -239,6 +244,7 @@ utility first appeared in
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sysexits.h>
 #include <unistd.h>
 

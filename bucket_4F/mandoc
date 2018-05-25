@@ -17,7 +17,9 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			sqlite zlib
+BUILD_DEPENDS=		zlib:static:standard
+
+USES=			sqlite
 
 LICENSE=		ISCL:single
 LICENSE_FILE=		ISCL:{{WRKSRC}}/LICENSE
@@ -26,18 +28,13 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		textproc/mdocml
 
 MUST_CONFIGURE=		yes
+CONFIGURE_ENV=		INSTALL_PROGRAM="{{INSTALL_PROGRAM}}"
+			INSTALL_DATA="{{INSTALL_DATA}}"
+			INSTALL_LIB="{{INSTALL_LIB}}"
+			INSTALL_MAN="{{INSTALL_MAN}}"
 
 post-patch:
-	${REINPLACE_CMD} \
-		-e '/LDFLAGS=/d' \
-		-e 's|^MANDIR=$$|MANDIR="${MANPREFIX}/man"|' \
-		-e 's|^PREFIX="/usr/local"|PREFIX="${PREFIX}"|' \
-		${WRKSRC}/configure
-
-post-configure:
-	${REINPLACE_CMD} -e '/^CFLAGS/s/-g//' -e '/^PREFIX/s/=/?=/' \
-		-e 's/^INSTALL_PROGRAM.*/INSTALL_PROGRAM=${INSTALL_PROGRAM}/' \
-		${WRKSRC}/Makefile.local
+	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' ${WRKSRC}/configure
 
 [FILE:752:descriptions/desc.single]
 mandoc is a suite of tools compiling mdoc, the roff macro language of 
@@ -85,4 +82,64 @@ share/man/man7/
  roff.7.gz
  tbl.7.gz
 share/man/man8/makewhatis.8.gz
+
+
+[FILE:1442:patches/patch-configure]
+--- configure.orig	2017-08-05 12:40:21 UTC
++++ configure
+@@ -35,16 +35,13 @@ echo "config.log: writing..."
+ 
+ SOURCEDIR=`dirname "$0"`
+ 
+-MANPATH_BASE="/usr/share/man:/usr/X11R6/man"
+-MANPATH_DEFAULT="/usr/share/man:/usr/X11R6/man:/usr/local/man"
++MANPATH_BASE="@PREFIX@/share/man"
++MANPATH_DEFAULT="/usr/share/man:@PREFIX@/share/man"
+ OSNAME=
+ UTF8_LOCALE=
+ 
+-CC=`printf "all:\\n\\t@echo \\\$(CC)\\n" | env -i make -sf -`
+-CFLAGS="-g -W -Wall -Wmissing-prototypes -Wstrict-prototypes -Wwrite-strings"
+ CFLAGS="${CFLAGS} -Wno-unused-parameter"
+ LDADD=
+-LDFLAGS=
+ LD_NANOSLEEP=
+ LD_OHASH=
+ LD_RECVMSG=
+@@ -90,13 +87,13 @@ HAVE_SYS_ENDIAN=
+ HAVE_VASPRINTF=
+ HAVE_WCHAR=
+ 
+-PREFIX="/usr/local"
++PREFIX="@PREFIX@"
+ BINDIR=
+ SBINDIR=
+ BIN_FROM_SBIN=
+ INCLUDEDIR=
+ LIBDIR=
+-MANDIR=
++MANDIR="@PREFIX@/share/man"
+ HOMEBREWDIR=
+ 
+ WWWPREFIX="/var/www"
+@@ -117,10 +114,6 @@ MANM_EQN="eqn"
+ MANM_TBL="tbl"
+ 
+ INSTALL="install"
+-INSTALL_PROGRAM=
+-INSTALL_LIB=
+-INSTALL_MAN=
+-INSTALL_DATA=
+ LN="ln -f"
+ 
+ # --- manual settings from configure.local -----------------------------
+@@ -359,7 +352,7 @@ __HEREDOC__
+ [ ${HAVE_GETLINE} -eq 0 ] && echo "#include <stdio.h>"
+ 
+ echo
+-echo "#define MAN_CONF_FILE \"/etc/${MANM_MANCONF}\""
++echo "#define MAN_CONF_FILE \"@PREFIX@/etc/${MANM_MANCONF}\""
+ echo "#define MANPATH_BASE \"${MANPATH_BASE}\""
+ echo "#define MANPATH_DEFAULT \"${MANPATH_DEFAULT}\""
+ [ -n "${OSNAME}" ] && echo "#define OSNAME \"${OSNAME}\""
 
