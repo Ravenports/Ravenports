@@ -46,6 +46,11 @@ post-install:
 		${STAGEDIR}${PREFIX}/etc/sshd_config.sample
 	${RM} -r ${STAGEDIR}/var
 
+post-patch-sunos:
+	${FIND} ${WRKSRC} -name "*.[ch]" | ${XARGS} \
+		${GREP} -l u_int64_t | ${XARGS} \
+		${REINPLACE_CMD} -e 's|u_int64_t|uint64_t|g'
+
 [FILE:750:descriptions/desc.single]
 Portable version of OpenBSD's OpenSSH utility.
 

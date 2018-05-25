@@ -17,6 +17,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
+
 USES=			libtool ncurses
 
 MUST_CONFIGURE=		gnu
@@ -26,6 +28,9 @@ INSTALL_TARGET=		install-strip
 
 CPPFLAGS=		-I{{NCURSESINC}}
 LDFLAGS=		-L{{NCURSESLIB}}
+VAR_OPSYS[sunos]=	LDFLAGS=-lbsd
+			CFLAGS=-I{{PREFIX}}/include/bsd
+			CONFIGURE_ARGS=ac_cv_func_getline=yes
 
 post-patch:
 	${REINPLACE_CMD} -e '/EXAMPLES_DIR =/d' ${WRKSRC}/Makefile.in
