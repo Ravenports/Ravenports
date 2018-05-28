@@ -37,13 +37,12 @@ USES=			cpe gmake iconv:build libtool makeinfo perl:build
 
 DISTNAME=		gcc-7.3.0
 
-LICENSE=		GPLv2+:compilers LGPL21:compilers GPLv3+:compilers
-			LGPL3:compilers GPLv3RLE:compilers
-LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
-			LGPL21:{{WRKSRC}}/COPYING.LIB
-			GPLv3+:{{WRKSRC}}/COPYING3
-			LGPL3:{{WRKSRC}}/COPYING3.LIB
-			GPLv3RLE:{{WRKSRC}}/COPYING.RUNTIME
+LICENSE=		GPLv3+:compilers LGPL3+:compilers
+			GPLv3RLE+:compilers
+LICENSE_TERMS=		compilers:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
+			LGPL3+:{{WRKSRC}}/COPYING3.LIB
+			GPLv3RLE+:{{WRKSRC}}/COPYING.RUNTIME
 LICENSE_SCHEME=		multi
 
 PREFIX=			{{LOCALBASE}}/toolchain/{{NAMEBASE}}
@@ -124,6 +123,11 @@ post-install:
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.3.0/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/7.3.0/adalib/libgnat.so
+
+post-extract:
+	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS
+	${HEAD} -n 31 ${WRKSRC}/gcc/ada/adaint.h >> ${WRKDIR}/TERMS
+	${HEAD} -n 18 ${WRKSRC}/libiberty/hex.c >> ${WRKDIR}/TERMS
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|cp -p -r |cp -RP |' \
