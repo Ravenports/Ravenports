@@ -85,12 +85,11 @@ BUILD_DEPENDS=		nawk:single:standard
 			makewhatis:single:standard
 			genpatch:single:standard
 			lockf:single:standard
-B_DEPS[freebsd]=	libdl:single:standard fetch:single:standard
-B_DEPS[sunos]=		wget:primary:ravensys bash:primary:static
-			bsd-which:single:standard
-B_DEPS[linux]=		shadow:single:standard fetch:single:standard
-			bash:primary:static
-B_DEPS[dragonfly]=	libdl:single:standard fetch:single:standard
+			fetch:single:standard
+B_DEPS[freebsd]=	libdl:single:standard
+B_DEPS[sunos]=		bash:primary:static bsd-which:single:standard
+B_DEPS[linux]=		shadow:single:standard bash:primary:static
+B_DEPS[dragonfly]=	libdl:single:standard
 
 EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 14 15
 EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 18 19 14
@@ -4482,7 +4481,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:31276:manifests/plist.single.sunos]
+[FILE:31270:manifests/plist.single.sunos]
 %%BASE%%/bin/
  [
  bash
@@ -4874,7 +4873,6 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  usermod
  vi
  wc
- wget
  which
  whoami
  xargs
@@ -7035,7 +7033,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:21204:files/Makefile]
+[FILE:20708:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7640,12 +7638,6 @@ install:
 	cp ${CPA} ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
 	# use BSD's which
 	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/which ${DESTDIR}${BASE}/usr/bin/
-	# fetch is just a wrapper for wget (for now)
-	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/wget ${DESTDIR}${BASE}/usr/bin/
-#	${BSD_INSTALL_DATA} ${LOCALBASE}/share/certs/ca-root-nss.crt ${DESTDIR}${BASE}/usr/share/
-	# This fetch is a wrapper for wget; it's a script
-	${BSD_INSTALL_SCRIPT} ${LOCALBASE}/bin/fetch ${DESTDIR}${BASE}/usr/bin/
-	sed -i'' -e "s|/raven/share/certs/|/usr/share/|" ${DESTDIR}${BASE}/usr/bin/fetch
 	# have a second copy of bourne shell
 	mkdir -p ${DESTDIR}${BASE}/usr/xpg4/bin
 	${BSD_INSTALL_PROGRAM} ${DESTDIR}${BASE}/bin/sh ${DESTDIR}${BASE}/usr/xpg4/bin/
@@ -7668,8 +7660,6 @@ install:
 .  for item in ${static_lib_${OPSYS}}
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/lib/
 .  endfor
-	# This is the real fetch program
-	cp ${LOCALBASE}/bin/fetch ${DESTDIR}${BASE}/usr/bin/
 .endif
 .if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
 	(cd ${DESTDIR}${BASE}/usr/lib && \
@@ -7781,7 +7771,8 @@ install:
 	grep file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
 	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
 	unlzma unxz xz xzcat xzcmp xzdiff xzegrep xzfgrep xzgrep yacc \
-	unzip less mtree bsdcat makewhatis dupe genpatch portfix patch
+	unzip less mtree bsdcat makewhatis dupe genpatch portfix patch \
+	fetch
 	cp ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/
 .endfor
 .for item in ${headers_${OPSYS}}
