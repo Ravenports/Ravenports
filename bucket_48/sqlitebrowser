@@ -82,6 +82,31 @@ share/applications/sqlitebrowser.desktop
 share/icons/hicolor/256x256/apps/sqlitebrowser.png
 
 
+[FILE:770:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2017-09-20 13:59:51 UTC
++++ CMakeLists.txt
+@@ -67,9 +67,7 @@ endif()
+ add_subdirectory(${QHEXEDIT_DIR})
+ add_subdirectory(${QCUSTOMPLOT_DIR})
+ 
+-find_package(Qt5Widgets REQUIRED)
+-find_package(Qt5LinguistTools REQUIRED)
+-find_package(Qt5Network REQUIRED)
++find_package(Qt5 REQUIRED COMPONENTS Gui Widgets LinguistTools Network Test PrintSupport)
+ set(CMAKE_AUTOMOC ON)
+ set(CMAKE_INCLUDE_CURRENT_DIR ON)
+ 
+@@ -291,7 +289,7 @@ add_executable(${PROJECT_NAME}
+ 		${SQLB_RESOURCES_RCC}
+ 		${SQLB_MISC})
+ 
+-qt5_use_modules(${PROJECT_NAME} Gui Widgets Network Test PrintSupport)
++target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Widgets Qt5::Network Qt5::PrintSupport)
+ set(QT_LIBRARIES "")
+ 
+ add_dependencies(${PROJECT_NAME} qhexedit qcustomplot)
+
+
 [FILE:299:patches/patch-cmake_FindQScintilla.cmake]
 --- cmake/FindQScintilla.cmake.orig	2017-09-20 13:59:51 UTC
 +++ cmake/FindQScintilla.cmake
@@ -94,6 +119,28 @@ share/icons/hicolor/256x256/apps/sqlitebrowser.png
    HINTS ${QT_LIBRARY_DIR}
  )
  
+
+
+[FILE:344:patches/patch-libs_qcustomplot-source_CMakeLists.txt]
+--- libs/qcustomplot-source/CMakeLists.txt.orig	2017-09-20 13:59:51 UTC
++++ libs/qcustomplot-source/CMakeLists.txt
+@@ -17,4 +17,4 @@ set(QCUSTOMPLOT_MOC_HDR
+ 
+ add_library(qcustomplot ${QCUSTOMPLOT_SRC} ${QCUSTOMPLOT_HDR} ${QCUSTOMPLOT_MOC})
+ 
+-qt5_use_modules(qcustomplot Widgets PrintSupport)
++target_link_libraries(qcustomplot Qt5::Widgets)
+
+
+[FILE:290:patches/patch-libs_qhexedit_CMakeLists.txt]
+--- libs/qhexedit/CMakeLists.txt.orig	2017-09-20 13:59:51 UTC
++++ libs/qhexedit/CMakeLists.txt
+@@ -22,4 +22,4 @@ set(QHEXEDIT_MOC_HDR
+ 
+ add_library(qhexedit ${QHEXEDIT_SRC} ${QHEXEDIT_HDR} ${QHEXEDIT_MOC})
+ 
+-qt5_use_modules(qhexedit Widgets)
++target_link_libraries(qhexedit Qt5::Widgets)
 
 
 [FILE:657:patches/patch-src_Application.cpp]
