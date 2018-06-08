@@ -25,9 +25,10 @@ RUN_DEPENDS=		libiconv:static:standard
 
 USES=			charsetfix cpe iconv libtool c++:asprintf
 
-LICENSE=		GPLv3:runtime LGPL21:runtime
-LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING
-			LGPL21:{{WRKSRC}}/gettext-runtime/intl/COPYING.LIB
+LICENSE=		GPLv3+:runtime LGPL21+:runtime
+LICENSE_TERMS=		runtime:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
+			LGPL21+:{{WRKSRC}}/gettext-runtime/intl/COPYING.LIB
 LICENSE_SCHEME=		multi
 
 INFO=			runtime:autosprintf
@@ -79,6 +80,12 @@ post-install-dragonfly:
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/gettext-0.19.8 \
 		${STAGEDIR}${PREFIX}/share/gettext/0.19.8
+
+post-extract:
+	${AWK} -e '/HAVE_CONFIG_H/ {exit}; {print}' \
+		${WRKSRC}/gettext-runtime/src/gettext.c > ${WRKDIR}/TERMS
+	${AWK} -e '/HAVE_CONFIG_H/ {exit}; {print}' \
+		${WRKSRC}/gettext-runtime/intl/textdomain.c >> ${WRKDIR}/TERMS
 
 post-install-sunos:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libintl.so
