@@ -126,13 +126,8 @@ expand_GNU()
 
 expand_GITHUB()
 {
-    # pattern [element]/%ACCOUNT%/%PROJECT%/tar.gz/%HASH/TAG%?dummy=/
-    local SUBDIR
-    if [ ${2} -eq 1 ]; then
-	SUBDIR=${1##GITHUB/}
-    else
-	SUBDIR=${1##GH/}
-    fi
+    # pattern [element]/%ACCOUNT%/%PROJECT%/tar.gz/%HASH|TAG%?dummy=/
+    local SUBDIR=${1##GITHUB/}
     OLD_IFS=${IFS}
     IFS=:
     set -- ${SUBDIR}
@@ -154,6 +149,24 @@ expand_GITHUB_CLOUD()
     set -- ${SUBDIR}
     IFS=${OLD_IFS}
     echo "https://cloud.github.com/downloads/${1}/${2}/"
+}
+
+expand_GITHUB_PRIVATE()
+{
+    # Google takes security access token and generates a new TOKEN
+    # and redirects to codeload server, losing any extraneous GET variables
+    # pattern [element]/%ACCOUNT%/%PROJECT%/tarball/%HASH%?access_token=%TOKEN%&dummy=/
+    local SUBDIR
+    if [ ${2} -eq 1 ]; then
+	SUBDIR=${1##GITHUB_PRIVATE/}
+    else
+	SUBDIR=${1##GHPRIV/}
+    fi
+    OLD_IFS=${IFS}
+    IFS=:
+    set -- ${SUBDIR}
+    IFS=${OLD_IFS}
+    echo "https://api.github.com/repos/${1}/${2}/tarball/${3}?access_token=${4}&dummy=/"
 }
 
 expand_OPENBSD()
@@ -545,10 +558,11 @@ process_site()
 	CPAN/*)                    expand_CPAN "${1}" 2 ;;
 	FREELOCAL/*)               expand_FREELOCAL "${1}" ;;
 	GCC/*)                     expand_GCC "${1}" ;;
-	GITHUB/*)                  expand_GITHUB "${1}" 1 ;;
-	GH/*)                      expand_GITHUB "${1}" 2 ;;
+	GITHUB/*)                  expand_GITHUB "${1}" ;;
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
+	GITHUB_PRIVATE/*)          expand_GITHUB_PRIVATE "${1}" 1 ;;
+	GHPRIV/*)                  expand_GITHUB_PRIVATE "${1}" 2 ;;
 	GNOME/*)                   expand_GNOME "${1}" ;;
 	GNU/*)                     expand_GNU "${1}" ;;
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
