@@ -44,6 +44,7 @@ CMAKE_ARGS=		-DCMAKE_SKIP_BUILD_RPATH:BOOL=YES
 			-DDEPS_PREFIX:PATH="{{LOCALBASE}}"
 			-DLUA_PRG:FILEPATH="{{LOCALBASE}}/bin/{{LUA_CMD}}"
 			-DPREFER_LUA:BOOL=YES
+			-DENABLE_JEMALLOC:BOOL=NO
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/nvim
@@ -1482,7 +1483,7 @@ share/nvim/runtime/tutor/en/
 share/pixmaps/nvim.png
 
 
-[FILE:1471:patches/patch-CMakeLists.txt]
+[FILE:1057:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2018-06-10 22:46:49 UTC
 +++ CMakeLists.txt
 @@ -247,17 +247,6 @@ if(HAS_WVLA_FLAG)
@@ -1512,15 +1513,6 @@ share/pixmaps/nvim.png
  endif()
  
  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-@@ -407,7 +396,7 @@ if((CLANG_ASAN_UBSAN OR CLANG_MSAN OR CL
-   message(FATAL_ERROR "Sanitizers are only supported for Clang.")
- endif()
- 
--if(CMAKE_SYSTEM_NAME MATCHES "OpenBSD|FreeBSD|Windows")  # see #5318
-+if(CMAKE_SYSTEM_NAME MATCHES "OpenBSD|FreeBSD|DragonFly")  # see #5318
-   message(STATUS "skipping jemalloc on this system: ${CMAKE_SYSTEM_NAME}")
-   option(ENABLE_JEMALLOC "enable jemalloc" OFF)
- else()
 
 
 [FILE:275:patches/patch-src_nvim_macros.h]
