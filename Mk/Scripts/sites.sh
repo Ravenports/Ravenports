@@ -135,6 +135,17 @@ expand_GITHUB()
     echo "https://codeload.github.com/${1}/${2}/tar.gz/${3}?dummy=/"
 }
 
+expand_GITLAB()
+{
+    # pattern [element]/api/v4/projects/%ACCOUNT%[%2F]%PROJECT%/repository/archive?sha=%HASH|TAG%&dummy=/
+    local SUBDIR=${1##GITLAB/}
+    OLD_IFS=${IFS}
+    IFS=:
+    set -- ${SUBDIR}
+    IFS=${OLD_IFS}
+    echo "https://gitlab.com/api/v4/projects/${1}%2F${2}/repository/archive?sha=${3}&dummy=/"
+}
+
 expand_GITHUB_CLOUD()
 {
     # pattern [element]/%ACCOUNT%/%PROJECT%/
@@ -562,6 +573,7 @@ process_site()
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
 	GITHUB_PRIVATE/*)          expand_GITHUB_PRIVATE "${1}" 1 ;;
+	GITLAB/*)                  expand_GITLAB "${1}" ;;
 	GHPRIV/*)                  expand_GITHUB_PRIVATE "${1}" 2 ;;
 	GNOME/*)                   expand_GNOME "${1}" ;;
 	GNU/*)                     expand_GNU "${1}" ;;
