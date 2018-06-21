@@ -93,7 +93,7 @@ are listed before for confidence the bootstrap pkg(8) binaries are the ones
 we generated.
 
 ```
-f02a1b09df980aac81c83929009ea2c461e41be6f8f8bc0e0869ee60a9706c0d raven-dragonfly-bootstrap.tar.gz
+11f8493ebfc55b4c461065a883f26ee6f9ec52162785d08f2f8580db6235caaf raven-dragonfly-bootstrap.tar.gz
 495786742e37f87da9c8eeb958b410c7e17cd0d1d2b4ca9151b231f154baf829 raven-freebsd64-bootstrap.tar.gz
 dd2e2dfa04298a963394a2d0db108ad24c14e7d7f70b2bb7b46c3ee7054071d8 raven-linux-bootstrap.tar.gz
 afb70987993141fa5ff1581d4b0f024338c01038c90f9a300c517a9a8153c553 raven-sunos-bootstrap.tar.gz
