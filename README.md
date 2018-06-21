@@ -96,4 +96,36 @@ we generated.
 83d0049c043604cc00d89c37de54463eaee105bda98f1bcfeb0f4d43a622ec8d raven-dragonfly-bootstrap.tar.gz
 495786742e37f87da9c8eeb958b410c7e17cd0d1d2b4ca9151b231f154baf829 raven-freebsd64-bootstrap.tar.gz
 dd2e2dfa04298a963394a2d0db108ad24c14e7d7f70b2bb7b46c3ee7054071d8 raven-linux-bootstrap.tar.gz
+afb70987993141fa5ff1581d4b0f024338c01038c90f9a300c517a9a8153c553 raven-sunos-bootstrap.tar.gz
+```
+
+## Ravenports public key
+
+All Ravenports repositories are signed by the following key.
+
+```
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4rhIOkp+aJS04AOz/V0S
+gKOg7Ol/rUTUeHUwzbE45vvGq+M7s00MKDhzdU6QBPnhRLaPdRf8jJNCcNIEIjQ4
+fON43BNJfJX1q5T1jnT4Dd+pyyejPv3gOQdDARYt4risfeey3BBYQMuOghGoCNDt
+DYPsWaBUPHUR+Um96U0CYHl3ZeAbovq466Wn3OuYX3gvg4QPaMPKmx1fgI3V9bDA
+KuOBD5JEVzhJgtzv33e7C0murs4WWJpRv3eSinZsUKoFbt4F4To+YrIXnOQPrNdr
+u25Z5hSBdNT5gM43JKWWqM57Zi60Poj5nG6p+GxGePWrraOQY68mgDEScTrJLIXj
+UwIDAQAB
+-----END PUBLIC KEY-----
+```
+
+An example of use is to save the contents to
+/raven/etc/pkg/keys/ravenports.key.  The pkg repository
+configuration file might look like this:
+
+```
+> cat /raven/etc/pkg/repos/01_raven.conf
+Raven: {
+    url            : http://www.ravenports.com/repository/${ABI},
+    pubkey         : /raven/etc/pkg/keys/ravenports.key,
+    signature_type : PUBKEY,
+    priority       : 0,
+    enabled        : yes
+}
 ```
