@@ -94,7 +94,7 @@ we generated.
 
 ```
 11f8493ebfc55b4c461065a883f26ee6f9ec52162785d08f2f8580db6235caaf raven-dragonfly-bootstrap.tar.gz
-495786742e37f87da9c8eeb958b410c7e17cd0d1d2b4ca9151b231f154baf829 raven-freebsd64-bootstrap.tar.gz
+4589a6262d79f7111353bb68b49afe4d0fcdfa7b743413acaf3333de3a2da38b raven-freebsd64-bootstrap.tar.gz
 dd2e2dfa04298a963394a2d0db108ad24c14e7d7f70b2bb7b46c3ee7054071d8 raven-linux-bootstrap.tar.gz
 afb70987993141fa5ff1581d4b0f024338c01038c90f9a300c517a9a8153c553 raven-sunos-bootstrap.tar.gz
 ```
