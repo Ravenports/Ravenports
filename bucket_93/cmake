@@ -2482,7 +2482,7 @@ share/man/man7/
 
 
 [FILE:392:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2018-03-28 11:16:48 UTC
+--- CMakeLists.txt.orig	2018-06-14 12:57:31 UTC
 +++ CMakeLists.txt
 @@ -798,7 +798,7 @@ if(NOT CMake_TEST_EXTERNAL_CMAKE)
  
@@ -2496,7 +2496,7 @@ share/man/man7/
 
 
 [FILE:1655:patches/patch-Modules_FindQt4.cmake]
---- Modules/FindQt4.cmake.orig	2018-03-28 11:16:49 UTC
+--- Modules/FindQt4.cmake.orig	2018-06-14 12:57:31 UTC
 +++ Modules/FindQt4.cmake
 @@ -709,14 +709,7 @@ if (QT_QMAKE_EXECUTABLE AND
    # ask qmake for the plugins directory
@@ -2535,7 +2535,7 @@ share/man/man7/
 
 
 [FILE:540:patches/patch-Modules_FindSDL.cmake]
---- Modules/FindSDL.cmake.orig	2018-03-28 11:16:49 UTC
+--- Modules/FindSDL.cmake.orig	2018-06-14 12:57:31 UTC
 +++ Modules/FindSDL.cmake
 @@ -85,6 +85,11 @@ else()
    set(VC_LIB_PATH_SUFFIX lib/x86)
@@ -2549,6 +2549,33 @@ share/man/man7/
  # SDL-1.1 is the name used by FreeBSD ports...
  # don't confuse it for the version number.
  find_library(SDL_LIBRARY_TEMP
+
+
+[FILE:1212:patches/patch-Source_Modules_FindLibUV.cmake]
+Sent upstream: https://gitlab.kitware.com/cmake/cmake/merge_requests/2169
+
+commit 6ad09a5d14ef497cca653d303c3849f83aa0aca3
+Author: Raphael Kubo da Costa <rakuco@FreeBSD.org>
+Date:   Sat Jun 23 20:30:07 2018 +0200
+
+    FindLibUV: Also check uv/version.h for version detection
+
+    Starting with libuv 1.21.0, libuv's headers were moved into a uv/ directory.
+    Make FindLibUV aware of the file's new location for configuration to work.
+
+    Upstream change: https://github.com/libuv/libuv/pull/1429
+
+--- Source/Modules/FindLibUV.cmake.orig	2018-06-14 12:57:31 UTC
++++ Source/Modules/FindLibUV.cmake
+@@ -63,6 +63,8 @@ mark_as_advanced(LibUV_INCLUDE_DIR)
+ set(_LibUV_H_REGEX "#[ \t]*define[ \t]+UV_VERSION_(MAJOR|MINOR|PATCH)[ \t]+[0-9]+")
+ if(LibUV_INCLUDE_DIR AND EXISTS "${LibUV_INCLUDE_DIR}/uv-version.h")
+   file(STRINGS "${LibUV_INCLUDE_DIR}/uv-version.h" _LibUV_H REGEX "${_LibUV_H_REGEX}")
++elseif(LibUV_INCLUDE_DIR AND EXISTS "${LibUV_INCLUDE_DIR}/uv/version.h")
++  file(STRINGS "${LibUV_INCLUDE_DIR}/uv/version.h" _LibUV_H REGEX "${_LibUV_H_REGEX}")
+ elseif(LibUV_INCLUDE_DIR AND EXISTS "${LibUV_INCLUDE_DIR}/uv.h")
+   file(STRINGS "${LibUV_INCLUDE_DIR}/uv.h" _LibUV_H REGEX "${_LibUV_H_REGEX}")
+ else()
 
 
 [FILE:885:files/InitialCache.cmake]

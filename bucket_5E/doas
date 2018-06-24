@@ -38,6 +38,7 @@ post-patch:
 	${REINPLACE_CMD} -e 's|/etc/doas.conf|${PREFIX}&|g' \
 		${WRKSRC}/doas.c
 	${REINPLACE_CMD} -e 's/-Werror//' ${WRKSRC}/Makefile
+	${REINPLACE_CMD} -e 's/readpassphrase.h/skip.h/' ${WRKSRC}/configure
 
 post-patch-dragonfly:
 	${REINPLACE_CMD} \
@@ -49,6 +50,12 @@ do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/doas ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_MAN} ${WRKSRC}/doas.1 ${STAGEDIR}${PREFIX}/share/man/man1
 	${INSTALL_MAN} ${WRKSRC}/doas.conf.5 ${STAGEDIR}${PREFIX}/share/man/man5
+
+post-patch-freebsd:
+	${REINPLACE_CMD} \
+		-e 's/HOST_NAME_MAX/_POSIX_&/' \
+		-e 's/__linux__/__FreeBSD__/' \
+		${WRKSRC}/pam.c
 
 [FILE:215:descriptions/desc.single]
 The doas program allows users to run commands as another user (usually
