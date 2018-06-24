@@ -2,24 +2,31 @@
 
 NAMEBASE=		doomgame-iwad
 VERSION=		1.00
+REVISION=		1
 KEYWORDS=		games
 VARIANTS=		standard
-SDESC[standard]=	Shareware/demo IWAD files for DooM engine games
+SDESC[standard]=	Shareware/free IWAD files for DooM engine games
 HOMEPAGE=		none
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main freedoom
 SITES[main]=		http://ravenports.elderlinux.org/distcache/
+SITES[freedoom]=	https://github.com/freedoom/freedoom/releases/download/v0.11.3/
 DISTFILE[1]=		doom19s.zip:main
 DISTFILE[2]=		htic_v12.zip:main
 DISTFILE[3]=		hexndemo.zip:main
 DISTFILE[4]=		strife11.zip:main
-DF_INDEX=		1 2 3 4
+DISTFILE[5]=		freedoom-0.11.3.zip:freedoom
+DISTFILE[6]=		freedm-0.11.3.zip:freedoom
+DF_INDEX=		1 2 3 4 5 6
 SPKGS[standard]=	complete
 			doomsw
 			hereticsw
 			hexendemo
 			strifedemo
+			freedoom1
+			freedoom2
+			freedm
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -28,10 +35,11 @@ BUILD_DEPENDS=		unzip:core:standard
 
 EXTRACT_DIRTY=		1 2 3 4
 
-LICENSE=		CUSTOM1:hereticsw
+LICENSE=		CUSTOM1:hereticsw BSD3CLAUSE:freedoom1
 LICENSE_NAME=		CUSTOM1:"ID SOFTWARE LICENSE"
 LICENSE_FILE=		CUSTOM1:{{WRKDIR}}/doomgame-iwad_2/LICENSE.DOC
-LICENSE_SCHEME=		solo
+			BSD3CLAUSE:{{WRKDIR}/freedoom-0.11.3/COPYING.txt
+LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		games/doom-data
 
@@ -45,13 +53,17 @@ do-install:
 		${CAT} HTIC_V12.1 HTIC_V12.2 > HTIC_V12.EXE ; \
 		/usr/bin/unzip HTIC_V12.EXE)
 	${MKDIR} -p ${STAGEDIR}${PREFIX}/share/games/doomengine
-	${CP} /construction/doomgame-iwad/doomgame-iwad_1/DOOM1.WAD \
+	${CP} ${WRKDIR}/doomgame-iwad_1/DOOM1.WAD \
 		${STAGEDIR}${PREFIX}/share/games/doomengine
-	${CP} /construction/doomgame-iwad/doomgame-iwad_2/HERETIC1.WAD \
+	${CP} ${WRKDIR}/doomgame-iwad_2/HERETIC1.WAD \
 		${STAGEDIR}${PREFIX}/share/games/doomengine
-	${CP} /construction/doomgame-iwad/doomgame-iwad_3/HEXEN.WAD \
+	${CP} ${WRKDIR}/doomgame-iwad_3/HEXEN.WAD \
 		${STAGEDIR}${PREFIX}/share/games/doomengine
-	${CP} /construction/doomgame-iwad/doomgame-iwad_4/STRIFE0.WAD \
+	${CP} ${WRKDIR}/doomgame-iwad_4/STRIFE0.WAD \
+		${STAGEDIR}${PREFIX}/share/games/doomengine
+	${CP} ${WRKDIR}/freedoom-0.11.3/*.wad \
+		${STAGEDIR}${PREFIX}/share/games/doomengine
+	${CP} ${WRKDIR}/freedm-0.11.3/freedm.wad \
 		${STAGEDIR}${PREFIX}/share/games/doomengine
 
 [FILE:612:descriptions/desc.doomsw]
@@ -129,19 +141,73 @@ This package contains the IWAD (resource container) file for the Strife
 demo.
 
 
-[FILE:363:distinfo]
+[FILE:732:descriptions/desc.freedoom1]
+FreeDOOM is a fan-made project to re-create textures, sprites, sounds and 
+all other data that is part of the registered version of DooM (including 
+the fourth bonus episode of "The Ultimate DooM") and  the not 
+episode-based DooM II. The idea is to have a replacement for the full 
+games that can be distributed freely together with the various source 
+ports. A special WAD file for deathmatch levels is also part of the 
+project.
+
+Textures are generally pretty similar to the original, while sprites for 
+monsters etc. can be rather different. The levels are created from scratch 
+and not modelled after the classic ones from the commercial games.
+
+This package contains the IWAD (resource container) file for FreeDOOM: 
+Phase 1.
+
+
+[FILE:732:descriptions/desc.freedoom2]
+FreeDOOM is a fan-made project to re-create textures, sprites, sounds and 
+all other data that is part of the registered version of DooM (including 
+the fourth bonus episode of "The Ultimate DooM") and  the not 
+episode-based DooM II. The idea is to have a replacement for the full 
+games that can be distributed freely together with the various source 
+ports. A special WAD file for deathmatch levels is also part of the 
+project.
+
+Textures are generally pretty similar to the original, while sprites for 
+monsters etc. can be rather different. The levels are created from scratch 
+and not modelled after the classic ones from the commercial games.
+
+This package contains the IWAD (resource container) file for FreeDOOM: 
+Phase 2.
+
+
+[FILE:753:descriptions/desc.freedm]
+FreeDOOM is a fan-made project to re-create textures, sprites, sounds and 
+all other data that is part of the registered version of DooM (including 
+the fourth bonus episode of "The Ultimate DooM") and  the not 
+episode-based DooM II. The idea is to have a replacement for the full 
+games that can be distributed freely together with the various source 
+ports. A special WAD file for deathmatch levels is also part of the 
+project.
+
+Textures are generally pretty similar to the original, while sprites for 
+monsters etc. can be rather different. The levels are created from scratch 
+and not modelled after the classic ones from the commercial games.
+
+This package contains the IWAD (resource container) file for FreeDOOM's 
+deathmatch level collection.
+
+
+[FILE:557:distinfo]
 cacf0142b31ca1af00796b4a0339e07992ac5f21bc3f81e7532fe1b5e1b486e6      2450688 doom19s.zip
 5ffbb47e4a5750fef144c312973ee5782266b4a63474b77478103b6c1aaed39d      2898794 htic_v12.zip
 469ee3a254959d2fca624aec7391292fbd1ac3ebd9074b65f05cbc74de3c4572      5664734 hexndemo.zip
 ab63419992dfc82e40cee8aad3a83944425ada2259f8cf3cc0e5a0d57199bc47      4851519 strife11.zip
+28a5eafbb1285b78937bd408fcdd8f25f915432340eee79da692eae83bce5e8a     18889307 freedoom-0.11.3.zip
+2af698fb028ccc95993827f88679ea9b246116c2966894a51578755cad800ce0      7853186 freedm-0.11.3.zip
 
 
 [FILE:33:manifests/plist.doomsw]
 share/games/doomengine/DOOM1.WAD
 
 
-[FILE:36:manifests/plist.hereticsw]
+[FILE:82:manifests/plist.hereticsw]
 share/games/doomengine/HERETIC1.WAD
+share/licenses/doomgame-iwad/CUSTOM1.standard
 
 
 [FILE:33:manifests/plist.hexendemo]
@@ -150,4 +216,16 @@ share/games/doomengine/HEXEN.WAD
 
 [FILE:35:manifests/plist.strifedemo]
 share/games/doomengine/STRIFE0.WAD
+
+
+[FILE:37:manifests/plist.freedoom1]
+share/games/doomengine/freedoom1.wad
+
+
+[FILE:37:manifests/plist.freedoom2]
+share/games/doomengine/freedoom2.wad
+
+
+[FILE:34:manifests/plist.freedm]
+share/games/doomengine/freedm.wad
 
