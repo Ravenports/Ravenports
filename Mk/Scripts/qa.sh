@@ -44,8 +44,12 @@ shebangonefile() {
 		badinterp="${interp}"
 		;;
 	${LOCALBASE}/bin/perl5.* | ${PREFIX}/bin/perl5.*)
-		# Non-default perl ports are allowed to have these shebangs.
-		if [ "${NAMEBASE}" != "perl-5.24" -a "${VARIANT}" != "524" ]; then
+		# perl ports are allowed to have these shebangs.
+		if [ "${NAMEBASE}" != "perl-5.26" -a
+		     "${NAMEBASE}" != "perl-5.28" -a
+		     "${VARIANT}" != "526" -a 
+		     "${VARIANT}" != "528" ]
+		then
 			err "'${interp}' is an invalid shebang for '${f#${STAGEDIR}${PREFIX}/}' you must use ${LOCALBASE}/bin/perl."
 			err "Either pass \${PERL} to the build or use USES=shebangfix"
 			rc=1

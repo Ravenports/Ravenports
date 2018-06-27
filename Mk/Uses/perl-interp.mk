@@ -4,9 +4,6 @@
 # Usage:       USES=perl-interp
 # Valid ARGS:  none
 #
-# Internal ravenadm makefile may preset this variable:
-# PERL5_DEFAULT
-#
 # The makefile sets the following variables:
 # PERL_VERSION   - Full version of perl5
 # PERL_VER       - Short version of perl5 (major.minor without patchlevel)
@@ -25,7 +22,6 @@
 # PERL_ARCH      - Directory name of architecture dependent libraries
 # SITE_PERL      - Directory name where site specific perl packages go.
 #                  This value is added to PLIST_SUB.
-# IAMDEFAULTPERL - Defined if this interpret is the default one
 #
 
 .if !defined(_INCLUDE_USES_PERL_INTERP_MK)
@@ -60,7 +56,6 @@ PLIST_SUB+=	PERL_VERSION=${PERL_VERSION} \
 		SITE_PERL=${SITE_PERL_REL} \
 		SITE_ARCH=${SITE_ARCH_REL} \
 		PRIV_LIB=${_PRIV_LIB} \
-		PKGNAMESUFFIX=${PKGNAMESUFFIX} \
 		ARCH_LIB=${_ARCH_LIB}
 
 SUB_FILES=	perl-man.conf
@@ -96,17 +91,9 @@ CONFIGURE_ARGS+=	-sde -Dprefix=${PREFIX} \
 CONFIGURE_ARGS+=	-Alddlflags='-L${WRKSRC} -L${PREFIX}/${_ARCH_LIB}/CORE -Wl,-rpath,${PREFIX}/${_ARCH_LIB}/CORE -Wl,-rpath,${PREFIX}/lib -lperl' \
 			-Dshrpldflags='$$(LDDLFLAGS:N-L${WRKSRC}:N-L${PREFIX}/${_ARCH_LIB}/CORE:N-lperl) -Wl,-soname,$$(LIBPERL:R)'
 
-# if this port is default due PERL5_DEFAULT
-# change PKGNAME to reflect this
-
-.  if ${PERL_VER} == ${PERL5_DEFAULT}
-IAMDEFAULTPERL=		yes
-PLIST_SUB+=		DEFAULT="" BINSUFFIX=""
-.  else
 BINSUFFIX=		${PERL_VERSION}
-PLIST_SUB+=		DEFAULT="@comment " BINSUFFIX=${PERL_VERSION}
+PLIST_SUB+=		BINSUFFIX=${PERL_VERSION}
 CONFIGURE_ARGS+=	-Dversiononly
-.  endif
 
 # http://perl5.git.perl.org/perl.git/commit/b83080de5c4254
 # PERLIOBUF_DEFAULT_BUFSIZ size in bytes (default: 8192 bytes)
@@ -130,11 +117,9 @@ post-patch-perl:
 		-e 's/objformat=.*//' \
 		${WRKSRC}/Configure \
 		${WRKSRC}/hints/${OPSYS:tl:S/sunos/solaris_2/}.sh
-.    if !defined(IAMDEFAULTPERL)
 	${REINPLACE_CMD} -e '/do_installprivlib = 0 if .versiononly/d; \
 		/^if.*nopods.*versiononly || /s/.*/if (1) {/' \
 		${WRKSRC}/installperl
-.    endif
 .  endif
 
 .  if !target(add-perl-symlinks)
@@ -156,10 +141,6 @@ post-install:
 	${MKDIR} ${STAGEDIR}${SITE_MAN3}
 	${MKDIR} ${STAGEDIR}${SITE_ARCH}/auto
 	${MKDIR} ${STAGEDIR}${SITE_PERL}/auto
-.    if defined (IAMDEFAULTPERL)
-	${LN} ${STAGEDIR}${PREFIX}/bin/perl${PERL_VERSION} \
-		${STAGEDIR}${PREFIX}/bin/perl5
-.    endif
 	${LN} -sf libperl.so.${PERL_VERSION} \
 		${STAGEDIR}${PREFIX}/${_ARCH_LIB}/CORE/libperl.so
 	${LN} -sf libperl.so.${PERL_VERSION} \
@@ -184,7 +165,7 @@ post-install:
 		done
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/man.d
 	${INSTALL_DATA} ${WRKDIR}/perl-man.conf \
-		${STAGEDIR}${PREFIX}/etc/man.d/perl${PKGNAMESUFFIX}.conf
+		${STAGEDIR}${PREFIX}/etc/man.d/perl${BINSUFFIX}.conf
 .  endif
 
 .endif	# defined(_INCLUDE_USES_PERL_INTERP_MK)
