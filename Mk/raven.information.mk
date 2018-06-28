@@ -183,6 +183,7 @@ GSTREAMER1_VERSION=		1.14.1
 GSTREAMER1_GST=			1.0
 GSTREAMER1_SOVERSION=		0.1401.0
 XORG_VERSION=			7.7
+FIREFOX52_VERSION=		52.9.0
 
 # ------------------------------------------------------------------------
 # Gnatcross options
