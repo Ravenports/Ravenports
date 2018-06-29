@@ -128,8 +128,23 @@ lib/libarchive-devel.a
 lib/pkgconfig/libarchive.pc
 
 
+[FILE:488:patches/patch-libarchive-archive_openssl_evp_private.h]
+--- libarchive/archive_openssl_evp_private.h.orig	2017-10-01 00:17:22 UTC
++++ libarchive/archive_openssl_evp_private.h
+@@ -28,7 +28,8 @@
+ #include <openssl/evp.h>
+ #include <openssl/opensslv.h>
+ 
+-#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#if OPENSSL_VERSION_NUMBER < 0x10100000L || \
++    (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x2070000fL)
+ #include <stdlib.h> /* malloc, free */
+ #include <string.h> /* memset */
+ static inline EVP_MD_CTX *EVP_MD_CTX_new(void)
+
+
 [FILE:469:patches/patch-libarchive_archive__util.c]
---- libarchive/archive_util.c.orig	2016-07-17 15:29:23 UTC
+--- libarchive/archive_util.c.orig	2017-10-01 00:17:22 UTC
 +++ libarchive/archive_util.c
 @@ -46,16 +46,16 @@ __FBSDID("$FreeBSD: head/lib/libarchive/
  #include <wincrypt.h>
@@ -166,4 +181,19 @@ lib/pkgconfig/libarchive.pc
  #if HAVE_ZSTD_H && HAVE_LIBZSTD
  	data->cstream = ZSTD_createCStream();
  	if (data->cstream == NULL) {
+
+
+[FILE:523:patches/patch-libarchive_openssl_hmac_private.h]
+--- libarchive/archive_openssl_hmac_private.h.orig	2017-10-01 00:17:22 UTC
++++ libarchive/archive_openssl_hmac_private.h
+@@ -28,7 +28,8 @@
+ #include <openssl/hmac.h>
+ #include <openssl/opensslv.h>
+ 
+-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
++#if OPENSSL_VERSION_NUMBER < 0x10100000L || \
++    (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x2070000fL)
+ #include <stdlib.h> /* malloc, free */
+ #include <string.h> /* memset */
+ static inline HMAC_CTX *HMAC_CTX_new(void)
 

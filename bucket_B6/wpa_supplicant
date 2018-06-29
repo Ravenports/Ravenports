@@ -374,10 +374,20 @@ sbin/
  #include <pcap.h>
 
 
-[FILE:681:patches/patch-src_crypto_crypto__openssl.c]
+[FILE:1038:patches/patch-src_crypto_crypto__openssl.c]
 --- src/crypto/crypto_openssl.c.orig	2016-10-02 18:51:11 UTC
 +++ src/crypto/crypto_openssl.c
-@@ -611,7 +611,7 @@ void crypto_cipher_deinit(struct crypto_
+@@ -33,7 +33,8 @@
+ #include "aes_wrap.h"
+ #include "crypto.h"
+ 
+-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
++#if OPENSSL_VERSION_NUMBER < 0x10100000L || \
++	(defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x20700000L)
+ /* Compatibility wrappers for older versions. */
+ 
+ static HMAC_CTX * HMAC_CTX_new(void)
+@@ -611,7 +612,7 @@ void crypto_cipher_deinit(struct crypto_
  
  void * dh5_init(struct wpabuf **priv, struct wpabuf **publ)
  {
@@ -386,7 +396,7 @@ sbin/
  	DH *dh;
  	struct wpabuf *pubkey = NULL, *privkey = NULL;
  	size_t publen, privlen;
-@@ -712,7 +712,7 @@ err:
+@@ -712,7 +713,7 @@ err:
  
  void * dh5_init_fixed(const struct wpabuf *priv, const struct wpabuf *publ)
  {
@@ -397,9 +407,18 @@ sbin/
  	dh = DH_new();
 
 
-[FILE:1132:patches/patch-src_crypto_tls__openssl.c]
+[FILE:1523:patches/patch-src_crypto_tls__openssl.c]
 --- src/crypto/tls_openssl.c.orig	2016-10-02 18:51:11 UTC
 +++ src/crypto/tls_openssl.c
+@@ -59,7 +59,7 @@ typedef int stack_index_t;
+ #endif /* SSL_set_tlsext_status_type */
+ 
+ #if (OPENSSL_VERSION_NUMBER < 0x10100000L || \
+-     defined(LIBRESSL_VERSION_NUMBER)) &&    \
++     (defined(LIBRESSL_VERSION_NUMBER)) && LIBRESSL_VERSION_NUMBER < 0x20700000L) && \
+     !defined(BORINGSSL_API_VERSION)
+ /*
+  * SSL_get_client_random() and SSL_get_server_random() were added in OpenSSL
 @@ -919,7 +919,7 @@ void * tls_init(const struct tls_config
  		}
  #endif /* OPENSSL_FIPS */

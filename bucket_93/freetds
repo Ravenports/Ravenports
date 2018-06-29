@@ -138,14 +138,14 @@ share/man/man1/
 share/man/man5/freetds.conf.5.gz
 
 
-[FILE:373:patches/patch-src_tds_sec_negotiate_openssl.h]
+[FILE:420:patches/patch-src_tds_sec__negotiate__openssl.h]
 --- src/tds/sec_negotiate_openssl.h.orig	2017-02-15 09:00:01 UTC
 +++ src/tds/sec_negotiate_openssl.h
 @@ -37,6 +37,11 @@
  #error HAVE_OPENSSL not defines, this file should not be included
  #endif
  
-+#ifdef LIBRESSL_VERSION_NUMBER
++#if defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x2070000fL
 +#undef OPENSSL_VERSION_NUMBER
 +#define OPENSSL_VERSION_NUMBER 0x1000107fL
 +#endif
@@ -155,8 +155,8 @@ share/man/man5/freetds.conf.5.gz
  {
 
 
-[FILE:586:patches/patch-src_tds_tls.c]
---- src/tds/tls.c.orig	2017-02-15 09:00:01 UTC
+[FILE:666:patches/patch-src_tds_tls.c]
+--- src/tds/tls.c.orig	2017-11-30 09:00:01 UTC
 +++ src/tds/tls.c
 @@ -50,6 +50,10 @@
  #include <sys/socket.h>
@@ -169,14 +169,17 @@ share/man/man5/freetds.conf.5.gz
  #include <freetds/tds.h>
  #include <freetds/string.h>
  #include <freetds/tls.h>
-@@ -72,6 +76,12 @@
+@@ -72,6 +76,15 @@
  #define SSL_PTR ptr
  #else
  
 +#ifdef LIBRESSL_VERSION_NUMBER
++#if LIBRESSL_VERSION_NUMBER < 0x2070000FL
 +static pthread_mutex_t *openssllocks;
 +#undef OPENSSL_VERSION_NUMBER
 +#define OPENSSL_VERSION_NUMBER 0x1000107fL
++#endif
++#define TLS_ST_OK SSL_ST_OK
 +#endif
 +
  /* some compatibility layer */
