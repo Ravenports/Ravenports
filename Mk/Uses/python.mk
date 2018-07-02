@@ -2,7 +2,7 @@
 #
 # Feature:	python
 # Usage:	USES=python
-# Valid ARGS:	(py27 or py34 or py35), build
+# Valid ARGS:	(py27 or py36 or py37), build
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -73,10 +73,10 @@ _INCLUDE_USES_PYTHON_MK=	yes
 # BUILDRUN_DEPENDS+=	python-setuptools:single:pyXX
 # ------------------------------------------------------
 
-.  if !empty(python_ARGS:Mpy36)
+.  if !empty(python_ARGS:Mpy37)
+_PYTHON_VERSION=	3.7
+.  elif !empty(python_ARGS:Mpy36)
 _PYTHON_VERSION=	3.6
-.  elif !empty(python_ARGS:Mpy35)
-_PYTHON_VERSION=	3.5
 .  elif !empty(python_ARGS:Mpy27)
 _PYTHON_VERSION=	2.7
 .  else

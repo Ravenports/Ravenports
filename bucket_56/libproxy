@@ -57,6 +57,11 @@ CMAKE_ARGS=		-DBIPR:BOOL=OFF
 					-DPYTHON_SITEPKG_DIR={{PYTHON_SITELIBDIR}}
 [PYTHON].USES_ON=			python
 
+post-patch:
+	# support python 3.7
+	${REINPLACE_CMD} -e 's/ 3\.6/ 3.7 3.6/' \
+		${WRKSRC}/cmake/FindPython3Interp.cmake
+
 post-install-PERL-ON:
 	${STRIP_CMD} ${STAGEDIR}${SITE_ARCH}/auto/Net/Libproxy/Libproxy.so
 

@@ -3,29 +3,29 @@
 NAMEBASE=		python-sqlite3
 VERSION=		3.6.6
 KEYWORDS=		databases python
-VARIANTS=		py27 py35 py36
-SDESC[py35]=		Python 3.5 bindings to the SQLite3 library
+VARIANTS=		py27 py37 py36
 SDESC[py36]=		Python 3.6 bindings to the SQLite3 library
+SDESC[py37]=		Python 3.7 bindings to the SQLite3 library
 SDESC[py27]=		Python 2.7 bindings to the SQLite3 library
 HOMEPAGE=		https://www.python.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main pv35 pv27
-SITES[pv35]=		http://www.python.org/ftp/python/3.5.5
+DOWNLOAD_GROUPS=	main pv37 pv27
 SITES[main]=		http://www.python.org/ftp/python/3.6.6
+SITES[pv37]=		http://www.python.org/ftp/python/3.7.0
 SITES[pv27]=		http://www.python.org/ftp/python/2.7.15
 DISTFILE[1]=		Python-2.7.15.tar.xz:main
-DISTFILE[2]=		Python-3.5.5.tar.xz:main
+DISTFILE[2]=		Python-3.7.0.tar.xz:main
 DISTFILE[3]=		Python-3.6.6.tar.xz:main
-SPKGS[py35]=		single
 SPKGS[py36]=		single
+SPKGS[py37]=		single
 SPKGS[py27]=		single
 
-OPTIONS_AVAILABLE=	PY27 PY36 PY35
+OPTIONS_AVAILABLE=	PY27 PY36 PY37
 OPTIONS_STANDARD=	none
-VOPTS[py35]=		PY27=OFF PY36=OFF PY35=ON
-VOPTS[py36]=		PY27=OFF PY36=ON PY35=OFF
-VOPTS[py27]=		PY27=ON PY36=OFF PY35=OFF
+VOPTS[py36]=		PY27=OFF PY36=ON PY37=OFF
+VOPTS[py37]=		PY27=OFF PY36=OFF PY37=ON
+VOPTS[py27]=		PY27=ON PY36=OFF PY37=OFF
 
 BUILDRUN_DEPENDS=	sqlite:single:standard
 
@@ -33,11 +33,11 @@ DISTNAME=		Python/Modules
 
 FPC_EQUIVALENT=		databases/py-sqlite3
 
-[PY35].DF_INDEX_ON=			2
-[PY35].USES_ON=				python:py35
-
 [PY36].DF_INDEX_ON=			3
 [PY36].USES_ON=				python:py36
+
+[PY37].DF_INDEX_ON=			2
+[PY37].USES_ON=				python:py37
 
 [PY27].DF_INDEX_ON=			1
 [PY27].USES_ON=				python:py27
@@ -49,13 +49,13 @@ post-stage:
 	${STRIP_CMD} ${STAGEDIR}${PYTHON_LIBDIR}/lib-dynload/_sqlite3*.so
 	${RM} -r ${STAGEDIR}${PYTHON_SITELIBDIR}
 
+post-extract-PY37-ON:
+	${MV} ${WRKDIR}/Python-3.7.0 ${WRKDIR}/Python
+	${CP} ${FILESDIR}/setup3.py ${WRKSRC}/setup.py
+
 post-extract-PY27-ON:
 	${MV} ${WRKDIR}/Python-2.7.15 ${WRKDIR}/Python
 	${CP} ${FILESDIR}/setup.py ${WRKSRC}
-
-post-extract-PY35-ON:
-	${MV} ${WRKDIR}/Python-3.5.5 ${WRKDIR}/Python
-	${CP} ${FILESDIR}/setup3.py ${WRKSRC}/setup.py
 
 post-extract-PY36-ON:
 	${MV} ${WRKDIR}/Python-3.6.6  ${WRKDIR}/Python
@@ -74,7 +74,7 @@ relatively easy.
 
 [FILE:295:distinfo]
 22d9b1ac5b26135ad2b8c2901a9413537e08749a753356ee913c84dbd2df5574     12642436 Python-2.7.15.tar.xz
-063d2c3b0402d6191b90731e0f735c64830e7522348aeb7ed382a83165d45009     15351440 Python-3.5.5.tar.xz
+0382996d1ee6aafe59763426cf0139ffebe36984474d0ec4126dd1c40a8b3549     16922100 Python-3.7.0.tar.xz
 d79bc15d456e73a3173a2938f18a17e5149c850ebdedf84a78067f501ee6e16f     17156744 Python-3.6.6.tar.xz
 
 

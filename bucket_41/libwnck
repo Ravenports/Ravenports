@@ -27,6 +27,11 @@ USES=			bison gettext-runtime gettext-tools:build gmake
 GNOME_COMPONENTS=	gtk3 intltool introspection
 XORG_COMPONENTS=	xres x11
 
+LICENSE=		LGPL20+:complete
+LICENSE_TERMS=		complete:{{WRKDIR}}/TERMS
+LICENSE_FILE=		LGPL20+:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		x11-toolkits/libwnck3
 
 MUST_CONFIGURE=		gnu
@@ -35,6 +40,10 @@ CONFIGURE_ARGS=		--disable-tools
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		0.3.0
+
+post-patch:
+	${HEAD} -n 19 ${WRKSRC}/libwnck/libwnck.h \
+		| ${TAIL} -n 17 > ${WRKDIR}/TERMS
 
 [FILE:140:descriptions/desc.primary]
 Libwnck is a Window Navigator Construction Kit. It is a library used to 
