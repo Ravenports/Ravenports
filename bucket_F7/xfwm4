@@ -2,6 +2,7 @@
 
 NAMEBASE=		xfwm4
 VERSION=		4.13.0
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	Standard-complient window manager from Xfce
@@ -26,6 +27,7 @@ BUILDRUN_DEPENDS=	dbus:single:standard
 			freetype:primary:standard
 			libwnck-legacy:primary:standard
 			libxfce4ui:primary:standard
+EXRUN[primary]=		xfwm4:themes:standard
 
 USES=			gettext-runtime gettext-tools:build gmake pkgconfig
 GNOME_COMPONENTS=	cairo gtk2 intltool
@@ -35,6 +37,8 @@ XORG_COMPONENTS=	ice sm x11 xcomposite xdamage xext xfixes xrandr
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"ifndef"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/misc.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11-wm/xfce4-wm
@@ -42,10 +46,6 @@ FPC_EQUIVALENT=		x11-wm/xfce4-wm
 MUST_CONFIGURE=		gnu
 
 INSTALL_TARGET=		install-strip
-
-post-patch:
-		${HEAD} -n 22 ${WRKSRC}/src/misc.h > \
-			${WRKDIR}/TERMS
 
 [FILE:761:descriptions/desc.primary]
 The Xfce 4 Window Manager is part of the Xfce Desktop Environment. The window ma

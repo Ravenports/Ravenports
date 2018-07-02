@@ -14,11 +14,9 @@ DISTFILE[1]=		Python-3.7.0.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	THREADS DEBUG PYMALLOC
-OPTIONS_STANDARD=	THREADS DEBUG PYMALLOC
-OPT_ON[all]=		THREADS PYMALLOC
-
-BROKEN_SSL=		openssl-devel
+OPTIONS_AVAILABLE=	DEBUG PYMALLOC
+OPTIONS_STANDARD=	DEBUG PYMALLOC
+OPT_ON[all]=		PYMALLOC
 
 BUILD_DEPENDS=		expat:static:standard
 			bzip2:static:standard
@@ -26,6 +24,7 @@ BUILDRUN_DEPENDS=	libffi:single:standard
 			expat:shared:standard
 			bzip2:shared:standard
 			xz:single:standard
+BR_DEPS[linux]=		libuuid:single:standard
 
 USES=			bdb cpe ncurses pkgconfig readline ssl shebangfix
 			zlib gettext-runtime
@@ -77,6 +76,7 @@ VAR_OPSYS[linux]=	PLIST_SUB=SOABI=.cpython-37m-x86_64-linux-gnu
 			PLIST_SUB=SCD=x86_64-linux-gnu
 			PLIST_SUB=FULLABI={{ABIFLAGS}}-x86_64-linux-gnu
 			PLIST_SUB=PLAT={{OPSYS:tl}}
+			CPPFLAGS=-I{{LOCALBASE}}/include/uuid
 VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=
 			PLIST_SUB=SCD=
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
@@ -84,9 +84,6 @@ VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=
 
 [DEBUG].CONFIGURE_WITH_BOTH=		pydebug
 [DEBUG].MAKEFILE_ON=			ABIFLAGS:=d{{ABIFLAGS}}
-
-[THREADS].CONFIGURE_WITH_BOTH=		threads
-[THREADS].LDFLAGS_ON=			-pthread
 
 [PYMALLOC].DESCRIPTION=			Enable specialized mallocs
 [PYMALLOC].CONFIGURE_WITH_BOTH=		pymalloc
@@ -124,7 +121,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 0382996d1ee6aafe59763426cf0139ffebe36984474d0ec4126dd1c40a8b3549     16922100 Python-3.7.0.tar.xz
 
 
-[FILE:211402:manifests/plist.single]
+[FILE:211438:manifests/plist.single]
 %%DEBUG-OFF%%lib/python%%XYDOT%%/lib-dynload/xxlimited%%SOABI%%.so
 %%ONLY-DRAGONFLY%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
 %%ONLY-FREEBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
@@ -2964,7 +2961,7 @@ lib/python%%XYDOT%%/lib-dynload/
  _codecs_jp%%SOABI%%.so
  _codecs_kr%%SOABI%%.so
  _codecs_tw%%SOABI%%.so
- _contextvars.so
+ _contextvars%%SOABI%%.so
  _crypt%%SOABI%%.so
  _csv%%SOABI%%.so
  _ctypes%%SOABI%%.so
@@ -2986,7 +2983,7 @@ lib/python%%XYDOT%%/lib-dynload/
  _opcode%%SOABI%%.so
  _pickle%%SOABI%%.so
  _posixsubprocess%%SOABI%%.so
- _queue.so
+ _queue%%SOABI%%.so
  _random%%SOABI%%.so
  _sha1%%SOABI%%.so
  _sha256%%SOABI%%.so
@@ -2999,8 +2996,8 @@ lib/python%%XYDOT%%/lib-dynload/
  _testcapi%%SOABI%%.so
  _testimportmultiple%%SOABI%%.so
  _testmultiphase%%SOABI%%.so
- _uuid.so
- _xxtestfuzz.so
+ _uuid%%SOABI%%.so
+ _xxtestfuzz%%SOABI%%.so
  array%%SOABI%%.so
  audioop%%SOABI%%.so
  binascii%%SOABI%%.so
