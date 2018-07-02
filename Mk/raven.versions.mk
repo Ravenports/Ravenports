@@ -34,7 +34,7 @@ PERL_5.28_VERSION=	5.28.0
 # Possible values: 2.3, 2.4, 2.5
 #-------------------------------------------------------------------------
 
-RUBY_DEFAULT?=		2.4
+RUBY_DEFAULT?=		2.5
 
 RUBY_2.3_VERSION=	2.3.7
 RUBY_2.4_VERSION=	2.4.4
@@ -83,13 +83,13 @@ TCL_8.6_VERSION=	8.6.8
 # Possible values: 9.2, 9.3, 9.4, 9.5, 9.6, 10.0
 #-------------------------------------------------------------------------
 
-PGSQL_DEFAULT?=		9.6
+PGSQL_DEFAULT?=		10
 
 PGSQL_9.3_VERSION=	9.3.23
 PGSQL_9.4_VERSION=	9.4.18
 PGSQL_9.5_VERSION=	9.5.13
 PGSQL_9.6_VERSION=	9.6.9
-PGSQL_10.0_VERSION=	10.4
+PGSQL_10_VERSION=	10.4
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
@@ -126,7 +126,7 @@ FIREBIRD_3.0_VERSION=	3.0.3
 # Possible values: 5.6, 7.1, 7.2
 #-------------------------------------------------------------------------
 
-PHP_DEFAULT?=		5.6
+PHP_DEFAULT?=		7.2
 
 PHP_5.6_VERSION=	5.6.36
 PHP_7.1_VERSION=	7.1.19
