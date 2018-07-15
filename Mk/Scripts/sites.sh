@@ -177,7 +177,7 @@ expand_GITHUB_PRIVATE()
     IFS=:
     set -- ${SUBDIR}
     IFS=${OLD_IFS}
-    echo "https://api.github.com/repos/${1}/${2}/tarball/${3}?access_token=${4}&dummy=/"
+    echo "https://api.github.com/repos/${1}/${2}/tarball/${3}?access_token=${5}&dummy=/"
 }
 
 expand_OPENBSD()
