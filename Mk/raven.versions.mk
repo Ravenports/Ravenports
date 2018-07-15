@@ -66,7 +66,7 @@ SSL_DEFAULT?=		libressl
 LUA_DEFAULT?=		5.3
 
 LUA_5.2_VERSION=	5.2.4
-LUA_5.3_VERSION=	5.3.4
+LUA_5.3_VERSION=	5.3.5
 
 #-------------------------------------------------------------------------
 # TCL/TK

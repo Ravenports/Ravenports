@@ -4,21 +4,21 @@ NAMEBASE=		ravensys-root
 VERSION=		1.4
 REVISION=		5
 KEYWORDS=		raven
-VARIANTS=		dragonfly freebsd64 linux sunos
+VARIANTS=		dragonfly freebsd_amd64 linux sunos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
+SDESC[freebsd_amd64]=	FreeBSD-amd64 system root for Ravenports build env
 SDESC[linux]=		Linux system root for Ravenports build env
-SDESC[freebsd64]=	FreeBSD64 system root for Ravenports build env
 SDESC[dragonfly]=	DragonFly64 system root for Ravenports build env
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main freebsd ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9 dragonlace avalon
-SITES[freebsd]=		https://download.freebsd.org/ftp/releases/amd64/amd64/ISO-IMAGES/11.1/
+DOWNLOAD_GROUPS=	main ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 freebsd_amd64 ubuntu6 ubuntu7 ubuntu8 ubuntu9 dragonlace avalon
 SITES[ubuntu1]=		http://security.ubuntu.com/ubuntu/pool/main/g/glibc/
 SITES[ubuntu2]=		UBUNTU/h/hostname
 SITES[ubuntu3]=		UBUNTU/d/dash
 SITES[ubuntu4]=		UBUNTU/p/pax
 SITES[ubuntu5]=		UBUNTU/d/debianutils
+SITES[freebsd_amd64]=	https://download.freebsd.org/ftp/releases/amd64/amd64/ISO-IMAGES/11.1/
 SITES[ubuntu6]=		UBUNTU/b/bsdmainutils
 SITES[ubuntu7]=		http://security.ubuntu.com/ubuntu/pool/main/s/shadow/
 SITES[ubuntu8]=		http://security.ubuntu.com/ubuntu/pool/main/l/linux/
@@ -40,22 +40,22 @@ DISTFILE[11]=		passwd_4.2-3.1ubuntu5.3_amd64.deb:ubuntu7
 DISTFILE[12]=		linux-libc-dev_4.4.0-78.99_amd64.deb:ubuntu8
 DISTFILE[13]=		libc6-dev-amd64_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[14]=		libc6-dev_2.23-0ubuntu9_i386.deb:ubuntu1
-DISTFILE[15]=		FreeBSD-11.1-RELEASE-amd64-disc1.iso:freebsd
+DISTFILE[15]=		FreeBSD-11.1-RELEASE-amd64-disc1.iso:freebsd_amd64
 DISTFILE[16]=		solaris_root_10_u8.v09.tar.xz:dragonlace
 DISTFILE[17]=		locales_2.23-0ubuntu10_all.deb:ubuntu1
 DISTFILE[18]=		libattr1-dev_2.4.47-2_amd64.deb:ubuntu9
 DISTFILE[19]=		libattr1_2.4.47-2_amd64.deb:ubuntu9
 SPKGS[sunos]=		single
+SPKGS[freebsd_amd64]=	single
 SPKGS[linux]=		single
-SPKGS[freebsd64]=	single
 SPKGS[dragonfly]=	single
 
-OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD LINUX SUNOS
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSDAMD64 LINUX SUNOS
 OPTIONS_STANDARD=	none
-VOPTS[sunos]=		DRAGONFLY=OFF FREEBSD=OFF LINUX=OFF SUNOS=ON
-VOPTS[linux]=		DRAGONFLY=OFF FREEBSD=OFF LINUX=ON SUNOS=OFF
-VOPTS[freebsd64]=	DRAGONFLY=OFF FREEBSD=ON LINUX=OFF SUNOS=OFF
-VOPTS[dragonfly]=	DRAGONFLY=ON FREEBSD=OFF LINUX=OFF SUNOS=OFF
+VOPTS[sunos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=ON
+VOPTS[freebsd_amd64]=	DRAGONFLY=OFF FREEBSDAMD64=ON LINUX=OFF SUNOS=OFF
+VOPTS[linux]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=ON SUNOS=OFF
+VOPTS[dragonfly]=	DRAGONFLY=ON FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
 
 BUILD_DEPENDS=		nawk:single:standard
 			bzip2:static:standard
@@ -125,13 +125,13 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 [DRAGONFLY].DF_INDEX_ON=		2
 [DRAGONFLY].ONLY_FOR_OPSYS_ON=		dragonfly
 
-[FREEBSD].DESCRIPTION=			Ravenports system root for FreeBSD
-[FREEBSD].DF_INDEX_ON=			15
-[FREEBSD].ONLY_FOR_OPSYS_ON=		freebsd
-
 [SUNOS].DESCRIPTION=			Ravenports system root for Solaris 10
 [SUNOS].DF_INDEX_ON=			16
 [SUNOS].ONLY_FOR_OPSYS_ON=		sunos
+
+[FREEBSDAMD64].DESCRIPTION=		Ravenports system root for FreeBSD-amd64
+[FREEBSDAMD64].DF_INDEX_ON=		15
+[FREEBSDAMD64].ONLY_FOR_OPSYS_ON=	freebsd
 
 [LINUX].DESCRIPTION=			Ravenports system root for Linux
 [LINUX].DF_INDEX_ON=			3
@@ -160,7 +160,14 @@ post-extract-LINUX-ON:
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
 
-post-install-FREEBSD-ON:
+post-extract-FREEBSDAMD64-ON:
+	${MV} ${WRKDIR}/${NAMEBASE}_15 ${WRKDIR}/freebsd
+	@${MKDIR} ${WRKSRC}
+	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+	(cd ${WRKDIR}/freebsd && ${TAR} -xf usr/freebsd-dist/base.txz \
+		--no-same-owner --no-same-permissions)
+
+post-install-FREEBSDAMD64-ON:
 	${INSTALL_DATA} ${FOS}/etc/group \
 		${STAGEDIR}${RSYS}/usr/share/group
 	${INSTALL_DATA} ${FOS}/etc/master.passwd \
@@ -200,13 +207,6 @@ post-extract-DRAGONFLY-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_2 ${WRKDIR}/dragonfly
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
-
-post-extract-FREEBSD-ON:
-	${MV} ${WRKDIR}/${NAMEBASE}_15 ${WRKDIR}/freebsd
-	@${MKDIR} ${WRKSRC}
-	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
-	(cd ${WRKDIR}/freebsd && ${TAR} -xf usr/freebsd-dist/base.txz \
-		--no-same-owner --no-same-permissions)
 
 post-install-DRAGONFLY-ON:
 	${INSTALL_DATA} ${FOS}/etc/group \
@@ -253,7 +253,7 @@ This is the full environment for DragonFly BSD minus the toolchain for
 Ravenports.
 
 
-[FILE:96:descriptions/desc.single.freebsd64]
+[FILE:96:descriptions/desc.single.freebsd_amd64]
 Raven system root
 
 This is the full environment for FreeBSD minus the toolchain for
@@ -1447,7 +1447,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:14676:manifests/plist.single.freebsd64]
+[FILE:14676:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
