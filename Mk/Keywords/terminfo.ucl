@@ -2,26 +2,18 @@ actions: []
 post-install: <<EOD
   terminfodir=%D/share/misc
   terminfodb=${terminfodir}/terminfo.db
-  if [ -e ${terminfodb}.default ]; then
-    runtic=$(which tic 2>/dev/null)
-    if [ $? -eq 0 ]; then
-      cp ${terminfodb}.default ${terminfodb}
-      find ${terminfodir} -name "*.terminfo" -exec tic {} \;
-    fi
+  if [ -f ${terminfodb}.default ]; then
+     cmp -s ${terminfodb}.default ${terminfodb} || cp -RpP ${terminfodb}.default ${terminfodb}
+     find ${terminfodir} -name "*.terminfo" -exec %D/bin/tic {} \;
   fi
 EOD
 post-deinstall: <<EOD
   terminfodir=%D/share/misc
   terminfodb=${terminfodir}/terminfo.db
-  if [ -e ${terminfodb}.default ]; then
-    runtic=$(which tic 2>/dev/null)
-    if [ $? -eq 0 ]; then
-      cp ${terminfodb}.default ${terminfodb}
-      find ${terminfodir} -name "*.terminfo" -exec tic {} \;
-    else
-      rm -f ${terminfodb}
-    fi
+  if [ -f ${terminfodb}.default ]; then
+     cmp -s ${terminfodb}.default ${terminfodb} || cp -RpP ${terminfodb}.default ${terminfodb}
+     find ${terminfodir} -name "*.terminfo" -exec %D/bin/tic {} \;
   else
-    rm -f ${terminfodb}
+     rm -rf ${terminfodb}
   fi
 EOD
