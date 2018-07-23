@@ -18,7 +18,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			libtool c++:single python:py27,build
+USES=			libtool c++:single python:py27,build dos2unix
 
 LICENSE=		CUSTOM1:single
 LICENSE_NAME=		CUSTOM1:"NORM source code license"
@@ -55,8 +55,11 @@ post-build:
 
 post-extract:
 	${REINPLACE_CMD} -e '/SYSTEM_SOFLAGS/ s/$$/ -Wl,-soname,libnorm.so.1/' \
-		${WRKSRC}/makefiles/Makefile.freebsd \
-		${WRKSRC}/makefiles/Makefile.solaris
+		${WRKSRC}/makefiles/Makefile.freebsd
+
+post-extract-sunos:
+	${CP} ${FILESDIR}/getifaddrs.cpp ${WRKSRC}/protolib/src/unix/
+	${CP} ${FILESDIR}/ifaddrs.h ${WRKSRC}/protolib/include/
 
 [FILE:1185:descriptions/desc.single]
 This a port of NACK-Oriented Reliable Multicast (N.O.R.M.), as specified 
@@ -122,6 +125,23 @@ include/normApi.h
  include Makefile.common
 
 
+[FILE:401:patches/patch-makefiles_Makefile.solaris]
+--- makefiles/Makefile.solaris.orig	2018-07-21 00:38:17 UTC
++++ makefiles/Makefile.solaris
+@@ -42,8 +42,9 @@ SYSTEM = solaris
+ 
+ CC = CC
+ # -xarch=v9 makes the output run only on 64-bit Solaris
+-SYSTEM_CFLAGS = -KPIC -Wall -Wcast-align
+-SYSTEM_SOFLAGS = -shared
++SYSTEM_CFLAGS = -fPIC -Wall -Wcast-align
++SYSTEM_SOFLAGS = -shared -Wl,-soname,libnorm.so.1
++SYSTEM_SOEXT = so
+ RANLIB = touch
+ AR = ar
+ 
+
+
 [FILE:720:patches/patch-protolib_include_protoSocket.h]
 --- protolib/include/protoSocket.h.orig	2018-04-30 17:33:49 UTC
 +++ protolib/include/protoSocket.h
@@ -134,6 +154,25 @@ include/normApi.h
  #define _PROTOSOCKET_IGMPV3_SSM
  #endif // !WIN32 && !ANDROID && (!MACOSX || MCAST_JOIN_GROUP)
          
+
+
+[FILE:465:patches/patch-protolib_makefiles_Makefile.solaris]
+--- protolib/makefiles/Makefile.solaris.orig	2018-07-20 22:30:48 UTC
++++ protolib/makefiles/Makefile.solaris
+@@ -39,11 +39,12 @@ SYSTEM_LIBS = -ldl -lnsl -lsocket -lreso
+ #
+ 
+ SYSTEM_HAVES =  -DHAVE_IPV6 -DHAVE_ASSERT -DHAVE_CUSERID -DHAVE_LOCKF -DNO_SCM_RIGHTS $(NETSEC) -DSOLARIS 
++SYSTEM_SRC =  ../src/unix/unixNet.cpp ../src/unix/getifaddrs.cpp
+ 
+ SYSTEM = solaris
+ 
+ CC = CC
+-SYSTEM_CFLAGS = -KPIC
++SYSTEM_CFLAGS = -fPIC
+ SYSTEM_SOFLAGS = -G
+ RANLIB = touch
+ 
 
 
 [FILE:444:patches/patch-protolib_setup.py]
@@ -214,6 +253,369 @@ include/normApi.h
      if system == 'windows':
 
 
+[FILE:7148:files/getifaddrs.cpp]
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License (the "License").
+ * You may not use this file except in compliance with the License.
+ *
+ * You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
+ * or http://www.opensolaris.org/os/licensing.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at usr/src/OPENSOLARIS.LICENSE.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information: Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ */
+
+/*
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
+ */
+
+#include <netdb.h>
+
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
+#include <sys/sockio.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <net/if.h>
+#include <ifaddrs.h>
+
+/* Normally this is defined in <net/if.h> but was new for Solaris 11 */
+#ifndef LIFC_ENABLED
+#define LIFC_ENABLED    0x20
+#endif
+
+int getallifaddrs(sa_family_t af, struct ifaddrs **ifap, int64_t flags);
+int getallifs(int s, sa_family_t af, struct lifreq **lifr, int *numifs,
+    int64_t lifc_flags);
+
+/*
+ * Create a linked list of `struct ifaddrs_rsys' structures, one for each
+ * address that is UP. If successful, store the list in *ifap and
+ * return 0.  On errors, return -1 and set `errno'.
+ *
+ * The storage returned in *ifap is allocated dynamically and can
+ * only be properly freed by passing it to `freeifaddrs'.
+ */
+int
+getifaddrs(struct ifaddrs **ifap)
+{
+	int		err;
+	char		*cp;
+	struct ifaddrs  *curr;
+
+	if (ifap == NULL) {
+		errno = EINVAL;
+		return (-1);
+	}
+	*ifap = NULL;
+	err = getallifaddrs(AF_UNSPEC, ifap, LIFC_ENABLED);
+	if (err == 0) {
+		for (curr = *ifap; curr != NULL; curr = curr->ifa_next) {
+			if ((cp = strchr(curr->ifa_name, ':')) != NULL)
+				*cp = '\0';
+		}
+	}
+	return (err);
+}
+
+void
+freeifaddrs(struct ifaddrs *ifa)
+{
+	struct ifaddrs *curr;
+
+	while (ifa != NULL) {
+		curr = ifa;
+		ifa = ifa->ifa_next;
+		free(curr->ifa_name);
+		free(curr->ifa_addr);
+		free(curr->ifa_netmask);
+		free(curr->ifa_dstaddr);
+		free(curr);
+	}
+}
+
+/*
+ * Returns all addresses configured on the system. If flags contain
+ * LIFC_ENABLED, only the addresses that are UP are returned.
+ * Address list that is returned by this function must be freed
+ * using freeifaddrs().
+ */
+int
+getallifaddrs(sa_family_t af, struct ifaddrs **ifap, int64_t flags)
+{
+	struct lifreq *buf = NULL;
+	struct lifreq *lifrp;
+	struct lifreq lifrl;
+	int ret;
+	int s, n, numifs;
+	struct ifaddrs *curr, *prev;
+	sa_family_t lifr_af;
+	int sock4;
+	int sock6;
+	int err;
+
+	if ((sock4 = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+		return (-1);
+	if ((sock6 = socket(AF_INET6, SOCK_DGRAM, 0)) < 0) {
+		err = errno;
+		close(sock4);
+		errno = err;
+		return (-1);
+	}
+
+retry:
+	/* Get all interfaces from SIOCGLIFCONF */
+	ret = getallifs(sock4, af, &buf, &numifs, (flags & ~LIFC_ENABLED));
+	if (ret != 0)
+		goto fail;
+
+	/*
+	 * Loop through the interfaces obtained from SIOCGLIFCOMF
+	 * and retrieve the addresses, netmask and flags.
+	 */
+	prev = NULL;
+	lifrp = buf;
+	*ifap = NULL;
+	for (n = 0; n < numifs; n++, lifrp++) {
+
+		/* Prepare for the ioctl call */
+		(void) strncpy(lifrl.lifr_name, lifrp->lifr_name,
+		    sizeof (lifrl.lifr_name));
+		lifr_af = lifrp->lifr_addr.ss_family;
+		if (af != AF_UNSPEC && lifr_af != af)
+			continue;
+
+		s = (lifr_af == AF_INET ? sock4 : sock6);
+
+		if (ioctl(s, SIOCGLIFFLAGS, (caddr_t)&lifrl) < 0)
+			goto fail;
+		if ((flags & LIFC_ENABLED) && !(lifrl.lifr_flags & IFF_UP))
+			continue;
+
+		/*
+		 * Allocate the current list node. Each node contains data
+		 * for one ifaddrs structure.
+		 */
+		curr = (struct ifaddrs *) calloc(1, sizeof (struct ifaddrs));
+		if (curr == NULL)
+			goto fail;
+
+		if (prev != NULL) {
+			prev->ifa_next = curr;
+		} else {
+			/* First node in the linked list */
+			*ifap = curr;
+		}
+		prev = curr;
+
+		curr->ifa_flags = lifrl.lifr_flags;
+		if ((curr->ifa_name = strdup(lifrp->lifr_name)) == NULL)
+			goto fail;
+
+		curr->ifa_addr = (struct sockaddr *) malloc(sizeof (struct sockaddr_storage));
+		if (curr->ifa_addr == NULL)
+			goto fail;
+		(void) memcpy(curr->ifa_addr, &lifrp->lifr_addr,
+		    sizeof (struct sockaddr_storage));
+
+		/* Get the netmask */
+		if (ioctl(s, SIOCGLIFNETMASK, (caddr_t)&lifrl) < 0)
+			goto fail;
+		curr->ifa_netmask = (struct sockaddr *) malloc(sizeof (struct sockaddr_storage));
+		if (curr->ifa_netmask == NULL)
+			goto fail;
+		(void) memcpy(curr->ifa_netmask, &lifrl.lifr_addr,
+		    sizeof (struct sockaddr_storage));
+
+		/* Get the destination for a pt-pt interface */
+		if (curr->ifa_flags & IFF_POINTOPOINT) {
+			if (ioctl(s, SIOCGLIFDSTADDR, (caddr_t)&lifrl) < 0)
+				goto fail;
+			curr->ifa_dstaddr = (struct sockaddr *) malloc(
+			    sizeof (struct sockaddr_storage));
+			if (curr->ifa_dstaddr == NULL)
+				goto fail;
+			(void) memcpy(curr->ifa_dstaddr, &lifrl.lifr_addr,
+			    sizeof (struct sockaddr_storage));
+		} else if (curr->ifa_flags & IFF_BROADCAST) {
+			if (ioctl(s, SIOCGLIFBRDADDR, (caddr_t)&lifrl) < 0)
+				goto fail;
+			curr->ifa_broadaddr = (struct sockaddr *) malloc(
+			    sizeof (struct sockaddr_storage));
+			if (curr->ifa_broadaddr == NULL)
+				goto fail;
+			(void) memcpy(curr->ifa_broadaddr, &lifrl.lifr_addr,
+			    sizeof (struct sockaddr_storage));
+		}
+
+	}
+	free(buf);
+	close(sock4);
+	close(sock6);
+	return (0);
+fail:
+	err = errno;
+	free(buf);
+	freeifaddrs(*ifap);
+	*ifap = NULL;
+	if (err == ENXIO)
+		goto retry;
+	close(sock4);
+	close(sock6);
+	errno = err;
+	return (-1);
+}
+
+/*
+ * Do a SIOCGLIFCONF and store all the interfaces in `buf'.
+ */
+int
+getallifs(int s, sa_family_t af, struct lifreq **lifr, int *numifs,
+    int64_t lifc_flags)
+{
+	struct lifnum lifn;
+	struct lifconf lifc;
+	size_t bufsize;
+	char *tmp;
+	caddr_t *buf = (caddr_t *)lifr;
+
+	lifn.lifn_family = af;
+	lifn.lifn_flags = lifc_flags;
+
+	*buf = NULL;
+retry:
+	if (ioctl(s, SIOCGLIFNUM, &lifn) < 0)
+		goto fail;
+
+	/*
+	 * When calculating the buffer size needed, add a small number
+	 * of interfaces to those we counted.  We do this to capture
+	 * the interface status of potential interfaces which may have
+	 * been plumbed between the SIOCGLIFNUM and the SIOCGLIFCONF.
+	 */
+	bufsize = (lifn.lifn_count + 4) * sizeof (struct lifreq);
+
+	if ((tmp = (char *) realloc(*buf, bufsize)) == NULL)
+		goto fail;
+
+	*buf = tmp;
+	lifc.lifc_family = af;
+	lifc.lifc_flags = lifc_flags;
+	lifc.lifc_len = bufsize;
+	lifc.lifc_buf = *buf;
+	if (ioctl(s, SIOCGLIFCONF, (char *)&lifc) < 0)
+		goto fail;
+
+	*numifs = lifc.lifc_len / sizeof (struct lifreq);
+	if (*numifs >= (lifn.lifn_count + 4)) {
+		/*
+		 * If every entry was filled, there are probably
+		 * more interfaces than (lifn.lifn_count + 4).
+		 * Redo the ioctls SIOCGLIFNUM and SIOCGLIFCONF to
+		 * get all the interfaces.
+		 */
+		goto retry;
+	}
+	return (0);
+fail:
+	free(*buf);
+	*buf = NULL;
+	return (-1);
+}
+
+
+[FILE:2466:files/ifaddrs.h]
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License (the "License").
+ * You may not use this file except in compliance with the License.
+ *
+ * You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
+ * or http://www.opensolaris.org/os/licensing.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at usr/src/OPENSOLARIS.LICENSE.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information: Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ */
+/*
+ * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
+ */
+#ifndef _IFADDRS_H
+#define	_IFADDRS_H
+
+#ifdef	__cplusplus
+extern "C" {
+#endif
+
+#include <sys/types.h>
+
+/*
+ * The `getifaddrs' function generates a linked list of these structures.
+ * Each element of the list describes one network interface.
+ */
+struct ifaddrs {
+	struct ifaddrs	*ifa_next;	/* Pointer to the next structure. */
+	char		*ifa_name;	/* Name of this network interface. */
+	uint64_t	ifa_flags;	/* Flags as from SIOCGLIFFLAGS ioctl. */
+	struct sockaddr	*ifa_addr;	/* Network address of this interface. */
+	struct sockaddr	*ifa_netmask;	/* Netmask of this interface. */
+	union {
+		/*
+		 * At most one of the following two is valid.  If the
+		 * IFF_BROADCAST bit is set in `ifa_flags', then
+		 * `ifa_broadaddr' is valid.  If the IFF_POINTOPOINT bit is
+		 * set, then `ifa_dstaddr' is valid. It is never the case that
+		 * both these bits are set at once.
+		 */
+		struct sockaddr	*ifu_broadaddr;
+		struct sockaddr	*ifu_dstaddr;
+	} ifa_ifu;
+	void		*ifa_data; /* Address-specific data (may be unused). */
+};
+
+/*
+ * Create a linked list of `struct ifaddrs' structures, one for each
+ * network interface on the host machine.  If successful, store the
+ * list in *ifap and return 0.  On errors, return -1 and set `errno'.
+ *
+ * The storage returned in *ifap is allocated dynamically and can
+ * only be properly freed by passing it to `freeifaddrs'.
+ */
+extern int getifaddrs(struct ifaddrs **);
+
+/* Reclaim the storage allocated by a previous `getifaddrs' call. */
+extern void freeifaddrs(struct ifaddrs *);
+
+
+#ifdef	__cplusplus
+}
+#endif
+
+#endif	/* _IFADDRS_H */
+
+
 [FILE:164:files/special.mk]
 # Emulate USES=waf
 MAKE_CMD=	${LOCALBASE}/bin/python2.7 ./waf
@@ -221,4 +623,97 @@ CONFIGURE_CMD=	${LOCALBASE}/bin/python2.7 ./waf configure
 MAKEFILE=
 MAKE_FLAGS=
 MAKE_ARGS+=	--verbose
+
+
+[FILE:2358:sunos/patch-protolib_include_protoPktIP.h]
+--- protolib/include/protoPktIP.h.orig	2018-07-20 21:52:27 UTC
++++ protolib/include/protoPktIP.h
+@@ -64,7 +64,7 @@ class ProtoPktIP : public ProtoPkt
+             RTG      =  43,  // IPv6 routing header
+             FRAG     =  44,  // IPv6 fragment header
+             GRE      =  47,  // Generic Router Encapsulation
+-            ESP      =  50,  // Encapsulation security payload header
++            ESPXX      =  50,  // Encapsulation security payload header
+             AUTH     =  51,  // authentication/ESP header  
+             MOBILE   =  55,  // IP Moobility (Min Encap)                
+             ICMPv6   =  58,  // ICMP for IPv6 
+@@ -180,7 +180,7 @@ class ProtoPktIPv4 : public ProtoPktIP
+                 {
+                     EOOL   =      0, // End of Options List    [RFC791,JBP]                            
+                     NOP    =      1, // No Operation           [RFC791,JBP]                            
+-                    SEC    =    130, // Security                  [RFC1108]                            
++                    SECXX  =    130, // Security                  [RFC1108]                            
+                     LSR    =    131, // Loose Source Route     [RFC791,JBP]                            
+                     TS     =     68, // Time Stamp             [RFC791,JBP]                            
+                     ESEC   =    133, // Extended Security         [RFC1108]                            
+@@ -195,7 +195,7 @@ class ProtoPktIPv4 : public ProtoPktIP
+                     VISA   =    142, // Expermental Access Control [Estrin]                            
+                     ENCODE =     15, // ???                      [VerSteeg]                            
+                     IMITD  =    144, // IMI Traffic Descriptor        [Lee]                            
+-                    EIP    =    145, // Extended Internet Protocol[RFC1385]                            
++                    EIPXX  =    145, // Extended Internet Protocol[RFC1385]                            
+                     TR     =     82, // Traceroute        [RFC1393]                                    
+                     ADDEXT =    147, // Address Extension    [Ullmann IPv7]                            
+                     RTRALT =    148, // Router Alert              [RFC2113]                            
+
+
+[FILE:334:sunos/patch-protolib_src_common_protoAddress.cpp]
+--- protolib/src/common/protoAddress.cpp.orig	2018-07-20 21:58:26 UTC
++++ protolib/src/common/protoAddress.cpp
+@@ -552,6 +552,9 @@ bool ProtoAddress::SetSockAddr(const str
+     }
+ }  // end ProtoAddress:SetAddress()
+ 
++#undef _SOCKLEN_T
++#undef _SOCKLEN_T_DECLARED
++
+ /**
+ *
+ * @brief Initializes the address from the buffer contents
+
+
+[FILE:373:sunos/patch-protolib_src_common_protoFile.cpp]
+--- protolib/src/common/protoFile.cpp.orig	2018-07-20 22:12:15 UTC
++++ protolib/src/common/protoFile.cpp
+@@ -13,7 +13,7 @@
+ #include <unistd.h>
+ // Most don't have the dirfd() function
+ #ifndef HAVE_DIRFD
+-static inline int dirfd(DIR *dir) {return (dir->dd_fd);}
++static inline int dirfd(DIR *dir) {return (dir->d_fd);}
+ #endif // HAVE_DIRFD    
+ #endif // if/else WIN32
+ 
+
+
+[FILE:842:sunos/patch-protolib_src_common_protoPktIP.cpp]
+--- protolib/src/common/protoPktIP.cpp.orig	2018-07-20 22:06:04 UTC
++++ protolib/src/common/protoPktIP.cpp
+@@ -339,7 +339,7 @@ int ProtoPktIPv4::Option::GetLengthByTyp
+         case EOOL:
+         case NOP:
+             return 1;
+-        case SEC:
++        case SECXX:
+             return 11;
+         case SID:
+         case MTUP:
+@@ -354,7 +354,7 @@ int ProtoPktIPv4::Option::GetLengthByTyp
+         case TS:
+         case TR:
+         case SDB:
+-        case EIP:
++        case EIPXX:
+         case CIPSO:
+             return LENGTH_VARIABLE; // indicates variable length
+         // unsupported options 
+@@ -371,7 +371,7 @@ bool ProtoPktIPv4::Option::IsMutable(Typ
+         // Immutable options
+         case EOOL:
+         case NOP:
+-        case SEC:
++        case SECXX:
+         case ESEC:
+         case CIPSO:
+         case RTRALT:
 

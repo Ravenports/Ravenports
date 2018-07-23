@@ -50,6 +50,7 @@ CONFIGURE_ARGS=		--with-configdir={{PREFIX}}/etc/fonts/conf.d
 			--with-default-fonts={{PREFIX}}/share/fonts
 			--with-add-fonts={{LOCALBASE}}/lib/X11/fonts
 			--with-cache-dir=/var/db/fontconfig
+			--enable-nls=no
 			--disable-docs
 			--enable-static
 CONFIGURE_ENV=		PYTHON=":"
@@ -302,6 +303,42 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=183536
  
  
  #elif !defined(FC_NO_MT) && defined(HAVE_SOLARIS_ATOMIC_OPS)
+
+
+[FILE:587:patches/patch-src_fccfg.c]
+--- src/fccfg.c.orig	2018-02-04 11:01:46 UTC
++++ src/fccfg.c
+@@ -2654,9 +2654,8 @@ FcConfigFileInfoIterGet (FcConfig		*conf
+     if (name)
+ 	*name = FcStrdup (r->name && r->name[0] ? r->name : (const FcChar8 *) "fonts.conf");
+     if (description)
+-	*description = FcStrdup (!r->description ? _("No description") :
+-				 dgettext (r->domain ? (const char *) r->domain : GETTEXT_PACKAGE "-conf",
+-					   (const char *) r->description));
++	*description = FcStrdup (!r->description ? "No description" :
++					   (const char *) r->description);
+     if (enabled)
+ 	*enabled = r->enabled;
+ 
+
+
+[FILE:314:patches/patch-src_fcint.h]
+--- src/fcint.h.orig	2018-02-04 10:20:56 UTC
++++ src/fcint.h
+@@ -114,13 +114,7 @@ extern pfnSHGetFolderPathA pSHGetFolderP
+ #endif
+ 
+ /* NLS */
+-#ifdef ENABLE_NLS
+-#include <libintl.h>
+-#define _(x)		(dgettext(GETTEXT_PACKAGE, x))
+-#else
+-#define dgettext(d, s)	(s)
+ #define _(x)		(x)
+-#endif
+ 
+ #define N_(x)	x
+ 
 
 
 [FILE:1658:patches/patch-src_fclang.c]

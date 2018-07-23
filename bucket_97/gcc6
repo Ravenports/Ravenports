@@ -37,13 +37,12 @@ USES=			cpe gmake iconv:build libtool makeinfo perl:build
 
 DISTNAME=		gcc-6.4.0
 
-LICENSE=		GPLv2+:compilers LGPL21:compilers GPLv3+:compilers
-			LGPL3:compilers GPLv3RLE:compilers
-LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
-			LGPL21:{{WRKSRC}}/COPYING.LIB
-			GPLv3+:{{WRKSRC}}/COPYING3
-			LGPL3:{{WRKSRC}}/COPYING3.LIB
-			GPLv3RLE:{{WRKSRC}}/COPYING.RUNTIME
+LICENSE=		GPLv3+:compilers LGPL3+:compilers
+			GPLv3RLE+:compilers
+LICENSE_TERMS=		compilers:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
+			LGPL3+:{{WRKSRC}}/COPYING3.LIB
+			GPLv3RLE+:{{WRKSRC}}/COPYING.RUNTIME
 LICENSE_SCHEME=		multi
 
 PREFIX=			{{LOCALBASE}}/toolchain/{{NAMEBASE}}
@@ -90,12 +89,16 @@ INSTALL_TARGET=		install-strip
 PLIST_SUB=		GCCVER=6.4.0
 			TARGET={{CONFIGURE_TARGET}}
 
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--without-gnu-ld
+			CONFIGURE_ARGS=--enable-symvers=no
+
 post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
 	@${ECHO} "Configuring LINK_SPEC runpath"
 	${REINPLACE_CMD} -e 's;\@PREFIX\@;${PREFIX:H};' \
 		-e 's;\@GCCAUX\@;${NAMEBASE};' \
 		${WRKSRC}/gcc/config/dragonfly.h \
+		${WRKSRC}/gcc/config/sol2.h \
 		${WRKSRC}/gcc/config/i386/freebsd64.h \
 		${WRKSRC}/gcc/config/i386/freebsd.h \
 		${WRKSRC}/gcc/config/i386/gnu-user64.h \
@@ -118,6 +121,11 @@ post-install:
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.4.0/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/6.4.0/adalib/libgnat.so
+
+post-extract:
+	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS
+	${HEAD} -n 31 ${WRKSRC}/gcc/ada/adaint.h >> ${WRKDIR}/TERMS
+	${HEAD} -n 18 ${WRKSRC}/libiberty/hex.c >> ${WRKDIR}/TERMS
 
 [FILE:329:descriptions/desc.compilers]
 This is series 6 of the GNU Compiler Collection (GCC)
@@ -164,12 +172,18 @@ This package contains the man pages and info pages that come with GCC.
 850bf21eafdfe5cd5f6827148184c08c4a0852a37ccf36ce69855334d2c914d4     76156220 gcc-6.4.0.tar.xz
 
 
-[FILE:23525:manifests/plist.compilers]
+[FILE:24769:manifests/plist.compilers]
+%%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtendS.o
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  dragonfly-stdint.h
  dragonfly.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
+%%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtendS.o
 %%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  freebsd-spec.h
@@ -179,7 +193,9 @@ This package contains the man pages and info pages that come with GCC.
  freebsd.h
  freebsd64.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
  crtbeginT.o
+ crtendS.o
  crtfastmath.o
  crtprec32.o
  crtprec64.o
@@ -200,6 +216,53 @@ This package contains the man pages and info pages that come with GCC.
  gnu-user64.h
  linux-common.h
  linux64.h
+%%ONLY-SUNOS%%lib/
+ clearcap.map
+ libgcc-unwind.map
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtfastmath.o
+ crtprec32.o
+ crtprec64.o
+ crtprec80.o
+ gmon.o
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+ README
+ complex.h
+ limits.h
+ pthread.h
+ spawn.h
+ stdio.h
+ syslimits.h
+ wchar.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/dat/dat_platform_specific.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/iso/
+ math_c99.h
+ math_iso.h
+ setjmp_iso.h
+ stdio_iso.h
+ stdlib_iso.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/mps/secport.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/netinet/
+ ip_compat.h
+ ip_fil.h
+ ip_lookup.h
+ ip_nat.h
+ ip_pool.h
+ ip_proxy.h
+ ip_state.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/sys/
+ feature_tests.h
+ int_const.h
+ int_limits.h
+ varargs.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ sol2-protos.h
+ sol2.h
+ usegas.h
+%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ sol2.h
+ sysv4.h
 bin/
  %%TARGET%%-c++
  %%TARGET%%-g++
@@ -1010,9 +1073,7 @@ include/c++/%%GCCVER%%/tr2/
  type_traits
 lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbegin.o
- crtbeginS.o
  crtend.o
- crtendS.o
  libcaf_single.a
  libgcc.a
  libgcc_eh.a
@@ -6051,4 +6112,31 @@ share/man/man1/
    %{!shared: \
      %{!static: \
        %{rdynamic:-export-dynamic} \
+
+
+[FILE:407:patches/patch-gcc_config_sol2.h]
+--- gcc/config/sol2.h.orig	2016-01-04 14:30:50 UTC
++++ gcc/config/sol2.h
+@@ -334,6 +334,7 @@ along with GCC; see the file COPYING3.
+    %{static:-dn -Bstatic} \
+    %{shared:-G -dy %{!mimpure-text:-z text}} " \
+    LINK_LIBGCC_MAPFILE_SPEC LINK_CLEARCAP_SPEC " \
++   %{!static:-R/lib/amd64:@PREFIX@/@GCCAUX@/lib/amd64} \
+    %{symbolic:-Bsymbolic -G -dy -z text} \
+    %(link_arch) \
+    %{Qy:} %{!Qn:-Qy}"
+
+
+[FILE:286:sunos/patch-gcc_config.build]
+--- gcc/config.build.orig	2017-01-01 12:07:43 UTC
++++ gcc/config.build
+@@ -45,7 +45,7 @@
+ build_xm_file=
+ build_xm_defines=
+ build_exeext=
+-build_install_headers_dir=install-headers-tar
++build_install_headers_dir=install-headers-cp
+ build_file_translate=
+ 
+ # System-specific settings.
 

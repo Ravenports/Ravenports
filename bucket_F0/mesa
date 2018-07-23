@@ -145,10 +145,13 @@ post-patch-sunos:
 		-e '/^LDFLAGS =/ s|$$| -lbsd|' \
 		${WRKSRC}/src/egl/Makefile.in \
 		${WRKSRC}/src/gallium/drivers/r600/Makefile.in \
-		${WRKSRC}/src/gallium/drivers/radeon/Makefile.in \
 		${WRKSRC}/src/gallium/drivers/radeonsi/Makefile.in \
 		${WRKSRC}/src/gallium/auxiliary/Makefile.in \
 		${WRKSRC}/src/loader/Makefile.in
+	# work around deficient /bin/sh in solaris
+	${REINPLACE_CMD} -e 's|#! /bin/sh|#!/bin/bash|' \
+		-e '/LIBTOOL=/ s|.(SHELL)|/bin/bash|' \
+		${WRKSRC}/configure
 
 [FILE:808:descriptions/desc.libs]
 The Mesa project began as an open-source implementation of the OpenGL
@@ -318,8 +321,8 @@ lib/
 lib/pkgconfig/osmesa.pc
 
 
-[FILE:2052:patches/patch-configure]
---- configure.orig	2018-06-15 20:37:56 UTC
+[FILE:2164:patches/patch-configure]
+--- configure.orig	2018-07-13 18:41:34 UTC
 +++ configure
 @@ -21548,7 +21548,7 @@ LDFLAGS=$save_LDFLAGS
  
@@ -330,6 +333,15 @@ lib/pkgconfig/osmesa.pc
      LD_NO_UNDEFINED="" ;;
  *)
      if test "x$enable_sanitize" = xno; then
+@@ -21616,7 +21616,7 @@ fi
+ 
+ 
+ case "$host_os" in
+-darwin*)
++darwin*|solaris*)
+     LD_BUILD_ID=""
+     ;;
+ *)
 @@ -23554,7 +23554,7 @@ fi
  
  
@@ -862,7 +874,7 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
 
 
 [FILE:995:patches/patch-src_intel_compiler_brw__eu__validate.c]
---- src/intel/compiler/brw_eu_validate.c.orig	2018-06-15 20:37:48 UTC
+--- src/intel/compiler/brw_eu_validate.c.orig	2018-07-13 18:41:27 UTC
 +++ src/intel/compiler/brw_eu_validate.c
 @@ -28,6 +28,39 @@
  
@@ -906,17 +918,24 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
     char *str;
 
 
-[FILE:794:patches/patch-src_intel_compiler_brw__fs__bank__conflicts.cpp]
-compiler/brw_fs_bank_conflicts.cpp:719:25: error: scalar initializer cannot be empty
-      vector_type s_p = {}, s_n = {};
-                        ^~
-compiler/brw_fs_bank_conflicts.cpp:719:35: error: scalar initializer cannot be empty
-      vector_type s_p = {}, s_n = {};
-                                  ^~
-
---- src/intel/compiler/brw_fs_bank_conflicts.cpp.orig	2018-06-15 20:37:48 UTC
+[FILE:954:patches/patch-src_intel_compiler_brw__fs__bank__conflicts.cpp]
+--- src/intel/compiler/brw_fs_bank_conflicts.cpp.orig	2018-07-13 18:41:27 UTC
 +++ src/intel/compiler/brw_fs_bank_conflicts.cpp
-@@ -716,7 +716,7 @@ namespace {
+@@ -309,8 +309,13 @@ namespace {
+          const unsigned align = MAX2(sizeof(void *), __alignof__(vector_type));
+          const unsigned size = DIV_ROUND_UP(n, vector_width) * sizeof(vector_type);
+          void *p;
++#ifdef __sun
++	p = memalign(align, size);
++	if (p == NULL) return NULL;
++#else
+          if (posix_memalign(&p, align, size))
+             return NULL;
++#endif
+          memset(p, 0, size);
+          return reinterpret_cast<vector_type *>(p);
+       }
+@@ -728,7 +733,7 @@ namespace {
                     const weight_vector_type &conflicts)
     {
        const unsigned m = DIV_ROUND_UP(conflicts.size, vector_width);
@@ -989,6 +1008,26 @@ compiler/brw_fs_bank_conflicts.cpp:719:35: error: scalar initializer cannot be e
   * leaked. All because it does not call VG(cli_free) from its
 
 
+[FILE:607:patches/patch-src_mesa_drivers_dri_i965_brw__disk__cache.c]
+--- src/mesa/drivers/dri/i965/brw_disk_cache.c.orig	2018-07-13 18:41:27 UTC
++++ src/mesa/drivers/dri/i965/brw_disk_cache.c
+@@ -422,6 +422,7 @@ void
+ brw_disk_cache_init(struct intel_screen *screen)
+ {
+ #ifdef ENABLE_SHADER_CACHE
++# ifdef HAVE_DL_ITERATE_PHDR
+    char renderer[10];
+    MAYBE_UNUSED int len = snprintf(renderer, sizeof(renderer), "i965_%04x",
+                                    screen->deviceID);
+@@ -438,5 +439,6 @@ brw_disk_cache_init(struct intel_screen
+    _mesa_sha1_format(timestamp, id_sha1);
+ 
+    screen->disk_cache = disk_cache_create(renderer, timestamp, 0);
++# endif
+ #endif
+ }
+
+
 [FILE:1350:patches/patch-src_mesa_drivers_dri_i965_brw__performance__query.c]
 --- src/mesa/drivers/dri/i965/brw_performance_query.c.orig	2018-06-15 20:37:48 UTC
 +++ src/mesa/drivers/dri/i965/brw_performance_query.c
@@ -1028,6 +1067,33 @@ compiler/brw_fs_bank_conflicts.cpp:719:35: error: scalar initializer cannot be e
        {
           len = snprintf(brw->perfquery.sysfs_dev_dir,
                          sizeof(brw->perfquery.sysfs_dev_dir),
+
+
+[FILE:851:patches/patch-src_mesa_drivers_dri_i965_brw__program__binary.c]
+--- src/mesa/drivers/dri/i965/brw_program_binary.c.orig	2018-07-13 18:41:27 UTC
++++ src/mesa/drivers/dri/i965/brw_program_binary.c
+@@ -34,9 +34,11 @@ static uint8_t driver_sha1[20];
+ void
+ brw_program_binary_init(unsigned device_id)
+ {
++#ifdef HAVE_DL_ITERATE_PHDR
+    const struct build_id_note *note =
+       build_id_find_nhdr_for_addr(brw_program_binary_init);
+    assert(note);
++#endif
+ 
+    /**
+     * With Mesa's megadrivers, taking the sha1 of i965_dri.so may not be
+@@ -50,7 +52,9 @@ brw_program_binary_init(unsigned device_
+    int len = snprintf(renderer, sizeof(renderer), "i965_%04x", device_id);
+    assert(len == sizeof(renderer) - 1);
+    _mesa_sha1_update(&ctx, renderer, len);
++#ifdef HAVE_DL_ITERATE_PHDR
+    _mesa_sha1_update(&ctx, build_id_data(note), build_id_length(note));
++#endif
+    _mesa_sha1_final(&ctx, driver_sha1);
+ }
+ 
 
 
 [FILE:406:patches/patch-src_mesa_main_compiler.h]
@@ -1178,11 +1244,11 @@ compiler/brw_fs_bank_conflicts.cpp:719:35: error: scalar initializer cannot be e
  #error "Unsupported platform"
 
 
-[FILE:1162:patches/patch-src_util_u__thread.h]
+[FILE:1151:patches/patch-src_util_u__thread.h]
 - Implement setting thread name
 - Use monotonic clock for timeouts
 
---- src/util/u_thread.h.orig	2018-06-15 20:37:48 UTC
+--- src/util/u_thread.h.orig	2018-07-13 18:41:27 UTC
 +++ src/util/u_thread.h
 @@ -34,6 +34,10 @@
  
@@ -1200,7 +1266,7 @@ compiler/brw_fs_bank_conflicts.cpp:719:35: error: scalar initializer cannot be e
        defined(__linux__)
     pthread_setname_np(pthread_self(), name);
 +#  elif defined(__sun)
-+   pthread_setname_np(pthread_self(), name);
++   (void)name;
 +#  elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 +   pthread_set_name_np(pthread_self(), name);
 +#  elif defined(__NetBSD__)
@@ -1213,7 +1279,7 @@ compiler/brw_fs_bank_conflicts.cpp:719:35: error: scalar initializer cannot be e
  u_thread_get_time_nano(thrd_t thread)
  {
 -#if defined(__linux__) && defined(HAVE_PTHREAD)
-+#if defined(HAVE_PTHREAD)
++#if defined(HAVE_PTHREAD) && !defined(__sun)
     struct timespec ts;
     clockid_t cid;
  
@@ -1258,10 +1324,10 @@ GALLIUM_DRIVERS+=	SWRAST
        exit(EXIT_FAILURE);
 
 
-[FILE:722:sunos/patch-src_amd_Makefile.in]
---- src/amd/Makefile.in.orig	2018-01-18 21:30:38 UTC
+[FILE:713:sunos/patch-src_amd_Makefile.in]
+--- src/amd/Makefile.in.orig	2018-07-13 18:41:35 UTC
 +++ src/amd/Makefile.in
-@@ -332,7 +332,7 @@ CCAS = @CCAS@
+@@ -331,7 +331,7 @@ CCAS = @CCAS@
  CCASDEPMODE = @CCASDEPMODE@
  CCASFLAGS = @CCASFLAGS@
  CCDEPMODE = @CCDEPMODE@
@@ -1270,35 +1336,35 @@ GALLIUM_DRIVERS+=	SWRAST
  CLANG_RESOURCE_DIR = @CLANG_RESOURCE_DIR@
  CLOCK_LIB = @CLOCK_LIB@
  CLOVER_STD_OVERRIDE = @CLOVER_STD_OVERRIDE@
-@@ -739,7 +739,7 @@ addrlib_libamdgpu_addrlib_la_SOURCES = $
+@@ -741,7 +741,7 @@ addrlib_libamdgpu_addrlib_la_SOURCES = $
  @HAVE_GALLIUM_LLVM_TRUE@	$(AMD_GENERATED_FILES) \
  @HAVE_GALLIUM_LLVM_TRUE@	$(AMD_NIR_FILES)
  
 -common_libamd_common_la_LIBADD = $(LIBELF_LIBS)
 +common_libamd_common_la_LIBADD = $(LIBELF_LIBS) -lbsd
  BUILT_SOURCES = $(AMD_GENERATED_FILES)
- all: $(BUILT_SOURCES)
- 	$(MAKE) $(AM_MAKEFLAGS) all-am
+ EXTRA_DIST = \
+      $(COMMON_HEADER_FILES) \
 
 
-[FILE:360:sunos/patch-src_compiler_Makefile.in]
---- src/compiler/Makefile.in.orig	2018-01-18 21:30:39 UTC
+[FILE:368:sunos/patch-src_compiler_Makefile.in]
+--- src/compiler/Makefile.in.orig	2018-07-13 18:41:35 UTC
 +++ src/compiler/Makefile.in
-@@ -731,7 +731,7 @@ CLANG_RESOURCE_DIR = @CLANG_RESOURCE_DIR
+@@ -757,7 +757,7 @@ CLANG_RESOURCE_DIR = @CLANG_RESOURCE_DIR
  CLOCK_LIB = @CLOCK_LIB@
  CLOVER_STD_OVERRIDE = @CLOVER_STD_OVERRIDE@
  CPP = @CPP@
 -CPPFLAGS = @CPPFLAGS@
 +CPPFLAGS = @CPPFLAGS@ -I$(prefix)/include/bsd
  CXX = @CXX@
+ CXX11_CXXFLAGS = @CXX11_CXXFLAGS@
  CXXCPP = @CXXCPP@
- CXXDEPMODE = @CXXDEPMODE@
 
 
 [FILE:343:sunos/patch-src_intel_Makefile.in]
---- src/intel/Makefile.in.orig	2018-02-07 05:00:00 UTC
+--- src/intel/Makefile.in.orig	2018-07-20 17:55:23 UTC
 +++ src/intel/Makefile.in
-@@ -1983,7 +1983,7 @@ tools_aubinator_error_decode_LDADD = \
+@@ -2104,7 +2104,7 @@ tools_aubinator_error_decode_LDADD = \
  
  tools_aubinator_error_decode_CFLAGS = \
  	$(AM_CFLAGS) \
@@ -1332,10 +1398,10 @@ GALLIUM_DRIVERS+=	SWRAST
  CLOVER_STD_OVERRIDE = @CLOVER_STD_OVERRIDE@
 
 
-[FILE:927:sunos/patch-src_util_Makefile.in]
---- src/util/Makefile.in.orig	2018-01-18 21:30:42 UTC
+[FILE:919:sunos/patch-src_util_Makefile.in]
+--- src/util/Makefile.in.orig	2018-07-13 18:41:40 UTC
 +++ src/util/Makefile.in
-@@ -865,6 +865,7 @@ libmesautil_la_CPPFLAGS = \
+@@ -879,6 +879,7 @@ libmesautil_la_CPPFLAGS = \
  	-I$(top_srcdir)/src/mesa \
  	-I$(top_srcdir)/src/gallium/include \
  	-I$(top_srcdir)/src/gallium/auxiliary \
@@ -1343,8 +1409,8 @@ GALLIUM_DRIVERS+=	SWRAST
  	$(VISIBILITY_CFLAGS) \
  	$(MSVC2013_COMPAT_CFLAGS) \
  	$(ZLIB_CFLAGS)
-@@ -876,18 +877,19 @@ libmesautil_la_SOURCES = \
- libmesautil_la_LIBADD = \
+@@ -891,18 +892,19 @@ libmesautil_la_LIBADD = \
+ 	$(PTHREAD_LIBS) \
  	$(CLOCK_LIB) \
  	$(ZLIB_LIBS) \
 -	$(LIBATOMIC_LIBS)

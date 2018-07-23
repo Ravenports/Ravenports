@@ -17,9 +17,18 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
+
 USES=			libtool pkgconfig
+C_USES[sunos]=		perl:build
 
 DISTNAME=		util-linux-2.32
+
+LICENSE=		BSD3CLAUSE:single
+LICENSE_FILE=		BSD3CLAUSE:{{WRKDIR}}/BSD3
+LICENSE_AWK=		BSD3CLAUSE:"^$$"
+LICENSE_SOURCE=		BSD3CLAUSE:{{WRKSRC}}/libuuid/src/uuid.h
+LICENSE_SCHEME=		solo
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-all-programs
@@ -33,8 +42,18 @@ CONFIGURE_ARGS=		--disable-all-programs
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.3.0
 
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
+			LDFLAGS=-lbsd
+			CFLAGS=-DHAVE_STRNLEN
+			CFLAGS=-DHAVE_STRNDUP
+
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/bash-completion
+
+post-patch-sunos:
+	# there's a problem with nls, just mass-remove the macro
+	${GREP} -rl '_(".*")' ${WRKSRC} | ${XARGS} \
+		${PERL} -p -i.pbak -e 's|[_][(]["](.*?)["][)]|"\1"|g'
 
 [FILE:568:descriptions/desc.single]
 The UUID library is used to generate unique identifiers for objects
@@ -380,6 +399,62 @@ Do not install terminal-colors.d.5.
 [FILE:3018:freebsd/patch-Makefile.in]
 Linker script depends on non-portable constructs.
 Do not compile setproctitle; it conflicts with BSD and is not needed.
+Do not build common libraries.
+Do not install terminal-colors.d.5.
+
+--- Makefile.in.orig	2018-03-21 14:25:32 UTC
++++ Makefile.in
+@@ -186,7 +186,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) te
+ 
+ @BUILD_LIBUUID_TRUE@am__append_15 = test_uuid_parser
+ @BUILD_LIBUUID_TRUE@am__append_16 = libuuid.la
+-@BUILD_LIBUUID_TRUE@@HAVE_VSCRIPT_TRUE@am__append_17 = libuuid_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(top_srcdir)/libuuid/src/libuuid.sym
++@BUILD_LIBUUID_TRUE@@HAVE_VSCRIPT_COMPLEX_TRUE@am__append_17 = libuuid_la_LDFLAGS += $(VSCRIPT_LDFLAGS),$(top_srcdir)/libuuid/src/libuuid.sym
+ @BUILD_LIBUUID_TRUE@am__append_18 = libuuid/src/libuuid.sym \
+ @BUILD_LIBUUID_TRUE@	libuuid/COPYING
+ @BUILD_LIBUUID_TRUE@am__append_19 = install-exec-hook-libuuid
+@@ -204,7 +204,7 @@ check_PROGRAMS = test_blkdev$(EXEEXT) te
+ 
+ @BUILD_LIBBLKID_TRUE@@BUILD_LIBUUID_TRUE@am__append_25 = libuuid.la
+ @BUILD_LIBBLKID_TRUE@@BUILD_LIBUUID_TRUE@am__append_26 = -I$(ul_libuuid_incdir)
+-@BUILD_LIBBLKID_TRUE@@HAVE_VSCRIPT_TRUE@am__append_27 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/libblkid/src/libblkid.sym
++@BUILD_LIBBLKID_TRUE@@HAVE_VSCRIPT_COMPLEX_TRUE@am__append_27 = $(VSCRIPT_LDFLAGS),$(top_srcdir)/libblkid/src/libblkid.sym
+ @BUILD_LIBBLKID_TRUE@am__append_28 = libblkid/src/libblkid.sym \
+ @BUILD_LIBBLKID_TRUE@	libblkid/COPYING
+ @BUILD_LIBBLKID_TESTS_TRUE@@BUILD_LIBBLKID_TRUE@am__append_29 = \
+@@ -1032,7 +1032,7 @@ am__libcommon_la_SOURCES_DIST = lib/blkd
+ 	lib/fileutils.c lib/ismounted.c lib/color-names.c lib/mangle.c \
+ 	lib/match.c lib/mbsalign.c lib/mbsedit.c lib/md5.c lib/pager.c \
+ 	lib/parse-date.y lib/path.c lib/pwdutils.c lib/randutils.c \
+-	lib/setproctitle.c lib/strutils.c lib/timeutils.c \
++	lib/strutils.c lib/timeutils.c \
+ 	lib/ttyutils.c lib/exec_shell.c lib/strv.c lib/sha1.c \
+ 	lib/signames.c lib/linux_version.c lib/loopdev.c \
+ 	lib/plymouth-ctrl.c lib/langinfo.c lib/cpuset.c \
+@@ -3826,8 +3826,7 @@ dist_noinst_HEADERS = include/all-io.h i
+ 	include/swapheader.h include/swapprober.h include/sysfs.h \
+ 	include/timer.h include/timeutils.h include/ttyutils.h \
+ 	include/widechar.h include/xalloc.h
+-noinst_LTLIBRARIES = libcommon.la libtcolors.la
+-dist_man_MANS = lib/terminal-colors.d.5 $(am__append_14) \
++dist_man_MANS = $(am__append_14) \
+ 	$(am__append_38) $(am__append_78) $(am__append_80) \
+ 	$(am__append_82) $(am__append_84) $(am__append_86) \
+ 	$(am__append_88) $(am__append_90) $(am__append_92) \
+@@ -3939,7 +3938,7 @@ libcommon_la_SOURCES = lib/blkdev.c lib/
+ 	lib/ismounted.c lib/color-names.c lib/mangle.c lib/match.c \
+ 	lib/mbsalign.c lib/mbsedit.c lib/md5.c lib/pager.c \
+ 	lib/parse-date.y lib/path.c lib/pwdutils.c lib/randutils.c \
+-	lib/setproctitle.c lib/strutils.c lib/timeutils.c \
++	lib/strutils.c lib/timeutils.c \
+ 	lib/ttyutils.c lib/exec_shell.c lib/strv.c lib/sha1.c \
+ 	lib/signames.c $(am__append_1) $(am__append_2) $(am__append_3) \
+ 	$(am__append_4) $(am__append_5)
+
+
+[FILE:3022:sunos/patch-Makefile.in]
+Linker script depends on non-portable constructs.
+Do not compile setproctitle; it is not needed and requires initialization
 Do not build common libraries.
 Do not install terminal-colors.d.5.
 

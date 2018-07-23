@@ -70,6 +70,12 @@ post-extract:
 	${AWK} '/^The Academic Free License/,/^but the BSD, MIT/' \
 		${WRKSRC}/COPYING > ${WRKDIR}/LICENSE_AFL
 
+post-patch-sunos:
+	# work around deficient /bin/sh in solaris
+	${REINPLACE_CMD} -e 's|#! /bin/sh|#!/bin/bash|' \
+		-e '/LIBTOOL=/ s|.(SHELL)|/bin/bash|' \
+		${WRKSRC}/configure
+
 [FILE:392:descriptions/desc.single]
 D-BUS supplies both a system daemon (for events such as "new hardware device
 added" or "printer queue changed") and a per-user-login-session daemon (for
@@ -151,9 +157,9 @@ share/xml/dbus-1/
 
 
 [FILE:1385:patches/patch-configure]
---- configure.orig	2017-11-13 13:36:11 UTC
+--- configure.orig	2018-04-30 12:54:40 UTC
 +++ configure
-@@ -24487,14 +24487,14 @@ fi
+@@ -24499,14 +24499,14 @@ fi
  done
  
  
@@ -170,7 +176,7 @@ share/xml/dbus-1/
    as_CACHEVAR=`$as_echo "ax_cv_check_ldflags_$ax_compiler_flags_test_$flag" | $as_tr_sh`
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker accepts $flag" >&5
  $as_echo_n "checking whether the linker accepts $flag... " >&6; }
-@@ -26002,14 +26002,14 @@ fi
+@@ -26014,14 +26014,14 @@ fi
  done
  
  
@@ -187,7 +193,7 @@ share/xml/dbus-1/
    as_CACHEVAR=`$as_echo "ax_cv_check_ldflags_$ax_compiler_flags_test_$flag" | $as_tr_sh`
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker accepts $flag" >&5
  $as_echo_n "checking whether the linker accepts $flag... " >&6; }
-@@ -26183,8 +26183,6 @@ case $host_os in
+@@ -26195,8 +26195,6 @@ case $host_os in
          CFLAGS="$CFLAGS -D_POSIX_PTHREAD_SEMANTICS -D_REENTRANT"
          # ... this opt-in to get sockaddr_in6 and sockaddr_storage...
          CFLAGS="$CFLAGS -D__EXTENSIONS__"
@@ -198,10 +204,10 @@ share/xml/dbus-1/
  
 
 
-[FILE:3148:patches/patch-dbus_dbus-connection.c]
---- dbus/dbus-connection.c.orig	2017-10-30 12:26:18 UTC
+[FILE:3151:patches/patch-dbus_dbus-connection.c]
+--- dbus/dbus-connection.c.orig	2018-02-08 14:07:21 UTC
 +++ dbus/dbus-connection.c
-@@ -2384,7 +2384,7 @@ _dbus_connection_block_pending_call (DBu
+@@ -2385,7 +2385,7 @@ _dbus_connection_block_pending_call (DBu
    DBusConnection *connection;
    dbus_uint32_t client_serial;
    DBusTimeout *timeout;
@@ -210,7 +216,7 @@ share/xml/dbus-1/
  
    _dbus_assert (pending != NULL);
  
-@@ -2465,7 +2465,11 @@ _dbus_connection_block_pending_call (DBu
+@@ -2466,7 +2466,11 @@ _dbus_connection_block_pending_call (DBu
    _dbus_get_monotonic_time (&tv_sec, &tv_usec);
    elapsed_milliseconds = (tv_sec - start_tv_sec) * 1000 +
  	  (tv_usec - start_tv_usec) / 1000;
@@ -223,7 +229,7 @@ share/xml/dbus-1/
    if (!_dbus_connection_get_is_connected_unlocked (connection))
      {
        DBusMessage *error_msg;
-@@ -2493,7 +2497,7 @@ _dbus_connection_block_pending_call (DBu
+@@ -2494,7 +2498,7 @@ _dbus_connection_block_pending_call (DBu
             */
            _dbus_verbose ("dbus_connection_send_with_reply_and_block() waiting for more memory\n");
  
@@ -232,7 +238,7 @@ share/xml/dbus-1/
          }
        else
          {          
-@@ -2502,7 +2506,7 @@ _dbus_connection_block_pending_call (DBu
+@@ -2503,7 +2507,7 @@ _dbus_connection_block_pending_call (DBu
                                                    pending,
                                                    DBUS_ITERATION_DO_READING |
                                                    DBUS_ITERATION_BLOCK,
@@ -241,7 +247,7 @@ share/xml/dbus-1/
          }
  
        goto recheck_status;
-@@ -2511,7 +2515,7 @@ _dbus_connection_block_pending_call (DBu
+@@ -2512,7 +2516,7 @@ _dbus_connection_block_pending_call (DBu
      _dbus_verbose ("dbus_connection_send_with_reply_and_block(): clock set backward\n");
    else if (elapsed_milliseconds < timeout_milliseconds)
      {
@@ -250,7 +256,7 @@ share/xml/dbus-1/
        
        if (status == DBUS_DISPATCH_NEED_MEMORY)
          {
-@@ -2521,7 +2525,7 @@ _dbus_connection_block_pending_call (DBu
+@@ -2522,7 +2526,7 @@ _dbus_connection_block_pending_call (DBu
             */
            _dbus_verbose ("dbus_connection_send_with_reply_and_block() waiting for more memory\n");
  
@@ -259,8 +265,8 @@ share/xml/dbus-1/
          }
        else
          {          
-@@ -2530,7 +2534,7 @@ _dbus_connection_block_pending_call (DBu
-                                                   NULL,
+@@ -2531,7 +2535,7 @@ _dbus_connection_block_pending_call (DBu
+                                                   pending,
                                                    DBUS_ITERATION_DO_READING |
                                                    DBUS_ITERATION_BLOCK,
 -                                                  timeout_milliseconds - elapsed_milliseconds);
@@ -271,7 +277,7 @@ share/xml/dbus-1/
 
 
 [FILE:354:patches/patch-dbus_dbus-sysdeps-unix.c]
---- dbus/dbus-sysdeps-unix.c.orig	2017-10-30 12:26:18 UTC
+--- dbus/dbus-sysdeps-unix.c.orig	2017-11-24 13:42:27 UTC
 +++ dbus/dbus-sysdeps-unix.c
 @@ -24,6 +24,14 @@
  

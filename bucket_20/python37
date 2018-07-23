@@ -24,6 +24,7 @@ BUILDRUN_DEPENDS=	libffi:single:standard
 			expat:shared:standard
 			bzip2:shared:standard
 			xz:single:standard
+BR_DEPS[sunos]=		libuuid:single:standard
 BR_DEPS[linux]=		libuuid:single:standard
 
 USES=			bdb cpe ncurses pkgconfig readline ssl shebangfix
@@ -72,6 +73,7 @@ VAR_OPSYS[sunos]=	PLIST_SUB=SOABI=
 			PLIST_SUB=SCD=
 			PLIST_SUB=PLAT=sunos5
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
+			CONFIGURE_ARGS=ac_cv_func_sethostname=no
 VAR_OPSYS[linux]=	PLIST_SUB=SOABI=.cpython-37m-x86_64-linux-gnu
 			PLIST_SUB=SCD=x86_64-linux-gnu
 			PLIST_SUB=FULLABI={{ABIFLAGS}}-x86_64-linux-gnu
@@ -105,6 +107,13 @@ post-install:
 post-install-DEBUG-OFF:
 	# Upstream Issue: http://bugs.python.org/issue17975
 	${RM} ${STAGEDIR}${PREFIX}/lib/libpython3.so
+
+post-patch-sunos:
+	# non-understood missing ref to uuid_generate_time_safe even
+	# though it is correctly present in libuuid (hack to fix uuid
+	# module)
+	${REINPLACE_CMD} -e 's|ifdef HAVE_UUID_GENERATE_TIME_SAFE|if 0|' \
+		${WRKSRC}/Modules/_uuidmodule.c
 
 [FILE:558:descriptions/desc.single]
 Python is an interpreted, interactive, object-oriented programming
@@ -7494,7 +7503,7 @@ record file nonetheless.
  PKG_CONFIG
 
 
-[FILE:1338:patches/patch-setup.py]
+[FILE:1846:patches/patch-setup.py]
 --- setup.py.orig	2018-06-27 03:07:35 UTC
 +++ setup.py
 @@ -43,7 +43,10 @@ host_platform = get_platform()
@@ -7509,7 +7518,16 @@ record file nonetheless.
  
  def add_dir_to_list(dirlist, dir):
      """Add the directory 'dir' to the list 'dirlist' (after any relative
-@@ -1581,6 +1584,10 @@ class PyBuildExt(build_ext):
+@@ -810,8 +813,6 @@ class PyBuildExt(build_ext):
+         # use the same library for the readline and curses modules.
+         if 'curses' in readline_termcap_library:
+             curses_library = readline_termcap_library
+-        elif self.compiler.find_library_file(lib_dirs, 'ncursesw'):
+-            curses_library = 'ncursesw'
+         elif self.compiler.find_library_file(lib_dirs, 'ncurses'):
+             curses_library = 'ncurses'
+         elif self.compiler.find_library_file(lib_dirs, 'curses'):
+@@ -1581,6 +1582,10 @@ class PyBuildExt(build_ext):
              macros = dict()
              libraries = []
  
@@ -7520,7 +7538,7 @@ record file nonetheless.
          else:                                   # Linux and other unices
              macros = dict()
              libraries = ['rt']
-@@ -1603,7 +1610,7 @@ class PyBuildExt(build_ext):
+@@ -1603,7 +1608,7 @@ class PyBuildExt(build_ext):
          # End multiprocessing
  
          # Platform-specific libraries

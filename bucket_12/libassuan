@@ -55,3 +55,47 @@ lib/
  libassuan.so.%%SOVERSION%%
 share/aclocal/libassuan.m4
 
+
+[FILE:397:patches/patch-configure]
+$NetBSD: patch-configure,v 1.1 2017/05/25 11:49:05 jperkin Exp $
+
+Handle _XOPEN_SOURCE correctly.
+
+--- configure.orig	2017-12-07 14:55:50 UTC
++++ configure
+@@ -13494,10 +13494,8 @@ case "${host}" in
+         ;;
+     *-solaris*)
+ 
+-$as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+ 
+ 
+-$as_echo "#define _XOPEN_SOURCE_EXTENDED 1" >>confdefs.h
+ 
+ 
+ $as_echo "#define __EXTENSIONS__ 1" >>confdefs.h
+
+
+[FILE:457:patches/patch-src_assuan-uds.c]
+$NetBSD: patch-src_assuan-uds.c,v 1.1.2.2 2017/05/28 08:44:18 spz Exp $
+
+Handle _XOPEN_SOURCE correctly.
+
+--- src/assuan-uds.c.orig	2017-11-15 15:36:55 UTC
++++ src/assuan-uds.c
+@@ -22,6 +22,14 @@
+ #include <config.h>
+ #endif
+ 
++#if defined(__sun) && !defined(_XOPEN_SOURCE)
++#  if __STDC_VERSION__ - 0 < 199901L
++#define _XOPEN_SOURCE	500
++#  else
++#define _XOPEN_SOURCE	600
++#  endif
++#endif
++
+ #include <stdlib.h>
+ #include <stddef.h>
+ #include <stdio.h>
+
