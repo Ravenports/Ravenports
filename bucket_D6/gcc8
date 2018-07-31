@@ -33,7 +33,7 @@ EXRUN[cxx_run]=		gcc8:libs:standard
 EXRUN[compilers]=	gcc8:cxx_run:standard
 EXRUN[ada_run]=		gcc8:libs:standard
 
-USES=			cpe gmake iconv:build libtool makeinfo perl:build
+USES=			cpe gmake iconv:build libtool perl:build
 
 DISTNAME=		gcc-8.2.0
 
@@ -46,20 +46,7 @@ LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
 LICENSE_SCHEME=		multi
 
 PREFIX=			{{LOCALBASE}}/toolchain/{{NAMEBASE}}
-INFO=			infopages:cpp
-			infopages:cppinternals
-			infopages:gcc
-			infopages:gccinstall
-			infopages:gccint
-			infopages:gfortran
-			infopages:gnat-style
-			infopages:gnat_rm
-			infopages:gnat_ugn
-			infopages:libquadmath
-			infopages:libitm
-			infopages:libgomp
 CPE_VENDOR=		gnu
-INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_OUTSOURCE=	yes
@@ -127,6 +114,10 @@ post-install:
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/8.2.0/adalib/libgnarl.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/8.2.0/adalib/libgnat.so
+	# remove when info pages re-enabled
+	${RM} ${STAGEDIR}${PREFIX}/share/info/libitm.info
+	${RM} ${STAGEDIR}${PREFIX}/share/info/libgomp.info
+	${RM} ${STAGEDIR}${PREFIX}/share/info/libquadmath.info
 
 post-extract:
 	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS

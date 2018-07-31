@@ -152,9 +152,9 @@ GTK3_PORT_VERSION=		3.22.30
 # default gcc and binutils
 # ------------------------------------------------------------------------
 
-CURRENT_GCC=			gcc7	# mirror in Uses/meson.mk
-CURRENT_GCC_VERSION=		${GCC7_VERSION}
-BINUTILS_VERSION=		2.30
+CURRENT_GCC=			gcc8	# mirror in Uses/meson.mk
+CURRENT_GCC_VERSION=		${GCC8_VERSION}
+BINUTILS_VERSION=		2.31.1
 
 # ------------------------------------------------------------------------
 # aspell
