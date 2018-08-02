@@ -41,7 +41,10 @@ GNOME_COMPONENTS=	gtk3 cairo gdkpixbuf
 XORG_COMPONENTS=	x11
 
 LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/gps/src/gps-main.adb
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/gps
@@ -60,8 +63,8 @@ MAKE_ARGS=		PROCESSORS={{MAKE_JOBS_NUMBER}}
 SUB_FILES=		gps
 SUB_LIST=		ADA_PATH={{PREFIX}}/toolchain/gcc8/bin
 
-[DEBUG].CONFIGURE_ARGS_OFF=		Build=Production
-[DEBUG].CONFIGURE_ARGS_ON=		Build=Debug
+[DEBUG].MAKE_ARGS_OFF=			Build=Production
+[DEBUG].MAKE_ARGS_ON=			Build=Debug
 
 post-patch:
 	${RM} ${WRKSRC}/share/plug-ins/*.orig
@@ -1178,6 +1181,68 @@ share/gps/templates/stm32f_leds/src/
     package CodePeer is
 
 
+[FILE:1246:patches/patch-gvd_src_gvd-canvas.adb]
+--- gvd/src/gvd-canvas.adb.orig	2017-05-12 17:58:17 UTC
++++ gvd/src/gvd-canvas.adb
+@@ -735,9 +735,11 @@ package body GVD.Canvas is
+       begin
+          if Item.all in Display_Item_Record'Class then
+             Display_Item (Item).Set_Width_Range
+-              (Max => (Unit_Pixels, Gdouble (Max_Item_Width.Get_Pref)));
++              (Max => (Unit_Pixels,
++                Gdouble (Integer'(Max_Item_Width.Get_Pref))));
+             Display_Item (Item).Set_Height_Range
+-              (Max => (Unit_Pixels, Gdouble (Max_Item_Height.Get_Pref)));
++              (Max => (Unit_Pixels,
++                Gdouble (Integer'(Max_Item_Height.Get_Pref))));
+          end if;
+       end Resize_Item;
+ 
+@@ -2000,9 +2002,11 @@ package body GVD.Canvas is
+       Item.Update_Display;
+ 
+       Item.Set_Width_Range
+-        (Max => (Unit_Pixels, Gdouble (Max_Item_Width.Get_Pref)));
++        (Max => (Unit_Pixels,
++          Gdouble (Integer'(Max_Item_Width.Get_Pref))));
+       Item.Set_Height_Range
+-        (Max => (Unit_Pixels, Gdouble (Max_Item_Height.Get_Pref)));
++        (Max => (Unit_Pixels,
++          Gdouble (Integer'(Max_Item_Height.Get_Pref))));
+ 
+       if Get_Detect_Aliases (Debugger) then
+          Recompute_All_Aliases (Debugger, False);
+
+
+[FILE:498:patches/patch-kernel_src_gps-search-gui.adb]
+--- kernel/src/gps-search-gui.adb.orig	2017-05-12 17:58:17 UTC
++++ kernel/src/gps-search-gui.adb
+@@ -740,7 +740,8 @@ package body GPS.Search.GUI is
+       B.Pack_Start (Label, Expand => False);
+ 
+       Gtk_New (Spin, Min => 2.0, Max => 20.0, Step => 1.0);
+-      Spin.Set_Value (Gdouble (Pref_Proposals_Per_Provider.Get_Pref));
++      Spin.Set_Value (Gdouble
++        (Integer'(Pref_Proposals_Per_Provider.Get_Pref)));
+       B.Pack_Start (Spin, Expand => False);
+ 
+       Kernel_Callback.Connect
+
+
+[FILE:477:patches/patch-kernel_src_language-libclang.adb]
+--- kernel/src/language-libclang.adb.orig	2017-05-12 17:58:17 UTC
++++ kernel/src/language-libclang.adb
+@@ -304,7 +304,7 @@ package body Language.Libclang is
+       --  Remove elements from the cache if > LRU_Size
+ 
+       if Clang_Module_Id.LRU.Length >
+-        Count_Type (LRU_Size_Preference.Get_Pref)
++        Count_Type (Integer'(LRU_Size_Preference.Get_Pref))
+       then
+          declare
+             F : constant Unbounded_String := Clang_Module_Id.LRU.First_Element;
+
+
 [FILE:1300:patches/patch-share_plug-ins_dispatching.py]
 --- share/plug-ins/dispatching.py.orig	2014-11-13 18:15:57 UTC
 +++ share/plug-ins/dispatching.py
@@ -1209,6 +1274,49 @@ share/gps/templates/stm32f_leds/src/
  
      def __on_preferences_changed(self, hook):
          changed = False
+
+
+[FILE:563:patches/patch-src__editor_src_completion__module.adb]
+--- src_editor/src/completion_module.adb.orig	2017-05-12 17:58:17 UTC
++++ src_editor/src/completion_module.adb
+@@ -1587,7 +1587,8 @@ package body Completion_Module is
+       then
+          Completion_Module.Trigger_Timeout :=
+            Glib.Main.Timeout_Add
+-             (Interval => Guint (Smart_Completion_Trigger_Timeout.Get_Pref),
++             (Interval =>
++                Guint (Integer'(Smart_Completion_Trigger_Timeout.Get_Pref)),
+               Func     => Trigger_Timeout_Callback'Access);
+ 
+          Completion_Module.Has_Trigger_Timeout := True;
+
+
+[FILE:415:patches/patch-src__editor_src_src__editor__buffer.adb]
+--- src_editor/src/src_editor_buffer.adb.orig	2017-05-12 17:58:17 UTC
++++ src_editor/src/src_editor_buffer.adb
+@@ -3585,7 +3585,7 @@ package body Src_Editor_Buffer is
+          B.Timeout_Registered := False;
+       end if;
+ 
+-      Timeout := Gint (Periodic_Save.Get_Pref);
++      Timeout := Gint (Integer'(Periodic_Save.Get_Pref));
+ 
+       if Timeout > 0 then
+          B.Timeout_Id := Buffer_Timeout.Timeout_Add
+
+
+[FILE:458:patches/patch-src__editor_src_src__editor__view.adb]
+--- src_editor/src/src_editor_view.adb.orig	2017-05-12 17:58:17 UTC
++++ src_editor/src/src_editor_view.adb
+@@ -1095,7 +1095,7 @@ package body Src_Editor_View is
+       ----------------
+ 
+       procedure Draw_Above is
+-         Column    : constant Gint := Gint (Highlight_Column.Get_Pref);
++         Column : constant Gint := Gint (Integer'(Highlight_Column.Get_Pref));
+ 
+          procedure Draw_Block (B : in out Block_Record);
+          --  Draw block B
 
 
 [FILE:561:patches/patch-widgets_widgets.gpr]

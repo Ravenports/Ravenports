@@ -27,7 +27,10 @@ USES=			gprbuild gmake
 DISTNAME=		libalog-0.5.2
 
 LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/LICENSE
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/alog.ads
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/alog
@@ -51,7 +54,8 @@ do-install:
 		${STAGEDIR}${PREFIX}/lib/alog \
 		${STAGEDIR}${PREFIX}/include/alog \
 		${STAGEDIR}${STD_DOCDIR}
-	${INSTALL_DATA} ${WRKSRC}/src/* ${STAGEDIR}${PREFIX}/include/alog
+	${INSTALL_DATA} ${WRKSRC}/src/*.ad[bs] ${STAGEDIR}${PREFIX}/include/alog
+	${INSTALL_DATA} ${WRKSRC}/src/*.c ${STAGEDIR}${PREFIX}/include/alog
 	${INSTALL_DATA} ${WRKSRC}/lib/*/*.ali ${STAGEDIR}${PREFIX}/lib/alog
 	${INSTALL_DATA} ${WRKSRC}/gnat/alog.gpr ${STAGEDIR}${PREFIX}/lib/gnat
 	${INSTALL_DATA} ${WRKSRC}/lib/*/libalog.a ${STAGEDIR}${PREFIX}/lib/alog
@@ -132,4 +136,53 @@ share/doc/alog/html/
  alog-arch.png
  asciidoc.css
  index.html
+
+
+[FILE:1605:patches/patch-fix-gcc8]
+From 17c3b6b993088d94fb33cd339f41e60e9fcb93de Mon Sep 17 00:00:00 2001
+From: Adrian-Ken Rueegsegger <ken@codelabs.ch>
+Date: Tue, 26 Sep 2017 16:17:04 +0200
+Subject: [PATCH] Drop use clause for BS_Path package
+
+---
+ src/alog-facilities-file_descriptor.adb | 2 +-
+ src/alog-facilities-file_descriptor.ads | 2 +-
+ src/alog-facilities.ads                 | 1 -
+ 3 files changed, 2 insertions(+), 3 deletions(-)
+
+--- src/alog-facilities-file_descriptor.adb
++++ src/alog-facilities-file_descriptor.adb
+@@ -82,7 +82,7 @@ package body Alog.Facilities.File_Descriptor is
+ 
+       --  Set logfile name and pointer to newly created file.
+ 
+-      Facility.Log_File_Name := To_Bounded_String (Path);
++      Facility.Log_File_Name := BS_Path.To_Bounded_String (Path);
+ 
+       --  Unchecked_Access is needed here since we use a pointer which is
+       --  defined externaly in the Text_IO library.
+--- src/alog-facilities-file_descriptor.ads
++++ src/alog-facilities-file_descriptor.ads
+@@ -72,7 +72,7 @@ private
+       --  Reference to actual log file. Default is Standard_Output.
+ 
+       Log_File_Name : BS_Path.Bounded_String :=
+-        To_Bounded_String ("none");
++        BS_Path.To_Bounded_String ("none");
+       --  File name of log file.
+    end record;
+ 
+--- src/alog-facilities.ads
++++ src/alog-facilities.ads
+@@ -126,7 +126,6 @@ package Alog.Facilities is
+    --  object gets out of scope.
+ 
+    package BS_Path is new Generic_Bounded_Length (Max_Path_Length);
+-   use BS_Path;
+    --  Bounded string with length Max_Path_Length. Used in methods which
+    --  involve filesystem operations.
+ 
+-- 
+2.11.0
+
 

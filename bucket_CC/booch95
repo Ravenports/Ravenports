@@ -23,10 +23,10 @@ USES=			gmake gprbuild ada:primary
 
 DISTNAME=		bc-20160321
 
-LICENSE=		GPLv2:primary GMGPL:primary
-LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
-			GMGPL:{{WRKDIR}}/LICENSE
-LICENSE_SCHEME=		multi
+LICENSE=		GMGPL:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GMGPL:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/adabooch
 
@@ -36,6 +36,12 @@ post-patch:
 	${SED} -e 's|@PREFIX@|${PREFIX}|' ${WRKSRC}/Makefile.in \
 		> ${WRKSRC}/Makefile
 	${REINPLACE_CMD} -e '/LDFLAGS/d' ${WRKSRC}/bc.gpr
+	# solve preelaborated unit cannot depend on non-preelaborated unit
+	${REINPLACE_CMD} -e '/Preelaborate/d' \
+		${WRKSRC}/src/bc-containers-trees-avl-print.ads \
+		${WRKSRC}/src/bc-containers-trees-avl-validate.ads \
+		${WRKSRC}/src/bc-trees-avl_trees-print.ads \
+		${WRKSRC}/src/bc-trees-avl_trees-validate.ads
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/bc/lib-relocatable/libbc.so
@@ -45,7 +51,7 @@ post-install:
 
 post-extract:
 	 ${AWK} '/^package / {exit}; {print $$0}' ${WRKSRC}/src/bc.ads \
-		> ${WRKDIR}/LICENSE
+		> ${WRKDIR}/TERMS
 
 [FILE:991:descriptions/desc.primary]
 The Ada 95 Booch components are a port of Grady Booch's C++ components.

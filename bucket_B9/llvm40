@@ -2190,6 +2190,24 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
          # Versions of bfd ld < 2.23.1 have a bug in --gc-sections that breaks
 
 
+[FILE:688:patches/patch-include_llvm_ExecutionEngine_Orc_OrcRemoteTargetClient.h]
+#    Description                  : Enable LLVM build with gcc 8
+
+--- include/llvm/ExecutionEngine/Orc/OrcRemoteTargetClient.h
++++ include/llvm/ExecutionEngine/Orc/OrcRemoteTargetClient.h
+@@ -687,8 +687,8 @@ private:
+ 
+   uint32_t getTrampolineSize() const { return RemoteTrampolineSize; }
+ 
+-  Expected<std::vector<char>> readMem(char *Dst, JITTargetAddress Src,
+-                                      uint64_t Size) {
++  Expected<std::vector<uint8_t>> readMem(char *Dst, JITTargetAddress Src,
++                                         uint64_t Size) {
+     // Check for an 'out-of-band' error, e.g. from an MM destructor.
+     if (ExistingError)
+       return std::move(ExistingError);
+
+
 [FILE:569:patches/patch-include_llvm_Support_Host.h]
 --- include/llvm/Support/Host.h.orig	2016-10-13 17:43:20 UTC
 +++ include/llvm/Support/Host.h

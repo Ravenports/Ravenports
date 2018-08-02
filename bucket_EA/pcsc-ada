@@ -67,7 +67,8 @@ do-install:
 		${STAGEDIR}${STD_EXAMPLESDIR}/src \
 		${STAGEDIR}${STD_EXAMPLESDIR}/bin \
 		${STAGEDIR}${STD_DOCDIR}
-	${INSTALL_DATA} ${WRKSRC}/src/* ${STAGEDIR}${PREFIX}/include/pcscada
+	${INSTALL_DATA} ${WRKSRC}/src/*.ad[bs] \
+		${STAGEDIR}${PREFIX}/include/pcscada
 	${INSTALL_DATA} ${WRKSRC}/lib/static/* \
 		${STAGEDIR}${PREFIX}/lib/pcscada
 	${INSTALL_DATA} ${FILESDIR}/pcscada.gpr ${STAGEDIR}${PREFIX}/lib/gnat
@@ -137,6 +138,27 @@ share/doc/pcsc-ada/html/
  
     Binder_Switches := ("-E");
  
+
+
+[FILE:694:patches/patch-src_pcsc-scard.adb]
+--- src/pcsc-scard.adb.orig	2016-07-08 13:35:03 UTC
++++ src/pcsc-scard.adb
+@@ -305,7 +305,6 @@ package body PCSC.SCard is
+    -------------------------------------------------------------------------
+ 
+    function First_Item (Set : Reader_States_Set) return Reader_State is
+-      use type Ada.Containers.Count_Type;
+    begin
+       return Set.Data.First_Element;
+    end First_Item;
+@@ -517,7 +516,6 @@ package body PCSC.SCard is
+    -------------------------------------------------------------------------
+ 
+    function Last_Item (Set : Reader_States_Set) return Reader_State is
+-      use type Ada.Containers.Count_Type;
+    begin
+       return Set.Data.Last_Element;
+    end Last_Item;
 
 
 [FILE:231:files/pcscada.gpr]

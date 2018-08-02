@@ -26,7 +26,8 @@ BUILDRUN_DEPENDS=	gnatcoll:primary:standard
 USES=			gprbuild
 
 LICENSE=		GPLv3+:single
-LICENSE_FILE=		GPLv3+:{{WRKSRC}}/LICENSE
+LICENSE_TERMS=		single:{{WRKSRC}}/LICENSE
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/GPL
 LICENSE_SCHEME=		solo
 
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -44,6 +45,12 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [PY27].BUILD_DEPENDS_ON=		python-Sphinx:single:py27
 					python-sphinx_rtd_theme:single:py27
 [PY27].USES_ON=				python:py27
+
+post-patch:
+	# disable -Werror
+	${REINPLACE_CMD} -e 's|, "-gnatwe"||' \
+		${WRKSRC}/langkit/langkit/templates/project_file.mako \
+		${WRKSRC}/langkit/langkit/support/langkit_support_installed.gpr
 
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
