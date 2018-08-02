@@ -153,6 +153,13 @@ post-patch-FAMD64R12-ON:
 	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
 		${WRKSRC}/libstdc++-v3/config.h.in
 
+post-patch-SOL10-ON:
+	${REINPLACE_CMD} -e 's| install-gcc-specs||' \
+		${WRKSRC}/gcc/ada/gcc-interface/Makefile.in
+	# undo BSD thin socket modification
+	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
+		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
+
 post-extract:
 	# Personalize GNAT for each different machine
 	${ECHO} "-=> GNATCROSS ${OS_LABEL4VERS}" > ${WRKSRC}/gcc/REVISION
@@ -234,10 +241,10 @@ bin/
  %%TARGET%%-gnatxref
 
 
-[FILE:39877:patches/patch-diff-ada]
+[FILE:39248:patches/patch-diff-ada]
 --- gcc/ada/adaint.c.orig
 +++ gcc/ada/adaint.c
-@@ -1174,6 +1174,47 @@
+@@ -1187,6 +1187,47 @@
      free (pname);
    }
  
@@ -284,16 +291,7 @@ bin/
 +
  #elif defined (__linux__) || defined (__FreeBSD__) || defined (__NetBSD__) \
    || defined (__OpenBSD__) || defined (__GLIBC__) || defined (__ANDROID__) \
-   || defined (__DragonFly__)
-@@ -1460,7 +1501,7 @@
-   utimbuf.modtime = time_stamp;
- 
-   /* Set access time to now in local time.  */
--  t = time ((time_t) 0);
-+  t = time (NULL);
-   utimbuf.actime = mktime (localtime (&t));
- 
-   utime (name, &utimbuf);
+   || defined (__DragonFly__) || defined (__QNX__)
 --- gcc/ada/cio.c.orig
 +++ gcc/ada/cio.c
 @@ -49,7 +49,7 @@
@@ -307,8 +305,8 @@ bin/
  #undef fputc
 --- gcc/ada/cstreams.c.orig
 +++ gcc/ada/cstreams.c
-@@ -71,7 +71,7 @@
- #include <unixlib.h>
+@@ -67,7 +67,7 @@
+ extern "C" {
  #endif
  
 -#ifdef __linux__
@@ -316,8 +314,477 @@ bin/
  /* Don't use macros on GNU/Linux since they cause incompatible changes between
     glibc 2.0 and 2.1 */
  
+--- gcc/ada/gnatchop.adb.orig
++++ gcc/ada/gnatchop.adb
+@@ -44,7 +44,7 @@
+    Config_File_Name : constant String_Access := new String'("gnat.adc");
+    --  The name of the file holding the GNAT configuration pragmas
+ 
+-   Gcc : String_Access := new String'("gcc");
++   Gcc : String_Access := new String'("ada");
+    --  May be modified by switch --GCC=
+ 
+    Gcc_Set : Boolean := False;
+--- gcc/ada/gnatlink.adb.orig
++++ gcc/ada/gnatlink.adb
+@@ -136,7 +136,7 @@
+    --  This table collects the arguments to be passed to compile the binder
+    --  generated file.
+ 
+-   Gcc : String_Access := Program_Name ("gcc", "gnatlink");
++   Gcc : String_Access := Program_Name ("ada", "gnatlink");
+ 
+    Read_Mode : constant String := "r" & ASCII.NUL;
+ 
+--- gcc/ada/make.adb.orig
++++ gcc/ada/make.adb
+@@ -443,7 +443,7 @@
+    -- Compiler, Binder & Linker Data and Subprograms --
+    ----------------------------------------------------
+ 
+-   Gcc      : String_Access := Program_Name ("gcc", "gnatmake");
++   Gcc      : String_Access := Program_Name ("ada", "gnatmake");
+    Gnatbind : String_Access := Program_Name ("gnatbind", "gnatmake");
+    Gnatlink : String_Access := Program_Name ("gnatlink", "gnatmake");
+    --  Default compiler, binder, linker programs
+--- gcc/ada/terminals.c.orig
++++ gcc/ada/terminals.c
+@@ -32,7 +32,7 @@
+ /* First all usupported platforms. Add stubs for exported routines. */
+ 
+ #if defined (VMS) || defined (__vxworks) || defined (__Lynx__) \
+-  || defined (__ANDROID__) || defined (__PikeOS__) || defined(__DJGPP__)
++  || defined (__PikeOS__) || defined(__DJGPP__)
+ 
+ #define ATTRIBUTE_UNUSED __attribute__((unused))
+ 
+@@ -1099,7 +1099,7 @@
+  || defined (__OpenBSD__) \
+  || defined (__NetBSD__)  \
+  || defined (__DragonFly__)
+-#   define BSD
++#   define FREEBSD
+ #endif
+ 
+ /* Include every system header we need */
+@@ -1110,7 +1110,7 @@
+ 
+ /* On some system termio is either absent or including it will disable termios
+    (HP-UX) */
+-#if !defined (__hpux__) && !defined (BSD) && !defined (__APPLE__) \
++#if !defined (__hpux__) && !defined (FREEBSD) && !defined (__APPLE__) \
+   && !defined (__rtems__) && !defined (__QNXNTO__)
+ #   include <termio.h>
+ #endif
+@@ -1123,10 +1123,10 @@
+ #include <sys/types.h>
+ #include <sys/wait.h>
+ #include <unistd.h>
+-#if defined (__sun__)
++#if defined (sun)
+ #   include <sys/stropts.h>
+ #endif
+-#if defined (BSD) || defined (__sun__)
++#if defined (FREEBSD) || defined (sun)
+ #   include <sys/signal.h>
+ #endif
+ #if defined (__hpux__)
+@@ -1134,11 +1134,15 @@
+ #   include <sys/stropts.h>
+ #endif
+ 
++#ifdef __ANDROID__
++#define CDISABLE _PC_VDISABLE
++#else
+ #define CDISABLE _POSIX_VDISABLE
++#endif
+ 
+ /* On HP-UX and Sun system, there is a bzero function but with a different
+    signature. Use memset instead */
+-#if defined (__hpux__) || defined (__sun__) || defined (_AIX)
++#if defined (__hpux__) || defined (sun) || defined (_AIX)
+ #   define bzero(s,n) memset (s,0,n)
+ #endif
+ 
+@@ -1156,11 +1160,11 @@
+ */
+ 
+ /* Configurable part */
+-#if defined (__APPLE__) || defined (BSD)
++#if defined (__APPLE__) || defined (FREEBSD)
+ #define USE_OPENPTY
+-#elif defined (__linux__)
++#elif defined (linux)
+ #define USE_GETPT
+-#elif defined (__sun__)
++#elif defined (sun)
+ #define USE_CLONE_DEVICE "/dev/ptmx"
+ #elif defined (_AIX)
+ #define USE_CLONE_DEVICE "/dev/ptc"
+@@ -1446,7 +1450,7 @@
+     desc->slave_fd = open (desc->slave_name, O_RDWR, 0);
+ #endif
+ 
+-#if defined (__sun__) || defined (__hpux__)
++#if defined (sun) || defined (__hpux__)
+   /* On systems such as Solaris we are using stream. We need to push the right
+      "modules" in order to get the expected terminal behaviors. Otherwise
+      functionalities such as termios are not available.  */
 --- /dev/null
-+++ gcc/ada/g-socthi-bsd.adb
++++ gcc/ada/traceback_symbolic.c
+@@ -0,0 +1,201 @@
++/*
++  Copyright (C) 1999 by Juergen Pfeifer <juergen.pfeifer@gmx.net>
++  Ada for Linux Team (ALT)
++  Heavily modified by John Marino <http://www.dragonlace.net>
++
++  Permission is hereby granted, free of charge, to any person obtaining a
++  copy of this software and associated documentation files (the
++  "Software"), to deal in the Software without restriction, including
++  without limitation the rights to use, copy, modify, merge, publish,
++  distribute, distribute with modifications, sublicense, and/or sell
++  copies of the Software, and to permit persons to whom the Software is
++  furnished to do so, subject to the following conditions:
++
++  The above copyright notice and this permission notice shall be included
++  in all copies or substantial portions of the Software.
++
++  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
++  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
++  IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
++  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
++  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
++  THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++
++  Except as contained in this notice, the name(s) of the above copyright
++  holders shall not be used in advertising or otherwise to promote the
++  sale, use or other dealings in this Software without prior written
++  authorization.
++*/
++
++#ifdef IS_CROSS
++
++
++/*
++ * Running addr2line doesn't make sense for cross-compiled objects.
++ * Create a dummy function to satisfy g-trasym.o
++ */
++
++void
++convert_addresses (const char *file_name ATTRIBUTE_UNUSED,
++                   void *addrs ATTRIBUTE_UNUSED,
++                   int n_addr ATTRIBUTE_UNUSED,
++                   void *buf ATTRIBUTE_UNUSED,
++                   int *len ATTRIBUTE_UNUSED)
++{
++  *len = 0;
++}
++
++#else
++
++
++/*
++ * use the external program /usr/bin/addr2line to convert addresses
++ * into file names and line numbers
++ */
++
++#include <sys/types.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <string.h>
++#include <signal.h>
++
++#define CLOSE_SENDPIPE close(sendpipe[0]); close(sendpipe[1])
++#define CLOSE_READPIPE close(readpipe[0]); close(readpipe[1])
++#define DUP2CLOSE(oldfd, newfd) dup2(oldfd, newfd); close(oldfd);
++#define RESTSIG sigaction(SIGPIPE,&oact,NULL)
++
++#define MAX_LINE     1024
++#define PARENT_READ  readpipe[0]
++#define CHILD_WRITE  readpipe[1]
++#define CHILD_READ   sendpipe[0]
++#define PARENT_WRITE sendpipe[1]
++
++#if defined (__sun__)
++#define ADDR2LINE_PROG        "/usr/gnu/bin/addr2line"
++#else
++#define ADDR2LINE_PROG        "/usr/bin/addr2line"
++#endif
++
++void
++convert_addresses (const char *file_name,
++                   void *addrs,
++                   int   n_addr,
++                   void *buf,
++                   int  *len)
++{
++  int max_len = *len;
++  pid_t childpid;
++
++  struct sigaction act, oact;
++
++  int sendpipe[2] = {-1,-1},        /* parent -> child */
++      readpipe[2] = {-1,-1};        /* parent <- child */
++
++  *len = 0;
++  act.sa_handler = SIG_IGN;
++  sigemptyset(&act.sa_mask);
++  act.sa_flags = 0;
++  if (sigaction(SIGPIPE,&act,&oact) < 0)
++    return;
++
++  if (pipe(sendpipe) < 0) { RESTSIG; return; }
++  if (pipe(readpipe) < 0) { CLOSE_SENDPIPE; RESTSIG; return; }
++  if ((childpid = fork()) < 0) {
++    CLOSE_READPIPE;
++    CLOSE_SENDPIPE;
++    RESTSIG;
++    return;
++  }
++
++  if (childpid == 0) {    /* child process */
++    close(PARENT_WRITE);
++    close(PARENT_READ);
++    if ((CHILD_READ != STDIN_FILENO) && (CHILD_WRITE != STDOUT_FILENO)) {
++      if ((CHILD_READ == STDOUT_FILENO) && (CHILD_WRITE == STDIN_FILENO)) {
++        const int temp_fd = dup(CHILD_WRITE);
++        close (CHILD_WRITE);
++        DUP2CLOSE (CHILD_READ, STDIN_FILENO);
++        DUP2CLOSE (temp_fd,    STDOUT_FILENO);
++      }
++      else if ((CHILD_READ == STDIN_FILENO) && (CHILD_WRITE > 1)) {
++        DUP2CLOSE (CHILD_WRITE, STDOUT_FILENO);
++      }
++      else if ((CHILD_READ > 1) && (CHILD_WRITE == STDOUT_FILENO)) {
++        DUP2CLOSE (CHILD_READ, STDIN_FILENO);
++      }
++      else if ((CHILD_READ > 1) && (CHILD_WRITE == STDIN_FILENO)) {
++        DUP2CLOSE (CHILD_WRITE, STDOUT_FILENO);
++        DUP2CLOSE (CHILD_READ,  STDIN_FILENO);
++      }
++      else {
++        /* CHILD_READ >= 1 and CHILD_WRITE > 1 */
++        DUP2CLOSE (CHILD_READ,  STDIN_FILENO);
++        DUP2CLOSE (CHILD_WRITE, STDOUT_FILENO);
++      }
++    }
++    /* As pointed out by Florian Weimer to JP, it is a security threat to call
++       the script with a user defined environment and using the path. That
++       would be Trojans pleasure.  Therefore the absolute path to addr2line
++       and an empty environment is used. That should be safe.
++    */
++    char *const argv[] = { "addr2line",
++                           "-e", file_name,
++                           "--demangle=gnat",
++                           "--functions",
++                           "--basenames",
++                           NULL };
++    char *const envp[] = { NULL };
++    if (execve(ADDR2LINE_PROG, argv, envp) < 0) {
++      close (CHILD_WRITE);
++      close (CHILD_READ);
++      RESTSIG;
++      exit (1);
++    }
++  }
++
++  /* Below this line is parent process */
++  int i, n;
++  char hex[16];
++  char line[MAX_LINE + 1];
++  char *p;
++  char *s = buf;
++  long *trace_address = addrs;
++
++  close(CHILD_WRITE);
++  close(CHILD_READ);
++
++  for(i=0; i < n_addr; i++) {
++    snprintf(hex,sizeof(hex),"%#lx\n",*trace_address);
++    write(PARENT_WRITE,hex,strlen(hex));
++    n = read(PARENT_READ,line,MAX_LINE);
++    if (n<=0)
++      break;
++
++    line[n]=0;
++    /* We have approx. 16 additional chars for "%#lx in " clause.
++       We use this info to prevent a buffer overrun. */
++    if (n + 16 + (*len) > max_len)
++      break;
++
++    p = strchr(line,'\n');
++    if (p) {
++      if (*(p+1)) {
++        *p = 0;
++        *len += snprintf(s, (max_len - (*len)), "%#lx in %s at %s",
++                         *trace_address, line, p+1);
++      }
++      else {
++        *len += snprintf(s, (max_len - (*len)), "%#lx at %s",
++                         *trace_address, line);
++      }
++      s = buf + (*len);
++    }
++    trace_address += 1;
++  }
++  close (PARENT_WRITE);
++  close (PARENT_READ);
++  RESTSIG;
++}
++
++#endif
+--- gcc/ada/gcc-interface/Makefile.in.orig
++++ gcc/ada/gcc-interface/Makefile.in
+@@ -885,6 +885,7 @@
+   s-linux.ads<libgnarl/s-linux__android.ads \
+   s-osinte.adb<libgnarl/s-osinte__android.adb \
+   s-osinte.ads<libgnarl/s-osinte__android.ads \
++  g-socthi.adb<libgnat/g-socthi__bsd.adb \
+   s-osprim.adb<libgnat/s-osprim__posix.adb \
+   s-taprop.adb<libgnarl/s-taprop__posix.adb \
+   s-taspri.ads<libgnarl/s-taspri__posix.ads \
+@@ -977,6 +978,7 @@
+   s-osinte.adb<libgnarl/s-osinte__solaris.adb \
+   s-osinte.ads<libgnarl/s-osinte__solaris.ads \
+   s-osprim.adb<libgnat/s-osprim__solaris.adb \
++  s-trasym.adb<libgnat/s-trasym__bsd.adb \
+   s-taprop.adb<libgnarl/s-taprop__solaris.adb \
+   s-tasinf.adb<libgnarl/s-tasinf__solaris.adb \
+   s-tasinf.ads<libgnarl/s-tasinf__solaris.ads \
+@@ -1009,6 +1011,8 @@
+   EXTRA_GNATRTL_NONTASKING_OBJS += $(TRASYM_DWARF_UNIX_OBJS)
+ 
+   EH_MECHANISM=-gcc
++  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
++  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
+   THREADSLIB = -lposix4 -lthread
+   MISCLIB = -lposix4 -lnsl -lsocket
+   SO_OPTS = -Wl,-h,
+@@ -1146,6 +1150,38 @@
+   LIBRARY_VERSION := $(LIB_VERSION)
+ endif
+ 
++# x86 android
++ifeq ($(strip $(filter-out %86 linux-android,$(target_cpu) $(target_os))),)
++  LIBGNAT_TARGET_PAIRS = \
++  a-intnam.ads<libgnarl/a-intnam__linux.ads \
++  s-inmaop.adb<libgnarl/s-inmaop__posix.adb \
++  s-intman.adb<libgnarl/s-intman__posix.adb \
++  s-linux.ads<libgnarl/s-linux__android.ads \
++  s-osinte.adb<libgnarl/s-osinte__android.adb \
++  s-osinte.ads<libgnarl/s-osinte__android.ads \
++  g-socthi.adb<libgnat/g-socthi__bsd.adb \
++  s-osprim.adb<libgnat/s-osprim__posix.adb \
++  s-taprop.adb<libgnarl/s-taprop__posix.adb \
++  s-taspri.ads<libgnarl/s-taspri__posix.ads \
++  s-tpopsp.adb<libgnarl/s-tpopsp__posix-foreign.adb \
++  $(ATOMICS_TARGET_PAIRS) \
++  $(ATOMICS_BUILTINS_TARGET_PAIRS) \
++  system.ads<libgnat/system-linux-x86.ads
++
++  TOOLS_TARGET_PAIRS = indepsw.adb<indepsw-gnu.adb
++
++  EXTRA_LIBGNAT_OBJS=
++  EXTRA_GNATRTL_TASKING_OBJS=s-linux.o
++  EXTRA_GNATRTL_NONTASKING_OBJS=
++  EH_MECHANISM=-gcc
++  THREADSLIB=
++  MISCLIB=
++  GMEM_LIB=
++  GNATLIB_SHARED = gnatlib-shared-dual
++  LIBRARY_VERSION := $(LIB_VERSION)
++endif
++
++
+ # aarch64 FreeBSD
+ ifeq ($(strip $(filter-out %aarch64 freebsd%,$(target_cpu) $(target_os))),)
+   LIBGNAT_TARGET_PAIRS = \
+@@ -1155,7 +1191,9 @@
+   s-mudido.adb<libgnarl/s-mudido__affinity.adb \
+   s-osinte.adb<libgnarl/s-osinte__freebsd.adb \
+   s-osinte.ads<libgnarl/s-osinte__freebsd.ads \
++  g-socthi.adb<libgnat/g-socthi__bsd.adb \
+   s-osprim.adb<libgnat/s-osprim__posix.adb \
++  s-trasym.adb<libgnat/s-trasym__bsd.adb \
+   s-taprop.adb<libgnarl/s-taprop__posix.adb \
+   s-taspri.ads<libgnarl/s-taspri__posix.ads \
+   s-tpopsp.adb<libgnarl/s-tpopsp__posix.adb \
+@@ -1165,6 +1203,9 @@
+ 
+   GNATLIB_SHARED = gnatlib-shared-dual
+ 
++  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
++  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
++
+   EH_MECHANISM=-gcc
+   THREADSLIB= -lpthread
+   GMEM_LIB = gmemlib
+@@ -1181,7 +1222,9 @@
+   s-mudido.adb<libgnarl/s-mudido__affinity.adb \
+   s-osinte.adb<libgnarl/s-osinte__freebsd.adb \
+   s-osinte.ads<libgnarl/s-osinte__freebsd.ads \
++  g-socthi.adb<libgnat/g-socthi__bsd.adb \
+   s-osprim.adb<libgnat/s-osprim__posix.adb \
++  s-trasym.adb<libgnat/s-trasym__bsd.adb \
+   s-taprop.adb<libgnarl/s-taprop__posix.adb \
+   s-taspri.ads<libgnarl/s-taspri__posix.ads \
+   s-tpopsp.adb<libgnarl/s-tpopsp__posix.adb \
+@@ -1192,6 +1235,8 @@
+ 
+   GNATLIB_SHARED = gnatlib-shared-dual
+ 
++  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
++  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
+   EXTRA_GNATRTL_NONTASKING_OBJS += g-sse.o g-ssvety.o
+   EXTRA_GNATRTL_NONTASKING_OBJS += $(TRASYM_DWARF_UNIX_OBJS)
+ 
+@@ -1211,7 +1256,9 @@
+   s-mudido.adb<libgnarl/s-mudido__affinity.adb \
+   s-osinte.adb<libgnarl/s-osinte__freebsd.adb \
+   s-osinte.ads<libgnarl/s-osinte__freebsd.ads \
++  g-socthi.adb<libgnat/g-socthi__bsd.adb \
+   s-osprim.adb<libgnat/s-osprim__posix.adb \
++  s-trasym.adb<libgnat/s-trasym__bsd.adb \
+   s-taprop.adb<libgnarl/s-taprop__posix.adb \
+   s-taspri.ads<libgnarl/s-taspri__posix.ads \
+   s-tpopsp.adb<libgnarl/s-tpopsp__posix.adb \
+@@ -1222,6 +1269,8 @@
+ 
+   GNATLIB_SHARED = gnatlib-shared-dual
+ 
++  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
++  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
+   EXTRA_GNATRTL_NONTASKING_OBJS += g-sse.o g-ssvety.o
+   EXTRA_GNATRTL_NONTASKING_OBJS += $(TRASYM_DWARF_UNIX_OBJS)
+ 
+@@ -1241,17 +1290,23 @@
+   s-mudido.adb<libgnarl/s-mudido__affinity.adb \
+   s-osinte.adb<libgnarl/s-osinte__dragonfly.adb \
+   s-osinte.ads<libgnarl/s-osinte__dragonfly.ads \
++  g-socthi.adb<libgnat/g-socthi__bsd.adb \
+   s-osprim.adb<libgnat/s-osprim__posix.adb \
++  s-trasym.adb<libgnat/s-trasym__bsd.adb \
+   s-taprop.adb<libgnarl/s-taprop__posix.adb \
+   s-taspri.ads<libgnarl/s-taspri__posix.ads \
+   s-tpopsp.adb<libgnarl/s-tpopsp__posix.adb \
++  $(TRASYM_DWARF_UNIX_PAIRS) \
+   $(ATOMICS_TARGET_PAIRS) \
+   $(X86_64_TARGET_PAIRS) \
+   system.ads<libgnat/system-dragonfly-x86_64.ads
+ 
+   GNATLIB_SHARED = gnatlib-shared-dual
+ 
+-  EXTRA_GNATRTL_NONTASKING_OBJS=g-sse.o g-ssvety.o
++  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
++  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
++  EXTRA_GNATRTL_NONTASKING_OBJS += g-sse.o g-ssvety.o
++  EXTRA_GNATRTL_NONTASKING_OBJS += $(TRASYM_DWARF_UNIX_OBJS)
+ 
+   EH_MECHANISM=-gcc
+   THREADSLIB= -lpthread
+--- /dev/null
++++ gcc/ada/libgnat/g-socthi__bsd.adb
 @@ -0,0 +1,356 @@
 +------------------------------------------------------------------------------
 +--                                                                          --
@@ -327,7 +794,7 @@ bin/
 +--                                                                          --
 +--                                 B o d y                                  --
 +--                                                                          --
-+--                     Copyright (C) 2001-2013, AdaCore                     --
++--                     Copyright (C) 2001-2018, AdaCore                     --
 +--                                                                          --
 +-- GNAT is free software;  you can  redistribute it  and/or modify it under --
 +-- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -570,7 +1037,7 @@ bin/
 +      Flags : C.int) return System.CRTL.ssize_t
 +   is
 +   begin
-+      return  Syscall_Recvmsg (S, Msg, Flags);
++      return Syscall_Recvmsg (S, Msg, Flags);
 +   end C_Recvmsg;
 +
 +   ---------------
@@ -675,104 +1142,9 @@ bin/
 +   function Socket_Error_Message (Errno : Integer) return String is separate;
 +
 +end GNAT.Sockets.Thin;
---- gcc/ada/gnatchop.adb.orig
-+++ gcc/ada/gnatchop.adb
-@@ -44,7 +44,7 @@
-    Config_File_Name : constant String_Access := new String'("gnat.adc");
-    --  The name of the file holding the GNAT configuration pragmas
- 
--   Gcc : String_Access := new String'("gcc");
-+   Gcc : String_Access := new String'("ada");
-    --  May be modified by switch --GCC=
- 
-    Gcc_Set : Boolean := False;
---- gcc/ada/gnatlink.adb.orig
-+++ gcc/ada/gnatlink.adb
-@@ -136,7 +136,7 @@
-    --  This table collects the arguments to be passed to compile the binder
-    --  generated file.
- 
--   Gcc : String_Access := Program_Name ("gcc", "gnatlink");
-+   Gcc : String_Access := Program_Name ("ada", "gnatlink");
- 
-    Read_Mode : constant String := "r" & ASCII.NUL;
- 
---- gcc/ada/make.adb.orig
-+++ gcc/ada/make.adb
-@@ -670,7 +670,7 @@
-    -- Compiler, Binder & Linker Data and Subprograms --
-    ----------------------------------------------------
- 
--   Gcc      : String_Access := Program_Name ("gcc", "gnatmake");
-+   Gcc      : String_Access := Program_Name ("ada", "gnatmake");
-    Gnatbind : String_Access := Program_Name ("gnatbind", "gnatmake");
-    Gnatlink : String_Access := Program_Name ("gnatlink", "gnatmake");
-    --  Default compiler, binder, linker programs
---- gcc/ada/mlib-prj.adb.orig
-+++ gcc/ada/mlib-prj.adb
-@@ -335,6 +335,11 @@
- 
-       Foreign_Sources : Boolean;
- 
-+      Rpath_Disabled : Boolean := False;
-+      --  If -R is passed through the library options for the linker, it will
-+      --  prevent the implemented libraries portion of the rpath switch from
-+      --  being built, even if the linker is capable of supporting rpath.
-+
-       Rpath : String_Access := null;
-       --  Allocated only if Path Option is supported
- 
-@@ -768,7 +773,7 @@
-             Opts.Table (Opts.Last) :=
-               new String'("-L" & Name_Buffer (1 .. Name_Len));
- 
--            if Path_Option /= null then
-+            if not Rpath_Disabled and then Path_Option /= null then
-                Add_Rpath (Name_Buffer (1 .. Name_Len));
-             end if;
- 
-@@ -1299,9 +1304,13 @@
-                   Get_Name_String (Element.Value);
- 
-                   if Name_Len /= 0 then
--                     Opts.Increment_Last;
--                     Opts.Table (Opts.Last) :=
--                       new String'(Name_Buffer (1 .. Name_Len));
-+                     if Name_Buffer (1 .. Name_Len) = "-R" then
-+                        Rpath_Disabled := True;
-+                     else
-+                        Opts.Increment_Last;
-+                        Opts.Table (Opts.Last) :=
-+                          new String'(Name_Buffer (1 .. Name_Len));
-+                     end if;
-                   end if;
- 
-                   Current := Element.Next;
---- gcc/ada/mlib-utl.adb.orig
-+++ gcc/ada/mlib-utl.adb
-@@ -446,7 +446,7 @@
-       if Driver_Name = No_Name then
-          if Gcc_Exec = null then
-             if Gcc_Name = null then
--               Gcc_Name := Osint.Program_Name ("gcc", "gnatmake");
-+               Gcc_Name := Osint.Program_Name ("ada", "gnatmake");
-             end if;
- 
-             Gcc_Exec := Locate_Exec_On_Path (Gcc_Name.all);
---- gcc/ada/prj-makr.adb.orig
-+++ gcc/ada/prj-makr.adb
-@@ -115,7 +115,7 @@
- 
-    procedure Dup2 (Old_Fd, New_Fd : File_Descriptor);
- 
--   Gcc      : constant String := "gcc";
-+   Gcc      : constant String := "ada";
-    Gcc_Path : String_Access := null;
- 
-    Non_Empty_Node : constant Project_Node_Id := 1;
 --- /dev/null
-+++ gcc/ada/s-trasym-bsd.adb
-@@ -0,0 +1,151 @@
++++ gcc/ada/libgnat/s-trasym__bsd.adb
+@@ -0,0 +1,175 @@
 +------------------------------------------------------------------------------
 +--                                                                          --
 +--                         GNAT RUN-TIME COMPONENTS                         --
@@ -781,25 +1153,23 @@ bin/
 +--                                                                          --
 +--                                 B o d y                                  --
 +--                                                                          --
-+--                     Copyright (C) 1999-2009, AdaCore                     --
++--                     Copyright (C) 1999-2018, AdaCore                     --
 +--                                                                          --
 +-- GNAT is free software;  you can  redistribute it  and/or modify it under --
 +-- terms of the  GNU General Public License as published  by the Free Soft- --
-+-- ware  Foundation;  either version 2,  or (at your option) any later ver- --
++-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
 +-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
 +-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
-+-- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
-+-- for  more details.  You should have  received  a copy of the GNU General --
-+-- Public License  distributed with GNAT;  see file COPYING.  If not, write --
-+-- to  the  Free Software Foundation,  51  Franklin  Street,  Fifth  Floor, --
-+-- Boston, MA 02110-1301, USA.                                              --
++-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
 +--                                                                          --
-+-- As a special exception,  if other files  instantiate  generics from this --
-+-- unit, or you link  this unit with other files  to produce an executable, --
-+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
-+-- covered  by the  GNU  General  Public  License.  This exception does not --
-+-- however invalidate  any other reasons why  the executable file  might be --
-+-- covered by the  GNU Public License.                                      --
++-- As a special exception under Section 7 of GPL version 3, you are granted --
++-- additional permissions described in the GCC Runtime Library Exception,   --
++-- version 3.1, as published by the Free Software Foundation.               --
++--                                                                          --
++-- You should have received a copy of the GNU General Public License and    --
++-- a copy of the GCC Runtime Library Exception along with this program;     --
++-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
++-- <http://www.gnu.org/licenses/>.                                          --
 +--                                                                          --
 +-- GNAT was originally developed  by the GNAT team at  New York University. --
 +-- Extensive contributions were provided by Ada Core Technologies Inc.      --
@@ -811,10 +1181,16 @@ bin/
 +--  today to provide symbolic traceback support for gnu/kFreeBSD.
 +--  Incorporated in GNAT-AUX by John Marino <http://www.dragonlace.net>
 +
-+with System.Soft_Links;
++pragma Polling (Off);
++--  We must turn polling off for this unit, because otherwise we can get
++--  elaboration circularities when polling is turned on.
++
 +with Ada.Exceptions.Traceback; use Ada.Exceptions.Traceback;
++with System.Soft_Links;
 +
 +package body System.Traceback.Symbolic is
++
++   --  Note that Suppress_Hex is ignored in this version of this package.
 +
 +   package TSL renames System.Soft_Links;
 +
@@ -839,8 +1215,9 @@ bin/
 +   -- Symbolic_Traceback --
 +   ------------------------
 +
-+   function Symbolic_Traceback (Traceback : Tracebacks_Array) return String is
-+
++   function Symbolic_Traceback
++     (Traceback : System.Traceback_Entries.Tracebacks_Array) return String
++   is
 +      procedure convert_addresses
 +        (filename : System.Address;
 +         addrs    : System.Address;
@@ -868,12 +1245,7 @@ bin/
 +      Len    : Integer := B_Size;
 +      Res    : String (1 .. B_Size);
 +
-+      use type System.Address;
-+
 +   begin
-+      --  The symbolic translation of an empty set of addresses is an empty
-+      --  string.
-+
 +      if Traceback'Length = 0 then
 +         return "";
 +      end if;
@@ -914,445 +1286,43 @@ bin/
 +      else
 +         return "";
 +      end if;
-+
 +   end Symbolic_Traceback;
 +
++   --  "No_Hex" is ignored in this version, because otherwise we have nothing
++   --  at all to print.
++
++   function Symbolic_Traceback_No_Hex
++     (Traceback : System.Traceback_Entries.Tracebacks_Array) return String is
++   begin
++      return Symbolic_Traceback (Traceback);
++   end Symbolic_Traceback_No_Hex;
++
 +   function Symbolic_Traceback
-+     (E : Ada.Exceptions.Exception_Occurrence) return String is
++     (E : Ada.Exceptions.Exception_Occurrence) return String
++   is
 +   begin
 +      return Symbolic_Traceback (Tracebacks (E));
 +   end Symbolic_Traceback;
 +
++   function Symbolic_Traceback_No_Hex
++     (E : Ada.Exceptions.Exception_Occurrence) return String is
++   begin
++      return Symbolic_Traceback (E);
++   end Symbolic_Traceback_No_Hex;
++
++   ------------------
++   -- Enable_Cache --
++   ------------------
++
++   procedure Enable_Cache (Include_Modules : Boolean := False) is
++   begin
++      null;
++   end Enable_Cache;
++
 +end System.Traceback.Symbolic;
---- gcc/ada/terminals.c.orig
-+++ gcc/ada/terminals.c
-@@ -32,7 +32,7 @@
- /* First all usupported platforms. Add stubs for exported routines. */
- 
- #if defined (VMS) || defined (__vxworks) || defined (__Lynx__) \
--  || defined (__ANDROID__) || defined (__PikeOS__) || defined(__DJGPP__)
-+  || defined (__PikeOS__) || defined(__DJGPP__)
- 
- #define ATTRIBUTE_UNUSED __attribute__((unused))
- 
-@@ -1052,7 +1052,7 @@
-  || defined (__OpenBSD__) \
-  || defined (__NetBSD__)  \
-  || defined (__DragonFly__)
--#   define BSD
-+#   define FREEBSD
- #endif
- 
- /* Include every system header we need */
-@@ -1063,8 +1063,8 @@
- 
- /* On some system termio is either absent or including it will disable termios
-    (HP-UX) */
--#if !defined (__hpux__) && !defined (BSD) && !defined (__APPLE__) \
--  && !defined (__rtems__)
-+#if ! defined (__hpux__) && ! defined (FREEBSD) && \
-+    ! defined (__APPLE__) && ! defined(__rtems__)
- #   include <termio.h>
- #endif
- 
-@@ -1076,10 +1076,10 @@
- #include <sys/types.h>
- #include <sys/wait.h>
- #include <unistd.h>
--#if defined (__sun__)
-+#if defined (sun)
- #   include <sys/stropts.h>
- #endif
--#if defined (BSD) || defined (__sun__)
-+#if defined (FREEBSD) || defined (sun)
- #   include <sys/signal.h>
- #endif
- #if defined (__hpux__)
-@@ -1087,11 +1087,15 @@
- #   include <sys/stropts.h>
- #endif
- 
-+#ifdef __ANDROID__
-+#define CDISABLE _PC_VDISABLE
-+#else
- #define CDISABLE _POSIX_VDISABLE
-+#endif
- 
- /* On HP-UX and Sun system, there is a bzero function but with a different
-    signature. Use memset instead */
--#if defined (__hpux__) || defined (__sun__) || defined (_AIX)
-+#if defined (__hpux__) || defined (sun) || defined (_AIX)
- #   define bzero(s,n) memset (s,0,n)
- #endif
- 
-@@ -1109,11 +1113,11 @@
- */
- 
- /* Configurable part */
--#if defined (__APPLE__) || defined (BSD)
-+#if defined (__APPLE__) || defined (FREEBSD)
- #define USE_OPENPTY
--#elif defined (__linux__)
-+#elif defined (linux)
- #define USE_GETPT
--#elif defined (__sun__)
-+#elif defined (sun)
- #define USE_CLONE_DEVICE "/dev/ptmx"
- #elif defined (_AIX)
- #define USE_CLONE_DEVICE "/dev/ptc"
-@@ -1399,7 +1403,7 @@
-     desc->slave_fd = open (desc->slave_name, O_RDWR, 0);
- #endif
- 
--#if defined (__sun__) || defined (__hpux__)
-+#if defined (sun) || defined (__hpux__)
-   /* On systems such as Solaris we are using stream. We need to push the right
-      "modules" in order to get the expected terminal behaviors. Otherwise
-      functionalities such as termios are not available.  */
---- /dev/null
-+++ gcc/ada/traceback_symbolic.c
-@@ -0,0 +1,201 @@
-+/*
-+  Copyright (C) 1999 by Juergen Pfeifer <juergen.pfeifer@gmx.net>
-+  Ada for Linux Team (ALT)
-+  Heavily modified by John Marino <http://www.dragonlace.net>
-+
-+  Permission is hereby granted, free of charge, to any person obtaining a
-+  copy of this software and associated documentation files (the
-+  "Software"), to deal in the Software without restriction, including
-+  without limitation the rights to use, copy, modify, merge, publish,
-+  distribute, distribute with modifications, sublicense, and/or sell
-+  copies of the Software, and to permit persons to whom the Software is
-+  furnished to do so, subject to the following conditions:
-+
-+  The above copyright notice and this permission notice shall be included
-+  in all copies or substantial portions of the Software.
-+
-+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-+  IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-+  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-+  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
-+  THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-+
-+  Except as contained in this notice, the name(s) of the above copyright
-+  holders shall not be used in advertising or otherwise to promote the
-+  sale, use or other dealings in this Software without prior written
-+  authorization.
-+*/
-+
-+#ifdef IS_CROSS
-+
-+
-+/*
-+ * Running addr2line doesn't make sense for cross-compiled objects.
-+ * Create a dummy function to satisfy g-trasym.o
-+ */
-+
-+void
-+convert_addresses (const char *file_name ATTRIBUTE_UNUSED,
-+                   void *addrs ATTRIBUTE_UNUSED,
-+                   int n_addr ATTRIBUTE_UNUSED,
-+                   void *buf ATTRIBUTE_UNUSED,
-+                   int *len ATTRIBUTE_UNUSED)
-+{
-+  *len = 0;
-+}
-+
-+#else
-+
-+
-+/*
-+ * use the external program /usr/bin/addr2line to convert addresses
-+ * into file names and line numbers
-+ */
-+
-+#include <sys/types.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <signal.h>
-+
-+#define CLOSE_SENDPIPE close(sendpipe[0]); close(sendpipe[1])
-+#define CLOSE_READPIPE close(readpipe[0]); close(readpipe[1])
-+#define DUP2CLOSE(oldfd, newfd) dup2(oldfd, newfd); close(oldfd);
-+#define RESTSIG sigaction(SIGPIPE,&oact,NULL)
-+
-+#define MAX_LINE     1024
-+#define PARENT_READ  readpipe[0]
-+#define CHILD_WRITE  readpipe[1]
-+#define CHILD_READ   sendpipe[0]
-+#define PARENT_WRITE sendpipe[1]
-+
-+#if defined (__sun__)
-+#define ADDR2LINE_PROG        "/usr/gnu/bin/addr2line"
-+#else
-+#define ADDR2LINE_PROG        "/usr/bin/addr2line"
-+#endif
-+
-+void
-+convert_addresses (const char *file_name,
-+                   void *addrs,
-+                   int   n_addr,
-+                   void *buf,
-+                   int  *len)
-+{
-+  int max_len = *len;
-+  pid_t childpid;
-+
-+  struct sigaction act, oact;
-+
-+  int sendpipe[2] = {-1,-1},        /* parent -> child */
-+      readpipe[2] = {-1,-1};        /* parent <- child */
-+
-+  *len = 0;
-+  act.sa_handler = SIG_IGN;
-+  sigemptyset(&act.sa_mask);
-+  act.sa_flags = 0;
-+  if (sigaction(SIGPIPE,&act,&oact) < 0)
-+    return;
-+
-+  if (pipe(sendpipe) < 0) { RESTSIG; return; }
-+  if (pipe(readpipe) < 0) { CLOSE_SENDPIPE; RESTSIG; return; }
-+  if ((childpid = fork()) < 0) {
-+    CLOSE_READPIPE;
-+    CLOSE_SENDPIPE;
-+    RESTSIG;
-+    return;
-+  }
-+
-+  if (childpid == 0) {    /* child process */
-+    close(PARENT_WRITE);
-+    close(PARENT_READ);
-+    if ((CHILD_READ != STDIN_FILENO) && (CHILD_WRITE != STDOUT_FILENO)) {
-+      if ((CHILD_READ == STDOUT_FILENO) && (CHILD_WRITE == STDIN_FILENO)) {
-+        const int temp_fd = dup(CHILD_WRITE);
-+        close (CHILD_WRITE);
-+        DUP2CLOSE (CHILD_READ, STDIN_FILENO);
-+        DUP2CLOSE (temp_fd,    STDOUT_FILENO);
-+      }
-+      else if ((CHILD_READ == STDIN_FILENO) && (CHILD_WRITE > 1)) {
-+        DUP2CLOSE (CHILD_WRITE, STDOUT_FILENO);
-+      }
-+      else if ((CHILD_READ > 1) && (CHILD_WRITE == STDOUT_FILENO)) {
-+        DUP2CLOSE (CHILD_READ, STDIN_FILENO);
-+      }
-+      else if ((CHILD_READ > 1) && (CHILD_WRITE == STDIN_FILENO)) {
-+        DUP2CLOSE (CHILD_WRITE, STDOUT_FILENO);
-+        DUP2CLOSE (CHILD_READ,  STDIN_FILENO);
-+      }
-+      else {
-+        /* CHILD_READ >= 1 and CHILD_WRITE > 1 */
-+        DUP2CLOSE (CHILD_READ,  STDIN_FILENO);
-+        DUP2CLOSE (CHILD_WRITE, STDOUT_FILENO);
-+      }
-+    }
-+    /* As pointed out by Florian Weimer to JP, it is a security threat to call
-+       the script with a user defined environment and using the path. That
-+       would be Trojans pleasure.  Therefore the absolute path to addr2line
-+       and an empty environment is used. That should be safe.
-+    */
-+    char *const argv[] = { "addr2line",
-+                           "-e", file_name,
-+                           "--demangle=gnat",
-+                           "--functions",
-+                           "--basenames",
-+                           NULL };
-+    char *const envp[] = { NULL };
-+    if (execve(ADDR2LINE_PROG, argv, envp) < 0) {
-+      close (CHILD_WRITE);
-+      close (CHILD_READ);
-+      RESTSIG;
-+      exit (1);
-+    }
-+  }
-+
-+  /* Below this line is parent process */
-+  int i, n;
-+  char hex[16];
-+  char line[MAX_LINE + 1];
-+  char *p;
-+  char *s = buf;
-+  long *trace_address = addrs;
-+
-+  close(CHILD_WRITE);
-+  close(CHILD_READ);
-+
-+  for(i=0; i < n_addr; i++) {
-+    snprintf(hex,sizeof(hex),"%#lx\n",*trace_address);
-+    write(PARENT_WRITE,hex,strlen(hex));
-+    n = read(PARENT_READ,line,MAX_LINE);
-+    if (n<=0)
-+      break;
-+
-+    line[n]=0;
-+    /* We have approx. 16 additional chars for "%#lx in " clause.
-+       We use this info to prevent a buffer overrun. */
-+    if (n + 16 + (*len) > max_len)
-+      break;
-+
-+    p = strchr(line,'\n');
-+    if (p) {
-+      if (*(p+1)) {
-+        *p = 0;
-+        *len += snprintf(s, (max_len - (*len)), "%#lx in %s at %s",
-+                         *trace_address, line, p+1);
-+      }
-+      else {
-+        *len += snprintf(s, (max_len - (*len)), "%#lx at %s",
-+                         *trace_address, line);
-+      }
-+      s = buf + (*len);
-+    }
-+    trace_address += 1;
-+  }
-+  close (PARENT_WRITE);
-+  close (PARENT_READ);
-+  RESTSIG;
-+}
-+
-+#endif
---- gcc/ada/gcc-interface/Makefile.in.orig
-+++ gcc/ada/gcc-interface/Makefile.in
-@@ -1223,6 +1223,7 @@
- ifeq ($(strip $(filter-out arm% linux-androideabi,$(target_cpu) $(target_os))),)
-   LIBGNAT_TARGET_PAIRS = \
-   a-intnam.ads<a-intnam-linux.ads \
-+  g-socthi.adb<g-socthi-bsd.adb \
-   s-inmaop.adb<s-inmaop-posix.adb \
-   s-intman.adb<s-intman-android.adb \
-   s-linux.ads<s-linux-android.ads \
-@@ -1307,6 +1308,7 @@
-   a-intnam.ads<a-intnam-solaris.ads \
-   s-inmaop.adb<s-inmaop-posix.adb \
-   s-intman.adb<s-intman-solaris.adb \
-+  s-trasym.adb<s-trasym-bsd.adb \
-   s-mudido.adb<s-mudido-affinity.adb \
-   s-osinte.adb<s-osinte-solaris.adb \
-   s-osinte.ads<s-osinte-solaris.ads \
-@@ -1343,6 +1345,8 @@
-   EXTRA_GNATRTL_NONTASKING_OBJS += g-sse.o g-ssvety.o
- 
-   EH_MECHANISM=-gcc
-+  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
-+  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
-   THREADSLIB = -lposix4 -lthread
-   MISCLIB = -lposix4 -lnsl -lsocket
-   SO_OPTS = -Wl,-h,
-@@ -1491,10 +1495,45 @@
-   LIBRARY_VERSION := $(LIB_VERSION)
- endif
- 
-+# x86 android
-+ifeq ($(strip $(filter-out %86 linux-android,$(target_cpu) $(target_os))),)
-+  LIBGNAT_TARGET_PAIRS = \
-+  a-intnam.ads<a-intnam-linux.ads \
-+  g-socthi.adb<g-socthi-bsd.adb \
-+  s-inmaop.adb<s-inmaop-posix.adb \
-+  s-intman.adb<s-intman-posix.adb \
-+  s-linux.ads<s-linux-android.ads \
-+  s-osinte.adb<s-osinte-android.adb \
-+  s-osinte.ads<s-osinte-android.ads \
-+  s-osprim.adb<s-osprim-posix.adb \
-+  s-taprop.adb<s-taprop-posix.adb \
-+  s-taspri.ads<s-taspri-posix.ads \
-+  s-tpopsp.adb<s-tpopsp-posix-foreign.adb \
-+  $(ATOMICS_TARGET_PAIRS) \
-+  $(X86_TARGET_PAIRS) \
-+  system.ads<system-linux-x86.ads
-+
-+  TOOLS_TARGET_PAIRS =  \
-+    mlib-tgt-specific.adb<mlib-tgt-specific-linux.adb \
-+    indepsw.adb<indepsw-gnu.adb
-+
-+  EXTRA_LIBGNAT_OBJS=
-+  EXTRA_GNATRTL_TASKING_OBJS=s-linux.o
-+  EXTRA_GNATRTL_NONTASKING_OBJS=
-+  EH_MECHANISM=-gcc
-+  THREADSLIB=
-+  MISCLIB=
-+  GMEM_LIB=
-+  GNATLIB_SHARED = gnatlib-shared-dual
-+  LIBRARY_VERSION := $(LIB_VERSION)
-+endif
-+
- # aarch64 FreeBSD
- ifeq ($(strip $(filter-out %aarch64 freebsd%,$(target_cpu) $(target_os))),)
-   LIBGNAT_TARGET_PAIRS = \
-   a-intnam.ads<a-intnam-freebsd.ads \
-+  g-socthi.adb<g-socthi-bsd.adb \
-+  s-trasym.adb<s-trasym-bsd.adb \
-   s-inmaop.adb<s-inmaop-posix.adb \
-   s-intman.adb<s-intman-posix.adb \
-   s-mudido.adb<s-mudido-affinity.adb \
-@@ -1512,6 +1551,9 @@
-   mlib-tgt-specific.adb<mlib-tgt-specific-linux.adb
-   GNATLIB_SHARED = gnatlib-shared-dual
- 
-+  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
-+  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
-+
-   EH_MECHANISM=-gcc
-   THREADSLIB= -lpthread
-   GMEM_LIB = gmemlib
-@@ -1523,6 +1565,8 @@
- ifeq ($(strip $(filter-out %86 freebsd%,$(target_cpu) $(target_os))),)
-   LIBGNAT_TARGET_PAIRS = \
-   a-intnam.ads<a-intnam-freebsd.ads \
-+  g-socthi.adb<g-socthi-bsd.adb \
-+  s-trasym.adb<s-trasym-bsd.adb \
-   s-inmaop.adb<s-inmaop-posix.adb \
-   s-intman.adb<s-intman-posix.adb \
-   s-mudido.adb<s-mudido-affinity.adb \
-@@ -1540,6 +1584,8 @@
-   mlib-tgt-specific.adb<mlib-tgt-specific-linux.adb
-   GNATLIB_SHARED = gnatlib-shared-dual
- 
-+  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
-+  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
-   EXTRA_GNATRTL_NONTASKING_OBJS += g-sse.o g-ssvety.o
- 
-   EH_MECHANISM=-gcc
-@@ -1553,6 +1599,8 @@
- ifeq ($(strip $(filter-out %86_64 freebsd%,$(target_cpu) $(target_os))),)
-   LIBGNAT_TARGET_PAIRS = \
-   a-intnam.ads<a-intnam-freebsd.ads \
-+  g-socthi.adb<g-socthi-bsd.adb \
-+  s-trasym.adb<s-trasym-bsd.adb \
-   s-inmaop.adb<s-inmaop-posix.adb \
-   s-intman.adb<s-intman-posix.adb \
-   s-mudido.adb<s-mudido-affinity.adb \
-@@ -1570,6 +1618,8 @@
-   mlib-tgt-specific.adb<mlib-tgt-specific-linux.adb
-   GNATLIB_SHARED = gnatlib-shared-dual
- 
-+  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
-+  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
-   EXTRA_GNATRTL_NONTASKING_OBJS += g-sse.o g-ssvety.o
- 
-   EH_MECHANISM=-gcc
-@@ -1583,6 +1633,8 @@
- ifeq ($(strip $(filter-out %86_64 dragonfly%,$(target_cpu) $(target_os))),)
-   LIBGNAT_TARGET_PAIRS = \
-   a-intnam.ads<a-intnam-dragonfly.ads \
-+  g-socthi.adb<g-socthi-bsd.adb \
-+  s-trasym.adb<s-trasym-bsd.adb \
-   s-inmaop.adb<s-inmaop-posix.adb \
-   s-intman.adb<s-intman-posix.adb \
-   s-mudido.adb<s-mudido-affinity.adb \
-@@ -1600,6 +1652,8 @@
-   mlib-tgt-specific.adb<mlib-tgt-specific-linux.adb
-   GNATLIB_SHARED = gnatlib-shared-dual
- 
-+  EXTRA_LIBGNAT_SRCS+= traceback_symbolic.c
-+  EXTRA_LIBGNAT_OBJS+= traceback_symbolic.o
-   EXTRA_GNATRTL_NONTASKING_OBJS=g-sse.o g-ssvety.o
- 
-   EH_MECHANISM=-gcc
 --- gcc/ada/gcc-interface/Make-lang.in.orig
 +++ gcc/ada/gcc-interface/Make-lang.in
-@@ -589,7 +589,7 @@
+@@ -625,7 +625,7 @@
   ada/widechar.o
  
  # Language-independent object files.
@@ -1363,7 +1333,7 @@ bin/
  TARGET_ADA_SRCS =
 --- gcc/ada/init.c.orig
 +++ gcc/ada/init.c
-@@ -2541,8 +2541,15 @@
+@@ -2643,8 +2643,15 @@
  {
    mcontext_t *mcontext = &((ucontext_t *) ucontext)->uc_mcontext;
  
@@ -1380,6 +1350,17 @@ bin/
  }
  
  static void
+--- gcc/ada/libgnat/g-socthi.ads.orig
++++ gcc/ada/libgnat/g-socthi.ads
+@@ -53,8 +53,6 @@
+ 
+    package C renames Interfaces.C;
+ 
+-   use type System.CRTL.ssize_t;
+-
+    function Socket_Errno return Integer renames GNAT.OS_Lib.Errno;
+    --  Returns last socket error number
+ 
 
 
 [FILE:19397:patches/patch-diff-ada-testsuite]
@@ -2090,7 +2071,7 @@ bin/
 -end;
 
 
-[FILE:4707:patches/patch-diff-core]
+[FILE:4700:patches/patch-diff-core]
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
@@ -2111,7 +2092,7 @@ bin/
  /* Use --as-needed -lgcc_s for eh support.  */
 --- gcc/config/sol2.h.orig
 +++ gcc/config/sol2.h
-@@ -354,6 +354,7 @@
+@@ -387,6 +387,7 @@
     %{static:-dn -Bstatic} \
     %{shared:-G -dy %{!mimpure-text:-z text}} " \
     LINK_LIBGCC_MAPFILE_SPEC LINK_CLEARCAP_SPEC " \
@@ -2156,7 +2137,7 @@ bin/
    %{symbolic:-Bsymbolic}"
 --- gcc/Makefile.in.orig
 +++ gcc/Makefile.in
-@@ -1200,7 +1200,6 @@
+@@ -1215,7 +1215,6 @@
  	insn-emit.o \
  	insn-extract.o \
  	insn-latencytab.o \
@@ -2164,7 +2145,7 @@ bin/
  	insn-opinit.o \
  	insn-output.o \
  	insn-peep.o \
-@@ -1597,6 +1596,7 @@
+@@ -1626,6 +1625,7 @@
    $(OBJS-libcommon-target) main.o c-family/cppspec.o \
    $(COLLECT2_OBJS) $(EXTRA_GCC_OBJS) $(GCOV_OBJS) $(GCOV_DUMP_OBJS) \
    $(GCOV_TOOL_OBJS) $(GENGTYPE_OBJS) gcc-ar.o gcc-nm.o gcc-ranlib.o \
@@ -2172,7 +2153,7 @@ bin/
    lto-wrapper.o collect-utils.o
  
  # for anything that is shared use the cc1plus profile data, as that
-@@ -1612,6 +1612,11 @@
+@@ -1641,6 +1641,11 @@
  ALL_HOST_OBJS = $(ALL_HOST_FRONTEND_OBJS) $(ALL_HOST_BACKEND_OBJS)
  
  BACKEND = libbackend.a main.o libcommon-target.a libcommon.a \
@@ -2184,15 +2165,15 @@ bin/
  	$(CPPLIB) $(LIBDECNUMBER)
  
  # This is defined to "yes" if Tree checking is enabled, which roughly means
-@@ -2312,6 +2317,7 @@
+@@ -2378,6 +2383,7 @@
  
  insn-modes.c: s-modes; @true
  insn-modes.h: s-modes-h; @true
 +insn-modes-ada.c: s-modes-ada; @true
+ insn-modes-inline.h: s-modes-inline-h; @true
  min-insn-modes.c: s-modes-m; @true
  
- s-modes: build/genmodes$(build_exeext)
-@@ -2329,6 +2335,12 @@
+@@ -2402,6 +2408,12 @@
  	$(SHELL) $(srcdir)/../move-if-change tmp-min-modes.c min-insn-modes.c
  	$(STAMP) s-modes-m
  
@@ -2205,7 +2186,7 @@ bin/
  insn-preds.c: s-preds; @true
  tm-preds.h: s-preds-h; @true
  tm-constrs.h: s-constrs-h; @true
-@@ -3536,6 +3548,9 @@
+@@ -3618,6 +3630,9 @@
  	    ( cd $(DESTDIR)$(bindir) && \
  	      $(LN) $(GCC_INSTALL_NAME)$(exeext) $(FULL_DRIVER_NAME) ); \
  	  fi; \
@@ -2224,10 +2205,10 @@ bin/
 +  %{!static:--enable-new-dtags -rpath @PREFIX@/lib64} \
    %{!shared: \
      %{!static: \
-       %{rdynamic:-export-dynamic} \
+       %{!static-pie: \
 
 
-[FILE:8816:patches/patch-diff-cxx]
+[FILE:8497:patches/patch-diff-cxx]
 --- libstdc++-v3/configure.host.orig
 +++ libstdc++-v3/configure.host
 @@ -258,6 +258,9 @@
@@ -2275,22 +2256,6 @@ bin/
  #include <unistd.h>
  #include <sys/time.h>
  #include <errno.h>
---- libstdc++-v3/src/filesystem/dir.cc.orig
-+++ libstdc++-v3/src/filesystem/dir.cc
-@@ -146,7 +146,13 @@
- 
-   int err = std::exchange(errno, 0);
-   const auto entp = readdir(dirp);
-+#ifdef __ANDROID__
-+  int tmperr = errno;
-+  errno = err;
-+  err = tmperr;
-+#else
-   std::swap(errno, err);
-+#endif
- 
-   if (entp)
-     {
 --- libstdc++-v3/include/bits/c++config.orig
 +++ libstdc++-v3/include/bits/c++config
 @@ -30,6 +30,12 @@
@@ -2351,7 +2316,7 @@ bin/
  # endif
  #endif
  } // namespace std
-@@ -194,7 +194,7 @@
+@@ -200,7 +200,7 @@
    using ::lldiv_t;
  #endif
  #if _GLIBCXX_USE_C99_CHECK || _GLIBCXX_USE_C99_DYNAMIC
@@ -2360,7 +2325,7 @@ bin/
  #endif
  #if !_GLIBCXX_USE_C99_DYNAMIC
    using ::_Exit;
-@@ -211,11 +211,11 @@
+@@ -217,11 +217,11 @@
  #endif
  
  #if _GLIBCXX_USE_C99_LONG_LONG_CHECK || _GLIBCXX_USE_C99_LONG_LONG_DYNAMIC

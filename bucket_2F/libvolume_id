@@ -51,3 +51,62 @@ lib/
  libvolume_id.so.0
 lib/pkgconfig/libvolume_id.pc
 
+
+[FILE:265:patches/patch-ddf_raid.c]
+--- ddf_raid.c.orig	2007-12-27 01:05:32 UTC
++++ ddf_raid.c
+@@ -22,7 +22,7 @@
+ #include <string.h>
+ #include <errno.h>
+ #include <ctype.h>
+-#ifdef __FreeBSD__
++#if defined(__FreeBSD__) || defined(__DragonFly__)
+ #include <sys/endian.h>
+ #else
+ #include <byteswap.h>
+
+
+[FILE:269:patches/patch-linux_raid.c]
+--- linux_raid.c.orig	2007-12-27 01:03:43 UTC
++++ linux_raid.c
+@@ -22,7 +22,7 @@
+ #include <string.h>
+ #include <errno.h>
+ #include <ctype.h>
+-#ifdef __FreeBSD__
++#if defined(__FreeBSD__) || defined(__DragonFly__)
+ #include <sys/endian.h>
+ #else
+ #include <byteswap.h>
+
+
+[FILE:378:patches/patch-util.c]
+--- util.c.orig	2009-03-02 18:17:35 UTC
++++ util.c
+@@ -28,9 +28,9 @@
+ #include "libvolume_id.h"
+ #include "util.h"
+ 
+-#ifdef __FreeBSD__
++#if defined(__FreeBSD__) || defined(__DragonFly__)
+ #include <sys/param.h>
+-#if __FreeBSD_version < 800067
++#if __FreeBSD_version < 800067 && __DragonFly_version < 200202
+ static size_t strnlen (const char *s, size_t maxlen)
+ {
+ 	size_t i;
+
+
+[FILE:246:patches/patch-util.h]
+--- util.h.orig	2007-12-27 00:51:05 UTC
++++ util.h
+@@ -19,7 +19,7 @@
+ #  include <config.h>
+ #endif
+ 
+-#ifdef __FreeBSD__
++#if defined(__FreeBSD__) || defined(__DragonFly__)
+ #include <sys/endian.h>
+ 
+ #define __BYTE_ORDER            _BYTE_ORDER
+
