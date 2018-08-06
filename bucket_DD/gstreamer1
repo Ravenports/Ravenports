@@ -42,6 +42,12 @@ post-patch:
 	${REINPLACE_CMD} -e 's|-Wmissing-include-dirs||g' \
 		${WRKSRC}/configure
 
+post-patch-sunos:
+	# work around deficient /bin/sh in solaris
+	${REINPLACE_CMD} -e 's|#! /bin/sh|#!/bin/bash|' \
+		-e '/LIBTOOL=/ s|.(SHELL)|/bin/bash|' \
+		${WRKSRC}/configure
+
 [FILE:435:descriptions/desc.single]
 GStreamer is not a media player. It is a library for constructing graphs 
 of media-handling components, ranging from simple Ogg/Vorbis playback and 

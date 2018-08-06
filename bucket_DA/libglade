@@ -24,6 +24,13 @@ RUN_DEPENDS=		xmlcatmgr:single:standard
 USES=			gmake libtool:keepla pkgconfig fbsd10fix
 GNOME_COMPONENTS=	libxml2 gtk2
 
+LICENSE=		GPLv2+:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"GLADE_H"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/glade/glade.h
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		devel/libglade2
 
 MUST_CONFIGURE=		gnu
@@ -33,6 +40,8 @@ CONFIGURE_ARGS=		--with-html-dir={{PREFIX}}/share/doc
 
 PLIST_SUB=		XMLCATALOG="{{LOCALBASE}}/bin/xmlcatalog"
 			CATALOG_PORTS_XML="{{LOCALBASE}}/share/xml/catalog.ports"
+
+LDFLAGS=		-lgmodule-2.0
 
 [PY27].USES_ON=				python:py27
 
@@ -47,6 +56,7 @@ pre-patch:
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/libglade/2.0
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libglade-2.0.so
 
 [FILE:182:descriptions/desc.single]
 LibGlade allows GLADE interfaces to be handled at runtime, freeing

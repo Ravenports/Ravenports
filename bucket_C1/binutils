@@ -53,16 +53,17 @@ INSTALL_TARGET=		install-strip
 
 VAR_OPSYS[freebsd]=	VAR1=/libexec/ld-elf.so.1
 			VAR2=/libexec/ld-elf.so.1
+			VAR3==default
 VAR_OPSYS[sunos]=	VAR1=/lib/amd64/ld.so.1
 			VAR2=/lib/ld.so.1
 VAR_OPSYS[linux]=	VAR1=/lib/ld64.so.1
 			VAR2=/lib/ldx32.so.1
 VAR_OPSYS[dragonfly]=	VAR1=/libexec/ld-elf.so.2
 			VAR2=/libexec/ld-elf.so.2
-VAR_ARCH[aarch64]=	CONFIGURE_ARGS=--enable-gold
+VAR_ARCH[aarch64]=	CONFIGURE_ARGS=--enable-gold{{VAR3}}
 			CONFIGURE_ARGS=--enable-plugins
 			PLIST_SUB=GOLD=""
-VAR_ARCH[x86_64]=	CONFIGURE_ARGS=--enable-gold
+VAR_ARCH[x86_64]=	CONFIGURE_ARGS=--enable-gold{{VAR3}}
 			CONFIGURE_ARGS=--enable-plugins
 			PLIST_SUB=GOLD=""
 VAR_ARCH[i386]=		PLIST_SUB=GOLD="@comment "
@@ -440,4 +441,20 @@ For loader.efi linking support.
  /* Token type.  */
  #ifndef YYTOKENTYPE
  # define YYTOKENTYPE
+
+
+[FILE:458:sunos/patch-gold_plugin.cc]
+--- gold/plugin.cc.orig	2018-06-24 18:38:57 UTC
++++ gold/plugin.cc
+@@ -508,7 +508,9 @@ Plugin_recorder::init()
+   // Create a temporary directory where we can stash the log and
+   // copies of replacement files.
+   char dir_template[] = "gold-recording-XXXXXX";
+-  if (mkdtemp(dir_template) == NULL)
++  if (mktemp(dir_template) == NULL)
++    return false;
++  if (mkdir(dir_template, 0700) != 0)
+     return false;
+ 
+   size_t len = strlen(dir_template) + 1;
 

@@ -19,8 +19,6 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[linux]=		aborts on extra/CMakeFiles/replace.dir/replace.c.o
-
 BUILD_DEPENDS=		readline:single:standard
 EXRUN[client]=		readline:single:standard
 
@@ -44,6 +42,7 @@ FPC_EQUIVALENT=		databases/mysql55-server
 SHEBANG_FILES=		scripts/*.pl*
 			scripts/*.sh
 
+INSTALL_REQ_TOOLCHAIN=	yes
 RC_SUBR=		mysql-server:server
 SUB_FILES=		my.cnf.sample
 SUB_LIST=		MY_DBDIR=/var/db/mysql
@@ -112,7 +111,8 @@ This package contains the MySQL client.
 62a7f8aeb9c6c4d5a127f7254500878d9d172b70ad9639b098f3c01731f1fbf0     21027098 mysql-5.5.61.tar.gz
 
 
-[FILE:2708:manifests/plist.server]
+[FILE:2754:manifests/plist.server]
+%%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
 bin/
  innochecksum
  my_print_defaults
@@ -482,7 +482,7 @@ $NetBSD: patch-cmake_readline.cmake,v 1.1 2013/08/22 12:28:08 ryoon Exp $
  #define MI_MAX_KEY_BUFF  (MI_MAX_KEY_LENGTH+MI_MAX_KEY_SEG*6+8+8)
 
 
-[FILE:496:patches/patch-libmysql_CMakeLists.txt]
+[FILE:502:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2017-11-27 12:03:17 UTC
 +++ libmysql/CMakeLists.txt
 @@ -206,7 +206,7 @@ IF(NOT DISABLE_SHARED)
@@ -490,7 +490,7 @@ $NetBSD: patch-cmake_readline.cmake,v 1.1 2013/08/22 12:28:08 ryoon Exp $
    IF(UNIX)
      # libtool compatability
 -    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR APPLE)
-+    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly" OR APPLE)
++    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|Linux" OR APPLE)
        SET(OS_SHARED_LIB_VERSION "${SHARED_LIB_MAJOR_VERSION}")
      ELSEIF(CMAKE_SYSTEM_NAME MATCHES "HP-UX")
        SET(OS_SHARED_LIB_VERSION "${SHARED_LIB_MAJOR_VERSION}.0")
