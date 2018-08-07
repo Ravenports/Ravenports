@@ -109,19 +109,18 @@ if [ -n "${USERS}" ]; then
 
 	for user in ${USERS}; do
 	    if ! echo "${USERS_BLACKLIST}" | grep -qw "${user}"; then
-	        # Format of Mk/Templates/UID.<opsys> (No login class for Linux, enforced manually)
-	        # smmsp:*:25:25::0:0:Sendmail Submission User:/var/spool/clientmqueue:/usr/sbin/nologin
+	        # Format of Mk/Templates/UID.ravenports
+	        # smmsp:*:25:smmsp::0:0:Sendmail Submission User:/var/spool/clientmqueue:/usr/sbin/nologin
 		if ! grep -q "^${user}:" ${dp_UID_FILES} ; then
 			error "** Cannot find any information about user \`${user}' in ${dp_UID_FILES}."
 		fi
 		o_IFS=${IFS}
 		IFS=":"
-		while read -r login _ uid gid class _ _ gecos homedir shell; do
-			if [ -z "$uid" ] || [ -z "$gid" ] || [ -z "$homedir" ] || [ -z "$shell" ]; then
+		while read -r login _ uid group class _ _ gecos homedir shell; do
+			if [ -z "$uid" ] || [ -z "$group" ] || [ -z "$homedir" ] || [ -z "$shell" ]; then
 				error "User line for ${user} is invalid"
 			fi
 			uid=$((uid+dp_UID_OFFSET))
-			gid=$((gid+dp_GID_OFFSET))
 			if [ -n "$class" ]; then
 				class="-L $class"
 			fi
@@ -133,16 +132,16 @@ if [ -n "${USERS}" ]; then
 if id ${user} >/dev/null 2>&1; then
   echo "Using existing user '$login'."
 else
-  echo "Creating user '$login' with uid '$uid'."
+  echo "Creating user '$login' with uid '$uid', member of $group group."
 eot2
 			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
 				cat >> "${dp_UG_INSTALL}" <<-eot2
-  useradd -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell $login
+  useradd -u $uid -g $group $class -c "$gecos" -d $homedir -s $shell $login
 fi
 eot2
 			else
 				cat >> "${dp_UG_INSTALL}" <<-eot2
-  \${PW} useradd $login -u $uid -g $gid $class -c "$gecos" -d $homedir -s $shell
+  \${PW} useradd $login -u $uid -g $group $class -c "$gecos" -d $homedir -s $shell
 fi
 eot2
 			fi
@@ -150,7 +149,6 @@ eot2
 				/|/nonexistent|/var/empty)
 					;;
 				*)
-					group=$(awk -F: -v gid=${gid} '$3 == gid { print $1 }' ${dp_GID_FILES})
 					if [ "${dp_OPSYS}" = "SunOS" ]; then
 					  echo "mkdir -p $homedir" >> "${dp_UG_INSTALL}"
 					  echo "chown $login:$group $homedir" >> "${dp_UG_INSTALL}"
