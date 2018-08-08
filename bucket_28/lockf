@@ -2,6 +2,7 @@
 
 NAMEBASE=		lockf
 VERSION=		1
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	FreeBSD's lockf command
@@ -206,7 +207,7 @@ utility first appeared in
 .An John Polstra Aq Mt jdp@polstra.com
 
 
-[FILE:6555:files/lockf.c]
+[FILE:6657:files/lockf.c]
 /*
  * Copyright (C) 1997 John D. Polstra.  All rights reserved.
  *
@@ -387,6 +388,10 @@ acquire_lock(const char *name, int flags)
 		if (errno == EAGAIN || errno == EINTR)
 			return (-1);
 		err(EX_CANTCREAT, "cannot open %s", name);
+	}
+	if (O_EXLOCK == 0) {
+		if (flock(fd, LOCK_EX) != 0)
+			err(EX_CANTCREAT, "cannot lock %s", name);
 	}
 	return (fd);
 }
