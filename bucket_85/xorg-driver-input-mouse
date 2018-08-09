@@ -31,6 +31,7 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		x11-drivers/xf86-input-mouse
 
 MUST_CONFIGURE=		gnu
+CONFIGURE_ENV=		DRIVER_MAN_SUFFIX=4
 
 INSTALL_TARGET=		install-strip
 
@@ -1095,7 +1096,7 @@ share/man/man4/mousedrv.4.gz
  #endif
 
 
-[FILE:7516:patches/patch-src_mouse.c]
+[FILE:7409:patches/patch-src_mouse.c]
 --- src/mouse.c.orig	2018-06-19 04:36:21 UTC
 +++ src/mouse.c
 @@ -304,13 +304,39 @@ MouseCommonOptions(InputInfoPtr pInfo)
@@ -1157,16 +1158,15 @@ share/man/man4/mousedrv.4.gz
      pMse->flipXY = xf86SetBoolOption(pInfo->options, "FlipXY", FALSE);
      if (xf86SetBoolOption(pInfo->options, "InvX", FALSE)) {
          pMse->invX = -1;
-@@ -339,8 +369,8 @@ MouseCommonOptions(InputInfoPtr pInfo)
+@@ -339,7 +369,7 @@ MouseCommonOptions(InputInfoPtr pInfo)
      } else
          pMse->invY = 1;
      pMse->angleOffset = xf86SetIntOption(pInfo->options, "AngleOffset", 0);
+-
 +    pMse->sensitivity = xf86SetRealOption(pInfo->options, "Sensitivity", 1.0);
  
--
      if (pMse->pDragLock)
          free(pMse->pDragLock);
-     pMse->pDragLock = NULL;
 @@ -449,14 +479,17 @@ MouseCommonOptions(InputInfoPtr pInfo)
          free(s);
      }
@@ -1225,7 +1225,7 @@ share/man/man4/mousedrv.4.gz
  }
  
  static void
-@@ -996,6 +1005,8 @@ MousePreInit(InputDriverPtr drv, InputInfoPtr pInfo, i
+@@ -996,6 +1005,8 @@ MousePreInit(InputDriverPtr drv, InputIn
      /* Default Mapping: 1 2 3 8 9 10 11 ... */
      for (i = 0; i < MSE_MAXBUTTONS; i++)
          pMse->buttonMap[i] = 1 << (i > 2 && i < MSE_MAXBUTTONS-4 ? i+4 : i);
@@ -1234,7 +1234,7 @@ share/man/man4/mousedrv.4.gz
  
      protocol = MousePickProtocol(pInfo, device, protocol, &protocolID);
  
-@@ -2197,7 +2208,7 @@ MouseDoPostEvent(InputInfoPtr pInfo, int buttons, int 
+@@ -2197,7 +2208,7 @@ MouseDoPostEvent(InputInfoPtr pInfo, int
  
      if (pMse->emulateWheel) {
          /* Emulate wheel button handling */
@@ -1243,7 +1243,7 @@ share/man/man4/mousedrv.4.gz
              wheelButtonMask = 0;
          else
              wheelButtonMask = 1 << (pMse->wheelButton - 1);
-@@ -2287,6 +2298,9 @@ MouseDoPostEvent(InputInfoPtr pInfo, int buttons, int 
+@@ -2287,6 +2298,9 @@ MouseDoPostEvent(InputInfoPtr pInfo, int
                          }
                      }
                  }
@@ -1253,7 +1253,7 @@ share/man/man4/mousedrv.4.gz
              }
  
              /* Absorb the mouse movement while the wheel button is pressed. */
-@@ -2304,7 +2318,7 @@ MouseDoPostEvent(InputInfoPtr pInfo, int buttons, int 
+@@ -2304,7 +2318,7 @@ MouseDoPostEvent(InputInfoPtr pInfo, int
      if (pMse->emulate3ButtonsSoft && pMse->emulate3Pending && (dx || dy))
          buttonTimer(pInfo);
  
@@ -1262,7 +1262,7 @@ share/man/man4/mousedrv.4.gz
          xf86PostMotionEvent(pInfo->dev, 0, 0, 2, dx, dy);
  
      if (change) {
-@@ -2417,12 +2431,10 @@ MousePostEvent(InputInfoPtr pInfo, int truebuttons,
+@@ -2417,12 +2431,10 @@ MousePostEvent(InputInfoPtr pInfo, int t
                 int dx, int dy, int dz, int dw)
  {
      MouseDevPtr pMse;
@@ -1275,7 +1275,7 @@ share/man/man4/mousedrv.4.gz
  
      if (pMse->protocolID == PROT_MMHIT)
          b = reverseBits(hitachMap, truebuttons);
-@@ -2515,11 +2527,11 @@ MousePostEvent(InputInfoPtr pInfo, int truebuttons,
+@@ -2515,11 +2527,11 @@ MousePostEvent(InputInfoPtr pInfo, int t
  
      /* Accumulate the scaled dx, dy in the private variables
         fracdx,fracdy and return the integer number part */
@@ -1295,7 +1295,7 @@ share/man/man4/mousedrv.4.gz
 
 
 [FILE:1020:patches/patch-src_mouse.h]
---- src/mouse.h.orig	2012-10-08 01:40:07 UTC
+--- src/mouse.h.orig	2018-06-19 04:36:21 UTC
 +++ src/mouse.h
 @@ -220,10 +220,13 @@ typedef struct _MouseDevRec {
      Bool                emulate3ButtonsSoft;
@@ -1323,7 +1323,7 @@ share/man/man4/mousedrv.4.gz
 
 
 [FILE:306:patches/patch-src_mousePriv.h]
---- src/mousePriv.h.orig	2012-05-28 00:01:45 UTC
+--- src/mousePriv.h.orig	2018-06-19 04:36:21 UTC
 +++ src/mousePriv.h
 @@ -63,8 +63,6 @@ typedef struct {
      int         acc;
@@ -1334,6 +1334,36 @@ share/man/man4/mousedrv.4.gz
  } mousePrivRec, *mousePrivPtr;
  
  /* mouse proto flags */
+
+
+[FILE:777:patches/patch-src_sun__mouse.c]
+$NetBSD: patch-src_sun__mouse.c,v 1.2 2016/11/17 08:06:52 wiz Exp $
+
+rearrange includes to fix build on OmniOS. Include unistd.h for ioctl(2).
+
+--- src/sun_mouse.c.orig	2018-06-19 04:36:21 UTC
++++ src/sun_mouse.c
+@@ -51,6 +51,10 @@
+ #include <xorg-config.h>
+ #endif
+ 
++#include <unistd.h> /* for ioctl(2) */
++#include <sys/stropts.h>
++#include <sys/vuid_event.h>
++#include <sys/msio.h>
+ #include "xorg-server.h"
+ #include "xf86.h"
+ #include "xf86_OSlib.h"
+@@ -58,9 +62,6 @@
+ #include "xisb.h"
+ #include "mipointer.h"
+ #include "xf86Crtc.h"
+-#include <sys/stropts.h>
+-#include <sys/vuid_event.h>
+-#include <sys/msio.h>
+ 
+ /* Wheel mouse support in VUID drivers in Solaris 9 updates & Solaris 10 */
+ #ifdef WHEEL_DEVID /* Defined in vuid_event.h if VUID wheel support present */
 
 
 [FILE:577:dragonfly/patch-src_Makefile.in]
