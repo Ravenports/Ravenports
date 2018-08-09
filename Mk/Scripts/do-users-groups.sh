@@ -14,8 +14,10 @@ validate_env dp_ECHO_MSG dp_GID_FILES dp_GID_OFFSET dp_INSTALL dp_OPSYS \
 
 set -u
 
-USERS=$1
-GROUPS=$2
+# Do not use GROUPS as a variable name, it's reserved by bash!
+
+SYSUSERS=$1
+SYSGROUPS=$2
 
 error() {
 	${dp_ECHO_MSG} "${1}"
@@ -49,7 +51,7 @@ echo "PW=${dp_PW}" >> "${dp_UG_INSTALL}"
 # Both scripts need to start the same, so
 cp -f "${dp_UG_INSTALL}" "${dp_UG_DEINSTALL}"
 
-if [ -n "${GROUPS}" ]; then
+if [ -n "${SYSGROUPS}" ]; then
 	for file in ${dp_GID_FILES}; do
 		if [ ! -f "${file}" ]; then
 			error "** ${file} doesn't exist. Exiting."
@@ -57,7 +59,7 @@ if [ -n "${GROUPS}" ]; then
 	done
 	${dp_ECHO_MSG} "===> Creating groups."
 	echo "echo \"===> Creating groups.\"" >> "${dp_UG_INSTALL}"
-	for group in ${GROUPS}; do
+	for group in ${SYSGROUPS}; do
 	    if ! echo "${GROUP_BLACKLIST}" | grep -qw "${group}"; then
 		# _bgpd:*:130:
 		if ! grep -q "^${group}:" ${dp_GID_FILES}; then \
@@ -97,7 +99,7 @@ eot2
 	done
 fi
 
-if [ -n "${USERS}" ]; then
+if [ -n "${SYSUSERS}" ]; then
 	for file in ${dp_UID_FILES}; do
 		if [ ! -f "${file}" ]; then
 			error "** ${file} doesn't exist. Exiting."
@@ -107,7 +109,7 @@ if [ -n "${USERS}" ]; then
 	${dp_ECHO_MSG} "===> Creating users"
 	echo "echo \"===> Creating users\"" >> "${dp_UG_INSTALL}"
 
-	for user in ${USERS}; do
+	for user in ${SYSUSERS}; do
 	    if ! echo "${USERS_BLACKLIST}" | grep -qw "${user}"; then
 	        # Format of Mk/Templates/UID.ravenports
 	        # smmsp:*:25:smmsp::0:0:Sendmail Submission User:/var/spool/clientmqueue:/usr/sbin/nologin
@@ -165,8 +167,8 @@ eot2
 	done
 fi
 
-if [ -n "${GROUPS}" ]; then
-	for group in ${GROUPS}; do
+if [ -n "${SYSGROUPS}" ]; then
+	for group in ${SYSGROUPS}; do
 		# mail:*:6:postfix,clamav
 		o_IFS=${IFS}
 		IFS=":"
@@ -175,7 +177,7 @@ if [ -n "${GROUPS}" ]; then
 			oo_IFS=${IFS}
 			IFS=","
 			for login in $members; do
-				for user in ${USERS}; do
+				for user in ${SYSUSERS}; do
 					if [ -n "${user}" ] && [ "${user}" = "${login}" ]; then
 						if [ "${dp_OPSYS}" = "Linux" ]; then
 							cat >> "${dp_UG_INSTALL}" <<-eot2
@@ -211,8 +213,8 @@ eot2
 	done
 fi
 
-if [ -n "${USERS}" ]; then
-	for user in ${USERS}; do
+if [ -n "${SYSUSERS}" ]; then
+	for user in ${SYSUSERS}; do
 		if ! echo "${USERS_BLACKLIST}" | grep -qw "${user}"; then
 			cat >> "${dp_UG_DEINSTALL}" <<-eot
 if id ${user} >/dev/null 2>&1; then
@@ -223,8 +225,8 @@ eot
 	done
 fi
 
-if [ -n "${GROUPS}" ]; then
-	for group in ${GROUPS}; do
+if [ -n "${SYSGROUPS}" ]; then
+	for group in ${SYSGROUPS}; do
 		if ! echo "${GROUP_BLACKLIST}" | grep -qw "${group}"; then
 			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
 				cat >> "${dp_UG_DEINSTALL}" <<-eot

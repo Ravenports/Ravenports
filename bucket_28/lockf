@@ -2,7 +2,7 @@
 
 NAMEBASE=		lockf
 VERSION=		1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	FreeBSD's lockf command
@@ -207,7 +207,7 @@ utility first appeared in
 .An John Polstra Aq Mt jdp@polstra.com
 
 
-[FILE:6657:files/lockf.c]
+[FILE:6842:files/lockf.c]
 /*
  * Copyright (C) 1997 John D. Polstra.  All rights reserved.
  *
@@ -251,6 +251,12 @@ utility first appeared in
 
 #ifndef O_EXLOCK
 #define O_EXLOCK	0
+#endif
+
+#ifdef __sun__
+#define OPEN_MODE	O_RDWR
+#else
+#define OPEN_MODE	O_RDONLY
 #endif
 
 #ifndef __unused
@@ -384,7 +390,7 @@ acquire_lock(const char *name, int flags)
 {
 	int fd;
 
-	if ((fd = open(name, O_RDONLY|O_CREAT|O_EXLOCK|flags, 0666)) == -1) {
+	if ((fd = open(name, OPEN_MODE|O_CREAT|O_EXLOCK|flags, 0666)) == -1) {
 		if (errno == EAGAIN || errno == EINTR)
 			return (-1);
 		err(EX_CANTCREAT, "cannot open %s", name);
@@ -451,10 +457,14 @@ wait_for_lock(const char *name)
 {
 	int fd;
 
-	if ((fd = open(name, O_RDONLY|O_EXLOCK, 0666)) == -1) {
+	if ((fd = open(name, OPEN_MODE|O_EXLOCK, 0666)) == -1) {
 		if (errno == ENOENT || errno == EINTR)
 			return;
 		err(EX_CANTCREAT, "cannot open %s", name);
+	}
+	if (O_EXLOCK == 0) {
+		if (flock(fd, LOCK_EX) != 0)
+			err(EX_CANTCREAT, "cannot lock %s", name);
 	}
 	close(fd);
 }
