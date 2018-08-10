@@ -1190,6 +1190,13 @@ GID_FILES?=	${MK_TEMPLATES}/GID.ravenports
 _SYSTEM_UID=	${MK_TEMPLATES}/UID.${OPSYS:tl}
 _SYSTEM_GID=	${MK_TEMPLATES}/GID.${OPSYS:tl}
 
+.if exists(${WRKDIRPREFIX}/.UID.custom)
+UID_FILES+=	${WRKDIRPREFIX}/.UID.custom
+.endif
+.if exists(${WRKDIRPREFIX}/.GID.custom)
+GID_FILES+=	${WRKDIRPREFIX}/.GID.custom
+.endif
+
 # Owner and group of the WWW user (overridable)
 WWWOWN?=	wwwraven
 WWWGRP?=	wwwraven
