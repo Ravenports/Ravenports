@@ -5,6 +5,7 @@
 # Valid ARGS:	none (client)
 #               server (implies client)
 #               client
+#		build (sets to build depends only; buildrun is default)
 #
 # Set BROKEN_MYSQL=<list> if the port specifically
 # does not support one or more of the 12 or so MySQL derivatives

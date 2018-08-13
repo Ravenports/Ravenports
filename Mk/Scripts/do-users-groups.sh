@@ -166,13 +166,13 @@ eot2
 fi
 
 if [ -n "${SYSGROUPS}" ]; then
-	for group in ${SYSGROUPS}; do
+	for sysgroup in ${SYSGROUPS}; do
 		# mail:*:6:postfix,clamav
-		oneline=$(grep -h -m 1 "^${group}:" ${dp_GID_FILES})
+		oneline=$(grep -h -m 1 "^${sysgroup}:" ${dp_GID_FILES}) || \
+			error "** Cannot find $sysgroup group in ${dp_UID_FILES}. Perhaps it exists only on blacklist?"
 		o_IFS=${IFS}
 		IFS=":"
 		while read -r group _ gid members; do
-			gid=$((gid+dp_GID_OFFSET))
 			oo_IFS=${IFS}
 			IFS=","
 			for login in $members; do
