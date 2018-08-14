@@ -45,11 +45,12 @@ SINGLE_JOB=		yes
 
 post-patch:
 	(cd ${WRKSRC}/RULES && \
-	 ${LN} -sf i386-freebsd.cc.rul amd64-freebsd.cc.rul && \
-	 ${LN} -sf i386-freebsd.cc.rul x86_64-dragonfly.cc.rul && \
-	 ${LN} -sf i586-linux-cc.rul x86_64-linux-cc.rul && \
-	 ${LN} -sf i86pc-sunos5-cc.rul x86_64-sunos5-cc.rul \
-	)
+	 ${LN} -sf i386-freebsd-cc.rul amd64-freebsd-cc.rul && \
+	 ${LN} -sf i386-freebsd-cc.rul x86_64-dragonfly-cc.rul && \
+	 ${LN} -sf i586-linux-cc.rul x86_64-linux-cc.rul)
+	${SED} -e 's|.(C_ARCH)|gcc|; /VOLMGT/d' \
+	 ${WRKSRC}/RULES/i86pc-sunos5-gcc.rul > \
+	 ${WRKSRC}/RULES/x86_64-sunos5-cc.rul
 	${RM} ${WRKSRC}/TARGETS/55scgskeleton ${WRKSRC}/TARGETS/85man
 	${RM} ${WRKSRC}/TARGETS/55rscsi
 	(cd ${WRKSRC} && ${REINPLACE_CMD} -e \
@@ -599,7 +600,7 @@ share/doc/cdrtools/mkisofs/
  
 
 
-[FILE:1343:patches/patch-inc_getfp.c]
+[FILE:1375:patches/patch-inc_getfp.c]
 ###########################################################################
 # This patch was contributed by Dimitry Andric.
 ###########################################################################
@@ -624,7 +625,7 @@ share/doc/cdrtools/mkisofs/
  EXPORT	void	**___fpoff	__PR((char *cp));
  
 -EXPORT void **
-+EXPORT __noinline void **
++EXPORT __attribute__ ((noinline)) void **
  getfp()
  {
  		long	**dummy[1];
@@ -633,7 +634,7 @@ share/doc/cdrtools/mkisofs/
   * from outside the functions local address space.
   */
 -EXPORT void **
-+EXPORT __noinline void **
++EXPORT __attribute__ ((noinline)) void **
  ___fpoff(cp)
  	char	*cp;
  {
@@ -657,21 +658,22 @@ share/doc/cdrtools/mkisofs/
  extern char *SHA384End		__PR((SHA2_CTX *, char *));
 
 
-[FILE:418:patches/patch-libscg_scsihack.c]
+[FILE:423:patches/patch-libscg_scsihack.c]
 --- libscg/scsihack.c.orig	2013-07-30 18:37:09 UTC
 +++ libscg/scsihack.c
-@@ -139,7 +139,7 @@ EXPORT scg_ops_t scg_std_ops = {
+@@ -138,8 +138,7 @@ EXPORT scg_ops_t scg_std_ops = {
+ 
  #endif	/* linux */
  
- #if	defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
+-#if	defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
 -	defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-+	defined(__NetBSD__) || defined(__OpenBSD__)
++#if	defined(__NetBSD__) || defined(__OpenBSD__)
  #define	SCSI_IMPL		/* We have a SCSI implementation for *BSD */
  
  #include "scsi-bsd.c"
 
 
-[FILE:1355:patches/patch-libschily_getfp.c]
+[FILE:1387:patches/patch-libschily_getfp.c]
 ###########################################################################
 # This patch was contributed by Dimitry Andric.
 ###########################################################################
@@ -696,7 +698,7 @@ share/doc/cdrtools/mkisofs/
  EXPORT	void	**___fpoff	__PR((char *cp));
  
 -EXPORT void **
-+EXPORT __noinline void **
++EXPORT __attribute__ ((noinline)) void **
  getfp()
  {
  		long	**dummy[1];
@@ -705,7 +707,7 @@ share/doc/cdrtools/mkisofs/
   * from outside the functions local address space.
   */
 -EXPORT void **
-+EXPORT __noinline void **
++EXPORT __attribute__ ((noinline)) void **
  ___fpoff(cp)
  	char	*cp;
  {
