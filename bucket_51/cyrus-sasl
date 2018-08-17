@@ -91,7 +91,7 @@ post-install:
 post-configure:
 	# work around horrible libtool
 	${REINPLACE_CMD} -e "/^archive_cmds=/ \
-		s|linkopts|linkopts -Wl,-rpath,${BDB_LIB_DIR}:${OPENSSLRPATH}|" \
+		s|linkopts|linkopts -Wl,-R,${BDB_LIB_DIR}:${OPENSSLRPATH}|" \
 		${WRKSRC}/libtool
 
 [FILE:460:descriptions/desc.primary]
@@ -289,6 +289,23 @@ share/doc/cyrus-sasl/html/
  dist-hook:
  	@find $(distdir) -exec chmod o+w {} ';'
  	@find $(distdir) -name CVS -print | xargs -t rm -rf
+
+
+[FILE:515:patches/patch-config_ltconfig]
+--- config/ltconfig.orig	2012-10-12 14:05:48 UTC
++++ config/ltconfig
+@@ -2111,9 +2111,9 @@ solaris*)
+   shlibpath_overrides_runpath=yes
+   # ldd complains unless libraries are executable
+   postinstall_cmds='chmod +x $lib'
+-  deplibs_check_method="file_magic ELF [0-9][0-9]-bit [LM]SB dynamic lib"
++  deplibs_check_method='file_magic ELF [0-9][0-9]-bit [ML]SB (shared object|dynamic lib)'
+   file_magic_cmd=/usr/bin/file
+-  file_magic_test_file=/lib/libc.so
++  file_magic_test_file=/lib/libc.so.1
+   ;;
+ 
+ sunos4*)
 
 
 [FILE:3780:patches/patch-configure]
@@ -3261,6 +3278,23 @@ diff -u -p saslauthd/saslcache.c.orig saslauthd/saslcache.c
  
  	if (dump_stat_info == 0 && dump_user_info == 0)
  		dump_stat_info = 1;
+
+
+[FILE:535:patches/patch-saslauthd_config_ltconfig]
+--- saslauthd/config/ltconfig.orig	2012-10-12 14:05:48 UTC
++++ saslauthd/config/ltconfig
+@@ -2111,9 +2111,9 @@ solaris*)
+   shlibpath_overrides_runpath=yes
+   # ldd complains unless libraries are executable
+   postinstall_cmds='chmod +x $lib'
+-  deplibs_check_method="file_magic ELF [0-9][0-9]-bit [LM]SB dynamic lib"
++  deplibs_check_method='file_magic ELF [0-9][0-9]-bit [ML]SB (shared object|dynamic lib)'
+   file_magic_cmd=/usr/bin/file
+-  file_magic_test_file=/lib/libc.so
++  file_magic_test_file=/lib/libc.so.1
+   ;;
+ 
+ sunos4*)
 
 
 [FILE:250:patches/patch-saslauthd_lak.c]

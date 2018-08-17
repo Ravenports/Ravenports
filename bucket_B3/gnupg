@@ -42,9 +42,12 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-ntbtls
 			--disable-wks-tools
 			--enable-gpg-is-gpg2
-			--enable-symcryptrun
 			--enable-scdaemon
 			--enable-nls
+
+VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-symcryptrun
+VAR_OPSYS[linux]=	CONFIGURE_ARGS=--enable-symcryptrun
+VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--enable-symcryptrun
 
 post-install:
 	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
@@ -64,7 +67,10 @@ line tool with features for easy integration with other applications.
 6278eaabffa1ebc9fa2ceb3dc53eea9a1505ab02a668a86dd6fec06951af2164      6659547 gnupg-2.2.9.tar.bz2
 
 
-[FILE:1909:manifests/plist.primary]
+[FILE:1992:manifests/plist.primary]
+%%ONLY-DRAGONFLY%%bin/symcryptrun
+%%ONLY-FREEBSD%%bin/symcryptrun
+%%ONLY-LINUX%%bin/symcryptrun
 bin/
  dirmngr
  dirmngr-client
@@ -78,7 +84,6 @@ bin/
  gpgtar
  gpgv2
  kbxutil
- symcryptrun
  watchgnupg
 libexec/
  gpg-check-pattern

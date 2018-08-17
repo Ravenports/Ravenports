@@ -40,6 +40,8 @@ CMAKE_ARGS=		-DBIPR:BOOL=OFF
 			-DWITH_PYTHON3:BOOL=OFF
 			-DWITH_WEBKIT:BOOL=OFF
 			-DWITH_WEBKIT3:BOOL=OFF
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			LDFLAGS=-lnsl
 
 [PERL].DESCRIPTION=			Build with Perl binding
 [PERL].CMAKE_ARGS_OFF=			-DWITH_PERL:BOOL=OFF
@@ -130,5 +132,21 @@ index 00b4564..0059dfb 100644
 -  add_definitions(-D_POSIX_C_SOURCE=200112L)
    set(CMAKE_CXX_FLAGS "-fvisibility=hidden ${CMAKE_CXX_FLAGS}")
  endif(WIN32)
+ 
+
+
+[FILE:479:sunos/patch-libmodman_test_CMakeLists.txt]
+--- libmodman/test/CMakeLists.txt.orig	2017-05-11 09:33:33 UTC
++++ libmodman/test/CMakeLists.txt
+@@ -28,10 +28,6 @@ function(mm_create_program name EXTTYPE)
+     set_property(TARGET ${name} PROPERTY 
+                  COMPILE_DEFINITIONS
+                  EXTTYPE=${EXTTYPE}_extension;SYMB=1)
+-    if(NOT WIN32 AND NOT APPLE)
+-      set_property(TARGET ${name} PROPERTY
+-                   LINK_FLAGS -Wl,--no-as-needed)
+-    endif()
+   endif()
+ endfunction(mm_create_program)
  
 
