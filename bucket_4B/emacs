@@ -118,7 +118,9 @@ PLIST_SUB=		VERSION=26.1
 			GNU_HOST={{CONFIGURE_TARGET}}
 
 VAR_OPSYS[freebsd]=	VAR1=--with-file-notification=kqueue
+			VAR2=--with-sound=oss
 VAR_OPSYS[dragonfly]=	VAR1=--with-file-notification=kqueue
+			VAR2=--with-sound=oss
 
 [X11GTK].DESCRIPTION=			X window system support (through GTK3)
 [X11GTK].BUILDRUN_DEPENDS_ON=		fontconfig:primary:standard
@@ -127,8 +129,8 @@ VAR_OPSYS[dragonfly]=	VAR1=--with-file-notification=kqueue
 					gif:single:standard
 					m17n-lib:single:standard
 [X11GTK].CONFIGURE_ARGS_ON=		--with-x-toolkit=gtk3
-					--with-sound=oss
 					{{VAR1}}
+					{{VAR2}}
 [X11GTK].CONFIGURE_WITH_BOTH=		cairo
 					png
 					xft
@@ -4189,6 +4191,20 @@ share/man/man1/
  emacs.1.gz
  emacsclient.1.gz
  etags.1.gz
+
+
+[FILE:543:patches/patch-Makefile.in]
+--- Makefile.in.orig	2018-04-23 14:17:32 UTC
++++ Makefile.in
+@@ -574,7 +574,7 @@ install-arch-indep: lisp install-info in
+ 	  printf 'Copying %s to %s...\n' "$$dir" "$$dest" ; \
+ 	  (cd $${dir}; tar -chf - . ) \
+ 	    | (cd "$${dest}"; umask 022; \
+-	       tar -xvf - && cat > /dev/null) || exit 1; \
++	       tar -xvf - --no-same-owner --no-same-permissions && cat > /dev/null) || exit 1; \
+ 	  if [ "$${dir}" = "${srcdir}/etc" ]; then \
+ 	      rm -f "$${dest}/DOC"* ; \
+ 	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
 
 
 [FILE:466:patches/patch-lib-src_Makefile.in]

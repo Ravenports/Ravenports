@@ -39,8 +39,6 @@ CPPFLAGS=		-Wno-pedantic
 VAR_OPSYS[sunos]=	CPPFLAGS=-D_XOPEN_SOURCE=600
 
 post-patch:
-	${REINPLACE_CMD} -e 's/-Os //' \
-		-e 's/solaris/no-solaris/' ${WRKSRC}/configure
 	${REINPLACE_CMD} -e '/SHARED/,/^$$/ { /STRIP/s/-x //; }' \
 		${WRKSRC}/${MAKEFILE}
 
@@ -65,4 +63,33 @@ lib/
  liblsmash.so
  liblsmash.so.2
 lib/pkgconfig/liblsmash.pc
+
+
+[FILE:645:patches/patch-configure]
+--- configure.orig	2018-02-11 00:08:16 UTC
++++ configure
+@@ -246,7 +246,13 @@ case "$TARGET_OS" in
+         ;;
+     *solaris*)
+         #patches welcome
+-        SHAREDLIB=""
++        SO_LDFLAGS="-G -h liblsmash.so.$MAJVER"
++        SHARED_NAME="liblsmash"
++        SHARED_EXT=".so.$MAJVER"
++        if test -n "$SHAREDLIB"; then
++            CFLAGS="$CFLAGS -fPIC"
++            LDFLAGS="$LDFLAGS -fPIC"
++        fi
+         ;;
+     *)
+         SHARED_NAME="liblsmash"
+@@ -282,7 +288,7 @@ if test -n "$DEBUG"; then
+     CFLAGS="$CFLAGS -g3 -O0"
+     STRIP=""
+ else
+-    CFLAGS="-Os -ffast-math $CFLAGS"
++    CFLAGS="-ffast-math $CFLAGS"
+ fi
+ 
+ 
 

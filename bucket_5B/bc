@@ -63,6 +63,20 @@ share/man/man1/
  dc.1.gz
 
 
+[FILE:469:patches/patch-bc_Makefile.in]
+--- bc/Makefile.in.orig	2017-04-07 22:20:01 UTC
++++ bc/Makefile.in
+@@ -627,7 +627,7 @@ global.o: libmath.h
+ libmath.h: libmath.b $(fbcOBJ) $(LIBBC)
+ 	echo '{0}' > libmath.h
+ 	$(MAKE) global.o
+-	$(LINK) -o fbc $(fbcOBJ) global.o $(LIBBC) $(LIBL) $(READLINELIB) $(LIBS)
++	$(CCLD) $(CFLAGS) $(LDFLAGS) -o fbc $(fbcOBJ) global.o $(LIBBC) $(LIBL) $(READLINELIB) $(LIBS)
+ 	./fbc -c $(srcdir)/libmath.b </dev/null >libmath.h
+ 	$(srcdir)/fix-libmath_h
+ 	rm -f ./fbc ./global.o
+
+
 [FILE:148:patches/patch-bc_fix-libmath__h]
 --- bc/fix-libmath_h.orig	2017-04-07 22:20:02 UTC
 +++ bc/fix-libmath_h
