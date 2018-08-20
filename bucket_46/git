@@ -1882,10 +1882,10 @@ share/man/man7/
  
 
 
-[FILE:1327:patches/patch-Makefile]
---- Makefile.orig	2018-04-02 17:44:04 UTC
+[FILE:2000:patches/patch-Makefile]
+--- Makefile.orig	2018-06-21 17:18:50 UTC
 +++ Makefile
-@@ -481,11 +481,11 @@ infodir = $(prefix)/share/info
+@@ -523,11 +523,11 @@ infodir = $(prefix)/share/info
  gitexecdir = libexec/git-core
  mergetoolsdir = $(gitexecdir)/mergetools
  sharedir = $(prefix)/share
@@ -1899,7 +1899,7 @@ share/man/man7/
  ETC_GITCONFIG = $(sysconfdir)/gitconfig
  ETC_GITATTRIBUTES = $(sysconfdir)/gitattributes
  lib = lib
-@@ -1267,9 +1267,9 @@ EXTLIBS += -lz
+@@ -1326,9 +1326,9 @@ EXTLIBS += -lz
  
  ifndef NO_OPENSSL
  	OPENSSL_LIBSSL = -lssl
@@ -1912,7 +1912,7 @@ share/man/man7/
  	else
  		OPENSSL_LINK =
  	endif
-@@ -2012,7 +2012,7 @@ git-instaweb: git-instaweb.sh GIT-SCRIPT
+@@ -2151,7 +2151,7 @@ git-instaweb: git-instaweb.sh GIT-SCRIPT
  	chmod +x $@+ && \
  	mv $@+ $@
  else # NO_PERL
@@ -1921,6 +1921,35 @@ share/man/man7/
  	$(QUIET_GEN)$(RM) $@ $@+ && \
  	sed -e '1s|#!.*/sh|#!$(SHELL_PATH_SQ)|' \
  	    -e 's|@@REASON@@|NO_PERL=$(NO_PERL)|g' \
+@@ -2730,12 +2730,12 @@ install: all
+ ifndef NO_GETTEXT
+ 	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(localedir_SQ)'
+ 	(cd po/build/locale && $(TAR) cf - .) | \
+-	(cd '$(DESTDIR_SQ)$(localedir_SQ)' && umask 022 && $(TAR) xof -)
++	(cd '$(DESTDIR_SQ)$(localedir_SQ)' && umask 022 && $(TAR) xof - --no-same-owner --no-same-permissions)
+ endif
+ ifndef NO_PERL
+ 	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(perllibdir_SQ)'
+ 	(cd perl/build/lib && $(TAR) cf - .) | \
+-	(cd '$(DESTDIR_SQ)$(perllibdir_SQ)' && umask 022 && $(TAR) xof -)
++	(cd '$(DESTDIR_SQ)$(perllibdir_SQ)' && umask 022 && $(TAR) xof - --no-same-owner --no-same-permissions)
+ 	$(MAKE) -C gitweb install
+ endif
+ ifndef NO_TCLTK
+
+
+[FILE:293:patches/patch-config.mak.uname]
+--- config.mak.uname.orig	2018-06-21 17:18:50 UTC
++++ config.mak.uname
+@@ -160,8 +160,6 @@ ifeq ($(uname_S),SunOS)
+ 		NO_STRTOUMAX = YesPlease
+ 		GIT_TEST_CMP = cmp
+ 	endif
+-	INSTALL = /usr/ucb/install
+-	TAR = gtar
+ 	BASIC_CFLAGS += -D__EXTENSIONS__ -D__sun__
+ endif
+ ifeq ($(uname_O),Cygwin)
 
 
 [FILE:353:patches/patch-configure.ac]
@@ -1949,6 +1978,17 @@ share/man/man7/
  
  $(GIT_SUBTREE_XML): $(GIT_SUBTREE_TXT)
  	$(ASCIIDOC) -b $(ASCIIDOC_DOCBOOK) -d manpage $(ASCIIDOC_CONF) \
+
+
+[FILE:393:patches/patch-templates_Makefile]
+--- templates/Makefile.orig	2018-06-21 17:18:50 UTC
++++ templates/Makefile
+@@ -63,4 +63,4 @@ clean:
+ install: all
+ 	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(template_instdir_SQ)'
+ 	(cd blt && $(TAR) cf - .) | \
+-	(cd '$(DESTDIR_SQ)$(template_instdir_SQ)' && umask 022 && $(TAR) xof -)
++	(cd '$(DESTDIR_SQ)$(template_instdir_SQ)' && umask 022 && $(TAR) xof - --no-same-owner --no-same-permissions)
 
 
 [FILE:596:files/git_daemon.in]
@@ -2003,4 +2043,12 @@ Please note that the contributed scripts are installed in
 %%PREFIX%%/share/git-core/contrib directory. Some of them require
 other ports to be installed (perl, python, etc), which you may need
 to install manually.
+
+
+[FILE:72:sunos/special.mk]
+.if "${VARIANT}" == "standard"
+LDFLAGS+=	-lintl
+.endif
+
+LDFLAGS+=	-lnsl
 

@@ -33,8 +33,15 @@ CONFIGURE_ARGS=		--disable-static
 INSTALL_TARGET=		install-strip
 SOVERSION=		3.2.0
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+
 pre-configure:
 	(cd ${WRKSRC} && ./autogen.sh)
+
+post-patch-sunos:
+	${REINPLACE_CMD} -e 's|<sys/fcntl.h>|<fcntl.h>|' \
+		${WRKSRC}/libmenu-cache/menu-cache.c \
+		${WRKSRC}/menu-cache-daemon/menu-cached.c
 
 [FILE:133:descriptions/desc.single]
 Libmenu-cache is a library creating and utilizing caches to speed up the

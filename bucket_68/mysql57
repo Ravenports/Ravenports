@@ -122,6 +122,9 @@ post-patch:
 	${REINPLACE_CMD} -e 's|/usr/bin/perl|${PREFIX}/bin/perl|' \
 		-e 's|/usr/local/bin/perl|${PREFIX}/bin/perl|' \
 		${WRKSRC}/scripts/CMakeLists.txt
+	# don't build authentication ldap on any platform (yet)
+	${REINPLACE_CMD} -e '/authentication_ldap/d' \
+		${WRKSRC}/libmysql/CMakeLists.txt
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/mysql/keyring \
@@ -619,7 +622,7 @@ share/man/man1/
  #define MI_MAX_KEY_BUFF  (MI_MAX_KEY_LENGTH+MI_MAX_KEY_SEG*6+8+8)
 
 
-[FILE:434:patches/patch-libmysql_CMakeLists.txt]
+[FILE:440:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2017-12-28 03:46:26 UTC
 +++ libmysql/CMakeLists.txt
 @@ -274,7 +274,7 @@ IF(NOT DISABLE_SHARED)
@@ -627,7 +630,7 @@ share/man/man1/
    IF(UNIX)
      # libtool compatability
 -    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR APPLE)
-+    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|Linux" OR APPLE)
++    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|Linux|SunOS" OR APPLE)
        SET(OS_SHARED_LIB_VERSION "${SHARED_LIB_MAJOR_VERSION}")
      ELSE()
        SET(OS_SHARED_LIB_VERSION

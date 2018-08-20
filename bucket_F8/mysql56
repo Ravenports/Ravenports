@@ -160,8 +160,9 @@ This package contains the MySQL client.
 4a223c3daed88f8450fa2fc8fd0e7afe2b1a122dd58b74c4ea6526d6a72563ce     32111985 mysql-5.6.41.tar.gz
 
 
-[FILE:2906:manifests/plist.server]
+[FILE:2960:manifests/plist.server]
 %%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
+%%ONLY-SUNOS%%share/mysql/solaris/postinstall-solaris
 bin/
  innochecksum
  my_print_defaults
@@ -469,6 +470,30 @@ share/man/man1/
  
 
 
+[FILE:839:patches/patch-cmake_os_SunOS.cmake]
+$NetBSD: patch-cmake_os_SunOS.cmake,v 1.2 2017/04/11 20:21:02 adam Exp $
+
+Backport section from MySQL 5.7 to fix SunOS/gcc.
+
+--- cmake/os/SunOS.cmake.orig	2017-03-18 06:43:12.000000000 +0000
++++ cmake/os/SunOS.cmake
+@@ -19,7 +19,13 @@ INCLUDE(CheckCSourceCompiles) 
+ 
+ # We require SunStudio 12u2 (CC 5.11)
+ IF(NOT FORCE_UNSUPPORTED_COMPILER)
+-  IF(CMAKE_C_COMPILER_ID MATCHES "SunPro")
++  IF(CMAKE_COMPILER_IS_GNUCC)
++    EXECUTE_PROCESS(COMMAND ${CMAKE_C_COMPILER} -dumpversion
++                    OUTPUT_VARIABLE GCC_VERSION)
++    IF(GCC_VERSION VERSION_LESS 4.4)
++      MESSAGE(FATAL_ERROR "GCC 4.4 or newer is required!")
++    ENDIF()
++  ELSEIF(CMAKE_C_COMPILER_ID MATCHES "SunPro")
+     # CC -V yields
+     # CC: Studio 12.6 Sun C++ 5.15 SunOS_sparc Beta 2016/12/19
+     # CC: Studio 12.5 Sun C++ 5.14 SunOS_sparc Dodona 2016/04/04
+
+
 [FILE:574:patches/patch-cmake_plugin.cmake]
 --- cmake/plugin.cmake.orig	2017-12-09 07:33:37 UTC
 +++ cmake/plugin.cmake
@@ -524,7 +549,7 @@ share/man/man1/
  #define MI_MAX_KEY_BUFF  (MI_MAX_KEY_LENGTH+MI_MAX_KEY_SEG*6+8+8)
 
 
-[FILE:434:patches/patch-libmysql_CMakeLists.txt]
+[FILE:440:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2017-12-09 07:33:37 UTC
 +++ libmysql/CMakeLists.txt
 @@ -223,7 +223,7 @@ IF(NOT DISABLE_SHARED)
@@ -532,7 +557,7 @@ share/man/man1/
    IF(UNIX)
      # libtool compatability
 -    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR APPLE)
-+    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|Linux" OR APPLE)
++    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|Linux|SunOS" OR APPLE)
        SET(OS_SHARED_LIB_VERSION "${SHARED_LIB_MAJOR_VERSION}")
      ELSE()
        SET(OS_SHARED_LIB_VERSION

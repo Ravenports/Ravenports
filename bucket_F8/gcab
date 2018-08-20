@@ -27,6 +27,7 @@ GNOME_COMPONENTS=	glib intltool introspection
 
 CPE_VENDOR=		gnome
 FPC_EQUIVALENT=		archivers/gcab
+MESON_ARGS=		-Dtests=false
 MESON_INSERT_RPATH=	libgcab/meson.build
 			src/meson.build
 
@@ -119,7 +120,7 @@ share/doc/gcab/
  up.png
 
 
-[FILE:1066:patches/patch-meson.build]
+[FILE:1591:patches/patch-meson.build]
 --- meson.build.orig	2018-02-09 12:44:30 UTC
 +++ meson.build
 @@ -5,7 +5,6 @@ project('gcab', 'c',
@@ -130,7 +131,27 @@ share/doc/gcab/
  
  # libtool versioning
  lt_current = '0'
-@@ -95,11 +94,7 @@ i18n = import('i18n')
+@@ -15,7 +14,6 @@ lt_version = '@0@.@1@.@2@'.format(lt_cur
+ 
+ # get suported warning flags
+ test_args = [
+-  '-fstack-protector-strong',
+   '-Waggregate-return',
+   '-Wunused',
+   '-Warray-bounds',
+@@ -72,10 +70,7 @@ endforeach
+ # enable full RELRO where possible
+ # FIXME: until https://github.com/mesonbuild/meson/issues/1140 is fixed
+ global_link_args = []
+-test_link_args = [
+-  '-Wl,-z,relro',
+-  '-Wl,-z,now',
+-]
++test_link_args = []
+ foreach arg: test_link_args
+   if cc.has_argument(arg)
+     global_link_args += arg
+@@ -95,11 +90,7 @@ i18n = import('i18n')
  conf = configuration_data()
  conf.set_quoted('GETTEXT_PACKAGE', meson.project_name())
  conf.set_quoted('PACKAGE_NAME', meson.project_name())
