@@ -551,6 +551,24 @@ expand_ISC()
     done
 }
 
+expand_DEBIAN()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##DEBIAN/}
+    local cluster="\
+    http://cdn.debian.net/debian \
+    http://www.gtlib.gatech.edu/pub/debian \
+    ftp://ftp.us.debian.org/debian \
+    http://ftp.au.debian.org/debian \
+    http://ftp.cl.debian.org/debian \
+    ftp://ftp.cz.debian.org/debian \
+    ftp://ftp.de.debian.org/debian \
+    http://ftp.wa.au.debian.org/debian"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 process_site()
 {
     case "${1}" in
@@ -561,6 +579,7 @@ process_site()
 	APACHE_JAKARTA/*)          expand_APACHE_JAKARTA "${1}" ;;
 	PERL_CPAN/*)               expand_CPAN "${1}" 1 ;;
 	CPAN/*)                    expand_CPAN "${1}" 2 ;;
+	DEBIAN/*)                  expand_DEBIAN "${1}" ;;
 	FREELOCAL/*)               expand_FREELOCAL "${1}" ;;
 	GCC/*)                     expand_GCC "${1}" ;;
 	GITHUB/*)                  expand_GITHUB "${1}" ;;

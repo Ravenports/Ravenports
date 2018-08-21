@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.4
-REVISION=		7
+REVISION=		8
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -209,10 +209,10 @@ post-extract-DRAGONFLY-ON:
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
 
 post-install-DRAGONFLY-ON:
-	${INSTALL_DATA} ${FOS}/etc/group \
-		${STAGEDIR}${RSYS}/usr/share/group
-	${INSTALL_DATA} ${FOS}/etc/master.passwd \
-		${STAGEDIR}${RSYS}/usr/share/master.passwd
+	${SED} -e '/^git_daemon:/d; /^dhcpd:/d' ${FOS}/etc/group \
+		> ${STAGEDIR}${RSYS}/usr/share/group
+	${SED} -e '/^git_daemon:/d; /^dhcpd:/d' ${FOS}/etc/master.passwd \
+		> ${STAGEDIR}${RSYS}/usr/share/master.passwd
 	${INSTALL_DATA} ${FOS}/etc/defaults/rc.conf \
 		${STAGEDIR}${RSYS}/usr/share/rc.conf
 	${FOS}/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
