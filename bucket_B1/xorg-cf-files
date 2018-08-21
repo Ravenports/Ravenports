@@ -321,7 +321,7 @@ lib/X11/config/
  	  if [ -f lfile -a ! -h lfile ]; then \				@@\
 
 
-[FILE:1497:patches/patch-Imake.tmpl]
+[FILE:1916:patches/patch-Imake.tmpl]
 --- Imake.tmpl.orig	2015-12-22 01:28:02 UTC
 +++ Imake.tmpl
 @@ -890,7 +890,7 @@ TCLIBDIR = TclLibDir
@@ -333,7 +333,24 @@ lib/X11/config/
  #else
  #define ManDirectoryRoot SystemManDirectory
  #endif
-@@ -1823,7 +1823,7 @@ CXXEXTRA_INCLUDES = CplusplusExtraInclud
+@@ -1205,16 +1205,8 @@ TCLIBDIR = TclLibDir
+ #define PreProcessCmd CcCmd -E
+ #endif
+ #ifndef InstallCmd		/* hack should be in project */
+-#if SystemV || SystemV4
+-#ifdef UseInstalled		/* assume BINDIR in path */
+-#define InstallCmd bsdinst
+-#else
+-#define InstallCmd $(SHELL) $(CONFIGSRC)/util/bsdinst.sh
+-#endif
+-#else
+ #define InstallCmd install
+ #endif
+-#endif
+ #ifndef InstallFlags
+ #define InstallFlags -c
+ #endif
+@@ -1823,7 +1815,7 @@ CXXEXTRA_INCLUDES = CplusplusExtraInclud
         CXXOPTIONS = CplusplusOptions
        CXXINCLUDES = $(INCLUDES) $(TOP_INCLUDES) $(CXXEXTRA_INCLUDES)
         CXXDEFINES = $(CXXINCLUDES) $(CXXSTD_DEFINES) $(THREADS_CXXDEFINES) $(DEFINES) $(CXXEXTRA_DEFINES)
@@ -342,7 +359,7 @@ lib/X11/config/
  #endif
           COMPRESS = CompressCmd
            GZIPCMD = GzipCmd
-@@ -2073,7 +2073,7 @@ MODLDCOMBINEFLAGS = ModuleLdCombineFlags
+@@ -2073,7 +2065,7 @@ MODLDCOMBINEFLAGS = ModuleLdCombineFlags
   */
        ALLINCLUDES = $(INCLUDES) $(EXTRA_INCLUDES) $(TOP_INCLUDES) $(INSTALLED_INCLUDES) $(STD_INCLUDES)
         ALLDEFINES = $(ALLINCLUDES) $(STD_DEFINES) $(PROTO_DEFINES) $(THREADS_DEFINES) $(MODULE_DEFINES) $(DEFINES) $(EXTRA_DEFINES)
@@ -444,4 +461,101 @@ lib/X11/config/
  #  else
  #   define ExtraLoadFlags RpathLoadFlags
  #  endif
+
+
+[FILE:870:patches/patch-sun.cf]
+--- sun.cf.orig	2015-12-22 01:28:02 UTC
++++ sun.cf
+@@ -515,7 +515,7 @@ XCOMM SunPro C++ CplusplusCompilerMajorV
+ # define InstKmemFlags	-g sys -m 2711
+ # define ShLibIncludeFile <sunLib.tmpl>
+ # define LinkerRuntimeLibraryPathFlag(path) Concat(-R,path)
+-# define RpathLoadFlags LinkerRuntimeLibraryPathFlag($(USRLIBDIRPATH))
++# define RpathLoadFlags -Wl,-rpath,$(USRLIBDIRPATH)
+ /*
+  * Set flags for position independent code before including sv4Lib.rules
+  * if the compiler in use doesn't use standard SVR4 flags
+@@ -879,7 +879,7 @@ MAPFILES_FOR_PROGS = Mapfile_BssAlign Ma
+ #  define DriverManSuffix	7	/* use just one tab or cpp will die */
+ # endif
+ # ifndef AdminManSuffix
+-#  define AdminManSuffix	1m	/* use just one tab or cpp will die */
++#  define AdminManSuffix	1	/* use just one tab or cpp will die */
+ # endif
+ #else
+ /* Bell Labs / BSD man page sections */
+
+
+[FILE:436:patches/patch-sv4Lib.rules]
+--- sv4Lib.rules.orig	2015-12-22 01:28:02 UTC
++++ sv4Lib.rules
+@@ -31,7 +31,10 @@ XCOMM $XFree86: xc/config/cf/sv4Lib.rule
+ # define SharedLibraryLoadFlags -G -z text
+ #endif
+ #ifndef RpathLoadFlags
+-#define RpathLoadFlags /**/
++#define RpathLoadFlags -Wl,-rpath,$(USRLIBDIRPATH)
++#endif
++#ifndef ExtraLoadFlags
++#define ExtraLoadFlags RpathLoadFlags
+ #endif
+ #ifndef LibraryRpathLoadFlags
+ #define LibraryRpathLoadFlags RpathLoadFlags
+
+
+[FILE:1283:patches/patch-svr4.cf]
+--- svr4.cf.orig	2015-12-22 01:28:02 UTC
++++ svr4.cf
+@@ -64,13 +64,13 @@ XCOMM $XFree86: xc/config/cf/svr4.cf,v 3
+  * Here are the default paths to use to pick up tools for building.
+  */
+ #ifndef ArCmdBase
+-#define	ArCmdBase	/usr/ccs/bin/ar
++#define	ArCmdBase	ar
+ #endif
+ #ifndef AsCmd
+-#define	AsCmd	/usr/ccs/bin/as
++#define	AsCmd	as
+ #endif
+ #ifndef CppCmd
+-#define	CppCmd	/usr/ccs/lib/cpp
++#define	CppCmd	cpp
+ #endif
+ #ifndef RawCppCmd
+ #if !defined(SunArchitecture)
+@@ -78,16 +78,16 @@ XCOMM $XFree86: xc/config/cf/svr4.cf,v 3
+ #endif
+ #endif
+ #ifndef LdCmd
+-#define	LdCmd	/usr/ccs/bin/ld
++#define	LdCmd	ld
+ #endif
+ #ifndef LexCmd
+-#define	LexCmd	/usr/ccs/bin/lex
++#define	LexCmd	lex
+ #endif
+ #ifndef MakeCmd
+-#define	MakeCmd	/usr/ccs/bin/make
++#define	MakeCmd	make
+ #endif
+ #ifndef YaccCmd
+-#define	YaccCmd	/usr/ccs/bin/yacc
++#define	YaccCmd	yacc
+ #endif
+ #ifndef MkdirHierCmd
+ #define MkdirHierCmd mkdir -p
+@@ -232,11 +232,11 @@ XCOMM $XFree86: xc/config/cf/svr4.cf,v 3
+ #endif
+ 
+ #ifndef ManSuffix
+-#define ManSuffix               1x
++#define ManSuffix               1
+ #define ManDir			$(MANSOURCEPATH)1
+ #endif
+ #ifndef LibManSuffix
+-#define LibManSuffix            3x
++#define LibManSuffix            3
+ #define LibmanDir		$(MANSOURCEPATH)3
+ #endif
+ #ifndef FileManSuffix
 

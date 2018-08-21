@@ -18,6 +18,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+B_DEPS[sunos]=		libbsd4sol:single:standard
+
 USES=			autoreconf pkgconfig gmake gnome-icons:single
 			gettext-tools gettext-runtime
 GNOME_COMPONENTS=	gtk2 intltool
@@ -35,6 +37,9 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-appindicator
 			localedir={{LOCALBASE}}/share/locale
 
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
+			CONFIGURE_ENV=LIBS=-lbsd
+
 post-patch:
 	# deal with intltool-0.40.5 bug (can't use intltool + gettext)
 	${REINPLACE_CMD} -e '/AM_GNU_GETTEXT/d' ${WRKSRC}/configure.ac
@@ -42,6 +47,8 @@ post-patch:
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|^itlocaledir =.*|itlocaledir = $$(datarootdir)/locale|' \
 		${WRKSRC}/po/Makefile.in.in
+	# get rid of as-needed linker flag
+	${REINPLACE_CMD} -e '/AM_LDFLAGS/d' ${WRKSRC}/src/Makefile.am
 
 [FILE:71:descriptions/desc.single]
 Clipit is a lightweight GTK+ clipboard manager forked from Parcellite.

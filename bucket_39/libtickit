@@ -18,15 +18,30 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libtermkey:single:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 
 USES=			gmake pkgconfig libtool:build
+
+LICENSE=		MIT:single
+LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
 
 MAKE_ARGS=		PREFIX="{{PREFIX}}"
 
 SOVERSION=		1.0.0
 
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			CFLAGS=-I{{LOCALBASE}}/include/bsd
+			LDFLAGS=-lbsd
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtickit.so
+
+post-patch-sunos:
+	${REINPLACE_CMD} -e '/XOPEN_SOURCE/d' \
+		${WRKSRC}/src/debug.c \
+		${WRKSRC}/src/rectset.c \
+		${WRKSRC}/src/mockterm.c
 
 [FILE:857:descriptions/desc.single]
 libtickit, Terminal Interface Construction Kit
@@ -299,4 +314,20 @@ share/man/man7/
  tickit_string.7.gz
  tickit_term.7.gz
  tickit_window.7.gz
+
+
+[FILE:269:patches/patch-src_term.c]
+--- src/term.c.orig	2018-01-05 14:57:48 UTC
++++ src/term.c
+@@ -28,6 +28,10 @@
+ #include <sys/select.h>
+ #include <sys/time.h>
+ 
++#ifdef __sun__
++#include <sys/termios.h>
++#endif
++
+ #define streq(a,b) (!strcmp(a,b))
+ 
+ /* unit multipliers for working in microseconds */
 

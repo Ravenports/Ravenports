@@ -363,3 +363,20 @@ share/man/man1/
  
  #ifdef _Windows
 
+
+[FILE:625:sunos/patch-src_Makefile.in]
+It is unclear why the head | sed command is producing garbage on sunos.
+For now, just hardcode the date there.
+
+--- src/Makefile.in.orig	2018-08-20 04:39:39 UTC
++++ src/Makefile.in
+@@ -1250,7 +1250,7 @@ timestamp.h: $(top_srcdir)/ChangeLog Mak
+ 	@echo Making $@
+ 	@echo "#ifndef GNUPLOT_TIMEBASE_H_INCLUDED" >$@t
+ 	@echo "#define GNUPLOT_TIMEBASE_H_INCLUDED" >>$@t
+-	@head -1 $< | sed -e 's,\(^[0-9-]* \).*$$,const char gnuplot_date[] = "\1";,' >>$@t
++	@echo "const char gnuplot_date[] = "2018-05-31";" >>$@t
+ 	@echo "#endif /* GNUPLOT_TIMEBASE_H_INCLUDED */" >> $@t
+ 	@if cmp -s $@ $@t; then rm -f $@t; else mv $@t $@; fi
+ 
+
