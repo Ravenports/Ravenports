@@ -53,7 +53,7 @@ CONFIGURE_ARGS=		--enable-libpaper
 			--with-cups-group=cups
 			--with-dbusdir="{{PREFIX}}/etc/dbus-1"
 			--with-icondir="{{PREFIX}}/share/icons"
-			--with-menudir="{{PREFIX}}//share/applications"
+			--with-menudir="{{PREFIX}}/share/applications"
 			--with-printcap="{{PREFIX}}/etc/printcap"
 			--with-rcdir=no
 			--with-optim=" "
@@ -112,7 +112,7 @@ network printers.
 8f87157960b9d80986f52989781d9de79235aa060e05008e4cf4c0a6ef6bca72     10334321 apple-cups-2.2.8.tar.gz
 
 
-[FILE:13528:manifests/plist.primary]
+[FILE:13566:manifests/plist.primary]
 @sample etc/cups/cups-files.conf.sample
 @sample etc/cups/cupsd.conf.sample
 @sample etc/cups/snmp.conf.sample
@@ -121,6 +121,7 @@ network printers.
 %%ONLY-DRAGONFLY%%share/cups/usb/org.cups.usb-quirks
 %%ONLY-FREEBSD%%libexec/cups/backend/usb
 %%ONLY-FREEBSD%%share/cups/usb/org.cups.usb-quirks
+%%ONLY-LINUX%%libexec/cups/backend/usb
 bin/
  cancel
  cups-config
@@ -842,7 +843,7 @@ share/man/man8/
 @dir(,cups,775) /var/cache/cups/rss
 @dir(cups,,511) /var/run/cups/certs
 @postexec chmod 710 /var/spool/cups && chgrp cups /var/spool/cups
-@postexec chmod 770 /var/cache/cups && chgrp cups /var/cache/cups 
+@postexec chmod 770 /var/cache/cups && chgrp cups /var/cache/cups
 
 
 [FILE:1845:manifests/plist.docs]
@@ -1036,7 +1037,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  #
 
 
-[FILE:2177:patches/patch-configure]
+[FILE:2330:patches/patch-configure]
 --- configure.orig	2018-06-05 16:06:54 UTC
 +++ configure
 @@ -5731,7 +5731,7 @@ fi
@@ -1065,7 +1066,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  			CUPS_LOCALEDIR="$datarootdir/locale"
  			;;
  
-@@ -6445,7 +6444,7 @@ _ACEOF
+@@ -6445,11 +6444,15 @@ _ACEOF
  
  # Server executables...
  case "$host_os_name" in
@@ -1074,7 +1075,15 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  		# *BSD and Darwin (macOS)
  		INSTALL_SYSV=""
  		CUPS_SERVERBIN="$exec_prefix/libexec/cups"
-@@ -6506,7 +6505,7 @@ fi
+ 		;;
++	linux*)
++		INSTALL_SYSV="install-sysv"
++		CUPS_SERVERBIN="$exec_prefix/libexec/cups"
++		;;
+ 	*)
+ 		# All others
+ 		INSTALL_SYSV="install-sysv"
+@@ -6506,7 +6509,7 @@ fi
  
  if test "$mandir" = "\${prefix}/man" -a "$prefix" = "/"; then
  	case "$host_os_name" in
@@ -1083,7 +1092,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
          		# Darwin, macOS, Linux, GNU HURD, and *BSD
          		mandir="/usr/share/man"
          		AMANDIR="/usr/share/man"
-@@ -6587,7 +6586,7 @@ if test x$enable_shared != xno; then
+@@ -6587,7 +6590,7 @@ if test x$enable_shared != xno; then
  			DSOXX="\$(CXX)"
  			DSOFLAGS="$DSOFLAGS -Wl,-h\`basename \$@\` -G \$(OPTIM)"
  			;;
@@ -1092,7 +1101,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  			LIBCUPS="lib$cupsbase.so.2"
  			LIBCUPSCGI="libcupscgi.so.1"
  			LIBCUPSIMAGE="libcupsimage.so.2"
-@@ -6683,12 +6682,11 @@ if test "$DSO" != ":"; then
+@@ -6683,12 +6686,11 @@ if test "$DSO" != ":"; then
  				EXPORT_LDFLAGS="-R$libdir"
  			fi
  			;;
@@ -1106,7 +1115,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  			fi
  			;;
                  linux* | gnu*)
-@@ -8802,13 +8800,7 @@ fi
+@@ -8802,13 +8804,7 @@ fi
  			PAMLIBS="-lpam"
  		fi
  

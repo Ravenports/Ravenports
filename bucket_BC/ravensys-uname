@@ -78,7 +78,7 @@ bin/ravensys-uname
  */
 
 
-[FILE:514:files/special.mk]
+[FILE:515:files/special.mk]
 # add ARCH_STANDARD conditions as multiple arches per OPSYS
 # become supported
 
@@ -94,9 +94,9 @@ SET_PLATFORM=	amd64
 .elif ${OPSYS:MOpenBSD}
 SET_ARCH=	amd64
 SET_PLATFORM=	amd64
-.elif ${OPSYS:MDarwin}
+.elif ${OPSYS:MMacOS}
 SET_ARCH=	x86_64
-SET_PLATFORM=	i386
+SET_PLATFORM=	x86_64
 .elif ${OPSYS:MSunOS}
 SET_ARCH=	x86_64	#check
 SET_PLATFORM=	x86_64
@@ -106,13 +106,16 @@ SET_PLATFORM=	x86_64
 .endif
 
 
-[FILE:2094:files/uname.c.in]
+[FILE:2145:files/uname.c.in]
 #ifndef __sun__
 #include <err.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#ifdef __APPLE__
+#define u_int	unsigned int
+#endif
 
 #define	MFLAG	0x01
 #define	NFLAG	0x02
