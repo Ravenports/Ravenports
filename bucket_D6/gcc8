@@ -3734,7 +3734,7 @@ share/man/man1/
  gfortran.1.gz
 
 
-[FILE:39248:patches/patch-diff-ada]
+[FILE:39473:patches/patch-diff-ada]
 --- gcc/ada/adaint.c.orig
 +++ gcc/ada/adaint.c
 @@ -1187,6 +1187,47 @@
@@ -3785,6 +3785,15 @@ share/man/man1/
  #elif defined (__linux__) || defined (__FreeBSD__) || defined (__NetBSD__) \
    || defined (__OpenBSD__) || defined (__GLIBC__) || defined (__ANDROID__) \
    || defined (__DragonFly__) || defined (__QNX__)
+@@ -1473,7 +1514,7 @@
+   utimbuf.modtime = time_stamp;
+ 
+   /* Set access time to now in local time.  */
+-  t = time ((time_t) 0);
++  t = time (NULL);
+   utimbuf.actime = mktime (localtime (&t));
+ 
+   utime (name, &utimbuf);
 --- gcc/ada/cio.c.orig
 +++ gcc/ada/cio.c
 @@ -49,7 +49,7 @@
@@ -5564,7 +5573,18 @@ share/man/man1/
 -end;
 
 
-[FILE:4754:patches/patch-diff-core]
+[FILE:5176:patches/patch-diff-core]
+--- gcc/config/darwin.h.orig
++++ gcc/config/darwin.h
+@@ -238,7 +238,7 @@
+    multiple times on a command line with different arguments each time,
+    so put a * after their names so all of them get passed.  */
+ #define LINK_SPEC  \
+-  "%{static}%{!static:-dynamic} \
++  "%{static}%{!static:-dynamic -rpath @PREFIX@/@GCCAUX@/lib} \
+    %:remove-outfile(-ldl) \
+    %:remove-outfile(-lm) \
+    %:remove-outfile(-lpthread) \
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
