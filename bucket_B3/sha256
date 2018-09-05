@@ -81,7 +81,7 @@ clean:
 	rm -f md5hl.c sha256hl.c md5 sha256 ${OBJS}
 
 
-[FILE:11644:files/main.c]
+[FILE:11665:files/main.c]
 /*
  * Derived from:
  *
@@ -250,7 +250,7 @@ digestfile(const char *fname, char *buf, const Algorithm_t *alg,
 		else
 			size = end - begin;
 
-#if defined __linux__ || defined __sun__
+#if defined __linux__ || defined __sun__ || defined __APPLE__
 		map = mmap(NULL, size, PROT_READ, 0, fd, begin);
 #else
 		map = mmap(NULL, size, PROT_READ, MAP_NOCORE, fd, begin);
@@ -638,7 +638,7 @@ __END_DECLS
 #endif /* _MD5_H_ */
 
 
-[FILE:9487:files/md5c.c]
+[FILE:9514:files/md5c.c]
 /*
  * MD5C.C - RSA Data Security, Inc., MD5 message-digest algorithm
  *
@@ -686,7 +686,9 @@ static unsigned char PADDING[64] = {
 #define u_int32_t uint32_t
 #else
 #include <machine/endian.h>
+# ifndef __APPLE__
 #include <sys/endian.h>
+# endif
 #endif
 #include "md5.h"
 
