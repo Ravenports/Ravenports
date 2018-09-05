@@ -3620,7 +3620,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 
 
 [FILE:6203:dragonfly/patch-nsprpub_pr_include_md___dragonfly.cfg]
---- /dev/null	2018-01-19 15:06:42 UTC
+--- /dev/null	2018-09-05 01:03:21 UTC
 +++ pr/include/md/_dragonfly.cfg
 @@ -0,0 +1,208 @@
 +/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
@@ -3834,7 +3834,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 
 
 [FILE:6201:dragonfly/patch-nsprpub_pr_include_md___dragonfly.h]
---- /dev/null	2018-01-19 15:06:42 UTC
+--- /dev/null	2018-09-05 01:03:21 UTC
 +++ pr/include/md/_dragonfly.h
 @@ -0,0 +1,225 @@
 +/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
@@ -4065,7 +4065,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 
 
 [FILE:875:dragonfly/patch-nsprpub_pr_include_md__freebsd.h]
---- pr/include/md/_freebsd.h.orig	2018-01-19 15:06:41 UTC
+--- pr/include/md/_freebsd.h.orig	2018-09-05 01:03:20 UTC
 +++ pr/include/md/_freebsd.h
 @@ -67,7 +67,7 @@
  #define _PR_HAVE_GETHOST_R
@@ -4097,7 +4097,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 
 
 [FILE:1425:dragonfly/patch-nsprpub_pr_include_md__pth.h]
---- pr/include/md/_pth.h.orig	2018-01-18 12:37:14 UTC
+--- pr/include/md/_pth.h.orig	2018-08-28 12:42:28 UTC
 +++ pr/include/md/_pth.h
 @@ -86,7 +86,7 @@
   */
@@ -4128,7 +4128,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 
 
 [FILE:279:dragonfly/patch-nsprpub_pr_include_md_prosdep.h]
---- pr/include/md/prosdep.h.orig	2018-01-18 12:37:14 UTC
+--- pr/include/md/prosdep.h.orig	2018-08-28 12:42:28 UTC
 +++ pr/include/md/prosdep.h
 @@ -43,6 +43,9 @@ PR_BEGIN_EXTERN_C
  #elif defined(OPENBSD)
@@ -4143,7 +4143,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 
 
 [FILE:482:dragonfly/patch-nsprpub_pr_src_md_unix_uxrng.c]
---- pr/src/md/unix/uxrng.c.orig	2018-01-18 12:37:14 UTC
+--- pr/src/md/unix/uxrng.c.orig	2018-08-28 12:42:28 UTC
 +++ pr/src/md/unix/uxrng.c
 @@ -86,7 +86,7 @@ GetHighResClock(void *buf, size_t maxbyt
  
@@ -4157,9 +4157,9 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 
 
 [FILE:711:dragonfly/patch-nsprpub_pr_src_misc_prnetdb.c]
---- pr/src/misc/prnetdb.c.orig	2018-01-19 15:06:41 UTC
+--- pr/src/misc/prnetdb.c.orig	2018-09-05 01:03:20 UTC
 +++ pr/src/misc/prnetdb.c
-@@ -77,6 +77,11 @@ PRLock *_pr_dnsLock = NULL;
+@@ -81,6 +81,11 @@ PRLock *_pr_dnsLock = NULL;
  #define _PR_HAVE_GETPROTO_R_INT
  #endif
  
@@ -4171,7 +4171,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
  /* BeOS has glibc but not the glibc-style getprotobyxxx_r functions. */
  #if (defined(__GLIBC__) && __GLIBC__ >= 2 && !defined(XP_BEOS))
  #define _PR_HAVE_GETPROTO_R
-@@ -294,7 +299,7 @@ _pr_QueryNetIfs(void)
+@@ -298,7 +303,7 @@ _pr_QueryNetIfs(void)
  }
  
  #elif (defined(DARWIN) && defined(HAVE_GETIFADDRS)) || defined(FREEBSD) \
@@ -4182,16 +4182,15 @@ Better to just keep calling it pthread_t isntead of casting to anything.
   * Use the BSD getifaddrs function.
 
 
-[FILE:521:dragonfly/patch-nsprpub_pr_src_pthreads_ptsynch.c]
---- pr/src/pthreads/ptsynch.c.orig	2018-01-19 15:06:41 UTC
+[FILE:459:dragonfly/patch-nsprpub_pr_src_pthreads_ptsynch.c]
+--- pr/src/pthreads/ptsynch.c.orig	2018-09-05 01:03:20 UTC
 +++ pr/src/pthreads/ptsynch.c
-@@ -912,7 +912,7 @@ PR_IMPLEMENT(PRStatus) PR_DeleteSemaphor
+@@ -912,6 +912,7 @@ PR_IMPLEMENT(PRStatus) PR_DeleteSemaphor
   */
  #if (defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)) \
-     || defined(FREEBSD) || defined(OPENBSD) || defined(BSDI) \
--    || defined(DARWIN) || defined(SYMBIAN)
-+    || defined(DARWIN) || defined(SYMBIAN) || defined(__DragonFly__)
+     || (defined(FREEBSD) && __FreeBSD_version < 1200059) \
++    || defined(__DragonFly__) \
+     || defined(OPENBSD) || defined(BSDI) \
+     || defined(DARWIN) || defined(SYMBIAN)
  /* union semun is defined by including <sys/sem.h> */
- #else
- /* according to X/OPEN we have to define it ourselves */
 
