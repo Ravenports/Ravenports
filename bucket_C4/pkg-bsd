@@ -2,6 +2,7 @@
 
 NAMEBASE=		pkg-bsd
 VERSION=		1.10.99.8
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	BSD binary package manager
@@ -21,12 +22,12 @@ SPKGS[standard]=	shared
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		libarchive-devel:static:standard
-			zlib:static:standard
+BUILD_DEPENDS=		zlib:static:standard
 			bzip2:static:standard
+			Zstandard:static:standard
 			autoconf:single:standard
 			automake:single:standard
-BUILDRUN_DEPENDS=	libarchive-devel:shared:standard
+BUILDRUN_DEPENDS=	libarchive:single:standard
 B_DEPS[sunos]=		libbsd4sol:single:standard musl-fts:single:standard
 BR_DEPS[linux]=		libbsd:single:standard
 
@@ -51,13 +52,6 @@ VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
 post-patch-linux:
 	${REINPLACE_CMD} -e '/libpkg_la_LDFLAGS =/ s/= /= -ldl /' \
 		${WRKSRC}/libpkg/Makefile.in
-
-pre-patch:
-	${REINPLACE_CMD} -e 's/larchive/larchive-devel/' \
-		${WRKSRC}/libpkg/Makefile.autosetup \
-		${WRKSRC}/tests/Makefile.autosetup \
-		${WRKSRC}/src/Makefile.autosetup
-	${REINPLACE_CMD} -e 's|-larchive|-larchive-devel|' ${WRKSRC}/auto.def
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/sbin/pkg2ng
