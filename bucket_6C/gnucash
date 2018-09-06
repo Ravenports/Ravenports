@@ -92,11 +92,13 @@ post-patch:
 		${FIND} . -type f -name CMakeLists.txt \
 		-exec ${REINPLACE_CMD} \
 		-e 's|/usr/local/share|${PREFIX}/share|' \
-		-e 's| -Werror||' \
+		-e 's|-Werror||' \
 		-e '/add_subdirectory *(test.*)/d' \
 		-e '/enable_testing()/d' -e '/include (GncAddTest)/d' \
 		-e '/INCLUDE (GncAddTest)/d' \
 		-e '/gnc_gtest_configure()/d' {} +)
+	${SED} -i.flag -e '/-Wno-deprecated-register/d' \
+		${WRKSRC}/libgnucash/engine/CMakeLists.txt
 
 post-install:
 	(cd ${STAGEDIR}${PREFIX}/etc/gnucash && \
