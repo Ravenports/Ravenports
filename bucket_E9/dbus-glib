@@ -27,9 +27,14 @@ USES=			cpe gmake libtool pkgconfig gettext-runtime
 			python:build
 GNOME_COMPONENTS=	glib
 
-LICENSE=		GPLv2+:primary
-LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
-LICENSE_SCHEME=		solo
+LICENSE=		GPLv2+:primary CUSTOM1:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_NAME=		CUSTOM1:"The Academic Free License 2.1"
+LICENSE_FILE=		GPLv2+:{{WRKDIR}}/COPYING.GPL
+			CUSTOM1:{{WRKDIR}}/COPYING.AFL
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/dbus/dbus-glib.h
+LICENSE_SCHEME=		multi
 
 CPE_VENDOR=		freedesktop
 FPC_EQUIVALENT=		devel/dbus-glib
@@ -40,6 +45,12 @@ CONFIGURE_ARGS=		--disable-gtk-doc
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		2.3.4
+
+post-extract:
+	${AWK} '/^The Academic Free License/,/^--/' \
+		${WRKSRC}/COPYING > ${WRKDIR}/COPYING.AFL
+	${AWK} '/^START OF GNU/,/^Public License instead/' \
+		${WRKSRC}/COPYING > ${WRKDIR}/COPYING.GPL
 
 [FILE:59:descriptions/desc.primary]
 GLib bindings for the D-BUS interprocess messaging system.

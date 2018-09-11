@@ -101,6 +101,9 @@ INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
 .else
 CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
 			${CFLAGS} -I${LOCALBASE}/include
+.  if "${OPSYS}" == "Darwin"
+STRIP_CMD+=		-x
+.  endif
 .endif
 CPPFLAGS+=		-I${LOCALBASE}/include
 LDFLAGS+=		-L${LOCALBASE}/lib -Wl,-rpath,${LOCALBASE}/lib
@@ -929,6 +932,16 @@ stage-qa:
 
 TMP_MANIFESTS=		${SUBPACKAGES:C|(.*)|${WRKDIR}/.manifest.\1.mktmp|}
 TMP_MANIFESTS_SORT=	${TMP_MANIFESTS:.mktmp=.mktmp.sorted}
+AWK_DYLIB_SUPPORT=	'/.*\.so[0123456789.]?*$$/ { \
+  if (substr ($$0, length($$0) - 2) == ".so") { \
+    print substr($$0, 1, length($$0) - 3) ".dylib"; \
+  } else { \
+    match ($$0, /\.so[0123456789.]*$$/); \
+    print substr($$0, 1, RSTART) substr($$0, RSTART + 4) ".dylib"; \
+  } \
+  next; \
+} \
+{ print $$0 }'
 
 .for plist in ${TMP_MANIFESTS}
 ${plist}.sorted: ${plist}
@@ -941,12 +954,20 @@ ${TMP_MANIFESTS}:
 	@${ECHO_MSG} "===>   Generating temporary packing list (${.TARGET:R:E})"
 	@${MKDIR} ${.TARGET:H}
 	@${TOUCH} ${.TARGET}
-	@if [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} ]; then \
+	@alpha=${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} ;\
+	bravo=${.CURDIR}/manifests/plist.${.TARGET:R:E} ;\
+	  if [ -f $$alpha ]; then manifest=$$alpha ;\
+	elif [ -f $$bravo ]; then manifest=$$bravo ;\
+	fi ;\
+	if [ -n "$$manifest" ]; then \
+	    if [ "${OPSYS}" == "Darwin" ]; then \
+		${AWK} ${AWK_DYLIB_SUPPORT} $$manifest | \
 		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
-		${.CURDIR}/manifests/plist.${.TARGET:R:E}.${VARIANT} >> ${.TARGET}; \
-	elif [ -f ${.CURDIR}/manifests/plist.${.TARGET:R:E} ]; then \
+		>> ${.TARGET} ;\
+	    else \
 		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
-		${.CURDIR}/manifests/plist.${.TARGET:R:E} >> ${.TARGET}; \
+		$$manifest >> ${.TARGET} ;\
+	    fi \
 	fi
 
 .if defined(INFO)
@@ -1094,8 +1115,16 @@ ASLIB=		lib
 .endif
 PLIST_SUB+=	ASLIB="${ASLIB}"
 
+.if "${OPSYS}" == "Darwin"
+LIBEXT=		dylib
+.else
+LIBEXT=		so
+.endif
+PLIST_SUB+=	LIBEXT="${LIBEXT}"
+PLIST_SUB+=	SHARED_OBJECT="so"
+
 # Define ONLY-<OPSYS:tu> for all supported systems
-.for supp in dragonfly linux freebsd sunos
+.for supp in dragonfly linux freebsd sunos darwin
 .  if empty(PLIST_SUB:MONLY-${supp:tu}=*)
 PLIST_SUB+=		ONLY-${supp:tu}="@comment "
 .  endif
