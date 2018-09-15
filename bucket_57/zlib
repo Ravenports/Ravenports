@@ -24,7 +24,7 @@ CONFIGURE_ENV=		prefix="{{PREFIX}}"
 			cflags="{{CFLAGS}}"
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libz.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libz.${LIBEXT}
 
 [FILE:628:descriptions/desc.static]
 zlib is designed to be a free, general-purpose, legally unencumbered -- 
@@ -66,7 +66,7 @@ lib/
  libz.so.1.2.11
 
 
-[FILE:446:patches/patch-configure]
+[FILE:1141:patches/patch-configure]
 --- configure.orig	2016-12-31 18:06:40 UTC
 +++ configure
 @@ -207,6 +207,8 @@ if test "$gcc" -eq 1 && ($cc -c $test.c)
@@ -78,4 +78,19 @@ lib/
    Linux* | linux* | GNU | GNU/* | solaris*)
          LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,${SRCDIR}zlib.map"} ;;
    *BSD | *bsd* | DragonFly)
+@@ -240,13 +242,7 @@ if test "$gcc" -eq 1 && ($cc -c $test.c)
+              SHAREDLIB=libz$shared_ext
+              SHAREDLIBV=libz.$VER$shared_ext
+              SHAREDLIBM=libz.$VER1$shared_ext
+-             LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
+-             if libtool -V 2>&1 | grep Apple > /dev/null; then
+-                 AR="libtool"
+-             else
+-                 AR="/usr/bin/libtool"
+-             fi
+-             ARFLAGS="-o" ;;
++             LDSHARED=${LDSHARED-"$cc -shared -Wl,-install_name,$libdir/$SHAREDLIBM"} ;;
+   *)             LDSHARED=${LDSHARED-"$cc -shared"} ;;
+   esac
+ else
 

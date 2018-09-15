@@ -78,15 +78,16 @@ VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS="-lrt -lresolv -lsocket"
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 
 post-install-STATIC-OFF:
-	if [ "${OPSYS}" != "SunOS" ]; then \
-	${RM} ${STAGEDIR}${PREFIX}/lib/libncurses.so; \
-	${RM} ${STAGEDIR}${PREFIX}/lib/libncursesw.so; \
+	# It's probably time to remove this GNU ld linker-specific hack
+.if "${.MAKE.OS.NAME}" != "SunOS" && "${.MAKE.OS.NAME}" != "Darwin"
+	${RM} ${STAGEDIR}${PREFIX}/lib/libncurses.${LIBEXT}
+	${RM} ${STAGEDIR}${PREFIX}/lib/libncursesw.${LIBEXT}
 	${ECHO} "INPUT(libncurses.so.6 AS_NEEDED(-ltinfo))" \
-		> ${STAGEDIR}${PREFIX}/lib/libncurses.so; \
+		> ${STAGEDIR}${PREFIX}/lib/libncurses.${LIBEXT}
 	${ECHO} "INPUT(libncursesw.so.6 AS_NEEDED(-ltinfow))" \
-		> ${STAGEDIR}${PREFIX}/lib/libncursesw.so; \
-	fi
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so.6.1
+		> ${STAGEDIR}${PREFIX}/lib/libncursesw.${LIBEXT}
+.endif
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.${LIBEXT}
 	${MV} ${STAGEDIR}${PREFIX}/share/misc/terminfo.db \
 		${STAGEDIR}${PREFIX}/share/misc/terminfo.db.default
 	@${MKDIR} ${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/c++

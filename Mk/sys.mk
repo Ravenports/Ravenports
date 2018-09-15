@@ -4,9 +4,14 @@
 
 AR?=		ar
 AS?=		as
+.if ${.MAKE.OS.NAME:MDarwin}
+CC?=		gcc
+CXX?=		g++
+.else
 CC?=		cc
-CC_LINK?=	${CC}
 CXX?=		c++
+.endif
+CC_LINK?=	${CC}
 CXX_LINK?=	${CXX}
 CPP?=		cpp
 ECHO?=		echo

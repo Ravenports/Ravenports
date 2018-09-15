@@ -23,7 +23,7 @@ OPTIONS_STANDARD=	none
 
 RUN_DEPENDS=		libiconv:static:standard
 
-USES=			charsetfix cpe iconv libtool c++:asprintf
+USES=			charsetfix cpe iconv libtool c++:asprintf macfix
 
 LICENSE=		GPLv3+:runtime LGPL21+:runtime
 LICENSE_TERMS=		runtime:{{WRKDIR}}/TERMS
@@ -46,6 +46,7 @@ CONFIGURE_ARGS=		--disable-csharp
 			--with-included-libcroco
 			--with-included-libunistring
 			--with-included-libxml
+			--with-xz
 			--without-emacs
 			--without-git
 CONFIGURE_ENV=		ac_cv_lib_rt_sched_yield=no
@@ -68,27 +69,20 @@ post-patch:
 		${WRKSRC}/gettext-runtime/libasprintf/Makefile.in \
 		${WRKSRC}/gettext-runtime/man/Makefile.in
 
-post-install-linux:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/preloadable_libintl.so
-
-post-install-freebsd:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libintl.so
-
-post-install-dragonfly:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libintl.so
-
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/gettext-0.19.8 \
 		${STAGEDIR}${PREFIX}/share/gettext/0.19.8
+.if "${.MAKE.OS.NAME}" == "Linux"
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/preloadable_libintl.so
+.else
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libintl.${LIBEXT}
+.endif
 
 post-extract:
-	${AWK} -e '/HAVE_CONFIG_H/ {exit}; {print}' \
+	${AWK} '/HAVE_CONFIG_H/ {exit}; {print}' \
 		${WRKSRC}/gettext-runtime/src/gettext.c > ${WRKDIR}/TERMS
-	${AWK} -e '/HAVE_CONFIG_H/ {exit}; {print}' \
+	${AWK} '/HAVE_CONFIG_H/ {exit}; {print}' \
 		${WRKSRC}/gettext-runtime/intl/textdomain.c >> ${WRKDIR}/TERMS
-
-post-install-sunos:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libintl.so
 
 [FILE:164:descriptions/desc.runtime]
 GNU gettext is a framework of libraries and tools for internationalisation
@@ -116,7 +110,14 @@ on libstdc++.
 105556dbc5c3fbbc2aa0edb46d22d055748b6f5c7cd7a8d99f8e7eb84e938be4      7209808 gettext-0.19.8.1.tar.xz
 
 
-[FILE:2710:manifests/plist.runtime.standard]
+[FILE:2859:manifests/plist.runtime.standard]
+%%ONLY-DARWIN%%include/libintl.h
+%%ONLY-DARWIN%%lib/
+ libintl.a
+ libintl.so
+ libintl.so.8
+ libintl.so.8.1.5
+%%ONLY-DARWIN%%share/locale/locale.alias
 %%ONLY-DRAGONFLY%%include/libintl.h
 %%ONLY-DRAGONFLY%%lib/
  libintl.a

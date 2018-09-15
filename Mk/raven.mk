@@ -961,8 +961,9 @@ ${TMP_MANIFESTS}:
 	fi ;\
 	if [ -n "$$manifest" ]; then \
 	    if [ "${OPSYS}" == "Darwin" ]; then \
-		${AWK} ${AWK_DYLIB_SUPPORT} $$manifest | \
-		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
+		${SED} ${PLIST_SUB:NSHARED_OBJECT=*:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
+		$$manifest | ${AWK} ${AWK_DYLIB_SUPPORT} | \
+		${SED} ${PLIST_SUB:MSHARED_OBJECT=*:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
 		>> ${.TARGET} ;\
 	    else \
 		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \

@@ -45,7 +45,7 @@ bin/patch
 share/man/man1/patch.1.gz
 
 
-[FILE:1672:files/LICENSE]
+[FILE:2544:files/LICENSE]
 /*-
  * Copyright 1986, Larry Wall
  * 
@@ -86,21 +86,42 @@ share/man/man1/patch.1.gz
  * 
  */
 
+/* $OpenBSD: strtonum.c,v 1.7 2013/04/17 18:40:58 tedu Exp $
+ *
+ * Copyright (c) 2004 Ted Unangst and Todd Miller
+ * All rights reserved.
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 
-[FILE:581:files/Makefile]
+
+[FILE:641:files/Makefile]
 PROG=		patch
-SRCS=		${PROG}.c pch.c inp.c util.c backupfile.c mkpath.c \
-		linux_support.c
+SRCS=		${PROG}.c pch.c inp.c util.c backupfile.c mkpath.c
 PREFIX?=	/usr/local
 CFLAGS+=	-I${PREFIX}/include -I.
 STATIC_LIBS=	
 
 .if "${OPSYS}" == "Linux"
 STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
+SRCS+=		linux_support.c
 .endif
 .if "${OPSYS}" == "SunOS"
 STATIC_LIBS+=	${PREFIX}/lib/libbsd.a
 CFLAGS+=	-I${PREFIX}/include/bsd
+.endif
+.if "${OPSYS}" == "Darwin"
+SRCS+=		mac_support.c
 .endif
 
 all: ${PROG}
@@ -938,6 +959,72 @@ int	bsd_asprintf(char **strp, const char *fmt, ...);
 #endif
 
 #endif /* LINUX_SUPPORT_H */
+
+
+[FILE:984:files/mac_support.c]
+#ifndef MAC_SUPPORT
+#define MAC_SUPPORT
+
+#include <errno.h>
+#include <limits.h>
+#include <stdlib.h>
+#include "mac_support.h"
+
+#define	INVALID		1
+#define	TOOSMALL	2
+#define	TOOLARGE	3
+
+long long
+strtonum(const char *numstr, long long minval, long long maxval,
+    const char **errstrp)
+{
+	long long ll = 0;
+	int error = 0;
+	char *ep;
+	struct errval {
+		const char *errstr;
+		int err;
+	} ev[4] = {
+		{ NULL,		0 },
+		{ "invalid",	EINVAL },
+		{ "too small",	ERANGE },
+		{ "too large",	ERANGE },
+	};
+
+	ev[0].err = errno;
+	errno = 0;
+	if (minval > maxval) {
+		error = INVALID;
+	} else {
+		ll = strtoll(numstr, &ep, 10);
+		if (numstr == ep || *ep != '\0')
+			error = INVALID;
+		else if ((ll == LLONG_MIN && errno == ERANGE) || ll < minval)
+			error = TOOSMALL;
+		else if ((ll == LLONG_MAX && errno == ERANGE) || ll > maxval)
+			error = TOOLARGE;
+	}
+	if (errstrp != NULL)
+		*errstrp = ev[error].errstr;
+	errno = ev[error].err;
+	if (error)
+		ll = 0;
+
+	return (ll);
+}
+
+#endif /* MAC_SUPPORT */
+
+
+[FILE:168:files/mac_support.h]
+#ifndef MAC_SUPPORT_H
+#define MAC_SUPPORT_H
+
+#ifdef __APPLE__
+long long	strtonum(const char *, long long, long long, const char **);
+#endif
+
+#endif /* MAC_SUPPORT_H */
 
 
 [FILE:715:files/mkpath.c]
@@ -2734,7 +2821,7 @@ similar(const char *a, const char *b, int len)
 #define	_PATH_RED		"/bin/red"
 
 
-[FILE:39374:files/pch.c]
+[FILE:39399:files/pch.c]
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -2751,6 +2838,7 @@ similar(const char *a, const char *b, int len)
 #include "util.h"
 #include "pch.h"
 #include "pathnames.h"
+#include "mac_support.h"
 
 /* Patch (diff listing) abstract type. */
 

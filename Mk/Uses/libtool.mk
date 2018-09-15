@@ -22,6 +22,10 @@ _USES_POST+=	libtool
 #.endif
 # -----------------------------------------------
 
+.if ${.MAKE.OS.NAME:MDarwin}
+MACHO_STRIP=	-e 's|--strip-unneeded|-x|' -e 's|--strip-debug|-S|'
+.endif
+
 _USES_configure+=	480:patch-libtool
 patch-libtool:
 	@${FIND} ${WRKDIR} \( -name configure -or -name ltconfig \)	\
@@ -30,6 +34,7 @@ patch-libtool:
 		-e '/gcc_dir=\\`/s/gcc /$$CC /'				\
 		-e '/gcc_ver=\\`/s/gcc /$$CC /'				\
 		-e '/link_all_deplibs[0-9A-Z_]*=/s/=unknown/=no/'	\
+		${MACHO_STRIP}						\
 		-e '/archive_expsym_cmds[0-9A-Z_]*=.$$CC.*-retain-/ {	\
 		    s/-retain-symbols-file/-version-script/;		\
 		    s/$$export_symbols/$$lib-ver/;			\

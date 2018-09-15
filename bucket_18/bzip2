@@ -22,36 +22,14 @@ OPTIONS_STANDARD=	none
 
 USES=			cpe
 
+LICENSE=		BSD4CLAUSE:static
+LICENSE_FILE=		BSD4CLAUSE:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
+
 CPE_VENDOR=		bzip
 FPC_EQUIVALENT=		archivers/bzip2
 
-do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/bzip2 ${STAGEDIR}${PREFIX}/bin
-	${INSTALL_PROGRAM} ${WRKSRC}/bzip2recover ${STAGEDIR}${PREFIX}/bin
-	${INSTALL_SCRIPT} ${WRKSRC}/bzgrep ${STAGEDIR}${PREFIX}/bin
-	${INSTALL_SCRIPT} ${WRKSRC}/bzmore ${STAGEDIR}${PREFIX}/bin
-	${INSTALL_DATA} ${WRKSRC}/bzlib.h ${STAGEDIR}${PREFIX}/include
-	${INSTALL_DATA} ${WRKSRC}/libbz2.a ${STAGEDIR}${PREFIX}/lib
-	${INSTALL_LIB} ${WRKSRC}/libbz2.so.1 ${STAGEDIR}${PREFIX}/lib
-	${INSTALL_MAN} ${WRKSRC}/bzip2.1 ${STAGEDIR}${PREFIX}/share/man/man1
-	${INSTALL_MAN} ${WRKSRC}/bzgrep.1 ${STAGEDIR}${PREFIX}/share/man/man1
-	${INSTALL_MAN} ${WRKSRC}/bzmore.1 ${STAGEDIR}${PREFIX}/share/man/man1
-	${LN} -sf bzmore ${STAGEDIR}${PREFIX}/bin/bzless
-	${LN} -sf libbz2.so.1 ${STAGEDIR}${PREFIX}/lib/libbz2.so
-.for nf in bunzip2 bzcat bz2cat
-	${LN} -sf bzip2 ${STAGEDIR}${PREFIX}/bin/${nf}
-	${LN} -sf bzip2.1 ${STAGEDIR}${PREFIX}/share/man/man1/${nf}.1
-.endfor
-.for nf in bzegrep bzfgrep
-	${LN} -sf bzgrep ${STAGEDIR}${PREFIX}/bin/${nf}
-	${LN} -sf bzgrep.1 ${STAGEDIR}${PREFIX}/share/man/man1/${nf}.1
-.endfor
-	${LN} -sf bzip2.1 ${STAGEDIR}${PREFIX}/share/man/man1/bzip2recover.1
-	${LN} -sf bzmore.1 ${STAGEDIR}${PREFIX}/share/man/man1/bzless.1
-	@${MKDIR} ${STAGEDIR}${PREFIX}/share/doc/bzip2
-	${INSTALL_DATA} ${WRKSRC}/manual* ${STAGEDIR}${PREFIX}/share/doc/bzip2
-	${INSTALL_DATA} ${WRKSRC}/bzip2.txt ${STAGEDIR}${PREFIX}/share/doc/bzip2
-	${STAGEDIR}${PREFIX}/bin/bzip2 -f ${STAGEDIR}${PREFIX}/share/doc/bzip2/manual.ps
+MAKE_ARGS=		PREFIX={{PREFIX}}
 
 [FILE:153:descriptions/desc.shared]
 This is bzip2, a advanced block-sorting file compressor.  It is believed
@@ -111,10 +89,10 @@ share/doc/bzip2/
  manual.xml
 
 
-[FILE:2260:patches/patch-Makefile]
+[FILE:4270:patches/patch-Makefile]
 --- Makefile.orig	2010-09-10 22:46:02 UTC
 +++ Makefile
-@@ -15,13 +15,14 @@
+@@ -15,13 +15,22 @@
  SHELL=/bin/sh
  
  # To assist in cross-compiling
@@ -129,10 +107,18 @@ share/doc/bzip2/
 +CFLAGS?=-O2
 +CFLAGS+=-Wall -Winline -fomit-frame-pointer -fno-strength-reduce $(BIGFILES)
 +SOFLAGS=-fPIC -fpic -DPIC
++
++.if "${OPSYS}" == "Darwin"
++MYLIBRARY=	libbz2.1.dylib
++MYLIBLINK=	libbz2.dylib
++.else
++MYLIBRARY=	libbz2.so.1
++MYLIBLINK=	libbz2.so
++.endif
  
  # Where you want it installed when you do 'make install'
  PREFIX=/usr/local
-@@ -35,10 +36,18 @@ OBJS= blocksort.o  \
+@@ -35,22 +44,33 @@
        decompress.o \
        bzlib.o
  
@@ -147,30 +133,76 @@ share/doc/bzip2/
  
 -bzip2: libbz2.a bzip2.o
 -	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
-+all: libbz2.so.1 libbz2.a bzip2 bzip2recover test
++all: ${MYLIBRARY} libbz2.a bzip2 bzip2recover test
 +
-+bzip2: libbz2.so.1 libbz2.a bzip2.o
++bzip2: ${MYLIBRARY} libbz2.a bzip2.o
 +	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o libbz2.a
  
  bzip2recover: bzip2recover.o
  	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2recover bzip2recover.o
-@@ -52,6 +61,10 @@ libbz2.a: $(OBJS)
- 		$(RANLIB) libbz2.a ; \
- 	fi
  
+ libbz2.a: $(OBJS)
+ 	rm -f libbz2.a
+-	$(AR) cq libbz2.a $(OBJS)
+-	@if ( test -f $(RANLIB) -o -f /usr/bin/ranlib -o \
+-		-f /bin/ranlib -o -f /usr/ccs/bin/ranlib ) ; then \
+-		echo $(RANLIB) libbz2.a ; \
+-		$(RANLIB) libbz2.a ; \
+-	fi
++	$(AR) -rcs libbz2.a $(OBJS)
++
 +libbz2.so.1: $(SO_OBJS)
 +	$(CC) $(LDFLAGS) -shared -Wl,-soname -Wl,libbz2.so.1 -o libbz2.so.1 $(SO_OBJS)
 +	ln -sf libbz2.so.1 libbz2.so
 +
++libbz2.1.dylib: $(SO_OBJS)
++	$(CC) $(LDFLAGS) -dynamiclib -o ${.TARGET} -install_name $(PREFIX)/lib/${.TARGET} -Wl,-single_module $(SO_OBJS)
++	ln -sf ${.TARGET} libbz2.dylib
+ 
  check: test
  test: bzip2
- 	@cat words1
-@@ -109,10 +122,26 @@ install: bzip2 bzip2recover
+@@ -69,7 +89,34 @@
+ 	cmp sample3.tst sample3.ref
+ 	@cat words3
+ 
+-install: bzip2 bzip2recover
++install:
++	mkdir -p $(DESTDIR)$(PREFIX)/bin \
++		$(DESTDIR)$(PREFIX)/lib \
++		$(DESTDIR)$(PREFIX)/include \
++		$(DESTDIR)$(PREFIX)/share/doc/bzip2 \
++		$(DESTDIR)$(MANPREFIX)/man/man1
++	$(BSD_INSTALL_PROGRAM) bzip2 bzip2recover $(DESTDIR)$(PREFIX)/bin
++	$(BSD_INSTALL_SCRIPT) bzgrep bzmore $(DESTDIR)$(PREFIX)/bin
++	$(BSD_INSTALL_DATA) bzlib.h $(DESTDIR)$(PREFIX)/include
++	$(BSD_INSTALL_DATA) libbz2.a $(DESTDIR)$(PREFIX)/lib
++	$(BSD_INSTALL_LIB) $(MYLIBRARY) $(DESTDIR)$(PREFIX)/lib
++	$(BSD_INSTALL_MAN) bzip2.1 bzgrep.1 bzmore.1 $(DESTDIR)$(MANPREFIX)/man/man1
++	ln -sf bzmore $(DESTDIR)$(PREFIX)/bin/bzless
++	ln -sf $(MYLIBRARY) $(DESTDIR)$(PREFIX)/lib/$(MYLIBLINK)
++.for nf in bunzip2 bzcat bz2cat
++	ln -sf bzip2 $(DESTDIR)$(PREFIX)/bin/$(nf)
++	ln -sf bzip2.1 $(DESTDIR)$(MANPREFIX)/man/man1/$(nf).1
++.endfor
++.for nf in bzegrep bzfgrep
++	ln -sf bzgrep $(DESTDIR)$(PREFIX)/bin/$(nf)
++	ln -sf bzgrep.1 $(DESTDIR)$(MANPREFIX)/man/man1/$(nf).1
++.endfor
++	ln -sf bzip2.1 $(DESTDIR)$(MANPREFIX)/man/man1/bzip2recover.1
++	ln -sf bzmore.1 $(DESTDIR)$(MANPREFIX)/man/man1/bzless.1
++	$(BSD_INSTALL_DATA) manual* bzip2.txt $(DESTDIR)$(PREFIX)/share/doc/bzip2/
++	./bzip2 -f $(DESTDIR)$(PREFIX)/share/doc/bzip2/manual.ps
++
++install-disable: bzip2 bzip2recover
+ 	if ( test ! -d $(PREFIX)/bin ) ; then mkdir -p $(PREFIX)/bin ; fi
+ 	if ( test ! -d $(PREFIX)/lib ) ; then mkdir -p $(PREFIX)/lib ; fi
+ 	if ( test ! -d $(PREFIX)/man ) ; then mkdir -p $(PREFIX)/man ; fi
+@@ -109,10 +156,26 @@
  	echo ".so man1/bzdiff.1" > $(PREFIX)/man/man1/bzcmp.1
  
  clean: 
 -	rm -f *.o libbz2.a bzip2 bzip2recover \
-+	rm -f *.o *.so libbz2.a libbz2.so.1 bzip2 bzip2recover \
++	rm -f *.o *.so libbz2.a ${MYLIBRARY} bzip2 bzip2recover \
  	sample1.rb2 sample2.rb2 sample3.rb2 \
  	sample1.tst sample2.tst sample3.tst
  

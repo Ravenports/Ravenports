@@ -23,7 +23,7 @@ OPTIONS_AVAILABLE=	CRYPTO TCL
 OPTIONS_STANDARD=	CRYPTO TCL
 OPT_ON[all]=		CRYPTO
 
-USES=			gmake libtool c++:shared fbsd10fix
+USES=			gmake libtool c++:shared fbsd10fix macfix
 
 DISTNAME=		db-5.3.28
 
@@ -55,6 +55,7 @@ PLIST_SUB=		BDBMAJ=5
 			BDBVER=5.3
 
 CFLAGS=			-fPIC
+VAR_OPSYS[darwin]=	CONFIGURE_ARGS=lt_cv_apple_cc_single_mod=yes
 VAR_ARCH[aarch64]=	CONFIGURE_ARGS=--enable-posixmutexes
 			CONFIGURE_ARGS=--with-mutex=POSIX/pthreads
 VAR_ARCH[i386]=		CONFIGURE_ARGS=--with-mutex=x86/gcc-assembly
@@ -80,15 +81,26 @@ post-patch:
 		${WRKSRC}/src/mutex/mut_*
 
 post-install-TCL-ON:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/db5/libdb_tcl-5.3.so.0.0.0
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/db5/libdb_tcl-5.3.${LIBEXT}
+.if "${OPSYS}" == "Darwin"
+	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.0.dylib
+	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.dylib
+	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.dylib
+	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.0.dylib
+.else
 	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
 		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.so.0
-	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \ \
+	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
 		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.so
 	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
 		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.so
 	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
 		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.so.0
+.endif
 	${LN} -s -f libdb_tcl-5.3.a \
 		${STAGEDIR}${PREFIX}/lib/db5/libdb_tcl.a
 	echo "package ifneeded Db_tcl 5.3 \
@@ -97,7 +109,17 @@ post-install-TCL-ON:
 
 post-install:
 .for i in libdb libdb_cxx libdb_sql
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/db5/${i}-5.3.so.0.0.0
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/db5/${i}-5.3.${LIBEXT}
+.if "${.MAKE.OS.NAME}" == "Darwin"
+	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/${i}-5.3.0.dylib
+	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/${i}-5.3.dylib
+	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/${i}-5.0.dylib
+	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
+		${STAGEDIR}${PREFIX}/lib/${i}-5.dylib
+.else
 	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
 		${STAGEDIR}${PREFIX}/lib/${i}-5.3.so.0
 	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
@@ -106,6 +128,7 @@ post-install:
 		${STAGEDIR}${PREFIX}/lib/${i}-5.so.0
 	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
 		${STAGEDIR}${PREFIX}/lib/${i}-5.so
+.endif
 	${LN} -s -f ${i}-5.3.a ${STAGEDIR}${PREFIX}/lib/db5/${i}.a
 	${LN} -s -f ${i}-5.3.a ${STAGEDIR}${PREFIX}/lib/db5/${i}-5.a
 .endfor

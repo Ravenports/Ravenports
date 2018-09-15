@@ -20,7 +20,7 @@ OPTIONS_AVAILABLE=	STATIC SKIP_MANPAGES
 OPTIONS_STANDARD=	SKIP_MANPAGES
 VOPTS[static]=		STATIC=ON SKIP_MANPAGES=ON
 
-USES=			cpe libtool pkgconfig solfix
+USES=			cpe libtool pkgconfig solfix macfix
 
 DISTNAME=		libressl-2.7.4
 
@@ -46,6 +46,7 @@ PLIST_SUB=		CRY_SOMAJOR=43
 
 TEST_TARGET=		check
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-asm
+VAR_OPSYS[darwin]=	CONFIGURE_ARGS=--disable-asm
 
 [STATIC].CFLAGS_OFF=			-fpic
 					-DPIC
@@ -53,6 +54,12 @@ VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-asm
 
 [SKIP_MANPAGES].DESCRIPTION=		Avoid installing LibreSSL manpages
 [SKIP_MANPAGES].EXTRA_PATCHES_ON=	extra-patch-MAN3
+
+post-patch:
+	# These two manpages clash with similar on case-insensitive
+	# file systems.  Just remove them from *all* systems.
+	${REINPLACE_CMD} -e '/OCSP_crlID_new\.3/d' \
+		-e '/bn_print\.3/d' ${WRKSRC}/man/Makefile.in
 
 post-install-dragonfly:
 	${INSTALL_SCRIPT} ${WRKSRC}/apps/nc/nc ${STAGEDIR}${PREFIX}/bin/nc
@@ -95,7 +102,7 @@ It also has stack-smashing protection disabled.
 1e3a9fada06c1c060011470ad0ff960de28f9a0515277d7336f7e09362517da6      3359012 libressl-2.7.4.tar.gz
 
 
-[FILE:70115:manifests/plist.single.standard]
+[FILE:70079:manifests/plist.single.standard]
 bin/
  nc
  ocspcheck
@@ -1438,7 +1445,6 @@ share/man/man3/
  OCSP_check_nonce.3.gz
  OCSP_check_validity.3.gz
  OCSP_copy_nonce.3.gz
- OCSP_crlID_new.3.gz
  OCSP_id_cmp.3.gz
  OCSP_id_get0_info.3.gz
  OCSP_id_issuer_cmp.3.gz
@@ -2448,7 +2454,6 @@ share/man/man3/
  bn_mul_part_recursive.3.gz
  bn_mul_recursive.3.gz
  bn_mul_words.3.gz
- bn_print.3.gz
  bn_set_high.3.gz
  bn_set_low.3.gz
  bn_set_max.3.gz
