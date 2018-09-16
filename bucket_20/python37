@@ -46,7 +46,6 @@ CONFIGURE_ARGS=		--with-system-ffi
 			--enable-shared
 			--without-ensurepip
 			--enable-ipv6
-			--enable-framework=no
 CONFIGURE_ENV=		OPT=""
 			DISABLED_EXTENSIONS="_sqlite3 _tkinter _gdbm"
 
@@ -84,6 +83,7 @@ VAR_OPSYS[darwin]=	PLIST_SUB=SOABI=.cpython-37m-darwin
 			PLIST_SUB=SCD=darwin
 			PLIST_SUB=FULLABI={{ABIFLAGS}}-darwin
 			PLIST_SUB=PLAT=darwin
+			CONFIGURE_ARGS=--enable-framework=no
 VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=
 			PLIST_SUB=SCD=
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
@@ -101,6 +101,7 @@ post-patch:
 		${WRKSRC}/Lib/cgi.py
 	${REINPLACE_CMD} -e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
 		${WRKSRC}/setup.py
+	${REINPLACE_CMD} -e 's| make| gmake|g' ${WRKSRC}/Mac/Makefile.in
 
 post-install:
 	for i in ${STAGEDIR}${PREFIX}/lib/python3.7/lib-dynload/*.so; do \
@@ -135,8 +136,9 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 0382996d1ee6aafe59763426cf0139ffebe36984474d0ec4126dd1c40a8b3549     16922100 Python-3.7.0.tar.xz
 
 
-[FILE:212503:manifests/plist.single]
+[FILE:212586:manifests/plist.single]
 %%DEBUG-OFF%%lib/python%%XYDOT%%/lib-dynload/xxlimited%%SOABI%%.%%SHARED_OBJECT%%
+%%ONLY-DARWIN%%lib/python%%XYDOT%%/lib-dynload/_scproxy%%SOABI%%.%%SHARED_OBJECT%%
 %%ONLY-DRAGONFLY%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.%%SHARED_OBJECT%%
 %%ONLY-FREEBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.%%SHARED_OBJECT%%
 %%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/
@@ -7495,7 +7497,7 @@ record file nonetheless.
  typedef int (*foreachfunc)(int, char *, int, char *, int, char *);
 
 
-[FILE:1593:patches/patch-configure]
+[FILE:921:patches/patch-configure]
 --- configure.orig	2018-06-27 03:07:35 UTC
 +++ configure
 @@ -653,6 +653,7 @@ LDLAST
@@ -7523,26 +7525,6 @@ record file nonetheless.
  	RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
  	;;
      AIX*)
-@@ -9406,7 +9408,7 @@ then
- 	Linux-android*) LINKFORSHARED="-pie -Xlinker -export-dynamic";;
- 	Linux*|GNU*) LINKFORSHARED="-Xlinker -export-dynamic";;
- 	# -u libsys_s pulls in all symbols in libsys
--	Darwin/*)
-+	Darwin-disable/*)
- 		LINKFORSHARED="$extra_undefs -framework CoreFoundation"
- 
- 		# Issue #18075: the default maximum stack size (8MBytes) is too
-@@ -16263,10 +16265,6 @@ $as_echo "#define HAVE_DEV_PTC 1" >>conf
- 
- fi
- 
--if test $ac_sys_system = Darwin
--then
--	LIBS="$LIBS -framework CoreFoundation"
--fi
- 
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for %zd printf() format support" >&5
- $as_echo_n "checking for %zd printf() format support... " >&6; }
 
 
 [FILE:2460:patches/patch-setup.py]
