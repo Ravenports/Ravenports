@@ -41,7 +41,7 @@ SITE_MAN3_REL=	${SITE_PERL_REL}/man/man3
 SITE_MAN3=	${PREFIX}/${SITE_MAN3_REL}
 _PRIV_LIB=      lib/perl5/${PERL_VER}
 _ARCH_LIB=      ${_PRIV_LIB}/${PERL_ARCH}
-PMANPREFIX_REL=	${_PRIV_LIB}/perl
+PMANPREFIX_REL=	${_PRIV_LIB}/docs
 PMANPREFIX=	${PREFIX}/${PMANPREFIX_REL}
 
 MANDIRS+=	${PMANPREFIX}/man
@@ -56,7 +56,8 @@ PLIST_SUB+=	PERL_VERSION=${PERL_VERSION} \
 		SITE_PERL=${SITE_PERL_REL} \
 		SITE_ARCH=${SITE_ARCH_REL} \
 		PRIV_LIB=${_PRIV_LIB} \
-		ARCH_LIB=${_ARCH_LIB}
+		ARCH_LIB=${_ARCH_LIB} \
+		BUNDLE=${BUNDLE}
 
 SUB_FILES=	perl-man.conf
 
@@ -68,9 +69,25 @@ SUB_LIST+=	PERL_VERSION=${PERL_VERSION} \
 		SITEMANPREFIX=${SITE_PERL_REL} \
 		PERL_ARCH=${PERL_ARCH}
 
+.if "${.MAKE.OS.NAME}" == "Darwin"
+DYLIB_LINK=	libperl.dylib
+DYLIB_MAJVER=	libperl.${PERL_VER}.dylib
+DYLIB_FULLVER=	libperl.${PERL_VERSION}.dylib
+DYLIB_PATTERN=	*.dylib*
+SET_LIB_PATH=	DYLD_LIBRARY_PATH
+BUNDLE=		bundle
+.else
+DYLIB_LINK=	libperl.so
+DYLIB_MAJVER=	libperl.so.${PERL_VER}
+DYLIB_FULLVER=	libperl.so.${PERL_VERSION}
+DYLIB_PATTERN=	*.so*
+SET_LIB_PATH=	LD_LIBRARY_PATH
+BUNDLE=		so
+.endif
+
 INSTALL_TARGET=		install-strip
 CONFIGURE_ARGS+=	-sde -Dprefix=${PREFIX} \
-			-Dlibperl=libperl.so.${PERL_VERSION} \
+			-Dlibperl=${DYLIB_FULLVER} \
 			-Darchlib=${PREFIX}/${_ARCH_LIB} \
 			-Dprivlib=${PREFIX}/${_PRIV_LIB} \
 			-Dman3dir=${PREFIX}/${PMANPREFIX_REL}/man/man3 \
@@ -117,7 +134,9 @@ post-patch-perl:
 		-e 's/objformat=.*//' \
 		${WRKSRC}/Configure \
 		${WRKSRC}/hints/${OPSYS:tl:S/sunos/solaris_2/}.sh
+	# install pages in /pods/ for all opsys
 	${REINPLACE_CMD} -e '/do_installprivlib = 0 if .versiononly/d; \
+		s#|| .Is_Darwin ||#|| 1 ||#; \
 		/^if.*nopods.*versiononly || /s/.*/if (1) {/' \
 		${WRKSRC}/installperl
 .  endif
@@ -125,8 +144,8 @@ post-patch-perl:
 .  if !target(add-perl-symlinks)
 add-perl-symlinks:
 	# Put a symlink to the future libperl.so.x.yy so that -lperl works.
-	${LN} -s libperl.so.${PERL_VERSION} ${WRKSRC}/libperl.so
-	${LN} -s libperl.so.${PERL_VERSION} ${WRKSRC}/libperl.so.${PERL_VER}
+	${LN} -s ${DYLIB_FULLVER} ${WRKSRC}/${DYLIB_LINK}
+	${LN} -s ${DYLIB_FULLVER} ${WRKSRC}/${DYLIB_MAJVER}
 .  endif
 
 .  if !target(post-build)
@@ -141,23 +160,23 @@ post-install:
 	${MKDIR} ${STAGEDIR}${SITE_MAN3}
 	${MKDIR} ${STAGEDIR}${SITE_ARCH}/auto
 	${MKDIR} ${STAGEDIR}${SITE_PERL}/auto
-	${LN} -sf libperl.so.${PERL_VERSION} \
-		${STAGEDIR}${PREFIX}/${_ARCH_LIB}/CORE/libperl.so
-	${LN} -sf libperl.so.${PERL_VERSION} \
-		${STAGEDIR}${PREFIX}/${_ARCH_LIB}/CORE/libperl.so.${PERL_VER}
+	${LN} -sf ${DYLIB_FULLVER} \
+		${STAGEDIR}${PREFIX}/${_ARCH_LIB}/CORE/${DYLIB_LINK}
+	${LN} -sf ${DYLIB_FULLVER} \
+		${STAGEDIR}${PREFIX}/${_ARCH_LIB}/CORE/${DYLIB_MAJVER}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/perl${PERL_VERSION}
 	${MKDIR} ${STAGEDIR}${SITE_ARCH}/machine
 	${MKDIR} ${STAGEDIR}${SITE_ARCH}/sys
 
 	# h2ph needs perl, but perl is not installed, it's only
 	# staged, so, use the one in WRKDIR
-	(cd /usr/include && ${SETENV} LD_LIBRARY_PATH=${WRKSRC} \
+	(cd /usr/include && ${SETENV} ${SET_LIB_PATH}=${WRKSRC} \
 		${WRKSRC}/perl -I ${WRKSRC}/lib ${STAGEDIR}${PREFIX}/bin/h2ph${BINSUFFIX} \
 		-d ${STAGEDIR}${SITE_ARCH} *.h machine/*.h sys/*.h >/dev/null)
 	${FIND} ${STAGEDIR}${SITE_ARCH} -name '*.ph' | \
 		sed -e 's|${STAGEDIR}${PREFIX}/||' \
 		>> ${WRKDIR}/.manifest.primary.mktmp
-	${FIND} ${STAGEDIR} -name '*.so*' -type f | while read f; \
+	${FIND} ${STAGEDIR} -name '${DYLIB_PATTERN}' -type f | while read f; \
 		do \
 			${CHMOD} 644 $$f; \
 			${STRIP_CMD} $$f; \

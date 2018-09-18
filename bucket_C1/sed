@@ -35,8 +35,13 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 
+INSTALL_REQ_TOOLCHAIN=	yes
+
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
 [NLS].USES_ON=				gettext-runtime
+
+post-patch-darwin:
+	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/bin/sed ${STAGEDIR}${PREFIX}/bin/gsed

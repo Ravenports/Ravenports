@@ -47,6 +47,7 @@ MAKE_ARGS=		TEXMF={{LOCALBASE}}/share/texmf
 			PERL={{LOCALBASE}}/bin/perl
 
 INSTALL_TARGET=		install install-tex
+INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		TEXMF=share/texmf
 
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
@@ -59,6 +60,9 @@ post-patch:
 	${REINPLACE_CMD} -e '/rm -f $$(DESTDIR)/ s|$$| $$(DESTDIR)$$(xsdir)/XSParagraph.*|' \
 		${WRKSRC}/tp/Texinfo/Convert/XSParagraph/Makefile.in
 	${REINPLACE_CMD} -e 's|free (.*)|Safe&|' ${WRKSRC}/tp/Texinfo/MiscXS/misc.c
+
+post-patch-darwin:
+	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/texinfo/MiscXS.so
@@ -85,7 +89,7 @@ Emacs.
 74393739d36c120063dd28c4be71e97e9b57276b2e1d30b6fd86a19814e326ca        61668 texinfo/6.5/texi2dvi
 
 
-[FILE:7235:manifests/plist.single]
+[FILE:7250:manifests/plist.single]
 %%NLS-ON%%share/locale/ca.us-ascii/LC_MESSAGES/texinfo_document.mo
 %%NLS-ON%%share/locale/ca/LC_MESSAGES/
  texinfo.mo
@@ -162,8 +166,8 @@ bin/
  texi2pdf
  texindex
 lib/texinfo/
+ MiscXS.%%SHARED_OBJECT%%
  MiscXS.a
- MiscXS.so
 share/man/man1/
  info.1.gz
  install-info.1.gz

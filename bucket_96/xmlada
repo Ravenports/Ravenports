@@ -39,6 +39,7 @@ BUILD_TARGET=		schema_libs gen-docs
 MAKEFILE=		Makefile.bsd
 MAKE_ARGS=		LIBVER=2018
 			PROCESSORS={{MAKE_JOBS_NUMBER}}
+SINGLE_JOB=		yes
 
 PLIST_SUB=		LIBVER=2018
 
@@ -1376,7 +1377,7 @@ lib/xmlada/static-pic/
  unicode.ali
 
 
-[FILE:11819:files/Makefile.bsd]
+[FILE:15747:files/Makefile.bsd]
 ADALIB!=	gnatls -v | grep adalib | awk '{print $$1}'
 MYRPATH=	${ADALIB}:${PREFIX}/lib/xmlada/relocatable
 
@@ -1389,12 +1390,17 @@ FLAGS_static-pic=	${DYNAMIC_FLAGS}
 
 schema_libs: schema/lib/static/libxmlada_schema.a
 schema_libs: schema/lib/static-pic/libxmlada_schema.a
-schema_libs: schema/lib/relocatable/libxmlada_schema.so
 schema_libs: distrib/xmlada_unicode.gpr
 schema_libs: distrib/xmlada_input_sources.gpr
 schema_libs: distrib/xmlada_sax.gpr
 schema_libs: distrib/xmlada_dom.gpr
 schema_libs: distrib/xmlada_schema.gpr
+
+.if "${OPSYS}" == "Darwin"
+schema_libs: schema/lib/relocatable/libxmlada_schema.dylib
+.else
+schema_libs: schema/lib/relocatable/libxmlada_schema.so
+.endif
 
 #
 # unicode depends on nothing
@@ -1417,11 +1423,23 @@ unicode/lib/relocatable/libxmlada_unicode.so: unicode/dummy_unicode.adb
 	@rm -f ${.TARGET} ${.TARGET}.${LIBVER}
 	gnatmake -c ${.ALLSRC} -D unicode/obj/relocatable ${DYNAMIC_FLAGS}
 	rm unicode/obj/relocatable/dummy*
-	ada -shared -Wl,-rpath,${PREFIX}/lib/xmlada/relocatable \
-	    -L${ADALIB} -lgnat -Wl,-rpath,${ADALIB} \
+	ada -shared -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
 	    -o ${.TARGET}.${LIBVER} -Wl,-soname,${.TARGET:T}.${LIBVER} \
 	    unicode/obj/relocatable/*.o
 	ln -s ${.TARGET:T}.${LIBVER} ${.TARGET}
+
+unicode/lib/relocatable/libxmlada_unicode.${LIBVER}.dylib: unicode/dummy_unicode.adb
+	@echo building shared library ${.TARGET:R}
+	@mkdir -p unicode/obj/relocatable ${.TARGET:H}
+	@rm -f ${.TARGET}
+	gnatmake -c ${.ALLSRC} -D unicode/obj/relocatable ${DYNAMIC_FLAGS}
+	rm -f unicode/obj/relocatable/dummy*
+	ada -dynamiclib -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
+		-o ${.TARGET} -install_name ${PREFIX}/${.TARGET} \
+		unicode/obj/relocatable/*.o
+
+unicode/lib/relocatable/libxmlada_unicode.dylib: ${.TARGET:H}/libxmlada_unicode.${LIBVER}.dylib
+	ln -sf ${.ALLSRC:T} ${.TARGET}
 
 #
 # input sources depends on unicode
@@ -1444,12 +1462,27 @@ input_sources/lib/relocatable/libxmlada_input_sources.so: input_sources/dummy_in
 	@rm -f ${.TARGET} ${.TARGET}.${LIBVER}
 	gnatmake -c ${.ALLSRC:M*.adb} -D input_sources/obj/relocatable -aOunicode/obj/relocatable -aIunicode ${DYNAMIC_FLAGS}
 	rm input_sources/obj/relocatable/dummy*
-	ada -shared -Wl,-rpath,${PREFIX}/lib/xmlada/relocatable \
-	    -L${ADALIB} -lgnat -Wl,-rpath,${ADALIB} \
+	ada -shared -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
 	    -Lunicode/lib/relocatable -lxmlada_unicode \
 	    -o ${.TARGET}.${LIBVER} -Wl,-soname,${.TARGET:T}.${LIBVER} \
 	    input_sources/obj/relocatable/*.o
 	ln -s ${.TARGET:T}.${LIBVER} ${.TARGET}
+
+input_sources/lib/relocatable/libxmlada_input_sources.${LIBVER}.dylib: input_sources/dummy_input_sources.adb
+	@echo building shared library ${.TARGET:R}
+	@mkdir -p input_sources/obj/relocatable ${.TARGET:H}
+	@rm -f ${.TARGET}
+	gnatmake -c ${.ALLSRC:M*.adb} -D input_sources/obj/relocatable -aOunicode/obj/relocatable -aIunicode ${DYNAMIC_FLAGS}
+	rm -f input_sources/obj/relocatable/dummy*
+	ada -dynamiclib -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
+		-Lunicode/lib/relocatable -lxmlada_unicode \
+		-o ${.TARGET} -install_name ${PREFIX}/${.TARGET} \
+		input_sources/obj/relocatable/*.o
+
+input_sources/lib/relocatable/libxmlada_input_sources.dylib: \
+	unicode/lib/relocatable/libxmlada_unicode.dylib \
+	input_sources/lib/relocatable/libxmlada_input_sources.${LIBVER}.dylib
+	ln -sf libxmlada_input_sources.${LIBVER}.dylib ${.TARGET}
 
 #
 # sax depends on input sources and unicode (sufficent to limit to I.S)
@@ -1472,13 +1505,29 @@ sax/lib/relocatable/libxmlada_sax.so: sax/dummy_sax.adb input_sources/lib/reloca
 	@rm -f ${.TARGET} ${.TARGET}.${LIBVER}
 	gnatmake -c ${.ALLSRC:M*.adb} -D sax/obj/relocatable -aOunicode/obj/relocatable -aOinput_sources/obj/relocatable -aIunicode -aIinput_sources ${DYNAMIC_FLAGS}
 	rm sax/obj/relocatable/dummy*
-	ada -shared -Wl,-rpath,${PREFIX}/lib/xmlada/relocatable \
-	    -L${ADALIB} -lgnat -Wl,-rpath,${ADALIB} \
+	ada -shared -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
 	    -Lunicode/lib/relocatable -lxmlada_unicode \
 	    -Linput_sources/lib/relocatable -lxmlada_input_sources \
 	    -o ${.TARGET}.${LIBVER} -Wl,-soname,${.TARGET:T}.${LIBVER} \
 	    sax/obj/relocatable/*.o
 	ln -s ${.TARGET:T}.${LIBVER} ${.TARGET}
+
+sax/lib/relocatable/libxmlada_sax.${LIBVER}.dylib: sax/dummy_sax.adb
+	@echo building shared library ${.TARGET:R}
+	@mkdir -p sax/obj/relocatable ${.TARGET:H}
+	@rm -f ${.TARGET}
+	gnatmake -c ${.ALLSRC:M*.adb} -D sax/obj/relocatable -aOunicode/obj/relocatable -aOinput_sources/obj/relocatable -aIunicode -aIinput_sources ${DYNAMIC_FLAGS}
+	rm -f sax/obj/relocatable/dummy*
+	ada -dynamiclib -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
+		-Lunicode/lib/relocatable -lxmlada_unicode \
+		-Linput_sources/lib/relocatable -lxmlada_input_sources \
+		-o ${.TARGET} -install_name ${PREFIX}/${.TARGET} \
+		sax/obj/relocatable/*.o
+
+sax/lib/relocatable/libxmlada_sax.dylib: \
+	input_sources/lib/relocatable/libxmlada_input_sources.dylib \
+	sax/lib/relocatable/libxmlada_sax.${LIBVER}.dylib
+	ln -sf libxmlada_sax.${LIBVER}.dylib ${.TARGET}
 
 #
 # dom depends on three other libraries (sufficent to limit to sax)
@@ -1501,14 +1550,31 @@ dom/lib/relocatable/libxmlada_dom.so: dom/dummy_dom.adb sax/lib/relocatable/libx
 	@rm -f ${.TARGET} ${.TARGET}.${LIBVER}
 	gnatmake -c ${.ALLSRC:M*.adb} -D dom/obj/relocatable -aOunicode/obj/relocatable -aOinput_sources/obj/relocatable -aOsax/obj/relocatable -aIunicode -aIinput_sources -aIsax ${DYNAMIC_FLAGS}
 	rm dom/obj/relocatable/dummy*
-	ada -shared -Wl,-rpath,${PREFIX}/lib/xmlada/relocatable \
-	    -L${ADALIB} -lgnat -Wl,-rpath,${ADALIB} \
+	ada -shared -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
 	    -Lunicode/lib/relocatable -lxmlada_unicode \
 	    -Linput_sources/lib/relocatable -lxmlada_input_sources \
 	    -Lsax/lib/relocatable -lxmlada_sax \
 	    -o ${.TARGET}.${LIBVER} -Wl,-soname,${.TARGET:T}.${LIBVER} \
 	    dom/obj/relocatable/*.o
 	ln -s ${.TARGET:T}.${LIBVER} ${.TARGET}
+
+dom/lib/relocatable/libxmlada_dom.${LIBVER}.dylib: dom/dummy_dom.adb
+	@echo building shared library ${.TARGET:R}
+	@mkdir -p dom/obj/relocatable ${.TARGET:H}
+	@rm -f ${.TARGET}
+	gnatmake -c ${.ALLSRC:M*.adb} -D dom/obj/relocatable -aOunicode/obj/relocatable -aOinput_sources/obj/relocatable -aOsax/obj/relocatable -aIunicode -aIinput_sources -aIsax ${DYNAMIC_FLAGS}
+	rm -f dom/obj/relocatable/dummy*
+	ada -dynamiclib -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
+		-Lunicode/lib/relocatable -lxmlada_unicode \
+		-Linput_sources/lib/relocatable -lxmlada_input_sources \
+		-Lsax/lib/relocatable -lxmlada_sax \
+		-o ${.TARGET} -install_name ${PREFIX}/${.TARGET} \
+		dom/obj/relocatable/*.o
+
+dom/lib/relocatable/libxmlada_dom.dylib: \
+	sax/lib/relocatable/libxmlada_sax.dylib \
+	dom/lib/relocatable/libxmlada_dom.${LIBVER}.dylib
+	ln -sf libxmlada_dom.${LIBVER}.dylib ${.TARGET}
 
 #
 # schema depends on four other libraries (sufficent to limit to dom)
@@ -1531,8 +1597,7 @@ schema/lib/relocatable/libxmlada_schema.so: schema/dummy_schema.adb dom/lib/relo
 	@rm -f ${.TARGET} ${.TARGET}.${LIBVER}
 	gnatmake -c ${.ALLSRC:M*.adb} -D schema/obj/relocatable -aOunicode/obj/relocatable -aOinput_sources/obj/relocatable -aOsax/obj/relocatable -aOdom/obj/relocatable -aIunicode -aIinput_sources -aIsax -aIdom ${DYNAMIC_FLAGS}
 	rm schema/obj/relocatable/dummy*
-	ada -shared -Wl,-rpath,${PREFIX}/lib/xmlada/relocatable \
-	    -L${ADALIB} -lgnat -Wl,-rpath,${ADALIB} \
+	ada -shared -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
 	    -Lunicode/lib/relocatable -lxmlada_unicode \
 	    -Linput_sources/lib/relocatable -lxmlada_input_sources \
 	    -Lsax/lib/relocatable -lxmlada_sax \
@@ -1540,6 +1605,25 @@ schema/lib/relocatable/libxmlada_schema.so: schema/dummy_schema.adb dom/lib/relo
 	    -o ${.TARGET}.${LIBVER} -Wl,-soname,${.TARGET:T}.${LIBVER} \
 	    schema/obj/relocatable/*.o
 	ln -s ${.TARGET:T}.${LIBVER} ${.TARGET}
+
+schema/lib/relocatable/libxmlada_schema.${LIBVER}.dylib: schema/dummy_schema.adb
+	@echo building shared library ${.TARGET:R}
+	@mkdir -p schema/obj/relocatable ${.TARGET:H}
+	@rm -f ${.TARGET}
+	gnatmake -c ${.ALLSRC:M*.adb} -D schema/obj/relocatable -aOunicode/obj/relocatable -aOinput_sources/obj/relocatable -aOsax/obj/relocatable -aOdom/obj/relocatable -aIunicode -aIinput_sources -aIsax -aIdom ${DYNAMIC_FLAGS}
+	rm -f schema/obj/relocatable/dummy*
+	ada -dynamiclib -Wl,-rpath,${MYRPATH} -L${ADALIB} -lgnat \
+		-Lunicode/lib/relocatable -lxmlada_unicode \
+		-Linput_sources/lib/relocatable -lxmlada_input_sources \
+		-Lsax/lib/relocatable -lxmlada_sax \
+		-Ldom/lib/relocatable -lxmlada_dom \
+		-o ${.TARGET} -install_name ${PREFIX}/${.TARGET} \
+		schema/obj/relocatable/*.o
+
+schema/lib/relocatable/libxmlada_schema.dylib: \
+	dom/lib/relocatable/libxmlada_dom.dylib \
+	schema/lib/relocatable/libxmlada_schema.${LIBVER}.dylib
+	ln -sf libxmlada_schema.${LIBVER}.dylib ${.TARGET}
 
 #
 # Sphinx documentation
