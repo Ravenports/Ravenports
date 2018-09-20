@@ -55,7 +55,6 @@ SETENV=		/usr/bin/env
 SH=		/bin/sh
 SHA256=		/bin/sha256
 SORT=		/usr/bin/sort
-STRIP_CMD=	/raven/toolchain/bin/strip
 STAT=		/usr/bin/stat
 TAIL=		/usr/bin/tail
 TEST=		test	# shell builtin
@@ -71,5 +70,11 @@ YACC=		/usr/bin/yacc
 XZ_LEVEL?=	-Mmax
 XZCAT=		/usr/bin/xzcat ${XZ_LEVEL}
 XZ_CMD=		/usr/bin/xz ${XZ_LEVEL}
+
+. if "${.MAKE.OS.NAME}" == "Darwin"
+STRIP_CMD=	/usr/bin/strip
+. else
+STRIP_CMD=	/raven/toolchain/bin/strip
+. endif
 
 .endif
