@@ -68,9 +68,6 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 			--disable-libvtv
 			--disable-libmpx
 			--disable-libcilkrts
-			--with-gnu-as
-			--with-as={{LOCALBASE}}/toolchain/bin/as
-			--with-ld={{LOCALBASE}}/toolchain/bin/ld
 			--with-pkgversion="Ravenports"
 
 INSTALL_TARGET=		install-strip
@@ -78,14 +75,15 @@ PLIST_SUB=		GCCVER=8.2.0
 			TARGET={{CONFIGURE_TARGET}}
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
-VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--without-gnu-ld
-			CONFIGURE_ARGS=--enable-symvers=no
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--enable-symvers=no
+VAR_OPSYS[darwin]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 
 post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
 	@${ECHO} "Configuring LINK_SPEC runpath"
 	${REINPLACE_CMD} -e 's;\@PREFIX\@;${PREFIX:H};' \
 		-e 's;\@GCCAUX\@;${NAMEBASE};' \
+		${WRKSRC}/gcc/config/darwin.h \
 		${WRKSRC}/gcc/config/dragonfly.h \
 		${WRKSRC}/gcc/config/sol2.h \
 		${WRKSRC}/gcc/config/i386/freebsd64.h \
@@ -97,6 +95,14 @@ post-patch:
 		${WRKSRC}/gcc/ada/traceback_symbolic.c
 	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
 		${WRKSRC}/gcc/config/freebsd-spec.h
+
+post-patch-darwin:
+	# undo BSD thin socket modification
+	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
+		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
+	${FIND} ${WRKSRC} -name configure | ${XARGS} \
+		${SED} -i.mac -e 's|apple-darwin|raven-darwin|' \
+		${WRKSRC}/gcc/configure
 
 post-patch-linux:
 	# undo BSD thin socket modification
@@ -111,10 +117,9 @@ post-install-dragonfly:
 
 post-install:
 	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
-	cp ${STAGEDIR}${PREFIX}/bin/g++ ${STAGEDIR}${PREFIX}/bin/CC
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/8.2.0/adalib/libgnarl.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/8.2.0/adalib/libgnat.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/8.2.0/adalib/libgnarl.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/8.2.0/adalib/libgnat.${LIBEXT}
 	# remove when info pages re-enabled
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libitm.info
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libgomp.info
@@ -179,7 +184,7 @@ This package contains the man pages and info pages that come with GCC.
 196c3c04ba2613f893283977e6011b2345d1cd1af9abeac58e916b1aab3e0080     63460876 gcc-8.2.0.tar.xz
 
 
-[FILE:27072:manifests/plist.compilers]
+[FILE:28172:manifests/plist.compilers]
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/cilk.h
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/cilk_api.h
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/cilk_api_linux.h
@@ -202,6 +207,56 @@ This package contains the man pages and info pages that come with GCC.
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/reducer_opxor.h
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/reducer_ostream.h
 @comment lib/gcc/%%TARGET%%/%%GCCVER%%/include/cilk/reducer_string.h
+%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbegin.o
+ crtend.o
+%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
+ libcc1plugin.so.0
+ libcc1plugin.so.0.0.0
+ libcp1plugin.so.0
+ libcp1plugin.so.0.0.0
+%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ dbxelf.h
+ elfos.h
+%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ att.h
+ unix.h
+ x86-64.h
+%%EXCLUDE-DARWIN%%libexec/gcc/%%TARGET%%/%%GCCVER%%/
+ liblto_plugin.so
+ liblto_plugin.so.0
+ liblto_plugin.so.0.0.0
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crt3.o
+ crtfastmath.o
+ crtprec32.o
+ crtprec64.o
+ crtprec80.o
+ crttme.o
+ crttms.o
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
+ AvailabilityInternal.h
+ README
+ limits.h
+ math.h
+ stdint.h
+ stdio.h
+ syslimits.h
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/os/trace.h
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
+ libcc1plugin.0.%%SHARED_OBJECT%%
+ libcp1plugin.0.%%SHARED_OBJECT%%
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ darwin-protos.h
+ darwin-sections.def
+ darwin.h
+ darwin10.h
+ darwin12.h
+ darwin9.h
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ darwin.h
+ darwin64.h
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtendS.o
@@ -301,7 +356,6 @@ bin/
  %%TARGET%%-gcc-nm
  %%TARGET%%-gcc-ranlib
  %%TARGET%%-gfortran
- CC
  ada
  c++
  cc
@@ -1119,8 +1173,6 @@ include/c++/%%GCCVER%%/tr2/
  ratio
  type_traits
 lib/gcc/%%TARGET%%/%%GCCVER%%/
- crtbegin.o
- crtend.o
  libcaf_single.a
  libgcc.a
  libgcc_eh.a
@@ -1247,12 +1299,8 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/install-tools/include/
  limits.h
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
  gtype.state
- libcc1plugin.so
- libcc1plugin.so.0
- libcc1plugin.so.0.0.0
- libcp1plugin.so
- libcp1plugin.so.0
- libcp1plugin.so.0.0.0
+ libcc1plugin.%%SHARED_OBJECT%%
+ libcp1plugin.%%SHARED_OBJECT%%
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/
  addresses.h
  alias.h
@@ -1643,19 +1691,14 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/c-family/
  c-pragma.h
  c-pretty-print.h
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
- dbxelf.h
- elfos.h
  initfini-array.h
  vxworks-dummy.h
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
- att.h
  biarch64.h
  i386-opts.h
  i386-protos.h
  i386.h
  stringop.def
- unix.h
- x86-64.h
  x86-tune.def
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/cp/
  cp-tree.def
@@ -1671,9 +1714,6 @@ libexec/gcc/%%TARGET%%/%%GCCVER%%/
  collect2
  f951
  gnat1
- liblto_plugin.so
- liblto_plugin.so.0
- liblto_plugin.so.0.0.0
  lto-wrapper
  lto1
 libexec/gcc/%%TARGET%%/%%GCCVER%%/install-tools/
@@ -1684,7 +1724,23 @@ libexec/gcc/%%TARGET%%/%%GCCVER%%/install-tools/
 libexec/gcc/%%TARGET%%/%%GCCVER%%/plugin/gengtype
 
 
-[FILE:27601:manifests/plist.ada_run]
+[FILE:28268:manifests/plist.ada_run]
+%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
+ s-mmauni.ads
+ s-mmosin.adb
+ s-mmosin.ads
+%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
+ s-dwalin.ali
+ s-mmap.ali
+ s-mmauni.ali
+ s-mmosin.ali
+ s-objrea.ali
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/a-exetim.adb
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/a-exetim.ali
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnarl-8.dylib.dSYM/Contents/Info.plist
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnarl-8.dylib.dSYM/Contents/Resources/DWARF/libgnarl-8.dylib
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnat-8.dylib.dSYM/Contents/Info.plist
+%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnat-8.dylib.dSYM/Contents/Resources/DWARF/libgnat-8.dylib
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  a-exetim.adb
  s-linux.ads
@@ -2634,9 +2690,6 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  s-memory.ads
  s-mmap.adb
  s-mmap.ads
- s-mmauni.ads
- s-mmosin.adb
- s-mmosin.ads
  s-mudido.adb
  s-mudido.ads
  s-multip.adb
@@ -3438,7 +3491,6 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-direio.ali
  s-dmotpr.ali
  s-dsaser.ali
- s-dwalin.ali
  s-elaall.ali
  s-excdeb.ali
  s-except.ali
@@ -3495,12 +3547,8 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-mastop.ali
  s-memcop.ali
  s-memory.ali
- s-mmap.ali
- s-mmauni.ali
- s-mmosin.ali
  s-mudido.ali
  s-multip.ali
- s-objrea.ali
  s-os_lib.ali
  s-oscons.ali
  s-osinte.ali
@@ -3661,15 +3709,17 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  unchdeal.ali
 
 
-[FILE:262:manifests/plist.cxx_run]
+[FILE:335:manifests/plist.cxx_run]
 %%ASLIB%%/
  libstdc++.a
  libstdc++.so
  libstdc++.so.6
- libstdc++.so.6.0.25
- libstdc++.so.6.0.25-gdb.py
  libstdc++fs.a
  libsupc++.a
+%%EXCLUDE-DARWIN%%%%ASLIB%%/
+ libstdc++.so.6.0.25
+ libstdc++.so.6.0.25-gdb.py
+%%ONLY-DARWIN%%%%ASLIB%%/libstdc++.a-gdb.py
 share/gcc-%%GCCVER%%/python/libstdcxx/__init__.py
 share/gcc-%%GCCVER%%/python/libstdcxx/v6/
  __init__.py
@@ -3677,25 +3727,26 @@ share/gcc-%%GCCVER%%/python/libstdcxx/v6/
  xmethods.py
 
 
-[FILE:240:manifests/plist.fortran_run]
+[FILE:269:manifests/plist.fortran_run]
 %%ASLIB%%/
  libgfortran.a
  libgfortran.so
  libgfortran.so.5
- libgfortran.so.5.0.0
  libgfortran.spec
  libgomp.a
  libgomp.so
  libgomp.so.1
- libgomp.so.1.0.0
  libgomp.spec
  libquadmath.a
  libquadmath.so
  libquadmath.so.0
+%%EXCLUDE-DARWIN%%%%ASLIB%%/
+ libgfortran.so.5.0.0
+ libgomp.so.1.0.0
  libquadmath.so.0.0.0
 
 
-[FILE:452:manifests/plist.libs]
+[FILE:660:manifests/plist.libs]
 @comment %%ASLIB%%/libcilkrts.a
 @comment %%ASLIB%%/libcilkrts.so
 @comment %%ASLIB%%/libcilkrts.so.5
@@ -3705,22 +3756,29 @@ share/gcc-%%GCCVER%%/python/libstdcxx/v6/
  libatomic.a
  libatomic.so
  libatomic.so.1
- libatomic.so.1.2.0
- libcc1.so
- libcc1.so.0
- libcc1.so.0.0.0
- libgcc_s.so
+ libcc1.%%SHARED_OBJECT%%
  libgcc_s.so.1
  libitm.a
  libitm.so
  libitm.so.1
- libitm.so.1.0.0
  libitm.spec
  libssp.a
  libssp.so
  libssp.so.0
- libssp.so.0.0.0
  libssp_nonshared.a
+%%EXCLUDE-DARWIN%%%%ASLIB%%/
+ libatomic.so.1.2.0
+ libcc1.%%SHARED_OBJECT%%.0
+ libcc1.so.0.0.0
+ libgcc_s.so
+ libitm.so.1.0.0
+ libssp.so.0.0.0
+%%ONLY-DARWIN%%%%ASLIB%%/
+ libcc1.0.%%SHARED_OBJECT%%
+ libgcc_ext.10.4.dylib
+ libgcc_ext.10.5.dylib
+ libgcc_s_ppc64.1.dylib
+ libgcc_s_x86_64.1.dylib
 
 
 [FILE:104:manifests/plist.infopages]
@@ -6015,6 +6073,25 @@ share/man/man1/
  puts $f "/* { dg-timeout-factor 4.0 } */"
  set v 0
  for { set v 0 } { $v < 10000 } { incr v } {
+
+
+[FILE:546:files/special.mk]
+# MacOS cannot use GNU binutils *at all*.
+# Binutils won't build ld, gold, or gas and the utilities
+# that do build don't seem to work on Mach-O correctly
+# The logic below handles AS and LD configuration
+
+.if "${OPSYS}" == "Darwin"
+CONFIGURE_ARGS+=		--with-ld=/usr/bin/ld
+CONFIGURE_ARGS+=		--with-as=/usr/bin/as
+.else
+.  if "${OPSYS}" == "SunOS"
+CONFIGURE_ARGS+=		--without-gnu-ld
+.  endif
+CONFIGURE_ARGS+=		--with-gnu-as
+CONFIGURE_ARGS+=		--with-as=${LOCALBASE}/toolchain/bin/as
+CONFIGURE_ARGS+=		--with-ld=${LOCALBASE}/toolchain/bin/ld
+.endif
 
 
 [FILE:286:sunos/patch-gcc_config.build]

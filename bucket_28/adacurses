@@ -41,6 +41,7 @@ SINGLE_JOB=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		atic=adacurses/terminal_interface-curses
+SUB_FILES=		adacurses.gpr
 
 post-patch:
 	${REINPLACE_CMD} -e '/(INSTALL_PROG)/d' \
@@ -55,12 +56,16 @@ post-patch:
 	${REINPLACE_CMD} -e "s|@PREFIX@|${NCURSESBASE}|g" \
 		${WRKSRC}/src/library.gpr
 
+post-patch-darwin:
+	${REINPLACE_CMD} -e 's|,-R,|,-rpath,|' \
+		${WRKSRC}/src/library.gpr \
+		${WRKDIR}/adacurses.gpr
+
 post-install:
 	${INSTALL_SCRIPT} ${WRKSRC}/gen/adacurses-config \
 		${STAGEDIR}${PREFIX}/bin/
 	@${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat
-	${SED} "s|@PREFIX@|${NCURSESBASE}|g" ${FILESDIR}/adacurses.gpr.in > \
-		${STAGEDIR}${PREFIX}/lib/gnat/adacurses.gpr
+	${INSTALL_SCRIPT} ${WRKDIR}/adacurses.gpr ${STAGEDIR}${PREFIX}/lib/gnat
 	(cd ${WRKSRC}/doc && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_ARGS} THIS=adacurses install.html)
 
@@ -322,7 +327,7 @@ share/man/man1/adacurses-config.1.gz
  
 
 
-[FILE:1859:files/adacurses.gpr.in]
+[FILE:1875:files/adacurses.gpr.in]
 library project ADACURSES is
 
    for Languages use ("Ada");
@@ -341,9 +346,9 @@ library project ADACURSES is
    for Library_Kind use "static";
    for Externally_Built use "True";
 
-   D_Base_Flags := ("-L@PREFIX@/lib", "-Wl,-R,@PREFIX@/lib", "-lncurses", "-ltinfo");
-   S_Base_Flags := ("@PREFIX@/lib/libncurses.a", "@PREFIX@/lib/libtinfo.a",
-                    "@PREFIX@/lib/db5/libdb.a");
+   D_Base_Flags := ("-L%%PREFIX%%/lib", "-Wl,-R,%%PREFIX%%/lib", "-lncurses", "-ltinfo");
+   S_Base_Flags := ("%%PREFIX%%/lib/libncurses.a", "%%PREFIX%%/lib/libtinfo.a",
+                    "%%PREFIX%%/lib/db5/libdb.a");
 
    D_Menu_Flags := ();
    S_Menu_Flags := ();
@@ -355,17 +360,17 @@ library project ADACURSES is
    case Add_Menu is
       when "no"  => null;
       when "yes" => D_Menu_Flags := ("-lmenu");
-                    S_Menu_Flags := ("@PREFIX@/lib/libmenu.a");
+                    S_Menu_Flags := ("%%PREFIX%%/lib/libmenu.a");
    end case;
    case Add_Form is
       when "no"  => null;
       when "yes" => D_Form_Flags := ("-lform");
-                    S_Form_Flags := ("@PREFIX@/lib/libform.a");
+                    S_Form_Flags := ("%%PREFIX%%/lib/libform.a");
    end case;
    case Add_Panel is
       when "no"  => null;
       when "yes" => D_Panel_Flags := ("-lpanel");
-                    S_Panel_Flags := ("@PREFIX@/lib/libpanel.a");
+                    S_Panel_Flags := ("%%PREFIX%%/lib/libpanel.a");
    end case;
 
    package Linker is

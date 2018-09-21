@@ -1118,8 +1118,10 @@ PLIST_SUB+=	ASLIB="${ASLIB}"
 
 .if "${OPSYS}" == "Darwin"
 LIBEXT=		dylib
+PLIST_SUB+=	EXCLUDE-DARWIN="@comment "
 .else
 LIBEXT=		so
+PLIST_SUB+=	EXCLUDE-DARWIN=""
 .endif
 PLIST_SUB+=	LIBEXT="${LIBEXT}"
 PLIST_SUB+=	SHARED_OBJECT="so"
