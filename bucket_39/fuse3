@@ -36,7 +36,7 @@ post-patch:
 
 post-install-linux:
 	${RM} -r ${STAGEDIR}/dev
-	${MV} ${STAGEDIR}/etc/fuse.conf ${STAGEDIR}/etc/fuse.conf.sample
+	${MV} ${STAGEDIR}${PREFIX}/etc/fuse.conf ${STAGEDIR}${PREFIX}/etc/fuse.conf.sample
 
 [FILE:1114:descriptions/desc.single]
 FUSE (Filesystem in Userspace) is an interface for userspace programs to 
@@ -63,15 +63,16 @@ functions.
 686b98afac4ca322498f68d37d598ae3d07919fe21a4700c76572fae59a6256b       735079 libfuse-libfuse-fuse-3.2.6.tar.gz
 
 
-[FILE:513:manifests/plist.single]
-%%ONLY-LINUX%%/etc/init.d/fuse3
+[FILE:557:manifests/plist.single]
+%%ONLY-LINUX%%etc/init.d/fuse3
 %%ONLY-LINUX%%/etc/udev/rules.d/99-fuse3.rules
 %%ONLY-LINUX%%@postunexec rm -f /dev/fuse
 %%ONLY-LINUX%%@preexec mknod -m 0666 /dev/fuse c 10 229 || true
-%%ONLY-LINUX%%@sample /etc/fuse.conf.sample
+%%ONLY-LINUX%%@sample etc/fuse.conf.sample
 %%ONLY-LINUX%%bin/fusermount3
 %%ONLY-LINUX%%sbin/mount.fuse3
 %%ONLY-LINUX%%share/man/man1/fusermount3.1.gz
+%%ONLY-LINUX%%share/man/man8/mount.fuse3.8.gz
 include/fuse3/
  cuse_lowlevel.h
  fuse.h

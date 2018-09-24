@@ -17,7 +17,9 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cmake:outsource ncurses
+BR_DEPS[linux]=		libbsd:single:standard
+
+USES=			cmake:outsource ncurses pkgconfig
 
 LICENSE=		PUBDOM:single
 LICENSE_FILE=		PUBDOM:{{WRKDIR}}/LICENSE
@@ -96,7 +98,7 @@ share/man/man1/mg.1.gz
  			    (strncmp(p, d1->fn, plen) == 0)) {
 
 
-[FILE:319:patches/patch-main.c]
+[FILE:342:patches/patch-main.c]
 --- main.c.orig	2018-07-13 09:16:01 UTC
 +++ main.c
 @@ -34,6 +34,10 @@ struct mgwin	*curwp;				/* current windo
@@ -104,7 +106,7 @@ share/man/man1/mg.1.gz
  char		 pat[NPAT];			/* pattern		*/
  
 +#ifndef __dead
-+#define __dead __dead2
++#define __dead __attribute__ ((__noreturn__))
 +#endif
 +
  static void	 edinit(struct buffer *);
@@ -153,11 +155,10 @@ share/man/man1/mg.1.gz
  			free_undo_record(rec);
 
 
-[FILE:603:files/CMakeLists.txt]
+[FILE:896:files/CMakeLists.txt]
 cmake_minimum_required (VERSION 3.5)
 project (mg)
 
-set (CMAKE_C_FLAGS "-Wall -DREGEX")
 set (MG_SRC autoexec.c basic.c bell.c buffer.c cinfo.c dir.c display.c
 	echo.c extend.c file.c fileio.c funmap.c help.c kbd.c keymap.c
 	line.c macro.c main.c match.c modes.c paragraph.c
@@ -171,6 +172,16 @@ set (REALLOC_SRC reallocarray.c)
 endif()
 
 add_executable (mg ${MG_SRC} ${REALLOC_SRC})
+
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  find_package (PkgConfig REQUIRED)
+  pkg_check_modules (BSD REQUIRED libbsd-overlay)
+  link_directories (${BSD_LIBRARY_DIRS})
+  string (REPLACE ";" " " LIBBSD_FLAGS "${BSD_CFLAGS}")
+  target_link_libraries (mg ${BSD_LIBRARIES})
+endif()
+
+set (CMAKE_C_FLAGS "-Wall -DREGEX ${LIBBSD_FLAGS}")
 target_link_libraries (mg ncurses util)
 
 
