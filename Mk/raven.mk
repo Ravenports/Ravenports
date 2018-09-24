@@ -960,7 +960,7 @@ ${TMP_MANIFESTS}:
 	elif [ -f $$bravo ]; then manifest=$$bravo ;\
 	fi ;\
 	if [ -n "$$manifest" ]; then \
-	    if [ "${OPSYS}" == "Darwin" ]; then \
+	    if [ "${OPSYS}" = "Darwin" ]; then \
 		${SED} ${PLIST_SUB:NSHARED_OBJECT=*:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
 		$$manifest | ${AWK} ${AWK_DYLIB_SUPPORT} | \
 		${SED} ${PLIST_SUB:MSHARED_OBJECT=*:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} \
