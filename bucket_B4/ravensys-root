@@ -2,13 +2,14 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		1.4
-REVISION=		8
+REVISION=		9
 KEYWORDS=		raven
-VARIANTS=		dragonfly freebsd_amd64 linux sunos
+VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
 SDESC[freebsd_amd64]=	FreeBSD-amd64 system root for Ravenports build env
 SDESC[linux]=		Linux system root for Ravenports build env
 SDESC[dragonfly]=	DragonFly64 system root for Ravenports build env
+SDESC[macos]=		MacOS/Darwin system root for Ravenports build env
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
@@ -45,17 +46,25 @@ DISTFILE[16]=		solaris_root_10_u8.v11.tar.xz:dragonlace
 DISTFILE[17]=		locales_2.23-0ubuntu10_all.deb:ubuntu1
 DISTFILE[18]=		libattr1-dev_2.4.47-2_amd64.deb:ubuntu9
 DISTFILE[19]=		libattr1_2.4.47-2_amd64.deb:ubuntu9
+DISTFILE[20]=		mac_root_10.13.6.v01.tar.xz:dragonlace
 SPKGS[sunos]=		single
 SPKGS[freebsd_amd64]=	single
 SPKGS[linux]=		single
 SPKGS[dragonfly]=	single
+SPKGS[macos]=		single
 
-OPTIONS_AVAILABLE=	DRAGONFLY FREEBSDAMD64 LINUX SUNOS
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSDAMD64 LINUX SUNOS MACOS
 OPTIONS_STANDARD=	none
 VOPTS[sunos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=ON
+			MACOS=OFF
 VOPTS[freebsd_amd64]=	DRAGONFLY=OFF FREEBSDAMD64=ON LINUX=OFF SUNOS=OFF
+			MACOS=OFF
 VOPTS[linux]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=ON SUNOS=OFF
+			MACOS=OFF
 VOPTS[dragonfly]=	DRAGONFLY=ON FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
+			MACOS=OFF
+VOPTS[macos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
+			MACOS=ON
 
 BUILD_DEPENDS=		nawk:single:standard
 			bzip2:static:standard
@@ -121,6 +130,10 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBRT={{Librt_{{OPSYS}}}}
 			BASE=share/raven/sysroot/{{OPSYS}}
 
+[MACOS].DESCRIPTION=			Ravenports system root for MacOS/Darwin
+[MACOS].DF_INDEX_ON=			20
+[MACOS].ONLY_FOR_OPSYS_ON=		darwin
+
 [DRAGONFLY].DESCRIPTION=		Ravenports system root for DragonFly
 [DRAGONFLY].DF_INDEX_ON=		2
 [DRAGONFLY].ONLY_FOR_OPSYS_ON=		dragonfly
@@ -151,12 +164,23 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 					14
 [LINUX].ONLY_FOR_OPSYS_ON=		linux
 
+post-install-MACOS-ON:
+	${ECHO} 17.7.0    > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
+	${ECHO} 17        > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
+	${ECHO} 170700    > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
+	${ECHO} x86_64    > ${STAGEDIR}${RSYS}/usr/share/STDARCH
+
 post-extract-LINUX-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
 .for NDX in 4 5 6 7 8 9 10 11 12 13 17 18 19
 	cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
 .endfor
+	@${MKDIR} ${WRKSRC}
+	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+
+post-extract-MACOS-ON:
+	${MV} ${WRKDIR}/mac-sysroot ${WRKDIR}/darwin
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
 
@@ -273,7 +297,14 @@ This is the full environment for Solaris 10 minus the toolchain for
 Ravenports.
 
 
-[FILE:2081:distinfo]
+[FILE:100:descriptions/desc.single.macos]
+Raven system root
+
+This is the full environment for Mac 10.13.6 minus the toolchain for
+Ravenports.
+
+
+[FILE:2187:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 88f68615ad7f268377ba229a87649901d81c7c6df71fc238a8b5c89ac05f0d6c    257934249 dfly-x86_64-5.0.0_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
@@ -293,6 +324,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 locales_2.23-0ubuntu10_all.deb
 ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 libattr1-dev_2.4.47-2_amd64.deb
 6b34040173acef1b806b128bc258b130519b2a7eb167ff1c3f3cb98fa1ddc648         9756 libattr1_2.4.47-2_amd64.deb
+fe276a7e5d857e8f4b4e3ffa2984dd4de101656fa1a99f54336b7cfdd8d66b35     51515064 mac_root_10.13.6.v01.tar.xz
 
 
 [FILE:13587:manifests/plist.single.dragonfly]
@@ -1447,7 +1479,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:14861:manifests/plist.single.freebsd_amd64]
+[FILE:15773:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -1612,6 +1644,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  kvm.h
  langinfo.h
  libgen.h
+ libgeom.h
  libprocstat.h
  libusb.h
  libusb20.h
@@ -1859,6 +1892,37 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  if_wavelan_ieee.h
  if_wireg.h
  if_wivar.h
+%%BASE%%/usr/include/geom/
+ geom.h
+ geom_ctl.h
+ geom_disk.h
+ geom_int.h
+ geom_slice.h
+ geom_vfs.h
+%%BASE%%/usr/include/geom/cache/g_cache.h
+%%BASE%%/usr/include/geom/concat/g_concat.h
+%%BASE%%/usr/include/geom/eli/
+ g_eli.h
+ pkcs5v2.h
+%%BASE%%/usr/include/geom/gate/g_gate.h
+%%BASE%%/usr/include/geom/journal/g_journal.h
+%%BASE%%/usr/include/geom/label/
+ g_label.h
+ g_label_msdosfs.h
+%%BASE%%/usr/include/geom/mirror/g_mirror.h
+%%BASE%%/usr/include/geom/mountver/g_mountver.h
+%%BASE%%/usr/include/geom/multipath/g_multipath.h
+%%BASE%%/usr/include/geom/nop/g_nop.h
+%%BASE%%/usr/include/geom/raid/
+ g_raid.h
+ md_ddf.h
+%%BASE%%/usr/include/geom/raid3/g_raid3.h
+%%BASE%%/usr/include/geom/shsec/g_shsec.h
+%%BASE%%/usr/include/geom/stripe/g_stripe.h
+%%BASE%%/usr/include/geom/virstor/
+ binstream.h
+ g_virstor.h
+ g_virstor_md.h
 %%BASE%%/usr/include/machine/
  _align.h
  _bus.h
@@ -2669,6 +2733,9 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  crti.o
  crtn.o
  gcrt1.o
+ libbsdxml.a
+ libbsdxml.so
+ libbsdxml.so.4
  libc.a
  libc.so
  libcompat.a
@@ -2680,6 +2747,9 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libdl.a
  libelf.so.2
  libexecinfo.so.1
+ libgeom.a
+ libgeom.so
+ libgeom.so.5
  libkvm.a
  libkvm.so
  libm.a
@@ -7058,7 +7128,2250 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20945:files/Makefile]
+[FILE:50179:manifests/plist.single.macos]
+%%BASE%%/System/Library/Frameworks/Foundation.framework/
+ Foundation
+ Foundation.tbd
+ Headers
+ Modules
+ Resources
+ XPCServices
+ module.map
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/Current
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/
+ Foundation
+ Foundation.tbd
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Headers/
+ Foundation.apinotes
+ Foundation.h
+ FoundationErrors.h
+ FoundationLegacySwiftCompatibility.h
+ NSAffineTransform.h
+ NSAppleEventDescriptor.h
+ NSAppleEventManager.h
+ NSAppleScript.h
+ NSArchiver.h
+ NSArray.h
+ NSAttributedString.h
+ NSAutoreleasePool.h
+ NSBackgroundActivityScheduler.h
+ NSBundle.h
+ NSByteCountFormatter.h
+ NSByteOrder.h
+ NSCache.h
+ NSCalendar.h
+ NSCalendarDate.h
+ NSCharacterSet.h
+ NSClassDescription.h
+ NSCoder.h
+ NSComparisonPredicate.h
+ NSCompoundPredicate.h
+ NSConnection.h
+ NSData.h
+ NSDate.h
+ NSDateComponentsFormatter.h
+ NSDateFormatter.h
+ NSDateInterval.h
+ NSDateIntervalFormatter.h
+ NSDebug.h
+ NSDecimal.h
+ NSDecimalNumber.h
+ NSDictionary.h
+ NSDistantObject.h
+ NSDistributedLock.h
+ NSDistributedNotificationCenter.h
+ NSEnergyFormatter.h
+ NSEnumerator.h
+ NSError.h
+ NSException.h
+ NSExpression.h
+ NSExtensionContext.h
+ NSExtensionItem.h
+ NSExtensionRequestHandling.h
+ NSFileCoordinator.h
+ NSFileHandle.h
+ NSFileManager.h
+ NSFilePresenter.h
+ NSFileVersion.h
+ NSFileWrapper.h
+ NSFormatter.h
+ NSGarbageCollector.h
+ NSGeometry.h
+ NSHFSFileTypes.h
+ NSHTTPCookie.h
+ NSHTTPCookieStorage.h
+ NSHashTable.h
+ NSHost.h
+ NSISO8601DateFormatter.h
+ NSIndexPath.h
+ NSIndexSet.h
+ NSInvocation.h
+ NSItemProvider.h
+ NSItemProviderReadingWriting.h
+ NSJSONSerialization.h
+ NSKeyValueCoding.h
+ NSKeyValueObserving.h
+ NSKeyedArchiver.h
+ NSLengthFormatter.h
+ NSLinguisticTagger.h
+ NSLocale.h
+ NSLock.h
+ NSMapTable.h
+ NSMassFormatter.h
+ NSMeasurement.h
+ NSMeasurementFormatter.h
+ NSMetadata.h
+ NSMetadataAttributes.h
+ NSMethodSignature.h
+ NSNetServices.h
+ NSNotification.h
+ NSNotificationQueue.h
+ NSNull.h
+ NSNumberFormatter.h
+ NSObjCRuntime.h
+ NSObject.h
+ NSObjectScripting.h
+ NSOperation.h
+ NSOrderedSet.h
+ NSOrthography.h
+ NSPathUtilities.h
+ NSPersonNameComponents.h
+ NSPersonNameComponentsFormatter.h
+ NSPointerArray.h
+ NSPointerFunctions.h
+ NSPort.h
+ NSPortCoder.h
+ NSPortMessage.h
+ NSPortNameServer.h
+ NSPredicate.h
+ NSProcessInfo.h
+ NSProgress.h
+ NSPropertyList.h
+ NSProtocolChecker.h
+ NSProxy.h
+ NSRange.h
+ NSRegularExpression.h
+ NSRunLoop.h
+ NSScanner.h
+ NSScriptClassDescription.h
+ NSScriptCoercionHandler.h
+ NSScriptCommand.h
+ NSScriptCommandDescription.h
+ NSScriptExecutionContext.h
+ NSScriptKeyValueCoding.h
+ NSScriptObjectSpecifiers.h
+ NSScriptStandardSuiteCommands.h
+ NSScriptSuiteRegistry.h
+ NSScriptWhoseTests.h
+ NSSet.h
+ NSSortDescriptor.h
+ NSSpellServer.h
+ NSStream.h
+ NSString.h
+ NSTask.h
+ NSTextCheckingResult.h
+ NSThread.h
+ NSTimeZone.h
+ NSTimer.h
+ NSURL.h
+ NSURLAuthenticationChallenge.h
+ NSURLCache.h
+ NSURLConnection.h
+ NSURLCredential.h
+ NSURLCredentialStorage.h
+ NSURLDownload.h
+ NSURLError.h
+ NSURLHandle.h
+ NSURLProtectionSpace.h
+ NSURLProtocol.h
+ NSURLRequest.h
+ NSURLResponse.h
+ NSURLSession.h
+ NSUUID.h
+ NSUbiquitousKeyValueStore.h
+ NSUndoManager.h
+ NSUnit.h
+ NSUserActivity.h
+ NSUserDefaults.h
+ NSUserNotification.h
+ NSUserScriptTask.h
+ NSValue.h
+ NSValueTransformer.h
+ NSXMLDTD.h
+ NSXMLDTDNode.h
+ NSXMLDocument.h
+ NSXMLElement.h
+ NSXMLNode.h
+ NSXMLNodeOptions.h
+ NSXMLParser.h
+ NSXPCConnection.h
+ NSZone.h
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Modules/module.modulemap
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/
+ Info.plist
+ Intrinsics.sdef
+ NSCoreSuite.scriptSuite
+ NSCoreSuite.scriptTerminology
+ NSPersonNameComponentsFormatterDefaults.plist
+ activation_rules.plist
+ types.plist
+ version.plist
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/BridgeSupport/
+ Foundation.bridgesupport
+ Foundation.dylib
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/ar.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/ca.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/cs.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/da.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/de.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/el.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/en.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/es.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/es_419.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/fi.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/fr.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/he.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/hi.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/hr.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/hu.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/id.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/it.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/ja.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/ko.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/ms.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/nl.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/no.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/pl.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/pt.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/pt_PT.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/ro.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/ru.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/sk.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/sv.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/th.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/tr.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/uk.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/vi.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/zh_CN.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/Resources/zh_TW.lproj/
+ DefaultLanguageOrder-OSX.plist
+ Document.strings
+ DurationFormatting.strings
+ EncodingNames.strings
+ Extension.strings
+ FileSizeFormatting.strings
+ Formatter.strings
+ FoundationErrors.strings
+ Progress.strings
+ URL.strings
+ Undo.strings
+ UnitFormatting.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/
+ Info.plist
+ version.plist
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/MacOS/LookupViewService
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/
+ DictionaryCommon.css
+ LVSTabControlCell.tiff
+ LookupViewService.nib
+ dictionary.pdf
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/Base.lproj/LookupViewService.storyboardc/
+ 1LT-VV-PDa-view-beT-xq-WOB.nib
+ 1ak-ry-cqc-view-8Ld-XS-1Yn.nib
+ 4yd-co-ATN-view-BtB-GM-KGw.nib
+ 7O7-BS-CD0-view-8bI-Kg-3ao.nib
+ DictionaryResult.nib
+ FirstTime.nib
+ Info.plist
+ NoDictionary.nib
+ NoResults.nib
+ PageController.nib
+ ResultNavigator.nib
+ Searching.nib
+ WRg-3r-Znc-view-XF7-3J-qcd.nib
+ bTc-1m-xOf-view-yOe-uQ-xty.nib
+ o2C-AP-V6c-view-LYK-wg-S5a.nib
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/ar.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/ca.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/cs.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/da.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/de.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/el.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/en.lproj/Localizable.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/es.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/es_419.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/fi.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/fr.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/he.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/hi.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/hr.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/hu.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/id.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/it.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/ja.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/ko.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/ms.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/nl.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/no.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/pl.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/pt.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/pt_PT.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/ro.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/ru.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/sk.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/sv.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/th.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/tr.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/uk.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/vi.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/zh_CN.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/Resources/zh_TW.lproj/
+ Localizable.strings
+ LookupViewService.strings
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/LookupViewService.xpc/Contents/_CodeSignature/CodeResources
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/com.apple.foundation.UserScriptService.xpc/Contents/
+ Info.plist
+ version.plist
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/com.apple.foundation.UserScriptService.xpc/Contents/MacOS/com.apple.foundation.UserScriptService
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/XPCServices/com.apple.foundation.UserScriptService.xpc/Contents/_CodeSignature/CodeResources
+%%BASE%%/System/Library/Frameworks/Foundation.framework/Versions/C/_CodeSignature/CodeResources
+%%BASE%%/System/Library/Frameworks/System.framework/
+ Resources
+ System
+ System.tbd
+ System_asan
+%%BASE%%/System/Library/Frameworks/System.framework/Versions/Current
+%%BASE%%/System/Library/Frameworks/System.framework/Versions/B/
+ System
+ System.tbd
+ System_asan
+ System_asan.tbd
+%%BASE%%/System/Library/Frameworks/System.framework/Versions/B/Resources/
+ Info.plist
+ version.plist
+%%BASE%%/System/Library/Frameworks/System.framework/Versions/B/Resources/BridgeSupport/System.bridgesupport
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/
+ Headers
+ Modules
+ Resources
+ SystemConfiguration
+ SystemConfiguration.tbd
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/Current
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/
+ SystemConfiguration
+ SystemConfiguration.tbd
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Headers/
+ CaptiveNetwork.h
+ DHCPClientPreferences.h
+ SCDynamicStore.h
+ SCDynamicStoreCopyDHCPInfo.h
+ SCDynamicStoreCopySpecific.h
+ SCDynamicStoreKey.h
+ SCNetwork.h
+ SCNetworkConfiguration.h
+ SCNetworkConnection.h
+ SCNetworkReachability.h
+ SCPreferences.h
+ SCPreferencesPath.h
+ SCPreferencesSetSpecific.h
+ SCSchemaDefinitions.h
+ SystemConfiguration.h
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Helpers/SCHelper
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Modules/module.modulemap
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/
+ Info.plist
+ NetworkConfiguration.plist
+ get-mobility-info
+ get-network-info
+ version.plist
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/BridgeSupport/SystemConfiguration.bridgesupport
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/Dutch.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/English.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/French.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/German.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/Italian.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/Japanese.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/Spanish.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/ar.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/ca.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/cs.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/da.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/el.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/es_419.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/fi.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/he.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/hi.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/hr.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/hu.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/id.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/ko.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/ms.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/no.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/pl.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/pt.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/pt_PT.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/ro.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/ru.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/sk.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/sv.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/th.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/tr.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/uk.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/vi.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/zh_CN.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/Resources/zh_TW.lproj/
+ Localizable.strings
+ NetworkInterface.strings
+%%BASE%%/System/Library/Frameworks/SystemConfiguration.framework/Versions/A/_CodeSignature/CodeResources
+%%BASE%%/System/Library/PrivateFrameworks/Network.framework/
+ Network
+ Network.tbd
+ Resources
+%%BASE%%/System/Library/PrivateFrameworks/Network.framework/Versions/Current
+%%BASE%%/System/Library/PrivateFrameworks/Network.framework/Versions/A/
+ Network
+ Network.tbd
+%%BASE%%/System/Library/PrivateFrameworks/Network.framework/Versions/A/Resources/
+ Info.plist
+ version.plist
+%%BASE%%/System/Library/PrivateFrameworks/Network.framework/Versions/A/_CodeSignature/CodeResources
+%%BASE%%/System/Library/PrivateFrameworks/NetworkServiceProxy.framework/
+ NetworkServiceProxy
+ NetworkServiceProxy.tbd
+ Resources
+%%BASE%%/System/Library/PrivateFrameworks/NetworkServiceProxy.framework/Versions/Current
+%%BASE%%/System/Library/PrivateFrameworks/NetworkServiceProxy.framework/Versions/A/
+ NetworkServiceProxy
+ NetworkServiceProxy.tbd
+%%BASE%%/System/Library/PrivateFrameworks/NetworkServiceProxy.framework/Versions/A/Resources/
+ Info.plist
+ version.plist
+%%BASE%%/System/Library/PrivateFrameworks/NetworkServiceProxy.framework/Versions/A/_CodeSignature/CodeResources
+%%BASE%%/System/Library/PrivateFrameworks/NetworkStatistics.framework/
+ NetworkStatistics
+ NetworkStatistics.tbd
+ Resources
+%%BASE%%/System/Library/PrivateFrameworks/NetworkStatistics.framework/Versions/Current
+%%BASE%%/System/Library/PrivateFrameworks/NetworkStatistics.framework/Versions/A/
+ NetworkStatistics
+ NetworkStatistics.tbd
+%%BASE%%/System/Library/PrivateFrameworks/NetworkStatistics.framework/Versions/A/Resources/
+ Info.plist
+ version.plist
+%%BASE%%/System/Library/PrivateFrameworks/NetworkStatistics.framework/Versions/A/_CodeSignature/CodeResources
+%%BASE%%/bin/
+ [
+ cat
+ chmod
+ cp
+ date
+ echo
+ expr
+ hostname
+ kill
+ link
+ ln
+ ls
+ md5
+ mkdir
+ mv
+ pax
+ pwd
+ realpath
+ rm
+ rmdir
+ sh
+ sha256
+ sleep
+ test
+ unlink
+%%BASE%%/usr/bin/
+ ar
+ arch
+ as
+ awk
+ basename
+ bsdcat
+ bunzip2
+ bzcat
+ bzegrep
+ bzfgrep
+ bzgrep
+ bzip2
+ chgrp
+ chown
+ cmp
+ comm
+ cpio
+ cut
+ diff
+ diff3
+ dirname
+ dsymutil
+ dupe
+ egrep
+ env
+ false
+ fetch
+ fgrep
+ file
+ find
+ flex
+ flex++
+ genpatch
+ gm4
+ grep
+ groups
+ gunzip
+ gzip
+ head
+ id
+ install
+ join
+ ld
+ less
+ lipo
+ lockf
+ lorder
+ lzcat
+ lzcmp
+ lzdiff
+ lzegrep
+ lzfgrep
+ lzgrep
+ lzma
+ m4
+ make
+ makewhatis
+ mkfifo
+ mknod
+ mktemp
+ more
+ mtree
+ nm
+ nmedit
+ objdump
+ od
+ otool
+ patch
+ pkg-static
+ portfix
+ printenv
+ printf
+ ranlib
+ readlink
+ sdiff
+ sed
+ seq
+ sort
+ stat
+ strip
+ sw_vers
+ systemsetup
+ tail
+ tar
+ tee
+ touch
+ tr
+ true
+ tsort
+ uname
+ uniq
+ unlzma
+ unxz
+ unzip
+ vi
+ wc
+ which
+ whoami
+ xargs
+ xcrun
+ xz
+ xzcat
+ xzcmp
+ xzdiff
+ xzegrep
+ xzfgrep
+ xzgrep
+ yacc
+ zcat
+ zcmp
+ zdiff
+ zegrep
+ zfgrep
+ zgrep
+%%BASE%%/usr/include/
+ AppleTextureEncoder.h
+ AssertMacros.h
+ Availability.h
+ AvailabilityInternal.h
+ AvailabilityMacros.h
+ Block.h
+ ConditionalMacros.h
+ Darwin.apinotes
+ MacTypes.h
+ NSSystemDirectories.h
+ TargetConditionals.h
+ Xplugin.h
+ __wctype.h
+ _ctype.h
+ _locale.h
+ _regex.h
+ _stdio.h
+ _types.h
+ _wctype.h
+ _xlocale.h
+ aio.h
+ aliasdb.h
+ alloca.h
+ ar.h
+ asl.h
+ assert.h
+ bitstring.h
+ bootparams.h
+ bootstrap.h
+ cache.h
+ cache_callbacks.h
+ checkint.h
+ com_err.h
+ complex.h
+ compression.h
+ copyfile.h
+ cpio.h
+ crt_externs.h
+ ctype.h
+ dirent.h
+ disktab.h
+ dlfcn.h
+ dns.h
+ dns_sd.h
+ dns_util.h
+ err.h
+ errno.h
+ eti.h
+ fcntl.h
+ fenv.h
+ float.h
+ fmtmsg.h
+ fnmatch.h
+ fsproperties.h
+ fstab.h
+ fts.h
+ ftw.h
+ get_compat.h
+ gethostuuid.h
+ getopt.h
+ glob.h
+ grp.h
+ ifaddrs.h
+ inttypes.h
+ iso646.h
+ langinfo.h
+ launch.h
+ lber.h
+ lber_types.h
+ ldif.h
+ libc.h
+ libgen.h
+ libproc.h
+ libunwind.h
+ limits.h
+ localcharset.h
+ locale.h
+ math.h
+ membership.h
+ memory.h
+ module.map
+ module.modulemap
+ monetary.h
+ monitor.h
+ mpool.h
+ nameser.h
+ nc_tparm.h
+ netdb.h
+ nl_types.h
+ nlist.h
+ notify.h
+ notify_keys.h
+ ntsid.h
+ paths.h
+ poll.h
+ printerdb.h
+ printf.h
+ profile.h
+ pwd.h
+ ranlib.h
+ readpassphrase.h
+ regex.h
+ removefile.h
+ resolv.h
+ rune.h
+ runetype.h
+ sandbox.h
+ search.h
+ semaphore.h
+ setjmp.h
+ sgtty.h
+ signal.h
+ slapi-plugin.h
+ spawn.h
+ stab.h
+ standards.h
+ stddef.h
+ stdint.h
+ stdio.h
+ stdlib.h
+ strhash.h
+ string.h
+ stringlist.h
+ strings.h
+ struct.h
+ sysdir.h
+ sysexits.h
+ syslog.h
+ termios.h
+ tgmath.h
+ time.h
+ timeconv.h
+ ttyent.h
+ tzfile.h
+ ucontext.h
+ ulimit.h
+ unctrl.h
+ unistd.h
+ unwind.h
+ util.h
+ utime.h
+ utmp.h
+ utmpx.h
+ vis.h
+ vproc.h
+ wchar.h
+ wctype.h
+ wordexp.h
+ xattr_flags.h
+ xlocale.h
+%%BASE%%/usr/include/CommonCrypto/
+ CommonCrypto.h
+ CommonCryptoError.h
+ CommonCryptor.h
+ CommonDigest.h
+ CommonHMAC.h
+ CommonKeyDerivation.h
+ CommonRandom.h
+ CommonSymmetricKeywrap.h
+%%BASE%%/usr/include/_types/
+ _intmax_t.h
+ _nl_item.h
+ _uint16_t.h
+ _uint32_t.h
+ _uint64_t.h
+ _uint8_t.h
+ _uintmax_t.h
+ _wctrans_t.h
+ _wctype_t.h
+%%BASE%%/usr/include/architecture/
+ alignment.h
+ byte_order.h
+%%BASE%%/usr/include/architecture/i386/
+ alignment.h
+ asm_help.h
+ byte_order.h
+ cpu.h
+ desc.h
+ fpu.h
+ frame.h
+ io.h
+ pio.h
+ reg_help.h
+ sel.h
+ table.h
+ tss.h
+%%BASE%%/usr/include/arpa/
+ ftp.h
+ inet.h
+ nameser.h
+ nameser_compat.h
+ telnet.h
+ tftp.h
+%%BASE%%/usr/include/atm/
+ atm_notification.defs
+ atm_types.defs
+ atm_types.h
+%%BASE%%/usr/include/bank/bank_types.h
+%%BASE%%/usr/include/bsm/
+ audit.h
+ audit_domain.h
+ audit_errno.h
+ audit_fcntl.h
+ audit_filter.h
+ audit_internal.h
+ audit_kevents.h
+ audit_record.h
+ audit_session.h
+ audit_socket_type.h
+ audit_uevents.h
+ libbsm.h
+%%BASE%%/usr/include/corpses/task_corpse.h
+%%BASE%%/usr/include/device/
+ device.defs
+ device_port.h
+ device_types.defs
+ device_types.h
+%%BASE%%/usr/include/dispatch/
+ base.h
+ block.h
+ data.h
+ dispatch.h
+ group.h
+ introspection.d
+ introspection.h
+ io.h
+ module.map
+ module.modulemap
+ object.h
+ once.h
+ queue.h
+ semaphore.h
+ source.h
+ time.h
+%%BASE%%/usr/include/hfs/
+ hfs_encodings.h
+ hfs_format.h
+ hfs_mount.h
+ hfs_unistr.h
+%%BASE%%/usr/include/i386/
+ _limits.h
+ _mcontext.h
+ _param.h
+ _types.h
+ eflags.h
+ endian.h
+ fasttrap_isa.h
+ limits.h
+ param.h
+ profile.h
+ signal.h
+ types.h
+ user_ldt.h
+ vmparam.h
+%%BASE%%/usr/include/kern/
+ exc_guard.h
+ exc_resource.h
+ kcdata.h
+ kern_cdata.h
+%%BASE%%/usr/include/libkern/
+ OSAtomic.h
+ OSAtomicDeprecated.h
+ OSAtomicQueue.h
+ OSByteOrder.h
+ OSCacheControl.h
+ OSDebug.h
+ OSKextLib.h
+ OSReturn.h
+ OSSpinLockDeprecated.h
+ OSThermalNotification.h
+ OSTypes.h
+ _OSByteOrder.h
+%%BASE%%/usr/include/libkern/i386/
+ OSByteOrder.h
+ _OSByteOrder.h
+%%BASE%%/usr/include/libkern/machine/OSByteOrder.h
+%%BASE%%/usr/include/mach/
+ audit_triggers.defs
+ boolean.h
+ bootstrap.h
+ clock.defs
+ clock.h
+ clock_priv.defs
+ clock_priv.h
+ clock_reply.defs
+ clock_reply.h
+ clock_types.defs
+ clock_types.h
+ dyld_kernel.h
+ error.h
+ exc.defs
+ exc.h
+ exception.h
+ exception_types.h
+ host_info.h
+ host_notify.h
+ host_notify_reply.defs
+ host_priv.defs
+ host_priv.h
+ host_reboot.h
+ host_security.defs
+ host_security.h
+ host_special_ports.h
+ kern_return.h
+ kmod.h
+ lock_set.defs
+ lock_set.h
+ mach.h
+ mach_error.h
+ mach_exc.defs
+ mach_host.defs
+ mach_host.h
+ mach_init.h
+ mach_interface.h
+ mach_param.h
+ mach_port.defs
+ mach_port.h
+ mach_syscalls.h
+ mach_time.h
+ mach_traps.h
+ mach_types.defs
+ mach_types.h
+ mach_vm.defs
+ mach_vm.h
+ mach_voucher.defs
+ mach_voucher.h
+ mach_voucher_attr_control.defs
+ mach_voucher_types.h
+ machine.h
+ memory_object_types.h
+ message.h
+ mig.h
+ mig_errors.h
+ mig_strncpy_zerofill_support.h
+ mig_voucher_support.h
+ ndr.h
+ notify.defs
+ notify.h
+ policy.h
+ port.h
+ port_obj.h
+ processor.defs
+ processor.h
+ processor_info.h
+ processor_set.defs
+ processor_set.h
+ rpc.h
+ sdt.h
+ semaphore.h
+ shared_memory_server.h
+ shared_region.h
+ std_types.defs
+ std_types.h
+ sync.h
+ sync_policy.h
+ task.defs
+ task.h
+ task_access.defs
+ task_info.h
+ task_inspect.h
+ task_policy.h
+ task_special_ports.h
+ telemetry_notification.defs
+ thread_act.defs
+ thread_act.h
+ thread_info.h
+ thread_policy.h
+ thread_special_ports.h
+ thread_state.h
+ thread_status.h
+ thread_switch.h
+ time_value.h
+ vm_attributes.h
+ vm_behavior.h
+ vm_inherit.h
+ vm_map.defs
+ vm_map.h
+ vm_page_size.h
+ vm_param.h
+ vm_prot.h
+ vm_purgable.h
+ vm_region.h
+ vm_statistics.h
+ vm_sync.h
+ vm_task.h
+ vm_types.h
+%%BASE%%/usr/include/mach-o/
+ arch.h
+ compact_unwind_encoding.h
+ dyld.h
+ dyld_images.h
+ fat.h
+ getsect.h
+ ldsyms.h
+ loader.h
+ module.map
+ nlist.h
+ ranlib.h
+ reloc.h
+ stab.h
+ swap.h
+%%BASE%%/usr/include/mach-o/arm64/reloc.h
+%%BASE%%/usr/include/mach-o/i386/swap.h
+%%BASE%%/usr/include/mach-o/ppc/
+ reloc.h
+ swap.h
+%%BASE%%/usr/include/mach-o/x86_64/reloc.h
+%%BASE%%/usr/include/mach/i386/
+ _structs.h
+ asm.h
+ boolean.h
+ exception.h
+ fp_reg.h
+ kern_return.h
+ ndr_def.h
+ processor_info.h
+ rpc.h
+ sdt_isa.h
+ thread_state.h
+ thread_status.h
+ vm_param.h
+ vm_types.h
+%%BASE%%/usr/include/mach/machine/
+ _structs.h
+ asm.h
+ boolean.h
+ exception.h
+ kern_return.h
+ machine_types.defs
+ ndr_def.h
+ processor_info.h
+ rpc.h
+ sdt.h
+ sdt_isa.h
+ thread_state.h
+ thread_status.h
+ vm_param.h
+ vm_types.h
+%%BASE%%/usr/include/mach_debug/
+ hash_info.h
+ ipc_info.h
+ lockgroup_info.h
+ mach_debug.h
+ mach_debug_types.defs
+ mach_debug_types.h
+ page_info.h
+ vm_info.h
+ zone_info.h
+%%BASE%%/usr/include/machine/
+ _limits.h
+ _mcontext.h
+ _param.h
+ _types.h
+ byte_order.h
+ endian.h
+ fasttrap_isa.h
+ limits.h
+ param.h
+ profile.h
+ signal.h
+ types.h
+ vmparam.h
+%%BASE%%/usr/include/malloc/malloc.h
+%%BASE%%/usr/include/miscfs/devfs/devfs.h
+%%BASE%%/usr/include/miscfs/specfs/specdev.h
+%%BASE%%/usr/include/miscfs/union/union.h
+%%BASE%%/usr/include/net/
+ bpf.h
+ dlil.h
+ ethernet.h
+ if.h
+ if_arp.h
+ if_dl.h
+ if_llc.h
+ if_media.h
+ if_mib.h
+ if_types.h
+ if_utun.h
+ if_var.h
+ kext_net.h
+ ndrv.h
+ net_kev.h
+ pfkeyv2.h
+ route.h
+%%BASE%%/usr/include/netinet/
+ bootp.h
+ icmp6.h
+ icmp_var.h
+ if_ether.h
+ igmp.h
+ igmp_var.h
+ in.h
+ in_pcb.h
+ in_systm.h
+ in_var.h
+ ip.h
+ ip6.h
+ ip_icmp.h
+ ip_var.h
+ tcp.h
+ tcp_fsm.h
+ tcp_seq.h
+ tcp_timer.h
+ tcp_var.h
+ tcpip.h
+ udp.h
+ udp_var.h
+%%BASE%%/usr/include/netinet6/
+ ah.h
+ esp.h
+ in6.h
+ in6_var.h
+ ipcomp.h
+ ipsec.h
+ nd6.h
+ raw_ip6.h
+ scope6_var.h
+%%BASE%%/usr/include/netkey/keysock.h
+%%BASE%%/usr/include/nfs/
+ krpc.h
+ nfs.h
+ nfs_gss.h
+ nfs_ioctl.h
+ nfs_lock.h
+ nfsdiskless.h
+ nfsm_subs.h
+ nfsmount.h
+ nfsnode.h
+ nfsproto.h
+ nfsrvcache.h
+ rpcv2.h
+ xdr_subs.h
+%%BASE%%/usr/include/odmodule/
+ odconnection.h
+ odconstants.h
+ odcore.h
+ odcredential.h
+ odmodule.h
+ odmoduleconfig.h
+ odobject.h
+ odrequest.h
+ odtypes.h
+%%BASE%%/usr/include/opendirectory/odlogging.h
+%%BASE%%/usr/include/os/
+ activity.h
+ availability.h
+ base.h
+ lock.h
+ log.h
+ object.h
+ overflow.h
+ trace.h
+ trace_base.h
+%%BASE%%/usr/include/pexpert/
+ boot.h
+ pexpert.h
+ protos.h
+%%BASE%%/usr/include/pexpert/i386/
+ boot.h
+ efi.h
+ protos.h
+%%BASE%%/usr/include/pexpert/machine/
+ boot.h
+ protos.h
+%%BASE%%/usr/include/protocols/
+ routed.h
+ rwhod.h
+ talkd.h
+ timed.h
+%%BASE%%/usr/include/pthread/
+ introspection.h
+ pthread.h
+ pthread_impl.h
+ pthread_spis.h
+ qos.h
+ sched.h
+ spawn.h
+%%BASE%%/usr/include/rpc/
+ auth.h
+ auth_unix.h
+ clnt.h
+ pmap_clnt.h
+ pmap_prot.h
+ pmap_rmt.h
+ rpc.h
+ rpc_msg.h
+ svc.h
+ svc_auth.h
+ types.h
+ xdr.h
+%%BASE%%/usr/include/rpcsvc/
+ bootparam_prot.h
+ bootparam_prot.x
+ klm_prot.h
+ klm_prot.x
+ mount.h
+ mount.x
+ nfs_prot.h
+ nfs_prot.x
+ nlm_prot.h
+ nlm_prot.x
+ rex.h
+ rex.x
+ rnusers.h
+ rnusers.x
+ rquota.h
+ rquota.x
+ rstat.h
+ rstat.x
+ rusers.h
+ rusers.x
+ rwall.h
+ rwall.x
+ sm_inter.h
+ sm_inter.x
+ spray.h
+ spray.x
+ yp.h
+ yp.x
+ yp_prot.h
+ ypclnt.h
+ yppasswd.h
+ yppasswd.x
+%%BASE%%/usr/include/secure/
+ _common.h
+ _stdio.h
+ _string.h
+ _strings.h
+%%BASE%%/usr/include/security/
+ mac.h
+ mac_policy.h
+ openpam.h
+ openpam_attr.h
+ openpam_version.h
+ pam_appl.h
+ pam_constants.h
+ pam_modules.h
+ pam_types.h
+%%BASE%%/usr/include/security/audit/audit_ioctl.h
+%%BASE%%/usr/include/servers/
+ bootstrap.h
+ bootstrap_defs.h
+ key_defs.h
+ ls_defs.h
+ netname.h
+ netname_defs.h
+ nm_defs.h
+%%BASE%%/usr/include/simd/
+ base.h
+ common.h
+ conversion.h
+ extern.h
+ geometry.h
+ internal.h
+ logic.h
+ math.h
+ matrix.h
+ matrix_types.h
+ module.map
+ module.modulemap
+ packed.h
+ quaternion.h
+ simd.h
+ types.h
+ vector.h
+ vector_make.h
+ vector_types.h
+%%BASE%%/usr/include/sys/
+ _endian.h
+ _posix_availability.h
+ _select.h
+ _structs.h
+ _symbol_aliasing.h
+ _types.h
+ acct.h
+ acl.h
+ aio.h
+ appleapiopts.h
+ attr.h
+ buf.h
+ cdefs.h
+ clonefile.h
+ commpage.h
+ conf.h
+ dir.h
+ dirent.h
+ disk.h
+ dkstat.h
+ domain.h
+ dtrace.h
+ dtrace_glue.h
+ dtrace_impl.h
+ errno.h
+ ev.h
+ event.h
+ fasttrap.h
+ fasttrap_isa.h
+ fcntl.h
+ file.h
+ filedesc.h
+ filio.h
+ fsgetpath.h
+ gmon.h
+ ioccom.h
+ ioctl.h
+ ioctl_compat.h
+ ipc.h
+ kauth.h
+ kdebug.h
+ kdebug_signpost.h
+ kern_control.h
+ kern_event.h
+ kernel.h
+ kernel_types.h
+ lctx.h
+ loadable_fs.h
+ lock.h
+ lockf.h
+ lockstat.h
+ malloc.h
+ mbuf.h
+ mman.h
+ mount.h
+ msg.h
+ msgbuf.h
+ netport.h
+ param.h
+ paths.h
+ pipe.h
+ poll.h
+ posix_sem.h
+ posix_shm.h
+ proc.h
+ proc_info.h
+ protosw.h
+ ptrace.h
+ qos.h
+ queue.h
+ quota.h
+ random.h
+ rbtree.h
+ reboot.h
+ resource.h
+ resourcevar.h
+ sbuf.h
+ sdt.h
+ select.h
+ sem.h
+ semaphore.h
+ shm.h
+ signal.h
+ signalvar.h
+ snapshot.h
+ socket.h
+ socketvar.h
+ sockio.h
+ spawn.h
+ stat.h
+ statvfs.h
+ stdio.h
+ sys_domain.h
+ syscall.h
+ sysctl.h
+ syslimits.h
+ syslog.h
+ termios.h
+ time.h
+ timeb.h
+ times.h
+ timex.h
+ tprintf.h
+ trace.h
+ tty.h
+ ttychars.h
+ ttycom.h
+ ttydefaults.h
+ ttydev.h
+ types.h
+ ubc.h
+ ucontext.h
+ ucred.h
+ uio.h
+ un.h
+ unistd.h
+ unpcb.h
+ user.h
+ utfconv.h
+ utsname.h
+ vadvise.h
+ vcmd.h
+ vm.h
+ vmmeter.h
+ vmparam.h
+ vnioctl.h
+ vnode.h
+ vnode_if.h
+ vstat.h
+ wait.h
+ xattr.h
+%%BASE%%/usr/include/sys/_pthread/
+ _pthread_attr_t.h
+ _pthread_cond_t.h
+ _pthread_condattr_t.h
+ _pthread_key_t.h
+ _pthread_mutex_t.h
+ _pthread_mutexattr_t.h
+ _pthread_once_t.h
+ _pthread_rwlock_t.h
+ _pthread_rwlockattr_t.h
+ _pthread_t.h
+ _pthread_types.h
+%%BASE%%/usr/include/sys/_types/
+ _blkcnt_t.h
+ _blksize_t.h
+ _caddr_t.h
+ _clock_t.h
+ _ct_rune_t.h
+ _dev_t.h
+ _errno_t.h
+ _fd_clr.h
+ _fd_copy.h
+ _fd_def.h
+ _fd_isset.h
+ _fd_set.h
+ _fd_setsize.h
+ _fd_zero.h
+ _filesec_t.h
+ _fsblkcnt_t.h
+ _fsfilcnt_t.h
+ _fsid_t.h
+ _fsobj_id_t.h
+ _gid_t.h
+ _guid_t.h
+ _id_t.h
+ _in_addr_t.h
+ _in_port_t.h
+ _ino64_t.h
+ _ino_t.h
+ _int16_t.h
+ _int32_t.h
+ _int64_t.h
+ _int8_t.h
+ _intptr_t.h
+ _iovec_t.h
+ _key_t.h
+ _mach_port_t.h
+ _mbstate_t.h
+ _mode_t.h
+ _nlink_t.h
+ _null.h
+ _o_dsync.h
+ _o_sync.h
+ _off_t.h
+ _offsetof.h
+ _os_inline.h
+ _pid_t.h
+ _posix_vdisable.h
+ _ptrdiff_t.h
+ _rsize_t.h
+ _rune_t.h
+ _s_ifmt.h
+ _sa_family_t.h
+ _seek_set.h
+ _sigaltstack.h
+ _sigset_t.h
+ _size_t.h
+ _socklen_t.h
+ _ssize_t.h
+ _suseconds_t.h
+ _time_t.h
+ _timespec.h
+ _timeval.h
+ _timeval32.h
+ _timeval64.h
+ _u_char.h
+ _u_int.h
+ _u_int16_t.h
+ _u_int32_t.h
+ _u_int64_t.h
+ _u_int8_t.h
+ _u_short.h
+ _ucontext.h
+ _ucontext64.h
+ _uid_t.h
+ _uintptr_t.h
+ _useconds_t.h
+ _uuid_t.h
+ _va_list.h
+ _wchar_t.h
+ _wint_t.h
+%%BASE%%/usr/include/uuid/uuid.h
+%%BASE%%/usr/include/vfs/vfs_support.h
+%%BASE%%/usr/include/voucher/ipc_pthread_priority_types.h
+%%BASE%%/usr/include/xar/xar.h
+%%BASE%%/usr/include/xlocale/
+ __wctype.h
+ _ctype.h
+ _inttypes.h
+ _langinfo.h
+ _monetary.h
+ _regex.h
+ _stdio.h
+ _stdlib.h
+ _string.h
+ _time.h
+ _wchar.h
+ _wctype.h
+%%BASE%%/usr/include/xpc/
+ XPC.apinotes
+ activity.h
+ availability.h
+ base.h
+ connection.h
+ debug.h
+ endpoint.h
+ module.modulemap
+ xpc.h
+%%BASE%%/usr/lib/
+ PN548_API.dylib
+ PN548_HAL_OSX.dylib
+ PN548_OSX.dylib
+ bundle1.o
+ crt1.10.5.o
+ crt1.10.6.o
+ crt1.o
+ dyld
+ dylib1.10.5.o
+ dylib1.o
+ gcrt1.o
+ lazydylib1.o
+ libATCommandStudioDynamic.dylib
+ libAccountPolicyTranslation.dylib
+ libAppletTranslationLibrary.dylib
+ libAudioIssueDetector.dylib
+ libAudioStatistics.dylib
+ libBSDPClient.A.dylib
+ libBSDPClient.dylib
+ libCRFSuite.dylib
+ libCRFSuite0.12.dylib
+ libChineseTokenizer.dylib
+ libCoreStorage.dylib
+ libDiagnosticMessagesClient.dylib
+ libFDR_osx.dylib
+ libFosl_dynamic.dylib
+ libIASAuthReboot.dylib
+ libIASUnifiedProgress.dylib
+ libMatch.1.dylib
+ libMatch.dylib
+ libMaxEnt.dylib
+ libOpenScriptingUtil.dylib
+ libParallelCompression.dylib
+ libQMIParserDynamic.dylib
+ libSMC.dylib
+ libScreenReader.dylib
+ libSystem.B.dylib
+ libSystem.dylib
+ libTelephonyUtilDynamic.dylib
+ libThaiTokenizer.dylib
+ libUniversalAccess.dylib
+ libXSEvent.dylib
+ libXplugin.1.dylib
+ libXplugin.dylib
+ libate.dylib
+ libauditd.0.dylib
+ libauditd.dylib
+ libauto.dylib
+ libbsm.0.dylib
+ libbsm.dylib
+ libc++.1.dylib
+ libc++abi.dylib
+ libc.dylib
+ libcmph.dylib
+ libcompression.dylib
+ libcoreroutine.dylib
+ libcoretls.dylib
+ libcoretls_cfhelpers.dylib
+ libcsfde.dylib
+ libdbm.dylib
+ libdl.dylib
+ libdns_services.dylib
+ libdscsym.dylib
+ libeasyperf.dylib
+ libenergytrace.dylib
+ libextension.dylib
+ libgermantok.dylib
+ libgmalloc.dylib
+ libinfo.dylib
+ libipconfig.dylib
+ libipsec.A.dylib
+ libipsec.dylib
+ liblangid.dylib
+ libm.dylib
+ libmx.A.dylib
+ libmx.dylib
+ libncurses.5.4.dylib
+ libnetwork.dylib
+ libnetworkextension.dylib
+ libnfrestore.dylib
+ libnfshared.dylib
+ libobjc.A.dylib
+ libodfde.dylib
+ libodmodule.dylib
+ libpmenergy.dylib
+ libpmsample.dylib
+ libpoll.dylib
+ libproc.dylib
+ libpthread.dylib
+ libquit.dylib
+ libresolv.9.dylib
+ libresolv.dylib
+ librpcsvc.dylib
+ libsandbox.1.dylib
+ libsandbox.dylib
+ libspindump.dylib
+ libsysdiagnose.dylib
+ libsysmon.dylib
+ libsystemstats.dylib
+ libtailspin.dylib
+ libtzupdate.dylib
+ libusrtcp.dylib
+ libutil.dylib
+ libutil1.0.dylib
+ libxar.1.dylib
+ libxar.dylib
+ libxcselect.dylib
+ libz.1.dylib
+%%BASE%%/usr/lib/log/
+ liblog_AppleLDAPTypes.dylib
+ liblog_SystemConfiguration.dylib
+ liblog_audio.dylib
+ liblog_coreacc.dylib
+ liblog_cu.dylib
+ liblog_geo.dylib
+ liblog_location.dylib
+ liblog_network.dylib
+ liblog_odtypes.dylib
+ liblog_signpost.description.dylib
+ liblog_signpost.telemetry.dylib
+%%BASE%%/usr/lib/rpcsvc/
+ dssetup.bundle
+ echosvc.bundle
+ lsarpc.bundle
+ mdssvc.bundle
+ netlogon.bundle
+ srvsvc.bundle
+ wkssvc.bundle
+%%BASE%%/usr/lib/system/
+ libcache.dylib
+ libcommonCrypto.dylib
+ libcompiler_rt.dylib
+ libcopyfile.dylib
+ libcorecrypto.dylib
+ libcorecrypto_trace.dylib
+ libdispatch.dylib
+ libdyld.dylib
+ libkeymgr.dylib
+ libkxld.dylib
+ liblaunch.dylib
+ libmacho.dylib
+ libmathCommon.A.dylib
+ libmathCommon.dylib
+ libquarantine.dylib
+ libremovefile.dylib
+ libsystem_asl.dylib
+ libsystem_blocks.dylib
+ libsystem_c.dylib
+ libsystem_configuration.dylib
+ libsystem_coreservices.dylib
+ libsystem_darwin.dylib
+ libsystem_dnssd.dylib
+ libsystem_info.dylib
+ libsystem_kernel.dylib
+ libsystem_m.dylib
+ libsystem_malloc.dylib
+ libsystem_network.dylib
+ libsystem_networkextension.dylib
+ libsystem_notify.dylib
+ libsystem_platform.dylib
+ libsystem_pthread.dylib
+ libsystem_sandbox.dylib
+ libsystem_secinit.dylib
+ libsystem_symptoms.dylib
+ libsystem_trace.dylib
+ libunc.dylib
+ libunwind.dylib
+ libxpc.dylib
+ wordexp-helper
+%%BASE%%/usr/lib/system/introspection/
+ libdispatch.dylib
+ libsystem_pthread.dylib
+%%BASE%%/usr/lib/xpc/support.bundle/Contents/
+ Info.plist
+ version.plist
+%%BASE%%/usr/lib/xpc/support.bundle/Contents/MacOS/support
+%%BASE%%/usr/lib/xpc/support.bundle/Contents/_CodeSignature/CodeResources
+%%BASE%%/usr/share/
+ OSMAJOR
+ OSRELEASE
+ OSVERSION
+ STDARCH
+ terminfo.db
+%%BASE%%/usr/share/CommandLineTools/usr/bin/
+ ar
+ as
+ clang
+ dsymutil
+ ld
+ libtool
+ lipo
+ llvm-dsymutil
+ llvm-nm
+ llvm-objdump
+ llvm-otool
+ nm
+ nmedit
+ objdump
+ otool
+ ranlib
+ strip
+%%BASE%%/usr/share/CommandLineTools/usr/libexec/as/arm/as
+%%BASE%%/usr/share/CommandLineTools/usr/libexec/as/i386/as
+%%BASE%%/usr/share/CommandLineTools/usr/libexec/as/x86_64/as
+%%BASE%%/usr/share/file/magic.mgc
+@dir %%BASE%%/usr/lib/pkgconfig
+@dir %%BASE%%/usr/local
+@dir %%BASE%%/usr/sbin
+
+
+[FILE:21478:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -7072,6 +9385,8 @@ Libthr_FreeBSD=		libthr.so.3
 Libsbuf_FreeBSD=	libsbuf.so.6
 Libdevstat_FreeBSD=	libdevstat.so.7
 Libprocstat_FreeBSD=	libprocstat.so.1
+Libgeom_FreeBSD=	libgeom.so.5
+Libbsdxml_FreeBSD=	libbsdxml.so.4
 
 CPA=			-RpP
 
@@ -7208,8 +9523,10 @@ static_lib_generic=	/usr/lib/libc.a \
 			/usr/lib/libcrypt.a \
 			/usr/lib/libpthread.a
 static_lib_FreeBSD=	${static_lib_generic} \
+			/usr/lib/libbsdxml.a \
 			/usr/lib/libcompat.a \
 			/usr/lib/libdevstat.a \
+			/usr/lib/libgeom.a \
 			/usr/lib/libkvm.a \
 			/usr/lib/libprocstat.a \
 			/usr/lib/libthr.a \
@@ -7260,7 +9577,9 @@ dynamic_generic=	/lib/${libc} \
 			/lib/${libkvm} \
 			/usr/lib/${librt}
 dynamic_lib_FreeBSD=	${dynamic_generic} \
+			/lib/${Libbsdxml_FreeBSD} \
 			/lib/${Libelf_FreeBSD} \
+			/lib/${Libgeom_FreeBSD} \
 			/lib/${Libsbuf_FreeBSD} \
 			/lib/${Libthr_FreeBSD} \
 			/lib/${Libdevstat_FreeBSD} \
@@ -7394,8 +9713,12 @@ posix_headers=		aio.h \
 headers_SunOS_dirs=	#end
 headers_SunOS=		#end
 
+headers_Darwin_dirs=	#end
+headers_Darwin=		#end
+
 headers_FreeBSD_dirs=	arpa \
 			dev \
+			geom \
 			net \
 			net80211 \
 			netipsec \
@@ -7464,6 +9787,7 @@ headers_FreeBSD=	${headers_DragonFly:Nnet/*:Nutil.h} \
 			libusb20.h \
 			libusb20_desc.h \
 			kenv.h \
+			libgeom.h \
 			libprocstat.h \
 			# end
 
@@ -7604,6 +9928,7 @@ headers_Linux=		_G_config.h \
 
 pcfiles_Linux=		# end
 pcfiles_SunOS=		# end
+pcfiles_Darwin=		# end
 pcfiles_FreeBSD=	libusb-0.1.pc \
 			libusb-2.0.pc \
 			libusb-1.0.pc \
@@ -7674,6 +9999,8 @@ install:
 	mv ${DESTDIR}${BASE}/bin/sh ${DESTDIR}${BASE}/usr/xpg4/bin/
 	mv ${DESTDIR}${BASE}/usr/bin/bash ${DESTDIR}${BASE}/bin/bash
 	ln ${DESTDIR}${BASE}/bin/bash ${DESTDIR}${BASE}/bin/sh
+.elif "${OPSYS}" == "Darwin"
+	cp ${CPA} ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
 .else
 .  for item in ${Bin_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/bin/
@@ -7709,10 +10036,11 @@ install:
 .if ${OPSYS} == FreeBSD
 	(cd ${DESTDIR}${BASE}/usr/lib && \
 		ln -s ${Libthr_FreeBSD} libthr.so && \
+		ln -s ${Libbsdxml_FreeBSD} libbsdxml.so && \
 		ln -s ${Libdevstat_FreeBSD} libdevstat.so && \
 		ln -s ${Libprocstat_FreeBSD} libprocstat.so && \
+		ln -s ${Libgeom_FreeBSD} libgeom.so && \
 		ln -s libthr.so libpthread.so)
-	
 .endif
 .if ${OPSYS} == Linux
 .  for item in ${Linux_static_libs}
@@ -7775,7 +10103,7 @@ install:
 	# from bash package
 	cp ${CPA} ${LOCALBASE}/bin/bash ${DESTDIR}${BASE}/bin/
 .endif
-.if ${OPSYS} == Linux || ${OPSYS} == SunOS
+.if ${OPSYS} == Linux || ${OPSYS} == SunOS || ${OPSYS} == Darwin
 	# use coreutils that FreeBSD and DragonFly passed on (/bin)
 .  for item in [ chmod cp date echo expr kill link ln ls mkdir mv pwd \
 	realpath rm rmdir sleep test unlink
@@ -7845,6 +10173,9 @@ install:
 		> ${DESTDIR}${BASE}/usr/bin/fgrep
 	chmod 755 ${DESTDIR}${BASE}/usr/bin/egrep \
 		${DESTDIR}${BASE}/usr/bin/fgrep
+.if ${OPSYS} == Darwin
+	rm ${DESTDIR}${BASE}/usr/bin/objdump-sysroot
+.endif
 .if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
 .  for LC in COLLATE CTYPE MESSAGES MONETARY NUMERIC TIME
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/share/locale/en_US.UTF-8/LC_${LC} \
