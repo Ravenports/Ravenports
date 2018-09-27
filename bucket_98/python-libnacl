@@ -29,7 +29,10 @@ BUILDRUN_DEPENDS=	libsodium:single:standard
 DISTNAME=		libnacl-1.6.1
 
 LICENSE=		APACHE20:single
-LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		APACHE20:{{WRKDIR}}/LICENSE
+LICENSE_AWK=		APACHE20:"Thomas S Hatch"
+LICENSE_SOURCE=		APACHE20:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
 [PY36].USES_ON=				python:py36
@@ -37,6 +40,9 @@ LICENSE_SCHEME=		solo
 [PY37].USES_ON=				python:py37
 
 [PY27].USES_ON=				python:py27
+
+post-extract:
+	${AWK} '/Thomas S Hatch/,0' ${WRKSRC}/LICENSE > ${WRKDIR}/TERMS
 
 [FILE:46:descriptions/desc.single]
 Python bindings for libsodium based on ctypes

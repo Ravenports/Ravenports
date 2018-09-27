@@ -2,7 +2,7 @@
 
 NAMEBASE=		pkg-bsd
 VERSION=		1.10.99.10
-REVISION=		2
+REVISION=		3
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	BSD binary package manager
@@ -10,7 +10,7 @@ HOMEPAGE=		https://github.com/freebsd/pkg/blob/master/README.md
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main sqlite
-SITES[main]=		GITHUB/jrmarino:pkg:18fb4d7
+SITES[main]=		GITHUB/jrmarino:pkg:0bb20aa
 SITES[sqlite]=		https://www.sqlite.org/2018/
 			http://www2.sqlite.org/2018/
 DISTFILE[1]=		generated:main
@@ -79,13 +79,6 @@ post-extract:
 	${CHMOD} ${BINMODE} ${WRKSRC}/configure \
 		${WRKSRC}/autosetup/autosetup-find-tclsh
 
-post-patch-sunos:
-	${REINPLACE_CMD} -e 's|-lutil ||' \
-		${WRKSRC}/libpkg/Makefile.in \
-		${WRKSRC}/tests/Makefile.in
-	${REINPLACE_CMD} -e '/enable-new-dtags/d' \
-		${WRKSRC}/src/Makefile.in
-
 [FILE:297:descriptions/desc.shared]
 The pkg program is the package management tool used natively on FreeBSD and
 DragonFly, and has also been successfully demonstrated on NetBSD, OpenBSD,
@@ -109,7 +102,7 @@ with the same arguments and falls back to pkg-static when not found.
 
 
 [FILE:215:distinfo]
-c58efdbc37d345212630ae8819a73b5d0f5361b68338d1852972c228c6e22583      3556567 jrmarino-pkg-18fb4d7.tar.gz
+537215292fcbaf000f236c40d8aacabffb695e9cbc2880e264d6ff30951d4708      3556460 jrmarino-pkg-0bb20aa.tar.gz
 92842b283e5e744eff5da29ed3c69391de7368fccc4d0ee6bf62490ce555ef25      2675362 sqlite-autoconf-3230100.tar.gz
 
 
@@ -225,37 +218,40 @@ main(int argc, char **argv)
 }
 
 
-[FILE:1251:sunos/patch-src_Makefile.in]
---- src/Makefile.in.orig	2017-11-29 15:11:29.492036841 +0000
-+++ src/Makefile.in	2017-11-29 15:14:04.599048348 +0000
-@@ -602,7 +602,7 @@
- 			which.c
+[FILE:1113:sunos/patch-src_Makefile.autosetup]
+--- src/Makefile.autosetup.orig	2018-09-26 15:14:01 UTC
++++ src/Makefile.autosetup
+@@ -51,7 +51,7 @@ LIBS+=	@PKG_LIBARCHIVE_LDFLAGS@ @PKG_LIB
+ @else
+ LIBS+=	-larchive -lbz2 -lz -llzma -lzstd
+ @endif
+-OTHER_LIBS=	-lm -lssl -lcrypto -pthread
++OTHER_LIBS=	-lssl -lcrypto
+ @if HAVE_LIBUTIL
+ OTHER_LIBS+=	-lutil
+ @endif
+@@ -61,18 +61,16 @@ OTHER_LIBS+=	-ldl
+ @if HAVE_LIBRESOLV
+ OTHER_LIBS+=	-lresolv
+ @endif
++OTHER_LIBS+=	-lbsd -lfts
++DYNALIBS=	-lm -pthread -lsocket -lrt -lresolv -lgen
  
- pkg_LDADD = @OS_LDFLAGS@ $(top_builddir)/libpkg/libpkg.la \
--	$(top_builddir)/compat/libbsd_compat.la @LIBJAIL_LIB@ -lutil \
-+	$(top_builddir)/compat/libbsd_compat.la @LIBJAIL_LIB@ @OS_LIBS@ \
- 	-lcrypto $(am__append_5)
- pkg_CFLAGS = @OS_CFLAGS@ \
- 			-I$(top_srcdir)/libpkg \
-@@ -710,9 +710,18 @@
- 	@rm -f pkg$(EXEEXT)
- 	$(AM_V_CCLD)$(pkg_LINK) $(pkg_OBJECTS) $(pkg_LDADD) $(LIBS)
+ @if libabidir == libmachista
+ LOCAL_LDFLAGS=	$(LIBPKGFLAT:S/_flat//) $(LIBS) $(OTHER_LIBS) -lresolv
+ STATIC_LDFLAGS=	$(LIBPKGFLAT) $(LIBS) $(OTHER_LIBS) -lresolv
+ @else
+-LOCAL_LDFLAGS=	-Wl,-Bstatic \
+-		-Wl,--whole-archive $(LIBPKGFLAT) -Wl,--no-whole-archive \
+-		$(LIBS) \
+-		-Wl,-Bdynamic $(OTHER_LIBS) \
+-		-Wl,--export-dynamic \
+-		-Wl,--version-script,$(top_builddir)/libpkg/libpkg.ver
+-STATIC_LDFLAGS=	-static $(LIBPKGFLAT) $(LIBS) $(OTHER_LIBS)
++LOCAL_LDFLAGS=	$(LIBPKGFLAT) $(LIBS) $(OTHER_LIBS) $(DYNALIBS)
++STATIC_LDFLAGS=	-Wl,-Bstatic $(LIBPKGFLAT) $(LIBS) $(OTHER_LIBS) \
++		-Wl,-Bdynamic $(DYNALIBS) 
+ @endif
  
--pkg-static$(EXEEXT): $(pkg_static_OBJECTS) $(pkg_static_DEPENDENCIES) $(EXTRA_pkg_static_DEPENDENCIES) 
-+pkg-static: $(pkg_OBJECTS) $(pkg_DEPENDENCIES) $(EXTRA_pkg_DEPENDENCIES) 
- 	@rm -f pkg-static$(EXEEXT)
--	$(AM_V_CCLD)$(pkg_static_LINK) $(pkg_static_OBJECTS) $(pkg_static_LDADD) $(LIBS)
-+	$(CCLD) $(pkg_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o ${.TARGET} \
-+	$(pkg_OBJECTS) -pthread \
-+	../libpkg/.libs/libpkg_static.a \
-+	../external/.libs/libelf_static.a \
-+	../compat/.libs/libbsd_compat.a \
-+	-Wl,-Bstatic \
-+	-lfts -lssl -lcrypto -lbsd -larchive-devel -lz -lbz2 -llzma -lzstd \
-+	-Wl,-Bdynamic \
-+	-lm -lrt -lresolv -lsocket -lgen \
-+	-Wl,-R${prefix}/lib
  
- mostlyclean-compile:
- 	-rm -f *.$(OBJEXT)
 

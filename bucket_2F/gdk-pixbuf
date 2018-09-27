@@ -63,6 +63,8 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		GTK_VERSION=2.10.0
 			SOVER=3800.0
 
+VAR_OPSYS[sunos]=	CFLAGS=-D_XPG6
+
 post-patch:
 	${REINPLACE_CMD} -e 's|/docbook.sourceforge.net/|/cdn.docbook.org/|' \
 		${WRKSRC}/docs/meson.build
@@ -245,4 +247,35 @@ share/man/man1/
 share/thumbnailers/gdk-pixbuf-thumbnailer.thumbnailer
 @postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
 @postunexec rm %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>&1 >/dev/null || true
+
+
+[FILE:266:patches/patch-gdk-pixbuf_io-jasper.c]
+--- gdk-pixbuf/io-jasper.c.orig	2018-09-03 14:41:50 UTC
++++ gdk-pixbuf/io-jasper.c
+@@ -22,6 +22,10 @@
+ #include <string.h>
+ #include <errno.h>
+ 
++#ifdef __sun__
++#undef _XPG6
++#define __EXTENSIONS__
++#endif
+ #include <jasper/jasper.h>
+ 
+ #include <glib/gi18n-lib.h>
+
+
+[FILE:272:patches/patch-tests_pixbuf-randomly-modified.c]
+--- tests/pixbuf-randomly-modified.c.orig	2018-09-03 14:41:50 UTC
++++ tests/pixbuf-randomly-modified.c
+@@ -18,6 +18,9 @@
+  */
+ 
+ #include "config.h"
++#ifdef __sun__
++#define __EXTENSIONS__
++#endif
+ #include "gdk-pixbuf/gdk-pixbuf.h"
+ #include "glib.h"
+ #include <stdio.h>
 
