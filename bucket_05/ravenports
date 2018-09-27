@@ -3,11 +3,12 @@
 NAMEBASE=		ravenports
 VERSION=		20180730
 KEYWORDS=		raven
-VARIANTS=		dragonfly freebsd_amd64 linux sunos
+VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Install turnkey Ravenports on Solaris 10u8
 SDESC[freebsd_amd64]=	Install turnkey Ravenports on FreeBSD/amd64
 SDESC[linux]=		Install turnkey Ravenports on Linux
 SDESC[dragonfly]=	Install turnkey Ravenports on DragonFly
+SDESC[macos]=		Install turnkey Ravenports on Darwin/MacOS
 HOMEPAGE=		https://github.com/jrmarino/Ravenports
 CONTACT=		John_Marino[draco@marino.st]
 
@@ -16,13 +17,20 @@ SPKGS[sunos]=		single
 SPKGS[freebsd_amd64]=	single
 SPKGS[linux]=		single
 SPKGS[dragonfly]=	single
+SPKGS[macos]=		single
 
-OPTIONS_AVAILABLE=	DRAGONFLY FREEBSDAMD64 LINUX SUNOS
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSDAMD64 LINUX SUNOS MACOS
 OPTIONS_STANDARD=	none
 VOPTS[sunos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=ON
+			MACOS=OFF
 VOPTS[freebsd_amd64]=	DRAGONFLY=OFF FREEBSDAMD64=ON LINUX=OFF SUNOS=OFF
+			MACOS=OFF
 VOPTS[linux]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=ON SUNOS=OFF
+			MACOS=OFF
 VOPTS[dragonfly]=	DRAGONFLY=ON FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
+			MACOS=OFF
+VOPTS[macos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
+			MACOS=ON
 
 RUN_DEPENDS=		pkg-bsd:static:standard
 			pkg-bsd:shared:standard
@@ -33,6 +41,9 @@ RUN_DEPENDS=		pkg-bsd:static:standard
 SKIP_BUILD=		yes
 
 SKIP_INSTALL=		yes
+
+[MACOS].DESCRIPTION=			MacOS support (High Sierra and later)
+[MACOS].RUN_DEPENDS_ON=			ravensys-root:single:macos
 
 [DRAGONFLY].DESCRIPTION=		DragonFly support
 [DRAGONFLY].RUN_DEPENDS_ON=		ravensys-root:single:dragonfly
