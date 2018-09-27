@@ -23,7 +23,7 @@ do-extract:
 	${SED} -e 's|@OPSYS@|${OPSYS}|g' \
 		-e 's|@ARCH@|${SET_ARCH}|g' \
 		-e 's|@PLATFORM@|${SET_PLATFORM}|g' \
-		-e 's|@RELEASE@|${OSREL}-RAVEN|g' \
+		-e 's|@RELEASE@|${SET_RELEASE}-RAVEN|g' \
 		-e 's|@USERVER@|${OSVERSION}|g' \
 		${FILESDIR}/uname.c.in > ${WRKSRC}/uname.c
 
@@ -78,31 +78,38 @@ bin/ravensys-uname
  */
 
 
-[FILE:513:files/special.mk]
+[FILE:668:files/special.mk]
 # add ARCH_STANDARD conditions as multiple arches per OPSYS
 # become supported
 
 .if ${OPSYS:MFreeBSD}
 SET_ARCH=	amd64
 SET_PLATFORM=	amd64
+SET_RELEASE=	${OSREL}
 .elif ${OPSYS:MDragonFly}
 SET_ARCH=	x86_64
 SET_PLATFORM=	x86_64
+SET_RELEASE=	${OSREL}
 .elif ${OPSYS:MNetBSD}
 SET_ARCH=	amd64
 SET_PLATFORM=	amd64
+SET_RELEASE=	${OSREL}
 .elif ${OPSYS:MOpenBSD}
 SET_ARCH=	amd64
 SET_PLATFORM=	amd64
-.elif ${OPSYS:MMacOS}
+SET_RELEASE=	${OSREL}
+.elif ${OPSYS:MDarwin}
 SET_ARCH=	i386
 SET_PLATFORM=	x86_64
+SET_RELEASE=	${MAJOR}
 .elif ${OPSYS:MSunOS}
 SET_ARCH=	x86_64	#check
 SET_PLATFORM=	x86_64
+SET_RELEASE=	${OSREL}
 .elif ${OPSYS:MLinux}
 SET_ARCH=	x86_64
 SET_PLATFORM=	x86_64
+SET_RELEASE=	${OSREL}
 .endif
 
 
