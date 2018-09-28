@@ -57,8 +57,8 @@ shebangonefile() {
 	/bin/csh) ;;	# not in ravensys-root
 	/bin/tcsh) ;;	# not in ravensys-root
 	/bin/dash | /bin/bash)
-		# Only valid for linux
-		if [ "${OPSYS}" != "Linux" -a "${OPSYS}" != "SunOS" ]; then
+		# Only valid for linux, Solaris and MacOS
+		if [ "${OPSYS}" != "Linux" -a "${OPSYS}" != "SunOS" -a "${OPSYS}" != "Darwin" ]; then
 			badinterp="${interp}"
 		fi
 		;;
@@ -89,6 +89,9 @@ shebang() {
 	local f l link rc
 
 	rc=0
+	if [ "${NAMEBASE}" = "ravensys-root" -a "${VARIANT}" = "macos" ]; then
+		return ${rc}
+	fi
 
 	while read f; do
 		# No results presents a blank line from heredoc.
