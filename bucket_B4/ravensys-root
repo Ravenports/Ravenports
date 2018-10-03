@@ -128,7 +128,7 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBCRYPT={{Libcrypt_{{OPSYS}}}}
 			SONAME_LIBKVM={{Libkvm_{{OPSYS}}}}
 			SONAME_LIBRT={{Librt_{{OPSYS}}}}
-			BASE=share/raven/sysroot/{{OPSYS}}
+			BASE={{SYSPATH}}
 
 [MACOS].DESCRIPTION=			Ravenports system root for MacOS/Darwin
 [MACOS].DF_INDEX_ON=			20
@@ -331,7 +331,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 locales_2.23-0ubuntu10_all.deb
 ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 libattr1-dev_2.4.47-2_amd64.deb
 6b34040173acef1b806b128bc258b130519b2a7eb167ff1c3f3cb98fa1ddc648         9756 libattr1_2.4.47-2_amd64.deb
-782704fb7c4518a87809a06e856d7a95c34e79d4cd4840091464274a740fa38c   1575603943 mac_root_10.13.6.v01.tar.zst
+68acde93d0108c701c93d6f24eff3e5018cec22511d3a45d1a4c9fa995caddf3   1575650660 mac_root_10.13.6.v01.tar.zst
 
 
 [FILE:13587:manifests/plist.single.dragonfly]
@@ -7135,7 +7135,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20187:manifests/plist.single.macos]
+[FILE:20211:manifests/plist.single.macos]
 @comment auto-generate System/Library (~4Gb)
 %%BASE%%/bin/
  [
@@ -8435,6 +8435,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libneon.dylib
  libserf-1.0.dylib
  libserf-1.dylib
+ libswiftDemangle.dylib
  libtapi.dylib
 %%BASE%%/usr/share/CommandLineTools/usr/lib/arc/libarclite_macosx.a
 %%BASE%%/usr/share/CommandLineTools/usr/lib/tapi/10.0.0/include/
@@ -8557,7 +8558,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:21548:files/Makefile]
+[FILE:21702:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9301,10 +9302,15 @@ install:
 .  endfor
 	# use coreutils that FreeBSD and DragonFly passed on (/usr/bin)
 .  for item in basename chgrp chown comm cut dirname env false head id \
-	join mkfifo mktemp printenv printf readlink stat tail tee touch \
+	join mkfifo mktemp printenv printf readlink tail tee touch \
 	tee tr true tsort uniq whoami
 	cp ${CPA} ${LOCALBASE}/bin/g${item} ${DESTDIR}${BASE}/usr/bin/${item}
 .  endfor
+.  if ${OPSYS} == Linux || ${OPSYS} == SunOS
+.    for item in stat
+	cp ${CPA} ${LOCALBASE}/bin/g${item} ${DESTDIR}${BASE}/usr/bin/${item}
+.    endfor
+.  endif
 .endif
 
 	# for convenience from listing hundreds of files, copy all from specific directories
