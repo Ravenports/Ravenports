@@ -4,7 +4,7 @@
 
 AR?=		ar
 AS?=		as
-.if ${.MAKE.OS.NAME:MDarwin}
+.if "${.MAKE.OS.NAME}" == "Darwin"
 CC?=		gcc
 CXX?=		g++
 .else

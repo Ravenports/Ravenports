@@ -170,8 +170,12 @@ post-install-MACOS-ON:
 	${ECHO} 170700    > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
 	${ECHO} x86_64    > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 	${CHMOD} 600 ${STAGEDIR}${RSYS}/usr/share/master.passwd
-	${FOS}/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
+	${STAGEDIR}${RSYS}/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
 		${STAGEDIR}${RSYS}/usr/share/master.passwd
+	# autogenerate System/Library part of manifest
+	(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} ${SYSPATH}/System \( -type f -or -type l \) | ${SORT} \
+		>> ${WRKDIR}/.manifest.single.mktmp)
 
 post-extract-LINUX-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
@@ -216,12 +220,6 @@ post-install-FREEBSDAMD64-ON:
 	${ECHO} 11 > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
 	${ECHO} 1101001   > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
 	echo "x86_64"                > ${STAGEDIR}${RSYS}/usr/share/STDARCH
-
-post-stage-MACOS-ON:
-	# autogenerate System/Library part of manifest
-	(cd ${STAGEDIR}${RSYS} && \
-		${FIND} System \( -type f -or -type l \) | ${SORT} \
-		>> ${WRKDIR}/.manifest.single.mktmp)
 
 post-install-SUNOS-ON:
 	${ECHO} 5.10      > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
@@ -333,7 +331,7 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 locales_2.23-0ubuntu10_all.deb
 ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 libattr1-dev_2.4.47-2_amd64.deb
 6b34040173acef1b806b128bc258b130519b2a7eb167ff1c3f3cb98fa1ddc648         9756 libattr1_2.4.47-2_amd64.deb
-990ba9159add75151b710a17ebcc4c6b6ac64507ebba98eb99be5f409da71b9a   1574817629 mac_root_10.13.6.v01.tar.zst
+782704fb7c4518a87809a06e856d7a95c34e79d4cd4840091464274a740fa38c   1575603943 mac_root_10.13.6.v01.tar.zst
 
 
 [FILE:13587:manifests/plist.single.dragonfly]
@@ -7137,7 +7135,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:19902:manifests/plist.single.macos]
+[FILE:20187:manifests/plist.single.macos]
 @comment auto-generate System/Library (~4Gb)
 %%BASE%%/bin/
  [
@@ -8246,10 +8244,14 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libXSEvent.dylib
  libXplugin.1.dylib
  libXplugin.dylib
+ libapple_crypto.dylib
+ libapple_nghttp2.dylib
+ libarchive.2.dylib
  libate.dylib
  libauditd.0.dylib
  libauditd.dylib
  libauto.dylib
+ libboringssl.dylib
  libbsm.0.dylib
  libbsm.dylib
  libbz2.1.0.dylib
@@ -8262,6 +8264,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libcoretls.dylib
  libcoretls_cfhelpers.dylib
  libcsfde.dylib
+ libcups.2.dylib
  libdbm.dylib
  libdl.dylib
  libdns_services.dylib
@@ -8271,12 +8274,18 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libextension.dylib
  libgermantok.dylib
  libgmalloc.dylib
+ libheimdal-asn1.dylib
+ libiconv.2.dylib
+ libicucore.A.dylib
  libinfo.dylib
  libipconfig.dylib
  libipsec.A.dylib
  libipsec.dylib
  liblangid.dylib
+ liblzma.5.dylib
  libm.dylib
+ libmarisa.dylib
+ libmecabra.dylib
  libmx.A.dylib
  libmx.dylib
  libncurses.5.4.dylib
@@ -8287,6 +8296,8 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libobjc.A.dylib
  libodfde.dylib
  libodmodule.dylib
+ libpam.2.dylib
+ libpcap.A.dylib
  libpmenergy.dylib
  libpmsample.dylib
  libpoll.dylib
@@ -8299,6 +8310,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libsandbox.1.dylib
  libsandbox.dylib
  libspindump.dylib
+ libsqlite3.dylib
  libsysdiagnose.dylib
  libsysmon.dylib
  libsystemstats.dylib
@@ -8311,6 +8323,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libxar.dylib
  libxcselect.dylib
  libxml2.2.dylib
+ libxslt.1.dylib
  libz.1.dylib
 %%BASE%%/usr/lib/closure/libclosured.dylib
 %%BASE%%/usr/lib/log/
@@ -8544,7 +8557,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:21478:files/Makefile]
+[FILE:21548:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9115,6 +9128,10 @@ sysroot:
 	@echo "building not required"
 
 install:
+.if "${OPSYS}" == "Darwin"
+	${MKDIR} ${DESTDIR}/${BASE}
+	mv ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
+.endif
 	${MKDIR} \
 		${DESTDIR}${BASE}/bin \
 		${DESTDIR}${BASE}/usr/bin \
@@ -9173,7 +9190,7 @@ install:
 	mv ${DESTDIR}${BASE}/usr/bin/bash ${DESTDIR}${BASE}/bin/bash
 	ln ${DESTDIR}${BASE}/bin/bash ${DESTDIR}${BASE}/bin/sh
 .elif "${OPSYS}" == "Darwin"
-	cp ${CPA} ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
+	# do nothing
 .else
 .  for item in ${Bin_${OPSYS}}
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/bin/
@@ -9476,7 +9493,7 @@ saned:x:120:128::/var/lib/saned:/bin/false
 usbmux:x:121:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
 
 
-[FILE:559:files/special.mk]
+[FILE:580:files/special.mk]
 Libc_DragonFly=		libc.so.8
 Libc_FreeBSD=		libc.so.7
 
@@ -9501,6 +9518,7 @@ Libkvm_FreeBSD=		libkvm.so.7
 Librt_DragonFly=	librt.so.0
 Librt_FreeBSD=		librt.so.1
 
-RSYS=			${PREFIX}/share/raven/sysroot/${OPSYS}
+SYSPATH=		share/raven/sysroot/${OPSYS}
+RSYS=			${PREFIX}/${SYSPATH}
 FOS=			${WRKDIR}/${OPSYS:tl}
 
