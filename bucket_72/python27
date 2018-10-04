@@ -29,7 +29,7 @@ BUILDRUN_DEPENDS=	libffi:single:standard
 			xz:single:standard
 
 USES=			bdb cpe ncurses pkgconfig readline ssl shebangfix
-			gettext-runtime zlib
+			gettext-runtime zlib gmake
 
 DISTNAME=		Python-2.7.15
 
@@ -103,6 +103,9 @@ VAR_OPSYS[sunos]=	PLIST_SUB=PLAT=sunos5
 			PLIST_SUB=SHLIB=so.1.0
 VAR_OPSYS[linux]=	PLIST_SUB=PLAT={{OPSYS:tl}}2
 			PLIST_SUB=SHLIB=so.1.0
+VAR_OPSYS[darwin]=	PLIST_SUB=PLAT=darwin
+			PLIST_SUB=SHLIB=1.0.dylib
+			CONFIGURE_ARGS=--enable-framework=no
 VAR_OPSYS[dragonfly]=	PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
 			PLIST_SUB=SHLIB=so.1
 VAR_ARCH[aarch64]=	PLIST_SUB=I386-ON="@comment "
@@ -127,6 +130,7 @@ post-patch:
 		-e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
 		${WRKSRC}/setup.py
 	${REINPLACE_CMD} -e 's|$$$$quiet|--verbose|' ${WRKSRC}/Makefile.pre.in
+	${REINPLACE_CMD} -e 's| make| gmake|g' ${WRKSRC}/Mac/Makefile.in
 
 post-install:
 	for i in ${STAGEDIR}${PREFIX}/lib/python2.7/lib-dynload/*.so; do \
@@ -152,10 +156,13 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 22d9b1ac5b26135ad2b8c2901a9413537e08749a753356ee913c84dbd2df5574     12642436 Python-2.7.15.tar.xz
 
 
-[FILE:75378:manifests/plist.single]
+[FILE:76404:manifests/plist.single]
+%%EXCLUDE-DARWIN%%lib/libpython2.7.%%SHLIB%%
 %%I386-ON%%lib/python2.7/lib-dynload/
- dl.so
- imageop.so
+ dl.%%SHARED_OBJECT%%
+ imageop.%%SHARED_OBJECT%%
+%%ONLY-DARWIN%%lib/libpython.%%SHLIB%%
+%%ONLY-DARWIN%%lib/python2.7/lib-dynload/_scproxy.%%SHARED_OBJECT%%
 %%ONLY-DRAGONFLY%%lib/python2.7/lib-dynload/ossaudiodev.so
 %%ONLY-FREEBSD%%lib/python2.7/lib-dynload/ossaudiodev.so
 %%ONLY-LINUX%%lib/python2.7/lib-dynload/
@@ -290,9 +297,7 @@ include/python2.7/
  unicodeobject.h
  warnings.h
  weakrefobject.h
-lib/
- libpython2.7.%%SHLIB%%
- libpython2.7.so
+lib/libpython2.7.so
 lib/pkgconfig/python-2.7.pc
 lib/python2.7/
  BaseHTTPServer.py
@@ -2450,64 +2455,64 @@ lib/python2.7/json/tests/
  test_unicode.pyo
 lib/python2.7/lib-dynload/
  Python-%%XYZDOT%%-py2.7.egg-info
- _bisect.so
- _codecs_cn.so
- _codecs_hk.so
- _codecs_iso2022.so
- _codecs_jp.so
- _codecs_kr.so
- _codecs_tw.so
- _collections.so
- _csv.so
- _ctypes.so
- _ctypes_test.so
- _curses.so
- _curses_panel.so
- _elementtree.so
- _functools.so
- _hashlib.so
- _heapq.so
- _hotshot.so
- _io.so
- _json.so
- _locale.so
- _lsprof.so
- _multibytecodec.so
- _multiprocessing.so
- _random.so
- _socket.so
- _ssl.so
- _struct.so
- _testcapi.so
- array.so
- audioop.so
- binascii.so
- bz2.so
- cPickle.so
- cStringIO.so
- cmath.so
- crypt.so
- datetime.so
- dbm.so
- fcntl.so
- future_builtins.so
- grp.so
- itertools.so
- math.so
- mmap.so
- nis.so
- operator.so
- parser.so
- pyexpat.so
- readline.so
- resource.so
- select.so
- strop.so
- syslog.so
- termios.so
- time.so
- unicodedata.so
- zlib.so
+ _bisect.%%SHARED_OBJECT%%
+ _codecs_cn.%%SHARED_OBJECT%%
+ _codecs_hk.%%SHARED_OBJECT%%
+ _codecs_iso2022.%%SHARED_OBJECT%%
+ _codecs_jp.%%SHARED_OBJECT%%
+ _codecs_kr.%%SHARED_OBJECT%%
+ _codecs_tw.%%SHARED_OBJECT%%
+ _collections.%%SHARED_OBJECT%%
+ _csv.%%SHARED_OBJECT%%
+ _ctypes.%%SHARED_OBJECT%%
+ _ctypes_test.%%SHARED_OBJECT%%
+ _curses.%%SHARED_OBJECT%%
+ _curses_panel.%%SHARED_OBJECT%%
+ _elementtree.%%SHARED_OBJECT%%
+ _functools.%%SHARED_OBJECT%%
+ _hashlib.%%SHARED_OBJECT%%
+ _heapq.%%SHARED_OBJECT%%
+ _hotshot.%%SHARED_OBJECT%%
+ _io.%%SHARED_OBJECT%%
+ _json.%%SHARED_OBJECT%%
+ _locale.%%SHARED_OBJECT%%
+ _lsprof.%%SHARED_OBJECT%%
+ _multibytecodec.%%SHARED_OBJECT%%
+ _multiprocessing.%%SHARED_OBJECT%%
+ _random.%%SHARED_OBJECT%%
+ _socket.%%SHARED_OBJECT%%
+ _ssl.%%SHARED_OBJECT%%
+ _struct.%%SHARED_OBJECT%%
+ _testcapi.%%SHARED_OBJECT%%
+ array.%%SHARED_OBJECT%%
+ audioop.%%SHARED_OBJECT%%
+ binascii.%%SHARED_OBJECT%%
+ bz2.%%SHARED_OBJECT%%
+ cPickle.%%SHARED_OBJECT%%
+ cStringIO.%%SHARED_OBJECT%%
+ cmath.%%SHARED_OBJECT%%
+ crypt.%%SHARED_OBJECT%%
+ datetime.%%SHARED_OBJECT%%
+ dbm.%%SHARED_OBJECT%%
+ fcntl.%%SHARED_OBJECT%%
+ future_builtins.%%SHARED_OBJECT%%
+ grp.%%SHARED_OBJECT%%
+ itertools.%%SHARED_OBJECT%%
+ math.%%SHARED_OBJECT%%
+ mmap.%%SHARED_OBJECT%%
+ nis.%%SHARED_OBJECT%%
+ operator.%%SHARED_OBJECT%%
+ parser.%%SHARED_OBJECT%%
+ pyexpat.%%SHARED_OBJECT%%
+ readline.%%SHARED_OBJECT%%
+ resource.%%SHARED_OBJECT%%
+ select.%%SHARED_OBJECT%%
+ strop.%%SHARED_OBJECT%%
+ syslog.%%SHARED_OBJECT%%
+ termios.%%SHARED_OBJECT%%
+ time.%%SHARED_OBJECT%%
+ unicodedata.%%SHARED_OBJECT%%
+ zlib.%%SHARED_OBJECT%%
 lib/python2.7/lib-tk/
  Canvas.py
  Canvas.pyc
@@ -5131,14 +5136,10 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
        return NULL;
 
 
-[FILE:2320:patches/patch-pr192365]
-# Description: do not define __BSD_VISIBLE/_XOPEN_SOURCE/_POSIX_C_SOURCE
-# in include/python2.7/pyconfig.h
-# Submitted by: antoine
-
---- configure.orig	2014-09-06 14:42:50 UTC
+[FILE:1826:patches/patch-configure]
+--- configure.orig	2018-04-29 22:47:33 UTC
 +++ configure
-@@ -2919,13 +2919,6 @@
+@@ -3007,13 +3007,6 @@ $as_echo "#define _NETBSD_SOURCE 1" >>co
  
  
  # The later defininition of _XOPEN_SOURCE and _POSIX_C_SOURCE disables
@@ -5152,7 +5153,7 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
  # u_int on Irix 5.3. Defining _BSD_TYPES brings it back.
  
  $as_echo "#define _BSD_TYPES 1" >>confdefs.h
-@@ -3293,9 +3286,8 @@
+@@ -3394,9 +3387,8 @@ $as_echo "#define _BSD_SOURCE 1" >>confd
    # but used in struct sockaddr.sa_family. Reported by Tim Rice.
    SCO_SV/3.2)
      define_xopen_source=no;;
@@ -5164,32 +5165,23 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
      define_xopen_source=no;;
    # On MacOS X 10.2, a bug in ncurses.h means that it craps out if
    # _XOPEN_EXTENDED_SOURCE is defined. Apparently, this is fixed in 10.3, which
---- configure.ac.orig	2014-09-06 14:42:50 UTC
-+++ configure.ac
-@@ -88,11 +88,6 @@
- AC_DEFINE(_NETBSD_SOURCE, 1, [Define on NetBSD to activate all library features])
- 
- # The later defininition of _XOPEN_SOURCE and _POSIX_C_SOURCE disables
--# certain features on FreeBSD, so we need __BSD_VISIBLE to re-enable
--# them.
--AC_DEFINE(__BSD_VISIBLE, 1, [Define on FreeBSD to activate all library features])
--
--# The later defininition of _XOPEN_SOURCE and _POSIX_C_SOURCE disables
- # u_int on Irix 5.3. Defining _BSD_TYPES brings it back.
- AC_DEFINE(_BSD_TYPES, 1, [Define on Irix to enable u_int])
- 
-@@ -426,9 +421,8 @@
-   # but used in struct sockaddr.sa_family. Reported by Tim Rice.
-   SCO_SV/3.2)
+@@ -3407,7 +3399,7 @@ $as_echo "#define _BSD_SOURCE 1" >>confd
+   # has no effect, don't bother defining them
+   Darwin/[6789].*)
      define_xopen_source=no;;
--  # On FreeBSD 4, the math functions C89 does not cover are never defined
--  # with _XOPEN_SOURCE and __BSD_VISIBLE does not re-enable them.
--  FreeBSD/4.*)
-+  # On FreeBSD,  defining _XOPEN_SOURCE to 600 requests a strict environment.
-+  FreeBSD/*)
+-  Darwin/1[0-9].*)
++  Darwin/1[0-9].*|Darwin/1[0-9]-*)
      define_xopen_source=no;;
-   # On MacOS X 10.2, a bug in ncurses.h means that it craps out if 
-   # _XOPEN_EXTENDED_SOURCE is defined. Apparently, this is fixed in 10.3, which
+   # On AIX 4 and 5.1, mbstate_t is defined only when _XOPEN_SOURCE == 500 but
+   # used in wcsnrtombs() and mbsnrtowcs() even if _XOPEN_SOURCE is not defined
+@@ -5517,6 +5509,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+     Darwin*)
+     	LDLIBRARY='libpython$(VERSION).dylib'
+ 	BLDLIBRARY='-L. -lpython$(VERSION)'
++	INSTSONAME='libpython$(LDVERSION)'.$SOVERSION.dylib
+ 	RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
+ 	;;
+     AIX*)
 
 
 [FILE:4287:patches/patch-setup.py]

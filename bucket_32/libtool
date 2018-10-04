@@ -17,7 +17,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe
+USES=			cpe macfix
 
 LICENSE=		GPLv2+:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -35,8 +35,8 @@ CONFIGURE_ARGS=		--disable-ltdl-install
 
 post-patch:
 	${RM} ${WRKSRC}/doc/*.info*
-	${TOUCH} ${WRKSRC}/doc/libtool.1
 	${REINPLACE_CMD} -e "/INFO_DEPS =/d" ${WRKSRC}/Makefile.in
+	${FIND} ${WRKSRC} -type f | ${XARGS} ${TOUCH}
 
 [FILE:262:descriptions/desc.single]
 This is GNU Libtool, a generic library support script.  Libtool hides
@@ -112,4 +112,18 @@ share/libtool/loaders/
 share/man/man1/
  libtool.1.gz
  libtoolize.1.gz
+
+
+[FILE:487:patches/patch-m4_libtool.m4]
+--- m4/libtool.m4.orig	2015-01-20 16:15:19 UTC
++++ m4/libtool.m4
+@@ -2636,7 +2636,7 @@ darwin* | rhapsody*)
+   version_type=darwin
+   need_lib_prefix=no
+   need_version=no
+-  library_names_spec='$libname$release$major$shared_ext $libname$shared_ext'
++  library_names_spec='$libname$release$versuffix$shared_ext $libname$release$major$shared_ext $libname$shared_ext'
+   soname_spec='$libname$release$major$shared_ext'
+   shlibpath_overrides_runpath=yes
+   shlibpath_var=DYLD_LIBRARY_PATH
 

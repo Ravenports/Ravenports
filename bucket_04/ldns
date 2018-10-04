@@ -22,7 +22,7 @@ OPTIONS_STANDARD=	none
 
 EXRUN[examples]=	ldns:primary:standard
 
-USES=			cpe gmake libtool ssl perl:build
+USES=			cpe gmake libtool ssl perl:build macfix
 
 LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
@@ -39,7 +39,6 @@ CONFIGURE_ARGS=		--with-ssl={{OPENSSLBASE}}
 			--enable-rrtype-rkey
 			--enable-rrtype-ta
 			--enable-rrtype-avc
-			--enable-examples
 			--disable-dane-ta-usage
 
 INSTALL_TARGET=		install-h install-lib install-drill install-config
@@ -54,7 +53,7 @@ post-install:
 	${INSTALL_MAN} ${WRKSRC}/doc/man/man3/ldns_*.3 \
 		${STAGEDIR}${MANPREFIX}/man/man3
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/drill
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libldns.so.2
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libldns.${LIBEXT}
 	${MV} ${STAGEDIR}${PREFIX}/bin/ldns-config \
 		${STAGEDIR}${PREFIX}/bin/xldns-config
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/ldns*
@@ -650,6 +649,20 @@ share/man/man1/
  ldns-zcat.1.gz
  ldns-zsplit.1.gz
  ldnsd.1.gz
+
+
+[FILE:346:patches/patch-configure]
+--- configure.orig	2016-12-20 10:48:27 UTC
++++ configure
+@@ -17775,7 +17775,7 @@ fi
+ 
+ 
+ # check OSX deployment target, if needed
+-if echo $build_os | grep darwin > /dev/null; then
++if echo $build_os | grep darwin-disable > /dev/null; then
+   sdk_p=`xcode-select -print-path`;
+   sdk_v="$( /usr/bin/xcrun --show-sdk-version )";
+   case $sdk_v in
 
 
 [FILE:323:patches/patch-drill_Makefile.in]
