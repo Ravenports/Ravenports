@@ -2,6 +2,7 @@
 
 NAMEBASE=		llvm
 VERSION=		7.0.0
+REVISION=		1
 KEYWORDS=		devel lang
 VARIANTS=		standard
 SDESC[standard]=	LLVM 7.0 and Clang
@@ -25,7 +26,7 @@ OPT_ON[freebsd]=	OPENMP//x86_64
 OPT_ON[x86_64]=		GOLD
 
 USES=			cmake:outsource ncurses perl:build python:build
-			execinfo shebangfix zlib c++:llvm compiler:clang
+			execinfo shebangfix zlib c++:llvm
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		llvm-7.0.0.src
@@ -36,7 +37,6 @@ LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/LICENSE.TXT
 LICENSE_SCHEME=		solo
 
 CMAKE_BUILD_TYPE=	Release
-CMAKE_INSTALL_PREFIX=	{{PREFIX}}/llvm
 FPC_EQUIVALENT=		devel/llvm50
 SHEBANG_FILES=		tools/clang/utils/hmaptool/hmaptool
 			tools/clang/tools/scan-view/bin/scan-view
@@ -70,6 +70,7 @@ post-patch:
 		-e 's|@RAVEN_GCC_TARGET@|${LOCALBASE}/toolchain/gcc8/lib/gcc/${CONFIGURE_TARGET}/8.2.0|' \
 		-e 's|@RAVEN_GXX_HEADERS_DIR@|${LOCALBASE}/toolchain/gcc8/include/c++/8.2.0|' \
 		${WRKSRC}/tools/clang/lib/Driver/ToolChains/DragonFly.cpp \
+		${WRKSRC}/tools/clang/lib/Driver/ToolChains/FreeBSD.cpp \
 		${WRKSRC}/tools/clang/lib/Driver/ToolChains/Linux.cpp \
 		${WRKSRC}/tools/clang/lib/Driver/ToolChains/Gnu.cpp \
 		${WRKSRC}/tools/clang/lib/Frontend/InitHeaderSearch.cpp
@@ -79,15 +80,15 @@ post-patch-OPENMP-OFF:
 
 post-install:
 	${RM} -r ${STAGEDIR}${MANPREFIX}/man
-	${RM} -r ${STAGEDIR}${PREFIX}/llvm/share/man
-	${RM} -r ${STAGEDIR}${PREFIX}/llvm/include/llvm/MC/MCAnalysis
-	${RM} -r ${STAGEDIR}${PREFIX}/llvm/include/llvm/BinaryFormat/WasmRelocs
+	${RM} -r ${STAGEDIR}${PREFIX}/share/man
+	${RM} -r ${STAGEDIR}${PREFIX}/include/llvm/MC/MCAnalysis
+	${RM} -r ${STAGEDIR}${PREFIX}/include/llvm/BinaryFormat/WasmRelocs
 	${INSTALL_PROGRAM} ${WRKDIR}/.build/bin/clang-tblgen \
-	    ${STAGEDIR}${PREFIX}/llvm/bin/
-	${FIND} ${STAGEDIR}${PREFIX}/llvm/bin/ -type f ! \
+		${STAGEDIR}${PREFIX}/bin/
+	${FIND} ${STAGEDIR}${PREFIX}/bin/ -type f ! \
 		\( -name git-clang-format -o -name "scan-*" -o -name hmaptool \) \
 		| ${XARGS} ${STRIP_CMD}
-	${FIND} ${STAGEDIR}${PREFIX}/llvm/lib/ -type f -name "*.${LIBEXT}" \
+	${FIND} ${STAGEDIR}${PREFIX}/lib/ -type f -name "*.${LIBEXT}" \
 		| ${XARGS} ${STRIP_CMD}
 
 post-extract:
@@ -139,9 +140,9 @@ as an optimizer and code generator.
 30662b632f5556c59ee9215c1309f61de50b3ea8e89dcc28ba9a9494bba238ff       910680 openmp-7.0.0.src.tar.xz
 
 
-[FILE:15802:manifests/plist.clang]
-%%ONLY-FREEBSD%%llvm/lib/clang/%%LLVM_RELEASE%%/include/ompt.h
-%%ONLY-LINUX%%llvm/lib/clang/%%LLVM_RELEASE%%/include/
+[FILE:15547:manifests/plist.clang]
+%%ONLY-FREEBSD%%lib/clang/%%LLVM_RELEASE%%/include/ompt.h
+%%ONLY-LINUX%%lib/clang/%%LLVM_RELEASE%%/include/
  limits.h
  stdalign.h
  stdarg.h
@@ -151,8 +152,8 @@ as an optimizer and code generator.
  stdint.h
  stdnoreturn.h
  varargs.h
-%%OPENMP-ON%%llvm/lib/clang/%%LLVM_RELEASE%%/include/omp.h
-llvm/bin/
+%%OPENMP-ON%%lib/clang/%%LLVM_RELEASE%%/include/omp.h
+bin/
  c-index-test
  clang
  clang++
@@ -179,7 +180,7 @@ llvm/bin/
  modularize
  scan-build
  scan-view
-llvm/include/clang-c/
+include/clang-c/
  BuildSystem.h
  CXCompilationDatabase.h
  CXErrorCode.h
@@ -187,11 +188,11 @@ llvm/include/clang-c/
  Documentation.h
  Index.h
  Platform.h
-llvm/include/clang/ARCMigrate/
+include/clang/ARCMigrate/
  ARCMT.h
  ARCMTActions.h
  FileRemapper.h
-llvm/include/clang/AST/
+include/clang/AST/
  APValue.h
  AST.h
  ASTConsumer.h
@@ -298,17 +299,17 @@ llvm/include/clang/AST/
  UnresolvedSet.h
  VTTBuilder.h
  VTableBuilder.h
-llvm/include/clang/ASTMatchers/
+include/clang/ASTMatchers/
  ASTMatchFinder.h
  ASTMatchers.h
  ASTMatchersInternal.h
  ASTMatchersMacros.h
-llvm/include/clang/ASTMatchers/Dynamic/
+include/clang/ASTMatchers/Dynamic/
  Diagnostics.h
  Parser.h
  Registry.h
  VariantValue.h
-llvm/include/clang/Analysis/
+include/clang/Analysis/
  AnalysisDeclContext.h
  AnalysisDiagnostic.h
  BodyFarm.h
@@ -319,7 +320,7 @@ llvm/include/clang/Analysis/
  CodeInjector.h
  ConstructionContext.h
  ProgramPoint.h
-llvm/include/clang/Analysis/Analyses/
+include/clang/Analysis/Analyses/
  CFGReachabilityAnalysis.h
  Consumed.h
  Dominators.h
@@ -337,12 +338,12 @@ llvm/include/clang/Analysis/Analyses/
  ThreadSafetyTraverse.h
  ThreadSafetyUtil.h
  UninitializedValues.h
-llvm/include/clang/Analysis/DomainSpecific/
+include/clang/Analysis/DomainSpecific/
  CocoaConventions.h
  ObjCNoReturn.h
-llvm/include/clang/Analysis/FlowSensitive/DataflowValues.h
-llvm/include/clang/Analysis/Support/BumpVector.h
-llvm/include/clang/Basic/
+include/clang/Analysis/FlowSensitive/DataflowValues.h
+include/clang/Analysis/Support/BumpVector.h
+include/clang/Basic/
  ABI.h
  AddressSpaces.h
  AlignedAllocation.h
@@ -451,7 +452,7 @@ llvm/include/clang/Basic/
  XRayLists.h
  arm_fp16.inc
  arm_neon.inc
-llvm/include/clang/CodeGen/
+include/clang/CodeGen/
  BackendUtil.h
  CGFunctionInfo.h
  CodeGenABITypes.h
@@ -461,11 +462,11 @@ llvm/include/clang/CodeGen/
  ModuleBuilder.h
  ObjectFilePCHContainerOperations.h
  SwiftCallingConv.h
-llvm/include/clang/Config/config.h
-llvm/include/clang/CrossTU/
+include/clang/Config/config.h
+include/clang/CrossTU/
  CrossTUDiagnostic.h
  CrossTranslationUnit.h
-llvm/include/clang/Driver/
+include/clang/Driver/
  Action.h
  Compilation.h
  Distro.h
@@ -483,14 +484,14 @@ llvm/include/clang/Driver/
  Types.h
  Util.h
  XRayArgs.h
-llvm/include/clang/Edit/
+include/clang/Edit/
  Commit.h
  EditedSource.h
  EditsReceiver.h
  FileOffset.h
  Rewriters.h
-llvm/include/clang/Format/Format.h
-llvm/include/clang/Frontend/
+include/clang/Format/Format.h
+include/clang/Frontend/
  ASTConsumers.h
  ASTUnit.h
  ChainedDiagnosticConsumer.h
@@ -523,15 +524,15 @@ llvm/include/clang/Frontend/
  TextDiagnosticPrinter.h
  Utils.h
  VerifyDiagnosticConsumer.h
-llvm/include/clang/FrontendTool/Utils.h
-llvm/include/clang/Index/
+include/clang/FrontendTool/Utils.h
+include/clang/Index/
  CodegenNameGenerator.h
  CommentToXML.h
  IndexDataConsumer.h
  IndexSymbol.h
  IndexingAction.h
  USRGeneration.h
-llvm/include/clang/Lex/
+include/clang/Lex/
  CodeCompletionHandler.h
  DirectoryLookup.h
  ExternalPreprocessorSource.h
@@ -561,26 +562,26 @@ llvm/include/clang/Lex/
  TokenConcatenation.h
  TokenLexer.h
  VariadicMacroSupport.h
-llvm/include/clang/Parse/
+include/clang/Parse/
  AttrParserStringSwitches.inc
  AttrSubMatchRulesParserStringSwitches.inc
  ParseAST.h
  ParseDiagnostic.h
  Parser.h
  RAIIObjectsForParser.h
-llvm/include/clang/Rewrite/Core/
+include/clang/Rewrite/Core/
  DeltaTree.h
  HTMLRewrite.h
  RewriteBuffer.h
  RewriteRope.h
  Rewriter.h
  TokenRewriter.h
-llvm/include/clang/Rewrite/Frontend/
+include/clang/Rewrite/Frontend/
  ASTConsumers.h
  FixItRewriter.h
  FrontendActions.h
  Rewriters.h
-llvm/include/clang/Sema/
+include/clang/Sema/
  AnalysisBasedWarnings.h
  AttrParsedAttrImpl.inc
  AttrParsedAttrKinds.inc
@@ -618,7 +619,7 @@ llvm/include/clang/Sema/
  TemplateInstCallback.h
  TypoCorrection.h
  Weak.h
-llvm/include/clang/Serialization/
+include/clang/Serialization/
  ASTBitCodes.h
  ASTDeserializationListener.h
  ASTReader.h
@@ -631,14 +632,14 @@ llvm/include/clang/Serialization/
  ModuleFileExtension.h
  ModuleManager.h
  SerializationDiagnostic.h
-llvm/include/clang/StaticAnalyzer/Checkers/
+include/clang/StaticAnalyzer/Checkers/
  Checkers.inc
  ClangCheckers.h
  LocalCheckers.h
  MPIFunctionClassifier.h
  ObjCRetainCount.h
  SValExplainer.h
-llvm/include/clang/StaticAnalyzer/Core/
+include/clang/StaticAnalyzer/Core/
  Analyses.def
  AnalyzerOptions.h
  Checker.h
@@ -647,13 +648,13 @@ llvm/include/clang/StaticAnalyzer/Core/
  CheckerRegistry.h
  IssueHash.h
  PathDiagnosticConsumers.h
-llvm/include/clang/StaticAnalyzer/Core/BugReporter/
+include/clang/StaticAnalyzer/Core/BugReporter/
  BugReporter.h
  BugReporterVisitors.h
  BugType.h
  CommonBugCategories.h
  PathDiagnostic.h
-llvm/include/clang/StaticAnalyzer/Core/PathSensitive/
+include/clang/StaticAnalyzer/Core/PathSensitive/
  APSIntType.h
  AnalysisManager.h
  BasicValueFactory.h
@@ -697,12 +698,12 @@ llvm/include/clang/StaticAnalyzer/Core/PathSensitive/
  TaintManager.h
  TaintTag.h
  WorkList.h
-llvm/include/clang/StaticAnalyzer/Frontend/
+include/clang/StaticAnalyzer/Frontend/
  AnalysisConsumer.h
  CheckerRegistration.h
  FrontendActions.h
  ModelConsumer.h
-llvm/include/clang/Tooling/
+include/clang/Tooling/
  AllTUsExecution.h
  ArgumentsAdjusters.h
  CommonOptionsParser.h
@@ -719,17 +720,17 @@ llvm/include/clang/Tooling/
  StandaloneExecution.h
  ToolExecutorPluginRegistry.h
  Tooling.h
-llvm/include/clang/Tooling/ASTDiff/
+include/clang/Tooling/ASTDiff/
  ASTDiff.h
  ASTDiffInternal.h
-llvm/include/clang/Tooling/Core/
+include/clang/Tooling/Core/
  Diagnostic.h
  Lookup.h
  Replacement.h
-llvm/include/clang/Tooling/Inclusions/
+include/clang/Tooling/Inclusions/
  HeaderIncludes.h
  IncludeStyle.h
-llvm/include/clang/Tooling/Refactoring/
+include/clang/Tooling/Refactoring/
  ASTSelection.h
  AtomicChange.h
  RecursiveSymbolVisitor.h
@@ -744,15 +745,15 @@ llvm/include/clang/Tooling/Refactoring/
  RefactoringOptions.h
  RefactoringResultConsumer.h
  RefactoringRuleContext.h
-llvm/include/clang/Tooling/Refactoring/Extract/Extract.h
-llvm/include/clang/Tooling/Refactoring/Rename/
+include/clang/Tooling/Refactoring/Extract/Extract.h
+include/clang/Tooling/Refactoring/Rename/
  RenamingAction.h
  SymbolName.h
  SymbolOccurrences.h
  USRFinder.h
  USRFindingAction.h
  USRLocFinder.h
-llvm/lib/
+lib/
  libclang.so
  libclang.so.%%LLVM_MAJOR%%
  libclangARCMigrate.a
@@ -816,7 +817,7 @@ llvm/lib/
  libclangToolingInclusions.a
  libclangToolingRefactor.a
  libfindAllSymbols.a
-llvm/lib/clang/%%LLVM_RELEASE%%/include/
+lib/clang/%%LLVM_RELEASE%%/include/
  __clang_cuda_builtin_vars.h
  __clang_cuda_cmath.h
  __clang_cuda_complex_builtins.h
@@ -925,18 +926,18 @@ llvm/lib/clang/%%LLVM_RELEASE%%/include/
  xsaveoptintrin.h
  xsavesintrin.h
  xtestintrin.h
-llvm/lib/clang/%%LLVM_RELEASE%%/include/cuda_wrappers/
+lib/clang/%%LLVM_RELEASE%%/include/cuda_wrappers/
  algorithm
  complex
  new
-llvm/lib/cmake/clang/
+lib/cmake/clang/
  ClangConfig.cmake
  ClangTargets-%%CMAKE_BUILD_TYPE%%.cmake
  ClangTargets.cmake
-llvm/libexec/
+libexec/
  c++-analyzer
  ccc-analyzer
-llvm/share/clang/
+share/clang/
  bash-autocomplete.sh
  clang-format-bbedit.applescript
  clang-format-diff.py
@@ -950,17 +951,17 @@ llvm/share/clang/
  clang-tidy-diff.py
  run-clang-tidy.py
  run-find-all-symbols.py
-llvm/share/opt-viewer/
+share/opt-viewer/
  opt-diff.py
  opt-stats.py
  opt-viewer.py
  optpmap.py
  optrecord.py
  style.css
-llvm/share/scan-build/
+share/scan-build/
  scanview.css
  sorttable.js
-llvm/share/scan-view/
+share/scan-view/
  FileRadar.scpt
  GetRadarVersion.scpt
  Reporter.py
@@ -969,14 +970,14 @@ llvm/share/scan-view/
  startfile.py
 
 
-[FILE:27918:manifests/plist.llvm]
-%%GOLD-ON%%llvm/lib/LLVMgold.so
-%%ONLY-FREEBSD%%llvm/lib/libomptarget.so
-%%OPENMP-ON%%llvm/lib/
+[FILE:27583:manifests/plist.llvm]
+%%GOLD-ON%%lib/LLVMgold.so
+%%ONLY-FREEBSD%%lib/libomptarget.so
+%%OPENMP-ON%%lib/
  libgomp.so
  libiomp5.so
  libomp.so
-llvm/bin/
+bin/
  bugpoint
  diagtool
  dsymutil
@@ -1035,7 +1036,7 @@ llvm/bin/
  sanstats
  verify-uselistorder
  yaml2obj
-llvm/include/llvm/
+include/llvm/
  InitializePasses.h
  LinkAllIR.h
  LinkAllPasses.h
@@ -1044,7 +1045,7 @@ llvm/include/llvm/
  PassInfo.h
  PassRegistry.h
  PassSupport.h
-llvm/include/llvm-c/
+include/llvm-c/
  Analysis.h
  BitReader.h
  BitWriter.h
@@ -1067,14 +1068,14 @@ llvm/include/llvm-c/
  TargetMachine.h
  Types.h
  lto.h
-llvm/include/llvm-c/Transforms/
+include/llvm-c/Transforms/
  IPO.h
  InstCombine.h
  PassManagerBuilder.h
  Scalar.h
  Utils.h
  Vectorize.h
-llvm/include/llvm/ADT/
+include/llvm/ADT/
  APFloat.h
  APInt.h
  APSInt.h
@@ -1151,7 +1152,7 @@ llvm/include/llvm/ADT/
  iterator.h
  iterator_range.h
  simple_ilist.h
-llvm/include/llvm/Analysis/
+include/llvm/Analysis/
  AliasAnalysis.h
  AliasAnalysisEvaluator.h
  AliasSetTracker.h
@@ -1247,11 +1248,11 @@ llvm/include/llvm/Analysis/
  ValueLatticeUtils.h
  ValueTracking.h
  VectorUtils.h
-llvm/include/llvm/Analysis/Utils/Local.h
-llvm/include/llvm/AsmParser/
+include/llvm/Analysis/Utils/Local.h
+include/llvm/AsmParser/
  Parser.h
  SlotMapping.h
-llvm/include/llvm/BinaryFormat/
+include/llvm/BinaryFormat/
  COFF.h
  Dwarf.def
  Dwarf.h
@@ -1262,7 +1263,7 @@ llvm/include/llvm/BinaryFormat/
  Magic.h
  Wasm.h
  WasmRelocs.def
-llvm/include/llvm/BinaryFormat/ELFRelocs/
+include/llvm/BinaryFormat/ELFRelocs/
  AArch64.def
  AMDGPU.def
  ARC.def
@@ -1279,7 +1280,7 @@ llvm/include/llvm/BinaryFormat/ELFRelocs/
  SystemZ.def
  i386.def
  x86_64.def
-llvm/include/llvm/Bitcode/
+include/llvm/Bitcode/
  BitCodes.h
  BitcodeReader.h
  BitcodeWriter.h
@@ -1287,7 +1288,7 @@ llvm/include/llvm/Bitcode/
  BitstreamReader.h
  BitstreamWriter.h
  LLVMBitCodes.h
-llvm/include/llvm/CodeGen/
+include/llvm/CodeGen/
  AccelTable.h
  Analysis.h
  AsmPrinter.h
@@ -1410,7 +1411,7 @@ llvm/include/llvm/CodeGen/
  VirtRegMap.h
  WasmEHFuncInfo.h
  WinEHFuncInfo.h
-llvm/include/llvm/CodeGen/GlobalISel/
+include/llvm/CodeGen/GlobalISel/
  CallLowering.h
  Combiner.h
  CombinerHelper.h
@@ -1433,22 +1434,22 @@ llvm/include/llvm/CodeGen/GlobalISel/
  RegisterBankInfo.h
  Types.h
  Utils.h
-llvm/include/llvm/CodeGen/MIRParser/MIRParser.h
-llvm/include/llvm/CodeGen/PBQP/
+include/llvm/CodeGen/MIRParser/MIRParser.h
+include/llvm/CodeGen/PBQP/
  CostAllocator.h
  Graph.h
  Math.h
  ReductionRules.h
  Solution.h
-llvm/include/llvm/Config/
+include/llvm/Config/
  AsmParsers.def
  AsmPrinters.def
  Disassemblers.def
  Targets.def
  abi-breaking.h
  llvm-config.h
-llvm/include/llvm/DebugInfo/DIContext.h
-llvm/include/llvm/DebugInfo/CodeView/
+include/llvm/DebugInfo/DIContext.h
+include/llvm/DebugInfo/CodeView/
  AppendingTypeTableBuilder.h
  CVRecord.h
  CVSymbolVisitor.h
@@ -1507,7 +1508,7 @@ llvm/include/llvm/DebugInfo/CodeView/
  TypeTableCollection.h
  TypeVisitorCallbackPipeline.h
  TypeVisitorCallbacks.h
-llvm/include/llvm/DebugInfo/DWARF/
+include/llvm/DebugInfo/DWARF/
  DWARFAbbreviationDeclaration.h
  DWARFAcceleratorTable.h
  DWARFAddressRange.h
@@ -1539,13 +1540,13 @@ llvm/include/llvm/DebugInfo/DWARF/
  DWARFUnit.h
  DWARFUnitIndex.h
  DWARFVerifier.h
-llvm/include/llvm/DebugInfo/MSF/
+include/llvm/DebugInfo/MSF/
  IMSFFile.h
  MSFBuilder.h
  MSFCommon.h
  MSFError.h
  MappedBlockStream.h
-llvm/include/llvm/DebugInfo/PDB/
+include/llvm/DebugInfo/PDB/
  ConcreteSymbolEnumerator.h
  GenericError.h
  IPDBDataStream.h
@@ -1595,7 +1596,7 @@ llvm/include/llvm/DebugInfo/PDB/
  PDBSymbolUsingNamespace.h
  PDBTypes.h
  UDTLayout.h
-llvm/include/llvm/DebugInfo/PDB/DIA/
+include/llvm/DebugInfo/PDB/DIA/
  DIADataStream.h
  DIAEnumDebugStreams.h
  DIAEnumInjectedSources.h
@@ -1614,7 +1615,7 @@ llvm/include/llvm/DebugInfo/PDB/DIA/
  DIASupport.h
  DIATable.h
  DIAUtils.h
-llvm/include/llvm/DebugInfo/PDB/Native/
+include/llvm/DebugInfo/PDB/Native/
  DbiModuleDescriptor.h
  DbiModuleDescriptorBuilder.h
  DbiModuleList.h
@@ -1651,12 +1652,12 @@ llvm/include/llvm/DebugInfo/PDB/Native/
  TpiHashing.h
  TpiStream.h
  TpiStreamBuilder.h
-llvm/include/llvm/DebugInfo/Symbolize/
+include/llvm/DebugInfo/Symbolize/
  DIPrinter.h
  SymbolizableModule.h
  Symbolize.h
-llvm/include/llvm/Demangle/Demangle.h
-llvm/include/llvm/ExecutionEngine/
+include/llvm/Demangle/Demangle.h
+include/llvm/ExecutionEngine/
  ExecutionEngine.h
  GenericValue.h
  Interpreter.h
@@ -1670,7 +1671,7 @@ llvm/include/llvm/ExecutionEngine/
  RuntimeDyld.h
  RuntimeDyldChecker.h
  SectionMemoryManager.h
-llvm/include/llvm/ExecutionEngine/Orc/
+include/llvm/ExecutionEngine/Orc/
  CompileOnDemandLayer.h
  CompileUtils.h
  Core.h
@@ -1697,14 +1698,14 @@ llvm/include/llvm/ExecutionEngine/Orc/
  RawByteChannel.h
  RemoteObjectLayer.h
  SymbolStringPool.h
-llvm/include/llvm/FuzzMutate/
+include/llvm/FuzzMutate/
  FuzzerCLI.h
  IRMutator.h
  OpDescriptor.h
  Operations.h
  Random.h
  RandomIRBuilder.h
-llvm/include/llvm/IR/
+include/llvm/IR/
  Argument.h
  AssemblyAnnotationWriter.h
  Attributes.h
@@ -1806,22 +1807,22 @@ llvm/include/llvm/IR/
  ValueMap.h
  ValueSymbolTable.h
  Verifier.h
-llvm/include/llvm/IRReader/IRReader.h
-llvm/include/llvm/LTO/
+include/llvm/IRReader/IRReader.h
+include/llvm/LTO/
  Caching.h
  Config.h
  LTO.h
  LTOBackend.h
-llvm/include/llvm/LTO/legacy/
+include/llvm/LTO/legacy/
  LTOCodeGenerator.h
  LTOModule.h
  ThinLTOCodeGenerator.h
  UpdateCompilerUsed.h
-llvm/include/llvm/LineEditor/LineEditor.h
-llvm/include/llvm/Linker/
+include/llvm/LineEditor/LineEditor.h
+include/llvm/Linker/
  IRMover.h
  Linker.h
-llvm/include/llvm/MC/
+include/llvm/MC/
  ConstantPools.h
  LaneBitmask.h
  MCAsmBackend.h
@@ -1886,12 +1887,12 @@ llvm/include/llvm/MC/
  SectionKind.h
  StringTableBuilder.h
  SubtargetFeature.h
-llvm/include/llvm/MC/MCDisassembler/
+include/llvm/MC/MCDisassembler/
  MCDisassembler.h
  MCExternalSymbolizer.h
  MCRelocationInfo.h
  MCSymbolizer.h
-llvm/include/llvm/MC/MCParser/
+include/llvm/MC/MCParser/
  AsmCond.h
  AsmLexer.h
  MCAsmLexer.h
@@ -1900,7 +1901,7 @@ llvm/include/llvm/MC/MCParser/
  MCAsmParserUtils.h
  MCParsedAsmOperand.h
  MCTargetAsmParser.h
-llvm/include/llvm/Object/
+include/llvm/Object/
  Archive.h
  ArchiveWriter.h
  Binary.h
@@ -1926,7 +1927,7 @@ llvm/include/llvm/Object/
  Wasm.h
  WasmTraits.h
  WindowsResource.h
-llvm/include/llvm/ObjectYAML/
+include/llvm/ObjectYAML/
  COFFYAML.h
  CodeViewYAMLDebugSections.h
  CodeViewYAMLSymbols.h
@@ -1939,17 +1940,17 @@ llvm/include/llvm/ObjectYAML/
  ObjectYAML.h
  WasmYAML.h
  YAML.h
-llvm/include/llvm/Option/
+include/llvm/Option/
  Arg.h
  ArgList.h
  OptParser.td
  OptSpecifier.h
  OptTable.h
  Option.h
-llvm/include/llvm/Passes/
+include/llvm/Passes/
  PassBuilder.h
  PassPlugin.h
-llvm/include/llvm/ProfileData/
+include/llvm/ProfileData/
  GCOV.h
  InstrProf.h
  InstrProfData.inc
@@ -1959,11 +1960,11 @@ llvm/include/llvm/ProfileData/
  SampleProf.h
  SampleProfReader.h
  SampleProfWriter.h
-llvm/include/llvm/ProfileData/Coverage/
+include/llvm/ProfileData/Coverage/
  CoverageMapping.h
  CoverageMappingReader.h
  CoverageMappingWriter.h
-llvm/include/llvm/Support/
+include/llvm/Support/
  AArch64TargetParser.def
  AMDGPUMetadata.h
  AMDHSAKernelDescriptor.h
@@ -2116,8 +2117,8 @@ llvm/include/llvm/Support/
  thread.h
  type_traits.h
  xxhash.h
-llvm/include/llvm/Support/Solaris/sys/regset.h
-llvm/include/llvm/TableGen/
+include/llvm/Support/Solaris/sys/regset.h
+include/llvm/TableGen/
  Error.h
  Main.h
  Record.h
@@ -2126,7 +2127,7 @@ llvm/include/llvm/TableGen/
  StringMatcher.h
  StringToOffsetTable.h
  TableGenBackend.h
-llvm/include/llvm/Target/
+include/llvm/Target/
  CodeGenCWrappers.h
  GenericOpcodes.td
  Target.td
@@ -2139,16 +2140,16 @@ llvm/include/llvm/Target/
  TargetOptions.h
  TargetSchedule.td
  TargetSelectionDAG.td
-llvm/include/llvm/Target/GlobalISel/
+include/llvm/Target/GlobalISel/
  RegisterBank.td
  SelectionDAGCompat.td
  Target.td
-llvm/include/llvm/Testing/Support/
+include/llvm/Testing/Support/
  Error.h
  SupportHelpers.h
-llvm/include/llvm/ToolDrivers/llvm-dlltool/DlltoolDriver.h
-llvm/include/llvm/ToolDrivers/llvm-lib/LibDriver.h
-llvm/include/llvm/Transforms/
+include/llvm/ToolDrivers/llvm-dlltool/DlltoolDriver.h
+include/llvm/ToolDrivers/llvm-lib/LibDriver.h
+include/llvm/Transforms/
  Coroutines.h
  IPO.h
  Instrumentation.h
@@ -2156,8 +2157,8 @@ llvm/include/llvm/Transforms/
  Scalar.h
  Utils.h
  Vectorize.h
-llvm/include/llvm/Transforms/AggressiveInstCombine/AggressiveInstCombine.h
-llvm/include/llvm/Transforms/IPO/
+include/llvm/Transforms/AggressiveInstCombine/AggressiveInstCombine.h
+include/llvm/Transforms/IPO/
  AlwaysInliner.h
  ArgumentPromotion.h
  CalledValuePropagation.h
@@ -2183,16 +2184,16 @@ llvm/include/llvm/Transforms/IPO/
  SyntheticCountsPropagation.h
  ThinLTOBitcodeWriter.h
  WholeProgramDevirt.h
-llvm/include/llvm/Transforms/InstCombine/
+include/llvm/Transforms/InstCombine/
  InstCombine.h
  InstCombineWorklist.h
-llvm/include/llvm/Transforms/Instrumentation/
+include/llvm/Transforms/Instrumentation/
  BoundsChecking.h
  CGProfile.h
  GCOVProfiler.h
  InstrProfiling.h
  PGOInstrumentation.h
-llvm/include/llvm/Transforms/Scalar/
+include/llvm/Transforms/Scalar/
  ADCE.h
  AlignmentFromAssumptions.h
  BDCE.h
@@ -2246,7 +2247,7 @@ llvm/include/llvm/Transforms/Scalar/
  SpeculateAroundPHIs.h
  SpeculativeExecution.h
  TailRecursionElimination.h
-llvm/include/llvm/Transforms/Utils/
+include/llvm/Transforms/Utils/
  ASanStackFrameLayout.h
  AddDiscriminators.h
  BasicBlockUtils.h
@@ -2292,22 +2293,22 @@ llvm/include/llvm/Transforms/Utils/
  UnrollLoop.h
  VNCoercion.h
  ValueMapper.h
-llvm/include/llvm/Transforms/Vectorize/
+include/llvm/Transforms/Vectorize/
  LoopVectorizationLegality.h
  LoopVectorize.h
  SLPVectorizer.h
-llvm/include/llvm/WindowsManifest/WindowsManifestMerger.h
-llvm/include/llvm/WindowsResource/
+include/llvm/WindowsManifest/WindowsManifestMerger.h
+include/llvm/WindowsResource/
  ResourceProcessor.h
  ResourceScriptToken.h
  ResourceScriptTokenList.h
-llvm/include/llvm/XRay/
+include/llvm/XRay/
  Graph.h
  InstrumentationMap.h
  Trace.h
  XRayRecord.h
  YAMLXRayRecord.h
-llvm/lib/
+lib/
  BugpointPasses.so
  LLVMHello.so
  TestPlugin.so
@@ -2450,7 +2451,7 @@ llvm/lib/
  libLLVMipo.a
  libLTO.so
  libLTO.so.%%LLVM_MAJOR%%
-llvm/lib/cmake/llvm/
+lib/cmake/llvm/
  AddLLVM.cmake
  AddLLVMDefinitions.cmake
  AddOCaml.cmake
@@ -2652,6 +2653,37 @@ llvm/lib/cmake/llvm/
  
 
 
+[FILE:1115:patches/patch-tools_clang_lib_Driver_ToolChains_FreeBSD.cpp]
+--- tools/clang/lib/Driver/ToolChains/FreeBSD.cpp.orig	2018-07-10 17:44:08 UTC
++++ tools/clang/lib/Driver/ToolChains/FreeBSD.cpp
+@@ -263,6 +263,11 @@ void freebsd::Linker::ConstructJob(Compi
+   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
+ 
+   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
++    CmdArgs.push_back("-L@RAVEN_GCC@");
++    if (!Args.hasArg(options::OPT_static)) {
++      CmdArgs.push_back("-rpath");
++      CmdArgs.push_back("@RAVEN_GCC@");
++    }
+     addOpenMPRuntime(CmdArgs, ToolChain, Args);
+     if (D.CCCIsCXX()) {
+       if (ToolChain.ShouldLinkCXXStdlib(Args))
+@@ -349,11 +354,11 @@ FreeBSD::FreeBSD(const Driver &D, const
+     getFilePaths().push_back(getDriver().SysRoot + "/usr/lib32");
+   else
+     getFilePaths().push_back(getDriver().SysRoot + "/usr/lib");
++    getFilePaths().push_back("@RAVEN_GCC@");
++    getFilePaths().push_back("@RAVEN_GCC_TARGET@");
+ }
+ 
+ ToolChain::CXXStdlibType FreeBSD::GetDefaultCXXStdlibType() const {
+-  if (getTriple().getOSMajorVersion() >= 10)
+-    return ToolChain::CST_Libcxx;
+   return ToolChain::CST_Libstdcxx;
+ }
+ 
+
+
 [FILE:699:patches/patch-tools_clang_lib_Driver_ToolChains_Gnu.cpp]
 --- tools/clang/lib/Driver/ToolChains/Gnu.cpp.orig	2018-07-31 14:21:46 UTC
 +++ tools/clang/lib/Driver/ToolChains/Gnu.cpp
@@ -2737,12 +2769,26 @@ llvm/lib/cmake/llvm/
    // Otherwise, fall back on a bunch of options which don't use multiarch
 
 
-[FILE:592:patches/patch-tools_clang_lib_Frontend_InitHeaderSearch.cpp]
+[FILE:1143:patches/patch-tools_clang_lib_Frontend_InitHeaderSearch.cpp]
 --- tools/clang/lib/Frontend/InitHeaderSearch.cpp.orig	2018-06-28 23:23:45 UTC
 +++ tools/clang/lib/Frontend/InitHeaderSearch.cpp
-@@ -429,7 +429,9 @@ void InitHeaderSearch::AddDefaultCPlusPl
+@@ -214,7 +214,6 @@ void InitHeaderSearch::AddDefaultCInclud
+   if (HSOpts.UseStandardSystemIncludes) {
+     switch (os) {
+     case llvm::Triple::CloudABI:
+-    case llvm::Triple::FreeBSD:
+     case llvm::Triple::NetBSD:
+     case llvm::Triple::OpenBSD:
+     case llvm::Triple::NaCl:
+@@ -428,8 +427,15 @@ void InitHeaderSearch::AddDefaultCPlusPl
+       break;
      }
      break;
++  case llvm::Triple::FreeBSD:
++    AddPath("@RAVEN_GXX_HEADERS_DIR@", CXXSystem, false);
++    AddPath("@RAVEN_GXX_HEADERS_DIR@/backward", CXXSystem, false);
++    AddPath("@RAVEN_GXX_HEADERS_DIR@/" + triple.getTriple(), CXXSystem, false);
++    break;
    case llvm::Triple::DragonFly:
 -    AddPath("/usr/include/c++/5.0", CXXSystem, false);
 +    AddPath("@RAVEN_GXX_HEADERS_DIR@", CXXSystem, false);

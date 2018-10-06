@@ -2,6 +2,7 @@
 
 NAMEBASE=		mesa
 VERSION=		18.2.1
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Mesa 3D Graphics Library
@@ -97,7 +98,7 @@ CONFIGURE_ARGS=		--enable-llvm
 			--disable-libunwind
 			--with-platforms=x11,drm
 			--enable-gallium-osmesa
-			--with-llvm-prefix={{LOCALBASE}}/llvm
+			--with-llvm-prefix={{LOCALBASE}}
 			--with-dri-drivers="{{DRI_DRIVERS:tl}}"
 			--with-gallium_drivers="{{GALLIUM_DRIVERS:tl}}"
 CONFIGURE_ENV=		ax_cv_check_cflags___Wno_initializer_overrides=no
@@ -105,7 +106,6 @@ CONFIGURE_ENV=		ax_cv_check_cflags___Wno_initializer_overrides=no
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 
-LDFLAGS=		-Wl,-rpath,{{LOCALBASE}}/llvm/lib
 VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 			CPPFLAGS=-D_POSIX_PTHREAD_SEMANTICS
 			CFLAGS=-DF_DUPFD_CLOEXEC=F_DUPFD
@@ -960,7 +960,7 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
  
 
 
-[FILE:605:patches/patch-src_intel_tools_aubinator.c]
+[FILE:601:patches/patch-src_intel_tools_aubinator.c]
 --- src/intel/tools/aubinator.c.orig	2018-09-21 10:57:00 UTC
 +++ src/intel/tools/aubinator.c
 @@ -47,6 +47,7 @@
@@ -977,7 +977,7 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
  }
 +# elif defined __FreeBSD__
 +static inline int
-+memfd_create(const char *name __unused__, unsigned int flags __unused__)
++memfd_create(const char *name __unused, unsigned int flags __unused)
 +{
 +   return shm_open(SHM_ANON, O_RDWR, 0600);   
 +}
@@ -1002,6 +1002,21 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
  #include <stdbool.h>
  #include <stdio.h>
  #include <stdlib.h>
+
+
+[FILE:238:patches/patch-src_intel_tools_error2aub.c]
+--- src/intel/tools/error2aub.c.orig	2018-09-21 10:57:00 UTC
++++ src/intel/tools/error2aub.c
+@@ -22,6 +22,9 @@
+  *
+  */
+ 
++#ifdef __FreeBSD__
++#define _WITH_GETLINE
++#endif
+ #include <assert.h>
+ #include <getopt.h>
+ #include <inttypes.h>
 
 
 [FILE:619:patches/patch-src_mapi_glapi_gen_gl__gentable.py]
@@ -1314,23 +1329,6 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
 [FILE:47:files/special.mk]
 DRI_DRIVERS+=		SWRAST
 GALLIUM_DRIVERS+=	SWRAST
-
-
-[FILE:684:freebsd/patch-src_intel_tools_aubinator.c]
-# We don't have MAP_NORESERVE so use MAP_NOSYNC | MAP_NOCORE and
-# hope for the best (this alloc is too big but it's only a test)
-#
---- src/intel/tools/aubinator.c.orig	2018-08-13 16:42:38 UTC
-+++ src/intel/tools/aubinator.c
-@@ -633,7 +633,7 @@ int main(int argc, char *argv[])
-    /* mmap a terabyte for our gtt space. */
-    gtt_size = 1ull << 40;
-    gtt = mmap(NULL, gtt_size, PROT_READ | PROT_WRITE,
--              MAP_PRIVATE | MAP_ANONYMOUS |  MAP_NORESERVE, -1, 0);
-+              MAP_PRIVATE | MAP_ANONYMOUS | MAP_NOSYNC | MAP_NOCORE, -1, 0);
-    if (gtt == MAP_FAILED) {
-       fprintf(stderr, "failed to alloc gtt space: %s\n", strerror(errno));
-       exit(EXIT_FAILURE);
 
 
 [FILE:713:sunos/patch-src_amd_Makefile.in]
