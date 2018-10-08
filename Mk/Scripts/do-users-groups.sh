@@ -1,5 +1,5 @@
 #!/bin/sh
-# This script is specific to FreeBSD/DragonFly/Linux/Solaris
+# This script is specific to FreeBSD/DragonFly/Linux/Solaris/MacOS
 # This script will need augmentation for other OS.
 
 set -e
@@ -80,6 +80,22 @@ else
   groupadd -g $gid $group
 fi
 eot2
+			elif [ "${dp_OPSYS}" = "Darwin" ]; then
+				cat >> "${dp_UG_INSTALL}" <<-eot2
+if [ -z "\${RAVENADM}" ]; then
+  if dscl . read /Groups/$group RecordName >/dev/null 2>&1; then
+    PGID=\$(dscl . -read /Groups/$group PrimaryGroupID | awk '{print \$2}')
+    echo "Using existing group '$group' (PrimaryGroupID: \${PGID})."
+  else
+    echo "Creating group '$group' with gid '$gid'."
+    dscl . -create /Groups/$group
+    dscl . -create /Groups/$group PrimaryGroupID $gid
+    PGID=$gid
+  fi
+else
+  echo "TESTING: skip group '$group' creation (requires OpenDirectory service)"
+fi
+eot2
 			else
 				cat >> "${dp_UG_INSTALL}" <<-eot2
 if ! \${PW} groupshow $group >/dev/null 2>&1; then
@@ -139,6 +155,20 @@ eot2
   useradd -u $uid -g $group $class -c "$gecos" -d $homedir -s $shell $login
 fi
 eot2
+			elif [ "${dp_OPSYS}" = "Darwin" ]; then
+				cat >> "${dp_UG_INSTALL}" <<-eot2
+  if [ -z "\${RAVENADM}" ]; then
+    dscl . -create /Users/$login
+    dscl . -create /Users/$login UniqueID $uid
+    dscl . -create /Users/$login PrimaryGroupID \${PGID}
+    dscl . -create /Users/$login RealName '$gecos'
+    dscl . -create /Users/$login NFSHomeDirectory $homedir
+    dscl . -create /Users/$login UserShell $shell
+  else
+    echo "TESTING: skip user '$login' creation (requires OpenDirectory service)"
+  fi
+fi
+eot2
 			else
 				cat >> "${dp_UG_INSTALL}" <<-eot2
   \${PW} useradd $login -u $uid -g $group $class -c "$gecos" -d $homedir -s $shell
@@ -193,6 +223,21 @@ if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1
   usermod -G ${group_list} ${login}
 fi
 eot2
+						elif [ "${dp_OPSYS}" = "Darwin" ]; then
+							cat >> "${dp_UG_INSTALL}" <<-eot2
+if [ -z "\${RAVENADM}" ]; then
+  if dscl . read /Groups/$group RecordName >/dev/null 2>&1; then
+    if dscl . -list /Groups/$group GroupMembership | tr ' ' '\n' | awk -v name=\"$group\" ${GROUP_SEARCH_PROGRAM} >/dev/null 2>&1; then
+      echo "User '$login' is already a member of group '$group', doing nothing."
+    else
+      echo "Adding user '$login' as a member of group '$group'."
+      dscl . -append /Groups/$group GroupMembership $login
+    fi
+  fi
+else
+  echo "TESTING: skip adding user '$login' to group '$group' (requires OpenDirectory service)"
+fi
+eot2
 						else
 							cat >> "${dp_UG_INSTALL}" <<-eot2
 if ! \${PW} groupshow ${group} | grep -qw ${login}; then
@@ -231,6 +276,14 @@ if [ -n "${SYSGROUPS}" ]; then
 				cat >> "${dp_UG_DEINSTALL}" <<-eot
 if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "==> You should manually remove the \"${group}\" group "
+fi
+eot
+			elif [ "${dp_OPSYS}" = "Darwin" ]; then
+				cat >> "${dp_UG_DEINSTALL}" <<-eot
+if [ -z "\${RAVENADM}" ]; then
+  if dscl . read /Groups/$group RecordName >/dev/null 2>&1; then
+    echo "==> You should manually remove the \"${group}\" group "
+  fi
 fi
 eot
 			else

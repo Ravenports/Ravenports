@@ -4,28 +4,28 @@ post-install: <<EOD
   /*) fontsdir="%@" ;;
   *) fontsdir="%D/%@" ;;
   esac
-  fc-cache -fs ${fontsdir} 2>/dev/null || true
-  mkfontscale ${fontsdir} 2>/dev/null || true
-  mkfontdir ${fontsdir} 2>/dev/null || true
+  %D/bin/fc-cache -fs ${fontsdir} 2>/dev/null || true
+  %D/bin/mkfontscale ${fontsdir} 2>/dev/null || true
+  %D/bin/mkfontdir ${fontsdir} 2>/dev/null || true
 EOD
 post-deinstall: <<EOD
   case "%@" in
   /*) fontsdir="%@" ;;
   *) fontsdir="%D/%@" ;;
   esac
-  fc-cache -fs ${fontsdir} 2>/dev/null || true
-  mkfontscale ${fontsdir} 2>/dev/null || true
+  %D/bin/fc-cache -fs ${fontsdir} 2>/dev/null || true
+  %D/bin/mkfontscale ${fontsdir} 2>/dev/null || true
   if [ -e ${fontsdir}/fonts.scale ]; then
     fsize=$(wc -c < ${fontsdir}/fonts.scale)
     if [ ${fsize} -eq 2 ]; then
-       rm ${fontsdir}/fonts.scale
+       /bin/rm ${fontsdir}/fonts.scale
     fi
   fi
-  mkfontdir ${fontsdir} 2>/dev/null || true
+  %D/bin/mkfontdir ${fontsdir} 2>/dev/null || true
   if [ -e ${fontsdir}/fonts.dir ]; then
     fsize=$(wc -c < ${fontsdir}/fonts.dir)
     if [ ${fsize} -eq 2 ]; then
-      rm ${fontsdir}/fonts.dir
+      /bin/rm ${fontsdir}/fonts.dir
     fi
   fi
 EOD
