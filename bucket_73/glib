@@ -61,6 +61,7 @@ PLIST_SUB=		LIBVERSION=0.5800.1
 
 SET_DEBUGGING_ON=	yes
 OPTIMIZER_LEVEL=	0
+VAR_OPSYS[darwin]=	MAKE_ENV=DYLD_FALLBACK_LIBRARY_PATH="$$DYLD_FALLBACK_LIBRARY_PATH:{{WRKSRC}}/_build/glib:{{WRKSRC}}/_build/gio:{{WRKSRC}}/_build/gobject:{{WRKSRC}}/_build/gmodule"
 
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g ; \
@@ -73,6 +74,7 @@ post-patch:
 	${REINPLACE_CMD} -e "s|python3|python${PYTHON_VER}|g" \
 		-e 's|/docbook.sourceforge.net/|/cdn.docbook.org/|' \
 		-e "/'_XOPEN_SOURCE'/d" \
+		-e "/-Werror=/d" \
 		${WRKSRC}/meson.build
 	${REINPLACE_CMD} -e '/_XOPEN_SOURCE/d' \
 		${WRKSRC}/glib/tests/strfuncs.c
@@ -94,8 +96,20 @@ more.  It is a foundation for writing portable applications.
 97d6a9d926b6aa3dfaadad3077cfb43eec74432ab455dff14250c769d526d7d6      4906444 gnome2/glib-2.58.1.tar.xz
 
 
-[FILE:10005:manifests/plist.single]
+[FILE:10125:manifests/plist.single]
 @comment share/glib-2.0/codegen auto-generated
+%%EXCLUDE-DARWIN%%lib/
+ libgio-2.0.so.%%LIBVERSION%%
+ libglib-2.0.so.%%LIBVERSION%%
+ libgmodule-2.0.so.%%LIBVERSION%%
+ libgobject-2.0.so.%%LIBVERSION%%
+ libgthread-2.0.so.%%LIBVERSION%%
+%%ONLY-LINUX%%share/bash-completion/completions/
+ gapplication
+ gdbus
+ gio
+ gresource
+ gsettings
 %%ONLY-SUNOS%%share/bash-completion/completions/
  gapplication
  gdbus
@@ -392,19 +406,14 @@ include/glib-2.0/gobject/
  gvaluetypes.h
 lib/
  libgio-2.0.so
- libgio-2.0.so.%%LIBVERSION%%
  libgio-2.0.so.0
  libglib-2.0.so
- libglib-2.0.so.%%LIBVERSION%%
  libglib-2.0.so.0
  libgmodule-2.0.so
- libgmodule-2.0.so.%%LIBVERSION%%
  libgmodule-2.0.so.0
  libgobject-2.0.so
- libgobject-2.0.so.%%LIBVERSION%%
  libgobject-2.0.so.0
  libgthread-2.0.so
- libgthread-2.0.so.%%LIBVERSION%%
  libgthread-2.0.so.0
 lib/glib-2.0/include/glibconfig.h
 lib/pkgconfig/
@@ -845,26 +854,6 @@ ports installed.
          dnl for a much more readable commandline, so that people can understand what
 
 
-[FILE:579:patches/patch-meson.build]
---- meson.build.orig	2018-09-21 14:23:53 UTC
-+++ meson.build
-@@ -1744,14 +1744,10 @@ endif
- # proxy-libintl subproject.
- # FIXME: glib-gettext.m4 has much more checks to detect broken/uncompatible
- # implementations. This could be extended if issues are found in some platforms.
--if cc.has_function('ngettext')
--  libintl = []
--else
-   libintl = cc.find_library('intl', required : false)
-   if not libintl.found()
-     libintl = subproject('proxy-libintl').get_variable('intl_dep')
-   endif
--endif
- 
- # We require gettext to always be present
- glib_conf.set('HAVE_DCGETTEXT', 1)
-
-
 [FILE:648:files/special.mk]
 glib_MAN=	gtester.1 gtester-report.1 glib-gettextize.1
 gio_MAN=	gdbus.1 gsettings.1 gio-querymodules.1 \
@@ -884,6 +873,46 @@ my-autolist:
 	(cd ${STAGEDIR}${PREFIX} && ${FIND} share/glib-2.0/codegen \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
 	>> ${WRKDIR}/.manifest.single.mktmp
+
+
+[FILE:579:dragonfly/patch-meson.build]
+--- meson.build.orig	2018-09-21 14:23:53 UTC
++++ meson.build
+@@ -1744,14 +1744,10 @@ endif
+ # proxy-libintl subproject.
+ # FIXME: glib-gettext.m4 has much more checks to detect broken/uncompatible
+ # implementations. This could be extended if issues are found in some platforms.
+-if cc.has_function('ngettext')
+-  libintl = []
+-else
+   libintl = cc.find_library('intl', required : false)
+   if not libintl.found()
+     libintl = subproject('proxy-libintl').get_variable('intl_dep')
+   endif
+-endif
+ 
+ # We require gettext to always be present
+ glib_conf.set('HAVE_DCGETTEXT', 1)
+
+
+[FILE:579:freebsd/patch-meson.build]
+--- meson.build.orig	2018-09-21 14:23:53 UTC
++++ meson.build
+@@ -1744,14 +1744,10 @@ endif
+ # proxy-libintl subproject.
+ # FIXME: glib-gettext.m4 has much more checks to detect broken/uncompatible
+ # implementations. This could be extended if issues are found in some platforms.
+-if cc.has_function('ngettext')
+-  libintl = []
+-else
+   libintl = cc.find_library('intl', required : false)
+   if not libintl.found()
+     libintl = subproject('proxy-libintl').get_variable('intl_dep')
+   endif
+-endif
+ 
+ # We require gettext to always be present
+ glib_conf.set('HAVE_DCGETTEXT', 1)
 
 
 [FILE:1640:sunos/patch-gio_tests_meson.build]
@@ -931,4 +960,90 @@ my-autolist:
  
    gio_tests += [{
      'gdbus-connection-flush' : {
+
+
+[FILE:579:sunos/patch-meson.build]
+--- meson.build.orig	2018-09-21 14:23:53 UTC
++++ meson.build
+@@ -1744,14 +1744,10 @@ endif
+ # proxy-libintl subproject.
+ # FIXME: glib-gettext.m4 has much more checks to detect broken/uncompatible
+ # implementations. This could be extended if issues are found in some platforms.
+-if cc.has_function('ngettext')
+-  libintl = []
+-else
+   libintl = cc.find_library('intl', required : false)
+   if not libintl.found()
+     libintl = subproject('proxy-libintl').get_variable('intl_dep')
+   endif
+-endif
+ 
+ # We require gettext to always be present
+ glib_conf.set('HAVE_DCGETTEXT', 1)
+
+
+[FILE:2540:darwin/patch-meson.build]
+--- meson.build.orig	2018-09-21 14:23:53 UTC
++++ meson.build
+@@ -609,42 +609,23 @@ glib_have_os_x_9_or_later = false
+ glib_have_carbon = false
+ glib_have_cocoa = false
+ if host_system == 'darwin'
+-  add_languages('objc')
+-  objcc = meson.get_compiler('objc')
+ 
+   osx_ldflags += ['-Wl,-framework,CoreFoundation']
+ 
+-  # Mac OS X Carbon support
+-  glib_have_carbon = objcc.compiles('''#include <Carbon/Carbon.h>
+-                                       #include <CoreServices/CoreServices.h>''',
+-                                    name : 'Mac OS X Carbon support')
++  glib_have_carbon = false
++  glib_have_cocoa = false 
++  glib_have_os_x_9_or_later = true
+ 
+   if glib_have_carbon
+     glib_conf.set('HAVE_CARBON', true)
+     osx_ldflags += '-Wl,-framework,Carbon'
+-    glib_have_os_x_9_or_later = objcc.compiles('''#include <AvailabilityMacros.h>
+-                                                  #if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
+-                                                  #error Compiling for minimum OS X version before 10.9
+-                                                  #endif''',
+-                                               name : 'OS X 9 or later')
+   endif
+ 
+-  # Mac OS X Cocoa support
+-  glib_have_cocoa = objcc.compiles('''#include <Cocoa/Cocoa.h>
+-                                      #ifdef GNUSTEP_BASE_VERSION
+-                                      #error "Detected GNUstep, not Cocoa"
+-                                      #endif''',
+-                                   name : 'Mac OS X Cocoa support')
+-
+   if glib_have_cocoa
+     glib_conf.set('HAVE_COCOA', true)
+     osx_ldflags += ['-Wl,-framework,Foundation', '-Wl,-framework,AppKit']
+   endif
+ 
+-  # FIXME: libgio mix C and objC source files and there is no way to reliably
+-  # know which language flags it's going to use to link. Add to both languages
+-  # for now. See https://github.com/mesonbuild/meson/issues/3585.
+-  add_project_link_arguments(osx_ldflags, language : ['objc', 'c'])
+ endif
+ 
+ # Check for futex(2)
+@@ -1744,14 +1725,10 @@ endif
+ # proxy-libintl subproject.
+ # FIXME: glib-gettext.m4 has much more checks to detect broken/uncompatible
+ # implementations. This could be extended if issues are found in some platforms.
+-if cc.has_function('ngettext')
+-  libintl = []
+-else
+   libintl = cc.find_library('intl', required : false)
+   if not libintl.found()
+     libintl = subproject('proxy-libintl').get_variable('intl_dep')
+   endif
+-endif
+ 
+ # We require gettext to always be present
+ glib_conf.set('HAVE_DCGETTEXT', 1)
 

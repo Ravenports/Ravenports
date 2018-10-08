@@ -49,6 +49,43 @@ build system to actually start compiling code.
 share/polkit-1/actions/com.mesonbuild.install.policy
 
 
+[FILE:450:patches/patch-mesonbuild_dependencies_base.py]
+--- mesonbuild/dependencies/base.py.orig	2018-08-25 08:05:50 UTC
++++ mesonbuild/dependencies/base.py
+@@ -1080,7 +1080,7 @@ class ExtraFrameworkDependency(ExternalD
+     def detect(self, name, path):
+         lname = name.lower()
+         if path is None:
+-            paths = ['/System/Library/Frameworks', '/Library/Frameworks']
++            paths = ['/System/Library/Frameworks']
+         else:
+             paths = [path]
+         for p in paths:
+
+
+[FILE:1149:patches/patch-mesonbuild_dependencies_misc.py]
+--- mesonbuild/dependencies/misc.py.orig	2018-08-25 08:05:43 UTC
++++ mesonbuild/dependencies/misc.py
+@@ -315,17 +315,6 @@ class Python3Dependency(ExternalDependen
+         if not self.is_found:
+             if mesonlib.is_windows() and DependencyMethods.SYSCONFIG in self.methods:
+                 self._find_libpy3_windows(environment)
+-            elif mesonlib.is_osx() and DependencyMethods.EXTRAFRAMEWORK in self.methods:
+-                # In OSX the Python 3 framework does not have a version
+-                # number in its name.
+-                # There is a python in /System/Library/Frameworks, but that's
+-                # python 2, Python 3 will always bin in /Library
+-                fw = ExtraFrameworkDependency(
+-                    'python', False, '/Library/Frameworks', self.env, self.language, kwargs)
+-                if fw.found():
+-                    self.compile_args = fw.get_compile_args()
+-                    self.link_args = fw.get_link_args()
+-                    self.is_found = True
+         if self.is_found:
+             mlog.log('Dependency', mlog.bold(self.name), 'found:', mlog.green('YES'))
+         else:
+
+
 [FILE:492:sunos/patch-mesonbuild_compilers_c.py]
 --- mesonbuild/compilers/c.py.orig	2018-08-25 08:05:50 UTC
 +++ mesonbuild/compilers/c.py

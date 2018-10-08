@@ -129,6 +129,11 @@ post-patch:
 	${REINPLACE_CMD} -e 's|/etc/|${PREFIX}/etc/|g' \
 		${WRKSRC}/src/util/xmlconfig.c
 
+post-patch-linux:
+	# memfd_create is too new for linux base
+	${REINPLACE_CMD} -e '/^noinst_PROGRAMS =/ s|tools/aubinator.(EXEEXT)||' \
+		${WRKSRC}/src/intel/Makefile.in
+
 post-patch-dragonfly:
 	# shm_open doesn't support SHM_ANON, and no memfd_create syscall
 	${REINPLACE_CMD} -e '/^noinst_PROGRAMS =/ s|tools/aubinator.(EXEEXT)||' \

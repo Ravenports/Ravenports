@@ -113,7 +113,9 @@ CONFIGURE_ARGS=		--localstatedir=/var
 			--with-gnutls
 			--with-modules
 			--with-xml2
+			--without-ns
 
+INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		VERSION=26.1
 			GNU_HOST={{CONFIGURE_TARGET}}
 
@@ -165,6 +167,7 @@ VAR_OPSYS[dragonfly]=	VAR1=--with-file-notification=kqueue
 
 post-patch:
 	${RM} ${WRKSRC}/doc/man/ctags.1
+	${REINPLACE_CMD} -e 's|apple-darwin|raven-darwin|g' ${WRKSRC}/configure
 
 post-patch-X11GTK-OFF:
 	${REINPLACE_CMD} -i'' -e 's/^Terminal=.*$$/Terminal=true/' \
@@ -174,6 +177,9 @@ post-install-freebsd:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
 post-install-dragonfly:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
+
+post-install-darwin:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
 post-install-sunos:
@@ -4205,6 +4211,20 @@ share/man/man1/
  	  if [ "$${dir}" = "${srcdir}/etc" ]; then \
  	      rm -f "$${dest}/DOC"* ; \
  	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
+
+
+[FILE:422:patches/patch-configure]
+--- configure.orig	2018-10-08 00:55:28 UTC
++++ configure
+@@ -17122,7 +17122,7 @@ case "$opsys" in
+   ##  The ncurses library has been moved out of the System framework in
+   ##  Mac OS X 10.2.  So if configure detects it, set the command-line
+   ##  option to use it.
+-  darwin) LIBS_TERMCAP="-lncurses" ;;
++  darwin) LIBS_TERMCAP="-lncurses -ltinfo" ;;
+ 
+   gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
+ 
 
 
 [FILE:466:patches/patch-lib-src_Makefile.in]
