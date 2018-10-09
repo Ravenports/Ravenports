@@ -28,7 +28,7 @@ BUILDRUN_DEPENDS=	libffi:single:standard
 			xz:single:standard
 
 USES=			bdb cpe ncurses pkgconfig readline ssl shebangfix
-			zlib gettext-runtime
+			zlib gettext-runtime gmake
 
 DISTNAME=		Python-3.6.6
 
@@ -77,6 +77,11 @@ VAR_OPSYS[linux]=	PLIST_SUB=SOABI=.cpython-36m-x86_64-linux-gnu
 			PLIST_SUB=SCD=x86_64-linux-gnu
 			PLIST_SUB=FULLABI={{ABIFLAGS}}-x86_64-linux-gnu
 			PLIST_SUB=PLAT={{OPSYS:tl}}
+VAR_OPSYS[darwin]=	PLIST_SUB=SOABI=.cpython-36m-darwin
+			PLIST_SUB=SCD=darwin
+			PLIST_SUB=FULLABI={{ABIFLAGS}}-darwin
+			PLIST_SUB=PLAT=darwin
+			CONFIGURE_ARGS=--enable-framework=no
 VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=
 			PLIST_SUB=SCD=
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
@@ -95,8 +100,9 @@ VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/local/bin/python|${python_CMD}|' \
 		${WRKSRC}/Lib/cgi.py
-	${REINPLACE_CMD} -e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
-		${WRKSRC}/setup.py
+	# ${REINPLACE_CMD} -e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
+	#	${WRKSRC}/setup.py
+	${REINPLACE_CMD} -e 's| make| gmake|g' ${WRKSRC}/Mac/Makefile.in
 
 post-install:
 	for i in ${STAGEDIR}${PREFIX}/lib/python3.6/lib-dynload/*.so; do \
@@ -124,14 +130,15 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 d79bc15d456e73a3173a2938f18a17e5149c850ebdedf84a78067f501ee6e16f     17156744 Python-3.6.6.tar.xz
 
 
-[FILE:204599:manifests/plist.single]
-%%DEBUG-OFF%%lib/python%%XYDOT%%/lib-dynload/xxlimited%%SOABI%%.so
-%%ONLY-DRAGONFLY%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
-%%ONLY-FREEBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
+[FILE:205687:manifests/plist.single]
+%%DEBUG-OFF%%lib/python%%XYDOT%%/lib-dynload/xxlimited%%SOABI%%.%%SHARED_OBJECT%%
+%%ONLY-DRAGONFLY%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.%%SHARED_OBJECT%%
+%%ONLY-FREEBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.%%SHARED_OBJECT%%
 %%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/
- ossaudiodev%%SOABI%%.so
- spwd%%SOABI%%.so
-%%ONLY-SUNOS%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.so
+ ossaudiodev%%SOABI%%.%%SHARED_OBJECT%%
+ spwd%%SOABI%%.%%SHARED_OBJECT%%
+%%ONLY-SUNOS%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.%%SHARED_OBJECT%%
+%%ONLY-DARWIN%%lib/python%%XYDOT%%/lib-dynload/_scproxy%%SOABI%%.%%SHARED_OBJECT%%
 bin/
  2to3-%%XYDOT%%
  idle%%XYDOT%%
@@ -2943,67 +2950,67 @@ lib/python%%XYDOT%%/json/__pycache__/
  tool.cpython-%%XY%%.opt-2.pyc
  tool.cpython-%%XY%%.pyc
 lib/python%%XYDOT%%/lib-dynload/
- _asyncio%%SOABI%%.so
- _bisect%%SOABI%%.so
- _blake2%%SOABI%%.so
- _bz2%%SOABI%%.so
- _codecs_cn%%SOABI%%.so
- _codecs_hk%%SOABI%%.so
- _codecs_iso2022%%SOABI%%.so
- _codecs_jp%%SOABI%%.so
- _codecs_kr%%SOABI%%.so
- _codecs_tw%%SOABI%%.so
- _crypt%%SOABI%%.so
- _csv%%SOABI%%.so
- _ctypes%%SOABI%%.so
- _ctypes_test%%SOABI%%.so
- _curses%%SOABI%%.so
- _curses_panel%%SOABI%%.so
- _datetime%%SOABI%%.so
- _dbm%%SOABI%%.so
- _decimal%%SOABI%%.so
- _elementtree%%SOABI%%.so
- _hashlib%%SOABI%%.so
- _heapq%%SOABI%%.so
- _json%%SOABI%%.so
- _lsprof%%SOABI%%.so
- _lzma%%SOABI%%.so
- _md5%%SOABI%%.so
- _multibytecodec%%SOABI%%.so
- _multiprocessing%%SOABI%%.so
- _opcode%%SOABI%%.so
- _pickle%%SOABI%%.so
- _posixsubprocess%%SOABI%%.so
- _random%%SOABI%%.so
- _sha1%%SOABI%%.so
- _sha256%%SOABI%%.so
- _sha3%%SOABI%%.so
- _sha512%%SOABI%%.so
- _socket%%SOABI%%.so
- _ssl%%SOABI%%.so
- _struct%%SOABI%%.so
- _testbuffer%%SOABI%%.so
- _testcapi%%SOABI%%.so
- _testimportmultiple%%SOABI%%.so
- _testmultiphase%%SOABI%%.so
- array%%SOABI%%.so
- audioop%%SOABI%%.so
- binascii%%SOABI%%.so
- cmath%%SOABI%%.so
- fcntl%%SOABI%%.so
- grp%%SOABI%%.so
- math%%SOABI%%.so
- mmap%%SOABI%%.so
- nis%%SOABI%%.so
- parser%%SOABI%%.so
- pyexpat%%SOABI%%.so
- readline%%SOABI%%.so
- resource%%SOABI%%.so
- select%%SOABI%%.so
- syslog%%SOABI%%.so
- termios%%SOABI%%.so
- unicodedata%%SOABI%%.so
- zlib%%SOABI%%.so
+ _asyncio%%SOABI%%.%%SHARED_OBJECT%%
+ _bisect%%SOABI%%.%%SHARED_OBJECT%%
+ _blake2%%SOABI%%.%%SHARED_OBJECT%%
+ _bz2%%SOABI%%.%%SHARED_OBJECT%%
+ _codecs_cn%%SOABI%%.%%SHARED_OBJECT%%
+ _codecs_hk%%SOABI%%.%%SHARED_OBJECT%%
+ _codecs_iso2022%%SOABI%%.%%SHARED_OBJECT%%
+ _codecs_jp%%SOABI%%.%%SHARED_OBJECT%%
+ _codecs_kr%%SOABI%%.%%SHARED_OBJECT%%
+ _codecs_tw%%SOABI%%.%%SHARED_OBJECT%%
+ _crypt%%SOABI%%.%%SHARED_OBJECT%%
+ _csv%%SOABI%%.%%SHARED_OBJECT%%
+ _ctypes%%SOABI%%.%%SHARED_OBJECT%%
+ _ctypes_test%%SOABI%%.%%SHARED_OBJECT%%
+ _curses%%SOABI%%.%%SHARED_OBJECT%%
+ _curses_panel%%SOABI%%.%%SHARED_OBJECT%%
+ _datetime%%SOABI%%.%%SHARED_OBJECT%%
+ _dbm%%SOABI%%.%%SHARED_OBJECT%%
+ _decimal%%SOABI%%.%%SHARED_OBJECT%%
+ _elementtree%%SOABI%%.%%SHARED_OBJECT%%
+ _hashlib%%SOABI%%.%%SHARED_OBJECT%%
+ _heapq%%SOABI%%.%%SHARED_OBJECT%%
+ _json%%SOABI%%.%%SHARED_OBJECT%%
+ _lsprof%%SOABI%%.%%SHARED_OBJECT%%
+ _lzma%%SOABI%%.%%SHARED_OBJECT%%
+ _md5%%SOABI%%.%%SHARED_OBJECT%%
+ _multibytecodec%%SOABI%%.%%SHARED_OBJECT%%
+ _multiprocessing%%SOABI%%.%%SHARED_OBJECT%%
+ _opcode%%SOABI%%.%%SHARED_OBJECT%%
+ _pickle%%SOABI%%.%%SHARED_OBJECT%%
+ _posixsubprocess%%SOABI%%.%%SHARED_OBJECT%%
+ _random%%SOABI%%.%%SHARED_OBJECT%%
+ _sha1%%SOABI%%.%%SHARED_OBJECT%%
+ _sha256%%SOABI%%.%%SHARED_OBJECT%%
+ _sha3%%SOABI%%.%%SHARED_OBJECT%%
+ _sha512%%SOABI%%.%%SHARED_OBJECT%%
+ _socket%%SOABI%%.%%SHARED_OBJECT%%
+ _ssl%%SOABI%%.%%SHARED_OBJECT%%
+ _struct%%SOABI%%.%%SHARED_OBJECT%%
+ _testbuffer%%SOABI%%.%%SHARED_OBJECT%%
+ _testcapi%%SOABI%%.%%SHARED_OBJECT%%
+ _testimportmultiple%%SOABI%%.%%SHARED_OBJECT%%
+ _testmultiphase%%SOABI%%.%%SHARED_OBJECT%%
+ array%%SOABI%%.%%SHARED_OBJECT%%
+ audioop%%SOABI%%.%%SHARED_OBJECT%%
+ binascii%%SOABI%%.%%SHARED_OBJECT%%
+ cmath%%SOABI%%.%%SHARED_OBJECT%%
+ fcntl%%SOABI%%.%%SHARED_OBJECT%%
+ grp%%SOABI%%.%%SHARED_OBJECT%%
+ math%%SOABI%%.%%SHARED_OBJECT%%
+ mmap%%SOABI%%.%%SHARED_OBJECT%%
+ nis%%SOABI%%.%%SHARED_OBJECT%%
+ parser%%SOABI%%.%%SHARED_OBJECT%%
+ pyexpat%%SOABI%%.%%SHARED_OBJECT%%
+ readline%%SOABI%%.%%SHARED_OBJECT%%
+ resource%%SOABI%%.%%SHARED_OBJECT%%
+ select%%SOABI%%.%%SHARED_OBJECT%%
+ syslog%%SOABI%%.%%SHARED_OBJECT%%
+ termios%%SOABI%%.%%SHARED_OBJECT%%
+ unicodedata%%SOABI%%.%%SHARED_OBJECT%%
+ zlib%%SOABI%%.%%SHARED_OBJECT%%
 lib/python%%XYDOT%%/lib2to3/
  Grammar%%XYZDOT%%.final.0.pickle
  Grammar.txt
@@ -7287,8 +7294,8 @@ record file nonetheless.
  typedef int (*foreachfunc)(int, char *, int, char *, int, char *);
 
 
-[FILE:211:patches/patch-configure]
---- configure.orig	2017-12-19 04:53:56 UTC
+[FILE:928:patches/patch-configure]
+--- configure.orig	2018-06-26 23:39:50 UTC
 +++ configure
 @@ -652,6 +652,7 @@ USE_THREAD_MODULE
  TCLTK_LIBS
@@ -7298,10 +7305,27 @@ record file nonetheless.
  PKG_CONFIG_LIBDIR
  PKG_CONFIG_PATH
  PKG_CONFIG
+@@ -3369,7 +3370,7 @@ $as_echo "#define _BSD_SOURCE 1" >>confd
+   # has no effect, don't bother defining them
+   Darwin/[6789].*)
+     define_xopen_source=no;;
+-  Darwin/1[0-9].*)
++  Darwin/1[0-9].*|Darwin/1[0-9]-*)
+     define_xopen_source=no;;
+   # On AIX 4 and 5.1, mbstate_t is defined only when _XOPEN_SOURCE == 500 but
+   # used in wcsnrtombs() and mbsnrtowcs() even if _XOPEN_SOURCE is not defined
+@@ -5988,6 +5989,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+     Darwin*)
+     	LDLIBRARY='libpython$(LDVERSION).dylib'
+ 	BLDLIBRARY='-L. -lpython$(LDVERSION)'
++	INSTSONAME='libpython$(LDVERSION)'.$SOVERSION.dylib
+ 	RUNSHARED=DYLD_LIBRARY_PATH=`pwd`${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}
+ 	;;
+     AIX*)
 
 
-[FILE:1431:patches/patch-setup.py]
---- setup.py.orig	2017-12-19 04:53:56 UTC
+[FILE:2045:patches/patch-setup.py]
+--- setup.py.orig	2018-06-26 23:39:50 UTC
 +++ setup.py
 @@ -43,7 +43,10 @@ host_platform = get_platform()
  COMPILED_WITH_PYDEBUG = ('--with-pydebug' in sysconfig.get_config_var("CONFIG_ARGS"))
@@ -7315,7 +7339,18 @@ record file nonetheless.
  
  def add_dir_to_list(dirlist, dir):
      """Add the directory 'dir' to the list 'dirlist' (after any relative
-@@ -1613,6 +1616,10 @@ class PyBuildExt(build_ext):
+@@ -1390,10 +1393,6 @@ class PyBuildExt(build_ext):
+                 # for OS X but we need _XOPEN_SOURCE_EXTENDED here for
+                 # ncurses wide char support
+                 curses_defines.append(('_XOPEN_SOURCE_EXTENDED', '1'))
+-        elif host_platform == 'darwin' and curses_library == 'ncurses':
+-            # Building with the system-suppied combined libncurses/libpanel
+-            curses_defines.append(('HAVE_NCURSESW', '1'))
+-            curses_defines.append(('_XOPEN_SOURCE_EXTENDED', '1'))
+ 
+         if curses_library.startswith('ncurses'):
+             curses_libs = [curses_library]
+@@ -1607,6 +1606,10 @@ class PyBuildExt(build_ext):
              macros = dict()
              libraries = []
  
@@ -7326,7 +7361,7 @@ record file nonetheless.
          elif host_platform in ('freebsd4', 'freebsd5', 'freebsd6', 'freebsd7', 'freebsd8'):
              # FreeBSD's P1003.1b semaphore support is very experimental
              # and has many known problems. (as of June 2008)
-@@ -1652,7 +1659,7 @@ class PyBuildExt(build_ext):
+@@ -1646,7 +1649,7 @@ class PyBuildExt(build_ext):
          # End multiprocessing
  
          # Platform-specific libraries
