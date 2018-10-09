@@ -53,7 +53,11 @@ post-patch:
 	${REINPLACE_CMD} -e '/rhash_wfile/d' ${WRKSRC}/librhash/rhash.h
 
 post-install:
+.if "${.MAKE.OS.NAME}" == "Darwin"
+	${LN} -s librhash.0.dylib ${STAGEDIR}${PREFIX}/lib/librhash.dylib
+.else
 	${LN} -s librhash.so.0 ${STAGEDIR}${PREFIX}/lib/librhash.so
+.endif
 	${MV} ${STAGEDIR}${PREFIX}/etc/rhashrc \
 	      ${STAGEDIR}${PREFIX}/etc/rhashrc.sample
 

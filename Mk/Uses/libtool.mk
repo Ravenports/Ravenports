@@ -24,6 +24,7 @@ _USES_POST+=	libtool
 
 .if ${.MAKE.OS.NAME:MDarwin}
 MACHO_STRIP=	-e 's|--strip-unneeded|-x|' -e 's|--strip-debug|-S|'
+.include "${USESDIR}/macfix.mk"
 .endif
 
 _USES_configure+=	480:patch-libtool
