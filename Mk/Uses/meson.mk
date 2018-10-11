@@ -26,7 +26,9 @@ _INCLUDE_USES_MESON_MK=	yes
 
 HAS_CONFIGURE=		yes
 CONFIGURE_CMD=		meson
-CONFIGURE_ENV+=		LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+CONFIGURE_ENV+=		LANG=en_US.UTF-8 \
+			LC_ALL=en_US.UTF-8 \
+			STRIP="${STRIP_CMD}"
 CONFIGURE_ARGS+=	--prefix ${PREFIX} \
 			--mandir share/man
 

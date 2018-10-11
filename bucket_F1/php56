@@ -24,6 +24,7 @@ OPT_ON[all]=		CLI CGI FPM EMBED DEBUGGER
 BUILD_DEPENDS=		pcre:static:standard
 			autoconf:single:standard
 BUILDRUN_DEPENDS=	pcre:shared:standard
+BR_DEPS[darwin]=	libiconv:static:standard
 
 USES=			cpe gmake
 GNOME_COMPONENTS=	libxml2
@@ -91,6 +92,10 @@ post-patch:
 		${WRKSRC}/scripts/phpize.in
 	${REINPLACE_CMD} -e "/include_dir=/ s|php|php56|" \
 		${WRKSRC}/scripts/php-config.in
+	${REINPLACE_CMD} -e "s|darwin|darwin-disable|" \
+		${WRKSRC}/sapi/cgi/config9.m4 \
+		${WRKSRC}/sapi/cli/config.m4 \
+		${WRKSRC}/sapi/fpm/config.m4
 
 post-install-DEBUGGER-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/phpdbg56
@@ -162,7 +167,7 @@ version 7.0.x include:
 c2fac47dc6316bd230f0ea91d8a5498af122fb6a3eb43f796c9ea5f59b04aa1e     12467408 php-5.6.38.tar.xz
 
 
-[FILE:4882:manifests/plist.single]
+[FILE:4897:manifests/plist.single]
 %%CGI-ON%%bin/php-cgi%%SUFFIX%%
 %%CGI-ON%%share/man/man1/php-cgi%%SUFFIX%%.1.gz
 %%CLI-ON%%bin/php%%SUFFIX%%
@@ -171,7 +176,7 @@ c2fac47dc6316bd230f0ea91d8a5498af122fb6a3eb43f796c9ea5f59b04aa1e     12467408 ph
 %%DEBUGGER-ON%%bin/phpdbg%%SUFFIX%%
 %%DEBUGGER-ON%%share/man/man1/phpdbg%%SUFFIX%%.1.gz
 %%EMBED-ON%%include/php%%SUFFIX%%/sapi/embed/php_embed.h
-%%EMBED-ON%%lib/php%%SUFFIX%%/libphp%%SOMAJOR%%.so
+%%EMBED-ON%%lib/php%%SUFFIX%%/libphp%%SOMAJOR%%.%%SHARED_OBJECT%%
 %%FPM-ON%%@sample etc/php%%SUFFIX%%/php-fpm.conf.default etc/php%%SUFFIX%%/php-fpm.conf
 %%FPM-ON%%sbin/php-fpm%%SUFFIX%%
 %%FPM-ON%%share/man/man8/php-fpm%%SUFFIX%%.8.gz

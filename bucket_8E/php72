@@ -24,6 +24,7 @@ OPT_ON[all]=		CLI CGI FPM EMBED DEBUGGER
 BUILD_DEPENDS=		pcre:static:standard
 			autoconf:single:standard
 BUILDRUN_DEPENDS=	pcre:shared:standard
+BR_DEPS[darwin]=	libiconv:static:standard
 
 USES=			cpe gmake
 GNOME_COMPONENTS=	libxml2
@@ -90,6 +91,10 @@ post-patch:
 		${WRKSRC}/scripts/phpize.in
 	${REINPLACE_CMD} -e "/include_dir=/ s|php|php72|" \
 		${WRKSRC}/scripts/php-config.in
+	${REINPLACE_CMD} -e "s|darwin|darwin-disable|" \
+		${WRKSRC}/sapi/cgi/config9.m4 \
+		${WRKSRC}/sapi/cli/config.m4 \
+		${WRKSRC}/sapi/fpm/config.m4
 
 post-install-DEBUGGER-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/phpdbg72
@@ -159,7 +164,7 @@ version 7.0.x include:
 01c2154a3a8e3c0818acbdbc1a956832c828a0380ce6d1d14fea495ea21804f0     12160864 php-7.2.10.tar.xz
 
 
-[FILE:5466:manifests/plist.single]
+[FILE:5481:manifests/plist.single]
 %%CGI-ON%%bin/php-cgi%%SUFFIX%%
 %%CGI-ON%%share/man/man1/php-cgi%%SUFFIX%%.1.gz
 %%CLI-ON%%bin/php%%SUFFIX%%
@@ -168,7 +173,7 @@ version 7.0.x include:
 %%DEBUGGER-ON%%bin/phpdbg%%SUFFIX%%
 %%DEBUGGER-ON%%share/man/man1/phpdbg%%SUFFIX%%.1.gz
 %%EMBED-ON%%include/php%%SUFFIX%%/sapi/embed/php_embed.h
-%%EMBED-ON%%lib/php%%SUFFIX%%/libphp%%SOMAJOR%%.so
+%%EMBED-ON%%lib/php%%SUFFIX%%/libphp%%SOMAJOR%%.%%SHARED_OBJECT%%
 %%FPM-ON%%@sample etc/php%%SUFFIX%%/php-fpm.conf.default etc/php%%SUFFIX%%/php-fpm.conf
 %%FPM-ON%%@sample etc/php%%SUFFIX%%/php-fpm.d/www.conf.default etc/php%%SUFFIX%%/php-fpm.d/www.conf
 %%FPM-ON%%sbin/php-fpm%%SUFFIX%%
