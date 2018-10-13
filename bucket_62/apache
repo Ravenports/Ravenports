@@ -12,7 +12,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		APACHE_HTTPD/
 DISTFILE[1]=		httpd-2.4.35.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			docs
 
 OPTIONS_AVAILABLE=	MPM_PREFORK MPM_WORKER MPM_EVENT
 OPTIONS_STANDARD=	MPM_PREFORK MPM_WORKER MPM_EVENT
@@ -25,21 +27,29 @@ OPT_ON[linux]=		MPM_EVENT
 OPT_ON[darwin]=		MPM_EVENT
 OPT_ON[dragonfly]=	MPM_EVENT
 
-BROKEN[all]=		WIP - needs to save to release repo
-
 BUILD_DEPENDS=		expat:static:standard
 			pcre:static:standard
 BUILDRUN_DEPENDS=	expat:shared:standard
 			pcre:shared:standard
 			apr1:single:standard
+			apr-util:single:standard
 			libnghttp2:single:standard
 
 USERS=			wwwraven
 GROUPS=			wwwraven
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
-USES=			autoreconf cpe iconv libtool ssl perl:run
+USES=			autoreconf cpe iconv libtool ssl perl:run zlib
 GNOME_COMPONENTS=	libxml2
+
+DISTNAME=		httpd-2.4.35
+
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/httpd.h
+LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		http_server
 CPE_VENDOR=		apache
@@ -47,11 +57,14 @@ FPC_EQUIVALENT=		www/apache24
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-http
+			--enable-layout=Ravenports
 			--with-pcre={{LOCALBASE}}
 			--with-apr={{LOCALBASE}}/bin/apr-1-config
 			--with-apr-util={{LOCALBASE}}/bin/apu-1-config
 			--with-nghttp2={{LOCALBASE}}
+			--with-libxml2={{LOCALBASE}}
 			--with-ssl={{OPENSSLBASE}}
+			--with-z={{LOCALBASE}}
 			--enable-mpms-shared=all
 			--enable-access-compat=shared
 			--enable-actions=shared
@@ -181,7 +194,7 @@ CONFIGURE_ENV=		LOCALBASE="{{LOCALBASE}}"
 			CONFIG_SHELL="{{SH}}"
 
 MAKE_ENV=		EXPR_COMPAT="yes"
-			INSTALL_MAN="{{INSTALL_MAN}}
+			INSTALL_MAN="{{INSTALL_MAN}}"
 
 [MPM_WORKER].DESCRIPTION=		Build multi-threaded, multi-process web server
 [MPM_WORKER].CONFIGURE_ARGS_ON=		--with-mpm=worker
@@ -192,6 +205,645 @@ MAKE_ENV=		EXPR_COMPAT="yes"
 [MPM_PREFORK].DESCRIPTION=		Build non-threaded, pre-forking web server
 [MPM_PREFORK].CONFIGURE_ARGS_ON=	--with-mpm=prefork
 
+post-install:
+	${FIND} ${STAGEDIR}${STD_DOCDIR} -type d -empty -delete
+	${FIND} ${STAGEDIR}/var -type d -empty -delete
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/apache/*.so
+.for binary in ab htdbm htdigest htpasswd httxt2dbm logresolve
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${binary}
+.endfor
+.for binary in checkgid fcgistarter htcacheclean httpd rotatelogs
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/sbin/${binary}
+.endfor
+
+[FILE:403:descriptions/desc.primary]
+The Apache HTTP Server is a powerful and flexible HTTP/1.1 compliant web
+server.  Originally designed as a replacement for the NCSA HTTP Server, it
+has grown to be the most popular web server on the Internet.  As a project
+of the Apache Software Foundation, the developers aim to collaboratively
+develop and maintain a robust, commercial-grade, standards-based server
+with freely available source code.
+
+
 [FILE:99:distinfo]
 2607c6fdd4d12ac3f583127629291e9432b247b782396a563bec5678aae69b56      7044336 httpd-2.4.35.tar.bz2
+
+
+[FILE:9325:manifests/plist.primary]
+bin/
+ ab
+ apxs
+ dbmmanage
+ htdbm
+ htdigest
+ htpasswd
+ httxt2dbm
+ logresolve
+etc/apache/
+ httpd.conf
+ magic
+ mime.types
+etc/apache/extra/
+ httpd-autoindex.conf
+ httpd-dav.conf
+ httpd-default.conf
+ httpd-info.conf
+ httpd-languages.conf
+ httpd-manual.conf
+ httpd-mpm.conf
+ httpd-multilang-errordoc.conf
+ httpd-ssl.conf
+ httpd-userdir.conf
+ httpd-vhosts.conf
+ proxy-html.conf
+etc/apache/original/httpd.conf
+etc/apache/original/extra/
+ httpd-autoindex.conf
+ httpd-dav.conf
+ httpd-default.conf
+ httpd-info.conf
+ httpd-languages.conf
+ httpd-manual.conf
+ httpd-mpm.conf
+ httpd-multilang-errordoc.conf
+ httpd-ssl.conf
+ httpd-userdir.conf
+ httpd-vhosts.conf
+ proxy-html.conf
+include/apache/
+ ap_compat.h
+ ap_config.h
+ ap_config_auto.h
+ ap_config_layout.h
+ ap_expr.h
+ ap_hooks.h
+ ap_listen.h
+ ap_mmn.h
+ ap_mpm.h
+ ap_provider.h
+ ap_regex.h
+ ap_regkey.h
+ ap_release.h
+ ap_slotmem.h
+ ap_socache.h
+ apache_noprobes.h
+ cache_common.h
+ heartbeat.h
+ http_config.h
+ http_connection.h
+ http_core.h
+ http_log.h
+ http_main.h
+ http_protocol.h
+ http_request.h
+ http_vhost.h
+ httpd.h
+ mod_auth.h
+ mod_cache.h
+ mod_cgi.h
+ mod_core.h
+ mod_dav.h
+ mod_dbd.h
+ mod_include.h
+ mod_log_config.h
+ mod_proxy.h
+ mod_request.h
+ mod_rewrite.h
+ mod_session.h
+ mod_so.h
+ mod_ssl.h
+ mod_ssl_openssl.h
+ mod_status.h
+ mod_unixd.h
+ mod_watchdog.h
+ mod_xml2enc.h
+ mpm_common.h
+ os.h
+ scoreboard.h
+ unixd.h
+ util_cfgtree.h
+ util_charset.h
+ util_cookies.h
+ util_ebcdic.h
+ util_fcgi.h
+ util_filter.h
+ util_ldap.h
+ util_md5.h
+ util_mutex.h
+ util_script.h
+ util_time.h
+ util_varbuf.h
+ util_xml.h
+libexec/apache/
+ httpd.exp
+ mod_access_compat.%%SHARED_OBJECT%%
+ mod_actions.%%SHARED_OBJECT%%
+ mod_alias.%%SHARED_OBJECT%%
+ mod_allowmethods.%%SHARED_OBJECT%%
+ mod_asis.%%SHARED_OBJECT%%
+ mod_auth_basic.%%SHARED_OBJECT%%
+ mod_auth_digest.%%SHARED_OBJECT%%
+ mod_auth_form.%%SHARED_OBJECT%%
+ mod_authn_anon.%%SHARED_OBJECT%%
+ mod_authn_core.%%SHARED_OBJECT%%
+ mod_authn_dbd.%%SHARED_OBJECT%%
+ mod_authn_dbm.%%SHARED_OBJECT%%
+ mod_authn_file.%%SHARED_OBJECT%%
+ mod_authn_socache.%%SHARED_OBJECT%%
+ mod_authnz_fcgi.%%SHARED_OBJECT%%
+ mod_authz_core.%%SHARED_OBJECT%%
+ mod_authz_dbd.%%SHARED_OBJECT%%
+ mod_authz_dbm.%%SHARED_OBJECT%%
+ mod_authz_groupfile.%%SHARED_OBJECT%%
+ mod_authz_host.%%SHARED_OBJECT%%
+ mod_authz_owner.%%SHARED_OBJECT%%
+ mod_authz_user.%%SHARED_OBJECT%%
+ mod_autoindex.%%SHARED_OBJECT%%
+ mod_buffer.%%SHARED_OBJECT%%
+ mod_cache.%%SHARED_OBJECT%%
+ mod_cache_disk.%%SHARED_OBJECT%%
+ mod_cache_socache.%%SHARED_OBJECT%%
+ mod_cern_meta.%%SHARED_OBJECT%%
+ mod_cgi.%%SHARED_OBJECT%%
+ mod_cgid.%%SHARED_OBJECT%%
+ mod_charset_lite.%%SHARED_OBJECT%%
+ mod_data.%%SHARED_OBJECT%%
+ mod_dav.%%SHARED_OBJECT%%
+ mod_dav_fs.%%SHARED_OBJECT%%
+ mod_dav_lock.%%SHARED_OBJECT%%
+ mod_dbd.%%SHARED_OBJECT%%
+ mod_deflate.%%SHARED_OBJECT%%
+ mod_dialup.%%SHARED_OBJECT%%
+ mod_dir.%%SHARED_OBJECT%%
+ mod_dumpio.%%SHARED_OBJECT%%
+ mod_env.%%SHARED_OBJECT%%
+ mod_expires.%%SHARED_OBJECT%%
+ mod_ext_filter.%%SHARED_OBJECT%%
+ mod_file_cache.%%SHARED_OBJECT%%
+ mod_filter.%%SHARED_OBJECT%%
+ mod_headers.%%SHARED_OBJECT%%
+ mod_heartbeat.%%SHARED_OBJECT%%
+ mod_heartmonitor.%%SHARED_OBJECT%%
+ mod_http2.%%SHARED_OBJECT%%
+ mod_imagemap.%%SHARED_OBJECT%%
+ mod_include.%%SHARED_OBJECT%%
+ mod_info.%%SHARED_OBJECT%%
+ mod_lbmethod_bybusyness.%%SHARED_OBJECT%%
+ mod_lbmethod_byrequests.%%SHARED_OBJECT%%
+ mod_lbmethod_bytraffic.%%SHARED_OBJECT%%
+ mod_lbmethod_heartbeat.%%SHARED_OBJECT%%
+ mod_log_config.%%SHARED_OBJECT%%
+ mod_log_debug.%%SHARED_OBJECT%%
+ mod_log_forensic.%%SHARED_OBJECT%%
+ mod_logio.%%SHARED_OBJECT%%
+ mod_macro.%%SHARED_OBJECT%%
+ mod_mime.%%SHARED_OBJECT%%
+ mod_mime_magic.%%SHARED_OBJECT%%
+ mod_mpm_event.%%SHARED_OBJECT%%
+ mod_mpm_prefork.%%SHARED_OBJECT%%
+ mod_mpm_worker.%%SHARED_OBJECT%%
+ mod_negotiation.%%SHARED_OBJECT%%
+ mod_proxy.%%SHARED_OBJECT%%
+ mod_proxy_ajp.%%SHARED_OBJECT%%
+ mod_proxy_balancer.%%SHARED_OBJECT%%
+ mod_proxy_connect.%%SHARED_OBJECT%%
+ mod_proxy_express.%%SHARED_OBJECT%%
+ mod_proxy_fcgi.%%SHARED_OBJECT%%
+ mod_proxy_fdpass.%%SHARED_OBJECT%%
+ mod_proxy_ftp.%%SHARED_OBJECT%%
+ mod_proxy_hcheck.%%SHARED_OBJECT%%
+ mod_proxy_html.%%SHARED_OBJECT%%
+ mod_proxy_http.%%SHARED_OBJECT%%
+ mod_proxy_http2.%%SHARED_OBJECT%%
+ mod_proxy_scgi.%%SHARED_OBJECT%%
+ mod_proxy_uwsgi.%%SHARED_OBJECT%%
+ mod_proxy_wstunnel.%%SHARED_OBJECT%%
+ mod_ratelimit.%%SHARED_OBJECT%%
+ mod_reflector.%%SHARED_OBJECT%%
+ mod_remoteip.%%SHARED_OBJECT%%
+ mod_reqtimeout.%%SHARED_OBJECT%%
+ mod_request.%%SHARED_OBJECT%%
+ mod_rewrite.%%SHARED_OBJECT%%
+ mod_sed.%%SHARED_OBJECT%%
+ mod_session.%%SHARED_OBJECT%%
+ mod_session_cookie.%%SHARED_OBJECT%%
+ mod_session_crypto.%%SHARED_OBJECT%%
+ mod_session_dbd.%%SHARED_OBJECT%%
+ mod_setenvif.%%SHARED_OBJECT%%
+ mod_slotmem_plain.%%SHARED_OBJECT%%
+ mod_slotmem_shm.%%SHARED_OBJECT%%
+ mod_socache_dbm.%%SHARED_OBJECT%%
+ mod_socache_memcache.%%SHARED_OBJECT%%
+ mod_socache_shmcb.%%SHARED_OBJECT%%
+ mod_speling.%%SHARED_OBJECT%%
+ mod_ssl.%%SHARED_OBJECT%%
+ mod_status.%%SHARED_OBJECT%%
+ mod_substitute.%%SHARED_OBJECT%%
+ mod_unique_id.%%SHARED_OBJECT%%
+ mod_unixd.%%SHARED_OBJECT%%
+ mod_userdir.%%SHARED_OBJECT%%
+ mod_usertrack.%%SHARED_OBJECT%%
+ mod_version.%%SHARED_OBJECT%%
+ mod_vhost_alias.%%SHARED_OBJECT%%
+ mod_watchdog.%%SHARED_OBJECT%%
+ mod_xml2enc.%%SHARED_OBJECT%%
+sbin/
+ apachectl
+ checkgid
+ envvars
+ envvars-std
+ fcgistarter
+ htcacheclean
+ httpd
+ rotatelogs
+share/man/man1/
+ ab.1.gz
+ apxs.1.gz
+ dbmmanage.1.gz
+ htdbm.1.gz
+ htdigest.1.gz
+ htpasswd.1.gz
+ httxt2dbm.1.gz
+ logresolve.1.gz
+share/man/man8/
+ apachectl.8.gz
+ fcgistarter.8.gz
+ htcacheclean.8.gz
+ httpd.8.gz
+ rotatelogs.8.gz
+ suexec.8.gz
+www/apache/build/
+ config.nice
+ config_vars.mk
+ instdso.sh
+ library.mk
+ ltlib.mk
+ mkdir.sh
+ program.mk
+ rules.mk
+ special.mk
+www/apache/cgi-bin/
+ printenv
+ printenv.vbs
+ printenv.wsf
+ test-cgi
+www/apache/data/index.html
+www/apache/error/
+ HTTP_BAD_GATEWAY.html.var
+ HTTP_BAD_REQUEST.html.var
+ HTTP_FORBIDDEN.html.var
+ HTTP_GONE.html.var
+ HTTP_INTERNAL_SERVER_ERROR.html.var
+ HTTP_LENGTH_REQUIRED.html.var
+ HTTP_METHOD_NOT_ALLOWED.html.var
+ HTTP_NOT_FOUND.html.var
+ HTTP_NOT_IMPLEMENTED.html.var
+ HTTP_PRECONDITION_FAILED.html.var
+ HTTP_REQUEST_ENTITY_TOO_LARGE.html.var
+ HTTP_REQUEST_TIME_OUT.html.var
+ HTTP_REQUEST_URI_TOO_LARGE.html.var
+ HTTP_SERVICE_UNAVAILABLE.html.var
+ HTTP_UNAUTHORIZED.html.var
+ HTTP_UNSUPPORTED_MEDIA_TYPE.html.var
+ HTTP_VARIANT_ALSO_VARIES.html.var
+ README
+ contact.html.var
+www/apache/error/include/
+ bottom.html
+ spacer.html
+ top.html
+www/apache/icons/
+ README
+ README.html
+ a.gif
+ a.png
+ alert.black.gif
+ alert.black.png
+ alert.red.gif
+ alert.red.png
+ apache_pb.gif
+ apache_pb.png
+ apache_pb.svg
+ apache_pb2.gif
+ apache_pb2.png
+ back.gif
+ back.png
+ ball.gray.gif
+ ball.gray.png
+ ball.red.gif
+ ball.red.png
+ binary.gif
+ binary.png
+ binhex.gif
+ binhex.png
+ blank.gif
+ blank.png
+ bomb.gif
+ bomb.png
+ box1.gif
+ box1.png
+ box2.gif
+ box2.png
+ broken.gif
+ broken.png
+ burst.gif
+ burst.png
+ c.gif
+ c.png
+ comp.blue.gif
+ comp.blue.png
+ comp.gray.gif
+ comp.gray.png
+ compressed.gif
+ compressed.png
+ continued.gif
+ continued.png
+ dir.gif
+ dir.png
+ diskimg.gif
+ diskimg.png
+ down.gif
+ down.png
+ dvi.gif
+ dvi.png
+ f.gif
+ f.png
+ folder.gif
+ folder.open.gif
+ folder.open.png
+ folder.png
+ folder.sec.gif
+ folder.sec.png
+ forward.gif
+ forward.png
+ generic.gif
+ generic.png
+ generic.red.gif
+ generic.red.png
+ generic.sec.gif
+ generic.sec.png
+ hand.right.gif
+ hand.right.png
+ hand.up.gif
+ hand.up.png
+ icon.sheet.gif
+ icon.sheet.png
+ image1.gif
+ image1.png
+ image2.gif
+ image2.png
+ image3.gif
+ image3.png
+ index.gif
+ index.png
+ layout.gif
+ layout.png
+ left.gif
+ left.png
+ link.gif
+ link.png
+ movie.gif
+ movie.png
+ odf6odb.png
+ odf6odc.png
+ odf6odf.png
+ odf6odg.png
+ odf6odi.png
+ odf6odm.png
+ odf6odp.png
+ odf6ods.png
+ odf6odt.png
+ odf6otc.png
+ odf6otf.png
+ odf6otg.png
+ odf6oth.png
+ odf6oti.png
+ odf6otp.png
+ odf6ots.png
+ odf6ott.png
+ p.gif
+ p.png
+ patch.gif
+ patch.png
+ pdf.gif
+ pdf.png
+ pie0.gif
+ pie0.png
+ pie1.gif
+ pie1.png
+ pie2.gif
+ pie2.png
+ pie3.gif
+ pie3.png
+ pie4.gif
+ pie4.png
+ pie5.gif
+ pie5.png
+ pie6.gif
+ pie6.png
+ pie7.gif
+ pie7.png
+ pie8.gif
+ pie8.png
+ portal.gif
+ portal.png
+ ps.gif
+ ps.png
+ quill.gif
+ quill.png
+ right.gif
+ right.png
+ screw1.gif
+ screw1.png
+ screw2.gif
+ screw2.png
+ script.gif
+ script.png
+ sound1.gif
+ sound1.png
+ sound2.gif
+ sound2.png
+ sphere1.gif
+ sphere1.png
+ sphere2.gif
+ sphere2.png
+ svg.png
+ tar.gif
+ tar.png
+ tex.gif
+ tex.png
+ text.gif
+ text.png
+ transfer.gif
+ transfer.png
+ unknown.gif
+ unknown.png
+ up.gif
+ up.png
+ uu.gif
+ uu.png
+ uuencoded.gif
+ uuencoded.png
+ world1.gif
+ world1.png
+ world2.gif
+ world2.png
+ xml.png
+www/apache/icons/small/
+ back.gif
+ back.png
+ binary.gif
+ binary.png
+ binhex.gif
+ binhex.png
+ blank.gif
+ blank.png
+ broken.gif
+ broken.png
+ burst.gif
+ burst.png
+ comp1.gif
+ comp1.png
+ comp2.gif
+ comp2.png
+ compressed.gif
+ compressed.png
+ continued.gif
+ continued.png
+ doc.gif
+ doc.png
+ folder.gif
+ folder.png
+ folder2.gif
+ folder2.png
+ forward.gif
+ forward.png
+ generic.gif
+ generic.png
+ generic2.gif
+ generic2.png
+ generic3.gif
+ generic3.png
+ image.gif
+ image.png
+ image2.gif
+ image2.png
+ index.gif
+ index.png
+ key.gif
+ key.png
+ movie.gif
+ movie.png
+ patch.gif
+ patch.png
+ ps.gif
+ ps.png
+ rainbow.gif
+ rainbow.png
+ sound.gif
+ sound.png
+ sound2.gif
+ sound2.png
+ tar.gif
+ tar.png
+ text.gif
+ text.png
+ transfer.gif
+ transfer.png
+ unknown.gif
+ unknown.png
+ uu.gif
+ uu.png
+
+
+[FILE:986:patches/patch-config.layout]
+--- config.layout.orig	2018-08-08 11:48:15 UTC
++++ config.layout
+@@ -298,6 +298,30 @@
+   proxycachedir: ${datadir}/proxy
+ </Layout>
+ 
++# Ravenports Layout
++<Layout Ravenports>
++  prefix:        /raven
++  localstatedir: /var/rav-apache
++  exec_prefix:   ${prefix}
++  bindir:        ${exec_prefix}/bin
++  sbindir:       ${exec_prefix}/sbin
++  libdir:        ${exec_prefix}/lib
++  libexecdir:    ${exec_prefix}/libexec/apache
++  mandir:        ${prefix}/share/man
++  sysconfdir:    ${prefix}/etc/apache
++  datadir:       ${prefix}/www/apache
++  installbuilddir: ${datadir}/build
++  errordir:      ${datadir}/error
++  iconsdir:      ${datadir}/icons
++  htdocsdir:     ${datadir}/data
++  cgidir:        ${datadir}/cgi-bin
++  manualdir:     ${prefix}/share/doc/apache
++  includedir:    ${prefix}/include/apache
++  runtimedir:    ${localstatedir}/run
++  logfiledir:    ${localstatedir}/log
++  proxycachedir: ${datadir}/proxy
++</Layout>
++
+ # Debian layout
+ <Layout Debian>
+     prefix:        
+
+
+[FILE:457:patches/patch-modules_ssl_mod__ssl.c]
+--- modules/ssl/mod_ssl.c.orig	2018-06-22 09:45:39 UTC
++++ modules/ssl/mod_ssl.c
+@@ -398,7 +398,7 @@ static int ssl_hook_pre_config(apr_pool_
+     /* We must register the library in full, to ensure our configuration
+      * code can successfully test the SSL environment.
+      */
+-#if MODSSL_USE_OPENSSL_PRE_1_1_API
++#if MODSSL_USE_OPENSSL_PRE_1_1_API || defined(LIBRESSL_VERSION_NUMBER)
+     (void)CRYPTO_malloc_init();
+ #else
+     OPENSSL_malloc_init();
+
+
+[FILE:443:patches/patch-modules_ssl_ssl__engine__init.c]
+--- modules/ssl/ssl_engine_init.c.orig	2018-07-05 19:24:07 UTC
++++ modules/ssl/ssl_engine_init.c
+@@ -547,7 +547,7 @@ static apr_status_t ssl_init_ctx_protoco
+     char *cp;
+     int protocol = mctx->protocol;
+     SSLSrvConfigRec *sc = mySrvConfig(s);
+-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
++#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !(defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x20700000L)
+     int prot;
+ #endif
+ 
+
+
+[FILE:393:patches/patch-modules_ssl_ssl__private.h]
+--- modules/ssl/ssl_private.h.orig	2018-06-22 09:45:39 UTC
++++ modules/ssl/ssl_private.h
+@@ -123,7 +123,7 @@
+ #define MODSSL_SSL_METHOD_CONST
+ #endif
+ 
+-#if defined(LIBRESSL_VERSION_NUMBER)
++#if defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x20700000L
+ /* Missing from LibreSSL */
+ #if LIBRESSL_VERSION_NUMBER < 0x2060000f
+ #define SSL_CTRL_SET_MIN_PROTO_VERSION          123
+
+
+[FILE:592:patches/patch-modules_ssl_ssl__util__stapling.c]
+--- modules/ssl/ssl_util_stapling.c.orig	2017-03-20 12:01:16 UTC
++++ modules/ssl/ssl_util_stapling.c
+@@ -91,7 +91,7 @@ static X509 *stapling_get_issuer(modssl_
+     for (i = 0; i < sk_X509_num(extra_certs); i++) {
+         issuer = sk_X509_value(extra_certs, i);
+         if (X509_check_issued(issuer, x) == X509_V_OK) {
+-#if OPENSSL_VERSION_NUMBER < 0x10100000L
++#if OPENSSL_VERSION_NUMBER < 0x10100000L || (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x2050000fL)
+             CRYPTO_add(&issuer->references, 1, CRYPTO_LOCK_X509);
+ #else
+             X509_up_ref(issuer);
 

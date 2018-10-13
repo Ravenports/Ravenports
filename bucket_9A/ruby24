@@ -57,10 +57,14 @@ CONFIGURE_ARGS=		--enable-pthread
 			{{RUBY_CONFIGURE_ARGS}}
 CONFIGURE_ENV=		debugflags=
 			ac_cv_build={{CONFIGURE_TARGET}}
+			stack_protector=no
 
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		XY={{RUBY_SUFFIX}}
 			XDOTY={{RUBY_VER}}
+
+CFLAGS=			-Wno-attributes
+VAR_OPSYS[darwin]=	CONFIGURE_ENV=ac_cv_func_backtrace=no
 
 post-patch:
 	${FIND} ${WRKSRC}/ -name "*.orig" -delete
@@ -80,8 +84,8 @@ pre-install:
 post-install:
 	# strip ruby binaries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${RUBY_NAME}
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libruby${RUBY_SHLIBVER}.so
-	${FIND} ${STAGEDIR}${RUBY_ARCHLIBDIR} -type f -name '*\.so' -exec ${STRIP_CMD} {} \;
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libruby${RUBY_SHLIBVER}.${LIBEXT}
+	${FIND} ${STAGEDIR}${RUBY_ARCHLIBDIR} -type f -name '*\.${LIBEXT}' -exec ${STRIP_CMD} {} \;
 	# install docs
 	(cd ${WRKSRC}/doc/ && ${COPYTREE_SHARE} . ${STAGEDIR}${RUBY_DOCDIR}/)
 	${INSTALL_DATA} ${WRKSRC}/ext/readline/README ${STAGEDIR}${RUBY_DOCDIR}/readline/
@@ -134,7 +138,7 @@ This package contains the Ruby Documentation System for Ruby24.
 1d0034071d675193ca769f64c91827e5f54cb3a7962316a41d5217c7bc6949f0     10049304 ruby/ruby-2.4.4.tar.xz
 
 
-[FILE:15912:manifests/plist.primary]
+[FILE:16704:manifests/plist.primary]
 %%ONLY-LINUX%%lib/libruby%%XY%%.so.%%RUBY_VERSION%%
 bin/
  erb%%XY%%
@@ -251,112 +255,112 @@ lib/ruby/%%XDOTY%%/
  webrick.rb
  yaml.rb
 lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/
- bigdecimal.so
- continuation.so
- coverage.so
- date_core.so
- dbm.so
- digest.so
- etc.so
- fcntl.so
- fiber.so
- fiddle.so
- gdbm.so
- nkf.so
- objspace.so
- openssl.so
- pathname.so
- psych.so
- pty.so
+ bigdecimal.%%MODULE%%
+ continuation.%%MODULE%%
+ coverage.%%MODULE%%
+ date_core.%%MODULE%%
+ dbm.%%MODULE%%
+ digest.%%MODULE%%
+ etc.%%MODULE%%
+ fcntl.%%MODULE%%
+ fiber.%%MODULE%%
+ fiddle.%%MODULE%%
+ gdbm.%%MODULE%%
+ nkf.%%MODULE%%
+ objspace.%%MODULE%%
+ openssl.%%MODULE%%
+ pathname.%%MODULE%%
+ psych.%%MODULE%%
+ pty.%%MODULE%%
  rbconfig.rb
- readline.so
- ripper.so
- sdbm.so
- socket.so
- stringio.so
- strscan.so
- syslog.so
- zlib.so
-lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/cgi/escape.so
+ readline.%%MODULE%%
+ ripper.%%MODULE%%
+ sdbm.%%MODULE%%
+ socket.%%MODULE%%
+ stringio.%%MODULE%%
+ strscan.%%MODULE%%
+ syslog.%%MODULE%%
+ zlib.%%MODULE%%
+lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/cgi/escape.%%MODULE%%
 lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/digest/
- bubblebabble.so
- md5.so
- rmd160.so
- sha1.so
- sha2.so
+ bubblebabble.%%MODULE%%
+ md5.%%MODULE%%
+ rmd160.%%MODULE%%
+ sha1.%%MODULE%%
+ sha2.%%MODULE%%
 lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/enc/
- big5.so
- cp949.so
- emacs_mule.so
- encdb.so
- euc_jp.so
- euc_kr.so
- euc_tw.so
- gb18030.so
- gb2312.so
- gbk.so
- iso_8859_1.so
- iso_8859_10.so
- iso_8859_11.so
- iso_8859_13.so
- iso_8859_14.so
- iso_8859_15.so
- iso_8859_16.so
- iso_8859_2.so
- iso_8859_3.so
- iso_8859_4.so
- iso_8859_5.so
- iso_8859_6.so
- iso_8859_7.so
- iso_8859_8.so
- iso_8859_9.so
- koi8_r.so
- koi8_u.so
- shift_jis.so
- utf_16be.so
- utf_16le.so
- utf_32be.so
- utf_32le.so
- windows_1250.so
- windows_1251.so
- windows_1252.so
- windows_1253.so
- windows_1254.so
- windows_1257.so
- windows_31j.so
+ big5.%%MODULE%%
+ cp949.%%MODULE%%
+ emacs_mule.%%MODULE%%
+ encdb.%%MODULE%%
+ euc_jp.%%MODULE%%
+ euc_kr.%%MODULE%%
+ euc_tw.%%MODULE%%
+ gb18030.%%MODULE%%
+ gb2312.%%MODULE%%
+ gbk.%%MODULE%%
+ iso_8859_1.%%MODULE%%
+ iso_8859_10.%%MODULE%%
+ iso_8859_11.%%MODULE%%
+ iso_8859_13.%%MODULE%%
+ iso_8859_14.%%MODULE%%
+ iso_8859_15.%%MODULE%%
+ iso_8859_16.%%MODULE%%
+ iso_8859_2.%%MODULE%%
+ iso_8859_3.%%MODULE%%
+ iso_8859_4.%%MODULE%%
+ iso_8859_5.%%MODULE%%
+ iso_8859_6.%%MODULE%%
+ iso_8859_7.%%MODULE%%
+ iso_8859_8.%%MODULE%%
+ iso_8859_9.%%MODULE%%
+ koi8_r.%%MODULE%%
+ koi8_u.%%MODULE%%
+ shift_jis.%%MODULE%%
+ utf_16be.%%MODULE%%
+ utf_16le.%%MODULE%%
+ utf_32be.%%MODULE%%
+ utf_32le.%%MODULE%%
+ windows_1250.%%MODULE%%
+ windows_1251.%%MODULE%%
+ windows_1252.%%MODULE%%
+ windows_1253.%%MODULE%%
+ windows_1254.%%MODULE%%
+ windows_1257.%%MODULE%%
+ windows_31j.%%MODULE%%
 lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/enc/trans/
- big5.so
- chinese.so
- ebcdic.so
- emoji.so
- emoji_iso2022_kddi.so
- emoji_sjis_docomo.so
- emoji_sjis_kddi.so
- emoji_sjis_softbank.so
- escape.so
- gb18030.so
- gbk.so
- iso2022.so
- japanese.so
- japanese_euc.so
- japanese_sjis.so
- korean.so
- single_byte.so
- transdb.so
- utf8_mac.so
- utf_16_32.so
+ big5.%%MODULE%%
+ chinese.%%MODULE%%
+ ebcdic.%%MODULE%%
+ emoji.%%MODULE%%
+ emoji_iso2022_kddi.%%MODULE%%
+ emoji_sjis_docomo.%%MODULE%%
+ emoji_sjis_kddi.%%MODULE%%
+ emoji_sjis_softbank.%%MODULE%%
+ escape.%%MODULE%%
+ gb18030.%%MODULE%%
+ gbk.%%MODULE%%
+ iso2022.%%MODULE%%
+ japanese.%%MODULE%%
+ japanese_euc.%%MODULE%%
+ japanese_sjis.%%MODULE%%
+ korean.%%MODULE%%
+ single_byte.%%MODULE%%
+ transdb.%%MODULE%%
+ utf8_mac.%%MODULE%%
+ utf_16_32.%%MODULE%%
 lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/io/
- console.so
- nonblock.so
- wait.so
+ console.%%MODULE%%
+ nonblock.%%MODULE%%
+ wait.%%MODULE%%
 lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/json/ext/
- generator.so
- parser.so
+ generator.%%MODULE%%
+ parser.%%MODULE%%
 lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/mathn/
- complex.so
- rational.so
-lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/racc/cparse.so
-lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/rbconfig/sizeof.so
+ complex.%%MODULE%%
+ rational.%%MODULE%%
+lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/racc/cparse.%%MODULE%%
+lib/ruby/%%XDOTY%%/%%RUBY_ARCH%%/rbconfig/sizeof.%%MODULE%%
 lib/ruby/%%XDOTY%%/bigdecimal/
  jacobian.rb
  ludcmp.rb
@@ -1354,10 +1358,19 @@ share/examples/ruby%%XY%%/webrick/
  httpsd.rb
 
 
-[FILE:1160:patches/patch-configure.in]
---- configure.in.orig	2017-09-14 22:22:39 UTC
+[FILE:2179:patches/patch-configure.in]
+--- configure.in.orig	2018-03-02 12:59:11 UTC
 +++ configure.in
-@@ -3879,21 +3879,17 @@ AS_CASE("$enable_shared", [yes], [
+@@ -1112,7 +1112,7 @@ AS_CASE(["$target_os"],
+ [nextstep*], [	],
+ [openstep*], [	],
+ [rhapsody*], [	],
+-[darwin*], [	RUBY_PREPEND_OPTION(LIBS, -lobjc)
++[darwin*], [
+ 		RUBY_APPEND_OPTIONS(CPPFLAGS, -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT)
+ 		AC_MSG_CHECKING(whether Mac OS X 10.5 or later)
+ 		AC_TRY_CPP([#include <AvailabilityMacros.h>
+@@ -3885,21 +3885,17 @@ AS_CASE("$enable_shared", [yes], [
  	LIBRUBY_ALIASES='lib$(RUBY_SO_NAME).so.$(MAJOR).$(MINOR) lib$(RUBY_SO_NAME).so'
  	],
      [linux* | gnu* | k*bsd*-gnu | atheos* | kopensolaris*-gnu | haiku*], [
@@ -1382,6 +1395,56 @@ share/examples/ruby%%XY%%/webrick/
  	],
      [netbsd*], [
  	SOLIBS='$(LIBS)'
+@@ -3937,7 +3933,6 @@ AS_CASE("$enable_shared", [yes], [
+ 	SOLIBS='-lm -lc'
+ 	],
+     [darwin*], [
+-	RUBY_SO_NAME="$RUBY_SO_NAME"'.$(RUBY_PROGRAM_VERSION)'
+ 	LIBRUBY_LDSHARED='$(CC) -dynamiclib'
+ 	if test "$load_relative" = yes; then
+ 	    libprefix="@executable_path/../${libdir_basename}"
+@@ -3953,7 +3948,7 @@ AS_CASE("$enable_shared", [yes], [
+ 	fi
+ 	LIBRUBY_DLDFLAGS="$LIBRUBY_DLDFLAGS "' $(XLDFLAGS)'
+ 	LIBRUBY_SO='lib$(RUBY_SO_NAME).dylib'
+-	LIBRUBY_ALIASES='lib$(RUBY_BASE_NAME).$(MAJOR).$(MINOR).dylib lib$(RUBY_INSTALL_NAME).dylib'
++	LIBRUBY_ALIASES='lib$(RUBY_SO_NAME).$(MAJOR)$(MINOR).dylib'
+ 	SOLIBS='$(LIBS)'
+ 	],
+     [interix*], [
+
+
+[FILE:744:patches/patch-dir.c]
+--- dir.c.orig	2018-03-28 11:16:19 UTC
++++ dir.c
+@@ -100,16 +100,16 @@ char *strchr(char*,char);
+ # define USE_NAME_ON_FS 0
+ #endif
+ 
+-#ifdef __APPLE__
++#if 0
+ # define NORMALIZE_UTF8PATH 1
+ #else
+ # define NORMALIZE_UTF8PATH 0
+ #endif
+ 
++#include <sys/vnode.h>
+ #if NORMALIZE_UTF8PATH
+ #include <sys/param.h>
+ #include <sys/mount.h>
+-#include <sys/vnode.h>
+ 
+ # if defined HAVE_FGETATTRLIST || !defined HAVE_GETATTRLIST
+ #   define need_normalization(dirp, path) need_normalization(dirp)
+@@ -1047,7 +1047,7 @@ rb_dir_getwd(void)
+ 
+     if (fsenc == ENCINDEX_US_ASCII) fsenc = ENCINDEX_ASCII;
+     path = my_getcwd();
+-#ifdef __APPLE__
++#if NORMALIZE_UTF8PATH
+     cwd = rb_str_normalize_ospath(path, strlen(path));
+     OBJ_TAINT(cwd);
+ #else
 
 
 [FILE:1084:patches/patch-ext-openssl-extconf.rb]
@@ -1413,6 +1476,39 @@ Fixes: https://github.com/ruby/openssl/issues/192
  have_func("BN_GENCB_new")
  have_func("BN_GENCB_free")
  have_func("BN_GENCB_get_arg")
+
+
+[FILE:640:patches/patch-file.c]
+--- file.c.orig	2018-03-23 12:03:58 UTC
++++ file.c
+@@ -19,9 +19,6 @@
+ #include <sys/cygwin.h>
+ #include <wchar.h>
+ #endif
+-#ifdef __APPLE__
+-#include <CoreFoundation/CFString.h>
+-#endif
+ 
+ #include "internal.h"
+ #include "ruby/io.h"
+@@ -238,7 +235,7 @@ rb_str_encode_ospath(VALUE path)
+     return path;
+ }
+ 
+-#ifdef __APPLE__
++#if 0
+ # define NORMALIZE_UTF8PATH 1
+ static VALUE
+ rb_str_append_normalized_ospath(VALUE str, const char *ptr, long len)
+@@ -3503,7 +3500,7 @@ rb_file_expand_path_internal(VALUE fname
+ 	    b = ++s;
+ 	    break;
+ 	  default:
+-#ifdef __APPLE__
++#if 0
+ 	    {
+ 		int n = ignored_char_p(s, fend, enc);
+ 		if (n) {
 
 
 [FILE:469:patches/patch-lib_mkmf.rb]
@@ -1562,11 +1658,17 @@ Fixes: https://github.com/ruby/openssl/issues/192
  include FileUtils
 
 
-[FILE:378:files/special.mk]
+[FILE:467:files/special.mk]
 # Macros to change variables in rbconfig.rb
 RB_SET_CONF_VAR=${SH} -c '${REINPLACE_CMD} -E -e "s,(CONFIG\[\"$$0\"\][[:space:]]*=[[:space:]]*)(\(?)(.*)(\)?),\1\2$$1\4," ${WRKSRC}/rbconfig.rb' --
 
 POST_PLIST_TARGET=	rdoc-autolist
+
+.if "${OPSYS}" == "Darwin"
+PLIST_SUB+=	MODULE=bundle
+.else
+PLIST_SUB+=	MODULE=so
+.endif
 
 rdoc-autolist:
 	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/ri \

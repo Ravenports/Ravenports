@@ -31,11 +31,13 @@ CONFIGURE_ARGS=		--datadir={{PREFIX}}/share/expect
 
 PLIST_SUB=		PORTVERSION=5.45.4
 
+VAR_OPSYS[darwin]=	VAR1=1.dylib
+
 post-install:
-	${LN} -sf expect5.45.4/libexpect5.45.4.so \
-		${STAGEDIR}${PREFIX}/lib/libexpect.so.1
-	${LN} -sf libexpect.so.1 ${STAGEDIR}${PREFIX}/lib/libexpect.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libexpect.so.1
+	${LN} -sf expect5.45.4/libexpect5.45.4.${LIBEXT} \
+		${STAGEDIR}${PREFIX}/lib/libexpect.${VAR1:Uso.1}
+	${LN} -sf libexpect.${VAR1:Uso.1} ${STAGEDIR}${PREFIX}/lib/libexpect.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libexpect.${LIBEXT}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/expect
 
 [FILE:290:descriptions/desc.single]

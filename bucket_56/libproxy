@@ -26,6 +26,7 @@ USES=			cclibs:single c++:single cmake pkgconfig
 FPC_EQUIVALENT=		net/libproxy
 
 SOVERSION=		1.0.0
+PLIST_SUB=		VERSION=0.4.15
 
 CXXFLAGS=		-std=c++03
 CMAKE_ARGS=		-DBIPR:BOOL=OFF
@@ -45,8 +46,8 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 [PERL].DESCRIPTION=			Build with Perl binding
 [PERL].CMAKE_ARGS_OFF=			-DWITH_PERL:BOOL=OFF
-[PERL].CMAKE_ARGS_ON=			-DWITH_PERL:BOOL=ON
 					-DPERL_LINK_LIBPERL:BOOL=OFF
+[PERL].CMAKE_ARGS_ON=			-DWITH_PERL:BOOL=ON
 [PERL].USES_ON=				perl:perl_default
 
 [VALA].DESCRIPTION=			Build with Vala binding
@@ -69,7 +70,7 @@ post-install-PERL-ON:
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/proxy
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libproxy.so.*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libproxy.${LIBEXT}
 
 [FILE:218:descriptions/desc.single]
 Libproxy is a library that provides automatic proxy configuration 
@@ -81,7 +82,8 @@ to work with GConf/Gsettings for GNOME or kreadconfig/kreadconfig5 for KDE.
 18f58b0a0043b6881774187427ead158d310127fc46a1c668ad6d207fb28b4e0        93084 libproxy-libproxy-0.4.15.tar.gz
 
 
-[FILE:353:manifests/plist.single]
+[FILE:436:manifests/plist.single]
+%%ONLY-DARWIN%%lib/libproxy/%%VERSION%%/modules/pacrunner_webkit.%%SHARED_OBJECT%%
 %%PERL-ON%%%%SITE_ARCH%%/Net/Libproxy.pm
 %%PERL-ON%%%%SITE_ARCH%%/auto/Net/Libproxy/Libproxy.so
 %%PYTHON-ON%%%%PYTHON_SITELIBDIR%%/libproxy.py

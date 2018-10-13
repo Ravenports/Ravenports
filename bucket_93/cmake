@@ -65,6 +65,8 @@ post-patch:
 		${WRKSRC}/Modules/FindKDE4.cmake
 	${REINPLACE_CMD} -e 's,/usr/include,${LOCALBASE}/include,' \
 		${WRKSRC}/Modules/FindDCMTK.cmake
+	${REINPLACE_CMD} -e 's|__APPLE__|__SKIPME__|' \
+		${WRKSRC}/Source/cmGlobalXCodeGenerator.cxx
 	${FIND} ${WRKSRC} -name "*.bak" -delete -o -name "*.orig" -delete
 	# cmake-gui(1) will be installed by a separate port.  Remove the man page's
 	# source to prevent it from being built/installed by devel/cmake.
@@ -94,7 +96,8 @@ pre-processor generation, code generation, and template instantiation.
 acbf13af31a741794106b76e5d22448b004a66485fc99f6d7df4d22e99da164a      8388552 cmake-3.12.3.tar.gz
 
 
-[FILE:58257:manifests/plist.single]
+[FILE:58288:manifests/plist.single]
+%%ONLY-DARWIN%%bin/cmakexbuild
 bin/
  ccmake
  cmake

@@ -61,6 +61,10 @@ post-patch:
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtcl86.so
 
+post-install-darwin:
+	${MV} ${STAGEDIR}${PREFIX}/lib/libtcl86.so \
+		${STAGEDIR}${PREFIX}/lib/libtcl86.dylib
+
 post-configure:
 	${REINPLACE_CMD} \
 		-e 's,-DNO_MEMMOVE=1,,' -e 's,-DNO_STRING_H=1,,' \
@@ -2049,7 +2053,7 @@ share/man/mann/
  install-private-headers:
 
 
-[FILE:1078:patches/patch-unix_configure]
+[FILE:1496:patches/patch-unix_configure]
 --- unix/configure.orig	2017-12-21 18:16:25 UTC
 +++ unix/configure
 @@ -7376,6 +7376,10 @@ fi
@@ -2072,7 +2076,7 @@ share/man/mann/
  	    # This configuration from FreeBSD Ports.
  	    SHLIB_CFLAGS="-fPIC"
  	    SHLIB_LD="${CC} -shared"
-@@ -7598,15 +7602,11 @@ fi
+@@ -7598,19 +7602,19 @@ fi
  		LDFLAGS="$LDFLAGS $PTHREAD_LIBS"
  fi
  
@@ -2089,4 +2093,12 @@ share/man/mann/
  	    ;;
  	Darwin-*)
  	    CFLAGS_OPTIMIZE="-Os"
+ 	    SHLIB_CFLAGS="-fno-common"
++	    TCL_TRIM_DOTS=`echo ${VERSION} | tr -d .`
++	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
++	    SHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.1.dylib'
++	    TCL_LIB_VERSIONS_OK=nodots
+ 	    # To avoid discrepancies between what headers configure sees during
+ 	    # preprocessing tests and compiling tests, move any -isysroot and
+ 	    # -mmacosx-version-min flags from CFLAGS to CPPFLAGS:
 

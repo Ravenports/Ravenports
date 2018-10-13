@@ -89,7 +89,9 @@ INSTALL_REQ_TOOLCHAIN=	yes
 
 CPPFLAGS=		-DDEFAULT_PATH_VALUE='\"{{STANDARD_PATH}}:{{LOCALBASE}}/sbin:{{LOCALBASE}}/bin\"'
 			-DSTANDARD_UTILS_PATH='\"{{STANDARD_PATH}}\"'
-			-Wl,--export-dynamic
+VAR_OPSYS[freebsd]=	VAR1=-Wl,--export-dynamic
+VAR_OPSYS[linux]=	VAR1=-Wl,--export-dynamic
+VAR_OPSYS[dragonfly]=	VAR1=-Wl,--export-dynamic
 
 [NOTSTD].DESCRIPTION=			Non-standard designation
 [NOTSTD].USES_OFF=			makeinfo
@@ -415,6 +417,21 @@ share/doc/bash/
    memset (line_state_invisible->wrapped_line, 0, line_state_invisible->wbsize * sizeof (int));
 
 
+[FILE:266:patches/patch-lib_termcap_ltcap.h]
+--- lib/termcap/ltcap.h.orig	2009-01-04 19:32:36 UTC
++++ lib/termcap/ltcap.h
+@@ -19,9 +19,7 @@
+ #ifndef _LTCAP_H_
+ #define _LTCAP_H_ 1
+ 
+-#if !defined (__APPLE__)
+ #  define __private_extern__
+-#endif
+ 
+ #ifndef MAX_TGETENT_BUFSIZ
+ #  define MAX_TGETENT_BUFSIZ 2048
+
+
 [FILE:356:patches/patch-support_Makefile.in]
 --- support/Makefile.in.orig	2015-10-15 20:10:52 UTC
 +++ support/Makefile.in
@@ -452,7 +469,7 @@ share/doc/bash/
  
 
 
-[FILE:652:files/special.mk]
+[FILE:757:files/special.mk]
 # On linux with glibc, we can't build a fully static bash because
 # of absurd restrictions put on static linking with nss, dlopen, etc.
 # So we build it dynamic but with libtinfo static.  Leaving glibc-based
@@ -461,7 +478,6 @@ share/doc/bash/
 .if ${OPSYS} == Linux
 .  if "${PLIST_SUB:MSTATIC-ON=*}" == "STATIC-ON="
 CONFIGURE_ARGS:=	${CONFIGURE_ARGS:N--enable-static-link}
-CFLAGS+=		-Wl,-export-dynamic
 CONFIGURE_ENV+=		ac_cv_func_dlopen=no
 
 TINFOLIBS=		${LOCALBASE}/lib/libtinfo.a \
@@ -472,6 +488,14 @@ post-configure-opsys:
 	${REINPLACE_CMD} -e 's|-ltinfo|${TINFOLIBS}|' ${WRKSRC}/Makefile
 .  endif
 .endif
+
+# we could have used LDFLAGS_OFF options helper, but it doesn't
+# currently exist
+
+.if ${VARIANT} != static
+LDFLAGS+=	${VAR1}
+.endif
+
 
 [FILE:2505:sunos/patch-configure]
 --- configure.orig	2016-09-07 20:57:01.000000000 +0000
