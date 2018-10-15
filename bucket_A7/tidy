@@ -20,12 +20,21 @@ OPTIONS_STANDARD=	none
 USES=			cmake
 GNOME_COMPONENTS=	libxslt
 
+LICENSE=		CUSTOM1:single
+LICENSE_NAME=		CUSTOM1:"Tidy permissive license"
+LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/README/LICENSE.txt
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		www/tidy-html5
 
 SOVERSION=		5.6.0
 
 CMAKE_ARGS=		-DBUILD_SHARED_LIB:BOOL=ON
 			-DTIDY_CONSOLE_SHARED:BOOL=ON
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/tidy
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtidy.${LIBEXT}
 
 [FILE:429:descriptions/desc.single]
 Tidy is a console application for Mac OS X, Linux, Windows, UNIX, and 
