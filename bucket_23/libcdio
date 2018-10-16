@@ -2,6 +2,7 @@
 
 NAMEBASE=		libcdio
 VERSION=		2.0.0
+REVISION=		1
 KEYWORDS=		devel audio
 VARIANTS=		standard
 SDESC[standard]=	Compact Disk input and control library
@@ -9,7 +10,7 @@ HOMEPAGE=		https://www.gnu.org/software/libcdio
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		http://ftp.gnu.org/gnu/libcdio/
+SITES[main]=		GNU/libcdio/
 DISTFILE[1]=		libcdio-2.0.0.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
@@ -20,8 +21,9 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libcddb:single:standard
+EXRUN[utils]=		libcdio:primary:standard
 
-USES=			c++:utils iconv gmake libtool pkgconfig
+USES=			c++:utils cpe iconv gmake libtool pkgconfig ncurses
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -30,14 +32,18 @@ LICENSE_AWK=		TERMS:"file"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/cdio/cdio.h
 LICENSE_SCHEME=		solo
 
+INFO=			primary:libcdio
+CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		sysutils/libcdio
+INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--without-cdda-player
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		18.0.0
+
+CPPFLAGS=		-I{{NCURSESINC}}
 
 [FILE:718:descriptions/desc.primary]
 The GNU Compact Disc Input and Control library (libcdio) contains a 
@@ -64,7 +70,8 @@ This package contains additional console utilities to work with audio CDs.
 1b481b5da009bea31db875805665974e2fc568e2b2afa516f4036733657cf958      2354813 libcdio-2.0.0.tar.gz
 
 
-[FILE:1006:manifests/plist.primary]
+[FILE:998:manifests/plist.primary]
+bin/cdda-player
 include/cdio/
  audio.h
  bytesex.h
@@ -137,7 +144,6 @@ lib/pkgconfig/
  libiso9660++.pc
  libiso9660.pc
  libudf.pc
-share/info/libcdio.info
 share/man/man1/
  cd-drive.1.gz
  cd-info.1.gz

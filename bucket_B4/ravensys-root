@@ -334,7 +334,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 68acde93d0108c701c93d6f24eff3e5018cec22511d3a45d1a4c9fa995caddf3   1575650660 mac_root_10.13.6.v01.tar.zst
 
 
-[FILE:13587:manifests/plist.single.dragonfly]
+[FILE:13673:manifests/plist.single.dragonfly]
 @comment %%BASE%%/usr/include/sys/ccbque.h (release 4.8)
 %%BASE%%/bin/
  [
@@ -469,6 +469,8 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  aio.h
  ar.h
  assert.h
+ cam
+ camlib.h
  complex.h
  cpio.h
  ctype.h
@@ -1436,6 +1438,9 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  gcrt1.o
  libc.a
  libc.so
+ libcam.a
+ libcam.so
+ libcam.so.3
  libcrypt.a
  libcrypt.so
  libdl.a
@@ -1449,6 +1454,9 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libpthread.so.0
  librt.a
  librt.so
+ libsbuf.a
+ libsbuf.so
+ libsbuf.so.3
  libusb.a
  libusb.so
  libusbhid.a
@@ -8558,7 +8566,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:21702:files/Makefile]
+[FILE:22006:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -8725,7 +8733,9 @@ static_lib_FreeBSD=	${static_lib_generic} \
 			/usr/lib/crti.o \
 			/usr/lib/crtn.o
 static_lib_DragonFly=	${static_lib_generic} \
+			/usr/lib/libcam.a \
 			/usr/lib/libkvm.a \
+			/usr/lib/libsbuf.a \
 			/usr/lib/libusb.a \
 			/usr/lib/libusbhid.a \
 			/usr/lib/Scrt1.o \
@@ -8775,6 +8785,8 @@ dynamic_lib_FreeBSD=	${dynamic_generic} \
 			/usr/lib/${libusb} \
 			/usr/lib/${libusbhid}
 dynamic_lib_DragonFly=	${dynamic_generic} \
+			/lib/libcam.so.3 \
+			/lib/libsbuf.so.3 \
 			/usr/lib/libpthread.so \
 			/usr/lib/libpthread.so.0 \
 			/usr/lib/libexecinfo.so.1 \
@@ -8937,6 +8949,7 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			usb.h \
 			usbhid.h \
 			ar.h \
+			camlib.h \
 			devstat.h \
 			elf.h \
 			err.h \
@@ -9232,6 +9245,13 @@ install:
 		ln -s ${Libprocstat_FreeBSD} libprocstat.so && \
 		ln -s ${Libgeom_FreeBSD} libgeom.so && \
 		ln -s libthr.so libpthread.so)
+.endif
+.if ${OPSYS} == DragonFly
+	(cd ${DESTDIR}${BASE}/usr/lib && \
+		ln -s libsbuf.so.3 libsbuf.so && \
+		ln -s libcam.so.3 libcam.so)
+	(cd ${DESTDIR}${BASE}/usr/include && \
+		ln -s bus/cam cam)
 .endif
 .if ${OPSYS} == Linux
 .  for item in ${Linux_static_libs}
