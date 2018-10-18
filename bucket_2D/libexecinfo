@@ -2,7 +2,7 @@
 
 NAMEBASE=		libexecinfo
 VERSION=		100
-REVISION=		3
+REVISION=		4
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Backtrace Information Library
@@ -23,6 +23,10 @@ B_DEPS[sunos]=		libbsd4sol:single:standard
 USES=			cclibs:single
 
 DISTNAME=		libexecinfo
+
+LICENSE=		BSD2CLAUSE:single
+LICENSE_FILE=		BSD2CLAUSE:{{FILESDIR}}/LICENSE
+LICENSE_SCHEME=		solo
 
 MAKE_ENV=		TOOLCHAINDIR={{WRKDIR}}/elftoolchain-0.7.1
 
@@ -152,7 +156,7 @@ share/man/man3/backtrace.3.gz
  */
 
 
-[FILE:3205:files/Makefile]
+[FILE:3204:files/Makefile]
 # libexecinfo has libelf inbuilt from elftoolchain project
 
 .SUFFIXES:	.o .c
@@ -256,7 +260,7 @@ ${SRCS}: native-elf-format.h
 
 .if "${OPSYS}" == "SunOS"
 CFLAGS+=	-I${PREFIX}/include/bsd
-SRCS+=		progname.c
+SRCS+=		dprintf.c
 .endif
 
 # libexec sources
@@ -417,8 +421,7 @@ arguments.
 .El
 
 
-[FILE:4638:files/backtrace.c]
-#include <sys/cdefs.h>
+[FILE:4659:files/backtrace.c]
 #include <sys/param.h>
 #include <assert.h>
 #include <stdio.h>
@@ -558,18 +561,20 @@ format_address(symtab_t *st, char **buf, size_t *bufsiz, size_t offs,
 	Dl_info dli;
 
 	memset(&dli, 0, sizeof(dli));
-	(void)dladdr(addr, &dli);
-	if (st)
-		symtab_find(st, addr, &dli);
+	if (dladdr(addr, &dli) != 0) {
+		/* success */
+		if (st)
+			symtab_find(st, addr, &dli);
 
-	if (dli.dli_sname == NULL)
-		dli.dli_sname = "???";
-	if (dli.dli_fname == NULL)
-		dli.dli_fname = "???";
-	if (dli.dli_saddr == NULL)
-		dli.dli_saddr = (void *)(intptr_t)addr;
-
-	return format_string(buf, bufsiz, offs, fmt, &dli, addr);
+		if (dli.dli_sname == NULL)
+			dli.dli_sname = "???";
+		if (dli.dli_fname == NULL)
+			dli.dli_fname = "???";
+		if (dli.dli_saddr == NULL)
+			dli.dli_saddr = (void *)(intptr_t)addr;
+		return format_string(buf, bufsiz, offs, fmt, &dli, addr);
+	}
+	return -1;
 }
 
 char **
@@ -648,11 +653,49 @@ backtrace_symbols_fd(void *const *trace, size_t len, int fd)
 }
 
 
-[FILE:394:files/execinfo.h]
+[FILE:355:files/dprintf.c]
+#include <stdio.h>
+#include <unistd.h>
+
+int
+dprintf(int fd, const char *fmt, ...)
+{
+	FILE *fp;
+	int e;
+	__builtin_va_list ap;
+
+	if ((e = dup(fd)) == -1)
+		return -1;
+
+	if ((fp = fdopen(e, "r+")) == NULL) {
+		(void)close(e);
+		return -1;
+	}
+
+	__builtin_va_start(ap, fmt);
+	e = vfprintf(fp, fmt, ap);
+	__builtin_va_end(ap);
+
+	(void)fclose(fp);
+	return e;
+}
+
+
+[FILE:586:files/execinfo.h]
 #ifndef _EXECINFO_H_
 #define _EXECINFO_H_
 
 #include <stddef.h>
+
+# ifndef __BEGIN_DECLS
+#   ifdef __cplusplus
+#     define __BEGIN_DECLS	extern "C" {
+#     define __END_DECLS	}
+#   else
+#     define __BEGIN_DECLS
+#     define __END_DECLS
+#   endif
+# endif
 
 __BEGIN_DECLS
 size_t backtrace(void **, size_t);
@@ -665,31 +708,7 @@ __END_DECLS
 #endif /* _EXECINFO_H_ */
 
 
-[FILE:523:files/progname.c]
-#include <libgen.h>
-#include <string.h>
-#include <stdlib.h>
-
-const char *getprogname () {
-    static const char *progname;
-
-    if (progname == NULL) {
-        const char *e = getexecname();
-        if (e != NULL) {
-            /* Have to make a copy since getexecname can return a readonly
-               string, but basename expects to be able to modify its arg. */
-            char *n = strdup(e);
-            if (n != NULL) {
-                progname = basename(n);
-            }
-        }
-    }
-    return progname;
-}
-
-
-[FILE:3049:files/symtab.c]
-#include <sys/cdefs.h>
+[FILE:3026:files/symtab.c]
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -851,7 +870,7 @@ symtab_find(const symtab_t *st, const void *p, Dl_info *dli)
 }
 
 
-[FILE:320:files/symtab.h]
+[FILE:294:files/symtab.h]
 #ifndef _SYMTAB_H_
 #define _SYMTAB_H_
 
@@ -861,19 +880,16 @@ symtab_find(const symtab_t *st, const void *p, Dl_info *dli)
 
 #include <dlfcn.h>
 
-__BEGIN_DECLS
 typedef struct symtab symtab_t;
 
 void symtab_destroy(symtab_t *);
 symtab_t * symtab_create(int, int, int);
 int symtab_find(const symtab_t *, const void *, Dl_info *);
-__END_DECLS
 
 #endif /* _SYMTAB_H_ */
 
 
-[FILE:714:files/unwind.c]
-#include <sys/cdefs.h>
+[FILE:691:files/unwind.c]
 #include <sys/types.h>
 #include <stdio.h>
 
@@ -917,11 +933,10 @@ backtrace(void **arr, size_t len)
 }
 
 
-[FILE:1566:files/unwind.h]
+[FILE:1540:files/unwind.h]
 #ifndef _UNWIND_H_
 #define _UNWIND_H_
 
-__BEGIN_DECLS
 struct _Unwind_Context;
 struct _Unwind_Exception;
 typedef int _Unwind_Reason_Code;
@@ -957,6 +972,5 @@ _Unwind_Reason_Code	 _Unwind_Resume_or_Rethrow(struct _Unwind_Exception *);
 void			 _Unwind_SetGR(struct _Unwind_Context *, int,
     _Unwind_Ptr);
 void			 _Unwind_SetIP(struct _Unwind_Context *, _Unwind_Ptr);
-__END_DECLS
 #endif /* _UNWIND_H_ */
 

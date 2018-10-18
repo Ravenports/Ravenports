@@ -218,10 +218,10 @@ main(int argc, char **argv)
 }
 
 
-[FILE:1113:sunos/patch-src_Makefile.autosetup]
---- src/Makefile.autosetup.orig	2018-09-26 15:14:01 UTC
-+++ src/Makefile.autosetup
-@@ -51,7 +51,7 @@ LIBS+=	@PKG_LIBARCHIVE_LDFLAGS@ @PKG_LIB
+[FILE:1081:sunos/patch-src_Makefile.autosetup]
+--- src/Makefile.autosetup.orig	Tue Oct 16 11:56:39 2018
++++ src/Makefile.autosetup	Tue Oct 16 11:59:43 2018
+@@ -51,7 +51,7 @@
  @else
  LIBS+=	-larchive -lbz2 -lz -llzma -lzstd
  @endif
@@ -230,7 +230,7 @@ main(int argc, char **argv)
  @if HAVE_LIBUTIL
  OTHER_LIBS+=	-lutil
  @endif
-@@ -61,18 +61,16 @@ OTHER_LIBS+=	-ldl
+@@ -61,6 +61,8 @@
  @if HAVE_LIBRESOLV
  OTHER_LIBS+=	-lresolv
  @endif
@@ -238,8 +238,10 @@ main(int argc, char **argv)
 +DYNALIBS=	-lm -pthread -lsocket -lrt -lresolv -lgen
  
  @if libabidir == libmachista
- LOCAL_LDFLAGS=	$(LIBPKGFLAT:S/_flat//) $(LIBS) $(OTHER_LIBS) -lresolv
- STATIC_LDFLAGS=	$(LIBPKGFLAT) $(LIBS) $(OTHER_LIBS) -lresolv
+ LOCAL_LDFLAGS=	$(LIBPKGFLAT) $(LIBS) $(OTHER_LIBS) -lresolv
+@@ -74,13 +76,9 @@
+ 		$(PREFIX)/lib/libcrypto.a \
+ 		-lm -pthread -lresolv
  @else
 -LOCAL_LDFLAGS=	-Wl,-Bstatic \
 -		-Wl,--whole-archive $(LIBPKGFLAT) -Wl,--no-whole-archive \

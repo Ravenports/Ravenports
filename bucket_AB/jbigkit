@@ -120,7 +120,7 @@ share/man/man1/
  	cd libjbig  && $(MAKE) test
 
 
-[FILE:2519:patches/patch-libjbig_Makefile]
+[FILE:2520:patches/patch-libjbig_Makefile]
 --- libjbig/Makefile.orig	2014-03-27 18:47:15 UTC
 +++ libjbig/Makefile
 @@ -1,12 +1,21 @@
@@ -139,7 +139,7 @@ share/man/man1/
 +more_install=	libjbig.2.dylib libjbig85.1.dylib
 +.else
 +more_targets=	libjbig.so libjbig85.so
-+more_install=	libjbig.so.2 libbig85.so.1
++more_install=	libjbig.so.2 libjbig85.so.1
 +.endif
 +
 +all: libjbig.a libjbig85.a tstcodec tstcodec85 ${more_targets}
@@ -205,10 +205,10 @@ share/man/man1/
  	  --copyright-holder='Markus Kuhn' \
 
 
-[FILE:1433:patches/patch-pbmtools_Makefile]
+[FILE:2265:patches/patch-pbmtools_Makefile]
 --- pbmtools/Makefile.orig	2014-03-27 18:47:15 UTC
 +++ pbmtools/Makefile
-@@ -1,16 +1,13 @@
+@@ -1,30 +1,27 @@
  # Unix makefile for the JBIG-KIT PBM tools
  
 -# Select an ANSI/ISO C compiler here, e.g. GNU gcc is recommended
@@ -228,6 +228,24 @@ share/man/man1/
  
  txt: pbmtojbg.txt jbgtopbm.txt pbm.txt pgm.txt
  
+ pbmtojbg: pbmtojbg.o ../libjbig/libjbig.a
+-	$(CC) $(CFLAGS) -o pbmtojbg pbmtojbg.o -L../libjbig -ljbig
++	$(CC) $(CFLAGS) $(LDFLAGS) -o pbmtojbg pbmtojbg.o -L../libjbig -ljbig
+ 
+ jbgtopbm: jbgtopbm.o ../libjbig/libjbig.a
+-	$(CC) $(CFLAGS) -o jbgtopbm jbgtopbm.o -L../libjbig -ljbig
++	$(CC) $(CFLAGS) $(LDFLAGS) -o jbgtopbm jbgtopbm.o -L../libjbig -ljbig
+ 
+ pbmtojbg85: pbmtojbg85.o ../libjbig/libjbig85.a
+-	$(CC) $(CFLAGS) -o pbmtojbg85 pbmtojbg85.o -L../libjbig -ljbig85
++	$(CC) $(CFLAGS) $(LDFLAGS) -o pbmtojbg85 pbmtojbg85.o -L../libjbig -ljbig85
+ 
+ jbgtopbm85: jbgtopbm85.o ../libjbig/libjbig85.a
+-	$(CC) $(CFLAGS) -o jbgtopbm85 jbgtopbm85.o -L../libjbig -ljbig85
++	$(CC) $(CFLAGS) $(LDFLAGS) -o jbgtopbm85 jbgtopbm85.o -L../libjbig -ljbig85
+ 
+ jbgtopbm.o: jbgtopbm.c ../libjbig/jbig.h
+ pbmtojbg.o: pbmtojbg.c ../libjbig/jbig.h
 @@ -39,6 +36,14 @@ pbmtojbg85.o: pbmtojbg85.c ../libjbig/jb
  	../libjbig/jbig_ar.c ../libjbig/jbig_ar.h
  	make -C ../libjbig libjbig85.a

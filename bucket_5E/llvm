@@ -2508,6 +2508,35 @@ lib/cmake/llvm/
    set(libomp_expected_library_deps libc.so.12 libpthread.so.1 libm.so.0)
 
 
+[FILE:463:patches/patch-cmake_config.guess]
+--- cmake/config.guess.orig	2017-07-21 22:48:47 UTC
++++ cmake/config.guess
+@@ -340,7 +340,7 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:$
+     i86pc:AuroraUX:5.*:* | i86xen:AuroraUX:5.*:*)
+ 	echo i386-pc-auroraux${UNAME_RELEASE}
+ 	exit ;;
+-    i86pc:SunOS:5.*:* | i86xen:SunOS:5.*:*)
++    i86pc:SunOS:5.*:* | i86xen:SunOS:5.*:* | x86_64:SunOS:5.*:*)
+ 	eval $set_cc_for_build
+ 	SUN_ARCH="i386"
+ 	# If there is a compiler, see if it is configured for 64-bit objects.
+
+
+[FILE:786:patches/patch-cmake_modules_AddLLVM.cmake]
+--- cmake/modules/AddLLVM.cmake.orig	2018-08-01 07:51:55 UTC
++++ cmake/modules/AddLLVM.cmake
+@@ -218,9 +218,6 @@ function(add_link_opts target_name)
+         # ld64's implementation of -dead_strip breaks tools that use plugins.
+         set_property(TARGET ${target_name} APPEND_STRING PROPERTY
+                      LINK_FLAGS " -Wl,-dead_strip")
+-      elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+-        set_property(TARGET ${target_name} APPEND_STRING PROPERTY
+-                     LINK_FLAGS " -Wl,-z -Wl,discard-unused=sections")
+       elseif(NOT WIN32 AND NOT LLVM_LINKER_IS_GOLD AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
+         # Object files are compiled with -ffunction-data-sections.
+         # Versions of bfd ld < 2.23.1 have a bug in --gc-sections that breaks
+
+
 [FILE:523:patches/patch-cmake_modules_HandleLLVMOptions.cmake]
 --- cmake/modules/HandleLLVMOptions.cmake.orig	2018-08-17 07:25:54 UTC
 +++ cmake/modules/HandleLLVMOptions.cmake
@@ -2519,6 +2548,30 @@ lib/cmake/llvm/
          ${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD") AND
     NOT LLVM_USE_SANITIZER)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
+
+
+[FILE:410:patches/patch-lib_ObjectYAML_MachOYAML.cpp]
+--- lib/ObjectYAML/MachOYAML.cpp.orig	2017-12-18 17:38:03 UTC
++++ lib/ObjectYAML/MachOYAML.cpp
+@@ -22,6 +22,18 @@
+ #include <cstdint>
+ #include <cstring>
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ namespace llvm {
+ 
+ MachOYAML::LoadCommand::~LoadCommand() = default;
 
 
 [FILE:623:patches/patch-lib_Support_Unix_Path.inc]
@@ -2798,6 +2851,78 @@ lib/cmake/llvm/
      break;
    case llvm::Triple::OpenBSD: {
      std::string t = triple.getTriple();
+
+
+[FILE:486:patches/patch-tools_clang_lib_Lex_HeaderMap.cpp]
+--- tools/clang/lib/Lex/HeaderMap.cpp.orig	2016-10-01 16:38:28 UTC
++++ tools/clang/lib/Lex/HeaderMap.cpp
+@@ -24,6 +24,19 @@
+ #include "llvm/Support/Debug.h"
+ #include <cstring>
+ #include <memory>
++
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ using namespace clang;
+ 
+ /// HashHMapKey - This is the 'well known' hash function required by the file
+
+
+[FILE:963:patches/patch-tools_llvm-shlib_CMakeLists.txt]
+--- tools/llvm-shlib/CMakeLists.txt.orig	2018-08-03 10:15:36 UTC
++++ tools/llvm-shlib/CMakeLists.txt
+@@ -42,7 +42,7 @@ if(("${CMAKE_SYSTEM_NAME}" STREQUAL "Lin
+    OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD")
+    OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "Fuchsia")
+    OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "DragonFly")
+-   OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "SunOS")) # FIXME: It should be "GNU ld for elf"
++  ) # FIXME: It should be "GNU ld for elf"
+   configure_file(
+   ${CMAKE_CURRENT_SOURCE_DIR}/simple_version_script.map.in
+   ${LLVM_LIBRARY_DIR}/tools/llvm-shlib/simple_version_script.map)
+@@ -55,6 +55,8 @@ if(("${CMAKE_SYSTEM_NAME}" STREQUAL "Lin
+   endif()
+ elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+   set(LIB_NAMES -Wl,-all_load ${LIB_NAMES})
++elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "SunOS")
++  set(LIB_NAMES -Wl,-Bsymbolic -Wl,-z -Wl,allextract ${LIB_NAMES} -Wl,-z -Wl,defaultextract)
+ endif()
+ 
+ target_link_libraries(LLVM PRIVATE ${LIB_NAMES})
+
+
+[FILE:384:patches/patch-tools_obj2yaml_macho2yaml.cpp]
+--- tools/obj2yaml/macho2yaml.cpp.orig	2017-07-19 22:27:28 UTC
++++ tools/obj2yaml/macho2yaml.cpp
+@@ -17,6 +17,18 @@
+ 
+ #include <string.h> // for memcpy
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ using namespace llvm;
+ 
+ class MachODumper {
 
 
 [FILE:128:files/special.mk]
