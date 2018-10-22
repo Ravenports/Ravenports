@@ -37,9 +37,9 @@ PERL_5.28_VERSION=	5.28.0
 
 RUBY_DEFAULT?=		2.5
 
-RUBY_2.3_VERSION=	2.3.7
-RUBY_2.4_VERSION=	2.4.4
-RUBY_2.5_VERSION=	2.5.1
+RUBY_2.3_VERSION=	2.3.8
+RUBY_2.4_VERSION=	2.4.5
+RUBY_2.5_VERSION=	2.5.3
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -49,8 +49,8 @@ RUBY_2.5_VERSION=	2.5.1
 PYTHON3_DEFAULT?=	3.7
 
 PYTHON_2.7_VERSION=	2.7.15
-PYTHON_3.6_VERSION=	3.6.6
-PYTHON_3.7_VERSION=	3.7.0
+PYTHON_3.6_VERSION=	3.6.7
+PYTHON_3.7_VERSION=	3.7.1
 
 #-------------------------------------------------------------------------
 # SSL
