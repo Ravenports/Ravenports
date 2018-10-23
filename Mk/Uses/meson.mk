@@ -78,4 +78,19 @@ meson_build_rpath:
 
 .  endif
 
+# Dragonfly
+_USES_patch+=	705:chmod-meson
+
+chmod-meson:
+	@for variant in \
+		meson-postinstall.sh\
+		meson_post_install.sh\
+		meson_post_install.py;\
+	do \
+	if [ -e "${WRKSRC}/$$variant" ]; then \
+		${ECHO_CMD} "Setting $$variant as executable"; \
+		${CHMOD} ${BINMODE} ${WRKSRC}/$$variant; \
+	fi; \
+	done
+
 .endif
