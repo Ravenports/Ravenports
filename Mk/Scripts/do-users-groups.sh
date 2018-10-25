@@ -182,6 +182,14 @@ eot2
 					if [ "${dp_OPSYS}" = "SunOS" ]; then
 					  echo "mkdir -p $homedir" >> "${dp_UG_INSTALL}"
 					  echo "chown $login:$group $homedir" >> "${dp_UG_INSTALL}"
+					elif [ "${dp_OPSYS}" = "Darwin" ]; then
+					  cat >> "${dp_UG_INSTALL}" <<-eot2
+if [ -z "\${RAVENADM}" ]; then
+  ${dp_INSTALL} -d -g $group -o $login $homedir
+else
+  echo "TESTING: skip home directory '$homedir' creation"
+fi
+eot2
 					else
 					  echo "${dp_INSTALL} -d -g $group -o $login $homedir" >> "${dp_UG_INSTALL}"
 					fi

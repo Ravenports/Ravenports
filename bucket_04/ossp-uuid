@@ -22,6 +22,12 @@ USES=			libtool fbsd10fix c++:single
 
 DISTNAME=		uuid-1.6.2
 
+LICENSE=		MIT:single
+LICENSE_FILE=		MIT:{{WRKDIR}}/LICENSE
+LICENSE_AWK=		MIT:"^$$"
+LICENSE_SOURCE=		MIT:{{WRKSRC}}/uuid.c
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		misc/ossp-uuid
 
 MUST_CONFIGURE=		gnu
@@ -34,8 +40,7 @@ post-patch:
 		-e 's/libuuid++.la/libossp-uuid++.la/' ${WRKSRC}/Makefile.in
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libossp-uuid.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libossp-uuid++.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libossp-*.${LIBEXT}
 
 do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
@@ -114,6 +119,22 @@ share/man/man3/
  	fi
  	@$(LIBTOOL) --mode=install $(SHTOOL) install -c -m 644 $(LIB_NAME) $(DESTDIR)$(libdir)/
  	-@if [ ".$(WITH_DCE)" = .yes ]; then \
+
+
+[FILE:1466:patches/patch-configure]
+--- configure.orig	2008-07-04 21:43:09 UTC
++++ configure
+@@ -19225,10 +19225,6 @@ if test -z "$aix_libpath"; then aix_libp
+     module_cmds_CXX="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
+     archive_expsym_cmds_CXX="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
+     module_expsym_cmds_CXX="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
+-       if test "$lt_cv_apple_cc_single_mod" != "yes"; then
+-      archive_cmds_CXX="\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring${_lt_dsymutil}"
+-      archive_expsym_cmds_CXX="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring${_lt_dar_export_syms}${_lt_dsymutil}"
+-    fi
+ 
+   else
+   ld_shlibs_CXX=no
 
 
 [FILE:454:patches/patch-uuid.pc.in]

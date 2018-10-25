@@ -36,6 +36,7 @@ BUILD_DEPENDS=		docbook-sgml:single:standard
 BUILDRUN_DEPENDS=	libxslt:single:standard
 BR_DEPS[sunos]=		ossp-uuid:single:standard
 BR_DEPS[linux]=		ossp-uuid:single:standard
+BR_DEPS[darwin]=	libuuid:single:standard
 EXRUN[pltcl]=		tcl
 EXRUN[plpython]=	python
 EXRUN[client]=		gettext:runtime:standard
@@ -107,7 +108,7 @@ post-install:
 		${STAGEDIR}${PREFIX}/etc/periodic/daily
 	# install-world doesn't strip (and install-strip won't install enough)
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/*.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.${LIBEXT}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/pgxs/src/test/regress/pg_regress
 	list=$$(${LS} ${STAGEDIR}${PREFIX}/bin/* | ${GREP} -v pltcl_); \
 		${STRIP_CMD} $${list}
@@ -164,7 +165,7 @@ This subpackage contains Tcl Procedural Language support for PostgreSQL.
 03776b036b2a05371083558e10c21cc4b90bde9eb3aff60299c4ce7c084c168b     17879273 postgresql/postgresql-9.4.19.tar.bz2
 
 
-[FILE:10397:manifests/plist.server]
+[FILE:10832:manifests/plist.server]
 %%NLS-ON%%share/locale/cs/LC_MESSAGES/
  initdb-%%PGVER%%.mo
  pg_basebackup-%%PGVER%%.mo
@@ -270,35 +271,35 @@ etc/periodic/daily/502.pgsql
 include/postgresql/server/plpgsql.h
 lib/libpgcommon.a
 lib/postgresql/
- ascii_and_mic.so
- cyrillic_and_mic.so
- dict_snowball.so
- euc2004_sjis2004.so
- euc_cn_and_mic.so
- euc_jp_and_sjis.so
- euc_kr_and_mic.so
- euc_tw_and_big5.so
- latin2_and_win1250.so
- latin_and_mic.so
- libpqwalreceiver.so
- plpgsql.so
- utf8_and_ascii.so
- utf8_and_big5.so
- utf8_and_cyrillic.so
- utf8_and_euc2004.so
- utf8_and_euc_cn.so
- utf8_and_euc_jp.so
- utf8_and_euc_kr.so
- utf8_and_euc_tw.so
- utf8_and_gb18030.so
- utf8_and_gbk.so
- utf8_and_iso8859.so
- utf8_and_iso8859_1.so
- utf8_and_johab.so
- utf8_and_sjis.so
- utf8_and_sjis2004.so
- utf8_and_uhc.so
- utf8_and_win.so
+ ascii_and_mic.%%SHARED_OBJECT%%
+ cyrillic_and_mic.%%SHARED_OBJECT%%
+ dict_snowball.%%SHARED_OBJECT%%
+ euc2004_sjis2004.%%SHARED_OBJECT%%
+ euc_cn_and_mic.%%SHARED_OBJECT%%
+ euc_jp_and_sjis.%%SHARED_OBJECT%%
+ euc_kr_and_mic.%%SHARED_OBJECT%%
+ euc_tw_and_big5.%%SHARED_OBJECT%%
+ latin2_and_win1250.%%SHARED_OBJECT%%
+ latin_and_mic.%%SHARED_OBJECT%%
+ libpqwalreceiver.%%SHARED_OBJECT%%
+ plpgsql.%%SHARED_OBJECT%%
+ utf8_and_ascii.%%SHARED_OBJECT%%
+ utf8_and_big5.%%SHARED_OBJECT%%
+ utf8_and_cyrillic.%%SHARED_OBJECT%%
+ utf8_and_euc2004.%%SHARED_OBJECT%%
+ utf8_and_euc_cn.%%SHARED_OBJECT%%
+ utf8_and_euc_jp.%%SHARED_OBJECT%%
+ utf8_and_euc_kr.%%SHARED_OBJECT%%
+ utf8_and_euc_tw.%%SHARED_OBJECT%%
+ utf8_and_gb18030.%%SHARED_OBJECT%%
+ utf8_and_gbk.%%SHARED_OBJECT%%
+ utf8_and_iso8859.%%SHARED_OBJECT%%
+ utf8_and_iso8859_1.%%SHARED_OBJECT%%
+ utf8_and_johab.%%SHARED_OBJECT%%
+ utf8_and_sjis.%%SHARED_OBJECT%%
+ utf8_and_sjis2004.%%SHARED_OBJECT%%
+ utf8_and_uhc.%%SHARED_OBJECT%%
+ utf8_and_win.%%SHARED_OBJECT%%
 share/postgresql/
  conversion_create.sql
  information_schema.sql
@@ -965,7 +966,7 @@ share/postgresql/tsearch_data/
  turkish.stop
 
 
-[FILE:17455:manifests/plist.client]
+[FILE:17547:manifests/plist.client]
 %%NLS-ON%%share/locale/cs/LC_MESSAGES/
  ecpg-%%PGVER%%.mo
  ecpglib6-%%PGVER%%.mo
@@ -1065,6 +1066,11 @@ share/postgresql/tsearch_data/
  libpq5-%%PGVER%%.mo
  pg_config-%%PGVER%%.mo
  psql-%%PGVER%%.mo
+%%ONLY-DARWIN%%lib/
+ libecpg.so.6.6
+ libecpg_compat.so.3.6
+ libpgtypes.so.3.5
+ libpq.so.5.7
 bin/
  clusterdb
  createdb
@@ -1976,61 +1982,61 @@ share/postgresql/
  psqlrc.sample
 
 
-[FILE:4093:manifests/plist.contrib]
+[FILE:4828:manifests/plist.contrib]
 bin/
  oid2name
  pg_standby
  vacuumlo
 lib/postgresql/
- _int.so
- adminpack.so
- auth_delay.so
- auto_explain.so
- autoinc.so
- btree_gin.so
- btree_gist.so
- chkpass.so
- citext.so
- cube.so
- dblink.so
- dict_int.so
- dict_xsyn.so
- dummy_seclabel.so
- earthdistance.so
- file_fdw.so
- fuzzystrmatch.so
- hstore.so
- insert_username.so
- isn.so
- lo.so
- ltree.so
- moddatetime.so
- pageinspect.so
- passwordcheck.so
- pg_buffercache.so
- pg_freespacemap.so
- pg_prewarm.so
- pg_stat_statements.so
- pg_trgm.so
- pg_upgrade_support.so
- pgcrypto.so
- pgrowlocks.so
- pgstattuple.so
- pgxml.so
- postgres_fdw.so
- refint.so
- seg.so
- sslinfo.so
- tablefunc.so
- tcn.so
- test_decoding.so
- test_parser.so
- test_shm_mq.so
- timetravel.so
- tsearch2.so
- unaccent.so
- uuid-ossp.so
- worker_spi.so
+ _int.%%SHARED_OBJECT%%
+ adminpack.%%SHARED_OBJECT%%
+ auth_delay.%%SHARED_OBJECT%%
+ auto_explain.%%SHARED_OBJECT%%
+ autoinc.%%SHARED_OBJECT%%
+ btree_gin.%%SHARED_OBJECT%%
+ btree_gist.%%SHARED_OBJECT%%
+ chkpass.%%SHARED_OBJECT%%
+ citext.%%SHARED_OBJECT%%
+ cube.%%SHARED_OBJECT%%
+ dblink.%%SHARED_OBJECT%%
+ dict_int.%%SHARED_OBJECT%%
+ dict_xsyn.%%SHARED_OBJECT%%
+ dummy_seclabel.%%SHARED_OBJECT%%
+ earthdistance.%%SHARED_OBJECT%%
+ file_fdw.%%SHARED_OBJECT%%
+ fuzzystrmatch.%%SHARED_OBJECT%%
+ hstore.%%SHARED_OBJECT%%
+ insert_username.%%SHARED_OBJECT%%
+ isn.%%SHARED_OBJECT%%
+ lo.%%SHARED_OBJECT%%
+ ltree.%%SHARED_OBJECT%%
+ moddatetime.%%SHARED_OBJECT%%
+ pageinspect.%%SHARED_OBJECT%%
+ passwordcheck.%%SHARED_OBJECT%%
+ pg_buffercache.%%SHARED_OBJECT%%
+ pg_freespacemap.%%SHARED_OBJECT%%
+ pg_prewarm.%%SHARED_OBJECT%%
+ pg_stat_statements.%%SHARED_OBJECT%%
+ pg_trgm.%%SHARED_OBJECT%%
+ pg_upgrade_support.%%SHARED_OBJECT%%
+ pgcrypto.%%SHARED_OBJECT%%
+ pgrowlocks.%%SHARED_OBJECT%%
+ pgstattuple.%%SHARED_OBJECT%%
+ pgxml.%%SHARED_OBJECT%%
+ postgres_fdw.%%SHARED_OBJECT%%
+ refint.%%SHARED_OBJECT%%
+ seg.%%SHARED_OBJECT%%
+ sslinfo.%%SHARED_OBJECT%%
+ tablefunc.%%SHARED_OBJECT%%
+ tcn.%%SHARED_OBJECT%%
+ test_decoding.%%SHARED_OBJECT%%
+ test_parser.%%SHARED_OBJECT%%
+ test_shm_mq.%%SHARED_OBJECT%%
+ timetravel.%%SHARED_OBJECT%%
+ tsearch2.%%SHARED_OBJECT%%
+ unaccent.%%SHARED_OBJECT%%
+ uuid-ossp.%%SHARED_OBJECT%%
+ worker_spi.%%SHARED_OBJECT%%
 share/postgresql/extension/
  adminpack--1.0.sql
  adminpack.control
@@ -2178,7 +2184,7 @@ share/postgresql/tsearch_data/
  xsyn_sample.rules
 
 
-[FILE:1001:manifests/plist.plperl]
+[FILE:1016:manifests/plist.plperl]
 %%NLS-ON%%share/locale/cs/LC_MESSAGES/plperl-%%PGVER%%.mo
 %%NLS-ON%%share/locale/de/LC_MESSAGES/plperl-%%PGVER%%.mo
 %%NLS-ON%%share/locale/es/LC_MESSAGES/plperl-%%PGVER%%.mo
@@ -2193,7 +2199,7 @@ share/postgresql/tsearch_data/
 %%NLS-ON%%share/locale/tr/LC_MESSAGES/plperl-%%PGVER%%.mo
 %%NLS-ON%%share/locale/zh_CN/LC_MESSAGES/plperl-%%PGVER%%.mo
 %%NLS-ON%%share/locale/zh_TW/LC_MESSAGES/plperl-%%PGVER%%.mo
-lib/postgresql/plperl.so
+lib/postgresql/plperl.%%SHARED_OBJECT%%
 share/postgresql/extension/
  plperl--1.0.sql
  plperl--unpackaged--1.0.sql
@@ -2203,7 +2209,7 @@ share/postgresql/extension/
  plperlu.control
 
 
-[FILE:912:manifests/plist.plpython]
+[FILE:927:manifests/plist.plpython]
 %%NLS-ON%%share/locale/cs/LC_MESSAGES/plpython-%%PGVER%%.mo
 %%NLS-ON%%share/locale/de/LC_MESSAGES/plpython-%%PGVER%%.mo
 %%NLS-ON%%share/locale/es/LC_MESSAGES/plpython-%%PGVER%%.mo
@@ -2218,19 +2224,19 @@ share/postgresql/extension/
  plpythonu--1.0.sql
  plpythonu--unpackaged--1.0.sql
  plpythonu.control
-lib/postgresql/plpython%%PYTHON_MAJOR_VER%%.so
+lib/postgresql/plpython%%PYTHON_MAJOR_VER%%.%%SHARED_OBJECT%%
 share/postgresql/extension/
  plpython%%PYTHON_MAJOR_VER%%u--1.0.sql
  plpython%%PYTHON_MAJOR_VER%%u--unpackaged--1.0.sql
  plpython%%PYTHON_MAJOR_VER%%u.control
 
 
-[FILE:873:manifests/plist.pltcl]
+[FILE:888:manifests/plist.pltcl]
 bin/
  pltcl_delmod
  pltcl_listmod
  pltcl_loadmod
-lib/postgresql/pltcl.so
+lib/postgresql/pltcl.%%SHARED_OBJECT%%
 share/locale/cs/LC_MESSAGES/pltcl-%%PGVER%%.mo
 share/locale/de/LC_MESSAGES/pltcl-%%PGVER%%.mo
 share/locale/es/LC_MESSAGES/pltcl-%%PGVER%%.mo
@@ -2254,10 +2260,10 @@ share/postgresql/extension/
  pltclu.control
 
 
-[FILE:384:patches/patch-doc-Makefile]
---- doc/Makefile.orig	2015-10-08 21:45:57.360084007 +0200
-+++ doc/Makefile	2015-10-08 21:46:04.353084097 +0200
-@@ -12,5 +12,5 @@
+[FILE:349:patches/patch-doc-Makefile]
+--- doc/Makefile.orig	2018-08-06 20:11:24 UTC
++++ doc/Makefile
+@@ -12,5 +12,5 @@ subdir = doc
  top_builddir = ..
  include $(top_builddir)/src/Makefile.global
  
@@ -2266,10 +2272,10 @@ share/postgresql/extension/
  	$(MAKE) -C src $@
 
 
-[FILE:648:patches/patch-doc-src-sgml-Makefile]
---- doc/src/sgml/Makefile.orig	2011-10-13 16:53:51.000000000 +0200
-+++ doc/src/sgml/Makefile	2011-10-13 17:05:08.000000000 +0200
-@@ -75,8 +75,6 @@
+[FILE:662:patches/patch-doc-src-sgml-Makefile]
+--- doc/src/sgml/Makefile.orig	2018-08-06 20:11:24 UTC
++++ doc/src/sgml/Makefile
+@@ -74,8 +74,6 @@ override SPFLAGS += -wall -wno-unused-pa
  ## Man pages
  ##
  
@@ -2278,7 +2284,7 @@ share/postgresql/extension/
  man-stamp: stylesheet-man.xsl postgres.xml
  	$(XSLTPROC) $(XSLTPROCFLAGS) $(XSLTPROC_MAN_FLAGS) $^
  	touch $@
-@@ -303,7 +301,7 @@
+@@ -321,7 +319,7 @@ install: install-man
  endif
  
  installdirs:
@@ -2289,12 +2295,12 @@ share/postgresql/extension/
  	rm -f '$(DESTDIR)$(htmldir)/html/'* $(addprefix  '$(DESTDIR)$(mandir)'/man, 1/* 3/* $(sqlmansectnum)/*)
 
 
-[FILE:647:patches/patch-src-backend-Makefile]
---- src/backend/Makefile.orig	2009-07-07 15:58:33.000000000 +0200
-+++ src/backend/Makefile	2009-07-07 15:58:57.000000000 +0200
-@@ -107,6 +107,8 @@
- # Update the commonly used headers before building the subdirectories
- $(SUBDIRS:%=%-recursive): $(top_builddir)/src/include/parser/gram.h $(top_builddir)/src/include/utils/fmgroids.h $(top_builddir)/src/include/utils/probes.h
+[FILE:475:patches/patch-src-backend-Makefile]
+--- src/backend/Makefile.orig	2018-08-06 20:11:24 UTC
++++ src/backend/Makefile
+@@ -121,6 +121,8 @@ catalog/schemapg.h: | submake-schemapg
+ 
+ $(top_builddir)/src/port/libpgport_srv.a: | submake-libpgport
  
 +symlinks: $(top_builddir)/src/include/parser/gram.h $(top_builddir)/src/include/utils/fmgroids.h $(top_builddir)/src/include/utils/probes.h
 +
@@ -2304,9 +2310,9 @@ share/postgresql/extension/
 
 
 [FILE:572:patches/patch-src_Makefile.shlib]
---- src/Makefile.shlib.orig	2017-11-06 22:08:55 UTC
+--- src/Makefile.shlib.orig	2018-08-06 20:11:24 UTC
 +++ src/Makefile.shlib
-@@ -211,6 +211,9 @@ endif
+@@ -217,6 +217,9 @@ endif
  
  ifeq ($(PORTNAME), linux)
    LINK.shared		= $(COMPILER) -shared
@@ -2316,7 +2322,7 @@ share/postgresql/extension/
    ifdef soname
      LINK.shared		+= -Wl,-soname,$(soname)
    endif
-@@ -222,6 +225,9 @@ ifeq ($(PORTNAME), linux)
+@@ -228,6 +231,9 @@ ifeq ($(PORTNAME), linux)
  endif
  
  ifeq ($(PORTNAME), solaris)
@@ -2328,10 +2334,10 @@ share/postgresql/extension/
    else
 
 
-[FILE:723:patches/patch-src_backend_utils_misc_postgresql.conf.sample]
---- src/backend/utils/misc/postgresql.conf.sample.orig	2014-02-17 20:29:55.000000000 +0100
-+++ src/backend/utils/misc/postgresql.conf.sample	2014-02-20 18:01:37.000000000 +0100
-@@ -295,6 +295,7 @@
+[FILE:675:patches/patch-src_backend_utils_misc_postgresql.conf.sample]
+--- src/backend/utils/misc/postgresql.conf.sample.orig	2018-08-06 20:11:24 UTC
++++ src/backend/utils/misc/postgresql.conf.sample
+@@ -309,6 +309,7 @@
  
  # - Where to Log -
  
@@ -2339,7 +2345,7 @@ share/postgresql/extension/
  #log_destination = 'stderr'		# Valid values are combinations of
  					# stderr, csvlog, syslog, and eventlog,
  					# depending on platform.  csvlog
-@@ -432,6 +433,9 @@
+@@ -447,6 +448,9 @@
  #track_io_timing = off
  #track_functions = none			# none, pl, all
  #track_activity_query_size = 1024	# (change requires restart)
@@ -2596,7 +2602,7 @@ TEMPLATE_ARG=	--with-template=openbsd
 UUID_ARG=	--with-uuid=bsd
 .elif ${OPSYS:MDarwin}
 TEMPLATE_ARG=	--with-template=darwin
-UUID_ARG=	--with-uuid=ossp
+UUID_ARG=	--with-uuid=e2fs
 .elif ${OPSYS:MSunOS}
 TEMPLATE_ARG=	--with-template=solaris
 UUID_ARG=	--with-uuid=ossp
