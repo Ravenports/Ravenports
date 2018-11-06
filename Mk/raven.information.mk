@@ -107,7 +107,7 @@ GCC8_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			62.1
+ICU_VERSION=			63.1
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
