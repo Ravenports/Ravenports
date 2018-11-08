@@ -81,6 +81,10 @@ pre-install:
 		${STAGEDIR}${RUBY_EXAMPLESDIR}/bigdecimal \
 		${STAGEDIR}${RUBY_RIDIR}
 
+post-patch-linux:
+	# <sys/vnode.h> does not exist on linux
+	${REINPLACE_CMD} -e '/vnode\.h/d' ${WRKSRC}/dir.c
+
 post-install:
 	# strip ruby binaries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${RUBY_NAME}
