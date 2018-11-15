@@ -4978,6 +4978,47 @@ record file nonetheless.
          return "-l" + lib
 
 
+[FILE:1304:patches/patch-Lib_multiprocessing_____init____.py]
+--- Lib/multiprocessing/__init__.py.orig	2018-04-29 22:47:33 UTC
++++ Lib/multiprocessing/__init__.py
+@@ -59,6 +59,7 @@ __author__ = 'R. Oudkerk (r.m.oudkerk@gm
+ #
+ 
+ import os
++import os.path
+ import sys
+ 
+ from multiprocessing.process import Process, current_process, active_children
+@@ -115,15 +116,21 @@ def cpu_count():
+             num = int(os.environ['NUMBER_OF_PROCESSORS'])
+         except (ValueError, KeyError):
+             num = 0
+-    elif 'bsd' in sys.platform or sys.platform == 'darwin':
++    elif 'bsd' in sys.platform or sys.platform == 'darwin' or sys.platform.startswith('dragonfly'):
+         comm = '/sbin/sysctl -n hw.ncpu'
+         if sys.platform == 'darwin':
+             comm = '/usr' + comm
+-        try:
+-            with os.popen(comm) as p:
+-                num = int(p.read())
+-        except ValueError:
+-            num = 0
++        if os.path.isfile(comm):
++            try:
++                with os.popen(comm) as p:
++                    num = int(p.read())
++            except ValueError:
++                num = 0
++        else:
++            try:
++                num = os.sysconf('SC_NPROCESSORS_ONLN')
++            except (ValueError, OSError, AttributeError):
++                num = 0
+     else:
+         try:
+             num = os.sysconf('SC_NPROCESSORS_ONLN')
+
+
 [FILE:771:patches/patch-Makefile.pre.in]
 # Description: Link scripts in the same way Python3 does
 # Submitted by: mva
@@ -5136,7 +5177,7 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
        return NULL;
 
 
-[FILE:1826:patches/patch-configure]
+[FILE:2152:patches/patch-configure]
 --- configure.orig	2018-04-29 22:47:33 UTC
 +++ configure
 @@ -3007,13 +3007,6 @@ $as_echo "#define _NETBSD_SOURCE 1" >>co
@@ -5161,7 +5202,7 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
 -  # with _XOPEN_SOURCE and __BSD_VISIBLE does not re-enable them.
 -  FreeBSD/4.*)
 +  # On FreeBSD,  defining _XOPEN_SOURCE to 600 requests a strict environment.
-+  FreeBSD/*)
++  FreeBSD/*|DragonFly/*)
      define_xopen_source=no;;
    # On MacOS X 10.2, a bug in ncurses.h means that it craps out if
    # _XOPEN_EXTENDED_SOURCE is defined. Apparently, this is fixed in 10.3, which
@@ -5174,6 +5215,15 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
      define_xopen_source=no;;
    # On AIX 4 and 5.1, mbstate_t is defined only when _XOPEN_SOURCE == 500 but
    # used in wcsnrtombs() and mbsnrtowcs() even if _XOPEN_SOURCE is not defined
+@@ -5486,7 +5478,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+ 	  BLDLIBRARY='-L. -lpython$(VERSION)'
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+ 	  case $ac_sys_system in
+-	      FreeBSD*)
++	      FreeBSD*|DragonFly*)
+ 		SOVERSION=`echo $SOVERSION|cut -d "." -f 1`
+ 		;;
+ 	  esac
 @@ -5517,6 +5509,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
      Darwin*)
      	LDLIBRARY='libpython$(VERSION).dylib'
@@ -5184,16 +5234,9 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
      AIX*)
 
 
-[FILE:4287:patches/patch-setup.py]
-# Description: Partial script installation backport from Python3
-# Submitted by: mva
-
-# Description: Some modules are installed via other ports
-
-# Description: ossaudiodev detection fix backport
-
---- setup.py.orig	2014-06-30 04:05:48.000000000 +0200
-+++ setup.py	2014-07-26 14:51:29.000000000 +0200
+[FILE:4116:patches/patch-setup.py]
+--- setup.py.orig	2018-04-29 22:47:33 UTC
++++ setup.py
 @@ -15,6 +15,7 @@ from distutils.core import Extension, se
  from distutils.command.build_ext import build_ext
  from distutils.command.install import install
@@ -5211,7 +5254,7 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
  
  def add_dir_to_list(dirlist, dir):
      """Add the directory 'dir' to the list 'dirlist' (at the front) if
-@@ -1214,7 +1215,7 @@ class PyBuildExt(build_ext):
+@@ -1234,7 +1235,7 @@ class PyBuildExt(build_ext):
                  sysroot = macosx_sdk_root()
                  f = os.path.join(sysroot, f[1:])
  
@@ -5220,16 +5263,20 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
              data = open(f).read()
              m = re.search(r"#s*define\s+HASHVERSION\s+2\s*", data)
              if m is not None:
-@@ -1553,7 +1554,7 @@ class PyBuildExt(build_ext):
+@@ -1568,7 +1569,11 @@ class PyBuildExt(build_ext):
              macros = dict()
              libraries = []
  
 -        elif host_platform in ('freebsd4', 'freebsd5', 'freebsd6', 'freebsd7', 'freebsd8'):
-+        elif host_platform in ('freebsd4', 'freebsd5', 'freebsd6', 'freebsd7', 'freebsd8', 'freebsd9', 'freebsd10', 'freebsd11'):
++        elif host_platform.startswith('dragonfly'):
++            macros = dict()
++            libraries = ['pthread']
++
++        elif host_platform in ('freebsd10', 'freebsd11', 'freebsd12'):
              # FreeBSD's P1003.1b semaphore support is very experimental
              # and has many known problems. (as of June 2008)
              macros = dict()
-@@ -1604,9 +1605,10 @@ class PyBuildExt(build_ext):
+@@ -1619,9 +1624,10 @@ class PyBuildExt(build_ext):
          else:
              missing.append('linuxaudiodev')
  
@@ -5239,11 +5286,11 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
 +# Initial backport of http://hg.python.org/cpython/rev/50f1922bc1d5
 +
 +        if any(sys.platform.startswith(prefix)
-+               for prefix in ("linux", "freebsd", "gnukfreebsd")):
++               for prefix in ("linux", "dragon", "freebsd", "gnukfreebsd")):
              exts.append( Extension('ossaudiodev', ['ossaudiodev.c']) )
          else:
              missing.append('ossaudiodev')
-@@ -2178,6 +2180,22 @@ class PyBuildInstallLib(install_lib):
+@@ -2244,6 +2250,22 @@ class PyBuildInstallLib(install_lib):
      def is_chmod_supported(self):
          return hasattr(os, 'chmod')
  
@@ -5266,7 +5313,7 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
  SUMMARY = """
  Python is an interpreted, interactive, object-oriented programming
  language. It is often compared to Tcl, Perl, Scheme or Java.
-@@ -2223,7 +2241,9 @@ def main():
+@@ -2289,7 +2311,9 @@ def main():
            platforms = ["Many"],
  
            # Build info
@@ -5277,7 +5324,7 @@ Only define _XOPEN_SOURCE if we aren't already using newer.
                        'install_lib':PyBuildInstallLib},
            # The struct module is defined here, because build_ext won't be
            # called unless there's at least one extension module defined.
-@@ -2231,8 +2251,7 @@ def main():
+@@ -2297,8 +2321,7 @@ def main():
  
            # Scripts to install
            scripts = ['Tools/scripts/pydoc', 'Tools/scripts/idle',
@@ -5301,66 +5348,4 @@ as they require additional dependencies. They are available as:
   python-tkinter:single:py%%PYTHON_SUFFIX%%
 
 ===========================================================================
-
-
-[FILE:506:dragonfly/patch-Lib_multiprocessing_____init____.py]
---- Lib/multiprocessing/__init__.py.orig	2014-06-30 02:05:29 UTC
-+++ Lib/multiprocessing/__init__.py
-@@ -115,7 +115,7 @@ def cpu_count():
-             num = int(os.environ['NUMBER_OF_PROCESSORS'])
-         except (ValueError, KeyError):
-             num = 0
--    elif 'bsd' in sys.platform or sys.platform == 'darwin':
-+    elif 'bsd' in sys.platform or sys.platform.startswith('dragonfly'):
-         comm = '/sbin/sysctl -n hw.ncpu'
-         if sys.platform == 'darwin':
-             comm = '/usr' + comm
-
-
-[FILE:787:dragonfly/patch-configure]
---- configure.intermediate	2014-09-14 16:06:28 UTC
-+++ configure
-@@ -3287,7 +3287,7 @@ $as_echo "#define _BSD_SOURCE 1" >>confd
-   SCO_SV/3.2)
-     define_xopen_source=no;;
-   # On FreeBSD,  defining _XOPEN_SOURCE to 600 requests a strict environment.
--  FreeBSD/*)
-+  FreeBSD/* | DragonFly/*)
-     define_xopen_source=no;;
-   # On MacOS X 10.2, a bug in ncurses.h means that it craps out if
-   # _XOPEN_EXTENDED_SOURCE is defined. Apparently, this is fixed in 10.3, which
-@@ -5351,7 +5351,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
- 	  BLDLIBRARY='-L. -lpython$(VERSION)'
- 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
- 	  case $ac_sys_system in
--	      FreeBSD*)
-+	      DragonFly*|FreeBSD*)
- 		SOVERSION=`echo $SOVERSION|cut -d "." -f 1`
- 		;;
- 	  esac
-
-
-[FILE:1011:dragonfly/patch-setup.py]
---- setup.py.orig	2014-07-20 12:11:37.904857000 +0000
-+++ setup.py
-@@ -1553,6 +1553,10 @@ class PyBuildExt(build_ext):
-             macros = dict()
-             libraries = []
- 
-+        elif host_platform.startswith('dragonfly'):
-+            macros = dict()
-+            libraries = ['pthread']
-+
-         elif host_platform in ('freebsd4', 'freebsd5', 'freebsd6', 'freebsd7', 'freebsd8', 'freebsd9', 'freebsd10', 'freebsd11'):
-             # FreeBSD's P1003.1b semaphore support is very experimental
-             # and has many known problems. (as of June 2008)
-@@ -1607,7 +1611,7 @@ class PyBuildExt(build_ext):
- # Initial backport of http://hg.python.org/cpython/rev/50f1922bc1d5
- 
-         if any(sys.platform.startswith(prefix)
--               for prefix in ("linux", "freebsd", "gnukfreebsd")):
-+               for prefix in ("linux", "dragon", "freebsd", "gnukfreebsd")):
-             exts.append( Extension('ossaudiodev', ['ossaudiodev.c']) )
-         else:
-             missing.append('ossaudiodev')
 
