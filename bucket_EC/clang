@@ -11,21 +11,24 @@ CONTACT=		nobody
 DOWNLOAD_GROUPS=	main
 SITES[main]=		http://llvm.org/releases/7.0.0/
 DISTFILE[1]=		cfe-7.0.0.src.tar.xz:main
-DF_INDEX=		1
-SPKGS[standard]=	single
+DISTFILE[2]=		clang-tools-extra-7.0.0.src.tar.xz:main
+DF_INDEX=		1 2
+SPKGS[standard]=	complete
+			compiler
+			extra
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		llvm:llvm:standard
+BUILD_DEPENDS=		llvm:single:standard
 
-USES=			cmake:outsource ncurses zlib execinfo c++:single
-			shebangfix python:build
+USES=			cmake:outsource ncurses zlib execinfo shebangfix
+			python:build c++:compiler,extra
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		cfe-7.0.0.src
 
-LICENSE=		CUSTOM1:single
+LICENSE=		CUSTOM1:compiler
 LICENSE_NAME=		CUSTOM1:"University of Illinois/NCSA Open Source License"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/LICENSE.TXT
 LICENSE_SCHEME=		solo
@@ -35,9 +38,11 @@ SHEBANG_FILES=		utils/hmaptool/hmaptool
 			tools/scan-view/bin/scan-view
 			tools/clang-format/git-clang-format
 			tools/clang-format/clang-format-diff.py
+			tools/extra/clang-tidy/tool/clang-tidy-diff.py
+			tools/extra/clang-tidy/tool/run-clang-tidy.py
+			tools/extra/include-fixer/find-all-symbols/tool/run-find-all-symbols.py
 
 PLIST_SUB=		LLVM_RELEASE="7.0.0"
-			LLVM_MAJORMIN="7.0"
 			LLVM_MAJOR="7"
 
 CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
@@ -64,8 +69,21 @@ post-patch:
 post-install:
 	${INSTALL_PROGRAM} ${WRKDIR}/.build/bin/clang-tblgen \
 		${STAGEDIR}${PREFIX}/bin/
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libclang.${LIBEXT}
+	(cd ${STAGEDIR}${PREFIX}/bin && ${STRIP_CMD} \
+		c-index-test clang-7 clang-check \
+		clang-format clang-func-mapping clang-import-test \
+		clang-offload-bundler clang-refactor clang-rename \
+		clang-apply-replacements clang-change-namespace \
+		clang-include-fixer clang-query clang-reorder-fields \
+		clang-tidy clangd find-all-symbols modularize \
+		diagtool)
 
-[FILE:842:descriptions/desc.single]
+post-extract:
+	${MV} ${WRKDIR}/clang-tools-extra-7.0.0.src \
+		${WRKSRC}/tools/extra
+
+[FILE:842:descriptions/desc.compiler]
 The LLVM Project is a collection of modular and reusable compiler and
 toolchain technologies. Despite its name, LLVM has little to do with
 traditional virtual machines, though it does provide helpful libraries
@@ -82,11 +100,25 @@ and is a great example of the sort of tool that can be built using
 the Clang frontend as a library to parse C/C++ code.
 
 
-[FILE:99:distinfo]
+[FILE:558:descriptions/desc.extra]
+The LLVM Project is a collection of modular and reusable compiler and
+toolchain technologies. Despite its name, LLVM has little to do with
+traditional virtual machines, though it does provide helpful libraries
+that can be used to build them. The name "LLVM" itself is not an
+acronym; it is the full name of the project.
+
+This package holds tools that are developed as part of the LLVM compiler
+infrastructure project and the Clang frontend.  These tools are kept in a
+separate "extra" repository to allow lighter weight checkouts of the core
+Clang codebase.
+
+
+[FILE:212:distinfo]
 550212711c752697d2f82c648714a7221b1207fd9441543ff4aa9e3be45bba55     12541904 cfe-7.0.0.src.tar.xz
+937c5a8c8c43bc185e4805144744799e524059cac877a44d9063926cd7a19dbe       902780 clang-tools-extra-7.0.0.src.tar.xz
 
 
-[FILE:14316:manifests/plist.single]
+[FILE:14316:manifests/plist.compiler]
 %%ONLY-LINUX%%lib/clang/%%LLVM_RELEASE%%/include/
  limits.h
  stdalign.h
@@ -863,6 +895,57 @@ share/scan-view/
  ScanView.py
  bugcatcher.ico
  startfile.py
+
+
+[FILE:1096:manifests/plist.extra]
+bin/
+ clang-apply-replacements
+ clang-change-namespace
+ clang-include-fixer
+ clang-query
+ clang-reorder-fields
+ clang-tidy
+ clangd
+ find-all-symbols
+ modularize
+lib/
+ libclangApplyReplacements.a
+ libclangChangeNamespace.a
+ libclangDaemon.a
+ libclangDoc.a
+ libclangIncludeFixer.a
+ libclangIncludeFixerPlugin.a
+ libclangMove.a
+ libclangQuery.a
+ libclangReorderFields.a
+ libclangTidy.a
+ libclangTidyAbseilModule.a
+ libclangTidyAndroidModule.a
+ libclangTidyBoostModule.a
+ libclangTidyBugproneModule.a
+ libclangTidyCERTModule.a
+ libclangTidyCppCoreGuidelinesModule.a
+ libclangTidyFuchsiaModule.a
+ libclangTidyGoogleModule.a
+ libclangTidyHICPPModule.a
+ libclangTidyLLVMModule.a
+ libclangTidyMPIModule.a
+ libclangTidyMiscModule.a
+ libclangTidyModernizeModule.a
+ libclangTidyObjCModule.a
+ libclangTidyPerformanceModule.a
+ libclangTidyPlugin.a
+ libclangTidyPortabilityModule.a
+ libclangTidyReadabilityModule.a
+ libclangTidyUtils.a
+ libclangTidyZirconModule.a
+ libfindAllSymbols.a
+share/clang/
+ clang-include-fixer.el
+ clang-include-fixer.py
+ clang-tidy-diff.py
+ run-clang-tidy.py
+ run-find-all-symbols.py
 
 
 [FILE:746:patches/patch-lib_Driver_ToolChains_CommonArgs.cpp]

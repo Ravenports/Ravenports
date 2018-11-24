@@ -17,7 +17,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		llvm:complete:standard
+BUILD_DEPENDS=		llvm:single:standard
+			clang:compiler:standard
 			libedit:single:standard
 
 USES=			gmake python:py27,build
@@ -39,9 +40,7 @@ post-patch:
 		${WRKSRC}/configure.py
 
 do-configure:
-	# use port's c++ compiler instead of clang++
 	(cd ${WRKSRC} && ${PYTHON_CMD} configure.py ${CONFIGURE_ARGS} -g make \
-		--with-cxx-compiler="c++" \
 		--pkgconfigdir=${PREFIX}/lib/pkgconfig \
 		--with-llvm-config=${LOCALBASE}/bin/llvm-config \
 		--prefix=${PREFIX})
