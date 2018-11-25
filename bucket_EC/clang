@@ -45,9 +45,10 @@ SHEBANG_FILES=		utils/hmaptool/hmaptool
 PLIST_SUB=		LLVM_RELEASE="7.0.0"
 			LLVM_MAJOR="7"
 
-CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
-			-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
-			-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
+CMAKE_ARGS=		-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
+			-DLLVM_PARALLEL_LINK_JOBS=1
+			-DLLVM_INCLUDE_TESTS:BOOL=OFF
+			-DLLVM_BUILD_32_BITS:BOOL=OFF
 VAR_OPSYS[freebsd]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 VAR_OPSYS[sunos]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 VAR_OPSYS[linux]=	CMAKE_ARGS=-DLLVM_USE_LINKER-gold
@@ -69,15 +70,15 @@ post-patch:
 post-install:
 	${INSTALL_PROGRAM} ${WRKDIR}/.build/bin/clang-tblgen \
 		${STAGEDIR}${PREFIX}/bin/
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libclang.${LIBEXT}
-	(cd ${STAGEDIR}${PREFIX}/bin && ${STRIP_CMD} \
-		c-index-test clang-7 clang-check \
-		clang-format clang-func-mapping clang-import-test \
-		clang-offload-bundler clang-refactor clang-rename \
-		clang-apply-replacements clang-change-namespace \
-		clang-include-fixer clang-query clang-reorder-fields \
-		clang-tidy clangd find-all-symbols modularize \
-		diagtool)
+.for F in c-index-test clang-7 clang-check clang-format \
+	clang-func-mapping clang-import-test clang-offload-bundler \
+	clang-refactor clang-rename clang-apply-replacements \
+	clang-change-namespace clang-include-fixer clang-query \
+	clang-reorder-fields clang-tidy clangd find-all-symbols \
+	modularize diagtool
+	llvm-strip ${STAGEDIR}${PREFIX}/bin/${F}
+.endfor
+	llvm-strip ${STAGEDIR}${PREFIX}/lib/libclang.${LIBEXT}
 
 post-extract:
 	${MV} ${WRKDIR}/clang-tools-extra-7.0.0.src \

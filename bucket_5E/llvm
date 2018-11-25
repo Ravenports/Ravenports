@@ -42,6 +42,10 @@ PLIST_SUB=		LLVM_RELEASE="7.0.0"
 CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
 			-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 			-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
+			-DLLVM_PARALLEL_LINK_JOBS=1
+			-DLLVM_INCLUDE_TESTS:BOOL=OFF
+			-DLLVM_INCLUDE_EXAMPLES:BOOL=OFF
+			-DLLVM_BUILD_32_BITS:BOOL=OFF
 
 [GOLD].DESCRIPTION=			Build the LLVM Gold plugin for LTO
 [GOLD].CMAKE_ARGS_ON=			-DLLVM_BINUTILS_INCDIR={{LOCALBASE}}/toolchain/include
@@ -68,8 +72,8 @@ post-install:
 	verify-uselistorder yaml2obj
 	${STAGEDIR}${PREFIX}/bin/llvm-strip ${STAGEDIR}${PREFIX}/bin/${F}
 .endfor
-.for F in BugpointPasses.so LLVMHello.so LLVMgold.so TestPlugin.so \
-	libLLVM-7.so libLTO.so.7
+.for F in BugpointPasses.so LLVMHello.so LLVMgold.so libLLVM-7.so \
+	libLTO.so.7
 	${STAGEDIR}${PREFIX}/bin/llvm-strip ${STAGEDIR}${PREFIX}/lib/${F}
 .endfor
 
@@ -97,7 +101,7 @@ as an optimizer and code generator.
 30662b632f5556c59ee9215c1309f61de50b3ea8e89dcc28ba9a9494bba238ff       910680 openmp-7.0.0.src.tar.xz
 
 
-[FILE:27570:manifests/plist.single]
+[FILE:27555:manifests/plist.single]
 %%GOLD-ON%%lib/LLVMgold.so
 bin/
  bugpoint
@@ -1431,7 +1435,6 @@ include/llvm/XRay/
 lib/
  BugpointPasses.so
  LLVMHello.so
- TestPlugin.so
  libLLVM-%%LLVM_MAJOR%%.so
  libLLVM-%%LLVM_RELEASE%%.so
  libLLVM.so
