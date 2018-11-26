@@ -31,6 +31,10 @@ MAKE_ARGS=		INSTALLROOT={{STAGEDIR}}
 
 INSTALL_TARGET=		install install_rdf
 
+post-patch:
+	# fix gmake on macos
+	${REINPLACE_CMD} -e 's|[$$][(]A[)]|a|g' ${WRKSRC}/Makefile.in
+
 post-install:
 	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	(cd ${WRKSRC}/doc && ${COPYTREE_SHARE} html ${STAGEDIR}${STD_DOCDIR})
