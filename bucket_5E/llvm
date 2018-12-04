@@ -18,7 +18,6 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	GOLD
 OPTIONS_STANDARD=	GOLD
 OPT_ON[freebsd]=	GOLD//x86_64
-OPT_ON[sunos]=		GOLD//x86_64
 OPT_ON[linux]=		GOLD//x86_64
 OPT_ON[dragonfly]=	GOLD//x86_64
 
@@ -41,6 +40,7 @@ PLIST_SUB=		LLVM_RELEASE="7.0.0"
 
 CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
 			-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
+			-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
 			-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
 			-DLLVM_PARALLEL_LINK_JOBS=1
 			-DLLVM_INCLUDE_TESTS:BOOL=OFF
@@ -55,11 +55,15 @@ post-patch:
 	${REINPLACE_CMD} -e "s|/usr/local|${PREFIX}|g" \
 		${WRKSRC}/CMakeLists.txt
 
+post-install-GOLD-ON:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/LLVMgold.so
+
 post-install:
 	${RM} -r ${STAGEDIR}${MANPREFIX}/man
 	${RM} -r ${STAGEDIR}${PREFIX}/share/man
 	${RM} -r ${STAGEDIR}${PREFIX}/include/llvm/MC/MCAnalysis
 	${RM} -r ${STAGEDIR}${PREFIX}/include/llvm/BinaryFormat/WasmRelocs
+	# don't use llvm-strip yet, it doesn't work on SunOS or MacOS
 .for F in bugpoint dsymutil llc lli llvm-ar llvm-as llvm-bcanalyzer \
 	llvm-c-test llvm-cat llvm-cfi-verify llvm-config llvm-cov \
 	llvm-cvtres llvm-cxxdump llvm-cxxfilt llvm-diff llvm-dis \
@@ -70,11 +74,10 @@ post-install:
 	llvm-split llvm-stress llvm-strings llvm-symbolizer llvm-tblgen \
 	llvm-undname llvm-xray obj2yaml opt sancov sanstats \
 	verify-uselistorder yaml2obj
-	${STAGEDIR}${PREFIX}/bin/llvm-strip ${STAGEDIR}${PREFIX}/bin/${F}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${F}
 .endfor
-.for F in BugpointPasses.so LLVMHello.so LLVMgold.so libLLVM-7.so \
-	libLTO.so.7
-	${STAGEDIR}${PREFIX}/bin/llvm-strip ${STAGEDIR}${PREFIX}/lib/${F}
+.for F in BugpointPasses.so LLVMHello.so libLLVM-7.so libLTO.so.7
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/${F}
 .endfor
 
 [FILE:834:descriptions/desc.single]
@@ -1696,6 +1699,30 @@ share/opt-viewer/
  #include <sys/mount.h>
  #include <sys/param.h>
  #elif defined(__linux__)
+
+
+[FILE:467:patches/patch-tools_llvm-readobj_ObjDumper.cpp]
+--- tools/llvm-readobj/ObjDumper.cpp.orig	2018-07-26 15:31:41 UTC
++++ tools/llvm-readobj/ObjDumper.cpp
+@@ -20,6 +20,18 @@
+ #include "llvm/Support/ScopedPrinter.h"
+ #include "llvm/Support/raw_ostream.h"
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ namespace llvm {
+ 
+ ObjDumper::ObjDumper(ScopedPrinter &Writer) : W(Writer) {}
 
 
 [FILE:963:patches/patch-tools_llvm-shlib_CMakeLists.txt]

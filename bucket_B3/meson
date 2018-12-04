@@ -79,19 +79,19 @@ share/polkit-1/actions/com.mesonbuild.install.policy
              return ['/FORCE:UNRESOLVED']
 
 
-[FILE:2705:sunos/patch-mesonbuild_compilers_compilers.py]
---- mesonbuild/compilers/compilers.py.orig	2018-07-10 20:59:44 UTC
+[FILE:2762:sunos/patch-mesonbuild_compilers_compilers.py]
+--- mesonbuild/compilers/compilers.py.orig	2018-11-08 22:43:05 UTC
 +++ mesonbuild/compilers/compilers.py
-@@ -161,7 +161,7 @@ apple_buildtype_linker_args = {'plain':
+@@ -166,7 +166,7 @@ apple_buildtype_linker_args = {'plain':
  gnulike_buildtype_linker_args = {'plain': [],
                                   'debug': [],
                                   'debugoptimized': [],
 -                                 'release': ['-Wl,-O1'],
 +                                 'release': [],
                                   'minsize': [],
+                                  'custom': [],
                                   }
- 
-@@ -1034,19 +1034,6 @@ class Compiler:
+@@ -1136,19 +1136,6 @@ class Compiler:
              # linked against local libraries will fail to resolve them.
              args.append('-Wl,-z,origin')
          args.append('-Wl,-rpath,' + paths)
@@ -111,27 +111,30 @@ share/polkit-1/actions/com.mesonbuild.install.policy
          return args
  
      def thread_flags(self, env):
-@@ -1118,10 +1105,6 @@ def get_compiler_is_linuxlike(compiler):
+@@ -1236,15 +1223,7 @@ def get_compiler_is_linuxlike(compiler):
  def get_compiler_uses_gnuld(c):
      # FIXME: Perhaps we should detect the linker in the environment?
      # FIXME: Assumes that *BSD use GNU ld, but they might start using lld soon
--    if (getattr(c, 'gcc_type', None) in (GCC_STANDARD, GCC_MINGW, GCC_CYGWIN)) or \
--       (getattr(c, 'clang_type', None) in (CLANG_STANDARD, CLANG_WIN)) or \
--       (getattr(c, 'icc_type', None) in (ICC_STANDARD, ICC_WIN)):
--        return True
-     return False
+-    compiler_type = getattr(c, 'compiler_type', None)
+-    return compiler_type in (
+-        CompilerType.GCC_STANDARD,
+-        CompilerType.GCC_MINGW,
+-        CompilerType.GCC_CYGWIN,
+-        CompilerType.CLANG_STANDARD,
+-        CompilerType.CLANG_MINGW,
+-        CompilerType.ICC_STANDARD,
+-        CompilerType.ICC_WIN)
++    return False
  
  def get_largefile_args(compiler):
-@@ -1189,11 +1172,6 @@ class GnuCompiler:
-         self.defines = defines or {}
+     '''
+@@ -1315,8 +1294,6 @@ class GnuLikeCompiler(abc.ABC):
+         self.compiler_type = compiler_type
          self.base_options = ['b_pch', 'b_lto', 'b_pgo', 'b_sanitize', 'b_coverage',
-                              'b_colorout', 'b_ndebug', 'b_staticpic']
--        if self.gcc_type == GCC_OSX:
--            self.base_options.append('b_bitcode')
--        else:
+                              'b_ndebug', 'b_staticpic', 'b_asneeded']
+-        if not self.compiler_type.is_osx_compiler:
 -            self.base_options.append('b_lundef')
--        self.base_options.append('b_asneeded')
-         # All GCC backends can do assembly
+         # All GCC-like backends can do assembly
          self.can_compile_suffixes.add('s')
  
 

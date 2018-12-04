@@ -51,6 +51,7 @@ CONFIGURE_ARGS=		--disable-debug
 PLIST_SUB=		MOZJS_MAJOR=52
 			MOZJS_MINOR=9
 
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-jemalloc
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--disable-jemalloc
 
 post-patch:
@@ -246,10 +247,19 @@ lib/
 lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
 
 
-[FILE:540:patches/patch-build_moz.configure_init.configure]
---- ../../build/moz.configure/init.configure.orig	2018-01-11 18:49:42 UTC
+[FILE:865:patches/patch-build_moz.configure_init.configure]
+--- ../../build/moz.configure/init.configure.orig	2017-04-11 02:13:08 UTC
 +++ ../../build/moz.configure/init.configure
-@@ -344,8 +344,8 @@ def split_triplet(triplet):
+@@ -336,6 +336,8 @@ def split_triplet(triplet):
+         canonical_os = canonical_kernel = 'NetBSD'
+     elif os.startswith('openbsd'):
+         canonical_os = canonical_kernel = 'OpenBSD'
++    elif os.startswith('solaris'):
++        canonical_os = canonical_kernel = 'SunOS'
+     else:
+         die('Unknown OS: %s' % os)
+ 
+@@ -344,8 +346,8 @@ def split_triplet(triplet):
      if cpu.endswith('86') or (cpu.startswith('i') and '86' in cpu):
          canonical_cpu = 'x86'
          endianness = 'little'
@@ -263,7 +273,7 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
 
 
 [FILE:552:patches/patch-config_rules.mk]
---- ../../config/rules.mk.orig	2018-01-11 18:49:42 UTC
+--- ../../config/rules.mk.orig	2017-04-11 02:13:09 UTC
 +++ ../../config/rules.mk
 @@ -418,7 +418,7 @@ endif # AIX
  #
@@ -286,10 +296,87 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
  ifeq ($(OS_TARGET),WINNT)
 
 
-[FILE:908:patches/patch-js_src_old-configure.in]
---- old-configure.in.orig	2018-01-11 18:49:44 UTC
+[FILE:1451:patches/patch-js_src_gc_Memory.cpp]
+$NetBSD: patch-js_src_gc_Memory.cpp,v 1.1 2018/05/11 19:18:35 jperkin Exp $
+
+Support SunOS/x86_64.
+
+--- gc/Memory.cpp.orig	2017-05-12 00:25:50 UTC
++++ gc/Memory.cpp
+@@ -501,7 +501,7 @@ static inline void*
+ MapMemoryAt(void* desired, size_t length, int prot = PROT_READ | PROT_WRITE,
+             int flags = MAP_PRIVATE | MAP_ANON, int fd = -1, off_t offset = 0)
+ {
+-#if defined(__ia64__) || (defined(__sparc64__) && defined(__NetBSD__)) || defined(__aarch64__)
++#if defined(__ia64__) || (defined(__sparc64__) && defined(__NetBSD__)) || defined(__aarch64__) || (defined(__sun) && defined(__x86_64__))
+     MOZ_ASSERT((0xffff800000000000ULL & (uintptr_t(desired) + length - 1)) == 0);
+ #endif
+     void* region = mmap(desired, length, prot, flags, fd, offset);
+@@ -551,7 +551,7 @@ MapMemory(size_t length, int prot = PROT
+         return nullptr;
+     }
+     return region;
+-#elif defined(__aarch64__)
++#elif defined(__aarch64__) || (defined(__sun) && defined(__x86_64__))
+    /*
+     * There might be similar virtual address issue on arm64 which depends on
+     * hardware and kernel configurations. But the work around is slightly
+@@ -763,8 +763,11 @@ MarkPagesUnused(void* p, size_t size)
+         return false;
+ 
+     MOZ_ASSERT(OffsetFromAligned(p, pageSize) == 0);
+-    int result = madvise(p, size, MADV_DONTNEED);
++#ifdef __sun  //posix_madvise not available on Solaris 10
++    return false;
++#else
+     return result != -1;
++#endif
+ }
+ 
+ void
+
+
+[FILE:617:patches/patch-js_src_jsnativestack.cpp]
+$NetBSD: patch-js_src_jsnativestack.cpp,v 1.1 2018/05/11 19:18:35 jperkin Exp $
+
+Support SunOS.
+
+--- jsnativestack.cpp.orig	2017-04-11 02:13:16 UTC
++++ jsnativestack.cpp
+@@ -59,7 +59,7 @@ js::GetNativeStackBaseImpl()
+ # endif
+ }
+ 
+-#elif defined(SOLARIS)
++#elif defined(__sun)
+ 
+ #include <ucontext.h>
+ 
+@@ -105,6 +105,7 @@ js::GetNativeStackBaseImpl()
+ #  elif defined(PTHREAD_NP_H) || defined(_PTHREAD_NP_H_) || defined(NETBSD)
+     /* e.g. on FreeBSD 4.8 or newer, neundorf@kde.org */
+     pthread_attr_get_np(thread, &sattr);
++#  elif defined(__sun)
+ #  else
+     /*
+      * FIXME: this function is non-portable;
+
+
+[FILE:1249:patches/patch-js_src_old-configure.in]
+--- old-configure.in.orig	2017-04-11 02:13:16 UTC
 +++ old-configure.in
-@@ -1623,16 +1623,21 @@ dnl ====================================
+@@ -599,6 +599,10 @@ dnl System overrides of the defaults for
+ dnl ========================================================
+ 
+ case "$target" in
++*-solaris*)
++	MOZ_FIX_LINK_PATHS=
++	;;
++
+ *-darwin*)
+     MKSHLIB='$(CXX) $(CXXFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
+     MKCSHLIB='$(CC) $(CFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
+@@ -1623,16 +1627,21 @@ dnl ====================================
  dnl = Enable jemalloc
  dnl ========================================================
  
@@ -322,8 +409,126 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
    if test "x$MOZ_DEBUG" = "x1"; then
 
 
+[FILE:457:patches/patch-js_src_threading_posix_Thread.cpp]
+$NetBSD: patch-js_src_threading_posix_Thread.cpp,v 1.1 2018/05/11 19:18:35 jperkin Exp $
+
+Support SunOS.
+
+--- threading/posix/Thread.cpp.orig	2017-04-11 02:13:21 UTC
++++ threading/posix/Thread.cpp
+@@ -159,6 +159,8 @@ js::ThisThread::SetName(const char* name
+   rv = 0;
+ #elif defined(__NetBSD__)
+   rv = pthread_setname_np(pthread_self(), "%s", (void*)name);
++#elif defined(__sun)
++  rv = 0;
+ #else
+   rv = pthread_setname_np(pthread_self(), name);
+ #endif
+
+
+[FILE:747:patches/patch-js_src_wasm_WasmSignalHandlers.cpp]
+$NetBSD: patch-js_src_wasm_WasmSignalHandlers.cpp,v 1.1 2018/05/11 19:18:35 jperkin Exp $
+
+Support SunOS.
+
+--- wasm/WasmSignalHandlers.cpp.orig	2017-05-19 20:28:41 UTC
++++ wasm/WasmSignalHandlers.cpp
+@@ -130,11 +130,12 @@ class AutoSetHandlingSegFault
+ #  define EPC_sig(p) ((p)->sc_pc)
+ #  define RFP_sig(p) ((p)->sc_regs[30])
+ # endif
+-#elif defined(__linux__) || defined(SOLARIS)
++#elif defined(__linux__) || defined(__sun)
+ # if defined(__linux__)
+ #  define XMM_sig(p,i) ((p)->uc_mcontext.fpregs->_xmm[i])
+ #  define EIP_sig(p) ((p)->uc_mcontext.gregs[REG_EIP])
+ # else
++#  include <sys/regset.h>
+ #  define XMM_sig(p,i) ((p)->uc_mcontext.fpregs.fp_reg_set.fpchip_state.xmm[i])
+ #  define EIP_sig(p) ((p)->uc_mcontext.gregs[REG_PC])
+ # endif
+
+
+[FILE:551:patches/patch-memory_mozalloc_mozalloc__abort.cpp]
+$NetBSD: patch-memory_mozalloc_mozalloc__abort.cpp,v 1.1 2018/05/11 19:18:35 jperkin Exp $
+
+Support SunOS.
+
+--- ../../memory/mozalloc/mozalloc_abort.cpp.orig	2017-04-11 02:13:16 UTC
++++ ../../memory/mozalloc/mozalloc_abort.cpp
+@@ -68,7 +68,11 @@ void fillAbortMessage(char (&msg)[N], ui
+ //
+ // That segmentation fault will be interpreted as another bug by ASan and as a
+ // result, ASan will just exit(1) instead of aborting.
++#ifdef __sun
++void std::abort(void)
++#else
+ void abort(void)
++#endif
+ {
+ #ifdef MOZ_WIDGET_ANDROID
+     char msg[64] = {};
+
+
+[FILE:445:patches/patch-mfbt_Poison.cpp]
+--- ../../mfbt/Poison.cpp.orig	2017-04-11 02:13:16 UTC
++++ ../../mfbt/Poison.cpp
+@@ -129,11 +129,15 @@ ReleaseRegion(void* aRegion, uintptr_t a
+ static bool
+ ProbeRegion(uintptr_t aRegion, uintptr_t aSize)
+ {
++#ifdef __sun__   //not easily available on Solaris 10
++  return false;
++#else
+   if (madvise(reinterpret_cast<void*>(aRegion), aSize, MADV_NORMAL)) {
+     return true;
+   } else {
+     return false;
+   }
++#endif
+ }
+ 
+ static uintptr_t
+
+
+[FILE:346:patches/patch-mfbt_tests_TestPoisonArea.cpp]
+--- ../../mfbt/tests/TestPoisonArea.cpp.orig	2017-04-11 02:13:17 UTC
++++ ../../mfbt/tests/TestPoisonArea.cpp
+@@ -266,7 +266,11 @@ ReleaseRegion(void* aPage)
+ static bool
+ ProbeRegion(uintptr_t aPage)
+ {
++#ifdef __sun__
++  return false;
++#else
+   return !!madvise(reinterpret_cast<void*>(aPage), PageSize(), MADV_NORMAL);
++#endif
+ }
+ 
+ static int
+
+
+[FILE:393:patches/patch-modules_fdlibm_src_math__private.h]
+$NetBSD: patch-modules_fdlibm_src_math__private.h,v 1.1 2018/05/11 19:18:35 jperkin Exp $
+
+Support SunOS.
+
+--- ../../modules/fdlibm/src/math_private.h.orig	2017-04-11 02:13:20 UTC
++++ ../../modules/fdlibm/src/math_private.h
+@@ -38,7 +38,7 @@
+  * endianness at run time.
+  */
+ 
+-#ifdef WIN32
++#if defined(WIN32) || defined(__sun)
+ #define u_int32_t uint32_t
+ #define u_int64_t uint64_t
+ #endif
+
+
 [FILE:475:patches/patch-mozglue_build_moz.build]
---- ../../mozglue/build/moz.build.orig	2018-01-11 18:49:46 UTC
+--- ../../mozglue/build/moz.build.orig	2017-04-11 02:13:21 UTC
 +++ ../../mozglue/build/moz.build
 @@ -6,7 +6,7 @@
  
@@ -336,10 +541,10 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
      Library('mozglue')
 
 
-[FILE:379:patches/patch-python_mach_mach_mixin_process.py]
---- ../../python/mach/mach/mixin/process.py.orig	2018-04-01 13:37:29.893787000 +0200
-+++ ../../python/mach/mach/mixin/process.py	2018-04-01 13:38:10.188973000 +0200
-@@ -26,7 +26,7 @@
+[FILE:366:patches/patch-python_mach_mach_mixin_process.py]
+--- ../../python/mach/mach/mixin/process.py.orig	2017-04-11 02:13:23 UTC
++++ ../../python/mach/mach/mixin/process.py
+@@ -26,7 +26,7 @@ elif 'MOZILLABUILD' in os.environ:
  elif 'COMSPEC' in os.environ:
      _current_shell = os.environ['COMSPEC']
  else:
@@ -351,7 +556,7 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
 
 
 [FILE:1099:patches/patch-python_mozbuild_mozbuild_backend_recursivemake.py]
---- ../../python/mozbuild/mozbuild/backend/recursivemake.py.orig	2018-01-11 18:49:46 UTC
+--- ../../python/mozbuild/mozbuild/backend/recursivemake.py.orig	2017-04-11 02:13:23 UTC
 +++ ../../python/mozbuild/mozbuild/backend/recursivemake.py
 @@ -1307,11 +1307,11 @@ class RecursiveMakeBackend(CommonBackend
                                  raise Exception("Wildcards are only supported in the filename part of "
@@ -371,7 +576,7 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
 
 
 [FILE:572:patches/patch-python_mozbuild_mozbuild_configure_____init____.py]
---- ../../python/mozbuild/mozbuild/configure/__init__.py.orig	2018-01-11 18:49:46 UTC
+--- ../../python/mozbuild/mozbuild/configure/__init__.py.orig	2017-04-11 02:13:23 UTC
 +++ ../../python/mozbuild/mozbuild/configure/__init__.py
 @@ -356,7 +356,7 @@ class ConfigureSandbox(dict):
          # All options should have been removed (handled) by now.
@@ -384,8 +589,41 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
          for func, args in self._execution_queue:
 
 
+[FILE:713:patches/patch-python_mozbuild_mozbuild_configure_constants.py]
+$NetBSD: patch-python_mozbuild_mozbuild_configure_constants.py,v 1.1 2018/05/11 19:18:35 jperkin Exp $
+
+Support SunOS.
+
+--- ../../python/mozbuild/mozbuild/configure/constants.py.orig	2017-04-11 02:13:23 UTC
++++ ../../python/mozbuild/mozbuild/configure/constants.py
+@@ -24,6 +24,7 @@ OS = EnumString.subclass(
+     'NetBSD',
+     'OpenBSD',
+     'OSX',
++    'SunOS',
+     'WINNT',
+ )
+ 
+@@ -35,6 +36,7 @@ Kernel = EnumString.subclass(
+     'Linux',
+     'NetBSD',
+     'OpenBSD',
++    'SunOS',
+     'WINNT',
+ )
+ 
+@@ -97,6 +99,7 @@ kernel_preprocessor_checks = {
+     'Linux': '__linux__',
+     'NetBSD': '__NetBSD__',
+     'OpenBSD': '__OpenBSD__',
++    'SunOS': '__sun',
+     'WINNT': '_WIN32 || __CYGWIN__',
+ }
+ 
+
+
 [FILE:659:patches/patch-python_mozbuild_mozbuild_configure_options.py]
---- ../../python/mozbuild/mozbuild/configure/options.py.orig	2018-01-11 18:49:46 UTC
+--- ../../python/mozbuild/mozbuild/configure/options.py.orig	2017-04-11 02:13:23 UTC
 +++ ../../python/mozbuild/mozbuild/configure/options.py
 @@ -402,7 +402,11 @@ class CommandLineHelper(object):
  

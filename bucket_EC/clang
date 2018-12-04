@@ -50,7 +50,6 @@ CMAKE_ARGS=		-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 			-DLLVM_INCLUDE_TESTS:BOOL=OFF
 			-DLLVM_BUILD_32_BITS:BOOL=OFF
 VAR_OPSYS[freebsd]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
-VAR_OPSYS[sunos]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 VAR_OPSYS[linux]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 
@@ -76,9 +75,9 @@ post-install:
 	clang-change-namespace clang-include-fixer clang-query \
 	clang-reorder-fields clang-tidy clangd find-all-symbols \
 	modularize diagtool
-	llvm-strip ${STAGEDIR}${PREFIX}/bin/${F}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${F}
 .endfor
-	llvm-strip ${STAGEDIR}${PREFIX}/lib/libclang.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libclang.${LIBEXT}
 
 post-extract:
 	${MV} ${WRKDIR}/clang-tools-extra-7.0.0.src \
