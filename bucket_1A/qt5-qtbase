@@ -71,6 +71,12 @@ SUB_LIST=		CC={{CC:Q}}
 			PTHREAD_LIBS={{QMAKE_LIBS_THREAD:Q}}
 			PTHREAD_LDFLAGS={{QMAKE_LFLAGS_THREAD:Q}}
 			SYS_LIBS={{QMAKE_X11_SYS_LIBS:Q}}
+			PLATFORM={{VAR1}}
+
+VAR_OPSYS[freebsd]=	VAR1=freebsd
+VAR_OPSYS[sunos]=	VAR1=solaris
+VAR_OPSYS[linux]=	VAR1=linux
+VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 
 post-patch:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
@@ -3617,6 +3623,20 @@ Do not create .la files.
  
 
 
+[FILE:470:patches/patch-src_corelib_io_io.pri]
+--- src/corelib/io/io.pri.orig	2018-11-25 12:51:11 UTC
++++ src/corelib/io/io.pri
+@@ -101,7 +101,7 @@ qtConfig(filesystemwatcher) {
+         SOURCES += io/qfilesystemwatcher_inotify.cpp
+         HEADERS += io/qfilesystemwatcher_inotify_p.h
+     } else {
+-        freebsd|darwin|openbsd|netbsd {
++        freebsd|darwin|openbsd|netbsd|dragonfly {
+             SOURCES += io/qfilesystemwatcher_kqueue.cpp
+             HEADERS += io/qfilesystemwatcher_kqueue_p.h
+         }
+
+
 [FILE:539:patches/patch-src_corelib_io_qlockfile__unix.cpp]
 --- src/corelib/io/qlockfile_unix.cpp.orig	2018-11-25 12:51:11 UTC
 +++ src/corelib/io/qlockfile_unix.cpp
@@ -3717,12 +3737,13 @@ $NetBSD: patch-tests_auto_corelib_io_qprocess_qprocess.pro,v 1.1 2014/12/30 17:2
      SUBDIRS += \
 
 
-[FILE:2017:files/qmake.conf.in]
+[FILE:2056:files/qmake.conf.in]
 #
 # qmake configuration for Ravenports
 #
 
 MAKEFILE_GENERATOR	= UNIX
+QMAKE_PLATFORM          = %%PLATFORM%%
 CONFIG += qt warn_on release link_prl incremental gdb_dwarf_index
 QMAKE_INCREMENTAL_STYLE = sublib
 

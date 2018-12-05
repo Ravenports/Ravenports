@@ -321,14 +321,14 @@ Support SunOS/x86_64.
     /*
      * There might be similar virtual address issue on arm64 which depends on
      * hardware and kernel configurations. But the work around is slightly
-@@ -763,8 +763,11 @@ MarkPagesUnused(void* p, size_t size)
+@@ -763,8 +763,12 @@ MarkPagesUnused(void* p, size_t size)
          return false;
  
      MOZ_ASSERT(OffsetFromAligned(p, pageSize) == 0);
--    int result = madvise(p, size, MADV_DONTNEED);
 +#ifdef __sun  //posix_madvise not available on Solaris 10
 +    return false;
 +#else
+     int result = madvise(p, size, MADV_DONTNEED);
      return result != -1;
 +#endif
  }
