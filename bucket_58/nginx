@@ -533,6 +533,20 @@ www/nginx-dist/
 @preexec mkdir -p -m 755 %D/www/nginx-dist
 
 
+[FILE:478:patches/patch-src_os_unix_ngx__file__aio__read.c]
+--- src/os/unix/ngx_file_aio_read.c.orig	2018-11-27 14:40:21 UTC
++++ src/os/unix/ngx_file_aio_read.c
+@@ -110,7 +110,7 @@ ngx_file_aio_read(ngx_file_t *file, u_ch
+ #if (NGX_HAVE_KQUEUE)
+     aio->aiocb.aio_sigevent.sigev_notify_kqueue = ngx_kqueue;
+     aio->aiocb.aio_sigevent.sigev_notify = SIGEV_KEVENT;
+-    aio->aiocb.aio_sigevent.sigev_value.sigval_ptr = ev;
++    aio->aiocb.aio_sigevent.sigev_value.sival_ptr = ev;
+ #endif
+     ev->handler = ngx_file_aio_event_handler;
+ 
+
+
 [FILE:764:files/extra-patch-iconv]
 --- ../iconv-nginx-module-0.14/config.orig	2013-04-16 17:57:17.000000000 -0700
 +++ ../iconv-nginx-module-0.14/config	2013-05-01 17:16:28.134624745 -0700
@@ -1025,7 +1039,7 @@ Default path for the NGINX dynamic modules is
 
 
 [FILE:314:dragonfly/patch-src_core_ngx__config.h]
---- src/core/ngx_config.h.orig	2018-06-05 13:47:25 UTC
+--- src/core/ngx_config.h.orig	2018-11-27 14:40:21 UTC
 +++ src/core/ngx_config.h
 @@ -12,8 +12,8 @@
  #include <ngx_auto_headers.h>
@@ -1041,7 +1055,7 @@ Default path for the NGINX dynamic modules is
 
 
 [FILE:470:dragonfly/patch-src_event_modules_ngx__eventport__module.c]
---- src/event/modules/ngx_eventport_module.c.orig	2018-06-05 13:47:25 UTC
+--- src/event/modules/ngx_eventport_module.c.orig	2018-11-27 14:40:21 UTC
 +++ src/event/modules/ngx_eventport_module.c
 @@ -51,7 +51,7 @@ typedef struct  port_notify {
      void       *portnfy_user;   /* user defined */
@@ -1055,7 +1069,7 @@ Default path for the NGINX dynamic modules is
 
 
 [FILE:532:dragonfly/patch-src_event_modules_ngx__kqueue__module.c]
---- src/event/modules/ngx_kqueue_module.c.orig	2018-06-05 13:47:25 UTC
+--- src/event/modules/ngx_kqueue_module.c.orig	2018-11-27 14:40:21 UTC
 +++ src/event/modules/ngx_kqueue_module.c
 @@ -429,8 +429,7 @@ ngx_kqueue_set_event(ngx_event_t *ev, ng
      if (filter == EVFILT_VNODE) {
@@ -1070,7 +1084,7 @@ Default path for the NGINX dynamic modules is
 
 
 [FILE:447:dragonfly/patch-src_os_unix_ngx__freebsd__init.c]
---- src/os/unix/ngx_freebsd_init.c.orig	2018-06-05 13:47:25 UTC
+--- src/os/unix/ngx_freebsd_init.c.orig	2018-11-27 14:40:21 UTC
 +++ src/os/unix/ngx_freebsd_init.c
 @@ -162,8 +162,7 @@ ngx_os_specific_init(ngx_log_t *log)
       * to allow an old binary to run correctly on an updated FreeBSD system.
