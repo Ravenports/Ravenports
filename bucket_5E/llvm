@@ -2,7 +2,7 @@
 
 NAMEBASE=		llvm
 VERSION=		7.0.0
-REVISION=		2
+REVISION=		3
 KEYWORDS=		devel lang
 VARIANTS=		standard
 SDESC[standard]=	Low Level Virtual Machine (version 7.0)
@@ -22,7 +22,7 @@ OPT_ON[linux]=		GOLD//x86_64
 OPT_ON[dragonfly]=	GOLD//x86_64
 
 USES=			cmake:outsource ncurses python:build execinfo zlib
-			c++:single
+			shebangfix c++:single
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		llvm-7.0.0.src
@@ -34,6 +34,7 @@ LICENSE_SCHEME=		solo
 
 CMAKE_BUILD_TYPE=	Release
 FPC_EQUIVALENT=		devel/llvm50
+SHEBANG_FILES=		utils/llvm-lit/llvm-lit.in
 
 PLIST_SUB=		LLVM_RELEASE="7.0.0"
 			LLVM_MAJOR="7"
@@ -46,6 +47,7 @@ CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
 			-DLLVM_INCLUDE_TESTS:BOOL=OFF
 			-DLLVM_INCLUDE_EXAMPLES:BOOL=OFF
 			-DLLVM_BUILD_32_BITS:BOOL=OFF
+			-DLLVM_INSTALL_UTILS=ON
 
 [GOLD].DESCRIPTION=			Build the LLVM Gold plugin for LTO
 [GOLD].CMAKE_ARGS_ON=			-DLLVM_BINUTILS_INCDIR={{LOCALBASE}}/toolchain/include
@@ -59,8 +61,6 @@ post-install-GOLD-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/LLVMgold.so
 
 post-install:
-	${RM} -r ${STAGEDIR}${MANPREFIX}/man
-	${RM} -r ${STAGEDIR}${PREFIX}/share/man
 	${RM} -r ${STAGEDIR}${PREFIX}/include/llvm/MC/MCAnalysis
 	${RM} -r ${STAGEDIR}${PREFIX}/include/llvm/BinaryFormat/WasmRelocs
 	# don't use llvm-strip yet, it doesn't work on SunOS or MacOS
@@ -73,7 +73,8 @@ post-install:
 	llvm-profdata llvm-rc llvm-readobj llvm-rtdyld llvm-size \
 	llvm-split llvm-stress llvm-strings llvm-symbolizer llvm-tblgen \
 	llvm-undname llvm-xray obj2yaml opt sancov sanstats \
-	verify-uselistorder yaml2obj
+	verify-uselistorder yaml2obj FileCheck count not yaml-bench \
+	lli-child-target llvm-PerfectShuffle
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${F}
 .endfor
 .for F in BugpointPasses.so LLVMHello.so libLLVM-7.so libLTO.so.7
@@ -104,13 +105,17 @@ as an optimizer and code generator.
 30662b632f5556c59ee9215c1309f61de50b3ea8e89dcc28ba9a9494bba238ff       910680 openmp-7.0.0.src.tar.xz
 
 
-[FILE:27555:manifests/plist.single]
+[FILE:27629:manifests/plist.single]
 %%GOLD-ON%%lib/LLVMgold.so
 bin/
+ FileCheck
  bugpoint
+ count
  dsymutil
  llc
  lli
+ lli-child-target
+ llvm-PerfectShuffle
  llvm-ar
  llvm-as
  llvm-bcanalyzer
@@ -157,11 +162,13 @@ bin/
  llvm-tblgen
  llvm-undname
  llvm-xray
+ not
  obj2yaml
  opt
  sancov
  sanstats
  verify-uselistorder
+ yaml-bench
  yaml2obj
 include/llvm/
  InitializePasses.h
