@@ -29,6 +29,7 @@ BUILD_DEPENDS=		bash:primary:standard
 BUILDRUN_DEPENDS=	curl:primary:standard
 			libssh2:single:standard
 			libgit2:single:standard
+EXRUN[single]=		gcc8:compilers:standard
 
 USES=			gmake ssl zlib python:py27,build shebangfix ncurses
 			execinfo c++:single
@@ -64,6 +65,7 @@ CONFIGURE_ARGS=		--release-channel=stable
 			--llvm-root={{LOCALBASE}}
 			--prefix={{PREFIX}}
 			--disable-ninja
+			--default-linker={{LOCALBASE}}/toolchain/gcc8/bin/cc
 
 MAKE_ENV=		LD_LIBRARY_PATH={{WRKDIR}}/bootstrap/lib
 			LIBGIT2_SYS_USE_PKG_CONFIG=1
@@ -226,7 +228,7 @@ lib/rustlib/
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
 
 
-[FILE:499:patches/patch-src_bootstrap_bin_rustc.rs]
+[FILE:513:patches/patch-src_bootstrap_bin_rustc.rs]
 --- src/bootstrap/bin/rustc.rs.orig	2018-12-04 23:41:40 UTC
 +++ src/bootstrap/bin/rustc.rs
 @@ -233,7 +233,7 @@ fn main() {
@@ -234,7 +236,7 @@ lib/rustlib/
                  Some("-Wl,-rpath,@loader_path/../lib")
              } else if !target.contains("windows") && !target.contains("wasm32") {
 -                Some("-Wl,-rpath,$ORIGIN/../lib")
-+                Some("-Wl,-rpath,$ORIGIN/../lib:@PREFIX@/lib")
++                Some("-Wl,-z,origin -Wl,-rpath,$ORIGIN/../lib:@PREFIX@/lib")
              } else {
                  None
              };
