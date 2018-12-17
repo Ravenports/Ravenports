@@ -21,7 +21,6 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[all]=		WIP
 ONLY_FOR_OPSYS=		dragonfly
 
 BUILD_DEPENDS=		bash:primary:standard
@@ -31,7 +30,8 @@ BUILDRUN_DEPENDS=	curl:primary:standard
 			libssh2:single:standard
 			libgit2:single:standard
 
-USES=			gmake ssl zlib python:py27,build
+USES=			gmake ssl zlib python:py27,build shebangfix ncurses
+			execinfo c++:single
 
 DISTNAME=		rustc-1.31.0-src
 EXTRACT_ONLY=		1
@@ -43,6 +43,15 @@ LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE-APACHE
 LICENSE_SCHEME=		dual
 
 FPC_EQUIVALENT=		lang/rust
+SHEBANG_FILES=		src/libcompiler_builtins/compiler-rt/lib/sanitizer_common/symbolizer/scripts/*.sh
+			src/libcompiler_builtins/compiler-rt/lib/asan/scripts/asan_device_setup
+			src/libcompiler_builtins/compiler-rt/lib/tsan/*.sh
+			src/libcompiler_builtins/compiler-rt/lib/fuzzer/scripts/*.py
+			src/libcompiler_builtins/compiler-rt/lib/dfsan/scripts/build-libc-list.py
+			src/libcompiler_builtins/compiler-rt/lib/sanitizer_common/scripts/*.py
+			src/libcompiler_builtins/compiler-rt/lib/asan/scripts/asan_symbolize.py
+			src/libcore/unicode/unicode.py
+			src/jemalloc/scripts/gen_travis.py
 
 MUST_CONFIGURE=		yes
 CONFIGURE_ARGS=		--release-channel=stable
@@ -98,6 +107,61 @@ do-build:
 		${PYTHON_CMD} x.py build --verbose --config ./config.toml \
 		--jobs ${MAKE_JOBS_NUMBER})
 
+post-install:
+	${RM} ${STAGEDIR}${PREFIX}/lib/rustlib/install.log
+	${RM} ${STAGEDIR}${PREFIX}/lib/rustlib/uninstall.sh
+	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/rust
+	# Taken from FreeBSD Ports
+	# In post-install, we use the manifests generated during Rust install
+	# to in turn generate the PLIST. We do that because several libraries
+	# have a computed filename based on the absolute path of the source
+	# files. As it is user-specific, we can't know the filename in advance.
+	#
+	# Both rustc and Cargo components install the same README.md and
+	# LICENSE files. The install process backs up the first copy to
+	# install the second. Thus here, we need to remove those backups.
+	# Actually we remove the entire share/doc/rust contents.
+	# We also need to dedup the entries in the generated PLIST, because
+	# both components manifests list them.
+	#
+	# We fix manpage entries in the generated manifests because Rust
+	# installs them uncompressed but the Ports framework compresses them.
+	for f in ${RUST_MANIFESTS}; do \
+	    ${SED} -i'' -E \
+		-e '/share\/doc\/rust/d' \
+	        -e 's|:${STAGEDIR}|:|' \
+	        -e 's|(man/man[1-9]/.*\.[0-9])|\1.gz|' \
+	        ${STAGEDIR}${PREFIX}/$$f; \
+	    ${AWK} '\
+	        /^file:/ { \
+	            file=$$0; \
+	            sub(/^file:/, "", file); \
+	            print file; \
+	        } \
+	        /^dir:/ { \
+	            dir=$$0; \
+	            sub(/^dir:/, "", dir); \
+	            system("find ${STAGEDIR}" dir " -type f | ${SED} -E -e \"s|${STAGEDIR}||\""); \
+	        }' \
+	        ${STAGEDIR}${PREFIX}/$$f >> ${WRKDIR}/.manifest.gen.unsorted; \
+	done
+	(cd ${STAGEDIR}${PREFIX} && ${RM} ${RUST_MANIFESTS})
+	${SORT} -u ${WRKDIR}/.manifest.gen.unsorted > ${WRKDIR}/.manifest.gen.sorted
+	${CAT} ${WRKDIR}/.manifest.gen.sorted >> ${WRKDIR}/.manifest.single.mktmp
+	# Strip binaries and libraries
+	${STRIP_CMD} \
+		${STAGEDIR}${PREFIX}/bin/cargo \
+		${STAGEDIR}${PREFIX}/bin/cargo-clippy \
+		${STAGEDIR}${PREFIX}/bin/cargo-fmt \
+		${STAGEDIR}${PREFIX}/bin/clippy-driver \
+		${STAGEDIR}${PREFIX}/bin/rls \
+		${STAGEDIR}${PREFIX}/bin/rustc \
+		${STAGEDIR}${PREFIX}/bin/rustdoc \
+		${STAGEDIR}${PREFIX}/bin/rustfmt \
+		${STAGEDIR}${PREFIX}/lib/*.so \
+		${STAGEDIR}${PREFIX}/lib/rustlib/*/lib/*.so \
+		${STAGEDIR}${PREFIX}/lib/rustlib/*/codegen-backends/*.so
+
 post-configure:
 	${MKDIR} ${WRKDIR}/bootstrap
 	# Extract OS-specific bootstrap components
@@ -108,6 +172,11 @@ post-configure:
 	   ${LOCALBASE}/bin/bash ${WRKDIR}/$$F/install.sh\
 	     --prefix=${WRKDIR}/bootstrap;\
 	done
+
+do-install:
+	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} DESTDIR=${STAGEDIR} \
+		${PYTHON_CMD} x.py install --verbose --config ./config.toml \
+		--jobs ${MAKE_JOBS_NUMBER})
 
 [FILE:753:descriptions/desc.single]
 Rust is a systems programming language that runs blazingly fast, prevents
@@ -137,8 +206,12 @@ a57925a99f65b5b6b73d04c99be904332817af5e2bc00f24bfc7f761e4720853     55370304 ru
 beb20af13f3ee4e43fce49cb78f65e5a388b76191feda4373bf7174e1e693a91      4621596 cargo-0.32.0-x86_64-unknown-dragonfly.tar.xz
 
 
-[FILE:37:manifests/plist.single]
-@comment manifest is empty, mistake??
+[FILE:96:manifests/plist.single]
+@comment generated from lib/rustlib/manifest-*
+lib/rustlib/
+ components
+ rust-installer-version
+
 
 [FILE:541:patches/patch-cmake_modules_HandleLLVMOptions.cmake]
 --- src/llvm/cmake/modules/HandleLLVMOptions.cmake.orig	2018-09-15 20:17:01 UTC
@@ -153,7 +226,7 @@ beb20af13f3ee4e43fce49cb78f65e5a388b76191feda4373bf7174e1e693a91      4621596 ca
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
 
 
-[FILE:484:patches/patch-src_bootstrap_bin_rustc.rs]
+[FILE:499:patches/patch-src_bootstrap_bin_rustc.rs]
 --- src/bootstrap/bin/rustc.rs.orig	2018-12-04 23:41:40 UTC
 +++ src/bootstrap/bin/rustc.rs
 @@ -233,7 +233,7 @@ fn main() {
@@ -161,7 +234,7 @@ beb20af13f3ee4e43fce49cb78f65e5a388b76191feda4373bf7174e1e693a91      4621596 ca
                  Some("-Wl,-rpath,@loader_path/../lib")
              } else if !target.contains("windows") && !target.contains("wasm32") {
 -                Some("-Wl,-rpath,$ORIGIN/../lib")
-+                Some("-Wl,-rpath,@PREFIX@/lib")
++                Some("-Wl,-rpath,$ORIGIN/../lib:@PREFIX@/lib")
              } else {
                  None
              };
@@ -215,7 +288,7 @@ beb20af13f3ee4e43fce49cb78f65e5a388b76191feda4373bf7174e1e693a91      4621596 ca
              "x86_64-unknown-linux-musl" => "linux-x86_64",
 
 
-[FILE:282:files/special.mk]
+[FILE:643:files/special.mk]
 .if "${OPSYS}" == "DragonFly"
 BOOTSTRAP_RUST=		1.31.0
 BOOTSTRAP_CARGO=	0.32.0
@@ -225,4 +298,16 @@ SRC_RUSTC=		rustc-${BOOTSTRAP_RUST}-${SFX}
 SRC_RUSTSTD=		rust-std-${BOOTSTRAP_RUST}-${SFX}
 SRC_CARGO=		cargo-${BOOTSTRAP_CARGO}-${SFX}
 .endif
+
+# Manifest files
+RUST_MANIFESTS= \
+	lib/rustlib/manifest-cargo \
+	lib/rustlib/manifest-clippy-preview \
+	lib/rustlib/manifest-rls-preview \
+	lib/rustlib/manifest-rustc \
+	lib/rustlib/manifest-rustfmt-preview \
+	lib/rustlib/manifest-rust-analysis-${SFX} \
+	lib/rustlib/manifest-rust-std-${SFX} \
+	lib/rustlib/manifest-rust-src \
+	lib/rustlib/manifest-rust-docs
 
