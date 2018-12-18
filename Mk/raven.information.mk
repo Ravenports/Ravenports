@@ -175,7 +175,7 @@ SUBVERSION_VERSION=		1.11.0
 # Miscellaneous master versions
 # ------------------------------------------------------------------------
 
-LIBFM_VERSION=			1.3.0.2
+LIBFM_VERSION=			1.3.1
 LIBTOOL_VERSION=		2.4.6
 FREI0R_VERSION=			1.6.1
 M17N_VERSION=			1.8.0
@@ -186,7 +186,7 @@ GSTREAMER1_SOVERSION=		0.1404.0
 XORG_VERSION=			7.7
 FIREFOX52_VERSION=		52.9.0
 FIREFOX_ESR_VERSION=		60.3.0
-LLVM_VERSION=			7.0.0
+LLVM_VERSION=			7.0.1
 
 # ------------------------------------------------------------------------
 # Gnatcross options
