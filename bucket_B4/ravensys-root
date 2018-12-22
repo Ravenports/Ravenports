@@ -1597,7 +1597,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:15796:manifests/plist.single.freebsd_amd64]
+[FILE:16079:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -1732,13 +1732,18 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  aio.h
  ar.h
  assert.h
+ bitstring.h
+ bluetooth.h
  camlib.h
  complex.h
  cpio.h
  ctype.h
+ devinfo.h
  devstat.h
  dirent.h
  dlfcn.h
+ efivar.h
+ elf-hints.h
  elf.h
  err.h
  errno.h
@@ -1771,12 +1776,14 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libutil.h
  limits.h
  link.h
+ linker_set.h
  locale.h
  login_cap.h
  malloc_np.h
  math.h
  memory.h
  monetary.h
+ mpool.h
  mqueue.h
  ndbm.h
  netconfig.h
@@ -1786,25 +1793,30 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  osreldate.h
  paths.h
  poll.h
+ printf.h
  pthread.h
  pthread_np.h
  pwd.h
  readpassphrase.h
  regex.h
+ res_update.h
  resolv.h
  runetype.h
  sched.h
+ sdp.h
  search.h
  semaphore.h
  setjmp.h
  signal.h
  spawn.h
+ stdalign.h
  stdarg.h
  stdbool.h
  stddef.h
  stdint.h
  stdio.h
  stdlib.h
+ stdnoreturn.h
  string.h
  stringlist.h
  strings.h
@@ -1814,7 +1826,10 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  termios.h
  tgmath.h
  time.h
+ timeconv.h
+ timers.h
  ttyent.h
+ uchar.h
  ucontext.h
  ulimit.h
  unistd.h
@@ -2125,6 +2140,9 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  vmm_dev.h
  vmm_instruction_emul.h
  vmparam.h
+%%BASE%%/usr/include/machine/pc/
+ bios.h
+ display.h
 %%BASE%%/usr/include/net/
  bpf.h
  bpf_buffer.h
@@ -2856,17 +2874,21 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  libbsdxml.a
  libbsdxml.so
  libbsdxml.so.4
+ libc++.so.1
  libc.a
  libc.so
  libcompat.a
  libcrypt.a
  libcrypt.so
+ libcxxrt.so.1
  libdevstat.a
  libdevstat.so
  libdevstat.so.7
  libdl.a
  libelf.so.2
+ libexecinfo.so
  libexecinfo.so.1
+ libgcc_s.so.1
  libgeom.a
  libgeom.so
  libgeom.so.5
@@ -8671,7 +8693,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:22388:files/Makefile]
+[FILE:22785:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9107,7 +9129,7 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			xlocale.h \
 			# end
 
-headers_FreeBSD=	${headers_DragonFly:Nutil.h} \
+headers_FreeBSD=	${headers_DragonFly:Nutil.h:Ndevattr.h:Ndfregress.h:Ndisktab.h:Nevtr.h:Nlibcryptsetup.h:Nluks.h:Nmntopts.h:Nre_comp.h:Nutmp.h} \
 			_ctype.h \
 			bsm/audit.h \
 			libusb20.h \
@@ -9364,7 +9386,11 @@ install:
 		ln -s ${Libdevstat_FreeBSD} libdevstat.so && \
 		ln -s ${Libprocstat_FreeBSD} libprocstat.so && \
 		ln -s ${Libgeom_FreeBSD} libgeom.so && \
+		ln -s ${PREFIX}/lib/libexecinfo.so libexecinfo.so && \
 		ln -s libthr.so libpthread.so)
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libgcc_s.so.1 ${DESTDIR}${BASE}/usr/lib/
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libcxxrt.so.1 ${DESTDIR}${BASE}/usr/lib/
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/libc++.so.1 ${DESTDIR}${BASE}/usr/lib/
 .endif
 .if ${OPSYS} == DragonFly
 	(cd ${DESTDIR}${BASE}/usr/lib && \

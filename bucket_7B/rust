@@ -15,13 +15,19 @@ DISTFILE[1]=		rustc-1.31.0-src.tar.xz:main
 DISTFILE[2]=		rustc-1.31.0-x86_64-unknown-dragonfly.tar.xz:dflyboot
 DISTFILE[3]=		rust-std-1.31.0-x86_64-unknown-dragonfly.tar.xz:dflyboot
 DISTFILE[4]=		cargo-0.32.0-x86_64-unknown-dragonfly.tar.xz:dflyboot
+DISTFILE[5]=		rustc-1.30.0-x86_64-unknown-freebsd.tar.gz:main
+DISTFILE[6]=		rust-std-1.30.0-x86_64-unknown-freebsd.tar.gz:main
+DISTFILE[7]=		cargo-0.31.0-x86_64-unknown-freebsd.tar.gz:main
+DISTFILE[8]=		rustc-1.31.0-x86_64-unknown-linux-gnu.tar.gz:main
+DISTFILE[9]=		rust-std-1.31.0-x86_64-unknown-linux-gnu.tar.gz:main
+DISTFILE[10]=		cargo-0.32.0-x86_64-unknown-linux-gnu.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-ONLY_FOR_OPSYS=		dragonfly
+ONLY_FOR_OPSYS=		dragonfly freebsd linux
 
 BUILD_DEPENDS=		bash:primary:standard
 			cmake:single:standard
@@ -100,9 +106,13 @@ post-patch:
 		fi; \
 	done
 
+post-configure-freebsd:
+	${LN} -s ${LOCALBASE}/toolchain/gcc8/lib/libstdc++.so \
+	${LOCALBASE}/lib/libc++.so
+
 post-configure-dragonfly:
-	${LN} -s /raven/toolchain/gcc8/lib/libgcc_s.so \
-	${WRKDIR}/bootstrap/lib/rustlib/x86_64-unknown-dragonfly/lib/libgcc_pic.so
+	${LN} -s ${LOCALBASE}/toolchain/gcc8/lib/libgcc_s.so \
+	${WRKDIR}/bootstrap/lib/rustlib/${SFX}/lib/libgcc_pic.so
 
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -164,12 +174,15 @@ post-install:
 		${STAGEDIR}${PREFIX}/lib/rustlib/*/lib/*.so \
 		${STAGEDIR}${PREFIX}/lib/rustlib/*/codegen-backends/*.so
 
+post-build-freebsd:
+	${RM} ${LOCALBASE}/lib/libc++.so
+
 post-configure:
 	${MKDIR} ${WRKDIR}/bootstrap
 	# Extract OS-specific bootstrap components
 	# then install bootstrap components
 	for F in ${SRC_RUSTC} ${SRC_RUSTSTD} ${SRC_CARGO}; do\
-	   ${TAR} -C ${WRKDIR} -xf ${DISTDIR}/$$F.tar.xz\
+	   ${TAR} -C ${WRKDIR} -xf ${DISTDIR}/$$F.tar.${COMPEXT}\
 	     --no-same-owner --no-same-permissions;\
 	   ${LOCALBASE}/bin/bash ${WRKDIR}/$$F/install.sh\
 	     --prefix=${WRKDIR}/bootstrap;\
@@ -201,11 +214,17 @@ build tool, smart multi-editor support with auto-completion and type
 inspections, an auto-formatter, and more.
 
 
-[FILE:474:distinfo]
+[FILE:1212:distinfo]
 9581c5673937f8b1c3c21060ef7c1fcd3e5574a0fc0b27e1888cb37c4b2ec393     96914112 rustc-1.31.0-src.tar.xz
 a57925a99f65b5b6b73d04c99be904332817af5e2bc00f24bfc7f761e4720853     55370304 rustc-1.31.0-x86_64-unknown-dragonfly.tar.xz
 6885f74ebf37edf1912f277efb07d6dc46541d0d66a061abcebb565c2a9e5c96     53664404 rust-std-1.31.0-x86_64-unknown-dragonfly.tar.xz
 beb20af13f3ee4e43fce49cb78f65e5a388b76191feda4373bf7174e1e693a91      4621596 cargo-0.32.0-x86_64-unknown-dragonfly.tar.xz
+68a74949e34118406673cf8cc0098b011907c840890e0640aa3b145ce91c521d     68231553 rustc-1.30.0-x86_64-unknown-freebsd.tar.gz
+4040fe677524e2ead69a2fcab4c16acaad3d4c4f1210ae36f400f82463bdfbc7     67081473 rust-std-1.30.0-x86_64-unknown-freebsd.tar.gz
+a1fee679cbad0e44dca31ef3a9e34ac4a9d3b10a667330858f2883834cd56aff      6443017 cargo-0.31.0-x86_64-unknown-freebsd.tar.gz
+5c4581f0fc05f0f5076db6231b0c1a4d27eb61c0b36bfb42d97243ad8f4e43a0    110019569 rustc-1.31.0-x86_64-unknown-linux-gnu.tar.gz
+fe67a62c7a63acbf2458a36d7689ef41903187a472f0c28850f1fca7ea478da8     72914106 rust-std-1.31.0-x86_64-unknown-linux-gnu.tar.gz
+b3d3dc57182fb173ecf367f7884dceb855a096d9b9b32eba994e3359ddc68cd4      6777179 cargo-0.32.0-x86_64-unknown-linux-gnu.tar.gz
 
 
 [FILE:96:manifests/plist.single]
@@ -228,7 +247,7 @@ lib/rustlib/
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
 
 
-[FILE:513:patches/patch-src_bootstrap_bin_rustc.rs]
+[FILE:528:patches/patch-src_bootstrap_bin_rustc.rs]
 --- src/bootstrap/bin/rustc.rs.orig	2018-12-04 23:41:40 UTC
 +++ src/bootstrap/bin/rustc.rs
 @@ -233,7 +233,7 @@ fn main() {
@@ -236,10 +255,24 @@ lib/rustlib/
                  Some("-Wl,-rpath,@loader_path/../lib")
              } else if !target.contains("windows") && !target.contains("wasm32") {
 -                Some("-Wl,-rpath,$ORIGIN/../lib")
-+                Some("-Wl,-z,origin -Wl,-rpath,$ORIGIN/../lib:@PREFIX@/lib")
++                Some("-Wl,-z,origin -Wl,-rpath,$ORIGIN/../lib:@PREFIX@/lib -L@PREFIX@/lib")
              } else {
                  None
              };
+
+
+[FILE:575:patches/patch-src_libcompiler__builtins_compiler-rt_test_fuzzer_lit.cfg]
+--- src/libcompiler_builtins/compiler-rt/test/fuzzer/lit.cfg.orig	2018-12-04 23:42:58 UTC
++++ src/libcompiler_builtins/compiler-rt/test/fuzzer/lit.cfg
+@@ -65,7 +65,7 @@ def generate_compiler_cmd(is_cpp=True, f
+   elif config.clang and config.stdlib == 'static-libc++':
+     link_cmd = '-stdlib=libc++ -lc++abi -static-libstdc++ -Wl,-rpath=%s' % (
+         config.runtime_library_dir)
+-  elif any(x in config.target_triple for x in ('darwin', 'freebsd')):
++  elif any(x in config.target_triple for x in ('darwin')):
+     link_cmd = '-lc++'
+   else:
+     link_cmd = '-lstdc++'
 
 
 [FILE:533:patches/patch-src_libunwind_build.rs]
@@ -290,16 +323,28 @@ lib/rustlib/
              "x86_64-unknown-linux-musl" => "linux-x86_64",
 
 
-[FILE:643:files/special.mk]
+[FILE:919:files/special.mk]
 .if "${OPSYS}" == "DragonFly"
 BOOTSTRAP_RUST=		1.31.0
 BOOTSTRAP_CARGO=	0.32.0
 DF_INDEX+=		2 3 4
-SFX=			${ARCH_STANDARD}-unknown-${OPSYS:tl}
-SRC_RUSTC=		rustc-${BOOTSTRAP_RUST}-${SFX}
-SRC_RUSTSTD=		rust-std-${BOOTSTRAP_RUST}-${SFX}
-SRC_CARGO=		cargo-${BOOTSTRAP_CARGO}-${SFX}
+COMPEXT=		xz
+.elif "${OPSYS}" == "FreeBSD"
+BOOTSTRAP_RUST=		1.30.0
+BOOTSTRAP_CARGO=	0.31.0
+DF_INDEX+=		5 6 7
+COMPEXT=		gz
+.elif "${OPSYS}" == "Linux"
+BOOTSTRAP_RUST=		1.31.0
+BOOTSTRAP_CARGO=	0.32.0
+DF_INDEX+=		8 9 10
+COMPEXT=		gz
+SFX=			${ARCH_STANDARD}-unknown-linux-gnu
 .endif
+SFX?=			${ARCH_STANDARD}-unknown-${OPSYS:tl}
+SRC_RUSTC?=		rustc-${BOOTSTRAP_RUST}-${SFX}
+SRC_RUSTSTD?=		rust-std-${BOOTSTRAP_RUST}-${SFX}
+SRC_CARGO?=		cargo-${BOOTSTRAP_CARGO}-${SFX}
 
 # Manifest files
 RUST_MANIFESTS= \
