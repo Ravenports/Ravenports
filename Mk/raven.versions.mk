@@ -49,8 +49,8 @@ RUBY_2.5_VERSION=	2.5.3
 PYTHON3_DEFAULT?=	3.7
 
 PYTHON_2.7_VERSION=	2.7.15
-PYTHON_3.6_VERSION=	3.6.7
-PYTHON_3.7_VERSION=	3.7.1
+PYTHON_3.6_VERSION=	3.6.8
+PYTHON_3.7_VERSION=	3.7.2
 
 #-------------------------------------------------------------------------
 # SSL
