@@ -9622,6 +9622,26 @@ share/mime/packages/libreoffice.xml
  echo "Install $OOINSTDIR/basis$VERSION/program/java-set-classpath";
 
 
+[FILE:556:patches/patch-boost-1.69]
+After https://github.com/boostorg/logic/commit/23cd89d4c80f build fails:
+
+sfx2/source/appl/shutdownicon.cxx:170:12: error: no viable conversion from returned value of type 'boost::logic::tribool' to function return type 'bool'
+    return loaded;
+           ^~~~~~
+
+--- sfx2/source/appl/shutdownicon.cxx.orig	2018-06-19 22:27:30 UTC
++++ sfx2/source/appl/shutdownicon.cxx
+@@ -167,7 +167,7 @@ bool LoadModule()
+ #endif // ENABLE_QUICKSTART_APPLET
+     }
+     assert(!boost::logic::indeterminate(loaded));
+-    return loaded;
++    return bool{loaded};
+ }
+ 
+ }
+
+
 [FILE:637:patches/patch-configure]
 --- configure.orig	2018-10-30 16:58:54 UTC
 +++ configure
@@ -9695,6 +9715,20 @@ share/mime/packages/libreoffice.xml
       *
 
 
+[FILE:481:patches/patch-officecfg_registry_schema_org_openoffice_Office_Common.xcs]
+--- officecfg/registry/schema/org/openoffice/Office/Common.xcs.orig	2018-11-14 20:40:33 UTC
++++ officecfg/registry/schema/org/openoffice/Office/Common.xcs
+@@ -5242,7 +5242,7 @@
+         <info>
+           <desc>Special font for rendering of emojis</desc>
+         </info>
+-        <value>EmojiOne Color</value>
++        <value>Twitter Color Emoji</value>
+       </prop>
+       <prop oor:name="PluginsEnabled" oor:type="xs:boolean" oor:nillable="false">
+         <!-- OldPath: ? -->
+
+
 [FILE:292:patches/patch-sal_osl_unx_system.hxx]
 --- sal/osl/unx/system.hxx.orig	2018-10-30 16:55:21 UTC
 +++ sal/osl/unx/system.hxx
@@ -9740,7 +9774,7 @@ share/mime/packages/libreoffice.xml
  #else
 
 
-[FILE:3044:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.cxx]
+[FILE:4052:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.cxx]
 --- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx.orig	2018-10-30 16:55:21 UTC
 +++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx
 @@ -528,7 +528,7 @@ void PDFOutDev::printPath( GfxPath* pPat
@@ -9752,6 +9786,33 @@ share/mime/packages/libreoffice.xml
      m_bSkipImages(false)
  {
  }
+@@ -569,7 +569,7 @@ void PDFOutDev::processLink(Link* link,
+     LinkAction* pAction = link->getAction();
+     if (pAction && pAction->getKind() == actionURI)
+     {
+-        const char* pURI = static_cast<LinkURI*>(pAction)->getURI()->getCString();
++        const char* pURI = static_cast<LinkURI*>(pAction)->getURI()->c_str();
+ 
+         std::vector<char> aEsc( lcl_escapeLineFeeds(pURI) );
+ 
+@@ -592,7 +592,7 @@ void PDFOutDev::restoreState(GfxState*)
+     printf( "restoreState\n" );
+ }
+ 
+-void PDFOutDev::setDefaultCTM(double *pMat)
++void PDFOutDev::setDefaultCTM(const double *pMat)
+ {
+     assert(pMat);
+ 
+@@ -767,7 +767,7 @@ void PDFOutDev::updateFont(GfxState *sta
+ 
+             aFont = it->second;
+ 
+-            std::vector<char> aEsc( lcl_escapeLineFeeds(aFont.familyName.getCString()) );
++            std::vector<char> aEsc( lcl_escapeLineFeeds(aFont.familyName.c_str()) );
+             printf( " %d %d %d %d %f %d %s",
+                     aFont.isEmbedded,
+                     aFont.isBold,
 @@ -953,11 +953,11 @@ void PDFOutDev::endTextObject(GfxState*)
  }
  
@@ -9814,7 +9875,7 @@ share/mime/packages/libreoffice.xml
  {
 
 
-[FILE:4018:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.hxx]
+[FILE:4024:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.hxx]
 --- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx.orig	2018-10-30 16:55:21 UTC
 +++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx
 @@ -150,22 +150,22 @@ namespace pdfi
@@ -9841,7 +9902,7 @@ share/mime/packages/libreoffice.xml
  
          // Set default transform matrix.
 -        virtual void setDefaultCTM(double *ctm) override;
-+        virtual void setDefaultCTM(double *ctm);
++        virtual void setDefaultCTM(const double *ctm);
  
          // Start a page.
          virtual void startPage(int pageNum, GfxState *state
