@@ -19,6 +19,13 @@ OPTIONS_STANDARD=	none
 
 USES=			ncurses
 
+LICENSE=		GPLv2+:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"\#include"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/hex.h
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		editors/hexcurse
 
 MUST_CONFIGURE=		gnu
@@ -27,6 +34,10 @@ CFLAGS=			-I{{NCURSESINC}}
 
 post-patch:
 	${REINPLACE_CMD} -e 's/ -Werror//' ${WRKSRC}/src/Makefile.in
+
+post-patch-darwin:
+	${REINPLACE_CMD} -e '/LIBS=/ s/-lncurses /-lncurses -ltinfo /' \
+		${WRKSRC}/configure
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e '/LIBS=/ s/-lncurses /-lncurses -ltinfo /' \

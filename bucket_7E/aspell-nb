@@ -22,12 +22,24 @@ BUILDRUN_DEPENDS=	aspell:single:standard
 USES=			gmake
 
 DISTNAME=		aspell-nb-0.50.1-0
+EXTRACT_HEAD[1]=	{{TAR}} -xf
+EXTRACT_TAIL[1]=	--exclude "bokm?l.alias" --no-same-owner --no-same-permissions
+
+LICENSE=		GPLv2+:single
+LICENSE_TERMS=		single:{{WRKSRC}}/Copyright
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		textproc/nb-aspell
 
 MUST_CONFIGURE=		yes
 
 PLIST_SUB=		VER=0.60
+
+post-patch:
+	${CP} -pRP ${WRKSRC}/no.alias ${WRKSRC}/bokmal.alias
+	${REINPLACE_CMD} -e '/multi_files =/ s/bokm.*l.alias/bokmal.alias/' \
+		${WRKSRC}/Makefile.pre
 
 [FILE:84:descriptions/desc.single]
 This package contains the Norwegian Bokmal dictionary for the Aspell spell
@@ -38,11 +50,10 @@ checker.
 e7746e8b617b2df576c1172399544818084524504202b16c747f52db5e5d228a       423161 aspell-nb-0.50.1-0.tar.bz2
 
 
-[FILE:109:manifests/plist.single]
+[FILE:95:manifests/plist.single]
 lib/aspell-%%VER%%/nb.dat
 share/aspell/
  bokmal.alias
- bokmål.alias
  nb.multi
  nb.rws
  no.alias

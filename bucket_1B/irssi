@@ -40,6 +40,8 @@ CONFIGURE_ARGS=		--with-socks
 			--with-perl-lib=site
 
 INSTALL_TARGET=		install-strip
+INSTALL_REQ_TOOLCHAIN=	yes
+PLIST_SUB=		MODULE={{BUNDLE}}
 
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr|${PREFIX}|' -e 's|/etc|${PREFIX}&|' \
@@ -49,10 +51,10 @@ post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/lib/irssi/modules
 	${RM} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/.packlist
 	${RM} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/*/.packlist
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/Irssi.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/Irc/Irc.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/TextUI/TextUI.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/UI/UI.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/Irssi.${BUNDLE}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/Irc/Irc.${BUNDLE}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/TextUI/TextUI.${BUNDLE}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Irssi/UI/UI.${BUNDLE}
 
 post-configure:
 	${MV} ${WRKSRC}/irssi.conf ${WRKSRC}/irssi.conf.sample
@@ -68,17 +70,17 @@ XMPP (Jabber), PSYC and Quassel protocol modules available.
 784807e7a1ba25212347f03e4287cff9d0659f076edfb2c6b20928021d75a1bf      1080992 irssi-1.1.1.tar.xz
 
 
-[FILE:3499:manifests/plist.primary]
+[FILE:3546:manifests/plist.primary]
 @sample etc/irssi.conf.sample
 %%SITE_ARCH%%/Irssi.pm
 %%SITE_ARCH%%/Irssi/
  Irc.pm
  TextUI.pm
  UI.pm
-%%SITE_ARCH%%/auto/Irssi/Irssi.so
-%%SITE_ARCH%%/auto/Irssi/Irc/Irc.so
-%%SITE_ARCH%%/auto/Irssi/TextUI/TextUI.so
-%%SITE_ARCH%%/auto/Irssi/UI/UI.so
+%%SITE_ARCH%%/auto/Irssi/Irssi.%%MODULE%%
+%%SITE_ARCH%%/auto/Irssi/Irc/Irc.%%MODULE%%
+%%SITE_ARCH%%/auto/Irssi/TextUI/TextUI.%%MODULE%%
+%%SITE_ARCH%%/auto/Irssi/UI/UI.%%MODULE%%
 bin/
  botti
  irssi
@@ -217,7 +219,7 @@ include/irssi/src/lib-config/
  module.h
 lib/irssi/modules/
  libirc_proxy.a
- libirc_proxy.so
+ libirc_proxy.%%SHARED_OBJECT%%
 share/irssi/help/
  accept
  action
@@ -439,4 +441,12 @@ share/doc/irssi/
  
  	if (mycert && *mycert) {
  		char *scert = NULL, *spkey = NULL;
+
+
+[FILE:70:files/special.mk]
+.if "${OPSYS}" == "Darwin"
+BUNDLE=	"bundle"
+.else
+BUNDLE=	"so"
+.endif
 

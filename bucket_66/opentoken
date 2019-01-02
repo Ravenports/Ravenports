@@ -32,7 +32,7 @@ FPC_EQUIVALENT=		textproc/opentoken
 
 BUILD_WRKSRC=		{{WRKSRC}}/build/release
 
-PLIST_SUB=		OTLIBVER=5.0.0
+PLIST_SUB=		OTLIBVER={{OTLIBVER}}
 
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -44,10 +44,10 @@ do-install:
 		${STAGEDIR}${PREFIX}/include/opentoken
 	${INSTALL_DATA} ${BUILD_WRKSRC}/lib/*.ali \
 		${STAGEDIR}${PREFIX}/lib/opentoken
-	${INSTALL_LIB} ${BUILD_WRKSRC}/lib/libopentoken.so.5.0.0 \
-		${STAGEDIR}${PREFIX}/lib/opentoken
+	${INSTALL_LIB} ${BUILD_WRKSRC}/lib/libopentoken.so.${OTLIBVER} \
+		${STAGEDIR}${PREFIX}/lib/opentoken/${FINALLIB}
 	(cd ${STAGEDIR}${PREFIX}/lib/opentoken && \
-		${LN} -s libopentoken.so.5.0.0 libopentoken.so)
+		${LN} -s ${FINALLIB} libopentoken.${LIBEXT})
 	${INSTALL_DATA} ${WRKSRC}/*.ad[bs] \
 		${WRKSRC}/Language_Lexers/*.ad[bs] \
 		${STAGEDIR}${PREFIX}/include/opentoken
@@ -306,3 +306,12 @@ project OpenToken is
    for Externally_Built use "true";
 end OpenToken;
 
+
+[FILE:135:files/special.mk]
+OTLIBVER=	5.0.0
+
+.if "${OPSYS}" == "Darwin"
+FINALLIB=	libopentoken.${OTLIBVER}.dylib
+.else
+FINALLIB=	libopentoken.so.${OTLIBVER}
+.endif

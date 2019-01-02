@@ -30,16 +30,17 @@ FPC_EQUIVALENT=		lang/lua53
 BUILD_WRKSRC=		{{WRKSRC}}/src
 MAKE_ARGS=		MYCFLAGS="{{CFLAGS}} {{CPPFLAGS}}"
 			MYLDFLAGS="{{LDFLAGS}}"
-			MYLIBS="-Wl,-E -L{{LOCALBASE}}/lib -lreadline"
+			MYLIBS="-L{{LOCALBASE}}/lib -lreadline"
 			CC="{{CC}}"
 			ARFLAGS=rl
 			LUA_T=lua53
 			LUAC_T=luac53
 			LUA_A=liblua-5.3.a
-			LUA_SO=liblua-5.3.so
-			LUA_SONAME=liblua-5.3.so
+			LUALIB=liblua-5.3
+			LUA_SO=liblua-5.3.{{LIBEXT}}
+			LUA_SONAME=liblua-5.3.{{LIBEXT}}
 			TO_BIN="lua53 luac53"
-			TO_LIB="liblua-5.3.a liblua-5.3.so"
+			TO_LIB="liblua-5.3.a liblua-5.3.{{LIBEXT}}"
 			INSTALL_TOP={{STAGEDIR}}{{PREFIX}}
 			INSTALL_INC={{STAGEDIR}}{{PREFIX}}/include/lua53
 			INSTALL_EXEC="{{INSTALL_PROGRAM}}"
@@ -63,7 +64,7 @@ post-patch:
 	${REINPLACE_CMD} -e 's|man/man1|share/man/man1|' ${WRKSRC}/Makefile
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/liblua-5.3.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/liblua-5.3.${LIBEXT}
 	${MV} ${STAGEDIR}${MANPREFIX}/man/man1/lua.1 \
 		${STAGEDIR}${MANPREFIX}/man/man1/lua53.1
 	${MV} ${STAGEDIR}${MANPREFIX}/man/man1/luac.1 \
@@ -123,8 +124,8 @@ share/man/man1/
 @dir share/lua/%%LUA_VER%%
 
 
-[FILE:1146:patches/patch-src__Makefile]
---- src/Makefile.orig	2015-01-05 16:04:52 UTC
+[FILE:1227:patches/patch-src_Makefile]
+--- src/Makefile.orig	2018-06-25 17:46:36 UTC
 +++ src/Makefile
 @@ -6,12 +6,12 @@
  # Your platform. See PLATS for possible values.
@@ -153,13 +154,7 @@ share/man/man1/
  MYLIBS=
  MYOBJS=
  
-@@ -38,12 +38,13 @@ BASE_O= $(CORE_O) $(LIB_O) $(MYOBJS)
- 
- LUA_T=	lua
- LUA_O=	lua.o
-+LUA_SO=	liblua.so
- 
- LUAC_T=	luac
+@@ -43,7 +43,7 @@ LUAC_T=	luac
  LUAC_O=	luac.o
  
  ALL_O= $(BASE_O) $(LUA_O) $(LUAC_O)
@@ -168,12 +163,15 @@ share/man/man1/
  ALL_A= $(LUA_A)
  
  # Targets start here.
-@@ -55,8 +56,11 @@ o:	$(ALL_O)
+@@ -55,8 +55,14 @@ o:	$(ALL_O)
  
  a:	$(ALL_A)
  
-+$(LUA_SO):	$(CORE_O) $(LIB_O)
++$(LUALIB).so: $(CORE_O) $(LIB_O)
 +	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(MYLDFLAGS) -shared -Wl,-soname=$(LUA_SONAME) $?
++
++$(LUALIB).dylib: $(CORE_O) $(LIB_O)
++	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(MYLDFLAGS) -dynamiclib -current_version 1.0 -install_name '$(PREFIX)/lib/$(LUA_SONAME)' $?
 +
  $(LUA_A): $(BASE_O)
 -	$(AR) $@ $(BASE_O)

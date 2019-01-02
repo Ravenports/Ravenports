@@ -19,8 +19,11 @@ OPTIONS_STANDARD=	none
 
 USES=			ncurses
 
-LICENSE=		GPLv3:single
-LICENSE_FILE=		GPLv3:{{WRKSRC}}/README
+LICENSE=		GPLv3+:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:stock
+LICENSE_AWK=		TERMS:"\#include"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/main.c
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/hexcompare
@@ -32,6 +35,10 @@ post-patch:
 		-e 's|gcc|${CC}|g' \
 		-e 's|CFLAGS =|CFLAGS +=|' \
 		-e 's|-lncurses|$$(LDFLAGS) -lncurses|' \
+		${WRKSRC}/Makefile
+
+post-patch-darwin:
+	${REINPLACE_CMD} -e 's|-lncurses|-lncurses -ltinfo|' \
 		${WRKSRC}/Makefile
 
 do-install:
