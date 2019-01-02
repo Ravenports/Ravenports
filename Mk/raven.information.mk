@@ -185,7 +185,7 @@ GSTREAMER1_GST=			1.0
 GSTREAMER1_SOVERSION=		0.1404.0
 XORG_VERSION=			7.7
 FIREFOX52_VERSION=		52.9.0
-FIREFOX_ESR_VERSION=		60.3.0
+FIREFOX_ESR_VERSION=		60.4.0
 LLVM_VERSION=			7.0.1
 
 # ------------------------------------------------------------------------
