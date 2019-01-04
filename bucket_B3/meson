@@ -63,26 +63,10 @@ share/polkit-1/actions/com.mesonbuild.install.policy
          for p in paths:
 
 
-[FILE:492:sunos/patch-mesonbuild_compilers_c.py]
---- mesonbuild/compilers/c.py.orig	2018-08-25 08:05:50 UTC
-+++ mesonbuild/compilers/c.py
-@@ -163,8 +163,8 @@ class CCompiler(Compiler):
-                 # Apple ld
-                 return ['-Wl,-undefined,dynamic_lookup']
-             else:
--                # GNU ld and LLVM lld
--                return ['-Wl,--allow-shlib-undefined']
-+                # sun linker
-+                return []
-         elif self.id == 'msvc':
-             # link.exe
-             return ['/FORCE:UNRESOLVED']
-
-
-[FILE:2762:sunos/patch-mesonbuild_compilers_compilers.py]
---- mesonbuild/compilers/compilers.py.orig	2018-11-08 22:43:05 UTC
+[FILE:3571:sunos/patch-mesonbuild_compilers_compilers.py]
+--- mesonbuild/compilers/compilers.py.orig	2018-12-09 14:27:23 UTC
 +++ mesonbuild/compilers/compilers.py
-@@ -166,7 +166,7 @@ apple_buildtype_linker_args = {'plain':
+@@ -177,7 +177,7 @@ apple_buildtype_linker_args = {'plain':
  gnulike_buildtype_linker_args = {'plain': [],
                                   'debug': [],
                                   'debugoptimized': [],
@@ -91,10 +75,20 @@ share/polkit-1/actions/com.mesonbuild.install.policy
                                   'minsize': [],
                                   'custom': [],
                                   }
-@@ -1136,19 +1136,6 @@ class Compiler:
-             # linked against local libraries will fail to resolve them.
-             args.append('-Wl,-z,origin')
-         args.append('-Wl,-rpath,' + paths)
+@@ -522,9 +522,6 @@ def get_base_link_args(options, linker,
+     # -bitcode_bundle is incompatible with -undefined and -bundle
+     if bitcode and not is_shared_module:
+         args.append('-Wl,-bitcode_bundle')
+-    elif as_needed:
+-        # -Wl,-dead_strip_dylibs is incompatible with bitcode
+-        args.append(linker.get_asneeded_args())
+     try:
+         crt_val = options['b_vscrt'].value
+         buildtype = options['buildtype'].value
+@@ -1210,19 +1207,6 @@ class Compiler:
+                     paths = paths + ':' + padding
+             args.append('-Wl,-rpath,' + paths)
+ 
 -        if get_compiler_is_linuxlike(self):
 -            # Rpaths to use while linking must be absolute. These are not
 -            # written to the binary. Needed only with GNU ld:
@@ -111,7 +105,7 @@ share/polkit-1/actions/com.mesonbuild.install.policy
          return args
  
      def thread_flags(self, env):
-@@ -1236,15 +1223,7 @@ def get_compiler_is_linuxlike(compiler):
+@@ -1354,15 +1338,7 @@ def get_compiler_is_linuxlike(compiler):
  def get_compiler_uses_gnuld(c):
      # FIXME: Perhaps we should detect the linker in the environment?
      # FIXME: Assumes that *BSD use GNU ld, but they might start using lld soon
@@ -128,13 +122,24 @@ share/polkit-1/actions/com.mesonbuild.install.policy
  
  def get_largefile_args(compiler):
      '''
-@@ -1315,8 +1294,6 @@ class GnuLikeCompiler(abc.ABC):
+@@ -1433,8 +1409,6 @@ class GnuLikeCompiler(abc.ABC):
          self.compiler_type = compiler_type
          self.base_options = ['b_pch', 'b_lto', 'b_pgo', 'b_sanitize', 'b_coverage',
-                              'b_ndebug', 'b_staticpic', 'b_asneeded']
--        if not self.compiler_type.is_osx_compiler:
+                              'b_ndebug', 'b_staticpic', 'b_pie']
+-        if not self.compiler_type.is_osx_compiler and not self.compiler_type.is_windows_compiler:
 -            self.base_options.append('b_lundef')
+         if not self.compiler_type.is_windows_compiler:
+             self.base_options.append('b_asneeded')
          # All GCC-like backends can do assembly
-         self.can_compile_suffixes.add('s')
+@@ -1542,8 +1516,8 @@ class GnuLikeCompiler(abc.ABC):
+             # For PE/COFF this is impossible
+             return []
+         else:
+-            # GNU ld and LLVM lld
+-            return ['-Wl,--allow-shlib-undefined']
++            # sun linker
++            return []
  
+ 
+ class GnuCompiler(GnuLikeCompiler):
 
