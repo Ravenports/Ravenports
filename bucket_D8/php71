@@ -2,6 +2,7 @@
 
 NAMEBASE=		php71
 VERSION=		7.1.25
+REVISION=		1
 KEYWORDS=		lang www php
 VARIANTS=		standard
 SDESC[standard]=	PHP Hypertext Preprocessor version 7.1
@@ -55,7 +56,8 @@ DESTDIRNAME=		INSTALL_ROOT
 
 PLIST_SUB=		SUFFIX=71
 			SOMAJOR=7
-RC_SUBR=		php-fpm:single
+RC_SUBR=		php71-fpm:single
+SUB_LIST=		SUFFIX=71
 
 [CLI].DESCRIPTION=			Enable Command Line Interface SAPI
 [CLI].CONFIGURE_ARGS_OFF=		--disable-cli
@@ -654,33 +656,33 @@ share/man/man1/
  
 
 
-[FILE:1214:files/php-fpm.in]
+[FILE:1394:files/php71-fpm.in]
 #!/bin/sh
 #
 
-# PROVIDE: php-fpm
+# PROVIDE: php%%SUFFIX%%-fpm
 # REQUIRE: LOGIN
 # KEYWORD: shutdown
 
 #
 # Add the following line to /etc/rc.conf to enable php-fpm:
-# php_fpm_enable="YES"
+# php%%SUFFIX%%_fpm_enable="YES"
 #
 
 . /etc/rc.subr
 
-name="php_fpm"
-rcvar=php_fpm_enable
+name="php%%SUFFIX%%_fpm"
+rcvar=php%%SUFFIX%%_fpm_enable
 
-start_precmd="php_fpm_prestart"
-restart_precmd="php_fpm_checkconfig"
-reload_precmd="php_fpm_checkconfig"
-configtest_cmd="php_fpm_checkconfig"
+start_precmd="php%%SUFFIX%%_fpm_prestart"
+restart_precmd="php%%SUFFIX%%_fpm_checkconfig"
+reload_precmd="php%%SUFFIX%%_fpm_checkconfig"
+configtest_cmd="php%%SUFFIX%%_fpm_checkconfig"
 
 load_rc_config "$name"
 
-: ${php_fpm_enable="NO"}
-: ${php_fpm_umask=""}
+: ${php%%SUFFIX%%_fpm_enable="NO"}
+: ${php%%SUFFIX%%_fpm_umask=""}
 
 extra_commands="reload configtest logrotate"
 
@@ -688,11 +690,11 @@ command="%%PREFIX%%/sbin/php-fpm"
 pidfile="/var/run/php-fpm.pid"
 sig_stop="QUIT"
 sig_reload="USR2"
-logrotate_cmd="php_fpm_logrotate"
+logrotate_cmd="php%%SUFFIX%%_fpm_logrotate"
 
 required_files="%%PREFIX%%/etc/php-fpm.conf"
 
-php_fpm_logrotate() {
+php%%SUFFIX%%_fpm_logrotate() {
         if [ -z "$rc_pid" ]; then
                 _run_rc_notrunning
                 return 1
@@ -701,23 +703,23 @@ php_fpm_logrotate() {
         kill -USR1 $rc_pid
 }
 
-php_fpm_checkconfig()
+php%%SUFFIX%%_fpm_checkconfig()
 {
         echo "Performing sanity check on php-fpm configuration:"
         eval ${command} -t
 }
 
-php_fpm_prestart()
+php%%SUFFIX%%_fpm_prestart()
 {
-	php_fpm_checkconfig
+	php%%SUFFIX%%_fpm_checkconfig
 	checkconfig=$?
 	if [ $checkconfig -ne 0  ]; then
 		return $checkconfig
 	fi
 
-	if [ ! -z "$php_fpm_umask"  ]; then
-		echo "Setting umask to: ${php_fpm_umask}"
-		umask $php_fpm_umask
+	if [ ! -z "$php%%SUFFIX%%_fpm_umask"  ]; then
+		echo "Setting umask to: ${php%%SUFFIX%%_fpm_umask}"
+		umask $php%%SUFFIX%%_fpm_umask
 	fi
 }
 
