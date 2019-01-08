@@ -126,7 +126,7 @@ FIREBIRD_3.0_VERSION=	3.0.4
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
-# Possible values: 5.6, 7.1, 7.2
+# Possible values: 7.1, 7.2, 7.3
 #-------------------------------------------------------------------------
 
 PHP_DEFAULT?=		7.2
@@ -134,6 +134,6 @@ PHP_DEFAULT?=		7.2
 PHP_5.6_VERSION=	5.6.39
 PHP_7.1_VERSION=	7.1.25
 PHP_7.2_VERSION=	7.2.13
-PHP_7.3_VERSION=	7.3.0
+PHP_7.3_VERSION=	7.3.1
 
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)
