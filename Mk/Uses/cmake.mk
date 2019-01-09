@@ -2,10 +2,10 @@
 #
 # Feature:		cmake
 # Usage:		USES=cmake or USES=cmake:ARGS
-# Valid ARGS:		outsource, run
+# Valid ARGS:		insource, run
 #
 # ARGS description:
-# outsource		perform an out-of-source build
+# insource		do not perform an out-of-source build
 # run			set as BUILDRUNS instead of BUILD dependency
 #
 # Additional ports variables that affect cmake behaviour:
@@ -68,7 +68,7 @@ CMAKE_INSTALL_PREFIX?=	${PREFIX}
 _CMAKE_MSG=		"===>  Performing in-source build"
 CMAKE_SOURCE_PATH?=	${WRKSRC}
 
-.  if ${cmake_ARGS:Moutsource}
+.  if empty(${cmake_ARGS:Minsource})
 _CMAKE_MSG=		"===>  Performing out-of-source build"
 CONFIGURE_WRKSRC=	${WRKDIR}/.build
 BUILD_WRKSRC?=		${CONFIGURE_WRKSRC}
