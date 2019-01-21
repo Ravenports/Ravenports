@@ -9774,9 +9774,27 @@ sfx2/source/appl/shutdownicon.cxx:170:12: error: no viable conversion from retur
  #else
 
 
-[FILE:4052:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.cxx]
+[FILE:4793:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.cxx]
 --- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx.orig	2018-10-30 16:55:21 UTC
 +++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx
+@@ -310,7 +310,7 @@ void writePpm_( OutputBuffer&     o_rOut
+     o_rOutputBuf.resize(header_size);
+ 
+     // initialize stream
+-    Guchar *p;
++    unsigned char *p;
+     GfxRGB rgb;
+     std::unique_ptr<ImageStream> imgStr(
+         new ImageStream(str,
+@@ -415,7 +415,7 @@ void writeImage_( OutputBuffer&     o_rO
+                 oneColor = { byteToCol( 0xff ), byteToCol( 0xff ), byteToCol( 0xff ) };
+         if( colorMap->getColorSpace()->getMode() == csIndexed || colorMap->getColorSpace()->getMode() == csDeviceGray )
+         {
+-            Guchar nIndex = 0;
++            unsigned char nIndex = 0;
+             colorMap->getRGB( &nIndex, &zeroColor );
+             nIndex = 1;
+             colorMap->getRGB( &nIndex, &oneColor );
 @@ -528,7 +528,7 @@ void PDFOutDev::printPath( GfxPath* pPat
  PDFOutDev::PDFOutDev( PDFDoc* pDoc ) :
      m_pDoc( pDoc ),
@@ -9875,7 +9893,7 @@ sfx2/source/appl/shutdownicon.cxx:170:12: error: no viable conversion from retur
  {
 
 
-[FILE:4024:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.hxx]
+[FILE:4373:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.hxx]
 --- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx.orig	2018-10-30 16:55:21 UTC
 +++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx
 @@ -150,22 +150,22 @@ namespace pdfi
@@ -9957,6 +9975,47 @@ sfx2/source/appl/shutdownicon.cxx:170:12: error: no viable conversion from retur
  #endif
                                          ) override;
  
+@@ -278,7 +278,7 @@ extern FILE* g_binary_out;
+ 
+ // note: if you ever change Output_t, please keep in mind that the current code
+ // relies on it being of 8 bit size
+-typedef Guchar Output_t;
++typedef unsigned char Output_t;
+ typedef std::vector< Output_t > OutputBuffer;
+ 
+ #endif // INCLUDED_SDEXT_SOURCE_PDFIMPORT_XPDFWRAPPER_PDFIOUTDEV_GPL_HXX
+
+
+[FILE:1077:patches/patch-sdext_source_pdfimport_xpdfwrapper_pnghelper.cxx]
+--- sdext/source/pdfimport/xpdfwrapper/pnghelper.cxx.orig	2018-10-30 16:55:21 UTC
++++ sdext/source/pdfimport/xpdfwrapper/pnghelper.cxx
+@@ -242,7 +242,7 @@ void PngHelper::createPng( OutputBuffer&
+     appendIHDR( o_rOutputBuf, width, height, 8, 6 ); // RGBA image
+ 
+     // initialize stream
+-    Guchar *p, *pm;
++    unsigned char *p, *pm;
+     GfxRGB rgb;
+     GfxGray alpha;
+     ImageStream* imgStr =
+@@ -328,7 +328,7 @@ void PngHelper::createPng( OutputBuffer&
+     appendIHDR( o_rOutputBuf, width, height, 8, 6 ); // RGBA image
+ 
+     // initialize stream
+-    Guchar *p;
++    unsigned char *p;
+     GfxRGB rgb;
+     ImageStream* imgStr =
+         new ImageStream(str,
+@@ -374,7 +374,7 @@ void PngHelper::createPng( OutputBuffer&
+     {
+         for( int x = 0; x < maskWidth; ++x )
+         {
+-            Guchar aPixel = 0;
++            unsigned char aPixel = 0;
+             imgStrMask->getPixel( &aPixel );
+             int nIndex = (y*height/maskHeight) * (width*4+1) + // mapped line
+                          (x*width/maskWidth)*4 + 1  + 3        // mapped column
 
 
 [FILE:693:patches/patch-sdext_source_pdfimport_xpdfwrapper_wrapper__gpl.cxx]
