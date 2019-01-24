@@ -1337,6 +1337,48 @@ DRI_DRIVERS+=		SWRAST
 GALLIUM_DRIVERS+=	SWRAST
 
 
+[FILE:973:freebsd/patch-src_intel_tools_aub__mem.c]
+- Partially implement memfd_create() via mkostemp()
+
+--- src/intel/tools/aub_mem.c.orig	2018-11-06 16:16:02 UTC
++++ src/intel/tools/aub_mem.c
+@@ -30,11 +30,34 @@
+ 
+ #ifndef HAVE_MEMFD_CREATE
+ #include <sys/syscall.h>
++#include <fcntl.h>
+ 
+ static inline int
+ memfd_create(const char *name, unsigned int flags)
+ {
++#if defined(__linux__)
+    return syscall(SYS_memfd_create, name, flags);
++#elif defined(__FreeBSD__)
++   return shm_open(SHM_ANON, flags | O_RDWR | O_CREAT, 0600);
++#else /* DragonFly, NetBSD, OpenBSD, Solaris */
++   char template[] = "/tmp/shmfd-XXXXXX";
++#ifdef HAVE_MKOSTEMP
++   int fd = mkostemp(template, flags);
++#else
++   int fd = mkstemp(template);
++   if (flags & O_CLOEXEC) {
++     int flags = fcntl(fd, F_GETFD);
++     if (flags != -1) {
++       flags |= FD_CLOEXEC;
++       (void) fcntl(fd, F_SETFD, &flags);
++     }
++   }
++#endif /* HAVE_MKOSTEMP */
++   if (fd >= 0)
++     unlink(template);
++
++   return fd;
++#endif /* __linux__ */
+ }
+ #endif
+ 
+
+
 [FILE:713:sunos/patch-src_amd_Makefile.in]
 --- src/amd/Makefile.in.orig	2018-07-13 18:41:35 UTC
 +++ src/amd/Makefile.in

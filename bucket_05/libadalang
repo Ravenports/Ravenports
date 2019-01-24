@@ -55,6 +55,10 @@ post-patch:
 		${WRKSRC}/langkit/langkit/templates/project_file.mako \
 		${WRKSRC}/langkit/langkit/templates/langkit_support_gpr.mako
 
+post-patch-linux:
+	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|' \
+		${WRKSRC}/langkit/langkit/templates/mains_project_file.mako
+
 post-configure-freebsd:
 	# link executables with -lutil
 	${PATCH} -d ${PATCH_WRKSRC} --backup --forward -E -p0 --batch \
@@ -329,6 +333,20 @@ post-configure patch to generated mains.gpr
  
 +   package Linker is
 +      for Switches ("ada") use ("-lutil");
++   end Linker;
++
+ end Mains;
+
+
+[FILE:354:linux/patch-langkit_langkit_templates_mains__project__file.mako]
+--- langkit/langkit/templates/mains_project_file.mako.orig	2018-04-25 09:45:20 UTC
++++ langkit/langkit/templates/mains_project_file.mako
+@@ -40,4 +40,8 @@ project Mains is
+       for Switches ("ada") use ("-E");
+    end Binder;
+ 
++   package Linker is
++      for Switches ("ada") use ("-lgnarl", "-Wl,-rpath,@PREFIX@/lib");
 +   end Linker;
 +
  end Mains;

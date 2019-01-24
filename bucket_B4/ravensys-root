@@ -12,7 +12,7 @@ SDESC[macos]=		MacOS/Darwin system root for Ravenports build env
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 freebsd_amd64 ubuntu6 ubuntu7 ubuntu8 ubuntu9 dragonlace avalon
+DOWNLOAD_GROUPS=	main ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 freebsd_amd64 ubuntu6 ubuntu7 ubuntu8 ubuntu9 dragonlace ubuntu10 avalon
 SITES[ubuntu1]=		http://security.ubuntu.com/ubuntu/pool/main/g/glibc/
 SITES[ubuntu2]=		UBUNTU/h/hostname
 SITES[ubuntu3]=		UBUNTU/d/dash
@@ -25,6 +25,7 @@ SITES[ubuntu8]=		http://security.ubuntu.com/ubuntu/pool/main/l/linux/
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[ubuntu9]=		UBUNTU/a/attr
 SITES[dragonlace]=	http://downloads.dragonlace.net/misc/
+SITES[ubuntu10]=	UBUNTU/a/acl
 SITES[avalon]=		https://mirror-master.dragonflybsd.org/iso-images/
 DISTFILE[1]=		dummy-tarball.tar.gz:main
 DISTFILE[2]=		dfly-x86_64-5.4.0_REL.iso.bz2:avalon
@@ -46,6 +47,8 @@ DISTFILE[17]=		locales_2.23-0ubuntu10_all.deb:ubuntu1
 DISTFILE[18]=		libattr1-dev_2.4.47-2_amd64.deb:ubuntu9
 DISTFILE[19]=		libattr1_2.4.47-2_amd64.deb:ubuntu9
 DISTFILE[20]=		mac_root_10.13.6.v01.tar.zst:dragonlace
+DISTFILE[21]=		libacl1-dev_2.2.52-3_amd64.deb:ubuntu10
+DISTFILE[22]=		libacl1_2.2.52-3_amd64.deb:ubuntu10
 SPKGS[sunos]=		single
 SPKGS[freebsd_amd64]=	single
 SPKGS[linux]=		single
@@ -99,8 +102,8 @@ B_DEPS[sunos]=		bsd-which:single:standard
 B_DEPS[linux]=		shadow:single:standard bash:primary:static
 B_DEPS[dragonfly]=	libdl:single:standard
 
-EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 14 15
-EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 18 19 14
+EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 14 15
+EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 14
 
 INVALID_RPATH=		yes
 
@@ -160,6 +163,8 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 					17
 					18
 					19
+					21
+					22
 					14
 [LINUX].ONLY_FOR_OPSYS_ON=		linux
 
@@ -178,7 +183,7 @@ post-install-MACOS-ON:
 
 post-extract-LINUX-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
-.for NDX in 4 5 6 7 8 9 10 11 12 13 17 18 19
+.for NDX in 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22
 	cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
 .endfor
@@ -309,7 +314,7 @@ This is the full environment for Mac 10.13.6 minus the toolchain for
 Ravenports.
 
 
-[FILE:2188:distinfo]
+[FILE:2402:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 ea15724d12488f7aaa16766233c82f4a2f04484e97e14af7ba8ae3bceab10809    323986326 dfly-x86_64-5.4.0_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
@@ -330,6 +335,8 @@ ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 Fr
 ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 libattr1-dev_2.4.47-2_amd64.deb
 6b34040173acef1b806b128bc258b130519b2a7eb167ff1c3f3cb98fa1ddc648         9756 libattr1_2.4.47-2_amd64.deb
 738fecf346ccb4c93ddb1d5ae6097dd337883ba47f5beb6e38e5220a8ce53031   1576423628 mac_root_10.13.6.v01.tar.zst
+f5b76ad0e3316cd99703bbc59c056fad02be0de6c0d9316dd437b89732dc0ff1        73590 libacl1-dev_2.2.52-3_amd64.deb
+a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 libacl1_2.2.52-3_amd64.deb
 
 
 [FILE:15312:manifests/plist.single.dragonfly]
@@ -2944,7 +2951,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:20922:manifests/plist.single.linux]
+[FILE:21004:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -2976,6 +2983,9 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 %%BASE%%/lib/x86_64-linux-gnu/
  ld-2.23.so
  ld-linux-x86-64.so.2
+ libacl.so
+ libacl.so.1
+ libacl.so.1.1.0
  libanl-2.23.so
  libanl.so.1
  libattr.so
@@ -3230,6 +3240,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  wctype.h
  wordexp.h
  xlocale.h
+%%BASE%%/usr/include/acl/libacl.h
 %%BASE%%/usr/include/arpa/
  ftp.h
  inet.h
@@ -4260,6 +4271,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
  fc_ns.h
 %%BASE%%/usr/include/sys/
  acct.h
+ acl.h
  auxv.h
  bitypes.h
  cdefs.h
@@ -8693,7 +8705,7 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:22785:files/Makefile]
+[FILE:22797:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -8950,14 +8962,13 @@ Linux_shared_libs=	${Linux_C_lib} \
 			libnss_nisplus-2.23.so/libnss_nisplus.so.2 \
 			# end
 Linux_extra_libs1=	libattr.so.1.1.0/libattr.so.1 \
+			libacl.so.1.1.0/libacl.so.1 \
 			# end (/lib)
 Linux_extra_libs2=	# libustr-1.0.so.1.0.4/libustr-1.0.so.1 \
 			# end (/usr/lib)
-Linux_single_libs1=	# libsepol.so.1 \
-			# libselinux.so.1 \
-			# end (/lib)
+Linux_single_libs1=	# end (/lib/TARGET)
 Linux_single_libs2=	# libsemanage.so.1 \
-			# end (/usr/lib)
+			# end (/usr/lib/TARGET)
 posix_headers=		aio.h \
 			assert.h \
 			complex.h \
@@ -9140,7 +9151,8 @@ headers_FreeBSD=	${headers_DragonFly:Nutil.h:Ndevattr.h:Ndfregress.h:Ndisktab.h:
 			malloc_np.h \
 			# end
 
-headers_Linux_dirs=	arpa \
+headers_Linux_dirs=	acl \
+			arpa \
 			attr \
 			asm-generic \
 			drm \
