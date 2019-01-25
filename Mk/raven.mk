@@ -1,4 +1,4 @@
-# Copyright (C) 2017 John R. Marino
+# Copyright (C) 2017-2019 John R. Marino
 # This file is covered by the Internet Software Consortium (ISC) License
 #
 # This is the master makefile logic for the Ravenports system.
@@ -1199,10 +1199,17 @@ PATH:=			${_CCACHE_PATH}:${PATH}
 MAKE_ENV:=		${MAKE_ENV:NPATH=*}
 CONFIGURE_ENV:=		${CONFIGURE_ENV:NPATH=*}
 
-MAKE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
-CONFIGURE_ENV+=		PATH=${PATH} CCACHE_DIR="${CCACHE_DIR}"
+MAKE_ENV+=		CCACHE_DIR="${CCACHE_DIR}"
+CONFIGURE_ENV+=		CCACHE_DIR="${CCACHE_DIR}"
 .  endif
 .endif
+
+# Always override PATH in configure and build environments, not just
+# when ccache is used.  Otherwise PREPEND_PATH won't work correctly
+# when ccache is disabled.
+MAKE_ENV+=		PATH=${PATH}
+CONFIGURE_ENV+=		PATH=${PATH}
+
 
 # --------------------------------------------------------------------------
 # --  USERS/GROUPS handling
