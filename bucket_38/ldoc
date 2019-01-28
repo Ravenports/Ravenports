@@ -2,6 +2,7 @@
 
 NAMEBASE=		ldoc
 VERSION=		1.4.6
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		lua52 lua53
 SDESC[lua52]=		LuaDoc-compatible doc gen system for Lua 5.2
@@ -30,6 +31,10 @@ SKIP_BUILD=		yes
 [LUA53].DESCRIPTION=			Build with Lua 5.3
 [LUA53].RUN_DEPENDS_ON=			lua-penlight:primary:lua53
 [LUA53].USES_ON=			lua:5.3
+
+post-patch:
+	${REINPLACE_CMD} 's!/usr/bin/env lua!${PREFIX}/bin/${LUA_CMD}!' \
+		${WRKSRC}/ldoc.lua
 
 do-install:
 	${MKDIR} ${STAGEDIR}${LUA_MODSHAREDIR}
