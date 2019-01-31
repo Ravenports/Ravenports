@@ -2,7 +2,7 @@
 
 NAMEBASE=		perl-5.28
 VERSION=		5.28.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		lang perl devel
 VARIANTS=		standard
 SDESC[standard]=	Practical Extraction and Report Language
@@ -26,6 +26,7 @@ OPT_ON[i386]=		BIT64INT
 BUILDRUN_DEPENDS=	gdbm:single:standard
 			db5:static:standard
 RUN_DEPENDS=		autoselect-perl:single:standard
+			mandoc:single:standard
 
 USES=			bdb cpe perl-interp cclibs:primary
 
@@ -49,6 +50,7 @@ CONFIGURE_ARGS=		-Dcf_by="John Marino"
 			-Aldflags="-Wl,-rpath,{{PREFIX}}/lib:{{PREFIX}}/toolchain/gcc8/{{MULTILIB}}"
 
 INSTALL_REQ_TOOLCHAIN=	yes
+PLIST_SUB=		PREFIX={{PREFIX}}
 
 TEST_TARGET=		test_harness
 TEST_ENV=		{{MAKE_ENV}}
@@ -1902,7 +1904,7 @@ etc/man.d/perl%%BINSUFFIX%%.conf
 @dir %%SITE_PERL%%/auto
 
 
-[FILE:17574:manifests/plist.manpages]
+[FILE:17606:manifests/plist.manpages]
 %%MAN1%%/
  corelist.1.gz
  cpan.1.gz
@@ -2718,8 +2720,8 @@ etc/man.d/perl%%BINSUFFIX%%.conf
 %%ONLY-SUNOS%%%%MAN3%%/ODBM_File.3.gz
 @dir %%SITE_PERL%%/man/man1
 @dir %%SITE_PERL%%/man/man3
-@postexec makewhatis %D/%%PERLMANPREFIX%%/man
-@postexec makewhatis %D/%%SITEMANPREFIX%%/man
+@postexec %%PREFIX%%/sbin/makewhatis %D/%%PERLMANPREFIX%%/man
+@postexec %%PREFIX%%/sbin/makewhatis %D/%%SITEMANPREFIX%%/man
 @rmtry %%PERLMANPREFIX%%/man/mandoc.db
 @rmtry %%PERLMANPREFIX%%/man/whatis
 @rmtry %%SITEMANPREFIX%%/man/mandoc.db

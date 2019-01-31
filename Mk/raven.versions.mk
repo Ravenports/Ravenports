@@ -37,10 +37,9 @@ PERL_5.28_VERSION=	5.28.1
 
 RUBY_DEFAULT?=		2.5
 
-RUBY_2.3_VERSION=	2.3.8
 RUBY_2.4_VERSION=	2.4.5
 RUBY_2.5_VERSION=	2.5.3
-RUBY_2.6_VERSION=	2.6.0
+RUBY_2.6_VERSION=	2.6.1
 
 #-------------------------------------------------------------------------
 # PYTHON

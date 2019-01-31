@@ -344,9 +344,32 @@ licterms() {
 	return ${rc}
 }
 
+showlic() {
+	local bname stars
+
+	stars="======================================================================================"
+	licdir="${STAGEDIR}${PREFIX}/share/licenses/${NAMEBASE}"
+
+	terms=$(ls -r ${licdir}/* 2>/dev/null)
+	if [ -n "${terms}" ]; then
+	   echo
+	   echo "License information:"
+	   for f in ${terms}; do
+	     bname=$(basename ${f})
+	     echo
+	     echo
+	     echo "License file: ${bname}"
+	     echo "${stars}"
+	     cat ${f}
+	     echo "${stars}"
+	   done
+	fi
+	return 0
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
-checks="$checks sonames licterms"
+checks="$checks sonames licterms showlic"
 
 ret=0
 cd ${STAGEDIR}
