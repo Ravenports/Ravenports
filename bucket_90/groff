@@ -2,6 +2,7 @@
 
 NAMEBASE=		groff
 VERSION=		1.22.4
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	GNU troff text-formatting system
@@ -30,6 +31,13 @@ BUILDRUN_DEPENDS=	psutils:single:standard
 USES=			cpe gmake perl autoreconf makeinfo shebangfix
 XORG_COMPONENTS=	xaw
 
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"\#include"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/roff/troff/troff.h
+LICENSE_SCHEME=		solo
+
 INFO=			primary:groff
 CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		textproc/groff
@@ -50,6 +58,15 @@ MAKE_ARGS=		docdir={{STD_DOCDIR}}
 			datasubdir={{PREFIX}}/share/groff
 SINGLE_JOB=		yes
 
+post-install:
+	# avoid conflict with mandoc's soelim and man pages
+	${MV} ${STAGEDIR}${PREFIX}/bin/soelim \
+		${STAGEDIR}${PREFIX}/bin/groff_soelim
+	${MV} ${STAGEDIR}${MANPREFIX}/man/man1/soelim.1 \
+		${STAGEDIR}${MANPREFIX}/man/man1/groff_soelim.1
+	${MV} ${STAGEDIR}${MANPREFIX}/man/man7/roff.7 \
+		${STAGEDIR}${MANPREFIX}/man/man7/groff_roff.7
+
 [FILE:599:descriptions/desc.primary]
 Groff (GNU troff) is a typesetting system that reads plain text mixed with 
 formatting commands and produces formatted output. Output may be 
@@ -67,7 +84,7 @@ sophisticated documents while consuming only minimal system resources.
 e78e7b4cb7dec310849004fa88847c44701e8d133b5d4c13057d876c1bad0293      4137480 groff-1.22.4.tar.gz
 
 
-[FILE:5623:manifests/plist.primary]
+[FILE:5641:manifests/plist.primary]
 bin/
  addftinfo
  afmtodit
@@ -82,6 +99,7 @@ bin/
  grn
  grodvi
  groff
+ groff_soelim
  groffer
  grog
  grolbp
@@ -112,7 +130,6 @@ bin/
  roff2ps
  roff2text
  roff2x
- soelim
  tbl
  tfmtodit
  troff
@@ -657,6 +674,7 @@ share/man/man1/
  grn.1.gz
  grodvi.1.gz
  groff.1.gz
+ groff_soelim.1.gz
  groffer.1.gz
  grog.1.gz
  grohtml.1.gz
@@ -686,7 +704,6 @@ share/man/man1/
  roff2ps.1.gz
  roff2text.1.gz
  roff2x.1.gz
- soelim.1.gz
  tbl.1.gz
  tfmtodit.1.gz
  troff.1.gz
@@ -709,9 +726,9 @@ share/man/man7/
  groff_mmse.7.gz
  groff_mom.7.gz
  groff_ms.7.gz
+ groff_roff.7.gz
  groff_trace.7.gz
  groff_www.7.gz
- roff.7.gz
 @dir lib/groff/site-tmac
 @dir share/groff/site-font
 

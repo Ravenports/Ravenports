@@ -2,6 +2,7 @@
 
 NAMEBASE=		bmake
 VERSION=		20181221
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Portable version of NetBSD 'make' utility
@@ -9,15 +10,14 @@ HOMEPAGE=		http://www.crufty.net/help/sjg/bmake.html
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		ftp://ftp.netbsd.org/pub/NetBSD/misc/sjg/
+SITES[main]=		https://cdn.netbsd.org/pub/NetBSD/misc/sjg/
+			ftp://ftp.netbsd.org/pub/NetBSD/misc/sjg/
 DISTFILE[1]=		bmake-20181221.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-BUILDRUN_DEPENDS=	bmake-mk-files:single:standard
 
 DISTNAME=		bmake
 
@@ -50,6 +50,10 @@ do-build:
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/bmake ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_MAN} ${WRKSRC}/bmake.1 ${STAGEDIR}${MAN1PREFIX}/man/man1
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/mk/sys
+	${INSTALL_DATA} ${WRKSRC}/mk/*.mk ${STAGEDIR}${PREFIX}/share/mk/
+	${INSTALL_DATA} ${WRKSRC}/mk/sys/*.mk \
+		${STAGEDIR}${PREFIX}/share/mk/sys/
 
 [FILE:193:descriptions/desc.single]
 bmake is a portable version of NetBSD's make(1) utility,
@@ -61,9 +65,72 @@ which may lack NetBSD's libraries, regular expression code, etc.
 fc0948b4eb0cf21fcec4f89660c0295150c55bf070d4b7445858947f84f7e67e       558806 bmake-20181221.tar.gz
 
 
-[FILE:36:manifests/plist.single]
+[FILE:773:manifests/plist.single]
 bin/bmake
 share/man/man1/bmake.1.gz
+share/mk/
+ auto.dep.mk
+ auto.obj.mk
+ autoconf.mk
+ autodep.mk
+ cython.mk
+ dep.mk
+ dirdeps-options.mk
+ dirdeps.mk
+ doc.mk
+ dpadd.mk
+ files.mk
+ final.mk
+ gendirdeps.mk
+ host-target.mk
+ host.libnames.mk
+ inc.mk
+ init.mk
+ install-new.mk
+ java.mk
+ ldorder.mk
+ lib.mk
+ libnames.mk
+ libs.mk
+ links.mk
+ man.mk
+ manifest.mk
+ meta.autodep.mk
+ meta.stage.mk
+ meta.subdir.mk
+ meta.sys.mk
+ nls.mk
+ obj.mk
+ options.mk
+ own.mk
+ prlist.mk
+ prog.mk
+ progs.mk
+ rst2htm.mk
+ scripts.mk
+ srctop.mk
+ subdir.mk
+ sys.clean-env.mk
+ sys.debug.mk
+ sys.dependfile.mk
+ sys.mk
+ sys.vars.mk
+ target-flags.mk
+ warnings.mk
+ whats.mk
+ yacc.mk
+share/mk/sys/
+ AIX.mk
+ Darwin.mk
+ Generic.mk
+ HP-UX.mk
+ IRIX.mk
+ Linux.mk
+ NetBSD.mk
+ OSF1.mk
+ OpenBSD.mk
+ SunOS.mk
+ UnixWare.mk
 
 
 [FILE:697:patches/patch-main.c]

@@ -708,7 +708,7 @@ build-message:
 
 .if !target(do-build)
 do-build:
-	@(cd ${BUILD_WRKSRC}; if ! ${DO_MAKE_BUILD} ${BUILD_TARGET}; then \
+	(cd ${BUILD_WRKSRC}; if ! ${DO_MAKE_BUILD} ${BUILD_TARGET}; then \
 		${ECHO_MSG} "===> Compilation failed unexpectedly."; \
 		${FALSE}; \
 	fi)
