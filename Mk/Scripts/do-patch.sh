@@ -23,7 +23,7 @@ apply_one_patch() {
 	fi
 
 	case "${file}" in
-		*.Z|*.gz)
+		*.Z|*.gz|*.tgz)
 			${dp_GZCAT} "${file}"
 			;;
 		*.bz2)
