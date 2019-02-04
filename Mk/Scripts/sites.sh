@@ -361,7 +361,7 @@ expand_MOZILLA()
     # pattern [element]/%SUBDIR%/
     local SUBDIR=${1##MOZILLA/}
     local cluster="\
-    http://download.cdn.mozilla.net/pub \
+    https://download.cdn.mozilla.net/pub \
     https://archive.mozilla.org/pub"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
