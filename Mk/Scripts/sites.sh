@@ -195,13 +195,8 @@ expand_CPAN()
     # pattern [element]/modules/by-module/%SUBDIR%/
     local SUBDIR AUTHID
     local _PERL_CPAN_SORT=modules/by-module
-    if [ ${2} -eq 1 ]; then
-	SUBDIR=${1##PERL_CPAN/}
-	AUTHID=${1##PERL_CPAN/ID:}
-    else
-	SUBDIR=${1##CPAN/}
-	AUTHID=${1##CPAN/ID:}
-    fi
+    SUBDIR=${1##CPAN/}
+    AUTHID=${1##CPAN/ID:}
     local cluster="\
     http://cpan.metacpan.org \
     http://www.cpan.org \
@@ -569,6 +564,17 @@ expand_DEBIAN()
     done
 }
 
+expand_CRATES()
+{
+    # pattern [element]/%PROJECT%/%VERSION%/download?dummy=/
+    local SUBDIR=${1##CRATES/}
+    OLD_IFS=${IFS}
+    IFS=:
+    set -- ${SUBDIR}
+    IFS=${OLD_IFS}
+    echo "https://crates.io/api/v1/crates/${1}/${2}/download?dummy=/"
+}
+
 process_site()
 {
     case "${1}" in
@@ -577,8 +583,8 @@ process_site()
 	APACHE_COMMONS_SOURCE/*)   expand_APACHE_COMMONS_SOURCE "${1}" ;;
 	APACHE_HTTPD/*)            expand_APACHE_HTTPD "${1}" ;;
 	APACHE_JAKARTA/*)          expand_APACHE_JAKARTA "${1}" ;;
-	PERL_CPAN/*)               expand_CPAN "${1}" 1 ;;
-	CPAN/*)                    expand_CPAN "${1}" 2 ;;
+	CPAN/*)                    expand_CPAN "${1}" ;;
+	CRATES/*)                  expand_CRATES "${1}" ;;
 	DEBIAN/*)                  expand_DEBIAN "${1}" ;;
 	FREELOCAL/*)               expand_FREELOCAL "${1}" ;;
 	GCC/*)                     expand_GCC "${1}" ;;

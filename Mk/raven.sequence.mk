@@ -46,6 +46,7 @@ _EXTRACT_SEQ=		100:extract-message \
 			550:do-extract-opsys \
 			575:shift-wrksrc \
 			576:github-relocation \
+			577:crate-relocation \
 			600:apply-slist \
 			625:extract-licenses \
 			650:compile-package-desc \

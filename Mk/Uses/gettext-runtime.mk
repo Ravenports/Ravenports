@@ -33,4 +33,9 @@ _INCLUDE_USES_GETTEXT_RUNTIME_MK=	yes
 # RUN_DEPENDS+=        gettext:asprintf:standard
 # -----------------------------------------------------
 
+# for cargo support (only in effect with USES=cargo)
+CARGO_ENV+=	GETTEXT_BIN_DIR=${LOCALBASE}/bin \
+		GETTEXT_INCLUDE_DIR=${LOCALBASE}/include \
+		GETTEXT_LIB_DIR=${LOCALBASE}/lib
+
 .endif
