@@ -2,6 +2,7 @@
 
 NAMEBASE=		pango
 VERSION=		1.42.4
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Open-source framework for rendering of i18n text
@@ -21,13 +22,14 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		zlib:static:standard
+			gtk-doc:single:standard
 BUILDRUN_DEPENDS=	freetype:primary:standard
 			harfbuzz:primary:standard
 			fontconfig:primary:standard
 			fribidi:single:standard
 RUN_DEPENDS=		xorg-truetype-fonts:single:standard
 
-USES=			gmake libtool perl:build pkgconfig python:build
+USES=			gmake perl:build pkgconfig python:build meson
 GNOME_COMPONENTS=	cairo glib introspection
 XORG_COMPONENTS=	x11 xft xrender
 
@@ -39,14 +41,21 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/pango/pango.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11-toolkits/pango
+MESON_INSERT_RPATH=	pango/meson.build
+			utils/meson.build
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-xft
+CONFIGURE_ARGS=		-Denable_docs=true
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		VERSION=1.8.0
 			LIBVERSION=0.4200.4
+
+post-patch:
+	# meson version doesn't match GNU configure version
+	# Also, don't install test results
+	${REINPLACE_CMD} -e 's|1.42.3|1.42.4|; /'tests'/d' \
+		${WRKSRC}/meson.build
 
 post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/share/doc
@@ -65,7 +74,7 @@ code is platform- and toolkit-independent.
 1d2b74cd63e8bd41961f2f8d952355aa0f9be6002b52c8aa7699d9f5da597c9d       833876 gnome2/pango-1.42.4.tar.xz
 
 
-[FILE:1214:manifests/plist.primary]
+[FILE:1183:manifests/plist.primary]
 bin/
  pango-list
  pango-view
@@ -132,10 +141,9 @@ share/gir-1.0/
  PangoCairo-1.0.gir
  PangoFT2-1.0.gir
  PangoXft-1.0.gir
-share/man/man1/pango-view.1.gz
 
 
-[FILE:1027:manifests/plist.docs]
+[FILE:1458:manifests/plist.docs]
 share/doc/pango/
  PangoEngineLang.html
  PangoEngineShape.html
@@ -145,6 +153,27 @@ share/doc/pango/
  PangoMarkupFormat.html
  PangoRenderer.html
  annotation-glossary.html
+ api-index-1-10.html
+ api-index-1-12.html
+ api-index-1-14.html
+ api-index-1-16.html
+ api-index-1-18.html
+ api-index-1-2.html
+ api-index-1-20.html
+ api-index-1-22.html
+ api-index-1-24.html
+ api-index-1-26.html
+ api-index-1-30.html
+ api-index-1-31-0.html
+ api-index-1-32-4.html
+ api-index-1-32.html
+ api-index-1-34.html
+ api-index-1-38.html
+ api-index-1-4.html
+ api-index-1-40.html
+ api-index-1-6.html
+ api-index-1-8.html
+ api-index-deprecated.html
  api-index-full.html
  home.png
  index.html
@@ -173,7 +202,6 @@ share/doc/pango/
  pango-Win32-Fonts-and-Rendering.html
  pango-Xft-Fonts-and-Rendering.html
  pango-hierarchy.html
- pango.devhelp2
  pango.html
  rendering.html
  right-insensitive.png
@@ -182,4 +210,19 @@ share/doc/pango/
  style.css
  up-insensitive.png
  up.png
+
+
+[FILE:380:patches/patch-pango.pc.in]
+--- pango.pc.in.orig	2018-07-16 00:51:52 UTC
++++ pango.pc.in
+@@ -6,8 +6,7 @@ includedir=@includedir@
+ Name: Pango
+ Description: Internationalized text handling
+ Version: @VERSION@
+-Requires: glib-2.0 gobject-2.0
+-Requires.private: fribidi
++Requires: glib-2.0 gobject-2.0 fribidi
+ Libs: -L${libdir} -lpango-@PANGO_API_VERSION@
+ Libs.private: -lm
+ Cflags: -I${includedir}/pango-1.0
 

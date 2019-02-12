@@ -2,9 +2,11 @@
 
 NAMEBASE=		openssl
 VERSION=		1.0.2q
+REVISION=		1
 KEYWORDS=		security devel
-VARIANTS=		standard
+VARIANTS=		standard static
 SDESC[standard]=	SSL and crypto library
+SDESC[static]=		Static minimal version of OpenSSL
 HOMEPAGE=		https://www.openssl.org/
 CONTACT=		nobody
 
@@ -13,11 +15,14 @@ SITES[main]=		https://www.openssl.org/source/
 DISTFILE[1]=		openssl-1.0.2q.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
+SPKGS[static]=		single
 
 OPTIONS_AVAILABLE=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386
-			THREADS
+			THREADS STATIC
 OPTIONS_STANDARD=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386
 			THREADS
+VOPTS[static]=		STATIC=ON SKIP_MANPAGES=ON ASM=ON EC=ON SSE2=ON
+			SSL2=ON SSL3=ON THREADS=ON SHARED=OFF I386=OFF
 OPT_ON[x86_64]=		ASM EC
 OPT_ON[all]=		SHARED SSE2 SSL2 SSL3 THREADS
 OPT_ON[i386]=		I386
@@ -86,6 +91,9 @@ post-patch:
 	${REINPLACE_CMD} -e 's|ERR_R_MALLOC_ERROR|ERR_R_MALLOC_FAILURE|' \
 		${WRKSRC}/crypto/bio/bss_dgram.c
 
+post-install-SHARED-OFF:
+	${RMDIR} ${STAGEDIR}${PREFIX}/lib/engines
+
 post-install-SHARED-ON:
 .for i in libcrypto libssl
 	${INSTALL_LIB} ${WRKSRC}/$i.so.9 ${STAGEDIR}${PREFIX}/lib
@@ -116,6 +124,9 @@ post-configure:
 		-e 's|LIBVERSION=[^ ]* |LIBVERSION=9 |' \
 		${WRKSRC}/Makefile
 
+post-install-SKIP_MANPAGES-ON:
+	${RM} -r ${STAGEDIR}${MANPREFIX}/man
+
 post-patch-freebsd:
 	${REINPLACE_CMD} -e '/define HAVE_CRYPTODEV/d' \
 		${WRKSRC}/crypto/engine/eng_cryptodev.c
@@ -140,11 +151,29 @@ to get and use it for commercial and non-commercial purposes subject
 to some simple license conditions.
 
 
+[FILE:800:descriptions/desc.single.static]
+The OpenSSL Project is a collaborative effort to develop a robust,
+commercial-grade, full-featured, and Open Source toolkit implementing
+the Secure Sockets Layer (SSL v2/v3) and Transport Layer Security
+(TLS v1) protocols with full-strength cryptography world-wide. The
+project is managed by a worldwide community of volunteers that use
+the Internet to communicate, plan, and develop the OpenSSL tookit
+and its related documentation.
+
+OpenSSL is based on the excellent SSLeay library developed by Eric
+A. Young and Tim J. Hudson. The OpenSSL toolkit is licensed under
+an Apache-style licence, which basically means that you are free
+to get and use it for commercial and non-commercial purposes subject
+to some simple license conditions.
+
+This package variant has no manpages and is built statically.
+
+
 [FILE:100:distinfo]
 5744cfcbcec2b1b48629f7354203bc1e5e9b5466998bbccc5b5fcde3b18eb684      5345604 openssl-1.0.2q.tar.gz
 
 
-[FILE:41972:manifests/plist.single.standard]
+[FILE:41972:manifests/plist.single]
 @sample openssl/openssl.cnf.sample
 %%SHARED-ON%%lib/
  libcrypto.so
