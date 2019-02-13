@@ -362,6 +362,20 @@ share/doc/bash/
  
 
 
+[FILE:230:patches/patch-examples_loadables_fdflags.c]
+--- examples/loadables/fdflags.c.orig	2017-02-02 16:40:42 UTC
++++ examples/loadables/fdflags.c
+@@ -73,6 +73,8 @@ static const struct
+ #endif
+ #ifdef O_CLOEXEC
+   { "cloexec",	O_CLOEXEC	},
++#else
++#define O_CLOEXEC 0
+ #endif
+ };
+ 
+
+
 [FILE:533:patches/patch-lib_readline_display.c]
 --- lib/readline/display.c.orig	2018-10-01 01:37:48 UTC
 +++ lib/readline/display.c
@@ -458,24 +472,22 @@ LDFLAGS+=	${VAR1}
 .endif
 
 
-[FILE:2505:sunos/patch-configure]
---- configure.orig	2016-09-07 20:57:01.000000000 +0000
+[FILE:2609:sunos/patch-configure]
+--- configure.orig	2019-01-02 14:43:31 UTC
 +++ configure
-@@ -4936,14 +4936,18 @@
+@@ -4953,14 +4953,18 @@ prefer_static=no
  if test "$opt_static_link" = yes; then
  	prefer_static=yes
  	prefer_shared=no
 +	TINFO_LIBRARY=${prefix}/lib/libtinfo.a
  	# if we're using gcc, add `-static' to LDFLAGS, except on Solaris >= 2
  	if test -n "$GCC" || test "$ac_cv_c_compiler_gnu" = "yes"; then
--		STATIC_LD="-static"
+ 		STATIC_LD="-static"
  		case "$host_os" in
--		solaris2*)	;;
--		*)		LDFLAGS="$LDFLAGS -static" ;;	# XXX experimental
-+		solaris*)	STATIC_LD=
-+				;;
-+		*)		STATIC_LD="-static"
-+				LDFLAGS="$LDFLAGS -static" ;;	# XXX experimental
+-		solaris2*|linux*)	;;
++		linux*)	;;
++		solaris*)	STATIC_LD= ;;
+ 		*)		LDFLAGS="$LDFLAGS -static" ;;	# XXX experimental
  		esac
  	fi
 +else
@@ -483,7 +495,7 @@ LDFLAGS+=	${VAR1}
  fi
  
  # set the appropriate make variables for building the "build tools"
-@@ -5079,13 +5083,13 @@
+@@ -5100,13 +5104,13 @@ $as_echo "$ac_cv_lib_termcap_tgetent" >&
  if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
    bash_cv_termcap_lib=libtermcap
  else
@@ -500,7 +512,7 @@ LDFLAGS+=	${VAR1}
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -5223,7 +5227,7 @@
+@@ -5285,7 +5289,7 @@ elif test $bash_cv_termcap_lib = libterm
  TERMCAP_LIB=-ltermcap
  TERMCAP_DEP=
  elif test $bash_cv_termcap_lib = libtinfo; then
@@ -509,7 +521,7 @@ LDFLAGS+=	${VAR1}
  TERMCAP_DEP=
  elif test $bash_cv_termcap_lib = libncurses; then
  TERMCAP_LIB=-lncurses
-@@ -15772,13 +15776,13 @@
+@@ -15981,13 +15985,13 @@ $as_echo "$ac_cv_lib_termcap_tgetent" >&
  if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
    bash_cv_termcap_lib=libtermcap
  else
@@ -526,7 +538,7 @@ LDFLAGS+=	${VAR1}
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -15916,7 +15920,7 @@
+@@ -16166,7 +16170,7 @@ elif test $bash_cv_termcap_lib = libterm
  TERMCAP_LIB=-ltermcap
  TERMCAP_DEP=
  elif test $bash_cv_termcap_lib = libtinfo; then
