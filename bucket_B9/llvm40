@@ -2,7 +2,7 @@
 
 NAMEBASE=		llvm40
 VERSION=		4.0.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel lang
 VARIANTS=		standard
 SDESC[standard]=	LLVM 4.0 and Clang
@@ -13,23 +13,19 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://llvm.org/releases/4.0.1/
 DISTFILE[1]=		llvm-4.0.1.src.tar.xz:main
 DISTFILE[2]=		cfe-4.0.1.src.tar.xz:main
-DISTFILE[3]=		clang-tools-extra-4.0.1.src.tar.xz:main
-DISTFILE[4]=		openmp-4.0.1.src.tar.xz:main
-DF_INDEX=		1 2 3 4
+DF_INDEX=		1 2
 SPKGS[standard]=	complete
 			clang
 			llvm
 
-OPTIONS_AVAILABLE=	GOLD OPENMP
-OPTIONS_STANDARD=	GOLD OPENMP
-OPT_ON[freebsd]=	OPENMP//x86_64 GOLD//x86_64
-OPT_ON[linux]=		GOLD//x86_64
-OPT_ON[dragonfly]=	OPENMP//x86_64 GOLD//x86_64
+OPTIONS_AVAILABLE=	GOLD
+OPTIONS_STANDARD=	GOLD
+OPT_ON[dragonfly]=	GOLD//x86_64
 
 ONLY_FOR_OPSYS=		sunos
 
-USES=			cmake ncurses perl:build python:build shebangfix
-			zlib c++:llvm,clang
+USES=			cmake ninja ncurses perl:build python:build
+			shebangfix zlib c++:llvm,clang
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		llvm-4.0.1.src
@@ -45,11 +41,6 @@ FPC_EQUIVALENT=		devel/llvm40
 SHEBANG_FILES=		tools/clang/tools/scan-view/bin/scan-view
 			tools/clang/tools/clang-format/git-clang-format
 			tools/clang/tools/clang-format/clang-format-diff.py
-			tools/clang/tools/extra/clang-tidy/tool/clang-tidy-diff.py
-			tools/clang/tools/extra/clang-tidy/tool/run-clang-tidy.py
-			tools/clang/tools/extra/include-fixer/find-all-symbols/tool/run-find-all-symbols.py
-
-MAKE_JOBS_NUMBER_LIMIT=	2
 
 PLIST_SUB=		NAMEBASE="llvm40"
 			LLVM_RELEASE="4.0.1"
@@ -59,8 +50,8 @@ CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
 			-DCMAKE_BUILD_WITH_INSTALL_RPATH=1
 			-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm40/lib"
 			-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
-
-[OPENMP].DESCRIPTION=			Install libomp, the LLVM OpenMP runtime library
+			-DLLVM_PARALLEL_LINK_JOBS=1
+			-DLLVM_PARALLEL_COMPILE_JOBS={{MAKE_JOBS_NUMBER}}
 
 [GOLD].DESCRIPTION=			Build the LLVM Gold plugin for LTO
 [GOLD].CMAKE_ARGS_ON=			-DLLVM_BINUTILS_INCDIR={{LOCALBASE}}/toolchain/include
@@ -78,9 +69,6 @@ post-patch:
 		${WRKSRC}/tools/clang/lib/Driver/ToolChains.cpp \
 		${WRKSRC}/tools/clang/lib/Frontend/InitHeaderSearch.cpp
 
-post-patch-OPENMP-OFF:
-	${MV} ${WRKSRC}/tools/openmp ${WRKDIR}/unused-openmp-source
-
 post-install:
 	${RM} -r ${STAGEDIR}${MANPREFIX}/man
 	${RM} -r ${STAGEDIR}${PREFIX}/llvm40/share/man
@@ -94,8 +82,6 @@ post-install:
 
 post-extract:
 	${MV} ${WRKDIR}/cfe-4.0.1.src ${WRKSRC}/tools/clang
-	${MV} ${WRKDIR}/clang-tools-extra-4.0.1.src ${WRKSRC}/tools/clang/tools/extra
-	${MV} ${WRKDIR}/openmp-4.0.1.src ${WRKSRC}/tools/openmp
 
 [FILE:842:descriptions/desc.clang]
 The LLVM Project is a collection of modular and reusable compiler and
@@ -131,36 +117,25 @@ invent your own language (or port an existing compiler) to use LLVM
 as an optimizer and code generator.
 
 
-[FILE:414:distinfo]
+[FILE:199:distinfo]
 da783db1f82d516791179fe103c71706046561f7972b18f0049242dee6712b51     21065652 llvm-4.0.1.src.tar.xz
 61738a735852c23c3bdbe52d035488cdb2083013f384d67c1ba36fabebd8769b     10933628 cfe-4.0.1.src.tar.xz
-35d1e64efc108076acbe7392566a52c35df9ec19778eb9eb12245fc7d8b915b6       581788 clang-tools-extra-4.0.1.src.tar.xz
-ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 openmp-4.0.1.src.tar.xz
 
 
-[FILE:13421:manifests/plist.clang]
+[FILE:12321:manifests/plist.clang]
 %%NAMEBASE%%/bin/
  c-index-test
  clang
  clang++
  clang-%%LLVM_MAJOR%%
- clang-apply-replacements
- clang-change-namespace
  clang-check
  clang-cl
  clang-cpp
  clang-format
  clang-import-test
- clang-include-fixer
  clang-offload-bundler
- clang-query
- clang-rename
- clang-reorder-fields
  clang-tblgen
- clang-tidy
- find-all-symbols
  git-clang-format
- modularize
  scan-build
  scan-view
 %%NAMEBASE%%/include/clang-c/
@@ -666,9 +641,7 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  libclangAST.a
  libclangASTMatchers.a
  libclangAnalysis.a
- libclangApplyReplacements.a
  libclangBasic.a
- libclangChangeNamespace.a
  libclangCodeGen.a
  libclangDriver.a
  libclangDynamicASTMatchers.a
@@ -676,15 +649,9 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  libclangFormat.a
  libclangFrontend.a
  libclangFrontendTool.a
- libclangIncludeFixer.a
- libclangIncludeFixerPlugin.a
  libclangIndex.a
  libclangLex.a
- libclangMove.a
  libclangParse.a
- libclangQuery.a
- libclangRename.a
- libclangReorderFields.a
  libclangRewrite.a
  libclangRewriteFrontend.a
  libclangSema.a
@@ -692,22 +659,8 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  libclangStaticAnalyzerCheckers.a
  libclangStaticAnalyzerCore.a
  libclangStaticAnalyzerFrontend.a
- libclangTidy.a
- libclangTidyBoostModule.a
- libclangTidyCERTModule.a
- libclangTidyCppCoreGuidelinesModule.a
- libclangTidyGoogleModule.a
- libclangTidyLLVMModule.a
- libclangTidyMPIModule.a
- libclangTidyMiscModule.a
- libclangTidyModernizeModule.a
- libclangTidyPerformanceModule.a
- libclangTidyPlugin.a
- libclangTidyReadabilityModule.a
- libclangTidyUtils.a
  libclangTooling.a
  libclangToolingCore.a
- libfindAllSymbols.a
 %%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
  __clang_cuda_builtin_vars.h
  __clang_cuda_cmath.h
@@ -807,13 +760,6 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  clang-format-sublime.py
  clang-format.el
  clang-format.py
- clang-include-fixer.el
- clang-include-fixer.py
- clang-rename.el
- clang-rename.py
- clang-tidy-diff.py
- run-clang-tidy.py
- run-find-all-symbols.py
 %%NAMEBASE%%/share/scan-build/
  scanview.css
  sorttable.js
@@ -824,16 +770,6 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  ScanView.py
  bugcatcher.ico
  startfile.py
-%%ONLY-LINUX%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
- limits.h
- stdalign.h
- stdarg.h
- stdatomic.h
- stdbool.h
- stddef.h
- stdint.h
- stdnoreturn.h
- varargs.h
 %%ONLY-SUNOS%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/
  limits.h
  stdalign.h
@@ -844,10 +780,9 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  stdint.h
  stdnoreturn.h
  varargs.h
-%%OPENMP-ON%%%%NAMEBASE%%/lib/clang/%%LLVM_RELEASE%%/include/omp.h
 
 
-[FILE:23994:manifests/plist.llvm]
+[FILE:23927:manifests/plist.llvm]
 %%GOLD-ON%%%%NAMEBASE%%/lib/LLVMgold.so
 %%NAMEBASE%%/bin/
  bugpoint
@@ -2141,40 +2076,6 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  LLVMProcessSources.cmake
  TableGen.cmake
  VersionFromVCS.cmake
-%%OPENMP-ON%%%%NAMEBASE%%/lib/
- libgomp.so
- libiomp5.so
- libomp.so
-
-
-[FILE:1361:patches/patch-bug32279]
---- tools/openmp/runtime/cmake/LibompHandleFlags.cmake.orig	2017-03-16 15:50:48 UTC
-+++ tools/openmp/runtime/cmake/LibompHandleFlags.cmake
-@@ -156,6 +156,9 @@ function(libomp_get_libflags libflags)
-   if(${IA32})
-     libomp_append(libflags_local -lirc_pic LIBOMP_HAVE_IRC_PIC_LIBRARY)
-   endif()
-+  IF(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|DragonFly")
-+    libomp_append(libflags_local "-lm")
-+  ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-   IF(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
-     libomp_append(libflags_local -lm)
-   ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
- runtime/cmake/LibompHandleFlags.cmake | 5 +++++
- runtime/cmake/LibompMicroTests.cmake  | 2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
-
---- tools/openmp/runtime/cmake/LibompMicroTests.cmake.orig	2017-03-16 15:50:48 UTC
-+++ tools/openmp/runtime/cmake/LibompMicroTests.cmake
-@@ -171,7 +171,7 @@ add_custom_command(
- add_custom_target(libomp-test-deps DEPENDS test-deps/.success)
- set(libomp_expected_library_deps)
- if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
--  set(libomp_expected_library_deps libc.so.7 libthr.so.3)
-+  set(libomp_expected_library_deps libc.so.7 libthr.so.3 libm.so.5)
-   libomp_append(libomp_expected_library_deps libhwloc.so.5 LIBOMP_USE_HWLOC)
- elseif(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-   set(libomp_expected_library_deps libc.so.12 libpthread.so.1 libm.so.0)
 
 
 [FILE:739:patches/patch-cmake_modules_AddLLVM.cmake]
@@ -2411,14 +2312,6 @@ ec693b170e0600daa7b372240a06e66341ace790d89eaf4a843e8d56d5f4ada4      2275240 op
  class MachODumper {
 
 
-[FILE:128:files/special.mk]
-# for some reason linux freezes when linking two clang programs
-# at the same time
-
-.if ${OPSYS} == Linux
-SINGLE_JOB=	yes
-.endif
-
 [FILE:536:dragonfly/patch-cmake_modules_HandleLLVMOptions.cmake]
 --- cmake/modules/HandleLLVMOptions.cmake.orig	2016-06-30 20:15:44.000000000 +0300
 +++ cmake/modules/HandleLLVMOptions.cmake
@@ -2575,198 +2468,6 @@ SINGLE_JOB=	yes
    wmmintrin.h
 
 
-[FILE:697:dragonfly/patch-tools_openmp_runtime_cmake_LibompMicroTests.cmake]
---- tools/openmp/runtime/cmake/LibompMicroTests.cmake.orig	2016-12-08 11:22:24.000000000 +0200
-+++ tools/openmp/runtime/cmake/LibompMicroTests.cmake
-@@ -176,6 +176,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
- elseif(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-   set(libomp_expected_library_deps libc.so.12 libpthread.so.1 libm.so.0)
-   libomp_append(libomp_expected_library_deps libhwloc.so.5 LIBOMP_USE_HWLOC)
-+elseif(CMAKE_SYSTEM_NAME MATCHES "DragonFly")
-+  set(libomp_expected_library_deps libc.so.8 libpthread.so.0 libm.so.4)
-+  libomp_append(libomp_expected_library_deps libhwloc.so.5 LIBOMP_USE_HWLOC)
- elseif(APPLE)
-   set(libomp_expected_library_deps /usr/lib/libSystem.B.dylib)
- elseif(WIN32)
-
-
-[FILE:631:dragonfly/patch-tools_openmp_runtime_src_kmp.h]
---- tools/openmp/runtime/src/kmp.h.orig	2016-12-15 01:01:24.000000000 +0200
-+++ tools/openmp/runtime/src/kmp.h
-@@ -974,6 +974,10 @@ extern int __kmp_place_num_threads_per_c
- /* TODO: tune for KMP_OS_NETBSD */
- #  define KMP_INIT_WAIT  1024U          /* initial number of spin-tests   */
- #  define KMP_NEXT_WAIT   512U          /* susequent number of spin-tests */
-+#elif KMP_OS_DRAGONFLY
-+/* TODO: tune for KMP_OS_DRAGONFLY */
-+#  define KMP_INIT_WAIT  1024U          /* initial number of spin-tests   */
-+#  define KMP_NEXT_WAIT   512U          /* susequent number of spin-tests */
- #endif
- 
- #if KMP_ARCH_X86 || KMP_ARCH_X86_64
-
-
-[FILE:474:dragonfly/patch-tools_openmp_runtime_src_kmp__ftn__entry.h]
---- tools/openmp/runtime/src/kmp_ftn_entry.h.orig	2016-11-14 23:08:35.000000000 +0200
-+++ tools/openmp/runtime/src/kmp_ftn_entry.h
-@@ -406,7 +406,7 @@ xexpand(FTN_GET_THREAD_NUM)( void )
-     #else
-         int gtid;
- 
--        #if KMP_OS_DARWIN || KMP_OS_FREEBSD || KMP_OS_NETBSD
-+        #if KMP_OS_DARWIN || KMP_OS_FREEBSD || KMP_OS_NETBSD || KMP_OS_DRAGONFLY
-             gtid = __kmp_entry_gtid();
-         #elif KMP_OS_WINDOWS
-             if (!__kmp_init_parallel ||
-
-
-[FILE:1073:dragonfly/patch-tools_openmp_runtime_src_kmp__platform.h]
---- tools/openmp/runtime/src/kmp_platform.h.orig	2016-12-08 11:22:24.000000000 +0200
-+++ tools/openmp/runtime/src/kmp_platform.h
-@@ -17,6 +17,7 @@
- /* ---------------------- Operating system recognition ------------------- */
- 
- #define KMP_OS_LINUX    0
-+#define KMP_OS_DRAGONFLY 0
- #define KMP_OS_FREEBSD  0
- #define KMP_OS_NETBSD   0
- #define KMP_OS_DARWIN   0
-@@ -45,6 +46,11 @@
- #else
- #endif
- 
-+#if ( defined __DragonFly__ )
-+# undef KMP_OS_DRAGONFLY
-+# define KMP_OS_DRAGONFLY 1
-+#endif
-+
- #if ( defined __FreeBSD__ )
- # undef KMP_OS_FREEBSD
- # define KMP_OS_FREEBSD 1
-@@ -60,11 +66,11 @@
- # define KMP_OS_CNK 1
- #endif
- 
--#if (1 != KMP_OS_LINUX + KMP_OS_FREEBSD + KMP_OS_NETBSD + KMP_OS_DARWIN + KMP_OS_WINDOWS)
-+#if (1 != KMP_OS_LINUX + KMP_OS_DRAGONFLY + KMP_OS_FREEBSD + KMP_OS_NETBSD + KMP_OS_DARWIN + KMP_OS_WINDOWS)
- # error Unknown OS
- #endif
- 
--#if KMP_OS_LINUX || KMP_OS_FREEBSD || KMP_OS_NETBSD || KMP_OS_DARWIN
-+#if KMP_OS_LINUX || KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD || KMP_OS_DARWIN
- # undef KMP_OS_UNIX
- # define KMP_OS_UNIX 1
- #endif
-
-
-[FILE:539:dragonfly/patch-tools_openmp_runtime_src_kmp__runtime.cpp]
---- tools/openmp/runtime/src/kmp_runtime.cpp.orig	2016-12-15 01:01:24.000000000 +0200
-+++ tools/openmp/runtime/src/kmp_runtime.cpp
-@@ -7567,7 +7567,7 @@ __kmp_determine_reduction_method( ident_
- 
-         #if KMP_ARCH_X86_64 || KMP_ARCH_PPC64 || KMP_ARCH_AARCH64 || KMP_ARCH_MIPS64
- 
--            #if KMP_OS_LINUX || KMP_OS_FREEBSD || KMP_OS_NETBSD || KMP_OS_WINDOWS || KMP_OS_DARWIN
-+            #if KMP_OS_LINUX || KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD || KMP_OS_WINDOWS || KMP_OS_DARWIN
- 
- 	    int teamsize_cutoff = 4;
- 
-
-
-[FILE:575:dragonfly/patch-tools_openmp_runtime_src_kmp__wrapper__malloc.h]
---- tools/openmp/runtime/src/kmp_wrapper_malloc.h.orig	2015-09-21 23:02:45.000000000 +0300
-+++ tools/openmp/runtime/src/kmp_wrapper_malloc.h
-@@ -103,7 +103,7 @@
- #if KMP_OS_WINDOWS
-     #include <malloc.h>        // Windows* OS: _alloca() declared in "malloc.h".
-     #define alloca _alloca     // Allow to use alloca() with no underscore.
--#elif KMP_OS_FREEBSD || KMP_OS_NETBSD
-+#elif KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD
-     // Declared in "stdlib.h".
- #elif KMP_OS_UNIX
-     #include <alloca.h>        // Linux* OS and OS X*: alloc() declared in "alloca".
-
-
-[FILE:2674:dragonfly/patch-tools_openmp_runtime_src_z__Linux__util.cpp]
---- tools/openmp/runtime/src/z_Linux_util.cpp.orig	2016-12-15 01:01:24.000000000 +0200
-+++ tools/openmp/runtime/src/z_Linux_util.cpp
-@@ -24,7 +24,7 @@
- #include "kmp_wait_release.h"
- #include "kmp_affinity.h"
- 
--#if !KMP_OS_FREEBSD && !KMP_OS_NETBSD
-+#if !KMP_OS_DRAGONFLY && !KMP_OS_FREEBSD && !KMP_OS_NETBSD
- # include <alloca.h>
- #endif
- #include <unistd.h>
-@@ -52,7 +52,7 @@
- #elif KMP_OS_DARWIN
- # include <sys/sysctl.h>
- # include <mach/mach.h>
--#elif KMP_OS_FREEBSD
-+#elif KMP_OS_DRAGONFLY || KMP_OS_FREEBSD
- # include <pthread_np.h>
- #endif
- 
-@@ -539,7 +539,7 @@ static kmp_int32
- __kmp_set_stack_info( int gtid, kmp_info_t *th )
- {
-     int            stack_data;
--#if KMP_OS_LINUX || KMP_OS_FREEBSD || KMP_OS_NETBSD
-+#if KMP_OS_LINUX || KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD
-     /* Linux* OS only -- no pthread_getattr_np support on OS X* */
-     pthread_attr_t attr;
-     int            status;
-@@ -554,7 +554,7 @@ __kmp_set_stack_info( int gtid, kmp_info
-         /* Fetch the real thread attributes */
-         status = pthread_attr_init( &attr );
-         KMP_CHECK_SYSFAIL( "pthread_attr_init", status );
--#if KMP_OS_FREEBSD || KMP_OS_NETBSD
-+#if KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD
-         status = pthread_attr_get_np( pthread_self(), &attr );
-         KMP_CHECK_SYSFAIL( "pthread_attr_get_np", status );
- #else
-@@ -594,7 +594,7 @@ __kmp_launch_worker( void *thr )
-     sigset_t    new_set, old_set;
- #endif /* KMP_BLOCK_SIGNALS */
-     void *exit_val;
--#if KMP_OS_LINUX || KMP_OS_FREEBSD || KMP_OS_NETBSD
-+#if KMP_OS_LINUX || KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD
-     void * volatile padding = 0;
- #endif
-     int gtid;
-@@ -645,7 +645,7 @@ __kmp_launch_worker( void *thr )
-     KMP_CHECK_SYSFAIL( "pthread_sigmask", status );
- #endif /* KMP_BLOCK_SIGNALS */
- 
--#if KMP_OS_LINUX || KMP_OS_FREEBSD || KMP_OS_NETBSD
-+#if KMP_OS_LINUX || KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD
-     if ( __kmp_stkoffset > 0 && gtid > 0 ) {
-         padding = KMP_ALLOCA( gtid * __kmp_stkoffset );
-     }
-@@ -1957,7 +1957,7 @@ __kmp_get_xproc( void ) {
- 
-     int r = 0;
- 
--    #if KMP_OS_LINUX || KMP_OS_FREEBSD || KMP_OS_NETBSD
-+    #if KMP_OS_LINUX || KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD
- 
-         r = sysconf( _SC_NPROCESSORS_ONLN );
- 
-@@ -2240,9 +2240,9 @@ __kmp_is_address_mapped( void * addr ) {
-             found = 1;
-         }; // if
- 
--    #elif KMP_OS_FREEBSD || KMP_OS_NETBSD
-+    #elif KMP_OS_DRAGONFLY || KMP_OS_FREEBSD || KMP_OS_NETBSD
- 
--        // FIXME(FreeBSD, NetBSD): Implement this
-+        // FIXME(DragonFly, FreeBSD, NetBSD): Implement this
-         found = 1;
- 
-     #else
-
-
 [FILE:555:dragonfly/patch-wrong_predefs]
 --- tools/clang/lib/Basic/Targets.cpp.orig	2017-01-10 08:02:12.000000000 +0200
 +++ tools/clang/lib/Basic/Targets.cpp
@@ -2781,123 +2482,4 @@ SINGLE_JOB=	yes
      DefineStd(Builder, "unix", Opts);
    }
  public:
-
-
-[FILE:564:freebsd/patch-tools_clang_lib_Headers_CMakeLists.txt]
---- tools/clang/lib/Headers/CMakeLists.txt.orig	2015-07-30 22:47:41 UTC
-+++ tools/clang/lib/Headers/CMakeLists.txt
-@@ -30,7 +30,6 @@ set(files
-   Intrin.h
-   inttypes.h
-   iso646.h
--  limits.h
-   lzcntintrin.h
-   mm3dnow.h
-   mmintrin.h
-@@ -45,20 +44,12 @@ set(files
-   s390intrin.h
-   shaintrin.h
-   smmintrin.h
--  stdalign.h
--  stdarg.h
--  stdatomic.h
--  stdbool.h
--  stddef.h
-   __stddef_max_align_t.h
--  stdint.h
--  stdnoreturn.h
-   tbmintrin.h
-   tgmath.h
-   tmmintrin.h
-   unwind.h
-   vadefs.h
--  varargs.h
-   vecintrin.h
-   __wmmintrin_aes.h
-   wmmintrin.h
-
-
-[FILE:2681:linux/patch-tools_clang_lib_Driver_ToolChains.cpp]
---- tools/clang/lib/Driver/ToolChains.cpp.orig	2017-06-23 13:14:28 UTC
-+++ tools/clang/lib/Driver/ToolChains.cpp
-@@ -4112,10 +4112,6 @@ Linux::Linux(const Driver &D, const llvm
- 
-   Distro Distro(D.getVFS());
- 
--  if (Distro.IsOpenSUSE() || Distro.IsUbuntu()) {
--    ExtraOpts.push_back("-z");
--    ExtraOpts.push_back("relro");
--  }
- 
-   if (Arch == llvm::Triple::arm || Arch == llvm::Triple::thumb)
-     ExtraOpts.push_back("-X");
-@@ -4132,13 +4128,7 @@ Linux::Linux(const Driver &D, const llvm
-   // ABI requires a mapping between the GOT and the symbol table.
-   // Android loader does not support .gnu.hash.
-   if (!IsMips && !IsAndroid) {
--    if (Distro.IsRedhat() || Distro.IsOpenSUSE() ||
--        (Distro.IsUbuntu() && Distro >= Distro::UbuntuMaverick))
-       ExtraOpts.push_back("--hash-style=gnu");
--
--    if (Distro.IsDebian() || Distro.IsOpenSUSE() || Distro == Distro::UbuntuLucid ||
--        Distro == Distro::UbuntuJaunty || Distro == Distro::UbuntuKarmic)
--      ExtraOpts.push_back("--hash-style=both");
-   }
- 
-   if (Distro.IsRedhat() && Distro != Distro::RHEL5 && Distro != Distro::RHEL6)
-@@ -4148,7 +4138,6 @@ Linux::Linux(const Driver &D, const llvm
-   ExtraOpts.push_back("--build-id");
- #endif
- 
--  if (Distro.IsOpenSUSE())
-     ExtraOpts.push_back("--enable-new-dtags");
- 
-   // The selection of paths to try here is designed to match the patterns which
-@@ -4228,6 +4217,8 @@ Linux::Linux(const Driver &D, const llvm
-   addPathIfExists(D, SysRoot + "/lib/../" + OSLibDir, Paths);
-   addPathIfExists(D, SysRoot + "/usr/lib/" + MultiarchTriple, Paths);
-   addPathIfExists(D, SysRoot + "/usr/lib/../" + OSLibDir, Paths);
-+  addPathIfExists(D, SysRoot + "@RAVEN_GCC@", Paths);
-+  addPathIfExists(D, SysRoot + "@RAVEN_GCC_TARGET@", Paths);
- 
-   // Try walking via the GCC triple path in case of biarch or multiarch GCC
-   // installations with strange symlinks.
-@@ -4664,10 +4655,9 @@ void Linux::addLibStdCxxIncludePaths(con
-   const GCCVersion &Version = GCCInstallation.getVersion();
- 
-   // The primary search for libstdc++ supports multiarch variants.
--  if (addLibStdCXXIncludePaths(LibDir.str() + "/../include",
--                               "/c++/" + Version.Text, TripleStr,
--                               GCCMultiarchTriple, TargetMultiarchTriple,
--                               Multilib.includeSuffix(), DriverArgs, CC1Args))
-+  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@");
-+  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/backward");
-+  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@" + TripleStr);
-     return;
- 
-   // Otherwise, fall back on a bunch of options which don't use multiarch
-
-
-[FILE:689:linux/patch-tools_clang_lib_Driver_Tools.cpp]
---- tools/clang/lib/Driver/Tools.cpp.orig	2017-06-23 13:14:28 UTC
-+++ tools/clang/lib/Driver/Tools.cpp
-@@ -10140,6 +10140,9 @@ void gnutools::Linker::ConstructJob(Comp
-   }
- 
-   if (!Args.hasArg(options::OPT_static)) {
-+    CmdArgs.push_back("-rpath");
-+    CmdArgs.push_back("@RAVEN_GCC@");
-+
-     if (Args.hasArg(options::OPT_rdynamic))
-       CmdArgs.push_back("-export-dynamic");
- 
-@@ -10225,6 +10228,8 @@ void gnutools::Linker::ConstructJob(Comp
- 
-   if (!Args.hasArg(options::OPT_nostdlib)) {
-     if (!Args.hasArg(options::OPT_nodefaultlibs)) {
-+      CmdArgs.push_back("-L@RAVEN_GCC@");
-+
-       if (Args.hasArg(options::OPT_static))
-         CmdArgs.push_back("--start-group");
- 
 

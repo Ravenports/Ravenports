@@ -86,23 +86,9 @@ post-patch:
 	# Use rpath suitable for libz et al.
 	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
 		${WRKSRC}/src/bootstrap/bin/rustc.rs
-	# After patching crates, we need to update their corresponding
-	# `.cargo-checksum.json` to reflect the new checksums verified by Cargo
-	for vendor in openssl-src; do \
-		dir=${WRKSRC}/src/vendor/$$vendor; \
-		if ! test -d "$$dir"; then \
-			continue; \
-		fi; \
-		cd "$$dir"; \
-		for file in $$(${FIND} * -name "*.orig"); do \
-			old_checksum=$$(${SHA256} -q "$$file"); \
-			new_checksum=$$(${SHA256} -q "$${file%%.orig}"); \
-			regex="$$regex -e s|\"$${file%%.orig}\":\"$$old_checksum\"|\"$${file%%.orig}\":\"$$new_checksum\"|"; \
-		done; \
-		if test "$$regex"; then \
-			${REINPLACE_CMD} -E $$regex .cargo-checksum.json; \
-		fi; \
-	done
+	# Disable vendor checksums
+	${REINPLACE_CMD} -e 's/"files":{[^}]*}/"files":{}/' \
+		 ${WRKSRC}/vendor/*/.cargo-checksum.json
 
 post-configure-freebsd:
 	${LN} -s ${LOCALBASE}/toolchain/gcc8/lib/libstdc++.so \
@@ -319,6 +305,75 @@ lib/rustlib/
              "i686-unknown-freebsd" => "BSD-x86-elf",
              "i686-unknown-linux-gnu" => "linux-elf",
              "i686-unknown-linux-musl" => "linux-elf",
+
+
+[FILE:1997:patches/patch-vendor_openssl-sys_build_main.rs]
+https://github.com/sfackler/rust-openssl/commit/9fd7584a8416
+https://github.com/sfackler/rust-openssl/commit/e75793e8962d
+
+--- vendor/openssl-sys/build/main.rs.orig	2019-01-16 11:06:08 UTC
++++ vendor/openssl-sys/build/main.rs
+@@ -1,9 +1,9 @@
+ extern crate cc;
++#[cfg(feature = "vendored")]
++extern crate openssl_src;
+ extern crate pkg_config;
+ #[cfg(target_env = "msvc")]
+ extern crate vcpkg;
+-#[cfg(feature = "vendored")]
+-extern crate openssl_src;
+ 
+ use std::collections::HashSet;
+ use std::env;
+@@ -103,20 +103,23 @@ fn main() {
+ 
+ #[cfg(feature = "vendored")]
+ mod imp {
+-	use std::path::PathBuf;
+-	use openssl_src;
++    use openssl_src;
++    use std::path::PathBuf;
+ 
+-	pub fn get_openssl(_target: &str) -> (PathBuf, PathBuf) {
+-		let artifacts = openssl_src::Build::new().build();
+-		(artifacts.lib_dir().to_path_buf(), artifacts.include_dir().to_path_buf())
+-	}
++    pub fn get_openssl(_target: &str) -> (PathBuf, PathBuf) {
++        let artifacts = openssl_src::Build::new().build();
++        (
++            artifacts.lib_dir().to_path_buf(),
++            artifacts.include_dir().to_path_buf(),
++        )
++    }
+ }
+ 
+ #[cfg(not(feature = "vendored"))]
+ mod imp {
+     use pkg_config;
+-    use std::path::{Path, PathBuf};
+     use std::ffi::OsString;
++    use std::path::{Path, PathBuf};
+     use std::process::{self, Command};
+ 
+     use super::env;
+@@ -500,6 +503,8 @@ See rust-openssl README for more informa
+             (7, _) => ('7', 'x'),
+             (8, 0) => ('8', '0'),
+             (8, 1) => ('8', '1'),
++            (8, _) => ('8', 'x'),
++            (9, 0) => ('9', '0'),
+             _ => version_error(),
+         };
+ 
+@@ -540,7 +545,7 @@ fn version_error() -> ! {
+         "
+ 
+ This crate is only compatible with OpenSSL 1.0.1 through 1.1.1, or LibreSSL 2.5
+-through 2.8.1, but a different version of OpenSSL was found. The build is now aborting
++through 2.9.0, but a different version of OpenSSL was found. The build is now aborting
+ due to this version mismatch.
+ 
+ "
 
 
 [FILE:919:files/special.mk]
