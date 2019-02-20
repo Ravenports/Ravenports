@@ -24,7 +24,7 @@ BUILDRUN_DEPENDS=	pcre2:primary:standard
 			at-spi2-atk:single:standard
 
 USES=			qt5 zlib png sqlite jpeg pkgconfig execinfo iconv
-			perl:build shebangfix ssl
+			perl:build shebangfix ssl:openssl-devel
 XORG_COMPONENTS=	xcb xcb-util xcb-util-image xcb-util-keysyms
 			xcb-util-wm xcb-render-util
 
@@ -56,6 +56,7 @@ CONFIGURE_ARGS=		-system-harfbuzz
 			-dbus-runtime
 			-accessibility
 			-openssl-linked
+			OPENSSL_PATH={{OPENSSLBASE}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		5.12.0
@@ -73,6 +74,7 @@ SUB_LIST=		CC={{CC:Q}}
 			SYS_LIBS={{QMAKE_X11_SYS_LIBS:Q}}
 			PLATFORM={{VAR1}}
 
+LDFLAGS=		-Wl,-rpath,{{OPENSSLLIB}}
 VAR_OPSYS[freebsd]=	VAR1=freebsd
 VAR_OPSYS[sunos]=	VAR1=solaris
 VAR_OPSYS[linux]=	VAR1=linux
@@ -3584,20 +3586,6 @@ share/doc/qt5/global/template/style/
 +LIBS += -liconv
 
 
-[FILE:415:patches/patch-config.tests_unix_openssl11_openssl.cpp]
---- config.tests/unix/openssl11/openssl.cpp.orig	2018-12-03 11:15:26 UTC
-+++ config.tests/unix/openssl11/openssl.cpp
-@@ -39,7 +39,7 @@
- 
- #include <openssl/opensslv.h>
- 
--#if !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER-0 < 0x10100000L
-+#if !defined(OPENSSL_VERSION_NUMBER) || OPENSSL_VERSION_NUMBER-0 < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
- #  error "OpenSSL >= 1.1 is required"
- #endif
- 
-
-
 [FILE:360:patches/patch-mkspecs_features_qt__module.prf]
 $NetBSD$
 
@@ -3739,48 +3727,6 @@ Do not create .la files.
  
          case IFM_IEEE80211:
              return QNetworkInterface::Ieee80211;
-
-
-[FILE:566:patches/patch-src_network_ssl_qsslcontext__openssl.cpp]
---- src/network/ssl/qsslcontext_openssl.cpp.orig	2018-12-03 11:15:26 UTC
-+++ src/network/ssl/qsslcontext_openssl.cpp
-@@ -249,7 +249,7 @@ void QSslContext::applyBackendConfig(QSs
-     if (sslContext->sslConfiguration.backendConfiguration().isEmpty())
-         return;
- 
--#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-+#if OPENSSL_VERSION_NUMBER >= 0x10002000L && !defined(LIBRESSL_VERSION_NUMBER)
-     if (QSslSocket::sslLibraryVersionNumber() >= 0x10002000L) {
-         QSharedPointer<SSL_CONF_CTX> cctx(q_SSL_CONF_CTX_new(), &q_SSL_CONF_CTX_free);
-         if (cctx) {
-
-
-[FILE:873:patches/patch-src_network_ssl_qsslsocket__openssl__symbols.cpp]
---- src/network/ssl/qsslsocket_openssl_symbols.cpp.orig	2018-12-03 11:15:26 UTC
-+++ src/network/ssl/qsslsocket_openssl_symbols.cpp
-@@ -443,7 +443,7 @@ DEFINEFUNC2(int, SSL_CTX_use_PrivateKey,
- DEFINEFUNC2(int, SSL_CTX_use_RSAPrivateKey, SSL_CTX *a, a, RSA *b, b, return -1, return)
- DEFINEFUNC3(int, SSL_CTX_use_PrivateKey_file, SSL_CTX *a, a, const char *b, b, int c, c, return -1, return)
- DEFINEFUNC(X509_STORE *, SSL_CTX_get_cert_store, const SSL_CTX *a, a, return nullptr, return)
--#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-+#if OPENSSL_VERSION_NUMBER >= 0x10002000L && !defined(LIBRESSL_VERSION_NUMBER)  
- DEFINEFUNC(SSL_CONF_CTX *, SSL_CONF_CTX_new, DUMMYARG, DUMMYARG, return nullptr, return);
- DEFINEFUNC(void, SSL_CONF_CTX_free, SSL_CONF_CTX *a, a, return ,return);
- DEFINEFUNC2(void, SSL_CONF_CTX_set_ssl_ctx, SSL_CONF_CTX *a, a, SSL_CTX *b, b, return, return);
-
-
-[FILE:640:patches/patch-src_network_ssl_qsslsocket__openssl__symbols__p.h]
---- src/network/ssl/qsslsocket_openssl_symbols_p.h.orig	2018-12-03 11:15:26 UTC
-+++ src/network/ssl/qsslsocket_openssl_symbols_p.h
-@@ -359,7 +359,7 @@ int q_SSL_CTX_use_PrivateKey(SSL_CTX *a,
- int q_SSL_CTX_use_RSAPrivateKey(SSL_CTX *a, RSA *b);
- int q_SSL_CTX_use_PrivateKey_file(SSL_CTX *a, const char *b, int c);
- X509_STORE *q_SSL_CTX_get_cert_store(const SSL_CTX *a);
--#if OPENSSL_VERSION_NUMBER >= 0x10002000L
-+#if OPENSSL_VERSION_NUMBER >= 0x10002000L && !defined(LIBRESSL_VERSION_NUMBER)
- SSL_CONF_CTX *q_SSL_CONF_CTX_new();
- void q_SSL_CONF_CTX_free(SSL_CONF_CTX *a);
- void q_SSL_CONF_CTX_set_ssl_ctx(SSL_CONF_CTX *a, SSL_CTX *b);
 
 
 [FILE:624:patches/patch-tests_auto_corelib_io_qprocess_qprocess.pro]

@@ -23,13 +23,22 @@ EXRUN[program]=		rtmpdump:library:standard
 
 USES=			pkgconfig ssl zlib
 
+LICENSE=		GPLv2+:library
+LICENSE_TERMS=		library:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/rtmpdump.c
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		multimedia/rtmpdump
 
 PATCHFILES=		2
 
 MAKE_ENV=		THREADLIB="-lpthread"
 
+CFLAGS=			-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
+			-Wl,-rpath,{{OPENSSLLIB}}
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 			LDFLAGS=-lnsl
 

@@ -2,11 +2,10 @@
 
 NAMEBASE=		openssl
 VERSION=		1.0.2q
-REVISION=		1
+REVISION=		2
 KEYWORDS=		security devel
-VARIANTS=		standard static
+VARIANTS=		standard
 SDESC[standard]=	SSL and crypto library
-SDESC[static]=		Static minimal version of OpenSSL
 HOMEPAGE=		https://www.openssl.org/
 CONTACT=		nobody
 
@@ -15,17 +14,16 @@ SITES[main]=		https://www.openssl.org/source/
 DISTFILE[1]=		openssl-1.0.2q.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
-SPKGS[static]=		single
 
 OPTIONS_AVAILABLE=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386
-			THREADS STATIC
+			THREADS
 OPTIONS_STANDARD=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386
 			THREADS
-VOPTS[static]=		STATIC=ON SKIP_MANPAGES=ON ASM=ON EC=ON SSE2=ON
-			SSL2=ON SSL3=ON THREADS=ON SHARED=OFF I386=OFF
 OPT_ON[x86_64]=		ASM EC
 OPT_ON[all]=		SHARED SSE2 SSL2 SSL3 THREADS
 OPT_ON[i386]=		I386
+
+RUN_DEPENDS=		autoselect-ssl:single:standard
 
 USES=			cpe perl:build
 
@@ -44,13 +42,11 @@ CONFIGURE_ARGS=		no-md2
 			no-gmp
 
 MAKE_ARGS=		WHOLE_ARCHIVE_FLAG=--whole-archive
-MAKE_ENV=		LIBRPATH="{{PREFIX}}/lib"
+MAKE_ENV=		LIBRPATH="{{BASE}}/lib"
 			GREP_OPTIONS=
 SINGLE_JOB=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
-
-TEST_TARGET=		test
 
 [I386].DESCRIPTION=			Optimize for i386 (instead of i486+)
 [I386].CONFIGURE_ARGS_ON=		386
@@ -92,18 +88,18 @@ post-patch:
 		${WRKSRC}/crypto/bio/bss_dgram.c
 
 post-install-SHARED-OFF:
-	${RMDIR} ${STAGEDIR}${PREFIX}/lib/engines
+	${RMDIR} ${STAGEDIR}${PREFIX}/openssl/lib/engines
 
 post-install-SHARED-ON:
 .for i in libcrypto libssl
-	${INSTALL_LIB} ${WRKSRC}/$i.so.9 ${STAGEDIR}${PREFIX}/lib
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/$i.so.9
-	${LN} -sf $i.so.9 ${STAGEDIR}${PREFIX}/lib/$i.so
+	${INSTALL_LIB} ${WRKSRC}/$i.so.9 ${STAGEDIR}${PREFIX}/openssl/lib
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl/lib/$i.so.9
+	${LN} -sf $i.so.9 ${STAGEDIR}${PREFIX}/openssl/lib/$i.so
 .endfor
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/engines/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl/lib/engines/*.so
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/openssl
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl/bin/openssl
 
 post-patch-SKIP_MANPAGES-ON:
 	${GREP} -L openssl_manual_section ${WRKSRC}/doc/crypto/*.pod | ${XARGS} ${RM}
@@ -114,9 +110,10 @@ do-configure:
 	${REINPLACE_CMD} -e "s|options 386|options|" ${WRKSRC}/config
 	(cd ${WRKSRC} && ${SETENV} CC="${CC}" FREEBSDCC="${CC}" \
 		CFLAGS="${CFLAGS}" PERL="${PERL}" \
-		./config --prefix=${PREFIX} --openssldir=openssl \
-		--install_prefix=${STAGEDIR} -L${PREFIX}/lib \
-		${CONFIGURE_ARGS})
+		./config --prefix=${PREFIX}/openssl \
+		--openssldir=${PREFIX}/etc/openssl \
+		--install_prefix=${STAGEDIR} \
+		-L${PREFIX}/openssl/lib ${CONFIGURE_ARGS})
 
 post-configure:
 	${REINPLACE_CMD} \
@@ -151,36 +148,18 @@ to get and use it for commercial and non-commercial purposes subject
 to some simple license conditions.
 
 
-[FILE:800:descriptions/desc.single.static]
-The OpenSSL Project is a collaborative effort to develop a robust,
-commercial-grade, full-featured, and Open Source toolkit implementing
-the Secure Sockets Layer (SSL v2/v3) and Transport Layer Security
-(TLS v1) protocols with full-strength cryptography world-wide. The
-project is managed by a worldwide community of volunteers that use
-the Internet to communicate, plan, and develop the OpenSSL tookit
-and its related documentation.
-
-OpenSSL is based on the excellent SSLeay library developed by Eric
-A. Young and Tim J. Hudson. The OpenSSL toolkit is licensed under
-an Apache-style licence, which basically means that you are free
-to get and use it for commercial and non-commercial purposes subject
-to some simple license conditions.
-
-This package variant has no manpages and is built statically.
-
-
 [FILE:100:distinfo]
 5744cfcbcec2b1b48629f7354203bc1e5e9b5466998bbccc5b5fcde3b18eb684      5345604 openssl-1.0.2q.tar.gz
 
 
-[FILE:41972:manifests/plist.single]
-@sample openssl/openssl.cnf.sample
-%%SHARED-ON%%lib/
+[FILE:42068:manifests/plist.single]
+@sample etc/openssl/openssl.cnf.sample
+%%SHARED-ON%%openssl/lib/
  libcrypto.so
  libcrypto.so.%%SHLIBVER%%
  libssl.so
  libssl.so.%%SHLIBVER%%
-%%SHARED-ON%%lib/engines/
+%%SHARED-ON%%openssl/lib/engines/
  lib4758cca.so
  libaep.so
  libatalla.so
@@ -193,7 +172,7 @@ This package variant has no manpages and is built statically.
  libpadlock.so
  libsureware.so
  libubsec.so
-%%SKIP_MANPAGES-OFF%%share/man/man1/
+%%SKIP_MANPAGES-OFF%%openssl/share/man/man1/
  CA.pl.1.gz
  asn1parse.1.gz
  c_rehash.1.gz
@@ -293,7 +272,7 @@ This package variant has no manpages and is built statically.
  verify.1.gz
  version.1.gz
  x509.1.gz
-%%SKIP_MANPAGES-OFF%%share/man/man3/
+%%SKIP_MANPAGES-OFF%%openssl/share/man/man3/
  ASN1_OBJECT_free.3.gz
  ASN1_OBJECT_new.3.gz
  ASN1_STRING_cmp.3.gz
@@ -1881,14 +1860,22 @@ This package variant has no manpages and is built statically.
  ui.3.gz
  ui_compat.3.gz
  x509.3.gz
-%%SKIP_MANPAGES-OFF%%share/man/man5/
+%%SKIP_MANPAGES-OFF%%openssl/share/man/man5/
  config.5.gz
  x509v3_config.5.gz
-%%SKIP_MANPAGES-OFF%%share/man/man7/des_modes.7.gz
-bin/
+%%SKIP_MANPAGES-OFF%%openssl/share/man/man7/des_modes.7.gz
+etc/openssl/misc/
+ CA.pl
+ CA.sh
+ c_hash
+ c_info
+ c_issuer
+ c_name
+ tsget
+openssl/bin/
  c_rehash
  openssl
-include/openssl/
+openssl/include/openssl/
  aes.h
  asn1.h
  asn1_mac.h
@@ -1964,23 +1951,15 @@ include/openssl/
  x509.h
  x509_vfy.h
  x509v3.h
-lib/
+openssl/lib/
  libcrypto.a
  libssl.a
-lib/pkgconfig/
+openssl/lib/pkgconfig/
  libcrypto.pc
  libssl.pc
  openssl.pc
-openssl/misc/
- CA.pl
- CA.sh
- c_hash
- c_info
- c_issuer
- c_name
- tsget
-@dir openssl/certs
-@dir openssl/private
+@dir etc/openssl/certs
+@dir etc/openssl/private
 
 
 [FILE:6430:patches/patch-Configure]
@@ -2177,4 +2156,8 @@ openssl/misc/
 
 [FILE:55:files/pkg-message-single.in]
 Edit %%PREFIX%%/openssl/openssl.cnf to fit your needs.
+
+
+[FILE:36:files/special.mk]
+MANPREFIX=		${PREFIX}/openssl/share
 

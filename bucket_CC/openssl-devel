@@ -2,6 +2,7 @@
 
 NAMEBASE=		openssl-devel
 VERSION=		1.1.1a
+REVISION=		1
 KEYWORDS=		security devel
 VARIANTS=		standard
 SDESC[standard]=	SSL and crypto library
@@ -22,6 +23,8 @@ OPT_ON[x86_64]=		ASM EC
 OPT_ON[all]=		SHARED SSE2 THREADS
 OPT_ON[i386]=		I386
 
+RUN_DEPENDS=		autoselect-ssl:single:standard
+
 USES=			cpe perl:build
 
 DISTNAME=		openssl-1.1.1a
@@ -34,8 +37,8 @@ FPC_EQUIVALENT=		security/openssl111
 
 MUST_CONFIGURE=		yes
 CONFIGURE_SCRIPT=	config
-CONFIGURE_ARGS=		--openssldir={{PREFIX}}/openssl
-			--prefix={{PREFIX}}
+CONFIGURE_ARGS=		--openssldir={{PREFIX}}/etc/openssl-devel
+			--prefix={{PREFIX}}/openssl-devel
 			no-md2
 			no-rc5
 			no-rfc3779
@@ -46,10 +49,11 @@ CONFIGURE_ARGS=		--openssldir={{PREFIX}}/openssl
 			no-nextprotoneg
 CONFIGURE_ENV=		PERL="{{PERL}}"
 
-MAKE_ENV=		LIBRPATH="{{PREFIX}}/lib"
-			GREP_OPTIONS=
+MAKE_ENV=		GREP_OPTIONS=
 
 SOVERSION=		1.1
+
+LDFLAGS=		-Wl,-rpath,{{PREFIX}}/openssl-devel/lib
 
 [I386].DESCRIPTION=			Optimize for i386 (instead of i486+)
 [I386].CONFIGURE_ARGS_ON=		386
@@ -83,23 +87,23 @@ post-patch:
 		${WRKSRC}/Configurations/unix-Makefile.tmpl
 
 post-install-SHARED-OFF:
-	${RMDIR} ${STAGEDIR}${PREFIX}/lib/engines-*
+	${RMDIR} ${STAGEDIR}${PREFIX}/openssl-devel/lib/engines-*
 
 post-install-SHARED-ON:
 .for i in libcrypto libssl
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl-devel/lib/lib*.${LIBEXT}
 .endfor
 .for i in capi padlock
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/engines-*/${i}.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl-devel/lib/engines-*/${i}.${LIBEXT}
 .endfor
 
 post-install:
 .for i in rc4 md4 idea rc5 md2 rc2 ripemd mdc2
-	${RM} ${STAGEDIR}${PREFIX}/include/openssl/${i}.h
+	${RM} ${STAGEDIR}${PREFIX}/openssl-devel/include/openssl/${i}.h
 .endfor
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/openssl
-	${RM} ${STAGEDIR}${PREFIX}/openssl/openssl.cnf
-	${RM} ${STAGEDIR}${PREFIX}/openssl/ct_log_list.cnf
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl-devel/bin/openssl
+	${RM} ${STAGEDIR}${PREFIX}/etc/openssl-devel/openssl.cnf
+	${RM} ${STAGEDIR}${PREFIX}/etc/openssl-devel/ct_log_list.cnf
 
 post-patch-SKIP_MANPAGES-ON:
 	${REINPLACE_CMD} -e 's|\[ 1, 3, 5, 7 \]|[ 1, 5, 7 ]|' \
@@ -126,18 +130,18 @@ to some simple license conditions.
 fc20130f8b7cbd2fb918b2f14e2f429e109c31ddd0fb38fc5d71d9ffed3f9f41      8350547 openssl-1.1.1a.tar.gz
 
 
-[FILE:102745:manifests/plist.single.standard]
-@sample openssl/ct_log_list.cnf.dist openssl/ct_log_list.cnf
-@sample openssl/openssl.cnf.dist openssl/openssl.cnf
-%%SHARED-ON%%lib/
+[FILE:102969:manifests/plist.single.standard]
+@sample etc/openssl-devel/ct_log_list.cnf.dist etc/openssl-devel/ct_log_list.cnf
+@sample etc/openssl-devel/openssl.cnf.dist etc/openssl-devel/openssl.cnf
+%%SHARED-ON%%openssl-devel/lib/
  libcrypto.so
  libcrypto.so.%%SOVERSION%%
  libssl.so
  libssl.so.%%SOVERSION%%
-%%SHARED-ON%%lib/engines-1.1/
+%%SHARED-ON%%openssl-devel/lib/engines-1.1/
  capi.so
  padlock.so
-%%SKIP_MANPAGES-OFF%%share/man/man3/
+%%SKIP_MANPAGES-OFF%%openssl-devel/share/man/man3/
  ACCESS_DESCRIPTION_free.3.gz
  ACCESS_DESCRIPTION_new.3.gz
  ADMISSIONS.3.gz
@@ -3862,10 +3866,14 @@ fc20130f8b7cbd2fb918b2f14e2f429e109c31ddd0fb38fc5d71d9ffed3f9f41      8350547 op
  sk_TYPE_value.3.gz
  sk_TYPE_zero.3.gz
  ssl_ct_validation_cb.3.gz
-bin/
+etc/openssl-devel/misc/
+ CA.pl
+ tsget
+ tsget.pl
+openssl-devel/bin/
  c_rehash
  openssl
-include/openssl/
+openssl-devel/include/openssl/
  aes.h
  asn1.h
  asn1_mac.h
@@ -3962,18 +3970,14 @@ include/openssl/
  x509err.h
  x509v3.h
  x509v3err.h
-lib/
+openssl-devel/lib/
  libcrypto.a
  libssl.a
-lib/pkgconfig/
+openssl-devel/lib/pkgconfig/
  libcrypto.pc
  libssl.pc
  openssl.pc
-openssl/misc/
- CA.pl
- tsget
- tsget.pl
-share/man/man1/
+openssl-devel/share/man/man1/
  CA.pl.1.gz
  asn1parse.1.gz
  c_rehash.1.gz
@@ -4074,7 +4078,7 @@ share/man/man1/
  verify.1.gz
  version.1.gz
  x509.1.gz
-share/man/man3/
+openssl-devel/share/man/man3/
  EVP_PKEY_CTX_ctrl_uint64.3.gz
  EVP_PKEY_CTX_get0_dh_kdf_oid.3.gz
  EVP_PKEY_CTX_get0_dh_kdf_ukm.3.gz
@@ -4141,10 +4145,10 @@ share/man/man3/
  SSL_get_signature_nid.3.gz
  SSL_get_signature_type_nid.3.gz
  SSL_get_tmp_key.3.gz
-share/man/man5/
+openssl-devel/share/man/man5/
  config.5.gz
  x509v3_config.5.gz
-share/man/man7/
+openssl-devel/share/man/man7/
  Ed25519.7.gz
  Ed448.7.gz
  RAND.7.gz
@@ -4164,8 +4168,8 @@ share/man/man7/
  scrypt.7.gz
  ssl.7.gz
  x509.7.gz
-@dir openssl/certs
-@dir openssl/private
+@dir etc/openssl-devel/certs
+@dir etc/openssl-devel/private
 
 
 [FILE:1178:patches/patch-config]
@@ -4207,4 +4211,8 @@ share/man/man7/
 
 [FILE:55:files/pkg-message-single.in]
 Edit %%PREFIX%%/openssl/openssl.cnf to fit your needs.
+
+
+[FILE:42:files/special.mk]
+MANPREFIX=		${PREFIX}/openssl-devel/share
 

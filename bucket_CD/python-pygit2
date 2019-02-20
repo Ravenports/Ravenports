@@ -47,6 +47,11 @@ MAKE_ENV=		LIBGIT2={{LOCALBASE}}
 					python-pycparser:single:py27
 [PY27].USES_ON=				python:py27
 
+post-patch:
+	# This version check is always too conservative, causing breakage
+	${REINPLACE_CMD} -e '/#error You need a compatible libgit2/d' \
+		${WRKSRC}/src/types.h
+
 [FILE:2164:descriptions/desc.single]
 ######################################################################
 pygit2 - libgit2 bindings in Python

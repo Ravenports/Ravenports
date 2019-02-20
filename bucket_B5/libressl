@@ -2,6 +2,7 @@
 
 NAMEBASE=		libressl
 VERSION=		2.8.3
+REVISION=		1
 KEYWORDS=		security devel
 VARIANTS=		standard static
 SDESC[standard]=	OpenBSD fork of the OpenSSL SSL/TLS protocol
@@ -20,6 +21,8 @@ OPTIONS_AVAILABLE=	STATIC SKIP_MANPAGES
 OPTIONS_STANDARD=	SKIP_MANPAGES
 VOPTS[static]=		STATIC=ON SKIP_MANPAGES=ON
 
+RUN_DEPENDS=		autoselect-ssl:single:standard
+
 USES=			cpe libtool pkgconfig
 
 DISTNAME=		libressl-2.8.3
@@ -32,9 +35,11 @@ LICENSE_SCHEME=		multi
 CPE_VENDOR=		openbsd
 FPC_EQUIVALENT=		security/libressl
 
-MUST_CONFIGURE=		gnu
+MUST_CONFIGURE=		yes
 CONFIGURE_ARGS=		--enable-nc
 			--disable-hardening
+			--with-openssldir={{PREFIX}}/etc/libressl
+			--prefix={{PREFIX}}/libressl
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -60,14 +65,13 @@ post-patch-darwin:
 		-e '/bn_print\.3/d' ${WRKSRC}/man/Makefile.in
 
 post-install-dragonfly:
-	${INSTALL_SCRIPT} ${WRKSRC}/apps/nc/nc ${STAGEDIR}${PREFIX}/bin/nc
+	${INSTALL_SCRIPT} ${WRKSRC}/apps/nc/nc ${STAGEDIR}${PREFIX}/libressl/bin/nc
 
 post-install:
-	${RM} -r ${STAGEDIR}/${PREFIX}/etc/ssl/cert.pem
+	${RM} -r ${STAGEDIR}/${PREFIX}/etc/libressl/cert.pem
 
 post-install-SKIP_MANPAGES-ON:
-	${RM} ${STAGEDIR}${PREFIX}/share/man/man1/openssl.1
-	${RM} ${STAGEDIR}${PREFIX}/share/man/man1/nc.1
+	${RM} -r ${STAGEDIR}${PREFIX}/libressl/share
 
 [FILE:536:descriptions/desc.single.standard]
 LibreSSL is an open-source implementation of the Secure Sockets Layer (SSL)
@@ -100,16 +104,16 @@ It also has stack-smashing protection disabled.
 9b640b13047182761a99ce3e4f000be9687566e0828b4a72709e9e6a3ef98477      3366196 libressl-2.8.3.tar.gz
 
 
-[FILE:70463:manifests/plist.single.standard]
-bin/
+[FILE:70545:manifests/plist.single.standard]
+etc/libressl/
+ openssl.cnf
+ x509v3.cnf
+libressl/bin/
  nc
  ocspcheck
  openssl
-etc/ssl/
- openssl.cnf
- x509v3.cnf
-include/tls.h
-include/openssl/
+libressl/include/tls.h
+libressl/include/openssl/
  aes.h
  asn1.h
  asn1_mac.h
@@ -180,7 +184,7 @@ include/openssl/
  x509.h
  x509_vfy.h
  x509v3.h
-lib/
+libressl/lib/
  libcrypto.a
  libcrypto.so
  libcrypto.so.%%CRY_SOMAJOR%%
@@ -193,15 +197,15 @@ lib/
  libtls.so
  libtls.so.%%TLS_SOMAJOR%%
  libtls.so.%%TLS_SOVERSION%%
-lib/pkgconfig/
+libressl/lib/pkgconfig/
  libcrypto.pc
  libssl.pc
  libtls.pc
  openssl.pc
-share/man/man1/
+libressl/share/man/man1/
  nc.1.gz
  openssl.1.gz
-share/man/man3/
+libressl/share/man/man3/
  ACCESS_DESCRIPTION_free.3.gz
  ACCESS_DESCRIPTION_new.3.gz
  ASN1_BIT_STRING_free.3.gz
@@ -2973,22 +2977,22 @@ share/man/man3/
  tls_unload_file.3.gz
  tls_write.3.gz
  verify_callback.3.gz
-share/man/man5/
+libressl/share/man/man5/
  openssl.cnf.5.gz
  x509v3.cnf.5.gz
-@dir etc/ssl/certs
+@dir etc/libressl/certs
 
 
-[FILE:849:manifests/plist.single.static]
-bin/
+[FILE:904:manifests/plist.single.static]
+etc/libressl/
+ openssl.cnf
+ x509v3.cnf
+libressl/bin/
  nc
  ocspcheck
  openssl
-etc/ssl/
- openssl.cnf
- x509v3.cnf
-include/tls.h
-include/openssl/
+libressl/include/tls.h
+libressl/include/openssl/
  aes.h
  asn1.h
  asn1_mac.h
@@ -3059,16 +3063,16 @@ include/openssl/
  x509.h
  x509_vfy.h
  x509v3.h
-lib/
+libressl/lib/
  libcrypto.a
  libssl.a
  libtls.a
-lib/pkgconfig/
+libressl/lib/pkgconfig/
  libcrypto.pc
  libssl.pc
  libtls.pc
  openssl.pc
-@dir etc/ssl/certs
+@dir etc/libressl/certs
 
 
 [FILE:292:patches/patch-crypto_compat_arc4random.c]
@@ -3353,6 +3357,10 @@ lib/pkgconfig/
  ACLOCAL_AMFLAGS = -I m4
  pkgconfigdir = $(prefix)/libdata/pkgconfig
  pkgconfig_DATA = libcrypto.pc libssl.pc libtls.pc openssl.pc
+
+
+[FILE:36:files/special.mk]
+MANPREFIX=	${PREFIX}/libressl/share
 
 
 [FILE:201:dragonfly/patch-configure]

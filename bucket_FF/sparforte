@@ -27,7 +27,7 @@ OPT_ON[all]=		MYSQL PGSQL OPENGL SOUND
 BROKEN[aarch64]=	fails to compile: gnat1: error: unknown value aarch64 for -march
 
 USES=			bdb gettext-runtime gmake pkgconfig readline
-			execinfo
+			execinfo ssl
 SDL_COMPONENTS=		image1
 
 LICENSE=		GPLv2+:primary
@@ -136,6 +136,7 @@ post-extract:
 		-e "s|@SETSOUND@|${SETSOUND}|" \
 		-e "s|@SETGL@|${SETGL}|" \
 		-e "s|@SED@|${SED}|" \
+		-e "s|@OPENSSLLIB@|${OPENSSLLIB}|g" \
 		${FILESDIR}/new_configure.in > ${WRKSRC}/new_configure
 	${CHMOD} 755 ${WRKSRC}/new_configure
 
@@ -424,7 +425,7 @@ share/examples/sparforte/
  yuletide.sp
 
 
-[FILE:3478:files/new_configure.in]
+[FILE:3517:files/new_configure.in]
 #!/bin/sh
 # Configure script tailored for FreeBSD ports collection
 
@@ -473,7 +474,7 @@ if [ ${SETAPQ} -eq 1 ]; then
      fi
   fi
   if [ ${SETPGSQL} -eq 1 ]; then
-     PGLIBSSUB="-L@PREFIX@/lib -lintl -lssl -lcrypto"
+     PGLIBSSUB="-L@PREFIX@/lib -lintl -L@OPENSSLLIB@ -lssl -lcrypto -Wl,-rpath,@OPENSSLLIB@"
      if [ ${SETMYSQL} -eq 1 ]; then
         echo "Executing APQ's configure"
         (cd src/${APQ} && /usr/bin/env HAVE_MY=1 HAVE_PG=1 ./configure)

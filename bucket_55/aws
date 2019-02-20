@@ -27,7 +27,7 @@ BUILD_DEPENDS=		python-Sphinx:single:python_default
 BUILDRUN_DEPENDS=	xmlada:primary:standard
 
 USES=			ada:primary gmake gprbuild python:py27,build
-			shebangfix ssl zlib
+			shebangfix ssl
 
 DISTNAME=		aws-gpl-2018-src
 
@@ -50,9 +50,9 @@ CONFIGURE_ARGS=		prefix={{PREFIX}}
 			XMLADA=true
 			SOCKET=openssl
 			LPATH={{OPENSSLLIB}}
-			ZPATH={{LOCALBASE}}/lib
-			ZLIB=true
+			ZLIB=false
 			ASIS=true
+			CFLAGS=-I{{OPENSSLINC}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
@@ -71,10 +71,12 @@ INSTALL_REQ_TOOLCHAIN=	yes
 
 post-patch:
 	${REINPLACE_CMD} \
-		-e 's|@ADDITIONAL_RPATH@|${LOCALBASE}/lib:${LOCALBASE}/lib/aws/native/relocatable|' \
+		-e 's|@ADDITIONAL_RPATH@|${LOCALBASE}/lib:${OPENSSLLIB}:${LOCALBASE}/lib/xmlada/relocatable|' \
+		${WRKSRC}/aws.gpr \
 		${WRKSRC}/src/src.gpr \
 		${WRKSRC}/include/include.gpr
 	${REINPLACE_CMD} -e 's|latexpdf||' ${WRKSRC}/Makefile
+	${REINPLACE_CMD} -e 's|GPROPTS = |GPROPTS = -v |' ${WRKSRC}/Makefile
 
 do-build:
 	# We cannot use a redefined BUILD_TARGET because MAKE_JOBS_SAFE is set
@@ -88,7 +90,9 @@ post-install:
 	${RM} ${STAGEDIR}${PREFIX}/include/aws.static/Makefile
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \
 		${STAGEDIR}${PREFIX}/share/gps/plug-ins
-	${CAT} ${FILESDIR}/aws.gpr.in | ${SED} -e 's|@PREFIX@|${PREFIX}|g' \
+	${CAT} ${FILESDIR}/aws.gpr.in | ${SED} \
+		-e 's|@PREFIX@|${PREFIX}|g' \
+		-e 's|@SSLLIB@|${OPENSSLLIB}|g' \
 		-e 's|@SSL@||g' \
 		-e 's|@TLS@|--|g' \
 		-e 's|@LDP@|--|g' \
@@ -1135,14 +1139,28 @@ share/gps/plug-ins/
  wsdl2aws.xml
 
 
-[FILE:359:patches/patch-include_include.gpr]
+[FILE:388:patches/patch-aws.gpr]
+--- aws.gpr.orig	2018-05-23 05:03:19 UTC
++++ aws.gpr
+@@ -44,7 +44,7 @@ aggregate library project AWS is
+             when "Windows_NT" =>
+                for Library_Options use ("-lwsock32", "-lws2_32");
+             when others =>
+-               null;
++               for Library_Options use ("-R", "-Wl,-rpath,@ADDITIONAL_RPATH@");
+          end case;
+ 
+          case Shared.LDAP is
+
+
+[FILE:363:patches/patch-include_include.gpr]
 --- include/include.gpr.orig	2018-05-23 05:03:22 UTC
 +++ include/include.gpr
 @@ -31,6 +31,7 @@ library project Include is
  
     for Library_Name use "aws_include";
     for Library_Kind use Shared.Library_Type;
-+   for Library_Options use ("-R", "-Wl,-R,@ADDITIONAL_RPATH@");
++   for Library_Options use ("-R", "-Wl,-rpath,@ADDITIONAL_RPATH@");
     for Leading_Library_Options use Shared.Leading_Library_Options;
  
     ---------
@@ -1221,7 +1239,7 @@ Current_Process_Id is not available on GCC 6.x
           UID : Natural;
 
 
-[FILE:382:patches/patch-src_src.gpr]
+[FILE:386:patches/patch-src_src.gpr]
 --- src/src.gpr.orig	2018-05-23 05:03:19 UTC
 +++ src/src.gpr
 @@ -68,7 +68,7 @@ library project Src is
@@ -1229,7 +1247,7 @@ Current_Process_Id is not available on GCC 6.x
                 for Library_Options use ("-lwsock32", "-lws2_32");
              when others =>
 -               null;
-+               for Library_Options use ("-R", "-Wl,-R,@ADDITIONAL_RPATH@");
++               for Library_Options use ("-R", "-Wl,-rpath,@ADDITIONAL_RPATH@");
           end case;
  
           case Shared.LDAP is
@@ -1248,7 +1266,7 @@ Current_Process_Id is not available on GCC 6.x
  
 
 
-[FILE:2311:files/aws.gpr.in]
+[FILE:2356:files/aws.gpr.in]
 with "xmlada";
 
 project AWS is
@@ -1270,9 +1288,9 @@ project AWS is
    for Externally_Built use "true";
 
    package Linker is
-      for Linker_Options use ("-L@PREFIX@/lib", "-Wl,-R,@PREFIX@/lib"
-         @SSL@  , "-lssl", "-lcrypto"
-         @TLS@  , "-L@PREFIX@/lib/gnutls3", "-Wl,-R,@PREFIX@/lib/gnutls3"
+      for Linker_Options use ("-L@PREFIX@/lib", "-Wl,-rpath,@PREFIX@/lib"
+         @SSL@  , "-L@SSLLIB@", "-Wl,-rpath,@SSLLIB@", "-lssl", "-lcrypto"
+         @TLS@  , "-L@PREFIX@/lib/gnutls3", "-Wl,-rpath,@PREFIX@/lib/gnutls3"
          @TLS@  , "-lgnutls"
          @LDP@  , "-lldap"
       );
