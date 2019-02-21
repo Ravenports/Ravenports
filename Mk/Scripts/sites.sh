@@ -450,6 +450,7 @@ expand_RUBYGEMS()
     # pattern [element]/%SUBDIR%/
     # local SUBDIR=${1##RUBYGEMS/}
     local cluster="\
+    https://rubygems.org/downloads \
     https://rubygems.global.ssl.fastly.net/gems"
     for site in ${cluster}; do
 	echo ${site}/

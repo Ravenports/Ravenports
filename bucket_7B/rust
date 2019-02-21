@@ -2,6 +2,7 @@
 
 NAMEBASE=		rust
 VERSION=		1.32.0
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Systems programming language from Mozilla
@@ -85,6 +86,7 @@ BLOCK_WATCHDOG=		yes
 post-patch:
 	# Use rpath suitable for libz et al.
 	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
+		-e 's|@OPENSSLLIB@|${OPENSSLLIB}|g' \
 		${WRKSRC}/src/bootstrap/bin/rustc.rs
 	# Disable vendor checksums
 	${REINPLACE_CMD} -e 's/"files":{[^}]*}/"files":{}/' \
@@ -231,7 +233,7 @@ lib/rustlib/
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
 
 
-[FILE:487:patches/patch-src_bootstrap_bin_rustc.rs]
+[FILE:500:patches/patch-src_bootstrap_bin_rustc.rs]
 --- src/bootstrap/bin/rustc.rs.orig	2019-01-16 09:30:27 UTC
 +++ src/bootstrap/bin/rustc.rs
 @@ -237,7 +237,7 @@ fn main() {
@@ -239,7 +241,7 @@ lib/rustlib/
                        !target.contains("wasm32") &&
                        !target.contains("fuchsia") {
 -                Some("-Wl,-rpath,$ORIGIN/../lib")
-+                Some("-Wl,-z,origin -Wl,-rpath,$ORIGIN/../lib:@PREFIX@/lib -L@PREFIX@/lib")
++                Some("-Wl,-z,origin -Wl,-rpath,$ORIGIN/../lib:@PREFIX@/lib:@OPENSSLLIB@ -L@PREFIX@/lib")
              } else {
                  None
              };
