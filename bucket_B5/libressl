@@ -3075,6 +3075,32 @@ libressl/lib/pkgconfig/
 @dir etc/libressl/certs
 
 
+[FILE:626:patches/patch-configure]
+There is a conflict within the static libcrypto.a with the arc4random,
+arc4random_buf, and arc4random_uniform.  These functions also exist in
+in FreeBSD's system libc. To resolve, don't use libressl builtin versions.
+
+--- configure.orig	2018-12-15 16:56:54 UTC
++++ configure
+@@ -12163,12 +12163,15 @@ fi
+ 
+ 
+ 		;;
++	*dragonfly*)
++		HOST_OS=dragonfly
++		HOST_ABI=elf
++		;;
+ 	*freebsd*)
+ 		HOST_OS=freebsd
+ 		HOST_ABI=elf
+ 		# fork detection missing, weak seed on failure
+ 		# https://svnweb.freebsd.org/base/head/lib/libc/gen/arc4random.c?revision=268642&view=markup
+-		USE_BUILTIN_ARC4RANDOM=yes
+ 		PROG_LDADD='-lthr'
+ 
+ 		;;
+
+
 [FILE:292:patches/patch-crypto_compat_arc4random.c]
 --- crypto/compat/arc4random.c.orig	2018-08-05 18:01:56 UTC
 +++ crypto/compat/arc4random.c
@@ -3361,20 +3387,4 @@ libressl/lib/pkgconfig/
 
 [FILE:36:files/special.mk]
 MANPREFIX=	${PREFIX}/libressl/share
-
-
-[FILE:201:dragonfly/patch-configure]
---- configure.orig	2018-08-05 18:02:16 UTC
-+++ configure
-@@ -12163,6 +12163,10 @@ fi
- 
- 
- 		;;
-+	*dragonfly*)
-+		HOST_OS=dragonfly
-+		HOST_ABI=elf
-+		;;
- 	*freebsd*)
- 		HOST_OS=freebsd
- 		HOST_ABI=elf
 
