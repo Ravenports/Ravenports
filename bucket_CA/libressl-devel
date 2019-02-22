@@ -67,6 +67,11 @@ post-install:
 post-install-SKIP_MANPAGES-ON:
 	${RM} -r ${STAGEDIR}${PREFIX}/libressl-devel/share
 
+post-install-SKIP_MANPAGES-OFF:
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/man.d
+	${ECHO_CMD} "MANPATH ${PREFIX}/libressl-devel/share/man" \
+		>> ${STAGEDIR}${PREFIX}/etc/man.d/libressl-devel.conf
+
 [FILE:536:descriptions/desc.single.standard]
 LibreSSL is an open-source implementation of the Secure Sockets Layer (SSL)
 and Transport Layer Security (TLS) protocols. It was forked from the OpenSSL
@@ -98,7 +103,8 @@ It also has stack-smashing protection disabled.
 eb5f298408b723f11a0ca0192c122ecb79b4855bfdf7eea183a6264296a13cf4      3400383 libressl-2.9.0.tar.gz
 
 
-[FILE:70631:manifests/plist.single.standard]
+[FILE:70763:manifests/plist.single.standard]
+%%SKIP_MANPAGES-OFF%%etc/man.d/libressl-devel.conf
 etc/libressl-devel/
  openssl.cnf
  x509v3.cnf
@@ -2976,6 +2982,8 @@ libressl-devel/share/man/man5/
  openssl.cnf.5.gz
  x509v3.cnf.5.gz
 @dir etc/libressl-devel/certs
+@rmtry libressl-devel/share/man/mandoc.db
+@rmtry libressl-devel/share/man/whatis
 
 
 [FILE:941:manifests/plist.single.static]

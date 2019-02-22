@@ -124,6 +124,11 @@ post-configure:
 post-install-SKIP_MANPAGES-ON:
 	${RM} -r ${STAGEDIR}${MANPREFIX}/man
 
+post-install-SKIP_MANPAGES-OFF:
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/man.d
+	${ECHO_CMD} "MANPATH ${PREFIX}/openssl/share/man" \
+		>> ${STAGEDIR}${PREFIX}/etc/man.d/openssl.conf
+
 post-patch-freebsd:
 	${REINPLACE_CMD} -e '/define HAVE_CRYPTODEV/d' \
 		${WRKSRC}/crypto/engine/eng_cryptodev.c
@@ -152,7 +157,7 @@ to some simple license conditions.
 5744cfcbcec2b1b48629f7354203bc1e5e9b5466998bbccc5b5fcde3b18eb684      5345604 openssl-1.0.2q.tar.gz
 
 
-[FILE:42068:manifests/plist.single]
+[FILE:42179:manifests/plist.single]
 @sample etc/openssl/openssl.cnf.sample
 %%SHARED-ON%%openssl/lib/
  libcrypto.so
@@ -172,6 +177,7 @@ to some simple license conditions.
  libpadlock.so
  libsureware.so
  libubsec.so
+%%SKIP_MANPAGES-OFF%%etc/man.d/openssl.conf
 %%SKIP_MANPAGES-OFF%%openssl/share/man/man1/
  CA.pl.1.gz
  asn1parse.1.gz
@@ -1960,6 +1966,8 @@ openssl/lib/pkgconfig/
  openssl.pc
 @dir etc/openssl/certs
 @dir etc/openssl/private
+@rmtry openssl/share/man/mandoc.db
+@rmtry openssl/share/man/whatis
 
 
 [FILE:6430:patches/patch-Configure]

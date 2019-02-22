@@ -110,6 +110,11 @@ post-patch-SKIP_MANPAGES-ON:
 		-e 's|man1:man3:man5:man7|man1:man5:man7|' \
 		${WRKSRC}/util/process_docs.pl
 
+post-install-SKIP_MANPAGES-OFF:
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/man.d
+	${ECHO_CMD} "MANPATH ${PREFIX}/openssl-devel/share/man" \
+		>> ${STAGEDIR}${PREFIX}/etc/man.d/openssl-devel.conf
+
 [FILE:737:descriptions/desc.single.standard]
 The OpenSSL Project is a collaborative effort to develop a robust,
 commercial-grade, full-featured, and Open Source toolkit implementing
@@ -130,7 +135,7 @@ to some simple license conditions.
 fc20130f8b7cbd2fb918b2f14e2f429e109c31ddd0fb38fc5d71d9ffed3f9f41      8350547 openssl-1.1.1a.tar.gz
 
 
-[FILE:102969:manifests/plist.single.standard]
+[FILE:103098:manifests/plist.single.standard]
 @sample etc/openssl-devel/ct_log_list.cnf.dist etc/openssl-devel/ct_log_list.cnf
 @sample etc/openssl-devel/openssl.cnf.dist etc/openssl-devel/openssl.cnf
 %%SHARED-ON%%openssl-devel/lib/
@@ -141,6 +146,7 @@ fc20130f8b7cbd2fb918b2f14e2f429e109c31ddd0fb38fc5d71d9ffed3f9f41      8350547 op
 %%SHARED-ON%%openssl-devel/lib/engines-1.1/
  capi.so
  padlock.so
+%%SKIP_MANPAGES-OFF%%etc/man.d/openssl-devel.conf
 %%SKIP_MANPAGES-OFF%%openssl-devel/share/man/man3/
  ACCESS_DESCRIPTION_free.3.gz
  ACCESS_DESCRIPTION_new.3.gz
@@ -4170,6 +4176,8 @@ openssl-devel/share/man/man7/
  x509.7.gz
 @dir etc/openssl-devel/certs
 @dir etc/openssl-devel/private
+@rmtry openssl-devel/share/man/mandoc.db
+@rmtry openssl-devel/share/man/whatis
 
 
 [FILE:1178:patches/patch-config]

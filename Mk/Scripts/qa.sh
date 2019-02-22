@@ -86,7 +86,7 @@ shebangonefile() {
 }
 
 shebang() {
-	local f l link rc
+	local f l rc symlist link
 
 	rc=0
 	if [ "${NAMEBASE}" = "ravensys-root" -a "${VARIANT}" = "macos" ]; then
@@ -99,63 +99,81 @@ shebang() {
 		shebangonefile "${f}" || rc=1
 	# Use heredoc to avoid losing rc from find|while subshell
 	done <<-EOF
-	$(find ${STAGEDIR}${PREFIX} \
-	    -type f -perm /111 2>/dev/null)
+	$(find ${STAGEDIR}${PREFIX} -type f -perm /111 2>/dev/null)
 	EOF
 
-	# Split stat(1) result into 2 lines and read each line separately to
-	# retain spaces in filenames.
-	while read l; do
-		# No results presents a blank line
-		[ -z "${l}" ] && continue
-		read link
+	# Don't use gnu xargs (DF sees internal polling, reads 1 file
+	# per second on monster and really slow on muscles
+	symlist=$(find ${STAGEDIR} -type l -print)
 
-		case "${link}" in
-		/*) f="${STAGEDIR}${link}" ;;
-		*) f="${l%/*}/${link}" ;;
-		esac
-		if [ -f "${f}" ]; then
+	if [ -z "${symlist}" ]; then
+		return ${rc};
+	fi
+
+	for l in $symlist; do
+		link=$(readlink ${l})
+		if [ $? -eq 0 ]; then
+		    case "${link}" in
+			/*) f="${STAGEDIR}${link}" ;;
+			* ) f="${l%/*}/${link}" ;;
+		    esac
+		    if [ -f "${f}" ]; then
 			shebangonefile "${f}" || rc=1
+		    fi
 		fi
-	# Use heredoc to avoid losing rc from find|while subshell
-	done <<-EOF
-	$(find ${STAGEDIR} -type l -print0 | xargs -0 -i sh -c 'echo "{}" && readlink "{}"')
-	EOF
+	done
 
 	return ${rc}
 }
 
 symlinks() {
-	local rc
+	local l rc symlist link reslink
 
 	rc=0
 
-	# Split stat(1) result into 2 lines and read each line separately to
-	# retain spaces in filenames.
-	while read l; do
-		# No results presents a blank line from heredoc.
-		[ -z "${l}" ] && continue
-		read link
-		case "${link}" in
-			${STAGEDIR}*)
-				err "Bad symlink '${l#${STAGEDIR}${PREFIX}/}' pointing inside the stage directory"
+	# Don't use gnu xargs (DF sees internal polling, reads 1 file
+	# per second on monster and really slow on muscles
+	symlist=$(find ${STAGEDIR} -type l -print)
+
+	if [ -z "${symlist}" ]; then
+		return ${rc};
+	fi
+
+	# analyze found link target wrt stage directory or fake target
+	for l in $symlist; do
+		link=$(readlink ${l})
+		if [ $? -eq 0 ]; then
+		    case "${link}" in
+			${STAGEDIR}/*)
+				err "Bad symlink '${l#${STAGEDIR}}' pointing inside the stage directory"
 				rc=1
 				;;
-			/*)
-				# Only warn for symlinks within the package.
+			/*)	# absolute symlinks
 				if [ -e "${STAGEDIR}${link}" ]; then
-					warn "Absolute symlink '${l#${STAGEDIR}}' pointing to an absolute pathname '${link}'"
-				fi
-				# Also warn if the symlink exists nowhere.
-				if [ ! -e "${STAGEDIR}${link}" -a ! -e "${link}" ]; then
-					warn "Bad symlink '${l#${STAGEDIR}}' pointing to '${link}' which does not exist in the stage directory or in localbase"
+				    if [ -e "${link}" ]; then
+					warn "symlink '${l#${STAGEDIR}}' points to an absolute stagedir path '${link}'"
+				    else
+					warn "symlink '${l#${STAGEDIR}}' points to a non-existent file with absolute stagedir path '${link}'"
+				    fi
+				else
+				    # Also warn if the symlink exists nowhere.
+				    if [ -e "${link}" ]; then
+				        warn "symlink '${l#${STAGEDIR}}' points to an absolute localbase path '${link}'"
+				    else
+					warn "symlink '${l#${STAGEDIR}}' points to a non-existent file with absolute localbase path '${link}'"
+				    fi
 				fi
 				;;
-		esac
-	# Use heredoc to avoid losing rc from find|while subshell.
-	done <<-EOF
-	$(find ${STAGEDIR} -type l -print0 | xargs -0 -i sh -c 'echo "{}" && readlink "{}"')
-	EOF
+			*)	# relative symlinks
+				# warn if symlink target doesn't exist
+				reslink=$(readlink -f ${l})
+				if [ ! -e "${reslink}" ]; then
+					warn "symlink '${l#${STAGEDIR}}' points to a non-existent file '${link}'"
+				fi
+				;;
+		    esac
+		fi
+	done
 
 	return ${rc}
 }
