@@ -82,9 +82,9 @@ GCC7_PHASE=			release
 # ------------------------------------------------------------------------
 
 GCC8_BRANCH=			8
-GCC8_POINT=			2.0
+GCC8_POINT=			3.0
 GCC8_VERSION=			${GCC8_BRANCH}.${GCC8_POINT}
-GCC8_SNAPSHOT=			20180726
+GCC8_SNAPSHOT=			20180222
 GCC8_BUILD_RELEASE=		yes
 GCC8_REVISION=			0
 GCC8_GNAT_UTIL_REVISION=	0
@@ -158,7 +158,7 @@ GTK3_PORT_VERSION=		3.24.5
 
 CURRENT_GCC=			gcc8	# mirror in Uses/meson.mk
 CURRENT_GCC_VERSION=		${GCC8_VERSION}
-BINUTILS_VERSION=		2.31.1
+BINUTILS_VERSION=		2.32
 
 # ------------------------------------------------------------------------
 # aspell
