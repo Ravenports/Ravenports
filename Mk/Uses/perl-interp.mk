@@ -105,7 +105,7 @@ CONFIGURE_ARGS+=	-sde -Dprefix=${PREFIX} \
 # lddlflags is used for all .so linking.  shrpldflags is used for libperl.so,
 # so remove all the extra bits inherited from lddlflags.
 
-CONFIGURE_ARGS+=	-Alddlflags='-L${WRKSRC} -L${PREFIX}/${_ARCH_LIB}/CORE -Wl,-rpath,${PREFIX}/${_ARCH_LIB}/CORE -Wl,-rpath,${PREFIX}/lib -lperl' \
+CONFIGURE_ARGS+=	-Alddlflags='-L${WRKSRC} -L${PREFIX}/${_ARCH_LIB}/CORE -Wl,-rpath,${PREFIX}/${_ARCH_LIB}/CORE -lperl' \
 			-Dshrpldflags='$$(LDDLFLAGS:N-L${WRKSRC}:N-L${PREFIX}/${_ARCH_LIB}/CORE:N-lperl) -Wl,-soname,$$(LIBPERL:R)'
 
 BINSUFFIX=		${PERL_VERSION}

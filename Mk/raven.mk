@@ -105,8 +105,9 @@ CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
 STRIP_CMD+=		-x
 .  endif
 .endif
+# gcc inserts $LOCALBASE/lib runpath along with path to gcc libraries
 CPPFLAGS+=		-I${LOCALBASE}/include
-LDFLAGS+=		-L${LOCALBASE}/lib -Wl,-rpath,${LOCALBASE}/lib
+LDFLAGS+=		-L${LOCALBASE}/lib
 
 BUILD_TARGET?=		all
 INSTALL_TARGET?=	install

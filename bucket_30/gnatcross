@@ -117,6 +117,7 @@ post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
 	@${ECHO} "Configuring LINK_SPEC runpath"
 	${REINPLACE_CMD} -e 's;\@PREFIX\@;${PREFIX};' \
+		${WRKSRC}/gcc/config/darwin.h \
 		${WRKSRC}/gcc/config/dragonfly.h \
 		${WRKSRC}/gcc/config/sol2.h \
 		${WRKSRC}/gcc/config/i386/freebsd64.h \
@@ -2071,7 +2072,18 @@ bin/
 -end;
 
 
-[FILE:4700:patches/patch-diff-core]
+[FILE:5113:patches/patch-diff-core]
+--- gcc/config/darwin.h.orig
++++ gcc/config/darwin.h
+@@ -240,7 +240,7 @@
+    multiple times on a command line with different arguments each time,
+    so put a * after their names so all of them get passed.  */
+ #define LINK_SPEC  \
+-  "%{static}%{!static:-dynamic} \
++  "%{static}%{!static:-dynamic -rpath @PREFIX@/lib} \
+    %:remove-outfile(-ldl) \
+    %:remove-outfile(-lm) \
+    %:remove-outfile(-lpthread) \
 --- gcc/config/dragonfly.h.orig
 +++ gcc/config/dragonfly.h
 @@ -84,13 +84,13 @@
@@ -2211,7 +2223,7 @@ bin/
 [FILE:8497:patches/patch-diff-cxx]
 --- libstdc++-v3/configure.host.orig
 +++ libstdc++-v3/configure.host
-@@ -258,6 +258,9 @@
+@@ -261,6 +261,9 @@
    freebsd*)
      os_include_dir="os/bsd/freebsd"
      ;;
