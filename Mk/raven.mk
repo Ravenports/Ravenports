@@ -106,8 +106,9 @@ STRIP_CMD+=		-x
 .  endif
 .endif
 # gcc inserts $LOCALBASE/lib runpath along with path to gcc libraries
+# gcc also looks in $LOCALBASE/lib by default for linking libraries
+# Probably gcc needs to look in $LOCALBASE/include by default as well
 CPPFLAGS+=		-I${LOCALBASE}/include
-LDFLAGS+=		-L${LOCALBASE}/lib
 
 BUILD_TARGET?=		all
 INSTALL_TARGET?=	install
