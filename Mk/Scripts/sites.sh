@@ -394,10 +394,7 @@ expand_XORG()
     http://mirrors.ircam.fr/pub/x.org \
     http://www.mirrorservice.org/sites/ftp.x.org/pub \
     http://www.portal-to-web.de/pub/mirrors/x.org \
-    http://x.cybermirror.org \
-    http://x.europnews.de/pub \
     http://xorg.mirror.solnet.ch/pub \
-    http://mirrors.go-part.com/xorg \
     http://gd.tuwien.ac.at/X11 \
     http://ftp.yz.yamagata-u.ac.jp/pub/X11/x.org \
     http://ftp.kaist.ac.kr/x.org"
