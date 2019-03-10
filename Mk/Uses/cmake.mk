@@ -68,7 +68,7 @@ CMAKE_INSTALL_PREFIX?=	${PREFIX}
 _CMAKE_MSG=		"===>  Performing in-source build"
 CMAKE_SOURCE_PATH?=	${WRKSRC}
 
-.  if empty(${cmake_ARGS:Minsource})
+.  if empty(cmake_ARGS:Minsource)
 _CMAKE_MSG=		"===>  Performing out-of-source build"
 CONFIGURE_WRKSRC=	${WRKDIR}/.build
 BUILD_WRKSRC?=		${CONFIGURE_WRKSRC}
