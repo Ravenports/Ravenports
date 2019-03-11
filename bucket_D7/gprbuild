@@ -2,6 +2,7 @@
 
 NAMEBASE=		gprbuild
 VERSION=		2018
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Adacore multi-language software build tool
@@ -23,7 +24,6 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		xmlada:primary:standard
-			python-Sphinx:single:python_default
 EXRUN[gprlib]=		xmlada:primary:standard
 
 USES=			gmake
@@ -36,6 +36,9 @@ LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/gprbuild.ads
 LICENSE_SCHEME=		solo
+
+INFO=			primary:gprbuild_ug
+INFO_SUBDIR=		.
 
 BUILD_TARGET=		all libgpr.build
 MAKE_ARGS=		prefix={{STAGEDIR}}{{PREFIX}}
@@ -67,6 +70,9 @@ post-install:
 	${RM} ${STAGEDIR}${PREFIX}/doinstall
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/html/_sources
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/gnat/manifests
+	${MV} ${STAGEDIR}${STD_DOCDIR}/info/gprbuild_ug.info \
+		${STAGEDIR}${PREFIX}/share/info
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}/info
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/gprbuild/*
 
@@ -549,7 +555,7 @@ lib/gpr/static/gpr/
  libgpr.a
 
 
-[FILE:1053:manifests/plist.docs]
+[FILE:1012:manifests/plist.docs]
 share/doc/gprbuild/html/
  .buildinfo
  genindex.html
@@ -594,7 +600,6 @@ share/doc/gprbuild/html/gprbuild_ug/
  gnat_project_manager.html
  introduction.html
 share/doc/gprbuild/html/share/gnu_free_documentation_license.html
-share/doc/gprbuild/info/gprbuild_ug.info
 share/doc/gprbuild/pdf/gprbuild_ug.pdf
 share/doc/gprbuild/txt/gprbuild_ug.txt
 

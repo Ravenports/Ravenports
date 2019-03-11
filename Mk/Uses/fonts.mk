@@ -52,12 +52,10 @@ fonts_ARGS=	fcfontsdir
 # -----------------------------------------------
 # if argument = fcfontsdir:
 # BUILDRUN_DEPENDS+=	fontconfig:primary:standard
-#			xorg-mkfontdir:single:standard
 #			xorg-mkfontscale:single:standard
 # -----------------------------------------------
 # if argument = fontdir or no argument passed:
-# BUILDRUN_DEPENDS+=	xorg-mkfontdir:single:standard
-#			xorg-mkfontscale:single:standard
+# BUILDRUN_DEPENDS+=	xorg-mkfontscale:single:standard
 # -----------------------------------------------
 
 FONTNAME?=	you-must-define-FONTNAME

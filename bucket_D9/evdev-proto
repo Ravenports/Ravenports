@@ -2,6 +2,7 @@
 
 NAMEBASE=		evdev-proto
 VERSION=		4.19
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Input event device header files
@@ -20,6 +21,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+NOT_FOR_OPSYS=		sunos darwin
+
 LICENSE=		GPLv2:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2:stock
@@ -32,7 +35,7 @@ FPC_EQUIVALENT=		devel/evdev-proto
 SKIP_BUILD=		yes
 
 post-patch:
-	${REINPLACE_CMD} -E -e \
+	${SED} -E -e \
 		's/__u([[:digit:]]+)/uint\1_t/g ; \
 		s/__s([[:digit:]]+)/int\1_t/g ; \
 		/# *include/ s|<sys/ioctl.h>|<sys/ioccom.h>| ; \
@@ -45,23 +48,41 @@ post-patch:
 		/#define/ s/_IOC_WRITE/IOC_IN/ ; \
 		s/[[:space:]]+__user[[:space:]]+/ / ; \
 		/__USE_TIME_BITS64/ s|^#if (.*)$$|#if 1 /* \1 */|' \
-		${WRKSRC}/input.h
-	${REINPLACE_CMD} -E -e \
+		${WRKSRC}/input.h > ${WRKDIR}/.headers/input.h.freebsd
+	${SED} -E -e \
 		's/__u([[:digit:]]+)/uint\1_t/g ; \
 		s/__s([[:digit:]]+)/int\1_t/g ; \
 		/# *include/s|<linux/types.h>|<sys/types.h>| ; \
 		/#define/ s/_IOW(.*), *int/_IOWINT\1/ ; \
 		/#define/ s/_IOW(.*), *char\*/_IO\1/ ; \
 		/#define/ s/_IOC_READ/IOC_OUT/' \
-		${WRKSRC}/uinput.h
+		${WRKSRC}/uinput.h > ${WRKDIR}/.headers/uinput.h.freebsd
 
 do-extract:
-	${MKDIR} ${WRKSRC}
+	${MKDIR} ${WRKSRC} ${WRKDIR}/.headers
 	${INSTALL_DATA} ${DISTDIR}/${DIST_SUBDIR}/* ${WRKSRC}/
+
+do-install-freebsd:
+	${INSTALL_DATA} ${WRKDIR}/.headers/input.h.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/input.h
+	${INSTALL_DATA} ${WRKDIR}/.headers/uinput.h.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/uinput.h
+	${INSTALL_DATA} ${WRKSRC}/input-event-codes.h \
+		${STAGEDIR}${PREFIX}/include/linux/
+
+do-install-linux:
+	${INSTALL_DATA} ${WRKSRC}/*.h ${STAGEDIR}${PREFIX}/include/linux/
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/include/linux/
-	${INSTALL_DATA} ${WRKSRC}/*.h ${STAGEDIR}${PREFIX}/include/linux/
+
+do-install-dragonfly:
+	${INSTALL_DATA} \
+		/usr/include/compat/linux/input.h \
+		/usr/include/compat/linux/input-event-codes.h \
+		${STAGEDIR}${PREFIX}/include/linux/
+	${INSTALL_DATA} ${WRKDIR}/.headers/uinput.h.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/uinput.h
 
 [FILE:101:descriptions/desc.single]
 This package contains input event device header files from
