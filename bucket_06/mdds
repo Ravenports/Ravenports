@@ -2,6 +2,7 @@
 
 NAMEBASE=		mdds
 VERSION=		1.4.3
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Multi-dimensional data index algorithm
@@ -26,25 +27,30 @@ FPC_EQUIVALENT=		devel/mdds
 SKIP_BUILD=		yes
 
 PLIST_SUB=		API_VERSION=1.2
+			MINOR_VERSION=1.4
 
 post-patch:
 	${FIND} ${WRKSRC}/include -name "*.orig" -delete
 
 do-configure:
+.for V in 1.2 1.4
 	${SED} -e 's|@API_VERSION@|1.2|' \
 	    -e 's|@VERSION@|1.4.3|' \
 	    -e 's|@includedir@|$${prefix}/include|' \
 	    -e 's|@prefix@|${PREFIX}|' \
 	    ${WRKSRC}/misc/mdds.pc.in > \
-	    ${WRKSRC}/misc/mdds-1.2.pc
+	    ${WRKSRC}/misc/mdds-${V}.pc
+.endfor
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/include/mdds-1.2/mdds
 	(cd ${WRKSRC}/include && ${COPYTREE_SHARE} . \
 	    ${STAGEDIR}${PREFIX}/include/mdds-1.2)
 	${FIND} ${STAGEDIR}${PREFIX}/include -name "Makefile.*" -delete
-	${INSTALL_DATA} ${WRKSRC}/misc/mdds-1.2.pc \
-	    ${STAGEDIR}${PREFIX}/lib/pkgconfig
+	${INSTALL_DATA} \
+		${WRKSRC}/misc/mdds-1.2.pc \
+		${WRKSRC}/misc/mdds-1.4.pc \
+		${STAGEDIR}${PREFIX}/lib/pkgconfig
 
 [FILE:116:descriptions/desc.single]
 Multi-Dimensional Data Structure (mdds) is a collection of
@@ -55,7 +61,7 @@ multi-dimensional data structure and indexing algorithm.
 cdad5f5d18e375100be49ed5bf3b4c26e7195f0d9593f6c142396521f1b1282d       587718 mdds-mdds-1.4.3.tar.gz
 
 
-[FILE:850:manifests/plist.single]
+[FILE:856:manifests/plist.single]
 include/mdds-%%API_VERSION%%/mdds/
  flat_segment_tree.hpp
  flat_segment_tree_def.inl
@@ -77,6 +83,8 @@ include/mdds-%%API_VERSION%%/mdds/
  quad_node.hpp
  rectangle_set.hpp
  rectangle_set_def.inl
+ rtree.hpp
+ rtree_def.inl
  segment_tree.hpp
  segment_tree_def.inl
  sorted_string_map.hpp
@@ -87,8 +95,7 @@ include/mdds-%%API_VERSION%%/mdds/
 include/mdds-%%API_VERSION%%/mdds/multi_type_vector/
  collection.hpp
  collection_def.inl
-include/mdds-1.2/mdds/
- rtree.hpp
- rtree_def.inl
-lib/pkgconfig/mdds-%%API_VERSION%%.pc
+lib/pkgconfig/
+ mdds-%%API_VERSION%%.pc
+ mdds-%%MINOR_VERSION%%.pc
 
