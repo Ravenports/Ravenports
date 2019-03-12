@@ -38,14 +38,13 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		irc/hexchat
 MESON_ARGS=		-Dwith-lua=false
 			-Dwith-python=false
-MESON_INSERT_RPATH=	plugins/checksum/meson.build
-			plugins/fishlim/meson.build
-			plugins/sysinfo/meson.build
 SHEBANG_FILES=		meson_post_install.py
 			plugins/perl/generate_header.py
 			src/common/make-te.py
 
 MAKE_ENV=		GETTEXTDATADIRS={{PREFIX}}/share/gettext/0.19.8
+
+LDFLAGS=		{{PERL_RPATH}}
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%CA_BUNDLE%%|${CA_BUNDLE}|' \
@@ -54,13 +53,7 @@ post-patch:
 	${REINPLACE_CMD} \
 	-e 's|%%PREFIX%%|${PREFIX}|g'\
 	-e 's|%%PERL_VER%%|${PERL_VER}|g'\
-	-e "s|%%RPATH_OVERRIDE%%|${COMP_RPATH}:${PREFIX}/lib/perl5/${PERL_VER}/${PERL_ARCH}/CORE|"\
 	${WRKSRC}/plugins/perl/meson.build
-	# can't use MESON_INSERT_RPATH, needs path to ssl too
-	${REINPLACE_CMD} \
-	-E "s|install[ ]?: true|install : true, install_rpath : '${COMP_RPATH}:${OPENSSLLIB}'|"\
-	${WRKSRC}/src/fe-text/meson.build \
-	${WRKSRC}/src/fe-gtk/meson.build
 
 [FILE:316:descriptions/desc.single]
 HexChat is an IRC chat program.
@@ -218,7 +211,7 @@ share/metainfo/io.github.Hexchat.appdata.xml
  
 
 
-[FILE:712:patches/patch-plugins_perl_meson.build]
+[FILE:473:patches/patch-plugins_perl_meson.build]
 --- plugins/perl/meson.build.orig	2018-08-29 21:13:25 UTC
 +++ plugins/perl/meson.build
 @@ -60,7 +60,7 @@ endforeach
@@ -230,14 +223,6 @@ share/metainfo/io.github.Hexchat.appdata.xml
  ]
  
  if not cc.links('''
-@@ -86,6 +86,6 @@ shared_module('perl',
-   dependencies: [libgio_dep, hexchat_plugin_dep, perl_dep],
-   install: true,
-   install_dir: plugindir,
--  install_rpath: perl_rpath,
-+  install_rpath: '%%RPATH_OVERRIDE%%',
-   name_prefix: '',
- )
 
 
 [FILE:605:patches/patch-plugins_sysinfo_meson.build]

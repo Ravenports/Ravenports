@@ -16,7 +16,8 @@
 #			format: -Denable_foo=true
 # MESON_BUILD_DIR	Path to the build directory
 #			Default: ${WRKSRC}/_build
-# MESON_INSERT_RPATH	List path relative to WRKSRC for meson.build files that
+# MESON_INSERT_RPATH	** OBSOLETE - ignored by meson **
+#			List path relative to WRKSRC for meson.build files that
 #			require rpath adjustments, list.  e.g.
 #			src/meson.build data/meson.build
 #
