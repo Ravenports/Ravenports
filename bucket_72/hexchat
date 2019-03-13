@@ -2,6 +2,7 @@
 
 NAMEBASE=		hexchat
 VERSION=		2.14.2
+REVISION=		1
 KEYWORDS=		irc
 VARIANTS=		standard
 SDESC[standard]=	Graphical IRC client based on XChat
@@ -23,6 +24,7 @@ BUILDRUN_DEPENDS=	dbus-glib:primary:standard
 			libnotify:primary:standard
 			libproxy:single:standard
 			iso-codes:single:standard
+RUN_DEPENDS=		nss:caroot:standard
 
 USES=			gettext-runtime gettext-tools ssl meson perl
 			pkgconfig python shebangfix
@@ -47,7 +49,7 @@ MAKE_ENV=		GETTEXTDATADIRS={{PREFIX}}/share/gettext/0.19.8
 LDFLAGS=		{{PERL_RPATH}}
 
 post-patch:
-	${REINPLACE_CMD} -e 's|%%CA_BUNDLE%%|${CA_BUNDLE}|' \
+	${REINPLACE_CMD} -e 's|%%CA_BUNDLE%%|${LOCALBASE}/share/certs/ca-root-nss.crt|' \
 		${WRKSRC}/src/common/server.c
 	# can't use MESON_INSERT_RPATH, needs path to perl too
 	${REINPLACE_CMD} \
