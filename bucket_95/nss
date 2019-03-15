@@ -2,6 +2,7 @@
 
 NAMEBASE=		nss
 VERSION=		3.42.1
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Application security development libraries
@@ -16,9 +17,8 @@ SPKGS[standard]=	complete
 			primary
 			caroot
 
-OPTIONS_AVAILABLE=	ETCSYMLINK
-OPTIONS_STANDARD=	ETCSYMLINK
-OPT_ON[all]=		ETCSYMLINK
+OPTIONS_AVAILABLE=	none
+OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libressl:single:static
 BUILDRUN_DEPENDS=	nspr:single:standard
@@ -57,8 +57,6 @@ VAR_OPSYS[sunos]=	MAKE_ENV=NS_USE_GCC=1
 			MAKE_ENV=NO_MDUPDATE=1
 VAR_ARCH[x86_64]=	MAKE_ENV=USE_64=1
 
-[ETCSYMLINK].DESCRIPTION=		Add symlink to /etc/ssl/cert.pem
-
 post-patch:
 	${REINPLACE_CMD} '/NSS_DEFAULT_SYSTEM/s,/etc,${PREFIX}&,' \
 		${WRKSRC}/lib/sysinit/nsssysinit.c
@@ -78,9 +76,7 @@ post-build:
 do-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/include/nss/nss \
 		${STAGEDIR}${PREFIX}/lib/nss \
-		${STAGEDIR}${PREFIX}/share/certs \
-		${STAGEDIR}${PREFIX}/etc/ssl \
-		${STAGEDIR}${PREFIX}/openssl
+		${STAGEDIR}${PREFIX}/share/certs
 	${FIND} ${WRKDIR}/nss-3.42.1/dist/public/nss -type l \
 		-exec ${INSTALL_DATA} {} ${STAGEDIR}${PREFIX}/include/nss/nss \;
 	${INSTALL_LIB} ${WRKDIR}/nss-3.42.1/dist/${OPSYS}*_OPT.OBJ/lib/*.${LIBEXT} \
@@ -94,17 +90,13 @@ do-install:
 	${INSTALL_SCRIPT} ${WRKDIR}/nss-config ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_DATA} ${WRKDIR}/nss.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig
 	# CA ROOT CERT
+.for D in openssl openssl-devel libressl libressl-devel
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/${D}
+	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
+		${STAGEDIR}${PREFIX}/etc/${D}/cert.pem.sample
+.endfor
 	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
 		${STAGEDIR}${PREFIX}/share/certs
-	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
-		${STAGEDIR}${PREFIX}/etc/ssl/cert.pem.sample
-	${INSTALL_DATA} ${WRKDIR}/ca-root-nss.crt \
-		${STAGEDIR}${PREFIX}/openssl/cert.pem.sample
-
-post-install-ETCSYMLINK-ON:
-	@${MKDIR} ${STAGEDIR}/etc/ssl
-	${LN} -sf ${PREFIX}/share/certs/ca-root-nss.crt \
-		${STAGEDIR}/etc/ssl/cert.pem
 
 [FILE:301:descriptions/desc.primary]
 Network Security Services (NSS) is a set of libraries designed to support
@@ -265,11 +257,12 @@ lib/nss/
 lib/pkgconfig/nss.pc
 
 
-[FILE:127:manifests/plist.caroot]
-@sample etc/ssl/cert.pem.sample
-@sample openssl/cert.pem.sample
+[FILE:186:manifests/plist.caroot]
+@sample etc/libressl/cert.pem.sample
+@sample etc/libressl-devel/cert.pem.sample
+@sample etc/openssl/cert.pem.sample
+@sample etc/openssl-devel/cert.pem.sample
 %%CERTDIR%%/ca-root-nss.crt
-%%ETCSYMLINK-ON%%/etc/ssl/cert.pem
 
 
 [FILE:449:patches/patch-bug301986]
