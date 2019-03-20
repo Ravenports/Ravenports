@@ -27,7 +27,6 @@ OPT_ON[i386]=		X86_DRIVERS
 
 BUILD_DEPENDS=		libpthread-stubs:single:standard
 			libclc:single:standard
-			llvm:single:standard
 			clang:compiler:standard
 			zlib:static:standard
 			libelf:single:standard
@@ -54,7 +53,7 @@ EXRUN[osmesa]=		llvm:single:standard
 			zlib:shared:standard
 
 USES=			bison gettext-tools gmake libtool pkgconfig
-			python:py27,build shebangfix
+			python:py27,build shebangfix solaris-funcs
 			c++:clover,drivers,osmesa
 XORG_COMPONENTS=	x11 xcb xdamage xext xfixes xshmfence xxf86vm xv
 			xvmc xrandr
@@ -85,6 +84,7 @@ SHEBANG_FILES=		src/gallium/*/*/*.py
 SHEBANG_OLD_PYTHON=	/usr/bin/env[[:space:]]python2
 			/usr/bin/python2
 			/bin/env[[:space:]]python
+SOL_FUNCTIONS=		dirfd:src/util/disk_cache.c
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-llvm
@@ -1230,7 +1230,7 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
  struct build_id_note {
 
 
-[FILE:649:patches/patch-src_util_disk__cache.c]
+[FILE:282:patches/patch-src_util_disk__cache.c]
 --- src/util/disk_cache.c.orig	2019-02-18 18:28:16 UTC
 +++ src/util/disk_cache.c
 @@ -51,6 +51,10 @@
@@ -1243,18 +1243,6 @@ gmake[5]: *** [Makefile:2706: tools/aubinator_error_decode] Error 1
 +
  /* Number of bits to mask off from a cache key to get an index. */
  #define CACHE_INDEX_KEY_BITS 16
- 
-@@ -514,7 +518,11 @@ choose_lru_file_matching(const char *dir
-          break;
- 
-       struct stat sb;
-+#ifdef __sun__
-+      if (fstatat(dir->dd_fd, entry->d_name, &sb, 0) == 0) {
-+#else
-       if (fstatat(dirfd(dir), entry->d_name, &sb, 0) == 0) {
-+#endif
-          if (!lru_atime || (sb.st_atime < lru_atime)) {
-             size_t len = strlen(entry->d_name);
  
 
 

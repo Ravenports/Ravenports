@@ -14,15 +14,19 @@ DISTFILE[1]=		dpkg_1.19.5.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	DAEMON
+OPTIONS_STANDARD=	DAEMON
+OPT_ON[freebsd]=	DAEMON
+OPT_ON[linux]=		DAEMON
+OPT_ON[darwin]=		DAEMON
+OPT_ON[dragonfly]=	DAEMON
 
 BUILD_DEPENDS=		po4a:single:standard
 BUILDRUN_DEPENDS=	tar:single:standard
 			patch:single:standard
 
 USES=			cpe gmake iconv libtool ncurses perl pkgconfig
-			gettext-runtime
+			gettext-runtime solaris-funcs
 
 LICENSE=		GPLv2+:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -33,6 +37,9 @@ LICENSE_SCHEME=		solo
 
 CPE_VENDOR=		debian
 FPC_EQUIVALENT=		archivers/dpkg
+SOL_FUNCTIONS=		mkdtemp:dpkg-deb/info.c
+			mkdtemp:src/unpack.c
+			dirfd:lib/dpkg/dir.c
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-admindir=/var/db/dpkg
@@ -41,6 +48,11 @@ CONFIGURE_ARGS=		--with-admindir=/var/db/dpkg
 			--with-logdir=/var/log
 			--enable-nls
 CONFIGURE_ENV=		PERL_LIBDIR="{{PREFIX}}/{{SITE_PERL_REL}}"
+
+VAR_OPSYS[sunos]=	LDFLAGS=-ltinfow
+
+[DAEMON].DESCRIPTION=			Include start-stop daemon
+[DAEMON].CONFIGURE_ARGS_OFF=		--disable-start-stop-daemon
 
 post-install:
 	(cd ${STAGEDIR}/var/db/dpkg && ${TOUCH} available.sample \
@@ -58,7 +70,12 @@ to dpkg.
 ed327c9973610a695e1950613861c734974d9476e76ef713724558601ce63544      4699096 dpkg_1.19.5.tar.xz
 
 
-[FILE:12154:manifests/plist.single]
+[FILE:12219:manifests/plist.single]
+%%DAEMON-ON%%sbin/start-stop-daemon
+%%DAEMON-ON%%share/man/de/man8/start-stop-daemon.8.gz
+%%DAEMON-ON%%share/man/fr/man8/start-stop-daemon.8.gz
+%%DAEMON-ON%%share/man/man8/start-stop-daemon.8.gz
+%%DAEMON-ON%%share/man/nl/man8/start-stop-daemon.8.gz
 %%SITE_PERL%%/Dpkg.pm
 %%SITE_PERL%%/Dpkg/
  Arch.pm
@@ -252,7 +269,6 @@ libexec/dpkg/methods/multicd/
  setup
  update
 libexec/pkgconfig/libdpkg.pc
-sbin/start-stop-daemon
 share/dpkg/
  abitable
  architecture.mk
@@ -431,7 +447,6 @@ share/man/de/man5/
  dsc.5.gz
  dselect.cfg.5.gz
 share/man/de/man7/deb-version.7.gz
-share/man/de/man8/start-stop-daemon.8.gz
 share/man/es/man1/
  dpkg-split.1.gz
  update-alternatives.1.gz
@@ -495,7 +510,6 @@ share/man/fr/man5/
  dsc.5.gz
  dselect.cfg.5.gz
 share/man/fr/man7/deb-version.7.gz
-share/man/fr/man8/start-stop-daemon.8.gz
 share/man/it/man1/
  dpkg-maintscript-helper.1.gz
  dpkg-split.1.gz
@@ -619,7 +633,6 @@ share/man/man5/
  dsc.5.gz
  dselect.cfg.5.gz
 share/man/man7/deb-version.7.gz
-share/man/man8/start-stop-daemon.8.gz
 share/man/nl/man1/
  dpkg-architecture.1.gz
  dpkg-buildflags.1.gz
@@ -675,7 +688,6 @@ share/man/nl/man5/
  dsc.5.gz
  dselect.cfg.5.gz
 share/man/nl/man7/deb-version.7.gz
-share/man/nl/man8/start-stop-daemon.8.gz
 share/man/pl/man1/
  dpkg-split.1.gz
  update-alternatives.1.gz

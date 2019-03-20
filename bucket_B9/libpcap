@@ -28,13 +28,17 @@ FPC_EQUIVALENT=		net/libpcap
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-dbus=no
-			--with-pcap=bpf
 CONFIGURE_ENV=		LEX={{LOCALBASE}}/bin/flex
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.9.0
 
 CFLAGS=			-fPIC
+VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-pcap=bpf
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--with-pcap=dlpi
+			CONFIGURE_ENV=ac_cv_func_getifaddrs=no
+VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-pcap=bpf
+VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-pcap=bpf
 
 [FILE:116:descriptions/desc.single]
 libpcap is a ubiquitous network traffic capture library used by a wide
@@ -201,4 +205,19 @@ share/man/man7/
  	for i in $(MANFILE); do \
  		$(INSTALL_DATA) `echo $$i | sed 's/.manfile.in/.manfile/'` \
  		    $(DESTDIR)$(mandir)/man@MAN_FILE_FORMATS@/`echo $$i | sed 's/.manfile.in/.@MAN_FILE_FORMATS@/'`; done
+
+
+[FILE:259:patches/patch-configure]
+--- configure.orig	2018-06-24 17:54:20 UTC
++++ configure
+@@ -8264,9 +8264,6 @@ $as_echo "#define HAVE_SOLARIS 1" >>conf
+ 		#
+ 		# Use System V conventions for man pages.
+ 		#
+-		MAN_ADMIN_COMMANDS=1m
+-		MAN_FILE_FORMATS=4
+-		MAN_MISC_INFO=5
+ 	esac
+ 	;;
+ esac
 

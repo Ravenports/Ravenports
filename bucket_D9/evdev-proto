@@ -21,7 +21,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-NOT_FOR_OPSYS=		sunos darwin
+NOT_FOR_OPSYS=		darwin
 
 LICENSE=		GPLv2:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -61,6 +61,14 @@ post-patch:
 do-extract:
 	${MKDIR} ${WRKSRC} ${WRKDIR}/.headers
 	${INSTALL_DATA} ${DISTDIR}/${DIST_SUBDIR}/* ${WRKSRC}/
+
+do-install-sunos:
+	${INSTALL_DATA} ${WRKDIR}/.headers/input.h.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/input.h
+	${INSTALL_DATA} ${WRKDIR}/.headers/uinput.h.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/uinput.h
+	${INSTALL_DATA} ${WRKSRC}/input-event-codes.h \
+		${STAGEDIR}${PREFIX}/include/linux/
 
 do-install-freebsd:
 	${INSTALL_DATA} ${WRKDIR}/.headers/input.h.freebsd \

@@ -112,6 +112,56 @@ share/man/man7/sndio.7.gz
 share/man/man8/sndiod.8.gz
 
 
+[FILE:249:patches/patch-aucat_defs.h]
+--- aucat/defs.h.orig	2018-07-27 13:42:51 UTC
++++ aucat/defs.h
+@@ -17,6 +17,12 @@
+ #ifndef DEFS_H
+ #define DEFS_H
+ 
++#ifdef __sun__
++#define BIG_ENDIAN 4321
++#define LITTLE_ENDIAN 1234
++#define BYTE_ORDER LITTLE_ENDIAN
++#endif
++
+ /*
+  * limits
+  */
+
+
+[FILE:806:patches/patch-configure]
+--- configure.orig	2018-07-27 13:42:51 UTC
++++ configure
+@@ -57,7 +57,7 @@ case `uname` in
+ 	Linux)
+ 		alsa=yes
+ 		ldadd="-lrt"
+-		user=sndiod
++		user=_sndio
+ 		so_ldflags="-Wl,-soname=libsndio.so.\${MAJ}.\${MIN}"
+ 		so_link="libsndio.so"
+ 		defs='-D_GNU_SOURCE -DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
+@@ -89,6 +89,17 @@ case `uname` in
+ 		-DHAVE_STRLCAT -DHAVE_STRLCPY -DHAVE_STRTONUM \\\
+ 		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
+ 		;;
++	SunOS)
++		ldadd="-lrt -lsocket"
++		sun=no   # doesn't compile
++		umidi=yes
++		user=_sndio
++		so_ldflags="-Wl,-soname,libsndio.so.\${MAJ}.\${MIN}"
++		so_link="libsndio.so"
++		defs='-DHAVE_ISSETUGID -DO_CLOEXEC=0 \\\
++		-DHAVE_STRLCAT -DHAVE_STRLCPY \\\
++		-DSOCK_CLOEXEC=0 -DHAVE_CLOCK_GETTIME'
++		;;
+ 	Darwin)
+ 		rmidi=no
+ 		so="libsndio.\${MAJ}.\${MIN}.dylib"
+
+
 [FILE:222:patches/patch-libsndio_Makefile.in]
 --- libsndio/Makefile.in.orig	2018-01-13 12:32:33 UTC
 +++ libsndio/Makefile.in
@@ -126,6 +176,123 @@ share/man/man8/sndiod.8.gz
  SO = @so@
  SO_LINK = @so_link@
  
+
+
+[FILE:1039:patches/patch-libsndio_aucat.c]
+--- libsndio/aucat.c.orig	2018-07-27 13:42:51 UTC
++++ libsndio/aucat.c
+@@ -43,6 +43,26 @@
+ #define DEV_RANDOM "/dev/urandom"
+ #endif
+ 
++#ifdef __sun__
++#include <libgen.h>
++static const char *getprogname (void) {
++    static const char *progname;
++
++    if (progname == NULL) {
++        const char *e = getexecname();
++        if (e != NULL) {
++            /* Have to make a copy since getexecname can return a readonly
++               string, but basename expects to be able to modify its arg. */
++            char *n = strdup(e);
++            if (n != NULL) {
++                progname = basename(n);
++            }
++        }
++    }
++    return progname;
++}
++#endif
++
+ static int
+ random_bytes(unsigned char *buf, int len)
+ {
+@@ -493,7 +513,11 @@ parsestr(const char *str, char *rstr, un
+ int
+ _aucat_open(struct aucat *hdl, const char *str, unsigned int mode)
+ {
++#ifdef __sun__
++	const char * __progname = getprogname();
++#else
+ 	extern char *__progname;
++#endif
+ 	int eof;
+ 	char host[NI_MAXHOST], opt[AMSG_OPTMAX];
+ 	const char *p;
+
+
+[FILE:261:patches/patch-sndiod_defs.h]
+--- sndiod/defs.h.orig	2018-07-27 13:42:51 UTC
++++ sndiod/defs.h
+@@ -17,6 +17,12 @@
+ #ifndef DEFS_H
+ #define DEFS_H
+ 
++#ifdef __sun__
++#define BIG_ENDIAN 4321
++#define LITTLE_ENDIAN 1234
++#define BYTE_ORDER LITTLE_ENDIAN
++#endif
++
+ /*
+  * MIDI buffer size
+  */
+
+
+[FILE:1330:patches/patch-sndiod_sndiod.c]
+--- sndiod/sndiod.c.orig	2018-07-27 13:42:51 UTC
++++ sndiod/sndiod.c
+@@ -19,7 +19,18 @@
+ #include <sys/resource.h>
+ #include <sys/socket.h>
+ 
++#ifdef __sun__
++#define errx(exitcode, format, args...) \
++	{ warnx(format, ## args); exit(exitcode); }
++#define warnx(format, args...) \
++	fprintf(stderr, format "\n", ## args)
++#define err(exitcode, format, args...) \
++	errx(exitcode, format ": %s", ## args, strerror(errno))
++#define warn(format, args...) \
++	warnx(format ": %s", ## args, strerror(errno))
++#else
+ #include <err.h>
++#endif
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <grp.h>
+@@ -505,12 +516,29 @@ main(int argc, char **argv)
+ 	if (background) {
+ 		log_flush();
+ 		log_level = 0;
++#ifdef __sun__
++		{
++			pid_t process_id = 0;
++			pid_t sid = 0;
++			process_id = fork();
++			if (process_id < 0) { err(1, "daemon"); }
++			if (process_id > 0) { exit(0); }
++			umask(0);
++			sid = setsid();
++			if (sid < 0) { err(1, "daemon-sid"); }
++			chdir("/");
++			close(STDIN_FILENO);
++			close(STDOUT_FILENO);
++			close(STDERR_FILENO);
++		}
++#else
+ 		if (daemon(0, 0) < 0)
+ 			err(1, "daemon");
++#endif
+ 	}
+ 	if (pw != NULL) {
+ 		if (setpriority(PRIO_PROCESS, 0, SNDIO_PRIO) < 0)
+-			err(1, "setpriority");
++			warn("setpriority");
+ 		if (setgroups(1, &pw->pw_gid) ||
+ 		    setgid(pw->pw_gid) ||
+ 		    setuid(pw->pw_uid))
 
 
 [FILE:465:files/sndiod.in]

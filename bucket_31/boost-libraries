@@ -14819,6 +14819,44 @@ lib/
  #  define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
 
 
+[FILE:612:patches/patch-boost_thread_pthread_thread__data.hpp]
+--- boost/thread/pthread/thread_data.hpp.orig	2018-12-05 19:58:23 UTC
++++ boost/thread/pthread/thread_data.hpp
+@@ -32,6 +32,7 @@
+ # endif
+ #endif
+ 
++#include <limits.h>
+ #include <pthread.h>
+ #include <unistd.h>
+ 
+@@ -57,9 +58,7 @@ namespace boost
+ #else
+           std::size_t page_size = ::sysconf( _SC_PAGESIZE);
+ #endif
+-#if PTHREAD_STACK_MIN > 0
+           if (size<PTHREAD_STACK_MIN) size=PTHREAD_STACK_MIN;
+-#endif
+           size = ((size+page_size-1)/page_size)*page_size;
+           int res = pthread_attr_setstacksize(&val_, size);
+           BOOST_VERIFY(!res && "pthread_attr_setstacksize failed");
+
+
+[FILE:553:patches/patch-tools_build_src_tools_gcc.jam]
+--- tools/build/src/tools/gcc.jam.orig	2018-12-05 19:58:24 UTC
++++ tools/build/src/tools/gcc.jam
+@@ -1012,6 +1012,9 @@ toolset.flags gcc.link.dll .IMPLIB-COMMA
+ 
+     toolset.flags gcc.link OPTIONS <target-os>solaris/<strip>on : -Wl,-s ;
+ 
++    toolset.flags gcc.link HAVE_SONAME <target-os>solaris : "" ;
++    toolset.flags gcc.link SONAME_OPTION <target-os>solaris : -h ;
++
+     toolset.flags gcc.link RPATH <target-os>solaris : <dll-path> ;
+     # Solaris linker does not have a separate -rpath-link, but allows using
+     # -L for the same purpose.
+
+
 [FILE:265:files/pkg-message-python.in]
 The following options need to be added when building your own code using
 the Boost.Python library:

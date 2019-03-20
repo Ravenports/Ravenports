@@ -17,13 +17,15 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			autoreconf libtool pkgconfig
+USES=			autoreconf libtool pkgconfig solaris-funcs
 
 LICENSE=		MIT:single
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/libuv
+SOL_FUNCTIONS=		mkdtemp:src/unix/fs.c
+			strnlen:src/unix/getaddrinfo.c
 
 MUST_CONFIGURE=		gnu
 
@@ -77,25 +79,9 @@ lib/
 lib/pkgconfig/libuv.pc
 
 
-[FILE:814:patches/patch-src_unix_fs.c]
+[FILE:492:patches/patch-src_unix_fs.c]
 --- src/unix/fs.c.orig	2019-02-10 16:44:47 UTC
 +++ src/unix/fs.c
-@@ -221,7 +221,15 @@ static ssize_t uv__fs_futime(uv_fs_t* re
- 
- 
- static ssize_t uv__fs_mkdtemp(uv_fs_t* req) {
-+#ifdef __sun__
-+  char *tmplt;
-+  tmplt = mktemp((char*) req->path);
-+  if (tmplt == NULL)
-+	return (-1);
-+  return (mkdir (tmplt, 0700));
-+#else
-   return mkdtemp((char*) req->path) ? 0 : -1;
-+#endif
- }
- 
- 
 @@ -704,7 +712,6 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {
  #if defined(__linux__)                                                         \
@@ -104,29 +90,6 @@ lib/pkgconfig/libuv.pc
    /* utimesat() has nanosecond resolution but we stick to microseconds
     * for the sake of consistency with other platforms.
     */
-
-
-[FILE:405:patches/patch-src_unix_getaddrinfo.c]
---- src/unix/getaddrinfo.c.orig	2019-02-10 16:44:47 UTC
-+++ src/unix/getaddrinfo.c
-@@ -38,6 +38,17 @@
- /* EAI_* constants. */
- #include <netdb.h>
- 
-+#ifdef __sun__
-+static size_t
-+strnlen(const char *s, size_t maxlen)
-+{
-+	size_t len;
-+	for (len = 0; len < maxlen; len++, s++) {
-+		if (!*s) break;
-+	}
-+	return (len);
-+}
-+#endif
- 
- int uv__getaddrinfo_translate_error(int sys_err) {
-   switch (sys_err) {
 
 
 [FILE:713:dragonfly/patch-src_unix_freebsd.c]

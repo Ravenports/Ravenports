@@ -160,13 +160,9 @@ post-install:
 	${MKDIR} ${STAGEDIR}${SITE_MAN3}
 	${MKDIR} ${STAGEDIR}${SITE_ARCH}/auto
 	${MKDIR} ${STAGEDIR}${SITE_PERL}/auto
-	${LN} -sf ${DYLIB_FULLVER} \
-		${STAGEDIR}${PREFIX}/${_ARCH_LIB}/CORE/${DYLIB_LINK}
-	${LN} -sf ${DYLIB_FULLVER} \
-		${STAGEDIR}${PREFIX}/${_ARCH_LIB}/CORE/${DYLIB_MAJVER}
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/perl${PERL_VERSION}
 	${MKDIR} ${STAGEDIR}${SITE_ARCH}/machine
 	${MKDIR} ${STAGEDIR}${SITE_ARCH}/sys
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/perl${PERL_VERSION}
 
 	# h2ph needs perl, but perl is not installed, it's only
 	# staged, so, use the one in WRKDIR

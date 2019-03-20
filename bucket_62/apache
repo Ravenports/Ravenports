@@ -164,7 +164,6 @@ CONFIGURE_ARGS=		--enable-http
 			--enable-proxy-express=shared
 			--enable-proxy-fcgi=shared
 			--enable-proxy-http2=shared
-			--enable-proxy-fdpass=shared
 			--enable-proxy-ftp=shared
 			--enable-proxy-hcheck=shared
 			--enable-proxy-html=shared
@@ -195,6 +194,10 @@ CONFIGURE_ENV=		LOCALBASE="{{LOCALBASE}}"
 
 MAKE_ENV=		EXPR_COMPAT="yes"
 			INSTALL_MAN="{{INSTALL_MAN}}"
+
+VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
+VAR_OPSYS[linux]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
+VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
 
 [MPM_WORKER].DESCRIPTION=		Build multi-threaded, multi-process web server
 [MPM_WORKER].CONFIGURE_ARGS_ON=		--with-mpm=worker
@@ -229,7 +232,10 @@ with freely available source code.
 7dc65857a994c98370dc4334b260101a7a04be60e6e74a5c57a6dee1bc8f394a      7035030 httpd-2.4.38.tar.bz2
 
 
-[FILE:9325:manifests/plist.primary]
+[FILE:9487:manifests/plist.primary]
+%%ONLY-DRAGONFLY%%libexec/apache/mod_proxy_fdpass.%%SHARED_OBJECT%%
+%%ONLY-FREEBSD%%libexec/apache/mod_proxy_fdpass.%%SHARED_OBJECT%%
+%%ONLY-LINUX%%libexec/apache/mod_proxy_fdpass.%%SHARED_OBJECT%%
 bin/
  ab
  apxs
@@ -409,7 +415,6 @@ libexec/apache/
  mod_proxy_connect.%%SHARED_OBJECT%%
  mod_proxy_express.%%SHARED_OBJECT%%
  mod_proxy_fcgi.%%SHARED_OBJECT%%
- mod_proxy_fdpass.%%SHARED_OBJECT%%
  mod_proxy_ftp.%%SHARED_OBJECT%%
  mod_proxy_hcheck.%%SHARED_OBJECT%%
  mod_proxy_html.%%SHARED_OBJECT%%

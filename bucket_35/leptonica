@@ -22,13 +22,14 @@ BUILDRUN_DEPENDS=	tiff:primary:standard
 			openjpeg:single:standard
 			gif:single:standard
 
-USES=			png jpeg libtool
+USES=			png jpeg libtool solaris-funcs
 
 LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/src/leptonica-license.txt
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		graphics/leptonica
+SOL_FUNCTIONS=		dirfd:src/sarray1.c
 
 MUST_CONFIGURE=		gnu
 
@@ -97,21 +98,4 @@ lib/
  liblept.so.%%SOMAJOR%%
  liblept.so.%%SOVERSION%%
 lib/pkgconfig/lept.pc
-
-
-[FILE:420:patches/patch-src_sarray1.c]
---- src/sarray1.c.orig	2018-04-13 21:35:39 UTC
-+++ src/sarray1.c
-@@ -1882,7 +1882,11 @@ struct stat     st;
-         return (SARRAY *)ERROR_PTR("pdir not opened", procName, NULL);
-     }
-     safiles = sarrayCreate(0);
-+#ifdef __sun__
-+    dfd = pdir->dd_fd;
-+#else
-     dfd = dirfd(pdir);
-+#endif
-     while ((pdirentry = readdir(pdir))) {
- #if HAVE_FSTATAT
-         stat_ret = fstatat(dfd, pdirentry->d_name, &st, 0);
 

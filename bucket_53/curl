@@ -68,6 +68,9 @@ post-patch:
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's|include <gssapi.h>|include <gssapi/gssapi.h>|' \
 		${WRKSRC}/lib/curl_gssapi.h ${WRKSRC}/lib/urldata.h
+	# fix libcurl.pc
+	${REINPLACE_CMD} -e '/^Libs.private:/ s|:|: -L${OPENSSLLIB}|' \
+		${WRKSRC}/libcurl.pc.in
 
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}/libcurl \

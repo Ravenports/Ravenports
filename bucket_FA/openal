@@ -50,6 +50,8 @@ CMAKE_ARGS=		-DALSOFT_DLOPEN=Off
 			-DCMAKE_DISABLE_FIND_PACKAGE_PulseAudio:Bool=Yes
 			-DCMAKE_DISABLE_FIND_PACKAGE_QSA:Bool=Yes
 			-DALSOFT_NO_CONFIG_UTIL=On
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			LDFLAGS=-lrt
 
 post-patch:
 	${REINPLACE_CMD} 's|/etc/openal|${PREFIX}/etc/openal|' \
@@ -100,6 +102,20 @@ share/openal/presets/
  presets.txt
  rectangle.ambdec
  square.ambdec
+
+
+[FILE:355:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2018-10-11 22:05:31 UTC
++++ CMakeLists.txt
+@@ -634,7 +634,7 @@ IF(NOT HAVE_WINDOWS_H)
+ 
+     CHECK_SYMBOL_EXISTS(nanosleep time.h HAVE_NANOSLEEP)
+     IF(NOT HAVE_NANOSLEEP)
+-        MESSAGE(FATAL_ERROR "No sleep function found!")
++        SET(EXTRA_LIBS rt ${EXTRA_LIBS})
+     ENDIF()
+ 
+     # We need pthreads outside of Windows
 
 
 [FILE:382:patches/patch-OpenAL32_alBuffer.c]

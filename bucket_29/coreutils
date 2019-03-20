@@ -2,6 +2,7 @@
 
 NAMEBASE=		coreutils
 VERSION=		8.31
+REVISION=		2
 KEYWORDS=		sysutils textproc
 VARIANTS=		standard nls noprefix
 SDESC[nls]=		FSF core utilities with native language support
@@ -25,7 +26,7 @@ VOPTS[noprefix]=	NLS=ON NOPREFIX=ON
 
 BUILD_DEPENDS=		gmp:static:standard
 
-USES=			cpe gmake iconv:build perl:build charsetfix makeinfo
+USES=			cpe gmake iconv perl:build charsetfix makeinfo
 
 LICENSE=		GPLv3:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -920,6 +921,82 @@ share/man/man1/
  	 for ac_exec_ext in '' $ac_executable_extensions; do
  	   as_fn_executable_p "$as_dir/$ac_prog$ac_exec_ext" || continue
  	   case `"$as_dir/$ac_prog$ac_exec_ext" --version 2>&1` in #(
+
+
+[FILE:1514:patches/patch-src_ln.c]
+From 6a707feee86ffd8eee1f8f1e7a701693d0489ffb Mon Sep 17 00:00:00 2001
+From: Paul Eggert <eggert@cs.ucla.edu>
+Date: Sat, 16 Mar 2019 11:24:19 -0700
+Subject: [PATCH] ln: port to platforms lacking O_DIRECTORY
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+* src/ln.c (main): Port to older platforms lacking
+support for POSIX.1-2008’s O_DIRECTORY flag (Bug#34876).
+---
+ src/ln.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+--- src/ln.c
++++ src/ln.c
+@@ -610,13 +610,25 @@ main (int argc, char **argv)
+           int flags = (O_PATHSEARCH | O_DIRECTORY
+                        | (dereference_dest_dir_symlinks ? 0 : O_NOFOLLOW));
+           destdir_fd = openat_safer (AT_FDCWD, d, flags);
++          int err = errno;
++          if (!O_DIRECTORY && 0 <= destdir_fd)
++            {
++              struct stat st;
++              err = (fstat (destdir_fd, &st) != 0 ? errno
++                     : S_ISDIR (st.st_mode) ? 0 : ENOTDIR);
++              if (err != 0)
++                {
++                  close (destdir_fd);
++                  destdir_fd = -1;
++                }
++            }
+           if (0 <= destdir_fd)
+             {
+               n_files -= !target_directory;
+               target_directory = d;
+             }
+           else if (! (n_files == 2 && !target_directory))
+-            die (EXIT_FAILURE, errno, _("target %s"), quoteaf (d));
++            die (EXIT_FAILURE, err, _("target %s"), quoteaf (d));
+         }
+     }
+ 
+
+
+[FILE:938:patches/patch-src_ln.c2]
+>From 3e0dff3925b5e521cae468087950e85b60002d1c Mon Sep 17 00:00:00 2001
+From: Paul Eggert <eggert@cs.ucla.edu>
+Date: Sun, 17 Mar 2019 13:20:42 -0700
+Subject: [PATCH] ln: port to symlink ("x", ".") failing with EINVAL
+
+Problem reported by John Marino (Bug#34894).
+* src/ln.c (main): Port ln -s to Solaris symlink function,
+where symlink ("x", ".") fails with errno == EINVAL.
+---
+ src/ln.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- src/ln.c
++++ src/ln.c
+@@ -603,7 +603,8 @@ main (int argc, char **argv)
+     {
+       if (n_files == 2 && !target_directory)
+         link_errno = atomic_link (file[0], AT_FDCWD, file[1]);
+-      if (link_errno < 0 || link_errno == EEXIST || link_errno == ENOTDIR)
++      if (link_errno < 0 || link_errno == EEXIST || link_errno == ENOTDIR
++	  || link_errno == EINVAL)
+         {
+           char const *d
+             = target_directory ? target_directory : file[n_files - 1];
+-- 
+2.17.1
+
 
 
 [FILE:362:patches/patch-src_stty.c]

@@ -69,6 +69,8 @@ DESTDIRNAME=		DSTROOT
 RC_SUBR=		cupsd:primary
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-system-groups=wheel
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=LSB_BUILD=y
+			LDFLAGS=-lrt
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-system-groups=wheel
 
 post-patch:
@@ -112,16 +114,15 @@ network printers.
 50b672db6bab90bc71040ebedbfa3691cb8b5e9f0fbb13e38ced2a7610435584     10362636 apple-cups-2.2.10.tar.gz
 
 
-[FILE:13466:manifests/plist.primary]
+[FILE:13370:manifests/plist.primary]
 @sample etc/cups/cups-files.conf.sample
 @sample etc/cups/cupsd.conf.sample
 @sample etc/cups/snmp.conf.sample
 @sample etc/devd/cups.conf.sample
-%%ONLY-DRAGONFLY%%libexec/cups/backend/usb
 %%ONLY-DRAGONFLY%%share/cups/usb/org.cups.usb-quirks
-%%ONLY-FREEBSD%%libexec/cups/backend/usb
 %%ONLY-FREEBSD%%share/cups/usb/org.cups.usb-quirks
-%%ONLY-LINUX%%libexec/cups/backend/usb
+libexec/cups/backend/
+ usb
 bin/
  cancel
  cups-config
@@ -1031,7 +1032,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  #
 
 
-[FILE:2314:patches/patch-configure]
+[FILE:3805:patches/patch-configure]
 --- configure.orig	2018-12-07 19:41:56 UTC
 +++ configure
 @@ -5775,7 +5775,7 @@ fi
@@ -1039,7 +1040,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  
  case $host_os_name in
 -        darwin* | *bsd*)
-+        darwin* | *bsd* | dragonfly*)
++        darwin* | *bsd* | dragonfly* | solaris*)
                  ARFLAGS="-rcv"
                  ;;
          *)
@@ -1056,7 +1057,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  if test "$localedir" = "\${datarootdir}/locale"; then
  	case "$host_os_name" in
 -		linux* | gnu* | *bsd* | darwin*)
-+		linux* | gnu* | *bsd* | dragonfly*| darwin*)
++		linux* | gnu* | *bsd* | dragonfly*| darwin* | solaris*)
  			CUPS_LOCALEDIR="$datarootdir/locale"
  			;;
  
@@ -1065,7 +1066,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  # Server executables...
  case "$host_os_name" in
 -	*bsd* | darwin*)
-+	*bsd* | dragonfly* | darwin*)
++	*bsd* | dragonfly* | darwin* | solaris*)
  		# *BSD and Darwin (macOS)
  		INSTALL_SYSV=""
  		CUPS_SERVERBIN="$exec_prefix/libexec/cups"
@@ -1082,11 +1083,34 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  if test "$mandir" = "\${prefix}/man" -a "$prefix" = "/"; then
  	case "$host_os_name" in
 -        	darwin* | linux* | gnu* | *bsd*)
-+        	darwin* | linux* | gnu* | *bsd* | dragonfly*)
++        	darwin* | linux* | gnu* | *bsd* | dragonfly* | solaris*)
          		# Darwin, macOS, Linux, GNU HURD, and *BSD
          		mandir="/usr/share/man"
          		AMANDIR="/usr/share/man"
-@@ -6628,7 +6631,7 @@ if test x$enable_shared != xno; then
+@@ -6572,22 +6575,6 @@ fi
+ 
+ 
+ case "$host_os_name" in
+-	sunos*)
+-		# Solaris
+-		MAN1EXT=1
+-		MAN5EXT=5
+-		MAN7EXT=7
+-		MAN8EXT=1m
+-		MAN8DIR=1m
+-		;;
+-	linux* | gnu* | darwin*)
+-		# Linux, GNU Hurd, and macOS
+-		MAN1EXT=1.gz
+-		MAN5EXT=5.gz
+-		MAN7EXT=7.gz
+-		MAN8EXT=8.gz
+-		MAN8DIR=8
+-		;;
+ 	*)
+ 		# All others
+ 		MAN1EXT=1
+@@ -6628,7 +6615,7 @@ if test x$enable_shared != xno; then
  			DSOXX="\$(CXX)"
  			DSOFLAGS="$DSOFLAGS -Wl,-h\`basename \$@\` -G \$(OPTIM)"
  			;;
@@ -1095,7 +1119,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  			LIBCUPS="lib$cupsbase.so.2"
  			LIBCUPSIMAGE="libcupsimage.so.2"
  			DSO="\$(CC)"
-@@ -6709,12 +6712,11 @@ if test "$DSO" != ":"; then
+@@ -6709,12 +6696,11 @@ if test "$DSO" != ":"; then
  				EXPORT_LDFLAGS="-R$libdir"
  			fi
  			;;
@@ -1109,7 +1133,34 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  			fi
  			;;
                  linux* | gnu*)
-@@ -8733,13 +8735,7 @@ fi
+@@ -6914,13 +6900,13 @@ if test -n "$GCC"; then
+     		OPTIM="-fPIC $OPTIM"
+ 	fi
+ 
+-	# The -fstack-protector option is available with some versions of
++	# The  option is available with some versions of
+ 	# GCC and adds "stack canaries" which detect when the return address
+ 	# has been overwritten, preventing many types of exploit attacks.
+-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports -fstack-protector" >&5
+-$as_echo_n "checking whether compiler supports -fstack-protector... " >&6; }
++	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports " >&5
++$as_echo_n "checking whether compiler supports ... " >&6; }
+ 	OLDCFLAGS="$CFLAGS"
+-	CFLAGS="$CFLAGS -fstack-protector"
++	CFLAGS="$CFLAGS "
+ 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -6937,7 +6923,7 @@ if ac_fn_c_try_link "$LINENO"; then :
+ 			# Can't use stack-protector with LSB binaries...
+ 			OPTIM="$OPTIM -fno-stack-protector"
+ 		else
+-			OPTIM="$OPTIM -fstack-protector"
++			OPTIM="$OPTIM "
+ 		fi
+ 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+@@ -8733,13 +8719,7 @@ fi
  			PAMLIBS="-lpam"
  		fi
  
@@ -1120,7 +1171,7 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
 -				break;
 -			fi
 -		done
-+		PAMDIR=/usr/local/etc/pam.d
++		PAMDIR=/raven/etc/pam.d
  	fi
  
  	LIBS="$SAVELIBS"

@@ -44,6 +44,14 @@ INSTALL_REQ_TOOLCHAIN=	yes
 					python-cffi:single:py27
 [PY27].USES_ON=				python:py27
 
+post-patch:
+	${REINPLACE_CMD} -e 's|with-pic"|with-pic", "--build=${CONFIGURE_TARGET}"|'\
+		${WRKSRC}/setup.py
+
+post-patch-sunos:
+	# fails one library test
+	${SED} -i.bak.sunos -e '/make.*check/d' ${WRKSRC}/setup.py
+
 [FILE:3246:descriptions/desc.single]
 ===============================================
 PyNaCl: Python binding to the libsodium library

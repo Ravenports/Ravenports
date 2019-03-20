@@ -31,6 +31,13 @@ SINGLE_JOB=		yes
 
 [PERL_528].USES_ON=			perl:528,configure
 
+post-patch:
+	${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|' \
+		-e 's|.ENV{PKG_CONFIG_NO_OS_CUSTOMIZATION}|1|' \
+		${WRKSRC}/lib/PkgConfig.pm \
+		${WRKSRC}/script/pkg-config \
+		${WRKSRC}/script/ppkg-config
+
 [FILE:47:descriptions/desc.single]
 Pure-Perl Core-Only replacement for pkg-config
 
