@@ -2,13 +2,17 @@
 
 NAMEBASE=		ravensys-toolchain
 VERSION=		3.0
+REVISION=		2
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	Compiler and binutils toolchain for Ravenports
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	none
+DOWNLOAD_GROUPS=	main
+SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/lld/
+DISTFILE[1]=		lld-single-standard-7.0.1.sunos.tar.zst:main
+DF_INDEX=		1
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
@@ -17,6 +21,8 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		binutils:single:ravensys
 			Zstandard:static:standard
 			ravensys-selector:single:standard
+
+EXTRACT_DIRTY=		1
 
 PREFIX=			{{LOCALBASE}}/share/raven/toolchain
 
@@ -35,14 +41,14 @@ PLIST_SUB=		COMPVER=8.3.0
 			GCCX=gcc8
 			BUVER=2.32
 
-do-extract:
-	${MKDIR} ${WRKSRC}
-	${CP} ${FILESDIR}/Makefile ${WRKSRC}/
-
 post-install:
 	${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
 		${SED} -e 's,^${STAGEDIR}${PREFIX}/,,' \
 		>> ${WRKDIR}/.manifest.single.mktmp
+
+post-extract:
+	${MKDIR} ${WRKSRC}
+	${CP} ${FILESDIR}/Makefile ${WRKSRC}/
 
 [FILE:179:descriptions/desc.single]
 This assembles a toolchain of the default compiler and binutils, and
@@ -50,7 +56,11 @@ relocates it to the share/raven directory.  It's purpose is to be the
 toolchain mount for build environments.
 
 
-[FILE:57597:manifests/plist.single]
+[FILE:118:distinfo]
+e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
+
+
+[FILE:57636:manifests/plist.single]
 %%EXCLUDE-DARWIN%%%%GCCX%%/%%ASLIB%%/
  libatomic.so.1.2.0
  libcc1.%%SHARED_OBJECT%%.0
@@ -3609,7 +3619,11 @@ toolchain mount for build environments.
 %%ONLY-SUNOS%%%%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  sol2.h
  sysv4.h
-%%ONLY-SUNOS%%bin/ld.sun
+%%ONLY-SUNOS%%bin/
+ ld.lld
+ ld.sun
+ ld64.lld
+ lld
 bin/
  addr2line
  ar
@@ -3625,6 +3639,7 @@ bin/
  strip
 include/
  bfd.h
+ bfd_stdint.h
  bfdlink.h
  diagnostics.h
  dis-asm.h
@@ -3641,7 +3656,7 @@ share/
  binutils-single-ravensys-%%BUVER%%.tzst
 
 
-[FILE:1587:files/Makefile]
+[FILE:1692:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -3680,5 +3695,7 @@ install:
 	rm ${DESTDIR}${PREFIX}/bin/ld
 	cp ${LOCALBASE}/libexec/ld ${DESTDIR}${PREFIX}/bin/
 	cp /usr/bin/ld.sun ${DESTDIR}${PREFIX}/bin/
+	(cd ../ravensys-toolchain_1${LOCALBASE}/bin/ && \
+	 cp -a lld ld.lld ld64.lld ${DESTDIR}${PREFIX}/bin/)
 .endif
 
