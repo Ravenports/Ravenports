@@ -17,11 +17,10 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		python-Sphinx:single:python_default
-			llvm:single:standard
+BUILD_DEPENDS=		llvm:single:standard
+			zlib:static:standard
 
-USES=			cmake ncurses zlib execinfo c++:single
-GNOME_COMPONENTS=	libxml2
+USES=			cmake c++:single solaris-funcs bdb:static
 
 DISTNAME=		lld-7.0.1.src
 
@@ -31,13 +30,24 @@ LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/LICENSE.TXT
 LICENSE_SCHEME=		solo
 
 CMAKE_BUILD_TYPE=	Release
+SOL_FUNCTIONS=		strnlen:lib/ReaderWriter/MachO/MachONormalizedFileBinaryUtils.h
 
-CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
-			-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
-			-DLLVM_ENABLE_SPHINX=ON
+VAR_OPSYS[sunos]=	VAR1=socket;nsl;
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
+	${MV} /tmp/*.so ${LOCALBASE}/lib/
+	${MV} /tmp/*.cmake ${LOCALBASE}/lib/cmake/llvm/LLVMExports.cmake
+
+post-extract:
+	# prevent lld linking execinfo & tinfo  as a shared library
+	# insert link requirement to libdb (version 5) for static libtinfo
+	${MV} ${LOCALBASE}/lib/libexecinfo.so /tmp
+	${MV} ${LOCALBASE}/lib/libtinfo.so /tmp
+	${MV} ${LOCALBASE}/lib/libz.so /tmp
+	${MV} ${LOCALBASE}/lib/cmake/llvm/LLVMExports.cmake /tmp
+	${SED} -e 's|;tinfo;|;tinfo;db;${VAR1}|' /tmp/LLVMExports.cmake \
+		> ${LOCALBASE}/lib/cmake/llvm/LLVMExports.cmake
 
 [FILE:308:descriptions/desc.single]
 LLD is a linker from the LLVM project. That is a drop-in replacement for
