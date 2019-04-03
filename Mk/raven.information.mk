@@ -190,7 +190,7 @@ XORG_VERSION=			7.7
 FIREFOX52_VERSION=		52.9.0
 FIREFOX_ESR_VERSION=		60.6.1
 FIREFOX_VERSION=		65.0.2
-LLVM_VERSION=			7.0.1
+LLVM_VERSION=			8.0.0
 
 # ------------------------------------------------------------------------
 # Gnatcross options
