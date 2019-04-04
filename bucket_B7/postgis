@@ -14,15 +14,14 @@ DISTFILE[1]=		postgis-2.5.2.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SFCGAL
+OPTIONS_STANDARD=	SFCGAL
 
 BUILD_DEPENDS=		pcre:static:standard
 BUILDRUN_DEPENDS=	pcre:shared:standard
 			proj:single:standard
 			geos:single:standard
 			gdal:single:standard
-			sfcgal:single:standard
 			json-c:single:standard
 
 USES=			gmake iconv libtool:keepla perl:build pkgconfig
@@ -45,10 +44,13 @@ CONFIGURE_ARGS=		{{ICONV_CONFIGURE_BASE}}
 			--with-address-standardizer
 			--with-gui
 			--with-gdalconfig={{LOCALBASE}}/bin/gdal-config
-			--with-sfcgal={{LOCALBASE}}/bin/sfcgal-config
 
 PLIST_SUB=		VERSION=2.5.2
 			XDOTY=2.5
+
+[SFCGAL].DESCRIPTION=			Build with sfcgal support
+[SFCGAL].BUILDRUN_DEPENDS_ON=		sfcgal:single:standard
+[SFCGAL].CONFIGURE_ARGS_ON=		--with-sfcgal={{LOCALBASE}}/bin/sfcgal-config
 
 post-patch:
 	${FIND} ${WRKSRC}/extras/tiger_geocoder ${WRKSRC}/utils \
@@ -86,7 +88,66 @@ Committee and new features continue to be added.
 b6cb286c5016029d984f8c440947bf9178da72e1f6f840ed639270e1c451db5e     16252761 postgis-2.5.2.tar.gz
 
 
-[FILE:13202:manifests/plist.single]
+[FILE:13301:manifests/plist.single]
+%%SFCGAL-ON%%/share/postgresql/extension/
+ postgis_sfcgal--%%VERSION%%--%%VERSION%%next.sql
+ postgis_sfcgal--%%VERSION%%.sql
+ postgis_sfcgal--%%VERSION%%next--%%VERSION%%.sql
+ postgis_sfcgal--2.0.0--%%VERSION%%.sql
+ postgis_sfcgal--2.0.1--%%VERSION%%.sql
+ postgis_sfcgal--2.0.2--%%VERSION%%.sql
+ postgis_sfcgal--2.0.3--%%VERSION%%.sql
+ postgis_sfcgal--2.0.4--%%VERSION%%.sql
+ postgis_sfcgal--2.0.5--%%VERSION%%.sql
+ postgis_sfcgal--2.0.6--%%VERSION%%.sql
+ postgis_sfcgal--2.0.7--%%VERSION%%.sql
+ postgis_sfcgal--2.1.0--%%VERSION%%.sql
+ postgis_sfcgal--2.1.1--%%VERSION%%.sql
+ postgis_sfcgal--2.1.2--%%VERSION%%.sql
+ postgis_sfcgal--2.1.3--%%VERSION%%.sql
+ postgis_sfcgal--2.1.4--%%VERSION%%.sql
+ postgis_sfcgal--2.1.5--%%VERSION%%.sql
+ postgis_sfcgal--2.1.6--%%VERSION%%.sql
+ postgis_sfcgal--2.1.7--%%VERSION%%.sql
+ postgis_sfcgal--2.1.8--%%VERSION%%.sql
+ postgis_sfcgal--2.1.9--%%VERSION%%.sql
+ postgis_sfcgal--2.2.0--%%VERSION%%.sql
+ postgis_sfcgal--2.2.1--%%VERSION%%.sql
+ postgis_sfcgal--2.2.2--%%VERSION%%.sql
+ postgis_sfcgal--2.2.3--%%VERSION%%.sql
+ postgis_sfcgal--2.2.4--%%VERSION%%.sql
+ postgis_sfcgal--2.2.5--%%VERSION%%.sql
+ postgis_sfcgal--2.2.6--%%VERSION%%.sql
+ postgis_sfcgal--2.2.7--%%VERSION%%.sql
+ postgis_sfcgal--2.2.8--%%VERSION%%.sql
+ postgis_sfcgal--2.3.0--%%VERSION%%.sql
+ postgis_sfcgal--2.3.1--%%VERSION%%.sql
+ postgis_sfcgal--2.3.2--%%VERSION%%.sql
+ postgis_sfcgal--2.3.3--%%VERSION%%.sql
+ postgis_sfcgal--2.3.4--%%VERSION%%.sql
+ postgis_sfcgal--2.3.5--%%VERSION%%.sql
+ postgis_sfcgal--2.3.6--%%VERSION%%.sql
+ postgis_sfcgal--2.3.7--%%VERSION%%.sql
+ postgis_sfcgal--2.3.8--%%VERSION%%.sql
+ postgis_sfcgal--2.3.9--%%VERSION%%.sql
+ postgis_sfcgal--2.4.0--%%VERSION%%.sql
+ postgis_sfcgal--2.4.1--%%VERSION%%.sql
+ postgis_sfcgal--2.4.2--%%VERSION%%.sql
+ postgis_sfcgal--2.4.3--%%VERSION%%.sql
+ postgis_sfcgal--2.4.4--%%VERSION%%.sql
+ postgis_sfcgal--2.4.5--%%VERSION%%.sql
+ postgis_sfcgal--2.4.6--%%VERSION%%.sql
+ postgis_sfcgal--2.4.7--%%VERSION%%.sql
+ postgis_sfcgal--2.5.0--%%VERSION%%.sql
+ postgis_sfcgal--2.5.1--%%VERSION%%.sql
+ postgis_sfcgal--2.5.2dev--%%VERSION%%.sql
+ postgis_sfcgal--ANY--%%VERSION%%.sql
+ postgis_sfcgal--unpackaged--%%VERSION%%.sql
+ postgis_sfcgal.control
+%%SFCGAL-ON%%share/postgresql/contrib/postgis-%%XDOTY%%/
+ sfcgal.sql
+ sfcgal_upgrade.sql
+ uninstall_sfcgal.sql
 bin/
  pgsql2shp
  raster2pgsql
@@ -209,9 +270,7 @@ share/postgresql/contrib/postgis-%%XDOTY%%/
  rtpostgis_proc_set_search_path.sql
  rtpostgis_upgrade.sql
  rtpostgis_upgrade_for_extension.sql
- sfcgal.sql
  sfcgal_comments.sql
- sfcgal_upgrade.sql
  spatial_ref_sys.sql
  topology.sql
  topology_comments.sql
@@ -219,7 +278,6 @@ share/postgresql/contrib/postgis-%%XDOTY%%/
  uninstall_legacy.sql
  uninstall_postgis.sql
  uninstall_rtpostgis.sql
- uninstall_sfcgal.sql
  uninstall_topology.sql
 share/postgresql/extension/
  address_standardizer--%%VERSION%%--%%VERSION%%next.sql
@@ -287,60 +345,6 @@ share/postgresql/extension/
  postgis--ANY--%%VERSION%%.sql
  postgis--unpackaged--%%VERSION%%.sql
  postgis.control
- postgis_sfcgal--%%VERSION%%--%%VERSION%%next.sql
- postgis_sfcgal--%%VERSION%%.sql
- postgis_sfcgal--%%VERSION%%next--%%VERSION%%.sql
- postgis_sfcgal--2.0.0--%%VERSION%%.sql
- postgis_sfcgal--2.0.1--%%VERSION%%.sql
- postgis_sfcgal--2.0.2--%%VERSION%%.sql
- postgis_sfcgal--2.0.3--%%VERSION%%.sql
- postgis_sfcgal--2.0.4--%%VERSION%%.sql
- postgis_sfcgal--2.0.5--%%VERSION%%.sql
- postgis_sfcgal--2.0.6--%%VERSION%%.sql
- postgis_sfcgal--2.0.7--%%VERSION%%.sql
- postgis_sfcgal--2.1.0--%%VERSION%%.sql
- postgis_sfcgal--2.1.1--%%VERSION%%.sql
- postgis_sfcgal--2.1.2--%%VERSION%%.sql
- postgis_sfcgal--2.1.3--%%VERSION%%.sql
- postgis_sfcgal--2.1.4--%%VERSION%%.sql
- postgis_sfcgal--2.1.5--%%VERSION%%.sql
- postgis_sfcgal--2.1.6--%%VERSION%%.sql
- postgis_sfcgal--2.1.7--%%VERSION%%.sql
- postgis_sfcgal--2.1.8--%%VERSION%%.sql
- postgis_sfcgal--2.1.9--%%VERSION%%.sql
- postgis_sfcgal--2.2.0--%%VERSION%%.sql
- postgis_sfcgal--2.2.1--%%VERSION%%.sql
- postgis_sfcgal--2.2.2--%%VERSION%%.sql
- postgis_sfcgal--2.2.3--%%VERSION%%.sql
- postgis_sfcgal--2.2.4--%%VERSION%%.sql
- postgis_sfcgal--2.2.5--%%VERSION%%.sql
- postgis_sfcgal--2.2.6--%%VERSION%%.sql
- postgis_sfcgal--2.2.7--%%VERSION%%.sql
- postgis_sfcgal--2.2.8--%%VERSION%%.sql
- postgis_sfcgal--2.3.0--%%VERSION%%.sql
- postgis_sfcgal--2.3.1--%%VERSION%%.sql
- postgis_sfcgal--2.3.2--%%VERSION%%.sql
- postgis_sfcgal--2.3.3--%%VERSION%%.sql
- postgis_sfcgal--2.3.4--%%VERSION%%.sql
- postgis_sfcgal--2.3.5--%%VERSION%%.sql
- postgis_sfcgal--2.3.6--%%VERSION%%.sql
- postgis_sfcgal--2.3.7--%%VERSION%%.sql
- postgis_sfcgal--2.3.8--%%VERSION%%.sql
- postgis_sfcgal--2.3.9--%%VERSION%%.sql
- postgis_sfcgal--2.4.0--%%VERSION%%.sql
- postgis_sfcgal--2.4.1--%%VERSION%%.sql
- postgis_sfcgal--2.4.2--%%VERSION%%.sql
- postgis_sfcgal--2.4.3--%%VERSION%%.sql
- postgis_sfcgal--2.4.4--%%VERSION%%.sql
- postgis_sfcgal--2.4.5--%%VERSION%%.sql
- postgis_sfcgal--2.4.6--%%VERSION%%.sql
- postgis_sfcgal--2.4.7--%%VERSION%%.sql
- postgis_sfcgal--2.5.0--%%VERSION%%.sql
- postgis_sfcgal--2.5.1--%%VERSION%%.sql
- postgis_sfcgal--2.5.2dev--%%VERSION%%.sql
- postgis_sfcgal--ANY--%%VERSION%%.sql
- postgis_sfcgal--unpackaged--%%VERSION%%.sql
- postgis_sfcgal.control
  postgis_tiger_geocoder--%%VERSION%%--%%VERSION%%next.sql
  postgis_tiger_geocoder--%%VERSION%%.sql
  postgis_tiger_geocoder--%%VERSION%%next--%%VERSION%%.sql

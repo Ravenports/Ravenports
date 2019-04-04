@@ -2,6 +2,7 @@
 
 NAMEBASE=		gps
 VERSION=		2018
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	GNAT Programming Studio - IDE for Ada plus
@@ -24,17 +25,16 @@ OPTIONS_STANDARD=	DEBUG
 BUILD_DEPENDS=		gnat-util:single:standard
 			gnatcoll-db:complete:standard
 			gnatcoll-bindings:python:standard
-			python-Sphinx:single:py27
 BUILDRUN_DEPENDS=	fontconfig:primary:standard
 			freetype:primary:standard
 			clang:compiler:standard
 			gtkada:primary:standard
-			python-pygobject:primary:py27
-			libadalang:single:py27
+			python-pygobject:primary:python_used
+			libadalang:single:python_used
 RUN_DEPENDS=		librsvg:primary:standard
 			gdb:single:standard
-			python-pep8:single:py27
-			python-jedi:single:py27
+			python-pep8:single:python_used
+			python-jedi:single:python_used
 EXRUN[primary]=		gcc8:complete:standard
 
 USES=			gprbuild:buildrun gettext-tools gmake pkgconfig zlib
@@ -100,14 +100,15 @@ do-build:
 	${CP} ${PREFIX}/include/gnat-util/impunit.* ${WRKSRC}/distrib
 	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_ARGS} ${BUILD_TARGET}
-	cd ${WRKSRC}/docs && ${SETENV} ${MAKE_ENV} \
-		${MAKE_CMD} ${MAKE_ARGS} all
+	# block all docs (Sphinx is python3 only)
+	# cd ${WRKSRC}/docs && ${SETENV} ${MAKE_ENV} \
+	#	${MAKE_CMD} ${MAKE_ARGS} all
 	${PYTHON_CMD} ${PREFIX}/lib/python${PYTHON_VER}/compileall.py ${WRKSRC}/share/plug-ins
 	${PYTHON_CMD} ${PREFIX}/lib/python${PYTHON_VER}/compileall.py ${WRKSRC}/share/library
 	${PYTHON_CMD} ${PREFIX}/lib/python${PYTHON_VER}/compileall.py ${WRKSRC}/share/support
 
 post-install:
-	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/gps/html/*/_sources
+	# ${RM} -r ${STAGEDIR}${PREFIX}/share/doc/gps/html/*/_sources
 	${FIND} ${STAGEDIR}${PREFIX} -type f -name ".gitignore" -delete
 	${INSTALL_SCRIPT} ${WRKDIR}/gps ${STAGEDIR}${PREFIX}/bin
 	echo "This is the GPS GPL Edition for Ravenports." \
