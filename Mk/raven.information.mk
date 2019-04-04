@@ -107,7 +107,7 @@ GCC8_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			63.1
+ICU_VERSION=			64.1
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
@@ -189,7 +189,7 @@ GSTREAMER1_SOVERSION=		0.1502.0
 XORG_VERSION=			7.7
 FIREFOX52_VERSION=		52.9.0
 FIREFOX_ESR_VERSION=		60.6.1
-FIREFOX_VERSION=		65.0.2
+FIREFOX_VERSION=		66.0.2
 LLVM_VERSION=			8.0.0
 
 # ------------------------------------------------------------------------
