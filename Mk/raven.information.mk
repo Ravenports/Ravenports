@@ -170,7 +170,7 @@ ASPELL_CORE_VERSION=		0.60.6.1
 # apr1 and other apache projects
 # ------------------------------------------------------------------------
 
-APR1_VERSION=			1.6.5
+APR1_VERSION=			1.7.0
 APR1_UTIL_VERSION=		1.6.1
 SUBVERSION_VERSION=		1.11.1
 
