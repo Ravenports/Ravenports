@@ -204,5 +204,5 @@ GNATCROSS_FREEBSD_12=		12.0
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.12.2
-LUMINA_VERSION=			1.4.1
-LUMINA_RELEASE_TAG=		b6536c1
+LUMINA_VERSION=			1.4.0p1
+LUMINA_RELEASE_TAG=		1.4.0-p1
