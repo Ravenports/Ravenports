@@ -2,6 +2,7 @@
 
 NAMEBASE=		tumbler
 VERSION=		0.2.3
+REVISION=		1
 KEYWORDS=		deskutils
 VARIANTS=		standard
 SDESC[standard]=	D-Bus thumbnailing service for Xfce
@@ -19,9 +20,13 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			gettext-tools:build gettext-runtime gmake libtool
-			pkgconfig python:build
-GNOME_COMPONENTS=	glib intltool
+BUILDRUN_DEPENDS=	freetype:primary:standard
+			libexif:single:standard
+			gstreamer1:single:standard
+
+USES=			gettext-tools:build gettext-runtime gmake jpeg
+			libtool pkgconfig python:build
+GNOME_COMPONENTS=	gdkpixbuf glib intltool libgsf
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -34,8 +39,14 @@ FPC_EQUIVALENT=		deskutils/xfce4-tumbler
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-nls
+			--enable-font-thumbnailer
+			--enable-gstreamer-thumbnailer
+			--enable-jpeg-thumbnailer
+			--enable-odf-thumbnailer
+			--enable-pixbuf-thumbnailer
 
 INSTALL_TARGET=		install-strip
+INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.0.0
 SUB_FILES=		pkg-message
 
@@ -55,7 +66,7 @@ to enable/disable a plugin and set priority, location and size limits.
 d022e1bd1559fba33e4bf20fb053b219eca17676ebffb1ceb214fcd58a187d40       538109 tumbler-0.2.3.tar.bz2
 
 
-[FILE:2746:manifests/plist.primary]
+[FILE:2994:manifests/plist.primary]
 etc/xdg/tumbler/tumbler.rc
 include/tumbler-1/tumbler/
  tumbler-abstract-thumbnailer.h
@@ -81,6 +92,15 @@ lib/
  libtumbler-1.so.%%SOVERSION%%
 lib/pkgconfig/tumbler-1.pc
 lib/tumbler-1/tumblerd
+lib/tumbler-1/plugins/
+ tumbler-desktop-thumbnailer.so
+ tumbler-font-thumbnailer.so
+ tumbler-jpeg-thumbnailer.so
+ tumbler-odf-thumbnailer.so
+ tumbler-pixbuf-thumbnailer.so
+lib/tumbler-1/plugins/cache/
+ tumbler-cache-plugin.so
+ tumbler-xdg-cache.so
 share/dbus-1/services/
  org.xfce.Tumbler.Cache1.service
  org.xfce.Tumbler.Manager1.service
