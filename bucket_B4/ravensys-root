@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		2.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -121,6 +121,7 @@ MAKE_ENV=		OPSYS="{{OPSYS}}"
 			libcrypt={{Libcrypt_{{OPSYS}}}}
 			libkvm={{Libkvm_{{OPSYS}}}}
 			librt={{Librt_{{OPSYS}}}}
+			librpcsvc={{Librpcsvc_{{OPSYS}}}}
 SINGLE_JOB=		yes
 
 PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
@@ -131,6 +132,7 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBCRYPT={{Libcrypt_{{OPSYS}}}}
 			SONAME_LIBKVM={{Libkvm_{{OPSYS}}}}
 			SONAME_LIBRT={{Librt_{{OPSYS}}}}
+			SONAME_LIBRPCSVC={{Librpcsvc_{{OPSYS}}}}
 			BASE={{SYSPATH}}
 
 [MACOS].DESCRIPTION=			Ravenports system root for MacOS/Darwin
@@ -340,7 +342,7 @@ f5b76ad0e3316cd99703bbc59c056fad02be0de6c0d9316dd437b89732dc0ff1        73590 li
 a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 libacl1_2.2.52-3_amd64.deb
 
 
-[FILE:15448:manifests/plist.single.dragonfly]
+[FILE:15497:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -1533,6 +1535,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  %%SONAME_LIBCRYPT%%
  %%SONAME_LIBKVM%%
  %%SONAME_LIBM%%
+ %%SONAME_LIBRPCSVC%%
  %%SONAME_LIBRT%%
  %%SONAME_LIBUSB%%
  %%SONAME_LIBUSBHID%%
@@ -1568,6 +1571,8 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  libpthread.a
  libpthread.so
  libpthread.so.0
+ librpcsvc.a
+ librpcsvc.so
  librt.a
  librt.so
  libsbuf.a
@@ -1616,7 +1621,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:16284:manifests/plist.single.freebsd_amd64]
+[FILE:16333:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -2897,6 +2902,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  %%SONAME_LIBCRYPT%%
  %%SONAME_LIBKVM%%
  %%SONAME_LIBM%%
+ %%SONAME_LIBRPCSVC%%
  %%SONAME_LIBRT%%
  %%SONAME_LIBUSB%%
  %%SONAME_LIBUSBHID%%
@@ -2936,6 +2942,8 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  libprocstat.so.1
  libpthread.a
  libpthread.so
+ librpcsvc.a
+ librpcsvc.so
  librt.a
  librt.so
  libsbuf.so.6
@@ -8733,7 +8741,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:22867:files/Makefile]
+[FILE:22959:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -8883,6 +8891,7 @@ static_lib_generic=	/usr/lib/libc.a \
 			/usr/lib/librt.a \
 			/usr/lib/libutil.a \
 			/usr/lib/libcrypt.a \
+			/usr/lib/librpcsvc.a \
 			/usr/lib/libpthread.a
 static_lib_FreeBSD=	${static_lib_generic} \
 			/usr/lib/libbsdxml.a \
@@ -8939,6 +8948,7 @@ dynamic_generic=	/lib/${libc} \
 			/lib/${libutil} \
 			/lib/${libcrypt} \
 			/lib/${libkvm} \
+			/usr/lib/${librpcsvc} \
 			/usr/lib/${librt}
 dynamic_lib_FreeBSD=	${dynamic_generic} \
 			/lib/${Libbsdxml_FreeBSD} \
@@ -9417,6 +9427,7 @@ install:
 		ln -s ${libkvm} libkvm.so && \
 		ln -s ${libcrypt} libcrypt.so && \
 		ln -s ${libutil} libutil.so && \
+		ln -s ${librpcsvc} librpcsvc.so && \
 		ln -s ${libusb} libusb.so && \
 		ln -s ${libusbhid} libusbhid.so)
 	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/lorder ${DESTDIR}${BASE}/usr/bin/
@@ -9724,7 +9735,7 @@ saned:x:120:128::/var/lib/saned:/bin/false
 usbmux:x:121:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
 
 
-[FILE:580:files/special.mk]
+[FILE:651:files/special.mk]
 Libc_DragonFly=		libc.so.8
 Libc_FreeBSD=		libc.so.7
 
@@ -9748,6 +9759,9 @@ Libkvm_FreeBSD=		libkvm.so.7
 
 Librt_DragonFly=	librt.so.0
 Librt_FreeBSD=		librt.so.1
+
+Librpcsvc_DragonFly=	librpcsvc.so.3
+Librpcsvc_FreeBSD=	librpcsvc.so.5
 
 SYSPATH=		share/raven/sysroot/${OPSYS}
 RSYS=			${PREFIX}/${SYSPATH}
