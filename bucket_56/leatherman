@@ -2,6 +2,7 @@
 
 NAMEBASE=		leatherman
 VERSION=		1.6.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	C++ and CMake utility libraries
@@ -34,7 +35,8 @@ SOVERSION=		1.6.0
 CXXFLAGS=		-Wno-class-memaccess
 			-Wno-ignored-qualifiers
 CMAKE_ARGS=		-DLEATHERMAN_SHARED:BOOL=ON
-			-DLEATHERMAN_ENABLE_TESTING:BOOL=OFF
+			-DENABLE_CXX_WERROR:BOOL=OFF
+			-DBoost_NO_BOOST_CMAKE:BOOL=ON
 
 post-patch:
 	${REINPLACE_CMD} -e 's/ -Werror//' ${WRKSRC}/cmake/cflags.cmake
@@ -186,6 +188,19 @@ share/locale/fr/LC_MESSAGES/
  leatherman_logging.mo
 
 
+[FILE:314:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2019-02-22 14:18:43 UTC
++++ CMakeLists.txt
+@@ -57,6 +57,7 @@ else()
+     add_definitions(-DLEATHERMAN_LOCALE_INSTALL="${CMAKE_INSTALL_PREFIX}/share/locale")
+ endif()
+ 
++set(BUILD_SHARED_LIBS ON)
+ file(GLOB_RECURSE ALL_LEATHERMAN_SOURCES */src/*.cc */inc/*.hpp)
+ add_subdirectory(locales)
+ 
+
+
 [FILE:483:patches/patch-cmake_leatherman.cmake.in]
 --- cmake/leatherman.cmake.in.orig	2018-12-13 17:34:43 UTC
 +++ cmake/leatherman.cmake.in
@@ -201,6 +216,25 @@ share/locale/fr/LC_MESSAGES/
  endmacro()
  
  # Usage: add_cppcheck_dirs(dir1 dir2)
+
+
+[FILE:543:patches/patch-json__container_tests_json__container__test.cc]
+--- json_container/tests/json_container_test.cc.orig	2018-09-29 16:21:31 UTC
++++ json_container/tests/json_container_test.cc
+@@ -22,11 +22,13 @@ TEST_CASE("JsonContainer::JsonContainer 
+     std::string json_value {};
+ 
+     SECTION("it should instantiate by passing any JSON value") {
++        json_value = "{}";
+         SECTION("object") {
+             json_value = JSON;
+         }
+ 
+         SECTION("array") {
++            json_value = "[]";
+             SECTION("of numbers") {
+                 json_value = "[1, 2, 3]";
+             }
 
 
 [FILE:472:patches/patch-locale_src_locale.cc]
