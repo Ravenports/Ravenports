@@ -131,9 +131,6 @@ LIBXSLT_PYTHON_REVISION=	0
 # ruby
 # ------------------------------------------------------------------------
 
-RUBY_2.3_REVISION=		0
-RUBY_2.3_PATCHLEVEL=		0
-
 RUBY_2.4_REVISION=		0
 RUBY_2.4_PATCHLEVEL=		0
 
@@ -191,6 +188,7 @@ FIREFOX52_VERSION=		52.9.0
 FIREFOX_ESR_VERSION=		60.6.1
 FIREFOX_VERSION=		66.0.3
 LLVM_VERSION=			8.0.0
+ZLIB_VERSION=			1.2.11
 
 # ------------------------------------------------------------------------
 # Gnatcross options
