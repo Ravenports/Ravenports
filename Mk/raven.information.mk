@@ -107,7 +107,7 @@ GCC8_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			64.1
+ICU_VERSION=			64.2
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
@@ -201,6 +201,6 @@ GNATCROSS_FREEBSD_12=		12.0
 # Qt and Lumina versions
 # ------------------------------------------------------------------------
 
-QT5_VERSION=			5.12.2
+QT5_VERSION=			5.12.3
 LUMINA_VERSION=			1.4.0p1
 LUMINA_RELEASE_TAG=		1.4.0-p1
