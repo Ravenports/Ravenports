@@ -53,17 +53,11 @@ post-patch:
 	${REINPLACE_CMD} -e 's:gawk:awk:g' ${WRKSRC}/configure \
 		${WRKSRC}/libcharset/configure
 
-post-install-linux:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/preloadable_libiconv.so
-
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 	# install-strip doesn't seem to work
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libcharset.${LIBEXT}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libiconv.${LIBEXT}
-
-post-install-sunos:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/preloadable_libiconv.so
 
 [FILE:621:descriptions/desc.static]
 This library provides an iconv() implementation, for use on systems which
@@ -108,9 +102,7 @@ share/man/man3/
  iconvctl.3.gz
 
 
-[FILE:217:manifests/plist.shared]
-%%ONLY-LINUX%%lib/preloadable_libiconv.so
-%%ONLY-SUNOS%%lib/preloadable_libiconv.so
+[FILE:133:manifests/plist.shared]
 bin/iconv
 lib/
  libcharset.so
@@ -214,41 +206,4 @@ lib/
  	esac
  	$(INSTALL_PROGRAM_ENV) $(LIBTOOL_INSTALL) $(INSTALL_PROGRAM) iconv$(EXEEXT) $(DESTDIR)$(bindir)/iconv$(EXEEXT)
  
-
-
-[FILE:958:freebsd/patch-libcharset_lib_config.charset]
---- libcharset/lib/config.charset.orig	2016-12-02 12:16:58 UTC
-+++ libcharset/lib/config.charset
-@@ -383,6 +383,31 @@ case "$os" in
-     echo "ja_JP.Shift_JIS SHIFT_JIS"
-     echo "ko_KR.EUC EUC-KR"
-     ;;
-+  freebsd*)
-+	echo "US-ASCII ASCII"
-+	echo "ISO8859-1 ISO-8859-1"
-+	echo "ISO_8859-1 ISO-8859-1"
-+	echo "ISO8859-2 ISO-8859-2"
-+	echo "ISO_8859-2 ISO-8859-2"
-+	echo "ISO8859-4 ISO-8859-4"
-+	echo "ISO_8859-4 ISO-8859-4"
-+	echo "ISO8859-5 ISO-8859-5"
-+	echo "ISO_8859-5 ISO-8859-5"
-+	echo "ISO8859-7 ISO-8859-7"
-+	echo "ISO_8859-7 ISO-8859-7"
-+	echo "ISO8859-9 ISO-8859-9"
-+	echo "ISO_8859-9 ISO-8859-9"
-+	echo "ISO8859-13 ISO-8859-13"
-+	echo "ISO_8859-13 ISO-8859-13"
-+	echo "ISO8859-15 ISO-8859-15"
-+	echo "ISO_8859-15 ISO-8859-15"
-+	echo "eucCN GB2312"
-+	echo "eucJP EUC-JP"
-+	echo "eucKR EUC-KR"
-+	echo "Big5 BIG5"
-+	echo "Big5HKSCS BIG5-HKSCS"
-+	echo "SJIS SHIFT_JIS"
-+        ;;
-   netbsd*)
-     echo "646 ASCII"
-     echo "ISO8859-1 ISO-8859-1"
 

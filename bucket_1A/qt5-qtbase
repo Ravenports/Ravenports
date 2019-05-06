@@ -23,8 +23,8 @@ BUILDRUN_DEPENDS=	pcre2:primary:standard
 			libxkbcommon:single:standard
 			at-spi2-atk:single:standard
 
-USES=			qt5 zlib png sqlite jpeg pkgconfig execinfo iconv
-			perl:build shebangfix ssl:openssl-devel
+USES=			qt5 gmake zlib png sqlite jpeg pkgconfig execinfo
+			iconv perl:build shebangfix ssl:openssl-devel
 XORG_COMPONENTS=	xcb xcb-util xcb-util-image xcb-util-keysyms
 			xcb-util-wm xcb-render-util
 
@@ -44,6 +44,7 @@ CONFIGURE_ARGS=		-system-harfbuzz
 			-system-freetype
 			-xkbcommon
 			-shared
+			-release
 			-icu
 			-sql-sqlite
 			-dbus-runtime
@@ -54,6 +55,11 @@ CONFIGURE_ARGS=		-system-harfbuzz
 			{{LOCALBASE}}/lib
 			-I
 			{{LOCALBASE}}/include
+			-nomake
+			examples
+			-nomake
+			tests
+			-verbose
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		5.12.3
@@ -75,6 +81,8 @@ LDFLAGS=		-Wl,-rpath,{{OPENSSLLIB}}
 VAR_OPSYS[freebsd]=	VAR1=freebsd
 VAR_OPSYS[sunos]=	VAR1=solaris
 VAR_OPSYS[linux]=	VAR1=linux
+			CONFIGURE_ARGS=-L
+			CONFIGURE_ARGS=/usr/lib/x86_64-linux-gnu/
 VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 
 post-patch:
@@ -102,7 +110,7 @@ This package contains the Qt5 qtbase submodule.
 fddfd8852ef7503febeed67b876d1425160869ae2b1ae8e10b3fb0fedc5fe701     48382148 qtbase-everywhere-src-5.12.3.tar.xz
 
 
-[FILE:70291:manifests/plist.single]
+[FILE:71673:manifests/plist.single]
 %%ONLY-FREEBSD%%include/qt5/QtInputSupport/
  QIntegrityHIDManager
  QtInputSupport
@@ -147,6 +155,52 @@ fddfd8852ef7503febeed67b876d1425160869ae2b1ae8e10b3fb0fedc5fe701     48382148 qt
  libqevdevtabletplugin.so
  libqevdevtouchplugin.so
 %%ONLY-FREEBSD%%lib/qt5/plugins/platforms/libqbsdfb.so
+%%ONLY-LINUX%%include/qt5/QtInputSupport/
+ QIntegrityHIDManager
+ QtInputSupport
+ QtInputSupportDepends
+ QtInputSupportVersion
+ qintegrityhidmanager.h
+ qtinputsupportversion.h
+%%ONLY-LINUX%%include/qt5/QtInputSupport/%%QTVER%%/QtInputSupport/private/
+ qevdevkeyboard_defaultmap_p.h
+ qevdevkeyboardhandler_p.h
+ qevdevkeyboardmanager_p.h
+ qevdevmousehandler_p.h
+ qevdevmousemanager_p.h
+ qevdevtablethandler_p.h
+ qevdevtabletmanager_p.h
+ qevdevtouchfilter_p.h
+ qevdevtouchhandler_p.h
+ qevdevtouchmanager_p.h
+ qlibinputhandler_p.h
+ qlibinputkeyboard_p.h
+ qlibinputpointer_p.h
+ qlibinputtouch_p.h
+ qtouchoutputmapping_p.h
+ qtslib_p.h
+%%ONLY-LINUX%%lib/qt5/
+ libQt5InputSupport.a
+ libQt5InputSupport.prl
+%%ONLY-LINUX%%lib/qt5/cmake/Qt5Gui/
+ Qt5Gui_QEvdevKeyboardPlugin.cmake
+ Qt5Gui_QEvdevMousePlugin.cmake
+ Qt5Gui_QEvdevTabletPlugin.cmake
+ Qt5Gui_QEvdevTouchScreenPlugin.cmake
+ Qt5Gui_QLinuxFbIntegrationPlugin.cmake
+%%ONLY-LINUX%%lib/qt5/cmake/Qt5Network/
+ Qt5Network_QConnmanEnginePlugin.cmake
+ Qt5Network_QNetworkManagerEnginePlugin.cmake
+%%ONLY-LINUX%%lib/qt5/mkspecs/modules/qt_lib_input_support_private.pri
+%%ONLY-LINUX%%lib/qt5/plugins/bearer/
+ libqconnmanbearer.so
+ libqnmbearer.so
+%%ONLY-LINUX%%lib/qt5/plugins/generic/
+ libqevdevkeyboardplugin.so
+ libqevdevmouseplugin.so
+ libqevdevtabletplugin.so
+ libqevdevtouchplugin.so
+%%ONLY-LINUX%%lib/qt5/plugins/platforms/libqlinuxfb.so
 include/qt5/QtAccessibilitySupport/
  QtAccessibilitySupport
  QtAccessibilitySupportDepends
@@ -3617,20 +3671,6 @@ Do not create .la files.
      else: \
 
 
-[FILE:528:patches/patch-qmake_Makefile.unix]
---- qmake/Makefile.unix.orig	2019-04-09 09:51:26 UTC
-+++ qmake/Makefile.unix
-@@ -269,7 +269,7 @@ qlibraryinfo.o: $(SOURCE_PATH)/src/corel
- 	$(CXX) -c -o $@ $(CXXFLAGS) -DQT_BUILD_QMAKE_BOOTSTRAP $<
- 
- qlibraryinfo_final.o: $(SOURCE_PATH)/src/corelib/global/qlibraryinfo.cpp $(BUILD_PATH)/src/corelib/global/qconfig.cpp
--	$(CXX) -c -o $@ $(CXXFLAGS) $<
-+	$(CXX) -c -o $@ $(CXXFLAGS) $(SOURCE_PATH)/src/corelib/global/qlibraryinfo.cpp
- 
- qnumeric.o: $(SOURCE_PATH)/src/corelib/global/qnumeric.cpp
- 	$(CXX) -c -o $@ $(CXXFLAGS) $<
-
-
 [FILE:586:patches/patch-qmake_generators_makefile.cpp]
 --- qmake/generators/makefile.cpp.orig	2019-04-09 09:51:26 UTC
 +++ qmake/generators/makefile.cpp
@@ -3692,18 +3732,20 @@ Do not create .la files.
        defined( __CYGWIN32__ ) || defined( __DJGPP__ ) || defined( __osf__ )
 
 
-[FILE:1627:patches/patch-src_corelib_configure.json]
-Two issues with libatomics test:
-1) requires putting in unnecessary -I and -L to point to
-   c++ libraries and headers
-2) The test segfaults (at least on DF) even though gcc
-   testsuite passes complete.
-
-Just disable test for now and hope for the best (until we know better)
-
+[FILE:2235:patches/patch-src_corelib_configure.json]
 --- src/corelib/configure.json.orig	2019-04-09 09:51:26 UTC
 +++ src/corelib/configure.json
-@@ -133,28 +133,14 @@
+@@ -61,8 +61,7 @@
+             },
+             "headers": "iconv.h",
+             "sources": [
+-                { "libs": "-liconv", "condition": "config.openbsd || config.haiku" },
+-                { "libs": "", "condition": "!(config.openbsd || config.haiku)" }
++                { "libs": "-liconv" }
+             ]
+         },
+         "gnu_iconv": {
+@@ -133,43 +132,28 @@
          "libatomic": {
              "label": "64 bit atomics",
              "test": {
@@ -3734,6 +3776,24 @@ Just disable test for now and hope for the best (until we know better)
              ]
          },
          "libdl": {
+             "label": "dlopen()",
+             "test": {
++                "include": "dlfcn.h",
+                 "main": [
+-                    "dlclose(dlopen(0, 0));",
+-                    "dlsym(RTLD_DEFAULT, 0);",
++                    "dlclose(dlopen(0, RTLD_LAZY));",
+                     "dlerror();"
+                 ]
+             },
+-            "headers": "dlfcn.h",
+             "sources": [
+                 "",
+-                "-ldl"
++                { "libs": "-ldl" }
+             ]
+         },
+         "librt": {
 
 
 [FILE:468:patches/patch-src_corelib_io_io.pri]

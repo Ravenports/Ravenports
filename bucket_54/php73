@@ -50,7 +50,6 @@ CONFIGURE_ARGS=		--with-layout=GNU
 			--program-suffix=73
 CONFIGURE_ENV=		ac_cv_decimal_fp_supported="no"
 			lt_cv_path_SED="sed"
-			pthreads_working="yes"
 
 DESTDIRNAME=		INSTALL_ROOT
 
@@ -109,6 +108,7 @@ post-patch-FPM-ON:
 post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/php73
 	${RM} -r ${STAGEDIR}/var
+	${RM} -r ${STAGEDIR}${PREFIX}/include/php73/include
 	${INSTALL_DATA} ${WRKSRC}/php.ini-development \
 		${WRKSRC}/php.ini-production \
 		${WRKDIR}/php.conf ${STAGEDIR}${PREFIX}/etc/php73
@@ -547,53 +547,6 @@ share/man/man1/
  
  EOF
      ;;
-
-
-[FILE:1269:patches/patch-configure.ac]
---- configure.ac.orig	2019-04-30 08:37:18 UTC
-+++ configure.ac
-@@ -322,7 +322,6 @@ sinclude(TSRM/tsrm.m4)
- dnl .
- dnl -------------------------------------------------------------------------
- 
--PTHREADS_CHECK
- PHP_HELP_SEPARATOR([SAPI modules:])
- PHP_SHLIB_SUFFIX_NAMES
- PHP_BUILD_PROGRAM
-@@ -353,15 +352,9 @@ else
-   AC_MSG_RESULT([none])
- fi
- 
--dnl Exit early
--if test -z "$PHP_INSTALLED_SAPIS"; then
--  AC_MSG_ERROR([Nothing to build.])
--fi
--
- dnl force ZTS
- if test "$enable_maintainer_zts" = "yes"; then
-   PTHREADS_ASSIGN_VARS
--  PTHREADS_FLAGS
- fi
- 
- dnl Starting system checks.
-@@ -1310,7 +1303,7 @@ EXPANDED_SYSCONFDIR=`eval echo $sysconfd
- EXPANDED_DATADIR=$datadir
- EXPANDED_PHP_CONFIG_FILE_PATH=`eval echo "$PHP_CONFIG_FILE_PATH"`
- EXPANDED_PHP_CONFIG_FILE_SCAN_DIR=`eval echo "$PHP_CONFIG_FILE_SCAN_DIR"`
--INCLUDE_PATH=.:$EXPANDED_PEAR_INSTALLDIR
-+INCLUDE_PATH=.:${prefix}/share/pear
- 
- exec_prefix=$old_exec_prefix
- libdir=$old_libdir
-@@ -1508,7 +1501,7 @@ PHP_SUBST(all_targets)
- PHP_SUBST(install_targets)
- PHP_SUBST(install_binary_targets)
- 
--PHP_INSTALL_HEADERS([Zend/ TSRM/ include/ main/ main/streams/])
-+PHP_INSTALL_HEADERS([Zend/ TSRM/ main/ main/streams/])
- 
- PHP_ADD_SOURCES(TSRM, TSRM.c tsrm_strtok_r.c, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
- 
 
 
 [FILE:323:patches/patch-main__php_config.h.in]
