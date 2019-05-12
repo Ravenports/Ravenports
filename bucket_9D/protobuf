@@ -2,6 +2,7 @@
 
 NAMEBASE=		protobuf
 VERSION=		3.7.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Google's data interchange format
@@ -17,7 +18,9 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			autoreconf gmake libtool pkgconfig c++:single
+USES=			cmake pkgconfig zlib c++:single
+
+DISTNAME=		protobuf-3.7.1/cmake
 
 LICENSE=		BSD3CLAUSE:single
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
@@ -25,19 +28,14 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/protobuf
 
-MUST_CONFIGURE=		gnu
+PLIST_SUB=		PROTOCVER=3.7.1.0
 
-INSTALL_TARGET=		install-strip
-INSTALL_REQ_TOOLCHAIN=	yes
-SOVERSION=		18.0.1
+CMAKE_ARGS=		-Dprotobuf_BUILD_TESTS:BOOL=OFF
+			-DBUILD_SHARED_LIBS:BOOL=ON
 
-CFLAGS=			-DGOOGLE_PROTOBUF_NO_RTTI
-
-post-patch:
-	${REINPLACE_CMD} -e 's|^check-local:|disabled-&|' \
-		${WRKSRC}/Makefile.am
-	${REINPLACE_CMD} -Ee '/gtest|mock/ s|[^ ]*lib(.*)\.la|-l\1|' \
-		${WRKSRC}/src/Makefile.am
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/protoc
 
 [FILE:186:descriptions/desc.single]
 Protocol Buffers are a way of encoding structured data in an efficient yet
@@ -49,8 +47,10 @@ internal RPC protocols and file formats.
 f1748989842b46fa208b2a6e4e2785133cfcc3e4d43c17fecb023733f0f5443f      4795774 google-protobuf-3.7.1.tar.gz
 
 
-[FILE:2644:manifests/plist.single]
-bin/protoc
+[FILE:2737:manifests/plist.single]
+bin/
+ protoc
+ protoc-%%PROTOCVER%%
 include/google/protobuf/
  any.h
  any.pb.h
@@ -141,6 +141,7 @@ include/google/protobuf/compiler/python/python_generator.h
 include/google/protobuf/compiler/ruby/ruby_generator.h
 include/google/protobuf/io/
  coded_stream.h
+ gzip_stream.h
  printer.h
  strtod.h
  tokenizer.h
@@ -154,6 +155,7 @@ include/google/protobuf/stubs/
  common.h
  fastmem.h
  hash.h
+ io_win32.h
  logging.h
  macros.h
  mutex.h
@@ -175,33 +177,20 @@ include/google/protobuf/util/
  type_resolver.h
  type_resolver_util.h
 lib/
- libprotobuf-lite.a
  libprotobuf-lite.so
- libprotobuf-lite.so.%%SOMAJOR%%
- libprotobuf-lite.so.%%SOVERSION%%
- libprotobuf.a
+ libprotobuf-lite.so.%%PROTOCVER%%
  libprotobuf.so
- libprotobuf.so.%%SOMAJOR%%
- libprotobuf.so.%%SOVERSION%%
- libprotoc.a
+ libprotobuf.so.%%PROTOCVER%%
  libprotoc.so
- libprotoc.so.%%SOMAJOR%%
- libprotoc.so.%%SOVERSION%%
+ libprotoc.so.%%PROTOCVER%%
+lib/cmake/protobuf/
+ protobuf-config-version.cmake
+ protobuf-config.cmake
+ protobuf-module.cmake
+ protobuf-options.cmake
+ protobuf-targets-release.cmake
+ protobuf-targets.cmake
 lib/pkgconfig/
  protobuf-lite.pc
  protobuf.pc
-
-
-[FILE:227:patches/patch-m4_ax__pthread.m4]
---- m4/ax_pthread.m4.orig	2019-03-26 16:30:12 UTC
-+++ m4/ax_pthread.m4
-@@ -212,7 +212,7 @@ case $host_os in
- 	ax_pthread_check_macro="_REENTRANT"
- 	;;
- 
--	aix* | freebsd*)
-+	aix*)
- 	ax_pthread_check_macro="_THREAD_SAFE"
- 	;;
- 
 
