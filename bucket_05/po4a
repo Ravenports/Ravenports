@@ -29,11 +29,20 @@ BUILDRUN_DEPENDS=	docbook-xsl:primary:standard
 USES=			perl:buildmod gettext-tools
 GNOME_COMPONENTS=	libxslt
 
+LICENSE=		GPLv2:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		textproc/po4a
 
 post-patch:
 	${REINPLACE_CMD} -e 's|docbook.sourceforge.net|cdn.docbook.org|g' \
 		${WRKSRC}/po/pod/*.po
+
+post-extract:
+	${AWK} '/^\# Copyright and license/,EOF' \
+		${WRKSRC}/README.md > ${WRKDIR}/TERMS
 
 [FILE:430:descriptions/desc.single]
 The po4a (po for anything) project goal is to ease translations
@@ -56,7 +65,7 @@ po4a supports currently the following formats:
 cfc54594c171f29f2a8e19595e706f13d805ca7b67bdb774f3da0ed70a265ae3      2892158 po4a-0.55.tar.gz
 
 
-[FILE:10546:manifests/plist.single]
+[FILE:10536:manifests/plist.single]
 %%PERL5_MAN1%%/
  msguntypot.1p.gz
  po4a-gettextize.1p.gz
@@ -89,6 +98,7 @@ cfc54594c171f29f2a8e19595e706f13d805ca7b67bdb774f3da0ed70a265ae3      2892158 po
  Locale::Po4a::Wml.3pm.gz
  Locale::Po4a::Xhtml.3pm.gz
  Locale::Po4a::Xml.3pm.gz
+%%SITE_ARCH%%/auto/po4a/.packlist
 %%SITE_PERL%%/Locale/Po4a/
  AsciiDoc.pm
  BibTeX.pm
@@ -117,7 +127,6 @@ cfc54594c171f29f2a8e19595e706f13d805ca7b67bdb774f3da0ed70a265ae3      2892158 po
 %%SITE_PERL%%/Locale/Po4a/InProgress/
  Debconf.pm
  NewsDebian.pm
-%%SITE_PERL%%/mach/5.28/auto/po4a/.packlist
 %%SITE_PERL%%/man/ca/man1/
  po4a-normalize.1p.gz
  po4a-translate.1p.gz
