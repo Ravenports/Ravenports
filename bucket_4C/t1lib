@@ -2,6 +2,7 @@
 
 NAMEBASE=		t1lib
 VERSION=		5.1.2
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Adobe Type 1 font rasterizing library
@@ -20,7 +21,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			libtool
+USES=			libtool fbsd10fix
 XORG_COMPONENTS=	xaw
 
 LICENSE=		LGPL20:primary MIT:primary
@@ -39,6 +40,12 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		"--with-x"
 
 BUILD_TARGET=		"without_doc"
+
+INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		5.1.2
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
 
 [FILE:707:descriptions/desc.primary]
 T1lib is an open source library developed by Rainer Menzner and is 
@@ -62,10 +69,17 @@ These are the X11-related components of the t1lib-standard port.
 821328b5054f7890a0d0cd2f52825270705df3641dbd476d58d17e56ed957b59      1872534 t1lib-5.1.2.tar.gz
 
 
-[FILE:66:manifests/plist.primary]
+[FILE:183:manifests/plist.primary]
 bin/type1afm
 include/t1lib.h
-lib/libt1.a
+lib/
+ libt1.a
+ libt1.so
+ libt1.so.%%SOMAJOR%%
+ libt1.so.%%SOVERSION%%
+ libt1x.so
+ libt1x.so.%%SOMAJOR%%
+ libt1x.so.%%SOVERSION%%
 share/t1lib/t1lib.config
 
 
