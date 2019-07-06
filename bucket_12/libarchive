@@ -222,47 +222,6 @@ share/man/man5/
  tar.5.gz
 
 
-[FILE:488:patches/patch-libarchive-archive_openssl_evp_private.h]
---- libarchive/archive_openssl_evp_private.h.orig	2019-06-12 21:05:16 UTC
-+++ libarchive/archive_openssl_evp_private.h
-@@ -28,7 +28,8 @@
- #include <openssl/evp.h>
- #include <openssl/opensslv.h>
- 
--#if OPENSSL_VERSION_NUMBER < 0x10100000L
-+#if OPENSSL_VERSION_NUMBER < 0x10100000L || \
-+    (defined(LIBRESSL_VERSION_NUMBER) && LIBRESSL_VERSION_NUMBER < 0x2070000fL)
- #include <stdlib.h> /* malloc, free */
- #include <string.h> /* memset */
- static inline EVP_MD_CTX *EVP_MD_CTX_new(void)
-
-
-[FILE:469:patches/patch-libarchive_archive__util.c]
---- libarchive/archive_util.c.orig	2019-06-12 21:05:16 UTC
-+++ libarchive/archive_util.c
-@@ -46,16 +46,16 @@ __FBSDID("$FreeBSD: head/lib/libarchive/
- #include <wincrypt.h>
- #endif
- #ifdef HAVE_ZLIB_H
--#include <zlib.h>
-+#include "zlib.h"
- #endif
- #ifdef HAVE_LZMA_H
--#include <lzma.h>
-+#include "lzma.h"
- #endif
- #ifdef HAVE_BZLIB_H
--#include <bzlib.h>
-+#include "bzlib.h"
- #endif
- #ifdef HAVE_LZ4_H
--#include <lz4.h>
-+#include "lz4.h"
- #endif
- 
- #include "archive.h"
-
-
 [FILE:485:patches/patch-libarchive_archive__write__add__filter__zstd.c]
 --- libarchive/archive_write_add_filter_zstd.c.orig	2019-06-12 21:05:16 UTC
 +++ libarchive/archive_write_add_filter_zstd.c
@@ -275,4 +234,38 @@ share/man/man5/
  #if HAVE_ZSTD_H && HAVE_LIBZSTD
  	data->cstream = ZSTD_createCStream();
  	if (data->cstream == NULL) {
+
+
+[FILE:530:patches/patch-libarchive_test_test__write__filter__zstd.c]
+We changed the default from level 3 to level 7, so reverse the assert
+accordingly.
+
+--- libarchive/test/test_write_filter_zstd.c.orig	2019-06-12 21:05:16 UTC
++++ libarchive/test/test_write_filter_zstd.c
+@@ -142,7 +142,7 @@ DEFINE_TEST(test_write_filter_zstd)
+ 
+ 	failure("compression-level=6 wrote %d bytes, default wrote %d bytes",
+ 	    (int)used2, (int)used1);
+-	assert(used2 < used1);
++	assert(used2 > used1);
+ 
+ 	assert((a = archive_read_new()) != NULL);
+ 	assertEqualIntA(a, ARCHIVE_OK, archive_read_support_format_all(a));
+
+
+[FILE:346:patches/patch-test__utils_test__main.c]
+--- test_utils/test_main.c.orig	2019-06-12 21:05:16 UTC
++++ test_utils/test_main.c
+@@ -3499,9 +3499,9 @@ static int
+ test_run(int i, const char *tmpdir)
+ {
+ #ifdef PATH_MAX
+-	char workdir[PATH_MAX];
++	char workdir[PATH_MAX+1];
+ #else
+-	char workdir[1024];
++	char workdir[1024+1];
+ #endif
+ 	char logfilename[64];
+ 	int failures_before = failures;
 
