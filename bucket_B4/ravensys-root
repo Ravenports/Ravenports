@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		2.0
-REVISION=		3
+REVISION=		4
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -1621,7 +1621,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:16333:manifests/plist.single.freebsd_amd64]
+[FILE:16378:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -1788,6 +1788,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  ifaddrs.h
  inttypes.h
  iso646.h
+ jail.h
  kenv.h
  kvm.h
  langinfo.h
@@ -2933,6 +2934,9 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  libgeom.a
  libgeom.so
  libgeom.so.5
+ libjail.a
+ libjail.so
+ libjail.so.1
  libkvm.a
  libkvm.so
  libm.a
@@ -8741,7 +8745,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:22959:files/Makefile]
+[FILE:23055:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -8903,6 +8907,7 @@ static_lib_FreeBSD=	${static_lib_generic} \
 			/usr/lib/libthr.a \
 			/usr/lib/libusb.a \
 			/usr/lib/libusbhid.a \
+			/usr/lib/libjail.a \
 			/usr/lib/Scrt1.o \
 			/usr/lib/gcrt1.o \
 			/usr/lib/crt1.o \
@@ -8958,6 +8963,7 @@ dynamic_lib_FreeBSD=	${dynamic_generic} \
 			/lib/${Libthr_FreeBSD} \
 			/lib/${Libdevstat_FreeBSD} \
 			/usr/lib/libexecinfo.so.1 \
+			/lib/libjail.so.1 \
 			/usr/lib/${Libprocstat_FreeBSD} \
 			/usr/lib/${libusb} \
 			/usr/lib/${libusbhid}
@@ -9189,6 +9195,7 @@ headers_FreeBSD=	${headers_DragonFly:Nutil.h:Ndevattr.h:Ndfregress.h:Ndisktab.h:
 			libgeom.h \
 			libprocstat.h \
 			malloc_np.h \
+			jail.h \
 			# end
 
 headers_Linux_dirs=	acl \
@@ -9440,7 +9447,8 @@ install:
 		ln -s ${Libprocstat_FreeBSD} libprocstat.so && \
 		ln -s ${Libgeom_FreeBSD} libgeom.so && \
 		ln -s ${PREFIX}/lib/libexecinfo.so libexecinfo.so && \
-		ln -s libthr.so libpthread.so)
+		ln -s libthr.so libpthread.so && \
+		ln -s libjail.so.1 libjail.so)
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libgcc_s.so.1 ${DESTDIR}${BASE}/usr/lib/
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libcxxrt.so.1 ${DESTDIR}${BASE}/usr/lib/
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/libc++.so.1 ${DESTDIR}${BASE}/usr/lib/
