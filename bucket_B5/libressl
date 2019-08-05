@@ -59,6 +59,26 @@ TEST_TARGET=		check
 [SKIP_MANPAGES].DESCRIPTION=		Avoid installing LibreSSL manpages
 [SKIP_MANPAGES].EXTRA_PATCHES_ON=	extra-patch-MAN3
 
+post-install-STATIC-OFF:
+	# install our PIC libraries
+	${INSTALL_DATA} \
+		${WRKSRC}/crypto/.libs/libcrypto_pic.a \
+		${WRKSRC}/ssl/.libs/libssl_pic.a \
+		${WRKSRC}/tls/.libs/libtls_pic.a \
+		${STAGEDIR}${PREFIX}/libressl/lib/
+
+post-build-STATIC-OFF:
+	# assemble PIC libraries
+	(cd ${WRKSRC}/crypto &&\
+	 ${AR} -crsv .libs/libcrypto_pic.a .libs/*.o */.libs/*.o &&\
+	 ranlib .libs/libcrypto_pic.a)
+	(cd ${WRKSRC}/ssl/.libs &&\
+	 ${AR} -crsv libssl_pic.a *.o &&\
+	 ranlib libssl_pic.a)
+	(cd ${WRKSRC}/tls/.libs &&\
+	 ${AR} -crsv libtls_pic.a *.o &&\
+	 ranlib libtls_pic.a)
+
 post-patch-darwin:
 	# These two manpages clash with similar on case-insensitive
 	# file systems.  Just remove from all platforms (needs testing)
@@ -110,7 +130,7 @@ It also has stack-smashing protection disabled.
 9b640b13047182761a99ce3e4f000be9687566e0828b4a72709e9e6a3ef98477      3366196 libressl-2.8.3.tar.gz
 
 
-[FILE:70659:manifests/plist.single.standard]
+[FILE:70704:manifests/plist.single.standard]
 %%SKIP_MANPAGES-OFF%%etc/man.d/libressl.conf
 etc/libressl/
  openssl.cnf
@@ -196,14 +216,17 @@ libressl/lib/
  libcrypto.so
  libcrypto.so.%%CRY_SOMAJOR%%
  libcrypto.so.%%CRY_SOVERSION%%
+ libcrypto_pic.a
  libssl.a
  libssl.so
  libssl.so.%%SOMAJOR%%
  libssl.so.%%SOVERSION%%
+ libssl_pic.a
  libtls.a
  libtls.so
  libtls.so.%%TLS_SOMAJOR%%
  libtls.so.%%TLS_SOVERSION%%
+ libtls_pic.a
 libressl/lib/pkgconfig/
  libcrypto.pc
  libssl.pc

@@ -21,15 +21,8 @@ LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
-do-build:
-	cd ${WRKSRC} &&\
-	${CC} -fpic -DPIC -c linenoise.c &&\
-	${AR} cq liblinenoise.a linenoise.o &&\
-	ranlib liblinenoise.a
-
-do-install:
-	${INSTALL_DATA} ${WRKSRC}/linenoise.h ${STAGEDIR}${PREFIX}/include/
-	${INSTALL_LIB} ${WRKSRC}/liblinenoise.a ${STAGEDIR}${PREFIX}/lib/
+post-extract:
+	${CP} ${FILESDIR}/BSD_Makefile ${WRKSRC}/Makefile
 
 [FILE:389:descriptions/desc.single]
 A minimal, zero-config, BSD licensed, readline replacement used in Redis,
@@ -48,7 +41,39 @@ MongoDB, and Android.
 f5054a4fe120d43d85427cf58af93e56b9bb80389d507a9bec9b75531a340014        14222 antirez-linenoise-1.0.tar.gz
 
 
-[FILE:39:manifests/plist.single]
+[FILE:61:manifests/plist.single]
 include/linenoise.h
-lib/liblinenoise.a
+lib/
+ liblinenoise.a
+ liblinenoise_pic.a
+
+
+[FILE:584:files/BSD_Makefile]
+LIB_PIC		= liblinenoise_pic.a
+LIB_STATIC	= liblinenoise.a
+SRCS		= linenoise.c
+OBJS		= ${SRCS:.c=.o}
+SOBJS		= ${SRCS:.c=.So}
+
+.SUFFIXES:	.o .So
+
+all: ${LIB_PIC} ${LIB_STATIC}
+
+.c.o:
+	${CC} ${CFLAGS} -c ${.ALLSRC} -o ${.TARGET}
+
+.c.So:
+	${CC} ${CFLAGS} -fpic -DPIC -c ${.ALLSRC} -o ${.TARGET}
+
+${LIB_STATIC}: ${OBJS}
+	${AR} -cq ${.TARGET} ${.ALLSRC}
+	ranlib ${.TARGET}
+
+${LIB_PIC}: ${SOBJS}
+	${AR} -cq ${.TARGET} ${.ALLSRC}
+	ranlib ${.TARGET}
+
+install:
+	${BSD_INSTALL_DATA} linenoise.h ${DESTDIR}${PREFIX}/include/
+	${BSD_INSTALL_DATA} ${LIB_STATIC} ${LIB_PIC} ${DESTDIR}${PREFIX}/lib/
 

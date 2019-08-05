@@ -2,9 +2,11 @@
 
 NAMEBASE=		libucl
 VERSION=		0.8.1
+REVISION=		1
 KEYWORDS=		textproc
-VARIANTS=		standard
+VARIANTS=		standard ravensw
 SDESC[standard]=	Universal configuration library parser
+SDESC[ravensw]=		Libucl without utils, curl, lua, or ssl support
 HOMEPAGE=		https://github.com/vstakhov/libucl
 CONTACT=		nobody
 
@@ -13,13 +15,13 @@ SITES[main]=		GITHUB/vstakhov:libucl:0.8.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
+SPKGS[ravensw]=		single
 
-OPTIONS_AVAILABLE=	LUA
+OPTIONS_AVAILABLE=	LUA RAVENSW
 OPTIONS_STANDARD=	LUA
+VOPTS[ravensw]=		LUA=OFF RAVENSW=ON
 
-BUILDRUN_DEPENDS=	curl:primary:standard
-
-USES=			autoreconf gmake libtool pkgconfig ssl
+USES=			autoreconf gmake libtool pkgconfig
 
 LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
@@ -28,21 +30,37 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		textproc/libucl
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--enable-signatures
-			--enable-utils
-			--enable-urls
-			--enable-regex
+CONFIGURE_ARGS=		--enable-regex
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		5.1.0
 
-CPPFLAGS=		-I{{OPENSSLINC}}
-LDFLAGS=		-L{{OPENSSLLIB}}
+[RAVENSW].DESCRIPTION=			Minimal variant used by ravensw
+[RAVENSW].BUILDRUN_DEPENDS_OFF=		curl:primary:standard
+[RAVENSW].CONFIGURE_ARGS_OFF=		--enable-signatures
+					--enable-urls
+					--enable-utils
+[RAVENSW].CPPFLAGS_OFF=			-I{{OPENSSLINC}}
+[RAVENSW].LDFLAGS_OFF=			-L{{OPENSSLLIB}}
+[RAVENSW].USES_OFF=			ssl
 
 [LUA].DESCRIPTION=			Enable support for LUA scripting language
+[LUA].BROKEN_ON=			can't find lua.h and other headers
+[LUA].CONFIGURE_ARGS_ON=		--enable-lua
 [LUA].CONFIGURE_ENV_ON=			LUA={{LOCALBASE}}/bin/{{LUA_CMD}}
 [LUA].LDFLAGS_ON=			-L{{LUA_LIBDIR}}
 [LUA].USES_ON=				lua
+
+post-install:
+	# install our PIC library
+	${INSTALL_DATA} ${WRKSRC}/src/.libs/libucl_pic.a \
+		${STAGEDIR}${PREFIX}/lib/
+
+post-build:
+	# assemble PIC library
+	(cd ${WRKSRC}/src/.libs &&\
+	 ${AR} -cq libucl_pic.a *.o &&\
+	 ranlib libucl_pic.a)
 
 [FILE:271:descriptions/desc.single]
 Libucl is a parser and C API to parse and generate ucl objects. Libucl
@@ -61,7 +79,7 @@ consists of several groups of functions:
 a6397e179672f0e8171a0f9a2cfc37e01432b357fd748b13f4394436689d24ef      2028394 vstakhov-libucl-0.8.1.tar.gz
 
 
-[FILE:263:manifests/plist.single]
+[FILE:277:manifests/plist.single]
 %%LUA-ON%%%%LUA_MODLIBDIR%%/
  ucl.a
  ucl.so
@@ -78,6 +96,21 @@ lib/
  libucl.so
  libucl.so.%%SOMAJOR%%
  libucl.so.%%SOVERSION%%
+ libucl_pic.a
+lib/pkgconfig/libucl.pc
+share/man/man3/libucl.3.gz
+
+
+[FILE:164:manifests/plist.single.ravensw]
+include/
+ ucl++.h
+ ucl.h
+lib/
+ libucl.a
+ libucl.so
+ libucl.so.%%SOMAJOR%%
+ libucl.so.%%SOVERSION%%
+ libucl_pic.a
 lib/pkgconfig/libucl.pc
 share/man/man3/libucl.3.gz
 

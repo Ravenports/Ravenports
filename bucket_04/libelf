@@ -2,6 +2,7 @@
 
 NAMEBASE=		libelf
 VERSION=		0.8.13
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Public ELF file access library similar to Solaris
@@ -33,6 +34,17 @@ CONFIGURE_ARGS=		--enable-shared
 			--disable-compat
 			--disable-nls
 
+post-install:
+	# install our PIC library
+	${INSTALL_DATA} ${WRKSRC}/lib/libelf_pic.a \
+		${STAGEDIR}${PREFIX}/lib/
+
+post-build:
+	# assemble PIC library
+	(cd ${WRKSRC}/lib &&\
+	 ${AR} -crv libelf_pic.a *.os &&\
+	 ranlib libelf_pic.a)
+
 [FILE:244:descriptions/desc.single]
 This is the public release of libelf, a free ELF object file access
 library. If you have problems with applications that use libelf and work
@@ -44,7 +56,7 @@ contact [the libelf author].
 9204f12735e66fc7d037936f2dae146d00172c567d591ab27ca4cce22781dcd9       144324 Distrotech-libelf-7e0b504.tar.gz
 
 
-[FILE:129:manifests/plist.single]
+[FILE:143:manifests/plist.single]
 include/libelf/
  elf_repl.h
  gelf.h
@@ -55,6 +67,7 @@ lib/
  libelf.a
  libelf.so
  libelf.so.0
+ libelf_pic.a
 lib/pkgconfig/libelf.pc
 
 

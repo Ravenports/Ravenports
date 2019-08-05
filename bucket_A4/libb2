@@ -31,6 +31,15 @@ CONFIGURE_ARGS=		--disable-openmp
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.4
 
+post-install:
+	${INSTALL_DATA} ${WRKSRC}/src/.libs/libb2_pic.a \
+		${STAGEDIR}${PREFIX}/lib
+
+post-build:
+	(cd ${WRKSRC}/src/.libs &&\
+	 ${AR} cru libb2_pic.a *.o &&\
+	 ranlib libb2_pic.a)
+
 [FILE:481:descriptions/desc.single]
 C library providing BLAKE2b, BLAKE2s, BLAKE2bp, BLAKE2sp
 
@@ -48,12 +57,13 @@ BLAKE2 comes in two flavors:
 10053dbc2fa342516b780a6bbf6e7b2a2360b8d49c5ac426936bf3df82526732       280759 BLAKE2-libb2-0.98.1.tar.gz
 
 
-[FILE:110:manifests/plist.single]
+[FILE:123:manifests/plist.single]
 include/blake2.h
 lib/
  libb2.a
  libb2.so
  libb2.so.%%SOMAJOR%%
  libb2.so.%%SOVERSION%%
+ libb2_pic.a
 lib/pkgconfig/libb2.pc
 

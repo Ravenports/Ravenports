@@ -2,6 +2,7 @@
 
 NAMEBASE=		expat
 VERSION=		2.2.7
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	XML 1.0 parser written in C
@@ -33,7 +34,17 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		1.6.9
 
 post-install:
+	# remove installed documents
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	# install our PIC library
+	${INSTALL_DATA} ${WRKSRC}/lib/.libs/libexpat_pic.a \
+		${STAGEDIR}${PREFIX}/lib/
+
+post-build:
+	# assemble PIC library
+	(cd ${WRKSRC}/lib/.libs &&\
+	 ${AR} -cq libexpat_pic.a *.o &&\
+	 ranlib libexpat_pic.a)
 
 [FILE:453:descriptions/desc.static]
 This is Expat, a C library for parsing XML, written by James Clark.
@@ -61,12 +72,14 @@ This package contains the shared library and xmlwf executable.
 cbc9102f4a31a8dafd42d642e9a3aa31e79a0aedaa1f6efd2795ebc83174ec18       524943 expat-2.2.7.tar.bz2
 
 
-[FILE:90:manifests/plist.static]
+[FILE:108:manifests/plist.static]
 include/
  expat.h
  expat_config.h
  expat_external.h
-lib/libexpat.a
+lib/
+ libexpat.a
+ libexpat_pic.a
 lib/pkgconfig/expat.pc
 
 
@@ -74,6 +87,6 @@ lib/pkgconfig/expat.pc
 bin/xmlwf
 lib/
  libexpat.so
- libexpat.so.%%SOVERSION%%
  libexpat.so.%%SOMAJOR%%
+ libexpat.so.%%SOVERSION%%
 

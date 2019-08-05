@@ -68,11 +68,12 @@ Java software.
 627d5d8478e6d96fc8c90fed4851239079a561a6a8b9e48b0892f24e82d31d6c     24013250 icu4c-64_2-src.tgz
 
 
-[FILE:3527:manifests/plist.single]
+[FILE:3584:manifests/plist.single]
 %%ONLY-DARWIN%%share/icu/%%ICUVER%%/config/mh-darwin
 %%ONLY-DRAGONFLY%%share/icu/%%ICUVER%%/config/mh-bsd-gcc
 %%ONLY-FREEBSD%%share/icu/%%ICUVER%%/config/mh-bsd-gcc
 %%ONLY-LINUX%%share/icu/%%ICUVER%%/config/mh-linux
+%%ONLY-SUNOS%%share/icu/%%ICUVER%%/config/mh-solaris-gcc
 bin/
  derb
  genbrk
@@ -384,6 +385,27 @@ share/man/man8/
          /*
           * On Linux and MacOSX, ensure that default codepage for non C/POSIX locale is UTF-8
           * instead of ASCII.
+
+
+[FILE:428:patches/patch-common_ubidiimp.h]
+$NetBSD: patch-common_ubidiimp.h,v 1.1 2019/04/08 21:39:43 jperkin Exp $
+
+Avoid sys/regset.h pollution on SunOS.
+
+--- common/ubidiimp.h.orig	2019-03-27 18:47:14.000000000 +0000
++++ common/ubidiimp.h
+@@ -24,6 +24,11 @@
+ #include "unicode/uchar.h"
+ #include "ubidi_props.h"
+ 
++#ifdef __sun
++#undef CS
++#undef ES
++#endif
++
+ /* miscellaneous definitions ---------------------------------------------- */
+ 
+ typedef uint8_t DirProp;
 
 
 [FILE:881:patches/patch-common_unicode_platform.h]
