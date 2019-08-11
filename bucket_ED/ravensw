@@ -2,6 +2,7 @@
 
 NAMEBASE=		ravensw
 VERSION=		1.11.1
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	Ravenports binary package manager
@@ -9,7 +10,7 @@ HOMEPAGE=		https://github.com/jrmarino/ravensw/blob/master/README.md
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main sqlite
-SITES[main]=		GITHUB/jrmarino:ravensw:c213d67
+SITES[main]=		GITHUB/jrmarino:ravensw:16e7810
 SITES[sqlite]=		https://www.sqlite.org/2019/
 			http://www2.sqlite.org/2019/
 DISTFILE[1]=		generated:main
@@ -47,7 +48,9 @@ CONFIGURE_ARGS=		--mandir={{MANPREFIX}}/man
 			--pkgconfigdir={{PREFIX}}/lib/pkgconfig
 			--prefix={{PREFIX}}
 
+SET_DEBUGGING_ON=	yes
 CFLAGS=			-Wno-error
+OPTIMIZER_LEVEL=	0
 
 [RUNTESTS].DESCRIPTION=			Run kyua tests after build
 [RUNTESTS].BUILD_DEPENDS_ON=		kyua:single:standard
@@ -57,8 +60,13 @@ post-build-RUNTESTS-ON:
 	# All the tests are hardcoded with "pkg" executable
 	(cd ${WRKSRC}/src && ${LN} -s ravensw pkg)
 	${ECHO} "!/bin/sh"                   >> ${WRKSRC}/tests/exec_test.sh
+.if "${OPSYS}" == "Linux"
 	${ECHO} "export -n RAVENSW_CACHEDIR" >> ${WRKSRC}/tests/exec_test.sh
 	${ECHO} "export -n RAVENSW_DBDIR"    >> ${WRKSRC}/tests/exec_test.sh
+.else
+	${ECHO} "unset RAVENSW_CACHEDIR"  >> ${WRKSRC}/tests/exec_test.sh
+	${ECHO} "unset RAVENSW_DBDIR"     >> ${WRKSRC}/tests/exec_test.sh
+.endif
 	${ECHO} "kyua test"                  >> ${WRKSRC}/tests/exec_test.sh
 	${CHMOD} ${BINMODE} ${WRKSRC}/tests/exec_test.sh
 
@@ -83,7 +91,7 @@ The primary reason for changing the name is to avoid confusion with
 
 
 [FILE:219:distinfo]
-3004fc492a0be7e853660b98319a7754f224a7dc46f4476f99cc1901e95e4deb       666062 jrmarino-ravensw-c213d67.tar.gz
+ed786335a0b92fe3e3ab5dc87e8d72f9ace5aea874e32ccf1a95f2440db5ed70       666504 jrmarino-ravensw-9c75db7.tar.gz
 d61b5286f062adfce5125eaf544d495300656908e61fca143517afcc0a89b7c3      2810415 sqlite-autoconf-3280000.tar.gz
 
 
