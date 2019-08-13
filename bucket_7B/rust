@@ -91,6 +91,10 @@ post-patch:
 	# Disable vendor checksums
 	${REINPLACE_CMD} -e 's/"files":{[^}]*}/"files":{}/' \
 		 ${WRKSRC}/vendor/*/.cargo-checksum.json
+	# for rust 1.36 bootstrap built with libressl 2.8
+	(cd ${LOCALBASE}/libressl/lib && \
+		${LN} -s libssl.so libssl.so.46 && \
+		${LN} -s libcrypto.so libcrypto.so.44)
 
 post-configure-freebsd:
 	${LN} -s ${LOCALBASE}/toolchain/gcc8/lib/libstdc++.so \
@@ -222,7 +226,7 @@ lib/rustlib/
  rust-installer-version
 
 
-[FILE:4920:patches/patch-fix-multiple-llvm-builds]
+[FILE:4857:patches/patch-fix-multiple-llvm-builds]
 From d6bd0a479ceaf6abdd696c3b955a56f66275c562 Mon Sep 17 00:00:00 2001
 From: Georgy Yakovlev <gyakovlev@gentoo.org>
 Date: Sat, 25 May 2019 22:21:16 -0700
@@ -241,16 +245,14 @@ https://github.com/rust-lang/rust/commit/e1daa36ba7df88788c2684bbe5ff6eb37f1cda6
 diff --git a/src/bootstrap/llvm-rebuild-trigger b/src/bootstrap/llvm-rebuild-trigger
 new file mode 100644
 index 0000000000..0f18c6a4ac
---- /dev/null
+--- /dev/null	2019-08-13 13:32:28 UTC
 +++ src/rustllvm/llvm-rebuild-trigger
 @@ -0,0 +1,4 @@
 +# If this file is modified, then llvm will be (optionally) cleaned and then rebuilt.
 +# The actual contents of this file do not matter, but to trigger a change on the
 +# build bots then the contents should be changed so git updates the mtime.
 +2019-03-18
-diff --git a/src/bootstrap/native.rs b/src/bootstrap/native.rs
-index fde40b0d1b..3babbc9e10 100644
---- src/bootstrap/native.rs.orig
+--- src/bootstrap/native.rs.orig	2019-07-03 08:00:00 UTC
 +++ src/bootstrap/native.rs
 @@ -67,40 +67,30 @@ impl Step for Llvm {
              }
@@ -287,13 +289,13 @@ index fde40b0d1b..3babbc9e10 100644
          let build_llvm_config = llvm_config_ret_dir
              .join(exe("llvm-config", &*builder.config.build));
 -        let done_stamp = out_dir.join("llvm-finished-building");
--
--        if let Some(llvm_commit) = llvm_info.sha() {
--            if done_stamp.exists() {
--                let done_contents = t!(fs::read(&done_stamp));
 +        if done_stamp.exists() {
 +            let done_contents = t!(fs::read_to_string(&done_stamp));
  
+-        if let Some(llvm_commit) = llvm_info.sha() {
+-            if done_stamp.exists() {
+-                let done_contents = t!(fs::read(&done_stamp));
+-
 -                // If LLVM was already built previously and the submodule's commit didn't change
 -                // from the previous build, then no action is required.
 -                if done_contents == llvm_commit.as_bytes() {
@@ -314,7 +316,7 @@ index fde40b0d1b..3babbc9e10 100644
          let mut cfg = cmake::Config::new(builder.src.join(root));
  
          let profile = match (builder.config.llvm_optimize, builder.config.llvm_release_debuginfo) {
-@@ -251,6 +242,11 @@ impl Step for Llvm {
+@@ -253,6 +244,11 @@ impl Step for Llvm {
                  channel::CFG_RELEASE_NUM,
                  builder.config.channel,
              );
@@ -326,7 +328,7 @@ index fde40b0d1b..3babbc9e10 100644
              if let Some(sha) = llvm_info.sha_short() {
                  default_suffix.push_str("-");
                  default_suffix.push_str(sha);
-@@ -283,9 +279,7 @@ impl Step for Llvm {
+@@ -285,9 +281,7 @@ impl Step for Llvm {
  
          cfg.build();
  
@@ -337,9 +339,6 @@ index fde40b0d1b..3babbc9e10 100644
  
          build_llvm_config
      }
--- 
-2.21.0
-
 
 
 [FILE:500:patches/patch-src_bootstrap_bin_rustc.rs]
@@ -381,6 +380,167 @@ index fde40b0d1b..3babbc9e10 100644
              "i686-unknown-freebsd" => "BSD-x86-elf",
              "i686-unknown-linux-gnu" => "linux-elf",
              "i686-unknown-linux-musl" => "linux-elf",
+
+
+[FILE:789:patches/patch-vendor_openssl-sys_build_cfgs.rs]
+--- vendor/openssl-sys/build/cfgs.rs.orig	2019-07-03 09:36:21 UTC
++++ vendor/openssl-sys/build/cfgs.rs
+@@ -13,6 +13,9 @@ pub fn get(openssl_version: Option<u64>,
+         if libressl_version >= 0x2_07_00_00_0 {
+             cfgs.push("libressl270");
+         }
++        if libressl_version >= 0x2_07_01_00_0 {
++            cfgs.push("libressl271");
++        }
+         if libressl_version >= 0x2_07_03_00_0 {
+             cfgs.push("libressl273");
+         }
+@@ -22,6 +25,9 @@ pub fn get(openssl_version: Option<u64>,
+         if libressl_version >= 0x2_08_01_00_0 {
+             cfgs.push("libressl281");
+         }
++        if libressl_version >= 0x2_09_01_00_0 {
++            cfgs.push("libressl291");
++        }
+     } else {
+         let openssl_version = openssl_version.unwrap();
+ 
+
+
+[FILE:705:patches/patch-vendor_openssl-sys_build_main.rs]
+--- vendor/openssl-sys/build/main.rs.orig	2019-07-03 09:36:21 UTC
++++ vendor/openssl-sys/build/main.rs
+@@ -199,6 +199,7 @@ See rust-openssl README for more informa
+             (8, 1) => ('8', '1'),
+             (8, _) => ('8', 'x'),
+             (9, 0) => ('9', '0'),
++            (9, _) => ('9', 'x'),
+             _ => version_error(),
+         };
+ 
+@@ -239,7 +240,7 @@ fn version_error() -> ! {
+         "
+ 
+ This crate is only compatible with OpenSSL 1.0.1 through 1.1.1, or LibreSSL 2.5
+-through 2.9.0, but a different version of OpenSSL was found. The build is now aborting
++through 2.9.x, but a different version of OpenSSL was found. The build is now aborting
+ due to this version mismatch.
+ 
+ "
+
+
+[FILE:859:patches/patch-vendor_openssl-sys_src_crypto.rs]
+--- vendor/openssl-sys/src/crypto.rs.orig	2019-07-03 09:36:21 UTC
++++ vendor/openssl-sys/src/crypto.rs
+@@ -15,7 +15,13 @@ cfg_if! {
+     if #[cfg(ossl110)] {
+         pub const CRYPTO_EX_INDEX_SSL: c_int = 0;
+         pub const CRYPTO_EX_INDEX_SSL_CTX: c_int = 1;
+-
++    } else if #[cfg(libressl)] {
++        pub const CRYPTO_EX_INDEX_SSL: c_int = 1;
++        pub const CRYPTO_EX_INDEX_SSL_CTX: c_int = 2;
++    }
++}
++cfg_if! {
++    if #[cfg(any(ossl110, libressl271))] {
+         extern "C" {
+             pub fn OpenSSL_version_num() -> c_ulong;
+             pub fn OpenSSL_version(key: c_int) -> *const c_char;
+@@ -64,7 +70,7 @@ pub type CRYPTO_EX_free = unsafe extern
+     argp: *mut c_void,
+ );
+ extern "C" {
+-    #[cfg(ossl110)]
++    #[cfg(any(ossl110, libressl))]
+     pub fn CRYPTO_get_ex_new_index(
+         class_index: c_int,
+         argl: c_long,
+
+
+[FILE:297:patches/patch-vendor_openssl-sys_src_ssl.rs]
+--- vendor/openssl-sys/src/ssl.rs.orig	2019-07-03 09:36:21 UTC
++++ vendor/openssl-sys/src/ssl.rs
+@@ -1057,7 +1057,7 @@ extern "C" {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(ossl110)] {
++    if #[cfg(any(ossl110, libressl291))] {
+         extern "C" {
+             pub fn TLS_method() -> *const SSL_METHOD;
+ 
+
+
+[FILE:647:patches/patch-vendor_openssl_build.rs]
+--- vendor/openssl/build.rs.orig	2019-07-03 09:36:21 UTC
++++ vendor/openssl/build.rs
+@@ -46,6 +46,10 @@ fn main() {
+             println!("cargo:rustc-cfg=libressl270");
+         }
+ 
++        if version >= 0x2_07_01_00_0 {
++            println!("cargo:rustc-cfg=libressl271");
++        }
++
+         if version >= 0x2_07_03_00_0 {
+             println!("cargo:rustc-cfg=libressl273");
+         }
+@@ -53,5 +57,9 @@ fn main() {
+         if version >= 0x2_08_00_00_0 {
+             println!("cargo:rustc-cfg=libressl280");
+         }
++
++        if version >= 0x2_09_01_00_0 {
++            println!("cargo:rustc-cfg=libressl291");
++        }
+     }
+ }
+
+
+[FILE:873:patches/patch-vendor_openssl_src_ssl_mod.rs]
+--- vendor/openssl/src/ssl/mod.rs.orig	2019-07-03 09:36:21 UTC
++++ vendor/openssl/src/ssl/mod.rs
+@@ -3690,9 +3690,14 @@ cfg_if! {
+ }
+ 
+ cfg_if! {
+-    if #[cfg(ossl110)] {
++    if #[cfg(any(ossl110, libressl291))] {
+         use ffi::{TLS_method, DTLS_method};
+-
++    } else {
++        use ffi::{SSLv23_method as TLS_method, DTLSv1_method as DTLS_method};
++    }
++}
++cfg_if! {
++    if #[cfg(ossl110)] {
+         unsafe fn get_new_idx(f: ffi::CRYPTO_EX_free) -> c_int {
+             ffi::CRYPTO_get_ex_new_index(
+                 ffi::CRYPTO_EX_INDEX_SSL_CTX,
+@@ -3715,8 +3720,6 @@ cfg_if! {
+             )
+         }
+     } else {
+-        use ffi::{SSLv23_method as TLS_method, DTLSv1_method as DTLS_method};
+-
+         unsafe fn get_new_idx(f: ffi::CRYPTO_EX_free) -> c_int {
+             ffi::SSL_CTX_get_ex_new_index(0, ptr::null_mut(), None, None, Some(f))
+         }
+
+
+[FILE:385:patches/patch-vendor_openssl_src_version.rs]
+--- vendor/openssl/src/version.rs.orig	2019-07-03 09:36:21 UTC
++++ vendor/openssl/src/version.rs
+@@ -14,7 +14,7 @@
+ use std::ffi::CStr;
+ 
+ cfg_if! {
+-    if #[cfg(ossl110)] {
++    if #[cfg(any(ossl110, libressl271))] {
+         use ffi::{
+             OPENSSL_VERSION, OPENSSL_CFLAGS, OPENSSL_BUILT_ON, OPENSSL_PLATFORM, OPENSSL_DIR,
+             OpenSSL_version_num, OpenSSL_version,
 
 
 [FILE:559:files/special.mk]

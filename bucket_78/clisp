@@ -2,6 +2,7 @@
 
 NAMEBASE=		clisp
 VERSION=		2.49.93
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	ANSI Common Lisp Implementation
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://ravenports.elderlinux.org/distcache/
 DISTFILE[1]=		clisp-2.49.93.txz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -22,10 +25,16 @@ BUILDRUN_DEPENDS=	libsigsegv:shared:standard
 			libffcall:single:standard
 			readline:single:standard
 
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYRIGHT
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/GNU-GPL
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		lang/clisp
 
 MUST_CONFIGURE=		yes
 CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
+			--docdir="{{PREFIX}}/share/doc/clisp"
 CONFIGURE_ENV=		FORCE_UNSAFE_CONFIGURE=1
 
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -34,7 +43,7 @@ PLIST_SUB=		VERSION="2.49.93+"
 do-build:
 	( cd ${WRKSRC}/src && make )
 
-[FILE:888:descriptions/desc.single]
+[FILE:888:descriptions/desc.primary]
 Common Lisp is a high-level, general-purpose, object-oriented, dynamic, 
 functional programming language.
 
@@ -58,7 +67,7 @@ options. Those could be enabled however, if somebody actually needs them.
 ab403c565d24b9491709208b8d4a0fa11f0954623a66ac0a147e608a24a77183     13903088 clisp-2.49.93.txz
 
 
-[FILE:884:manifests/plist.single]
+[FILE:654:manifests/plist.primary]
 bin/
  clisp
  clisp-link
@@ -89,25 +98,6 @@ lib/clisp-%%VERSION%%/linkkit/
  modprep.lisp
  modules.c
 share/aclocal/clisp.m4
-share/doc/clisp/
- ANNOUNCE
- CLOS-guide.txt
- COPYRIGHT
- GNU-GPL
- LISP-tutorial.txt
- MAGIC.add
- NEWS
- README
- README.de
- README.es
- SUMMARY
- clisp-link.1
- clisp-link.html
- clisp.1
- clisp.html
- clisp.png
- impnotes.css
- impnotes.html
 share/emacs/site-lisp/
  clhs.el
  clisp-coding.el
@@ -119,4 +109,29 @@ share/man/man1/
  clisp.1.gz
 share/vim/vimfiles/after/syntax/lisp.vim
 @dir lib/clisp-%%VERSION%%/dynmod
+
+
+[FILE:280:manifests/plist.docs]
+share/doc/clisp/
+ ANNOUNCE
+ COPYRIGHT
+ GNU-GPL
+ MAGIC.add
+ NEWS
+ README
+ README.de
+ README.es
+ SUMMARY
+ clisp-link.html
+ clisp.html
+share/doc/clisp/doc/
+ CLOS-guide.txt
+ LISP-tutorial.txt
+ clisp-link.1
+ clisp-link.html
+ clisp.1
+ clisp.html
+ clisp.png
+ impnotes.css
+ impnotes.html
 
