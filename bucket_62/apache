@@ -195,6 +195,8 @@ CONFIGURE_ENV=		LOCALBASE="{{LOCALBASE}}"
 MAKE_ENV=		EXPR_COMPAT="yes"
 			INSTALL_MAN="{{INSTALL_MAN}}"
 
+RC_SUBR=		apache:primary
+
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
@@ -838,4 +840,221 @@ www/apache/icons/small/
              CRYPTO_add(&issuer->references, 1, CRYPTO_LOCK_X509);
  #else
              X509_up_ref(issuer);
+
+
+[FILE:5912:files/apache.in]
+#!/bin/sh
+
+# PROVIDE: apache
+# REQUIRE: LOGIN cleanvar sshd
+# KEYWORD: shutdown
+
+#
+# Add the following lines to /etc/rc.conf to enable apache:
+# apache_enable (bool):      Set to "NO" by default.
+#                             Set it to "YES" to enable apache
+# apache_profiles (str):     Set to "" by default.
+#                              Define your profiles here.
+# apachelimits_enable (bool):Set to "NO" by default.
+#                             Set it to yes to run `limits $limits_args`
+#                             just before apache starts.
+# apache_flags (str):        Set to "" by default.
+#                             Extra flags passed to start command.
+# apachelimits_args (str):   Default to "-e -C daemon"
+#                             Arguments of pre-start limits run.
+# apache_http_accept_enable (bool): Set to "NO" by default.
+#                             Set to yes to check for accf_http kernel
+#                             module on start up and load if not loaded.
+# apache_fib (str):	      Set an altered default network view for apache
+# apache_configcheck_disable (bool): Set to "YES" to disable sanity check on startup
+
+. /etc/rc.subr
+
+name="apache"
+rcvar=apache_enable
+
+start_precmd="apache_prestart"
+restart_precmd="apache_checkconfig"
+reload_precmd="apache_checkconfig"
+reload_cmd="apache_graceful"
+graceful_cmd="apache_graceful"
+gracefulstop_cmd="apache_gracefulstop"
+configtest_cmd="apache_checkconfig"
+command="%%PREFIX%%/sbin/httpd"
+_pidprefix="/var/run/httpd"
+pidfile="${_pidprefix}.pid"
+required_files=%%PREFIX%%/etc/apache/httpd.conf
+envvars="%%PREFIX%%/sbin/envvars"
+
+[ -z "$apache_enable" ]       && apache_enable="NO"
+[ -z "$apachelimits_enable" ] && apachelimits_enable="NO"
+[ -z "$apachelimits_args" ]   && apachelimits_args="-e -C daemon"
+[ -z "$apache_http_accept_enable" ] && apache_http_accept_enable="NO"
+[ -z "$apache_configcheck_disable" ] && apache_configcheck_disable="NO"
+
+apache_accf()
+{
+  if checkyesno apache_http_accept_enable; then
+    /sbin/kldstat -qm accf_http || /sbin/kldload accf_http || return ${?}
+    /sbin/kldstat -qm accf_data || /sbin/kldload accf_data || return ${?}
+  else
+    apache_flags="${apache_flags} -DNOHTTPACCEPT"
+  fi
+}
+
+load_rc_config $name
+
+if [ -n "$2" ]; then
+	profile="$2"
+	if [ "x${apache_profiles}" != "x" ]; then
+		pidfile="${_pidprefix}.${profile}.pid"
+		eval apache_configfile="\${apache_${profile}_configfile:-}"
+		if [ "x${apache_configfile}" = "x" ]; then
+			echo "You must define a configuration file (apache_${profile}_configfile)"
+			exit 1
+		fi
+		required_files="${apache_configfile}"
+		eval apache_enable="\${apache_${profile}_enable:-${apache_enable}}"
+		eval apache_flags="\${apache_${profile}_flags:-${apache_flags}}"
+		eval apache_http_accept_enable="\${apache_${profile}_http_accept_enable:-${apache_http_accept_enable}}"
+		eval apachelimits_enable="\${apachelimits_${profile}_enable:-${apachelimits_enable}}"
+		eval apachelimits_args="\${apachelimits_${profile}_args:-${apachelimits_args}}"
+		eval apache_fib="\${apache_${profile}_fib:-${apache_fib}}"
+		eval apache_configcheck_disable="\${apache_${profile}_configcheck_disable:-${apache_configcheck_disable}}"
+		eval command="\${apache_${profile}_command:-${command}}"
+		eval pidfile="\${apache_${profile}_pidfile:-${pidfile}}"
+		eval apache_envvars="\${apache_${profile}_envvars:-${envvars}}"
+		apache_flags="-f ${apache_configfile} -c \"PidFile ${pidfile}\" ${apache_flags}"
+	else
+		echo "$0: extra argument ignored"
+	fi
+else
+	eval apache_envvars=${envvars}
+	if [ "x${apache_profiles}" != "x" -a "x$1" != "x" ]; then
+		for profile in ${apache_profiles}; do
+			eval _enable="\${apache_${profile}_enable}"
+			case "x${_enable:-${apache_enable}}" in
+			x|x[Nn][Oo]|x[Nn][Oo][Nn][Ee])
+				continue
+				;;
+			x[Yy][Ee][Ss])
+				;;
+			*)
+				if test -z "$_enable"; then
+					_var=apache_enable
+				else
+					_var=apache_"${profile}"_enable
+				fi
+				echo "Bad value" \
+				    "'${_enable:-${apache_enable}}'" \
+				    "for ${_var}. " \
+				    "Profile ${profile} skipped."
+				continue
+				;;
+			esac
+			echo "===> apache profile: ${profile}"
+			%%PREFIX%%/etc/rc.d/apache $1 ${profile}
+			retcode="$?"
+			if [ "0${retcode}" -ne 0 ]; then
+				failed="${profile} (${retcode}) ${failed:-}"
+			else
+				success="${profile} ${success:-}"
+			fi
+		done
+		exit 0
+	fi
+fi
+
+if [ "${1}" != "stop" ] ; then \
+	apache_accf
+fi
+
+if checkyesno apache_configcheck_disable
+then
+        unset restart_precmd
+        unset reload_precmd
+fi
+
+apache_requirepidfile()
+{
+	if [ ! "0`check_pidfile ${pidfile} ${command}`" -gt 1 ]; then
+		echo "${name} not running? (check $pidfile)."
+		exit 1
+	fi
+}
+
+apache_checkconfig()
+{
+	if test -f ${apache_envvars}
+	then
+		. ${apache_envvars}
+	fi
+
+	echo "Performing sanity check on apache configuration:"
+	eval ${command} ${apache_flags} -t
+}
+
+apache_graceful() {
+	apache_requirepidfile
+
+	if ! checkyesno apache_configcheck_disable
+	then
+		apache_checkconfig
+	fi
+
+	echo "Performing a graceful restart"
+	eval ${command} ${apache_flags} -k graceful
+}
+
+apache_gracefulstop() {
+	apache_requirepidfile
+
+	if ! checkyesno apache_configcheck_disable
+	then
+		apache_checkconfig
+	fi
+
+	echo "Performing a graceful stop"
+	eval ${command} ${apache_flags} -k graceful-stop
+}
+
+apache_precmd()
+{
+	if ! checkyesno apache_configcheck_disable
+	then
+		apache_checkconfig
+	fi
+
+	if checkyesno apachelimits_enable
+	then
+		eval `/usr/bin/limits ${apachelimits_args}` 2>/dev/null
+	else
+		return 0
+        fi
+
+}
+
+apache_checkfib () {
+	if command -v check_namevarlist > /dev/null 2>&1; then
+		check_namevarlist fib && return 0
+	fi
+
+	$SYSCTL net.fibs >/dev/null 2>&1 || return 0
+
+	apache_fib=${apache_fib:-"NONE"}
+	if [ "x$apache_fib" != "xNONE" ]
+	then
+		command="/usr/sbin/setfib -F ${apache_fib} ${command}"
+	else
+		return 0
+	fi
+}
+
+apache_prestart() {
+	apache_checkfib
+	apache_precmd
+}
+
+extra_commands="reload graceful gracefulstop configtest"
+run_rc_command "$1"
 
