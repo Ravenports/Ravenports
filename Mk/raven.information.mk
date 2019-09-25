@@ -173,7 +173,7 @@ RUBY_2.6_PATCHLEVEL=		0
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK2_PORT_VERSION=		2.24.32
-GTK3_PORT_VERSION=		3.24.10
+GTK3_PORT_VERSION=		3.24.11
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
@@ -188,6 +188,7 @@ BINUTILS_VERSION=		2.32
 # ------------------------------------------------------------------------
 
 ASPELL_CORE_VERSION=		0.60.7
+ASPELL_INSTALL_VERSION=		${ASPELL_CORE_VERSION:R}
 
 # ------------------------------------------------------------------------
 # apr1 and other apache projects
@@ -206,9 +207,9 @@ LIBTOOL_VERSION=		2.4.6
 FREI0R_VERSION=			1.6.1
 M17N_VERSION=			1.8.0
 GLIBC_VERSION=			2.26
-GSTREAMER1_VERSION=		1.16.0		# only even (1.16.x, 1.18.x)
+GSTREAMER1_VERSION=		1.16.1		# only even (1.16.x, 1.18.x)
 GSTREAMER1_GST=			1.0
-GSTREAMER1_SOVERSION=		0.1600.0
+GSTREAMER1_SOVERSION=		0.1601.0
 XORG_VERSION=			7.7
 FIREFOX52_VERSION=		52.9.0
 FIREFOX_ESR_VERSION=		60.8.0
