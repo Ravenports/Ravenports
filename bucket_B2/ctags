@@ -73,3 +73,47 @@ share/man/man7/
  ctags-incompatibilities.7.gz
  ctags-optlib.7.gz
 
+
+[FILE:543:sunos/patch-misc_packcc_packcc.c]
+--- misc/packcc/packcc.c.orig	Thu Sep 19 00:52:42 2019
++++ misc/packcc/packcc.c	Thu Sep 19 01:33:03 2019
+@@ -50,17 +50,13 @@
+ #include <assert.h>
+ #include <stdbool.h>
+ 
+-#ifndef _MSC_VER
+-#if ((defined USE_SYSTEM_STRNLEN) == 0) && defined __GNUC__ && defined _WIN32 /* MinGW */
++#if defined(sun) || defined(__sun)
+ static size_t strnlen(const char *str, size_t maxlen) {
+     size_t i;
+     for (i = 0; str[i] && i < maxlen; i++);
+     return i;
+ }
+-#else
+-#include <unistd.h> /* for strnlen() */
+ #endif
+-#endif
+ 
+ #define VERSION "1.2.5"
+ 
+
+
+[FILE:347:sunos/patch-peg_varlink__pre.h]
+--- peg/varlink_pre.h.orig	Thu Sep 19 01:20:45 2019
++++ peg/varlink_pre.h	Thu Sep 19 01:37:54 2019
+@@ -19,6 +19,14 @@
+ #include "read.h"
+ 
+ 
++#if defined(sun) || defined(__sun)
++ static size_t strnlen(const char *str, size_t maxlen) {
++     size_t i;
++     for (i = 0; str[i] && i < maxlen; i++);
++     return i;
++ }
++#endif
++
+ /*
+ *   MACROS
+ */
+
