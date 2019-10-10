@@ -133,7 +133,7 @@ GCC9_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			64.2
+ICU_VERSION=			65.1
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
