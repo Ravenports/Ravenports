@@ -187,7 +187,7 @@ BINUTILS_VERSION=		2.32
 # aspell
 # ------------------------------------------------------------------------
 
-ASPELL_CORE_VERSION=		0.60.7
+ASPELL_CORE_VERSION=		0.60.8
 ASPELL_INSTALL_VERSION=		${ASPELL_CORE_VERSION:R}
 
 # ------------------------------------------------------------------------
