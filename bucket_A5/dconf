@@ -135,3 +135,24 @@ share/doc/dconf/
      '--stringparam', 'funcsynopsis.style', 'ansi',
      '--stringparam', 'man.th.extra1.suppress', '1',
 
+
+[FILE:1364:patches/patch-tests_meson.build]
+Work around duplicate symbols exposed by meson 0.52
+
+--- tests/meson.build.orig	2019-09-09 22:56:47 UTC
++++ tests/meson.build
+@@ -28,10 +28,10 @@ unit_tests = [
+   ['gvdb', 'gvdb.c', '-DSRCDIR="@0@"'.format(test_dir), libgvdb_dep, []],
+   ['gdbus-thread', 'dbus.c', '-DDBUS_BACKEND="/gdbus/thread"', libdconf_gdbus_thread_dep, []],
+   ['gdbus-filter', 'dbus.c', '-DDBUS_BACKEND="/gdbus/filter"', libdconf_gdbus_filter_dep, []],
+-  ['gdbus-thread-leak', 'dbus-leak.c', '-DDBUS_BACKEND="/gdbus/thread"', [libdconf_client_dep, libdconf_gdbus_thread_dep], []],
+-  ['gdbus-filter-leak', 'dbus-leak.c', '-DDBUS_BACKEND="/gdbus/filter"', [libdconf_client_dep, libdconf_gdbus_filter_dep], []],
++  ['gdbus-thread-leak', 'dbus-leak.c', '-DDBUS_BACKEND="/gdbus/thread"', [libdconf_client_dep], []],
++  ['gdbus-filter-leak', 'dbus-leak.c', '-DDBUS_BACKEND="/gdbus/filter"', [libdconf_client_dep], []],
+   ['engine', 'engine.c', '-DSRCDIR="@0@"'.format(test_dir), [dl_dep, libdconf_engine_test_dep, m_dep], libdconf_mock],
+-  ['client', 'client.c', '-DSRCDIR="@0@"'.format(test_dir), [libdconf_client_dep, libdconf_engine_dep], libdconf_mock],
++  ['client', 'client.c', '-DSRCDIR="@0@"'.format(test_dir), [libdconf_client_dep], libdconf_mock],
+   ['writer', 'writer.c', '-DSRCDIR="@0@"'.format(test_dir), [glib_dep, dl_dep, m_dep, libdconf_service_dep], [libdconf_mock]],
+ ]
+ 
+
