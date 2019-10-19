@@ -2,6 +2,7 @@
 
 NAMEBASE=		webkit2
 VERSION=		2.26.1
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		gtk3
 SDESC[gtk3]=		Opensource browser engine using the GTK+ 3 toolkit
@@ -447,6 +448,78 @@ share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
  #include <unistd.h>
  #elif OS(WINDOWS)
  #include <windows.h>
+
+
+[FILE:1080:patches/patch-Source_WTF_wtf_URLHelpers.cpp]
+Regressed by https://github.com/unicode-org/icu/commit/480bec3ea652
+
+Source/WTF/wtf/URLHelpers.cpp:301:39: error: expected ';' after do/while statement
+        U16_NEXT(buffer, i, length, c)
+                                      ^
+                                      ;
+Source/WTF/wtf/URLHelpers.cpp:303:52: error: use of undeclared identifier 'error'
+        UScriptCode script = uscript_getScript(c, &error);
+                                                   ^
+Source/WTF/wtf/URLHelpers.cpp:304:13: error: use of undeclared identifier 'error'
+        if (error != U_ZERO_ERROR) {
+            ^
+
+--- Source/WTF/wtf/URLHelpers.cpp.orig	2019-08-26 14:55:44 UTC
++++ Source/WTF/wtf/URLHelpers.cpp
+@@ -298,7 +298,7 @@ static bool allCharactersInIDNScriptWhiteList(const UC
+     Optional<UChar32> previousCodePoint;
+     while (i < length) {
+         UChar32 c;
+-        U16_NEXT(buffer, i, length, c)
++        U16_NEXT(buffer, i, length, c);
+         UErrorCode error = U_ZERO_ERROR;
+         UScriptCode script = uscript_getScript(c, &error);
+         if (error != U_ZERO_ERROR) {
+
+
+[FILE:1699:patches/patch-Source_WebCore_dom_Document.cpp]
+Regressed by https://github.com/unicode-org/icu/commit/480bec3ea652
+
+In file included from DerivedSources/WebCore/unified-sources/UnifiedSource-be65d27a-6.cpp:4:
+Source/WebCore/dom/Document.cpp:5075:39: error: expected ';' after do/while statement
+    U16_NEXT(characters, i, length, c)
+                                      ^
+                                      ;
+Source/WebCore/dom/Document.cpp:5080:43: error: expected ';' after do/while statement
+        U16_NEXT(characters, i, length, c)
+                                          ^
+                                          ;
+Source/WebCore/dom/Document.cpp:5140:46: error: expected ';' after do/while statement
+        U16_NEXT(qualifiedName, i, length, c)
+                                             ^
+                                             ;
+
+--- Source/WebCore/dom/Document.cpp.orig	2019-08-26 14:55:45 UTC
++++ Source/WebCore/dom/Document.cpp
+@@ -5072,12 +5072,12 @@ static bool isValidNameNonASCII(const UChar* character
+     unsigned i = 0;
+ 
+     UChar32 c;
+-    U16_NEXT(characters, i, length, c)
++    U16_NEXT(characters, i, length, c);
+     if (!isValidNameStart(c))
+         return false;
+ 
+     while (i < length) {
+-        U16_NEXT(characters, i, length, c)
++        U16_NEXT(characters, i, length, c);
+         if (!isValidNamePart(c))
+             return false;
+     }
+@@ -5137,7 +5137,7 @@ ExceptionOr<std::pair<AtomicString, AtomicString>> Doc
+ 
+     for (unsigned i = 0; i < length; ) {
+         UChar32 c;
+-        U16_NEXT(qualifiedName, i, length, c)
++        U16_NEXT(qualifiedName, i, length, c);
+         if (c == ':') {
+             if (sawColon)
+                 return Exception { InvalidCharacterError };
 
 
 [FILE:610:patches/patch-Source_WebCore_platform_graphics_cpu_arm_filters_FELightingNEON.cpp]

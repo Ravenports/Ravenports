@@ -2,6 +2,7 @@
 
 NAMEBASE=		python-gtk2
 VERSION=		2.24.0
+REVISION=		1
 KEYWORDS=		x11_toolkits python
 VARIANTS=		py27
 SDESC[py27]=		Python 2.7 bindings for GTK+2
@@ -392,4 +393,667 @@ share/examples/python-gtk2/simple/
  CSSdir = $(TARGET_DIR)
  EXTRA_DIST = \
  	cursors icons images		\
+
+
+[FILE:683:patches/patch-gtk_gtk-2.10.defs]
+$NetBSD: patch-gtk_gtk-2.10.defs,v 1.1 2019/09/07 04:32:14 gutteridge Exp $
+
+Fix object leaks. Committed by upstream, but never branched for release.
+https://bugzilla.gnome.org/show_bug.cgi?id=660216
+
+--- gtk/gtk-2.10.defs.orig	2011-04-01 10:37:25.000000000 +0000
++++ gtk/gtk-2.10.defs
+@@ -1388,12 +1388,14 @@
+ (define-method create_pango_context
+   (of-object "GtkPrintContext")
+   (c-name "gtk_print_context_create_pango_context")
++  (caller-owns-return #t)
+   (return-type "PangoContext*")
+ )
+ 
+ (define-method create_pango_layout
+   (of-object "GtkPrintContext")
+   (c-name "gtk_print_context_create_pango_layout")
++  (caller-owns-return #t)
+   (return-type "PangoLayout*")
+ )
+ 
+
+
+[FILE:1035:patches/patch-pango-types.defs]
+$NetBSD: patch-pango-types.defs,v 1.1 2019/08/29 10:33:59 wiz Exp $
+
+pango deprecated some symbols
+
+--- pango-types.defs.orig	2011-04-01 10:37:25.000000000 +0000
++++ pango-types.defs
+@@ -120,27 +120,6 @@
+   (gtype-id "PANGO_TYPE_CONTEXT")
+ )
+ 
+-(define-object Engine
+-  (in-module "Pango")
+-  (parent "GObject")
+-  (c-name "PangoEngine")
+-  (gtype-id "PANGO_TYPE_ENGINE")
+-)
+-
+-(define-object EngineLang
+-  (in-module "Pango")
+-  (parent "PangoEngine")
+-  (c-name "PangoEngineLang")
+-  (gtype-id "PANGO_TYPE_ENGINE_LANG")
+-)
+-
+-(define-object EngineShape
+-  (in-module "Pango")
+-  (parent "PangoEngine")
+-  (c-name "PangoEngineShape")
+-  (gtype-id "PANGO_TYPE_ENGINE_SHAPE")
+-)
+-
+ (define-object Font
+   (in-module "Pango")
+   (parent "GObject")
+@@ -176,13 +155,6 @@
+   (gtype-id "PANGO_TYPE_FONTSET")
+ )
+ 
+-(define-object FontsetSimple
+-  (in-module "Pango")
+-  (parent "PangoFontset")
+-  (c-name "PangoFontsetSimple")
+-  (gtype-id "PANGO_TYPE_FONTSET_SIMPLE")
+-)
+-
+ (define-object Layout
+   (in-module "Pango")
+   (parent "GObject")
+
+
+[FILE:10391:patches/patch-pango.defs]
+$NetBSD: patch-pango.defs,v 1.1 2019/08/29 10:33:59 wiz Exp $
+
+pango deprecated some symbols
+
+--- pango.defs.orig	2011-04-01 10:37:25.000000000 +0000
++++ pango.defs
+@@ -390,16 +390,6 @@
+   )
+ )
+ 
+-(define-method get_font
+-  (of-object "PangoAttrIterator")
+-  (c-name "pango_attr_iterator_get_font")
+-  (return-type "none")
+-  (parameters
+-    '("PangoFontDescription*" "desc")
+-    '("PangoLanguage**" "language")
+-    '("GSList**" "extra_attrs")
+-  )
+-)
+ 
+ (define-method get_attrs
+   (of-object "PangoAttrIterator")
+@@ -513,11 +503,6 @@
+   )
+ )
+ 
+-(define-method get_font_map
+-  (of-object "PangoContext")
+-  (c-name "pango_context_get_font_map")
+-  (return-type "PangoFontMap*")
+-)
+ 
+ (define-method list_families
+   (of-object "PangoContext")
+@@ -550,17 +535,6 @@
+   )
+ )
+ 
+-(define-method get_metrics
+-  (of-object "PangoContext")
+-  (c-name "pango_context_get_metrics")
+-  (return-type "PangoFontMetrics*")
+-  (caller-owns-return #t)
+-  (parameters
+-    '("const-PangoFontDescription*" "desc")
+-    '("PangoLanguage*" "language" (null-ok) (default "NULL"))
+-  )
+-)
+-
+ (define-method set_font_description
+   (of-object "PangoContext")
+   (c-name "pango_context_set_font_description")
+@@ -576,12 +550,6 @@
+   (return-type "PangoFontDescription*")
+ )
+ 
+-(define-method get_language
+-  (of-object "PangoContext")
+-  (c-name "pango_context_get_language")
+-  (return-type "PangoLanguage*")
+-)
+-
+ (define-method set_language
+   (of-object "PangoContext")
+   (c-name "pango_context_set_language")
+@@ -763,61 +731,6 @@
+ 
+ 
+ 
+-;; From pango-engine.h
+-
+-(ifdef PANGO_ENABLE_ENGINE
+-
+-(define-function engine_get_type
+-  (c-name "pango_engine_get_type")
+-  (return-type "GType")
+-)
+-
+-(define-function engine_lang_get_type
+-  (c-name "pango_engine_lang_get_type")
+-  (return-type "GType")
+-)
+-
+-(define-function engine_shape_get_type
+-  (c-name "pango_engine_shape_get_type")
+-  (return-type "GType")
+-)
+-
+-(define-virtual script_break
+-  (of-object "PangoEngineLang")
+-  (return-type "none")
+-  (parameters
+-    '("const-char*" "text")
+-    '("int" "len")
+-    '("PangoAnalysis*" "analysis")
+-    '("PangoLogAttr*" "attrs")
+-    '("int" "attrs_len")
+-  )
+-)
+-
+-(define-virtual script_shape
+-  (of-object "PangoEngineShape")
+-  (return-type "none")
+-  (parameters
+-    '("PangoFont*" "font")
+-    '("const-char*" "text")
+-    '("int" "length")
+-    '("PangoAnalysis*" "analysis")
+-    '("PangoGlyphString*" "glyphs")
+-  )
+-)
+-
+-(define-virtual covers
+-  (of-object "PangoEngineShape")
+-  (return-type "PangoCoverageLevel")
+-  (parameters
+-    '("PangoFont*" "font")
+-    '("PangoLanguage*" "language")
+-    '("gunichar" "wc")
+-  )
+-)
+-) ;; PANGO_ENABLE_ENGINE
+-
+-
+ ;; From pango-enum-types.h
+ 
+ (define-function attr_type_get_type
+@@ -1241,35 +1154,11 @@
+   )
+ )
+ 
+-(define-method get_name
+-  (of-object "PangoFontFamily")
+-  (c-name "pango_font_family_get_name")
+-  (return-type "const-char*")
+-)
+-
+-(define-method is_monospace
+-  (of-object "PangoFontFamily")
+-  (c-name "pango_font_family_is_monospace")
+-  (return-type "gboolean")
+-)
+-
+ (define-function pango_font_face_get_type
+   (c-name "pango_font_face_get_type")
+   (return-type "GType")
+ )
+ 
+-(define-method describe
+-  (of-object "PangoFontFace")
+-  (c-name "pango_font_face_describe")
+-  (return-type "PangoFontDescription*")
+-  (caller-owns-return #t)
+-)
+-
+-(define-method get_face_name
+-  (of-object "PangoFontFace")
+-  (c-name "pango_font_face_get_face_name")
+-  (return-type "const-char*")
+-)
+ 
+ (define-method list_sizes
+   (of-object "PangoFontFace")
+@@ -1286,13 +1175,6 @@
+   (return-type "GType")
+ )
+ 
+-(define-method describe
+-  (of-object "PangoFont")
+-  (c-name "pango_font_describe")
+-  (return-type "PangoFontDescription*")
+-  (caller-owns-return #t)
+-)
+-
+ (define-method get_coverage
+   (of-object "PangoFont")
+   (c-name "pango_font_get_coverage")
+@@ -1303,25 +1185,6 @@
+   )
+ )
+ 
+-(define-method find_shaper
+-  (of-object "PangoFont")
+-  (c-name "pango_font_find_shaper")
+-  (return-type "PangoEngineShape*")
+-  (parameters
+-    '("PangoLanguage*" "language")
+-    '("guint32" "ch")
+-  )
+-)
+-
+-(define-method get_metrics
+-  (of-object "PangoFont")
+-  (c-name "pango_font_get_metrics")
+-  (return-type "PangoFontMetrics*")
+-  (caller-owns-return #t)
+-  (parameters
+-    '("PangoLanguage*" "language" (null-ok) (default "NULL"))
+-  )
+-)
+ 
+ (define-method get_glyph_extents
+   (of-object "PangoFont")
+@@ -1334,11 +1197,6 @@
+   )
+ )
+ 
+-(define-method get_font_map
+-  (of-object "PangoFont")
+-  (c-name "pango_font_get_font_map")
+-  (return-type "PangoFontMap*")
+-)
+  
+ (define-virtual list_faces
+   (of-object "PangoFontFamily")
+@@ -1349,25 +1207,7 @@
+   )
+ )
+ 
+-(define-virtual get_name
+-  (of-object "PangoFontFamily")
+-  (return-type "const-char*")
+-)
+-
+-(define-virtual is_monospace
+-  (of-object "PangoFontFamily")
+-  (return-type "gboolean")
+-)
+-
+-(define-virtual get_face_name
+-  (of-object "PangoFontFace")
+-  (return-type "const-char*")
+-)
+ 
+-(define-virtual describe
+-  (of-object "PangoFontFace")
+-  (return-type "PangoFontDescription*")
+-)
+ 
+ (define-virtual list_sizes
+   (of-object "PangoFontFace")
+@@ -1378,11 +1218,6 @@
+   )
+ )
+ 
+-(define-virtual describe
+-  (of-object "PangoFont")
+-  (return-type "PangoFontDescription*")
+-)
+-
+ (define-virtual get_coverage
+   (of-object "PangoFont")
+   (return-type "PangoCoverage*")
+@@ -1391,14 +1226,6 @@
+   )
+ )
+ 
+-(define-virtual find_shaper
+-  (of-object "PangoFont")
+-  (return-type "PangoEngineShape*")
+-  (parameters
+-    '("PangoLanguage*" "lang")
+-    '("guint32" "ch")
+-  )
+-)
+ 
+ (define-virtual get_glyph_extents
+   (of-object "PangoFont")
+@@ -1410,18 +1237,7 @@
+   )
+ )
+ 
+-(define-virtual get_metrics
+-  (of-object "PangoFont")
+-  (return-type "PangoFontMetrics*")
+-  (parameters
+-    '("PangoLanguage*" "language")
+-  )
+-)
+ 
+-(define-virtual get_font_map
+-  (of-object "PangoFont")
+-  (return-type "PangoFontMap*")
+-)
+ 
+ 
+ 
+@@ -1467,12 +1283,6 @@
+   )
+ )
+ 
+-(define-method get_shape_engine_type
+-  (of-object "PangoFontMap")
+-  (c-name "pango_font_map_get_shape_engine_type")
+-  (return-type "const-char*")
+-)
+-
+ (define-method create_context
+   (of-object "PangoFontMap")
+   (c-name "pango_font_map_create_context")
+@@ -1517,23 +1327,6 @@
+   (return-type "GType")
+ )
+ 
+-(define-method get_font
+-  (of-object "PangoFontset")
+-  (c-name "pango_fontset_get_font")
+-  (return-type "PangoFont*")
+-  (caller-owns-return #t)
+-  (parameters
+-    '("guint" "wc")
+-  )
+-)
+-
+-(define-method get_metrics
+-  (of-object "PangoFontset")
+-  (c-name "pango_fontset_get_metrics")
+-  (return-type "PangoFontMetrics*")
+-  (caller-owns-return #t)
+-)
+-
+ (define-method foreach
+   (of-object "PangoFontset")
+   (c-name "pango_fontset_foreach")
+@@ -1544,52 +1337,6 @@
+   )
+ )
+ 
+-(define-function fontset_simple_get_type
+-  (c-name "pango_fontset_simple_get_type")
+-  (return-type "GType")
+-)
+-
+-(define-function pango_fontset_simple_new
+-  (c-name "pango_fontset_simple_new")
+-  (is-constructor-of "PangoFontsetSimple")
+-  (return-type "PangoFontsetSimple*")
+-  (parameters
+-    '("PangoLanguage*" "language")
+-  )
+-)
+-
+-(define-method append
+-  (of-object "PangoFontsetSimple")
+-  (c-name "pango_fontset_simple_append")
+-  (return-type "none")
+-  (parameters
+-    '("PangoFont*" "font")
+-  )
+-)
+-
+-(define-method size
+-  (of-object "PangoFontsetSimple")
+-  (c-name "pango_fontset_simple_size")
+-  (return-type "int")
+-)
+-
+-(define-virtual get_font
+-  (of-object "PangoFontset")
+-  (return-type "PangoFont*")
+-  (parameters
+-    '("guint" "wc")
+-  )
+-)
+-
+-(define-virtual get_metrics
+-  (of-object "PangoFontset")
+-  (return-type "PangoFontMetrics*")
+-)
+-
+-(define-virtual get_language
+-  (of-object "PangoFontset")
+-  (return-type "PangoLanguage*")
+-)
+ 
+ (define-virtual foreach
+   (of-object "PangoFontset")
+@@ -2454,50 +2201,6 @@
+ 
+ 
+ 
+-;; From pango-modules.h
+-
+-(ifdef PANGO_ENABLE_BACKEND
+-
+-(define-function find_map
+-  (c-name "pango_find_map")
+-  (return-type "PangoMap*")
+-  (parameters
+-    '("PangoLanguage*" "language")
+-    '("guint" "engine_type_id")
+-    '("guint" "render_type_id")
+-  )
+-)
+-
+-(define-method get_engine
+-  (of-object "PangoMap")
+-  (c-name "pango_map_get_engine")
+-  (return-type "PangoEngine*")
+-  (parameters
+-    '("PangoScript" "script")
+-  )
+-)
+-
+-(define-method get_engines
+-  (of-object "PangoMap")
+-  (c-name "pango_map_get_engines")
+-  (return-type "none")
+-  (parameters
+-    '("PangoScript" "script")
+-    '("GSList**" "exact_engines")
+-    '("GSList**" "fallback_engines")
+-  )
+-)
+-
+-(define-function module_register
+-  (c-name "pango_module_register")
+-  (return-type "none")
+-  (parameters
+-    '("PangoIncludedModule*" "module")
+-  )
+-)
+-) ;; PANGO_ENABLE_BACKEND
+-
+-
+ ;; From /home/jdahlin/dev/gtk-2.8/pango/pango/pango-renderer.h
+ 
+ (define-function pango_renderer_get_type
+@@ -2743,14 +2446,6 @@
+ 
+ ;; From pango-script.h
+ 
+-(define-function script_for_unichar
+-  (c-name "pango_script_for_unichar")
+-  (return-type "PangoScript")
+-  (parameters
+-    '("gunichar" "ch")
+-  )
+-)
+-
+ (define-function script_iter_new
+   (c-name "pango_script_iter_new")
+   (is-constructor-of "PangoScriptIter")
+@@ -3055,22 +2750,6 @@
+   (deprecated "deprecated")
+ )
+  
+-(define-function unichar_direction
+-  (c-name "pango_unichar_direction")
+-  (return-type "PangoDirection")
+-  (parameters
+-    '("gunichar" "ch")
+-  )
+-)
+-
+-(define-function find_base_dir
+-  (c-name "pango_find_base_dir")
+-  (return-type "PangoDirection")
+-  (parameters
+-    '("const-gchar*" "text")
+-    '("gint" "length")
+-  )
+-)
+ 
+ (define-function extents_to_pixels
+   (c-name "pango_extents_to_pixels")
+@@ -3205,24 +2884,6 @@
+   )
+ )
+ 
+-(define-function config_key_get
+-  (c-name "pango_config_key_get")
+-  (return-type "char*")
+-  (parameters
+-    '("const-char*" "key")
+-  )
+-)
+-
+-(define-function lookup_aliases
+-  (c-name "pango_lookup_aliases")
+-  (return-type "none")
+-  (parameters
+-    '("const-char*" "fontname")
+-    '("char***" "families")
+-    '("int*" "n_families")
+-  )
+-)
+-
+ (define-function parse_enum
+   (c-name "pango_parse_enum")
+   (return-type "gboolean")
+@@ -3275,16 +2936,6 @@
+   )
+ )
+ 
+-(define-function get_sysconf_subdirectory
+-  (c-name "pango_get_sysconf_subdirectory")
+-  (return-type "const-char*")
+-)
+-
+-(define-function get_lib_subdirectory
+-  (c-name "pango_get_lib_subdirectory")
+-  (return-type "const-char*")
+-)
+-
+ (define-function log2vis_get_embedding_levels
+   (c-name "pango_log2vis_get_embedding_levels")
+   (return-type "guint8*")
+
+
+[FILE:1192:patches/patch-pango.override]
+$NetBSD: patch-pango.override,v 1.1 2019/08/29 10:33:59 wiz Exp $
+
+pango deprecated some symbols
+
+--- pango.override.orig	2011-04-01 10:37:25.000000000 +0000
++++ pango.override
+@@ -22,8 +22,6 @@
+ %%
+ headers
+ #define NO_IMPORT_PYGOBJECT
+-#define PANGO_ENABLE_BACKEND
+-#define PANGO_ENABLE_ENGINE
+ #include <pygobject.h>
+ #include <pango/pango.h>
+ 
+@@ -540,6 +538,7 @@ ignore
+   pango_layout_get_log_attrs
+ %%
+ ignore
++  pango_engine_get_type
+   pango_glyph_string_index_to_x
+   pango_glyph_string_x_to_index
+   pango_break
+@@ -1325,7 +1324,6 @@ _wrap_pango_parse_markup(PyObject *self,
+     gunichar accel_marker, accel_char = 0;
+     PangoAttrList *attr_list = NULL;
+     GError *error = NULL;
+-    gboolean ret;
+     PyObject *py_ret;
+ 
+     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s#|u#:pango.parse_markup",
+@@ -1341,8 +1339,8 @@ _wrap_pango_parse_markup(PyObject *self,
+     } else
+ 	accel_marker = 0;
+ 
+-    ret = pango_parse_markup(markup_text, length, accel_marker,
+-			     &attr_list, &text, &accel_char, &error);
++    pango_parse_markup(markup_text, length, accel_marker,
++		       &attr_list, &text, &accel_char, &error);
+     if (pyg_error_check(&error))
+ 	return NULL;
+ 
+
+
+[FILE:850:patches/patch-pangocairo.override]
+$NetBSD: patch-pangocairo.override,v 1.1 2019/09/07 04:32:14 gutteridge Exp $
+
+Fix object leaks. Committed by upstream, but never branched for release.
+https://bugzilla.gnome.org/show_bug.cgi?id=660216
+
+--- pangocairo.override.orig	2011-04-01 10:37:25.000000000 +0000
++++ pangocairo.override
+@@ -118,11 +118,16 @@ _wrap_pango_cairo_update_context(PyGObje
+ static PyObject *
+ _wrap_pango_cairo_create_layout(PyGObject *self)
+ {
+-    PangoLayout *ret;
++    PangoLayout *layout;
++    PyObject *ret;
+ 
+-    ret = pango_cairo_create_layout(PycairoContext_GET(self));
++    layout = pango_cairo_create_layout(PycairoContext_GET(self));
+     /* pygobject_new handles NULL checking */
+-    return pygobject_new((GObject *)ret);
++    ret = pygobject_new((GObject *)layout);
++    if (layout)
++	g_object_unref(layout);
++
++    return ret;
+ }
+ 
+ static PyObject *
 
