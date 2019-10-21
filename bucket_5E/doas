@@ -26,6 +26,8 @@ LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKDIR}}/LICENSE
 LICENSE_SCHEME=		solo
 
+FPC_EQUIVALENT=		security/doas
+
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/doas ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_MAN} ${WRKSRC}/doas.1 ${STAGEDIR}${PREFIX}/share/man/man1
@@ -47,10 +49,23 @@ share/man/man1/doas.1.gz
 share/man/man5/doas.conf.5.gz
 
 
-[FILE:426:patches/patch-Makefile]
+[FILE:1279:patches/patch-Makefile]
 --- Makefile.orig	2019-10-12 15:07:28 UTC
 +++ Makefile
-@@ -23,6 +23,10 @@ ifeq ($(UNAME_S),FreeBSD)
+@@ -9,11 +9,11 @@ OPT?=-O2
+ # Can set GLOBAL_PATH here to set PATH for target user.
+ # TARGETPATH=-DGLOBAL_PATH=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:\"
+ CFLAGS+=-Wall $(OPT) -DUSE_PAM -DDOAS_CONF=\"${SYSCONFDIR}/doas.conf\" $(TARGETPATH)
++CFLAGS+=-DOPENPAM
+ CPPFLAGS+=-include compat/compat.h
+ LDFLAGS+=-lpam
+ UNAME_S := $(shell uname -s)
+ ifeq ($(UNAME_S),Linux)
+-    LDFLAGS+=-lpam_misc
+     CPPFLAGS+=-Icompat
+     CFLAGS+=-D_GNU_SOURCE
+     COMPAT+=closefrom.o errc.o getprogname.o setprogname.o strlcat.o strlcpy.o strtonum.o verrc.o
+@@ -23,11 +23,15 @@ ifeq ($(UNAME_S),FreeBSD)
      CFLAGS+=-DHAVE_LOGIN_CAP_H
      LDFLAGS+=-lutil
  endif
@@ -61,6 +76,12 @@ share/man/man5/doas.conf.5.gz
  ifeq ($(UNAME_S),SunOS)
      SAFE_PATH?=/bin:/sbin:/usr/bin:/usr/sbin:$(PREFIX)/bin:$(PREFIX)/sbin
      GLOBAL_PATH?=/bin:/sbin:/usr/bin:/usr/sbin:$(PREFIX)/bin:$(PREFIX)/sbin
+     CPPFLAGS+=-Icompat
+-    CFLAGS+=-DSOLARIS_PAM -DSAFE_PATH=\"$(SAFE_PATH)\" -DGLOBAL_PATH=\"$(GLOBAL_PATH)\"
++    CFLAGS+=-DSAFE_PATH=\"$(SAFE_PATH)\" -DGLOBAL_PATH=\"$(GLOBAL_PATH)\"
+     COMPAT=errc.o pm_pam_conv.o setresuid.o verrc.o
+     OBJECTS+=$(COMPAT:%.o=compat/%.o)
+ endif
 
 
 [FILE:274:patches/patch-compat_compat.h]
