@@ -76,8 +76,12 @@ post-patch:
 	${REINPLACE_CMD} -e 's|COMMAND python|COMMAND ${PYTHON_VERSION}|g' \
 		${WRKSRC}/share/*/CMakeLists.txt
 	# Obtained from Arch Linux
-	${REINPLACE_CMD} -e 's|gTrue|true|g' -e 's|gFalse|false|g' -e 's|GBool|bool|g' \
-		${WRKSRC}/src/extension/internal/pdfinput/pdf-parser.*
+	${REINPLACE_CMD} \
+		-e 's|gTrue|true|g' \
+		-e 's|gFalse|false|g' \
+		-e 's|GBool|bool|g' \
+		${WRKSRC}/src/extension/internal/pdfinput/pdf-parser.cpp \
+		${WRKSRC}/src/extension/internal/pdfinput/pdf-parser.h
 	# Fix with poppler 0.73
 	${REINPLACE_CMD} -E '/#include "goo\/gtypes.h"/d' \
 		${WRKSRC}/src/extension/internal/pdfinput/pdf-parser.h
@@ -1152,22 +1156,10 @@ share/man/man1/
 share/metainfo/inkscape.appdata.xml
 
 
-[FILE:1571:patches/patch-gentoo_inkscape-0.92.4-poppler-0.76.0.patch]
-From dc25406853353320078eca22cf817fb052c97082 Mon Sep 17 00:00:00 2001
-From: Marc Jeanmougin <marc@jeanmougin.fr>
-Date: Wed, 24 Apr 2019 14:11:26 +0200
-Subject: [PATCH] Tentative fix for poppler 0.76
-
----
- src/extension/internal/pdfinput/pdf-parser.cpp           | 2 +-
- src/extension/internal/pdfinput/poppler-transition-api.h | 7 +++++++
- 2 files changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/src/extension/internal/pdfinput/pdf-parser.cpp b/src/extension/internal/pdfinput/pdf-parser.cpp
-index 2981d6ee51..ddbff7671f 100644
---- src/extension/internal/pdfinput/pdf-parser.cpp
+[FILE:1231:patches/patch-src_extension_internal_pdfinput_pdf-parser.cpp]
+--- src/extension/internal/pdfinput/pdf-parser.cpp.orig	2019-01-15 04:29:27 UTC
 +++ src/extension/internal/pdfinput/pdf-parser.cpp
-@@ -426,7 +426,7 @@ void PdfParser::parse(Object *obj, GBool topLevel) {
+@@ -426,7 +426,7 @@ void PdfParser::parse(Object *obj, GBool
  	error(errInternal, -1, "Weird page contents");
      	return;
    }
@@ -1176,8 +1168,30 @@ index 2981d6ee51..ddbff7671f 100644
    go(topLevel);
    delete parser;
    parser = NULL;
-diff --git a/src/extension/internal/pdfinput/poppler-transition-api.h b/src/extension/internal/pdfinput/poppler-transition-api.h
-index 6e4dde7dee..21a60702fa 100644
+@@ -2414,7 +2414,11 @@ void PdfParser::doShowText(GooString *s)
+   int wMode;
+   double riseX, riseY;
+   CharCode code;
++#if POPPLER_CHECK_VERSION(0,82,0)
++  const Unicode *u = NULL;
++#else
+   Unicode *u = NULL;
++#endif
+   double x, y, dx, dy, tdx, tdy;
+   double originX, originY, tOriginX, tOriginY;
+   double oldCTM[6], newCTM[6];
+@@ -2537,7 +2541,7 @@ void PdfParser::doShowText(GooString *s)
+       originY *= state->getFontSize();
+       state->textTransformDelta(originX, originY, &tOriginX, &tOriginY);
+       builder->addChar(state, state->getCurX() + riseX, state->getCurY() + riseY,
+-                       dx, dy, tOriginX, tOriginY, code, n, u, uLen);
++                       dx, dy, tOriginX, tOriginY, code, n, (Unicode *)u, uLen);
+       state->shift(tdx, tdy);
+       p += n;
+       len -= n;
+
+
+[FILE:455:patches/patch-src_extension_internal_pdfinput_poppler-transition-api.h]
 --- src/extension/internal/pdfinput/poppler-transition-api.h
 +++ src/extension/internal/pdfinput/poppler-transition-api.h
 @@ -3,6 +3,13 @@
@@ -1194,9 +1208,6 @@ index 6e4dde7dee..21a60702fa 100644
  #if POPPLER_CHECK_VERSION(0, 72, 0)
  #define getCString c_str
  #endif
--- 
-2.18.1
-
 
 
 [FILE:704:patches/patch-src_libnrtype_FontFactory.cpp]
