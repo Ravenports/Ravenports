@@ -116,6 +116,27 @@ share/man/man8/
  	$(INSTALL) -m 644 table.5.out		$(DESTDIR)$(mandir)/$(mansubdir)5/table.5
 
 
+[FILE:398:patches/patch-openbsd-compat_arc4random.c]
+--- openbsd-compat/arc4random.c.orig	2019-10-26 11:54:19 UTC
++++ openbsd-compat/arc4random.c
+@@ -163,6 +163,7 @@ _rs_random_u32(uint32_t *val)
+ 	return;
+ }
+ 
++#if !defined(HAVE_ARC4RANDOM) && !defined(LIBRESSL_VERSION_NUMBER)
+ void
+ arc4random_stir(void)
+ {
+@@ -170,6 +171,7 @@ arc4random_stir(void)
+ 	_rs_stir();
+ 	_ARC4_UNLOCK();
+ }
++#endif
+ 
+ void
+ arc4random_addrandom(u_char *dat, int datlen)
+
+
 [FILE:233:patches/patch-openbsd-compat_includes.h]
 --- openbsd-compat/includes.h.orig	2019-10-26 11:54:19 UTC
 +++ openbsd-compat/includes.h

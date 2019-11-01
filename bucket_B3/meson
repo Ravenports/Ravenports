@@ -49,6 +49,20 @@ d60f75f0dedcc4fd249dbc7519d6f3ce6df490033d276ef1cf27453ef4938d32      1507110 me
 share/polkit-1/actions/com.mesonbuild.install.policy
 
 
+[FILE:509:patches/patch-mesonbuild_environment.py]
+--- mesonbuild/environment.py.orig	2019-10-06 17:01:35 UTC
++++ mesonbuild/environment.py
+@@ -822,7 +822,7 @@ class Environment:
+             else:
+                 i = 'GNU ld.bfd'
+             linker = GnuDynamicLinker(compiler, for_machine, i, prefix, version=v)
+-        elif 'Solaris' in e or 'Solaris' in o:
++        elif 'enforce a 64-bit link-edit' in e:
+             linker = SolarisDynamicLinker(
+                 compiler, for_machine, 'solaris', prefix,
+                 version=search_version(e))
+
+
 [FILE:613:patches/patch-mesonbuild_scripts_depfixer.py]
 --- mesonbuild/scripts/depfixer.py.orig	2019-08-28 17:15:39 UTC
 +++ mesonbuild/scripts/depfixer.py
@@ -68,7 +82,7 @@ share/polkit-1/actions/com.mesonbuild.install.policy
 -        fix_darwin(fname, new_rpath, final_path, install_name_mappings)
 
 
-[FILE:601:sunos/patch-mesonbuild_compilers_compilers.py]
+[FILE:1181:sunos/patch-mesonbuild_compilers_compilers.py]
 --- mesonbuild/compilers/compilers.py.orig	2019-10-06 17:01:35 UTC
 +++ mesonbuild/compilers/compilers.py
 @@ -348,9 +348,6 @@ def get_base_link_args(options, linker,
@@ -81,4 +95,15 @@ share/polkit-1/actions/com.mesonbuild.install.policy
  
      # Apple's ld (the only one that supports bitcode) does not like any
      # -undefined arguments at all, so don't pass these when using bitcode
+@@ -544,10 +541,6 @@ class CompilerArgs(list):
+                 if group_start < 0:
+                     # First occurrence of a library
+                     group_start = i
+-            if group_start >= 0:
+-                # Last occurrence of a library
+-                new.insert(group_end + 1, '-Wl,--end-group')
+-                new.insert(group_start, '-Wl,--start-group')
+         # Remove system/default include paths added with -isystem
+         if hasattr(self.compiler, 'get_default_include_dirs'):
+             default_dirs = self.compiler.get_default_include_dirs()
 

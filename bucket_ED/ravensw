@@ -145,7 +145,7 @@ share/zsh/site-functions/_ravensw
 @dir etc/ravensw/repos
 
 
-[FILE:245:patches/patch-libpkg_port__fileat.c]
+[FILE:601:patches/patch-libpkg_port__fileat.c]
 --- libpkg/port_fileat.c.orig	2019-07-23 16:09:40 UTC
 +++ libpkg/port_fileat.c
 @@ -88,7 +88,7 @@ file_chdir_unlock(int dfd)
@@ -157,4 +157,20 @@ share/zsh/site-functions/_ravensw
  
  	if (saved_cwd[0] != '\0')
  		chdir(saved_cwd);
+@@ -170,11 +170,15 @@ port_fchmodat(int fd, const char* path,
+ 	if ((ret = file_chdir_lock(fd) != 0))
+ 		return(ret);
+ 
++#if defined(__sun__) || defined(__linux__)
++	ret = chmod(path, mode);
++#else
+ 	if (flag & AT_SYMLINK_NOFOLLOW) {
+ 		ret = lchmod(path, mode);
+ 	} else {
+ 		ret = chmod(path, mode);
+ 	}
++#endif
+ 
+ 	file_chdir_unlock(fd);
+ 	return(ret);
 
