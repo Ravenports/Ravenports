@@ -141,7 +141,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.9.9
+LIBXML2_VERSION=		2.9.10
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -149,7 +149,7 @@ LIBXML2_PYTHON_REVISION=	0
 # libxslt
 # ------------------------------------------------------------------------
 
-LIBXSLT_VERSION=		1.1.33
+LIBXSLT_VERSION=		1.1.34
 LIBXSLT_REVISION=		0
 LIBXSLT_PYTHON_REVISION=	0
 
@@ -228,6 +228,6 @@ GNATCROSS_FREEBSD_12=		12.0
 # Qt and Lumina versions
 # ------------------------------------------------------------------------
 
-QT5_VERSION=			5.13.1
+QT5_VERSION=			5.13.2
 LUMINA_VERSION=			1.5.0
 LUMINA_RELEASE_TAG=		1.5.0
