@@ -56,7 +56,7 @@ vasprintf(char **strp, const char *fmt, va_list args)
         *strp = NULL;
         return (needed);
     }
-    *strp = malloc(needed + 1);
+    *strp = (char *)malloc(needed + 1);
     if (*strp == NULL)
         return (-1);
     status = vsnprintf(*strp, needed + 1, fmt, args);

@@ -1952,6 +1952,30 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  MachOYAML::LoadCommand::~LoadCommand() = default;
 
 
+[FILE:432:patches/patch-tools_llvm-objcopy_MachO_MachOReader.cpp]
+--- tools/llvm-objcopy/MachO/MachOReader.cpp.orig	2019-06-24 23:39:01 UTC
++++ tools/llvm-objcopy/MachO/MachOReader.cpp
+@@ -13,6 +13,18 @@
+ #include "llvm/Object/MachO.h"
+ #include <memory>
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ namespace llvm {
+ namespace objcopy {
+ namespace macho {
+
+
 [FILE:442:patches/patch-tools_llvm-readobj_ObjDumper.cpp]
 --- tools/llvm-readobj/ObjDumper.cpp.orig	2019-06-18 14:01:03 UTC
 +++ tools/llvm-readobj/ObjDumper.cpp
