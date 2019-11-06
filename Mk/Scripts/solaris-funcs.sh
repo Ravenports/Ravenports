@@ -127,11 +127,103 @@ strndup(const char *str, size_t n)
 EOF
 } # snippet_strndup
 
+snippet_err_h()
+{
+	cat << 'EOF'
+#ifndef BSD_ERR_H
+#define BSD_ERR_H
+
+#define __printflike(x, y) __attribute((format(printf, (x), (y))))
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <stdarg.h>
+
+#define err(exitcode, format, args...) \
+	errx(exitcode, format ": %s", ## args, strerror(errno))
+#define errx(exitcode, format, args...) \
+	{ warnx(format, ## args); exit(exitcode); }
+#define warn(format, args...) \
+	warnx(format ": %s", ## args, strerror(errno))
+#define warnx(format, args...) \
+	fprintf(stderr, format "\n", ## args)
+
+static void warnc(int code, const char *format, ...)
+	__printflike(2, 3);
+static void vwarn(const char *format, va_list ap)
+	__printflike(1, 0);
+static void vwarnc(int code, const char *format, va_list ap)
+	__printflike(2, 0);
+static void errc(int status, int code, const char *format, ...)
+	__printflike(3, 4);
+static void verr(int status, const char *format, va_list ap)
+	__printflike(2, 0);
+static void verrc(int status, int code, const char *format, va_list ap)
+	__printflike(3, 0);
+
+static void
+vwarn(const char *fmt, va_list ap)
+{
+	vwarnc(errno, fmt, ap);
+}
+
+static void
+verr(int eval, const char *fmt, va_list ap)
+{
+	verrc(eval, errno, fmt, ap);
+}
+
+static void
+warnc(int code, const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	vwarnc(code, format, ap);
+	va_end(ap);
+}
+
+static void
+vwarnc(int code, const char *format, va_list ap)
+{
+	if (format) {
+		vfprintf(stderr, format, ap);
+		fprintf(stderr, ": ");
+	}
+	fprintf(stderr, "%s\n", strerror(code));
+}
+
+static void
+errc(int status, int code, const char *format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+	verrc(status, code, format, ap);
+	va_end(ap);
+}
+
+static void
+verrc(int status, int code, const char *format, va_list ap)
+{
+	if (format) {
+		vfprintf(stderr, format, ap);
+		fprintf(stderr, ": ");
+	}
+	fprintf(stderr, "%s\n", strerror(code));
+	exit(status);
+}
+
+#endif
+EOF
+}
+
 case "$1" in
 	dirfd)    snippet_dirfd ;;
 	mkdtemp)  snippet_mkdtemp ;;
 	asprintf) snippet_asprintf ;;
 	strnlen)  snippet_strnlen ;;
 	strndup)  snippet_strndup ;;
-	*) echo "Invalid selection (dirfd, mkdtemp, asprintf, strnlen, strndup)" ;;
+	err.h)    snippet_err_h ;;
+	*) echo "Invalid selection (dirfd, mkdtemp, asprintf, strnlen, strndup, err.h)" ;;
 esac

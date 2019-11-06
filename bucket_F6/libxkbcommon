@@ -17,20 +17,29 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-B_DEPS[sunos]=		libbsd4sol:single:standard
-
-USES=			bison meson
+USES=			bison meson solaris-funcs
 XORG_COMPONENTS=	xcb xorgproto
+
+LICENSE=		MIT:single
+LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11/libxkbcommon
 MESON_ARGS=		-Dx-locale-root={{PREFIX}}/lib/X11/locale
 			-Ddefault-rules=xorg
 			-Denable-wayland=false
 			-Denable-docs=false
+SOL_FUNCTIONS=		strndup:src/compose/paths.c
+			strndup:src/atom.c
+			strndup:src/x11/util.c
+			asprintf:src/compose/paths.c
+			asprintf:src/context.c
+			asprintf:test/log.c
+			asprintf:test/compose.c
+			asprintf:bench/bench.c
+			strnlen:src/x11/keymap.c
 
 INSTALL_REQ_TOOLCHAIN=	yes
-
-VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
 
 post-patch:
 	${REINPLACE_CMD} -e '/version-script=/ s/script=/script,/' \
