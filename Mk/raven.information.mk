@@ -56,9 +56,9 @@ GCC6_PHASE=			release
 # ------------------------------------------------------------------------
 
 GCC7_BRANCH=			7
-GCC7_POINT=			4.0
+GCC7_POINT=			5.0
 GCC7_VERSION=			${GCC7_BRANCH}.${GCC7_POINT}
-GCC7_SNAPSHOT=			20180612
+GCC7_SNAPSHOT=			20191114
 GCC7_BUILD_RELEASE=		yes
 GCC7_REVISION=			0
 GCC7_GNAT_UTIL_REVISION=	0
