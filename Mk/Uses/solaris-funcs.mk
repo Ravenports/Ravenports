@@ -29,6 +29,7 @@ SOL_FUNC_MKDTEMP=	${SOL_FUNCTIONS:Mmkdtemp\:*:C/.*://:O:u}
 SOL_FUNC_DIRFD=		${SOL_FUNCTIONS:Mdirfd\:*:C/.*://:O:u}
 SOL_FUNC_STRNLEN=	${SOL_FUNCTIONS:Mstrnlen\:*:C/.*://:O:u}
 SOL_FUNC_STRNDUP=	${SOL_FUNCTIONS:Mstrndup\:*:C/.*://:O:u}
+SOL_FUNC_GETLINE=	${SOL_FUNCTIONS:Mgetline\:*:C/.*://:O:u}
 SOL_FUNC_ERR_H=		${SOL_FUNCTIONS:Merr.h\:*:C/.*://:O:u}
 SOL_UNIQUE=		${SOL_FUNCTIONS:Nerr.h\:*:C/.*://:O:u}
 
@@ -60,6 +61,10 @@ insertsolfunc:
 .for F in ${SOL_FUNC_STRNDUP}
 	@${ECHO_MSG} "====>  Insert strndup to ${F}"
 	@${MK_SCRIPTS}/solaris-funcs.sh strndup >> ${WRKSRC}/${F}
+.endfor
+.for F in ${SOL_FUNC_GETLINE}
+	@${ECHO_MSG} "====>  Insert getline to ${F}"
+	@${MK_SCRIPTS}/solaris-funcs.sh getline >> ${WRKSRC}/${F}
 .endfor
 .for F in ${SOL_FUNC_ERR_H}
 	@${ECHO_MSG} "====>  Install ${F} header "
