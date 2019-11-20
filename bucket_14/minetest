@@ -1424,8 +1424,8 @@ share/minetest/textures/base/pack/
  zoom.png
 
 
-[FILE:793:patches/patch-cmake_Modules_FindIrrlicht.cmake]
---- cmake/Modules/FindIrrlicht.cmake.orig	2019-03-04 22:43:14 UTC
+[FILE:825:patches/patch-cmake_Modules_FindIrrlicht.cmake]
+--- cmake/Modules/FindIrrlicht.cmake.orig	2019-10-12 13:48:58 UTC
 +++ cmake/Modules/FindIrrlicht.cmake
 @@ -7,7 +7,7 @@ set(IRRLICHT_SOURCE_DIR "" CACHE PATH "P
  
@@ -1443,8 +1443,8 @@ share/minetest/textures/base/pack/
 +		/raven/include/irrlicht
  		/usr/include/irrlicht
  		/system/develop/headers/irrlicht #Haiku
- 	)
-@@ -48,6 +49,7 @@ else()
+ 		PATH_SUFFIXES "include/irrlicht"
+@@ -49,6 +50,7 @@ else()
  	find_library(IRRLICHT_LIBRARY NAMES libIrrlicht.so libIrrlicht.a Irrlicht
  		PATHS
  		/usr/local/lib
@@ -1455,9 +1455,9 @@ share/minetest/textures/base/pack/
 
 
 [FILE:1027:patches/patch-src_CMakeLists.txt]
---- src/CMakeLists.txt.orig	2019-03-04 22:43:14 UTC
+--- src/CMakeLists.txt.orig	2019-10-12 13:48:58 UTC
 +++ src/CMakeLists.txt
-@@ -727,14 +727,9 @@ else()
+@@ -713,14 +713,9 @@ else()
  		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWIN32_LEAN_AND_MEAN")
  	endif()
  
@@ -1474,6 +1474,29 @@ share/minetest/textures/base/pack/
  
  	if(USE_GPROF)
  		set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg")
+
+
+[FILE:757:patches/patch-src_main.cpp]
+From 097e74492d2901da14236d03cb0b78360fa1dfbe Mon Sep 17 00:00:00 2001
+From: Dmitry Marakasov <amdmi3@amdmi3.ru>
+Date: Wed, 23 Oct 2019 20:27:11 +0300
+Subject: [PATCH] Fix build issue due to conflicting s64 type definitions
+
+See comment in irrlichttypes.h and https://sourceforge.net/p/irrlicht/bugs/433/
+---
+ src/main.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- src/main.cpp.orig	2019-10-12 13:48:58 UTC
++++ src/main.cpp
+@@ -17,6 +17,7 @@ with this program; if not, write to the
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+ 
++#include "irrlichttypes.h" // must be included before anything irrlicht, see comment in the file
+ #include "irrlicht.h" // createDevice
+ #include "irrlichttypes_extrabloated.h"
+ #include "chat_interface.h"
 
 
 [FILE:22240:files/LICENSE_CC_BY_SA_30]

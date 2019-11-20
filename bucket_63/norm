@@ -2,17 +2,19 @@
 
 NAMEBASE=		norm
 VERSION=		1.5.8
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		standard
 SDESC[standard]=	NACK-Oriented Reliable Multicast (NORM)
 HOMEPAGE=		https://www.nrl.navy.mil/itd/ncs/products/norm
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
-SITES[main]=		https://downloads.pf.itd.nrl.navy.mil/norm/
-			https://downloads.pf.itd.nrl.navy.mil/norm/archive/
-DISTFILE[1]=		src-norm-1.5.8.tgz:main
-DF_INDEX=		1
+DOWNLOAD_GROUPS=	main protolib
+SITES[main]=		GITHUB/USNavalResearchLaboratory:norm:v1.5.8
+SITES[protolib]=	GITHUB/USNavalResearchLaboratory:protolib:16c5ab:protolib
+DISTFILE[1]=		generated:main
+DISTFILE[2]=		generated:protolib
+DF_INDEX=		1 2
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
@@ -83,8 +85,9 @@ repair and other IETF reliable multicast transport (RMT) building blocks
 in its design.
 
 
-[FILE:97:distinfo]
-4480a6ea53fb7ce45b4bc2061d18fbfd46ee9990fc2ed9a9dc303ce4d87888a6      2569115 src-norm-1.5.8.tgz
+[FILE:249:distinfo]
+ee7493c9ae9a129e7cbcd090a412fb0d0e25ab3acaa4748e5dc696bf822a62b5      1314535 USNavalResearchLaboratory-norm-1.5.8.tar.gz
+90c4fe9b4b836bc0010a27bd340ca0a93da89573bedbb8e8a27d27aa1c009bc7      1264371 USNavalResearchLaboratory-protolib-16c5ab.tar.gz
 
 
 [FILE:54:manifests/plist.single]
@@ -93,7 +96,7 @@ include/normApi.h
 
 
 [FILE:876:patches/patch-makefiles_Makefile.linux]
---- makefiles/Makefile.linux.orig	2018-06-24 17:10:10 UTC
+--- makefiles/Makefile.linux.orig	2019-09-11 16:24:09 UTC
 +++ makefiles/Makefile.linux
 @@ -5,8 +5,8 @@
  # 5) System specific additional libraries, include paths, etc
@@ -126,7 +129,7 @@ include/normApi.h
 
 
 [FILE:456:patches/patch-makefiles_Makefile.solaris]
---- makefiles/Makefile.solaris.orig	2019-03-19 13:42:33 UTC
+--- makefiles/Makefile.solaris.orig	2019-09-11 16:24:09 UTC
 +++ makefiles/Makefile.solaris
 @@ -40,10 +40,11 @@ SYSTEM_HAVES = -DHAVE_DIRFD -DHAVE_IPV6
  
@@ -146,7 +149,7 @@ include/normApi.h
 
 
 [FILE:720:patches/patch-protolib_include_protoSocket.h]
---- protolib/include/protoSocket.h.orig	2018-04-30 17:33:49 UTC
+--- protolib/include/protoSocket.h.orig	2019-11-11 14:54:17 UTC
 +++ protolib/include/protoSocket.h
 @@ -106,7 +106,7 @@ class ProtoSocket : public ProtoNotify
  // On Mac OSX, only version 10.7 and later support IGMPv3 
@@ -160,7 +163,7 @@ include/normApi.h
 
 
 [FILE:475:patches/patch-protolib_makefiles_Makefile.solaris]
---- protolib/makefiles/Makefile.solaris.orig	2019-03-19 13:45:20 UTC
+--- protolib/makefiles/Makefile.solaris.orig	2019-11-11 14:54:17 UTC
 +++ protolib/makefiles/Makefile.solaris
 @@ -39,11 +39,12 @@ SYSTEM_LIBS = -ldl -lnsl -lsocket -lreso
  #
@@ -180,7 +183,7 @@ include/normApi.h
 
 
 [FILE:444:patches/patch-protolib_setup.py]
---- protolib/setup.py.orig	2014-03-01 16:17:04 UTC
+--- protolib/setup.py.orig	2019-11-11 14:54:17 UTC
 +++ protolib/setup.py
 @@ -23,7 +23,7 @@ system = platform.system().lower()
  sys_macros = [('HAVE_ASSERT',None), ('HAVE_IPV6',None), ('PROTO_DEBUG', None)]
@@ -194,18 +197,18 @@ include/normApi.h
 
 
 [FILE:1701:patches/patch-protolib_wscript]
---- protolib/wscript.orig	2018-07-27 14:56:17 UTC
+--- protolib/wscript.orig	2019-11-11 14:54:17 UTC
 +++ protolib/wscript
-@@ -57,7 +57,7 @@ def configure(ctx):
+@@ -59,7 +59,7 @@ def configure(ctx):
      # Use this USE variable to add flags to protolib's compilation
      ctx.env.USE_BUILD_PROTOLIB += ['BUILD_PROTOLIB']
  
 -    if system in ('linux', 'darwin', 'freebsd', 'gnu', 'gnu/kfreebsd'):
-+    if system in ('linux', 'darwin', 'dragonfly', 'freebsd', 'gnu', 'gnu/kfreebsd'):
++    if system in ('linux', 'darwin', 'freebsd', 'dragonfly', 'gnu', 'gnu/kfreebsd'):
          ctx.env.DEFINES_BUILD_PROTOLIB += ['UNIX', 'HAVE_DIRFD', 'HAVE_IPV6',
                  'HAVE_ASSERT', 'HAVE_GETLOGIN']
  
-@@ -85,7 +85,7 @@ def configure(ctx):
+@@ -87,7 +87,7 @@ def configure(ctx):
          ctx.check_cxx(lib='resolv')
          ctx.env.USE_BUILD_PROTOLIB += ['RESOLV']
  
@@ -214,28 +217,28 @@ include/normApi.h
          ctx.env.DEFINES_BUILD_PROTOLIB += ['HAVE_FLOCK', '_FILE_OFFSET_BITS=64', 
                                             'HAVE_PSELECT', 'USE_SELECT']
  
-@@ -184,7 +184,7 @@ def build(ctx):
+@@ -197,7 +197,7 @@ def build(ctx):
          install_path = '${LIBDIR}' if ctx.options.enable_static_library else '',
      )
  
 -    if system in ('linux', 'darwin', 'freebsd', 'gnu', 'gnu/kfreebsd'):
-+    if system in ('linux', 'darwin', 'dragonfly', 'freebsd', 'gnu', 'gnu/kfreebsd'):
++    if system in ('linux', 'darwin', 'freebsd', 'dragonfly', 'gnu', 'gnu/kfreebsd'):
          protolib.source.extend(['src/unix/{0}.cpp'.format(x) for x in [
              'unixNet',
              'unixSerial',
-@@ -206,7 +206,7 @@ def build(ctx):
+@@ -220,7 +220,7 @@ def build(ctx):
              protolib.source.append('src/linux/linuxDetour.cpp')
              protolib.use.append('NETFILTER_QUEUE')
  
 -    if system in ('darwin', 'freebsd', 'gnu/kfreebsd'):
-+    if system in ('darwin', 'dragonfly', 'freebsd', 'gnu/kfreebsd'):
++    if system in ('darwin', 'freebsd', 'dragonfly', 'gnu/kfreebsd'):
          protolib.source.extend(['src/bsd/{0}.cpp'.format(x) for x in [
              'bsdDetour',
              'bsdRouteMgr',
 
 
 [FILE:782:patches/patch-wscript]
---- wscript.orig	2018-06-18 03:16:11 UTC
+--- wscript.orig	2019-09-11 16:24:09 UTC
 +++ wscript
 @@ -58,7 +58,7 @@ def configure(ctx):
      # Use this USE variable to add flags to NORM's compilation
@@ -246,7 +249,7 @@ include/normApi.h
          ctx.env.DEFINES_BUILD_NORM += ['ECN_SUPPORT']
  
      if system == 'windows':
-@@ -165,7 +165,7 @@ def build(ctx):
+@@ -169,7 +169,7 @@ def build(ctx):
          posted = True,
      )
  

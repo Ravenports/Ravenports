@@ -145,6 +145,8 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/plugin/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/mysqlrouter/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/mysqld
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/mysqlrouter/libprotobuf*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/private/libprotobuf*
 	# Linux doesn't like -R flags
 	${SED} -i'' -e 's| -R| -Wl,-rpath,|g' \
 		${STAGEDIR}${PREFIX}/bin/mysql_config
@@ -882,10 +884,10 @@ share/man/man1/
           ${CMAKE_CURRENT_BINARY_DIR}/${file} COPYONLY)
 
 
-[FILE:382:patches/patch-sql_CMakeLists.txt]
+[FILE:538:patches/patch-sql_CMakeLists.txt]
 --- sql/CMakeLists.txt.orig	2019-09-20 08:30:51 UTC
 +++ sql/CMakeLists.txt
-@@ -633,7 +633,7 @@ ENDIF()
+@@ -633,10 +633,10 @@ ENDIF()
  IF(LINUX)
    LIST(APPEND SQL_SHARED_SOURCES
      resourcegroups/platform/thread_attrs_api_linux.cc)
@@ -893,7 +895,11 @@ share/man/man1/
 +ELSEIF(APPLE OR CMAKE_SYSTEM_NAME MATCHES "DragonFly")
    LIST(APPEND SQL_SHARED_SOURCES
      resourcegroups/platform/thread_attrs_api_apple.cc)
- ELSEIF(FREEBSD)
+-ELSEIF(FREEBSD)
++ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+   LIST(APPEND SQL_SHARED_SOURCES
+     resourcegroups/platform/thread_attrs_api_freebsd.cc)
+ ELSEIF(SOLARIS)
 
 
 [FILE:1980:patches/patch-sql_sys__vars.cc]

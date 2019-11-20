@@ -2,7 +2,7 @@
 
 NAMEBASE=		libasr
 VERSION=		1.0.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		dns
 VARIANTS=		standard
 SDESC[standard]=	Asynchronous DNS resolver library
@@ -19,8 +19,9 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		groff:primary:standard
+BUILDRUN_DEPENDS=	nss:caroot:standard
 
-USES=			libtool ssl:build autoreconf
+USES=			cpe autoreconf libtool
 
 LICENSE=		ISCL:single BSD2CLAUSE:single BSD3CLAUSE:single
 			CUSTOM1:single
@@ -34,6 +35,7 @@ LICENSE_AWK=		ISCL:"^$$"
 LICENSE_SOURCE=		ISCL:{{WRKSRC}}/src/asr.h
 LICENSE_SCHEME=		multi
 
+CPE_VENDOR=		openbsd
 FPC_EQUIVALENT=		dns/libasr
 
 MUST_CONFIGURE=		gnu
@@ -41,8 +43,6 @@ CONFIGURE_ARGS=		--with-mantype="man"
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		0.0.3
-
-CFLAGS=			-I{{OPENSSLINC}}
 
 post-extract:
 	${AWK} '/Jakob Schlyter/,/POSSIBILITY OF SUCH DAMAGE/' \
@@ -108,14 +108,46 @@ lib/
  
 
 
-[FILE:265:patches/patch-src_res__search__async.c]
+[FILE:860:patches/patch-src_getaddrinfo__async.c]
+--- src/getaddrinfo_async.c.orig	2019-09-28 14:09:47 UTC
++++ src/getaddrinfo_async.c
+@@ -144,7 +144,7 @@ getaddrinfo_async_run(struct asr_query *
+ 		}
+ 
+ 		if (as->as.ai.hostname && as->as.ai.hostname[0] == '\0') {
+-			ar->ar_gai_errno = EAI_NODATA;
++			ar->ar_gai_errno = EAI_NONAME;
+ 			async_set_state(as, ASR_STATE_HALT);
+ 			break;
+ 		}
+@@ -259,7 +259,7 @@ getaddrinfo_async_run(struct asr_query *
+ 				}
+ 			}
+ 			if (ar->ar_gai_errno == 0 && as->as_count == 0) {
+-				ar->ar_gai_errno = EAI_NODATA;
++				ar->ar_gai_errno = EAI_NONAME;
+ 			}
+ 			async_set_state(as, ASR_STATE_HALT);
+ 			break;
+@@ -442,7 +442,7 @@ getaddrinfo_async_run(struct asr_query *
+ 		if (as->as_flags & ASYNC_AGAIN)
+ 			ar->ar_gai_errno = EAI_AGAIN;
+ 		else
+-			ar->ar_gai_errno = EAI_NODATA;
++			ar->ar_gai_errno = EAI_NONAME;
+ 		async_set_state(as, ASR_STATE_HALT);
+ 		break;
+ 
+
+
+[FILE:293:patches/patch-src_res__search__async.c]
 --- src/res_search_async.c.orig	2019-09-28 14:09:47 UTC
 +++ src/res_search_async.c
 @@ -22,6 +22,9 @@
  #include <sys/uio.h>
  #include <arpa/nameser.h>
  #include <netdb.h>
-+#ifdef __DragonFly__
++#if defined __DragonFly__ || defined __FreeBSD__
 +#include <netinet/in.h>
 +#endif
  

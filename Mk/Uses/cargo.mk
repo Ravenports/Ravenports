@@ -135,9 +135,9 @@ do-install:
 	@flist=$$(${FIND} ${STAGEDIR}/ -type f -perm /111 -print) ;\
 	if [ -n "$$flist" ]; then \
 	   for f in $$flist; do \
-	      (${FILE} $$f | ${GREP} -Fq "with debug_info, not stripped")\
+	      (${FILE} $$f | ${GREP} -Fq ", not stripped")\
 	      && ${ECHO_CMD} "Auto-stripping $$f"\
-              && ${STRIP_CMD} $$f ;\
+              && ${STRIP_CMD} $$f || ${TRUE} ;\
 	   done ;\
 	fi
 .  endif
