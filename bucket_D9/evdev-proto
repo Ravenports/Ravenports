@@ -2,7 +2,7 @@
 
 NAMEBASE=		evdev-proto
 VERSION=		4.19
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Input event device header files
@@ -14,8 +14,11 @@ SITES[main]=		https://github.com/torvalds/linux/raw/v4.19/include/uapi/linux/
 DISTFILE[1]=		input.h:main
 DISTFILE[2]=		input-event-codes.h:main
 DISTFILE[3]=		uinput.h:main
+DISTFILE[4]=		v4l2-common.h:main
+DISTFILE[5]=		v4l2-controls.h:main
+DISTFILE[6]=		videodev2.h:main
 DIST_SUBDIR=		evdev-proto-4.19
-DF_INDEX=		1 2 3
+DF_INDEX=		1 2 3 4 5 6
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
@@ -57,24 +60,40 @@ post-patch:
 		/#define/ s/_IOW(.*), *char\*/_IO\1/ ; \
 		/#define/ s/_IOC_READ/IOC_OUT/' \
 		${WRKSRC}/uinput.h > ${WRKDIR}/.headers/uinput.h.freebsd
+	${SED} -E -e \
+		'/# *include/s|<linux/types.h>|<sys/types.h>|' \
+		${WRKSRC}/v4l2-controls.h > ${WRKDIR}/.headers/v4l2-controls.h.freebsd
+	${SED} -E -e \
+		's/__u([[:digit:]]+)/uint\1_t/g ; \
+		/# *include/s|<linux/types.h>|<sys/types.h>|' \
+		${WRKSRC}/v4l2-common.h > ${WRKDIR}/.headers/v4l2-common.h.freebsd
+	${SED} -E -e \
+		's/__u([[:digit:]]+)/uint\1_t/g ; \
+		s/__s([[:digit:]]+)/int\1_t/g ; \
+		s/__le([[:digit:]]+)/uint\1_t/g ; \
+		s|__user|__attribute__((noderef, address_space(1)))|g ; \
+		/#include <linux.compiler.h>/d ; \
+		/# *include/ s|<linux/ioctl.h>|<sys/ioccom.h>| ; \
+		/# *include/s|<linux/types.h>|<sys/types.h>|' \
+		${WRKSRC}/videodev2.h > ${WRKDIR}/.headers/videodev2.h.freebsd
 
 do-extract:
 	${MKDIR} ${WRKSRC} ${WRKDIR}/.headers
 	${INSTALL_DATA} ${DISTDIR}/${DIST_SUBDIR}/* ${WRKSRC}/
 
 do-install-sunos:
-	${INSTALL_DATA} ${WRKDIR}/.headers/input.h.freebsd \
-		${STAGEDIR}${PREFIX}/include/linux/input.h
-	${INSTALL_DATA} ${WRKDIR}/.headers/uinput.h.freebsd \
-		${STAGEDIR}${PREFIX}/include/linux/uinput.h
+.for HH in input.h uinput.h v4l2-controls.h v4l2-common.h videodev2.h
+	${INSTALL_DATA} ${WRKDIR}/.headers/${HH}.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/${HH}
+.endfor
 	${INSTALL_DATA} ${WRKSRC}/input-event-codes.h \
 		${STAGEDIR}${PREFIX}/include/linux/
 
 do-install-freebsd:
-	${INSTALL_DATA} ${WRKDIR}/.headers/input.h.freebsd \
-		${STAGEDIR}${PREFIX}/include/linux/input.h
-	${INSTALL_DATA} ${WRKDIR}/.headers/uinput.h.freebsd \
-		${STAGEDIR}${PREFIX}/include/linux/uinput.h
+.for HH in input.h uinput.h v4l2-controls.h v4l2-common.h videodev2.h
+	${INSTALL_DATA} ${WRKDIR}/.headers/${HH}.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/${HH}
+.endfor
 	${INSTALL_DATA} ${WRKSRC}/input-event-codes.h \
 		${STAGEDIR}${PREFIX}/include/linux/
 
@@ -85,27 +104,35 @@ do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/include/linux/
 
 do-install-dragonfly:
+.for HH in uinput.h v4l2-controls.h v4l2-common.h videodev2.h
+	${INSTALL_DATA} ${WRKDIR}/.headers/${HH}.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/${HH}
+.endfor
 	${INSTALL_DATA} \
 		/usr/include/compat/linux/input.h \
 		/usr/include/compat/linux/input-event-codes.h \
 		${STAGEDIR}${PREFIX}/include/linux/
-	${INSTALL_DATA} ${WRKDIR}/.headers/uinput.h.freebsd \
-		${STAGEDIR}${PREFIX}/include/linux/uinput.h
 
 [FILE:101:descriptions/desc.single]
 This package contains input event device header files from
 linux.  It's used by non-Linux platforms.
 
 
-[FILE:322:distinfo]
+[FILE:649:distinfo]
 6daff6404fe93484d1c53f8f8bd49d3ae2094f3c1b41871e05a9ba5c8eecc420        15929 evdev-proto-4.19/input.h
 a736ca688b6d5fd5d0f52d77b620387dd1f0d360ebba53106ca7be96a8231249        24313 evdev-proto-4.19/input-event-codes.h
 9123b078f13047c34797332c4f835e5f1e418387e9a950024920faa5a1186974         9276 evdev-proto-4.19/uinput.h
+d09cf06801a0ea1e4b388ca7fe730176876b7f71326cdab950a08f929c894647         4177 evdev-proto-4.19/v4l2-common.h
+6b604fd9ed1c596a98a0aece3d2908689d773b2cfa6fd830841b25a5af868ad3        50496 evdev-proto-4.19/v4l2-controls.h
+15be15e0ec17d58199291c9148e47de5a4bb5c635cc180c7834a0ed49acabbfb        86959 evdev-proto-4.19/videodev2.h
 
 
-[FILE:55:manifests/plist.single]
+[FILE:100:manifests/plist.single]
 include/linux/
  input-event-codes.h
  input.h
  uinput.h
+ v4l2-common.h
+ v4l2-controls.h
+ videodev2.h
 
