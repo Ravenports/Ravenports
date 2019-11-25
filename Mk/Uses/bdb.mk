@@ -24,7 +24,7 @@ _INCLUDE_USES_BDB_MK=	yes
 BDB_VER=		6
 BDB_LIB_NAME=		db-6.2
 BDB_LIB_CXX_NAME=	db_cxx-6.2
-.  elif
+.  elif ${bdb_ARGS} == "18"
 BDB_VER=		18
 BDB_LIB_NAME=		db-18.1
 BDB_LIB_CXX_NAME=	db_cxx-18.1
