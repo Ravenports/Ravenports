@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-toolchain
 VERSION=		3.0
-REVISION=		2
+REVISION=		3
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	Compiler and binutils toolchain for Ravenports
@@ -29,17 +29,18 @@ PREFIX=			{{LOCALBASE}}/share/raven/toolchain
 INVALID_RPATH=		yes
 
 SKIP_BUILD=		yes
-MAKE_ENV=		COMPVER=8.3.0
+MAKE_ENV=		COMPVER=9.2.0
 			TARGET={{CONFIGURE_TARGET}}
 			OPSYS={{OPSYS}}
 			BUVER=2.33.1
-			GCCX=gcc8
+			GCCX=gcc9
 
-PLIST_SUB=		COMPVER=8.3.0
-			GCCVER=8.3.0
+PLIST_SUB=		COMPVER=9.2.0
+			GCCVER=9.2.0
 			TARGET={{CONFIGURE_TARGET}}
-			GCCX=gcc8
+			GCCX=gcc9
 			BUVER=2.33.1
+			GNARL=9
 
 post-install:
 	${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
@@ -60,7 +61,7 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:57657:manifests/plist.single]
+[FILE:58802:manifests/plist.single]
 %%EXCLUDE-DARWIN%%%%GCCX%%/%%ASLIB%%/
  libatomic.so.1.2.0
  libcc1.%%SHARED_OBJECT%%.0
@@ -71,8 +72,8 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  libitm.so.1.0.0
  libquadmath.so.0.0.0
  libssp.so.0.0.0
- libstdc++.so.6.0.25
- libstdc++.so.6.0.25-gdb.py
+ libstdc++.so.6.0.27
+ libstdc++.so.6.0.27-gdb.py
 %%EXCLUDE-DARWIN%%%%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbegin.o
  crtend.o
@@ -178,6 +179,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  any
  array
  atomic
+ bit
  bitset
  cassert
  ccomplex
@@ -214,6 +216,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  cxxabi.h
  deque
  exception
+ execution
  fenv.h
  filesystem
  forward_list
@@ -233,6 +236,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  map
  math.h
  memory
+ memory_resource
  mutex
  new
  numeric
@@ -265,6 +269,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  valarray
  variant
  vector
+ version
 %%GCCX%%/include/c++/%%GCCVER%%/%%TARGET%%/bits/
  atomic_word.h
  basic_file.h
@@ -320,6 +325,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  cxxabi_init_exception.h
  deque.tcc
  enable_special_members.h
+ erase_if.h
  exception.h
  exception_defines.h
  exception_ptr.h
@@ -418,6 +424,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  string_view.tcc
  stringfwd.h
  uniform_int_dist.h
+ unique_lock.h
  unique_ptr.h
  unordered_map.h
  unordered_set.h
@@ -468,16 +475,22 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  algorithm
  any
  array
+ buffer
  chrono
  deque
+ executor
  filesystem
  forward_list
  functional
+ internet
+ io_context
  iterator
  list
  map
  memory
  memory_resource
+ net
+ netfwd
  numeric
  optional
  propagate_const
@@ -485,10 +498,12 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  ratio
  regex
  set
+ socket
  source_location
  string
  string_view
  system_error
+ timer
  tuple
  type_traits
  unordered_map
@@ -496,12 +511,12 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  utility
  vector
 %%GCCX%%/include/c++/%%GCCVER%%/experimental/bits/
- erase_if.h
  fs_dir.h
  fs_fwd.h
  fs_ops.h
  fs_path.h
  lfts_config.h
+ net.h
  shared_ptr.h
  string_view.tcc
 %%GCCX%%/include/c++/%%GCCVER%%/ext/
@@ -894,6 +909,28 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  profiler_trace.h
  profiler_vector_size.h
  profiler_vector_to_list.h
+%%GCCX%%/include/c++/%%GCCVER%%/pstl/
+ algorithm_fwd.h
+ algorithm_impl.h
+ execution_defs.h
+ execution_impl.h
+ glue_algorithm_defs.h
+ glue_algorithm_impl.h
+ glue_execution_defs.h
+ glue_memory_defs.h
+ glue_memory_impl.h
+ glue_numeric_defs.h
+ glue_numeric_impl.h
+ memory_impl.h
+ numeric_fwd.h
+ numeric_impl.h
+ parallel_backend.h
+ parallel_backend_tbb.h
+ parallel_backend_utils.h
+ parallel_impl.h
+ pstl_config.h
+ unseq_backend_simd.h
+ utils.h
 %%GCCX%%/include/c++/%%GCCVER%%/tr1/
  array
  bessel_function.tcc
@@ -1608,6 +1645,8 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  g-io.ads
  g-io_aux.adb
  g-io_aux.ads
+ g-lists.adb
+ g-lists.ads
  g-locfil.adb
  g-locfil.ads
  g-mbdira.adb
@@ -1643,6 +1682,8 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  g-sercom.adb
  g-sercom.ads
  g-sestin.ads
+ g-sets.adb
+ g-sets.ads
  g-sha1.adb
  g-sha1.ads
  g-sha224.ads
@@ -1794,15 +1835,23 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  s-crc32.adb
  s-crc32.ads
  s-crtl.ads
+ s-dfmkio.ads
+ s-dfmopr.ads
+ s-dgmgop.ads
  s-diflio.adb
  s-diflio.ads
+ s-diflmk.ads
+ s-digemk.ads
  s-diinio.adb
  s-diinio.ads
+ s-dilomk.ads
  s-dim.ads
  s-dimkio.ads
  s-dimmks.ads
  s-direio.adb
  s-direio.ads
+ s-dlmkio.ads
+ s-dlmopr.ads
  s-dmotpr.ads
  s-dsaser.ads
  s-dwalin.adb
@@ -1918,6 +1967,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  s-multip.ads
  s-objrea.adb
  s-objrea.ads
+ s-optide.adb
  s-os_lib.adb
  s-os_lib.ads
  s-oscons.ads
@@ -2590,6 +2640,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  g-htable.ali
  g-io.ali
  g-io_aux.ali
+ g-lists.ali
  g-locfil.ali
  g-mbdira.ali
  g-mbflra.ali
@@ -2608,6 +2659,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  g-semaph.ali
  g-sercom.ali
  g-sestin.ali
+ g-sets.ali
  g-sha1.ali
  g-sha224.ali
  g-sha256.ali
@@ -2661,11 +2713,11 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  interfac.ali
  ioexcept.ali
  libgmem.a
- libgnarl-8.so
+ libgnarl-%%GNARL%%.so
  libgnarl.a
  libgnarl.so
  libgnarl_pic.a
- libgnat-8.so
+ libgnat-%%GNARL%%.so
  libgnat.a
  libgnat.so
  libgnat_pic.a
@@ -2705,12 +2757,20 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  s-conca9.ali
  s-crc32.ali
  s-crtl.ali
+ s-dfmkio.ali
+ s-dfmopr.ali
+ s-dgmgop.ali
  s-diflio.ali
+ s-diflmk.ali
+ s-digemk.ali
  s-diinio.ali
+ s-dilomk.ali
  s-dim.ali
  s-dimkio.ali
  s-dimmks.ali
  s-direio.ali
+ s-dlmkio.ali
+ s-dlmopr.ali
  s-dmotpr.ali
  s-dsaser.ali
  s-elaall.ali
@@ -2942,6 +3002,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  openacc_kinds.mod
  openacc_lib.h
 %%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/include/
+ ISO_Fortran_binding.h
  adxintrin.h
  ammintrin.h
  avx2intrin.h
@@ -2973,6 +3034,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  bmmintrin.h
  cet.h
  cetintrin.h
+ cldemoteintrin.h
  clflushoptintrin.h
  clwbintrin.h
  clzerointrin.h
@@ -3026,6 +3088,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  vaesintrin.h
  varargs.h
  vpclmulqdqintrin.h
+ waitpkgintrin.h
  wbnoinvdintrin.h
  wmmintrin.h
  x86intrin.h
@@ -3056,6 +3119,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
 %%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/
  addresses.h
  alias.h
+ align.h
  all-tree.def
  alloc-pool.h
  ansidecl.h
@@ -3088,7 +3152,6 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  cfgloopmanip.h
  cfgrtl.h
  cgraph.h
- chkp-builtins.def
  cif-code.def
  collect-utils.h
  collect2-aix.h
@@ -3123,6 +3186,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  dominance.h
  domwalk.h
  double-int.h
+ dump-context.h
  dumpfile.h
  dwarf2asm.h
  dwarf2out.h
@@ -3206,6 +3270,8 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  incpath.h
  input.h
  insn-addr.h
+ insn-attr-common.h
+ insn-attr.h
  insn-codes.h
  insn-constants.h
  insn-flags.h
@@ -3216,7 +3282,6 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  internal-fn.def
  internal-fn.h
  intl.h
- ipa-chkp.h
  ipa-fnsummary.h
  ipa-icf-gimple.h
  ipa-icf.h
@@ -3230,6 +3295,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  ira-int.h
  ira.h
  is-a.h
+ json.h
  langhooks-def.h
  langhooks.h
  lcm.h
@@ -3261,11 +3327,15 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  omp-low.h
  omp-offload.h
  omp-simd-clone.h
+ opt-problem.h
+ opt-suggestions.h
  optabs-libfuncs.h
  optabs-query.h
  optabs-tree.h
  optabs.def
  optabs.h
+ optinfo-emit-json.h
+ optinfo.h
  options.h
  opts-diagnostic.h
  opts.h
@@ -3305,7 +3375,6 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  regset.h
  reload.h
  resource.h
- rtl-chkp.h
  rtl-error.h
  rtl-iter.h
  rtl.def
@@ -3364,7 +3433,6 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  tree-cfg.h
  tree-cfgcleanup.h
  tree-check.h
- tree-chkp.h
  tree-chrec.h
  tree-core.h
  tree-data-ref.h
@@ -3409,6 +3477,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  tree-ssanames.h
  tree-stdarg.h
  tree-streamer.h
+ tree-switch-conversion.h
  tree-vector-builder.h
  tree-vectorizer.h
  tree-vrp.h
@@ -3432,6 +3501,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  vtable-verify.h
  wide-int-bitmask.h
  wide-int-print.h
+ wide-int-range.h
  wide-int.h
  xcoff.h
  xcoffout.h
@@ -3459,6 +3529,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  name-lookup.h
  operators.def
  type-utils.h
+%%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/d/d-tree.def
 %%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/objc/objc-tree.def
 %%GCCX%%/libexec/gcc/%%TARGET%%/%%GCCVER%%/
  cc1
