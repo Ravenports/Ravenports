@@ -34,6 +34,7 @@ MAKE_ENV=		COMPVER=9.2.0
 			OPSYS={{OPSYS}}
 			BUVER=2.33.1
 			GCCX=gcc9
+			PREVGCC=gcc8
 
 PLIST_SUB=		COMPVER=9.2.0
 			GCCVER=9.2.0
@@ -41,6 +42,7 @@ PLIST_SUB=		COMPVER=9.2.0
 			GCCX=gcc9
 			BUVER=2.33.1
 			GNARL=9
+			PREVGCC=gcc8
 
 post-install:
 	${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
@@ -61,7 +63,8 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:58802:manifests/plist.single]
+[FILE:58853:manifests/plist.single]
+%%PREVGCC%%
 %%EXCLUDE-DARWIN%%%%GCCX%%/%%ASLIB%%/
  libatomic.so.1.2.0
  libcc1.%%SHARED_OBJECT%%.0
@@ -3602,6 +3605,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  dragonfly-stdint.h
  dragonfly.h
 %%ONLY-DRAGONFLY%%%%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
+%%ONLY-DRAGONFLY%%include/bfd_stdint.h
 %%ONLY-FREEBSD%%%%GCCX%%/lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtendS.o
@@ -3727,7 +3731,7 @@ share/
  binutils-single-ravensys-%%BUVER%%.tzst
 
 
-[FILE:1692:files/Makefile]
+[FILE:1746:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -3761,6 +3765,7 @@ install:
 	cp -a ${LOCALBASE:T}/toolchain/${GCCX} ${DESTDIR}${PREFIX}/
 	cp -a ${LOCALBASE:T}/toolchain/include ${DESTDIR}${PREFIX}/
 	rm -rf ${DESTDIR}${PREFIX}/${GCCX}/share/licenses
+	(cd ${DESTDIR}${PREFIX} && ln -s ${GCCX} ${PREVGCC})
 
 .if "${OPSYS}" == "SunOS"
 	rm ${DESTDIR}${PREFIX}/bin/ld
