@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnatcoll-core
 VERSION=		2019
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Core packages of GNAT Components Collection
@@ -9,12 +10,11 @@ HOMEPAGE=		https://github.com/AdaCore/gnatcoll-core
 CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		http://downloads.dragonlace.net/src/
-DISTFILE[1]=		gnatcoll-core-2019-20190515-24AD8-src.tar.gz:main
+SITES[main]=		GITHUB/AdaCore:gnatcoll-core:31d6af5
+DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
-			docs
 			examples
 
 OPTIONS_AVAILABLE=	none
@@ -24,8 +24,6 @@ BUILDRUN_DEPENDS=	xmlada:primary:standard
 			gprbuild:gprlib:standard
 
 USES=			gprbuild gmake
-
-DISTNAME=		gnatcoll-core-2019-20190515-24AD8-src
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -44,7 +42,7 @@ MAKE_ARGS=		prefix={{STAGEDIR}}{{PREFIX}}
 			INTEGRATED=no
 
 INSTALL_REQ_TOOLCHAIN=	yes
-SOVERSION=		2019
+SOVERSION=		0.0
 
 post-patch:
 	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|' ${WRKSRC}/gnatcoll.gpr
@@ -73,11 +71,11 @@ text processing, memory management, and file handling. Several of the
 components are especially useful in enterprise applications.
 
 
-[FILE:123:distinfo]
-309a735fcc0ffab670ca10a17fd522cce37aa07420b8032ffe38bf99471e061e      1423276 gnatcoll-core-2019-20190515-24AD8-src.tar.gz
+[FILE:115:distinfo]
+43100e87920e17cb6b568d7ba3c6c7e6baf99eb5d94daf7ac7b60bc27bbe216d       647793 AdaCore-gnatcoll-core-31d6af5.tar.gz
 
 
-[FILE:8832:manifests/plist.primary]
+[FILE:8888:manifests/plist.primary]
 include/gnatcoll/
  executable_path.c
  getRSS.c
@@ -218,6 +216,7 @@ include/gnatcoll/
  update_path.c
 lib/
  libgnatcoll.so
+ libgnatcoll.so.%%SOMAJOR%%
  libgnatcoll.so.%%SOVERSION%%
 lib/gnat/gnatcoll.gpr
 lib/gnatcoll.relocatable/
@@ -289,6 +288,7 @@ lib/gnatcoll.relocatable/
  gnatcoll-vfs_utils.ali
  gnatcoll.ali
  libgnatcoll.so
+ libgnatcoll.so.%%SOMAJOR%%
  libgnatcoll.so.%%SOVERSION%%
 lib/gnatcoll.static/
  gnatcoll-any_types.ali
@@ -430,96 +430,20 @@ lib/gnatcoll.static-pic/
  libgnatcoll.a
 
 
-[FILE:950:manifests/plist.docs]
-share/doc/gnatcoll/GNATColl.pdf
-share/doc/gnatcoll/html/
- .buildinfo
- boyer_moore.html
- building.html
- config.html
- email.html
- filling.html
- genindex.html
- geometry.html
- index.html
- intro.html
- json.html
- memory.html
- mmap.html
- objects.inv
- pools.html
- projects.html
- promises.html
- ravenscar.html
- refcount.html
- scripting.html
- search.html
- searchindex.js
- storage_pools.html
- strings.html
- templates.html
- terminals.html
- traces.html
- tribooleans.html
- vfs.html
-share/doc/gnatcoll/html/_images/
- classes.png
- important.png
- note.png
- tip.png
-share/doc/gnatcoll/html/_static/
- adacore_transparent.png
- ajax-loader.gif
- basic.css
- comment-bright.png
- comment-close.png
- comment.png
- contents.png
- doctools.js
- down-pressed.png
- down.png
- favicon.ico
- file.png
- jquery-1.11.1.js
- jquery.js
- minus.png
- navigation.png
- plus.png
- pygments.css
- searchtools.js
- sphinxdoc.css
- underscore-1.3.1.js
- underscore.js
- up-pressed.png
- up.png
- websupport.js
-
-
-[FILE:303:manifests/plist.examples]
-share/examples/gnatcoll/
- Makefile
+[FILE:149:manifests/plist.examples]
+share/examples/gnatcoll/coders/
  base64-demo
  base64_coder.adb
- common.adb
- common.ads
- examples.gpr
- newclass.adb
- textconsole.adb
- textconsole.ads
-share/examples/gnatcoll/library/
- .gnatdebug
- README
- build.sh
- dbschema.txt
- default.gpr
- fixture.txt
-share/examples/gnatcoll/library/src/library.adb
+ base64_coder.gpr
+share/examples/gnatcoll/projects/
+ gpr_sources.adb
+ gpr_sources.gpr
 
 
 [FILE:511:patches/patch-Makefile]
---- Makefile.orig	2018-05-10 05:48:27 UTC
+--- Makefile.orig	2019-11-22 16:44:53 UTC
 +++ Makefile
-@@ -117,7 +117,7 @@ GPRBUILD_OPTIONS=
+@@ -113,7 +113,7 @@ GPRBUILD_OPTIONS=
  
  BUILDER=gprbuild -p -m $(GTARGET) $(RBD) -j$(PROCESSORS) $(GPR_VARS) \
  	$(GPRBUILD_OPTIONS)
@@ -530,19 +454,19 @@ share/examples/gnatcoll/library/src/library.adb
  UNINSTALLER=$(INSTALLER) -p -f --install-name=gnatcoll --uninstall
 
 
-[FILE:751:patches/patch-gnatcoll.gpr]
---- gnatcoll.gpr.orig	2018-05-25 05:42:27 UTC
+[FILE:849:patches/patch-gnatcoll.gpr]
+--- gnatcoll.gpr.orig	2019-11-22 16:44:53 UTC
 +++ gnatcoll.gpr
-@@ -94,7 +94,7 @@ project GnatColl is
+@@ -84,7 +84,7 @@ project GnatColl is
  
     case Library_Type is
        when "relocatable" =>
 -         for Library_Options use Extra_Libs;
 +         for Library_Options use Extra_Libs & gpr.Linker'Linker_options & ("-Wl,-R,@PREFIX@/lib");
-       when others =>
-          null;
-    end case;
-@@ -182,7 +182,7 @@ project GnatColl is
+ 
+          --  Put user options in front, for options like --as-needed.
+          for Leading_Library_Options use External_As_List ("LDFLAGS", " ");
+@@ -174,7 +174,7 @@ project GnatColl is
  
     package Install is
        for Artifacts ("share/examples/gnatcoll") use ("examples/*");

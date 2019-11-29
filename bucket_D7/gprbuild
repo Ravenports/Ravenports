@@ -2,21 +2,22 @@
 
 NAMEBASE=		gprbuild
 VERSION=		2019
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Adacore multi-language software build tool
 HOMEPAGE=		http://docs.adacore.com/live/wave/gprbuild/html/gprbuild_ug/gprbuild_ug.html
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main adacore
 SITES[main]=		http://downloads.dragonlace.net/src/
-DISTFILE[1]=		gprbuild-2019-20190517-194D8-src.tar.gz:main
+SITES[adacore]=		GITHUB/AdaCore:gprbuild:2841033
+DISTFILE[1]=		generated:adacore
 DISTFILE[2]=		xmlada-2019-20190429-19B9D-src.tar.gz:main
 DF_INDEX=		1 2
 SPKGS[standard]=	complete
 			primary
 			gprlib
-			docs
 			examples
 
 OPTIONS_AVAILABLE=	none
@@ -27,7 +28,7 @@ EXRUN[gprlib]=		xmlada:primary:standard
 
 USES=			gmake
 
-DISTNAME=		gprbuild-2019-20190517-194D8-src
+DISTNAME=		gprbuild-2841033
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -35,9 +36,6 @@ LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/gprbuild.ads
 LICENSE_SCHEME=		solo
-
-INFO=			primary:gprbuild_ug
-INFO_SUBDIR=		.
 
 BUILD_TARGET=		all libgpr.build
 MAKE_ARGS=		prefix={{STAGEDIR}}{{PREFIX}}
@@ -60,6 +58,7 @@ post-patch:
 		${WRKSRC}/Makefile
 	${RM} ${WRKSRC}/share/gprconfig/*.orig
 	${REINPLACE_CMD} -e 's|"-gnatwe", ||' ${WRKSRC}/gprbuild.gpr
+	${FIND} ${WRKSRC}/examples -name '.cvsignore' -delete
 
 post-patch-dragonfly:
 	# dragonfly has different install program than freebsd, linux (!)
@@ -69,9 +68,6 @@ post-install:
 	${RM} ${STAGEDIR}${PREFIX}/doinstall
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/html/_sources
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/gnat/manifests
-	${MV} ${STAGEDIR}${STD_DOCDIR}/info/gprbuild_ug.info \
-		${STAGEDIR}${PREFIX}/share/info
-	${RM} -r ${STAGEDIR}${STD_DOCDIR}/info
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/gprbuild/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gpr/relocatable/gpr/libgpr.so
@@ -106,12 +102,12 @@ This package contains a standalone library to accomplish the same
 functionality.
 
 
-[FILE:234:distinfo]
-527cabba502bc73673fc8d0272986ab584d343ac7a2f2623ea9f0786347c0f80      2507961 gprbuild-2019-20190517-194D8-src.tar.gz
+[FILE:226:distinfo]
+f2678989e47f2057224b495fceb3d5e706961bfbe03295c19b52efc9f00ee054       957203 AdaCore-gprbuild-2841033.tar.gz
 4fdd0a37e2385048ec2391ad41e96d58a7c3417817fb6974866b3b9da3ff1538      1582603 xmlada-2019-20190429-19B9D-src.tar.gz
 
 
-[FILE:1143:manifests/plist.primary]
+[FILE:1189:manifests/plist.primary]
 bin/
  gprbuild
  gprclean
@@ -140,6 +136,7 @@ share/gprconfig/
  compilers-e500v2-vx6.xml
  compilers-e500v2-vx653.xml
  compilers-e500v2-vx7.xml
+ compilers-e500v2-vx7r2.xml
  compilers-ppc-vx653.xml
  compilers-ppc-vx7.xml
  compilers-ppc-vx7r2.xml
@@ -154,6 +151,7 @@ share/gprconfig/
  e500v2-vx6.xml
  e500v2-vx653.xml
  e500v2-vx7.xml
+ e500v2-vx7r2.xml
  env.ent
  fallback_targets.xml
  fortran.xml
@@ -563,55 +561,6 @@ lib/gpr/static/gpr/
  libgpr.a
 
 
-[FILE:1012:manifests/plist.docs]
-share/doc/gprbuild/html/
- .buildinfo
- genindex.html
- gprbuild_ug.html
- objects.inv
- search.html
- searchindex.js
-share/doc/gprbuild/html/_images/
- importing_and_project_extension_figure_1.png
- importing_and_project_extension_figure_2.png
- importing_and_project_extension_figure_3.png
- importing_and_project_extension_figure_4.png
- project-manager-figure.png
-share/doc/gprbuild/html/_static/
- ajax-loader.gif
- basic.css
- comment-bright.png
- comment-close.png
- comment.png
- contents.png
- doctools.js
- down-pressed.png
- down.png
- favicon.ico
- file.png
- jquery-1.11.1.js
- jquery.js
- minus.png
- navigation.png
- plus.png
- pygments.css
- searchtools.js
- sphinxdoc.css
- underscore-1.3.1.js
- underscore.js
- up-pressed.png
- up.png
- websupport.js
-share/doc/gprbuild/html/gprbuild_ug/
- building_with_gprbuild.html
- companion_tools.html
- gnat_project_manager.html
- introduction.html
-share/doc/gprbuild/html/share/gnu_free_documentation_license.html
-share/doc/gprbuild/pdf/gprbuild_ug.pdf
-share/doc/gprbuild/txt/gprbuild_ug.txt
-
-
 [FILE:2218:manifests/plist.examples]
 share/examples/gprbuild/Makefile
 share/examples/gprbuild/ada_cpp/
@@ -731,7 +680,7 @@ share/examples/gprbuild/subsystems/util_src/
 
 
 [FILE:591:patches/patch-gpr_gpr.gpr]
---- gpr/gpr.gpr.orig	2019-05-18 04:47:56 UTC
+--- gpr/gpr.gpr.orig	2019-11-24 03:02:47 UTC
 +++ gpr/gpr.gpr
 @@ -16,7 +16,7 @@
  --                                                                          --
@@ -754,7 +703,7 @@ share/examples/gprbuild/subsystems/util_src/
 
 
 [FILE:1202:patches/patch-share_gprconfig_compilers.xml]
---- share/gprconfig/compilers.xml.orig	2019-04-05 05:26:28 UTC
+--- share/gprconfig/compilers.xml.orig	2019-11-24 03:02:47 UTC
 +++ share/gprconfig/compilers.xml
 @@ -177,17 +177,15 @@
      </version>
@@ -781,7 +730,7 @@ share/examples/gprbuild/subsystems/util_src/
 
 
 [FILE:486:patches/patch-share_gprconfig_gnat.xml]
---- share/gprconfig/gnat.xml.orig	2019-01-05 05:54:23 UTC
+--- share/gprconfig/gnat.xml.orig	2019-11-24 03:02:47 UTC
 +++ share/gprconfig/gnat.xml
 @@ -60,7 +60,7 @@
     &filter_gnat;
@@ -794,10 +743,10 @@ share/examples/gprbuild/subsystems/util_src/
        for Leading_Required_Switches        ("Ada") use
 
 
-[FILE:2314:patches/patch-share_gprconfig_linker.xml]
---- share/gprconfig/linker.xml.orig	2019-04-06 04:49:01 UTC
+[FILE:2233:patches/patch-share_gprconfig_linker.xml]
+--- share/gprconfig/linker.xml.orig	2019-11-24 03:02:47 UTC
 +++ share/gprconfig/linker.xml
-@@ -941,11 +941,14 @@
+@@ -965,11 +965,14 @@
      </config>
    </configuration>
  
@@ -813,42 +762,28 @@ share/examples/gprbuild/subsystems/util_src/
         <target name="^.*irix.*$" />
         <target name="^.*qnx[0-9]*$" />
      </targets>
-@@ -964,7 +967,6 @@
-   <!-- linux, QNX -->
-   <configuration>
-     <targets>
--       <target name="^.*linux.*$" />
-        <target name="^.*qnx[0-9]*$" />
-     </targets>
-     <config>
-@@ -984,7 +986,6 @@
-        <compiler language="Ada" />
-     </compilers>
-      <targets>
--       <target name="^.*-linux.*$" />
-        <target name="^.*-qnx[0-9]*"/>
-      </targets>
-     <config>
-@@ -1051,13 +1052,37 @@
+@@ -985,12 +988,15 @@
      </config>
    </configuration>
  
--  <!-- freebsd -->
-+  <!-- bsd -->
+-  <!-- linux, freebsd, QNX -->
++  <!-- linux, bsd, QNX -->
    <configuration>
      <targets>
+        <target name="^.*linux.*$" />
+        <target name="^.*qnx[0-9]*$" />
         <target name="^.*freebsd.*$" />
 +       <target name="^.*dragonfly.*$" />
 +       <target name="^.*openbsd.*$" />
 +       <target name="^.*netbsd.*$" />
-+       <target name="^.*linux.*$" />
      </targets>
      <config>
--   for Run_Path_Option  use ("-Wl,-rpath,");
-+   for Run_Path_Option  use ("-Wl,-z,origin,-rpath,");
-+   for Run_Path_Origin use "$$ORIGIN";
-+    </config>
-+  </configuration>
+    for Run_Path_Option  use ("-Wl,-z,origin,-rpath,");
+@@ -1003,13 +1009,33 @@
+     </config>
+   </configuration>
+ 
++  <!-- linux and bsd -->
 +  <configuration>
 +    <compilers>
 +       <compiler language="Ada" />
@@ -866,10 +801,20 @@ share/examples/gprbuild/subsystems/util_src/
 +        Linker'Required_Switches
 +        &amp; ("-Wl,-rpath,${RUNTIME_DIR(ada)}adalib");
 +   end Linker;
-     </config>
-   </configuration>
- 
-@@ -1489,6 +1514,9 @@
++    </config>
++  </configuration>
++
+   <!-- Cross linux, QNX: add rpath-link to the runtime -->
+   <configuration>
+     <compilers>
+        <compiler language="Ada" />
+     </compilers>
+      <targets>
+-       <target name="^.*-linux.*$" />
+        <target name="^.*-qnx[0-9]*"/>
+      </targets>
+     <config>
+@@ -1473,6 +1499,9 @@
         <target name="^.*mingw.*$" />
         <target name="^.*linux.*$" />
         <target name="^.*freebsd.*$" />
@@ -882,7 +827,7 @@ share/examples/gprbuild/subsystems/util_src/
 
 
 [FILE:1188:patches/patch-share_gprconfig_targetset.xml]
---- share/gprconfig/targetset.xml.orig	2019-04-05 05:26:28 UTC
+--- share/gprconfig/targetset.xml.orig	2019-11-24 03:02:47 UTC
 +++ share/gprconfig/targetset.xml
 @@ -102,9 +102,10 @@
    </targetset>
@@ -928,7 +873,7 @@ share/examples/gprbuild/subsystems/util_src/
 
 
 [FILE:452:patches/patch-src_gprbuild-link.adb]
---- src/gprbuild-link.adb.orig	2019-05-18 04:47:57 UTC
+--- src/gprbuild-link.adb.orig	2019-11-24 03:02:47 UTC
 +++ src/gprbuild-link.adb
 @@ -3010,8 +3010,6 @@ package body Gprbuild.Link is
           if Opt.Run_Path_Option
@@ -942,9 +887,9 @@ share/examples/gprbuild/subsystems/util_src/
 
 
 [FILE:1679:patches/patch-src_gprlib.adb]
---- src/gprlib.adb.orig	2019-05-18 04:47:57 UTC
+--- src/gprlib.adb.orig	2019-11-24 03:02:47 UTC
 +++ src/gprlib.adb
-@@ -747,9 +747,6 @@ procedure Gprlib is
+@@ -754,9 +754,6 @@ procedure Gprlib is
  
        for Dir of Imported_Library_Directories loop
           Library_Switches_Table.Append ("-L" & Dir);
@@ -954,7 +899,7 @@ share/examples/gprbuild/subsystems/util_src/
        end loop;
  
        for Libname of Imported_Library_Names loop
-@@ -944,12 +941,6 @@ procedure Gprlib is
+@@ -951,12 +948,6 @@ procedure Gprlib is
                Shared_Lib_Suffix.all);
        end if;
  
@@ -967,7 +912,7 @@ share/examples/gprbuild/subsystems/util_src/
        if Path_Option /= null and then not Rpath.Is_Empty then
           if Separate_Run_Path_Options then
              for J in 1 .. Rpath.Last_Index loop
-@@ -1482,9 +1473,7 @@ procedure Gprlib is
+@@ -1489,9 +1480,7 @@ procedure Gprlib is
                 Object_Files.Append (Opt);
              else
                 if Partial_Linker_Path = null then
@@ -978,7 +923,7 @@ share/examples/gprbuild/subsystems/util_src/
                 else
                    Trailing_PL_Options.Append (Opt);
                 end if;
-@@ -2143,10 +2132,10 @@ procedure Gprlib is
+@@ -2150,10 +2139,10 @@ procedure Gprlib is
  
                       Libgnat :=
                         new String'

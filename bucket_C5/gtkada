@@ -2,15 +2,17 @@
 
 NAMEBASE=		gtkada
 VERSION=		2019
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Ada graphical toolkit based on Gtk3 components
 HOMEPAGE=		http://libre.adacore.com/libre/tools/gtkada/
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main adacore
 SITES[main]=		http://downloads.dragonlace.net/src/
-DISTFILE[1]=		gtkada-2019-20190424-19D98-src.tar.gz:main
+SITES[adacore]=		GITHUB/AdaCore:gtkada:a8a3538
+DISTFILE[1]=		generated:adacore
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
@@ -25,7 +27,7 @@ USES=			gmake perl:build pkgconfig mesa gettext-tools
 			gprbuild ada:primary
 GNOME_COMPONENTS=	gtk3 cairo gdkpixbuf
 
-DISTNAME=		gtkada-2019-20190424-19D98-src
+DISTNAME=		gtkada-a8a3538
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -46,7 +48,7 @@ BUILD_TARGET=		tools static relocatable docs
 MAKE_ARGS=		PROCESSORS={{MAKE_JOBS_NUMBER}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
-SOVERSION=		2019
+SOVERSION=		18.0w
 
 SET_DEBUGGING_ON=	yes
 OPTIMIZER_LEVEL=	0
@@ -69,8 +71,8 @@ written in C for X-Window and Win32 that was originally developed as
 the basis for GIMP.
 
 
-[FILE:116:distinfo]
-ae6959d39846c9aede0a73d9fe251a3b83b0775001a4aff73e9a7477ce8c35dd     12273911 gtkada-2019-20190424-19D98-src.tar.gz
+[FILE:108:distinfo]
+347b2d4c3f10dfccae7977ed5a316e83bd2957ec479c42afde546d65ec0f826a      5397276 AdaCore-gtkada-a8a3538.tar.gz
 
 
 [FILE:65354:manifests/plist.primary]
@@ -3193,7 +3195,7 @@ share/gps/plug-ins/gtkada.xml
 
 
 [FILE:539:patches/patch-Makefile.in]
---- Makefile.in.orig	2018-06-13 08:31:57 UTC
+--- Makefile.in.orig	2019-11-21 11:20:47 UTC
 +++ Makefile.in
 @@ -118,9 +118,6 @@ endif
  install: install-clean
@@ -3208,7 +3210,7 @@ share/gps/plug-ins/gtkada.xml
 
 
 [FILE:1125:patches/patch-configure]
---- configure.orig	2019-04-25 05:34:54 UTC
+--- configure.orig	2019-11-21 11:20:47 UTC
 +++ configure
 @@ -2120,6 +2120,11 @@ fi
        ac_GNATLIB=`cd $ac_GNATDIR; ls libgnat-*.dll | sed 's,lib,,;s,.dll,,'`
@@ -3250,7 +3252,7 @@ share/gps/plug-ins/gtkada.xml
 
 
 [FILE:218:patches/patch-docs_Makefile]
---- docs/Makefile.orig	2018-06-13 08:31:57 UTC
+--- docs/Makefile.orig	2019-11-21 11:20:47 UTC
 +++ docs/Makefile
 @@ -1,7 +1,6 @@
  
@@ -3263,37 +3265,34 @@ share/gps/plug-ins/gtkada.xml
  	${MAKE} -C gtkada_rm clean
 
 
-[FILE:730:patches/patch-shared.gpr.in]
---- shared.gpr.in.orig	2019-04-25 05:40:59 UTC
+[FILE:732:patches/patch-shared.gpr.in]
+--- shared.gpr.in.orig	2019-11-21 11:20:47 UTC
 +++ shared.gpr.in
-@@ -61,13 +61,11 @@ project Shared is
-       case Build is
+@@ -68,11 +68,11 @@ project Shared is
           when "Debug" =>
               for Switches ("Ada") use
--                ("-gnatQ", "-gnatwae", "-gnatay", "-g", "-O0",
--                 "-Werror=format-security");
-+                ("-gnatQ", "-gnatwae", "-gnatay", "-g", "-O0");
-              for Switches ("C") use ("-g", "-O0");
+                 ("-gnatQ", "-gnatwae", "-gnatay", "-g", "-O0");
+-             for Switches ("C") use ("-g", "-O0", "-Wformat", "-Werror=format-security");
++             for Switches ("C") use ("-g", "-O0");
           when "Production" =>
               for Switches ("Ada") use
--                ("-gnatQ", "-O2", "-gnatn", "-gnatwa", "-gnaty",
--                 "-Werror=format-security");
-+                ("-gnatQ", "-O2", "-gnatn", "-gnatwa", "-gnaty");
-              for Switches ("C") use ("-O2");
+                 ("-gnatQ", "-O2", "-gnatn", "-gnatwa", "-gnaty");
+-             for Switches ("C") use ("-O2", "-Wformat", "-Werror=format-security");
++             for Switches ("C") use ("-O2");
        end case;
  
+       for Switches ("C") use Compiler'Switches ("C") & Gtk_Include;
 
 
-[FILE:425:patches/patch-src_opengl_gtkada__gl.gpr]
---- src/opengl/gtkada_gl.gpr.orig	2019-04-25 05:40:59 UTC
+[FILE:467:patches/patch-src_opengl_gtkada__gl.gpr]
+--- src/opengl/gtkada_gl.gpr.orig	2019-11-21 11:20:47 UTC
 +++ src/opengl/gtkada_gl.gpr
-@@ -42,7 +42,8 @@ library project GtkAda_GL is
- 
+@@ -43,7 +43,7 @@ library project GtkAda_GL is
     case Shared.Library_Kind is
        when "relocatable" =>
+          for Leading_Library_Options use Shared.Ldflags;
 -         for Library_Options use Shared.GL_Libs & Shared.Gtk_Libs;
-+         for Library_Options use Shared.GL_Libs & Shared.Gtk_Libs &
-+             ("-Wl,-R,@PREFIX@/lib");
++         for Library_Options use Shared.GL_Libs & Shared.Gtk_Libs & ("-Wl,-R,@PREFIX@/lib");
        when others =>
           null;
     end case;

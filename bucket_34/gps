@@ -9,11 +9,14 @@ SDESC[standard]=	GNAT Programming Studio - IDE for Ada plus
 HOMEPAGE=		https://www.adacore.com/gnatpro/toolsuite/gps/
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main
-SITES[main]=		http://downloads.dragonlace.net/src/
-DISTFILE[1]=		gps-gpl-2018-20180524-src.tar.gz:main
-DISTFILE[2]=		libadalang-tools-gpl-2018-20180524-src.tar.gz:main
-DF_INDEX=		1 2
+DOWNLOAD_GROUPS=	main als dragon
+SITES[main]=		GITHUB/AdaCore:gps:39569c5
+SITES[als]=		GITHUB/AdaCore:ada_language_server:f25f576
+SITES[dragon]=		http://downloads.dragonlace.net/src/
+DISTFILE[1]=		generated:main
+DISTFILE[2]=		generated:als
+DISTFILE[3]=		libadalang-tools-2019-20190517-195C4-src.tar.gz:dragon
+DF_INDEX=		1 2 3
 SPKGS[standard]=	complete
 			primary
 			docs
@@ -22,9 +25,8 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	DEBUG
 OPTIONS_STANDARD=	DEBUG
 
-BROKEN[all]=		no longer builds after port compiler major upgrade
-
 BUILD_DEPENDS=		gnat-util:single:standard
+			gnatcoll-db:complete:standard
 			gnatcoll-bindings:python:standard
 BUILDRUN_DEPENDS=	fontconfig:primary:standard
 			freetype:primary:standard
@@ -43,16 +45,14 @@ USES=			gprbuild:buildrun gettext-tools gmake pkgconfig zlib
 GNOME_COMPONENTS=	gtk3 cairo gdkpixbuf
 XORG_COMPONENTS=	x11
 
-DISTNAME=		gps-gpl-2018-src
-
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
 LICENSE_AWK=		TERMS:"^$$"
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/gps/src/gps-main.adb
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/gnatstudio/src/gps-main.adb
 LICENSE_SCHEME=		solo
 
-SHEBANG_FILES=		share/support/core/gps_utils/internal/dialogs.py
+SHEBANG_FILES=		share/support/core/gs_utils/internal/dialogs.py
 			share/plug-ins/spark2014.py
 
 MUST_CONFIGURE=		gnu
@@ -75,7 +75,7 @@ post-patch:
 	${RM} ${WRKSRC}/share/plug-ins/*.orig
 	${ECHO} "GNAT_SOURCES=" > ${WRKSRC}/Makefile.gnat
 	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
-		${WRKSRC}/gps/gps.gpr \
+		${WRKSRC}/gnatstudio/gps.gpr \
 		${WRKSRC}/gnatdoc/gnatdoc.gpr \
 		${WRKSRC}/widgets/widgets.gpr
 	${REINPLACE_CMD} -e '/Gdb_Command/ s|"gdb"|"${PREFIX}/bin/gdb"|' \
@@ -94,7 +94,7 @@ post-patch:
 	${REINPLACE_CMD} -e 's/relocatable/static/g' \
 		-e '/GPRBUILD_BUILD_TYPE_FLAGS=/ s|FLAGS=|FLAGS=-j${MAKE_JOBS_NUMBER} |' \
 		-e 's| -ws||' \
-		${WRKSRC}/gps/Makefile
+		${WRKSRC}/gnatstudio/Makefile
 	${REINPLACE_CMD} -e 's/relocatable/static/g' \
 		${WRKSRC}/testsuite/Makefile
 
@@ -114,14 +114,13 @@ post-install:
 	${FIND} ${STAGEDIR}${PREFIX} -type f -name ".gitignore" -delete
 	${INSTALL_SCRIPT} ${WRKDIR}/gps ${STAGEDIR}${PREFIX}/bin
 	echo "This is the GPS GPL Edition for Ravenports." \
-		> ${STAGEDIR}${PREFIX}/share/gps/about.txt
+		> ${STAGEDIR}${PREFIX}/share/gnatstudio/about.txt
 	${FIND} ${STAGEDIR}${PREFIX} -type d -empty -delete
 
 post-extract:
-	${MV} ${WRKDIR}/libadalang-tools-src ${WRKSRC}/laltools
+	${MV} ${WRKDIR}/libadalang-tools-* ${WRKSRC}/laltools
+	${MV} ${WRKDIR}/ada_language_server-* ${WRKSRC}/ada_language_server
 	${MV} ${WRKSRC}/Makefile.gnat ${WRKSRC}/Makefile.gnat.ignore
-	${FIND} ${WRKSRC}/share -name "*.pyc" -delete
-	${RM} ${WRKSRC}/share/support/core/cross_references.py
 
 [FILE:1056:descriptions/desc.primary]
 The GNAT Programming Studio (GPS) is a cutting-edge Free Software IDE that
@@ -144,35 +143,36 @@ Features                          Tools
                                     * Project Wizard
 
 
-[FILE:235:distinfo]
-405af72fb5ff4f26d59e35229c0ea9045202d6f34302a950f0909a772e61fee8     40541905 gps-gpl-2018-20180524-src.tar.gz
-0f5e1e795de6ba1e40de311ffdb359270e54b4cc1704869776dc2757e0925c93     19938182 libadalang-tools-gpl-2018-20180524-src.tar.gz
+[FILE:352:distinfo]
+3b7113f55b4e2633dc1beac58ba2845329bac5b76696302079062248183cf80b     13523888 AdaCore-gps-39569c5.tar.gz
+00b728302b0e528674ef2f88a22d5904799d7ce54d6d833faaf5d258a01a2bc2       288848 AdaCore-ada_language_server-f25f576.tar.gz
+8d3021008adaffe55ff0959ff1259f53c599342cc178039ee90755e9fbd90ff1       625775 libadalang-tools-2019-20190517-195C4-src.tar.gz
 
 
-[FILE:16339:manifests/plist.primary]
+[FILE:17868:manifests/plist.primary]
 bin/
  gnatdoc
+ gnatstudio
+ gnatstudio_cli
  gps
- gps_cli
- gps_exe
-share/gps/
+share/gnatstudio/
  about.txt
  activity_log.tmplt
  default.gpr
+ gnatstudio-splash.png
  gps-Adwaita (Dark).css
  gps-Adwaita.css
  gps-gtk-win32-base.css
  gps-gtk-win32-classic.css
  gps-gtk-win32-xp.css
  gps-gtk-win32.css
- gps-splash.png
  gps.css
  menus.xml
  perspectives6.xml
  predefined_ada.xml
  readonly.gpr
  show_coverage.xsl
-share/gps/color_themes/themes/gruvbox/
+share/gnatstudio/color_themes/themes/gruvbox/
  LICENSE
  README.txt
  gruvbox (Dark) (Hard).tmTheme
@@ -181,27 +181,27 @@ share/gps/color_themes/themes/gruvbox/
  gruvbox (Light) (Hard).tmTheme
  gruvbox (Light) (Medium).tmTheme
  gruvbox (Light) (Soft).tmTheme
-share/gps/color_themes/themes/solarized/
+share/gnatstudio/color_themes/themes/solarized/
  LICENSE
  README.mkd
  README.txt
  Solarized (dark).tmTheme
  Solarized (light).tmTheme
-share/gps/color_themes/themes/tomorrow/
+share/gnatstudio/color_themes/themes/tomorrow/
  Tomorrow-Night-Blue.tmTheme
  Tomorrow-Night-Bright.tmTheme
  Tomorrow-Night-Eighties.tmTheme
  Tomorrow-Night.tmTheme
  Tomorrow.tmTheme
-share/gps/fonts/README.txt
-share/gps/gnatdoc/html/compile.sh
-share/gps/gnatdoc/html/static/
+share/gnatstudio/fonts/README.txt
+share/gnatstudio/gnatdoc/html/compile.sh
+share/gnatstudio/gnatdoc/html/static/
  blank.html
  gnatdoc.css
  gnatdoc.js
  index.html
  inheritance_index.html
-share/gps/gnatdoc/html/templates/
+share/gnatstudio/gnatdoc/html/templates/
  documentation.html.tmpl
  documentation.js.tmpl
  documentation_index.js.tmpl
@@ -213,29 +213,22 @@ share/gps/gnatdoc/html/templates/
  source_file.html.tmpl
  source_file.js.tmpl
  source_file_index.js.tmpl
-share/gps/gnatdoc/simple/
+share/gnatstudio/gnatdoc/simple/
  entities.tmpl
  files_index.tmpl
  index.tmpl
  prj_index.tmpl
  src.tmpl
-share/gps/gnatdoc/simple/support/
+share/gnatstudio/gnatdoc/simple/support/
  Makefile
  conf.py
  make.bat
-share/gps/icons/hicolor/index.theme
-share/gps/icons/hicolor/24x24/apps/adacore_logo.png
-share/gps/icons/hicolor/32x32/apps/
- button_guide.png
- button_guide_over.png
- button_overview.png
- button_overview_over.png
- button_tutorial.png
- button_tutorial_over.png
- gps_32.png
- gps_welcome_logo.png
- welcome_header.png
-share/gps/icons/hicolor/scalable/16x16/
+share/gnatstudio/icons/hicolor/index.theme
+share/gnatstudio/icons/hicolor/32x32/apps/
+ gnatstudio_logo.png
+ gnatstudio_welcome-dark.png
+ gnatstudio_welcome.png
+share/gnatstudio/icons/hicolor/scalable/16x16/
  gps-add-folder-symbolic.svg
  gps-add-symbolic.svg
  gps-backward-symbolic.svg
@@ -256,6 +249,7 @@ share/gps/icons/hicolor/scalable/16x16/
  gps-compile-symbolic.svg
  gps-compute-xref-symbolic.svg
  gps-config-menu-symbolic.svg
+ gps-confirmation-symbolic.svg
  gps-connect-to-target-symbolic.svg
  gps-copy-symbolic.svg
  gps-custom-build-symbolic.svg
@@ -278,6 +272,7 @@ share/gps/icons/hicolor/scalable/16x16/
  gps-emulatorloading-debug-symbolic.svg
  gps-emulatorloading-run-symbolic.svg
  gps-emulatorloading-symbolic.svg
+ gps-error-symbolic.svg
  gps-expand-all-symbolic.svg
  gps-flash-memory-symbolic.svg
  gps-fold-block-symbolic.svg
@@ -286,6 +281,7 @@ share/gps/icons/hicolor/scalable/16x16/
  gps-gnatprove-symbolic.svg
  gps-gnattest-run.svg
  gps-goto-symbolic.svg
+ gps-info-symbolic.svg
  gps-lock-symbolic.svg
  gps-new-document-symbolic.svg
  gps-open-file-symbolic.svg
@@ -318,11 +314,13 @@ share/gps/icons/hicolor/scalable/16x16/
  gps-unfold-block-symbolic.svg
  gps-unlock-symbolic.svg
  gps-upward-symbolic.svg
+ gps-warning-symbolic.svg
  gps-whole-word-symbolic.svg
  gps-zoom-100-symbolic.svg
+ gps-zoom-fit-symbolic.svg
  gps-zoom-in-symbolic.svg
  gps-zoom-out-symbolic.svg
-share/gps/icons/hicolor/scalable/256x256/
+share/gnatstudio/icons/hicolor/scalable/256x256/
  git-commit-amend-symbolic.svg
  github-check-symbolic.svg
  github-commit-symbolic.svg
@@ -338,22 +336,22 @@ share/gps/icons/hicolor/scalable/256x256/
  vcs-gerrit-symbolic.svg
  vcs-git-worktrees-symbolic.svg
  vcs-has-conflicts.svg
+ vcs-ignored.svg
  vcs-merge-symbolic.svg
  vcs-modified-staged-unstaged.svg
  vcs-modified-staged.svg
  vcs-modified.svg
  vcs-needs-merge.svg
  vcs-needs-update.svg
- vcs-not-registered.svg
  vcs-pull-symbolic.svg
  vcs-removed-staged.svg
  vcs-removed.svg
  vcs-stash-symbolic.svg
  vcs-submodules-symbolic.svg
  vcs-tag-symbolic.svg
- vcs-unknown.svg
+ vcs-untracked.svg
  vcs-up-to-date.svg
-share/gps/icons/hicolor/scalable/emblems/
+share/gnatstudio/icons/hicolor/scalable/emblems/
  gps-debugger-continue-until.svg
  gps-diff-conflict-symbolic.svg
  gps-diff-noconflict-symbolic.svg
@@ -370,35 +368,51 @@ share/gps/icons/hicolor/scalable/emblems/
  gps-emblem-debugger-disabled-breakpoint.svg
  gps-emblem-directory-closed.svg
  gps-emblem-directory-open.svg
+ gps-emblem-directory-root-symbolic.svg
  gps-emblem-directory-symbolic.svg
+ gps-emblem-entity-generic-private-spec-dark.svg
  gps-emblem-entity-generic-private-spec.svg
  gps-emblem-entity-generic-private.svg
+ gps-emblem-entity-generic-protected-spec-dark.svg
  gps-emblem-entity-generic-protected-spec.svg
  gps-emblem-entity-generic-protected.svg
+ gps-emblem-entity-generic-spec-dark.svg
  gps-emblem-entity-generic-spec.svg
  gps-emblem-entity-generic.svg
+ gps-emblem-entity-package-private-spec-dark.svg
  gps-emblem-entity-package-private-spec.svg
  gps-emblem-entity-package-private.svg
+ gps-emblem-entity-package-protected-spec-dark.svg
  gps-emblem-entity-package-protected-spec.svg
  gps-emblem-entity-package-protected.svg
+ gps-emblem-entity-package-spec-dark.svg
  gps-emblem-entity-package-spec.svg
  gps-emblem-entity-package.svg
+ gps-emblem-entity-subprogram-private-spec-dark.svg
  gps-emblem-entity-subprogram-private-spec.svg
  gps-emblem-entity-subprogram-private.svg
+ gps-emblem-entity-subprogram-protected-spec-dark.svg
  gps-emblem-entity-subprogram-protected-spec.svg
  gps-emblem-entity-subprogram-protected.svg
+ gps-emblem-entity-subprogram-spec-dark.svg
  gps-emblem-entity-subprogram-spec.svg
  gps-emblem-entity-subprogram.svg
+ gps-emblem-entity-type-private-spec-dark.svg
  gps-emblem-entity-type-private-spec.svg
  gps-emblem-entity-type-private.svg
+ gps-emblem-entity-type-protected-spec-dark.svg
  gps-emblem-entity-type-protected-spec.svg
  gps-emblem-entity-type-protected.svg
+ gps-emblem-entity-type-spec-dark.svg
  gps-emblem-entity-type-spec.svg
  gps-emblem-entity-type.svg
+ gps-emblem-entity-variable-private-spec-dark.svg
  gps-emblem-entity-variable-private-spec.svg
  gps-emblem-entity-variable-private.svg
+ gps-emblem-entity-variable-protected-spec-dark.svg
  gps-emblem-entity-variable-protected-spec.svg
  gps-emblem-entity-variable-protected.svg
+ gps-emblem-entity-variable-spec-dark.svg
  gps-emblem-entity-variable-spec.svg
  gps-emblem-entity-variable.svg
  gps-emblem-execdir-closed.svg
@@ -413,6 +427,10 @@ share/gps/icons/hicolor/scalable/emblems/
  gps-emblem-libdir-open.svg
  gps-emblem-objdir-closed.svg
  gps-emblem-objdir-open.svg
+ gps-emblem-pencil-blue.svg
+ gps-emblem-pencil-grey.svg
+ gps-emblem-pencil-purple.svg
+ gps-emblem-pencil-red.svg
  gps-emblem-project-closed.svg
  gps-emblem-project-modified-closed.svg
  gps-emblem-project-modified-open.svg
@@ -425,13 +443,13 @@ share/gps/icons/hicolor/scalable/emblems/
  gps-sync-to-local.svg
  gps-sync-to-remote.svg
  gps-unknown-item-symbolic.svg
-share/gps/key_themes/
+share/gnatstudio/key_themes/
  default.xml
  default_legacy.xml
  emacs.xml
  mac_os.xml
-share/gps/key_themes/include/common.xml
-share/gps/library/
+share/gnatstudio/key_themes/include/common.xml
+share/gnatstudio/library/
  addr2line.py
  auto_changelog.py
  auto_locate_file.py
@@ -439,6 +457,7 @@ share/gps/library/
  autoformat.py
  autognatpp.py
  build_and_run_all.py
+ c_pre_processor.py
  closeold.py
  copy_file_name.py
  copy_paste.py
@@ -449,6 +468,7 @@ share/gps/library/
  eclipse.py
  emacs.py
  enter.py
+ file_to_clipboard.py
  filedeps.py
  filepos.py
  first_subtype.py
@@ -457,6 +477,8 @@ share/gps/library/
  gnatpp_switches.py
  gnatr.py
  goto_begin.py
+ hide_non_writable_files.py
+ highlight_column.py
  isearch.py
  ispell.py
  local_history.py
@@ -473,23 +495,27 @@ share/gps/library/
  unused_entities.py
  vi.py
  vim.py
-share/gps/plug-ins/
+share/gnatstudio/plug-ins/
  auto_highlight_occurrences.py
  auto_highlight_occurrences.pyc
  dispatching.py
  dispatching.pyc
+ jobs_view.py
+ jobs_view.pyc
  pep8_integration.py
  pep8_integration.pyc
+ show_representation.py
+ show_representation.pyc
  spark2014.py
  spark2014.pyc
-share/gps/plug-ins/memory_usage_providers/
+share/gnatstudio/plug-ins/memory_usage_providers/
  __init__.py
  __init__.pyc
  core.py
  core.pyc
  ld.py
  ld.pyc
-share/gps/plug-ins/qgen/
+share/gnatstudio/plug-ins/qgen/
  __init__.py
  __init__.pyc
  gdb_scripts.py
@@ -498,14 +524,16 @@ share/gps/plug-ins/qgen/
  project_support.pyc
  sig_utils.py
  sig_utils.pyc
-share/gps/plug-ins/spark2014/
+ signal_setter.py
+ signal_setter.pyc
+share/gnatstudio/plug-ins/spark2014/
  gnatprove.xml
  gnatprove_menus.xml
  itp_lib.py
  itp_lib.pyc
-share/gps/support/core/
- GPS_help.py
- GPS_help.pyc
+share/gnatstudio/support/core/
+ GS_help.py
+ GS_help.pyc
  __init__.py
  __init__.pyc
  aliases.py
@@ -534,6 +562,8 @@ share/gps/support/core/
  console_utils.pyc
  constructs.py
  constructs.pyc
+ cross_references.py
+ cross_references.pyc
  customFiles.xsd
  editors.py
  editors.pyc
@@ -564,18 +594,12 @@ share/gps/support/core/
  gnatstub.pyc
  gpr.py
  gpr.pyc
- lal.py
- lal.pyc
  languages.py
  languages.pyc
  listvars.py
  listvars.pyc
  makefile.py
  makefile.pyc
- maximize.py
- maximize.pyc
- methods.py
- methods.pyc
  modules.py
  modules.pyc
  navigation_utils.py
@@ -617,25 +641,22 @@ share/gps/support/core/
  url.pyc
  zoom.py
  zoom.pyc
-share/gps/support/core/GPS_old/
- __init__.py
- __init__.pyc
-share/gps/support/core/clang/
+share/gnatstudio/support/core/clang/
  __init__.py
  __init__.pyc
  cindex.py
  cindex.pyc
  enumerations.py
  enumerations.pyc
-share/gps/support/core/extensions/
+share/gnatstudio/support/core/extensions/
  __init__.py
  __init__.pyc
-share/gps/support/core/extensions/private/
+share/gnatstudio/support/core/extensions/private/
  __init__.py
  __init__.pyc
  xml.py
  xml.pyc
-share/gps/support/core/gps_utils/
+share/gnatstudio/support/core/gs_utils/
  __init__.py
  __init__.pyc
  console_process.py
@@ -650,7 +671,7 @@ share/gps/support/core/gps_utils/
  highlighter.pyc
  switches.py
  switches.pyc
-share/gps/support/core/gps_utils/internal/
+share/gnatstudio/support/core/gs_utils/internal/
  __init__.py
  __init__.pyc
  asserts.py
@@ -669,25 +690,12 @@ share/gps/support/core/gps_utils/internal/
  utils.pyc
  vcs.py
  vcs.pyc
-share/gps/support/core/vcs/
+share/gnatstudio/support/core/lal_utils/
  __init__.py
  __init__.pyc
- clearcase.py
- clearcase.pyc
- clearcase.pyxml
- cvs.py
- cvs.pyc
- cvs.pyxml
- git.py
- git.pyc
- git.pyxml
- mercurial.py
- mercurial.pyc
- mercurial.pyxml
- subversion.py
- subversion.pyc
- subversion.pyxml
-share/gps/support/languages/
+ lal_view.py
+ lal_view.pyc
+share/gnatstudio/support/languages/
  __init__.py
  __init__.pyc
  ada_support.py
@@ -704,6 +712,10 @@ share/gps/support/languages/
  css_highlighter.pyc
  css_support.py
  css_support.pyc
+ diff_highlighter.py
+ diff_highlighter.pyc
+ diff_language.py
+ diff_language.pyc
  fortran_highlighter.py
  fortran_highlighter.pyc
  jedi_support.py
@@ -714,9 +726,13 @@ share/gps/support/languages/
  python_highlighter.pyc
  python_support.py
  python_support.pyc
+ why3_highlighter.py
+ why3_highlighter.pyc
+ why3_support.py
+ why3_support.pyc
  xml_support.py
  xml_support.pyc
-share/gps/support/languages/highlighter/
+share/gnatstudio/support/languages/highlighter/
  __init__.py
  __init__.pyc
  common.py
@@ -725,7 +741,7 @@ share/gps/support/languages/highlighter/
  engine.pyc
  interface.py
  interface.pyc
-share/gps/support/ui/
+share/gnatstudio/support/ui/
  board_support.py
  board_support.pyc
  colorschemes.py
@@ -758,14 +774,11 @@ share/gps/support/ui/
  theme_handling.pyc
  workflow_buttons.py
  workflow_buttons.pyc
-share/gps/support/ui/GPS_doc/
+share/gnatstudio/support/ui/GNATStudio_doc/
  Browsers.py
- Browsers.pyc
  __init__.py
- __init__.pyc
  generated_hooks.py
- generated_hooks.pyc
-share/gps/support/ui/pygps/
+share/gnatstudio/support/ui/pygps/
  __init__.py
  __init__.pyc
  notebook.py
@@ -774,7 +787,7 @@ share/gps/support/ui/pygps/
  project.pyc
  tree.py
  tree.pyc
-share/gps/support/ui/vcs2/
+share/gnatstudio/support/ui/vcs2/
  __init__.py
  __init__.pyc
  clearcase.py
@@ -791,58 +804,58 @@ share/gps/support/ui/vcs2/
  git.pyc
  subversion.py
  subversion.pyc
-share/gps/support/ui/workflows/
+share/gnatstudio/support/ui/workflows/
  __init__.py
  __init__.pyc
  promises.py
  promises.pyc
-share/gps/templates/ada_library_project/
+share/gnatstudio/templates/ada_library_project/
  @_project_name_@.gpr
  ada_library.gpt
-share/gps/templates/ajis_hello/
+share/gnatstudio/templates/ajis_hello/
  @_project_name_@.gpr
  Makefile
  ajis_hello.gpt
-share/gps/templates/ajis_hello/src_ada/
+share/gnatstudio/templates/ajis_hello/src_ada/
  hello.adb
  hello.ads
-share/gps/templates/ajis_hello/src_java/com/adacore/example/@_Main_Name_@.java
-share/gps/templates/aws_simple_web_server/
+share/gnatstudio/templates/ajis_hello/src_java/com/adacore/example/@_Main_Name_@.java
+share/gnatstudio/templates/aws_simple_web_server/
  @_project_name_@.gpr
  simple_web_server.gpt
-share/gps/templates/aws_simple_web_server/src/
+share/gnatstudio/templates/aws_simple_web_server/src/
  @_project_name_@-callbacks.adb
  @_project_name_@-callbacks.ads
  @_project_name_@-main.adb
  @_project_name_@.ads
-share/gps/templates/aws_web_server/
+share/gnatstudio/templates/aws_web_server/
  @_project_name_@.gpr
  web_server.gpt
-share/gps/templates/aws_web_server/css/style.css
-share/gps/templates/aws_web_server/img/gps_logo.png
-share/gps/templates/aws_web_server/src/
+share/gnatstudio/templates/aws_web_server/css/style.css
+share/gnatstudio/templates/aws_web_server/img/gnatstudio_logo.png
+share/gnatstudio/templates/aws_web_server/src/
  @_project_name_@-dispatchers.adb
  @_project_name_@-dispatchers.ads
  @_project_name_@-main.adb
  @_project_name_@.ads
-share/gps/templates/aws_web_server/tmplt/main.thtml
-share/gps/templates/aws_web_server_blocks/
+share/gnatstudio/templates/aws_web_server/tmplt/main.thtml
+share/gnatstudio/templates/aws_web_server_blocks/
  @_project_name_@.gpr
+ Makefile
  README
- makefile
  open_readme.py
  web_server_blocks.gpt
-share/gps/templates/aws_web_server_blocks/css/style.css
-share/gps/templates/aws_web_server_blocks/gen/templates.tada
-share/gps/templates/aws_web_server_blocks/img/gps_logo.png
-share/gps/templates/aws_web_server_blocks/js/
+share/gnatstudio/templates/aws_web_server_blocks/css/style.css
+share/gnatstudio/templates/aws_web_server_blocks/gen/templates.tada
+share/gnatstudio/templates/aws_web_server_blocks/img/gnatstudio_logo.png
+share/gnatstudio/templates/aws_web_server_blocks/js/
  ajax_api.tjs
  aws.tjs
  aws_kernel.tjs
  behaviour.js
  prototype.js
  scriptaculous.js
-share/gps/templates/aws_web_server_blocks/src/
+share/gnatstudio/templates/aws_web_server_blocks/src/
  @_project_name_@-ajax.adb
  @_project_name_@-ajax.ads
  @_project_name_@-dispatchers.adb
@@ -851,18 +864,18 @@ share/gps/templates/aws_web_server_blocks/src/
  @_project_name_@-web_blocks.adb
  @_project_name_@-web_blocks.ads
  @_project_name_@.ads
-share/gps/templates/aws_web_server_blocks/tmplt/
+share/gnatstudio/templates/aws_web_server_blocks/tmplt/
  main.thtml
  r_widget_counter.txml
  widget_counter.thtml
-share/gps/templates/gtkada_minimal/
+share/gnatstudio/templates/gtkada_minimal/
  @_project_name_@.gpr
  gtkada_minimal.gpt
-share/gps/templates/gtkada_minimal/src/@_main_name_@.adb
-share/gps/templates/microbit_example/
+share/gnatstudio/templates/gtkada_minimal/src/@_main_name_@.adb
+share/gnatstudio/templates/microbit_example/
  microbit_example.gpr
  microbit_example.gpt
-share/gps/templates/microbit_example/src/
+share/gnatstudio/templates/microbit_example/src/
  display.adb
  display.ads
  font5x5.ads
@@ -872,18 +885,22 @@ share/gps/templates/microbit_example/src/
  main.adb
  nrf51_svd-gpio.ads
  nrf51_svd.ads
-share/gps/templates/simple_ada_project/
+share/gnatstudio/templates/simple_ada_project/
  @_project_name_@.gpr
  simple_project.gpt
-share/gps/templates/simple_ada_project/src/@_main_name_@.adb
-share/gps/templates/simple_c_project/
+share/gnatstudio/templates/simple_ada_project/src/@_main_name_@.adb
+share/gnatstudio/templates/simple_c_project/
  @_project_name_@.gpr
  simple_c_project.gpt
-share/gps/templates/simple_c_project/src/@_main_name_@.c
-share/gps/templates/stm32f_leds/
+share/gnatstudio/templates/simple_c_project/src/@_main_name_@.c
+share/gnatstudio/templates/simple_cpp_project/
+ @_project_name_@.gpr
+ simple_cpp_project.gpt
+share/gnatstudio/templates/simple_cpp_project/src/@_main_name_@.cpp
+share/gnatstudio/templates/stm32f_leds/
  @_project_name_@.gpr
  stm32f_leds.gpt
-share/gps/templates/stm32f_leds/src/
+share/gnatstudio/templates/stm32f_leds/src/
  @_main_name_@.adb
  button.adb
  button.ads
@@ -900,8 +917,8 @@ share/gps/templates/stm32f_leds/src/
  stm32f4.ads
 
 
-[FILE:1732:patches/patch-Makefile.in]
---- Makefile.in.orig	2018-05-10 06:26:58 UTC
+[FILE:901:patches/patch-Makefile.in]
+--- Makefile.in.orig	2019-11-27 16:28:14 UTC
 +++ Makefile.in
 @@ -3,17 +3,16 @@ MV              = mv
  MKDIR           = mkdir -p
@@ -922,43 +939,19 @@ share/gps/templates/stm32f_leds/src/
  prefix          = @prefix@
 -bindir          = $(prefix)/bin
 -sharedir        = $(prefix)/share
--examplesdir     = $(prefix)/share/examples/gps
+-examplesdir     = $(prefix)/share/examples/gnatstudio
 +bindir          = $(DESTDIR)$(prefix)/bin
 +sharedir        = $(DESTDIR)$(prefix)/share
-+examplesdir     = $(DESTDIR)$(prefix)/share/examples/gps
++examplesdir     = $(DESTDIR)$(prefix)/share/examples/gnatstudio
  
  SYS := $(shell gcc -dumpmachine)
  
-@@ -53,14 +52,6 @@ ifeq ($(OS),Windows_NT)
- 		share/support/core/vcs/_subversion_ \
- 		> share/support/core/vcs/subversion_native_windows.py
- endif
--	$(RM) -f $(sharedir)/gps/GPS_old
--	$(RM) -rf $(sharedir)/gps/color_themes/
--	$(RM) -rf $(sharedir)/gps/library/
--	$(RM) -rf $(sharedir)/gps/plug-ins/
--	$(RM) -rf $(sharedir)/gps/support/core/
--	$(RM) -rf $(sharedir)/gps/support/ui/
--	${RM} ${sharedir}/gps/perspectives.xml
--	$(RMDIR) $(sharedir)/gps/templates
- 
- 	(cd share; tar cf - plug-ins/*) | (cd $(sharedir)/gps; tar xf -)
- ifeq ($(OS),Windows_NT)
-@@ -108,7 +99,7 @@ endif
- endif
- 	$(MAKE) -C common/expect install
- else
--	$(INSTALL_PROGRAM) gps/obj/gps $(bindir)
-+	$(INSTALL_PROGRAM) gps/obj/gps $(bindir)/gps_exe
- 	$(INSTALL_PROGRAM) cli/obj/gnatdoc $(bindir)
- 	$(INSTALL_PROGRAM) cli/obj/gps_cli $(bindir)
- ifneq ($(GNATCOLL_INSTALL),)
 
 
 [FILE:398:patches/patch-common_core_src_os-utils.c]
---- common/core/src/os-utils.c.orig	2018-05-29 06:41:27 UTC
+--- common/core/src/os-utils.c.orig	2019-11-27 16:28:14 UTC
 +++ common/core/src/os-utils.c
-@@ -23,6 +23,7 @@
+@@ -22,6 +22,7 @@
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
@@ -966,7 +959,7 @@ share/gps/templates/stm32f_leds/src/
  #ifdef _WIN32
  #include <windows.h>
  #include <lmcons.h>
-@@ -32,7 +33,7 @@
+@@ -31,7 +32,7 @@
  #endif
  
  int
@@ -977,15 +970,15 @@ share/gps/templates/stm32f_leds/src/
    int ret;
 
 
-[FILE:1124:patches/patch-docs_Makefile.in]
---- docs/Makefile.in.orig	2018-03-05 13:39:57 UTC
+[FILE:1144:patches/patch-docs_Makefile.in]
+--- docs/Makefile.in.orig	2019-11-27 16:28:14 UTC
 +++ docs/Makefile.in
 @@ -1,10 +1,9 @@
  prefix = @prefix@
--docdir = $(prefix)/share/doc/gps
--sharedir = $(prefix)/share/gps
-+docdir = $(DESTDIR)$(prefix)/share/doc/gps
-+sharedir = $(DESTDIR)$(prefix)/share/gps
+-docdir = $(prefix)/share/doc/gnatstudio
+-sharedir = $(prefix)/share/gnatstudio
++docdir = $(DESTDIR)$(prefix)/share/doc/gnatstudio
++sharedir = $(DESTDIR)$(prefix)/share/gnatstudio
  
  MKDIR = mkdir -p
 -INSTALL = @INSTALL@
@@ -994,10 +987,10 @@ share/gps/templates/stm32f_leds/src/
  CONVERT = convert
  CP = cp -p
  
-@@ -12,26 +11,26 @@ all: ug tutorial gps_pg relnotes relnote
+@@ -12,26 +11,26 @@ all: ug tutorial pg relnotes gnatdoc
  static:
  
- gps_pg:
+ pg:
 -	make -C programmers_guide html
 +	$(MAKE) -C programmers_guide html
  
@@ -1031,7 +1024,7 @@ share/gps/templates/stm32f_leds/src/
 
 
 [FILE:331:patches/patch-gnatdoc_gnatdoc.gpr]
---- gnatdoc/gnatdoc.gpr.orig	2018-05-29 06:41:17 UTC
+--- gnatdoc/gnatdoc.gpr.orig	2019-11-27 16:28:14 UTC
 +++ gnatdoc/gnatdoc.gpr
 @@ -15,5 +15,8 @@ project GNATdoc is
  
@@ -1044,9 +1037,9 @@ share/gps/templates/stm32f_leds/src/
  end GNATdoc;
 
 
-[FILE:180:patches/patch-gps_Makefile]
---- gps/Makefile.orig	2018-03-05 13:39:58 UTC
-+++ gps/Makefile
+[FILE:194:patches/patch-gnatstudio_Makefile]
+--- gnatstudio/Makefile.orig	2019-11-27 16:28:14 UTC
++++ gnatstudio/Makefile
 @@ -17,7 +17,7 @@ endif
  
  GPRBUILD=gprbuild
@@ -1058,10 +1051,10 @@ share/gps/templates/stm32f_leds/src/
  
 
 
-[FILE:290:patches/patch-gps_gps.gpr]
---- gps/gps.gpr.orig	2018-05-29 06:41:17 UTC
-+++ gps/gps.gpr
-@@ -96,6 +96,7 @@ project GPS is
+[FILE:304:patches/patch-gnatstudio_gps.gpr]
+--- gnatstudio/gps.gpr.orig	2019-11-27 16:28:14 UTC
++++ gnatstudio/gps.gpr
+@@ -81,6 +81,7 @@ project GPS is
  
        --  for Switches ("Ada") use ("-lgmem");
        --  for Switches ("Ada") use ("-pg");
@@ -1072,7 +1065,7 @@ share/gps/templates/stm32f_leds/src/
 
 
 [FILE:1300:patches/patch-share_plug-ins_dispatching.py]
---- share/plug-ins/dispatching.py.orig	2018-03-05 13:39:59 UTC
+--- share/plug-ins/dispatching.py.orig	2019-11-27 16:28:14 UTC
 +++ share/plug-ins/dispatching.py
 @@ -39,11 +39,8 @@ class Dispatching_Highlighter(Location_H
          GPS.Hook("file_edited").add(self.__on_file_edited)
@@ -1105,7 +1098,7 @@ share/gps/templates/stm32f_leds/src/
 
 
 [FILE:557:patches/patch-widgets_widgets.gpr]
---- widgets/widgets.gpr.orig	2018-05-29 06:41:17 UTC
+--- widgets/widgets.gpr.orig	2019-11-27 16:28:14 UTC
 +++ widgets/widgets.gpr
 @@ -6,7 +6,10 @@ with "../gnatcoll_extras/gnatcoll_extras
  project Widgets is
@@ -1121,7 +1114,7 @@ share/gps/templates/stm32f_leds/src/
     package Compiler is
 
 
-[FILE:514:files/gps.in]
+[FILE:517:files/gps.in]
 #!/bin/sh
 #
 # GPS wrapper written by John Marino
@@ -1149,5 +1142,5 @@ then
 	export PATH;
 fi
 
-exec "%%PREFIX%%/bin/gps_exe" "$@"
+exec "%%PREFIX%%/bin/gnatstudio" "$@"
 
