@@ -59,6 +59,8 @@ post-patch:
 	${RM} ${WRKSRC}/share/gprconfig/*.orig
 	${REINPLACE_CMD} -e 's|"-gnatwe", ||' ${WRKSRC}/gprbuild.gpr
 	${FIND} ${WRKSRC}/examples -name '.cvsignore' -delete
+	# fix bashism on /bin/sh
+	${REINPLACE_CMD} -e 's|==|=|g' ${WRKSRC}/bootstrap.sh
 
 post-patch-dragonfly:
 	# dragonfly has different install program than freebsd, linux (!)
@@ -73,15 +75,14 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gpr/relocatable/gpr/libgpr.so
 
 do-configure:
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} setup)
-
-post-configure:
 	# create bootstrap version of gprbuild
 	${MKDIR} ${WRKDIR}/bootstrap_construction
 	(cd ${WRKDIR}/bootstrap_construction && ${WRKSRC}/bootstrap.sh \
 	  --with-xmlada=${WRKDIR}/xmlada-2019-20190429-19B9D-src \
 	  --srcdir=${WRKSRC} \
 	  --prefix=${WRKDIR}/bootstrap)
+	# establish setup variables
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} setup)
 
 [FILE:532:descriptions/desc.primary]
 GPRbuild is an advanced software tool designed to help automate the

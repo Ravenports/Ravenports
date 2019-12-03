@@ -2,6 +2,7 @@
 
 NAMEBASE=		texinfo
 VERSION=		6.7
+REVISION=		1
 KEYWORDS=		print
 VARIANTS=		standard nls
 SDESC[nls]=		GNU Typeset doc system with native lang support
@@ -27,7 +28,8 @@ VOPTS[nls]=		NLS=ON
 
 BUILD_DEPENDS=		help2man:single:standard
 
-USES=			charsetfix cpe gmake ncurses perl libtool iconv
+USES=			charsetfix cpe gmake ncurses perl libtool
+			iconv:build
 
 DISTNAME=		texinfo-6.7
 EXTRACT_ONLY=		1
@@ -60,6 +62,9 @@ post-patch:
 	${REINPLACE_CMD} -e '/rm -f $$(DESTDIR)/ s|$$| $$(DESTDIR)$$(xsdir)/XSParagraph.*|' \
 		${WRKSRC}/tp/Texinfo/XS/Makefile.in
 	${REINPLACE_CMD} -e 's|free (.*)|Safe&|' ${WRKSRC}/tp/Texinfo/XS/misc.c
+	${REINPLACE_CMD} -e "s|'iconv|'iconv_pic|" \
+		${WRKSRC}/configure \
+		${WRKSRC}/tp/Texinfo/XS/configure
 
 post-patch-darwin:
 	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure

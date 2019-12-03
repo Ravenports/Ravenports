@@ -111,6 +111,9 @@ post-patch-linux:
 	# undo BSD thin socket modification
 	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
 		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
+	# link libstdc++ with libiconv
+	${REINPLACE_CMD} -e '/version-info/ s|-lm|${LOCALBASE}/lib/libiconv_pic.a -lm|' \
+		${WRKSRC}/libstdc++-v3/src/Makefile.in
 
 post-install-freebsd:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/9.2.0/include-fixed
