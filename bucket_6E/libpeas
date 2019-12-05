@@ -3,10 +3,9 @@
 NAMEBASE=		libpeas
 VERSION=		1.24.1
 KEYWORDS=		devel
-VARIANTS=		py27 py38 py37
+VARIANTS=		py38 py37
 SDESC[py37]=		GObject-based plugins engine (PY 37)
 SDESC[py38]=		GObject-based plugins engine (PY 38)
-SDESC[py27]=		GObject-based plugins engine (PY 27)
 HOMEPAGE=		https://wiki.gnome.org/Projects/Libpeas
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
@@ -24,17 +23,11 @@ SPKGS[py38]=		complete
 			python
 			examples
 			docs
-SPKGS[py27]=		complete
-			primary
-			python
-			examples
-			docs
 
-OPTIONS_AVAILABLE=	PY27 PY38 PY37
+OPTIONS_AVAILABLE=	PY38 PY37
 OPTIONS_STANDARD=	none
-VOPTS[py37]=		PY27=OFF PY38=OFF PY37=ON
-VOPTS[py38]=		PY27=OFF PY38=ON PY37=OFF
-VOPTS[py27]=		PY27=ON PY38=OFF PY37=OFF
+VOPTS[py37]=		PY38=OFF PY37=ON
+VOPTS[py38]=		PY38=ON PY37=OFF
 
 BUILD_DEPENDS=		gtk-doc:single:standard
 RUN_DEPENDS=		gobject-introspection:single:standard
@@ -57,8 +50,8 @@ MESON_ARGS=		-Dlua51=false
 			-Dwidgetry=true
 			-Dgtk_doc=true
 			-Ddemos=true
-			-Dpython3={{P3USED}}
-			-Dpython2={{P2USED}}
+			-Dpython3=true
+			-Dpython2=false
 			-Dlocaledir=lib/locale
 
 INSTALL_TARGET=		install-strip
@@ -66,33 +59,12 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.2400.1
 
 [PY37].BUILDRUN_DEPENDS_ON=		python-pygobject:primary:py37
-[PY37].MAKEFILE_ON=			P3USED=true
-					P2USED=false
 [PY37].USES_ON=				python:py37
 
 [PY38].BUILDRUN_DEPENDS_ON=		python-pygobject:primary:py38
-[PY38].BUILD_DEPENDS_ON=		python37:single:standard
-[PY38].MAKEFILE_ON=			P3USED=true
-					P2USED=false
 [PY38].USES_ON=				python:py38
 
-[PY27].BUILDRUN_DEPENDS_ON=		python-pygobject:primary:py27
-[PY27].BUILD_DEPENDS_ON=		python37:single:standard
-[PY27].MAKEFILE_ON=			P3USED=false
-					P2USED=true
-[PY27].USES_ON=				python:py27
-
-post-patch-PY27-ON:
-	${REINPLACE_CMD} \
-		-e "/^python2_dep =/ s|'python2'|'python-${PYTHON_VER}'|" \
-		${WRKSRC}/meson.build
-
-post-patch-PY37-ON:
-	${REINPLACE_CMD} \
-		-e "/python3_dep =/ s|'python3|'python-${PYTHON_VER}|" \
-		${WRKSRC}/meson.build
-
-post-patch-PY38-ON:
+post-patch:
 	${REINPLACE_CMD} \
 		-e "/python3_dep =/ s|'python3|'python-${PYTHON_VER}|" \
 		${WRKSRC}/meson.build
@@ -234,9 +206,8 @@ share/icons/hicolor/32x32/actions/libpeas-plugin.png
 share/icons/hicolor/scalable/actions/libpeas-plugin.svg
 
 
-[FILE:110:manifests/plist.python]
-%%PY27-ON%%lib/libpeas-1.0/loaders/libpythonloader.so
-%%PY27-OFF%%lib/libpeas-1.0/loaders/libpython3loader.so
+[FILE:44:manifests/plist.python]
+lib/libpeas-1.0/loaders/libpython3loader.so
 
 
 [FILE:320:manifests/plist.examples]
