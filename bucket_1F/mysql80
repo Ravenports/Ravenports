@@ -60,6 +60,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
+			RPCGEN=
 RC_SUBR=		mysql-server:server
 SUB_FILES=		my.cnf.sample
 SUB_LIST=		MY_DBDIR=/var/db/mysql
@@ -158,6 +159,8 @@ post-install:
 
 post-extract:
 	${RM} -rv ${WRKSRC}/sql/sql_hints.yy.cc ${WRKSRC}/sql/sql_hints.yy.h
+	# group replication requires rpcgen (uncomment to disable)
+	# ${MV} ${WRKSRC}/plugin/group_replication ${WRKDIR}/
 
 post-patch-freebsd:
 	${RM} ${WRKSRC}/cmake/os/FreeBSD.cmake
@@ -183,10 +186,11 @@ This package contains the MySQL client.
 0eccd9d79c04ba0ca661136bb29085e3833d9c48ed022d0b9aba12236994186b    194953221 mysql-boost-8.0.18.tar.gz
 
 
-[FILE:5649:manifests/plist.server]
+[FILE:5675:manifests/plist.server]
 @sample etc/mysql/my.cnf.sample
 @sample etc/mysql/mysqlrouter.conf.sample
 %%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
+%%RPCGEN%%lib/mysql/plugin/group_replication.so
 bin/
  ibd2sdi
  innochecksum
@@ -281,7 +285,6 @@ lib/mysql/plugin/
  connection_control.so
  daemon_example.ini
  ddl_rewriter.so
- group_replication.so
  ha_mock.so
  keyring_file.so
  keyring_udf.so

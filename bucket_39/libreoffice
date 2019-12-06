@@ -10462,9 +10462,38 @@ share/mime/packages/libreoffice.xml
              return "ENONET";
 
 
-[FILE:1275:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.hxx]
+[FILE:649:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.cxx]
+--- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx.orig	2019-09-18 14:12:06 UTC
++++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.cxx
+@@ -491,12 +491,12 @@ void PDFOutDev::writeFontFile( GfxFont*
+     gfree(pBuf);
+ }
+ 
+-void PDFOutDev::printPath( GfxPath* pPath )
++void PDFOutDev::printPath( const GfxPath* pPath )
+ {
+     int nSubPaths = pPath ? pPath->getNumSubpaths() : 0;
+     for( int i=0; i<nSubPaths; i++ )
+     {
+-        GfxSubpath* pSub  = pPath->getSubpath( i );
++        const GfxSubpath* pSub  = pPath->getSubpath( i );
+         const int nPoints = pSub->getNumPoints();
+ 
+         printf( " subpath %d", pSub->isClosed() );
+
+
+[FILE:1617:patches/patch-sdext_source_pdfimport_xpdfwrapper_pdfioutdev__gpl.hxx]
 --- sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx.orig	2019-09-18 14:12:06 UTC
 +++ sdext/source/pdfimport/xpdfwrapper/pdfioutdev_gpl.hxx
+@@ -149,7 +149,7 @@ namespace pdfi
+ 
+         int  parseFont( long long nNewId, GfxFont* pFont, GfxState* state ) const;
+         void writeFontFile( GfxFont* gfxFont ) const;
+-        static void printPath( GfxPath* pPath );
++        static void printPath( const GfxPath* pPath );
+ 
+     public:
+         explicit PDFOutDev( PDFDoc* pDoc );
 @@ -235,7 +235,7 @@ namespace pdfi
          virtual void drawChar(GfxState *state, double x, double y,
                                double dx, double dy,
@@ -10483,6 +10512,20 @@ share/mime/packages/libreoffice.xml
          virtual void drawMaskedImage(GfxState *state, Object *ref, Stream *str,
                                       int width, int height,
                                       GfxImageColorMap *colorMap,
+
+
+[FILE:422:patches/patch-sdext_source_pdfimport_xpdfwrapper_wrapper__gpl.cxx]
+--- sdext/source/pdfimport/xpdfwrapper/wrapper_gpl.cxx.orig	2019-09-18 14:12:06 UTC
++++ sdext/source/pdfimport/xpdfwrapper/wrapper_gpl.cxx
+@@ -68,7 +68,7 @@ int main(int argc, char **argv)
+     }
+ 
+     // read config file
+-    globalParams = new GlobalParams();
++    globalParams = std::make_unique<GlobalParams>();
+     globalParams->setErrQuiet(true);
+ #if defined(_MSC_VER)
+     globalParams->setupBaseFonts(nullptr);
 
 
 [FILE:482:patches/patch-shell_source_unix_exec_shellexec.cxx]
