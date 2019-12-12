@@ -60,6 +60,8 @@ INSTALL_TARGET=		install.bin install.lib install.data install.hdr
 			install.staticlib
 SOVERSION=		11.88
 
+VAR_OPSYS[sunos]=	MAKE_ARGS=NETWORKLD="-lsocket -lnsl"
+			MAKE_ARGS=LDSHLIB=-shared
 VAR_OPSYS[dragonfly]=	MAKE_ARGS=LD="cc -fuse-ld=gold"
 
 post-patch:
@@ -94,6 +96,17 @@ post-build:
 
 do-configure:
 	${CAT} ${WRKSRC}/config.mk.in ${FILESDIR}/config.mk > ${WRKSRC}/config.mk
+
+post-patch-sunos:
+	# Ridiculous but they hardcode it in every file so we have no choice.
+	${GREP} -rl "^#.*define.*_XOPEN_SOURCE" ${WRKSRC} |\
+	${XARGS} ${SED} -i'' -e '/_XOPEN_SOURCE/ s/500/600/' \
+		-e '/_XOPEN_SOURCE/ s/1$$/600/' \
+		-e '/_XOPEN_SOURCE$$/ s/E$$/E 600/' \
+		-e '/_XOPEN_SOURCE[^0-9]*\/\*/ s/SOURCE/SOURCE 600/'
+	${GREP} -rl "^#.*define.*_POSIX_SOURCE" ${WRKSRC} |\
+	${XARGS} ${SED} -i'' \
+		-e '/_POSIX_SOURCE/ s/_POSIX_SOURCE/_XOPEN_SOURCE 600/'
 
 [FILE:429:descriptions/desc.single]
 Netpbm is a toolkit for manipulation of graphic images, including
@@ -927,6 +940,22 @@ share/netpbm/
  palmgray4.map
  pcxstd.ppm
  rgb.txt
+
+
+[FILE:284:patches/patch-pm__config.in.h]
+Remove bogus SYSV section (fixes build on SunOS)
+
+--- pm_config.in.h.orig	2019-12-03 17:32:14 UTC
++++ pm_config.in.h
+@@ -74,7 +74,7 @@
+ ** for the format of the color database file.
+ */
+ 
+-#if (defined(SYSV) || defined(__amigaos__))
++#if defined(__amigaos__)
+ 
+ #include <string.h>
+ 
 
 
 [FILE:1276:files/config.mk]

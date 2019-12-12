@@ -83,6 +83,8 @@ SUB_LIST=		CC={{CC:Q}}
 LDFLAGS=		-Wl,-rpath,{{OPENSSLLIB}}
 VAR_OPSYS[freebsd]=	VAR1=freebsd
 VAR_OPSYS[sunos]=	VAR1=solaris
+			CONFIGURE_ARGS=-L
+			CONFIGURE_ARGS=/lib/64
 VAR_OPSYS[linux]=	VAR1=linux
 			CONFIGURE_ARGS=-L
 			CONFIGURE_ARGS=/usr/lib/x86_64-linux-gnu/
@@ -100,6 +102,19 @@ post-patch:
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt5/bin/qmake
+
+post-patch-sunos:
+	# getauxval test triggers false positive on Solaris
+	${REINPLACE_CMD} -e 's|sys/auxv.h|sys/auxvnope.h|' \
+		${WRKSRC}/src/corelib/global/qconfig-bootstrapped.h
+	# sun linker doesn't support -O1
+	${REINPLACE_CMD} -e '/QMAKE_LFLAGS_RELEASE/d' \
+		${WRKSRC}/mkspecs/common/g++-unix.conf
+	# sun linker doesn't support GNU version scripts
+	${REINPLACE_CMD} \
+		-e '/QMAKE_LFLAGS_VERSION_SCRIPT/d' \
+		-e '/QMAKE_LFLAGS_RPATHLINK/d' \
+		${WRKSRC}/mkspecs/common/gcc-base-unix.conf
 
 [FILE:267:descriptions/desc.primary]
 Qt is a complete cross-platform software framework with ready-made UI
@@ -3933,6 +3948,38 @@ Do not create .la files.
  
 
 
+[FILE:1096:patches/patch-src_network_kernel_qnetworkinterface__unix.cpp]
+--- src/network/kernel/qnetworkinterface_unix.cpp.orig	2019-10-25 07:16:48 UTC
++++ src/network/kernel/qnetworkinterface_unix.cpp
+@@ -97,7 +97,7 @@ uint QNetworkInterfaceManager::interface
+ {
+ #ifndef QT_NO_IPV6IFNAME
+     return ::if_nametoindex(name.toLatin1());
+-#elif defined(SIOCGIFINDEX)
++#elif defined(SIOCGIFINDEX) && !defined(__sun__)
+     struct ifreq req;
+     int socket = qt_safe_socket(AF_INET, SOCK_STREAM, 0);
+     if (socket < 0)
+@@ -142,7 +142,7 @@ QString QNetworkInterfaceManager::interf
+ 
+ static int getMtu(int socket, struct ifreq *req)
+ {
+-#ifdef SIOCGIFMTU
++#if defined(SIOCGIFMTU) && !defined(__sun__) 
+     if (qt_safe_ioctl(socket, SIOCGIFMTU, req) == 0)
+         return req->ifr_mtu;
+ #endif
+@@ -210,7 +210,7 @@ static QNetworkInterfacePrivate *findInt
+     QNetworkInterfacePrivate *iface = 0;
+     int ifindex = 0;
+ 
+-#if !defined(QT_NO_IPV6IFNAME) || defined(SIOCGIFINDEX)
++#if !defined(QT_NO_IPV6IFNAME) || (defined(SIOCGIFINDEX) && !defined(__sun__))
+     // Get the interface index
+ #  ifdef SIOCGIFINDEX
+     if (qt_safe_ioctl(socket, SIOCGIFINDEX, &req) >= 0)
+
+
 [FILE:452:patches/patch-src_platformsupport_devicediscovery_qdevicediscovery__static.cpp]
 --- src/platformsupport/devicediscovery/qdevicediscovery_static.cpp.orig	2019-10-25 07:16:48 UTC
 +++ src/platformsupport/devicediscovery/qdevicediscovery_static.cpp
@@ -4054,6 +4101,22 @@ Fix building xkbcommon when other libraries are not available.
  }
 
 
+[FILE:390:patches/patch-src_plugins_platforms_eglfs_deviceintegration_eglfs__kms_qeglfskmsgbmdevice.cpp]
+--- src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmdevice.cpp.orig	2019-10-25 07:16:48 UTC
++++ src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsgbmdevice.cpp
+@@ -49,6 +49,10 @@
+ 
+ #define ARRAY_LENGTH(a) (sizeof (a) / sizeof (a)[0])
+ 
++#ifndef O_CLOEXEC
++#define O_CLOEXEC 0
++#endif
++
+ QT_BEGIN_NAMESPACE
+ 
+ Q_DECLARE_LOGGING_CATEGORY(qLcEglfsKmsDebug)
+
+
 [FILE:624:patches/patch-tests_auto_corelib_io_qprocess_qprocess.pro]
 $NetBSD: patch-tests_auto_corelib_io_qprocess_qprocess.pro,v 1.1 2014/12/30 17:23:46 adam Exp $
 
@@ -4073,6 +4136,64 @@ $NetBSD: patch-tests_auto_corelib_io_qprocess_qprocess.pro,v 1.1 2014/12/30 17:2
  
  win32 {
      SUBDIRS += \
+
+
+[FILE:585:patches/patch-tests_auto_corelib_serialization_qcborstreamreader_tst__qcborstreamreader.cpp]
+--- tests/auto/corelib/serialization/qcborstreamreader/tst_qcborstreamreader.cpp.orig	2019-10-25 07:16:48 UTC
++++ tests/auto/corelib/serialization/qcborstreamreader/tst_qcborstreamreader.cpp
+@@ -361,7 +361,8 @@ template <typename T> static inline bool
+     // converting FP to integral is UB if it can't be represented.;
+     Q_STATIC_ASSERT(std::numeric_limits<T>::is_integer);
+ 
+-    double supremum = ldexp(1, std::numeric_limits<T>::digits);
++    double fred = 1;
++    double supremum = ldexp(fred, std::numeric_limits<T>::digits);
+     if (v >= supremum)
+         return false;
+ 
+
+
+[FILE:453:patches/patch-tests_auto_network_access_qnetworkreply_test_test.pro]
+--- tests/auto/network/access/qnetworkreply/test/test.pro.orig	2019-10-25 07:16:48 UTC
++++ tests/auto/network/access/qnetworkreply/test/test.pro
+@@ -14,6 +14,7 @@ TESTDATA += ../empty ../rfc3252.txt ../r
+             ../index.html ../smb-file.txt
+ 
+ !android:!winrt: TEST_HELPER_INSTALLS = ../echo/echo
++solaris: LIBS += -lsocket
+ 
+ QT_TEST_SERVER_LIST = vsftpd apache2 ftp-proxy danted squid
+ include($$dirname(_QMAKE_CONF_)/tests/auto/testserver.pri)
+
+
+[FILE:237:patches/patch-tests_auto_network_socket_qlocalsocket_test_test.pro]
+--- tests/auto/network/socket/qlocalsocket/test/test.pro.orig	2019-10-25 07:16:48 UTC
++++ tests/auto/network/socket/qlocalsocket/test/test.pro
+@@ -19,3 +19,4 @@ CONFIG(debug_and_release) {
+   DESTDIR = ..
+ }
+ 
++solaris: LIBS += -lsocket
+
+
+[FILE:233:patches/patch-tests_auto_network_socket_qtcpserver_test_test.pro]
+--- tests/auto/network/socket/qtcpserver/test/test.pro.orig	2019-10-25 07:16:48 UTC
++++ tests/auto/network/socket/qtcpserver/test/test.pro
+@@ -16,3 +16,4 @@ win32 {
+ QT = core network testlib
+ 
+ MOC_DIR=tmp
++solaris: LIBS+= -lsocket
+
+
+[FILE:221:patches/patch-tests_auto_network_socket_qudpsocket_test_test.pro]
+--- tests/auto/network/socket/qudpsocket/test/test.pro.orig	2019-10-25 07:16:48 UTC
++++ tests/auto/network/socket/qudpsocket/test/test.pro
+@@ -17,3 +17,4 @@ win32 {
+ }
+ 
+ TARGET = tst_qudpsocket
++solaris: LIBS+= -lsocket
 
 
 [FILE:2056:files/qmake.conf.in]

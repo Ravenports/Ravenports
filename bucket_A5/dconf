@@ -25,7 +25,7 @@ BUILD_DEPENDS=		docbook-xsl:primary:standard
 BUILDRUN_DEPENDS=	dbus:single:standard
 
 USES=			gettext-runtime gmake meson pkgconfig python:build
-			shebangfix
+			shebangfix solaris-funcs
 GNOME_COMPONENTS=	glib libxslt
 
 LICENSE=		LGPL20+:primary
@@ -39,6 +39,7 @@ FPC_EQUIVALENT=		devel/dconf
 MESON_ARGS=		-Dgtk_doc=true
 			-Dbash_completion=false
 SHEBANG_FILES=		meson_post_install.py
+SOL_FUNCTIONS=		strndup:bin/dconf.c
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.0.0
@@ -123,6 +124,23 @@ share/doc/dconf/
  up.png
 
 
+[FILE:433:patches/patch-client_meson.build]
+$NetBSD: patch-client_meson.build,v 1.1 2018/12/17 15:33:01 jperkin Exp $
+
+Fix link ordering.  https://gitlab.gnome.org/GNOME/dconf/issues/49
+
+--- client/meson.build.orig	2018-10-22 21:53:04.000000000 +0000
++++ client/meson.build
+@@ -38,6 +38,7 @@ libdconf = shared_library(
+   soversion: soversion,
+   include_directories: top_inc,
+   dependencies: deps,
++  link_with: libdconf_engine,
+   c_args: dconf_c_args,
+   install: true,
+ )
+
+
 [FILE:353:patches/patch-docs_meson.build]
 --- docs/meson.build.orig	2019-09-09 22:56:47 UTC
 +++ docs/meson.build
@@ -134,6 +152,23 @@ share/doc/dconf/
      '--stringparam', 'man.output.quietly', '1',
      '--stringparam', 'funcsynopsis.style', 'ansi',
      '--stringparam', 'man.th.extra1.suppress', '1',
+
+
+[FILE:387:patches/patch-gsettings_meson.build]
+$NetBSD: patch-gsettings_meson.build,v 1.1 2018/12/17 15:33:01 jperkin Exp $
+
+Fix link ordering.  https://gitlab.gnome.org/GNOME/dconf/issues/49
+
+--- gsettings/meson.build.orig	2018-10-22 21:53:04.000000000 +0000
++++ gsettings/meson.build
+@@ -3,6 +3,7 @@
+ # symbols other than g_io_module_*
+ backend_deps = [
+   libdconf_common_hidden,
++  libdconf_engine,
+   libdconf_gdbus_thread,
+ ]
+ 
 
 
 [FILE:1364:patches/patch-tests_meson.build]

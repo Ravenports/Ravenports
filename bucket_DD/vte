@@ -2,6 +2,7 @@
 
 NAMEBASE=		vte
 VERSION=		0.58.3
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Virtual Terminal Emulator widget
@@ -46,7 +47,14 @@ PLIST_SUB=		VERSION=2.91
 VAR_OPSYS[dragonfly]=	CPPFLAGS=-fuse-ld=gold
 
 post-patch:
+	${REINPLACE_CMD} -e '/fstack-prot/d' ${WRKSRC}/meson.build
 	${REINPLACE_CMD} -e 's|linux|skipx|' ${WRKSRC}/src/pty.cc
+
+post-patch-sunos:
+	${REINPLACE_CMD} \
+		-e 's|sys/ioctl\.h|sys/termios.h|' \
+		-e '/Bsymbolic-functions/d' \
+		${WRKSRC}/meson.build
 
 [FILE:108:descriptions/desc.primary]
 Terminal widget with improved font, internationalisation and accessibility
@@ -177,4 +185,154 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 share/vala/vapi/
  vte-%%VERSION%%.deps
  vte-%%VERSION%%.vapi
+
+
+[FILE:1447:patches/patch-src_pty.cc]
+Use correct includes on SunOS.
+Don't use packet mode on SunOS.
+
+--- src/pty.cc.orig	2019-11-22 21:36:35 UTC
++++ src/pty.cc
+@@ -64,12 +64,20 @@
+ #if defined(__sun) && defined(HAVE_STROPTS_H)
+ #include <stropts.h>
+ #endif
++#if defined(__sun__)
++#include <sys/ioccom.h>
++#include <sys/ptyvar.h>
++#endif
+ #include <glib.h>
+ #include <gio/gio.h>
+ #include "debug.h"
+ 
+ #include <glib/gi18n-lib.h>
+ 
++#ifndef O_CLOEXEC
++#define O_CLOEXEC 0
++#endif
++
+ /* NSIG isn't in POSIX, so if it doesn't exist use this here. See bug #759196 */
+ #ifndef NSIG
+ #define NSIG (8 * sizeof(sigset_t))
+@@ -622,6 +630,7 @@ fd_set_cpkt(int fd)
+ static int
+ fd_setup(int fd)
+ {
++#ifndef __sun__
+         if (fd_set_cloexec(fd) < 0) {
+                 vte::util::restore_errno errsv;
+                 _vte_debug_print(VTE_DEBUG_PTY,
+@@ -642,6 +651,7 @@ fd_setup(int fd)
+                                  "%s failed: %s", "ioctl(TIOCPKT)", g_strerror(errsv));
+                 return -1;
+         }
++#endif
+ 
+         return 0;
+ }
+@@ -699,12 +709,14 @@ _vte_pty_open_posix(void)
+         }
+ #endif /* !linux */
+ 
++#ifndef __sun__
+         if (fd_set_cpkt(fd) < 0) {
+                 vte::util::restore_errno errsv;
+                 _vte_debug_print(VTE_DEBUG_PTY,
+                                  "%s failed: %s", "ioctl(TIOCPKT)", g_strerror(errsv));
+                 return -1;
+         }
++#endif
+ 
+ 	_vte_debug_print(VTE_DEBUG_PTY, "Allocated pty on fd %d.\n", (int)fd);
+ 
+
+
+[FILE:1697:patches/patch-src_vte.cc]
+Use correct includes on SunOS.
+Don't use packet mode on SunOS.
+
+--- src/vte.cc.orig	2019-11-22 21:36:35 UTC
++++ src/vte.cc
+@@ -29,6 +29,10 @@
+ #ifdef HAVE_SYS_TERMIOS_H
+ #include <sys/termios.h>
+ #endif
++#if defined(__sun__)
++#include <sys/ioccom.h>
++#include <sys/ptyvar.h>
++#endif
+ 
+ #include <glib.h>
+ #include <glib/gi18n-lib.h>
+@@ -4094,6 +4098,9 @@ Terminal::pty_io_read(GIOChannel *channe
+ 			bp = chunk->data + chunk->len;
+ 			len = 0;
+ 			do {
++#ifdef __sun__
++				int ret = read (fd, bp, rem);
++#else
+                                 /* We'd like to read (fd, bp, rem); but due to TIOCPKT mode
+                                  * there's an extra input byte returned at the beginning.
+                                  * We need to see what that byte is, but otherwise drop it
+@@ -4104,6 +4111,7 @@ Terminal::pty_io_read(GIOChannel *channe
+                                 int ret = read (fd, bp - 1, rem + 1);
+                                 pkt_header = bp[-1];
+                                 bp[-1] = save;
++#endif
+ 				switch (ret){
+ 					case -1:
+ 						err = errno;
+@@ -4112,6 +4120,7 @@ Terminal::pty_io_read(GIOChannel *channe
+ 						eof = TRUE;
+ 						goto out;
+ 					default:
++#ifndef __sun__
+                                                 ret--;
+ 
+                                                 if (pkt_header & TIOCPKT_IOCTL) {
+@@ -4132,6 +4141,7 @@ Terminal::pty_io_read(GIOChannel *channe
+                                                 } else if (pkt_header & TIOCPKT_START) {
+                                                         pty_scroll_lock_changed(false);
+                                                 }
++#endif
+ 
+ 						bp += ret;
+ 						rem -= ret;
+
+
+[FILE:529:patches/patch-src_vtedraw.cc]
+--- src/vtedraw.cc.orig	2019-11-22 21:36:35 UTC
++++ src/vtedraw.cc
+@@ -1687,13 +1687,13 @@ _vte_draw_draw_line(struct _vte_draw *dr
+ static inline double
+ _vte_draw_get_undercurl_rad(gint width)
+ {
+-        return width / 2. / sqrt(2);
++        return width / 2. / sqrt((double)2);
+ }
+ 
+ static inline double
+ _vte_draw_get_undercurl_arc_height(gint width)
+ {
+-        return _vte_draw_get_undercurl_rad(width) * (1. - sqrt(2) / 2.);
++        return _vte_draw_get_undercurl_rad(width) * (1. - sqrt((double)2) / 2.);
+ }
+ 
+ double
+
+
+[FILE:247:patches/patch-src_widget.cc]
+--- src/widget.cc.orig	2019-11-22 21:36:35 UTC
++++ src/widget.cc
+@@ -22,6 +22,10 @@
+ 
+ #include <sys/wait.h> // for W_EXITCODE
+ 
++#ifndef W_EXITCODE
++#define W_EXITCODE(ret, sig)	((ret) << 8 | (sig))
++#endif
++
+ #include <new>
+ #include <string>
+ 
 

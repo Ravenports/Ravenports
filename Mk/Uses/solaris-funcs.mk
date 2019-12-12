@@ -6,6 +6,10 @@
 #  - dirfd
 #  - strnlen
 #  - strndup
+#  - strsep
+#  - getline
+#  - timegm
+#  - <err.h>
 #
 # Feature:     solaris-funcs
 # Usage:       USES=solaris-funcs
@@ -29,8 +33,10 @@ SOL_FUNC_MKDTEMP=	${SOL_FUNCTIONS:Mmkdtemp\:*:C/.*://:O:u}
 SOL_FUNC_DIRFD=		${SOL_FUNCTIONS:Mdirfd\:*:C/.*://:O:u}
 SOL_FUNC_STRNLEN=	${SOL_FUNCTIONS:Mstrnlen\:*:C/.*://:O:u}
 SOL_FUNC_STRNDUP=	${SOL_FUNCTIONS:Mstrndup\:*:C/.*://:O:u}
+SOL_FUNC_STRSEP=	${SOL_FUNCTIONS:Mstrsep\:*:C/.*://:O:u}
 SOL_FUNC_GETLINE=	${SOL_FUNCTIONS:Mgetline\:*:C/.*://:O:u}
 SOL_FUNC_ERR_H=		${SOL_FUNCTIONS:Merr.h\:*:C/.*://:O:u}
+SOL_FUNC_TIMEGM=	${SOL_FUNCTIONS:Mtimegm\:*:C/.*://:O:u}
 SOL_UNIQUE=		${SOL_FUNCTIONS:Nerr.h\:*:C/.*://:O:u}
 
 insertsolfunc:
@@ -62,9 +68,17 @@ insertsolfunc:
 	@${ECHO_MSG} "====>  Insert strndup to ${F}"
 	@${MK_SCRIPTS}/solaris-funcs.sh strndup >> ${WRKSRC}/${F}
 .endfor
+.for F in ${SOL_FUNC_STRSEP}
+	@${ECHO_MSG} "====>  Insert strsep to ${F}"
+	@${MK_SCRIPTS}/solaris-funcs.sh strsep >> ${WRKSRC}/${F}
+.endfor
 .for F in ${SOL_FUNC_GETLINE}
 	@${ECHO_MSG} "====>  Insert getline to ${F}"
 	@${MK_SCRIPTS}/solaris-funcs.sh getline >> ${WRKSRC}/${F}
+.endfor
+.for F in ${SOL_FUNC_TIMEGM}
+	@${ECHO_MSG} "====>  Insert timegm to ${F}"
+	@${MK_SCRIPTS}/solaris-funcs.sh timegm >> ${WRKSRC}/${F}
 .endfor
 .for F in ${SOL_FUNC_ERR_H}
 	@${ECHO_MSG} "====>  Install ${F} header "

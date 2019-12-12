@@ -57,6 +57,8 @@ CPPFLAGS=		-D_PATH_DHCLIENT_SCRIPT='\"{{PREFIX}}/sbin/dhclient-script\"'
 			-D_PATH_DHCLIENT_CONF='\"{{PREFIX}}/etc/dhclient.conf\"'
 			-D_PATH_DHCPD_CONF='\"{{PREFIX}}/etc/dhcpd.conf\"'
 LDFLAGS=		-lssl
+VAR_OPSYS[sunos]=	CPPFLAGS=-D_XOPEN_SOURCE=600
+			CPPFLAGS=-D__EXTENSIONS__
 
 [BINLEASES].DESCRIPTION=		Enable support for binary insertion of leases
 [BINLEASES].CONFIGURE_ENABLE_BOTH=	binary-leases
@@ -74,6 +76,11 @@ LDFLAGS=		-lssl
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/local||g' \
 		${WRKSRC}/doc/examples/dhcpd-dhcpv6.conf
+	# a second dhcp configure script is run during build
+	# make sure it gets the proper build machine target
+	${REINPLACE_CMD} \
+		-e '/^bindconfig =/ s|=|= --build=${CONFIGURE_TARGET}|'\
+		${WRKSRC}/bind/Makefile.in
 
 post-install:
 	${INSTALL_SCRIPT} ${WRKSRC}/client/scripts/freebsd \

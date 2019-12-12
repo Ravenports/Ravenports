@@ -20,6 +20,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cpe gmake iconv python:build shebangfix ssl zlib
+			solaris-funcs
 
 LICENSE=		GPLv2:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -34,6 +35,7 @@ SHEBANG_FILES=		filters/email-gravatar.py
 			filters/html-converters/md2html
 			filters/html-converters/rst2html
 			filters/syntax-highlighting.py
+SOL_FUNCTIONS=		timegm:ui-stats.c
 
 MAKE_ARGS=		CGIT_SCRIPT_PATH={{PREFIX}}/www/cgit
 			CGIT_CONFIG={{PREFIX}}/etc/cgitrc
@@ -56,7 +58,7 @@ post-patch:
 		-e "s|\(ALL_CFLAGS =\)|\1 ${CFLAGS}|g" \
 		-e "s|\(ALL_LDFLAGS =\)|\1 ${LDFLAGS}|g" \
 		${WRKSRC}/git/Makefile
-	# ${REINPLACE_CMD} -e 's|ALL_LDFLAGS|LDFLAGS|g' ${WRKSRC}/cgit.mk
+	${REINPLACE_CMD} -e '/ucb\/install/d' ${WRKSRC}/git/config.mak.uname
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/www/cgit/cgit.cgi

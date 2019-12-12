@@ -103,6 +103,19 @@ post-install:
 	${RMDIR} ${STAGEDIR}${PREFIX}/share/cups/examples
 	${RM} ${STAGEDIR}${PREFIX}/etc/cups/*.conf
 
+post-patch-sunos:
+	${REINPLACE_CMD} -e '/-o .. ippeveprinter.o/ s/$$/ -lsocket/' \
+		${WRKSRC}/tools/Makefile
+	${REINPLACE_CMD} \
+		-e '/-o lpd/ s/$$/ -lsocket/' \
+		-e '/-o ipp/ s/$$/ -lsocket/' \
+		-e '/-o .* socket\.o/ s/socket\.o/socket.o -lsocket/' \
+		-e '/snmp \\$$/d' \
+		${WRKSRC}/backend/Makefile
+	${REINPLACE_CMD} \
+		-e '/-o cups-lpd/ s/$$/ -lsocket/' \
+		${WRKSRC}/scheduler/Makefile
+
 [FILE:228:descriptions/desc.primary]
 CUPS is the standards-based, open source printing system developed by
 Apple Inc. for macOS and other UNIX-like operating systems. CUPS uses
@@ -114,13 +127,17 @@ network printers.
 7476fb18ba1cc8213505e337aecde265159c67bae668a3116fd95516fad223d8      8133839 apple-cups-2.3.0.tar.gz
 
 
-[FILE:13491:manifests/plist.primary]
+[FILE:13652:manifests/plist.primary]
 @sample etc/cups/cups-files.conf.sample
 @sample etc/cups/cupsd.conf.sample
 @sample etc/cups/snmp.conf.sample
 @sample etc/devd/cups.conf.sample
+%%ONLY-DARWIN%%libexec/cups/backend/snmp
+%%ONLY-DRAGONFLY%%libexec/cups/backend/snmp
 %%ONLY-DRAGONFLY%%share/cups/usb/org.cups.usb-quirks
+%%ONLY-FREEBSD%%libexec/cups/backend/snmp
 %%ONLY-FREEBSD%%share/cups/usb/org.cups.usb-quirks
+%%ONLY-LINUX%%libexec/cups/backend/snmp
 bin/
  cancel
  cups-config
@@ -168,7 +185,6 @@ libexec/cups/backend/
  ipp
  ipps
  lpd
- snmp
  socket
  usb
 libexec/cups/cgi-bin/
@@ -1154,15 +1170,19 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
  	LIBS="$SAVELIBS"
 
 
-[FILE:388:patches/patch-cups_getifaddrs-internal.h]
+[FILE:487:patches/patch-cups_getifaddrs-internal.h]
 --- cups/getifaddrs-internal.h.orig	2019-08-23 15:19:38 UTC
 +++ cups/getifaddrs-internal.h
-@@ -28,6 +28,10 @@
+@@ -28,6 +28,14 @@
  #    define CUPS_SOCAST
  #  endif /* _WIN32 */
  
 +#  if defined(__DragonFly__) || defined(__FreeBSD__)
 +#    include <netinet/in.h>
++#  endif
++
++#  if !defined(_WIN32) && !defined(HAVE_GETIFADDRS)
++#    include <cups/versioning.h>
 +#  endif
 +
  #  if defined(__APPLE__) && !defined(_SOCKLEN_T)

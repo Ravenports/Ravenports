@@ -32,6 +32,7 @@ BUILDRUN_DEPENDS=	dbus:single:standard
 USES=			gettext-tools gmake libtool pkgconfig
 			autoreconf:build schemas:primary
 			desktop-utils:primary mime-info:primary
+			solaris-funcs
 GNOME_COMPONENTS=	gtk3 introspection
 
 LICENSE=		LGPL21+:primary
@@ -43,9 +44,12 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		security/gcr
 GLIB_SCHEMAS=		org.gnome.crypto.pgp.gschema.xml
+SOL_FUNCTIONS=		err.h:err.h
+			timegm:gck/gck-slot.c
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-gtk-doc
+			--enable-debug=no
 			--disable-valgrind
 			--disable-dependency-tracking
 
@@ -59,6 +63,11 @@ PLIST_SUB=		GCK_SOVER=0.0.0
 			GCRBASE_SOMAJOR=1
 			GCRUI_SOVER=1.0.0
 			GCRUI_SOMAJOR=1
+
+post-patch:
+	# timegm compat function untested by upstream in all cases
+	${REINPLACE_CMD} -e 's|"egg/egg-timegm.h"|<time.h>|' \
+		${WRKSRC}/gck/gck-slot.c
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/gck \
@@ -402,4 +411,57 @@ share/doc/gcr-3/
  up.png
  viewer-widget.png
  widgets.html
+
+
+[FILE:458:patches/patch-gcr_test-secure-memory.c]
+--- gcr/test-secure-memory.c.orig	2019-10-14 15:36:19 UTC
++++ gcr/test-secure-memory.c
+@@ -55,6 +55,10 @@ extern int egg_secure_warnings;
+ static gsize
+ get_rlimit_memlock (void)
+ {
++#ifdef __sun__
++	g_test_skip ("test unsupported on solaris");
++	return 0;
++#else
+ 	struct rlimit memlock;
+ 
+ 	/* If the test program is running as a privileged user, it is
+@@ -83,6 +87,7 @@ get_rlimit_memlock (void)
+ 	}
+ 
+ 	return memlock.rlim_cur;
++#endif
+ }
+ 
+ static void
+
+
+[FILE:594:patches/patch-ui_Makefile.am]
+--- ui/Makefile.am.orig	2019-10-14 15:36:19 UTC
++++ ui/Makefile.am
+@@ -201,7 +201,6 @@ gcr_viewer_CFLAGS = \
+ 
+ gcr_viewer_LDADD = \
+ 	libgcr-ui-$(GCR_MAJOR).la \
+-	libgcr-base-$(GCR_MAJOR).la \
+ 	libgck-@GCK_MAJOR@.la \
+ 	$(GLIB_LIBS) \
+ 	$(GTK_LIBS)
+@@ -224,7 +223,6 @@ gcr_prompter_CFLAGS = \
+ 
+ gcr_prompter_LDADD = \
+ 	libgcr-ui-$(GCR_MAJOR).la \
+-	libgcr-base-$(GCR_MAJOR).la \
+ 	libgck-@GCK_MAJOR@.la \
+ 	$(GTK_LIBS)
+ 
+@@ -292,7 +290,6 @@ ui_CFLAGS = \
+ 
+ ui_LIBS = \
+ 	libgcr-ui-@GCR_MAJOR@.la \
+-	libgcr-base-@GCR_MAJOR@.la \
+ 	libegg.la \
+ 	libgck-testable.la \
+ 	$(LIBGCRYPT_LIBS) \
 

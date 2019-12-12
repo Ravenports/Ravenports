@@ -5,11 +5,11 @@ VERSION=		6.3
 KEYWORDS=		x11_wm
 VARIANTS=		standard
 SDESC[standard]=	Minimalistic window manager for X11
-HOMEPAGE=		https://github.com/chneukirchen/cwm
+HOMEPAGE=		https://github.com/leahneukirchen/cwm
 CONTACT=		Michael_Neumann[mneumann@ntecs.de]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		GITHUB/chneukirchen:cwm:v6.3
+SITES[main]=		GITHUB/leahneukirchen:cwm:v6.3
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
@@ -17,12 +17,22 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			pkgconfig:build fonts
+USES=			pkgconfig:build fonts solaris-funcs
 XORG_COMPONENTS=	x11 xft xinerama xrandr
 
 LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/BSD2CLAUSE
 LICENSE_SCHEME=		solo
+
+SOL_FUNCTIONS=		err.h:err.h
+			asprintf:xmalloc.c
+			asprintf:menu.c
+			asprintf:util.c
+			strsep:util.c
+			strsep:kbfunc.c
+			getline:kbfunc.c
+
+CFLAGS=			-I.
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/cwm ${STAGEDIR}${PREFIX}/bin
@@ -38,12 +48,146 @@ This port is based on OpenBSD's continued work on cwm, as development on
 the project seems to have halted.
 
 
-[FILE:106:distinfo]
-4cd57ffac72841c128cccaea8ba210679d8913cd841690861d56c0e758baed9e        52419 chneukirchen-cwm-6.3.tar.gz
+[FILE:108:distinfo]
+4cd57ffac72841c128cccaea8ba210679d8913cd841690861d56c0e758baed9e        52419 leahneukirchen-cwm-6.3.tar.gz
 
 
 [FILE:58:manifests/plist.single]
 bin/cwm
 share/man/man1/cwm.1.gz
 share/man/man5/cwmrc.5.gz
+
+
+[FILE:344:patches/patch-calmwm.c]
+--- calmwm.c.orig	2018-05-14 13:31:34 UTC
++++ calmwm.c
+@@ -219,9 +219,13 @@ sighdlr(int sig)
+ void
+ usage(void)
+ {
++#ifdef __sun__
++	(void)fprintf(stderr, "usage: cwm [-v] [-c file] [-d display]\n");
++#else
+ 	extern char	*__progname;
+ 
+ 	(void)fprintf(stderr, "usage: %s [-v] [-c file] [-d display]\n",
+ 	    __progname);
++#endif
+ 	exit(1);
+ }
+
+
+[FILE:1029:patches/patch-kbfunc.c]
+--- kbfunc.c.orig	2018-05-14 13:31:34 UTC
++++ kbfunc.c
+@@ -28,7 +28,11 @@
+ #include <err.h>
+ #include <errno.h>
+ #include <limits.h>
++#ifdef __sun__
++#define _PATH_DEFPATH "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/raven/bin:/usr/raven/sbin"
++#else
+ #include <paths.h>
++#endif
+ #include <signal.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -589,6 +593,9 @@ kbfunc_menu_exec(void *ctx, struct cargs
+ 	struct menu_q		 menuq;
+ 	int			 l, i;
+ 	int			 mflags = (CWM_MENU_DUMMY | CWM_MENU_FILE);
++#ifdef __sun__
++	struct stat		s;
++#endif
+ 
+ 	TAILQ_INIT(&menuq);
+ 
+@@ -613,7 +620,12 @@ kbfunc_menu_exec(void *ctx, struct cargs
+ 			if (l == -1 || l >= sizeof(tpath))
+ 				continue;
+ 			/* Skip everything but regular files and symlinks. */
++#ifdef __sun__
++			stat(dp->d_name, &s);
++			if (s.st_mode != S_IFDIR && s.st_mode != S_IFLNK) {
++#else
+ 			if (dp->d_type != DT_REG && dp->d_type != DT_LNK) {
++#endif
+ 				/* lstat(2) in case d_type isn't supported. */
+ 				if (lstat(tpath, &sb) == -1)
+ 					continue;
+
+
+[FILE:1483:patches/patch-parse.y]
+--- parse.y.orig	2018-05-14 13:31:34 UTC
++++ parse.y
+@@ -22,10 +22,8 @@
+ %{
+ 
+ #include <sys/types.h>
+-#include <sys/queue.h>
+ 
+ #include <ctype.h>
+-#include <err.h>
+ #include <errno.h>
+ #include <limits.h>
+ #include <stdarg.h>
+@@ -33,6 +31,49 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++#ifdef __sun__
++#include <sys/varargs.h>
++
++static int
++vasprintf(char **strp, const char *fmt, va_list args)
++{
++    va_list args_copy;
++    int status, needed;
++
++    va_copy(args_copy, args);
++    needed = vsnprintf(NULL, 0, fmt, args_copy);
++    va_end(args_copy);
++    if (needed < 0) {
++        *strp = NULL;
++        return (needed);
++    }
++    *strp = (char *)malloc(needed + 1);
++    if (*strp == NULL)
++        return (-1);
++    status = vsnprintf(*strp, needed + 1, fmt, args);
++    if (status >= 0)
++        return (status);
++    else {
++        free(*strp);
++        *strp = NULL;
++        return (status);
++    }
++}
++
++static int
++asprintf(char **strp, const char *fmt, ...)
++{
++    va_list args;
++    int status;
++
++    va_start(args, fmt);
++    status = vasprintf(strp, fmt, args);
++    va_end(args);
++    return (status);
++}
++#endif
++
++#include "queue.h"
+ #include "calmwm.h"
+ 
+ #define YYSTYPE_IS_DECLARED
+@@ -599,7 +640,7 @@ parse_config(const char *filename, struc
+ 	if (stream == NULL) {
+ 		if (errno == ENOENT)
+ 			return (0);
+-		warn("%s", filename);
++		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+ 		return (-1);
+ 	}
+ 	file = pushfile(filename, stream);
 
