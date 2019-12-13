@@ -81,3 +81,30 @@ lib/
  liblibcpp-hocon.so
  liblibcpp-hocon.so.%%SOVERSION%%
 
+
+[FILE:925:patches/patch-fix-boost172]
+From caab275509826dc5fe5ab2632582abb8f83ea2b3 Mon Sep 17 00:00:00 2001
+From: Jan Beich <jbeich@FreeBSD.org>
+Date: Fri, 25 Oct 2019 22:26:13 +0000
+Subject: [PATCH] build: add missing dependency on Boost.Filesystem
+
+ld: error: undefined symbol: typeinfo for boost::filesystem::filesystem_error
+>>> referenced by parseable.cc
+>>>               ../CMakeFiles/libprojectsrc.dir/src/parseable.cc.o:(.data+0x0)
+c++: error: linker command failed with exit code 1 (use -v to see invocation)
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -42,7 +42,7 @@ else()
+     set(BOOST_COMPONENTS regex)
+ endif()
+ 
+-list(APPEND BOOST_COMPONENTS thread date_time chrono system program_options)
++list(APPEND BOOST_COMPONENTS thread date_time chrono filesystem system program_options)
+ 
+ # Add other dependencies
+ find_package(Boost 1.54 REQUIRED COMPONENTS ${BOOST_COMPONENTS})
+

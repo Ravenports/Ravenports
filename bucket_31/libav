@@ -96,6 +96,15 @@ CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
 			--disable-libx264
 			--disable-indev=v4l2
 
+CPPFLAGS=		-Wno-deprecated-declarations
+			-Wno-attributes
+			-Wno-incompatible-pointer-types
+			-Wno-discarded-qualifiers
+			-Wno-format-truncation
+			-Wno-char-subscripts
+VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__
+			CONFIGURE_ARGS=--target-os=sunos
+
 post-patch:
 	${REINPLACE_CMD} -e 's|$$(LIBDIR)/pkgconfig|${STAGEDIR}${PREFIX}/lib/pkgconfig|' \
 		${WRKSRC}/library.mak
@@ -289,6 +298,39 @@ share/man/man1/
  avconv.1.gz
  avplay.1.gz
  avprobe.1.gz
+
+
+[FILE:827:patches/patch-compat_solaris_make__sunver.pl]
+--- compat/solaris/make_sunver.pl.orig	2018-02-12 21:25:59 UTC
++++ compat/solaris/make_sunver.pl
+@@ -200,7 +200,8 @@ printf "# Omitted archives with correspo
+     (join ' ', @SHAREDOBJS) if $#SHAREDOBJS >= 0;
+ print "#\n\n";
+ 
+-print "\$mapfile_version 2\n";
++# solaris 10u8 only knows version 1
++# print "\$mapfile_version 2\n";
+ 
+ while (<F>) {
+     # Lines of the form '};'
+@@ -232,7 +233,7 @@ while (<F>) {
+     if (/^[ \t]*$/) { print; next; }
+ 
+     # Lines of the form '{'
+-    if (/^([ \t]*){$/) {
++    if (/^([ \t]*)\{$/) {
+     if ($in_extern) {
+         print "$1##{\n";
+     } else {
+@@ -248,7 +249,7 @@ while (<F>) {
+     # Reset match attempts, #matched symbols for this version.
+     $matches_attempted = 0;
+     $matched_symbols = 0;
+-    print "SYMBOL_VERSION $1 {\n";
++    print "$1 {\n";
+     next;
+     }
+ 
 
 
 [FILE:1714:patches/patch-configure]
