@@ -2,6 +2,7 @@
 
 NAMEBASE=		libb2
 VERSION=		0.98.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	BLAKE2: fast secure hashing
@@ -27,9 +28,17 @@ FPC_EQUIVALENT=		devel/libb2
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-openmp
+			--enable-native=no
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.4
+
+SET_DEBUGGING_ON=	yes
+OPTIMIZER_LEVEL=	0
+
+post-patch:
+	# remove -O3 flags
+	${REINPLACE_CMD} -e '/-O3/d' ${WRKSRC}/configure.ac
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/src/.libs/libb2_pic.a \
@@ -66,4 +75,31 @@ lib/
  libb2.so.%%SOVERSION%%
  libb2_pic.a
 lib/pkgconfig/libb2.pc
+
+
+[FILE:1099:patches/patch-configure.ac]
+--- configure.ac.orig	2019-03-10 15:35:26 UTC
++++ configure.ac
+@@ -62,18 +62,18 @@ AC_HELP_STRING([--enable-native],
+ 
+ AX_CHECK_COMPILE_FLAG([-O3], [CFLAGS=-O3])
+ dnl Not all architectures support -march=native
+-if test $enable_native == "yes"; then
++if test $enable_native = "yes"; then
+   AX_CHECK_COMPILE_FLAG([-march=native], [], [enable_native=no])
+ fi
+ 
+-if test $enable_fat == "yes"; then
++if test $enable_fat = "yes"; then
+   dnl Fat build needs compiler who knows all the possible instruction sets
+   AX_CHECK_COMPILE_FLAG([-msse2],   [], AC_MSG_ERROR([Compiler does not know -msse2.]))
+   AX_CHECK_COMPILE_FLAG([-mssse3],  [], AC_MSG_ERROR([Compiler does not know -mssse3.]))
+   AX_CHECK_COMPILE_FLAG([-msse4.1], [], AC_MSG_ERROR([Compiler does not know -msse4.1.]))
+   AX_CHECK_COMPILE_FLAG([-mavx],    [], AC_MSG_ERROR([Compiler does not know -mavx.]))
+   AX_CHECK_COMPILE_FLAG([-mxop],    [], AC_MSG_ERROR([Compiler does not know -mxop.]))
+-elif test $enable_native == "yes"; then
++elif test $enable_native = "yes"; then
+   AX_EXT
+   CFLAGS="${CFLAGS} -march=native ${SIMD_FLAGS}"
+ fi
 

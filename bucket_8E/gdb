@@ -1791,6 +1791,22 @@ index f4c4a1070d..023ea2064d 100644
          if getvar('SYSLIBS') is not None:
 
 
+[FILE:247:patches/patch-gdb_s390-tdep.c]
+--- gdb/s390-tdep.c.orig	2019-09-20 22:04:41 UTC
++++ gdb/s390-tdep.c
+@@ -40,6 +40,10 @@
+ #include "trad-frame.h"
+ #include "value.h"
+ 
++#ifdef __sun__
++#undef CS
++#endif
++
+ #include "features/s390-linux32.c"
+ #include "features/s390x-linux64.c"
+ 
+
+
 [FILE:601:patches/patch-libiberty-basename]
 --- include/libiberty.h.orig	2019-02-27 04:51:50 UTC
 +++ include/libiberty.h
@@ -5177,4 +5193,26 @@ _initialize_i386dfly_tdep (void)
  
  /* These three macros disassemble and assemble a symbol table st_info field,
     which contains the symbol binding and symbol type.  The STB_ and STT_
+
+
+[FILE:748:sunos/patch-gdb_fbsd-tdep.c]
+--- gdb/fbsd-tdep.c.intermediate	2019-12-14 06:50:12 UTC
++++ gdb/fbsd-tdep.c
+@@ -1035,12 +1035,12 @@ fbsd_info_proc_files_entry (int kf_type,
+ 
+ 	    /* For local sockets, print out the first non-nul path
+ 	       rather than both paths.  */
+-	    const struct fbsd_sockaddr_un *sun
++	    const struct fbsd_sockaddr_un *xsunx
+ 	      = reinterpret_cast<const struct fbsd_sockaddr_un *> (kf_sa_local);
+-	    if (sun->sun_path[0] == 0)
+-	      sun = reinterpret_cast<const struct fbsd_sockaddr_un *>
++	    if (xsunx->sun_path[0] == 0)
++	      xsunx = reinterpret_cast<const struct fbsd_sockaddr_un *>
+ 		(kf_sa_peer);
+-	    printf_filtered ("%s", sun->sun_path);
++	    printf_filtered ("%s", xsunx->sun_path);
+ 	    break;
+ 	  }
+ 	case FBSD_AF_INET:
 
