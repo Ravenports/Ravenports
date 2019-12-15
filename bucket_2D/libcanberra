@@ -51,6 +51,9 @@ post-install:
 		${STAGEDIR}${PREFIX}/share/doc/libcanberra
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
+post-patch-sunos:
+	${REINPLACE_CMD} -e '/as-needed/d' ${WRKSRC}/configure
+
 [FILE:249:descriptions/desc.primary]
 libcanberra is an implementation of the XDG Sound Theme and Name 
 Specifications, for generating event sounds on free desktops, such as 
@@ -62,7 +65,10 @@ null) and is designed to be portable.
 c2b671e67e0c288a69fc33dc1b6f1b534d07882c2aceed37004bf48c601afa72       318960 libcanberra-0.30.tar.xz
 
 
-[FILE:916:manifests/plist.primary]
+[FILE:1064:manifests/plist.primary]
+%%ONLY-DRAGONFLY%%lib/libcanberra-0.30/libcanberra-oss.so
+%%ONLY-FREEBSD%%lib/libcanberra-0.30/libcanberra-oss.so
+%%ONLY-LINUX%%lib/libcanberra-0.30/libcanberra-oss.so
 bin/canberra-gtk-play
 include/
  canberra-gtk.h
@@ -86,7 +92,6 @@ lib/libcanberra-0.30/
  libcanberra-gstreamer.so
  libcanberra-multi.so
  libcanberra-null.so
- libcanberra-oss.so
 lib/pkgconfig/
  libcanberra-gtk.pc
  libcanberra-gtk3.pc
