@@ -89,12 +89,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ## SHA256 digests for Ravenports bootstrap files
 
 Currently the repositories are only available via HTTP.  The SHA256 digests
-are listed before for confidence the bootstrap pkg(8) binaries are the ones
+are listed before for confidence the bootstrap ravensw(8) binaries are the ones
 we generated.
 
 ```
-11f8493ebfc55b4c461065a883f26ee6f9ec52162785d08f2f8580db6235caaf raven-dragonfly-50-bootstrap.tar.gz
-8e0a6b1fdedcc6f9c6ef89c98030d79bde52450b56e09aa51c7fbc9eefd134e6 raven-dragonfly-54-bootstrap.tar.gz
+e28fde00276880da2183439eb1e45c962147f90aca5482b9ac2df1a28dfd011a raven-darwin-bootstrap.tar.gz
+c855af3775dc29e8202ac78ec4c5cae273406209edaa4fc838034869860061a0 raven-dragonfly-56-bootstrap.tar.gz
 4589a6262d79f7111353bb68b49afe4d0fcdfa7b743413acaf3333de3a2da38b raven-freebsd64-bootstrap.tar.gz
 77ee4ac0e3e3f09bc92bdd38a6bbb76689cdb32877e6ee4a3546cc5f3b0efd6f raven-linux-bootstrap.tar.gz
 92b6c5d8dc4d5e0e419dfa16d35d88f6b2b31d705fd09bcc0a8e17cd0ec4dda8 raven-sunos-bootstrap.tar.gz
@@ -117,14 +117,14 @@ UwIDAQAB
 ```
 
 An example of use is to save the contents to
-/raven/etc/pkg/keys/ravenports.key.  The pkg repository
+/raven/etc/ravensw/keys/ravenports.key.  The ravensw repository
 configuration file might look like this:
 
 ```
-> cat /raven/etc/pkg/repos/01_raven.conf
+> cat /raven/etc/ravensw/repos/01_raven.conf
 Raven: {
     url            : http://www.ravenports.com/repository/${ABI},
-    pubkey         : /raven/etc/pkg/keys/ravenports.key,
+    pubkey         : /raven/etc/ravensw/keys/ravenports.key,
     signature_type : PUBKEY,
     priority       : 0,
     enabled        : yes
