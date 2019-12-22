@@ -2,6 +2,7 @@
 
 NAMEBASE=		iverilog
 VERSION=		10.3
+REVISION=		1
 KEYWORDS=		cad
 VARIANTS=		standard
 SDESC[standard]=	Verilog simulation and synthesis tool
@@ -9,17 +10,17 @@ HOMEPAGE=		http://iverilog.icarus.com/
 CONTACT=		Michael_Neumann[mneumann@ntecs.de]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		ftp://icarus.com/pub/eda/verilog/v10/
-DISTFILE[1]=		verilog-10.3.tar.gz:main
+SITES[main]=		GITHUB/steveicarus:iverilog:v10_3
+DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			bison gmake readline c++:single
+BUILD_DEPENDS=		gperf:single:standard
 
-DISTNAME=		verilog-10.3
+USES=			autoreconf:build bison gmake readline c++:single
 
 LICENSE=		GPLv2+:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -32,6 +33,13 @@ FPC_EQUIVALENT=		cad/iverilog
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-suffix
+
+INSTALL_REQ_TOOLCHAIN=	yes
+
+VAR_OPSYS[dragonfly]=	LDFLAGS=-fuse-ld=gold
+
+pre-configure:
+	(cd ${WRKSRC} && aclocal && autoconf)
 
 [FILE:724:descriptions/desc.single]
 Icarus Verilog is a Verilog simulation and synthesis tool. It
@@ -49,8 +57,8 @@ year 2000. This is a fairly large and complex standard, so it will
 take some time for it to get there, but that's the goal.
 
 
-[FILE:98:distinfo]
-86bd45e7e12d1bc8772c3cdd394e68a9feccb2a6d14aaf7dae0773b7274368ef      1698889 verilog-10.3.tar.gz
+[FILE:111:distinfo]
+4b884261645a73b37467242d6ae69264fdde2e7c4c15b245d902531efaaeb234      1600835 steveicarus-iverilog-10_3.tar.gz
 
 
 [FILE:735:manifests/plist.single]

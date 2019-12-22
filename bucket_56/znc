@@ -2,22 +2,25 @@
 
 NAMEBASE=		znc
 VERSION=		1.7.5
+REVISION=		1
 KEYWORDS=		irc
 VARIANTS=		standard
 SDESC[standard]=	Advanced IRC bouncer
 HOMEPAGE=		https://wiki.znc.in/ZNC
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
-SITES[main]=		https://znc.in/releases/
-			https://znc.in/releases/archive/
-DISTFILE[1]=		znc-1.7.5.tar.gz:main
-DF_INDEX=		1
+DOWNLOAD_GROUPS=	main csocket
+SITES[main]=		GITHUB/znc:znc:znc-1.7.5
+SITES[csocket]=		GITHUB/jimloco:Csocket:e8d9e0b:third_party/Csocket
+DISTFILE[1]=		generated:main
+DISTFILE[2]=		generated:csocket
+DF_INDEX=		1 2
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		swig:primary:standard
 BUILDRUN_DEPENDS=	icu:single:standard
 			cyrus-sasl:primary:standard
 
@@ -26,6 +29,7 @@ GROUPS=			znc
 USERGROUP_SPKG=		single
 
 USES=			cpe gmake iconv pkgconfig ssl tcl perl python zlib
+			autoreconf:build
 
 LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -48,12 +52,17 @@ MAKE_ENV=		V=1
 RC_SUBR=		znc:single
 SUB_FILES=		pkg-message-single
 
+VAR_OPSYS[dragonfly]=	LDFLAGS=-fuse-ld=gold
+
 post-patch:
 	${REINPLACE_CMD} -e 's#/usr/local#${LOCALBASE}#' \
-		${WRKSRC}/configure
+		${WRKSRC}/configure.ac
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/znc
+
+pre-configure:
+	(cd ${WRKSRC} && ${SH} ./autogen.sh)
 
 [FILE:233:descriptions/desc.single]
 ZNC is an advanced IRC bouncer with features that include support for
@@ -62,8 +71,9 @@ and SSL encryption. It can be extended with dynamically loaded modules
 written in C++ or Perl.
 
 
-[FILE:95:distinfo]
-a8941e1385c8654287a4428018d93459482e9d5eeedf86bef7b020ddc5f24721      2170656 znc-1.7.5.tar.gz
+[FILE:212:distinfo]
+40e5f5bdd5bb7c2771b9698855b0815ed09b80973d848c3f5ac2e85d1e3f1820      1301833 znc-znc-znc-1.7.5.tar.gz
+73c4b9bc68f9ec179af338e8bc0450221272209cefd5d333f404ab396f68b470        56091 jimloco-Csocket-e8d9e0b.tar.gz
 
 
 [FILE:3522:manifests/plist.single]
@@ -275,10 +285,10 @@ share/znc/webskins/ice/tmpl/
 @dir(znc,znc,755) etc/znc
 
 
-[FILE:409:patches/patch-configure]
---- configure.orig	2019-06-21 20:32:07 UTC
-+++ configure
-@@ -3665,10 +3665,8 @@ fi
+[FILE:451:patches/patch-configure.ac]
+--- configure.ac.orig	2019-09-23 14:15:04 UTC
++++ configure.ac
+@@ -165,10 +165,8 @@ AM_CONDITIONAL(HAVE_SYSTEMD, [test -n "$
  
  case "${host_os}" in
  	freebsd*)

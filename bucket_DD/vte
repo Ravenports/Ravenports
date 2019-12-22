@@ -247,16 +247,20 @@ Don't use packet mode on SunOS.
  
 
 
-[FILE:1697:patches/patch-src_vte.cc]
+[FILE:1822:patches/patch-src_vte.cc]
 Use correct includes on SunOS.
+Use correct includes for DragonFly (termios.h instead of sys/termios.h)
 Don't use packet mode on SunOS.
 
 --- src/vte.cc.orig	2019-11-22 21:36:35 UTC
 +++ src/vte.cc
-@@ -29,6 +29,10 @@
+@@ -29,6 +29,13 @@
  #ifdef HAVE_SYS_TERMIOS_H
  #include <sys/termios.h>
  #endif
++#ifdef HAVE_TERMIOS_H
++#include <termios.h>
++#endif
 +#if defined(__sun__)
 +#include <sys/ioccom.h>
 +#include <sys/ptyvar.h>
@@ -264,7 +268,7 @@ Don't use packet mode on SunOS.
  
  #include <glib.h>
  #include <glib/gi18n-lib.h>
-@@ -4094,6 +4098,9 @@ Terminal::pty_io_read(GIOChannel *channe
+@@ -4094,6 +4101,9 @@ Terminal::pty_io_read(GIOChannel *channe
  			bp = chunk->data + chunk->len;
  			len = 0;
  			do {
@@ -274,7 +278,7 @@ Don't use packet mode on SunOS.
                                  /* We'd like to read (fd, bp, rem); but due to TIOCPKT mode
                                   * there's an extra input byte returned at the beginning.
                                   * We need to see what that byte is, but otherwise drop it
-@@ -4104,6 +4111,7 @@ Terminal::pty_io_read(GIOChannel *channe
+@@ -4104,6 +4114,7 @@ Terminal::pty_io_read(GIOChannel *channe
                                  int ret = read (fd, bp - 1, rem + 1);
                                  pkt_header = bp[-1];
                                  bp[-1] = save;
@@ -282,7 +286,7 @@ Don't use packet mode on SunOS.
  				switch (ret){
  					case -1:
  						err = errno;
-@@ -4112,6 +4120,7 @@ Terminal::pty_io_read(GIOChannel *channe
+@@ -4112,6 +4123,7 @@ Terminal::pty_io_read(GIOChannel *channe
  						eof = TRUE;
  						goto out;
  					default:
@@ -290,7 +294,7 @@ Don't use packet mode on SunOS.
                                                  ret--;
  
                                                  if (pkt_header & TIOCPKT_IOCTL) {
-@@ -4132,6 +4141,7 @@ Terminal::pty_io_read(GIOChannel *channe
+@@ -4132,6 +4144,7 @@ Terminal::pty_io_read(GIOChannel *channe
                                                  } else if (pkt_header & TIOCPKT_START) {
                                                          pty_scroll_lock_changed(false);
                                                  }

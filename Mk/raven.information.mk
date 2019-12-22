@@ -214,7 +214,7 @@ XORG_VERSION=			7.7
 FIREFOX52_VERSION=		52.9.0
 FIREFOX_ESR_VERSION=		68.3.0
 FIREFOX_VERSION=		71.0
-LLVM_VERSION=			9.0.0
+LLVM_VERSION=			9.0.1
 ZLIB_VERSION=			1.2.11
 
 # ------------------------------------------------------------------------
