@@ -93,8 +93,10 @@ for _file in "${@}"; do
 		eval __MASTER_SITES_TMP3="\${_DOWNLOAD_SITES_${group}}"
 		set -u
 		if [ -n "${__MASTER_SITES_TMP3}" ] ; then
-			__MASTER_SITES_TMP4="$(process_site ${__MASTER_SITES_TMP3})"
-			__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${__MASTER_SITES_TMP4}"
+			for MS3 in ${__MASTER_SITES_TMP3}; do
+				__MASTER_SITES_TMP4="$(process_site ${MS3})"
+				__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${__MASTER_SITES_TMP4}"
+			done
 		else
 			case ${dp_TARGET} in
 				do-fetch|makesum)
