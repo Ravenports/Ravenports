@@ -35,9 +35,8 @@ PERL_5.30_VERSION=	5.30.1
 # Possible values: 2.5, 2.6, 2.7
 #-------------------------------------------------------------------------
 
-RUBY_DEFAULT?=		2.5
+RUBY_DEFAULT?=		2.7
 
-RUBY_2.4_VERSION=	2.4.8
 RUBY_2.5_VERSION=	2.5.7
 RUBY_2.6_VERSION=	2.6.5
 RUBY_2.7_VERSION=	2.7.0

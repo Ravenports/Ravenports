@@ -3,9 +3,9 @@
 # Feature:	gem
 # Usage:	USES=gem
 # Valid ARGS:	skiplist (Don't generate package list automatically)
-#               v24      (requires Ruby 2.4)
-#		v25	 (requires Ruby 2.5) (implicit)
+#		v25	 (requires Ruby 2.5)
 #               v26      (requires Ruby 2.6)
+#               v27      (requires Ruby 2.7) (implicit)
 
 .if !defined(_INCLUDE_USES_GEM_MK)
 _INCLUDE_USES_GEM_MK=	yes
@@ -13,21 +13,21 @@ _INCLUDE_USES_GEM_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v2[456]
+# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v2[567]
 # -----------------------------------------------
 
-.  if ${gem_ARGS} == "v24"
-GEMS_BASE_DIR=	lib/ruby/gems/2.4
-RUBYGEMBIN=	${LOCALBASE}/bin/gem24
-USING_RUBY=	2.4
+.  if ${gem_ARGS} == "v25"
+GEMS_BASE_DIR=	lib/ruby/gems/2.5
+RUBYGEMBIN=	${LOCALBASE}/bin/gem25
+USING_RUBY=	2.5
 .  elif ${gem_ARGS} == "v26"
 GEMS_BASE_DIR=	lib/ruby/gems/2.6
 RUBYGEMBIN=	${LOCALBASE}/bin/gem26
 USING_RUBY=	2.6
 .  else
-GEMS_BASE_DIR=	lib/ruby/gems/2.5
-RUBYGEMBIN=	${LOCALBASE}/bin/gem25
-USING_RUBY=	2.5
+GEMS_BASE_DIR=	lib/ruby/gems/2.7
+RUBYGEMBIN=	${LOCALBASE}/bin/gem27
+USING_RUBY=	2.7
 .  endif
 
 INSTALL_REQ_TOOLCHAIN=	yes
