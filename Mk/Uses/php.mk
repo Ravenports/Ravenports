@@ -3,7 +3,7 @@
 # Feature:	php
 # Usage:	USES=php or USES=php:ARGS
 # Valid ARGS:	phpize, ext, zend, build, cli, (cgi|mod), web, embed,
-#               (71|72|73|74)
+#               (72|73|74)
 #
 #  phpize   : Use to build a PHP extension.
 #  ext      : Use to build, install and register a PHP extension.
@@ -14,7 +14,6 @@
 #  mod      : Require the Apache Module for PHP.
 #  web      : Require the Apache Module or the CGI version of PHP.
 #  embed    : Require the embedded library version of PHP.
-#  71       : Specify latest PHP 7.1.x (otherwise use default PHP)
 #  72       : Specify latest PHP 7.2.x (otherwise use default PHP)
 #  73       : Specify latest PHP 7.3.x (otherwise use default PHP)
 #  74       : Specify latest PHP 7.4.x (otherwise use default PHP)
@@ -58,9 +57,6 @@ PHP_DOTVER=	7.3
 .  elif ${php_ARGS:M72}
 PHP_SUFFIX=	72
 PHP_DOTVER=	7.2
-.  elif ${php_ARGS:M71}
-PHP_SUFFIX=	71
-PHP_DOTVER=	7.1
 .  else
 PHP_SUFFIX=	${PHP_DEFAULT:S/.//}
 PHP_DOTVER=	${PHP_DEFAULT}
@@ -90,9 +86,6 @@ PHP_EXT_DIR=	20180731
 PHP_EXT_INC=	hash pcre spl
 .    elif ${PHP_SUFFIX} == 72
 PHP_EXT_DIR=	20170718
-PHP_EXT_INC=	hash pcre spl
-.    elif ${PHP_SUFFIX} == 71
-PHP_EXT_DIR=	20160303
 PHP_EXT_INC=	hash pcre spl
 .    endif
 .  endif
@@ -130,11 +123,6 @@ USAGE_ERROR+=	"This port requires the CLI version of PHP, but the installed PHP 
 USAGE_ERROR+=	"This port requires the embedded PHP library, but the installed PHP does not contain it."
 .    endif
 .  endif
-.  if ${php_ARGS:M71}
-.    if ${php_ARGS:M72} || ${php_ARGS:M73} || ${php_ARGS:M74}
-MULTIPLE_PHP=	yes
-.    endif
-.  endif
 .  if ${php_ARGS:M72}
 .    if ${php_ARGS:M71} || ${php_ARGS:M73} || ${php_ARGS:M74}
 MULTIPLE_PHP=	yes
@@ -151,7 +139,7 @@ MULTIPLE_PHP=	yes
 .    endif
 .  endif
 .  if defined(MULTIPLE_PHP)
-USAGE_ERROR+=	"Multiple versions detected.  Pick 71, 72, 73, or 74 ONLY."
+USAGE_ERROR+=	"Multiple versions detected.  Pick 72, 73, or 74 ONLY."
 .  endif
 
 .  if defined(DEV_WARNING)
