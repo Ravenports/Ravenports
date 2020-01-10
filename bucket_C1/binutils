@@ -50,17 +50,34 @@ CONFIGURE_ARGS=		--disable-werror
 			--enable-x86-relax-relocations=no
 
 INSTALL_TARGET=		install-strip
+PLIST_SUB=		PLUGINAPI={{PLUGINAPI}}
+			LINKER={{LINKER}}
+			ASSEMBLER={{ASSEMBLER}}
+			GPROF={{GPROF}}
 
 VAR_OPSYS[freebsd]=	VAR1=/libexec/ld-elf.so.1
 			VAR2=/libexec/ld-elf.so.1
+			MAKEFILE_LINE=BUILD_GOLD=yes
+			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold=default
 VAR_OPSYS[sunos]=	VAR1=/lib/amd64/ld.so.1
 			VAR2=/lib/ld.so.1
+			MAKEFILE_LINE=BUILD_GOLD=yes
+			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold
 VAR_OPSYS[linux]=	VAR1=/lib/ld64.so.1
 			VAR2=/lib/ldx32.so.1
+			MAKEFILE_LINE=BUILD_GOLD=yes
+			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold
 VAR_OPSYS[darwin]=	VAR1=/libexec/ld-elf.so.1
 			VAR2=/libexec/ld-elf.so.1
+			MAKEFILE_LINE=LINKER="@comment "
+			MAKEFILE_LINE=ASSEMBLER="@comment "
+			MAKEFILE_LINE=GPROF="@comment "
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=PLUGINAPI="@comment "
+VAR_OPSYS[openbsd]=	MAKEFILE_LINE=PLUGINAPI="@comment "
 VAR_OPSYS[dragonfly]=	VAR1=/libexec/ld-elf.so.2
 			VAR2=/libexec/ld-elf.so.2
+			MAKEFILE_LINE=BUILD_GOLD=yes
+			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold
 
 [RAVENSYS].DESCRIPTION=			Version used by Ravenports system-root
 [RAVENSYS].MAKEFILE_ON=			PREFIX={{LOCALBASE}}/toolchain
@@ -433,51 +450,14 @@ For loader.efi linking support.
  # define YYTOKENTYPE
 
 
-[FILE:1098:files/special.mk]
-# Consider making gold the default linker on DF and Linux
-
-.if "${OPSYS}" == "DragonFly"
-BUILD_GOLD=		yes
-GOLD_CONFIG=		--enable-gold
-.elif "${OPSYS}" == "FreeBSD"
-.  if "${ARCH_STANDARD}" == "x86_64" || "${ARCH_STANDARD}" == "aarch64"
-BUILD_GOLD=		yes
-GOLD_CONFIG=		--enable-gold=default
-.  endif
-.elif "${OPSYS}" == "Linux"
-.  if "${ARCH_STANDARD}" == "x86_64" || "${ARCH_STANDARD}" == "aarch64"
-BUILD_GOLD=		yes
-GOLD_CONFIG=		--enable-gold
-.  endif
-.elif "${OPSYS}" == "SunOS"
-BUILD_GOLD=		yes
-GOLD_CONFIG=		--enable-gold
-.endif
-
-
+[FILE:221:files/special.mk]
 .if defined(BUILD_GOLD)
 CONFIGURE_ARGS+=	${GOLD_CONFIG}
 CONFIGURE_ARGS+=	--enable-plugins
 PLIST_SUB+=		GOLD=""
-PLIST_SUB+=		PLUGINAPI=""
 .else
 CONFIGURE_ARGS+=	--disable-gold
 CONFIGURE_ARGS+=	--disable-plugins
 PLIST_SUB+=		GOLD="@comment "
-.  if "${OPSYS}" == "Darwin"
-PLIST_SUB+=		PLUGINAPI=""
-.  else
-PLIST_SUB+=		PLUGINAPI="@comment "
-.  endif
-.endif
-
-.if "${OPSYS}" == "Darwin"
-PLIST_SUB+=		LINKER="@comment "
-PLIST_SUB+=		ASSEMBLER="@comment "
-PLIST_SUB+=		GPROF="@comment "
-.else
-PLIST_SUB+=		LINKER=""
-PLIST_SUB+=		ASSEMBLER=""
-PLIST_SUB+=		GPROF=""
 .endif
 

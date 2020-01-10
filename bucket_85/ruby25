@@ -64,9 +64,11 @@ CONFIGURE_ENV=		debugflags=
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		XY={{RUBY_SUFFIX}}
 			XDOTY={{RUBY_VER}}
+			MODULE={{BUNDLE:Uso}}
 
 CFLAGS=			-Wno-attributes
 VAR_OPSYS[darwin]=	CONFIGURE_ENV=ac_cv_func_backtrace=no
+			MAKEFILE_LINE=BUNDLE=bundle
 VAR_OPSYS[dragonfly]=	CFLAGS=-fuse-ld=gold
 
 post-patch:
@@ -1548,17 +1550,11 @@ share/examples/ruby%%XY%%/webrick/
  # encoding: ascii-8bit
 
 
-[FILE:467:files/special.mk]
+[FILE:378:files/special.mk]
 # Macros to change variables in rbconfig.rb
 RB_SET_CONF_VAR=${SH} -c '${REINPLACE_CMD} -E -e "s,(CONFIG\[\"$$0\"\][[:space:]]*=[[:space:]]*)(\(?)(.*)(\)?),\1\2$$1\4," ${WRKSRC}/rbconfig.rb' --
 
 POST_PLIST_TARGET=	rdoc-autolist
-
-.if "${OPSYS}" == "Darwin"
-PLIST_SUB+=	MODULE=bundle
-.else
-PLIST_SUB+=	MODULE=so
-.endif
 
 rdoc-autolist:
 	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/ri \

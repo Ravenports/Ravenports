@@ -56,6 +56,13 @@ SUB_LIST=		version=5.2.4
 CFLAGS=			-fPIC
 LDFLAGS=		-lm
 			-pthread
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=BUILD_TARGET=freebsd
+VAR_OPSYS[sunos]=	MAKEFILE_LINE=BUILD_TARGET=solaris
+VAR_OPSYS[linux]=	MAKEFILE_LINE=BUILD_TARGET=linux
+VAR_OPSYS[darwin]=	MAKEFILE_LINE=BUILD_TARGET=macosx
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=BUILD_TARGET=bsd
+VAR_OPSYS[openbsd]=	MAKEFILE_LINE=BUILD_TARGET=bsd
+VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=BUILD_TARGET=bsd
 
 post-patch:
 	${REINPLACE_CMD} -e 's,rand *(,random(,g' ${WRKSRC}/src/lmathlib.c
@@ -206,20 +213,4 @@ Description: An Extensible Extension Language
 Version: ${version}
 Libs: -L${libdir} -l${soname} -lm
 Cflags: -I${includedir}
-
-
-[FILE:297:files/special.mk]
-.if ${OPSYS} == "FreeBSD"
-BUILD_TARGET=	freebsd
-.elif !empty(OPSYS:M*BSD*) || ${OPSYS} == "DragonFly"
-BUILD_TARGET=	bsd
-.elif ${OPSYS} == "Linux"
-BUILD_TARGET=	linux
-.elif ${OPSYS} == "Darwin"
-BUILD_TARGET=	macosx
-.elif ${OPSYS} == "SunOS"
-BUILD_TARGET=	solaris
-.else
-BUILD_TARGET=	generic
-.endif
 
