@@ -18,7 +18,8 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BROKEN[sunos]=		Needs err.h which is not available on Sol10
-BROKEN[linux]=		Requires ALSA headers and libraries first
+
+BR_DEPS[linux]=		libbsd:single:standard alsa-lib:single:standard
 
 USERS=			_sndio
 GROUPS=			_sndio
@@ -39,6 +40,8 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}
 SINGLE_JOB=		yes
 
 RC_SUBR=		sndiod:single
+
+VAR_OPSYS[linux]=	CONFIGURE_ARGS=	--with-libbsd
 
 post-patch:
 	# Make sure sndiod can be started inside jails as root
