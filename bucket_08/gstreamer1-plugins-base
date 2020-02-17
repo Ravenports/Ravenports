@@ -58,6 +58,10 @@ post-patch:
 		-e 's|FLAGS -Werror|FLAGS|' \
 		-e 's|dragonflybsd|dragonfly|' \
 		${WRKSRC}/configure
+	# fix glib-mkenums code
+	${FIND} ${WRKSRC} -name "Makefile.in" |\
+		${XARGS} ${GREP} -l "enum_headers = " |\
+		${XARGS} ${REINPLACE_CMD} -e '/enum_headers =/ s|\\#include|#include|'
 
 [FILE:91:descriptions/desc.single]
 This package contains self-contained plugins from the "base" plugin set
