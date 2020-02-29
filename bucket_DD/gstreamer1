@@ -48,6 +48,10 @@ PLIST_SUB=		VERSION=1.0
 post-patch:
 	${REINPLACE_CMD} -e 's|-Wmissing-include-dirs||g' \
 		${WRKSRC}/configure
+	# fix glib-mkenums code
+	${FIND} ${WRKSRC} -name "Makefile.in" |\
+		${XARGS} ${GREP} -l "enum_headers = " |\
+		${XARGS} ${REINPLACE_CMD} -e '/enum_headers =/ s|\\#include|#include|'
 
 [FILE:435:descriptions/desc.single]
 GStreamer is not a media player. It is a library for constructing graphs 

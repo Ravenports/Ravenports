@@ -173,7 +173,7 @@ RUBY_2.7_PATCHLEVEL=		0
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK2_PORT_VERSION=		2.24.32
-GTK3_PORT_VERSION=		3.24.13
+GTK3_PORT_VERSION=		3.24.14
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
@@ -229,5 +229,5 @@ GNATCROSS_FREEBSD_12=		12.0
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.14.1
-LUMINA_VERSION=			1.5.0
-LUMINA_RELEASE_TAG=		1.5.0
+LUMINA_VERSION=			1.6.0
+LUMINA_RELEASE_TAG=		1.6.0

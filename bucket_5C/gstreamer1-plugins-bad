@@ -115,6 +115,10 @@ post-patch:
 	${REINPLACE_CMD} -e 's|FLAGS -Werror|FLAGS|' ${WRKSRC}/configure
 	# even though sctp is disabled, libsctp is being build
 	${REINPLACE_CMD} -e 's| sctp||' ${WRKSRC}/gst-libs/gst/Makefile.in
+	# fix glib-mkenums code
+	${FIND} ${WRKSRC} -name "Makefile.in" |\
+		${XARGS} ${GREP} -l "enum_headers = " |\
+		${XARGS} ${REINPLACE_CMD} -e '/enum_headers =/ s|\\#include|#include|'
 
 do-build:
 .for dir in gst-libs sys gst po pkgconfig ext/bz2
