@@ -21,6 +21,9 @@ OPTIONS_STANDARD=	none
 VOPTS[530]=		PERL_530=ON PERL_528=OFF
 VOPTS[528]=		PERL_530=OFF PERL_528=ON
 
+BUILD_DEPENDS=		perl-File-Which:single:perl_default
+BUILDRUN_DEPENDS=	pgplot:primary:standard
+
 DISTNAME=		PGPLOT-2.24
 
 GENERATED=		yes
@@ -32,6 +35,9 @@ SINGLE_JOB=		yes
 
 [PERL_530].BUILDRUN_DEPENDS_ON=		perl-ExtUtils-F77:single:530
 [PERL_530].USES_ON=			perl:530,configure
+
+post-patch:
+	${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g' ${WRKSRC}/Makefile.PL
 
 [FILE:8:descriptions/desc.single]
 unknown
