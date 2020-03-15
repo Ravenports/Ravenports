@@ -143,6 +143,22 @@ libexec/unit/modules/php73.unit.%%SHARED_OBJECT%%
 libexec/unit/modules/php74.unit.%%SHARED_OBJECT%%
 
 
+[FILE:401:patches/patch-auto_sendfile]
+--- auto/sendfile.orig	2020-03-12 15:13:08 UTC
++++ auto/sendfile
+@@ -43,6 +43,10 @@ if [ $nxt_found = no ]; then
+                       #include <sys/uio.h>
+                       #include <stdlib.h>
+ 
++                      #ifdef __DragonFly__
++                      #define SF_NODISKIO 0
++                      #endif
++
+                       int main() {
+                           off_t  sent;
+ 
+
+
 [FILE:877:files/unitd.in]
 #!/bin/sh
 #
