@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		3.0
-REVISION=		2
+REVISION=		3
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -29,7 +29,7 @@ SITES[dragonlace]=	http://downloads.dragonlace.net/misc/
 SITES[ubuntu10]=	UBUNTU/a/acl
 SITES[avalon]=		https://mirror-master.dragonflybsd.org/iso-images/
 DISTFILE[1]=		dummy-tarball.tar.gz:main
-DISTFILE[2]=		dfly-x86_64-5.6.2_REL.iso.bz2:avalon
+DISTFILE[2]=		dfly-x86_64-5.8.0_REL.iso.bz2:avalon
 DISTFILE[3]=		libc6_2.23-0ubuntu9_amd64.deb:ubuntu1
 DISTFILE[4]=		libc6-dev_2.23-0ubuntu9_amd64.deb:ubuntu1
 DISTFILE[5]=		hostname_3.16ubuntu2_amd64.deb:ubuntu2
@@ -264,9 +264,9 @@ post-install-DRAGONFLY-ON:
 	${MV} ${STAGEDIR}${RSYS}/var/run/ld-elf.so.hints \
 		${STAGEDIR}${RSYS}/usr/share/
 	${RM} -r ${STAGEDIR}${RSYS}/var
-	${ECHO} "5.6"    > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
-	${ECHO} "5.6"    > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
-	${ECHO} "500600" > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
+	${ECHO} "5.8"    > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
+	${ECHO} "5.8"    > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
+	${ECHO} "500800" > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
 	${ECHO} "x86_64"             > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 
 post-install-LINUX-ON:
@@ -319,7 +319,7 @@ Ravenports.
 
 [FILE:2402:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
-944ba2c58e0dac5e3fc77569bf6c9f6ae1c2d7a5ca695057e0cfac22327a91b3    252125861 dfly-x86_64-5.6.2_REL.iso.bz2
+0258b9d754c785055e52f725372fbf5f5b56d04e12d639bbd83efa90afed5433    260055667 dfly-x86_64-5.8.0_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
 78e65208532ef0db23d28a915b55b2b50e4ff117affa29a6fcd9fcb94536c147      2081588 libc6-dev_2.23-0ubuntu9_amd64.deb
 78ffb1d52ec35aafb91eefa09ddd4b66a264c114697b71ddb4867bc86dfe39c3        11548 hostname_3.16ubuntu2_amd64.deb
@@ -342,7 +342,7 @@ f5b76ad0e3316cd99703bbc59c056fad02be0de6c0d9316dd437b89732dc0ff1        73590 li
 a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 libacl1_2.2.52-3_amd64.deb
 
 
-[FILE:15291:manifests/plist.single.dragonfly]
+[FILE:15400:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -594,7 +594,6 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  usbhid.h
  util.h
  utime.h
- utmp.h
  utmpx.h
  uuid.h
  vis.h
@@ -690,6 +689,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  usbhid.h
 %%BASE%%/usr/include/compat/linux
 %%BASE%%/usr/include/cpu/
+ alignbytes.h
  asm.h
  asmacros.h
  atomic.h
@@ -730,6 +730,8 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  types.h
  ucontext.h
  vframe.h
+ wchar.h
+ wchar_limits.h
 %%BASE%%/usr/include/crypto/
  cast.h
  castsb.h
@@ -803,6 +805,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  proplib.h
 %%BASE%%/usr/include/machine/
  acpica_machdep.h
+ alignbytes.h
  asm.h
  asmacros.h
  atomic.h
@@ -876,6 +879,8 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  vframe.h
  vmm.h
  vmparam.h
+ wchar.h
+ wchar_limits.h
 %%BASE%%/usr/include/machine/pc/
  bios.h
  display.h
@@ -1135,19 +1140,21 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 %%BASE%%/usr/include/sys/
  _fd_set.h
  _iovec.h
+ _malloc.h
  _null.h
  _pthreadtypes.h
+ _siginfo.h
  _sigset.h
  _termios.h
  _timespec.h
  _timeval.h
+ _uio.h
  acct.h
  acl.h
  agpio.h
  aio.h
  alist.h
  assym.h
- ata.h
  bio.h
  biotrack.h
  bitops.h
@@ -1179,6 +1186,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  cpu_topology.h
  cpuctl.h
  cpuhelper.h
+ cpumask.h
  csprng.h
  ctype.h
  devfs.h
@@ -1226,6 +1234,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  gmon.h
  gpt.h
  hash.h
+ ibaa.h
  iconv.h
  idr.h
  imgact.h
@@ -1305,6 +1314,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  power.h
  priv.h
  proc.h
+ proc_common.h
  procctl.h
  procfs.h
  protosw.h
@@ -1347,6 +1357,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  spinlock2.h
  stat.h
  statvfs.h
+ stdarg.h
  stdint.h
  syscall.h
  sysctl.h
@@ -1406,7 +1417,6 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  wdog.h
  xdiskioctl.h
  xio.h
-%%BASE%%/usr/include/vfs/ffs
 %%BASE%%/usr/include/vfs/autofs/
  autofs.h
  autofs_ioctl.h
@@ -8768,7 +8778,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:23164:files/Makefile]
+[FILE:23152:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9205,7 +9215,6 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			usb.h \
 			usbhid.h \
 			util.h \
-			utmp.h \
 			uuid.h \
 			vis.h \
 			xlocale.h \

@@ -2,6 +2,7 @@
 
 NAMEBASE=		liborcus
 VERSION=		0.15.3
+REVISION=		1
 KEYWORDS=		devel misc
 VARIANTS=		standard
 SDESC[standard]=	File import library for spreadsheet documents
@@ -21,21 +22,29 @@ BUILD_DEPENDS=		mdds:single:standard
 			bzip2:static:standard
 			bzip2:shared:standard
 BUILDRUN_DEPENDS=	boost-libraries:rest:python_default
+			ixion:single:standard
 
-USES=			libtool pkgconfig zlib autoreconf
+USES=			pkgconfig zlib cmake python:build
 
 FPC_EQUIVALENT=		devel/liborcus
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-boost="{{LOCALBASE}}"
-			--disable-spreadsheet-model
-			--disable-python
-			--disable-werror
-
-INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.0.0
 PLIST_SUB=		VER=0.15
+
+LDFLAGS=		-lboost_program_options
+			-lboost_thread
+			-lboost_filesystem
+CMAKE_ARGS=		-DMDDS_INCLUDEDIR:STRING="{{LOCALBASE}}/include/mdds-1.2"
+			-DIXION_INCLUDEDIR:STRING="{{LOCALBASE}}/include/ixion-0.15"
+
+post-patch:
+	# fix module name
+	${REINPLACE_CMD} -e 's|Zlib|ZLIB|' ${WRKSRC}/CMakeLists.txt
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/orcus*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 
 [FILE:274:descriptions/desc.single]
 Orcus is a library that provides a collection of standalone file processing
@@ -48,15 +57,20 @@ wordprocessor and presentation) are in consideration.
 81f0f9896404dd343d11ff8d17fe4a2d23a3dd3ba8ad2e6f1fd7ef18606f9d8e      8423133 orcus-orcus-0.15.3.tar.gz
 
 
-[FILE:1827:manifests/plist.single]
+[FILE:1700:manifests/plist.single]
 bin/
  orcus-css-dump
+ orcus-csv
  orcus-detect
  orcus-json
- orcus-mso-encryption
+ orcus-ods
+ orcus-styles-ods
+ orcus-xls-xml
+ orcus-xlsx
+ orcus-xml
  orcus-yaml
  orcus-zip-dump
-include/liborcus-%%VER%%/orcus/
+include/orcus-%%VER%%/orcus/
  base64.hpp
  cell_buffer.hpp
  config.hpp
@@ -111,29 +125,43 @@ include/liborcus-%%VER%%/orcus/
  yaml_parser_base.hpp
  zip_archive.hpp
  zip_archive_stream.hpp
-include/liborcus-%%VER%%/orcus/detail/
+include/orcus-%%VER%%/orcus/detail/
  parser_token_buffer.hpp
  thread.hpp
-include/liborcus-%%VER%%/orcus/mso/encryption_info.hpp
-include/liborcus-%%VER%%/orcus/spreadsheet/
+include/orcus-%%VER%%/orcus/mso/encryption_info.hpp
+include/orcus-%%VER%%/orcus/spreadsheet/
+ auto_filter.hpp
+ config.hpp
+ document.hpp
  export_interface.hpp
+ factory.hpp
  import_interface.hpp
  import_interface_pivot.hpp
  import_interface_view.hpp
+ pivot.hpp
+ shared_strings.hpp
+ sheet.hpp
+ sheet_range.hpp
+ styles.hpp
  types.hpp
+ view.hpp
  view_types.hpp
 lib/
- liborcus-%%VER%%.a
- liborcus-%%VER%%.so
- liborcus-%%VER%%.so.%%SOMAJOR%%
- liborcus-%%VER%%.so.%%SOVERSION%%
- liborcus-mso-%%VER%%.a
- liborcus-mso-%%VER%%.so
- liborcus-mso-%%VER%%.so.%%SOMAJOR%%
- liborcus-mso-%%VER%%.so.%%SOVERSION%%
- liborcus-parser-%%VER%%.a
- liborcus-parser-%%VER%%.so
- liborcus-parser-%%VER%%.so.%%SOMAJOR%%
- liborcus-parser-%%VER%%.so.%%SOVERSION%%
-lib/pkgconfig/liborcus-%%VER%%.pc
+ libliborcus-%%VER%%.so
+ libliborcus-parser-%%VER%%.so
+ libliborcus-spreadsheet-model-%%VER%%.so
+
+
+[FILE:319:patches/patch-src_liborcus_json__map__tree.cpp]
+--- src/liborcus/json_map_tree.cpp.orig	2019-10-10 00:46:55 UTC
++++ src/liborcus/json_map_tree.cpp
+@@ -14,6 +14,8 @@
+ 
+ namespace orcus {
+ 
++constexpr json_map_tree::child_position_type json_map_tree::node_child_default_position;
++
+ namespace {
+ 
+ void throw_path_error(const char* file, int line, const pstring& path)
 
