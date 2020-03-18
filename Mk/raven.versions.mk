@@ -28,7 +28,7 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 PERL5_DEFAULT?=		5.30
 
 PERL_5.28_VERSION=	5.28.2
-PERL_5.30_VERSION=	5.30.1
+PERL_5.30_VERSION=	5.30.2
 
 #-------------------------------------------------------------------------
 # RUBY
@@ -49,7 +49,7 @@ RUBY_2.7_VERSION=	2.7.0
 PYTHON3_DEFAULT?=	3.7
 
 PYTHON_2.7_VERSION=	2.7.17
-PYTHON_3.7_VERSION=	3.7.6
+PYTHON_3.7_VERSION=	3.7.7
 PYTHON_3.8_VERSION=	3.8.2
 
 #-------------------------------------------------------------------------
