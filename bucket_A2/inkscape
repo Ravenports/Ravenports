@@ -2,7 +2,7 @@
 
 NAMEBASE=		inkscape
 VERSION=		0.92.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics editors
 VARIANTS=		standard
 SDESC[standard]=	Scalable Vector Graphics (SVG) editor
@@ -1156,24 +1156,6 @@ share/man/man1/
 share/metainfo/inkscape.appdata.xml
 
 
-[FILE:633:patches/patch-src_extension_implementation_script.cpp]
---- src/extension/implementation/script.cpp.orig	2019-01-15 04:29:27 UTC
-+++ src/extension/implementation/script.cpp
-@@ -969,10 +969,8 @@ int Script::execute (const std::list<std
-         if(Glib::path_is_absolute(filein))
-             argv.push_back(filein);
-         else {
--            std::vector<std::string> buildargs;
--            buildargs.push_back(Glib::get_current_dir());
--            buildargs.push_back(filein);
--            argv.push_back(Glib::build_filename(buildargs));
-+            std::string ss = Glib::get_current_dir() + "/" + filein;
-+            argv.push_back(Glib::build_filename(ss));
-         }
-     }
- 
-
-
 [FILE:746:patches/patch-src_extension_internal_pdfinput_pdf-input.cpp]
 --- src/extension/internal/pdfinput/pdf-input.cpp.orig	2019-01-15 04:29:27 UTC
 +++ src/extension/internal/pdfinput/pdf-input.cpp
@@ -1328,75 +1310,4 @@ share/metainfo/inkscape.appdata.xml
                  // if( languages[0] != 0 )
                  //   std::cout << "      languages: " << std::endl;
  
-
-
-[FILE:649:patches/patch-src_main.cpp]
---- src/main.cpp.orig	2019-01-15 04:29:27 UTC
-+++ src/main.cpp
-@@ -1068,10 +1068,8 @@ sp_main_gui(int argc, char const **argv)
-     for (std::vector<Glib::ustring>::iterator it = dataDirs.begin(); it != dataDirs.end(); ++it)
-     {
-         std::vector<Glib::ustring> listing;
--        listing.push_back(*it);
--        listing.push_back("inkscape");
--        listing.push_back("icons");
--        Glib::ustring dir = Glib::build_filename(listing);
-+        std::string ss = *it + "/inkscape/icons";
-+        Glib::ustring dir = Glib::build_filename(ss);
-         gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), dir.c_str());
-     }
- 
-
-
-[FILE:1467:patches/patch-src_resource-manager.cpp]
---- src/resource-manager.cpp.orig	2019-01-15 04:29:27 UTC
-+++ src/resource-manager.cpp
-@@ -93,7 +93,13 @@ static std::string convertPathToRelative
-                 for ( size_t i = 0; i < baseParts.size(); ++i ) {
-                     parts.insert(parts.begin(), "..");
-                 }
--                result = Glib::build_filename( parts );
-+                std::string ss;
-+                for(auto k : parts) {
-+                   if(!ss.empty())
-+                      ss += "/";
-+                   ss += k;
-+                } 
-+                result = Glib::build_filename(ss);
-                 // TODO debug g_message("----> [%s]", result.c_str());
-             }
-         }
-@@ -362,7 +368,13 @@ bool ResourceManagerImpl::searchUpwards(
-             std::vector<std::string> combined;
-             combined.insert( combined.end(), baseParts.begin(), baseParts.end() );
-             combined.insert( combined.end(), current.begin(), current.end() );
--            std::string filepath = Glib::build_filename( combined );
-+            std::string ss;
-+            for(auto k : parts) {
-+               if(!ss.empty())
-+                  ss += "/";
-+               ss += k;
-+            } 
-+            std::string filepath = Glib::build_filename(ss);
-             exists = Glib::file_test(filepath, Glib::FILE_TEST_EXISTS);
-             // TODO debug g_message("            ...[%s] %s", filepath.c_str(), (exists ? "XXX" : ""));
-             if ( exists ) {
-
-
-[FILE:723:patches/patch-src_ui_dialog_filedialogimpl-gtkmm.cpp]
---- src/ui/dialog/filedialogimpl-gtkmm.cpp.orig	2019-01-15 04:29:27 UTC
-+++ src/ui/dialog/filedialogimpl-gtkmm.cpp
-@@ -1137,10 +1137,8 @@ void FileSaveDialogImplGtk::fileNameEntr
-     if (!Glib::path_is_absolute(fileName)) {
-         // try appending to the current path
-         // not this way: fileName = get_current_folder() + "/" + fileName;
--        std::vector<Glib::ustring> pathSegments;
--        pathSegments.push_back(get_current_folder());
--        pathSegments.push_back(fileName);
--        fileName = Glib::build_filename(pathSegments);
-+        std::string ss = get_current_folder() + "/" + fileName;
-+        fileName = Glib::build_filename(ss);
-     }
- 
-     // g_message("path:'%s'\n", fileName.c_str());
 

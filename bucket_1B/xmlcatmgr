@@ -2,7 +2,7 @@
 
 NAMEBASE=		xmlcatmgr
 VERSION=		2.2
-REVISION=		2
+REVISION=		3
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	SGML and XML catalog manager
@@ -32,6 +32,7 @@ CONFIGURE_ARGS=		--disable-docs
 SUB_FILES=		pkg-install-single
 			pkg-deinstall-single
 			pkg-message-single
+			refresh_xmlcatmgr_catalogs
 SUB_LIST=		CATALOG_MASTER_SGML={{PREFIX}}/share/sgml/catalog
 			CATALOG_MASTER_XML={{PREFIX}}/share/xml/catalog
 			CATALOG_PORTS_SGML={{PREFIX}}/share/sgml/catalog.ports
@@ -39,8 +40,10 @@ SUB_LIST=		CATALOG_MASTER_SGML={{PREFIX}}/share/sgml/catalog
 			XMLCATMGR={{PREFIX}}/bin/xmlcatmgr
 
 post-install:
-	@${MKDIR} ${STAGEDIR}${PREFIX}/share/sgml \
-		${STAGEDIR}${PREFIX}/share/xml
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/sgml
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/xml
+	${INSTALL_SCRIPT} ${WRKDIR}/refresh_xmlcatmgr_catalogs \
+		${STAGEDIR}${PREFIX}/bin/
 
 [FILE:578:descriptions/desc.single]
 XML Catalog Manager (xmlcatmgr in its short form) is a small utility
@@ -59,8 +62,10 @@ for entities without having to modify the original document source.
 ea1142b6aef40fbd624fc3e2130cf10cf081b5fa88e5229c92b8f515779d6fdc        97265 xmlcatmgr-2.2.tar.gz
 
 
-[FILE:75:manifests/plist.single]
-bin/xmlcatmgr
+[FILE:105:manifests/plist.single]
+bin/
+ xmlcatmgr
+ refresh_xmlcatmgr_catalogs
 share/man/man1/xmlcatmgr.1.gz
 @dir share/sgml
 @dir share/xml
@@ -184,4 +189,48 @@ The following catalogs are installed:
 
    This catalog is for handling XML stuff installed under
    %%PREFIX%%/share/xml.  It is changed by ports/packages.
+
+
+[FILE:1414:files/refresh_xmlcatmgr_catalogs.in]
+#!/bin/sh
+
+PATH=/bin:/usr/bin:%%LOCALBASE%%/bin
+
+export PATH
+XMLCATMGR=%%XMLCATMGR%%
+CATALOG_MASTER_SGML=%%CATALOG_MASTER_SGML%%
+CATALOG_MASTER_XML=%%CATALOG_MASTER_XML%%
+CATALOG_PORTS_SGML=%%CATALOG_PORTS_SGML%%
+CATALOG_PORTS_XML=%%CATALOG_PORTS_XML%%
+
+echo "xmlcatmgr: deleting existing catalogs"
+${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} remove CATALOG catalog.ports
+${XMLCATMGR} -c ${CATALOG_MASTER_XML} remove nextCatalog ${CATALOG_PORTS_XML}
+
+rm -f ${CATALOG_MASTER_SGML}
+rm -f ${CATALOG_PORTS_SGML}
+rm -f ${CATALOG_MASTER_XML}
+rm -f ${CATALOG_PORTS_XML}
+
+
+echo "xmlcatmgr: Creating ${CATALOG_MASTER_SGML}"
+${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} create
+echo "xmlcatmgr: Creating ${CATALOG_PORTS_SGML}"
+${XMLCATMGR} -sc ${CATALOG_PORTS_SGML} create
+echo "xmlcatmgr: Creating ${CATALOG_MASTER_XML}"
+${XMLCATMGR} -c ${CATALOG_MASTER_XML} create
+echo "xmlcatmgr: Creating ${CATALOG_PORTS_XML}"
+${XMLCATMGR} -c ${CATALOG_PORTS_XML} create
+
+if ! ${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} lookup catalog.ports > /dev/null 2>&1; then
+	echo "xmlcatmgr: Registering CATALOG catalog.ports (SGML)"
+	${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} add CATALOG catalog.ports
+fi
+
+if ! ${XMLCATMGR} -c ${CATALOG_MASTER_XML} lookup ${CATALOG_PORTS_XML} > /dev/null 2>&1 ; then
+	echo "xmlcatmgr: Registering nextCatalog catalog.ports (XML)"
+	${XMLCATMGR} -c ${CATALOG_MASTER_XML} add nextCatalog ${CATALOG_PORTS_XML}
+fi
+
+echo "complete"
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		dbus
 VERSION=		1.12.16
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Message bus system for IPC communication
@@ -20,6 +21,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		expat:static:standard
 			minixmlto:single:standard
 BUILDRUN_DEPENDS=	expat:shared:standard
+RUN_DEPENDS=		xmlcatmgr:single:standard
 
 USERS=			messagebus
 GROUPS=			messagebus
@@ -55,7 +57,11 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		3.19.11
 PLIST_SUB=		VERSION="1.0"
 			GROUPS={{GROUPS}}
+			DTDDIR=share/xml/dbus-1
 RC_SUBR=		dbus:single
+SUB_FILES=		catalog
+			catalog.xml
+SUB_LIST=		DTDDIR={{PREFIX}}/share/xml/dbus-1
 
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g' \
@@ -65,6 +71,9 @@ post-patch:
 post-install:
 	# delete examples
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	# install xmlcat catalogs
+	(cd ${WRKDIR} && ${INSTALL_DATA} catalog* \
+		${STAGEDIR}${PREFIX}/share/xml/dbus-1/)
 
 post-extract:
 	${AWK} '/^The Academic Free License/,/^but the BSD, MIT/' \
@@ -83,7 +92,7 @@ daemon).
 54a22d2fa42f2eb2a871f32811c6005b531b9613b1b93a0d269b05e7549fec80      2093296 dbus-1.12.16.tar.gz
 
 
-[FILE:1231:manifests/plist.single]
+[FILE:1295:manifests/plist.single]
 bin/
  dbus-cleanup-sockets
  dbus-daemon
@@ -148,6 +157,8 @@ share/xml/dbus-1/
 @dir share/dbus-1/session.d
 @dir share/dbus-1/system-services
 @dir share/dbus-1/system.d
+@xmlcatmgr %%DTDDIR%%/catalog
+@xmlcatmgr %%DTDDIR%%/catalog.xml
 
 
 [FILE:1385:patches/patch-configure]
@@ -370,6 +381,22 @@ share/xml/dbus-1/
    /* Ensure that the first three fds are open, to ensure that when we
     * create other file descriptors (for example for epoll, inotify or
     * a socket), they never get assigned as fd 0, 1 or 2. If they were,
+
+
+[FILE:171:files/catalog.in]
+OVERRIDE YES
+PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "introspect.dtd"
+PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN" "busconfig.dtd"
+
+
+[FILE:479:files/catalog.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN"
+	"http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+  <public publicId="-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" uri="file://%%DTDDIR%%/introspect.dtd" />
+  <public publicId="-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN" uri="file://%%DTDDIR%%/busconfig.dtd" />
+</catalog>
 
 
 [FILE:785:files/dbus.in]

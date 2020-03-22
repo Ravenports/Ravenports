@@ -2,6 +2,7 @@
 
 NAMEBASE=		upower
 VERSION=		0.99.11
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	D-Bus daemon for power management tasks
@@ -48,12 +49,13 @@ CONFIGURE_ARGS=		--enable-gtk-doc
 INSTALL_TARGET=		install-strip
 SOVERSION=		3.0.1
 
+CFLAGS=			-Wno-deprecated-declarations
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-backend=freebsd
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-backend=dummy
 
 post-patch:
-	${REINPLACE_CMD} -e 's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' \
-		${WRKSRC}/doc/man/Makefile.am
+	${REINPLACE_CMD} -e 's|docbook.sourceforge.net|cdn.docbook.org|g' \
+		${WRKSRC}/doc/man/Makefile.in
 
 post-stage:
 	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/UPower \
