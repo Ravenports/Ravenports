@@ -18,12 +18,13 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	argon2:single:standard
+			libsodium:single:standard
+			qrencode:single:standard
 			qt5-qtbase:primary:standard
 			qt5-qttools:single:standard
 			qt5-qtsvg:single:standard
 			qt5-qtx11extras:single:standard
-			qrencode:single:standard
-			libsodium:single:standard
+			quazip:single:standard
 
 USES=			cmake pkgconfig qt5 desktop-utils:single
 			mime-info:single
@@ -46,6 +47,13 @@ LICENSE_FILE=		GPLv2:{{WRKSRC}}/LICENSE.GPL-2
 LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		security/keepassxc
+
+CMAKE_ARGS=		-DKEEPASSXC_BUILD_TYPE:STRING=Release
+			-DWITH_XC_BROWSER:BOOL=ON
+			-DWITH_XC_KEESHARE:BOOL=ON
+			-DWITH_XC_NETWORKING:BOOL=ON
+			-DWITH_XC_SSHAGENT:BOOL=ON
+			-DWITH_XC_UPDATECHECK:BOOL=OFF
 
 post-patch:
 	${REINPLACE_CMD} -e "s|__PREFIX__|${PREFIX}|" \
@@ -71,10 +79,11 @@ modern open-source password manager.
 0500fbce66ee87dc1c36b24f3ea46bd5a3b0fb366ba50bca8b33f670eb21a6eb      6839148 keepassxc-2.5.3-src.tar.xz
 
 
-[FILE:7752:manifests/plist.single]
+[FILE:7769:manifests/plist.single]
 bin/
  keepassxc
  keepassxc-cli
+ keepassxc-proxy
 lib/keepassxc/libkeepassx-autotype-xcb.so
 share/applications/org.keepassxc.KeePassXC.desktop
 share/icons/hicolor/128x128/apps/
