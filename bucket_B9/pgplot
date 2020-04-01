@@ -2,7 +2,7 @@
 
 NAMEBASE=		pgplot
 VERSION=		5.2.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	FORTRAN/C scientific graphic library
@@ -154,18 +154,94 @@ share/examples/pgplot/
        SAVE CDEFLT, STATE
 
 
-[FILE:283:patches/patch-pgdispd_proccom.c]
---- pgdispd/proccom.c.orig	Sat Sep 28 23:09:02 2002
-+++ pgdispd/proccom.c	Sat Sep 28 23:09:27 2002
-@@ -93,7 +93,7 @@
+[FILE:684:patches/patch-pgdispd_figcurs.c]
+--- pgdispd/figcurs.c.orig	1993-11-29 19:55:24 UTC
++++ pgdispd/figcurs.c
+@@ -21,6 +21,7 @@
+ #include <stdio.h>
  #include <sys/types.h>
  #include <netinet/in.h>
++#include <stdlib.h>
+ 
+ /* The X Window include files */
+ #include <X11/Xlib.h>
+@@ -113,8 +114,6 @@ XEvent event;
+ 	void getbuttonval();
+ 	int getkeyval();
+ 
+-	char *malloc();
+-
+ 	if (event.type == ButtonPress) getbuttonval(event.xbutton.button, &val);
+ 	else if (!getkeyval(event, &val)) return(1);
+ 
+@@ -167,8 +166,6 @@ XEvent event;
+ 	void getbuttonval();
+ 	int getkeyval();
+ 
+-	char *malloc();
+-
+ 	if (event.type == ButtonPress) getbuttonval(event.xbutton.button, &val);
+ 	else if (!getkeyval(event, &val)) return(1);
+ 
+
+
+[FILE:227:patches/patch-pgdispd_getvisuals.c]
+--- pgdispd/getvisuals.c.orig	1993-05-10 00:42:46 UTC
++++ pgdispd/getvisuals.c
+@@ -30,6 +30,7 @@
+ #include "messages.h"
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ 
+ #define MAX_DEPTH	24	/* the maximum visual depth to use */
+ 
+
+
+[FILE:421:patches/patch-pgdispd_initlgwin.c]
+--- pgdispd/initlgwin.c.orig	1995-02-24 18:13:24 UTC
++++ pgdispd/initlgwin.c
+@@ -34,6 +34,7 @@
+ 
+ /* The system include files */
+ #include <stdio.h>
++#include <stdlib.h>
+ 
+ /* the X Window include files */
+ #include <X11/Xlib.h>
+@@ -67,7 +68,6 @@ int initlgwin()
+ 
+ 	Pixmap XCreatePixmap();
+ 	void initlgluts();	/* initialize the LUTs */
+-	char *malloc();
+ 	void initwmattr();
+ 
+ 	/* Initialize the line graphics LUTs */
+
+
+[FILE:591:patches/patch-pgdispd_proccom.c]
+--- pgdispd/proccom.c.orig	1994-08-22 20:33:35 UTC
++++ pgdispd/proccom.c
+@@ -92,8 +92,9 @@ static char rcsid[]="@(#)$Id: proccom.c,
+ #include <stdio.h>
+ #include <sys/types.h>
+ #include <netinet/in.h>
++#include <stdlib.h>
  
 -#ifndef VMS
 +#if !defined(VMS) && !defined(__FreeBSD__) && !defined(__DragonFly__)
  #include <values.h>
  #endif
  
+@@ -163,8 +164,6 @@ int *retbuflen;	/* the length of retbuf
+ 	void drawline();	/* draw a line in the bitmap window */
+ 	Pixmap XCreatePixmap();
+ 
+-	char *malloc();
+-
+ 	if (!len & savedshorts)
+ 	{ /* an incomplete command was sent! */
+ 		savedshorts=0;
 
 
 [FILE:314:files/CMakeLists.txt]

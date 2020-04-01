@@ -69,7 +69,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-netmap
 			CONFIGURE_ARGS=--disable-linux-user
 			CONFIGURE_ARGS=--disable-linux-aio
-VAR_OPSYS[linux]=	CONFIGURE_ARGS=--enable-netmap
+VAR_OPSYS[linux]=	CONFIGURE_ARGS=--disable-netmap
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--disable-netmap
 			CONFIGURE_ARGS=--disable-linux-user
 			CONFIGURE_ARGS=--disable-linux-aio
@@ -77,8 +77,6 @@ VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--disable-netmap
 post-patch:
 	${REINPLACE_CMD} -e '/LIBS/s|-lprocstat|-lprocstat -lelf|' \
 		 -e '/libusb/s/ --atleast-version=1\.0\.[0-9]*//' \
-		${WRKSRC}/configure
-	${REINPLACE_CMD} -e '/libs_qga=/s|glib_libs|glib_libs -lintl|' \
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -E \
 		-e "/^by Tibor .TS. S/s|Sch.*z.$$|Schuetz.|" \
@@ -106,6 +104,10 @@ pre-install:
 	# for some reason file is considered out-of-date
 	${TOUCH} ${WRKSRC}/config-host.mak
 
+post-patch-dragonfly:
+	${REINPLACE_CMD} -e '/libs_qga=..glib_libs/ s|glib_libs|glib_libs -lintl|' \
+		${WRKSRC}/configure
+
 post-install:
 	${INSTALL_SCRIPT} ${FILESDIR}/qemu-ifup.sample \
 		${STAGEDIR}${PREFIX}/etc
@@ -115,6 +117,10 @@ post-install:
 	(cd ${WRKSRC} && ${COPYTREE_SHARE} docs ${STAGEDIR}${STD_DOCDIR}/)
 	# remove empty directories
 	${RM} -r ${STAGEDIR}/var
+
+post-patch-freebsd:
+	${REINPLACE_CMD} -e '/libs_qga=..glib_libs/ s|glib_libs|glib_libs -lintl|' \
+		${WRKSRC}/configure
 
 [FILE:782:descriptions/desc.primary]
 QEMU is a fast processor emulator using dynamic translation to achieve
@@ -139,9 +145,45 @@ Many live cd isos also work.
 d3481d4108ce211a053ef15be69af1bdd9dde1510fda80d92be0f6c3e98768f0     62222068 qemu-4.2.0.tar.xz
 
 
-[FILE:3171:manifests/plist.primary]
+[FILE:3692:manifests/plist.primary]
 @sample etc/qemu-ifdown.sample
 @sample etc/qemu-ifup.sample
+%%ONLY-LINUX%%bin/
+ ivshmem-client
+ ivshmem-server
+ qemu-aarch64
+ qemu-aarch64_be
+ qemu-alpha
+ qemu-arm
+ qemu-armeb
+ qemu-cris
+ qemu-hppa
+ qemu-m68k
+ qemu-microblaze
+ qemu-microblazeel
+ qemu-mips
+ qemu-mips64
+ qemu-mips64el
+ qemu-mipsel
+ qemu-mipsn32
+ qemu-mipsn32el
+ qemu-nios2
+ qemu-or1k
+ qemu-ppc
+ qemu-ppc64
+ qemu-ppc64abi32
+ qemu-ppc64le
+ qemu-pr-helper
+ qemu-riscv32
+ qemu-riscv64
+ qemu-s390x
+ qemu-sh4
+ qemu-sh4eb
+ qemu-sparc32plus
+ qemu-tilegx
+ qemu-xtensa
+ qemu-xtensaeb
+%%ONLY-LINUX%%libexec/qemu-bridge-helper
 bin/
  elf2dmp
  qemu-edid
@@ -628,7 +670,7 @@ share/doc/qemu/specs/_static/
  underscore.js
 
 
-[FILE:4086:patches/patch-configure]
+[FILE:3732:patches/patch-configure]
 --- configure.orig	2019-12-12 18:20:47 UTC
 +++ configure
 @@ -489,6 +489,9 @@ numa=""
@@ -667,15 +709,6 @@ share/doc/qemu/specs/_static/
  # VTE probe
  
  if test "$vte" != "no"; then
-@@ -3710,7 +3725,7 @@ for i in $glib_modules; do
-         glib_libs=$($pkg_config --libs $i)
-         QEMU_CFLAGS="$glib_cflags $QEMU_CFLAGS"
-         LIBS="$glib_libs $LIBS"
--        libs_qga="$glib_libs $libs_qga"
-+        libs_qga="$glib_libs -lintl $libs_qga"
-     else
-         error_exit "glib-$glib_req_ver $i is required to compile QEMU"
-     fi
 @@ -4802,11 +4817,6 @@ has_sphinx_build() {
  if test "$docs" != "no" ; then
    if has makeinfo && has pod2man && has_sphinx_build; then

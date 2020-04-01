@@ -37,9 +37,9 @@ PERL_5.30_VERSION=	5.30.2
 
 RUBY_DEFAULT?=		2.7
 
-RUBY_2.5_VERSION=	2.5.7
-RUBY_2.6_VERSION=	2.6.5
-RUBY_2.7_VERSION=	2.7.0
+RUBY_2.5_VERSION=	2.5.8
+RUBY_2.6_VERSION=	2.6.6
+RUBY_2.7_VERSION=	2.7.1
 
 #-------------------------------------------------------------------------
 # PYTHON

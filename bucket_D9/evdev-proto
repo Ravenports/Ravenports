@@ -2,7 +2,7 @@
 
 NAMEBASE=		evdev-proto
 VERSION=		5.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Input event device header files
@@ -41,6 +41,7 @@ SKIP_BUILD=		yes
 post-patch:
 	# fix header for linux too
 	${REINPLACE_CMD} -e 's|__user|__attribute__((noderef, address_space(1)))|g' \
+		-e '/#include <linux.compiler.h>/d' \
 		${WRKSRC}/input.h ${WRKSRC}/videodev2.h
 	# create derived headers
 	${SED} -E -e \

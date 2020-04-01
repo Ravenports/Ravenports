@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		3.0
-REVISION=		4
+REVISION=		5
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -13,7 +13,7 @@ SDESC[macos]=		MacOS/Darwin system root for Ravenports build env
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 freebsd_amd64 ubuntu6 ubuntu7 ubuntu8 ubuntu9 dragonlace ubuntu10 avalon
+DOWNLOAD_GROUPS=	main ubuntu1 ubuntu2 ubuntu3 ubuntu4 ubuntu5 freebsd_amd64 ubuntu6 ubuntu7 ubuntu8 ubuntu9 dragonlace ubuntu10 ubuntu11 avalon
 SITES[ubuntu1]=		http://security.ubuntu.com/ubuntu/pool/main/g/glibc/
 SITES[ubuntu2]=		UBUNTU/h/hostname
 SITES[ubuntu3]=		UBUNTU/d/dash
@@ -27,6 +27,7 @@ SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[ubuntu9]=		UBUNTU/a/attr
 SITES[dragonlace]=	http://downloads.dragonlace.net/misc/
 SITES[ubuntu10]=	UBUNTU/a/acl
+SITES[ubuntu11]=	http://security.ubuntu.com/ubuntu/pool/main/s/systemd/
 SITES[avalon]=		https://mirror-master.dragonflybsd.org/iso-images/
 DISTFILE[1]=		dummy-tarball.tar.gz:main
 DISTFILE[2]=		dfly-x86_64-5.8.0_REL.iso.bz2:avalon
@@ -50,6 +51,8 @@ DISTFILE[19]=		libattr1_2.4.47-2_amd64.deb:ubuntu9
 DISTFILE[20]=		mac_root_10.13.6.v01.tar.zst:dragonlace
 DISTFILE[21]=		libacl1-dev_2.2.52-3_amd64.deb:ubuntu10
 DISTFILE[22]=		libacl1_2.2.52-3_amd64.deb:ubuntu10
+DISTFILE[23]=		libudev1_229-4ubuntu21.27_amd64.deb:ubuntu11
+DISTFILE[24]=		libudev-dev_229-4ubuntu21.27_amd64.deb:ubuntu11
 SPKGS[sunos]=		single
 SPKGS[freebsd_amd64]=	single
 SPKGS[linux]=		single
@@ -103,8 +106,9 @@ B_DEPS[sunos]=		bsd-which:single:standard
 B_DEPS[linux]=		shadow:single:standard bash:primary:static
 B_DEPS[dragonfly]=	libdl:single:standard
 
-EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 14 15
-EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 14
+EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 23 24 14
+			15
+EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 23 24 14
 
 INVALID_RPATH=		yes
 
@@ -120,6 +124,7 @@ MAKE_ENV=		OPSYS="{{OPSYS}}"
 			libusbhid={{Libusbhid_{{OPSYS}}}}
 			libcrypt={{Libcrypt_{{OPSYS}}}}
 			libkvm={{Libkvm_{{OPSYS}}}}
+			libcam={{Libcam_{{OPSYS}}}}
 			librt={{Librt_{{OPSYS}}}}
 			librpcsvc={{Librpcsvc_{{OPSYS}}}}
 SINGLE_JOB=		yes
@@ -133,6 +138,7 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBKVM={{Libkvm_{{OPSYS}}}}
 			SONAME_LIBRT={{Librt_{{OPSYS}}}}
 			SONAME_LIBRPCSVC={{Librpcsvc_{{OPSYS}}}}
+			SONAME_LIBCAM={{Libcam_{{OPSYS}}}}
 			BASE={{SYSPATH}}
 
 [MACOS].DESCRIPTION=			Ravenports system root for MacOS/Darwin
@@ -168,6 +174,8 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 					19
 					21
 					22
+					23
+					24
 					14
 [LINUX].ONLY_FOR_OPSYS_ON=		linux
 
@@ -186,7 +194,7 @@ post-install-MACOS-ON:
 
 post-extract-LINUX-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
-.for NDX in 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22
+.for NDX in 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 23 24
 	cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
 .endfor
@@ -317,7 +325,7 @@ This is the full environment for Mac 10.13.6 minus the toolchain for
 Ravenports.
 
 
-[FILE:2402:distinfo]
+[FILE:2633:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 0258b9d754c785055e52f725372fbf5f5b56d04e12d639bbd83efa90afed5433    260055667 dfly-x86_64-5.8.0_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
@@ -340,9 +348,11 @@ ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 li
 738fecf346ccb4c93ddb1d5ae6097dd337883ba47f5beb6e38e5220a8ce53031   1576423628 mac_root_10.13.6.v01.tar.zst
 f5b76ad0e3316cd99703bbc59c056fad02be0de6c0d9316dd437b89732dc0ff1        73590 libacl1-dev_2.2.52-3_amd64.deb
 a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 libacl1_2.2.52-3_amd64.deb
+e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 libudev1_229-4ubuntu21.27_amd64.deb
+53dccf23123851f83a0789e00e214b989711af868085e505c4c092f7f67a15cf       150304 libudev-dev_229-4ubuntu21.27_amd64.deb
 
 
-[FILE:15400:manifests/plist.single.dragonfly]
+[FILE:15406:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -1533,6 +1543,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  _wchar.h
 %%BASE%%/usr/lib/
  %%SONAME_LIBC%%
+ %%SONAME_LIBCAM%%
  %%SONAME_LIBCRYPT%%
  %%SONAME_LIBKVM%%
  %%SONAME_LIBM%%
@@ -1550,7 +1561,6 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  libc.so
  libcam.a
  libcam.so
- libcam.so.3
  libcrypt.a
  libcrypt.so
  libdevattr.so
@@ -1619,7 +1629,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:17817:manifests/plist.single.freebsd_amd64]
+[FILE:17847:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -2986,6 +2996,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  _wchar.h
 %%BASE%%/usr/lib/
  %%SONAME_LIBC%%
+ %%SONAME_LIBCAM%%
  %%SONAME_LIBCRYPT%%
  %%SONAME_LIBKVM%%
  %%SONAME_LIBM%%
@@ -3006,6 +3017,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  libc.a
  libc.so
  libcam.a
+ libcam.so
  libcompat.a
  libcrypt.a
  libcrypt.so
@@ -3079,7 +3091,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:21001:manifests/plist.single.linux]
+[FILE:21062:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -3150,6 +3162,8 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  libresolv.so.2
  librt-2.23.so
  librt.so.1
+ libudev.so.1
+ libudev.so.1.6.4
  libutil-2.23.so
  libutil.so.1
 %%BASE%%/lib64/ld-linux-x86-64.so.2
@@ -3303,6 +3317,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  libgen.h
  libintl.h
  libio.h
+ libudev.h
  limits.h
  link.h
  locale.h
@@ -4777,6 +4792,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  LC_TELEPHONE
  LC_TIME
 %%BASE%%/usr/lib/locale/C.UTF-8/LC_MESSAGES/SYS_LC_MESSAGES
+%%BASE%%/usr/lib/pkgconfig/libudev.pc
 %%BASE%%/usr/lib/x86_64-linux-gnu/
  Mcrt1.o
  Scrt1.o
@@ -4815,6 +4831,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  librpcsvc.a
  librt.a
  librt.so
+ libudev.so
  libutil.a
  libutil.so
 %%BASE%%/usr/share/
@@ -4849,7 +4866,6 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
  translit_neutral
  translit_small
  translit_wide
-@dir %%BASE%%/usr/lib/pkgconfig
 @dir %%BASE%%/usr/local
 @dir %%BASE%%/usr/sbin
 
@@ -8833,7 +8849,7 @@ a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:23175:files/Makefile]
+[FILE:23438:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9042,6 +9058,7 @@ dynamic_generic=	/lib/${libc} \
 			/lib/${libutil} \
 			/lib/${libcrypt} \
 			/lib/${libkvm} \
+			/lib/${libcam} \
 			/usr/lib/${librpcsvc} \
 			/usr/lib/${librt}
 dynamic_lib_FreeBSD=	${dynamic_generic} \
@@ -9057,7 +9074,6 @@ dynamic_lib_FreeBSD=	${dynamic_generic} \
 			/usr/lib/${libusb} \
 			/usr/lib/${libusbhid}
 dynamic_lib_DragonFly=	${dynamic_generic} \
-			/lib/libcam.so.3 \
 			/lib/libsbuf.so.3 \
 			/lib/libprop.so.3 \
 			/lib/libdevattr.so.3 \
@@ -9093,6 +9109,7 @@ Linux_shared_libs=	${Linux_C_lib} \
 			libnss_hesiod-2.23.so/libnss_hesiod.so.2 \
 			libnss_nis-2.23.so/libnss_nis.so.2 \
 			libnss_nisplus-2.23.so/libnss_nisplus.so.2 \
+			libudev.so.1.6.4/libudev.so.1 \
 			# end
 Linux_extra_libs1=	libattr.so.1.1.0/libattr.so.1 \
 			libacl.so.1.1.0/libacl.so.1 \
@@ -9358,6 +9375,7 @@ headers_Linux=		_G_config.h \
 			libgen.h \
 			libintl.h \
 			libio.h \
+			libudev.h \
 			limits.h \
 			link.h \
 			locale.h \
@@ -9425,7 +9443,8 @@ headers_Linux=		_G_config.h \
 			xlocale.h \
 			# end
 
-pcfiles_Linux=		# end
+pcfiles_Linux=		libudev.pc \
+			# end
 pcfiles_SunOS=		# end
 pcfiles_Darwin=		# end
 pcfiles_FreeBSD=	libusb-0.1.pc \
@@ -9480,6 +9499,7 @@ install:
 		${DESTDIR}${BASE}/lib64 \
 		${DESTDIR}${BASE}/lib/x86_64-linux-gnu \
 		${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu \
+		${DESTDIR}${BASE}/usr/lib/pkgconfig \
 		# end
 .endif
 
@@ -9522,6 +9542,7 @@ install:
 		ln -s ${libm} libm.so && \
 		ln -s ${librt} librt.so && \
 		ln -s ${libkvm} libkvm.so && \
+		ln -s ${libcam} libcam.so && \
 		ln -s ${libcrypt} libcrypt.so && \
 		ln -s ${libutil} libutil.so && \
 		ln -s ${librpcsvc} librpcsvc.so && \
@@ -9550,8 +9571,7 @@ install:
 		ln -s libdevattr.so.3 libdevattr.so && \
 		ln -s libdevstat.so.3 libdevstat.so && \
 		ln -s libdevinfo.so.3 libdevinfo.so && \
-		ln -s libdevmapper.so.0 libdevmapper.so && \
-		ln -s libcam.so.3 libcam.so)
+		ln -s libdevmapper.so.0 libdevmapper.so)
 	(cd ${DESTDIR}${BASE}/usr/include && \
 		ln -s /usr/include/dev/misc/evdev compat/linux && \
 		ln -s vfs fs && \
@@ -9655,8 +9675,13 @@ install:
 	cp ${CPA} ../${OPSYS:tl}/usr/include/${hdr} ${DESTDIR}${BASE}/usr/include/
 .  endfor
 .for item in ${pcfiles_${OPSYS}}
+.  if ${OPSYS} == Linux
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/lib/x86_64-linux-gnu/pkgconfig/${item} \
+		${DESTDIR}${BASE}/usr/lib/pkgconfig/
+.  else
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/libdata/pkgconfig/${item} \
 		${DESTDIR}${BASE}/usr/lib/pkgconfig/
+.  endif
 .endfor
 .for item in md5 sha256 
 	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
@@ -9836,7 +9861,7 @@ saned:x:120:128::/var/lib/saned:/bin/false
 usbmux:x:121:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
 
 
-[FILE:657:files/special.mk]
+[FILE:717:files/special.mk]
 Libc_DragonFly=		libc.so.8
 Libc_FreeBSD=		libc.so.7
 
@@ -9863,6 +9888,9 @@ Librt_FreeBSD=		librt.so.1
 
 Librpcsvc_DragonFly=	librpcsvc.so.3
 Librpcsvc_FreeBSD=	librpcsvc.so.5
+
+Libcam_DragonFly=	libcam.so.3
+Libcam_FreeBSD=		libcam.so.7
 
 SYSPATH=		share${RAVENBASE}/sysroot/${OPSYS}
 RSYS=			${PREFIX}/${SYSPATH}

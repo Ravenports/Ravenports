@@ -17,12 +17,14 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[linux]=		Tries to include net/bpf.h header
-
 BUILD_DEPENDS=		flex:primary:standard
 			bison:primary:standard
 
 USES=			gmake
+
+LICENSE=		BSD3CLAUSE:single
+LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		net/libpcap
 
@@ -37,8 +39,12 @@ CFLAGS=			-fPIC
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-pcap=bpf
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--with-pcap=dlpi
 			CONFIGURE_ENV=ac_cv_func_getifaddrs=no
-VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-pcap=bpf
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-pcap=bpf
+
+post-install-linux:
+	# backwards compatibility, programs often look for net/bpf.h
+	${MKDIR} ${STAGEDIR}${PREFIX}/include/net
+	(cd ${STAGEDIR}${PREFIX}/include/net && ${LN} -s ../pcap-bpf.h bpf.h)
 
 [FILE:116:descriptions/desc.single]
 libpcap is a ubiquitous network traffic capture library used by a wide
@@ -49,7 +55,8 @@ variety of BSD, Linux and UN*X applications.
 635237637c5b619bcceba91900666b64d56ecb7be63f298f601ec786ce087094       861228 libpcap-1.9.1.tar.gz
 
 
-[FILE:1815:manifests/plist.single]
+[FILE:1847:manifests/plist.single]
+%%ONLY-LINUX%%include/net/bpf.h
 bin/pcap-config
 include/
  pcap-bpf.h

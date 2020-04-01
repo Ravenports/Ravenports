@@ -2,7 +2,7 @@
 
 NAMEBASE=		upower
 VERSION=		0.99.11
-REVISION=		1
+REVISION=		2
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	D-Bus daemon for power management tasks
@@ -28,6 +28,7 @@ BUILD_DEPENDS=		automake:single:standard
 			libtool:single:standard
 BUILDRUN_DEPENDS=	dbus-glib:primary:standard
 			polkit:single:standard
+BR_DEPS[linux]=		libgudev:single:standard libusb:single:standard
 
 USES=			gettext-tools:build gettext-runtime gmake libtool
 			pkgconfig python:build
@@ -45,13 +46,13 @@ FPC_EQUIVALENT=		sysutils/upower
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-gtk-doc
 			--without-idevice
+			--with-udevrulesdir=/etc/udev/rules.d
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		3.0.1
 
 CFLAGS=			-Wno-deprecated-declarations
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-backend=freebsd
-VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-backend=dummy
 
 post-patch:
 	${REINPLACE_CMD} -e 's|docbook.sourceforge.net|cdn.docbook.org|g' \
@@ -88,7 +89,12 @@ mail to the DeviceKit mailing list for discussion.
 64b5ffbfccd5bdb15d925777979a4dbee1a957f9eaeb158dc76175267eddbdef       430128 upower-0.99.11.tar.xz
 
 
-[FILE:944:manifests/plist.primary]
+[FILE:1063:manifests/plist.primary]
+%%ONLY-LINUX%%/etc/udev/rules.d/
+ 95-upower-csr.rules
+ 95-upower-hid.rules
+ 95-upower-hidpp.rules
+ 95-upower-wup.rules
 bin/upower
 etc/UPower/UPower.conf
 include/libupower-glib/

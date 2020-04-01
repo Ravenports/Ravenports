@@ -41,6 +41,8 @@ SINGLE_JOB=		yes
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 
+VAR_OPSYS[linux]=	CFLAGS=-D_BSD_SOURCE=1
+
 post-patch:
 	${REINPLACE_CMD} -e '/-Wall/s|-O2||g' ${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's|$$(MAKE).*install-data-hook||g' \
@@ -65,7 +67,12 @@ the tap(4) driver.
 22df546a63dac88320d35d61b7833bbbcbef13529ad009c7ce3c5cb32250af93       770257 vde2-2.3.2.tar.gz
 
 
-[FILE:1092:manifests/plist.single]
+[FILE:1202:manifests/plist.single]
+%%ONLY-LINUX%%lib/vde2/
+ libvdetap.a
+ libvdetap.so
+%%ONLY-LINUX%%libexec/vdetap
+%%ONLY-LINUX%%sbin/vde_tunctl
 bin/
  dpipe
  slirpvde
@@ -160,15 +167,18 @@ share/man/man8/vde_tunctl.8.gz
  
 
 
-[FILE:286:patches/patch-src__dpipe.c]
+[FILE:320:patches/patch-src_dpipe.c]
 --- src/dpipe.c.orig	2011-11-23 16:41:18 UTC
 +++ src/dpipe.c
-@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
+@@ -201,7 +201,11 @@ int main(int argc, char *argv[])
  
  	if (daemonize != 0)
  		daemon(0,0);
--	else if (setpgrp() != 0) {
++#ifdef __linux__
+ 	else if (setpgrp() != 0) {
++#else
 +	else if (setpgrp(0,getpid()) != 0) {
++#endif
  		fprintf(stderr,"Err: cannot create pgrp\n");
  		exit(1);
  	}

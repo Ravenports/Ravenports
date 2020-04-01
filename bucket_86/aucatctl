@@ -18,6 +18,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	sndio:single:standard
+B_DEPS[linux]=		libbsd:single:standard
 
 LICENSE=		ISCL:single
 LICENSE_FILE=		ISCL:{{WRKDIR}}/LICENSE
@@ -26,6 +27,12 @@ LICENSE_SOURCE=		ISCL:{{WRKSRC}}/aucatctl.c
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		audio/aucatctl
+
+post-patch-linux:
+	${REINPLACE_CMD} -e '/LDADD = -lsndio/ s/=/= -lbsd/' \
+		${WRKSRC}/Makefile
+	${REINPLACE_CMD} -e 's|<string.h>|<bsd/string.h>|' \
+		${WRKSRC}/aucatctl.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/aucatctl ${STAGEDIR}${PREFIX}/bin
