@@ -2,6 +2,7 @@
 
 NAMEBASE=		mutt
 VERSION=		1.13.5
+REVISION=		1
 KEYWORDS=		mail
 VARIANTS=		standard
 SDESC[standard]=	Powerful mail client
@@ -23,11 +24,10 @@ BUILD_DEPENDS=		docbook-xsl:primary:standard
 			lynx:primary:standard
 BUILDRUN_DEPENDS=	cyrus-sasl:primary:standard
 			gettext:runtime:standard
-			gpgme:primary:standard
 			libidn2:primary:standard
 RUN_DEPENDS=		mime-support:single:standard
 
-USES=			cpe ncurses perl shebangfix ssl
+USES=			cpe ncurses perl shebangfix ssl zlib iconv:translit
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKSRC}}/COPYRIGHT
@@ -45,7 +45,7 @@ CONFIGURE_ARGS=		--disable-debug
 			--enable-compressed
 			--enable-external_dotlock
 			--enable-fcntl
-			--enable-gpgme
+			--disable-gpgme
 			--enable-hcache
 			--enable-imap
 			--enable-nls
@@ -61,6 +61,7 @@ CONFIGURE_ARGS=		--disable-debug
 			--with-idn2
 			--with-sasl={{LOCALBASE}}
 			--with-ssl
+			--with-libiconv-prefix={{LOCALBASE}}
 			--without-kyotocabinet
 			--without-tokyocabinet
 			--without-qdbm
@@ -83,7 +84,8 @@ many options for colours, key bindings, display formats etc.
 6cd71b5b3e6b255afef6bed3b5e1e8ee9819b3d7c9839fd95e798045882aa653      4902500 mutt-1.13.5.tar.gz
 
 
-[FILE:1394:manifests/plist.primary]
+[FILE:1377:manifests/plist.primary]
+@sample etc/Muttrc.sample
 bin/
  flea
  mutt
@@ -92,10 +94,6 @@ bin/
  muttbug
  pgpewrap
  smime_keys
-etc/
- Muttrc
- Muttrc.dist
- mime.types.dist
 share/info/mutt.info
 share/locale/bg/LC_MESSAGES/mutt.mo
 share/locale/ca/LC_MESSAGES/mutt.mo
@@ -137,4 +135,728 @@ share/man/man5/
  mbox.5.gz
  mmdf.5.gz
  muttrc.5.gz
+
+
+[FILE:1465:patches/patch-Makefile.in]
+--- Makefile.in.orig	2020-03-28 18:22:01 UTC
++++ Makefile.in
+@@ -540,7 +540,7 @@ AUTOMAKE_OPTIONS = 1.6 foreign
+ @BUILD_IMAP_TRUE@IMAP_INCLUDES = -I$(top_srcdir)/imap
+ @BUILD_AUTOCRYPT_TRUE@AUTOCRYPT_SUBDIR = autocrypt
+ @BUILD_AUTOCRYPT_TRUE@AUTOCRYPT_INCLUDES = -I$(top_srcdir)/autocrypt
+-SUBDIRS = m4 po intl doc contrib $(IMAP_SUBDIR) $(AUTOCRYPT_SUBDIR)
++SUBDIRS = m4 po intl contrib $(IMAP_SUBDIR) $(AUTOCRYPT_SUBDIR) . doc
+ bin_SCRIPTS = muttbug flea $(SMIMEAUX_TARGET)
+ @BUILD_HCACHE_TRUE@HCVERSION = hcversion.h
+ BUILT_SOURCES = keymap_defs.h patchlist.c reldate.h conststrings.c version.h $(HCVERSION)
+@@ -1690,18 +1690,9 @@ install-exec-hook:
+ 		rm -f $(DESTDIR)$(bindir)/mutt.dotlock ;		\
+ 		ln -sf $(DESTDIR)$(bindir)/mutt_dotlock $(DESTDIR)$(bindir)/mutt.dotlock ; \
+ 	fi
+-	if test -f $(DESTDIR)$(bindir)/mutt_dotlock && test x$(DOTLOCK_GROUP) != x ; then \
+-		chgrp $(DOTLOCK_GROUP) $(DESTDIR)$(bindir)/mutt_dotlock && \
+-		chmod $(DOTLOCK_PERMISSION) $(DESTDIR)$(bindir)/mutt_dotlock || \
+-		{ echo "Can't fix mutt_dotlock's permissions!  This is required to lock mailboxes in the mail spool directory." >&2 ; exit 1 ; } \
+-	fi
+ 
+ install-data-local:
+ 	$(MKDIR_P) $(DESTDIR)$(sysconfdir)
+-	$(INSTALL) -m 644 $(srcdir)/mime.types $(DESTDIR)$(sysconfdir)/mime.types.dist
+-	-if [ ! -f $(DESTDIR)$(sysconfdir)/mime.types ]; then \
+-		$(INSTALL) -m 644 $(srcdir)/mime.types $(DESTDIR)$(sysconfdir); \
+-	fi
+ 
+ uninstall-local:
+ 	for i in mime.types ; do \
+
+
+[FILE:2628:patches/patch-browser.c]
+--- browser.c.orig	2020-03-28 18:17:53 UTC
++++ browser.c
+@@ -32,6 +32,7 @@
+ #ifdef USE_IMAP
+ #include "imap.h"
+ #endif
++#include "mx.h"
+ 
+ #include <stdlib.h>
+ #include <dirent.h>
+@@ -86,6 +87,12 @@ static int browser_compare_subject (cons
+   struct folder_file *pa = (struct folder_file *) a;
+   struct folder_file *pb = (struct folder_file *) b;
+ 
++  /* Always keep '..' in first menu position */
++  if (!strncmp(pa->display_name, "..", 2))
++	  return(-1);
++  if (!strncmp(pb->display_name, "..", 2))
++	  return(1);
++
+   int r = mutt_strcoll (pa->display_name, pb->display_name);
+ 
+   return ((BrowserSort & SORT_REVERSE) ? -r : r);
+@@ -96,6 +103,12 @@ static int browser_compare_date (const v
+   struct folder_file *pa = (struct folder_file *) a;
+   struct folder_file *pb = (struct folder_file *) b;
+ 
++  /* Always keep '..' in first menu position */
++  if (!strncmp(pa->display_name, "..", 2))
++	  return(-1);
++  if (!strncmp(pb->display_name, "..", 2))
++	  return(1);
++
+   int r = pa->mtime - pb->mtime;
+ 
+   return ((BrowserSort & SORT_REVERSE) ? -r : r);
+@@ -106,6 +119,12 @@ static int browser_compare_size (const v
+   struct folder_file *pa = (struct folder_file *) a;
+   struct folder_file *pb = (struct folder_file *) b;
+ 
++  /* Always keep '..' in first menu position */
++  if (!strncmp(pa->display_name, "..", 2))
++	  return(-1);
++  if (!strncmp(pb->display_name, "..", 2))
++	  return(1);
++
+   int r = pa->size - pb->size;
+ 
+   return ((BrowserSort & SORT_REVERSE) ? -r : r);
+@@ -430,6 +449,21 @@ static void init_state (struct browser_s
+     menu->data = state->entry;
+ }
+ 
++static void check_maildir_times (BUFFY *buf, struct stat *st)
++{
++  char buffer[_POSIX_PATH_MAX + SHORT_STRING];
++  struct stat s;
++
++  if(!buf || buf->magic != MUTT_MAILDIR)
++    return;
++
++  snprintf (buffer, sizeof (buffer), "%s/tmp", mutt_b2s(buf->pathbuf));
++  if (lstat (buffer, &s) != 0)
++    return;
++
++  st->st_mtime = s.st_mtime;
++}
++
+ static int examine_directory (MUTTMENU *menu, struct browser_state *state,
+ 			      const char *d, const char *prefix)
+ {
+@@ -496,6 +530,7 @@ static int examine_directory (MUTTMENU *
+     tmp = Incoming;
+     while (tmp && mutt_strcmp (mutt_b2s (full_path), mutt_b2s (tmp->pathbuf)))
+       tmp = tmp->next;
++    check_maildir_times (tmp, &s);
+     if (tmp && Context &&
+         !mutt_strcmp (tmp->realpath, Context->realpath))
+     {
+@@ -574,6 +609,7 @@ static int examine_mailboxes (MUTTMENU *
+ 	s.st_mtime = st2.st_mtime;
+     }
+ 
++    check_maildir_times (tmp, &s);
+     add_folder (menu, state, mutt_b2s (mailbox), mutt_b2s (tmp->pathbuf), &s, tmp);
+   }
+   while ((tmp = tmp->next));
+
+
+[FILE:422:patches/patch-commands.c]
+--- commands.c.orig	2020-02-21 20:17:47 UTC
++++ commands.c
+@@ -285,7 +285,7 @@ int mutt_display_message (HEADER *cur)
+     {
+       if (cur->security & GOODSIGN)
+       {
+-	if (!crypt_smime_verify_sender(cur))
++	if (option(OPTSMIMENOSENDER) || !crypt_smime_verify_sender(cur))
+ 	  mutt_message ( _("S/MIME signature successfully verified."));
+ 	else
+ 	  mutt_error ( _("S/MIME certificate owner does not match sender."));
+
+
+[FILE:521:patches/patch-contrib_Makefile.in]
+--- contrib/Makefile.in.orig	2020-03-28 18:22:01 UTC
++++ contrib/Makefile.in
+@@ -280,7 +280,7 @@ top_build_prefix = @top_build_prefix@
+ top_builddir = @top_builddir@
+ top_srcdir = @top_srcdir@
+ subdir = contrib
+-SAMPLES = Mush.rc Pine.rc gpg.rc pgp2.rc pgp5.rc pgp6.rc Tin.rc \
++SAMPLES = Mush.rc Pine.rc gpg.rc pgp2.rc pgp6.rc Tin.rc \
+ 	sample.mailcap sample.muttrc sample.muttrc-sidebar sample.muttrc-tlr \
+ 	sample.muttrc-compress sample.muttrc-starter \
+ 	sample.vimrc-sidebar colors.default colors.linux smime.rc \
+
+
+[FILE:1239:patches/patch-doc_Makefile.in]
+--- doc/Makefile.in.orig	2020-03-28 18:22:01 UTC
++++ doc/Makefile.in
+@@ -691,14 +691,7 @@ install-data-local: makedoc-all instdoc
+ 	    $(INSTALL) -m 644 $$f $(DESTDIR)$(docdir) ; \
+ 	  fi \
+ 	done
+-	$(INSTALL) -m 644 Muttrc $(DESTDIR)$(sysconfdir)/Muttrc.dist
+-	-if [ -f $(DESTDIR)$(pkgdatadir)/Muttrc ] ; then \
+-		mv $(DESTDIR)$(pkgdatadir)/Muttrc* $(DESTDIR)$(sysconfdir) ; \
+-	elif [ -f $(DESTDIR)$(pkgdatadir)/../Muttrc ] ; then \
+-	 	mv $(DESTDIR)$(pkgdatadir)/../Muttrc* $(DESTDIR)$(sysconfdir) ; \
+-	elif [ ! -f $(DESTDIR)$(sysconfdir)/Muttrc ] ; then \
+-		$(INSTALL) -m 644 Muttrc $(DESTDIR)$(sysconfdir) ; \
+-	fi
++	$(INSTALL) -m 644 Muttrc $(DESTDIR)$(sysconfdir)/Muttrc.sample
+ 	-if [ -f mutt.info ] ; then \
+ 	  $(MKDIR_P) $(DESTDIR)$(infodir) ; \
+ 	  $(INSTALL) -m 644 mutt.info $(DESTDIR)$(infodir) ; \
+@@ -734,9 +727,7 @@ uninstall-local:
+ 
+ check:
+ manual.txt: manual.html
+-	-LC_ALL=C lynx -dump -nolist -with_backspaces -display_charset=us-ascii manual.html > $@ || \
+-	LC_ALL=C w3m -dump manual.html > $@ || \
+-	LC_ALL=C elinks -dump -no-numbering -no-references manual.html | sed -e 's,\\001, ,g' > $@
++	-LC_ALL=C lynx -dump -nolist -with_backspaces -display_charset=us-ascii manual.html > $@
+ 
+ Muttrc: stamp-doc-rc
+ 
+
+
+[FILE:4313:patches/patch-hdrline.c]
+--- hdrline.c.orig	2020-03-28 18:17:53 UTC
++++ hdrline.c
+@@ -248,6 +248,89 @@ static char *apply_subject_mods (ENVELOP
+  * %Y = `x-label:' field (if present, tree unfolded, and != parent's x-label)
+  * %Z = status flags	*/
+ 
++static void
++format_smartdate( char *buf, size_t max, struct tm *tm, smartdate_type type )
++{
++    char *strftime_fmt = NULL;
++
++    switch( type ) {
++        case FUTURE:        /* Date in the future */
++            strftime_fmt = "%d%h%y!";
++            break;
++        case SMARTTIME:     /* Today */
++            strftime_fmt = "%I:%M %p";
++            break;
++        case YESTERDAY:     /* Yesterday */
++            strncpy( buf, "Yesterday", max );
++            break;
++        case WEEKDAY:       /* Within the last 7 days */
++            strftime_fmt = "%A";
++            break;
++        case STANDARD:      /* Within the last six months */
++            strftime_fmt = "%h %d";
++            break;
++        case ANCIENT:       /* Older than 6 months */
++            strftime_fmt = "%h %Y";
++            break;
++    }
++
++    if( strftime_fmt != NULL ) {
++        strftime( buf, max, strftime_fmt, tm );
++    }
++}
++
++static void
++smartdate( char *buf, size_t max, struct tm *tm )
++{
++    smartdate_type type = 0;
++
++    struct tm now;
++
++    time_t sse = mktime( tm );   /* Seconds since epoch */
++    time_t sse_now = time(NULL); /* Seconds since epoch until now */
++
++    int dse = 0;            /* Days since epoch */
++    int dse_now = 0;        /* Days since epoch until today */
++
++    /* Calculate the number of days since epoch */
++    dse = sse / (60*60*24);
++    dse_now = sse_now / (60*60*24);
++
++    /* Default display type */
++    type = STANDARD;
++
++    /* Check if the date is in the future */
++    if( dse > dse_now ) {
++        type = FUTURE;
++    }
++    else {
++        int diff = dse_now - dse;
++        if( diff == 0 ) type = SMARTTIME;
++        else if( diff == 1 ) type = YESTERDAY;
++        else if( diff < 7 ) type = WEEKDAY;
++        else if( diff > 215 ) type = ANCIENT;  /* Surely older than six
++                                                  months */
++        else if( diff > 180 ) {
++            /*
++             * Slightly heavy calculation to check if the date is more
++             * than six months in the past.  This calculation uses
++             * calendar months and not the exact number of days.  So,
++             * January 31, 2003 would be considered more than six months
++             * old whether today's date is August 1 or August 31, 2003
++             */
++            int monthdiff;
++            localtime_r( &sse_now, &now );
++            monthdiff = ( now.tm_mon - tm->tm_mon )
++                + ( ( now.tm_year - tm->tm_year ) * 12 );
++            if( monthdiff > 6 ) {
++                type = ANCIENT;
++            }
++        }
++    }
++
++    format_smartdate( buf, max, tm, type );
++}
++
+ static const char *
+ hdr_format_str (char *dest,
+ 		size_t destlen,
+@@ -344,6 +427,53 @@ hdr_format_str (char *dest,
+       const char *cp;
+       struct tm *tm;
+       time_t T;
++	int i = 0, invert = 0;
++
++	if (optional && (op == '[' || op == '(')) {
++	  char *is;
++	  T = time(NULL);
++	  T -= (op == '(') ? hdr->received : hdr->date_sent;
++
++	  is = (char *)prefix;
++	  if( *is == '>' ) {
++	    invert = 1;
++	    ++is;
++	  }
++
++	  while( *is && *is != '?' ) {
++	    int t = strtol (is, &is, 10);
++	    switch (*(is++)) {
++	      case '?':
++		break;
++	      case 'y':
++		t *= 365 * 24 * 60 * 60;
++		break;
++	      case 'M':
++		t *= 30 * 24 * 60 * 60;
++		break;
++	      case 'w':
++		t *= 7 * 24 * 60 * 60;
++		break;
++	      case 'd':
++		t *= 24 * 60 * 60;
++		break;
++	      case 'h':
++		t *= 60 * 60;
++		break;
++	      case 'm':
++		t *= 60;
++		break;
++	    }
++	    i += t;
++	  }
++
++	  if (i < 0)
++	    i *= -1;
++
++	  if( (T > i || T < -1*i) ^ invert )
++	    optional = 0;
++	  break;
++	}
+ 
+       p = dest;
+ 
+@@ -421,7 +551,13 @@ hdr_format_str (char *dest,
+ 
+       if (!do_locales)
+         setlocale (LC_TIME, "C");
+-      strftime (buf2, sizeof (buf2), dest, tm);
++		/* Identify the non-strftime smartdate pattern (%@) */
++		if( strncmp( dest, "%@", 2 ) == 0 ) {
++			smartdate( buf2, sizeof( buf2 ), tm );
++		}
++		else {
++			strftime (buf2, sizeof (buf2), dest, tm);
++		}
+       if (!do_locales)
+         setlocale (LC_TIME, "");
+ 
+
+
+[FILE:1313:patches/patch-init.c]
+--- init.c.orig	2020-03-28 18:17:53 UTC
++++ init.c
+@@ -651,6 +651,52 @@ static mbchar_table *parse_mbchar_table
+   return t;
+ }
+ 
++static int parse_ifdef (BUFFER *tmp, BUFFER *s, union pointer_long_t data, BUFFER *err)
++{
++  int i, j, res = 0;
++  BUFFER token;
++
++  memset (&token, 0, sizeof (token));
++  mutt_extract_token (tmp, s, 0);
++
++  /* is the item defined as a variable or a function? */
++  if (!(res = (mutt_option_index (tmp->data) != -1)))
++    for (i = 0; !res && i < MENU_MAX; i++)
++    {
++      struct binding_t *b = km_get_table (Menus[i].value);
++
++      if (!b)
++	continue;
++
++      for (j = 0; b[j].name; j++)
++	if (!ascii_strncasecmp (tmp->data, b[j].name, mutt_strlen (tmp->data))
++	      && (mutt_strlen (b[j].name) == mutt_strlen (tmp->data)))
++	{
++	  res = 1;
++	  break;
++	}
++    }
++
++  if (!MoreArgs (s))
++  {
++    snprintf (err->data, err->dsize, _("ifdef: too few arguments"));
++    return (-1);
++  }
++  mutt_extract_token (tmp, s, MUTT_TOKEN_SPACE);
++
++  if (res)
++  {
++    if (mutt_parse_rc_line (tmp->data, &token, err) == -1)
++    {
++      mutt_error ("Erreur: %s", err->data);
++      FREE (&token.data);
++      return (-1);
++    }
++    FREE (&token.data);
++  }
++  return 0;
++}
++
+ static int parse_unignore (BUFFER *buf, BUFFER *s, union pointer_long_t udata, BUFFER *err)
+ {
+   do
+
+
+[FILE:2779:patches/patch-init.h]
+--- init.h.orig	2020-03-28 18:17:53 UTC
++++ init.h
+@@ -1079,6 +1079,11 @@ struct option_t MuttVars[] = {
+   ** sent to both the list and your address, resulting in two copies
+   ** of the same email for you.
+   */
++  { "force_base64",   DT_BOOL, R_NONE, {.l=OPTFORCEBASE64}, {.l=0} },
++  /*
++  ** .pp
++  ** If you need to encode all text parts to base64, set this option.
++  */
+   { "force_name",	DT_BOOL, R_NONE, {.l=OPTFORCENAME}, {.l=0} },
+   /*
+   ** .pp
+@@ -3021,6 +3026,13 @@ struct option_t MuttVars[] = {
+   ** In either case, a missing real name will be filled in afterwards
+   ** using the value of $$realname.
+   */
++  { "reverse_reply",	DT_BOOL, R_NONE, {.l=OPTREVREPLY}, {.l=0} },
++  /*
++  ** .pp
++  ** When set, this variable uses the name from your aliases in the To and Cc
++  ** headers of reply mails you send, like $reverse_alias does in the index.
++  ** When unset, the headers taken from the original mail are left unchanged.
++  */
+   { "rfc2047_parameters", DT_BOOL, R_NONE, {.l=OPTRFC2047PARAMS}, {.l=0} },
+   /*
+   ** .pp
+@@ -3511,6 +3523,15 @@ struct option_t MuttVars[] = {
+   ** to determine the key to use. It will ask you to supply a key, if it can't find one.
+   ** (S/MIME only)
+   */
++  { "smime_dont_check_sender",	DT_BOOL, R_NONE, {.l=OPTSMIMENOSENDER}, {.l=0} },
++  /*
++  ** .pp
++  ** This flag controls wether you want the skip the check for the sender's
++  ** email address against the email address stored in the certificate. 
++  ** This can be useful if most of your email senders use SMIMEv3 which no
++  ** longer needs email-addresses as part of the certificates.
++  ** It is not set by default.
++  */
+   { "smime_self_encrypt_as",	DT_SYN,  R_NONE, {.p="smime_default_key"}, {.p=0} },
+   { "smime_default_key",		DT_STR,	 R_NONE, {.p=&SmimeDefaultKey}, {.p=0} },
+   /*
+@@ -4503,6 +4524,7 @@ static int parse_lists (BUFFER *, BUFFER
+ static int parse_unlists (BUFFER *, BUFFER *, union pointer_long_t, BUFFER *);
+ static int parse_alias (BUFFER *, BUFFER *, union pointer_long_t, BUFFER *);
+ static int parse_unalias (BUFFER *, BUFFER *, union pointer_long_t, BUFFER *);
++static int parse_ifdef (BUFFER *, BUFFER *, union pointer_long_t, BUFFER *);
+ static int parse_echo (BUFFER *, BUFFER *, union pointer_long_t, BUFFER *);
+ static int parse_ignore (BUFFER *, BUFFER *, union pointer_long_t, BUFFER *);
+ static int parse_unignore (BUFFER *, BUFFER *, union pointer_long_t, BUFFER *);
+@@ -4567,6 +4589,7 @@ const struct command_t Commands[] = {
+   { "hdr_order",	parse_list,		{.p=&HeaderOrderList} },
+ #ifdef HAVE_ICONV
+   { "iconv-hook",	mutt_parse_hook,	{.l=MUTT_ICONVHOOK} },
++  { "ifdef",		parse_ifdef,		{.l=0} },
+ #endif
+   { "ignore",		parse_ignore,		{.l=0} },
+   { "index-format-hook",mutt_parse_idxfmt_hook, {.l=MUTT_IDXFMTHOOK} },
+
+
+[FILE:1070:patches/patch-mutt.h]
+--- mutt.h.orig	2020-03-28 18:17:53 UTC
++++ mutt.h
+@@ -165,6 +165,16 @@ typedef enum
+   MUTT_WRITE_HEADER_MIME
+ } mutt_write_header_mode;
+ 
++/* flags for SmartDate */
++typedef enum {
++    FUTURE      = 1,
++    SMARTTIME   = 2,
++    YESTERDAY   = 3,
++    WEEKDAY     = 4,
++    STANDARD    = 5,
++    ANCIENT     = 6
++} smartdate_type;
++
+ /* types for mutt_add_hook() */
+ #define MUTT_FOLDERHOOK  1
+ #define MUTT_MBOXHOOK    (1<<1)
+@@ -232,6 +242,7 @@ enum
+   MUTT_EXPIRED,
+   MUTT_SUPERSEDED,
+   MUTT_TRASH,
++  MUTT_THREADCOMPLETE,
+ 
+   /* actions for mutt_pattern_comp/mutt_pattern_exec */
+   MUTT_AND,
+@@ -411,6 +422,7 @@ enum
+   OPTFCCCLEAR,
+   OPTFLAGSAFE,
+   OPTFOLLOWUPTO,
++  OPTFORCEBASE64,
+   OPTFORCENAME,
+   OPTFORWDECODE,
+   OPTFORWQUOTE,
+@@ -504,6 +516,7 @@ enum
+   OPTREVALIAS,
+   OPTREVNAME,
+   OPTREVREAL,
++  OPTREVREPLY,
+   OPTRFC2047PARAMS,
+   OPTSAVEADDRESS,
+   OPTSAVEEMPTY,
+@@ -575,6 +588,7 @@ enum
+   OPTSMIMEISDEFAULT,
+   OPTSMIMESELFENCRYPT,
+   OPTASKCERTLABEL,
++  OPTSMIMENOSENDER,
+   OPTSDEFAULTDECRYPTKEY,
+   OPTPGPIGNORESUB,
+   OPTPGPCHECKEXIT,
+
+
+[FILE:2656:patches/patch-muttlib.c]
+--- muttlib.c.orig	2020-03-28 18:17:53 UTC
++++ muttlib.c
+@@ -877,16 +877,15 @@ void _mutt_buffer_mktemp (BUFFER *buf, c
+ void _mutt_mktemp (char *s, size_t slen, const char *prefix, const char *suffix,
+                    const char *src, int line)
+ {
+-  size_t n = snprintf (s, slen, "%s/%s-%s-%d-%d-%ld%ld%s%s",
+-                       NONULL (Tempdir), NONULL (prefix), NONULL (Hostname),
+-                       (int) getuid (), (int) getpid (), random (), random (),
+-                       suffix ? "." : "", NONULL (suffix));
++  size_t n = snprintf (s, slen, "%s/mutt-%s-XXXXXXXX", NONULL (Tempdir), NONULL (Hostname));
+   if (n >= slen)
+     dprint (1, (debugfile, "%s:%d: ERROR: insufficient buffer space to hold temporary filename! slen=%zu but need %zu\n",
+                 src, line, slen, n));
+-  dprint (3, (debugfile, "%s:%d: mutt_mktemp returns \"%s\".\n", src, line, s));
+-  if (unlink (s) && errno != ENOENT)
+-    dprint (1, (debugfile, "%s:%d: ERROR: unlink(\"%s\"): %s (errno %d)\n", src, line, s, strerror (errno), errno));
++  if (mktemp (s)) { 
++    dprint (3, (debugfile, "%s:%d: mutt_mktemp returns \"%s\".\n", src, line, s));
++  } else {
++    dprint (1, (debugfile, "%s:%d: ERROR: mktemp(\"%s\"): %s (errno %d)\n", src, line, s, strerror (errno), errno));
++  }
+ }
+ 
+ /* these characters must be escaped in regular expressions */
+@@ -1563,7 +1562,16 @@ void mutt_FormatString (char *dest,		/*
+       if (*src == '?')
+       {
+ 	flags |= MUTT_FORMAT_OPTIONAL;
+-	src++;
++	ch = *(++src); /* save the character to switch on */
++	cp = prefix;
++	++src;
++	count = 0;
++	while (count < sizeof (prefix) && *src != '?')
++	{
++	  *cp++ = *src++;
++	  count++;
++	}
++	*cp = 0;
+       }
+       else
+       {
+@@ -1579,12 +1587,12 @@ void mutt_FormatString (char *dest,		/*
+ 	  count++;
+ 	}
+ 	*cp = 0;
+-      }
+ 
+-      if (!*src)
+-	break; /* bad format */
++	if (!*src)
++	  break; /* bad format */
+ 
+-      ch = *src++; /* save the character to switch on */
++	ch = *src++; /* save the character to switch on */
++      }
+ 
+       if (flags & MUTT_FORMAT_OPTIONAL)
+       {
+@@ -1597,6 +1605,12 @@ void mutt_FormatString (char *dest,		/*
+ 	count = 0;
+         while (count < sizeof (ifstring) && *src && *src != '?' && *src != '&')
+ 	{
++	  if (*src == '\\')
++	  {
++	    src++;
++	    if (!*src)
++	      break;
++	  }
+           *cp++ = *src++;
+ 	  count++;
+ 	}
+@@ -1609,7 +1623,13 @@ void mutt_FormatString (char *dest,		/*
+ 	count = 0;
+ 	while (count < sizeof (elsestring) && *src && *src != '?')
+ 	{
+-	  *cp++ = *src++;
++	  if (*src == '\\')
++	  {
++	    src++;
++	    if (!*src)
++	      break;
++	  }
++          *cp++ = *src++;
+ 	  count++;
+ 	}
+ 	*cp = 0;
+
+
+[FILE:910:patches/patch-pattern.c]
+--- pattern.c.orig	2020-03-28 18:17:53 UTC
++++ pattern.c
+@@ -57,6 +57,7 @@ static const struct pattern_flags
+ }
+ Flags[] =
+ {
++  { 'a', MUTT_THREADCOMPLETE,	0,		NULL },
+   { 'A', MUTT_ALL,			0,		NULL },
+   { 'b', MUTT_BODY,		MUTT_FULL_MSG,	eat_regexp },
+   { 'B', MUTT_WHOLE_MSG,		MUTT_FULL_MSG,	eat_regexp },
+@@ -1342,6 +1343,16 @@ mutt_pattern_exec (struct pattern_t *pat
+       else
+         result = mutt_is_list_cc (pat->alladdr, h->env->to, h->env->cc);
+       return (pat->not ^ result);
++    case MUTT_THREADCOMPLETE:
++      { static pattern_t tmp;
++        static short pattern_set = 0;
++        if(! pattern_set) {
++          memset (&tmp, 0, sizeof (tmp));
++          tmp.op = MUTT_TAG;
++          pattern_set = 1;
++        }
++        return (pat->not ^ (h->env && match_threadcomplete(&tmp, flags, ctx, h->thread, 1, 1, 1, 1)));
++      } 
+     case MUTT_SUBSCRIBED_LIST:
+       if (cache)
+       {
+
+
+[FILE:402:patches/patch-protos.h]
+--- protos.h.orig	2020-03-28 18:17:53 UTC
++++ protos.h
+@@ -87,6 +87,7 @@ ADDRESS *mutt_get_address (ENVELOPE *, c
+ ADDRESS *mutt_lookup_alias (const char *s);
+ ADDRESS *mutt_remove_duplicates (ADDRESS *);
+ ADDRESS *mutt_remove_xrefs (ADDRESS *, ADDRESS *);
++ADDRESS *mutt_reverse_address (ADDRESS *);
+ ADDRESS *mutt_expand_aliases (ADDRESS *);
+ ADDRESS *mutt_parse_adrlist (ADDRESS *, const char *);
+ 
+
+
+[FILE:474:patches/patch-send.c]
+--- send.c.orig	2020-03-28 18:17:53 UTC
++++ send.c
+@@ -723,6 +723,10 @@ void mutt_fix_reply_recipients (ENVELOPE
+   /* the CC field can get cluttered, especially with lists */
+   env->to = mutt_remove_duplicates (env->to);
+   env->cc = mutt_remove_duplicates (env->cc);
++  if (option (OPTREVREPLY)){
++	env->to = mutt_reverse_address (env->to);
++	env->cc = mutt_reverse_address (env->cc);
++  }
+   env->cc = mutt_remove_xrefs (env->to, env->cc);
+ 
+   if (env->cc && !env->to)
+
+
+[FILE:1667:patches/patch-sendlib.c]
+--- sendlib.c.orig	2020-03-28 18:17:53 UTC
++++ sendlib.c
+@@ -1218,7 +1218,9 @@ static void mutt_set_encoding (BODY *b,
+   if (b->type == TYPETEXT)
+   {
+     char *chsname = mutt_get_body_charset (send_charset, sizeof (send_charset), b);
+-    if ((info->lobin && ascii_strncasecmp (chsname, "iso-2022", 8)) || info->linemax > 990 || (info->from && option (OPTENCODEFROM)))
++    if (option (OPTFORCEBASE64))
++      b->encoding = ENCBASE64;
++    else if ((info->lobin && ascii_strncasecmp (chsname, "iso-2022", 8)) || info->linemax > 990 || (info->from && option (OPTENCODEFROM)))
+       b->encoding = ENCQUOTEDPRINTABLE;
+     else if (info->hibin)
+       b->encoding = option (OPTALLOW8BIT) ? ENC8BIT : ENCQUOTEDPRINTABLE;
+@@ -2974,6 +2976,35 @@ static void set_noconv_flags (BODY *b, s
+   }
+ }
+ 
++/* given a list of addresses, return a list of reverse_alias'ed addresses */
++ADDRESS *mutt_reverse_address (ADDRESS *addr)
++{
++  ADDRESS *top,*tmp,*alias;
++
++  if (addr == NULL)
++    return NULL;
++
++  if ((alias = alias_reverse_lookup (addr)) && alias->personal) {
++    tmp = rfc822_cpy_adr_real(alias);
++    tmp->next = addr->next;
++    addr->next = NULL;
++    rfc822_free_address(&addr);
++    addr = tmp;
++  }
++
++  for (top = addr; top->next != NULL; top = tmp) {
++    tmp = top->next;
++    if ((alias = alias_reverse_lookup (tmp)) && alias->personal) {
++      top->next = rfc822_cpy_adr_real(alias);
++      top->next->next = tmp->next;
++      tmp->next = NULL;
++      rfc822_free_address(&tmp);
++      tmp = top->next;
++    }
++  }
++  return addr;
++}
++
+ int mutt_write_fcc (const char *path, HEADER *hdr, const char *msgid, int post, const char *fcc)
+ {
+   CONTEXT f;
 

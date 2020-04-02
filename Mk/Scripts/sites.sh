@@ -573,6 +573,18 @@ expand_CRATES()
     echo "https://crates.io/api/v1/crates/${1}/${2}/download?dummy=/"
 }
 
+expand_GIMP()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##GIMP/}
+    local cluster="\
+    http://gimp.mirrors.hoobly.com/pub \
+    https://download.gimp.org/pub"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 process_site()
 {
     case "${1}" in
@@ -589,6 +601,7 @@ process_site()
 	GITHUB/*)                  expand_GITHUB "${1}" ;;
 	GITHUB_CLOUD/*)            expand_GITHUB_CLOUD "${1}" 1 ;;
 	GHC/*)                     expand_GITHUB_CLOUD "${1}" 2 ;;
+	GIMP/*)                    expand_GIMP "${1}" ;;
 	GITHUB_PRIVATE/*)          expand_GITHUB_PRIVATE "${1}" 1 ;;
 	GITLAB/*)                  expand_GITLAB "${1}" ;;
 	GHPRIV/*)                  expand_GITHUB_PRIVATE "${1}" 2 ;;
