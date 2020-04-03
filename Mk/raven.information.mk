@@ -173,7 +173,7 @@ RUBY_2.7_PATCHLEVEL=		0
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK2_PORT_VERSION=		2.24.32
-GTK3_PORT_VERSION=		3.24.16
+GTK3_PORT_VERSION=		3.24.17
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
@@ -217,6 +217,7 @@ FIREFOX_VERSION=		74.0
 LLVM_VERSION=			10.0.0
 ZLIB_VERSION=			1.2.11
 OPENEXR_VERSION=		2.4.1
+GHOSTSCRIPT_VERSION=		9.52
 
 # ------------------------------------------------------------------------
 # Gnatcross options

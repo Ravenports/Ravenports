@@ -2,6 +2,7 @@
 
 NAMEBASE=		ImageMagick
 VERSION=		7.0.10-3
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard x11
 SDESC[x11]=		Image manipulation tool suite with X support
@@ -27,7 +28,9 @@ OPTIONS_STANDARD=	none
 VOPTS[x11]=		X11=ON
 
 BUILD_DEPENDS=		bzip2:static:standard
+			Zstandard:static:standard
 BUILDRUN_DEPENDS=	bzip2:shared:standard
+			Zstandard:shared:standard
 			libltdl:single:standard
 			fontconfig:primary:standard
 			freetype:primary:standard
@@ -41,6 +44,11 @@ BUILDRUN_DEPENDS=	bzip2:shared:standard
 			xz:single:standard
 			liblqr:primary:standard
 			tiff:primary:standard
+			libwmf:single:standard
+			libheif:single:standard
+			libraw:primary:standard
+			libraqm:primary:standard
+			openexr:primary:standard
 
 USES=			cpe shebangfix gmake libtool:keepla perl:build
 			pkgconfig gettext-runtime jpeg png
@@ -63,12 +71,18 @@ CONFIGURE_ARGS=		--with-fftw
 			--with-gslib
 			--with-modules
 			--with-threads
+			--with-wmf
+			--with-heic
+			--with-raw
+			--with-lcms
+			--with-zstd
+			--with-openexr
+			--with-raqm
 			--without-dps
 			--without-fpx
 			--without-djvu
-			--without-openexr
 			--without-perl
-			--without-wmf
+			--without-flif
 			--enable-hdri
 			--disable-openmp
 CONFIGURE_ENV=		MAKE={{MAKE_CMD}}
@@ -132,7 +146,7 @@ Photo CD, etc.).
 bcf11e2339544fb9a324ca31ecae895ba641e28241f26382c8917370174458d9      9699848 ImageMagick-7.0.10-3.tar.xz
 
 
-[FILE:5686:manifests/plist.primary]
+[FILE:5736:manifests/plist.primary]
 @sample etc/ImageMagick-7/colors.xml.sample
 @sample etc/ImageMagick-7/delegates.xml.sample
 @sample etc/ImageMagick-7/log.xml.sample
@@ -370,6 +384,8 @@ lib/ImageMagick-%%VERSION%%/modules-Q16HDRI/coders/
  dpx.so
  ept.la
  ept.so
+ exr.la
+ exr.so
  fax.la
  fax.so
  fits.la
@@ -384,6 +400,8 @@ lib/ImageMagick-%%VERSION%%/modules-Q16HDRI/coders/
  hald.so
  hdr.la
  hdr.so
+ heic.la
+ heic.so
  histogram.la
  histogram.so
  hrz.la
@@ -544,6 +562,8 @@ lib/ImageMagick-%%VERSION%%/modules-Q16HDRI/coders/
  wbmp.so
  webp.la
  webp.so
+ wmf.la
+ wmf.so
  wpg.la
  wpg.so
  xbm.la
