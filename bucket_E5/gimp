@@ -17,7 +17,7 @@ SPKGS[standard]=	complete
 			docs
 
 OPTIONS_AVAILABLE=	LINUX
-OPTIONS_STANDARD=	none
+OPTIONS_STANDARD=	LINUX
 OPT_ON[linux]=		LINUX
 
 BUILD_DEPENDS=		iso-codes:single:standard
@@ -68,7 +68,7 @@ CONFIGURE_ARGS=		--with-html-dir={{STD_DOCDIR}}
 			--with-wmf
 			--with-gs
 CONFIGURE_ENV=		GIMP_THREAD_LIBS=-lpthread
-			LIBS="-lexecinfo -lm"
+			LIBS={{VAR1}}
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -80,6 +80,8 @@ SOVERSION=		0.1000.18
 					--without-gudev
 [LINUX].CONFIGURE_ARGS_ON=		--with-linux-input
 					--with-gudev
+[LINUX].MAKEFILE_OFF=			VAR1="-lexecinfo -lm"
+[LINUX].MAKEFILE_ON=			VAR1="-lexecinfo -lm -ldl"
 
 [FILE:637:descriptions/desc.primary]
 The GIMP is designed to provide an intuitive graphical interface to a
@@ -102,7 +104,8 @@ major features:
 65bfe111e8eebffd3dde3016ccb507f9948d2663d9497cb438d9bb609e11d716     32946467 gimp-2.10.18.tar.bz2
 
 
-[FILE:115824:manifests/plist.primary]
+[FILE:115890:manifests/plist.primary]
+%%LINUX-ON%%libexec/gimp/2.2/modules/libcontroller-linux-input.so
 bin/
  gimp
  gimp-2.10
