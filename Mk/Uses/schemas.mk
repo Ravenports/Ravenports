@@ -52,6 +52,7 @@ _USES_install+=	780:gnome-post-gconf-schemas
 
 GCONF_CONFIG_OPTIONS?=		merged
 GCONF_CONFIG_DIRECTORY?=	etc/gconf/gconf.xml.defaults
+MAKE_ENV+=			GCONF_DISABLE_MAKEFILE_SCHEMA_INSTALL=1
 
 .    if !target(gnome-post-gconf-schemas)
 gnome-post-gconf-schemas:
