@@ -4,7 +4,7 @@
 # need in a single location.  The data is extracted by using the
 # EXTRACT_INFO function on a specification definition, e.g.
 #
-# DEF[PORTVERSION]=		EXTRACT_INFO(GCC6_VERSION)
+# DEF[PORTVERSION]=		EXTRACT_INFO(GCC8_VERSION)
 # 
 # This file is only used at "compile-time", that is when the port
 # specification is used to generate the buildsheet.
@@ -28,29 +28,9 @@ BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
 # ------------------------------------------------------------------------
-# gcc6
-# ------------------------------------------------------------------------
-
-GCC6_BRANCH=			6
-GCC6_POINT=			5.0
-GCC6_VERSION=			${GCC6_BRANCH}.${GCC6_POINT}
-GCC6_SNAPSHOT=			20181026
-GCC6_BUILD_RELEASE=		yes
-GCC6_REVISION=			0
-GCC6_GNAT_UTIL_REVISION=	0
-
-.if ${GCC6_BUILD_RELEASE:Mno}
-GCC6_PORTVERSION=		${GCC6_BRANCH}.${GCC6_SNAPSHOT}
-GCC6_IDENTIFICATION=		gcc-${GCC6_BRANCH}-${GCC6_SNAPSHOT}
-GCC6_MS_SUBDIR=			snapshots/${GCC6_BRANCH}-${GCC6_SNAPSHOT}
-GCC6_PHASE=			snapshot
-.else
-GCC6_PORTVERSION=		${GCC6_VERSION}
-GCC6_IDENTIFICATION=		gcc-${GCC6_VERSION}
-GCC6_MS_SUBDIR=			releases/gcc-${GCC6_VERSION}
-GCC6_PHASE=			release
-.endif
-
+# Only keep one closed branch of gcc
+# As of 6 APR 2020, gcc 7.5 closed the branch on 14-NOV-2019
+# That leaves gcc7, gcc8, gcc9, and the gcc10 (upcoming)
 # ------------------------------------------------------------------------
 # gcc7
 # ------------------------------------------------------------------------
@@ -213,7 +193,7 @@ GSTREAMER1_SOVERSION=		0.1602.0
 XORG_VERSION=			7.7
 FIREFOX52_VERSION=		52.9.0
 FIREFOX_ESR_VERSION=		68.6.1
-FIREFOX_VERSION=		74.0.1
+FIREFOX_VERSION=		75.0
 LLVM_VERSION=			10.0.0
 ZLIB_VERSION=			1.2.11
 OPENEXR_VERSION=		2.4.1
