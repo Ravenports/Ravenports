@@ -409,6 +409,9 @@ compile-package-desc:
 	@${ECHO} "This is the documents subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
 .    elif ${sp:Mexamples}
 	@${ECHO} "This is the examples subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
+.    elif ${sp:Mnls}
+	@${ECHO} "This is the Native Language Support (NLS) subpackage" > ${_DESC_FILE}.${sp}
+	@${ECHO} "of the ${TWO_PART_ID} port." >> ${_DESC_FILE}.${sp}
 .    elif ${sp:Mcomplete}
 	@${ECHO} "This is the ${TWO_PART_ID} metapackage." > ${_DESC_FILE}.${sp}
 	@${ECHO} "It pulls in all subpackages of ${TWO_PART_ID}." >> ${_DESC_FILE}.${sp}
@@ -1034,6 +1037,21 @@ add-plist-docs:
 add-plist-examples:
 	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/examples \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) >> ${WRKDIR}/.manifest.examples.mktmp
+.    endif
+.  endif
+.endif
+
+# "nls" is a standard subpackage name.
+# All port NLS files must be located at ${PREFIX}/share/locale
+# If manifests/nls.${VARIANT} does not exist (which is handled by
+# generate-plist target already), autogeneration is assumed.
+
+.if !target(add-plist-nls)
+.  if ${SUBPACKAGES:Mnls}
+.    if !exists(${.CURDIR}/manifests/plist.nls) && !exists(${.CURDIR}/manifests/plist.nls.${VARIANT})
+add-plist-nls:
+	@(cd ${STAGEDIR}${PREFIX} && ${FIND} share/locale \
+	\( -type f -o -type l \) 2>/dev/null | ${SORT}) >> ${WRKDIR}/.manifest.nls.mktmp
 .    endif
 .  endif
 .endif
