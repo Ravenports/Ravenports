@@ -46,7 +46,7 @@ RUBY_2.7_VERSION=	2.7.1
 # Possible values: 2.7, 3.7, 3.8
 #-------------------------------------------------------------------------
 
-PYTHON3_DEFAULT?=	3.7
+PYTHON3_DEFAULT?=	3.8
 
 PYTHON_2.7_VERSION=	2.7.17
 PYTHON_3.7_VERSION=	3.7.7
@@ -81,10 +81,10 @@ TCL_8.6_VERSION=	8.6.10
 
 #-------------------------------------------------------------------------
 # PGSQL
-# Possible values: 9.4, 9.5, 9.6, 10, 11
+# Possible values: 9.5, 9.6, 10, 11, 12
 #-------------------------------------------------------------------------
 
-PGSQL_DEFAULT?=		10
+PGSQL_DEFAULT?=		12
 
 PGSQL_9.4_VERSION=	9.4.26
 PGSQL_9.5_VERSION=	9.5.21
@@ -99,19 +99,18 @@ PGSQL_12_VERSION=	12.2
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #-------------------------------------------------------------------------
 
-MYSQL_DEFAULT=			oracle-5.7
+MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.19
 MYSQL_oracle-5.7_VERSION=	5.7.29
 MYSQL_oracle-5.6_VERSION=	5.6.47
-MYSQL_mariadb-10.2_VERSION=	10.2.5
-MYSQL_mariadb-10.1_VERSION=	10.1.22
+MYSQL_mariadb-10.2_VERSION=	10.2.31
+MYSQL_mariadb-10.3_VERSION=	10.3.22
+MYSQL_mariadb-10.4_VERSION=	10.4.12
+MYSQL_mariadb-10.5_VERSION=	10.5.2
 MYSQL_percona-5.7_VERSION=	5.7.17
 MYSQL_percona-5.6_VERSION=	5.6.35
 MYSQL_percona-5.5_VERSION=	5.5.54
-MYSQL_galera-5.7_VERSION=	5.7.17
-MYSQL_galera-5.6_VERSION=	5.6.35
-MYSQL_galera-5.5_VERSION=	5.5.54
 
 #-------------------------------------------------------------------------
 # Firebird database server
@@ -128,7 +127,7 @@ FIREBIRD_3.0_VERSION=	3.0.5
 # Possible values: 7.2, 7.3, 7.4
 #-------------------------------------------------------------------------
 
-PHP_DEFAULT?=		7.2
+PHP_DEFAULT?=		7.4
 
 PHP_7.2_VERSION=	7.2.29
 PHP_7.3_VERSION=	7.3.16

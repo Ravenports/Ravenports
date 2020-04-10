@@ -88,9 +88,9 @@ GCC8_PHASE=			release
 # ------------------------------------------------------------------------
 
 GCC9_BRANCH=			9
-GCC9_POINT=			2.0
+GCC9_POINT=			3.0
 GCC9_VERSION=			${GCC9_BRANCH}.${GCC9_POINT}
-GCC9_SNAPSHOT=			20190812
+GCC9_SNAPSHOT=			20200312
 GCC9_BUILD_RELEASE=		yes
 GCC9_REVISION=			0
 GCC9_GNAT_UTIL_REVISION=	0
@@ -161,7 +161,7 @@ GTK3_PORT_VERSION=		3.24.17
 
 CURRENT_GCC=			gcc9	# mirror in Uses/meson.mk
 CURRENT_GCC_VERSION=		${GCC9_VERSION}
-BINUTILS_VERSION=		2.33.1
+BINUTILS_VERSION=		2.34
 
 # ------------------------------------------------------------------------
 # aspell
