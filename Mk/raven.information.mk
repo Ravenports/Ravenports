@@ -62,9 +62,9 @@ GCC7_PHASE=			release
 # ------------------------------------------------------------------------
 
 GCC8_BRANCH=			8
-GCC8_POINT=			3.0
+GCC8_POINT=			4.0
 GCC8_VERSION=			${GCC8_BRANCH}.${GCC8_POINT}
-GCC8_SNAPSHOT=			20180222
+GCC8_SNAPSHOT=			20200420
 GCC8_BUILD_RELEASE=		yes
 GCC8_REVISION=			0
 GCC8_GNAT_UTIL_REVISION=	0
@@ -153,7 +153,7 @@ RUBY_2.7_PATCHLEVEL=		0
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK2_PORT_VERSION=		2.24.32
-GTK3_PORT_VERSION=		3.24.17
+GTK3_PORT_VERSION=		3.24.18
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
