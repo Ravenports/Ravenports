@@ -2,7 +2,7 @@
 
 NAMEBASE=		upower
 VERSION=		0.99.11
-REVISION=		2
+REVISION=		3
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	D-Bus daemon for power management tasks
@@ -15,6 +15,7 @@ DISTFILE[1]=		upower-0.99.11.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			nls
 			docs
 
 OPTIONS_AVAILABLE=	none
@@ -30,8 +31,8 @@ BUILDRUN_DEPENDS=	dbus-glib:primary:standard
 			polkit:single:standard
 BR_DEPS[linux]=		libgudev:single:standard libusb:single:standard
 
-USES=			gettext-tools:build gettext-runtime gmake libtool
-			pkgconfig python:build
+USES=			gettext-tools:build python:build gmake libtool
+			pkgconfig gtk-doc
 GNOME_COMPONENTS=	glib intltool
 
 LICENSE=		GPLv2+:primary
@@ -42,6 +43,7 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/up-native.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		sysutils/upower
+GTKDOC_OUTPUT_BASEDIR=	UPower
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-gtk-doc
@@ -59,9 +61,6 @@ post-patch:
 		${WRKSRC}/doc/man/Makefile.in
 
 post-stage:
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/UPower \
-		${STAGEDIR}${PREFIX}/share/doc
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 	${RM} -r ${STAGEDIR}/var
 
 post-patch-sunos:
@@ -89,7 +88,7 @@ mail to the DeviceKit mailing list for discussion.
 64b5ffbfccd5bdb15d925777979a4dbee1a957f9eaeb158dc76175267eddbdef       430128 upower-0.99.11.tar.xz
 
 
-[FILE:1063:manifests/plist.primary]
+[FILE:911:manifests/plist.primary]
 %%ONLY-LINUX%%/etc/udev/rules.d/
  95-upower-csr.rules
  95-upower-hid.rules
@@ -124,17 +123,20 @@ share/dbus-1/interfaces/
 share/dbus-1/system-services/org.freedesktop.UPower.service
 share/dbus-1/system.d/org.freedesktop.UPower.conf
 share/gir-1.0/UPowerGlib-1.0.gir
-share/locale/fr/LC_MESSAGES/upower.mo
-share/locale/it/LC_MESSAGES/upower.mo
-share/locale/pl/LC_MESSAGES/upower.mo
-share/locale/sv/LC_MESSAGES/upower.mo
 share/man/man1/upower.1.gz
 share/man/man7/UPower.7.gz
 share/man/man8/upowerd.8.gz
 
 
+[FILE:152:manifests/plist.nls]
+share/locale/fr/LC_MESSAGES/upower.mo
+share/locale/it/LC_MESSAGES/upower.mo
+share/locale/pl/LC_MESSAGES/upower.mo
+share/locale/sv/LC_MESSAGES/upower.mo
+
+
 [FILE:583:manifests/plist.docs]
-share/doc/UPower/
+share/doc/upower/
  UPower-up-types.html
  UPower-up-version.html
  UPower-up-wakeups.html

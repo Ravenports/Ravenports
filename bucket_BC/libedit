@@ -2,6 +2,7 @@
 
 NAMEBASE=		libedit
 VERSION=		20191231-3.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Command line editor library
@@ -39,18 +40,12 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lbsd
 
 post-patch:
 	${REINPLACE_CMD} -e '/EXAMPLES_DIR =/d' ${WRKSRC}/Makefile.in
-
-post-patch-darwin:
 	${REINPLACE_CMD} -e 's|LIBS="-lncurses |LIBS="-lncurses -ltinfo |'\
 		${WRKSRC}/configure
 
 post-install:
 	${MV} ${STAGEDIR}${MANPREFIX}/man/man3/history.3 \
 		${STAGEDIR}${MANPREFIX}/man/man3/el_history.3
-
-post-patch-sunos:
-	${REINPLACE_CMD} -e 's|LIBS="-lncurses |LIBS="-lncurses -ltinfo |'\
-		${WRKSRC}/configure
 
 [FILE:249:descriptions/desc.single]
 This is an autotool- and libtoolized port of the NetBSD Editline library

@@ -15,12 +15,12 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			gnome
+			nls
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		gtk-doc:single:standard
 BUILDRUN_DEPENDS=	brotli:single:standard
 			glib-networking:single:standard
 			libpsl:single:standard
@@ -28,7 +28,7 @@ RUN_DEPENDS=		libgcrypt:single:standard
 EXRUN[gnome]=		libsoup:primary:standard
 
 USES=			gettext-tools gmake libtool pkgconfig python:build
-			sqlite meson
+			sqlite meson gtk-doc
 GNOME_COMPONENTS=	glib intltool introspection libxml2
 
 LICENSE=		LGPL21+:primary
@@ -39,6 +39,7 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/libsoup/soup-websocket.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/libsoup
+GTKDOC_OUTPUT_BASEDIR=	libsoup-2.4
 MESON_ARGS=		-Dgtk_doc=true
 			-Dintrospection=enabled
 
@@ -52,9 +53,6 @@ VAR_OPSYS[linux]=	CFLAGS=-D_GNU_SOURCE
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/libsoup/soup-connection.h \
 		${STAGEDIR}${PREFIX}/include/libsoup-2.4/libsoup/soup-connection.h
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/libsoup-2.4 \
-		${STAGEDIR}${PREFIX}/share/doc/soup
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
 [FILE:400:descriptions/desc.primary]
 Soup is a SOAP (Simple Object Access Protocol) implementation in C.
@@ -74,7 +72,7 @@ This package contains library code to be used with GNOME components.
 54b020f74aefa438918d8e53cff62e2b1e59efe2de53e06b19a4b07b1f4d5342      1494220 libsoup-2.70.0.tar.xz
 
 
-[FILE:4171:manifests/plist.primary]
+[FILE:1554:manifests/plist.primary]
 include/libsoup-%%LIBVERSION%%/libsoup/
  soup-address.h
  soup-auth-domain-basic.h
@@ -143,6 +141,26 @@ lib/
 lib/girepository-1.0/Soup-%%LIBVERSION%%.typelib
 lib/pkgconfig/libsoup-%%LIBVERSION%%.pc
 share/gir-1.0/Soup-%%LIBVERSION%%.gir
+share/vala/vapi/
+ libsoup-%%LIBVERSION%%.deps
+ libsoup-%%LIBVERSION%%.vapi
+
+
+[FILE:382:manifests/plist.gnome]
+include/libsoup-gnome-%%LIBVERSION%%/libsoup/
+ soup-cookie-jar-sqlite.h
+ soup-gnome-features.h
+ soup-gnome.h
+lib/
+ libsoup-gnome-%%LIBVERSION%%.so
+ libsoup-gnome-%%LIBVERSION%%.so.%%SOMAJOR%%
+ libsoup-gnome-%%LIBVERSION%%.so.%%SOVERSION%%
+lib/girepository-1.0/SoupGNOME-%%LIBVERSION%%.typelib
+lib/pkgconfig/libsoup-gnome-%%LIBVERSION%%.pc
+share/gir-1.0/SoupGNOME-%%LIBVERSION%%.gir
+
+
+[FILE:2617:manifests/plist.nls]
 share/locale/an/LC_MESSAGES/libsoup.mo
 share/locale/as/LC_MESSAGES/libsoup.mo
 share/locale/be/LC_MESSAGES/libsoup.mo
@@ -209,27 +227,10 @@ share/locale/vi/LC_MESSAGES/libsoup.mo
 share/locale/zh_CN/LC_MESSAGES/libsoup.mo
 share/locale/zh_HK/LC_MESSAGES/libsoup.mo
 share/locale/zh_TW/LC_MESSAGES/libsoup.mo
-share/vala/vapi/
- libsoup-%%LIBVERSION%%.deps
- libsoup-%%LIBVERSION%%.vapi
 
 
-[FILE:382:manifests/plist.gnome]
-include/libsoup-gnome-%%LIBVERSION%%/libsoup/
- soup-cookie-jar-sqlite.h
- soup-gnome-features.h
- soup-gnome.h
-lib/
- libsoup-gnome-%%LIBVERSION%%.so
- libsoup-gnome-%%LIBVERSION%%.so.%%SOMAJOR%%
- libsoup-gnome-%%LIBVERSION%%.so.%%SOVERSION%%
-lib/girepository-1.0/SoupGNOME-%%LIBVERSION%%.typelib
-lib/pkgconfig/libsoup-gnome-%%LIBVERSION%%.pc
-share/gir-1.0/SoupGNOME-%%LIBVERSION%%.gir
-
-
-[FILE:1510:manifests/plist.docs]
-share/doc/soup/
+[FILE:1513:manifests/plist.docs]
+share/doc/libsoup/
  SoupAddress.html
  SoupAuth.html
  SoupAuthDomain.html

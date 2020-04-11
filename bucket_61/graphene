@@ -19,9 +19,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		gtk-doc:single:standard
-
-USES=			meson pkgconfig python shebangfix
+USES=			meson pkgconfig python shebangfix gtk-doc
 GNOME_COMPONENTS=	glib introspection pygobject
 
 LICENSE=		MIT:primary
@@ -41,12 +39,6 @@ VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 post-patch:
 	${REINPLACE_CMD} -e 's|=python |=${PYTHON_VERSION} |g' \
 		${WRKSRC}/src/meson.build
-
-post-install:
-	${MKDIR} ${STAGEDIR}${STD_DOCDIR:H}
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/graphene \
-		${STAGEDIR}${STD_DOCDIR:H}
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
 [FILE:691:descriptions/desc.primary]
 Graphene contains optimizations for speeding up vector operations, those

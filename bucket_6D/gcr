@@ -2,7 +2,7 @@
 
 NAMEBASE=		gcr
 VERSION=		3.36
-REVISION=		1
+REVISION=		2
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Library for bits of crypto UI and parsing
@@ -15,6 +15,7 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			nls
 			docs
 
 OPTIONS_AVAILABLE=	none
@@ -29,7 +30,7 @@ BUILDRUN_DEPENDS=	dbus:single:standard
 			libtasn1:primary:standard
 			p11-kit:primary:standard
 
-USES=			gettext-tools gmake libtool pkgconfig
+USES=			gettext-tools gmake libtool pkgconfig gtk-doc
 			autoreconf:build schemas:primary
 			desktop-utils:primary mime-info:primary
 			solaris-funcs
@@ -44,6 +45,7 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		security/gcr
 GLIB_SCHEMAS=		org.gnome.crypto.pgp.gschema.xml
+GTKDOC_OUTPUT_BASEDIR=	gcr-3
 SOL_FUNCTIONS=		err.h:err.h
 			timegm:gck/gck-slot.c
 
@@ -69,13 +71,6 @@ post-patch:
 	${REINPLACE_CMD} -e 's|"egg/egg-timegm.h"|<time.h>|' \
 		${WRKSRC}/gck/gck-slot.c
 
-post-install:
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/gck \
-		${STAGEDIR}${PREFIX}/share/doc/gck
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/gcr-3 \
-		${STAGEDIR}${PREFIX}/share/doc/gcr-3
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
-
 pre-configure:
 	cd ${WRKSRC} && env NOCONFIGURE=1 ${SH} autogen.sh
 
@@ -90,7 +85,7 @@ GNOME desktop. It was splitt off from gnome-keyring.
 8cf88429f6852344629f654281081c377b2f81bac6362f24043e7e8e2181e830      2214674 GNOME-gcr-3.36.tar.gz
 
 
-[FILE:6032:manifests/plist.primary]
+[FILE:2936:manifests/plist.primary]
 bin/gcr-viewer
 include/gck-1/gck/
  gck-deprecated.h
@@ -227,6 +222,19 @@ share/icons/hicolor/48x48/apps/
  gcr-key.png
  gcr-password.png
  gcr-smart-card.png
+share/mime/packages/gcr-crypto-types.xml
+share/vala/vapi/
+ gck-1.deps
+ gck-1.vapi
+ gcr-3.deps
+ gcr-3.vapi
+ gcr-ui-3.deps
+ gcr-ui-3.vapi
+ pkcs11.vapi
+@glib-schemas share/glib-2.0/schemas/org.gnome.crypto.pgp.gschema.xml
+
+
+[FILE:3096:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/gcr.mo
 share/locale/ar/LC_MESSAGES/gcr.mo
 share/locale/as/LC_MESSAGES/gcr.mo
@@ -314,46 +322,10 @@ share/locale/xh/LC_MESSAGES/gcr.mo
 share/locale/zh_CN/LC_MESSAGES/gcr.mo
 share/locale/zh_HK/LC_MESSAGES/gcr.mo
 share/locale/zh_TW/LC_MESSAGES/gcr.mo
-share/mime/packages/gcr-crypto-types.xml
-share/vala/vapi/
- gck-1.deps
- gck-1.vapi
- gcr-3.deps
- gcr-3.vapi
- gcr-ui-3.deps
- gcr-ui-3.vapi
- pkcs11.vapi
-@glib-schemas share/glib-2.0/schemas/org.gnome.crypto.pgp.gschema.xml
 
 
-[FILE:1690:manifests/plist.docs]
-share/doc/gck/
- GckAttributes.html
- GckEnumerator.html
- GckModule.html
- GckObject.html
- GckObjectCache.html
- GckSession.html
- GckSlot.html
- annotation-glossary.html
- gck-Errors.html
- gck-GckAttribute.html
- gck-GckModule-lists.html
- gck-Library-Utilities.html
- gck-Miscellaneous-Functions.html
- gck-PKCS11-URIs.html
- home.png
- index.html
- left-insensitive.png
- left.png
- pkcs11-links.html
- reference.html
- right-insensitive.png
- right.png
- style.css
- up-insensitive.png
- up.png
-share/doc/gcr-3/
+[FILE:1211:manifests/plist.docs]
+share/doc/gcr/
  GcrCertificate.html
  GcrCertificateChain.html
  GcrCertificateWidget.html

@@ -14,28 +14,30 @@ DISTFILE[1]=		gcab-1.4.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			nls
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		vala:single:standard
-			gtk-doc:single:standard
 
 USES=			cpe gettext-tools gmake libtool pkgconfig meson
+			gtk-doc
 GNOME_COMPONENTS=	glib intltool introspection
+
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"^\#include"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/gcab.c
+LICENSE_SCHEME=		solo
 
 CPE_VENDOR=		gnome
 FPC_EQUIVALENT=		archivers/gcab
 MESON_ARGS=		-Dtests=false
 
 SOVERSION=		0.1.0
-
-post-install:
-	${MKDIR} ${STAGEDIR}${STD_DOCDIR:H}
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/gcab \
-		${STAGEDIR}${STD_DOCDIR:H}
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
 [FILE:226:descriptions/desc.primary]
 Gcab is a utility and library mainly made to create Cabinet files, using
@@ -48,7 +50,7 @@ GObject/GIO API and provides GIR bindings.
 67a5fa9be6c923fbc9197de6332f36f69a33dadc9016a2b207859246711c048f        78240 gcab-1.4.tar.xz
 
 
-[FILE:1509:manifests/plist.primary]
+[FILE:377:manifests/plist.primary]
 bin/gcab
 include/libgcab-1.0/libgcab.h
 include/libgcab-1.0/libgcab/
@@ -63,6 +65,13 @@ lib/
 lib/girepository-1.0/GCab-1.0.typelib
 lib/pkgconfig/libgcab-1.0.pc
 share/gir-1.0/GCab-1.0.gir
+share/man/man1/gcab.1.gz
+share/vala/vapi/
+ libgcab-1.0.deps
+ libgcab-1.0.vapi
+
+
+[FILE:1132:manifests/plist.nls]
 share/locale/bs/LC_MESSAGES/gcab.mo
 share/locale/cs/LC_MESSAGES/gcab.mo
 share/locale/da/LC_MESSAGES/gcab.mo
@@ -94,10 +103,6 @@ share/locale/sv/LC_MESSAGES/gcab.mo
 share/locale/tg/LC_MESSAGES/gcab.mo
 share/locale/tr/LC_MESSAGES/gcab.mo
 share/locale/zh_CN/LC_MESSAGES/gcab.mo
-share/man/man1/gcab.1.gz
-share/vala/vapi/
- libgcab-1.0.deps
- libgcab-1.0.vapi
 
 
 [FILE:373:manifests/plist.docs]

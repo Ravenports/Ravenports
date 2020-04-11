@@ -2,6 +2,7 @@
 
 NAMEBASE=		postgis
 VERSION=		3.0.1
+REVISION=		1
 KEYWORDS=		databases geography
 VARIANTS=		standard
 SDESC[standard]=	Spatial and Geographic objects for PostgreSQL
@@ -42,7 +43,6 @@ CONFIGURE_ARGS=		{{ICONV_CONFIGURE_BASE}}
 			--with-raster
 			--with-address-standardizer
 			--with-gui
-			--with-gdalconfig={{LOCALBASE}}/bin/gdal-config
 
 PLIST_SUB=		VERSION=3.0.1
 			XDOTY=3.0
@@ -63,6 +63,8 @@ post-install:
 		${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/postgis/tiger_geocoder )
 	(cd ${WRKSRC}/utils/ && \
 		${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/postgis/utils )
+	# remove single readme that's not even in STD_DOCDIR
+	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/postgresql
 
 [FILE:751:descriptions/desc.single]
 PostGIS adds support for geographic objects to the PostgreSQL
@@ -84,7 +86,7 @@ Committee and new features continue to be added.
 5a5432f95150d9bae9215c6d1c7bb354e060482a7c379daa9b8384e1d03e6353     16839923 postgis-3.0.1.tar.gz
 
 
-[FILE:20191:manifests/plist.single]
+[FILE:20132:manifests/plist.single]
 %%SFCGAL-ON%%/share/postgresql/extension/
  postgis_sfcgal--%%VERSION%%--%%VERSION%%next.sql
  postgis_sfcgal--%%VERSION%%.sql
@@ -154,7 +156,6 @@ lib/postgresql/
  postgis-%%X%%.so
  postgis_raster-%%X%%.so
  postgis_topology-%%X%%.so
-share/doc/postgresql/extension/README.address_standardizer
 share/postgis/tiger_geocoder/
  COPYING
  README

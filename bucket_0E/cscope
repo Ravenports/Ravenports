@@ -2,6 +2,7 @@
 
 NAMEBASE=		cscope
 VERSION=		15.9
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	C source code tree search and browse tool
@@ -29,6 +30,8 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-ncurses={{NCURSESBASE}}
 
 post-patch:
+	${REINPLACE_CMD} -e '/CURSES_LIBS=/ s/-lncurses/-lncurses -ltinfo/'\
+		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g' \
 		${WRKSRC}/contrib/xcscope/cscope-indexer \
 		${WRKSRC}/contrib/ocs
@@ -42,10 +45,6 @@ post-install:
 		${STAGEDIR}${PREFIX}/share/emacs/site-lisp
 	${LN} -sf ${PREFIX}/share/emacs/site-lisp/xcscope.el \
 		${STAGEDIR}${PREFIX}/lib/xemacs/site-lisp
-
-post-patch-sunos:
-	${REINPLACE_CMD} -e '/CURSES_LIBS=/ s/-lncurses/-lncurses -ltinfo/'\
-		${WRKSRC}/configure
 
 [FILE:307:descriptions/desc.single]
 This port of SCO / USL's 'cscope' lets one easily navigate large C

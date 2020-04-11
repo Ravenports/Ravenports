@@ -29,6 +29,7 @@ BUILDRUN_DEPENDS=	freetype:primary:standard
 RUN_DEPENDS=		xorg-truetype-fonts:single:standard
 
 USES=			gmake perl:build pkgconfig python:build meson
+			gtk-doc
 GNOME_COMPONENTS=	cairo glib introspection
 XORG_COMPONENTS=	x11 xft xrender
 
@@ -47,12 +48,6 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		VERSION=1.8.0
 			LIBVERSION=0.4400.7
-
-post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/doc
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/pango \
-		${STAGEDIR}${PREFIX}/share/doc
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e "s|'-D_POSIX_C_SOURCE=200809L', ||" \

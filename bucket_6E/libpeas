@@ -2,6 +2,7 @@
 
 NAMEBASE=		libpeas
 VERSION=		1.26.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		py38 py37
 SDESC[py37]=		GObject-based plugins engine (PY 37)
@@ -17,11 +18,13 @@ SPKGS[py37]=		complete
 			primary
 			python
 			examples
+			nls
 			docs
 SPKGS[py38]=		complete
 			primary
 			python
 			examples
+			nls
 			docs
 
 OPTIONS_AVAILABLE=	PY38 PY37
@@ -29,10 +32,10 @@ OPTIONS_STANDARD=	none
 VOPTS[py37]=		PY38=OFF PY37=ON
 VOPTS[py38]=		PY38=ON PY37=OFF
 
-BUILD_DEPENDS=		gtk-doc:single:standard
 RUN_DEPENDS=		gobject-introspection:single:standard
 
-USES=			meson pkgconfig gettext-runtime gettext-tools:build
+USES=			meson pkgconfig gtk-doc gettext-runtime
+			gettext-tools:build
 GNOME_COMPONENTS=	gtk3 intltool introspection
 
 LICENSE=		LGPL21+:primary
@@ -70,9 +73,6 @@ post-patch:
 		${WRKSRC}/meson.build
 
 post-install:
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/libpeas \
-		${STAGEDIR}${PREFIX}/share/doc/libpeas
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/peas-demo/plugins/pythonhello/__pycache__
 
 [FILE:325:descriptions/desc.primary]
@@ -97,7 +97,7 @@ This subpackage contains example code.
 a976d77e20496479a8e955e6a38fb0e5c5de89cf64d9f44e75c2213ee14f7376       191708 libpeas-1.26.0.tar.xz
 
 
-[FILE:3794:manifests/plist.primary]
+[FILE:929:manifests/plist.primary]
 include/libpeas-1.0/libpeas/
  peas-activatable.h
  peas-autocleanups.h
@@ -126,6 +126,39 @@ lib/
 lib/girepository-1.0/
  Peas-1.0.typelib
  PeasGtk-1.0.typelib
+lib/pkgconfig/
+ libpeas-1.0.pc
+ libpeas-gtk-1.0.pc
+share/gir-1.0/
+ Peas-1.0.gir
+ PeasGtk-1.0.gir
+share/icons/hicolor/16x16/actions/libpeas-plugin.png
+share/icons/hicolor/22x22/actions/libpeas-plugin.png
+share/icons/hicolor/32x32/actions/libpeas-plugin.png
+share/icons/hicolor/scalable/actions/libpeas-plugin.svg
+
+
+[FILE:44:manifests/plist.python]
+lib/libpeas-1.0/loaders/libpython3loader.so
+
+
+[FILE:320:manifests/plist.examples]
+%%PY37-ON%%lib/peas-demo/plugins/pythonhello/
+ pythonhello.plugin
+ pythonhello.py
+%%PY38-ON%%lib/peas-demo/plugins/pythonhello/
+ pythonhello.plugin
+ pythonhello.py
+bin/peas-demo
+lib/peas-demo/plugins/helloworld/
+ helloworld.plugin
+ libhelloworld.so
+lib/peas-demo/plugins/secondtime/
+ libsecondtime.so
+ secondtime.plugin
+
+
+[FILE:2865:manifests/plist.nls]
 lib/locale/an/LC_MESSAGES/libpeas-1.0.mo
 lib/locale/ar/LC_MESSAGES/libpeas-1.0.mo
 lib/locale/as/LC_MESSAGES/libpeas-1.0.mo
@@ -195,36 +228,6 @@ lib/locale/vi/LC_MESSAGES/libpeas-1.0.mo
 lib/locale/zh_CN/LC_MESSAGES/libpeas-1.0.mo
 lib/locale/zh_HK/LC_MESSAGES/libpeas-1.0.mo
 lib/locale/zh_TW/LC_MESSAGES/libpeas-1.0.mo
-lib/pkgconfig/
- libpeas-1.0.pc
- libpeas-gtk-1.0.pc
-share/gir-1.0/
- Peas-1.0.gir
- PeasGtk-1.0.gir
-share/icons/hicolor/16x16/actions/libpeas-plugin.png
-share/icons/hicolor/22x22/actions/libpeas-plugin.png
-share/icons/hicolor/32x32/actions/libpeas-plugin.png
-share/icons/hicolor/scalable/actions/libpeas-plugin.svg
-
-
-[FILE:44:manifests/plist.python]
-lib/libpeas-1.0/loaders/libpython3loader.so
-
-
-[FILE:320:manifests/plist.examples]
-%%PY37-ON%%lib/peas-demo/plugins/pythonhello/
- pythonhello.plugin
- pythonhello.py
-%%PY38-ON%%lib/peas-demo/plugins/pythonhello/
- pythonhello.plugin
- pythonhello.py
-bin/peas-demo
-lib/peas-demo/plugins/helloworld/
- helloworld.plugin
- libhelloworld.so
-lib/peas-demo/plugins/secondtime/
- libsecondtime.so
- secondtime.plugin
 
 
 [FILE:637:manifests/plist.docs]

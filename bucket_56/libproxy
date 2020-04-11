@@ -2,6 +2,7 @@
 
 NAMEBASE=		libproxy
 VERSION=		0.4.15
+REVISION=		1
 KEYWORDS=		net devel
 VARIANTS=		standard minimal
 SDESC[minimal]=		Libproxy without any additional bindings
@@ -16,9 +17,9 @@ DF_INDEX=		1
 SPKGS[minimal]=		single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	PERL PYTHON VALA
+OPTIONS_AVAILABLE=	PERL PYTHON VALA NETWORKMGR
 OPTIONS_STANDARD=	PERL PYTHON VALA
-VOPTS[minimal]=		PERL=OFF PYTHON=OFF VALA=OFF
+VOPTS[minimal]=		PERL=OFF PYTHON=OFF VALA=OFF NETWORKMGR=OFF
 OPT_ON[all]=		PERL PYTHON VALA
 
 USES=			cclibs:single c++:single cmake pkgconfig
@@ -62,14 +63,18 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 [VALA].CMAKE_ARGS_OFF=			-DWITH_VALA:BOOL=OFF
 [VALA].CMAKE_ARGS_ON=			-DWITH_VALA:BOOL=ON
 
+[NETWORKMGR].DESCRIPTION=		Build with Network Manager support
+[NETWORKMGR].BUILDRUN_DEPENDS_ON=	dbus:single:standard
+[NETWORKMGR].CMAKE_ARGS_ON=		-WITH_DBUS:BOOL=ON
+
 [PYTHON].DESCRIPTION=			Build with Python binding
 [PYTHON].CMAKE_ARGS_ON=			-DWITH_PYTHON{{PYTHON_MAJOR_VER}}:BOOL=ON
 					-DPYTHON_SITEPKG_DIR={{PYTHON_SITELIBDIR}}
 [PYTHON].USES_ON=			python
 
 post-patch:
-	# support python 3.7
-	${REINPLACE_CMD} -e 's/ 3\.6/ 3.7 3.6/' \
+	# support python 3.7 and 3.8
+	${REINPLACE_CMD} -e 's/ 3\.6/ 3.8 3.7 3.6/' \
 		${WRKSRC}/cmake/FindPython3Interp.cmake
 
 post-install-PERL-ON:

@@ -2,7 +2,7 @@
 
 NAMEBASE=		deadbeef
 VERSION=		1.8.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	Ultimate music player for Unix-like systems
@@ -13,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/DeaDBeeF-Player:deadbeef:1.8.3
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -34,13 +37,13 @@ BUILDRUN_DEPENDS=	libmad:single:standard
 RUN_DEPENDS=		freepats:single:standard
 
 USES=			autoreconf gmake iconv libtool pkgconfig jpeg
-			shebangfix gnome-icons:single desktop-utils:single
+			shebangfix gnome-icons:primary desktop-utils:primary
 			gettext-runtime gettext-tools
 GNOME_COMPONENTS=	intltool gtk3
 
-LICENSE=		GPLv2+:single ZLIB:single CUSTOM1:single
-			CUSTOM2:single
-LICENSE_TERMS=		single:{{WRKSRC}}/plugins/notify/COPYING
+LICENSE=		GPLv2+:primary ZLIB:primary CUSTOM1:primary
+			CUSTOM2:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/plugins/notify/COPYING
 LICENSE_NAME=		CUSTOM1:"Various BSD licenses and copyrights"
 			CUSTOM2:"All plugin licenses and copyrights"
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING.GPLv2
@@ -85,6 +88,10 @@ post-patch:
 	${REINPLACE_CMD} 's,zip_file_t,zip_file_DB,g' \
 		${WRKSRC}/plugins/vfs_zip/vfs_zip.c
 
+post-install:
+	# remove duplicate licenses
+	${RM} ${STAGEDIR}${STD_DOCDIR}/COPYING*
+
 post-extract:
 	(cd ${WRKSRC} && ${HEAD} -n 100 plugins/*/COPYING \
 		> ${WRKDIR}/LICENSE_PLUGINS)
@@ -92,7 +99,7 @@ post-extract:
 	${REINPLACE_CMD} -e 's/INTL_LIBS/INTLLIBS/' ${WRKSRC}/Makefile.am
 	(cd ${WRKSRC} && ${SH} ${WRKSRC}/autogen.sh)
 
-[FILE:1728:descriptions/desc.single]
+[FILE:1728:descriptions/desc.primary]
 DeaDBeeF (as in 0xDEADBEEF) is an audio player.
 
 Main features:
@@ -133,7 +140,7 @@ Main features:
 f239af734dea096083e9fb907ef262099a54c2c6c93683ed76b132d41f10ccd8     12963204 DeaDBeeF-Player-deadbeef-1.8.3.tar.gz
 
 
-[FILE:4915:manifests/plist.single]
+[FILE:2891:manifests/plist.primary]
 bin/deadbeef
 include/deadbeef/
  artwork.h
@@ -298,15 +305,6 @@ share/deadbeef/pixmaps/
  noartwork.png
  pause_16.png
  play_16.png
-share/doc/deadbeef/
- COPYING.GPLv2
- COPYING.LGPLv2.1
- ChangeLog
- README
- about.txt
- help.ru.txt
- help.txt
- translators.txt
 share/icons/hicolor/128x128/apps/deadbeef.png
 share/icons/hicolor/16x16/apps/deadbeef.png
 share/icons/hicolor/192x192/apps/deadbeef.png
@@ -320,6 +318,9 @@ share/icons/hicolor/64x64/apps/deadbeef.png
 share/icons/hicolor/72x72/apps/deadbeef.png
 share/icons/hicolor/96x96/apps/deadbeef.png
 share/icons/hicolor/scalable/apps/deadbeef.svg
+
+
+[FILE:1901:manifests/plist.nls]
 share/locale/be/LC_MESSAGES/deadbeef.mo
 share/locale/bg/LC_MESSAGES/deadbeef.mo
 share/locale/bn/LC_MESSAGES/deadbeef.mo
@@ -367,6 +368,16 @@ share/locale/uk/LC_MESSAGES/deadbeef.mo
 share/locale/vi/LC_MESSAGES/deadbeef.mo
 share/locale/zh_CN/LC_MESSAGES/deadbeef.mo
 share/locale/zh_TW/LC_MESSAGES/deadbeef.mo
+
+
+[FILE:90:manifests/plist.docs]
+share/doc/deadbeef/
+ ChangeLog
+ README
+ about.txt
+ help.ru.txt
+ help.txt
+ translators.txt
 
 
 [FILE:208:patches/patch-junklib.c]

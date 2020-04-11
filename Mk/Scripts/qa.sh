@@ -19,6 +19,10 @@ err() {
 	echo "Error: $@" >&2
 }
 
+writeln() {
+	echo "$@" >&2
+}
+
 list_stagedir_elfs() {
 	cd ${STAGEDIR} && find . -type f \( -perm /111 -o -name '*.so*' \) "$@" | sort
 }
@@ -368,7 +372,7 @@ licterms() {
 }
 
 showlic() {
-	local bname stars
+	local bname stars licdir terms
 
 	stars="======================================================================================"
 	licdir="${STAGEDIR}${PREFIX}/share/licenses/${NAMEBASE}"
@@ -390,9 +394,59 @@ showlic() {
 	return 0
 }
 
+nls_files() {
+	local localedir entries xf
+
+	localedir="${STAGEDIR}${PREFIX}/share/locale"
+	entries=$(find ${localedir} -type d -name "LC_MESSAGES" 2>/dev/null)
+	if [ -n "${entries}" ]
+	then
+		# nls directories present, check for nls manifest
+		if [ -f "${STAGEDIR}/../.manifest.nls.mktmp" ]
+		then
+			entries=$(find "${STAGEDIR}/.." -maxdepth 1 -type f \
+			\( -name '\.manifest\.*\.mktmp' -a ! \
+			   -name '\.manifest\.nls\.mktmp' \) \
+			   -exec grep '\/LC_MESSAGES\/' {} \; 2>/dev/null)
+			if [ -n "${entries}" ]; then
+				err "NLS files detected outside of nls manifest"
+				for xf in ${entries}; do
+				  writeln "  ${xf}"
+				done 
+				return 1
+			fi
+		else
+			warn "NLS files detected but no nls subpackage is defined."
+			# eventually change warn to err, and
+			# return 1
+		fi
+				
+	fi
+	return 0
+}
+
+doc_files() {
+	local entries
+	entries=$(find "${STAGEDIR}/.." -maxdepth 1 -type f \
+		\( -name '\.manifest\.*\.mktmp' -a ! \
+		   -name '\.manifest\.docs\.mktmp' \) \
+		   -exec grep '^share\/doc\/' {} \; 2>/dev/null)
+	
+	if [ -n "${entries}" ]; then
+		err "Package documents detected outside of docs manifest"
+		for xf in ${entries}; do
+		  writeln "  ${xf}"
+		done 
+		return 1
+	fi
+	return 0
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
-checks="$checks sonames licterms showlic"
+checks="$checks sonames nls_files doc_files"
+# don't add to this line
+checks="$checks licterms showlic"
 
 ret=0
 cd ${STAGEDIR}

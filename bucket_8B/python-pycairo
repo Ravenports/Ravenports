@@ -2,6 +2,7 @@
 
 NAMEBASE=		python-pycairo
 VERSION=		1.19.1
+REVISION=		1
 KEYWORDS=		python devel
 VARIANTS=		py27 py38 py37
 SDESC[py37]=		Bindings for cairo graphics library (PY 37)
@@ -15,8 +16,8 @@ SITES[main]=		GITHUB/pygobject:pycairo:v1.19.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[py37]=		primary
-			common
 SPKGS[py38]=		primary
+			common
 SPKGS[py27]=		single
 
 OPTIONS_AVAILABLE=	PY27 PY38 PY37
@@ -36,12 +37,12 @@ FPC_EQUIVALENT=		graphics/py-cairo
 
 [PY27].USES_ON=				python:py27
 
-post-install-PY38-ON:
-	${RM} -r ${STAGEDIR}${PREFIX}/include/pycairo
-	${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/py3cairo.pc
-
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PYTHON_SITELIBDIR}/cairo/*.so
+	if [ "${VARIANT}" != "py38" ]; then \
+		${RM} -r ${STAGEDIR}${PREFIX}/include/pycairo ;\
+		${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/py3cairo.pc ;\
+	fi
 
 [FILE:189:descriptions/desc.single]
 Pycairo is a set of Python 2 & 3 bindings for the cairo graphics library.

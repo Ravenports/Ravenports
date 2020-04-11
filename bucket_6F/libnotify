@@ -19,10 +19,9 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		gtk-doc:single:standard
-			docbook-xsl:primary:standard
+BUILD_DEPENDS=		docbook-xsl:primary:standard
 
-USES=			gettext-runtime gmake meson pkgconfig python
+USES=			gettext-runtime gmake meson pkgconfig python gtk-doc
 GNOME_COMPONENTS=	glib gdkpixbuf intltool introspection
 
 LICENSE=		LGPL21+:primary
@@ -44,11 +43,6 @@ SOVERSION=		4.0.0
 
 post-patch:
 	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl-ns/|http://cdn.docbook.org/release/xsl/|" ${WRKSRC}/meson.build
-
-post-install:
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/libnotify \
-		${STAGEDIR}${PREFIX}/share/doc
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|link_args: libnotify_ldflags|link_args: []|'\

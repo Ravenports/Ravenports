@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtksourceview4
 VERSION=		4.6.0
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	GTK3 syntax highlighting text widget
@@ -15,15 +16,15 @@ DIST_SUBDIR=		gnome3
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			nls
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		vala:single:standard
-			gtk-doc:single:standard
 
-USES=			meson pkgconfig gettext-tools
+USES=			meson pkgconfig gettext-tools gtk-doc
 GNOME_COMPONENTS=	cairo gdkpixbuf gtk3 introspection libxml2
 
 DISTNAME=		gtksourceview-4.6.0
@@ -36,6 +37,7 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/gtksourceview/gtksourceview.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11-toolkits/gtksourceview4
+GTKDOC_OUTPUT_BASEDIR=	gtksourceview-4.0
 MESON_ARGS=		-Dglade_catalog=false
 			-Dinstall_tests=false
 			-Dgir=true
@@ -43,12 +45,6 @@ MESON_ARGS=		-Dglade_catalog=false
 			-Dgtk_doc=true
 
 INSTALL_REQ_TOOLCHAIN=	yes
-
-post-install:
-	${MKDIR} ${STAGEDIR}${STD_DOCDIR:H}
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/gtksourceview-4.0 \
-		${STAGEDIR}${STD_DOCDIR}
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
 [FILE:283:descriptions/desc.primary]
 GtkSourceView is a portable C library that extends the standard GTK+
@@ -62,7 +58,7 @@ source code editor.
 4c13e30ab2e602abdc56f55d35f43c1142a79b1cd77aa8839d2fc85e966d9a85      1165940 gnome3/gtksourceview-4.6.0.tar.xz
 
 
-[FILE:7743:manifests/plist.primary]
+[FILE:3845:manifests/plist.primary]
 include/gtksourceview-4/gtksourceview/
  gtksource-enumtypes.h
  gtksource.h
@@ -288,6 +284,12 @@ share/gtksourceview-4/styles/
  solarized-light.xml
  styles.rng
  tango.xml
+share/vala/vapi/
+ gtksourceview-4.deps
+ gtksourceview-4.vapi
+
+
+[FILE:3898:manifests/plist.nls]
 share/locale/ar/LC_MESSAGES/gtksourceview-4.mo
 share/locale/as/LC_MESSAGES/gtksourceview-4.mo
 share/locale/ast/LC_MESSAGES/gtksourceview-4.mo
@@ -370,9 +372,6 @@ share/locale/xh/LC_MESSAGES/gtksourceview-4.mo
 share/locale/zh_CN/LC_MESSAGES/gtksourceview-4.mo
 share/locale/zh_HK/LC_MESSAGES/gtksourceview-4.mo
 share/locale/zh_TW/LC_MESSAGES/gtksourceview-4.mo
-share/vala/vapi/
- gtksourceview-4.deps
- gtksourceview-4.vapi
 
 
 [FILE:2106:manifests/plist.docs]

@@ -15,13 +15,13 @@ DIST_SUBDIR=		gnome3
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			nls
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		gtk-doc:single:standard
-			gperf:single:standard
+BUILD_DEPENDS=		gperf:primary:standard
 BUILDRUN_DEPENDS=	libsoup:primary:standard
 			libyaml:single:standard
 			libuuid:single:standard
@@ -32,6 +32,7 @@ BUILDRUN_DEPENDS=	libsoup:primary:standard
 			gcab:primary:standard
 
 USES=			gettext-tools gmake libtool pkgconfig sqlite meson
+			gtk-doc
 GNOME_COMPONENTS=	gtk3 introspection gdkpixbuf intltool pango
 
 LICENSE=		LGPL21+:primary
@@ -53,12 +54,6 @@ post-patch:
 	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net|http://cdn.docbook.org|" \
 		${WRKSRC}/data/meson.build
 
-post-install:
-	${MKDIR} ${STAGEDIR}${STD_DOCDIR:H}
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/appstream-glib \
-		${STAGEDIR}${STD_DOCDIR:H}
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
-
 [FILE:97:descriptions/desc.primary]
 This library provides objects and helper methods to help reading and
 writing AppStream metadata.
@@ -68,7 +63,7 @@ writing AppStream metadata.
 7ca7e91d4accefa1c0d2c6e310cb3fe2686c017810e23b3f82d9f5724345e549      2245372 gnome3/appstream-glib-0.7.17.tar.xz
 
 
-[FILE:2660:manifests/plist.primary]
+[FILE:1261:manifests/plist.primary]
 bin/
  appstream-builder
  appstream-compose
@@ -131,6 +126,13 @@ share/gir-1.0/AppStreamGlib-1.0.gir
 share/installed-tests/appstream-glib/
  appdata-validate.test
  destdir-check.test
+share/man/man1/
+ appstream-builder.1.gz
+ appstream-compose.1.gz
+ appstream-util.1.gz
+
+
+[FILE:1399:manifests/plist.nls]
 share/locale/ca/LC_MESSAGES/appstream-glib.mo
 share/locale/cs/LC_MESSAGES/appstream-glib.mo
 share/locale/da/LC_MESSAGES/appstream-glib.mo
@@ -161,10 +163,6 @@ share/locale/tr/LC_MESSAGES/appstream-glib.mo
 share/locale/uk/LC_MESSAGES/appstream-glib.mo
 share/locale/zh_CN/LC_MESSAGES/appstream-glib.mo
 share/locale/zh_TW/LC_MESSAGES/appstream-glib.mo
-share/man/man1/
- appstream-builder.1.gz
- appstream-compose.1.gz
- appstream-util.1.gz
 
 
 [FILE:794:manifests/plist.docs]

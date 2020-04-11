@@ -2,6 +2,7 @@
 
 NAMEBASE=		emacs
 VERSION=		26.3
+REVISION=		1
 KEYWORDS=		editors
 VARIANTS=		standard desktop
 SDESC[desktop]=		GNU Emacs text editor with X11 support
@@ -168,7 +169,6 @@ VAR_OPSYS[dragonfly]=	VAR1=--with-file-notification=kqueue
 
 post-patch:
 	${RM} ${WRKSRC}/doc/man/ctags.1
-	${REINPLACE_CMD} -e 's|apple-darwin|raven-darwin|g' ${WRKSRC}/configure
 
 post-patch-X11GTK-OFF:
 	${REINPLACE_CMD} -i'' -e 's/^Terminal=.*$$/Terminal=true/' \
@@ -4215,18 +4215,51 @@ share/metainfo/emacs.appdata.xml
  	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
 
 
-[FILE:422:patches/patch-configure]
---- configure.orig	2019-04-11 20:47:05 UTC
+[FILE:1512:patches/patch-configure]
+--- configure.orig	2019-08-21 22:43:48 UTC
 +++ configure
-@@ -17156,7 +17156,7 @@ case "$opsys" in
+@@ -4798,9 +4798,9 @@ case "${canonical}" in
+   ;;
+ 
+   ## Apple Darwin / macOS
+-  *-apple-darwin* )
++  *-raven-darwin* )
+     case "${canonical}" in
+-      *-apple-darwin[0-9].*) unported=yes ;;
++      *-raven-darwin[0-9].*) unported=yes ;;
+       i[3456]86-* | x86_64-* )  ;;
+       * )            unported=yes ;;
+     esac
+@@ -17175,9 +17175,9 @@ case "$opsys" in
    ##  The ncurses library has been moved out of the System framework in
    ##  Mac OS X 10.2.  So if configure detects it, set the command-line
    ##  option to use it.
 -  darwin) LIBS_TERMCAP="-lncurses" ;;
 +  darwin) LIBS_TERMCAP="-lncurses -ltinfo" ;;
  
-   gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
+-  gnu*) test -z "$LIBS_TERMCAP" && LIBS_TERMCAP="-lncurses" ;;
++  gnu*) LIBS_TERMCAP="-lncurses -ltinfo" ;;
  
+   freebsd)
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether FreeBSD is new enough to use terminfo" >&5
+@@ -17213,7 +17213,7 @@ fi
+ $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
+ 
+     if test $emacs_cv_freebsd_terminfo = yes; then
+-      LIBS_TERMCAP="-lncurses"
++      LIBS_TERMCAP="-lncurses -ltinfo"
+     else
+       TERMINFO=no
+       LIBS_TERMCAP="-ltermcap"
+@@ -17232,7 +17232,7 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&
+     fi
+     ;;
+ 
+-  openbsd | dragonfly) LIBS_TERMCAP="-lncurses" ;;
++  openbsd | dragonfly) LIBS_TERMCAP="-lncurses -ltinfo" ;;
+ 
+   ## hpux: Make sure we get select from libc rather than from libcurses
+   ##  because libcurses on HPUX 10.10 has a broken version of select.
 
 
 [FILE:466:patches/patch-lib-src_Makefile.in]
