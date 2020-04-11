@@ -2,9 +2,9 @@
 
 NAMEBASE=		diffutils
 VERSION=		3.7
+REVISION=		1
 KEYWORDS=		textproc
-VARIANTS=		standard nls noprefix
-SDESC[nls]=		GNU diff utilities with native language support
+VARIANTS=		standard noprefix
 SDESC[noprefix]=	GNU diff utilities with unprefixed program names
 SDESC[standard]=	GNU diff utilities
 HOMEPAGE=		http://www.gnu.org/software/diffutils/diffutils.html
@@ -14,28 +14,35 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/diffutils
 DISTFILE[1]=		diffutils-3.7.tar.xz:main
 DF_INDEX=		1
-SPKGS[nls]=		single
-SPKGS[noprefix]=	single
-SPKGS[standard]=	single
+SPKGS[noprefix]=	complete
+			primary
+			nls
+SPKGS[standard]=	complete
+			primary
+			nls
 
-OPTIONS_AVAILABLE=	NLS NOPREFIX
+OPTIONS_AVAILABLE=	NOPREFIX
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON NOPREFIX=OFF
-VOPTS[noprefix]=	NLS=ON NOPREFIX=ON
+VOPTS[noprefix]=	NOPREFIX=ON
 
 BUILD_DEPENDS=		libsigsegv:static:standard
 			libiconv:shared:standard
 
-USES=			charsetfix
+USES=			charsetfix gettext-runtime
 
-INFO=			single:diffutils
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"GDIFF_MAIN"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/diff.c
+LICENSE_SCHEME=		solo
+
+INFO=			primary:diffutils
 FPC_EQUIVALENT=		textproc/diffutils
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-
-[NLS].CONFIGURE_ENABLE_BOTH=		nls
-[NLS].USES_ON=				gettext-runtime
+CONFIGURE_ARGS=		--enable-nls
 
 [NOPREFIX].DESCRIPTION=			Build without prefixing all programs with "g"
 [NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
@@ -44,7 +51,7 @@ post-patch:
 	${REINPLACE_CMD} -e '/^mkdir/s:@mkdir_p@:${MKDIR}:' \
 		${WRKSRC}/po/Makefile.in.in
 
-[FILE:410:descriptions/desc.single]
+[FILE:410:descriptions/desc.primary]
 The Free Software Foundation's "diff" utilities, including "diff",
 "diff3", "sdiff", and "cmp".
 
@@ -60,7 +67,7 @@ will refer to these utilities without the `g' prefix.
 b3a7a6221c3dc916085f0d205abf6b8e1ba443d4dd965118da364a1dc1cb3a26      1448828 diffutils-3.7.tar.xz
 
 
-[FILE:99:manifests/plist.single.standard]
+[FILE:99:manifests/plist.primary.standard]
 bin/
  gcmp
  gdiff
@@ -73,12 +80,8 @@ share/man/man1/
  gsdiff.1.gz
 
 
-[FILE:1420:manifests/plist.single.nls]
-bin/
- gcmp
- gdiff
- gdiff3
- gsdiff
+[FILE:1403:manifests/plist.nls]
+share/locale/bg/LC_MESSAGES/diffutils.mo
 share/locale/ca/LC_MESSAGES/diffutils.mo
 share/locale/cs/LC_MESSAGES/diffutils.mo
 share/locale/da/LC_MESSAGES/diffutils.mo
@@ -101,6 +104,7 @@ share/locale/ms/LC_MESSAGES/diffutils.mo
 share/locale/nb/LC_MESSAGES/diffutils.mo
 share/locale/nl/LC_MESSAGES/diffutils.mo
 share/locale/pl/LC_MESSAGES/diffutils.mo
+share/locale/pt/LC_MESSAGES/diffutils.mo
 share/locale/pt_BR/LC_MESSAGES/diffutils.mo
 share/locale/ro/LC_MESSAGES/diffutils.mo
 share/locale/ru/LC_MESSAGES/diffutils.mo
@@ -111,14 +115,9 @@ share/locale/uk/LC_MESSAGES/diffutils.mo
 share/locale/vi/LC_MESSAGES/diffutils.mo
 share/locale/zh_CN/LC_MESSAGES/diffutils.mo
 share/locale/zh_TW/LC_MESSAGES/diffutils.mo
-share/man/man1/
- gcmp.1.gz
- gdiff.1.gz
- gdiff3.1.gz
- gsdiff.1.gz
 
 
-[FILE:91:manifests/plist.single.noprefix]
+[FILE:91:manifests/plist.primary.noprefix]
 bin/
  cmp
  diff

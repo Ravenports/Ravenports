@@ -137,13 +137,13 @@ LIBXSLT_PYTHON_REVISION=	0
 # ruby
 # ------------------------------------------------------------------------
 
-RUBY_2.5_REVISION=		1
+RUBY_2.5_REVISION=		2
 RUBY_2.5_PATCHLEVEL=		0
 
-RUBY_2.6_REVISION=		1
+RUBY_2.6_REVISION=		2
 RUBY_2.6_PATCHLEVEL=		0
 
-RUBY_2.7_REVISION=		0
+RUBY_2.7_REVISION=		1
 RUBY_2.7_PATCHLEVEL=		0
 
 # ------------------------------------------------------------------------

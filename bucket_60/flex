@@ -2,9 +2,9 @@
 
 NAMEBASE=		flex
 VERSION=		2.6.4
+REVISION=		1
 KEYWORDS=		textproc
-VARIANTS=		standard nls
-SDESC[nls]=		Fast lexical generator with native lang support
+VARIANTS=		standard
 SDESC[standard]=	Fast lexical analyzer generator
 HOMEPAGE=		http://flex.sourceforge.net/
 CONTACT=		nobody
@@ -13,19 +13,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/westes/flex/releases/download/v2.6.4/
 DISTFILE[1]=		flex-2.6.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[nls]=		primary
 SPKGS[standard]=	complete
 			primary
 			examples
+			nls
 
-OPTIONS_AVAILABLE=	NLS
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON
 
 BUILD_DEPENDS=		help2man:single:standard
 BUILDRUN_DEPENDS=	m4:primary:standard
 
-USES=			bison gmake libtool
+USES=			bison gmake libtool gettext-runtime
 
 LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
@@ -38,20 +37,15 @@ INFO_SUBDIR=		.
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--includedir={{PREFIX}}/include/flex
 			--disable-shared
+			--enable-nls
 CONFIGURE_ENV=		M4={{LOCALBASE}}/bin/gm4
 
 INSTALL_TARGET=		install-strip
-
-[NLS].CONFIGURE_ENABLE_BOTH=		nls
-[NLS].USES_ON=				gettext-runtime
 
 post-patch:
 	${REINPLACE_CMD} -Ee 's/tests//' \
 		-e '/mode=compile ..CC/s/\\$$/-fPIC -DPIC &/' \
 		${WRKSRC}/Makefile.in
-
-post-install-NLS-ON:
-	${RM} -r ${STAGEDIR}${STD_EXAMPLESDIR}
 
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
@@ -87,12 +81,7 @@ lib/libfl.a
 share/man/man1/flex.1.gz
 
 
-[FILE:932:manifests/plist.primary.nls]
-bin/
- flex
- flex++
-include/flex/FlexLexer.h
-lib/libfl.a
+[FILE:851:manifests/plist.nls]
 share/locale/ca/LC_MESSAGES/flex.mo
 share/locale/da/LC_MESSAGES/flex.mo
 share/locale/de/LC_MESSAGES/flex.mo
@@ -116,5 +105,4 @@ share/locale/tr/LC_MESSAGES/flex.mo
 share/locale/vi/LC_MESSAGES/flex.mo
 share/locale/zh_CN/LC_MESSAGES/flex.mo
 share/locale/zh_TW/LC_MESSAGES/flex.mo
-share/man/man1/flex.1.gz
 

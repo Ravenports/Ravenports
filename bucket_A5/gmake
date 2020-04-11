@@ -2,9 +2,9 @@
 
 NAMEBASE=		gmake
 VERSION=		4.3
+REVISION=		1
 KEYWORDS=		devel
-VARIANTS=		standard nls noprefix
-SDESC[nls]=		GNU make with native language support
+VARIANTS=		standard noprefix
 SDESC[noprefix]=	GNU make with unprefixed program name
 SDESC[standard]=	GNU variant of 'make' utility
 HOMEPAGE=		https://www.gnu.org/software/make/
@@ -14,16 +14,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/make
 DISTFILE[1]=		make-4.3.tar.gz:main
 DF_INDEX=		1
-SPKGS[nls]=		single
-SPKGS[noprefix]=	single
-SPKGS[standard]=	single
+SPKGS[noprefix]=	complete
+			single
+			nls
+SPKGS[standard]=	complete
+			single
+			nls
 
-OPTIONS_AVAILABLE=	NLS NOPREFIX
+OPTIONS_AVAILABLE=	NOPREFIX
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON NOPREFIX=OFF
-VOPTS[noprefix]=	NLS=ON NOPREFIX=ON
+VOPTS[noprefix]=	NOPREFIX=ON
 
-USES=			cpe
+USES=			cpe gettext-runtime
 
 DISTNAME=		make-4.3
 
@@ -41,11 +43,9 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-guile
-
-[NLS].CONFIGURE_ARGS_ON=		{{ICONV_CONFIGURE_ARG}}
-					--with-libintl-prefix={{LOCALBASE}}
-[NLS].CONFIGURE_ENABLE_BOTH=		nls
-[NLS].USES_ON=				gettext-runtime
+			--enable-nls
+			--with-libintl-prefix={{LOCALBASE}}
+			{{ICONV_CONFIGURE_ARG}}
 
 [NOPREFIX].DESCRIPTION=			Build without prefixing program with "g"
 [NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
@@ -60,35 +60,42 @@ of the utility make(1).
 e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19      2317073 make-4.3.tar.gz
 
 
-[FILE:1210:manifests/plist.single.standard]
-%%NLS-ON%%share/locale/be/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/cs/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/da/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/de/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/es/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/fi/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/fr/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/ga/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/gl/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/he/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/hr/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/id/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/it/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/ja/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/ko/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/lt/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/nl/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/pl/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/pt_BR/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/ru/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/sv/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/tr/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/uk/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/vi/LC_MESSAGES/make.mo
-%%NLS-ON%%share/locale/zh_CN/LC_MESSAGES/make.mo
+[FILE:54:manifests/plist.single.standard]
 bin/gmake
 include/gnumake.h
 share/man/man1/gmake.1.gz
+
+
+[FILE:1053:manifests/plist.nls]
+share/locale/be/LC_MESSAGES/make.mo
+share/locale/bg/LC_MESSAGES/make.mo
+share/locale/cs/LC_MESSAGES/make.mo
+share/locale/da/LC_MESSAGES/make.mo
+share/locale/de/LC_MESSAGES/make.mo
+share/locale/es/LC_MESSAGES/make.mo
+share/locale/fi/LC_MESSAGES/make.mo
+share/locale/fr/LC_MESSAGES/make.mo
+share/locale/ga/LC_MESSAGES/make.mo
+share/locale/gl/LC_MESSAGES/make.mo
+share/locale/he/LC_MESSAGES/make.mo
+share/locale/hr/LC_MESSAGES/make.mo
+share/locale/id/LC_MESSAGES/make.mo
+share/locale/it/LC_MESSAGES/make.mo
+share/locale/ja/LC_MESSAGES/make.mo
+share/locale/ko/LC_MESSAGES/make.mo
+share/locale/lt/LC_MESSAGES/make.mo
+share/locale/nl/LC_MESSAGES/make.mo
+share/locale/pl/LC_MESSAGES/make.mo
+share/locale/pt/LC_MESSAGES/make.mo
+share/locale/pt_BR/LC_MESSAGES/make.mo
+share/locale/ru/LC_MESSAGES/make.mo
+share/locale/sr/LC_MESSAGES/make.mo
+share/locale/sv/LC_MESSAGES/make.mo
+share/locale/tr/LC_MESSAGES/make.mo
+share/locale/uk/LC_MESSAGES/make.mo
+share/locale/vi/LC_MESSAGES/make.mo
+share/locale/zh_CN/LC_MESSAGES/make.mo
+share/locale/zh_TW/LC_MESSAGES/make.mo
 
 
 [FILE:52:manifests/plist.single.noprefix]

@@ -2,9 +2,9 @@
 
 NAMEBASE=		gnugrep
 VERSION=		3.4
+REVISION=		1
 KEYWORDS=		textproc
-VARIANTS=		standard nls
-SDESC[nls]=		GNU grep with native language support
+VARIANTS=		standard
 SDESC[standard]=	GNU implementation of grep
 HOMEPAGE=		http://www.gnu.org/software/grep/
 CONTACT=		nobody
@@ -13,38 +13,35 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/grep
 DISTFILE[1]=		grep-3.4.tar.xz:main
 DF_INDEX=		1
-SPKGS[nls]=		single
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
-OPTIONS_AVAILABLE=	NLS
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON
 
 BUILD_DEPENDS=		pcre:static:standard
 
-USES=			charsetfix cpe
+USES=			charsetfix cpe gettext-runtime
 
 DISTNAME=		grep-3.4
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^\#ifndef"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/grep.h
 LICENSE_SCHEME=		solo
 
-INFO=			single:grep
+INFO=			primary:grep
 CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		textproc/gnugrep
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-perl-regexp
-
-[NLS].CONFIGURE_ARGS_OFF=		--without-libintl-prefix
-[NLS].CONFIGURE_ARGS_ON=		--with-libintl-prefix={{LOCALBASE}}
-[NLS].CONFIGURE_ENABLE_BOTH=		nls
-[NLS].USES_ON=				gettext-runtime
+			--enable-nls
+			--with-libintl-prefix={{LOCALBASE}}
 
 post-patch:
 	${REINPLACE_CMD} 's:@grep@:${LOCALBASE}/bin/&:' \
@@ -52,11 +49,7 @@ post-patch:
 	${REINPLACE_CMD} 's|mkinstalldirs = .*|mkinstalldirs = ${MKDIR}|g' \
 		${WRKSRC}/po/Makefile.in.in
 
-post-patch-NLS-OFF:
-	${REINPLACE_CMD} '/install-exec-local:/s/install-exec-localcharset//' \
-		${WRKSRC}/lib/Makefile.in
-
-[FILE:474:descriptions/desc.single]
+[FILE:474:descriptions/desc.primary]
 Grep is a command-line utility for searching plain-text data sets for
 lines that match a regular expression. Its name comes from the ed
 command g/re/p (globally search a regular expression and print),
@@ -72,7 +65,7 @@ This package contains the GNU implementation of grep.
 58e6751c41a7c25bfc6e9363a41786cff3ba5709cf11d5ad903cf7cce31cc3fb      1555820 grep-3.4.tar.xz
 
 
-[FILE:76:manifests/plist.single.standard]
+[FILE:76:manifests/plist.primary]
 bin/
  egrep
  fgrep
@@ -83,11 +76,7 @@ share/man/man1/
  grep.1.gz
 
 
-[FILE:1633:manifests/plist.single.nls]
-bin/
- egrep
- fgrep
- grep
+[FILE:1557:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/grep.mo
 share/locale/be/LC_MESSAGES/grep.mo
 share/locale/bg/LC_MESSAGES/grep.mo
@@ -131,8 +120,4 @@ share/locale/uk/LC_MESSAGES/grep.mo
 share/locale/vi/LC_MESSAGES/grep.mo
 share/locale/zh_CN/LC_MESSAGES/grep.mo
 share/locale/zh_TW/LC_MESSAGES/grep.mo
-share/man/man1/
- egrep.1.gz
- fgrep.1.gz
- grep.1.gz
 

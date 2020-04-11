@@ -2,10 +2,9 @@
 
 NAMEBASE=		texinfo
 VERSION=		6.7
-REVISION=		1
+REVISION=		2
 KEYWORDS=		print
-VARIANTS=		standard nls
-SDESC[nls]=		GNU Typeset doc system with native lang support
+VARIANTS=		standard
 SDESC[standard]=	Typeset documentation system, multiple formats
 HOMEPAGE=		http://www.gnu.org/software/texinfo/
 CONTACT=		nobody
@@ -19,20 +18,27 @@ DISTFILE[3]=		texinfo.tex-20190924:dports
 DISTFILE[4]=		texi2dvi-20190818:dports
 DIST_SUBDIR=		texinfo/6.7
 DF_INDEX=		1 2 3 4
-SPKGS[nls]=		single
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			single
+			nls
 
-OPTIONS_AVAILABLE=	NLS
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON
 
 BUILD_DEPENDS=		help2man:single:standard
 
 USES=			charsetfix cpe gmake ncurses perl libtool
-			iconv:build
+			iconv:build gettext-runtime
 
 DISTNAME=		texinfo-6.7
 EXTRACT_ONLY=		1
+
+LICENSE=		GPLv3+:single
+LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"INFO_H"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/info/info.h
+LICENSE_SCHEME=		solo
 
 INFO=			single:texinfo
 			single:info-stnd
@@ -42,16 +48,13 @@ FPC_EQUIVALENT=		print/texinfo
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
+CONFIGURE_ARGS=		--enable-nls
 
 MAKE_ARGS=		TEXMF={{LOCALBASE}}/share/texmf
 			PERL={{LOCALBASE}}/bin/perl
 
 INSTALL_TARGET=		install install-tex
-INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		TEXMF=share/texmf
-
-[NLS].CONFIGURE_ENABLE_BOTH=		nls
-[NLS].USES_ON=				gettext-runtime
 
 post-patch:
 	${CHMOD} 755 ${WRKSRC}/build-aux/install-sh
@@ -94,72 +97,7 @@ Emacs.
 4dbe65a30713365bb54a5d3f7f876015b88954e35fc83099d2265406e38369a0        59831 texinfo/6.7/texi2dvi-20190818
 
 
-[FILE:7285:manifests/plist.single]
-%%NLS-ON%%share/locale/ca.us-ascii/LC_MESSAGES/texinfo_document.mo
-%%NLS-ON%%share/locale/ca/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/cs/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/da/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/de.us-ascii/LC_MESSAGES/texinfo_document.mo
-%%NLS-ON%%share/locale/de/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/el/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/eo/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/es/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/fi/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/fr/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/he/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/hr/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/hu/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/id/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/it/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/ja/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/nb/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/nl/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/no.us-ascii/LC_MESSAGES/texinfo_document.mo
-%%NLS-ON%%share/locale/pl/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/pt.us-ascii/LC_MESSAGES/texinfo_document.mo
-%%NLS-ON%%share/locale/pt/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/pt_BR.us-ascii/LC_MESSAGES/texinfo_document.mo
-%%NLS-ON%%share/locale/pt_BR/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/ro/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/ru/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/rw/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/sl/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/sv/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/tr/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/uk/LC_MESSAGES/
- texinfo.mo
- texinfo_document.mo
-%%NLS-ON%%share/locale/vi/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/zh_CN/LC_MESSAGES/texinfo.mo
-%%NLS-ON%%share/locale/zh_TW/LC_MESSAGES/texinfo.mo
+[FILE:5123:manifests/plist.single]
 bin/
  info
  install-info
@@ -586,6 +524,74 @@ share/texmf/tex/texinfo/
  txi-sr.tex
  txi-tr.tex
  txi-uk.tex
+
+
+[FILE:1812:manifests/plist.nls]
+share/locale/ca.us-ascii/LC_MESSAGES/texinfo_document.mo
+share/locale/ca/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/cs/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/da/LC_MESSAGES/texinfo.mo
+share/locale/de.us-ascii/LC_MESSAGES/texinfo_document.mo
+share/locale/de/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/el/LC_MESSAGES/texinfo.mo
+share/locale/eo/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/es/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/fi/LC_MESSAGES/texinfo.mo
+share/locale/fr/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/he/LC_MESSAGES/texinfo.mo
+share/locale/hr/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/hu/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/id/LC_MESSAGES/texinfo.mo
+share/locale/it/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/ja/LC_MESSAGES/texinfo.mo
+share/locale/nb/LC_MESSAGES/texinfo.mo
+share/locale/nl/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/no.us-ascii/LC_MESSAGES/texinfo_document.mo
+share/locale/pl/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/pt.us-ascii/LC_MESSAGES/texinfo_document.mo
+share/locale/pt/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/pt_BR.us-ascii/LC_MESSAGES/texinfo_document.mo
+share/locale/pt_BR/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/ro/LC_MESSAGES/texinfo.mo
+share/locale/ru/LC_MESSAGES/texinfo.mo
+share/locale/rw/LC_MESSAGES/texinfo.mo
+share/locale/sl/LC_MESSAGES/texinfo.mo
+share/locale/sv/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/tr/LC_MESSAGES/texinfo.mo
+share/locale/uk/LC_MESSAGES/
+ texinfo.mo
+ texinfo_document.mo
+share/locale/vi/LC_MESSAGES/texinfo.mo
+share/locale/zh_CN/LC_MESSAGES/texinfo.mo
+share/locale/zh_TW/LC_MESSAGES/texinfo.mo
 
 
 [FILE:871:patches/patch-tp-Texinfo-XS-parsetexi-Parser-5556.pm]

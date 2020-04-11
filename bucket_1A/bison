@@ -2,10 +2,9 @@
 
 NAMEBASE=		bison
 VERSION=		3.5.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
-VARIANTS=		standard nls
-SDESC[nls]=		Parser generator with native language support
+VARIANTS=		standard
 SDESC[standard]=	Yacc-compatible parser generator from FSF
 HOMEPAGE=		https://www.gnu.org/software/bison/
 CONTACT=		nobody
@@ -14,18 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/bison
 DISTFILE[1]=		bison-3.5.4.tar.xz:main
 DF_INDEX=		1
-SPKGS[nls]=		primary
 SPKGS[standard]=	complete
 			primary
+			nls
 			examples
 
-OPTIONS_AVAILABLE=	NLS
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-VOPTS[nls]=		NLS=ON
 
 BUILDRUN_DEPENDS=	m4:primary:standard
 
-USES=			charsetfix perl:build
+USES=			charsetfix perl:build gettext-runtime
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -40,21 +38,17 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-yacc
+			--enable-nsl
 CONFIGURE_ENV=		ac_cv_path_M4={{LOCALBASE}}/bin/gm4
 
 TEST_TARGET=		check
-
-[NLS].CONFIGURE_ENABLE_BOTH=		nls
-[NLS].USES_ON=				gettext-runtime
 
 post-patch:
 	${REINPLACE_CMD} -e 's|$$(docdir)\(/examples\)|$$(datarootdir)\1/bison|' \
 		${WRKSRC}/Makefile.in
 
-post-install-NLS-ON:
-	${RM} -r ${STAGEDIR}${STD_EXAMPLESDIR}
-
 post-install:
+	# no value added
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 post-patch-sunos:
@@ -119,41 +113,7 @@ share/bison/xslt/
 share/man/man1/bison.1.gz
 
 
-[FILE:3504:manifests/plist.primary.nls]
-bin/bison
-share/aclocal/bison-i18n.m4
-share/bison/
- README.md
- bison-default.css
-share/bison/m4sugar/
- foreach.m4
- m4sugar.m4
-share/bison/skeletons/
- README-D.txt
- bison.m4
- c++-skel.m4
- c++.m4
- c-like.m4
- c-skel.m4
- c.m4
- d-skel.m4
- d.m4
- glr.c
- glr.cc
- java-skel.m4
- java.m4
- lalr1.cc
- lalr1.d
- lalr1.java
- location.cc
- stack.hh
- variant.hh
- yacc.c
-share/bison/xslt/
- bison.xsl
- xml2dot.xsl
- xml2text.xsl
- xml2xhtml.xsl
+[FILE:3056:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/bison-gnulib.mo
 share/locale/ast/LC_MESSAGES/bison-runtime.mo
 share/locale/be/LC_MESSAGES/bison-gnulib.mo
@@ -296,5 +256,52 @@ share/locale/zh_TW/LC_MESSAGES/
  bison-gnulib.mo
  bison-runtime.mo
  bison.mo
-share/man/man1/bison.1.gz
+
+
+[FILE:676:manifests/plist.examples]
+share/examples/bison/README.md
+share/examples/bison/c/README.md
+share/examples/bison/c++/
+ Makefile
+ README.md
+ simple.yy
+ variant-11.yy
+ variant.yy
+share/examples/bison/c++/calc++/
+ Makefile
+ README.md
+ calc++.cc
+ driver.cc
+ driver.hh
+ parser.yy
+ scanner.ll
+share/examples/bison/c/calc/
+ Makefile
+ README.md
+ calc.y
+share/examples/bison/c/lexcalc/
+ Makefile
+ README.md
+ parse.y
+ scan.l
+share/examples/bison/c/mfcalc/
+ Makefile
+ calc.h
+ mfcalc.y
+share/examples/bison/c/reccalc/
+ Makefile
+ README.md
+ parse.y
+ scan.l
+share/examples/bison/c/rpcalc/
+ Makefile
+ rpcalc.y
+share/examples/bison/d/
+ Makefile
+ README.md
+ calc.y
+share/examples/bison/java/
+ Calc.y
+ Makefile
+ README.md
 
