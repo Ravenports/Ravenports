@@ -2,7 +2,7 @@
 
 NAMEBASE=		toxic
 VERSION=		0.8.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		net net_im net_p2p
 VARIANTS=		standard
 SDESC[standard]=	Ncurses-based Tox client
@@ -48,10 +48,22 @@ MAKE_ARGS=		ENABLE_PYTHON=1
 CFLAGS=			-I{{NCURSESINC}}
 
 post-patch:
-	${REINPLACE_CMD} -e 's|LIBS = python3|LIBS = python-${PYTHON_VER}|' \
-	${WRKSRC}/cfg/checks/python.mk
-	${REINPLACE_CMD} -e 's|python3|python${PYTHON_VER}|g' \
-	${WRKSRC}/cfg/checks/python.mk
+	if [ "${PYTHON_SUFFIX}" -gt 37 ]; then \
+		${REINPLACE_CMD} \
+		-e 's|LIBS = python3|LIBS = python-${PYTHON_VER}|' \
+		-e 's|python3-config|python${PYTHON_VER}-config --embed|g' \
+		${WRKSRC}/cfg/checks/python.mk ;\
+	else \
+		${REINPLACE_CMD} \
+		-e 's|LIBS = python3|LIBS = python-${PYTHON_VER}|' \
+		-e 's|python3-config|python${PYTHON_VER}-config|g' \
+		${WRKSRC}/cfg/checks/python.mk ;\
+	fi
+	# log the build
+	${REINPLACE_CMD} -e '/@.[(]CC[)]/ s|@||' ${WRKSRC}/Makefile
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/toxic
 
 [FILE:63:descriptions/desc.single]
 Toxic is a Tox-based instant messenging and video chat client.

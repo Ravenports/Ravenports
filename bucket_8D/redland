@@ -2,6 +2,7 @@
 
 NAMEBASE=		redland
 VERSION=		1.0.17
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard bdb mysql pgsql virtuoso
 SDESC[pgsql]=		RDF Application Framework (PostgreSQL backend)
@@ -57,6 +58,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [MYSQL].LDFLAGS_ON=			-L{{LOCALBASE}}/lib/mysql
 [MYSQL].USES_ON=			mysql
 					execinfo
+					ssl
 
 [PGSQL].CONFIGURE_ARGS_OFF=		--with-postgresql=no
 [PGSQL].CONFIGURE_ARGS_ON=		--with-postgresql=yes
@@ -413,4 +415,21 @@ share/man/man1/
  redland-db-upgrade.1.gz
 share/man/man3/redland.3.gz
 share/redland/Redland.i
+
+
+[FILE:415:patches/patch-src_rdf__storage__mysql.c]
+--- src/rdf_storage_mysql.c.orig	2012-12-29 23:01:17 UTC
++++ src/rdf_storage_mysql.c
+@@ -447,7 +447,11 @@ librdf_storage_mysql_get_handle(librdf_s
+ 
+ #ifdef HAVE_MYSQL_OPT_RECONNECT
+   if(1) {
++#if MYSQL_VERSION_ID > 80000
++    bool value=(context->reconnect) ? 1 : 0;
++#else
+     my_bool value=(context->reconnect) ? 1 : 0;
++#endif
+     mysql_options(connection->handle, MYSQL_OPT_RECONNECT, &value);
+   }
+ #endif
 
