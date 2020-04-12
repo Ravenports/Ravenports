@@ -43,6 +43,9 @@ PLIST_SUB=		COMPVER=9.3.0
 			BUVER=2.34
 			GNARL=9
 			PREVGCC=gcc8
+			CTF={{SKIP_CTF:U}}
+
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SKIP_CTF="@comment "
 
 post-install:
 	${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
@@ -63,8 +66,11 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:58908:manifests/plist.single]
+[FILE:58959:manifests/plist.single]
 %%PREVGCC%%
+%%CTF%%include/
+ ctf-api.h
+ ctf.h
 %%EXCLUDE-DARWIN%%%%GCCX%%/%%ASLIB%%/
  libatomic.so.1.2.0
  libcc1.%%SHARED_OBJECT%%.0
@@ -3648,6 +3654,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  gnu-user64.h
  linux-common.h
  linux64.h
+%%ONLY-LINUX%%include/bfd_stdint.h
 %%ONLY-SUNOS%%%%GCCX%%/lib/
  clearcap.map
  libgcc-unwind.map
@@ -3717,8 +3724,6 @@ bin/
 include/
  bfd.h
  bfdlink.h
- ctf-api.h
- ctf.h
  diagnostics.h
  dis-asm.h
  plugin-api.h
