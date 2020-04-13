@@ -4,9 +4,10 @@ NAMEBASE=		findutils
 VERSION=		4.7.0
 REVISION=		1
 KEYWORDS=		misc
-VARIANTS=		standard noprefix
-SDESC[noprefix]=	GNU find utilities with unprefixed program names
-SDESC[standard]=	GNU find utilities (static)
+VARIANTS=		standard noprefix ravensys
+SDESC[ravensys]=	GNU find utilities for raven sysroot (no nls)
+SDESC[noprefix]=	GNU find utilities (standard names)
+SDESC[standard]=	GNU find utilities (prefixed with g)
 HOMEPAGE=		http://www.gnu.org/software/findutils/
 CONTACT=		nobody
 
@@ -14,6 +15,7 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/findutils
 DISTFILE[1]=		findutils-4.7.0.tar.xz:main
 DF_INDEX=		1
+SPKGS[ravensys]=	primary
 SPKGS[noprefix]=	complete
 			primary
 			nls
@@ -21,11 +23,12 @@ SPKGS[standard]=	complete
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	NOPREFIX
+OPTIONS_AVAILABLE=	NOTSTD RAVENSYS
 OPTIONS_STANDARD=	none
-VOPTS[noprefix]=	NOPREFIX=ON
+VOPTS[ravensys]=	NOTSTD=ON RAVENSYS=ON
+VOPTS[noprefix]=	NOTSTD=ON RAVENSYS=OFF
 
-USES=			charsetfix cpe gmake gettext-runtime
+USES=			charsetfix cpe gmake
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -42,12 +45,16 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--localstatedir="/var/db"
-			--enable-nls
 
 MAKE_ARGS=		INSTALL_SCRIPT="{{INSTALL_SCRIPT}}"
 
-[NOPREFIX].DESCRIPTION=			Build without prefixing all programs with "g"
-[NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
+[NOTSTD].DESCRIPTION=			Not the standard variant
+[NOTSTD].CONFIGURE_ARGS_OFF=		--program-prefix=g
+
+[RAVENSYS].DESCRIPTION=			For ravensys-root - built without NLS
+[RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-nls
+[RAVENSYS].CONFIGURE_ARGS_ON=		--disable-nls
+[RAVENSYS].USES_OFF=			gettext-runtime
 
 post-patch-darwin:
 	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
@@ -128,7 +135,7 @@ share/locale/zh_CN/LC_MESSAGES/findutils.mo
 share/locale/zh_TW/LC_MESSAGES/findutils.mo
 
 
-[FILE:147:manifests/plist.primary.noprefix]
+[FILE:147:manifests/plist.primary]
 bin/
  find
  locate

@@ -4,9 +4,10 @@ NAMEBASE=		coreutils
 VERSION=		8.32
 REVISION=		4
 KEYWORDS=		sysutils textproc
-VARIANTS=		standard noprefix
-SDESC[noprefix]=	FSF core utilities with unprefixed program names
-SDESC[standard]=	Free Software Foundation core utilities
+VARIANTS=		standard noprefix ravensys
+SDESC[ravensys]=	FSF core utilities for raven sysroot (no nls)
+SDESC[noprefix]=	FSF core utilities (standard names)
+SDESC[standard]=	FSF core utilities (prefixed with g)
 HOMEPAGE=		http://www.gnu.org/software/coreutils/
 CONTACT=		nobody
 
@@ -14,6 +15,7 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/coreutils
 DISTFILE[1]=		coreutils-8.32.tar.xz:main
 DF_INDEX=		1
+SPKGS[ravensys]=	primary
 SPKGS[noprefix]=	complete
 			primary
 			nls
@@ -21,14 +23,14 @@ SPKGS[standard]=	complete
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	NOPREFIX
+OPTIONS_AVAILABLE=	NOTSTD RAVENSYS
 OPTIONS_STANDARD=	none
-VOPTS[noprefix]=	NOPREFIX=ON
+VOPTS[ravensys]=	NOTSTD=ON RAVENSYS=ON
+VOPTS[noprefix]=	NOTSTD=ON RAVENSYS=OFF
 
 BUILD_DEPENDS=		gmp:static:standard
 
 USES=			cpe gmake iconv:build perl:build charsetfix makeinfo
-			gettext-runtime
 
 LICENSE=		GPLv3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -44,15 +46,19 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-gmp
-			--enable-nls
 CONFIGURE_ENV=		FORCE_UNSAFE_CONFIGURE=1
 
 SINGLE_JOB=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-[NOPREFIX].DESCRIPTION=			Build without prefixing all programs with "g"
-[NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
+[NOTSTD].DESCRIPTION=			Not the standard variant
+[NOTSTD].CONFIGURE_ARGS_OFF=		--program-prefix=g
+
+[RAVENSYS].DESCRIPTION=			For ravensys-root - built without NLS
+[RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-nls
+[RAVENSYS].CONFIGURE_ARGS_ON=		--disable-nls
+[RAVENSYS].USES_OFF=			gettext-runtime
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/g* \
@@ -392,7 +398,7 @@ share/locale/zh_TW/LC_MESSAGES/coreutils.mo
 share/locale/zh_TW/LC_TIME/coreutils.mo
 
 
-[FILE:2023:manifests/plist.primary.noprefix]
+[FILE:2023:manifests/plist.primary]
 bin/
  [
  b2sum

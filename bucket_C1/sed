@@ -4,7 +4,8 @@ NAMEBASE=		sed
 VERSION=		4.8
 REVISION=		1
 KEYWORDS=		textproc
-VARIANTS=		standard
+VARIANTS=		standard ravensys
+SDESC[ravensys]=	GNU stream editor for sysroot (no nls)
 SDESC[standard]=	GNU stream editor
 HOMEPAGE=		http://www.gnu.org/software/sed/sed.html
 CONTACT=		nobody
@@ -13,14 +14,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/sed
 DISTFILE[1]=		sed-4.8.tar.xz:main
 DF_INDEX=		1
+SPKGS[ravensys]=	primary
 SPKGS[standard]=	complete
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	RAVENSYS
 OPTIONS_STANDARD=	none
+VOPTS[ravensys]=	RAVENSYS=ON
 
-USES=			charsetfix gmake gettext-runtime
+USES=			charsetfix gmake
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -34,15 +37,15 @@ FPC_EQUIVALENT=		textproc/gsed
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--enable-nls
+
+[RAVENSYS].DESCRIPTION=			For ravensys-root - built without NLS
+[RAVENSYS].CONFIGURE_ARGS_OFF=		--program-prefix=g
+					--enable-nls
+[RAVENSYS].CONFIGURE_ARGS_ON=		--disable-nls
+[RAVENSYS].USES_OFF=			gettext-runtime
 
 post-patch-darwin:
 	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
-
-post-install:
-	${MV} ${STAGEDIR}${PREFIX}/bin/sed ${STAGEDIR}${PREFIX}/bin/gsed
-	${MV} ${STAGEDIR}${MANPREFIX}/man/man1/sed.1 \
-		${STAGEDIR}${MANPREFIX}/man/man1/gsed.1
 
 do-test:
 	(cd ${WRKSRC}/testsuite && ${MAKE} check)
@@ -62,7 +65,7 @@ utilities without the `g' prefix.
 f79b0cfea71b37a8eeec8490db6c5f7ae7719c35587f21edb0617f370eeff633      1348048 sed-4.8.tar.xz
 
 
-[FILE:34:manifests/plist.primary]
+[FILE:34:manifests/plist.primary.standard]
 bin/gsed
 share/man/man1/gsed.1.gz
 
@@ -107,4 +110,9 @@ share/locale/uk/LC_MESSAGES/sed.mo
 share/locale/vi/LC_MESSAGES/sed.mo
 share/locale/zh_CN/LC_MESSAGES/sed.mo
 share/locale/zh_TW/LC_MESSAGES/sed.mo
+
+
+[FILE:32:manifests/plist.primary.ravensys]
+bin/sed
+share/man/man1/sed.1.gz
 

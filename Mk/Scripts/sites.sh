@@ -585,6 +585,28 @@ expand_GIMP()
     done
 }
 
+expand_CRAN()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##CRAN/}
+    local cluster="\
+    https://cloud.r-project.org \
+    https://stat.ethz.ch/CRAN \
+    http://cran.utstat.utoronto.ca \
+    https://cran.cnr.berkeley.edu \
+    https://cran.csiro.au \
+    https://mirrors.tuna.tsinghua.edu.cn/CRAN \
+    http://camoruco.ing.uc.edu.ve/cran \
+    https://mirror.las.iastate.edu/CRAN \
+    https://cran.ma.imperial.ac.uk \
+    https://cran.gis-lab.info \
+    https://cran.ism.ac.jp"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+
 process_site()
 {
     case "${1}" in
@@ -594,6 +616,7 @@ process_site()
 	APACHE_HTTPD/*)            expand_APACHE_HTTPD "${1}" ;;
 	APACHE_JAKARTA/*)          expand_APACHE_JAKARTA "${1}" ;;
 	CPAN/*)                    expand_CPAN "${1}" ;;
+	CRAN/*)                    expand_CRAN "${1}" ;;
 	CRATES/*)                  expand_CRATES "${1}" ;;
 	DEBIAN/*)                  expand_DEBIAN "${1}" ;;
 	FREELOCAL/*)               expand_FREELOCAL "${1}" ;;

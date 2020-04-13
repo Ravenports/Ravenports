@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		3.0
-REVISION=		5
+REVISION=		6
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -74,27 +74,27 @@ VOPTS[macos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
 
 BUILD_DEPENDS=		nawk:single:standard
 			bzip2:static:standard
-			diffutils:primary:standard
+			diffutils:primary:ravensys
 			libarchive:single:static
 			sha256:single:standard
-			gnugrep:primary:standard
+			gnugrep:primary:ravensys
 			file:single:ravensys
-			findutils:primary:standard
-			flex:primary:standard
+			findutils:primary:ravensys
+			flex:primary:ravensys
 			gzip:single:standard
 			xz:single:static
 			unzip:core:standard
 			m4:primary:noprefix
 			bmake:single:standard
 			bsd-patch:single:standard
-			sed:primary:standard
+			sed:primary:ravensys
 			byacc:single:standard
 			ravensys-uname:single:standard
 			less:single:standard
 			nvi:single:standard
 			mtree:single:standard
-			coreutils:primary:standard
-			binutils:primary:standard
+			coreutils:primary:ravensys
+			binutils:single:ravensys
 			ncurses:primary:static
 			ravensw:single:standard
 			mandoc:single:standard
@@ -1629,7 +1629,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:17847:manifests/plist.single.freebsd_amd64]
+[FILE:18040:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -2913,6 +2913,21 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  watchdog.h
  zlib.h
  zutil.h
+%%BASE%%/usr/include/ufs/ffs/
+ ffs_extern.h
+ fs.h
+ softdep.h
+%%BASE%%/usr/include/ufs/ufs/
+ acl.h
+ dinode.h
+ dir.h
+ dirhash.h
+ extattr.h
+ gjournal.h
+ inode.h
+ quota.h
+ ufs_extern.h
+ ufsmount.h
 %%BASE%%/usr/include/vm/
  _vm_radix.h
  memguard.h
@@ -8849,7 +8864,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:23438:files/Makefile]
+[FILE:23355:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9204,6 +9219,7 @@ headers_FreeBSD_dirs=	arpa \
 			rpc \
 			rpcsvc \
 			sys \
+			ufs \
 			vm \
 			x86 \
 			xlocale \
@@ -9683,21 +9699,18 @@ install:
 		${DESTDIR}${BASE}/usr/lib/pkgconfig/
 .  endif
 .endfor
-.for item in md5 sha256 
+.for item in md5 sha256 cat
 	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
 .endfor
-	cp ${CPA} ${LOCALBASE}/bin/gcat ${DESTDIR}${BASE}/bin/cat
 .for item in m4 bzip2 bunzip2 bzcat bzgrep bzegrep bzfgrep lockf \
 	grep file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
 	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
 	unlzma unxz xz xzcat xzcmp xzdiff xzegrep xzfgrep xzgrep yacc \
-	unzip less mtree bsdcat dupe genpatch portfix patch fetch
+	unzip less mtree bsdcat dupe genpatch portfix patch fetch \
+	sed find xargs cmp diff diff3 sdiff \
+	install wc sort od mknod seq
 	cp ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/
 .endfor
-.  for item in sed find xargs cmp diff diff3 sdiff \
-	install wc sort od mknod seq
-	cp ${CPA} ${LOCALBASE}/bin/g${item} ${DESTDIR}${BASE}/usr/bin/${item}
-.  endfor
 .for item in ${headers_${OPSYS}}
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/include/${item} ${DESTDIR}${BASE}/usr/include/${item}
 .endfor
@@ -9716,7 +9729,8 @@ install:
 	rmdir ${DESTDIR}${BASE}/usr/include/dev/nand
 	rmdir ${DESTDIR}${BASE}/usr/include/dev/powermac_nvram
 .endif
-.for item in nawk/awk objdump/objdump-sysroot less/more bmake/make \
+	cp ${LOCALBASE}/toolchain/bin/objdump ${DESTDIR}${BASE}/usr/bin/objdump-sysroot
+.for item in nawk/awk less/more bmake/make \
 	bsdcpio/cpio bsdtar/tar ravensys-uname/uname nvi/vi
 	cp ${LOCALBASE}/bin/${item:H} ${DESTDIR}${BASE}/usr/bin/${item:T}
 .endfor

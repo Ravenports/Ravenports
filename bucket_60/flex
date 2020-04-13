@@ -2,9 +2,10 @@
 
 NAMEBASE=		flex
 VERSION=		2.6.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc
-VARIANTS=		standard
+VARIANTS=		standard ravensys
+SDESC[ravensys]=	Fast lexical analyzer generator for raven sysroot
 SDESC[standard]=	Fast lexical analyzer generator
 HOMEPAGE=		http://flex.sourceforge.net/
 CONTACT=		nobody
@@ -13,18 +14,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/westes/flex/releases/download/v2.6.4/
 DISTFILE[1]=		flex-2.6.4.tar.gz:main
 DF_INDEX=		1
+SPKGS[ravensys]=	primary
 SPKGS[standard]=	complete
 			primary
 			examples
 			nls
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	RAVENSYS
 OPTIONS_STANDARD=	none
+VOPTS[ravensys]=	RAVENSYS=ON
 
 BUILD_DEPENDS=		help2man:single:standard
 BUILDRUN_DEPENDS=	m4:primary:standard
 
-USES=			bison gmake libtool gettext-runtime
+USES=			bison gmake libtool
 
 LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
@@ -36,22 +39,30 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--includedir={{PREFIX}}/include/flex
-			--disable-shared
-			--enable-nls
 CONFIGURE_ENV=		M4={{LOCALBASE}}/bin/gm4
 
 INSTALL_TARGET=		install-strip
+SOVERSION=		2.0.0
+
+[RAVENSYS].DESCRIPTION=			For ravensys-root - built without NLS
+[RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-nls
+					--enable-shared
+[RAVENSYS].CONFIGURE_ARGS_ON=		--disable-nls
+					--disable-shared
+[RAVENSYS].USES_OFF=			gettext-runtime
 
 post-patch:
 	${REINPLACE_CMD} -Ee 's/tests//' \
 		-e '/mode=compile ..CC/s/\\$$/-fPIC -DPIC &/' \
 		${WRKSRC}/Makefile.in
 
-post-install:
+post-install-RAVENSYS-OFF:
 	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
 	(cd ${WRKSRC}/examples \
 		&& ${COPYTREE_SHARE} . ${STAGEDIR}${STD_EXAMPLESDIR})
 	${RM} ${STAGEDIR}${STD_EXAMPLESDIR}/Makefile.am
+
+post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 [FILE:717:descriptions/desc.primary]
@@ -72,7 +83,11 @@ corresponding C code.
 e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995      1419096 flex-2.6.4.tar.gz
 
 
-[FILE:81:manifests/plist.primary.standard]
+[FILE:158:manifests/plist.primary]
+%%RAVENSYS-OFF%%lib/
+ libfl.so
+ libfl.so.%%SOMAJOR%%
+ libfl.so.%%SOVERSION%%
 bin/
  flex
  flex++
