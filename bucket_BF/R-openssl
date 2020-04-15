@@ -20,13 +20,19 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	R-askpass:single:standard
 
-USES=			cran gmake
+USES=			cran gmake ssl pkgconfig shebangfix
 
 DISTNAME=		openssl
 
+SHEBANG_FILES=		tests/google.dk/generate.bash
 GENERATED=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
+
+post-patch:
+	${REINPLACE_CMD} \
+	-e 's|PKG_LIBS=[$$]{PKGCONFIG_LIBS}|PKG_LIBS="$${PKGCONFIG_LIBS} -Wl,-rpath,${OPENSSLRPATH}"|' \
+	${WRKSRC}/configure
 
 [FILE:721:descriptions/desc.single]
 Bindings to OpenSSL libssl and libcrypto, plus custom SSH key parsers.

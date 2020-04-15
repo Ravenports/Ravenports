@@ -47,7 +47,7 @@ do-install:
 	fi
 .  endif
 
-	${FIND} ${STAGEDIR}${PREFIX} -type d -empty -delete
+	@${FIND} ${STAGEDIR}${PREFIX} -type d -empty -delete
 .endif
 
 
