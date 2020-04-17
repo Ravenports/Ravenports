@@ -55,6 +55,7 @@ LICENSE_FILE=		LGPL3+:{{WRKSRC}}/COPYING.LGPLv3
 LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		multimedia/ffmpeg
+SHEBANG_ADD_SH=		ffbuild/libversion.sh
 SHEBANG_FILES=		doc/texi2pod.pl
 
 MUST_CONFIGURE=		yes
@@ -440,7 +441,7 @@ share/ffmpeg/examples/
 
 
 [FILE:403:patches/patch-configure]
---- configure.orig	2019-08-05 21:11:40 UTC
+--- configure.orig	2019-12-31 21:35:22 UTC
 +++ configure
 @@ -3667,13 +3667,7 @@ target_os_default=$(tolower $(uname -s))
  host_os=$target_os_default
@@ -473,21 +474,10 @@ share/ffmpeg/examples/
  	$(Q)mkdir -p "$(MANDIR)/man1"
 
 
-[FILE:199:patches/patch-ffbuild_libversion.sh]
---- ffbuild/libversion.sh.orig	2019-07-08 17:45:25 UTC
-+++ ffbuild/libversion.sh
-@@ -1,3 +1,5 @@
-+#!/bin/sh
-+
- toupper(){
-     echo "$@" | tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ
- }
-
-
 [FILE:1842:patches/patch-libavformat_rtsp.c]
---- libavformat/rtsp.c.orig	2019-08-05 20:52:21 UTC
+--- libavformat/rtsp.c.orig	2019-12-31 21:35:30 UTC
 +++ libavformat/rtsp.c
-@@ -1625,7 +1625,12 @@ int ff_rtsp_make_setup_request(AVFormatC
+@@ -1628,7 +1628,12 @@ int ff_rtsp_make_setup_request(AVFormatC
              }
              if (ttl > 0)
                  snprintf(optbuf, sizeof(optbuf), "?ttl=%d", ttl);
@@ -501,7 +491,7 @@ share/ffmpeg/examples/
                          namebuf, sizeof(namebuf), NULL, 0, NI_NUMERICHOST);
              ff_url_join(url, sizeof(url), "rtp", NULL, namebuf,
                          port, "%s", optbuf);
-@@ -1852,8 +1857,13 @@ redirect:
+@@ -1855,8 +1860,13 @@ redirect:
          goto fail;
      }
      if (!getpeername(tcp_fd, (struct sockaddr*) &peer, &peer_len)) {
@@ -517,7 +507,7 @@ share/ffmpeg/examples/
      }
  
      /* request options supported by the server; this also detects server
-@@ -2366,7 +2376,11 @@ static int sdp_read_header(AVFormatConte
+@@ -2369,7 +2379,11 @@ static int sdp_read_header(AVFormatConte
              AVDictionary *opts = map_to_opts(rt);
  
              err = getnameinfo((struct sockaddr*) &rtsp_st->sdp_ip,
@@ -532,7 +522,7 @@ share/ffmpeg/examples/
 
 
 [FILE:331:patches/patch-libavutil_common.h]
---- libavutil/common.h.orig	2019-07-08 17:45:26 UTC
+--- libavutil/common.h.orig	2019-12-31 21:35:24 UTC
 +++ libavutil/common.h
 @@ -50,6 +50,10 @@
  #   define AV_NE(be, le) (le)
