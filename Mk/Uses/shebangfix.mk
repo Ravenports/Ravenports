@@ -37,7 +37,7 @@
 .if !defined(_INCLUDE_USES_SHEBANGFIX_MK)
 _INCLUDE_USES_SHEBANGFIX_MK=	yes
 
-SHEBANG_LANG+=	bash java ksh perl php python ruby tcl tk lua
+SHEBANG_LANG+=	bash java ksh perl php python ruby tcl tk lua r
 
 .  if ${USES:Mlua*}
 SHEBANG_NEW_LUA?=	${LOCALBASE}/bin/${LUA_CMD}
