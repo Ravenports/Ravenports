@@ -2,11 +2,11 @@
 
 NAMEBASE=		python-pep8
 VERSION=		1.7.1
-KEYWORDS=		python devel
-VARIANTS=		py27 py38 py37
-SDESC[py37]=		Python style guide checker (PY 37)
-SDESC[py38]=		Python style guide checker (PY 38)
-SDESC[py27]=		Python style guide checker (PY 27)
+KEYWORDS=		python
+VARIANTS=		py38 py37 py27
+SDESC[py37]=		Python style guide checker (PY37)
+SDESC[py38]=		Python style guide checker (PY38)
+SDESC[py27]=		Python style guide checker (PY27)
 HOMEPAGE=		http://pep8.readthedocs.org/
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -18,11 +18,11 @@ SPKGS[py37]=		single
 SPKGS[py38]=		single
 SPKGS[py27]=		single
 
-OPTIONS_AVAILABLE=	PY27 PY38 PY37
+OPTIONS_AVAILABLE=	PY38 PY37 PY27
 OPTIONS_STANDARD=	none
-VOPTS[py37]=		PY27=OFF PY38=OFF PY37=ON
-VOPTS[py38]=		PY27=OFF PY38=ON PY37=OFF
-VOPTS[py27]=		PY27=ON PY38=OFF PY37=OFF
+VOPTS[py37]=		PY38=OFF PY37=ON PY27=OFF
+VOPTS[py38]=		PY38=ON PY37=OFF PY27=OFF
+VOPTS[py27]=		PY38=OFF PY37=OFF PY27=ON
 
 DISTNAME=		pep8-1.7.1
 
@@ -34,99 +34,20 @@ GENERATED=		yes
 
 [PY27].USES_ON=				python:py27
 
-[FILE:2721:descriptions/desc.single]
+[FILE:2241:descriptions/desc.single]
 pep8 - Python style guide checker
 =================================
 
 pep8 is a tool to check your Python code against some of the style
 conventions in `PEP 8`_.
 
-.. _PEP 8: http://www.python.org/dev/peps/pep-0008/
-
-
-Features
---------
-
-* Plugin architecture: Adding new checks is easy.
-
-* Parseable output: Jump to error location in your editor.
-
-* Small: Just one Python file, requires only stdlib. You can use just
-  the pep8.py file for this purpose.
-
-* Comes with a comprehensive test suite.
-
-Installation
-------------
-
-You can install, upgrade, uninstall pep8.py with these commands::
-
-  $ pip install pep8
-  $ pip install --upgrade pep8
-  $ pip uninstall pep8
-
-There's also a package for Debian/Ubuntu, but it's not always the
-latest version.
-
-Example usage and output
-------------------------
-
-::
-
-  $ pep8 --first optparse.py
-  optparse.py:69:11: E401 multiple imports on one line
-  optparse.py:77:1: E302 expected 2 blank lines, found 1
-  optparse.py:88:5: E301 expected 1 blank line, found 0
-  optparse.py:222:34: W602 deprecated form of raising exception
-  optparse.py:347:31: E211 whitespace before '('
-  optparse.py:357:17: E201 whitespace after '{'
-  optparse.py:472:29: E221 multiple spaces before operator
-  optparse.py:544:21: W601 .has_key() is deprecated, use 'in'
-
-You can also make pep8.py show the source code for each error, and
-even the relevant text from PEP 8::
-
-  $ pep8 --show-source --show-pep8 testsuite/E40.py
-  testsuite/E40.py:2:10: E401 multiple imports on one line
-  import os, sys
-           ^
-      Imports should usually be on separate lines.
-
-      Okay: import os\nimport sys
-      E401: import sys, os
-
-
-Or you can display how often each error was found::
-
-  $ pep8 --statistics -qq Python-2.5/Lib
-  232     E201 whitespace after '['
-  599     E202 whitespace before ')'
-  631     E203 whitespace before ','
-  842     E211 whitespace before '('
-  2531    E221 multiple spaces before operator
-  4473    E301 expected 1 blank line, found 0
-  4006    E302 expected 2 blank lines, found 1
-  165     E303 too many blank lines (4)
-  325     E401 multiple imports on one line
-  3615    E501 line too long (82 characters)
-  612     W601 .has_key() is deprecated, use 'in'
-  1188    W602 deprecated form of raising exception
-
-Links
------
-
-.. image:: https://api.travis-ci.org/PyCQA/pep8.png?branch=master
-   :target: https://travis-ci.org/PyCQA/pep8
    :alt: Build status
 
-.. image:: https://pypip.in/wheel/pep8/badge.png?branch=master
-   :target: https://pypi.python.org/pypi/pep8
    :alt: Wheel Status
 
-* `Read the documentation <http://pep8.readthedocs.org/>`_
+* [Read the documentation]_
 
-* `Fork me on GitHub <http://github.com/PyCQA/pep8>`_
-
+* [Fork me on GitHub]_
 
 Changelog
 =========
@@ -135,6 +56,85 @@ Changelog
 ------------------
 
 Changes:
+
+* Prominently note via warning message that the tool is no longer released
+as
+  pep8 and will only be fixed in the pycodestyle package
+
+1.7.0 (2016-01-12)
+------------------
+
+Announcements:
+
+* Repository moved to PyCQA Organization on GitHub:
+  https://github.com/pycqa/pep8
+
+Changes:
+
+* Reverted the fix in #368, "options passed on command line are only ones
+  accepted" feature. This has many unintended consequences in pep8 and
+flake8
+  and needs to be reworked when I have more time.
+* Added support for Python 3.5. (Issue #420 & #459)
+* Added support for multi-line config_file option parsing. (Issue #429)
+* Improved parameter parsing. (Issues #420 & #456)
+
+Bugs:
+
+* Fixed BytesWarning on Python 3. (Issue #459)
+
+1.6.2 (2015-02-15)
+------------------
+
+Changes:
+
+* Added check for breaking around a binary operator. (Issue #197, Pull
+#305)
+
+Bugs:
+
+* Restored config_file parameter in process_options(). (Issue #380)
+
+1.6.1 (2015-02-08)
+------------------
+
+Changes:
+
+* Assign variables before referenced. (Issue #287)
+
+Bugs:
+
+* Exception thrown due to unassigned ``local_dir`` variable. (Issue #377)
+
+1.6.0 (2015-02-06)
+------------------
+
+News:
+
+* Ian Lee <ianlee1521@gmail.com> joined the project as a maintainer.
+
+Changes:
+
+* Report E731 for lambda assignment. (Issue #277)
+
+* Report E704 for one-liner def instead of E701.
+  Do not report this error in the default configuration. (Issue #277)
+
+* Replace codes E111, E112 and E113 with codes E114, E115 and E116
+  for bad indentation of comments. (Issue #274)
+
+* Report E266 instead of E265 when the block comment starts with
+  multiple ``#``. (Issue #270)
+
+* Report E402 for import statements not at the top of the file. (Issue
+#264)
+
+* Do not enforce whitespaces around ``**`` operator. (Issue #292)
+
+* Strip whitespace from around paths during normalization. (Issue #339 /
+#343)
+
+* Update ``--format`` documentation. (Issue #198 / Pull Request #310)
 
 
 [FILE:96:distinfo]

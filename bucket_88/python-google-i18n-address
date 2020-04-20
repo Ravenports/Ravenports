@@ -2,10 +2,10 @@
 
 NAMEBASE=		python-google-i18n-address
 VERSION=		2.3.5
-KEYWORDS=		python devel
+KEYWORDS=		python
 VARIANTS=		py38 py37
-SDESC[py37]=		Address validation helpers for Google's i1 (PY 37)
-SDESC[py38]=		Address validation helpers for Google's i1 (PY 38)
+SDESC[py37]=		Address validation for Google's i18n DB (PY37)
+SDESC[py38]=		Address validation for Google's i18n DB (PY38)
 HOMEPAGE=		https://github.com/mirumee/google-i18n-address
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -31,17 +31,15 @@ GENERATED=		yes
 [PY38].BUILDRUN_DEPENDS_ON=		python-requests:single:py38
 [PY38].USES_ON=				python:py38
 
-[FILE:3264:descriptions/desc.single]
+[FILE:1973:descriptions/desc.single]
 Google i18n address
-===========================================================================
-================
+===========================================================================================
 
 |codecov.io| |Circle CI| |PyPi downloads| |requires.io| |PyPi version|
 |PyPi pythons| |GitHub|
 
-This package contains a copy of `Google's i18n
-address <https://chromium-i18n.appspot.com/ssl-address>`_ metadata
-repository
+This package contains a copy of [Google's i18n
+address]_ metadata repository
 that contains great data but comes with no uptime guarantees.
 
 Contents of this package will allow you to programatically build address
@@ -57,8 +55,7 @@ Addresses validation
 The ``normalize_address`` function checks the address and either returns
 its
 canonical form (suitable for storage and use in addressing envelopes) or
-raises an ``InvalidAddress`` exception that contains a list of errors.
-
+raises an InvalidAddress exception that contains a list of errors.
 
 Address fields
 ~~~~~~~~~~~~~~
@@ -69,74 +66,25 @@ Here is the list of recognized fields:
 * ``country_area`` is a designation of a region, province or state,
   recognized values include official names, designated abbreviations,
   official translations and latin transliterations
-* ``city`` is a city or town name, recognized values include official
-names,
+* city is a city or town name, recognized values include official names,
   official translations and latin transliterations
 * ``city_area`` is a sublocality like a district, recognized values include
   official names, official translations and latin transliterations
 * ``street_address`` is the (possibly multiline) street address
 * ``postal_code`` is a postal code or zip code
 * ``sorting_code`` is a sorting code
-* ``name`` is a person's name
+* name is a person's name
 * ``company_name`` is a name of a company or organization
-
 
 Errors
 ~~~~~~
 
 Address validation with only country code:
 
-.. code:: python
-
-    >>> from i18naddress import InvalidAddress, normalize_address
-    >>> try:
-    ...     address = normalize_address({'country_code': 'US'})
-    ... except InvalidAddress as e:
-    ...     print(e.errors)
-    ...
-    {'city': 'required',
-     'country_area': 'required',
-     'postal_code': 'required',
-     'street_address': 'required'}
-
-With correct address:
-
-.. code:: python
-
-    >>> from i18naddress import normalize_address
-    >>> address = normalize_address({
-        'country_code': 'US',
-        'country_area': 'California',
-        'city': 'Mountain View',
-        'postal_code': '94043',
-        'street_address': '1600 Amphitheatre Pkwy'})
-    >>> print(address)
-    {'city': 'MOUNTAIN VIEW',
-     'city_area': '',
-     'country_area': 'CA',
-     'country_code': 'US',
-     'postal_code': '94043',
-     'sorting_code': '',
-     'street_address': '1600 Amphitheatre Pkwy'}
-
-Postal code/zip code validation example:
-
-.. code:: python
-
-    >>> from i18naddress import InvalidAddress, normalize_address
-    >>> try:
-    ...     address = normalize_address({
-    ...         'country_code': 'US',
-    ...         'country_area': 'California',
-    ...         'city': 'Mountain View',
-    ...         'postal_code': '74043',
-    ...         'street_address': '1600 Amphitheatre Pkwy'})
-    ... except InvalidAddress as e:
-    ...     print(e.errors)
-    ...
-    {'postal_code': 'invalid'}
-
-
+.. |requires.io| image::
+https://img.shields.io/requires/github/mirumee/google-i18n-address.svg
+   :target:
+https://requires.io/github/mirumee/google-i18n-address/requirements/?branch=master
 
 
 [FILE:111:distinfo]

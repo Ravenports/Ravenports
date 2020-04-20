@@ -2,10 +2,10 @@
 
 NAMEBASE=		python-fonttools
 VERSION=		4.8.1
-KEYWORDS=		python textproc graphics
+KEYWORDS=		python
 VARIANTS=		py38 py37
-SDESC[py37]=		Tools to manipulate font files (PY 37)
-SDESC[py38]=		Tools to manipulate font files (PY 38)
+SDESC[py37]=		Tools to manipulate font files (PY37)
+SDESC[py38]=		Tools to manipulate font files (PY38)
 HOMEPAGE=		https://github.com/fonttools/fonttools
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -29,7 +29,7 @@ GENERATED=		yes
 
 [PY38].USES_ON=				python:py38
 
-[FILE:3864:descriptions/desc.single]
+[FILE:3436:descriptions/desc.single]
 |Travis Build Status| |Appveyor Build status| |Coverage Status| |PyPI|
 |Gitter Chat|
 
@@ -47,94 +47,89 @@ What is this?
 Installation
 ~~~~~~~~~~~~
 
-FontTools 4.x requires `Python <http://www.python.org/download/>`__ 3.6
+FontTools 4.x requires [Python]__ 3.6
 or later. FontTools 3.x requires Python 2.7 or later.
 
 **NOTE** From August 2019, until no later than January 1 2020, the support
 for *Python 2.7* will be limited to only critical bug fixes, and no new
 features
-will be added to the ``py27`` branch. You can read more `here
-<https://python3statement.org>`__
-and `here <https://github.com/fonttools/fonttools/issues/765>`__ for the
+will be added to the py27 branch. You can read more [here]__
+and [here]__ for the
 reasons behind this decision.
 
 The package is listed in the Python Package Index (PyPI), so you can
-install it with `pip <https://pip.pypa.io>`__:
+install it with [pip]__:
 
-.. code:: sh
+Changelog
+~~~~~~~~~
 
-    pip install fonttools
+4.8.1 (released 2020-04-17)
+---------------------------
 
-If you would like to contribute to its development, you can clone the
-repository from GitHub, install the package in 'editable' mode and
-modify the source code in place. We recommend creating a virtual
-environment, using `virtualenv <https://virtualenv.pypa.io>`__ or
-Python 3 `venv <https://docs.python.org/3/library/venv.html>`__ module.
+- [feaLib] Fixed ``AttributeError: 'NoneType' has no attribute
+'getAlternateGlyphs'
+  when aalt`` feature references a chain contextual substitution lookup
+  (googlefonts/fontmake#648, #1878).
 
-.. code:: sh
+4.8.0 (released 2020-04-16)
+---------------------------
 
-    # download the source code to 'fonttools' folder
-    git clone https://github.com/fonttools/fonttools.git
-    cd fonttools
+- [feaLib] If Parser is initialized without a glyphNames parameter, it
+cannot
+  distinguish between a glyph name containing an hyphen, or a range of
+glyph names;
+  instead of raising an error, it now interprets them as literal glyph
+names, while
+  also outputting a logging warning to alert user about the ambiguity
+(#1768, #1870).
+- [feaLib] When serializing AST to string, emit spaces around hyphens that
+denote
+  ranges. Also, fixed an issue with CID ranges when round-tripping
+AST->string->AST
+  (#1872).
+- [Snippets/otf2ttf] In otf2ttf.py script update LSB in hmtx to match xMin
+(#1873).
+- [colorLib] Added experimental support for building COLR v1 tables as per
+  the `colr-gradients-spec
+<https://github.com/googlefonts/colr-gradients-spec/blob/master/colr-gradients-spec.md>`__
+  draft proposal. **NOTE**: both the API and the XML dump of COLR v1 are
+  susceptible to change while the proposal is being discussed and
+formalized (#1822).
 
-    # create new virtual environment called e.g. 'fonttools-venv', or
-anything you like
-    python -m virtualenv fonttools-venv
+4.7.0 (released 2020-04-03)
+---------------------------
 
-    # source the `activate` shell script to enter the environment (Un*x);
-to exit, just type `deactivate`
-    . fonttools-venv/bin/activate
+- [cu2qu] Added ``fontTools.cu2qu`` package, imported from the original
+  [cu2qu]__ project. The ``cu2qu.pens module
+  was moved to fontTools.pens.cu2quPen``. The optional cu2qu extension
+module
+  can be compiled by installing [Cython]__ before installing
+  fonttools from source (i.e. git repo or sdist tarball). The wheel package
+that
+  is published on PyPI (i.e. the one pip downloads, unless ``--no-binary``
+  option is used), will continue to be pure-Python for now (#1868).
 
-    # to activate the virtual environment in Windows `cmd.exe`, do
-    fonttools-venv\Scripts\activate.bat
+4.6.0 (released 2020-03-24)
+---------------------------
 
-    # install in 'editable' mode
-    pip install -e .
+- [varLib] Added support for building variable BASE table version 1.1
+(#1858).
+- [CPAL] Added fromRGBA method to Color class (#1861).
 
-TTX – From OpenType and TrueType to XML and Back
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4.5.0 (released 2020-03-20)
+---------------------------
 
-Once installed you can use the ``ttx`` command to convert binary font
-files (``.otf``, ``.ttf``, etc) to the TTX XML format, edit them, and
-convert them back to binary format. TTX files have a .ttx file
-extension.
+- [designspaceLib] Added ``add{Axis,Source,Instance,Rule}Descriptor methods
+to
+  DesignSpaceDocument`` class, to initialize new descriptor objects using
+keyword
+  arguments, and at the same time append them to the current document
+(#1860).
+- [unicodedata] Update to Unicode 13.0 (#1859).
 
-.. code:: sh
+4.4.3 (released 2020-03-13)
+---------------------------
 
-    ttx /path/to/font.otf
-    ttx /path/to/font.ttx
-
-The TTX application can be used in two ways, depending on what
-platform you run it on:
-
--  As a command line tool (Windows/DOS, Unix, macOS)
--  By dropping files onto the application (Windows, macOS)
-
-TTX detects what kind of files it is fed: it will output a ``.ttx`` file
-when it sees a ``.ttf`` or ``.otf``, and it will compile a ``.ttf`` or
-``.otf`` when the input file is a ``.ttx`` file. By default, the output
-file is created in the same folder as the input file, and will have the
-same name as the input file but with a different extension. TTX will
-*never* overwrite existing files, but if necessary will append a unique
-number to the output filename (before the extension) such as
-``Arial#1.ttf``
-
-When using TTX from the command line there are a bunch of extra options.
-These are explained in the help text, as displayed when typing
-``ttx -h`` at the command prompt. These additional options include:
-
--  specifying the folder where the output files are created
--  specifying which tables to dump or which tables to exclude
--  merging partial ``.ttx`` files with existing ``.ttf`` or ``.otf``
-   files
--  listing brief table info instead of dumping to ``.ttx``
--  splitting tables to separate ``.ttx`` files
--  disabling TrueType instruction disassembly
-
-The TTX file format
--------------------
-
-The following tables are currently supported:
 
 
 [FILE:98:distinfo]

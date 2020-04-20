@@ -4,8 +4,8 @@ NAMEBASE=		python-borgbackup
 VERSION=		1.1.11
 KEYWORDS=		python
 VARIANTS=		py38 py37
-SDESC[py37]=		Deduplicated, encrypted, authenticated and (PY 37)
-SDESC[py38]=		Deduplicated, encrypted, authenticated and (PY 38)
+SDESC[py37]=		Deduplicated, encrypted, compressed backups (PY37)
+SDESC[py38]=		Deduplicated, encrypted, compressed backups (PY38)
 HOMEPAGE=		https://borgbackup.readthedocs.io/
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -34,18 +34,17 @@ GENERATED=		yes
 
 MAKE_ENV=		BORG_OPENSSL_PREFIX={{OPENSSLBASE}}
 
-[PY37].BUILDRUN_DEPENDS_ON=		python-setuptools_scm:single:py37
+[PY37].BUILDRUN_DEPENDS_ON=		python-setuptools-scm:single:py37
 [PY37].USES_ON=				python:py37
 
-[PY38].BUILDRUN_DEPENDS_ON=		python-setuptools_scm:single:py38
+[PY38].BUILDRUN_DEPENDS_ON=		python-setuptools-scm:single:py38
 [PY38].USES_ON=				python:py38
 
 post-patch:
 	${SED} -i'' -e 's|msgpack-python|msgpack|' \
 	${WRKSRC}/setup.py ${WRKSRC}/src/borgbackup.egg-info/requires.txt
 
-[FILE:3857:descriptions/desc.single]
-
+[FILE:3488:descriptions/desc.single]
 What is BorgBackup?
 -------------------
 
@@ -96,8 +95,8 @@ around
 repo.
 
   * complete files or time stamps staying the same: If a big file changes a
-    little, only a few new chunks need to be stored - this is great for
-VMs or
+    little, only a few new chunks need to be stored - this is great for VMs
+or
     raw disks.
 
   * The absolute position of a data chunk inside a file: Stuff may get
@@ -146,21 +145,6 @@ interactive
     * OpenBSD and NetBSD (no xattrs/ACLs support or binaries yet)
     * Cygwin (experimental, no binaries yet)
     * Linux Subsystem of Windows 10 (experimental)
-
-**Free and Open Source Software**
-  * security and functionality can be audited independently
-  * licensed under the BSD (3-clause) license, see `License`_ for the
-    complete license
-
-Easy to use
-~~~~~~~~~~~
-
-Initialize a new backup repository (see ``borg init --help`` for
-encryption options)::
-
-    $ borg init -e repokey /path/to/repo
-
-Create a backup archive::
 
 
 [FILE:103:distinfo]

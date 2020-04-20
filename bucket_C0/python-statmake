@@ -4,8 +4,8 @@ NAMEBASE=		python-statmake
 VERSION=		0.2.2
 KEYWORDS=		python
 VARIANTS=		py38 py37
-SDESC[py37]=		Applies STAT information from a Stylespace (PY 37)
-SDESC[py38]=		Applies STAT information from a Stylespace (PY 38)
+SDESC[py37]=		Applies STAT Stylespace to a variable font (PY37)
+SDESC[py38]=		Applies STAT Stylespace to a variable font (PY38)
 HOMEPAGE=		https://github.com/daltonmaag/statmake
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -35,60 +35,52 @@ GENERATED=		yes
 					python-fonttools:single:py38
 [PY38].USES_ON=				python:py38
 
-[FILE:3473:descriptions/desc.single]
+[FILE:3120:descriptions/desc.single]
 # statmake
 
 `statmake` takes a user-written Stylespace that defines [OpenType `STAT`
-information](https://docs.microsoft.com/en-us/typography/opentype/spec/stat
-) for an entire font family and then (potentially subsets and) applies it
-to a specific variable font. This spares users from having to deal with
-[raw TTX dumps](https://github.com/fonttools/fonttools/) and juggling with
-nameIDs.
+information] for an entire font family and then (potentially subsets and)
+applies it to a specific variable font. This spares users from having to
+deal with [raw TTX dumps] and juggling with nameIDs.
 
 ## Installation
 
 The easiest way is by installing it with `pip`. You need at least Python
 3.6.
 
-```
+`
 pip3 install statmake
-```
+`
 
 ## Usage
-
 
 ### External Stylespace file, stand-alone or referenced from a Designspace
 file
 
 If you are producing more than one variable font (i.e. you have multiple
 Designspace files), you can avoid duplicated information by writing a
-single all-encompassing Stylespace file which statmake will subset for
-each variable font.
+single all-encompassing Stylespace file which statmake will subset for each
+variable font.
 
-**Attention:** A `STAT` table is supposed to describe a font's
-relationship to the _entire_ family. If you have separate upright and
-italic variable fonts with a `wght` axis each, you need to mark each
-font's position on the `ital` axis _in the Designspace lib
-`org.statmake.additionalLocations` key_. The Designspace `<axes>` elements
-are not supposed to hold this information, so it must be done in a
-separate lib key.
+**Attention:** A `STAT` table is supposed to describe a font's relationship
+to the _entire_ family. If you have separate upright and italic variable
+fonts with a `wght` axis each, you need to mark each font's position on the
+`ital` axis _in the Designspace lib `org.statmake.additionalLocations`
+key_. The Designspace `<axes>` elements are not supposed to hold this
+information, so it must be done in a separate lib key.
 
 1. Write a Stylespace file that describes each stop of all axes available
-in the entire family. See
-[tests/data/Test.stylespace](tests/data/Test.stylespace) for an annotated
+in the entire family. See [tests/data/Test.stylespace] for an annotated
 example. You can also use it as a starting point.
 2. You can have the file stand-alone or use the Designspace lib's
 `org.statmake.stylespacePath` key to store the path to the Stylespace file
 relative to the Designspace file. See
-[tests/data/TestExternalStylespace.designspace](tests/data/TestExternalStyl
-espace.designspace) for an example.
+[tests/data/TestExternalStylespace.designspace] for an example.
 3. If you have one or more Designspace files which do not define all axes
 available to the family, you have to annotate them with the missing axis
 locations to get a complete `STAT` table. See the lib key at the bottom of
-[tests/data/Test_Wght_Upright.designspace](tests/data/Test_Wght_Upright.des
-ignspace) and
-[tests/data/Test_Wght_Italic.designspace](tests/data/Test_Wght_Italic.desig
-nspace) for an example.
+[tests/data/Test_Wght_Upright.designspace] and
+[tests/data/Test_Wght_Italic.designspace] for an example.
 4. Generate the variable font(s) as normal
 5. If...
     1. ... you store the Stylespace file stand-alone: run `statmake
@@ -110,16 +102,14 @@ this approach will save you an external file.
 1. Write the file as above, point 1.
 2. Insert it into the Designspace file's lib under the
 `org.statmake.stylespace` key. See
-[tests/data/TestInlineStylespace.designspace](tests/data/TestInlineStylespa
-ce.designspace) for an example.
+[tests/data/TestInlineStylespace.designspace] for an example.
 3. Proceed from point 3 above.
 
 ## Q: Can I please have something other than a .plist file?
 
-Yes, but you have to convert it to `.plist` yourself, as statmake
-currently only read `.plist` files. One possible converter is Adam
-Twardoch's [yaplon](https://pypi.org/project/yaplon/).
-
+Yes, but you have to convert it to `.plist` yourself, as statmake currently
+only read `.plist` files. One possible converter is Adam Twardoch's
+[yaplon].
 
 
 [FILE:100:distinfo]

@@ -2,10 +2,10 @@
 
 NAMEBASE=		python-python-dateutil
 VERSION=		2.8.1
-KEYWORDS=		python devel
+KEYWORDS=		python
 VARIANTS=		py38 py37
-SDESC[py37]=		Extensions to the standard Python datetime (PY 37)
-SDESC[py38]=		Extensions to the standard Python datetime (PY 38)
+SDESC[py37]=		Extension to the standard datetime module (PY37)
+SDESC[py38]=		Extension to the standard datetime module (PY38)
 HOMEPAGE=		https://dateutil.readthedocs.io
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -21,7 +21,7 @@ OPTIONS_STANDARD=	none
 VOPTS[py37]=		PY38=OFF PY37=ON
 VOPTS[py38]=		PY38=ON PY37=OFF
 
-BUILDRUN_DEPENDS=	python-setuptools_scm:single:python_used
+BUILDRUN_DEPENDS=	python-setuptools-scm:single:python_used
 
 DISTNAME=		python-dateutil-2.8.1
 
@@ -31,7 +31,7 @@ GENERATED=		yes
 
 [PY38].USES_ON=				python:py38
 
-[FILE:3961:descriptions/desc.single]
+[FILE:3145:descriptions/desc.single]
 dateutil - powerful extensions to datetime
 ==========================================
 
@@ -41,57 +41,19 @@ dateutil - powerful extensions to datetime
 
 |travis| |appveyor| |pipelines| |coverage|
 
-.. |pypi| image::
-https://img.shields.io/pypi/v/python-dateutil.svg?style=flat-square
-    :target: https://pypi.org/project/python-dateutil/
     :alt: pypi version
 
-.. |support| image::
-https://img.shields.io/pypi/pyversions/python-dateutil.svg?style=flat-squar
-e
-    :target: https://pypi.org/project/python-dateutil/
     :alt: supported Python version
 
-.. |travis| image::
-https://img.shields.io/travis/dateutil/dateutil/master.svg?style=flat-squar
-e&label=Travis%20Build
-    :target: https://travis-ci.org/dateutil/dateutil
     :alt: travis build status
 
-.. |appveyor| image::
-https://img.shields.io/appveyor/ci/dateutil/dateutil/master.svg?style=flat-
-square&logo=appveyor
-    :target: https://ci.appveyor.com/project/dateutil/dateutil
     :alt: appveyor build status
 
-.. |pipelines| image::
-https://dev.azure.com/pythondateutilazure/dateutil/_apis/build/status/dateu
-til.dateutil?branchName=master
-    :target:
-https://dev.azure.com/pythondateutilazure/dateutil/_build/latest?definition
-Id=1&branchName=master
     :alt: azure pipelines build status
 
-.. |coverage| image::
-https://codecov.io/github/dateutil/dateutil/coverage.svg?branch=master
-    :target: https://codecov.io/github/dateutil/dateutil?branch=master
     :alt: Code coverage
 
-.. |gitter| image:: https://badges.gitter.im/dateutil/dateutil.svg
-   :alt: Join the chat at https://gitter.im/dateutil/dateutil
-   :target: https://gitter.im/dateutil/dateutil
-
-.. |licence| image::
-https://img.shields.io/pypi/l/python-dateutil.svg?style=flat-square
-    :target: https://pypi.org/project/python-dateutil/
     :alt: licence
-
-.. |readthedocs| image::
-https://img.shields.io/readthedocs/dateutil/latest.svg?style=flat-square&la
-bel=Read%20the%20Docs
-   :alt: Read the documentation at
-https://dateutil.readthedocs.io/en/latest/
-   :target: https://dateutil.readthedocs.io/en/latest/
 
 The `dateutil` module provides powerful extensions to
 the standard `datetime` module, available in Python.
@@ -125,8 +87,7 @@ Features
 * Computing of relative deltas between two given
   date and/or datetime objects;
 * Computing of dates based on very flexible recurrence rules,
-  using a superset of the `iCalendar
-<https://www.ietf.org/rfc/rfc2445.txt>`_
+  using a superset of the [iCalendar]_
   specification. Parsing of RFC strings is supported as well.
 * Generic parsing of dates in almost any string format;
 * Timezone (tzinfo) implementations for tzfile(5) format
@@ -150,6 +111,27 @@ Suppose you want to know how much time is left, in
 years/months/days/etc, before the next easter happening on a
 year with a Friday 13th in August, and you want to get today's
 date out of the "date" unix system command. Here is the code:
+
+.. code-block:: python3
+
+    >>> from dateutil.relativedelta import *
+    >>> from dateutil.easter import *
+    >>> from dateutil.rrule import *
+    >>> from dateutil.parser import *
+    >>> from datetime import *
+    >>> now = parse("Sat Oct 11 17:13:46 UTC 2003")
+    >>> today = now.date()
+    >>> year =
+rrule(YEARLY,dtstart=now,bymonth=8,bymonthday=13,byweekday=FR)[0].year
+    >>> rdelta = relativedelta(easter(year), today)
+    >>> print("Today is: %s" % today)
+    Today is: 2003-10-11
+    >>> print("Year with next Aug 13th on a Friday is: %s" % year)
+    Year with next Aug 13th on a Friday is: 2004
+    >>> print("How far is the Easter of that year: %s" % rdelta)
+    How far is the Easter of that year: relativedelta(months=+6)
+    >>> print("And the Easter of that year is: %s" % (today+rdelta))
+    And the Easter of that year is: 2004-04-11
 
 
 [FILE:107:distinfo]
