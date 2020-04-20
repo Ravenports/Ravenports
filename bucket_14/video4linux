@@ -12,7 +12,9 @@ DOWNLOAD_GROUPS=	main dvb
 SITES[main]=		http://linuxtv.org/downloads/v4l-utils/
 DISTFILE[1]=		v4l-utils-1.18.0.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -23,12 +25,12 @@ BR_DEPS[sunos]=		argp-standalone:single:standard
 BR_DEPS[dragonfly]=	argp-standalone:single:standard
 
 USES=			gmake jpeg libtool pkgconfig perl:build shebangfix
-C_USES[linux]=		iconv autoreconf gettext-tools c++:single
+C_USES[linux]=		iconv autoreconf gettext-tools c++:primary
 
 DISTNAME=		v4l-utils-1.18.0
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING.libv4l
 LICENSE_AWK=		TERMS:"__LIBV4L2_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/lib/include/libv4l2.h
@@ -63,7 +65,7 @@ post-patch-freebsd:
 		${WRKSRC}/lib/libv4lconvert/libv4lconvert.pc.in
 	${TOUCH} ${WRKSRC}/lib/include/sys/sysmacros.h
 
-[FILE:241:descriptions/desc.single]
+[FILE:241:descriptions/desc.primary]
 The Video4Linux library is a wrapper library for accessing Video4Linux
 compliant video devices. It allows for transcoding of capture streams
 in user space instead of kernel space and creates a standard interface
@@ -74,7 +76,7 @@ mechanism for video devices.
 6cb60d822eeed20486a03cc23e0fc65956fbc1e85e0c1a7477f68bbd9802880d      1995506 v4l-utils-1.18.0.tar.bz2
 
 
-[FILE:3955:manifests/plist.single]
+[FILE:3677:manifests/plist.primary]
 %%ONLY-LINUX%%@dir etc/rc_keymaps
 %%ONLY-LINUX%%bin/
  cec-compliance
@@ -229,11 +231,6 @@ mechanism for video devices.
  zx_irdec.toml
 %%ONLY-LINUX%%lib/udev/rules.d/70-infrared.rules
 %%ONLY-LINUX%%sbin/v4l2-dbg
-%%ONLY-LINUX%%share/locale/ca/LC_MESSAGES/v4l-utils.mo
-%%ONLY-LINUX%%share/locale/de/LC_MESSAGES/v4l-utils.mo
-%%ONLY-LINUX%%share/locale/fr/LC_MESSAGES/v4l-utils.mo
-%%ONLY-LINUX%%share/locale/pt_BR/LC_MESSAGES/v4l-utils.mo
-%%ONLY-LINUX%%share/locale/uk/LC_MESSAGES/v4l-utils.mo
 %%ONLY-LINUX%%share/man/man1/
  cec-compliance.1.gz
  cec-ctl.1.gz
@@ -280,6 +277,22 @@ lib/pkgconfig/
  libv4l2.pc
  libv4l2rds.pc
  libv4lconvert.pc
+
+
+[FILE:268:manifests/plist.nls]
+share/locale/ca/LC_MESSAGES/
+ libdvbv5.mo
+ v4l-utils.mo
+share/locale/de/LC_MESSAGES/
+ libdvbv5.mo
+ v4l-utils.mo
+share/locale/fr/LC_MESSAGES/v4l-utils.mo
+share/locale/pt_BR/LC_MESSAGES/
+ libdvbv5.mo
+ v4l-utils.mo
+share/locale/uk/LC_MESSAGES/
+ libdvbv5.mo
+ v4l-utils.mo
 
 
 [FILE:1676:patches/patch-lib_libv4lconvert_libv4lsyscall-priv.h]
