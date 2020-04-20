@@ -19,7 +19,7 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		nasm:primary:standard
 
-USES=			cmake perl:build
+USES=			cmake c++:single perl:build
 
 LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
@@ -32,6 +32,11 @@ SOVERSION=		0.0.0
 CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
 			-DENABLE_DOCS:BOOL=OFF
 			-DENABLE_TESTS:BOOL=OFF
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/aomdec
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/aomenc
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libaom.so
 
 [FILE:311:descriptions/desc.single]
 AOMedia Video 1 (AV1), is an open, royalty-free video coding format
