@@ -60,6 +60,7 @@
 #	PYTHON_SUFFIX=${PYTHON_SUFFIX}
 #	PYTHON_VER=${PYTHON_VER}
 #	PYTHON_VERSION=python${PYTHON_VER}
+#	PYTHON_ABIVER=${PYTHON_ABIVER}
 #	PYTHON2=<blank>/"@comment "
 #	PYTHON3=<blank>/"@comment "
 
@@ -93,6 +94,8 @@ PYTHON_ABIVER:=		# empty (unset or python2.7)
 .  if ${PYTHON_VER:N2.7}
 .    if exists(${PYTHON_CMD}-config)
 PYTHON_ABIVER!=		${PYTHON_CMD}-config --abiflags
+.    else
+PYTHON_ABIVER:=		determined-later
 .    endif
 .  endif
 
@@ -145,7 +148,8 @@ PLIST_SUB+=	PYTHON_INCLUDEDIR=${PYTHON_INCLUDEDIR:S;${PREFIX}/;;} \
 		PYTHON_SUFFIX=${PYTHON_SUFFIX} \
 		PYTHON_VER=${PYTHON_VER} \
 		PYTHON_VERSION=python${PYTHON_VER} \
-		PYTHON_MAJOR_VER=${PYTHON_MAJOR_VER}
+		PYTHON_MAJOR_VER=${PYTHON_MAJOR_VER} \
+		PYTHON_ABIVER=${PYTHON_ABIVER}
 
 .if ${PYTHON_MAJOR_VER:M3}
 PLIST_SUB+=	PYTHON3="" PYTHON2="@comment "
