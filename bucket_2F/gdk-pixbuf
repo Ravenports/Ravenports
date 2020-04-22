@@ -2,6 +2,7 @@
 
 NAMEBASE=		gdk-pixbuf
 VERSION=		2.40.0
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Graphic library for GIMP toolkit
@@ -16,6 +17,7 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			docs
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -78,7 +80,7 @@ documentation contains both the programmer's guide and the API reference.
 1582595099537ca8ff3b99c6804350b4c058bb8ad67411bbaae024ee7cead4e6      5512160 gnome2/gdk-pixbuf-2.40.0.tar.xz
 
 
-[FILE:6073:manifests/plist.primary]
+[FILE:1553:manifests/plist.primary]
 bin/
  gdk-pixbuf-csource
  gdk-pixbuf-pixdata
@@ -131,6 +133,14 @@ lib/pkgconfig/
 share/gir-1.0/
  GdkPixbuf-2.0.gir
  GdkPixdata-2.0.gir
+share/man/man1/
+ gdk-pixbuf-csource.1.gz
+ gdk-pixbuf-query-loaders.1.gz
+@postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
+@postunexec rm %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>&1 >/dev/null || true
+
+
+[FILE:4520:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/gdk-pixbuf.mo
 share/locale/ang/LC_MESSAGES/gdk-pixbuf.mo
 share/locale/ar/LC_MESSAGES/gdk-pixbuf.mo
@@ -237,11 +247,6 @@ share/locale/yi/LC_MESSAGES/gdk-pixbuf.mo
 share/locale/zh_CN/LC_MESSAGES/gdk-pixbuf.mo
 share/locale/zh_HK/LC_MESSAGES/gdk-pixbuf.mo
 share/locale/zh_TW/LC_MESSAGES/gdk-pixbuf.mo
-share/man/man1/
- gdk-pixbuf-csource.1.gz
- gdk-pixbuf-query-loaders.1.gz
-@postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
-@postunexec rm %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>&1 >/dev/null || true
 
 
 [FILE:266:patches/patch-gdk-pixbuf_io-jasper.c]
