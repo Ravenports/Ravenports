@@ -2,6 +2,7 @@
 
 NAMEBASE=		gstreamer1-plugins-pango
 VERSION=		1.16.2
+REVISION=		1
 KEYWORDS=		multimedia x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	GStreamer1 pango textoverlay plugin
@@ -54,10 +55,9 @@ CFLAGS=			-Wno-format
 
 post-patch:
 	${REINPLACE_CMD} -e 's|FLAGS -Werror|FLAGS|' ${WRKSRC}/configure
-	${FIND} ${WRKSRC}/ext ${WRKSRC}/sys -name Makefile.in |\
-	${XARGS} ${REINPLACE_CMD} -E \
-	-e '/la_DEPENDENCIES/,/am__DEPENDENCIES/s|[$$][(]top_builddir[)]/gst-libs/.*.la||' \
-	-e 's|[@$$][(]?GST_API_VERSION[@)]\.la|$$\{VERSION\}|g'
+	${REINPLACE_CMD} -E -e \
+	's|[$$][(]top_builddir[)]/gst-libs/gst/video/libgstvideo-[$$][(]GST_API_VERSION[)].la|-lgstvideo-1.0|;'\
+	${WRKSRC}/ext/pango/Makefile.in
 
 [FILE:51:descriptions/desc.single]
 This package contains the pango GStreamer1 plugin.

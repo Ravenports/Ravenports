@@ -2,7 +2,7 @@
 
 NAMEBASE=		gstreamer1-plugins-xvideo
 VERSION=		1.16.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		multimedia x11
 VARIANTS=		standard
 SDESC[standard]=	GStreamer1 XImageSink plugin
@@ -41,7 +41,7 @@ CONFIGURE_ARGS=		--with-default-audiosink="osssink"
 			--disable-pango
 			--disable-theora
 			--disable-vorbis
-			--disable-x
+			--enable-x
 			--enable-xvideo
 			--disable-xshm
 
@@ -57,10 +57,9 @@ CFLAGS=			-Wno-format
 
 post-patch:
 	${REINPLACE_CMD} -e 's|FLAGS -Werror|FLAGS|' ${WRKSRC}/configure
-	${FIND} ${WRKSRC}/sys -name Makefile.in |\
-	${XARGS} ${REINPLACE_CMD} -E \
-	-e '/la_DEPENDENCIES/,/am__DEPENDENCIES/s|[$$][(]top_builddir[)]/gst-libs/.*.la||' \
-	-e 's|[$$][(]top_builddir[)]/gst-libs/gst/video/libgstvideo-[$$][(]GST_API_VERSION[)].la|-lgstvideo-1.0|;'
+	${REINPLACE_CMD} -E -e \
+	's|[$$][(]top_builddir[)]/gst-libs/gst/video/libgstvideo-[$$][(]GST_API_VERSION[)].la|-lgstvideo-1.0|'\
+	${WRKSRC}/sys/ximage/Makefile.in
 
 [FILE:56:descriptions/desc.single]
 This package contains the XImageSink GStreamer1 plugin.

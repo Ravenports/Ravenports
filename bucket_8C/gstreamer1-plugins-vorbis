@@ -2,6 +2,7 @@
 
 NAMEBASE=		gstreamer1-plugins-vorbis
 VERSION=		1.16.2
+REVISION=		1
 KEYWORDS=		multimedia audio
 VARIANTS=		standard
 SDESC[standard]=	GStreamer1 vorbis encoder/decoder plugin
@@ -56,10 +57,9 @@ CFLAGS=			-Wno-format
 
 post-patch:
 	${REINPLACE_CMD} -e 's|FLAGS -Werror|FLAGS|' ${WRKSRC}/configure
-	${FIND} ${WRKSRC}/ext ${WRKSRC}/sys -name Makefile.in |\
-	${XARGS} ${REINPLACE_CMD} -E \
-	-e '/la_DEPENDENCIES/,/am__DEPENDENCIES/s|[$$][(]top_builddir[)]/gst-libs/.*.la||' \
-	-e 's|[@$$][(]?GST_API_VERSION[@)]\.la|$$\{VERSION\}|g'
+	${REINPLACE_CMD} -E -e \
+	's|[$$][(]top_builddir[)]/gst-libs/gst/.*/lib(.*)-@GST_API_VERSION@.la|-l\1-1.0|'\
+	${WRKSRC}/ext/vorbis/Makefile.in
 
 [FILE:52:descriptions/desc.single]
 This package contains the Vorbis GStreamer1 plugin.

@@ -2,6 +2,7 @@
 
 NAMEBASE=		geany
 VERSION=		1.36
+REVISION=		1
 KEYWORDS=		editors devel
 VARIANTS=		standard
 SDESC[standard]=	Fast and lightweight IDE
@@ -15,15 +16,15 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			docs
+			nls
 
-OPTIONS_AVAILABLE=	NLS
-OPTIONS_STANDARD=	NLS
-OPT_ON[all]=		NLS
+OPTIONS_AVAILABLE=	none
+OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	fontconfig:primary:standard
 
-USES=			gettext-tools gmake libtool pkgconfig
-			desktop-utils:primary
+USES=			gettext-runtime gettext-tools gmake libtool
+			pkgconfig desktop-utils:primary
 GNOME_COMPONENTS=	cairo intltool vte
 
 LICENSE=		GPLv2+:primary
@@ -38,15 +39,10 @@ FPC_EQUIVALENT=		devel/geany
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-vte
 			--enable-gtk3
+			--enable-nls
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
-
-[NLS].CONFIGURE_ENABLE_BOTH=		nls
-[NLS].USES_ON=				gettext-runtime
-
-post-patch-NLS-OFF:
-	${REINPLACE_CMD} -e '/^SUBDIRS/ s|po||' ${WRKSRC}/Makefile.in
 
 [FILE:279:descriptions/desc.primary]
 Geany is a small and lightweight integrated development environment. It
@@ -59,52 +55,7 @@ possible from a special Desktop Environment like KDE or GNOME.
 9184dd3dd40b7b84fca70083284bb9dbf2ee8022bf2be066bdc36592d909d53e      4644521 geany-1.36.tar.bz2
 
 
-[FILE:5907:manifests/plist.primary]
-%%NLS-ON%%share/locale/ar/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/ast/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/be/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/bg/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/ca/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/cs/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/da/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/de/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/el/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/en_GB/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/es/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/et/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/eu/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/fa/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/fi/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/fr/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/gl/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/he/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/hi/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/hu/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/id/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/it/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/ja/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/kk/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/ko/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/lb/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/lt/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/lv/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/mn/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/nl/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/nn/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/pl/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/pt/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/pt_BR/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/ro/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/ru/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/sk/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/sl/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/sr/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/sv/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/tr/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/uk/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/vi/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/zh_CN/LC_MESSAGES/geany.mo
-%%NLS-ON%%share/locale/zh_TW/LC_MESSAGES/geany.mo
+[FILE:3742:manifests/plist.primary]
 bin/geany
 include/geany/
  app.h
@@ -310,7 +261,6 @@ share/icons/hicolor/scalable/actions/
  geany-close-all.svg
  geany-save-all.svg
 share/icons/hicolor/scalable/apps/geany.svg
-share/locale/ku/LC_MESSAGES/geany.mo
 share/man/man1/geany.1.gz
 
 
@@ -348,4 +298,53 @@ share/doc/geany/html/images/
  pref_dialog_various.png
  pref_dialog_vte.png
  replace_dialog.png
+
+
+[FILE:1715:manifests/plist.nls]
+share/locale/ar/LC_MESSAGES/geany.mo
+share/locale/ast/LC_MESSAGES/geany.mo
+share/locale/be/LC_MESSAGES/geany.mo
+share/locale/bg/LC_MESSAGES/geany.mo
+share/locale/ca/LC_MESSAGES/geany.mo
+share/locale/cs/LC_MESSAGES/geany.mo
+share/locale/da/LC_MESSAGES/geany.mo
+share/locale/de/LC_MESSAGES/geany.mo
+share/locale/el/LC_MESSAGES/geany.mo
+share/locale/en_GB/LC_MESSAGES/geany.mo
+share/locale/es/LC_MESSAGES/geany.mo
+share/locale/et/LC_MESSAGES/geany.mo
+share/locale/eu/LC_MESSAGES/geany.mo
+share/locale/fa/LC_MESSAGES/geany.mo
+share/locale/fi/LC_MESSAGES/geany.mo
+share/locale/fr/LC_MESSAGES/geany.mo
+share/locale/gl/LC_MESSAGES/geany.mo
+share/locale/he/LC_MESSAGES/geany.mo
+share/locale/hi/LC_MESSAGES/geany.mo
+share/locale/hu/LC_MESSAGES/geany.mo
+share/locale/id/LC_MESSAGES/geany.mo
+share/locale/it/LC_MESSAGES/geany.mo
+share/locale/ja/LC_MESSAGES/geany.mo
+share/locale/kk/LC_MESSAGES/geany.mo
+share/locale/ko/LC_MESSAGES/geany.mo
+share/locale/ku/LC_MESSAGES/geany.mo
+share/locale/lb/LC_MESSAGES/geany.mo
+share/locale/lt/LC_MESSAGES/geany.mo
+share/locale/lv/LC_MESSAGES/geany.mo
+share/locale/mn/LC_MESSAGES/geany.mo
+share/locale/nl/LC_MESSAGES/geany.mo
+share/locale/nn/LC_MESSAGES/geany.mo
+share/locale/pl/LC_MESSAGES/geany.mo
+share/locale/pt/LC_MESSAGES/geany.mo
+share/locale/pt_BR/LC_MESSAGES/geany.mo
+share/locale/ro/LC_MESSAGES/geany.mo
+share/locale/ru/LC_MESSAGES/geany.mo
+share/locale/sk/LC_MESSAGES/geany.mo
+share/locale/sl/LC_MESSAGES/geany.mo
+share/locale/sr/LC_MESSAGES/geany.mo
+share/locale/sv/LC_MESSAGES/geany.mo
+share/locale/tr/LC_MESSAGES/geany.mo
+share/locale/uk/LC_MESSAGES/geany.mo
+share/locale/vi/LC_MESSAGES/geany.mo
+share/locale/zh_CN/LC_MESSAGES/geany.mo
+share/locale/zh_TW/LC_MESSAGES/geany.mo
 
