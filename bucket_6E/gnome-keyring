@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnome-keyring
 VERSION=		3.36.0
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Program that keeps passwords and other secrets
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://download.gnome.org/sources/gnome-keyring/3.36/
 DISTFILE[1]=		gnome-keyring-3.36.0.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -33,8 +36,8 @@ USES=			autoreconf gettext-tools gmake libtool pkgconfig
 			python
 GNOME_COMPONENTS=	gtk3 libxslt
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING.LIB
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/daemon/gkd-main.h
@@ -51,7 +54,7 @@ INSTALL_TARGET=		install-strip
 post-patch:
 	${REINPLACE_CMD} -e 's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' ${WRKSRC}/docs/Makefile.am
 
-[FILE:455:descriptions/desc.single]
+[FILE:455:descriptions/desc.primary]
 GNOME Keyring is a collection of components in GNOME that store secrets, 
 passwords, keys, certificates and make them available to applications. It 
 is integrated with the user's login, so that their secret storage can be 
@@ -66,7 +69,7 @@ disk, but forgotten when the session ends.
 a264b57a8d1a71fdf0d66e8cd6033d013fb828be279c35766545eb9bb3734f87      1345360 gnome-keyring-3.36.0.tar.xz
 
 
-[FILE:4895:manifests/plist.single]
+[FILE:793:manifests/plist.primary]
 bin/
  gnome-keyring
  gnome-keyring-3
@@ -88,6 +91,15 @@ share/dbus-1/services/
  org.freedesktop.secrets.service
  org.gnome.keyring.service
 share/glib-2.0/schemas/org.gnome.crypto.cache.gschema.xml
+share/man/man1/
+ gnome-keyring-3.1.gz
+ gnome-keyring-daemon.1.gz
+ gnome-keyring.1.gz
+share/p11-kit/modules/gnome-keyring.module
+share/xdg-desktop-portal/portals/gnome-keyring.portal
+
+
+[FILE:4102:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/gnome-keyring.mo
 share/locale/ar/LC_MESSAGES/gnome-keyring.mo
 share/locale/as/LC_MESSAGES/gnome-keyring.mo
@@ -178,12 +190,6 @@ share/locale/xh/LC_MESSAGES/gnome-keyring.mo
 share/locale/zh_CN/LC_MESSAGES/gnome-keyring.mo
 share/locale/zh_HK/LC_MESSAGES/gnome-keyring.mo
 share/locale/zh_TW/LC_MESSAGES/gnome-keyring.mo
-share/man/man1/
- gnome-keyring-3.1.gz
- gnome-keyring-daemon.1.gz
- gnome-keyring.1.gz
-share/p11-kit/modules/gnome-keyring.module
-share/xdg-desktop-portal/portals/gnome-keyring.portal
 
 
 [FILE:285:patches/patch-docs_Makefile.am]

@@ -4,8 +4,8 @@ NAMEBASE=		perl-JSON-MaybeXS
 VERSION=		1.004000
 KEYWORDS=		perl
 VARIANTS=		530 528
-SDESC[530]=		Use L<Cpanel::JSON::XS> with a fallback to  (v530)
-SDESC[528]=		Use L<Cpanel::JSON::XS> with a fallback to  (v528)
+SDESC[530]=		Use fallback versions of XS (5.30)
+SDESC[528]=		Use fallback versions of XS (5.28)
 HOMEPAGE=		https://github.com/p5sagit/JSON-MaybeXS
 CONTACT=		Perl_Automaton[perl@ironwolf.systems]
 
@@ -33,8 +33,15 @@ SINGLE_JOB=		yes
 [PERL_530].BUILDRUN_DEPENDS_ON=		perl-Cpanel-JSON-XS:single:530
 [PERL_530].USES_ON=			perl:530,configure
 
-[FILE:71:descriptions/desc.single]
-Use L<Cpanel::JSON::XS> with a fallback to L<JSON::XS> and L<JSON::PP>
+[FILE:429:descriptions/desc.single]
+This module first checks to see if either Cpanel::JSON::XS or JSON::XS is
+already loaded, in which case it uses that module. Otherwise it tries to
+load Cpanel::JSON::XS, then JSON::XS, then JSON::PP in order, and either
+uses the first module it finds or throws an error.
+
+It then exports the encode_json and decode_json functions from the loaded
+module, along with a JSON constant that returns the class name for calling
+new on.
 
 
 [FILE:107:distinfo]

@@ -158,12 +158,12 @@ php-error:
 # -----------------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------------
-# If args contain "build" or "phpsize" or "ext" or "zend"
+# If args contain "build" or "phpize" or "ext" or "zend"
 # BUILDRUN_DEPENDS+= php${PHP_SUFFIX}:single:standard
 # else
 # RUN_DEPENDS+=      php${PHP_SUFFIX}:single:standard
 # endif
-# if args contain "phpsize" or "ext" or "zend"
+# if args contain "phpize" or "ext" or "zend"
 # BUILD_DEPENDS+=    autconf:single:standard
 # endif
 # Each extension may have individual port dependencies,
@@ -192,7 +192,7 @@ do-phpize:
 php-autoconf:
 	@(cd ${CONFIGURE_WRKSRC} && ${LOCALBASE}/bin/autoconf-2.69)
 
-.  endif	# args = phpsize | ext | zend
+.  endif	# args = phpize | ext | zend
 
 .  if ${php_ARGS:Mext} || ${php_ARGS:Mzend}
 PHP_MODNAME?=		${NAMEBASE:C/php..-//}

@@ -2,6 +2,7 @@
 
 NAMEBASE=		lftp
 VERSION=		4.9.1
+REVISION=		1
 KEYWORDS=		ftp
 VARIANTS=		standard
 SDESC[standard]=	Command-line ftp client
@@ -14,7 +15,9 @@ SITES[main]=		http://lftp.tech/ftp/
 			http://ftp.st.ryukoku.ac.jp/pub/network/ftp/lftp/
 DISTFILE[1]=		lftp-4.9.1.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -24,10 +27,10 @@ BUILDRUN_DEPENDS=	expat:shared:standard
 			libidn2:primary:standard
 
 USES=			charsetfix iconv libtool readline shebangfix
-			gettext-tools gettext-runtime ssl zlib c++:single
+			gettext-tools gettext-runtime ssl zlib c++:primary
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/lftp.cc
@@ -48,7 +51,7 @@ post-install:
 	${MV} ${STAGEDIR}${PREFIX}/etc/lftp.conf \
 		${STAGEDIR}${PREFIX}/etc/lftp.conf.sample
 
-[FILE:385:descriptions/desc.single]
+[FILE:385:descriptions/desc.primary]
 LFTP is a sophisticated file transfer program supporting a number of
 network protocols (ftp, http, sftp, fish, torrent). Like BASH, it has job
 control and uses the readline library for input. It has bookmarks, a
@@ -61,7 +64,7 @@ the GNU GPL license.
 02336d4ffc617b453e7cfd335f3a424758408ff31a10720d59add86e3737966a      2936796 lftp-4.9.1.tar.gz
 
 
-[FILE:842:manifests/plist.single]
+[FILE:326:manifests/plist.primary]
 @sample etc/lftp.conf.sample
 bin/
  lftp
@@ -77,6 +80,13 @@ share/lftp/
  import-netscape
  verify-file
  xdg-move
+share/man/man1/
+ lftp.1.gz
+ lftpget.1.gz
+share/man/man5/lftp.conf.5.gz
+
+
+[FILE:516:manifests/plist.nls]
 share/locale/cs/LC_MESSAGES/lftp.mo
 share/locale/de/LC_MESSAGES/lftp.mo
 share/locale/es/LC_MESSAGES/lftp.mo
@@ -91,10 +101,6 @@ share/locale/uk/LC_MESSAGES/lftp.mo
 share/locale/zh_CN/LC_MESSAGES/lftp.mo
 share/locale/zh_HK/LC_MESSAGES/lftp.mo
 share/locale/zh_TW/LC_MESSAGES/lftp.mo
-share/man/man1/
- lftp.1.gz
- lftpget.1.gz
-share/man/man5/lftp.conf.5.gz
 
 
 [FILE:2829:patches/patch-doc_lftp.1]

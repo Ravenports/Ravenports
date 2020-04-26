@@ -2,6 +2,7 @@
 
 NAMEBASE=		polkit
 VERSION=		0.116
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	Framework for access control to system components
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.freedesktop.org/software/polkit/releases/
 DISTFILE[1]=		polkit-0.116.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -26,14 +29,14 @@ BUILDRUN_DEPENDS=	dbus:single:standard
 
 USERS=			polkitd
 GROUPS=			polkitd
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
 USES=			gettext-tools gmake libtool pkgconfig python
 			shebangfix solaris-funcs
 GNOME_COMPONENTS=	glib introspection libxslt
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:stock
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/polkit/polkit.h
@@ -80,7 +83,7 @@ post-install:
 post-patch-sunos:
 	${REINPLACE_CMD} -e '/as-needed/ s/^.*$$/NOOP=1/' ${WRKSRC}/configure
 
-[FILE:300:descriptions/desc.single]
+[FILE:300:descriptions/desc.primary]
 Polkit is an application-level toolkit for defining and handling the 
 policy that allows unprivileged processes to speak to privileged 
 processes. It is a framework for centralizing the decision making process 
@@ -92,7 +95,7 @@ applications.
 88170c9e711e8db305a12fdb8234fac5706c61969b94e084d0f117d8ec5d34b1      1548311 polkit-0.116.tar.gz
 
 
-[FILE:2738:manifests/plist.single]
+[FILE:2129:manifests/plist.primary]
 bin/
  pk-example-frobnicate
  pkaction
@@ -153,21 +156,6 @@ share/gettext/its/
 share/gir-1.0/
  Polkit-1.0.gir
  PolkitAgent-1.0.gir
-share/locale/cs/LC_MESSAGES/polkit-1.mo
-share/locale/da/LC_MESSAGES/polkit-1.mo
-share/locale/de/LC_MESSAGES/polkit-1.mo
-share/locale/hr/LC_MESSAGES/polkit-1.mo
-share/locale/hu/LC_MESSAGES/polkit-1.mo
-share/locale/id/LC_MESSAGES/polkit-1.mo
-share/locale/it/LC_MESSAGES/polkit-1.mo
-share/locale/pl/LC_MESSAGES/polkit-1.mo
-share/locale/pt_BR/LC_MESSAGES/polkit-1.mo
-share/locale/sk/LC_MESSAGES/polkit-1.mo
-share/locale/sv/LC_MESSAGES/polkit-1.mo
-share/locale/tr/LC_MESSAGES/polkit-1.mo
-share/locale/uk/LC_MESSAGES/polkit-1.mo
-share/locale/zh_CN/LC_MESSAGES/polkit-1.mo
-share/locale/zh_TW/LC_MESSAGES/polkit-1.mo
 share/man/man1/
  pkaction.1.gz
  pkcheck.1.gz
@@ -191,6 +179,24 @@ share/polkit-1/actions/
 @dir etc/polkit-1/localauthority/90-mandatory.d
 @dir(polkitd,,700) share/polkit-1/rules.d
 @postexec chown polkitd %D/etc/polkit-1/rules.d && chmod 700 %D/etc/polkit-1/rules.d
+
+
+[FILE:609:manifests/plist.nls]
+share/locale/cs/LC_MESSAGES/polkit-1.mo
+share/locale/da/LC_MESSAGES/polkit-1.mo
+share/locale/de/LC_MESSAGES/polkit-1.mo
+share/locale/hr/LC_MESSAGES/polkit-1.mo
+share/locale/hu/LC_MESSAGES/polkit-1.mo
+share/locale/id/LC_MESSAGES/polkit-1.mo
+share/locale/it/LC_MESSAGES/polkit-1.mo
+share/locale/pl/LC_MESSAGES/polkit-1.mo
+share/locale/pt_BR/LC_MESSAGES/polkit-1.mo
+share/locale/sk/LC_MESSAGES/polkit-1.mo
+share/locale/sv/LC_MESSAGES/polkit-1.mo
+share/locale/tr/LC_MESSAGES/polkit-1.mo
+share/locale/uk/LC_MESSAGES/polkit-1.mo
+share/locale/zh_CN/LC_MESSAGES/polkit-1.mo
+share/locale/zh_TW/LC_MESSAGES/polkit-1.mo
 
 
 [FILE:667:patches/patch-docs_man_Makefile.in]
