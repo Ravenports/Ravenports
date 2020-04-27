@@ -113,7 +113,7 @@ GCC9_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			66.1
+ICU_VERSION=			67.1
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
@@ -153,7 +153,7 @@ RUBY_2.7_PATCHLEVEL=		0
 GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK2_PORT_VERSION=		2.24.32
-GTK3_PORT_VERSION=		3.24.18
+GTK3_PORT_VERSION=		3.24.20
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
