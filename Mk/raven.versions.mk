@@ -133,4 +133,17 @@ PHP_7.2_VERSION=	7.2.30
 PHP_7.3_VERSION=	7.3.17
 PHP_7.4_VERSION=	7.4.5
 
+#-------------------------------------------------------------------------
+# Ravenports system root versions per platform
+# Format: ID=opsys/arch/stdarch/os-version/os-release/os-major
+#-------------------------------------------------------------------------
+
+PLATFORM_FreeBSD_x86-64=	FreeBSD/amd64/x86_64/1101001/11.1/11
+PLATFORM_DragonFly_x86-64=	DragonFly/x86_64/x86_64/500800/5.8/5.8
+PLATFORM_Linux_x86-64=		Linux/x86_64/x86_64/440053/4.4/4.4.0
+PLATFORM_SunOS_x86-64=		SunOS/x86_64/x86_64/510200910/5.10/5.10
+PLATFORM_MacOS_x86-64=		Darwin/x86_64/x86_64/170700/17/17.7.0
+PLATFORM_NetBSD_x86-64=		NetBSD/amd64/x86_64/tbd/tbd/tbd
+PLATFORM_OpenBSD_x86-64=	OpenBSD/amd64/x86_64/tbd/tbd/tbd
+
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)

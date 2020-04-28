@@ -33,14 +33,21 @@ CONFIGURE_ARGS=		--with-default-sys-path="/xports/Mk:{{PREFIX}}/share/mk"
 			--with-machine-arch={{ARCH}}
 			--with-mksrc=no
 
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1101001/11.1/11
+VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/x86_64/x86_64/510200910/5.10/5.10
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4/4.4.0
+VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17/17.7.0
+VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/500800/5.8/5.8
+
 post-patch:
-.for F in OSVERSION OSRELEASE OSMAJOR STDARCH
-	newval=$$(${CAT} /usr/share/${F}); \
-	${SED} -i.${F}.bak -e "s|@CFLAGS@|-D${F}=\\\\\"$${newval}\\\\\" @CFLAGS@|" \
-	${WRKDIR}/bmake/make-bootstrap.sh.in
-.endfor
-	${REINPLACE_CMD} -e 's|@CFLAGS@|-DOSNAME=\\\"${OPSYS}\\\" -DOSARCH=\\\"${ARCH}\\\" @CFLAGS@|' \
-		${WRKDIR}/bmake/make-bootstrap.sh.in
+	${REINPLACE_CMD} -e 's|@CFLAGS@|\
+	-DOSNAME=\\\"${ZOPSYS}\\\"\
+	-DOSARCH=\\\"${ZARCH}\\\"\
+	-DSTDARCH=\\\"${ZARCHSTD}\\\"\
+	-DOSVERSION=\\\"${ZOSVERSION}\\\"\
+	-DOSRELEASE=\\\"${ZOSREL}\\\"\
+	-DOSMAJOR=\\\"${ZMAJOR}\\\"\
+	@CFLAGS@|' ${WRKDIR}/bmake/make-bootstrap.sh.in
 
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${SH} make-bootstrap.sh)
@@ -149,4 +156,13 @@ share/mk/sys/
  	}
  	if (makelevel > 0) {
  		char pn[1024];
+
+
+[FILE:157:files/special.mk]
+ZOPSYS=		${SYSTEM:H:H:H:H:H}
+ZARCH=		${SYSTEM:H:H:H:H:T}
+ZARCHSTD=	${SYSTEM:H:H:H:T}
+ZOSVERSION=	${SYSTEM:H:H:T}
+ZOSREL=		${SYSTEM:H:T}
+ZMAJOR=		${SYSTEM:T}
 

@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		3.0
-REVISION=		6
+REVISION=		7
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -115,6 +115,11 @@ INVALID_RPATH=		yes
 SKIP_BUILD=		yes
 MAKE_ARGS=		BASE={{RSYS}}
 MAKE_ENV=		OPSYS="{{OPSYS}}"
+			ARCH="{{ARCH}}"
+			ARCHSTD="{{ARCH_STANDARD}}"
+			OSVERSION="{{OSVERSION}}"
+			OSREL="{{OSREL}}"
+			OSMAJOR="{{MAJOR}}"
 			MKDIR="{{MKDIR}}"
 			GCCX=gcc9
 			libm={{Libm_{{OPSYS}}}}
@@ -140,6 +145,12 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBRPCSVC={{Librpcsvc_{{OPSYS}}}}
 			SONAME_LIBCAM={{Libcam_{{OPSYS}}}}
 			BASE={{SYSPATH}}
+
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1101001/11.1/11
+VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/x86_64/x86_64/510200910/5.10/5.10
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4/4.4.0
+VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17/17.7.0
+VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/500800/5.8/5.8
 
 [MACOS].DESCRIPTION=			Ravenports system root for MacOS/Darwin
 [MACOS].DF_INDEX_ON=			20
@@ -180,10 +191,6 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 [LINUX].ONLY_FOR_OPSYS_ON=		linux
 
 post-install-MACOS-ON:
-	${ECHO} 17.7.0    > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
-	${ECHO} 17        > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
-	${ECHO} 170700    > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
-	${ECHO} x86_64    > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 	${CHMOD} 600 ${STAGEDIR}${RSYS}/usr/share/master.passwd
 	${STAGEDIR}${RSYS}/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
 		${STAGEDIR}${RSYS}/usr/share/master.passwd
@@ -231,16 +238,10 @@ post-install-FREEBSDAMD64-ON:
 	${MV} ${STAGEDIR}${RSYS}/var/run/ld-elf.so.hints \
 		${STAGEDIR}${RSYS}/usr/share/
 	${RM} -r ${STAGEDIR}${RSYS}/var
-	${ECHO} 11.1   > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
-	${ECHO} 11 > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
-	${ECHO} 1101001   > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
-	${ECHO} "x86_64"             > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 
-post-install-SUNOS-ON:
-	${ECHO} 5.10      > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
-	${ECHO} 5.10      > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
-	${ECHO} 510200910 > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
-	${ECHO} x86_64    > ${STAGEDIR}${RSYS}/usr/share/STDARCH
+pre-fetch:
+	${SH} ${FILESDIR}/validate_pkgs.sh ${PREFIX} ${OPSYS} ${ARCH} \
+		${ARCH_STANDARD} ${OSVERSION} ${OSREL} ${MAJOR}
 
 post-extract-SUNOS-ON:
 	${MV} ${WRKDIR}/solaris_root_10_u8 ${WRKDIR}/sunos
@@ -272,10 +273,6 @@ post-install-DRAGONFLY-ON:
 	${MV} ${STAGEDIR}${RSYS}/var/run/ld-elf.so.hints \
 		${STAGEDIR}${RSYS}/usr/share/
 	${RM} -r ${STAGEDIR}${RSYS}/var
-	${ECHO} "5.8"    > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
-	${ECHO} "5.8"    > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
-	${ECHO} "500800" > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
-	${ECHO} "x86_64"             > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 
 post-install-LINUX-ON:
 	${INSTALL_DATA} ${FILESDIR}/linux-group \
@@ -284,10 +281,6 @@ post-install-LINUX-ON:
 		${STAGEDIR}${RSYS}/usr/share/passwd
 	${INSTALL_DATA} ${FOS}/etc/ld.so.conf.d/x86_64-linux-gnu.conf \
 		${STAGEDIR}${RSYS}/usr/share/x86_64-linux-gnu.conf
-	${ECHO} "4.4.0"   > ${STAGEDIR}${RSYS}/usr/share/OSRELEASE
-	${ECHO} "4.4"   > ${STAGEDIR}${RSYS}/usr/share/OSMAJOR
-	${ECHO} "440053" > ${STAGEDIR}${RSYS}/usr/share/OSVERSION
-	${ECHO} "x86_64"           > ${STAGEDIR}${RSYS}/usr/share/STDARCH
 	${ECHO} "include /etc/ld.so.conf.d/*.conf" > ${STAGEDIR}${RSYS}/usr/share/ld.so.conf
 	${LN} -s asm-generic ${STAGEDIR}${RSYS}/usr/include/asm
 
@@ -352,7 +345,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 53dccf23123851f83a0789e00e214b989711af868085e505c4c092f7f67a15cf       150304 libudev-dev_229-4ubuntu21.27_amd64.deb
 
 
-[FILE:15406:manifests/plist.single.dragonfly]
+[FILE:15419:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -1606,6 +1599,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  pw
  pwd_mkdb
 %%BASE%%/usr/share/
+ ARCH
+ OPSYS
  OSMAJOR
  OSRELEASE
  OSVERSION
@@ -1629,7 +1624,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:18040:manifests/plist.single.freebsd_amd64]
+[FILE:18053:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -3083,6 +3078,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  pw
  pwd_mkdb
 %%BASE%%/usr/share/
+ ARCH
+ OPSYS
  OSMAJOR
  OSRELEASE
  OSVERSION
@@ -3106,7 +3103,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:21062:manifests/plist.single.linux]
+[FILE:21075:manifests/plist.single.linux]
 %%BASE%%/bin/
  [
  bash
@@ -4850,6 +4847,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libutil.a
  libutil.so
 %%BASE%%/usr/share/
+ ARCH
+ OPSYS
  OSMAJOR
  OSRELEASE
  OSVERSION
@@ -4885,7 +4884,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:31335:manifests/plist.single.sunos]
+[FILE:31348:manifests/plist.single.sunos]
 %%BASE%%/bin/
  [
  bash
@@ -7427,6 +7426,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  pkcs11_softtoken_extra.so
  pkcs11_softtoken_extra.so.1
 %%BASE%%/usr/share/
+ ARCH
+ OPSYS
  OSMAJOR
  OSRELEASE
  OSVERSION
@@ -7441,7 +7442,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:20208:manifests/plist.single.macos]
+[FILE:20221:manifests/plist.single.macos]
 @comment auto-generate System/Library (~4Gb)
 %%BASE%%/bin/
  [
@@ -8703,6 +8704,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 %%BASE%%/usr/lib/xpc/support.bundle/Contents/_CodeSignature/CodeResources
 %%BASE%%/usr/sbin/pwd_mkdb
 %%BASE%%/usr/share/
+ ARCH
+ OPSYS
  OSMAJOR
  OSRELEASE
  OSVERSION
@@ -8864,7 +8867,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:23355:files/Makefile]
+[FILE:23671:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9754,6 +9757,14 @@ install:
 		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/
 .  endfor
 .endif
+	# move os-specific files from specification to makefile
+	cd ${DESTDIR}${BASE}/usr/share \
+		&& ${ECHO} ${OPSYS}     > OPSYS \
+		&& ${ECHO} ${ARCH}      > ARCH \
+		&& ${ECHO} ${ARCHSTD}   > STDARCH \
+		&& ${ECHO} ${OSVERSION} > OSVERSION \
+		&& ${ECHO} ${OSREL}     > OSRELEASE \
+		&& ${ECHO} ${OSMAJOR}   > OSMAJOR
 
 extra-includes:
 .for item in ${headers_${OPSYS}}
@@ -9875,7 +9886,7 @@ saned:x:120:128::/var/lib/saned:/bin/false
 usbmux:x:121:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
 
 
-[FILE:717:files/special.mk]
+[FILE:954:files/special.mk]
 Libc_DragonFly=		libc.so.8
 Libc_FreeBSD=		libc.so.7
 
@@ -9906,7 +9917,103 @@ Librpcsvc_FreeBSD=	librpcsvc.so.5
 Libcam_DragonFly=	libcam.so.3
 Libcam_FreeBSD=		libcam.so.7
 
+# Override bmake settings (important for bootstraps and sysroot rebases)
+OPSYS=			${SYSTEM:H:H:H:H:H}
+ARCH=			${SYSTEM:H:H:H:H:T}
+ARCH_STANDARD=		${SYSTEM:H:H:H:T}
+OSVERSION=		${SYSTEM:H:H:T}
+OSREL=			${SYSTEM:H:T}
+MAJOR=			${SYSTEM:T}
+
 SYSPATH=		share${RAVENBASE}/sysroot/${OPSYS}
 RSYS=			${PREFIX}/${SYSPATH}
 FOS=			${WRKDIR}/${OPSYS:tl}
+
+
+[FILE:1888:files/validate_pkgs.sh]
+#!/bin/sh
+#
+# $1: prefix
+# $2: opsys
+# $3: arch
+# $4: standardized arch
+# $5: OS kernel version
+# $6: OS release
+# $7: OS Major version
+#
+# Returns 0 if all the arguments match the installed bmake
+
+bmake=$1/bin/bmake
+uname=$1/bin/ravensys-uname
+answer1=$($bmake -V .MAKE.OS.NAME)
+answer2=$($bmake -V .MAKE.OS.ARCHITECTURE)
+answer3=$($bmake -V .MAKE.OS.ARCH.STANDARD)
+answer4=$($bmake -V .MAKE.OS.VERSION)
+answer5=$($bmake -V .MAKE.OS.RELEASE)
+answer6=$($bmake -V .MAKE.OS.MAJOR)
+uname1=$($uname -s)
+uname2=$($uname -m)
+uname3=$($uname -U)
+uname4=$($uname -r)
+all="$answer1/$answer2/$answer3/$answer4/$answer5/$answer6"
+all2="$uname1/$uname2/$uname3/$uname4"
+errmsg="bmake verification test failed, contains $all"
+recmsg="Rebuild bmake package and retry.";
+errmsg2="uname verification test failed, contains $all2"
+recmsg2="Rebuild ravensys-uname package and retry.";
+
+if [ "$2" != "$answer1" ]; then
+	echo "$errmsg (.MAKE.OS.NAME)"
+	echo $recmsg
+	exit 1
+fi
+if [ "$3" != "$answer2" ]; then
+	echo "$errmsg (.MAKE.OS.ARCHITECTURE)"
+	echo $recmsg
+	exit 1
+fi
+if [ "$4" != "$answer3" ]; then
+	echo "$errmsg (.MAKE.OS.ARCH.STANDARD)"
+	echo $recmsg
+	exit 1
+fi
+if [ "$5" != "$answer4" ]; then
+	echo "$errmsg (.MAKE.OS.VERSION)"
+	echo $recmsg
+	exit 1
+fi
+if [ "$6" != "$answer5" ]; then
+	echo "$errmsg (.MAKE.OS.RELEASE)"
+	echo $recmsg
+	exit 1
+fi
+if [ "$7" != "$answer6" ]; then
+	echo "$errmsg (.MAKE.OS.MAJOR)"
+	echo $recmsg
+	exit 1
+fi
+echo "bmake verification test passed"
+
+# now check ravensys-uname
+if [ "$2" != "$uname1" ]; then
+	echo "$errmsg2 (OS.NAME)"
+	echo $recmsg2
+	exit 1
+fi
+if [ "$4" != "$uname2" ]; then
+	echo "$errmsg2 (OS.MACHINE)"
+	echo $recmsg2
+	exit 1
+fi
+if [ "$5" != "$uname3" ]; then
+	echo "$errmsg2 (OS.KERNEL)"
+	echo $recmsg2
+	exit 1
+fi
+if [ "$6-RAVEN" != "$uname4" ]; then
+	echo "$errmsg2 (OS.RELEASE)"
+	echo $recmsg2
+	exit 1
+fi
+echo "ravensys-uname verification test passed"
 
