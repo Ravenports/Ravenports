@@ -76,7 +76,6 @@ BUILD_DEPENDS=		nawk:single:standard
 			bzip2:static:standard
 			diffutils:primary:ravensys
 			libarchive:single:static
-			sha256:single:standard
 			gnugrep:primary:ravensys
 			file:single:ravensys
 			findutils:primary:ravensys
@@ -86,13 +85,10 @@ BUILD_DEPENDS=		nawk:single:standard
 			unzip:core:standard
 			m4:primary:noprefix
 			bmake:single:standard
-			bsd-patch:single:standard
 			sed:primary:ravensys
 			byacc:single:standard
-			ravensys-uname:single:standard
 			less:single:standard
 			nvi:single:standard
-			mtree:single:standard
 			coreutils:primary:ravensys
 			binutils:single:ravensys
 			ncurses:primary:static
@@ -101,10 +97,8 @@ BUILD_DEPENDS=		nawk:single:standard
 			genpatch:single:standard
 			lockf:single:standard
 			fetch:single:standard
-B_DEPS[freebsd]=	libdl:single:standard
-B_DEPS[sunos]=		bsd-which:single:standard
+			ravensys-utils:single:standard
 B_DEPS[linux]=		shadow:single:standard bash:primary:static
-B_DEPS[dragonfly]=	libdl:single:standard
 
 EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 23 24 14
 			15
@@ -148,8 +142,8 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1101001/11.1/11
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/x86_64/x86_64/510200910/5.10/5.10
-VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4/4.4.0
-VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17/17.7.0
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
+VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/500800/5.8/5.8
 
 [MACOS].DESCRIPTION=			Ravenports system root for MacOS/Darwin
@@ -8867,7 +8861,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:23671:files/Makefile]
+[FILE:23691:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -8887,8 +8881,8 @@ Libbsdxml_FreeBSD=	libbsdxml.so.4
 CPA=			-RpP
 
 # /bin/cat    (archivers/libarchive)
-# /bin/md5    (security/sha256)
-# /bin/sha256 (security/sha256)
+# /bin/md5    (ravensys-utils)
+# /bin/sha256 (ravensys-utils)
 
 Bin_DragonFly=	/bin/[ \
 		/usr/bin/chflags \
@@ -8956,7 +8950,7 @@ Bin_Linux=	/bin/hostname \
 # /usr/bin/find   (misc/findutils)
 # /usr/bin/flex*  (textproc/flex)
 # /usr/bin/gzip*  (archivers/gzip)
-# /usr/bin/uname  (sysutils/uname)
+# /usr/bin/uname  (ravensys-utils)
 # /usr/bin/unzip  (archivers/unzip)
 # /usr/bin/xz*    (archivers/xz)
 # /usr/bin/m4     (devel/m4)
@@ -8966,7 +8960,7 @@ Bin_Linux=	/bin/hostname \
 # /usr/bin/xargs  (misc/findutils)
 # /usr/bin/yacc   (devel/byacc)
 # /usr/bin/less*  (sysutils/less)
-# /usr/bin/mtree  (sysutils/mtree)
+# /usr/bin/mtree  (ravensys-utils)
 # /usr/bin/sort   (sysutils/coreutils)
 # /usr/bin/objdump-sysroot (devel/binutils)
 
@@ -9524,7 +9518,7 @@ install:
 
 .if "${OPSYS}" == "SunOS"
 	cp ${CPA} ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
-	# use BSD's which
+	# use BSD's which (from ravensys-utils)
 	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/which ${DESTDIR}${BASE}/usr/bin/
 	# /bin/sh is really /usr/xpg4/bin/sh, move it there
 	# Move /usr/bin/bash (from distro) to /bin/bash
