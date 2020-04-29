@@ -4,7 +4,8 @@ NAMEBASE=		gmake
 VERSION=		4.3
 REVISION=		1
 KEYWORDS=		devel
-VARIANTS=		standard noprefix
+VARIANTS=		standard noprefix ravensys
+SDESC[ravensys]=	GNU make without native language support
 SDESC[noprefix]=	GNU make with unprefixed program name
 SDESC[standard]=	GNU variant of 'make' utility
 HOMEPAGE=		https://www.gnu.org/software/make/
@@ -14,6 +15,7 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/make
 DISTFILE[1]=		make-4.3.tar.gz:main
 DF_INDEX=		1
+SPKGS[ravensys]=	single
 SPKGS[noprefix]=	complete
 			single
 			nls
@@ -21,11 +23,12 @@ SPKGS[standard]=	complete
 			single
 			nls
 
-OPTIONS_AVAILABLE=	NOPREFIX
+OPTIONS_AVAILABLE=	NOPREFIX RAVENSYS
 OPTIONS_STANDARD=	none
-VOPTS[noprefix]=	NOPREFIX=ON
+VOPTS[ravensys]=	NOPREFIX=OFF RAVENSYS=ON
+VOPTS[noprefix]=	NOPREFIX=ON RAVENSYS=OFF
 
-USES=			cpe gettext-runtime
+USES=			cpe
 
 DISTNAME=		make-4.3
 
@@ -43,9 +46,13 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-guile
-			--enable-nls
-			--with-libintl-prefix={{LOCALBASE}}
-			{{ICONV_CONFIGURE_ARG}}
+
+[RAVENSYS].DESCRIPTION=			Build without Native Language Support
+[RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-nls
+					--with-libintl-prefix={{LOCALBASE}}
+					{{ICONV_CONFIGURE_ARG}}
+[RAVENSYS].CONFIGURE_ARGS_ON=		--disable-nls
+[RAVENSYS].USES_OFF=			gettext-runtime
 
 [NOPREFIX].DESCRIPTION=			Build without prefixing program with "g"
 [NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
@@ -60,7 +67,7 @@ of the utility make(1).
 e05fdde47c5f7ca45cb697e973894ff4f5d79e13b750ed57d7b66d8defc78e19      2317073 make-4.3.tar.gz
 
 
-[FILE:54:manifests/plist.single.standard]
+[FILE:54:manifests/plist.single]
 bin/gmake
 include/gnumake.h
 share/man/man1/gmake.1.gz

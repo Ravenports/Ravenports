@@ -30,6 +30,7 @@ BUILD_DEPENDS=		rpcgen:single:standard
 			libedit:single:standard
 BUILDRUN_DEPENDS=	libevent:single:standard
 			lz4:complete:standard
+B_DEPS[linux]=		patchelf:primary:standard
 EXRUN[client]=		libedit:single:standard
 			zlib:complete:standard
 			openssl-devel:single:standard
@@ -526,6 +527,23 @@ share/man/man1/
  # we can safely enable ASan on Clang/Win32 if needed.
 
 
+[FILE:467:patches/patch-cmake_install__layout.cmake]
+--- cmake/install_layout.cmake.orig	2020-03-26 13:31:45 UTC
++++ cmake/install_layout.cmake
+@@ -383,11 +383,7 @@ SET(ROUTER_INSTALL_LOGDIR_STANDALONE
+ SET(ROUTER_INSTALL_RUNTIMEDIR_STANDALONE "run")
+ 
+ SET(ROUTER_INSTALL_BINDIR_STANDALONE      "bin")
+-IF(LINUX)
+-  SET(ROUTER_INSTALL_LIBDIR_STANDALONE    "lib/mysqlrouter/private")
+-ELSE()
+   SET(ROUTER_INSTALL_LIBDIR_STANDALONE    "lib")
+-ENDIF()
+ IF(WIN32)
+   SET(ROUTER_INSTALL_PLUGINDIR_STANDALONE "lib")
+ ELSE()
+
+
 [FILE:418:patches/patch-cmake_plugin.cmake]
 --- cmake/plugin.cmake.orig	2020-03-26 13:31:45 UTC
 +++ cmake/plugin.cmake
@@ -541,7 +559,7 @@ share/man/man1/
      IF(WITHOUT_${plugin})
 
 
-[FILE:636:patches/patch-cmake_ssl.cmake]
+[FILE:1016:patches/patch-cmake_ssl.cmake]
 --- cmake/ssl.cmake.orig	2020-03-26 13:31:45 UTC
 +++ cmake/ssl.cmake
 @@ -222,13 +222,10 @@ MACRO (MYSQL_CHECK_SSL)
@@ -559,6 +577,15 @@ share/man/man1/
        )
        SET(OPENSSL_FOUND TRUE)
        FIND_PROGRAM(OPENSSL_EXECUTABLE openssl
+@@ -332,7 +329,7 @@ ENDMACRO()
+ # or INSTALL_LIBDIR      (Mac)
+ # or INSTALL_PRIV_LIBDIR (Linux)
+ MACRO(MYSQL_CHECK_SSL_DLLS)
+-  IF (WITH_SSL_PATH AND (APPLE OR WIN32 OR LINUX_STANDALONE OR LINUX_RPM))
++  IF (WITH_SSL_PATH AND (APPLE OR WIN32))
+     MESSAGE(STATUS "WITH_SSL_PATH ${WITH_SSL_PATH}")
+     IF(LINUX)
+       GET_FILENAME_COMPONENT(CRYPTO_EXT "${CRYPTO_LIBRARY}" EXT)
 
 
 [FILE:505:patches/patch-configure.cmake]

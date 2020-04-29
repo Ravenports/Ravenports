@@ -4,8 +4,9 @@ NAMEBASE=		gdbm
 VERSION=		1.18.1
 REVISION=		1
 KEYWORDS=		databases
-VARIANTS=		standard
+VARIANTS=		standard static
 SDESC[standard]=	GNU database manager
+SDESC[static]=		GNU database manager (static-only without NLS)
 HOMEPAGE=		http://www.gnu.org/software/gdbm/
 CONTACT=		nobody
 
@@ -16,11 +17,17 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			nls
+SPKGS[static]=		complete
+			primary
+			tools
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	STATIC
 OPTIONS_STANDARD=	none
+VOPTS[static]=		STATIC=ON
 
-USES=			gmake libtool:keepla readline solfix gettext-runtime
+EXRUN[tools]=		readline:single:standard
+
+USES=			gmake libtool:keepla solfix
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -35,11 +42,22 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-libgdbm-compat
-			--enable-nls
+			--enable-static
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		6.0.0
+
+[STATIC].DESCRIPTION=			Build static library only variant
+[STATIC].BUILD_DEPENDS_ON=		readline:single:standard
+[STATIC].CFLAGS_ON=			-fPIC
+					-DPIC
+[STATIC].CONFIGURE_ARGS_OFF=		--enable-nls
+					--enable-shared
+[STATIC].CONFIGURE_ARGS_ON=		--disable-nls
+					--disable-shared
+[STATIC].USES_OFF=			readline
+					gettext-runtime
 
 post-patch:
 	${REINPLACE_CMD} -e "s|LIBS = @LIBS@ -lc|LIBS = @LIBS@|" \
@@ -53,6 +71,21 @@ The GNU dbm is a library of database functions that use extensible hashing
 and works similar to the standard UNIX dbm functions.  These routines are
 provided to a programmer needing to create and manipulate a hashed
 database.
+
+
+[FILE:312:descriptions/desc.primary.static]
+The GNU dbm is a library of database functions that use extensible hashing
+and works similar to the standard UNIX dbm functions.  These routines are
+provided to a programmer needing to create and manipulate a hashed
+database.
+
+This package contains a static-only version of the library without
+any binary tools.
+
+
+[FILE:78:descriptions/desc.tools.static]
+This package contains the tools of the static variant of the
+gdbm ravenports.
 
 
 [FILE:97:distinfo]
@@ -100,4 +133,28 @@ share/locale/sr/LC_MESSAGES/gdbm.mo
 share/locale/sv/LC_MESSAGES/gdbm.mo
 share/locale/uk/LC_MESSAGES/gdbm.mo
 share/locale/vi/LC_MESSAGES/gdbm.mo
+
+
+[FILE:122:manifests/plist.primary.static]
+include/
+ dbm.h
+ gdbm.h
+ ndbm.h
+lib/
+ libgdbm.a
+ libgdbm.la
+ libgdbm_compat.a
+ libgdbm_compat.la
+share/man/man3/gdbm.3.gz
+
+
+[FILE:100:manifests/plist.tools.static]
+bin/
+ gdbm_dump
+ gdbm_load
+ gdbmtool
+share/man/man1/
+ gdbm_dump.1.gz
+ gdbm_load.1.gz
+ gdbmtool.1.gz
 
