@@ -2,6 +2,7 @@
 
 NAMEBASE=		parcellite
 VERSION=		1.2.1
+REVISION=		1
 KEYWORDS=		deskutils
 VARIANTS=		standard
 SDESC[standard]=	Lightweight GTK+ clipboard manager
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/rickyrockrat:parcellite:1.2.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -22,8 +25,11 @@ USES=			autoreconf pkgconfig gmake gettext-tools
 GNOME_COMPONENTS=	gtk2 intltool
 XORG_COMPONENTS=	x11
 
-LICENSE=		GPLv3:single
-LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/main.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		deskutils/parcellite
@@ -48,7 +54,7 @@ post-patch-freebsd:
 	${REINPLACE_CMD} -e 's|/proc|/compat/linux/proc|g' \
 		${WRKSRC}/src/utils.c
 
-[FILE:176:descriptions/desc.single]
+[FILE:176:descriptions/desc.primary]
 Parcellite is a lightweight GTK+ clipboard manager. This is a stripped
 down, basic-features-only clipboard manager with a small memory footprint
 for those who like simplicity.
@@ -58,10 +64,18 @@ for those who like simplicity.
 6a7a37235096dbda40a4a8cc8190fe397b8a3a04ded8ba58a012c22687e3eada       408235 rickyrockrat-parcellite-1.2.1.tar.gz
 
 
-[FILE:957:manifests/plist.single]
+[FILE:192:manifests/plist.primary]
 bin/parcellite
 etc/xdg/autostart/parcellite-startup.desktop
 share/applications/parcellite.desktop
+share/man/man1/parcellite.1.gz
+share/pixmaps/
+ parcellite.png
+ parcellite.svg
+ parcellite.xpm
+
+
+[FILE:765:manifests/plist.nls]
 share/locale/ca/LC_MESSAGES/parcellite.mo
 share/locale/cs/LC_MESSAGES/parcellite.mo
 share/locale/da/LC_MESSAGES/parcellite.mo
@@ -80,11 +94,6 @@ share/locale/ru/LC_MESSAGES/parcellite.mo
 share/locale/sv/LC_MESSAGES/parcellite.mo
 share/locale/tr/LC_MESSAGES/parcellite.mo
 share/locale/zh_CN/LC_MESSAGES/parcellite.mo
-share/man/man1/parcellite.1.gz
-share/pixmaps/
- parcellite.png
- parcellite.svg
- parcellite.xpm
 
 
 [FILE:752:files/pkg-message-single-dragonfly]

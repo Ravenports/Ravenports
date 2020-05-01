@@ -57,6 +57,8 @@ PLIST_SUB=		LIBVERSION=0.6400.2
 
 SET_DEBUGGING_ON=	yes
 OPTIMIZER_LEVEL=	0
+VAR_OPSYS[sunos]=	CFLAGS=-fPIC
+			LDFLAGS=-lintl
 VAR_OPSYS[darwin]=	MAKE_ENV=DYLD_FALLBACK_LIBRARY_PATH="$$DYLD_FALLBACK_LIBRARY_PATH:{{WRKSRC}}/_build/glib:{{WRKSRC}}/_build/gio:{{WRKSRC}}/_build/gobject:{{WRKSRC}}/_build/gmodule"
 
 post-patch:
@@ -673,19 +675,6 @@ share/man/man1/
  }
 
 
-[FILE:237:patches/patch-gio_tests_include.c]
---- glib/tests/include.c.orig	2020-04-09 13:43:10 UTC
-+++ glib/tests/include.c
-@@ -3,6 +3,7 @@
- #define _POSIX_C_SOURCE 199309L
- #undef _GNU_SOURCE
- #undef _XOPEN_SOURCE
-+#include <sys/types.h>
- #include <pthread.h>
- #include <glib.h>
- 
-
-
 [FILE:397:patches/patch-gio_xdgmime_xdgmime.c]
 --- gio/xdgmime/xdgmime.c.orig	2020-04-09 13:43:10 UTC
 +++ gio/xdgmime/xdgmime.c
@@ -726,6 +715,36 @@ share/man/man1/
  #include "glib_trace.h"
  
  /* notes on macros:
+
+
+[FILE:228:patches/patch-glib_giounix.c]
+--- glib/giounix.c.orig	2020-04-09 13:43:10 UTC
++++ glib/giounix.c
+@@ -31,7 +31,9 @@
+ 
+ #include "config.h"
+ 
++#ifndef __sun__
+ #define _POSIX_SOURCE		/* for SSIZE_MAX */
++#endif
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
+
+
+[FILE:219:patches/patch-glib_glib-unix.c]
+--- glib/glib-unix.c.orig	2020-04-09 13:43:10 UTC
++++ glib/glib-unix.c
+@@ -31,6 +31,9 @@
+ 
+ #include <string.h>
+ #include <sys/types.h>
++#ifdef __sun
++#define _POSIX_PTHREAD_SEMANTICS 1
++#endif
+ #include <pwd.h>
+ 
+ /**
 
 
 [FILE:803:patches/patch-glib_gutils.c]
@@ -783,6 +802,23 @@ share/man/man1/
  #elif defined G_OS_WIN32
    tz = g_time_zone_new ("Eastern Standard Time");
  #endif
+
+
+[FILE:295:patches/patch-glib_tests_include.c]
+--- glib/tests/include.c.orig	2020-04-09 13:43:10 UTC
++++ glib/tests/include.c
+@@ -1,8 +1,11 @@
+ /* Test case for bug 659866 */
+ 
++#ifndef __sun
+ #define _POSIX_C_SOURCE 199309L
+ #undef _GNU_SOURCE
+ #undef _XOPEN_SOURCE
++#endif
++#include <sys/types.h>
+ #include <pthread.h>
+ #include <glib.h>
+ 
 
 
 [FILE:287:patches/patch-glib_tests_utils.c]

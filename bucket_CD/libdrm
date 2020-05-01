@@ -45,6 +45,8 @@ SOL_FUNCTIONS=		getline:amdgpu/amdgpu_asic_id.c
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lrt
+
 [X86].DESCRIPTION=			DRM Drivers for amd64 and i386 architectures
 
 [ARM].DESCRIPTION=			DRM Drivers for AARCH64 architecture
@@ -383,7 +385,7 @@ define ETIME as ETIMEOUT same as done in mesa
  int ioctl(int fd, int request, ...)
 
 
-[FILE:16907:patches/patch-xf86drm.c]
+[FILE:16904:patches/patch-xf86drm.c]
 --- xf86drm.c.orig	2020-04-03 12:28:15 UTC
 +++ xf86drm.c
 @@ -31,6 +31,12 @@
@@ -406,7 +408,7 @@ define ETIME as ETIMEOUT same as done in mesa
 +#if FREEDFLY
 +#include <sys/pciio.h>
 +#endif
-+#ifdef HAVE_SYS_SYSCTL_H
++#if HAVE_SYS_SYSCTL_H
 +#include <sys/sysctl.h>
 +#endif
  #include <math.h>
