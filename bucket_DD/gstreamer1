@@ -2,6 +2,7 @@
 
 NAMEBASE=		gstreamer1
 VERSION=		1.16.2
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	Media applications framework
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://gstreamer.freedesktop.org/src/gstreamer/
 DISTFILE[1]=		gstreamer-1.16.2.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -23,8 +26,8 @@ GNOME_COMPONENTS=	glib introspection
 
 DISTNAME=		gstreamer-1.16.2
 
-LICENSE=		LGPL20+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL20+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL20+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/gst/gst.h
@@ -53,7 +56,7 @@ post-patch:
 		${XARGS} ${GREP} -l "enum_headers = " |\
 		${XARGS} ${REINPLACE_CMD} -e '/enum_headers =/ s|\\#include|#include|'
 
-[FILE:435:descriptions/desc.single]
+[FILE:435:descriptions/desc.primary]
 GStreamer is not a media player. It is a library for constructing graphs 
 of media-handling components, ranging from simple Ogg/Vorbis playback and 
 audio/video streaming to complex audio (mixing) and video (non-linear 
@@ -66,7 +69,7 @@ filters by writing a simple plugin with a clean, generic interface.
 e3f044246783fd685439647373fa13ba14f7ab0b346eadd06437092f8419e94e      3328600 gstreamer-1.16.2.tar.xz
 
 
-[FILE:6267:manifests/plist.single]
+[FILE:4080:manifests/plist.primary]
 bin/
  gst-inspect-%%VERSION%%
  gst-launch-%%VERSION%%
@@ -255,6 +258,14 @@ share/gir-1.0/
 share/gstreamer-%%VERSION%%/gdb/
  glib_gobject_helper.py
  gst_gdb.py
+share/man/man1/
+ gst-inspect-%%VERSION%%.1.gz
+ gst-launch-%%VERSION%%.1.gz
+ gst-stats-%%VERSION%%.1.gz
+ gst-typefind-%%VERSION%%.1.gz
+
+
+[FILE:2187:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/gstreamer-%%VERSION%%.mo
 share/locale/ast/LC_MESSAGES/gstreamer-%%VERSION%%.mo
 share/locale/az/LC_MESSAGES/gstreamer-%%VERSION%%.mo
@@ -296,11 +307,6 @@ share/locale/uk/LC_MESSAGES/gstreamer-%%VERSION%%.mo
 share/locale/vi/LC_MESSAGES/gstreamer-%%VERSION%%.mo
 share/locale/zh_CN/LC_MESSAGES/gstreamer-%%VERSION%%.mo
 share/locale/zh_TW/LC_MESSAGES/gstreamer-%%VERSION%%.mo
-share/man/man1/
- gst-inspect-%%VERSION%%.1.gz
- gst-launch-%%VERSION%%.1.gz
- gst-stats-%%VERSION%%.1.gz
- gst-typefind-%%VERSION%%.1.gz
 
 
 [FILE:418:patches/patch-Makefile.in]
