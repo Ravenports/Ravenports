@@ -71,6 +71,12 @@ shebangonefile() {
 			badinterp="${interp}"
 		fi
 		;;
+	/usr/xpg4/bin/sh)
+		# only valid on Solaris
+		if [ "${OPSYS}" != "SunOS" ]; then
+			badinterp="${interp}"
+		fi
+		;;
 	/usr/bin/awk) ;;
 	/usr/bin/env)
 		interparg=$(sed -n -e '1s/^#![[:space:]]*[^[:space:]]*[[:space:]]*\([^[:space:]]*\).*/\1/p;2q' "${f}")

@@ -89,7 +89,6 @@ SOL_FUNCTIONS=		dirfd:src/util/disk_cache.c
 			asprintf:src/util/u_string.h
 			strnlen:src/util/ralloc.c
 			strnlen:src/mesa/main/errors.c
-			strndup:src/util/xmlconfig.c
 			strndup:src/loader/loader.c
 			strndup:src/egl/drivers/dri2/platform_x11.c
 
@@ -98,11 +97,13 @@ CONFIGURE_ENV=		ax_cv_check_cflags___Wno_initializer_overrides=no
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 
+CFLAGS=			-Wno-pointer-sign
 VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 			CPPFLAGS=-Wno-unused-function
 			CXXFLAGS=-Drestrict=__restrict__
 			CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
 			CFLAGS=-DF_DUPFD_CLOEXEC=F_DUPFD
+			CFLAGS=-Wno-incompatible-pointer-types
 			LDFLAGS=-lsocket
 			LDFLAGS=-lnsl
 			MAKEFILE_LINE=MESON_ARGS+=-Dshader-cache=false
@@ -386,56 +387,12 @@ in drm.h also, which causes build issues in xorg-server.
  	VIRTUAL_BUFFER_HASH_TABLE_SIZE = 1024
 
 
-[FILE:784:patches/patch-src_compiler_glsl_linker.cpp]
---- src/compiler/glsl/linker.cpp.orig	2020-04-29 22:48:24 UTC
-+++ src/compiler/glsl/linker.cpp
-@@ -91,6 +91,38 @@
- #include "main/enums.h"
- #include "main/mtypes.h"
- 
-+#ifdef __sun__
-+/* uses libbsd4sol prototypes, so can't be static */
-+#include <stdlib.h>
-+#include <stdint.h>
-+#include <string.h>
-+
-+size_t
-+strnlen(const char *s, size_t maxlen)
-+{
-+	size_t len;
-+	for (len = 0; len < maxlen; len++, s++) {
-+		if (!*s) break;
-+	}
-+	return (len);
-+}
-+
-+char *
-+strndup(const char *str, size_t n)
-+{
-+    size_t len;
-+    char *copy;
-+
-+    len = strlen(str);
-+    if (len <= n)
-+        return strdup(str);
-+    if ((copy = (char *)malloc(len + 1)) == NULL)
-+        return (NULL);
-+    memcpy(copy, str, len);
-+    copy[len] = '\0';
-+    return (copy);
-+}
-+#endif
- 
- namespace {
- 
-
-
 [FILE:586:patches/patch-src_egl_drivers_dri2_platform__x11.c]
 # work-around for https://bugs.freedesktop.org/show_bug.cgi?id=100627
 #
---- src/egl/drivers/dri2/platform_x11.c.orig	2020-04-29 22:48:24 UTC
+--- src/egl/drivers/dri2/platform_x11.c.orig	2020-05-02 12:12:14 UTC
 +++ src/egl/drivers/dri2/platform_x11.c
-@@ -1550,6 +1550,9 @@ dri2_initialize_x11(_EGLDriver *drv, _EG
+@@ -1569,6 +1569,9 @@ dri2_initialize_x11(_EGLDriver *drv, _EG
  
     if (!disp->Options.ForceSoftware) {
  #ifdef HAVE_DRI3
@@ -1149,10 +1106,10 @@ See:
  struct build_id_note {
 
 
-[FILE:282:patches/patch-src_util_disk__cache.c]
---- src/util/disk_cache.c.orig	2020-04-29 22:48:25 UTC
+[FILE:301:patches/patch-src_util_disk__cache.c]
+--- src/util/disk_cache.c.orig	2020-05-02 12:12:14 UTC
 +++ src/util/disk_cache.c
-@@ -56,6 +56,10 @@
+@@ -63,6 +63,10 @@ dirfd(DIR *dirp) {
  
  #include "disk_cache.h"
  
@@ -1238,6 +1195,51 @@ See:
  #define os_free_aligned(_ptr) free(_ptr)
 
 
+[FILE:853:patches/patch-src_util_strndup.h]
+--- src/util/strndup.h.orig	2020-04-29 22:48:25 UTC
++++ src/util/strndup.h
+@@ -24,7 +24,7 @@
+ #ifndef STRNDUP_H
+ #define STRNDUP_H
+ 
+-#if defined(_WIN32)
++#if defined(_WIN32) || defined(__sun)
+ 
+ #include <stdlib.h> // size_t
+ #include <string.h>
+@@ -34,6 +34,7 @@ extern "C" {
+ #endif
+ 
+ static inline char *
++#if defined(_WIN32)
+ strndup(const char *str, size_t max)
+ {
+    size_t n;
+@@ -50,6 +51,22 @@ strndup(const char *str, size_t max)
+    memcpy(ptr, str, n);
+    return ptr;
+ }
++#else  // version without strnlen
++strndup(const char *str, size_t n)
++{
++    size_t len;
++    char *copy;
++
++    len = strlen(str);
++    if (len <= n)
++        return (strdup(str));
++    if ((copy = (char *)malloc(len + 1)) == NULL)
++        return (NULL);
++    memcpy(copy, str, len);
++    copy[len] = '\0';
++    return (copy);
++}
++#endif
+ 
+ #ifdef __cplusplus
+ }
+
+
 [FILE:430:patches/patch-src_util_u__atomic.h]
 --- src/util/u_atomic.h.orig	2020-04-29 22:48:25 UTC
 +++ src/util/u_atomic.h
@@ -1296,7 +1298,7 @@ GALLIUM_DRIVERS+=	SWRAST
 
 
 [FILE:817:sunos/patch-src_gallium_targets_dri_meson.build]
---- src/gallium/targets/dri/meson.build.orig	2019-12-18 18:36:00 UTC
+--- src/gallium/targets/dri/meson.build.orig	2020-04-29 22:48:24 UTC
 +++ src/gallium/targets/dri/meson.build
 @@ -46,11 +46,12 @@ libgallium_dri = shared_library(
    ],
@@ -1305,9 +1307,9 @@ GALLIUM_DRIVERS+=	SWRAST
 -  link_args : [ld_args_build_id, ld_args_gc_sections, gallium_dri_ld_args],
 +  link_args : [ld_args_gc_sections, gallium_dri_ld_args],
    link_depends : gallium_dri_link_depends,
-+  link_whole : [libdricommon, libgallium, libr300, libdri, _libnir],
++  link_whole : [libdri, libdricommon, libgallium, libr300, _libnir],
    link_with : [
--    libmesa_gallium, libdricommon, libmegadriver_stub, libdri, libgalliumvl,
+-    libdri, libmesa_gallium, libdricommon, libmegadriver_stub, libgalliumvl,
 -    libgallium, libglapi, libpipe_loader_static, libws_null, libwsw, libswdri,
 +    libmesa_gallium, libmegadriver_stub, libgalliumvl,
 +    libglapi, libpipe_loader_static, libws_null, libwsw, libswdri,
@@ -1333,7 +1335,7 @@ GALLIUM_DRIVERS+=	SWRAST
      dep_ws2_32, dep_selinux, dep_thread, dep_clock, dep_unwind,
 
 
-[FILE:613:sunos/patch-src_gallium_targets_vdpau_meson.build]
+[FILE:629:sunos/patch-src_gallium_targets_vdpau_meson.build]
 --- src/gallium/targets/vdpau/meson.build.orig	2019-12-18 18:36:00 UTC
 +++ src/gallium/targets/vdpau/meson.build
 @@ -45,10 +45,10 @@ libvdpau_gallium = shared_library(
@@ -1341,7 +1343,7 @@ GALLIUM_DRIVERS+=	SWRAST
      inc_common, inc_util, inc_gallium_winsys, inc_gallium_drivers,
    ],
 -  link_whole : [libvdpau_st],
-+  link_whole : [libvdpau_st, libr300, libradeonwinsys, libpipe_loader_static],
++  link_whole : [libvdpau_st, libr300, libradeonwinsys, libpipe_loader_static, libmesa_format],
    link_with : [
      libgalliumvlwinsys, libgalliumvl, libgallium,
 -    libpipe_loader_static, libws_null, libwsw, libswdri, libswkmsdri,
@@ -1351,7 +1353,7 @@ GALLIUM_DRIVERS+=	SWRAST
      idep_mesautil,
 
 
-[FILE:558:sunos/patch-src_gallium_targets_xa_meson.build]
+[FILE:574:sunos/patch-src_gallium_targets_xa_meson.build]
 --- src/gallium/targets/xa/meson.build.orig	2019-12-18 18:36:00 UTC
 +++ src/gallium/targets/xa/meson.build
 @@ -41,9 +41,9 @@ libxatracker = shared_library(
@@ -1359,7 +1361,7 @@ GALLIUM_DRIVERS+=	SWRAST
      inc_common, inc_util, inc_gallium_winsys, inc_gallium_drivers,
    ],
 -  link_whole : [libxa_st],
-+  link_whole : [libxa_st, libsvga, libsvgadrm, libpipe_loader_static],
++  link_whole : [libxa_st, libsvga, libsvgadrm, libpipe_loader_static, libmesa_format],
    link_with : [
 -    libgalliumvl_stub, libgallium, libpipe_loader_static,
 +    libgalliumvl_stub, libgallium,
@@ -1368,7 +1370,7 @@ GALLIUM_DRIVERS+=	SWRAST
    link_depends : xa_link_depends,
 
 
-[FILE:967:sunos/patch-src_mesa_drivers_dri_meson.build]
+[FILE:983:sunos/patch-src_mesa_drivers_dri_meson.build]
 --- src/mesa/drivers/dri/meson.build.orig	2020-01-09 18:12:10 UTC
 +++ src/mesa/drivers/dri/meson.build
 @@ -20,7 +20,7 @@
@@ -1376,7 +1378,7 @@ GALLIUM_DRIVERS+=	SWRAST
  subdir('common')
  
 -_dri_drivers = []
-+_dri_drivers = [ _libnir, libmesa_classic, libintel_compiler, libglcpp, libdricommon ]
++_dri_drivers = [ _libnir, libmesa_classic, libmesa_common, libintel_compiler, libglcpp, libdricommon ]
  _dri_link = []
  if with_dri_swrast
    subdir('swrast')
