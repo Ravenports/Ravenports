@@ -2,6 +2,7 @@
 
 NAMEBASE=		adacurses
 VERSION=		20180127
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Ada95 bindings for ncurses
@@ -20,7 +21,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			gmake gprbuild pkgconfig ncurses
+USES=			gmake pkgconfig ncurses
 
 DISTNAME=		AdaCurses-20180127
 
@@ -62,10 +63,13 @@ post-patch-darwin:
 		${WRKDIR}/adacurses.gpr
 
 post-install:
+	${INSTALL_DATA} ${WRKSRC}/src/*.ali \
+		${STAGEDIR}${PREFIX}/lib/adacurses/
 	${INSTALL_SCRIPT} ${WRKSRC}/gen/adacurses-config \
 		${STAGEDIR}${PREFIX}/bin/
-	@${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat
-	${INSTALL_SCRIPT} ${WRKDIR}/adacurses.gpr ${STAGEDIR}${PREFIX}/lib/gnat
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat
+	${INSTALL_SCRIPT} ${WRKDIR}/adacurses.gpr \
+		${STAGEDIR}${PREFIX}/lib/gnat
 	(cd ${WRKSRC}/doc && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_ARGS} THIS=adacurses install.html)
 

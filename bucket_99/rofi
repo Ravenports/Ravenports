@@ -24,6 +24,7 @@ BUILDRUN_DEPENDS=	libxkbcommon:single:standard
 			xorg-xcb-util:single:standard
 			xorg-xcb-util-wm:single:standard
 			xorg-xcb-util-xrm:single:standard
+B_DEPS[sunos]=		libbsd4sol:single:standard
 
 USES=			bison gmake libtool pkgconfig shebangfix
 GNOME_COMPONENTS=	cairo gdkpixbuf librsvg pango
@@ -41,6 +42,12 @@ SHEBANG_NEW_BASH=	/bin/sh
 SHEBANG_OLD_BASH=	"/usr/bin/env bash"
 
 MUST_CONFIGURE=		gnu
+
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
+			CONFIGURE_ENV=LIBS="-lbsd -lrt"
+
+post-patch:
+	${REINPLACE_CMD} -e 's/ -pedantic//' ${WRKSRC}/configure
 
 [FILE:426:descriptions/desc.single]
 A window switcher, application launcher and dmenu replacement.
@@ -102,4 +109,120 @@ share/rofi/themes/
  sidebar.rasi
  solarized.rasi
  solarized_alternate.rasi
+
+
+[FILE:313:patches/patch-source_dialogs_combi.c]
+--- source/dialogs/combi.c.orig	2019-07-01 12:29:09 UTC
++++ source/dialogs/combi.c
+@@ -40,6 +40,15 @@
+ #include "mode-private.h"
+ #include <theme.h>
+ 
++#ifdef __sun__
++static inline char *strchrnul(const char *s, int c)
++{
++	while (*s && *s != c)
++		s++;
++	return (char *)s;
++}
++#endif
++
+ /**
+  * Combi Mode
+  */
+
+
+[FILE:1575:patches/patch-source_dialogs_drun.c]
+--- source/dialogs/drun.c.orig	2019-07-01 12:29:09 UTC
++++ source/dialogs/drun.c
+@@ -492,12 +492,21 @@ static void walk_dir ( DRunModePrivateDa
+         if ( file->d_name[0] == '.' ) {
+             continue;
+         }
++#ifdef __sun__
++	stat(file->d_name, &st);
++	switch (st.st_mode) {
++	case S_IFLNK:
++	case S_IFREG:
++	case S_IFDIR:
++	case 0:
++#else
+         switch ( file->d_type )
+         {
+         case DT_LNK:
+         case DT_REG:
+         case DT_DIR:
+         case DT_UNKNOWN:
++#endif
+             filename = g_build_filename ( dirname, file->d_name, NULL );
+             break;
+         default:
+@@ -506,6 +515,21 @@ static void walk_dir ( DRunModePrivateDa
+ 
+         // On a link, or if FS does not support providing this information
+         // Fallback to stat method.
++#ifdef __sun__
++        switch (st.st_mode) {
++        case S_IFREG:
++            // Skip files not ending on .desktop.
++            if ( g_str_has_suffix ( file->d_name, ".desktop" ) ) {
++                read_desktop_file ( pd, root, filename, file->d_name, DRUN_GROUP_NAME );
++            }
++            break;
++        case S_IFDIR:
++            walk_dir ( pd, root, filename );
++            break;
++        default:
++            break;
++	}
++#else
+         if ( file->d_type == DT_LNK || file->d_type == DT_UNKNOWN ) {
+             file->d_type = DT_UNKNOWN;
+             if ( stat ( filename, &st ) == 0 ) {
+@@ -532,6 +556,7 @@ static void walk_dir ( DRunModePrivateDa
+         default:
+             break;
+         }
++#endif
+         g_free ( filename );
+     }
+     closedir ( dir );
+
+
+[FILE:1029:patches/patch-source_dialogs_run.c]
+--- source/dialogs/run.c.orig	2019-07-01 12:29:09 UTC
++++ source/dialogs/run.c
+@@ -45,6 +45,9 @@
+ #include <strings.h>
+ #include <string.h>
+ #include <errno.h>
++#ifdef __sun__
++#include <sys/stat.h>
++#endif
+ 
+ #include "rofi.h"
+ #include "settings.h"
+@@ -209,6 +212,9 @@ static char ** get_apps ( unsigned int *
+     char         **retv        = NULL;
+     unsigned int num_favorites = 0;
+     char         *path;
++#ifdef __sun__
++    struct stat  s;
++#endif
+ 
+     if ( g_getenv ( "PATH" ) == NULL ) {
+         return NULL;
+@@ -253,7 +259,12 @@ static char ** get_apps ( unsigned int *
+             g_free ( dirn );
+ 
+             while ( ( dent = readdir ( dir ) ) != NULL ) {
++#ifdef __sun__
++                stat(dent->d_name, &s);
++                if (s.st_mode != S_IFREG && s.st_mode != S_IFLNK && s.st_mode != 0) {
++#else
+                 if ( dent->d_type != DT_REG && dent->d_type != DT_LNK && dent->d_type != DT_UNKNOWN ) {
++#endif
+                     continue;
+                 }
+                 // Skip dot files.
 

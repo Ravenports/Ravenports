@@ -37,6 +37,28 @@ A cross-platform interface to file system operations, built on top of the
 ae9103dff26ca56a34901408bd650a2949f491b2a0886c686a51a179d38b7a4e       819680 CRAN/fs_1.4.1.tar.gz
 
 
+[FILE:786:patches/patch-src_Makevars]
+--- src/Makevars.orig	2020-03-27 11:57:10 UTC
++++ src/Makevars
+@@ -8,6 +8,7 @@ OBJECTS = $(SOURCES:.cc=.o)
+ ifeq ($(UNAME), SunOS)
+ PKG_LIBS += -lkstat -lsendfile -lsocket -lxnet
+ OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
++CONFTGT = --build=i86-pc-solaris2.10
+ endif
+ ifeq ($(UNAME), FreeBSD)
+ PKG_LIBS += -lkvm
+@@ -27,7 +28,7 @@ $(SHLIB): libuv/.libs/libuv.a
+ 
+ libuv/Makefile:
+ 	(cd libuv \
+-	&& CC="$(CC)" CFLAGS="$(CFLAGS) $(CPPFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure --quiet)
++	&& CC="$(CC)" CFLAGS="$(CFLAGS) $(CPPFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure --quiet $(CONFTGT))
+ 
+ libuv/.libs/libuv.a: libuv/Makefile
+ 	$(MAKE) --directory=libuv \
+
+
 [FILE:367:patches/patch-src_unix_getmode.cc]
 --- src/unix/getmode.cc.orig	2020-04-15 14:10:48 UTC
 +++ src/unix/getmode.cc
