@@ -2,7 +2,7 @@
 
 NAMEBASE=		sudo
 VERSION=		1.8.31p1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Allows restricted root access for specified users
@@ -56,6 +56,8 @@ post-patch:
 		${WRKSRC}/plugins/sudoers/Makefile.in
 	${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g' \
 		${WRKSRC}/plugins/sudoers/sudoers.in
+	${REINPLACE_CMD} -e "/mansectsu='1m'/d" -e "/mansectform='4'/d" \
+		${WRKSRC}/configure
 
 post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/pam.d
@@ -80,64 +82,9 @@ commands and their arguments.
 c73cfdfbc1c5cc259fcc3a355e1bacfed99c5580daeadec9704a24cd5e6d15d8      3351312 sudo-1.8.31p1.tar.gz
 
 
-[FILE:1552:manifests/plist.primary]
+[FILE:551:manifests/plist.primary]
 @sample etc/pam.d/sudo.default etc/pam.d/sudo
 @sample etc/sudoers.dist etc/sudoers
-%%ONLY-DARWIN%%share/man/man1/cvtsudoers.1.gz
-%%ONLY-DARWIN%%share/man/man5/
- sudo.conf.5.gz
- sudoers.5.gz
- sudoers_timestamp.5.gz
-%%ONLY-DARWIN%%share/man/man8/
- sudo.8.gz
- sudo_plugin.8.gz
- sudoedit.8.gz
- sudoreplay.8.gz
- visudo.8.gz
-%%ONLY-DRAGONFLY%%share/man/man1/cvtsudoers.1.gz
-%%ONLY-DRAGONFLY%%share/man/man5/
- sudo.conf.5.gz
- sudoers.5.gz
- sudoers_timestamp.5.gz
-%%ONLY-DRAGONFLY%%share/man/man8/
- sudo.8.gz
- sudo_plugin.8.gz
- sudoedit.8.gz
- sudoreplay.8.gz
- visudo.8.gz
-%%ONLY-FREEBSD%%share/man/man1/cvtsudoers.1.gz
-%%ONLY-FREEBSD%%share/man/man5/
- sudo.conf.5.gz
- sudoers.5.gz
- sudoers_timestamp.5.gz
-%%ONLY-FREEBSD%%share/man/man8/
- sudo.8.gz
- sudo_plugin.8.gz
- sudoedit.8.gz
- sudoreplay.8.gz
- visudo.8.gz
-%%ONLY-LINUX%%share/man/man1/cvtsudoers.1.gz
-%%ONLY-LINUX%%share/man/man5/
- sudo.conf.5.gz
- sudoers.5.gz
- sudoers_timestamp.5.gz
-%%ONLY-LINUX%%share/man/man8/
- sudo.8.gz
- sudo_plugin.8.gz
- sudoedit.8.gz
- sudoreplay.8.gz
- visudo.8.gz
-%%ONLY-SUNOS%%share/man/man1/cvtsudoers.1.gz
-%%ONLY-SUNOS%%share/man/man1m/
- sudo.1m.gz
- sudo_plugin.1m.gz
- sudoedit.1m.gz
- sudoreplay.1m.gz
- visudo.1m.gz
-%%ONLY-SUNOS%%share/man/man4/
- sudo.conf.4.gz
- sudoers.4.gz
- sudoers_timestamp.4.gz
 bin/
  cvtsudoers
  sudo
@@ -153,6 +100,17 @@ libexec/sudo/
  sudoers.so
  system_group.so
 sbin/visudo
+share/man/man1/cvtsudoers.1.gz
+share/man/man5/
+ sudo.conf.5.gz
+ sudoers.5.gz
+ sudoers_timestamp.5.gz
+share/man/man8/
+ sudo.8.gz
+ sudo_plugin.8.gz
+ sudoedit.8.gz
+ sudoreplay.8.gz
+ visudo.8.gz
 @dir /var/db/sudo/lectured
 @dir /var/run/sudo
 @dir etc/sudoers.d
