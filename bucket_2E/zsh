@@ -2,7 +2,7 @@
 
 NAMEBASE=		zsh
 VERSION=		5.8
-REVISION=		2
+REVISION=		3
 KEYWORDS=		shells
 VARIANTS=		standard
 SDESC[standard]=	Interactive Z Shell
@@ -24,6 +24,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		pcre:static:standard
 			gdbm:primary:static
 BUILDRUN_DEPENDS=	pcre:shared:standard
+BR_DEPS[sunos]=		termcap:single:standard
 
 USES=			autoreconf iconv ncurses shebangfix
 
@@ -58,6 +59,9 @@ PLIST_SUB=		ZSH_VER="5.8"
 
 CPPFLAGS=		-DBOOL_DEFINED
 			-I{{NCURSESINC}}
+VAR_OPSYS[sunos]=	CPPFLAGS=-D_XPG6
+			CPPFLAGS=-DHAVE_BOOLCODES
+			LDFLAGS=-ltinfo
 
 post-patch:
 	${FIND} ${WRKSRC} -name "*.orig" -delete
@@ -112,13 +116,11 @@ To fire up the zsh completion system, type the following commands:
 dcc4b54cc5565670a65581760261c163d720991f0d06486da61f8d839b52de27      3193284 zsh-5.8.tar.xz
 
 
-[FILE:17113:manifests/plist.primary]
+[FILE:22954:manifests/plist.primary]
 @shell bin/rzsh
 @shell bin/zsh
-%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/attr.%%SHARED_OBJECT%%
-%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/attr.%%SHARED_OBJECT%%
-bin/zsh-%%ZSH_VER%%
-lib/zsh/%%ZSH_VER%%/zsh/
+%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/
+ attr.%%SHARED_OBJECT%%
  cap.%%SHARED_OBJECT%%
  clone.%%SHARED_OBJECT%%
  compctl.%%SHARED_OBJECT%%
@@ -151,11 +153,355 @@ lib/zsh/%%ZSH_VER%%/zsh/
  zpty.%%SHARED_OBJECT%%
  zselect.%%SHARED_OBJECT%%
  zutil.%%SHARED_OBJECT%%
-lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
-lib/zsh/%%ZSH_VER%%/zsh/net/
+%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
+%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/net/
  socket.%%SHARED_OBJECT%%
  tcp.%%SHARED_OBJECT%%
-lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
+%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
+%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/
+ Newuser.zwc
+ TCP.zwc
+ Zftp.zwc
+%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
+%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/TCP/
+ tcp_alias
+ tcp_close
+ tcp_command
+ tcp_expect
+ tcp_fd_handler
+ tcp_log
+ tcp_open
+ tcp_output
+ tcp_point
+ tcp_proxy
+ tcp_read
+ tcp_rename
+ tcp_send
+ tcp_sess
+ tcp_shoot
+ tcp_spam
+ tcp_talk
+ tcp_wait
+%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/Zftp/
+ zfanon
+ zfautocheck
+ zfcd
+ zfcd_match
+ zfcget
+ zfclose
+ zfcput
+ zfdir
+ zffcache
+ zfgcp
+ zfget
+ zfget_match
+ zfgoto
+ zfhere
+ zfinit
+ zfls
+ zfmark
+ zfopen
+ zfparams
+ zfpcp
+ zfput
+ zfrglob
+ zfrtime
+ zfsession
+ zfstat
+ zftp_chpwd
+ zftp_progress
+ zftransfer
+ zftype
+ zfuget
+ zfuput
+%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/scripts/newuser
+%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/
+ cap.%%SHARED_OBJECT%%
+ clone.%%SHARED_OBJECT%%
+ compctl.%%SHARED_OBJECT%%
+ complete.%%SHARED_OBJECT%%
+ complist.%%SHARED_OBJECT%%
+ computil.%%SHARED_OBJECT%%
+ curses.%%SHARED_OBJECT%%
+ datetime.%%SHARED_OBJECT%%
+ deltochar.%%SHARED_OBJECT%%
+ example.%%SHARED_OBJECT%%
+ files.%%SHARED_OBJECT%%
+ langinfo.%%SHARED_OBJECT%%
+ mapfile.%%SHARED_OBJECT%%
+ mathfunc.%%SHARED_OBJECT%%
+ nearcolor.%%SHARED_OBJECT%%
+ newuser.%%SHARED_OBJECT%%
+ parameter.%%SHARED_OBJECT%%
+ pcre.%%SHARED_OBJECT%%
+ regex.%%SHARED_OBJECT%%
+ rlimits.%%SHARED_OBJECT%%
+ sched.%%SHARED_OBJECT%%
+ stat.%%SHARED_OBJECT%%
+ system.%%SHARED_OBJECT%%
+ termcap.%%SHARED_OBJECT%%
+ terminfo.%%SHARED_OBJECT%%
+ zftp.%%SHARED_OBJECT%%
+ zle.%%SHARED_OBJECT%%
+ zleparameter.%%SHARED_OBJECT%%
+ zprof.%%SHARED_OBJECT%%
+ zpty.%%SHARED_OBJECT%%
+ zselect.%%SHARED_OBJECT%%
+ zutil.%%SHARED_OBJECT%%
+%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
+%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/net/
+ socket.%%SHARED_OBJECT%%
+ tcp.%%SHARED_OBJECT%%
+%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
+%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/
+ Newuser.zwc
+ TCP.zwc
+ Zftp.zwc
+%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
+%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/TCP/
+ tcp_alias
+ tcp_close
+ tcp_command
+ tcp_expect
+ tcp_fd_handler
+ tcp_log
+ tcp_open
+ tcp_output
+ tcp_point
+ tcp_proxy
+ tcp_read
+ tcp_rename
+ tcp_send
+ tcp_sess
+ tcp_shoot
+ tcp_spam
+ tcp_talk
+ tcp_wait
+%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/Zftp/
+ zfanon
+ zfautocheck
+ zfcd
+ zfcd_match
+ zfcget
+ zfclose
+ zfcput
+ zfdir
+ zffcache
+ zfgcp
+ zfget
+ zfget_match
+ zfgoto
+ zfhere
+ zfinit
+ zfls
+ zfmark
+ zfopen
+ zfparams
+ zfpcp
+ zfput
+ zfrglob
+ zfrtime
+ zfsession
+ zfstat
+ zftp_chpwd
+ zftp_progress
+ zftransfer
+ zftype
+ zfuget
+ zfuput
+%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/scripts/newuser
+%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/
+ cap.%%SHARED_OBJECT%%
+ clone.%%SHARED_OBJECT%%
+ compctl.%%SHARED_OBJECT%%
+ complete.%%SHARED_OBJECT%%
+ complist.%%SHARED_OBJECT%%
+ computil.%%SHARED_OBJECT%%
+ curses.%%SHARED_OBJECT%%
+ datetime.%%SHARED_OBJECT%%
+ deltochar.%%SHARED_OBJECT%%
+ example.%%SHARED_OBJECT%%
+ files.%%SHARED_OBJECT%%
+ langinfo.%%SHARED_OBJECT%%
+ mapfile.%%SHARED_OBJECT%%
+ mathfunc.%%SHARED_OBJECT%%
+ nearcolor.%%SHARED_OBJECT%%
+ newuser.%%SHARED_OBJECT%%
+ parameter.%%SHARED_OBJECT%%
+ pcre.%%SHARED_OBJECT%%
+ regex.%%SHARED_OBJECT%%
+ rlimits.%%SHARED_OBJECT%%
+ sched.%%SHARED_OBJECT%%
+ stat.%%SHARED_OBJECT%%
+ system.%%SHARED_OBJECT%%
+ termcap.%%SHARED_OBJECT%%
+ terminfo.%%SHARED_OBJECT%%
+ zftp.%%SHARED_OBJECT%%
+ zle.%%SHARED_OBJECT%%
+ zleparameter.%%SHARED_OBJECT%%
+ zprof.%%SHARED_OBJECT%%
+ zpty.%%SHARED_OBJECT%%
+ zselect.%%SHARED_OBJECT%%
+ zutil.%%SHARED_OBJECT%%
+%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
+%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/net/
+ socket.%%SHARED_OBJECT%%
+ tcp.%%SHARED_OBJECT%%
+%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
+%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/
+ Newuser.zwc
+ TCP.zwc
+ Zftp.zwc
+%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
+%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/TCP/
+ tcp_alias
+ tcp_close
+ tcp_command
+ tcp_expect
+ tcp_fd_handler
+ tcp_log
+ tcp_open
+ tcp_output
+ tcp_point
+ tcp_proxy
+ tcp_read
+ tcp_rename
+ tcp_send
+ tcp_sess
+ tcp_shoot
+ tcp_spam
+ tcp_talk
+ tcp_wait
+%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/Zftp/
+ zfanon
+ zfautocheck
+ zfcd
+ zfcd_match
+ zfcget
+ zfclose
+ zfcput
+ zfdir
+ zffcache
+ zfgcp
+ zfget
+ zfget_match
+ zfgoto
+ zfhere
+ zfinit
+ zfls
+ zfmark
+ zfopen
+ zfparams
+ zfpcp
+ zfput
+ zfrglob
+ zfrtime
+ zfsession
+ zfstat
+ zftp_chpwd
+ zftp_progress
+ zftransfer
+ zftype
+ zfuget
+ zfuput
+%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/scripts/newuser
+%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/
+ attr.%%SHARED_OBJECT%%
+ cap.%%SHARED_OBJECT%%
+ clone.%%SHARED_OBJECT%%
+ compctl.%%SHARED_OBJECT%%
+ complete.%%SHARED_OBJECT%%
+ complist.%%SHARED_OBJECT%%
+ computil.%%SHARED_OBJECT%%
+ curses.%%SHARED_OBJECT%%
+ datetime.%%SHARED_OBJECT%%
+ deltochar.%%SHARED_OBJECT%%
+ example.%%SHARED_OBJECT%%
+ files.%%SHARED_OBJECT%%
+ langinfo.%%SHARED_OBJECT%%
+ mapfile.%%SHARED_OBJECT%%
+ mathfunc.%%SHARED_OBJECT%%
+ nearcolor.%%SHARED_OBJECT%%
+ newuser.%%SHARED_OBJECT%%
+ parameter.%%SHARED_OBJECT%%
+ pcre.%%SHARED_OBJECT%%
+ regex.%%SHARED_OBJECT%%
+ rlimits.%%SHARED_OBJECT%%
+ sched.%%SHARED_OBJECT%%
+ stat.%%SHARED_OBJECT%%
+ system.%%SHARED_OBJECT%%
+ termcap.%%SHARED_OBJECT%%
+ terminfo.%%SHARED_OBJECT%%
+ zftp.%%SHARED_OBJECT%%
+ zle.%%SHARED_OBJECT%%
+ zleparameter.%%SHARED_OBJECT%%
+ zprof.%%SHARED_OBJECT%%
+ zpty.%%SHARED_OBJECT%%
+ zselect.%%SHARED_OBJECT%%
+ zutil.%%SHARED_OBJECT%%
+%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
+%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/net/
+ socket.%%SHARED_OBJECT%%
+ tcp.%%SHARED_OBJECT%%
+%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
+%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/
+ Newuser.zwc
+ TCP.zwc
+ Zftp.zwc
+%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
+%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/TCP/
+ tcp_alias
+ tcp_close
+ tcp_command
+ tcp_expect
+ tcp_fd_handler
+ tcp_log
+ tcp_open
+ tcp_output
+ tcp_point
+ tcp_proxy
+ tcp_read
+ tcp_rename
+ tcp_send
+ tcp_sess
+ tcp_shoot
+ tcp_spam
+ tcp_talk
+ tcp_wait
+%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/Zftp/
+ zfanon
+ zfautocheck
+ zfcd
+ zfcd_match
+ zfcget
+ zfclose
+ zfcput
+ zfdir
+ zffcache
+ zfgcp
+ zfget
+ zfget_match
+ zfgoto
+ zfhere
+ zfinit
+ zfls
+ zfmark
+ zfopen
+ zfparams
+ zfpcp
+ zfput
+ zfrglob
+ zfrtime
+ zfsession
+ zfstat
+ zftp_chpwd
+ zftp_progress
+ zftransfer
+ zftype
+ zfuget
+ zfuput
+%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/scripts/newuser
+bin/zsh-%%ZSH_VER%%
 share/man/man1/
  zsh.1.gz
  zshall.1.gz
@@ -182,11 +528,8 @@ share/zsh/%%ZSH_VER%%/functions/
  MIME.zwc
  Math.zwc
  Misc.zwc
- Newuser.zwc
  Prompts.zwc
- TCP.zwc
  VCS_Info.zwc
- Zftp.zwc
  Zle.zwc
 share/zsh/%%ZSH_VER%%/functions/Calendar/
  after
@@ -1216,7 +1559,6 @@ share/zsh/%%ZSH_VER%%/functions/Misc/
  zrecompile
  zstyle+
  ztodo
-share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
 share/zsh/%%ZSH_VER%%/functions/Prompts/
  prompt_adam1_setup
  prompt_adam2_setup
@@ -1238,25 +1580,6 @@ share/zsh/%%ZSH_VER%%/functions/Prompts/
  prompt_walters_setup
  prompt_zefram_setup
  promptinit
-share/zsh/%%ZSH_VER%%/functions/TCP/
- tcp_alias
- tcp_close
- tcp_command
- tcp_expect
- tcp_fd_handler
- tcp_log
- tcp_open
- tcp_output
- tcp_point
- tcp_proxy
- tcp_read
- tcp_rename
- tcp_send
- tcp_sess
- tcp_shoot
- tcp_spam
- tcp_talk
- tcp_wait
 share/zsh/%%ZSH_VER%%/functions/VCS_Info/
  Backends.zwc
  VCS_INFO_adjust
@@ -1304,38 +1627,6 @@ share/zsh/%%ZSH_VER%%/functions/VCS_Info/Backends/
  VCS_INFO_get_data_svk
  VCS_INFO_get_data_svn
  VCS_INFO_get_data_tla
-share/zsh/%%ZSH_VER%%/functions/Zftp/
- zfanon
- zfautocheck
- zfcd
- zfcd_match
- zfcget
- zfclose
- zfcput
- zfdir
- zffcache
- zfgcp
- zfget
- zfget_match
- zfgoto
- zfhere
- zfinit
- zfls
- zfmark
- zfopen
- zfparams
- zfpcp
- zfput
- zfrglob
- zfrtime
- zfsession
- zfstat
- zftp_chpwd
- zftp_progress
- zftransfer
- zftype
- zfuget
- zfuput
 share/zsh/%%ZSH_VER%%/functions/Zle/
  backward-kill-word-match
  backward-word-match
@@ -1500,7 +1791,6 @@ share/zsh/%%ZSH_VER%%/help/
  zsocket
  zstyle
  ztcp
-share/zsh/%%ZSH_VER%%/scripts/newuser
 @dir share/zsh/site-functions
 
 
