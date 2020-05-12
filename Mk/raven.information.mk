@@ -196,7 +196,7 @@ FIREFOX_ESR_VERSION=		68.8.0
 FIREFOX_VERSION=		76.0.1
 LLVM_VERSION=			10.0.0
 ZLIB_VERSION=			1.2.11
-OPENEXR_VERSION=		2.5.0
+OPENEXR_VERSION=		2.5.1
 GHOSTSCRIPT_VERSION=		9.52
 
 # ------------------------------------------------------------------------
