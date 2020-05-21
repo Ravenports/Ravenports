@@ -369,22 +369,6 @@ diff=1f4095efc7eb0d61d90e29b5cfdcb87f80e36914
  typedef vm_size_t os_vm_size_t;
 
 
-[FILE:351:patches/patch-src_runtime_interrupt.c]
---- src/runtime/interrupt.c.orig	2020-04-27 07:01:37 UTC
-+++ src/runtime/interrupt.c
-@@ -69,6 +69,10 @@
- #include "genesis/cons.h"
- #include "genesis/vector.h"
- 
-+#ifndef SIGRTMIN
-+#define SIGRTMIN 50
-+#endif
-+
- /*
-  * This is a workaround for some slightly silly Linux/GNU Libc
-  * behaviour: glibc defines sigset_t to support 1024 signals, which is
-
-
 [FILE:657:patches/patch-src_runtime_thread.c]
 --- src/runtime/thread.c.orig	2020-04-27 07:01:37 UTC
 +++ src/runtime/thread.c
@@ -406,25 +390,6 @@ diff=1f4095efc7eb0d61d90e29b5cfdcb87f80e36914
      pthread_attr_get_np(os, &attr);
  #else
      int pthread_getattr_np(pthread_t, pthread_attr_t *);
-
-
-[FILE:423:patches/patch-src_runtime_x86-64-bsd-os.c]
---- src/runtime/x86-64-bsd-os.c.orig	2020-04-27 07:01:37 UTC
-+++ src/runtime/x86-64-bsd-os.c
-@@ -148,6 +148,13 @@ os_flush_icache(os_vm_address_t address,
- {
- }
- 
-+#if defined(LISP_FEATURE_SB_THREAD) && (defined __DragonFly__ || defined __FreeBSD__)
-+void
-+arch_os_load_ldt(struct thread *thread)
-+{
-+}
-+#endif
-+
- int arch_os_thread_init(struct thread *thread) {
- #ifdef LISP_FEATURE_SB_THREAD
- #ifdef LISP_FEATURE_GCC_TLS
 
 
 [FILE:319:patches/patch-tools-for-build_grovel-headers.c]
