@@ -331,8 +331,32 @@ lib/sbcl/sb-sprof/
 share/man/man1/sbcl.1.gz
 
 
+[FILE:1026:patches/patch-src_code_x86-64-vm.lisp]
+diff=1f4095efc7eb0d61d90e29b5cfdcb87f80e36914
+
+--- src/code/x86-64-vm.lisp.orig	2020-04-27 07:01:37 UTC
++++ src/code/x86-64-vm.lisp
+@@ -388,6 +388,7 @@
+   (declare (ignorable code fixups))
+   (unless (immobile-space-obj-p code)
+     (return-from statically-link-code-obj code))
++  #+immobile-code
+   (let* ((fdefns-start (+ code-constants-offset
+                           (* code-slots-per-simple-fun (code-n-entries code))))
+          (fdefns-count (code-n-named-calls code))
+@@ -400,7 +401,7 @@
+     ;;   that function is in immobile space and needs no trampoline.
+     ;; * whether the replacement creates ambiguitity - if #'F and #'G are the same
+     ;;   function, then substituting that function in for the fdefn of F and G
+-    ;;   requires storing locations at which to replacement was done
++    ;;   requires storing locations at which replacement was done
+     (dotimes (i fdefns-count)
+       (let* ((fdefn (code-header-ref code (+ fdefns-start i)))
+              (fun (when (fdefn-p fdefn) (fdefn-fun fdefn))))
+
+
 [FILE:330:patches/patch-src_runtime_bsd-os.h]
---- src/runtime/bsd-os.h.orig	2020-03-28 20:58:29 UTC
+--- src/runtime/bsd-os.h.orig	2020-04-27 07:01:37 UTC
 +++ src/runtime/bsd-os.h
 @@ -22,7 +22,7 @@
  #endif
@@ -346,7 +370,7 @@ share/man/man1/sbcl.1.gz
 
 
 [FILE:351:patches/patch-src_runtime_interrupt.c]
---- src/runtime/interrupt.c.orig	2020-03-28 20:58:29 UTC
+--- src/runtime/interrupt.c.orig	2020-04-27 07:01:37 UTC
 +++ src/runtime/interrupt.c
 @@ -69,6 +69,10 @@
  #include "genesis/cons.h"
@@ -362,7 +386,7 @@ share/man/man1/sbcl.1.gz
 
 
 [FILE:657:patches/patch-src_runtime_thread.c]
---- src/runtime/thread.c.orig	2020-03-28 20:58:29 UTC
+--- src/runtime/thread.c.orig	2020-04-27 07:01:37 UTC
 +++ src/runtime/thread.c
 @@ -50,7 +50,7 @@
  
@@ -385,7 +409,7 @@ share/man/man1/sbcl.1.gz
 
 
 [FILE:423:patches/patch-src_runtime_x86-64-bsd-os.c]
---- src/runtime/x86-64-bsd-os.c.orig	2020-03-28 20:58:29 UTC
+--- src/runtime/x86-64-bsd-os.c.orig	2020-04-27 07:01:37 UTC
 +++ src/runtime/x86-64-bsd-os.c
 @@ -148,6 +148,13 @@ os_flush_icache(os_vm_address_t address,
  {
@@ -404,7 +428,7 @@ share/man/man1/sbcl.1.gz
 
 
 [FILE:319:patches/patch-tools-for-build_grovel-headers.c]
---- tools-for-build/grovel-headers.c.orig	2020-03-28 20:58:29 UTC
+--- tools-for-build/grovel-headers.c.orig	2020-04-27 07:01:37 UTC
 +++ tools-for-build/grovel-headers.c
 @@ -43,7 +43,11 @@
    #include <termios.h>
