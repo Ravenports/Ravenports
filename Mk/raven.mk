@@ -94,6 +94,8 @@ DEBUG_FLAGS?=		-g
 MAKE_ENV+=		DONTSTRIP=yes
 CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS} \
 			${CFLAGS} -I${LOCALBASE}/include
+CXXFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} ${DEBUG_FLAGS} \
+			${CXXFLAGS} -I${LOCALBASE}/include
 
 .  if defined(INSTALL_TARGET)
 INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
@@ -101,6 +103,8 @@ INSTALL_TARGET:=	${INSTALL_TARGET:S/^install-strip$/install/g}
 .else
 CFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
 			${CFLAGS} -I${LOCALBASE}/include
+CXXFLAGS:=		-pipe -O${OPTIMIZER_LEVEL} \
+			${CXXFLAGS} -I${LOCALBASE}/include
 .  if "${OPSYS}" == "Darwin"
 STRIP_CMD+=		-x
 .  endif
