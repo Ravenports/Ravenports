@@ -2,6 +2,7 @@
 
 NAMEBASE=		llvm
 VERSION=		10.0.0
+REVISION=		1
 KEYWORDS=		devel lang
 VARIANTS=		standard
 SDESC[standard]=	Low Level Virtual Machine (version 10.0)
@@ -41,7 +42,14 @@ PLIST_SUB=		LLVM_RELEASE="10.0.0"
 			LLVM_MAJOR="10"
 
 BLOCK_WATCHDOG=		yes
+CFLAGS=			-O2
+			-pipe
+			-DNDEBUG
+CXXFLAGS=		-O2
+			-pipe
+			-DNDEBUG
 CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
+			-DLLVM_LINK_LLVM_DYLIB=ON
 			-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 			-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
 			-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
@@ -73,12 +81,12 @@ post-install:
 .for F in bugpoint dsymutil llc lli llvm-ar llvm-as llvm-bcanalyzer \
 	llvm-c-test llvm-cat llvm-cfi-verify llvm-config llvm-cov \
 	llvm-cvtres llvm-cxxdump llvm-cxxfilt llvm-cxxmap llvm-diff llvm-dis \
-	llvm-dwarfdump llvm-dwp llvm-elfabi llvm-exegesis llvm-extract \
+	llvm-dwarfdump llvm-dwp llvm-elfabi llvm-exegesis llvm-extract llvm-ifs \
 	llvm-link llvm-lto llvm-lto2 llvm-mc llvm-mca llvm-modextract llvm-mt \
 	llvm-nm llvm-objcopy llvm-objdump llvm-opt-report llvm-pdbutil \
 	llvm-profdata llvm-rc llvm-readobj llvm-rtdyld llvm-size \
 	llvm-split llvm-stress llvm-strings llvm-symbolizer llvm-tblgen \
-	llvm-undname llvm-xray llvm-jitlink llvm-lipo \
+	llvm-undname llvm-xray llvm-jitlink llvm-lipo llvm-reduce \
 	obj2yaml opt sancov sanstats \
 	verify-uselistorder yaml2obj FileCheck count not yaml-bench \
 	lli-child-target llvm-PerfectShuffle
