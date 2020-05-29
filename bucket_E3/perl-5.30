@@ -74,11 +74,6 @@ TEST_ENV=		{{MAKE_ENV}}
 [THREADS].CONFIGURE_ARGS_ON=		-Dusethreads=y
 
 post-patch:
-	# GDBM is missing the runpath
-	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|' \
-		${WRKSRC}/ext/GDBM_File/Makefile.PL \
-		${WRKSRC}/ext/NDBM_File/Makefile.PL \
-		${WRKSRC}/ext/ODBM_File/Makefile.PL
 	${REINPLACE_CMD} -e 's|@WRKSRC@|${WRKSRC}|' \
 		${WRKSRC}/cpan/DB_File/Makefile.PL
 	${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g' \
@@ -123,7 +118,7 @@ This package contains all the man pages.
 a1aa88bd6fbbdc2e82938afbb76c408b0ea847317737b712dc196cc7907a5259     12373480 perl5/perl-5.30.2.tar.xz
 
 
-[FILE:26383:manifests/plist.primary]
+[FILE:26514:manifests/plist.primary]
 %%ARCH_LIB%%/
  .packlist
  B.pm
@@ -139,7 +134,6 @@ a1aa88bd6fbbdc2e82938afbb76c408b0ea847317737b712dc196cc7907a5259     12373480 pe
  Fcntl.pm
  GDBM_File.pm
  IO.pm
- NDBM_File.pm
  O.pm
  Opcode.pm
  POSIX.pm
@@ -370,7 +364,6 @@ a1aa88bd6fbbdc2e82938afbb76c408b0ea847317737b712dc196cc7907a5259     12373480 pe
 %%ARCH_LIB%%/auto/List/Util/Util.%%BUNDLE%%
 %%ARCH_LIB%%/auto/MIME/Base64/Base64.%%BUNDLE%%
 %%ARCH_LIB%%/auto/Math/BigInt/FastCalc/FastCalc.%%BUNDLE%%
-%%ARCH_LIB%%/auto/NDBM_File/NDBM_File.%%BUNDLE%%
 %%ARCH_LIB%%/auto/Opcode/Opcode.%%BUNDLE%%
 %%ARCH_LIB%%/auto/POSIX/POSIX.%%BUNDLE%%
 %%ARCH_LIB%%/auto/PerlIO/encoding/encoding.%%BUNDLE%%
@@ -393,9 +386,14 @@ a1aa88bd6fbbdc2e82938afbb76c408b0ea847317737b712dc196cc7907a5259     12373480 pe
 %%ARCH_LIB%%/auto/threads/threads.%%BUNDLE%%
 %%ARCH_LIB%%/auto/threads/shared/shared.%%BUNDLE%%
 %%ARCH_LIB%%/threads/shared.pm
-%%ONLY-LINUX%%%%ARCH_LIB%%/ODBM_File.pm
-%%ONLY-LINUX%%%%ARCH_LIB%%/auto/ODBM_File/ODBM_File.%%BUNDLE%%
-%%ONLY-SUNOS%%%%ARCH_LIB%%/ODBM_File.pm
+%%ONLY-DRAGONFLY%%%%ARCH_LIB%%/NDBM_File.pm
+%%ONLY-DRAGONFLY%%%%ARCH_LIB%%/auto/NDBM_File/NDBM_File.%%BUNDLE%%
+%%ONLY-FREEBSD%%%%ARCH_LIB%%/NDBM_File.pm
+%%ONLY-FREEBSD%%%%ARCH_LIB%%/auto/NDBM_File/NDBM_File.%%BUNDLE%%
+%%ONLY-SUNOS%%%%ARCH_LIB%%/
+ NDBM_File.pm
+ ODBM_File.pm
+%%ONLY-SUNOS%%%%ARCH_LIB%%/auto/NDBM_File/NDBM_File.%%BUNDLE%%
 %%ONLY-SUNOS%%%%ARCH_LIB%%/auto/ODBM_File/ODBM_File.%%BUNDLE%%
 %%PRIV_LIB%%/
  AnyDBM_File.pm
@@ -1901,7 +1899,7 @@ lib/perl5/5.30/pods/perl5302delta.pod
 @dir %%SITE_PERL%%/auto
 
 
-[FILE:17173:manifests/plist.manpages]
+[FILE:17219:manifests/plist.manpages]
 %%MAN1%%/
  corelist.1.gz
  cpan.1.gz
@@ -2401,7 +2399,6 @@ lib/perl5/5.30/pods/perl5302delta.pod
  Module::Load::Conditional.3.gz
  Module::Loaded.3.gz
  Module::Metadata.3.gz
- NDBM_File.3.gz
  NEXT.3.gz
  Net::Cmd.3.gz
  Net::Config.3.gz
@@ -2701,8 +2698,11 @@ lib/perl5/5.30/pods/perl5302delta.pod
  vmsish.3.gz
  warnings.3.gz
  warnings::register.3.gz
-%%ONLY-LINUX%%%%MAN3%%/ODBM_File.3.gz
-%%ONLY-SUNOS%%%%MAN3%%/ODBM_File.3.gz
+%%ONLY-DRAGONFLY%%%%MAN3%%/NDBM_File.3.gz
+%%ONLY-FREEBSD%%%%MAN3%%/NDBM_File.3.gz
+%%ONLY-SUNOS%%%%MAN3%%/
+ NDBM_File.3.gz
+ ODBM_File.3.gz
 @dir %%SITE_PERL%%/man/man1
 @dir %%SITE_PERL%%/man/man3
 @rmtry %%PERLMANPREFIX%%/man/mandoc.db
@@ -2852,41 +2852,6 @@ lib/perl5/5.30/pods/perl5302delta.pod
  
  isa_ok( $mm, 'ExtUtils::MakeMaker' );
  
-
-
-[FILE:428:patches/patch-ext_GDBM__File_Makefile.PL]
---- ext/GDBM_File/Makefile.PL.orig	2019-10-24 20:18:04 UTC
-+++ ext/GDBM_File/Makefile.PL
-@@ -7,6 +7,7 @@ WriteMakefile(
-     VERSION_FROM => 'GDBM_File.pm',
-     realclean => {FILES=> 'const-c.inc const-xs.inc'},
-     XS_VERSION => eval MM->parse_version('GDBM_File.pm'), #silence warnings if we are a dev release
-+    dynamic_lib => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
- );
- WriteConstants(
-     NAME => 'GDBM_File',
-
-
-[FILE:343:patches/patch-ext_NDBM__File_Makefile.PL]
---- ext/NDBM_File/Makefile.PL.orig	2019-10-24 20:18:04 UTC
-+++ ext/NDBM_File/Makefile.PL
-@@ -4,4 +4,5 @@ WriteMakefile(
-     LIBS => ["-L/usr/local/lib -lndbm", "-ldbm -lucb"],
-     XSPROTOARG => '-noprototypes', 		# XXX remove later?
-     VERSION_FROM => 'NDBM_File.pm',
-+    dynamic_lib => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
- );
-
-
-[FILE:317:patches/patch-ext_ODBM__File_Makefile.PL]
---- ext/ODBM_File/Makefile.PL.orig	2019-10-24 20:18:04 UTC
-+++ ext/ODBM_File/Makefile.PL
-@@ -4,4 +4,5 @@ WriteMakefile(
-     LIBS => ["-ldbm -lucb"],
-     XSPROTOARG => '-noprototypes', 		# XXX remove later?
-     VERSION_FROM => 'ODBM_File.pm', 
-+    dynamic_lib => { OTHERLDFLAGS => "-Wl,-rpath,@PREFIX@/lib" },
- );
 
 
 [FILE:402:patches/patch-hints_linux.sh]

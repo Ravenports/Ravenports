@@ -176,7 +176,7 @@ ASPELL_INSTALL_VERSION=		${ASPELL_CORE_VERSION:R}
 
 APR1_VERSION=			1.7.0
 APR1_UTIL_VERSION=		1.6.1
-SUBVERSION_VERSION=		1.13.0
+SUBVERSION_VERSION=		1.14.0
 
 # ------------------------------------------------------------------------
 # Miscellaneous master versions
