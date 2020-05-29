@@ -2034,6 +2034,30 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  MachOYAML::LoadCommand::~LoadCommand() = default;
 
 
+[FILE:505:patches/patch-tools_llvm-objcopy_MachO_MachOLayoutBuilder.cpp]
+--- tools/llvm-objcopy/MachO/MachOLayoutBuilder.cpp.orig	2020-03-23 15:01:02 UTC
++++ tools/llvm-objcopy/MachO/MachOLayoutBuilder.cpp
+@@ -11,6 +11,18 @@
+ #include "llvm/Support/Errc.h"
+ #include "llvm/Support/ErrorHandling.h"
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++       size_t len;
++       for (len = 0; len < maxlen; len++, s++) {
++               if (!*s) break;
++       }
++       return (len);
++}
++#endif
++
+ namespace llvm {
+ namespace objcopy {
+ namespace macho {
+
+
 [FILE:432:patches/patch-tools_llvm-objcopy_MachO_MachOReader.cpp]
 --- tools/llvm-objcopy/MachO/MachOReader.cpp.orig	2020-03-23 15:01:02 UTC
 +++ tools/llvm-objcopy/MachO/MachOReader.cpp
@@ -2050,6 +2074,30 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
 +		if (!*s) break;
 +	}
 +	return (len);
++}
++#endif
++
+ namespace llvm {
+ namespace objcopy {
+ namespace macho {
+
+
+[FILE:457:patches/patch-tools_llvm-objcopy_MachO_Object.cpp]
+--- tools/llvm-objcopy/MachO/Object.cpp.orig	2020-03-23 15:01:02 UTC
++++ tools/llvm-objcopy/MachO/Object.cpp
+@@ -1,6 +1,18 @@
+ #include "Object.h"
+ #include "../llvm-objcopy.h"
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++       size_t len;
++       for (len = 0; len < maxlen; len++, s++) {
++               if (!*s) break;
++       }
++       return (len);
 +}
 +#endif
 +

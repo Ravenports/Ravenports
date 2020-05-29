@@ -22,8 +22,6 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[sunos]=		stock sun linker runs out of memory (2G limit?)
-
 BUILDRUN_DEPENDS=	llvm:single:standard
 
 USES=			cmake ninja ncurses zlib execinfo shebangfix
@@ -55,8 +53,7 @@ CFLAGS=			-O2
 CXXFLAGS=		-O2
 			-pipe
 			-DNDEBUG
-CMAKE_ARGS=		-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
-			-DLLVM_BUILD_LLVM_DYLIB=ON
+CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
 			-DLLVM_LINK_LLVM_DYLIB=ON
 			-DLLVM_PARALLEL_LINK_JOBS=1
 			-DLLVM_PARALLEL_COMPILE_JOBS={{MAKE_JOBS_NUMBER}}
@@ -65,8 +62,13 @@ CMAKE_ARGS=		-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 			-DLLVM_ENABLE_RTTI=ON
 			-DGCC_INSTALL_PREFIX={{LOCALBASE}}/toolchain/gcc9
 VAR_OPSYS[freebsd]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
+			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
+VAR_OPSYS[sunos]=	CMAKE_ARGS=-DCMAKE_SKIP_RPATH:BOOL=TRUE
+			LDFLAGS=-Wl,-R{{LOCALBASE}}/llvm/lib
 VAR_OPSYS[linux]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
+			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
+			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 
 post-patch:
 	${REINPLACE_CMD} -e 's,/usr/local/,${LOCALBASE}/,' \
@@ -84,7 +86,7 @@ post-patch:
 post-install:
 	${INSTALL_PROGRAM} ${WRKDIR}/.build/bin/clang-tblgen \
 		${STAGEDIR}${PREFIX}/bin/
-.for F in c-index-test clang-10 clang-check clang-format \
+.for F in c-index-test clang-10 clang-check clang-doc clang-format \
 	clang-extdef-mapping clang-import-test clang-offload-bundler \
 	clang-move clang-offload-wrapper clang-refactor clang-rename clang-apply-replacements \
 	clang-scan-deps clang-change-namespace clang-include-fixer clang-query \
@@ -93,6 +95,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${F}
 .endfor
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libclang.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libclang-cpp.${LIBEXT}
 
 post-extract:
 	${MV} ${WRKDIR}/clang-tools-extra-10.0.0.src \
@@ -133,8 +136,18 @@ Clang codebase.
 acdf8cf6574b40e6b1dabc93e76debb84a9feb6f22970126b04d4ba18b92911c      2604944 clang-tools-extra-10.0.0.src.tar.xz
 
 
-[FILE:16636:manifests/plist.compiler]
+[FILE:16788:manifests/plist.compiler]
 %%ONLY-LINUX%%lib/clang/%%LLVM_RELEASE%%/include/
+ limits.h
+ stdalign.h
+ stdarg.h
+ stdatomic.h
+ stdbool.h
+ stddef.h
+ stdint.h
+ stdnoreturn.h
+ varargs.h
+%%ONLY-SUNOS%%lib/clang/%%LLVM_RELEASE%%/include/
  limits.h
  stdalign.h
  stdarg.h
