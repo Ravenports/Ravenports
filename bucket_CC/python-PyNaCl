@@ -42,8 +42,11 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [PY38].USES_ON=				python:py38
 
 post-patch:
-	${REINPLACE_CMD} -e 's|with-pic"|build=${CONFIGURE_TARGET}"|'\
-		${WRKSRC}/setup.py
+	if [ "${OPSYS}" = "Linux" ]; then \
+	  ${REINPLACE_CMD} -e 's|with-pic"|with-pic", "--build=${CONFIGURE_TARGET}"|' ${WRKSRC}/setup.py;\
+	else \
+	  ${REINPLACE_CMD} -e 's|with-pic"|build=${CONFIGURE_TARGET}"|' ${WRKSRC}/setup.py;\
+	fi
 
 post-patch-sunos:
 	# fails one library test
