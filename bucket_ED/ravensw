@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensw
 VERSION=		1.11.1
-REVISION=		4
+REVISION=		6
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	Ravenports binary package manager
@@ -10,7 +10,7 @@ HOMEPAGE=		https://github.com/jrmarino/ravensw/blob/master/README.md
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main sqlite
-SITES[main]=		GITHUB/jrmarino:ravensw:16e7810
+SITES[main]=		GITHUB/jrmarino:ravensw:95f8b68
 SITES[sqlite]=		https://www.sqlite.org/2019/
 			http://www2.sqlite.org/2019/
 DISTFILE[1]=		generated:main
@@ -89,7 +89,7 @@ The primary reason for changing the name is to avoid confusion with
 
 
 [FILE:219:distinfo]
-f483ffe622c22a06846f313d88875e9e6dab82e9f6521aad753088aafba200d2       668267 jrmarino-ravensw-16e7810.tar.gz
+57ab28c5ee6c4007fd1a0f47def86a164e27497c3e4a1f702320d2c7de040075       668348 jrmarino-ravensw-95f8b68.tar.gz
 d61b5286f062adfce5125eaf544d495300656908e61fca143517afcc0a89b7c3      2810415 sqlite-autoconf-3280000.tar.gz
 
 
@@ -143,34 +143,4 @@ share/man/man8/
  ravensw.8.gz
 share/zsh/site-functions/_ravensw
 @dir etc/ravensw/repos
-
-
-[FILE:601:patches/patch-libpkg_port__fileat.c]
---- libpkg/port_fileat.c.orig	2019-07-23 16:09:40 UTC
-+++ libpkg/port_fileat.c
-@@ -88,7 +88,7 @@ file_chdir_unlock(int dfd)
- 	file_at_dfd = -1;
- 
- 	if (dfd == AT_FDCWD)
--		return;
-+		return(0);
- 
- 	if (saved_cwd[0] != '\0')
- 		chdir(saved_cwd);
-@@ -170,11 +170,15 @@ port_fchmodat(int fd, const char* path,
- 	if ((ret = file_chdir_lock(fd) != 0))
- 		return(ret);
- 
-+#if defined(__sun__) || defined(__linux__)
-+	ret = chmod(path, mode);
-+#else
- 	if (flag & AT_SYMLINK_NOFOLLOW) {
- 		ret = lchmod(path, mode);
- 	} else {
- 		ret = chmod(path, mode);
- 	}
-+#endif
- 
- 	file_chdir_unlock(fd);
- 	return(ret);
 

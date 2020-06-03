@@ -2,6 +2,7 @@
 
 NAMEBASE=		ocl-icd
 VERSION=		2.2.12
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Utility to regenerate the GNU info page index
@@ -43,6 +44,12 @@ post-patch:
 	${REINPLACE_CMD} -e 's|--destination-dir=$$(CURDIR)|--no-xmllint|' \
 		${WRKSRC}/doc/Makefile.in
 
+post-stage:
+	${MKDIR} -p ${STAGEDIR}${PREFIX}/share/examples/ocl-icd
+	${MV} ${STAGEDIR}${PREFIX}/share/doc/ocl-icd/examples/ocl_icd_bindings.c \
+		${STAGEDIR}${PREFIX}/share/examples/ocl-icd/
+	${RMDIR} ${STAGEDIR}${PREFIX}/share/doc/ocl-icd/examples
+
 [FILE:232:descriptions/desc.primary]
 OpenCL implementations are provided as ICD (Installable Client Driver). An
 OpenCL program can use several ICD thanks to the use of an ICD Loader as
@@ -72,8 +79,8 @@ share/man/man7/
 share/doc/ocl-icd/html/libOpenCL.html
 
 
-[FILE:46:manifests/plist.examples]
-share/doc/ocl-icd/examples/ocl_icd_bindings.c
+[FILE:42:manifests/plist.examples]
+share/examples/ocl-icd/ocl_icd_bindings.c
 
 
 [FILE:366:patches/patch-icd__generator.rb]
