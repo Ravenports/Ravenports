@@ -612,12 +612,13 @@ configure-message:
 .if !target(do-configure)
 do-configure:
 	@if [ -f ${SCRIPTDIR}/configure ]; then \
+		${ECHO_MSG} "==> cd ${.CURDIR} && ${SETENV} ${SCRIPTS_ENV} ${SH} ${SCRIPTDIR}/configure";\
 		cd ${.CURDIR} && ${SETENV} ${SCRIPTS_ENV} ${SH} \
 		  ${SCRIPTDIR}/configure; \
 	fi
 .  if defined(GNU_CONFIGURE)
 	@CONFIG_GUESS_DIRS=$$(${FIND} ${WRKDIR} -name config.guess -o -name config.sub \
-		| ${XARGS} -n 1 ${DIRNAME}); \
+		| ${XARGS} -n 1 ${DIRNAME} 2>/dev/null); \
 	for _D in $${CONFIG_GUESS_DIRS}; do \
 		${RM} $${_D}/config.guess; \
 		${CP} ${MK_TEMPLATES}/config.guess $${_D}/config.guess; \
@@ -629,6 +630,20 @@ do-configure:
 .  endif
 .  if defined(HAS_CONFIGURE)
 	@${MKDIR} ${CONFIGURE_WRKSRC}
+	@LCA=$$(${SET_LATE_CONFIGURE_ARGS}) && echo "==> cd ${CONFIGURE_WRKSRC} && $$LCA"
+	@${ECHO_MSG} "    ${SETENV} CC=\"${CC}\" CPP=\"${CPP}\" CXX=\"${CXX}\""
+	@${ECHO_MSG} "    CFLAGS=\"${CFLAGS}\""
+	@${ECHO_MSG} "    CPPFLAGS=\"${CPPFLAGS}\""
+	@${ECHO_MSG} "    CXXFLAGS=\"${CXXFLAGS}\""
+	@${ECHO_MSG} "    LDFLAGS=\"${LDFLAGS}\""
+	@${ECHO_MSG} "    LIBS=\"${LIBS}\""
+	@${ECHO_MSG} "    INSTALL=\"/usr/bin/install -c\""
+	@${ECHO_MSG} "    INSTALL_DATA=\"${INSTALL_DATA}\""
+	@${ECHO_MSG} "    INSTALL_LIB=\"${INSTALL_LIB}\""
+	@${ECHO_MSG} "    INSTALL_PROGRAM=\"${INSTALL_PROGRAM}\""
+	@${ECHO_MSG} "    INSTALL_SCRIPT=\"${INSTALL_SCRIPT}\""
+	@${ECHO_MSG} "    ${CONFIGURE_ENV}"
+	@${ECHO_MSG} "    ${CONFIGURE_CMD} ${CONFIGURE_ARGS}"
 	@(cd ${CONFIGURE_WRKSRC} && \
 	    ${SET_LATE_CONFIGURE_ARGS} \
 		if ! ${SETENV} CC="${CC}" CPP="${CPP}" CXX="${CXX}" \
