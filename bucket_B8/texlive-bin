@@ -2,6 +2,7 @@
 
 NAMEBASE=		texlive-bin
 VERSION=		20200406
+REVISION=		1
 KEYWORDS=		print
 VARIANTS=		standard
 SDESC[standard]=	Binary and input files for TeXlive
@@ -13,10 +14,11 @@ SITES[main]=		ftp://ftp.tug.org/texlive/historic/2020/
 SITES[copying]=		https://www.tug.org/texlive/
 SITES[lppl]=		https://www.latex-project.org/
 DISTFILE[1]=		texlive-20200406-source.tar.xz:main
-DISTFILE[2]=		LICENSE.TL:copying
-DISTFILE[3]=		lppl.txt:lppl
+DISTFILE[2]=		texlive-20200406-extra.tar.xz:main
+DISTFILE[3]=		LICENSE.TL:copying
+DISTFILE[4]=		lppl.txt:lppl
 DIST_SUBDIR=		texlive
-DF_INDEX=		1 2 3
+DF_INDEX=		1 2 3 4
 SPKGS[standard]=	complete
 			primary
 			docs
@@ -26,6 +28,7 @@ SPKGS[standard]=	complete
 			engine_pdftex
 			engine_xetex
 			synctex
+			tlmgr
 			utils
 			xindy
 
@@ -47,7 +50,11 @@ BUILDRUN_DEPENDS=	freetype:primary:standard
 			zziplib:primary:standard
 RUN_DEPENDS=		libffcall:single:standard
 			libsigsegv:shared:standard
+			texlive-texmf:primary:standard
 EXRUN[engine_pdftex]=	texlive-bin:primary:standard
+EXRUN[synctex]=		readline:single:standard
+			texlive-bin:primary:standard
+EXRUN[primary]=		texlive-bin:tlmgr:standard
 EXRUN[engine_xetex]=	texlive-bin:primary:standard
 EXRUN[bibtex]=		texlive-bin:primary:standard
 EXRUN[engine_luatex]=	texlive-bin:primary:standard
@@ -57,7 +64,7 @@ GNOME_COMPONENTS=	cairo
 XORG_COMPONENTS=	pixman x11 xaw
 
 DISTNAME=		texlive-20200406-source
-EXTRACT_ONLY=		1
+EXTRACT_ONLY=		1 2
 
 LICENSE=		CUSTOM1:primary
 LICENSE_TERMS=		primary:{{DISTDIR}}/{{DIST_SUBDIR}}/LICENSE.TL
@@ -151,6 +158,7 @@ PLIST_SUB=		LIBKPATHSEA=6.3.2
 			LIBTEXLUA53_MAJOR=5
 			LIBTEXLUAJIT=2.1.0
 			LIBTEXLUAJIT_MAJOR=2
+SUB_FILES=		pkg-message-primary
 
 post-patch:
 	${CP} ${FILESDIR}/pdftoepdf-poppler0.76.0.cc \
@@ -159,6 +167,8 @@ post-patch:
 		${WRKSRC}/texk/web2c/pdftexdir/
 
 post-install:
+	${MKDIR} -p ${STAGEDIR}${PREFIX}/lib/perl5/site_perl
+	${CP} -r ${WRKDIR}/texlive-20200406-extra/tlpkg/TeXLive ${STAGEDIR}${SITE_PERL}
 	${RM} -r ${STAGEDIR}${PREFIX}/share/info
 	${LN} -s eptex ${STAGEDIR}${PREFIX}/bin/platex
 	${LN} -s euptex ${STAGEDIR}${PREFIX}/bin/uplatex
@@ -246,6 +256,11 @@ right to the position in e.g. the generated PDF file that the cursor was
 in your source.
 
 
+[FILE:113:descriptions/desc.tlmgr]
+This sub-package contains the tlmgr utility as well as several perl 
+modules used by the TL core infrastructure.
+
+
 [FILE:104:descriptions/desc.utils]
 This sub-package contains various programs useful when working with but 
 not directly depending on TeX.
@@ -260,13 +275,14 @@ latter it features good support for many languages in addition to English
 as well as many standard character encodings including Unicode.
 
 
-[FILE:309:distinfo]
+[FILE:425:distinfo]
 e32f3d08cbbbcf21d8d3f96f2143b64a1f5e4cb01b06b761d6249c8785249078     55383320 texlive/texlive-20200406-source.tar.xz
+243dfd2b263b7ffcd8b5c0269a28deecb394f0f5644a288186f562cbacc8a64f      1668664 texlive/texlive-20200406-extra.tar.xz
 e8f070b2d1a9bad00af9d6cb94e687f2120591d092c8dab8727249b70adc96d0         5267 texlive/LICENSE.TL
 5f05fcf6ef25a6c31bccd2df7c0c46b23107bbeb2ce5cdba74efb5cc357f4dbb        19106 texlive/lppl.txt
 
 
-[FILE:11764:manifests/plist.primary]
+[FILE:11747:manifests/plist.primary]
 bin/
  a2ping
  a5toa4
@@ -525,7 +541,6 @@ bin/
  tftopl
  tie
  tlcockpit
- tlmgr
  tlshell
  ttf2afm
  ttf2kotexfont
@@ -956,7 +971,6 @@ share/texmf-dist/scripts/texlive/
  mktexpk
  mktextfm
  rungs.tlu
- tlmgr.pl
  updmap-sys.sh
  updmap-user.sh
  updmap.pl
@@ -1320,6 +1334,25 @@ share/man/man1/synctex.1.gz
 share/man/man5/synctex.5.gz
 
 
+[FILE:238:manifests/plist.tlmgr]
+%%SITE_PERL%%/TeXLive/
+ TLConfFile.pm
+ TLConfig.pm
+ TLCrypto.pm
+ TLDownload.pm
+ TLPDB.pm
+ TLPOBJ.pm
+ TLPSRC.pm
+ TLPaper.pm
+ TLTREE.pm
+ TLUtils.pm
+ TLWinGoo.pm
+ TeXCatalogue.pm
+ trans.pl
+bin/tlmgr
+share/texmf-dist/scripts/texlive/tlmgr.pl
+
+
 [FILE:1840:manifests/plist.utils]
 bin/
  autosp
@@ -1434,6 +1467,29 @@ share/texmf-dist/xindy/modules/rules/
 share/texmf-dist/xindy/modules/styles/
  basic.xdy
  makeidx.xdy
+
+
+[FILE:753:patches/patch-texk_kpathsea_texmf.cnf]
+--- texk/kpathsea/texmf.cnf.orig	2020-05-20 20:00:41.155090000 +0200
++++ texk/kpathsea/texmf.cnf	2020-05-20 20:01:48.317148000 +0200
+@@ -59,7 +59,7 @@
+ % SELFAUTOPARENT (its grandparent = /usr/local/texlive/YYYY), and
+ % SELFAUTOGRANDPARENT (its great-grandparent = /usr/local/texlive).
+ % Sorry for the off-by-one-generation names.
+-TEXMFROOT = $SELFAUTOPARENT
++TEXMFROOT = $SELFAUTODIR/share
+ 
+ % The main tree of distributed packages and programs:
+ TEXMFDIST = $TEXMFROOT/texmf-dist
+@@ -69,7 +69,7 @@
+ TEXMFMAIN = $TEXMFDIST
+ 
+ % Local additions to the distribution trees.
+-TEXMFLOCAL = $SELFAUTOGRANDPARENT/texmf-local
++TEXMFLOCAL = $TEXMFROOT/texmf-local
+ 
+ % TEXMFSYSVAR, where *-sys store cached runtime data.
+ TEXMFSYSVAR = $TEXMFROOT/texmf-var
 
 
 [FILE:36374:files/pdftoepdf-poppler0.76.0.cc]
@@ -2759,6 +2815,10 @@ int main(int argc, char *argv[])
     delete doc;
     delete globalParams;
 }
+
+
+[FILE:173:files/pkg-message-primary.in]
+This subpackage provides the basic TeX engines only (which just support DVI output). You almost certainly want to install one of the advanced engines targeting PDF as well.
 
 
 [FILE:1525:files/special.mk]
