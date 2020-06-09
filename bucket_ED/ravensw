@@ -57,16 +57,17 @@ OPTIMIZER_LEVEL=	0
 post-build-RUNTESTS-ON:
 	# All the tests are hardcoded with "pkg" executable
 	(cd ${WRKSRC}/src && ${LN} -s ravensw pkg)
-	${ECHO} "!/bin/sh"                   >> ${WRKSRC}/tests/exec_test.sh
+	${ECHO} "#!/bin/sh"                  >> ${WRKSRC}/tests/exec_test.sh
 .if "${OPSYS}" == "Linux"
 	${ECHO} "export -n RAVENSW_CACHEDIR" >> ${WRKSRC}/tests/exec_test.sh
 	${ECHO} "export -n RAVENSW_DBDIR"    >> ${WRKSRC}/tests/exec_test.sh
 .else
-	${ECHO} "unset RAVENSW_CACHEDIR"  >> ${WRKSRC}/tests/exec_test.sh
-	${ECHO} "unset RAVENSW_DBDIR"     >> ${WRKSRC}/tests/exec_test.sh
+	${ECHO} "unset RAVENSW_CACHEDIR"     >> ${WRKSRC}/tests/exec_test.sh
+	${ECHO} "unset RAVENSW_DBDIR"        >> ${WRKSRC}/tests/exec_test.sh
 .endif
 	${ECHO} "kyua test"                  >> ${WRKSRC}/tests/exec_test.sh
 	${CHMOD} ${BINMODE} ${WRKSRC}/tests/exec_test.sh
+	(cd ${WRKSRC}/tests && ./exec_test.sh ||:)
 
 post-extract:
 	# Install SQLite source
