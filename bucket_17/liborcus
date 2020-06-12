@@ -2,6 +2,7 @@
 
 NAMEBASE=		liborcus
 VERSION=		0.15.4
+REVISION=		1
 KEYWORDS=		devel misc
 VARIANTS=		standard
 SDESC[standard]=	File import library for spreadsheet documents
@@ -25,6 +26,10 @@ BUILDRUN_DEPENDS=	boost-libraries:rest:python_default
 
 USES=			pkgconfig zlib cmake python:build
 
+LICENSE=		MPL:single
+LICENSE_FILE=		MPL:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		devel/liborcus
 
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -44,6 +49,14 @@ post-patch:
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/orcus*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
+	# manually create pkgconfig file
+	${SED} -e 's|@prefix@|${PREFIX}|; s|@exec_prefix@|${PREFIX}|' \
+	-e 's|@libdir@|${PREFIX}/lib|; s|@includedir@|${PREFIX}/include|' \
+	-e 's|liborcus-@ORCUS_API_VERSION@|orcus-0.15|' \
+	-e 's|lorcus-|lliborcus-|g' \
+	-e 's|@ORCUS_API_VERSION@|0.15|g' \
+	-e ' s|@VERSION@|0.15.4|g' ${WRKSRC}/liborcus.pc.in \
+	> ${STAGEDIR}${PREFIX}/lib/pkgconfig/liborcus-0.15.pc
 
 [FILE:274:descriptions/desc.single]
 Orcus is a library that provides a collection of standalone file processing
@@ -56,7 +69,7 @@ wordprocessor and presentation) are in consideration.
 5521c7edd3b9d151012e35ab314e0be980acdd83c020c64a23c39ef2f934cb49      8156137 orcus-orcus-0.15.4.tar.gz
 
 
-[FILE:1700:manifests/plist.single]
+[FILE:1734:manifests/plist.single]
 bin/
  orcus-css-dump
  orcus-csv
@@ -149,4 +162,5 @@ lib/
  libliborcus-%%VER%%.so
  libliborcus-parser-%%VER%%.so
  libliborcus-spreadsheet-model-%%VER%%.so
+lib/pkgconfig/liborcus-%%VER%%.pc
 
