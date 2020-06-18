@@ -95,9 +95,9 @@ we generated.
 ```
 e28fde00276880da2183439eb1e45c962147f90aca5482b9ac2df1a28dfd011a raven-darwin-bootstrap.tar.gz
 77ee4ac0e3e3f09bc92bdd38a6bbb76689cdb32877e6ee4a3546cc5f3b0efd6f raven-linux-bootstrap.tar.gz
-92b6c5d8dc4d5e0e419dfa16d35d88f6b2b31d705fd09bcc0a8e17cd0ec4dda8 raven-sunos-bootstrap.tar.gz
 957b12522aa1e73173c98dca0e5fab9fba7961da149a02b63925bcaf7310de85 ravensw-dragonfly-58-bootstrap.tar.gz
 5b104a18a4fcd0aa217546075e1d39378eacf49743ae718207c35413a73f4417 ravensw-freebsd64-bootstrap.tar.gz
+3b37a88000b2156d137a44d684abfcdc646f1f34fa87410af3167c8614e3b41d ravensw-sunos-bootstrap.tar.gz
 ```
 
 ## Ravenports public key
