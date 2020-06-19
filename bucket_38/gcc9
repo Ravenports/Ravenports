@@ -77,8 +77,19 @@ PLIST_SUB=		GCCVER=9.3.0
 			VSTDCXX=6.0.28
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
+			CONFIGURE_ARGS=--with-gnu-as
+			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
+			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/toolchain/bin/ld
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--enable-symvers=no
+			CONFIGURE_ARGS=--with-gnu-as
+			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
+			CONFIGURE_ARGS=--without-gnu-ld
 VAR_OPSYS[darwin]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
+			CONFIGURE_ARGS=--with-ld=/usr/bin/ld
+			CONFIGURE_ARGS=--with-as=/usr/bin/as
+VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-gnu-as
+			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
+			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/toolchain/bin/ld
 
 post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
@@ -6286,25 +6297,6 @@ share/man/man1/
  puts $f "/* { dg-timeout-factor 4.0 } */"
  set v 0
  for { set v 0 } { $v < 10000 } { incr v } {
-
-
-[FILE:546:files/special.mk]
-# MacOS cannot use GNU binutils *at all*.
-# Binutils won't build ld, gold, or gas and the utilities
-# that do build don't seem to work on Mach-O correctly
-# The logic below handles AS and LD configuration
-
-.if "${OPSYS}" == "Darwin"
-CONFIGURE_ARGS+=		--with-ld=/usr/bin/ld
-CONFIGURE_ARGS+=		--with-as=/usr/bin/as
-.else
-.  if "${OPSYS}" == "SunOS"
-CONFIGURE_ARGS+=		--without-gnu-ld
-.  endif
-CONFIGURE_ARGS+=		--with-gnu-as
-CONFIGURE_ARGS+=		--with-as=${LOCALBASE}/toolchain/bin/as
-CONFIGURE_ARGS+=		--with-ld=${LOCALBASE}/toolchain/bin/ld
-.endif
 
 
 [FILE:286:sunos/patch-gcc_config.build]
