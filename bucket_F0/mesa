@@ -1142,6 +1142,28 @@ See:
  
 
 
+[FILE:592:patches/patch-src_util_os__memory__aligned.h]
+--- src/util/os_memory_aligned.h.orig	2020-06-10 18:03:01 UTC
++++ src/util/os_memory_aligned.h
+@@ -53,11 +53,16 @@ add_overflow_size_t(size_t a, size_t b,
+ static inline void *
+ os_malloc_aligned(size_t size, size_t alignment)
+ {
++#ifdef __sun__
++   alignment = (alignment + sizeof(void*) - 1) & ~(sizeof(void*) - 1);
++   return memalign(alignment, size);
++#else
+    void *ptr;
+    alignment = (alignment + sizeof(void*) - 1) & ~(sizeof(void*) - 1);
+    if(posix_memalign(&ptr, alignment, size) != 0)
+       return NULL;
+    return ptr;
++#endif
+ }
+ 
+ #define os_free_aligned(_ptr) free(_ptr)
+
+
 [FILE:853:patches/patch-src_util_strndup.h]
 --- src/util/strndup.h.orig	2020-06-10 18:03:01 UTC
 +++ src/util/strndup.h
@@ -1282,7 +1304,7 @@ GALLIUM_DRIVERS+=	SWRAST
      dep_ws2_32, dep_selinux, dep_thread, dep_clock, dep_unwind,
 
 
-[FILE:629:sunos/patch-src_gallium_targets_vdpau_meson.build]
+[FILE:644:sunos/patch-src_gallium_targets_vdpau_meson.build]
 --- src/gallium/targets/vdpau/meson.build.orig	2019-12-18 18:36:00 UTC
 +++ src/gallium/targets/vdpau/meson.build
 @@ -45,10 +45,10 @@ libvdpau_gallium = shared_library(
@@ -1290,7 +1312,7 @@ GALLIUM_DRIVERS+=	SWRAST
      inc_common, inc_util, inc_gallium_winsys, inc_gallium_drivers,
    ],
 -  link_whole : [libvdpau_st],
-+  link_whole : [libvdpau_st, libr300, libradeonwinsys, libpipe_loader_static, libmesa_format],
++  link_whole : [libvdpau_st, libr300, libradeonwinsys, libpipe_loader_static, libmesa_format, _libxmlconfig],
    link_with : [
      libgalliumvlwinsys, libgalliumvl, libgallium,
 -    libpipe_loader_static, libws_null, libwsw, libswdri, libswkmsdri,
@@ -1300,7 +1322,7 @@ GALLIUM_DRIVERS+=	SWRAST
      idep_mesautil,
 
 
-[FILE:574:sunos/patch-src_gallium_targets_xa_meson.build]
+[FILE:589:sunos/patch-src_gallium_targets_xa_meson.build]
 --- src/gallium/targets/xa/meson.build.orig	2019-12-18 18:36:00 UTC
 +++ src/gallium/targets/xa/meson.build
 @@ -41,9 +41,9 @@ libxatracker = shared_library(
@@ -1308,7 +1330,7 @@ GALLIUM_DRIVERS+=	SWRAST
      inc_common, inc_util, inc_gallium_winsys, inc_gallium_drivers,
    ],
 -  link_whole : [libxa_st],
-+  link_whole : [libxa_st, libsvga, libsvgadrm, libpipe_loader_static, libmesa_format],
++  link_whole : [libxa_st, libsvga, libsvgadrm, libpipe_loader_static, libmesa_format, _libxmlconfig],
    link_with : [
 -    libgalliumvl_stub, libgallium, libpipe_loader_static,
 +    libgalliumvl_stub, libgallium,

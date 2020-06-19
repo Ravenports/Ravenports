@@ -482,6 +482,21 @@ define ETIME as ETIMEOUT same as done in mesa
      struct stat      sbuf;
 
 
+[FILE:397:patches/patch-xf86drm.h]
+--- xf86drm.h.orig	2020-05-26 20:37:16 UTC
++++ xf86drm.h
+@@ -59,6 +59,9 @@ extern "C" {
+ #else /* One of the *BSDs */
+ 
+ #include <sys/ioccom.h>
++#ifdef __sun__
++#define _IOC(inout,group,num,len)	(inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num))
++#endif
+ #define DRM_IOCTL_NR(n)         ((n) & 0xff)
+ #define DRM_IOC_VOID            IOC_VOID
+ #define DRM_IOC_READ            IOC_OUT
+
+
 [FILE:785:patches/patch-xf86drmMode.c]
 From e41ca0a00f88ef8f8d1999417f198db033172f8d Mon Sep 17 00:00:00 2001
 From: Emmanuel Vadot <manu@FreeBSD.org>
