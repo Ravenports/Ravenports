@@ -27,7 +27,7 @@ BUILDRUN_DEPENDS=	hunspell:single:standard
 			quazip:single:standard
 RUN_DEPENDS=		texlive-bin:primary:standard
 
-USES=			pkgconfig qt5
+USES=			pkgconfig qt5 dos2unix
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -38,6 +38,8 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		editors/texstudio
 
+CXXFLAGS=		-Wno-deprecated-declarations
+			-Wno-deprecated-copy
 QMAKE_ARGS=		PREFIX="{{PREFIX}}"
 			LIBPREFIX="{{PREFIX}}/lib"
 			USE_SYSTEM_HUNSPELL=true
@@ -229,4 +231,43 @@ share/texstudio/
  texstudio_uk.qm
  texstudio_vi.qm
  texstudio_zh_CN.qm
+
+
+[FILE:252:patches/patch-src_manhattanstyle.cpp]
+--- src/manhattanstyle.cpp.orig	2020-01-15 19:10:58 UTC
++++ src/manhattanstyle.cpp
+@@ -54,6 +54,7 @@
+ #include <QStyleOption>
+ #include <QToolBar>
+ #include <QToolButton>
++#include <QPainterPath>
+ #include "utilsSystem.h"
+ 
+ #if QT_VERSION >= 0x040500
+
+
+[FILE:244:patches/patch-src_pdfviewer_PDFDocument.h]
+--- src/pdfviewer/PDFDocument.h.orig	2020-06-26 11:30:32 UTC
++++ src/pdfviewer/PDFDocument.h
+@@ -27,6 +27,7 @@
+ 
+ #include "mostQtHeaders.h"
+ 
++#include <QPainterPath>
+ #include <QGestureEvent>
+ #include <QPinchGesture>
+ #include <QTapGesture>
+
+
+[FILE:279:patches/patch-src_qcodeedit_lib_widgets_qfoldpanel.cpp]
+--- src/qcodeedit/lib/widgets/qfoldpanel.cpp.orig	2020-06-26 11:24:38 UTC
++++ src/qcodeedit/lib/widgets/qfoldpanel.cpp
+@@ -13,6 +13,7 @@
+ **
+ ****************************************************************************/
+ 
++#include <QPainterPath>
+ #include "qfoldpanel.h"
+ 
+ /*!
 
