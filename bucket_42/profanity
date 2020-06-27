@@ -38,7 +38,6 @@ FPC_EQUIVALENT=		net-im/profanity
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-c-plugins
-			--enable-icons=no
 			--enable-notifications
 			--enable-otr
 			--enable-pgp
@@ -50,7 +49,8 @@ INSTALL_TARGET=		install-strip
 CFLAGS=			-I{{NCURSESINC}}
 
 post-patch:
-	${REINPLACE_CMD} "s,python,python${PYTHON_VER},g" \
+	${REINPLACE_CMD} -e "s,python,python${PYTHON_VER},g" \
+		-e "/PACKAGE_STATUS=/ s|development|release|" \
 		${WRKSRC}/configure.ac
 
 [FILE:328:descriptions/desc.single]

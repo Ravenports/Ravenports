@@ -2,7 +2,7 @@
 
 NAMEBASE=		libtcod
 VERSION=		1.15.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Roguelike game development library
@@ -43,13 +43,13 @@ SOVERSION=		1.0.15
 PLIST_SUB=		JQUERY=3.5.1
 
 post-install:
-	${MKDIR} -p ${STAGEDIR}${PREFIX}/share/libtcod
-	${MV} ${WRKSRC}/../../docs/_build/html ${STAGEDIR}${PREFIX}/share/libtcod/html-doc
-	${RM} -r ${STAGEDIR}${PREFIX}/share/libtcod/html-doc/_sources
-	${CP} ${WRKSRC}/../../terminal.png ${STAGEDIR}${PREFIX}/share/libtcod
-	${CP} -r ${WRKSRC}/../../samples ${STAGEDIR}${PREFIX}/share/libtcod
-	${CP} -r ${WRKSRC}/../../data ${STAGEDIR}${PREFIX}/share/libtcod
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtcod.so.1.0.15
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/libtcod
+	${MV} ${WRKSRC}/../../docs/_build/html ${STAGEDIR}${STD_DOCDIR}
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}/_sources
+	(cd ${WRKSRC}/../../samples && ${COPYTREE_SHARE} . ${STAGEDIR}${STD_EXAMPLESDIR})
+	(cd ${WRKSRC}/../../ && ${COPYTREE_SHARE} data ${STAGEDIR}${PREFIX}/share/libtcod/)
+	${INSTALL_DATA} ${WRKSRC}/../../terminal.png ${STAGEDIR}${PREFIX}/share/libtcod/
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtcod.so
 
 post-build:
 	(cd ${WRKSRC}/../../docs && gmake html)
@@ -69,7 +69,7 @@ like images and lists for namegen as well as source code examples.
 2713d8719be53db7a529cbf53064e5bc9f3adf009db339d3a81b50d471bc306f      1448730 libtcod-libtcod-1.15.1.tar.gz
 
 
-[FILE:1524:manifests/plist.primary]
+[FILE:2965:manifests/plist.primary]
 include/libtcod/
  bresenham.h
  bresenham.hpp
@@ -186,91 +186,6 @@ lib/
  libtcod.so.%%SOVERSION%%
 lib/pkgconfig/libtcod.pc
 share/libtcod/terminal.png
-
-
-[FILE:1649:manifests/plist.docs]
-share/libtcod/html-doc/
- .buildinfo
- genindex.html
- index.html
- objects.inv
- search.html
- searchindex.js
- upgrading.html
-share/libtcod/html-doc/_static/
- basic.css
- doctools.js
- documentation_options.js
- file.png
- jquery-%%JQUERY%%.js
- jquery.js
- language_data.js
- minus.png
- plus.png
- pygments.css
- searchtools.js
- underscore-1.3.1.js
- underscore.js
-share/libtcod/html-doc/_static/css/
- badge_only.css
- theme.css
-share/libtcod/html-doc/_static/fonts/
- fontawesome-webfont.eot
- fontawesome-webfont.svg
- fontawesome-webfont.ttf
- fontawesome-webfont.woff
- fontawesome-webfont.woff2
-share/libtcod/html-doc/_static/fonts/Lato/
- lato-bold.eot
- lato-bold.ttf
- lato-bold.woff
- lato-bold.woff2
- lato-bolditalic.eot
- lato-bolditalic.ttf
- lato-bolditalic.woff
- lato-bolditalic.woff2
- lato-italic.eot
- lato-italic.ttf
- lato-italic.woff
- lato-italic.woff2
- lato-regular.eot
- lato-regular.ttf
- lato-regular.woff
- lato-regular.woff2
-share/libtcod/html-doc/_static/fonts/RobotoSlab/
- roboto-slab-v7-bold.eot
- roboto-slab-v7-bold.ttf
- roboto-slab-v7-bold.woff
- roboto-slab-v7-bold.woff2
- roboto-slab-v7-regular.eot
- roboto-slab-v7-regular.ttf
- roboto-slab-v7-regular.woff
- roboto-slab-v7-regular.woff2
-share/libtcod/html-doc/_static/js/
- modernizr.min.js
- theme.js
-share/libtcod/html-doc/base-toolkits/
- all_purpose_container.html
- compression.html
- file_parser.html
- images.html
- line_drawing.html
- mouse_support.html
- noise_generator.html
- pseudorandom_number_generator.html
-share/libtcod/html-doc/core/
- colors.html
- console.html
- system.html
-share/libtcod/html-doc/roguelike-toolkits/
- bsp.html
- fov.html
- heightmaps.html
- name_generator.html
- pathfinding.html
-
-
-[FILE:2285:manifests/plist.samples]
 share/libtcod/data/cfg/sample.cfg
 share/libtcod/data/fonts/
  README.txt
@@ -335,7 +250,10 @@ share/libtcod/data/namegen/
  mingos_standard.cfg
  mingos_town.cfg
 share/libtcod/data/rexpaint/test.xp
-share/libtcod/samples/
+
+
+[FILE:853:manifests/plist.samples]
+share/examples/libtcod/
  .dirstamp
  CMakeLists.txt
  apfviewer.cpp
@@ -344,20 +262,20 @@ share/libtcod/samples/
  samples_c.o
  samples_cpp.cpp
  samples_cpp.o
-share/libtcod/samples/.deps/
+share/examples/libtcod/.deps/
  .dirstamp
  samples_c.Po
  samples_cpp.Po
-share/libtcod/samples/frost/frost.cpp
-share/libtcod/samples/hmtool/
+share/examples/libtcod/frost/frost.cpp
+share/examples/libtcod/hmtool/
  README.txt
  hmtool.cpp
  operation.cpp
  operation.hpp
-share/libtcod/samples/navier/
+share/examples/libtcod/navier/
  main.cpp
  main.hpp
-share/libtcod/samples/rad/
+share/examples/libtcod/rad/
  README.txt
  bsp_helper.cpp
  bsp_helper.hpp
@@ -367,17 +285,17 @@ share/libtcod/samples/rad/
  rad_shader_photon.cpp
  rad_shader_standard.cpp
  terminal.png
-share/libtcod/samples/ripples/
+share/examples/libtcod/ripples/
  main.cpp
  main.hpp
  util_ripples.cpp
  util_ripples.hpp
-share/libtcod/samples/weather/
+share/examples/libtcod/weather/
  main.cpp
  main.hpp
  util_weather.cpp
  util_weather.hpp
-share/libtcod/samples/worldgen/
+share/examples/libtcod/worldgen/
  README.txt
  main.cpp
  main.hpp
