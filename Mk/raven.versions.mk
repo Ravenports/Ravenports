@@ -119,7 +119,7 @@ MYSQL_percona-5.5_VERSION=	5.5.54
 FIREBIRD_DEFAULT?=	2.5
 
 FIREBIRD_2.5_VERSION=	2.5.8
-FIREBIRD_3.0_VERSION=	3.0.5
+FIREBIRD_3.0_VERSION=	3.0.6
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
