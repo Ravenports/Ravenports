@@ -130,7 +130,7 @@ PHP_DEFAULT?=		7.4
 
 PHP_7.2_VERSION=	7.2.31
 PHP_7.3_VERSION=	7.3.19
-PHP_7.4_VERSION=	7.4.7
+PHP_7.4_VERSION=	7.4.8
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
