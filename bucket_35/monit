@@ -32,18 +32,11 @@ FPC_EQUIVALENT=		sysutils/monit
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-ssl-dir={{OPENSSLBASE}}
-CONFIGURE_ENV=		ac_cv_type_boolean_t=no
+CONFIGURE_ENV=		ax_cv_check_cflags___fstack_protector_all=no
 
 INSTALL_REQ_TOOLCHAIN=	yes
 RC_SUBR=		monit:single
 SUB_FILES=		pkg-message-single
-
-post-patch:
-	# don't use system boolean_t to avoid potential conflicts
-	${GREP} -rl "boolean_t" ${WRKSRC}/src \
-		${WRKSRC}/libmonit/src \
-		${WRKSRC}/libmonit/test \
-	| ${XARGS} ${SED} -i.bool -e 's|boolean_t|monit_boolean|g'
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/monitrc \
@@ -81,6 +74,20 @@ d8c0deef624f193a952502fe9baabfa66e3d8d057df5738da43f9a37792afca4      1455341 mo
 @sample etc/monitrc.sample
 bin/monit
 share/man/man1/monit.1.gz
+
+
+[FILE:386:patches/patch-src_net_os_dragonfly_Link.inc]
+--- src/net/os/dragonfly/Link.inc.orig	2020-06-18 13:07:56 UTC
++++ src/net/os/dragonfly/Link.inc
+@@ -32,7 +32,7 @@
+  */
+ 
+ 
+-static boolean_t _update(T L, const char *interface) {
++static bool _update(T L, const char *interface) {
+         for (struct ifaddrs *a = _stats.addrs; a != NULL; a = a->ifa_next) {
+                 if (a->ifa_addr == NULL)
+                         continue;
 
 
 [FILE:864:files/monit.in]
