@@ -304,7 +304,6 @@ expand_GNUPG()
     ftp://mirror.switch.ch/mirror/gnupg \
     http://gd.tuwien.ac.at/privacy/gnupg \
     http://mirrors.dotsrc.org/gcrypt \
-    ftp://ftp.freenet.de/pub/ftp.gnupg.org/gcrypt \
     ftp://ftp.crysys.hu/pub/gnupg \
     http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt \
     http://artfiles.org/gnupg.org \
@@ -528,7 +527,6 @@ expand_ISC()
     http://ftp.isc.org/isc \
     ftp://ftp.isc.org/isc \
     ftp://ftp.ciril.fr/pub/isc \
-    ftp://ftp.freenet.de/pub/ftp.isc.org/isc \
     ftp://ftp.iij.ad.jp/pub/network/isc \
     ftp://ftp.dti.ad.jp/pub/net/isc \
     ftp://ftp.u-aizu.ac.jp/pub/net/isc \
