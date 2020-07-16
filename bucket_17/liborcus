@@ -2,7 +2,7 @@
 
 NAMEBASE=		liborcus
 VERSION=		0.15.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel misc
 VARIANTS=		standard
 SDESC[standard]=	File import library for spreadsheet documents
@@ -39,6 +39,7 @@ PLIST_SUB=		VER=0.15
 LDFLAGS=		-lboost_program_options
 			-lboost_thread
 			-lboost_filesystem
+			-lboost_iostreams
 CMAKE_ARGS=		-DMDDS_INCLUDEDIR:STRING="{{LOCALBASE}}/include/mdds-1.2"
 			-DIXION_INCLUDEDIR:STRING="{{LOCALBASE}}/include/ixion-0.15"
 
@@ -163,4 +164,32 @@ lib/
  libliborcus-parser-%%VER%%.so
  libliborcus-spreadsheet-model-%%VER%%.so
 lib/pkgconfig/liborcus-%%VER%%.pc
+
+
+[FILE:816:patches/patch-src_liborcus_CMakeLists.txt]
+--- src/liborcus/CMakeLists.txt.orig	2020-03-29 16:54:41 UTC
++++ src/liborcus/CMakeLists.txt
+@@ -87,14 +87,14 @@ add_library(liborcus-${ORCUS_API_VERSION
+ # gnumeric filter
+ # TODO : document a way to build boost with bzip2 and zlib options, or find
+ # a way to make this a build-time option.
+-#   gnumeric_detection_handler.cpp
+-#   gnumeric_cell_context.cpp
+-#   gnumeric_context.cpp
+-#   gnumeric_handler.cpp
+-#   gnumeric_helper.cpp
+-#   gnumeric_sheet_context.cpp
+-#   gnumeric_tokens.cpp
+-#   orcus_gnumeric.cpp
++   gnumeric_detection_handler.cpp
++   gnumeric_cell_context.cpp
++   gnumeric_context.cpp
++   gnumeric_handler.cpp
++   gnumeric_helper.cpp
++   gnumeric_sheet_context.cpp
++   gnumeric_tokens.cpp
++   orcus_gnumeric.cpp
+ )
+ 
+ configure_file(constants.inl.in ${CMAKE_CURRENT_BINARY_DIR}/constants.inl)
 
