@@ -51,7 +51,7 @@ PYTHON3_DEFAULT?=	3.8
 
 PYTHON_2.7_VERSION=	2.7.18
 PYTHON_3.7_VERSION=	3.7.8
-PYTHON_3.8_VERSION=	3.8.3
+PYTHON_3.8_VERSION=	3.8.4
 
 #-------------------------------------------------------------------------
 # SSL
@@ -102,9 +102,9 @@ PGSQL_12_VERSION=	12.3
 
 MYSQL_DEFAULT=			oracle-8.0
 
-MYSQL_oracle-8.0_VERSION=	8.0.20
-MYSQL_oracle-5.7_VERSION=	5.7.30
-MYSQL_oracle-5.6_VERSION=	5.6.48
+MYSQL_oracle-8.0_VERSION=	8.0.21
+MYSQL_oracle-5.7_VERSION=	5.7.31
+MYSQL_oracle-5.6_VERSION=	5.6.49
 MYSQL_mariadb-10.2_VERSION=	10.2.32
 MYSQL_mariadb-10.3_VERSION=	10.3.23
 MYSQL_mariadb-10.4_VERSION=	10.4.13
