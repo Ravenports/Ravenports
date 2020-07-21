@@ -51,7 +51,7 @@ PYTHON3_DEFAULT?=	3.8
 
 PYTHON_2.7_VERSION=	2.7.18
 PYTHON_3.7_VERSION=	3.7.8
-PYTHON_3.8_VERSION=	3.8.4
+PYTHON_3.8_VERSION=	3.8.5
 
 #-------------------------------------------------------------------------
 # SSL
