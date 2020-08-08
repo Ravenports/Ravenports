@@ -2,7 +2,7 @@
 
 NAMEBASE=		clang
 VERSION=		10.0.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	C language family frontend for LLVM 10.0
@@ -18,11 +18,13 @@ DF_INDEX=		1 2
 SPKGS[standard]=	complete
 			compiler
 			extra
+			dynlibs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	llvm:single:standard
+EXRUN[compiler]=	clang:dynlibs:standard
 
 USES=			cmake ninja ncurses zlib execinfo shebangfix
 			python:build c++:compiler,extra
@@ -131,12 +133,23 @@ separate "extra" repository to allow lighter weight checkouts of the core
 Clang codebase.
 
 
+[FILE:445:descriptions/desc.dynlibs]
+The LLVM Project is a collection of modular and reusable compiler and
+toolchain technologies. Despite its name, LLVM has little to do with
+traditional virtual machines, though it does provide helpful libraries
+that can be used to build them. The name "LLVM" itself is not an
+acronym; it is the full name of the project.
+
+This package contains the dynamic clang libraries which are potentially
+dependencies for ports that require clang to build.
+
+
 [FILE:216:distinfo]
 f99afc382b88e622c689b6d96cadfa6241ef55dca90e87fc170352e12ddb2b24     14046188 clang-10.0.1.src.tar.xz
 d093782bcfcd0c3f496b67a5c2c997ab4b85816b62a7dd5b27026634ccf5c11a      2599404 clang-tools-extra-10.0.1.src.tar.xz
 
 
-[FILE:16788:manifests/plist.compiler]
+[FILE:16698:manifests/plist.compiler]
 %%ONLY-LINUX%%lib/clang/%%LLVM_RELEASE%%/include/
  limits.h
  stdalign.h
@@ -830,10 +843,6 @@ include/clang/Tooling/Transformer/
  Stencil.h
  Transformer.h
 lib/
- libclang-cpp.so
- libclang-cpp.so.%%LLVM_MAJOR%%
- libclang.so
- libclang.so.%%LLVM_MAJOR%%
  libclangARCMigrate.a
  libclangAST.a
  libclangASTMatchers.a
@@ -1087,6 +1096,14 @@ share/clang/
  clang-tidy-diff.py
  run-clang-tidy.py
  run-find-all-symbols.py
+
+
+[FILE:95:manifests/plist.dynlibs]
+lib/
+ libclang-cpp.so
+ libclang-cpp.so.%%LLVM_MAJOR%%
+ libclang.so
+ libclang.so.%%LLVM_MAJOR%%
 
 
 [FILE:2846:patches/patch-lib_Driver_ToolChains_DragonFly.cpp]

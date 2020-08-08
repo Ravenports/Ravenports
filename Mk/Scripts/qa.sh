@@ -422,9 +422,8 @@ nls_files() {
 				return 1
 			fi
 		else
-			warn "NLS files detected but no nls subpackage is defined."
-			# eventually change warn to err, and
-			# return 1
+			err "NLS files detected but no nls subpackage is defined."
+			return 1
 		fi
 				
 	fi

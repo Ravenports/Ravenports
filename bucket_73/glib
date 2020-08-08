@@ -2,6 +2,7 @@
 
 NAMEBASE=		glib
 VERSION=		2.64.4
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Some useful routines of C programming
@@ -13,7 +14,9 @@ SITES[main]=		GNOME/glib/2.64
 DISTFILE[1]=		glib-2.64.4.tar.xz:main
 DIST_SUBDIR=		gnome2
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			single
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -95,7 +98,7 @@ more.  It is a foundation for writing portable applications.
 f7e0b325b272281f0462e0f7fff25a833820cac19911ff677251daf6d87bce50      4779456 gnome2/glib-2.64.4.tar.xz
 
 
-[FILE:10165:manifests/plist.single]
+[FILE:6386:manifests/plist.single]
 @comment share/glib-2.0/codegen auto-generated
 %%EXCLUDE-DARWIN%%lib/
  libgio-2.0.so.%%LIBVERSION%%
@@ -442,6 +445,30 @@ share/glib-2.0/gdb/
 share/glib-2.0/gettext/po/Makefile.in.in
 share/glib-2.0/schemas/gschema.dtd
 share/glib-2.0/valgrind/glib.supp
+share/man/man1/
+ gapplication.1.gz
+ gdbus-codegen.1.gz
+ gdbus.1.gz
+ gio-querymodules.1.gz
+ gio.1.gz
+ glib-compile-resources.1.gz
+ glib-compile-schemas.1.gz
+ glib-genmarshal.1.gz
+ glib-gettextize.1.gz
+ glib-mkenums.1.gz
+ gobject-query.1.gz
+ gresource.1.gz
+ gsettings.1.gz
+ gtester-report.1.gz
+ gtester.1.gz
+@dir lib/gio/modules
+@dir share/GConf/gsettings
+@postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
+@postexec %D/bin/glib-compile-schemas %D/share/glib-2.0/schemas 2>/dev/null || /usr/bin/true
+@postunexec /bin/rm -f %D/share/glib-2.0/schemas/gschemas.compiled || /usr/bin/true
+
+
+[FILE:3779:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/glib20.mo
 share/locale/am/LC_MESSAGES/glib20.mo
 share/locale/an/LC_MESSAGES/glib20.mo
@@ -540,27 +567,6 @@ share/locale/yi/LC_MESSAGES/glib20.mo
 share/locale/zh_CN/LC_MESSAGES/glib20.mo
 share/locale/zh_HK/LC_MESSAGES/glib20.mo
 share/locale/zh_TW/LC_MESSAGES/glib20.mo
-share/man/man1/
- gapplication.1.gz
- gdbus-codegen.1.gz
- gdbus.1.gz
- gio-querymodules.1.gz
- gio.1.gz
- glib-compile-resources.1.gz
- glib-compile-schemas.1.gz
- glib-genmarshal.1.gz
- glib-gettextize.1.gz
- glib-mkenums.1.gz
- gobject-query.1.gz
- gresource.1.gz
- gsettings.1.gz
- gtester-report.1.gz
- gtester.1.gz
-@dir lib/gio/modules
-@dir share/GConf/gsettings
-@postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
-@postexec %D/bin/glib-compile-schemas %D/share/glib-2.0/schemas 2>/dev/null || /usr/bin/true
-@postunexec /bin/rm -f %D/share/glib-2.0/schemas/gschemas.compiled || /usr/bin/true
 
 
 [FILE:631:patches/patch-gio_glib-compile-schemas.c]

@@ -2,7 +2,7 @@
 
 NAMEBASE=		gtk3
 VERSION=		3.24.21
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Gimp Toolkit for X11 GUI
@@ -14,7 +14,9 @@ SITES[main]=		GNOME/gtk+/3.24
 DISTFILE[1]=		gtk+-3.24.21.tar.xz:main
 DIST_SUBDIR=		gnome3
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			single
+			nls
 
 OPTIONS_AVAILABLE=	DBUS CUPS CLOUDPRINT COLORD BROADWAY
 OPTIONS_STANDARD=	DBUS BROADWAY
@@ -100,7 +102,7 @@ application suites.
 aeea6ae7cd35e83dfc7699be716519faefca346c62e784dd1a37d9df94c08f52     21353740 gnome3/gtk+-3.24.21.tar.xz
 
 
-[FILE:17430:manifests/plist.single]
+[FILE:10399:manifests/plist.single]
 %%BROADWAY-ON%%bin/broadwayd
 %%BROADWAY-ON%%include/gtk-3.0/gdk/gdkbroadway.h
 %%BROADWAY-ON%%include/gtk-3.0/gdk/broadway/
@@ -606,6 +608,17 @@ share/icons/hicolor/48x48/apps/
  gtk3-demo.png
  gtk3-widget-factory-symbolic.symbolic.png
  gtk3-widget-factory.png
+share/man/man1/gtk-query-immodules-3.0.1.gz
+share/themes/Default/gtk-3.0/gtk-keys.css
+share/themes/Emacs/gtk-3.0/gtk-keys.css
+@dir lib/gtk-3.0/%%GTK_VERSION%%/engines
+@dir lib/gtk-3.0/%%GTK_VERSION%%/loaders
+@dir lib/gtk-3.0/modules
+@postexec %D/bin/gtk-query-immodules-3.0 --update-cache > /dev/null 2>&1 || /usr/bin/true
+@rmtry lib/gtk-3.0/%%GTK_VERSION%%/immodules.cache
+
+
+[FILE:7031:manifests/plist.nls]
 share/locale/af/LC_MESSAGES/
  gtk30-properties.mo
  gtk30.mo
@@ -954,14 +967,6 @@ share/locale/zh_HK/LC_MESSAGES/
 share/locale/zh_TW/LC_MESSAGES/
  gtk30-properties.mo
  gtk30.mo
-share/man/man1/gtk-query-immodules-3.0.1.gz
-share/themes/Default/gtk-3.0/gtk-keys.css
-share/themes/Emacs/gtk-3.0/gtk-keys.css
-@dir lib/gtk-3.0/%%GTK_VERSION%%/engines
-@dir lib/gtk-3.0/%%GTK_VERSION%%/loaders
-@dir lib/gtk-3.0/modules
-@postexec %D/bin/gtk-query-immodules-3.0 --update-cache > /dev/null 2>&1 || /usr/bin/true
-@rmtry lib/gtk-3.0/%%GTK_VERSION%%/immodules.cache
 
 
 [FILE:491:patches/patch-Makefile.in]

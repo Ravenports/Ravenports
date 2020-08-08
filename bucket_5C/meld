@@ -2,6 +2,7 @@
 
 NAMEBASE=		meld
 VERSION=		3.20.2
+REVISION=		1
 KEYWORDS=		devel textproc editors
 VARIANTS=		standard
 SDESC[standard]=	Visual diff and merge tool
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNOME/meld/3.20
 DISTFILE[1]=		meld-3.20.2.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,12 +23,12 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		itstool:single:standard
 
 USES=			gettext-tools shebangfix python:python_default
-			desktop-utils:single gnome-icons:single
-			mime-info:single schemas:single
+			desktop-utils:primary gnome-icons:primary
+			mime-info:primary schemas:primary
 GNOME_COMPONENTS=	gtksourceview3 pygobject intltool
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^import "
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/bin/meld
@@ -46,8 +49,12 @@ SHEBANG_FILES=		bin/meld
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/meld*
+	# autoplist python files
+	${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
+		${SED} -e 's,^${STAGEDIR}${PREFIX}/,,' \
+		>> ${WRKDIR}/.manifest.primary.mktmp
 
-[FILE:703:descriptions/desc.single]
+[FILE:703:descriptions/desc.primary]
 Meld is a visual diff and merge tool targeted at developers. Meld helps
 you compare files, directories, and version controlled projects. It
 provides two- and three-way comparison of both files and directories,
@@ -68,8 +75,9 @@ Features:
 ac0985f986ca44c25927ca31ac4d75b60f1f5f1a9e439bc1f3828ffc4d091d28       593948 meld-3.20.2.tar.xz
 
 
-[FILE:3347:manifests/plist.single]
-@comment remaining after standard python autoplist
+[FILE:1691:manifests/plist.primary]
+@comment remaining after python lib auto-plist
+bin/meld
 share/applications/org.gnome.meld.desktop
 share/help/C/meld/
  command-line.page
@@ -103,6 +111,50 @@ share/icons/hicolor/48x48/apps/
  meld-version-control.png
  org.gnome.meld.png
 share/icons/hicolor/scalable/apps/org.gnome.meld.svg
+share/man/man1/meld.1.gz
+share/meld/meld.css
+share/meld/icons/
+ COPYING
+ COPYING_CCBYSA3
+ emblem-meld-newer-file.png
+ filter-ignored-24.png
+ filter-modified-24.png
+ filter-nonvc-24.png
+ filter-normal-24.png
+ vc-add-24.png
+ vc-checkout-24.png
+ vc-commit-24.png
+ vc-push-24.png
+ vc-remove-24.png
+ vc-resolve-24.png
+ vc-update-24.png
+share/meld/styles/
+ meld-base.xml
+ meld-dark.xml
+share/meld/ui/
+ EditableList.ui
+ application.ui
+ appmenu-fallback.xml
+ dirdiff-ui.xml
+ dirdiff.ui
+ encoding-selector.ui
+ filediff-ui.xml
+ filediff.ui
+ findbar.ui
+ language-selector.ui
+ meldapp-ui.xml
+ meldapp.ui
+ patch-dialog.ui
+ preferences.ui
+ shortcuts.ui
+ tab-placeholder.ui
+ vcview-ui.xml
+ vcview.ui
+share/metainfo/org.gnome.meld.appdata.xml
+share/mime/packages/org.gnome.meld.xml
+
+
+[FILE:1686:manifests/plist.nls]
 share/locale/ar/LC_MESSAGES/meld.mo
 share/locale/bg/LC_MESSAGES/meld.mo
 share/locale/bs/LC_MESSAGES/meld.mo
@@ -149,44 +201,4 @@ share/locale/uk/LC_MESSAGES/meld.mo
 share/locale/vi/LC_MESSAGES/meld.mo
 share/locale/zh_CN/LC_MESSAGES/meld.mo
 share/locale/zh_TW/LC_MESSAGES/meld.mo
-share/meld/meld.css
-share/meld/icons/
- COPYING
- COPYING_CCBYSA3
- emblem-meld-newer-file.png
- filter-ignored-24.png
- filter-modified-24.png
- filter-nonvc-24.png
- filter-normal-24.png
- vc-add-24.png
- vc-checkout-24.png
- vc-commit-24.png
- vc-push-24.png
- vc-remove-24.png
- vc-resolve-24.png
- vc-update-24.png
-share/meld/styles/
- meld-base.xml
- meld-dark.xml
-share/meld/ui/
- EditableList.ui
- application.ui
- appmenu-fallback.xml
- dirdiff-ui.xml
- dirdiff.ui
- encoding-selector.ui
- filediff-ui.xml
- filediff.ui
- findbar.ui
- language-selector.ui
- meldapp-ui.xml
- meldapp.ui
- patch-dialog.ui
- preferences.ui
- shortcuts.ui
- tab-placeholder.ui
- vcview-ui.xml
- vcview.ui
-share/metainfo/org.gnome.meld.appdata.xml
-share/mime/packages/org.gnome.meld.xml
 
