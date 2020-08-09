@@ -3,31 +3,43 @@
 NAMEBASE=		python-parso
 VERSION=		0.8.0
 KEYWORDS=		python
-VARIANTS=		py38 py37
+VARIANTS=		py38 py37 py27
 SDESC[py37]=		Python Parser (PY37)
 SDESC[py38]=		Python Parser (PY38)
+SDESC[py27]=		Python Parser (PY27 version 0.7.1)
 HOMEPAGE=		https://github.com/davidhalter/parso
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPI/p/parso
 DISTFILE[1]=		parso-0.8.0.tar.gz:main
-DF_INDEX=		1
+DISTFILE[2]=		parso-0.7.1.tar.gz:main
+DF_INDEX=		1 2
 SPKGS[py37]=		single
 SPKGS[py38]=		single
+SPKGS[py27]=		single
 
-OPTIONS_AVAILABLE=	PY38 PY37
+OPTIONS_AVAILABLE=	PY38 PY37 PY27
 OPTIONS_STANDARD=	none
-VOPTS[py37]=		PY38=OFF PY37=ON
-VOPTS[py38]=		PY38=ON PY37=OFF
+VOPTS[py37]=		PY38=OFF PY37=ON PY27=OFF
+VOPTS[py38]=		PY38=ON PY37=OFF PY27=OFF
+VOPTS[py27]=		PY38=OFF PY37=OFF PY27=ON
 
-DISTNAME=		parso-0.8.0
+DISTNAME=		parso
 
 GENERATED=		yes
 
 [PY37].USES_ON=				python:py37
 
 [PY38].USES_ON=				python:py38
+
+[PY27].USES_ON=				python:py27
+
+post-extract-PY27-OFF:
+	${MV} ${WRKDIR}/parso-0.8.0 ${WRKDIR}/parso
+
+post-extract-PY27-ON:
+	${MV} ${WRKDIR}/parso-0.7.1 ${WRKDIR}/parso
 
 [FILE:2261:descriptions/desc.single]
 ###################################################################
@@ -132,6 +144,7 @@ Unreleased
 0.8.0 (2020-08-05)
 
 
-[FILE:97:distinfo]
+[FILE:194:distinfo]
 2b6db14759c528d857eeb9eac559c2166b2554548af39f5198bdfb976f72aa64       395215 parso-0.8.0.tar.gz
+caba44724b994a8a5e086460bb212abc5a8bc46951bf4a9a1210745953622eb9       400854 parso-0.7.1.tar.gz
 
