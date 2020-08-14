@@ -12,7 +12,7 @@ _INCLUDE_USES_QT5_MK=	yes
 DESTDIRNAME=	INSTALL_ROOT
 
 # When configure used, set common switches
-CONFIGURE_ARGS+=\
+BASE_CONF_ARGS=\
 	-opensource\
 	-confirm-license\
 	-no-pch\
@@ -38,9 +38,9 @@ CONFIGURE_ARGS+=\
 QMAKE_CMD=		${LOCALBASE}/lib/qt5/bin/qmake
 
 . if defined(WITH_DEBUG)
-CONFIGURE_ARGS+=	-debug -separate-debug-info
+BASE_CONF_ARGS+=	-debug -separate-debug-info
 . else
-CONFIGURE_ARGS+=	-release -no-separate-debug-info
+BASE_CONF_ARGS+=	-release -no-separate-debug-info
 . endif
 
 . if "${OPSYS}" == "SunOS"
@@ -79,10 +79,13 @@ QMAKESPEC=	unsupported-OS
 
 . if "${NAMEBASE}" == "qt5-qtbase"
 HAS_CONFIGURE=		yes
+CONFIGURE_ARGS+=	${BASE_CONF_ARGS}
 . else
-.  if !target(do-configure)
+.  if !defined(GNU_CONFIGURE)
+.   if !target(do-configure)
 do-configure:
 	(cd ${WRKSRC} && ${QMAKE_CMD} ${QMAKE_ARGS} -o Makefile)
+.   endif
 .  endif
 . endif
 

@@ -222,7 +222,7 @@ FIREFOX_ESR_VERSION=		78.1.0
 FIREFOX_VERSION=		79.0
 LLVM_VERSION=			10.0.1
 ZLIB_VERSION=			1.2.11
-OPENEXR_VERSION=		2.5.2
+OPENEXR_VERSION=		2.5.3
 GHOSTSCRIPT_VERSION=		9.52
 
 # ------------------------------------------------------------------------
