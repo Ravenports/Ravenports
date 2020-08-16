@@ -4,13 +4,21 @@
 # Usage:	USES=lua
 # Valid ARGS:	[version],[build,run,buildrun] (version 5.3 implicit), (buildrun implicit)
 
+# ------------------------------------------------------
+# Incorporated in ravenadm
+# ------------------------------------------------------
+# BUILD/RUN_DEPENDS+=	luaXX:single:standard
+# ------------------------------------------------------
+
 .if !defined(_INCLUDE_USES_LUA_MK)
 _INCLUDE_USES_LUA_MK=	yes
 
-.  if ${lua_ARGS:M5.3}
-LUA_VER=	5.3
-.  elif ${lua_ARGS:M5.2}
+.  if ${lua_ARGS:M5.2}
 LUA_VER=	5.2
+.  elif ${lua_ARGS:M5.3}
+LUA_VER=	5.3
+.  elif ${lua_ARGS:M5.4}
+LUA_VER=	5.4
 .  else
 LUA_VER=	${LUA_DEFAULT}
 .endif

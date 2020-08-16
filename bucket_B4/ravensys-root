@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		3.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -339,7 +339,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 53dccf23123851f83a0789e00e214b989711af868085e505c4c092f7f67a15cf       150304 libudev-dev_229-4ubuntu21.27_amd64.deb
 
 
-[FILE:15427:manifests/plist.single.dragonfly]
+[FILE:15478:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -513,6 +513,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  inttypes.h
  iso646.h
  isofs
+ kinfo.h
+ kinfo_pcpu.h
  kvm.h
  langinfo.h
  libcryptsetup.h
@@ -1561,6 +1563,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libdevstat.so.3
  libdl.a
  libexecinfo.so.1
+ libkinfo.so
+ libkinfo.so.2
  libkvm.a
  libkvm.so
  libm.a
@@ -8866,7 +8870,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:23730:files/Makefile]
+[FILE:23828:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9098,6 +9102,7 @@ dynamic_lib_DragonFly=	${dynamic_generic} \
 			/lib/libdevstat.so.3 \
 			/usr/lib/libdevinfo.so.3 \
 			/usr/lib/libdevmapper.so.0 \
+			/usr/lib/libkinfo.so.2 \
 			/usr/lib/libpthread.so \
 			/usr/lib/libpthread.so.0 \
 			/usr/lib/libexecinfo.so.1 \
@@ -9270,6 +9275,8 @@ headers_DragonFly=	${posix_headers:Nstropts.h:Ntrace.h} \
 			getopt.h \
 			ieeefp.h \
 			ifaddrs.h \
+			kinfo.h \
+			kinfo_pcpu.h \
 			kvm.h \
 			libcryptsetup.h \
 			libusb.h \
@@ -9590,6 +9597,7 @@ install:
 		ln -s libdevattr.so.3 libdevattr.so && \
 		ln -s libdevstat.so.3 libdevstat.so && \
 		ln -s libdevinfo.so.3 libdevinfo.so && \
+		ln -s libkinfo.so.2 libkinfo.so && \
 		ln -s libdevmapper.so.0 libdevmapper.so)
 	(cd ${DESTDIR}${BASE}/usr/include && \
 		ln -s /usr/include/dev/misc/evdev compat/linux && \
