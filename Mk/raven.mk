@@ -582,6 +582,7 @@ GNU_CONFIGURE_PREFIX?=		${PREFIX}
 GNU_CONFIGURE_MANPREFIX?=	${MANPREFIX}
 CONFIG_SITE=			${MK_TEMPLATES}/config.site
 CONFIGURE_ARGS+=		--prefix=${GNU_CONFIGURE_PREFIX} \
+				--disable-dependency-tracking \
 				$${_LATE_CONFIGURE_ARGS}
 CONFIGURE_ENV+=			CONFIG_SITE=${CONFIG_SITE}
 SET_LATE_CONFIGURE_ARGS= \
@@ -732,6 +733,13 @@ build-message:
 
 .if !target(do-build)
 do-build:
+	@${ECHO_MSG} "==> Set environment:"
+.for pair in ${MAKE_ENV}
+	@${ECHO_MSG} "    ${pair}"
+.endfor
+	@${ECHO_MSG} "==> cd ${BUILD_WRKSRC};"
+	@${ECHO_MSG} "    ${MAKE_CMD} ${MAKE_FLAGS} ${MAKEFILE}"
+	@${ECHO_MSG} "    ${_MAKE_JOBS} ${MAKE_ARGS:C,^${DESTDIRNAME}=.*,,g} ${BUILD_TARGET}"
 	@(cd ${BUILD_WRKSRC}; if ! ${DO_MAKE_BUILD} ${BUILD_TARGET}; then \
 		${ECHO_MSG} "===> Compilation failed unexpectedly."; \
 		${FALSE}; \
