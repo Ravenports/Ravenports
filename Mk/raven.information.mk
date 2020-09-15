@@ -223,7 +223,7 @@ FIREFOX_VERSION=		80.0.1
 LLVM_VERSION=			10.0.1
 ZLIB_VERSION=			1.2.11
 OPENEXR_VERSION=		2.5.3
-GHOSTSCRIPT_VERSION=		9.52
+GHOSTSCRIPT_VERSION=		9.53.1
 
 # ------------------------------------------------------------------------
 # Gnatcross options
@@ -236,6 +236,6 @@ GNATCROSS_FREEBSD_12=		12.0
 # Qt and Lumina versions
 # ------------------------------------------------------------------------
 
-QT5_VERSION=			5.15.0
+QT5_VERSION=			5.15.1
 LUMINA_VERSION=			1.6.0
 LUMINA_RELEASE_TAG=		1.6.0
