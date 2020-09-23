@@ -586,14 +586,14 @@ share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
  // the ones provided by us. Since GLContextEGL doesn't use any GLX
 
 
-[FILE:281:patches/patch-Source_WebCore_platform_network_DNS.h]
+[FILE:309:patches/patch-Source_WebCore_platform_network_DNS.h]
 --- Source/WebCore/platform/network/DNS.h.orig	2020-08-12 09:17:55 UTC
 +++ Source/WebCore/platform/network/DNS.h
 @@ -30,6 +30,9 @@
  #include <ws2tcpip.h>
  #else
  #include <netinet/in.h>
-+# ifdef __DragonFly__
++# if defined __DragonFly__ || defined __FreeBSD__
 +#  include <sys/socket.h>
 +# endif
  #endif
@@ -634,10 +634,13 @@ share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
          do {
 
 
-[FILE:1250:patches/patch-Source_bmalloc_bmalloc_AvailableMemory.cpp]
+[FILE:1374:patches/patch-Source_bmalloc_bmalloc_AvailableMemory.cpp]
+Add DragonFly support
+FreeBSD 11 doesn't have sysinfo.h like DragonFly doesn't
+
 --- Source/bmalloc/bmalloc/AvailableMemory.cpp.orig	2020-08-12 09:17:57 UTC
 +++ Source/bmalloc/bmalloc/AvailableMemory.cpp
-@@ -47,6 +47,12 @@
+@@ -47,10 +47,15 @@
  #if BOS(LINUX)
  #include <algorithm>
  #include <fcntl.h>
@@ -650,16 +653,20 @@ share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
  #elif BOS(FREEBSD)
  #include "VMAllocate.h"
  #include <sys/sysctl.h>
-@@ -169,7 +175,7 @@ static size_t computeAvailableMemory()
+-#include <sys/sysinfo.h>
+ #include <sys/types.h>
+ #include <sys/user.h>
+ #endif
+@@ -169,7 +174,7 @@ static size_t computeAvailableMemory()
      return ((sizeAccordingToKernel + multiple - 1) / multiple) * multiple;
  #elif BOS(LINUX)
      return LinuxMemory::singleton().availableMemory;
 -#elif BOS(FREEBSD)
-+#elif BOS(FREEBSD) && !defined(__DragonFly__)
++#elif 0
      struct sysinfo info;
      if (!sysinfo(&info))
          return info.totalram * info.mem_unit;
-@@ -223,7 +229,11 @@ MemoryStatus memoryStatus()
+@@ -223,7 +228,11 @@ MemoryStatus memoryStatus()
  
      size_t memoryFootprint = 0;
      if (!sysctl(mib, 4, &info, &infolen, nullptr, 0))

@@ -61,8 +61,10 @@ FPC_EQUIVALENT=		mail/thunderbird
 MUST_CONFIGURE=		yes
 CONFIGURE_OUTSOURCE=	yes
 CONFIGURE_ENV=		PYTHON3={{LOCALBASE}}/bin/python3.8
+			SETUPTOOLS_USE_DISTUTILS=stdlib
 
 MAKE_ENV=		PYTHON3={{LOCALBASE}}/bin/python3.8
+			CXXSTDLIB="stdc++"
 
 QMAKE_ARGS=		--prefix="{{PREFIX}}"
 			--with-system-nss
@@ -669,6 +671,21 @@ index 82b5a59acf42..e2329560b42b 100644
          options.compiler = deduce_compiler_type_from_cc_bin(options.compiler_binary)
 
 
+[FILE:286:patches/patch-comm_third__party_botan_src_build-data_os_freebsd.txt]
+FreeBSD 11.3 doesn't have sys/auxv.h
+
+--- comm/third_party/botan/src/build-data/os/freebsd.txt.orig	2020-09-08 23:21:51 UTC
++++ comm/third_party/botan/src/build-data/os/freebsd.txt
+@@ -11,7 +11,6 @@ dev_random
+ arc4random
+ explicit_bzero
+ cap_enter
+-elf_aux_info
+ getentropy
+ 
+ atomics
+
+
 [FILE:893:patches/patch-env-api-keys]
 # Accept API keys from environment like before bug 1294585
 
@@ -690,6 +707,69 @@ index 82b5a59acf42..e2329560b42b 100644
 +        return environ.get('MOZ_%s_KEY' % desc.upper().replace(' ', '_')) or no_key
  
      return keyfile
+ 
+
+
+[FILE:2142:patches/patch-freebsd11.3]
+Drop after FreeBSD 11.3 EOL around 2020-09-20.
+https://svnweb.freebsd.org/changeset/base/351766
+
+mozglue/baseprofiler/core/shared-libraries-linux.cc:374:34: error: use of undeclared
+      identifier 'NT_GNU_BUILD_ID'
+      if (note_header->n_type == NT_GNU_BUILD_ID) break;
+                                 ^
+In file included from Unified_cpp_mozglue_baseprofiler0.cpp:137:
+mozglue/baseprofiler/lul/LulElf.cpp:762:32: error: use of undeclared identifier
+      'NT_GNU_BUILD_ID'
+    if (note_header->n_type == NT_GNU_BUILD_ID) break;
+                               ^
+In file included from Unified_cpp_tools_profiler1.cpp:38:
+tools/profiler/lul/LulElf.cpp:776:32: error: use of undeclared identifier
+      'NT_GNU_BUILD_ID'
+    if (note_header->n_type == NT_GNU_BUILD_ID) break;
+                               ^
+
+--- mozglue/baseprofiler/core/shared-libraries-linux.cc.orig	2020-06-25 17:04:48 UTC
++++ mozglue/baseprofiler/core/shared-libraries-linux.cc
+@@ -50,6 +50,11 @@ extern "C" MOZ_EXPORT __attribute__((weak)) int dl_ite
+ #  define ElfW(type) Elf_##type
+ #endif
+ 
++#if defined(GP_OS_freebsd) && !defined(NT_GNU_BUILD_ID)
++// FreeBSD < 11.4 doesn't define NT_GNU_BUILD_ID
++#  define NT_GNU_BUILD_ID 3
++#endif
++
+ // ----------------------------------------------------------------------------
+ // Starting imports from toolkit/crashreporter/google-breakpad/, as needed by
+ // this file when moved to mozglue.
+--- mozglue/baseprofiler/lul/LulElf.cpp.orig	2020-06-25 17:04:48 UTC
++++ mozglue/baseprofiler/lul/LulElf.cpp
+@@ -79,6 +79,11 @@
+ #  define EM_AARCH64 183
+ #endif
+ 
++#if defined(GP_OS_freebsd) && !defined(NT_GNU_BUILD_ID)
++// FreeBSD < 11.4 doesn't define NT_GNU_BUILD_ID
++#  define NT_GNU_BUILD_ID 3
++#endif
++
+ // This namespace contains helper functions.
+ namespace {
+ 
+--- tools/profiler/lul/LulElf.cpp.orig	2020-06-25 17:05:05 UTC
++++ tools/profiler/lul/LulElf.cpp
+@@ -84,6 +84,11 @@
+ #  define EM_AARCH64 183
+ #endif
+ 
++#if defined(GP_OS_freebsd) && !defined(NT_GNU_BUILD_ID)
++// FreeBSD < 11.4 doesn't define NT_GNU_BUILD_ID
++#  define NT_GNU_BUILD_ID 3
++#endif
++
+ // This namespace contains helper functions.
+ namespace {
  
 
 
