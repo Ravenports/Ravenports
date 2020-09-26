@@ -3,7 +3,8 @@
 NAMEBASE=		ixion
 VERSION=		0.16.0
 KEYWORDS=		math
-VARIANTS=		standard
+VARIANTS=		standard libre
+SDESC[libre]=		Formual parser and interpreter for Libreoffice
 SDESC[standard]=	General purpose formula parser and interpreter
 HOMEPAGE=		https://gitlab.com/ixion/ixion
 CONTACT=		nobody
@@ -11,17 +12,22 @@ CONTACT=		nobody
 DOWNLOAD_GROUPS=	main
 SITES[main]=		https://gitlab.com/ixion/ixion/-/archive/0.16.0/
 DISTFILE[1]=		ixion-0.16.0.tar.bz2:main
-DF_INDEX=		1
+DISTFILE[2]=		ixion-0.15.0.tar.bz2:main
+DF_INDEX=		1 2
+SPKGS[libre]=		single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	LIBRE
 OPTIONS_STANDARD=	none
+VOPTS[libre]=		LIBRE=ON
 
 BUILD_DEPENDS=		mdds:single:standard
 			spdlog:single:standard
 BUILDRUN_DEPENDS=	boost-libraries:rest:python_default
 
 USES=			cmake python:build zlib
+
+DISTNAME=		ixion-{{VERSION}}
 
 LICENSE=		MPL:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -30,7 +36,7 @@ LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/libixion/address.cpp
 LICENSE_SCHEME=		solo
 
-PLIST_SUB=		VER=0.16
+PLIST_SUB=		VER={{VER}}
 
 LDFLAGS=		-lboost_thread
 			-lboost_program_options
@@ -38,6 +44,16 @@ LDFLAGS=		-lboost_thread
 CMAKE_ARGS=		-DMDDS_INCLUDEDIR="{{LOCALBASE}}/include/mdds-1.2"
 			-DCMAKE_SKIP_BUILD_RPATH:BOOL=YES
 VAR_OPSYS[linux]=	LDFLAGS=-ldl
+
+[LIBRE].DESCRIPTION=			Build older 0.15 version for Libreoffice
+[LIBRE].MAKEFILE_OFF=			VER=0.16
+					VERSION=0.16.0
+[LIBRE].MAKEFILE_ON=			VER=0.15
+					VERSION=0.15.0
+
+post-patch-LIBRE-ON:
+	${REINPLACE_CMD} -e '/input_cell/ s|nullptr_t|std::nullptr_t|' \
+		${WRKSRC}/include/ixion/model_context.hpp
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/ixion*
@@ -58,8 +74,9 @@ cells have been modified since the last calculation, and a partial
 calculation of only the affected cells need to be calculated.
 
 
-[FILE:99:distinfo]
+[FILE:198:distinfo]
 2298d2f48836cfd12de162f0fbb3d50c45a910c8fa1186e905416d92894975ea       173629 ixion-0.16.0.tar.bz2
+654dd3fb9c6932e35b0c333f69574fa7c2eb05788e8c7fa9580fba27cb054a82       163162 ixion-0.15.0.tar.bz2
 
 
 [FILE:717:manifests/plist.single]
@@ -102,4 +119,43 @@ include/ixion-%%VER%%/ixion/interface/
  session_handler.hpp
  table_handler.hpp
 lib/libixion-%%VER%%.so
+
+
+[FILE:657:manifests/plist.single.libre]
+bin/
+ ixion-formula-tokenizer
+ ixion-parser
+ ixion-sorter
+include/ixion-%%VER%%/ixion/
+ address.hpp
+ address_iterator.hpp
+ cell.hpp
+ column_store_type.hpp
+ compute_engine.hpp
+ config.hpp
+ dirty_cell_tracker.hpp
+ env.hpp
+ exceptions.hpp
+ formula.hpp
+ formula_function_opcode.hpp
+ formula_name_resolver.hpp
+ formula_opcode.hpp
+ formula_result.hpp
+ formula_tokens.hpp
+ formula_tokens_fwd.hpp
+ global.hpp
+ info.hpp
+ macros.hpp
+ matrix.hpp
+ mem_str_buf.hpp
+ model_context.hpp
+ model_iterator.hpp
+ module.hpp
+ table.hpp
+ types.hpp
+include/ixion-%%VER%%/ixion/interface/
+ formula_model_access.hpp
+ session_handler.hpp
+ table_handler.hpp
+lib/liblibixion-%%VER%%.so
 
