@@ -2,6 +2,7 @@
 
 NAMEBASE=		slim
 VERSION=		1.3.6
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	Simple desktop-independent login manager for X11
@@ -69,20 +70,21 @@ it. Notably there's no support for foreign keyboard layouts.
 21defeed175418c46d71af71fd493cd0cbffd693f9d43c2151529125859810df       232547 slim-1.3.6.tar.gz
 
 
-[FILE:155:manifests/plist.single]
+[FILE:210:manifests/plist.single]
+%%ONLY-LINUX%%lib/systemd/system/slim.service
 @sample etc/slim.conf.sample
 bin/slim
 lib/
  libslim.so
  libslim.so.1.3.6
-man/man1/slim.1
+share/man/man1/slim.1.gz
 share/slim/themes/default/
  background.jpg
  panel.png
  slim.theme
 
 
-[FILE:3048:patches/patch-CMakeLists.txt]
+[FILE:2773:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2013-10-01 22:38:05 UTC
 +++ CMakeLists.txt
 @@ -14,6 +14,7 @@ INCLUDE(CheckIncludeFile)
@@ -93,24 +95,15 @@ share/slim/themes/default/
  
  # Version
  set(SLIM_VERSION_MAJOR "1")
-@@ -23,14 +24,23 @@ set(SLIM_VERSION "${SLIM_VERSION_MAJOR}.
+@@ -23,14 +24,15 @@ set(SLIM_VERSION "${SLIM_VERSION_MAJOR}.
  
  set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation Directory")
  set(PKGDATADIR "${CMAKE_INSTALL_PREFIX}/share/slim")
 -set(SYSCONFDIR "/etc")
 -set(LIBDIR "/lib")
--set(MANDIR "${CMAKE_INSTALL_PREFIX}/share/man")
-+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
-+		${CMAKE_SYSTEM_NAME} MATCHES "DragonFly"
-+		)
-+	set(SYSCONFDIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
-+	set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
-+	set(MANDIR "${CMAKE_INSTALL_PREFIX}/man")
-+else()
-+        set(SYSCONFDIR "/etc")
-+        set(LIBDIR "/lib")
-+        set(MANDIR "${CMAKE_INSTALL_PREFIX}/share/man")
-+endif()
++set(SYSCONFDIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
++set(LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}")
+ set(MANDIR "${CMAKE_INSTALL_PREFIX}/share/man")
  
  set(SLIM_DEFINITIONS)
  if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
@@ -121,7 +114,7 @@ share/slim/themes/default/
  		)
  	set(SLIM_DEFINITIONS ${SLIM_DEFINITIONS} "-DNEEDS_BASENAME")
  else()
-@@ -70,8 +80,10 @@ set(common_srcs
+@@ -70,8 +72,10 @@ set(common_srcs
  )
  if(USE_PAM)
  	set(common_srcs ${common_srcs} PAM.cpp)
@@ -134,7 +127,7 @@ share/slim/themes/default/
  endif(USE_PAM)
  
  # Build common library
-@@ -120,7 +132,9 @@ if(USE_PAM)
+@@ -120,7 +124,9 @@ if(USE_PAM)
  		message("\tPAM Found")
  		set(SLIM_DEFINITIONS ${SLIM_DEFINITIONS} "-DUSE_PAM")
  		target_link_libraries(${PROJECT_NAME} ${PAM_LIBRARY})
@@ -145,7 +138,7 @@ share/slim/themes/default/
  		include_directories(${PAM_INCLUDE_DIR})
  	else(PAM_FOUND)
  		message("\tPAM Not Found")
-@@ -195,6 +209,7 @@ target_link_libraries(${PROJECT_NAME}
+@@ -195,6 +201,7 @@ target_link_libraries(${PROJECT_NAME}
  	${FREETYPE_LIBRARY}
  	${JPEG_LIBRARIES}
  	${PNG_LIBRARIES}
@@ -153,7 +146,7 @@ share/slim/themes/default/
      libslim
  )
  
-@@ -221,7 +236,9 @@ endif(BUILD_SLIMLOCK)
+@@ -221,7 +228,9 @@ endif(BUILD_SLIMLOCK)
  ####### install
  # slim
  install(TARGETS slim RUNTIME DESTINATION bin)
@@ -164,7 +157,7 @@ share/slim/themes/default/
  
  if (BUILD_SHARED_LIBS)
  	set_target_properties(libslim PROPERTIES
-@@ -236,9 +253,11 @@ endif (BUILD_SHARED_LIBS)
+@@ -236,9 +245,11 @@ endif (BUILD_SHARED_LIBS)
  
  # man file
  install(FILES slim.1 DESTINATION ${MANDIR}/man1/)
