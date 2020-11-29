@@ -278,6 +278,16 @@ expand_PYPI()
     done
 }
 
+expand_PYPIWHL()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##PYPIWHL/}
+    local cluster="https://files.pythonhosted.org/packages"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
 expand_FREELOCAL()
 {
     # pattern [element]/%SUBDIR%/
@@ -636,6 +646,7 @@ process_site()
 	PGSQL/*)                   expand_PGSQL "${1}" ;;
 	PHP/*)                     expand_PHP "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
+	PYPIWHL/*)		   expand_PYPIWHL "${1}" ;;
 	RUBY/*)			   expand_RUBY "${1}" ;;
 	RUBYGEMS/*)                expand_RUBYGEMS "${1}" ;;
 	SAVANNAH/*)                expand_SAVANNAH "${1}" ;;

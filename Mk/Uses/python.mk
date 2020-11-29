@@ -1,8 +1,9 @@
-# Handle dependency requirements on python and setuptools
+# Handle dependency requirements on python and setuptools and wheel files
+# Setuptools is being phased out in favor of pip wheel files
 #
 # Feature:	python
 # Usage:	USES=python
-# Valid ARGS:	(py27 or py37 or py38), build
+# Valid ARGS:	(py27 or py37 or py38), build, wheel
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -72,6 +73,7 @@ _INCLUDE_USES_PYTHON_MK=	yes
 # ------------------------------------------------------
 # BUILDRUN_DEPENDS+=	pythonXX:single:standard
 # BUILDRUN_DEPENDS+=	python-setuptools:single:pyXX
+# TODO: BDEP=python-pip when "wheel" set, python-setuptools when not
 # ------------------------------------------------------
 
 .  if !empty(python_ARGS:Mpy37)
@@ -82,6 +84,10 @@ _PYTHON_VERSION=	3.8
 _PYTHON_VERSION=	2.7
 .  else
 _PYTHON_VERSION=	${PYTHON3_DEFAULT}
+.  endif
+
+.  if !empty(python_ARGS:Mwheel)
+USE_PIP_FOR_WHEEL=	yes
 .  endif
 
 PYTHON_VER=		${_PYTHON_VERSION}
@@ -162,18 +168,38 @@ PLIST_SUB+=	PYTHON2="" PYTHON3="@comment "
 
 CMAKE_ARGS+=	-DPython_ADDITIONAL_VERSIONS=${PYTHON_VER}
 
-.  if exists(${WRKSRC}/${PYSETUP})
-
-POST_PLIST_TARGET+=	setuptools-autolist
-
-.    if !target(setuptools-autolist)
+.  if !target(setuptools-autolist)
 setuptools-autolist:
 	@(cd ${STAGEDIR}${PREFIX} && \
 	${FIND} lib bin share/man share/doc share/examples \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
 	>> ${WRKDIR}/.manifest.single.mktmp
+.  endif
+
+.  if defined(USE_PIP_FOR_WHEEL)
+
+POST_PLIST_TARGET+=	setuptools-autolist
+EXTRACT_HEAD_1=		echo "python wheel file: "
+EXTRACT_TAIL_1=
+NO_BUILD=		yes
+
+.    if !target(do-install)
+do-install:
+	# install files directory from distfiles (WRKSRC is not populated)
+	pip install --verbose \
+		--no-deps \
+		--no-index \
+		--no-compile \
+		--progress-bar off \
+		--root ${STAGEDIR} \
+		${DISTDIR}/${DIST_SUBDIR}/${DISTFILE_1:C/:.*//}
+	# compile them separately (avoids embedded stagedir)
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / .)
 .    endif
 
+.  elif exists(${WRKSRC}/${PYSETUP})
+
+POST_PLIST_TARGET+=	setuptools-autolist
 
 .    if !target(do-configure) && !defined(HAS_CONFIGURE) && !defined(GNU_CONFIGURE)
 do-configure:
