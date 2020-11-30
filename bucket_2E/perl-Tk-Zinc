@@ -21,6 +21,12 @@ OPTIONS_STANDARD=	none
 VOPTS[530]=		PERL_530=ON PERL_532=OFF
 VOPTS[532]=		PERL_530=OFF PERL_532=ON
 
+BUILDRUN_DEPENDS=	perl-Tk:single:perl_used
+			libGLU:single:standard
+
+USES=			mesa
+XORG_COMPONENTS=	x11 xext
+
 DISTNAME=		Tk-Zinc-3.304
 
 GENERATED=		yes
@@ -32,6 +38,10 @@ SINGLE_JOB=		yes
 
 [PERL_532].BUILDRUN_DEPENDS_ON=		perl-Tk:single:532
 [PERL_532].USES_ON=			perl:532,configure
+
+post-patch:
+	${REINPLACE_CMD} -e 's|defined(__APPLE__)|1|' \
+		${WRKSRC}/OverlapMan.c
 
 [FILE:665:descriptions/desc.single]
 The Zinc widget is very similar to Tk Canvase in that it supports
