@@ -60,6 +60,11 @@ post-patch:
 	${REINPLACE_CMD} -e 's|EUC-JP|UTF-8|g' \
 		${WRKSRC}/scripts/w3mhelp-funcdesc.ja.pl.in
 
+post-patch-linux:
+	# fix conflict with glibc
+	${REINPLACE_CMD} -e 's/struct file_handle/struct io_file_handle/' \
+		${WRKSRC}/istream.[ch]
+
 post-install:
 	@${MKDIR} \
 		${STAGEDIR}${PREFIX}/share/doc/w3m/japanese \

@@ -2,7 +2,7 @@
 
 NAMEBASE=		libtcod
 VERSION=		1.15.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Roguelike game development library
@@ -16,7 +16,6 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			docs
-			samples
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -46,9 +45,10 @@ post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/libtcod
 	${MV} ${WRKSRC}/../../docs/_build/html ${STAGEDIR}${STD_DOCDIR}
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/_sources
-	(cd ${WRKSRC}/../../samples && ${COPYTREE_SHARE} . ${STAGEDIR}${STD_EXAMPLESDIR})
-	(cd ${WRKSRC}/../../ && ${COPYTREE_SHARE} data ${STAGEDIR}${PREFIX}/share/libtcod/)
-	${INSTALL_DATA} ${WRKSRC}/../../terminal.png ${STAGEDIR}${PREFIX}/share/libtcod/
+	(cd ${WRKSRC}/../../ && \
+		${COPYTREE_SHARE} data ${STAGEDIR}${PREFIX}/share/libtcod/)
+	${INSTALL_DATA} ${WRKSRC}/../../terminal.png \
+		${STAGEDIR}${PREFIX}/share/libtcod/
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtcod.so
 
 post-build:
@@ -58,11 +58,6 @@ post-build:
 Libtcod is a free, fast, portable and uncomplicated API for roguelike game 
 developers. It provides an advanced true color console, input and lots of 
 other utilities frequently used in roguelikes.
-
-
-[FILE:141:descriptions/desc.samples]
-This sub-package contains sample files for libtcod. There are data files 
-like images and lists for namegen as well as source code examples.
 
 
 [FILE:108:distinfo]
@@ -250,56 +245,4 @@ share/libtcod/data/namegen/
  mingos_standard.cfg
  mingos_town.cfg
 share/libtcod/data/rexpaint/test.xp
-
-
-[FILE:853:manifests/plist.samples]
-share/examples/libtcod/
- .dirstamp
- CMakeLists.txt
- apfviewer.cpp
- conanfile.py
- samples_c.c
- samples_c.o
- samples_cpp.cpp
- samples_cpp.o
-share/examples/libtcod/.deps/
- .dirstamp
- samples_c.Po
- samples_cpp.Po
-share/examples/libtcod/frost/frost.cpp
-share/examples/libtcod/hmtool/
- README.txt
- hmtool.cpp
- operation.cpp
- operation.hpp
-share/examples/libtcod/navier/
- main.cpp
- main.hpp
-share/examples/libtcod/rad/
- README.txt
- bsp_helper.cpp
- bsp_helper.hpp
- main.cpp
- rad_shader.cpp
- rad_shader.hpp
- rad_shader_photon.cpp
- rad_shader_standard.cpp
- terminal.png
-share/examples/libtcod/ripples/
- main.cpp
- main.hpp
- util_ripples.cpp
- util_ripples.hpp
-share/examples/libtcod/weather/
- main.cpp
- main.hpp
- util_weather.cpp
- util_weather.hpp
-share/examples/libtcod/worldgen/
- README.txt
- main.cpp
- main.hpp
- terminal.png
- util_worldgen.cpp
- util_worldgen.hpp
 

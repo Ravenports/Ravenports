@@ -27,8 +27,6 @@ DISTNAME=		Django-3.1.4.dist-info
 
 CPE_PRODUCT=		django
 CPE_VENDOR=		djangoproject
-SHEBANG_FILES=		django/bin/django-admin.py
-			django/conf/project_template/manage.py-tpl
 GENERATED=		yes
 
 [PY37].BUILD_DEPENDS_ON=		python-pip:single:py37
@@ -42,6 +40,11 @@ GENERATED=		yes
 					python-pytz:single:py38
 					python-sqlparse:single:py38
 [PY38].USES_ON=				python:py38,wheel
+
+post-install:
+	${SED} -i'' -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/django/bin/django-admin.py \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/django/conf/project_template/manage.py-tpl
 
 [FILE:1877:descriptions/desc.single]
 ======
