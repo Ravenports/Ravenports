@@ -99,6 +99,10 @@ post-extract:
 		> ${WRKDIR}/LICENSE_PLUGINS)
 	# Fix libintl linking
 	${REINPLACE_CMD} -e 's/INTL_LIBS/INTLLIBS/' ${WRKSRC}/Makefile.am
+	# Another intl fix for autoconf 2.70
+	${REINPLACE_CMD} -e 's|@USE_INCLUDED_LIBINTL@|no|g' \
+		-e 's|@BUILD_INCLUDED_LIBINTL@|no|g' \
+		${WRKSRC}/intl/Makefile.in
 
 [FILE:1728:descriptions/desc.primary]
 DeaDBeeF (as in 0xDEADBEEF) is an audio player.
@@ -384,6 +388,21 @@ share/doc/deadbeef/
  help.ru.txt
  help.txt
  translators.txt
+
+
+[FILE:286:patches/patch-configure.ac]
+--- configure.ac.orig	2020-06-28 13:41:28 UTC
++++ configure.ac
+@@ -16,7 +16,8 @@ AC_PROG_INSTALL
+ dnl AC_PROG_LIBTOOL
+ AC_CONFIG_MACRO_DIR([m4])
+ AC_C_BIGENDIAN
+-AM_GNU_GETTEXT
++AM_GNU_GETTEXT_VERSION([0.18.3])
++AM_GNU_GETTEXT([external])
+ PKG_PROG_PKG_CONFIG
+ AM_PROG_CC_C_O
+ AM_ICONV
 
 
 [FILE:208:patches/patch-junklib.c]

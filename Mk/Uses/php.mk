@@ -190,7 +190,7 @@ do-phpize:
 	@(cd ${WRKSRC} && ${SETENV} ${SCRIPTS_ENV} ${LOCALBASE}/bin/phpize${PHP_VER})
 
 php-autoconf:
-	@(cd ${CONFIGURE_WRKSRC} && ${LOCALBASE}/bin/autoconf-2.69)
+	@(cd ${CONFIGURE_WRKSRC} && ${LOCALBASE}/bin/autoconf-2.70)
 
 .  endif	# args = phpize | ext | zend
 

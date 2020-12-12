@@ -1363,10 +1363,24 @@ share/examples/ruby%%XY%%/webrick/
  httpsd.rb
 
 
-[FILE:2157:patches/patch-configure.ac]
+[FILE:2772:patches/patch-configure.ac]
 --- configure.ac.orig	2020-03-31 12:15:56 UTC
 +++ configure.ac
-@@ -401,7 +401,7 @@ AS_CASE(["$target_os"],
+@@ -365,13 +365,6 @@ AS_CASE(["$host_os:$build_os"],
+     # clang version 1.0 (http://llvm.org/svn/llvm-project/cfe/tags/Apple/clang-23 exported)
+     # Apple clang version 2.0 (tags/Apple/clang-137) (based on LLVM 2.9svn)
+     # Apple clang version 2.1 (tags/Apple/clang-163.7.1) (based on LLVM 3.0svn)
+-    AS_IF([! $CC -E -xc - <<SRC >/dev/null], [
+-	@%:@if defined __APPLE_CC__ && defined __clang_major__ && __clang_major__ < 3
+-	@%:@error premature clang
+-	@%:@endif
+-SRC
+-	AC_MSG_ERROR([clang version 3.0 or later is required])
+-    ])
+ ])
+ AS_IF([test x"${build}" != x"${host}"], [
+   AC_CHECK_TOOL(CC, gcc)
+@@ -401,7 +394,7 @@ AS_CASE(["$target_os"],
  AC_SUBST(LD)
  AS_IF([test "$GCC" = yes], [
      linker_flag=-Wl,
@@ -1375,7 +1389,7 @@ share/examples/ruby%%XY%%/webrick/
      gcc_major=`echo =__GNUC__ | $CC -E -xc - | sed '/^=/!d;s///'`
      gcc_minor=`echo =__GNUC_MINOR__ | $CC -E -xc - | sed '/^=/!d;s///'`
      test -n "$gcc_major" || gcc_major=0
-@@ -1010,7 +1010,7 @@ AS_CASE(["$target_os"],
+@@ -1010,7 +1003,7 @@ AS_CASE(["$target_os"],
  [nextstep*], [	],
  [openstep*], [	],
  [rhapsody*], [	],
@@ -1384,7 +1398,7 @@ share/examples/ruby%%XY%%/webrick/
  		RUBY_APPEND_OPTIONS(CPPFLAGS, -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT)
  		AC_MSG_CHECKING(whether Mac OS X 10.5 or later)
  		AC_TRY_CPP([#include <AvailabilityMacros.h>
-@@ -3712,7 +3712,7 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3712,7 +3705,7 @@ AS_CASE("$enable_shared", [yes], [
      [sunos4*], [
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	],
@@ -1393,7 +1407,7 @@ share/examples/ruby%%XY%%/webrick/
  	RUBY_APPEND_OPTIONS(LIBRUBY_DLDFLAGS, ['-Wl,-soname,$(LIBRUBY_SONAME)' "$LDFLAGS_OPTDIR"])
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	AS_IF([test "$load_relative" = yes], [
-@@ -3721,14 +3721,10 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3721,14 +3714,10 @@ AS_CASE("$enable_shared", [yes], [
  	    LIBRUBY_RELATIVE=yes
  	])
  	],
@@ -1409,7 +1423,7 @@ share/examples/ruby%%XY%%/webrick/
  	],
      [netbsd*], [
  	SOLIBS='$(LIBS)'
-@@ -3782,8 +3778,8 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3782,8 +3771,8 @@ AS_CASE("$enable_shared", [yes], [
  	])
  	LIBRUBY_DLDFLAGS="$LIBRUBY_DLDFLAGS "' $(XLDFLAGS)'
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT)'

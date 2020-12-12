@@ -109,15 +109,21 @@ RUBY_CONFIGURE_ARGS+=	--with-rubyhdrdir="${PREFIX}/include/ruby-${RUBY_VER}/" \
 			--program-prefix="" \
 			--program-suffix="${RUBY_SUFFIX}"
 
-.  if empty(ruby_ARGS:Minterp)
-USES_configure+=	490:ruby-setup-configure \
+# Disable auto-use of setup.rb (It's never been used)
+# .  if empty(ruby_ARGS:Minterp)
+. if 0
+_USES_configure+=	490:ruby-setup-configure \
 			492:ruby-extconf-configure
-USES_build+=		490:ruby-setup-build \
+_USES_build+=		490:ruby-setup-build \
 			859:ruby-setup-install	# RUBY always sets INSTALL_REQ_TOOLCHAIN
 .  endif
 
 ruby-setup-configure:
 	@if [ -f "${CONFIGURE_WRKSRC}/${RUBY_SETUP}" ]; then \
+	${ECHO_MSG} "===>  Configure arguments:";\
+	for myarg in ${CONFIGURE_ARGS}; do\
+	${ECHO_MSG} "      $$myarg";\
+	done;\
 	${ECHO_MSG} "===>  Running ${RUBY_SETUP} to configure";\
 	(cd ${CONFIGURE_WRKSRC} && ${SETENV} ${CONFIGURE_ENV} \
 	  ${RUBY} ${RUBY_FLAGS} ${RUBY_SETUP} config ${CONFIGURE_ARGS});\
