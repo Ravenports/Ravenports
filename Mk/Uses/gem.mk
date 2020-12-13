@@ -3,9 +3,9 @@
 # Feature:	gem
 # Usage:	USES=gem
 # Valid ARGS:	skiplist (Don't generate package list automatically)
-#		v25	 (requires Ruby 2.5)
 #               v26      (requires Ruby 2.6)
 #               v27      (requires Ruby 2.7) (implicit)
+#               v30      (requires Ruby 3.0)
 
 .if !defined(_INCLUDE_USES_GEM_MK)
 _INCLUDE_USES_GEM_MK=	yes
@@ -13,17 +13,17 @@ _INCLUDE_USES_GEM_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v2[567]
+# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v(26,27,30)
 # -----------------------------------------------
 
-.  if ${gem_ARGS} == "v25"
-GEMS_BASE_DIR=	lib/ruby/gems/2.5
-RUBYGEMBIN=	${LOCALBASE}/bin/gem25
-USING_RUBY=	2.5
-.  elif ${gem_ARGS} == "v26"
+.  if ${gem_ARGS} == "v26"
 GEMS_BASE_DIR=	lib/ruby/gems/2.6
 RUBYGEMBIN=	${LOCALBASE}/bin/gem26
 USING_RUBY=	2.6
+.  elif ${gem_ARGS} == "v30"
+GEMS_BASE_DIR=	lib/ruby/gems/3.0
+RUBYGEMBIN=	${LOCALBASE}/bin/gem30
+USING_RUBY=	3.0
 .  else
 GEMS_BASE_DIR=	lib/ruby/gems/2.7
 RUBYGEMBIN=	${LOCALBASE}/bin/gem27

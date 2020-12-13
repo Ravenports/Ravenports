@@ -2,6 +2,7 @@
 
 NAMEBASE=		libclc
 VERSION=		0.4.0.20190527
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Required library functions for OpenCL C language
@@ -33,11 +34,10 @@ MAKE_ENV=		MAKE={{GMAKE}}
 			DESTDIR={{STAGEDIR}}
 			CCACHE_CPP2=yes
 
-BLOCK_WATCHDOG=		yes
-
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/bin/python|${PYTHON_CMD}|g' \
 		-e 's|"python |"${PYTHON_VERSION} |g' \
+		-e 's|__CLC_INTERNAL|__CLC_INTERNAL -nogpulib|'\
 		${WRKSRC}/build/ninja_syntax.py \
 		${WRKSRC}/configure.py
 	# add ccache support

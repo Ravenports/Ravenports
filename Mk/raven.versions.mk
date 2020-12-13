@@ -84,12 +84,11 @@ TCL_8.6_VERSION=	8.6.10
 
 #-------------------------------------------------------------------------
 # PGSQL
-# Possible values: 9.5, 9.6, 10, 11, 12
+# Possible values: 9.6, 10, 11, 12, 13
 #-------------------------------------------------------------------------
 
 PGSQL_DEFAULT?=		12
 
-PGSQL_9.5_VERSION=	9.5.24
 PGSQL_9.6_VERSION=	9.6.20
 PGSQL_10_VERSION=	10.15
 PGSQL_11_VERSION=	11.10
@@ -127,14 +126,14 @@ FIREBIRD_3.0_VERSION=	3.0.7
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
-# Possible values: 7.2, 7.3, 7.4
+# Possible values: 7.3, 7.4, 8.0
 #-------------------------------------------------------------------------
 
 PHP_DEFAULT?=		7.4
 
-PHP_7.2_VERSION=	7.2.34
 PHP_7.3_VERSION=	7.3.25
 PHP_7.4_VERSION=	7.4.13
+PHP_8.0_VERSION=	8.0.0
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform

@@ -10,7 +10,7 @@ CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		RUBY/3.0
-DISTFILE[1]=		ruby-3.0.0-preview1.tar.xz:main
+DISTFILE[1]=		ruby-3.0.0-preview2.tar.xz:main
 DIST_SUBDIR=		ruby
 DF_INDEX=		1
 SPKGS[standard]=	complete
@@ -31,7 +31,7 @@ RUN_DEPENDS=		autoselect-ruby:single:standard
 USES=			autoreconf cpe execinfo readline ssl ruby:v30,interp
 			zlib
 
-DISTNAME=		ruby-3.0.0-preview1
+DISTNAME=		ruby-3.0.0-preview2
 
 LICENSE=		BSD2CLAUSE:primary RUBY:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/BSDL
@@ -61,8 +61,6 @@ CONFIGURE_ENV=		debugflags=
 			ac_cv_build={{CONFIGURE_TARGET}}
 			stack_protector=no
 
-SINGLE_JOB=		yes
-
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		XY={{RUBY_SUFFIX}}
 			XDOTY={{RUBY_VER}}
@@ -77,7 +75,11 @@ post-patch:
 	${FIND} ${WRKSRC}/ -name "*.orig" -delete
 	# Disable all bundled gems
 	# We install these from other ports
-.for d in gems bin/bundle bin/bundler bin/gem lib/bundler ext/dbm ext/gdbm
+	cd ${BUILD_WRKSRC} && \
+		${MV} gems gems.orig && \
+		${MKDIR} gems && \
+		${TOUCH} gems/bundled_gems
+.for d in bin/bundle bin/bundler bin/gem lib/bundler ext/dbm ext/gdbm
 	${RM} -r ${BUILD_WRKSRC}/${d}
 .endfor
 	${RM} ${BUILD_WRKSRC}/man/bundle*
@@ -152,10 +154,10 @@ This package contains the Ruby Documentation System for Ruby24.
 
 
 [FILE:110:distinfo]
-aa7cce0c99f4ea2145fef9b78d74a44857754396790cd23bad75d759811e7a2a     12703060 ruby/ruby-3.0.0-preview1.tar.xz
+03078e82d4fb55c13837c69e56565fc49c451d11b1ca5e1b075d990d0957f181     14244252 ruby/ruby-3.0.0-preview2.tar.xz
 
 
-[FILE:18956:manifests/plist.primary]
+[FILE:18818:manifests/plist.primary]
 %%ONLY-DARWIN%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
 %%ONLY-DRAGONFLY%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
 %%ONLY-FREEBSD%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
@@ -182,6 +184,7 @@ include/ruby-%%XDOTY%%/ruby/
  missing.h
  onigmo.h
  oniguruma.h
+ ractor.h
  random.h
  re.h
  regex.h
@@ -595,6 +598,7 @@ lib/ruby/%%XDOTY%%/drb/
  ssl.rb
  timeridconv.rb
  unix.rb
+ version.rb
  weakidconv.rb
 lib/ruby/%%XDOTY%%/fiddle/
  closure.rb
@@ -1193,9 +1197,9 @@ lib/ruby/%%XDOTY%%/rubygems/source/
  lock.rb
  specific_file.rb
  vendor.rb
-lib/ruby/%%XDOTY%%/rubygems/ssl_certs/index.rubygems.org/GlobalSignRootCA.pem
-lib/ruby/%%XDOTY%%/rubygems/ssl_certs/rubygems.global.ssl.fastly.net/DigiCertHighAssuranceEVRootCA.pem
-lib/ruby/%%XDOTY%%/rubygems/ssl_certs/rubygems.org/AddTrustExternalCARoot.pem
+lib/ruby/%%XDOTY%%/rubygems/ssl_certs/rubygems.org/
+ GlobalSignRootCA.pem
+ GlobalSignRootCA_R3.pem
 lib/ruby/%%XDOTY%%/rubygems/util/
  licenses.rb
  list.rb
@@ -1267,7 +1271,7 @@ share/man/man1/
 @dir %%RUBY_VENDORARCHLIBDIR%%
 
 
-[FILE:1552:manifests/plist.docs]
+[FILE:1647:manifests/plist.docs]
 share/doc/ruby%%XY%%/
  bug_triaging.rdoc
  contributing.rdoc
@@ -1317,6 +1321,11 @@ share/doc/ruby%%XY%%/csv/options/parsing/
  skip_lines.rdoc
  strip.rdoc
  unconverted_fields.rdoc
+share/doc/ruby%%XY%%/csv/recipes/
+ filtering.rdoc
+ generating.rdoc
+ parsing.rdoc
+ recipes.rdoc
 share/doc/ruby%%XY%%/images/boottime-classes.png
 share/doc/ruby%%XY%%/irb/
  irb-tools.rd.ja
@@ -1572,24 +1581,25 @@ share/examples/ruby%%XY%%/webrick/
  httpsd.rb
 
 
-[FILE:2716:patches/patch-configure.ac]
---- configure.ac.orig	2020-09-25 13:16:55 UTC
+[FILE:2728:patches/patch-configure.ac]
+--- configure.ac.orig	2020-12-08 09:02:31 UTC
 +++ configure.ac
-@@ -278,13 +278,6 @@ AS_CASE(["$host_os:$build_os"],
+@@ -271,14 +271,6 @@ AS_CASE(["$host_os:$build_os"],
      # clang version 1.0 (http://llvm.org/svn/llvm-project/cfe/tags/Apple/clang-23 exported)
      # Apple clang version 2.0 (tags/Apple/clang-137) (based on LLVM 2.9svn)
      # Apple clang version 2.1 (tags/Apple/clang-163.7.1) (based on LLVM 3.0svn)
--    AS_IF([! $CC -E -xc - <<SRC >/dev/null], [
--	@%:@if defined __APPLE_CC__ && defined __clang_major__ && __clang_major__ < 3
--	@%:@error premature clang
--	@%:@endif
--SRC
--	AC_MSG_ERROR([clang version 3.0 or later is required])
--    ])
+-    AC_PREPROC_IFELSE(
+-	[AC_LANG_PROGRAM([
+-	    @%:@if defined __APPLE_CC__ && defined __clang_major__ && __clang_major__ < 3
+-	    @%:@error premature clang
+-	    @%:@endif
+-	])],
+-	[],
+-	[AC_MSG_ERROR([clang version 3.0 or later is required])])
  ])
  
  AS_CASE(["$target_os"],
-@@ -307,7 +300,7 @@ AC_SUBST(GCC)
+@@ -301,7 +293,7 @@ AC_SUBST(GCC)
  AC_SUBST(LD)
  AS_IF([test "$GCC" = yes], [
      linker_flag=-Wl,
@@ -1598,7 +1608,7 @@ share/examples/ruby%%XY%%/webrick/
      gcc_major=`echo =__GNUC__ | $CC -E -xc - | sed '/^=/!d;s///'`
      gcc_minor=`echo =__GNUC_MINOR__ | $CC -E -xc - | sed '/^=/!d;s///'`
      test -n "$gcc_major" || gcc_major=0
-@@ -907,7 +900,6 @@ AS_CASE(["$target_os"],
+@@ -907,7 +899,6 @@ AS_CASE(["$target_os"],
  [rhapsody*], [	],
  [darwin*], [
  		ORIG_LIBS="$LIBS"
@@ -1606,7 +1616,7 @@ share/examples/ruby%%XY%%/webrick/
  		RUBY_APPEND_OPTIONS(CPPFLAGS, -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT)
  		AC_CACHE_CHECK([whether syscall(2) is deprecated], rb_cv_syscall_deprecated,
  		    [RUBY_WERROR_FLAG([
-@@ -3353,7 +3345,7 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3353,7 +3344,7 @@ AS_CASE("$enable_shared", [yes], [
      [sunos4*], [
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	],
@@ -1615,7 +1625,7 @@ share/examples/ruby%%XY%%/webrick/
  	RUBY_APPEND_OPTIONS(LIBRUBY_DLDFLAGS, ['-Wl,-soname,$(LIBRUBY_SONAME)' "$LDFLAGS_OPTDIR"])
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	AS_IF([test "$load_relative" = yes], [
-@@ -3362,13 +3354,9 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3362,13 +3353,9 @@ AS_CASE("$enable_shared", [yes], [
  	    LIBRUBY_RELATIVE=yes
  	])
  	],
@@ -1630,7 +1640,7 @@ share/examples/ruby%%XY%%/webrick/
  	],
      [netbsd*], [
  	LIBRUBY_SONAME='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
-@@ -3401,8 +3389,8 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3401,8 +3388,8 @@ AS_CASE("$enable_shared", [yes], [
  	],
      [darwin*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT)'
@@ -1644,7 +1654,7 @@ share/examples/ruby%%XY%%/webrick/
 
 
 [FILE:469:patches/patch-lib_mkmf.rb]
---- lib/mkmf.rb.orig	2020-09-25 13:16:55 UTC
+--- lib/mkmf.rb.orig	2020-12-08 09:02:31 UTC
 +++ lib/mkmf.rb
 @@ -240,7 +240,7 @@ module MakeMakefile
    end
@@ -1658,7 +1668,7 @@ share/examples/ruby%%XY%%/webrick/
 
 
 [FILE:533:patches/patch-tool_mkconfig.rb]
---- tool/mkconfig.rb.orig	2020-09-25 13:16:55 UTC
+--- tool/mkconfig.rb.orig	2020-12-08 09:02:31 UTC
 +++ tool/mkconfig.rb
 @@ -160,8 +160,9 @@ def vars.expand(val, config = self)
    val.replace(newval) unless newval == val
@@ -1672,205 +1682,6 @@ share/examples/ruby%%XY%%/webrick/
  relative_archdir = rubyarchdir.rindex(prefix, 0) ? rubyarchdir[prefix.size..-1] : rubyarchdir
  
  puts %[\
-
-
-[FILE:5176:patches/patch-tool_rbinstall.rb]
---- tool/rbinstall.rb.orig	2020-10-02 17:47:07 UTC
-+++ tool/rbinstall.rb
-@@ -864,147 +864,6 @@ end
- 
- # :startdoc:
- 
--install?(:ext, :comm, :gem, :'default-gems', :'default-gems-comm') do
--  install_default_gem('lib', srcdir)
--end
--install?(:ext, :arch, :gem, :'default-gems', :'default-gems-arch') do
--  install_default_gem('ext', srcdir)
--end
--
--def load_gemspec(file)
--  file = File.realpath(file)
--  code = File.read(file, encoding: "utf-8:-")
--  code.gsub!(/`git.*?`/m, '""')
--  code.gsub!(/%x\[git.*?\]/m, '""')
--  spec = eval(code, binding, file)
--  unless Gem::Specification === spec
--    raise TypeError, "[#{file}] isn't a Gem::Specification (#{spec.class} instead)."
--  end
--  spec.loaded_from = file
--  spec
--end
--
--def install_default_gem(dir, srcdir)
--  gem_dir = Gem.default_dir
--  install_dir = with_destdir(gem_dir)
--  prepare "default gems from #{dir}", gem_dir
--  makedirs(Gem.ensure_default_gem_subdirectories(install_dir, $dir_mode).map {|d| File.join(gem_dir, d)})
--
--  default_spec_dir = Gem.default_specifications_dir
--
--  gems = Dir.glob("#{srcdir}/#{dir}/**/*.gemspec").map {|src|
--    spec = load_gemspec(src)
--    file_collector = RbInstall::Specs::FileCollector.new(src)
--    files = file_collector.collect
--    next if files.empty?
--    spec.files = files
--    spec
--  }
--  gems.compact.sort_by(&:name).each do |gemspec|
--    old_gemspecs = Dir[File.join(with_destdir(default_spec_dir), "#{gemspec.name}-*.gemspec")]
--    if old_gemspecs.size > 0
--      old_gemspecs.each {|spec| rm spec }
--    end
--
--    full_name = "#{gemspec.name}-#{gemspec.version}"
--
--    puts "#{INDENT}#{gemspec.name} #{gemspec.version}"
--    gemspec_path = File.join(default_spec_dir, "#{full_name}.gemspec")
--    open_for_install(gemspec_path, $data_mode) do
--      gemspec.to_ruby.gsub(/.*\0.*\n/, '')
--    end
--
--    specific_gem_dir = File.join(gem_dir, 'gems', full_name)
--
--    makedirs(specific_gem_dir)
--
--    unless gemspec.executables.empty? then
--      bin_dir = File.join(specific_gem_dir, gemspec.bindir)
--      makedirs(bin_dir)
--
--      gemspec.executables.map {|exec|
--        install File.join(srcdir, 'libexec', exec),
--                File.join(bin_dir, exec)
--      }
--    end
--  end
--end
--
--install?(:ext, :comm, :gem, :'bundled-gems') do
--  gem_dir = Gem.default_dir
--  install_dir = with_destdir(gem_dir)
--  prepare "bundled gems", gem_dir
--  makedirs(Gem.ensure_gem_subdirectories(install_dir, $dir_mode).map {|d| File.join(gem_dir, d)})
--  installed_gems = {}
--  options = {
--    :install_dir => install_dir,
--    :bin_dir => with_destdir(bindir),
--    :domain => :local,
--    :ignore_dependencies => true,
--    :dir_mode => $dir_mode,
--    :data_mode => $data_mode,
--    :prog_mode => $script_mode,
--    :wrappers => true,
--    :format_executable => true,
--  }
--  gem_ext_dir = "#$extout/gems/#{CONFIG['arch']}"
--  extensions_dir = Gem::StubSpecification.gemspec_stub("", gem_dir, gem_dir).extensions_dir
--  File.foreach("#{srcdir}/gems/bundled_gems") do |name|
--    next if /^\s*(?:#|$)/ =~ name
--    next unless /^(\S+)\s+(\S+).*/ =~ name
--    gem_name = "#$1-#$2"
--    path = "#{srcdir}/.bundle/gems/#{gem_name}/#$1.gemspec"
--    next unless File.exist?(path)
--    spec = load_gemspec(path)
--    next unless spec.platform == Gem::Platform::RUBY
--    next unless spec.full_name == gem_name
--    spec.extension_dir = "#{extensions_dir}/#{spec.full_name}"
--    if File.directory?(ext = "#{gem_ext_dir}/#{spec.full_name}")
--      spec.extensions[0] ||= "-"
--    end
--    package = RbInstall::DirPackage.new spec
--    ins = RbInstall::UnpackedInstaller.new(package, options)
--    puts "#{INDENT}#{spec.name} #{spec.version}"
--    ins.install
--    unless $dryrun
--      File.chmod($data_mode, File.join(install_dir, "specifications", "#{spec.full_name}.gemspec"))
--    end
--    unless spec.extensions.empty?
--      install_recursive(ext, spec.extension_dir)
--    end
--    installed_gems[spec.full_name] = true
--  end
--  installed_gems, gems = Dir.glob(srcdir+'/gems/*.gem').partition {|gem| installed_gems.key?(File.basename(gem, '.gem'))}
--  unless installed_gems.empty?
--    prepare "bundled gem cache", gem_dir+"/cache"
--    install installed_gems, gem_dir+"/cache"
--  end
--  next if gems.empty?
--  if defined?(Zlib)
--    Gem.instance_variable_set(:@ruby, with_destdir(File.join(bindir, ruby_install_name)))
--    silent = Gem::SilentUI.new
--    gems.each do |gem|
--      package = Gem::Package.new(gem)
--      inst = RbInstall::GemInstaller.new(package, options)
--      inst.spec.extension_dir = with_destdir(inst.spec.extension_dir)
--      begin
--        Gem::DefaultUserInteraction.use_ui(silent) {inst.install}
--      rescue Gem::InstallError
--        next
--      end
--      gemname = File.basename(gem)
--      puts "#{INDENT}#{gemname}"
--    end
--    # fix directory permissions
--    # TODO: Gem.install should accept :dir_mode option or something
--    File.chmod($dir_mode, *Dir.glob(install_dir+"/**/"))
--    # fix .gemspec permissions
--    File.chmod($data_mode, *Dir.glob(install_dir+"/specifications/*.gemspec"))
--  else
--    puts "skip installing bundled gems because of lacking zlib"
--  end
--end
--
- parse_args()
- 
- include FileUtils
-
-
-[FILE:1400:patches/patch-upstream-bug17191]
-From a9ff39087092b21059fca046ace9ca87770692a4 Mon Sep 17 00:00:00 2001
-From: Nobuyoshi Nakada <nobu@ruby-lang.org>
-Date: Tue, 29 Sep 2020 13:41:59 +0900
-Subject: [PATCH] Fixed installation failure [Bug #17191]
-
-Try update and extract bundled gems only when baseruby is
-available.  It should be done only when installing from
-developemental build and not from the tarball, but it is not
-obvious to differentiate them.
----
- common.mk     | 2 +-
- defs/gmake.mk | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git common.mk common.mk
-index 603429bd35..509f09c1fe 100644
---- common.mk
-+++ common.mk
-@@ -1296,7 +1296,7 @@ update-config_files: PHONY
- 	    config.guess config.sub
- 
- refresh-gems: update-bundled_gems prepare-gems
--prepare-gems: update-gems extract-gems
-+prepare-gems: $(HAVE_BASERUBY:yes=update-gems) $(HAVE_BASERUBY:yes=extract-gems)
- 
- update-gems$(gnumake:yes=-nongnumake): PHONY
- 	$(ECHO) Downloading bundled gem files...
-diff --git defs/gmake.mk defs/gmake.mk
-index 7e9566fee6..31af44a4f1 100644
---- defs/gmake.mk
-+++ defs/gmake.mk
-@@ -246,7 +246,7 @@ HELP_EXTRA_TASKS = \
- 	"  update-github:       merge master branch and push it to Pull Request [PR=1234]" \
- 	""
- 
--extract-gems: update-gems
-+extract-gems: $(HAVE_BASERUBY:yes=update-gems)
- 
- BUNDLED_GEMS := $(shell sed '/^[ 	]*\#/d;/^[ 	]*$$/d;s/[ 	][ 	]*/-/;s/[ 	].*//' $(srcdir)/gems/bundled_gems)
- 
--- 
-2.28.0
-
 
 
 [FILE:378:files/special.mk]

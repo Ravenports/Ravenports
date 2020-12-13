@@ -3,7 +3,7 @@
 #
 # Feature:	python
 # Usage:	USES=python
-# Valid ARGS:	(py27 or py37 or py38), build, wheel
+# Valid ARGS:	(py27 or py38 or py39), build, wheel
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -72,12 +72,12 @@ _INCLUDE_USES_PYTHON_MK=	yes
 # Incorporated in ravenadm
 # ------------------------------------------------------
 # BUILDRUN_DEPENDS+=	pythonXX:single:standard
-# BUILDRUN_DEPENDS+=	python-setuptools:single:pyXX
-# TODO: BDEP=python-pip when "wheel" set, python-setuptools when not
+# BUILD_DEPENDS+=	python-setuptools:single:pyXX or
+#                       python-pip:single:pyXX (if "wheel")
 # ------------------------------------------------------
 
-.  if !empty(python_ARGS:Mpy37)
-_PYTHON_VERSION=	3.7
+.  if !empty(python_ARGS:Mpy39)
+_PYTHON_VERSION=	3.9
 .  elif !empty(python_ARGS:Mpy38)
 _PYTHON_VERSION=	3.8
 .  elif !empty(python_ARGS:Mpy27)
