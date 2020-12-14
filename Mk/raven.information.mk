@@ -190,7 +190,7 @@ GTK3_PORT_VERSION=		3.24.24
 
 CURRENT_GCC=			gcc9	# mirror in Uses/meson.mk
 CURRENT_GCC_VERSION=		${GCC9_VERSION}
-BINUTILS_VERSION=		2.34
+BINUTILS_VERSION=		2.35.1
 
 # ------------------------------------------------------------------------
 # aspell
