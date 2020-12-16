@@ -2,8 +2,10 @@
 
 NAMEBASE=		rhash
 VERSION=		1.4.0
+REVISION=		1
 KEYWORDS=		security
-VARIANTS=		standard
+VARIANTS=		standard ssl
+SDESC[ssl]=		File digest utility with ssl runtime loading
 SDESC[standard]=	File digest library and utility
 HOMEPAGE=		https://github.com/rhash/RHash
 CONTACT=		nobody
@@ -12,12 +14,14 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/rhash:RHash:v1.4.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
+SPKGS[ssl]=		single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	SSL
 OPTIONS_STANDARD=	none
+VOPTS[ssl]=		SSL=ON
 
-USES=			cpe gettext-runtime ssl
+USES=			cpe gettext-runtime
 
 DISTNAME=		RHash-1.4.0
 
@@ -30,10 +34,8 @@ FPC_EQUIVALENT=		security/rhash
 
 MUST_CONFIGURE=		yes
 CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
-			--disable-openssl-runtime
 			--enable-lib-shared
 			--enable-lib-static
-			--enable-openssl
 			--extra-cflags="{{CPPFLAGS}}"
 			--extra-ldflags="{{LDFLAGS}}"
 			--mandir="{{MANPREFIX}}/man"
@@ -44,6 +46,11 @@ MAKE_ARGS=		INSTALL_PROGRAM="{{INSTALL_PROGRAM}}"
 
 INSTALL_TARGET=		install install-pkg-config
 INSTALL_REQ_TOOLCHAIN=	yes
+
+[SSL].DESCRIPTION=			Use OpenSSL's MD5, SHA1 and SHA2 algorithms
+[SSL].CONFIGURE_ARGS_OFF=		--disable-openssl
+[SSL].CONFIGURE_ARGS_ON=		--enable-openssl-runtime
+[SSL].USES_ON=				ssl:openssl
 
 post-patch:
 	${REINPLACE_CMD} -e 's,/etc/,${PREFIX}&,' ${WRKSRC}/parse_cmdline.c

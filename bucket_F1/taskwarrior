@@ -2,6 +2,7 @@
 
 NAMEBASE=		taskwarrior
 VERSION=		2.5.2
+REVISION=		1
 KEYWORDS=		deskutils
 VARIANTS=		standard
 SDESC[standard]=	Feature-rich command-line todo list manager
@@ -20,7 +21,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	gnutls:primary:standard
-			ossp-uuid:single:standard
+			libuuid:single:standard
 
 USES=			cmake shebangfix
 
@@ -36,13 +37,6 @@ SHEBANG_FILES=		scripts/*/*.pl
 
 CMAKE_ARGS=		-DTASK_DOCDIR:STRING=share/doc/taskwarrior
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
-
-post-patch:
-	# Fix ambiguity with OSSP-UUID object name
-	${REINPLACE_CMD} -e 's|uuid ())|make_uuid ())|' \
-		${WRKSRC}/src/Task.cpp \
-		${WRKSRC}/src/commands/CmdDuplicate.cpp \
-		${WRKSRC}/src/recur.cpp
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/task
@@ -131,7 +125,7 @@ share/taskwarrior/scripts/vim/syntax/
 share/taskwarrior/scripts/zsh/_task
 
 
-[FILE:2216:patches/patch-CMakeLists.txt]
+[FILE:1979:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2020-12-05 21:59:14 UTC
 +++ CMakeLists.txt
 @@ -54,15 +54,15 @@ set (PACKAGE_TARNAME "${PACKAGE}")
@@ -154,7 +148,7 @@ share/taskwarrior/scripts/zsh/_task
  SET (TASK_BINDIR  bin            CACHE STRING "Installation directory for the binary")
  
  if (USE_GNUTLS)
-@@ -87,12 +87,12 @@ check_struct_has_member ("struct tm" tm_
+@@ -87,10 +87,10 @@ check_struct_has_member ("struct tm" tm_
  check_struct_has_member ("struct stat" st_birthtime "sys/types.h;sys/stat.h" HAVE_ST_BIRTHTIME)
  
  message ("-- Looking for libuuid")
@@ -163,14 +157,10 @@ share/taskwarrior/scripts/zsh/_task
    # Apple and FreeBSD include the uuid functions in their libc, rather than libuuid
    check_function_exists (uuid_unparse_lower HAVE_UUID_UNPARSE_LOWER)
 -else (DARWIN OR FREEBSD OR OPENBSD)
--  find_path    (UUID_INCLUDE_DIR   uuid/uuid.h)
--  find_library (UUID_LIBRARY NAMES uuid)
 +else (0)
-+  find_path    (UUID_INCLUDE_DIR   ossp/uuid++.hh)
-+  find_library (UUID_LIBRARY NAMES ossp-uuid++)
+   find_path    (UUID_INCLUDE_DIR   uuid/uuid.h)
+   find_library (UUID_LIBRARY NAMES uuid)
    if (UUID_INCLUDE_DIR AND UUID_LIBRARY)
-     set (TASK_INCLUDE_DIRS ${TASK_INCLUDE_DIRS} ${UUID_INCLUDE_DIR})
-     set (TASK_LIBRARIES    ${TASK_LIBRARIES}    ${UUID_LIBRARY})
 @@ -103,7 +103,7 @@ else (DARWIN OR FREEBSD OR OPENBSD)
    else (UUID_INCLUDE_DIR AND UUID_LIBRARY)
      message (FATAL_ERROR "-- libuuid not found.")
@@ -196,98 +186,4 @@ share/taskwarrior/scripts/zsh/_task
           FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
                            GROUP_READ             GROUP_EXECUTE
                            WORLD_READ             WORLD_EXECUTE)
-
-
-[FILE:1801:patches/patch-src_util.cpp]
---- src/util.cpp.orig	2020-11-30 06:30:26 UTC
-+++ src/util.cpp
-@@ -125,53 +125,16 @@ int confirm4 (const std::string& questio
-   return 0;
- }
- 
--// Handle the generation of UUIDs on FreeBSD in a separate implementation
--// of the uuid () function, since the API is quite different from Linux's.
--// Also, uuid_unparse_lower is not needed on FreeBSD, because the string
--// representation is always lowercase anyway.
--// For the implementation details, refer to
--// http://svnweb.freebsd.org/base/head/sys/kern/kern_uuid.c
--#if defined(FREEBSD) || defined(OPENBSD)
--const std::string uuid ()
--{
--  uuid_t id;
--  uint32_t status;
--  char *buffer (0);
--  uuid_create (&id, &status);
--  uuid_to_string (&id, &buffer, &status);
--
--  std::string res (buffer);
--  free (buffer);
--
--  return res;
--}
--#else
--
--////////////////////////////////////////////////////////////////////////////////
--#ifndef HAVE_UUID_UNPARSE_LOWER
--// Older versions of libuuid don't have uuid_unparse_lower(), only uuid_unparse()
--void uuid_unparse_lower (uuid_t uu, char *out)
--{
--    uuid_unparse (uu, out);
--    // Characters in out are either 0-9, a-z, '-', or A-Z.  A-Z is mapped to
--    // a-z by bitwise or with 0x20, and the others already have this bit set
--    for (size_t i = 0; i < 36; ++i) out[i] |= 0x20;
--}
--#endif
--
--const std::string uuid ()
--{
--  uuid_t id;
--  uuid_generate (id);
--  char buffer[100] {};
--  uuid_unparse_lower (id, buffer);
--
--  // Bug found by Steven de Brouwer.
--  buffer[36] = '\0';
--
--  return std::string (buffer);
--}
--#endif
-+ // call to OSSP-UUID
-+ const std::string make_uuid ()
-+ {
-+   uuid id;
-+   id.make(UUID_MAKE_V4);
-+   const char * idstr = id.string();
-+   std::string res (idstr);
-+   delete idstr;
-+   return res; 
-+ }
- 
- // Collides with std::numeric_limits methods
- #undef max
-
-
-[FILE:490:patches/patch-src_util.h]
---- src/util.h.orig	2020-11-30 06:30:26 UTC
-+++ src/util.h
-@@ -35,17 +35,14 @@
- #if defined(FREEBSD) || defined(OPENBSD)
- #include <uuid.h>
- #else
--#include <uuid/uuid.h>
-+#include <ossp/uuid++.hh>
- #endif
- #include <Table.h>
- 
- // util.cpp
- int confirm4 (const std::string&);
- 
--#ifndef HAVE_UUID_UNPARSE_LOWER
--void uuid_unparse_lower (uuid_t uu, char *out);
--#endif
--const std::string uuid ();
-+const std::string make_uuid ();
- 
- const std::string indentProject (
-   const std::string&,
 

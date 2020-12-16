@@ -40,6 +40,10 @@ LICENSE_SCHEME=		multi
 
 CMAKE_BUILD_TYPE=	Release
 
+CXXFLAGS=		-Wno-attributes
+			-Wno-deprecated-declarations
+			-Wno-empty-body
+			-Wno-shadow
 CMAKE_ARGS=		-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
 			-DLLVM_ENABLE_SPHINX=ON
 			-DLIBCXX_CXX_ABI_LIBRARY_PATH={{WRKDIR}}/.build/lib
@@ -295,6 +299,20 @@ include/c++/v1/experimental/
  utility
  vector
 lib/libc++experimental.a
+
+
+[FILE:511:patches/patch-projects_libcxx_CMakeLists.txt]
+--- projects/libcxx/CMakeLists.txt.orig	2020-10-07 10:10:48 UTC
++++ projects/libcxx/CMakeLists.txt
+@@ -183,8 +183,6 @@ if (LIBCXX_CXX_ABI STREQUAL "default")
+   if (LIBCXX_TARGETING_MSVC)
+     # FIXME: Figure out how to configure the ABI library on Windows.
+     set(LIBCXX_CXX_ABI_LIBNAME "vcruntime")
+-  elseif (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+-    set(LIBCXX_CXX_ABI_LIBNAME "libcxxrt")
+   elseif (NOT LIBCXX_STANDALONE_BUILD OR HAVE_LIBCXXABI)
+     set(LIBCXX_CXX_ABI_LIBNAME "libcxxabi")
+   else()
 
 
 [FILE:3107:patches/patch-projects_libcxx_include_____config]

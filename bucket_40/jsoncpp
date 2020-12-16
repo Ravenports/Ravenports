@@ -17,9 +17,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		autoselect-python:single:standard
-
-USES=			dos2unix c++:single meson python:build
+USES=			c++:single
 
 LICENSE=		MIT:single
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
@@ -27,12 +25,13 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/jsoncpp
 
-SOVERSION=		24
+SOVERSION=		24.0.0
+SUB_FILES=		Makefile.BSD
+SUB_LIST=		SHLIB_MAJOR=24
+			PORTVERSION=1.9.4
 
-post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/include/jsoncpp
-	${MV} ${STAGEDIR}${PREFIX}/include/json \
-		${STAGEDIR}${PREFIX}/include/jsoncpp
+post-patch:
+	${MV} ${WRKDIR}/Makefile.BSD ${WRKSRC}/Makefile
 
 [FILE:412:descriptions/desc.single]
 JSON is a lightweight data-interchange format. It can represent numbers,
@@ -66,36 +65,52 @@ lib/
 lib/pkgconfig/jsoncpp.pc
 
 
-[FILE:394:patches/patch-src_lib__json_json__reader.cpp]
---- src/lib_json/json_reader.cpp.orig	2020-09-26 02:19:16 UTC
-+++ src/lib_json/json_reader.cpp
-@@ -4,6 +4,11 @@
- // recognized in your jurisdiction.
- // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
- 
-+// fix for lang/gcc5+
-+#if __GNUC__ == 5
-+#include <cstdio>
-+#endif
-+
- #if !defined(JSON_IS_AMALGAMATION)
- #include "json_tool.h"
- #include <json/assertions.h>
+[FILE:1394:files/Makefile.BSD.in]
+.SUFFIXES:
+.SUFFIXES: .o .So .cpp
 
+SRCS=	src/lib_json/json_reader.cpp \
+	src/lib_json/json_value.cpp \
+	src/lib_json/json_writer.cpp
 
-[FILE:390:patches/patch-src_lib__json_json__writer.cpp]
---- src/lib_json/json_writer.cpp.orig	2020-09-26 02:19:16 UTC
-+++ src/lib_json/json_writer.cpp
-@@ -3,6 +3,11 @@
- // recognized in your jurisdiction.
- // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
- 
-+// fix for lang/gcc5+
-+#if __GNUC__ == 5
-+#include <cstdio>
-+#endif
-+
- #if !defined(JSON_IS_AMALGAMATION)
- #include "json_tool.h"
- #include <json/writer.h>
+SOBJS=		${SRCS:R:S/$/.So/}
+
+LIB=		jsoncpp
+PICFLAG=	-fpic
+SHLIB_MAJOR=	%%SHLIB_MAJOR%%
+SHLIB_NAME=	lib${LIB}.so.${SHLIB_MAJOR}
+SHLIB_LINK=	${SHLIB_NAME:R}
+CXXFLAGS+=	-Iinclude \
+		-D_FILE_OFFSET_BITS=64 \
+		-Wall \
+		-Winvalid-pch \
+		-Wnon-virtual-dtor \
+		-std=c++11
+
+all: ${SHLIB_NAME} jsoncpp.pc
+
+.cpp.So:
+	${CXX} ${_${.IMPSRC:T}_FLAGS} ${PICFLAG} -DPIC ${SHARED_CXXFLAGS} ${CXXFLAGS} -c ${.IMPSRC} -o ${.TARGET}
+
+${SHLIB_NAME}: ${SOBJS}
+	@echo building shared library ${SHLIB_NAME}
+	rm -f ${.TARGET} ${SHLIB_LINK}
+	ln -fs ${.TARGET} ${SHLIB_LINK}
+	${CXX} ${LDFLAGS} -shared -o ${.TARGET} -Wl,-soname,${SHLIB_NAME} ${.ALLSRC}
+
+jsoncpp.pc: pkg-config/jsoncpp.pc.in
+	sed \
+		-e 's|@CMAKE_INSTALL_PREFIX@|%%PREFIX%%|' \
+		-e 's|@libdir_for_pc_file@|%%PREFIX%%/lib|' \
+		-e 's|@includedir_for_pc_file@|%%PREFIX%%/include|' \
+		-e 's|@JSONCPP_VERSION@|%%PORTVERSION%%|' \
+		${.ALLSRC} > ${.TARGET}	
+
+install:
+	mkdir -p ${DESTDIR}%%PREFIX%%/lib/pkgconfig
+	mkdir -p ${DESTDIR}%%PREFIX%%/include/jsoncpp/json
+	${BSD_INSTALL_DATA} include/json/*.h ${DESTDIR}%%PREFIX%%/include/jsoncpp/json/
+	${BSD_INSTALL_DATA} jsoncpp.pc ${DESTDIR}%%PREFIX%%/lib/pkgconfig/
+	${BSD_INSTALL_LIB} ${SHLIB_NAME} ${DESTDIR}%%PREFIX%%/lib
+	cp -RpP ${SHLIB_LINK} ${DESTDIR}%%PREFIX%%/lib
 

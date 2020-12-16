@@ -680,21 +680,19 @@ share/man/man1/
  #define MI_MAX_KEY_BUFF (MI_MAX_KEY_LENGTH + MI_MAX_KEY_SEG * 6 + 8 + 8)
 
 
-[FILE:1004:patches/patch-libmysql_CMakeLists.txt]
+[FILE:946:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2020-09-23 12:37:48 UTC
 +++ libmysql/CMakeLists.txt
-@@ -245,6 +245,10 @@ ELSEIF(FREEBSD)
+@@ -241,7 +241,7 @@ IF(WIN32)
+   SET(HAVE_WIN32_DNS_SRV 1 PARENT_SCOPE)
+   SET(HAVE_DNS_SRV 1)
+   MESSAGE(STATUS "Found Win32 DNS SRV APIs")
+-ELSEIF(FREEBSD)
++ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
    SET(HAVE_DNS_SRV 1)
    SET(HAVE_UNIX_DNS_SRV 1 PARENT_SCOPE)
    MESSAGE(STATUS "BSD built in DNS SRV APIs")
-+ELSEIF(CMAKE_SYSTEM_NAME MATCHES "DragonFly")
-+  SET(HAVE_DNS_SRV 1)
-+  SET(HAVE_UNIX_DNS_SRV 1 PARENT_SCOPE)
-+  MESSAGE(STATUS "BSD built in DNS SRV APIs")
- ELSE()
-   FIND_LIBRARY(RESOLV_LIBRARY NAMES resolv)
-   IF (RESOLV_LIBRARY)
-@@ -269,7 +273,6 @@ IF(WIN32)
+@@ -269,7 +269,6 @@ IF(WIN32)
  ENDIF()
  
  # LDAP authentication SASL client plugin
@@ -702,7 +700,7 @@ share/man/man1/
  
  # Merge several convenience libraries into one big mysqlclient
  MERGE_CONVENIENCE_LIBRARIES(mysqlclient ${LIBS_TO_MERGE} COMPONENT Development)
-@@ -332,7 +335,7 @@ ENDIF()
+@@ -332,7 +331,7 @@ ENDIF()
  
  IF(UNIX)
    # libtool compatability
@@ -831,6 +829,19 @@ share/man/man1/
      defined(__sun__)
  #define HAVE_IFADDRS_H
  #endif
+
+
+[FILE:454:patches/patch-router_src_harness_include_mysql_harness_net__ts_internet.h]
+--- router/src/harness/include/mysql/harness/net_ts/internet.h.orig	2020-11-09 00:30:01 UTC
++++ router/src/harness/include/mysql/harness/net_ts/internet.h
+@@ -43,6 +43,7 @@
+ #include <arpa/inet.h>    // inet_ntop
+ #include <netdb.h>        // getaddrinfo
+ #include <netinet/in.h>   // in_addr_t
++#include <sys/types.h>    // u_int32_t
+ #include <netinet/ip6.h>  // in6_addr_t
+ #include <netinet/tcp.h>  // TCP_NODELAY
+ #include <sys/ioctl.h>    // ioctl
 
 
 [FILE:287:patches/patch-router_src_harness_include_mysql_harness_tty.h]

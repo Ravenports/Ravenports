@@ -2,7 +2,7 @@
 
 NAMEBASE=		libidn2
 VERSION=		2.3.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		dns
 VARIANTS=		standard
 SDESC[standard]=	IDNA2008 internationalized domain names library
@@ -22,7 +22,8 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libunistring:primary:standard
 
-USES=			cpe charsetfix gmake iconv libtool
+USES=			autoreconf cpe charsetfix gmake iconv libtool
+			pkgconfig gtk-doc gettext-tools
 
 DISTNAME=		libidn2-2.3.0
 
@@ -42,6 +43,7 @@ INFO_SUBDIR=		.
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-nls
 			--with-libunistring-prefix={{LOCALBASE}}
+			--enable-gtk-doc
 			ac_cv_prog_RONN={{TRUE}}
 
 INSTALL_TARGET=		install-strip
@@ -52,11 +54,6 @@ post-patch:
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e '/^TMPDIR = /d' ${WRKSRC}/Makefile.in
 	${TOUCH} ${WRKSRC}/*/Makefile*
-
-post-install:
-	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/libidn2 \
-		${STAGEDIR}${PREFIX}/share/doc
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
 [FILE:531:descriptions/desc.primary]
 Libidn2 is a free software implementation of IDNA2008, Punycode and TR46.
@@ -76,7 +73,7 @@ fuzzing project OSS-Fuzz.
 e1cb1db3d2e249a6a3eb6f0946777c2e892d5c5dc7bd91c74394fc3a01cab8b5      2164993 libidn2-2.3.0.tar.gz
 
 
-[FILE:640:manifests/plist.primary]
+[FILE:173:manifests/plist.primary]
 %%EXCLUDE-DARWIN%%lib/libidn2.so.%%SOVERSION%%
 bin/idn2
 include/idn2.h
@@ -86,29 +83,9 @@ lib/
  libidn2.so.%%SOMAJOR%%
 lib/pkgconfig/libidn2.pc
 share/man/man1/idn2.1.gz
-share/man/man3/
- idn2_check_version.3.gz
- idn2_free.3.gz
- idn2_lookup_u8.3.gz
- idn2_lookup_ul.3.gz
- idn2_register_u8.3.gz
- idn2_register_ul.3.gz
- idn2_strerror.3.gz
- idn2_strerror_name.3.gz
- idn2_to_ascii_4i.3.gz
- idn2_to_ascii_4z.3.gz
- idn2_to_ascii_8z.3.gz
- idn2_to_ascii_lz.3.gz
- idn2_to_unicode_44i.3.gz
- idn2_to_unicode_4z4z.3.gz
- idn2_to_unicode_8z4z.3.gz
- idn2_to_unicode_8z8z.3.gz
- idn2_to_unicode_8zlz.3.gz
- idn2_to_unicode_lzlz.3.gz
- idn2_to_ascii_4i2.3.gz
 
 
-[FILE:218:manifests/plist.docs]
+[FILE:200:manifests/plist.docs]
 share/doc/libidn2/
  api-index-full.html
  home.png
@@ -116,13 +93,23 @@ share/doc/libidn2/
  left-insensitive.png
  left.png
  libidn2-idn2.html
- libidn2.devhelp2
  libidn2.html
  right-insensitive.png
  right.png
  style.css
  up-insensitive.png
  up.png
+
+
+[FILE:192:patches/patch-doc_gdoc]
+--- doc/gdoc.orig	2019-05-24 08:32:17 UTC
++++ doc/gdoc
+@@ -1,3 +1,5 @@
++#!/bin/sh
++
+ eval '(exit $?0)' && eval 'exec perl -S "$0" ${1+"$@"}'
+     & eval 'exec perl -S "$0" $argv:q'
+     if 0;
 
 
 [FILE:743:dragonfly/patch-src-idn2.c]
