@@ -111,6 +111,9 @@ post-patch:
 		${WRKSRC}/gcc/ada/traceback_symbolic.c
 	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
 		${WRKSRC}/gcc/config/freebsd-spec.h
+	# Honor disable-dependency-tracking, fixed in master
+	${REINPLACE_CMD} -E -e 's|^(M_DEPS = .*)|@AMDEP_TRUE@\1|'\
+		${WRKSRC}/libatomic/Makefile.in
 
 post-patch-darwin:
 	# undo BSD thin socket modification
