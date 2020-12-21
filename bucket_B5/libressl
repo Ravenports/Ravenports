@@ -89,6 +89,11 @@ post-install:
 post-patch-SKIP_MANPAGES-ON:
 	${REINPLACE_CMD} -e 's| man||' ${WRKSRC}/Makefile.am
 
+post-configure:
+	# fix libtool for libtls.la
+	${SED} -i.tls -e '/lnkscript/ s|.output_objdir/||' \
+		${WRKSRC}/libtool
+
 post-install-SKIP_MANPAGES-ON:
 	# nc.1, openssl.1, opcpcheck.8 still get installed
 	${RM} -r ${STAGEDIR}${PREFIX}/libressl/share
