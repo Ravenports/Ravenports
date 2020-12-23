@@ -49,7 +49,7 @@ RUBY_3.0_VERSION=	3.0.0
 PYTHON3_DEFAULT?=	3.8
 
 PYTHON_2.7_VERSION=	2.7.18
-PYTHON_3.8_VERSION=	3.8.6
+PYTHON_3.8_VERSION=	3.8.7
 PYTHON_3.9_VERSION=	3.9.1
 
 #-------------------------------------------------------------------------
