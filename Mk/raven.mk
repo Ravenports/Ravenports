@@ -920,7 +920,7 @@ install-license:
 .if !target(stage-qa)
 .  if defined(DEVELOPER)
 
-.    undef(_PLIST_LIST)
+.    undef _PLIST_LIST
 .    for sp in ${SUBPACKAGES}
 _PLIST_LIST+=	${WRKDIR}/.manifest.${sp}.mktmp
 .    endfor
