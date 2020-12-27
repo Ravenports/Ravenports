@@ -103,10 +103,10 @@ PLIST_SUB=		TGTSYS={{TGTSYS}}
 [FI386_R12].DESCRIPTION=		Build native compiler for FreeBSD/I386 Release 12
 [FI386_R12].BUILD_DEPENDS_ON=		gnatcross:single:FI386_R12
 [FI386_R12].CONFIGURE_ARGS_ON=		--build={{CONFIGURE_TARGET}}
-					--host=i386-raven-freebsd12.0
-					--target=i386-raven-freebsd12.0
+					--host=i386-raven-freebsd12.2
+					--target=i386-raven-freebsd12.2
 					--disable-libstdcxx-pch
-[FI386_R12].MAKEFILE_ON=		TGTSYS=i386-raven-freebsd12.0
+[FI386_R12].MAKEFILE_ON=		TGTSYS=i386-raven-freebsd12.2
 					BSPREFIX={{LOCALBASE}}/FreeBSD12_I386
 					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
 
@@ -116,10 +116,10 @@ PLIST_SUB=		TGTSYS={{TGTSYS}}
 [FAMD64_R12].DESCRIPTION=		Build native compiler for FreeBSD/AMD64 Release 12
 [FAMD64_R12].BUILD_DEPENDS_ON=		gnatcross:single:FAMD64_R12
 [FAMD64_R12].CONFIGURE_ARGS_ON=		--build={{CONFIGURE_TARGET}}
-					--host=x86_64-raven-freebsd12.0
-					--target=x86_64-raven-freebsd12.0
+					--host=x86_64-raven-freebsd12.2
+					--target=x86_64-raven-freebsd12.2
 					--disable-libstdcxx-pch
-[FAMD64_R12].MAKEFILE_ON=		TGTSYS=x86_64-raven-freebsd12.0
+[FAMD64_R12].MAKEFILE_ON=		TGTSYS=x86_64-raven-freebsd12.2
 					BSPREFIX={{LOCALBASE}}/FreeBSD12_AMD64
 					PREPEND_PATH={{BSPREFIX}}/{{TGTSYS}}/bin:{{BSPREFIX}}/bin
 
@@ -128,19 +128,23 @@ post-patch:
 	@${ECHO} "Configuring LINK_SPEC runpath"
 	${REINPLACE_CMD} -e 's;\@PREFIX\@;${PREFIX:H};' \
 		-e 's;\@GCCAUX\@;${NAMEBASE};' \
+		-e 's;\@LOCALBASE\@;${LOCALBASE};g' \
+		${WRKSRC}/gcc/gcc.c \
+		${WRKSRC}/gcc/config/darwin.h \
 		${WRKSRC}/gcc/config/dragonfly.h \
 		${WRKSRC}/gcc/config/sol2.h \
 		${WRKSRC}/gcc/config/i386/freebsd64.h \
 		${WRKSRC}/gcc/config/i386/freebsd.h \
 		${WRKSRC}/gcc/config/i386/gnu-user64.h \
-		${WRKSRC}/gcc/config/aarch64/aarch64-freebsd.h
+		${WRKSRC}/gcc/config/aarch64/aarch64-freebsd.h \
+		${WRKSRC}/gcc/ada/gnatls.adb
 	# fix FreeBSD spec error
 	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
 		${WRKSRC}/gcc/config/freebsd-spec.h
 
 post-stage:
 	# package bootstrap compiler with zstd, then relocate files to avoid packaging them
-	@${MKDIR} ${WRKDIR}/bootstrap_compiler
+	${MKDIR} ${WRKDIR}/bootstrap_compiler
 	(cd ${STAGEDIR}${PREFIX}/toolchain/gcc9 \
 		&& ${CP} -a bin ${WRKDIR}/bootstrap_compiler \
 		&& ${CP} -a lib ${WRKDIR}/bootstrap_compiler \
@@ -155,7 +159,7 @@ post-stage:
 		${STAGEDIR}${LOCALBASE}/share/${NAMEBASE}/${TGTSYS}-gcc.tar \
 		bootstrap_compiler)
 	(cd ${STAGEDIR}${LOCALBASE}/share/${NAMEBASE} && \
-		zstd -7 --rm ${TGTSYS}-gcc.tar)
+		zstd -7 --no-progress --rm ${TGTSYS}-gcc.tar)
 
 post-patch-FI386_R12-ON:
 	# work around malloc detection issue
@@ -193,6 +197,7 @@ post-patch-FAMD64_R12-ON:
 	# work around malloc detection issue
 	${REINPLACE_CMD} -e 's/#undef HAVE_ALIGNED_ALLOC/#define HAVE_ALIGNED_ALLOC 1/' \
 		${WRKSRC}/libstdc++-v3/config.h.in
+	${REINPLACE_CMD} -e '/<malloc.h>/d' ${WRKSRC}/libiberty/hashtab.c
 
 [FILE:141:descriptions/desc.single]
 This package contains a native compiler bootstrapped by a gnatcross

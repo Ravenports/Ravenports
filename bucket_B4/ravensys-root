@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		3.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -19,7 +19,7 @@ SITES[ubuntu2]=		UBUNTU/h/hostname
 SITES[ubuntu3]=		UBUNTU/d/dash
 SITES[ubuntu4]=		UBUNTU/p/pax
 SITES[ubuntu5]=		UBUNTU/d/debianutils
-SITES[freebsd_amd64]=	http://ftp-archive.freebsd.org/pub/FreeBSD-Archive/old-releases/amd64/amd64/ISO-IMAGES/11.1/
+SITES[freebsd_amd64]=	http://ftp-archive.freebsd.org/pub/FreeBSD-Archive/old-releases/amd64/amd64/ISO-IMAGES/12.2/
 SITES[ubuntu6]=		UBUNTU/b/bsdmainutils
 SITES[ubuntu7]=		http://security.ubuntu.com/ubuntu/pool/main/s/shadow/
 SITES[ubuntu8]=		http://security.ubuntu.com/ubuntu/pool/main/l/linux/
@@ -43,7 +43,7 @@ DISTFILE[11]=		passwd_4.2-3.1ubuntu5.3_amd64.deb:ubuntu7
 DISTFILE[12]=		linux-libc-dev_4.4.0-78.99_amd64.deb:ubuntu8
 DISTFILE[13]=		libc6-dev-amd64_2.23-0ubuntu9_i386.deb:ubuntu1
 DISTFILE[14]=		libc6-dev_2.23-0ubuntu9_i386.deb:ubuntu1
-DISTFILE[15]=		FreeBSD-11.1-RELEASE-amd64-disc1.iso:freebsd_amd64
+DISTFILE[15]=		FreeBSD-12.2-RELEASE-amd64-disc1.iso:freebsd_amd64
 DISTFILE[16]=		solaris_root_10_u8.v11.tar.xz:dragonlace
 DISTFILE[17]=		locales_2.23-0ubuntu10_all.deb:ubuntu1
 DISTFILE[18]=		libattr1-dev_2.4.47-2_amd64.deb:ubuntu9
@@ -140,7 +140,7 @@ PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
 			SONAME_LIBCAM={{Libcam_{{OPSYS}}}}
 			BASE={{SYSPATH}}
 
-VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1101001/11.1/11
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1202000/12.2/12
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/x86_64/x86_64/510200910/5.10/5.10
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
 VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
@@ -221,7 +221,7 @@ post-install-FREEBSDAMD64-ON:
 		${STAGEDIR}${RSYS}/usr/share/master.passwd
 	${INSTALL_DATA} ${FOS}/etc/defaults/rc.conf \
 		${STAGEDIR}${RSYS}/usr/share/rc.conf
-	${FOS}/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
+	/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
 		${STAGEDIR}${RSYS}/usr/share/master.passwd
 	${MKDIR} ${STAGEDIR}${RSYS}/var/run
 	# handle ldconfig hints
@@ -256,7 +256,7 @@ post-install-DRAGONFLY-ON:
 		> ${STAGEDIR}${RSYS}/usr/share/master.passwd
 	${INSTALL_DATA} ${FOS}/etc/defaults/rc.conf \
 		${STAGEDIR}${RSYS}/usr/share/rc.conf
-	${FOS}/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
+	/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
 		${STAGEDIR}${RSYS}/usr/share/master.passwd
 	${MKDIR} ${STAGEDIR}${RSYS}/var/run
 	# handle ldconfig hints
@@ -327,7 +327,7 @@ d3018a86cc649ff19dd97258fb50e118d428ee0a631d45c9cd1406c2b28aa16a       779004 pa
 8f1844036725351185093720879a1bfbcad851645d9f70ca5bca293faac9b783       837944 linux-libc-dev_4.4.0-78.99_amd64.deb
 4081ba6b17b56b53e93a2e600c0beae8594d6e744f2b4b5cec08a37775ee9842      1574016 libc6-dev-amd64_2.23-0ubuntu9_i386.deb
 d78a4e360ed1edd5889f1d8c286f45a80e43a3015b507bfccc68b8c9ce62a653      1675186 libc6-dev_2.23-0ubuntu9_i386.deb
-ff4c749ea0aaaceedb2432ba3e0fd0c1b64f5a72141b1ec06b9ced52b5de0dbf    723697664 FreeBSD-11.1-RELEASE-amd64-disc1.iso
+289522e2f4e1260859505adab6d7b54ab83d19aeb147388ff7e28019984da5dc    965099520 FreeBSD-12.2-RELEASE-amd64-disc1.iso
 3fa1b6c843c11fe781f0fca1fe1791c5b03fd910b3859cc7c4a37487e24203af     11272244 solaris_root_10_u8.v11.tar.xz
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 locales_2.23-0ubuntu10_all.deb
 ff2562f578e931c64180a3593a963a1ed82dc2a9c358e735db3d32fb2655e21d        30174 libattr1-dev_2.4.47-2_amd64.deb
@@ -1623,7 +1623,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:18061:manifests/plist.single.freebsd_amd64]
+[FILE:18648:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -1893,6 +1893,10 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  cam_xpt_periph.h
  cam_xpt_sim.h
 %%BASE%%/usr/include/cam/ata/ata_all.h
+%%BASE%%/usr/include/cam/mmc/
+ mmc.h
+ mmc_all.h
+ mmc_bus.h
 %%BASE%%/usr/include/cam/nvme/nvme_all.h
 %%BASE%%/usr/include/cam/scsi/
  scsi_all.h
@@ -1913,8 +1917,10 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  scsi_targetio.h
  smp_all.h
 %%BASE%%/usr/include/crypto/
+ _cryptodev.h
  cast.h
  castsb.h
+ cbc_mac.h
  cryptodev.h
  cryptosoft.h
  deflate.h
@@ -1927,6 +1933,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  xform_auth.h
  xform_comp.h
  xform_enc.h
+ xform_poly1305.h
  xform_userland.h
 %%BASE%%/usr/include/dev/acpica/
  acpi_hpet.h
@@ -1966,10 +1973,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  hwpmc_arm64.h
  hwpmc_armv7.h
  hwpmc_core.h
- hwpmc_pentium.h
- hwpmc_piv.h
  hwpmc_powerpc.h
- hwpmc_ppro.h
  hwpmc_riscv.h
  hwpmc_soft.h
  hwpmc_tsc.h
@@ -1984,35 +1988,32 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  cd180.h
  esp.h
  i8237.h
- i8251.h
  i8253reg.h
- i8255.h
  i82586.h
  i8259.h
  nec765.h
  ns16550.h
  quicc.h
- rsa.h
  sab82532.h
  via6522reg.h
- wd33c93reg.h
  z8530.h
 %%BASE%%/usr/include/dev/iicbus/
  ds1307reg.h
  ds3231reg.h
  iic.h
+ iic_recover_bus.h
  iicbus.h
  iicoc.h
  iiconf.h
- pcf8563reg.h
 %%BASE%%/usr/include/dev/io/iodev.h
-%%BASE%%/usr/include/dev/lmc/if_lmc.h
 %%BASE%%/usr/include/dev/mfi/
  mfi_ioctl.h
  mfireg.h
  mfivar.h
+%%BASE%%/usr/include/dev/mlx5/mlx5io.h
 %%BASE%%/usr/include/dev/mmc/
  bridge.h
+ mmc_fdt_helpers.h
  mmc_ioctl.h
  mmc_private.h
  mmc_subr.h
@@ -2040,6 +2041,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  ofw_bus.h
  ofw_bus_subr.h
  ofw_cpu.h
+ ofw_graph.h
  ofw_pci.h
  ofw_subr.h
  ofwpci.h
@@ -2058,11 +2060,16 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  ppbio.h
  ppi.h
  vpoio.h
+%%BASE%%/usr/include/dev/pwm/
+ ofw_pwm.h
+ pwmbus.h
+ pwmc.h
 %%BASE%%/usr/include/dev/smbus/
  smb.h
  smbconf.h
  smbus.h
 %%BASE%%/usr/include/dev/speaker/speaker.h
+%%BASE%%/usr/include/dev/tcp_log/tcp_log_dev.h
 %%BASE%%/usr/include/dev/usb/
  ufm_ioctl.h
  uftdiio.h
@@ -2078,6 +2085,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  usb_device.h
  usb_dynamic.h
  usb_endian.h
+ usb_fdt_support.h
  usb_freebsd.h
  usb_freebsd_loader.h
  usb_generic.h
@@ -2094,11 +2102,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  usbdi.h
  usbdi_util.h
  usbhid.h
-%%BASE%%/usr/include/dev/utopia/
- idtphy.h
- suni.h
- utopia.h
- utopia_priv.h
+%%BASE%%/usr/include/dev/veriexec/veriexec_ioctl.h
 %%BASE%%/usr/include/dev/vkbd/vkbd_var.h
 %%BASE%%/usr/include/dev/wi/
  if_wavelan_ieee.h
@@ -2155,6 +2159,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  geom.h
  geom_ctl.h
  geom_disk.h
+ geom_flashmap.h
  geom_int.h
  geom_slice.h
  geom_vfs.h
@@ -2231,10 +2236,12 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  pcb.h
  pci_cfgreg.h
  pcpu.h
+ pcpu_aux.h
  pmap.h
  pmc_mdep.h
  ppireg.h
  proc.h
+ procctl.h
  profile.h
  psl.h
  ptrace.h
@@ -2246,6 +2253,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  segments.h
  setjmp.h
  sf_buf.h
+ sgx.h
+ sgxreg.h
  sigframe.h
  signal.h
  smp.h
@@ -2257,7 +2266,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  trap.h
  tss.h
  ucontext.h
- varargs.h
  vdso.h
  vm.h
  vmm.h
@@ -2276,15 +2284,11 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  bridgestp.h
  dlt.h
  ethernet.h
- fddi.h
  firewire.h
- flowtable.h
  ieee8023ad_lacp.h
  ieee_oui.h
  if.h
- if_arc.h
  if_arp.h
- if_atm.h
  if_bridgevar.h
  if_clone.h
  if_dl.h
@@ -2301,21 +2305,22 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  if_pfsync.h
  if_sppp.h
  if_tap.h
- if_tapvar.h
  if_tun.h
  if_types.h
  if_var.h
  if_vlan_var.h
  if_vxlan.h
  iflib.h
+ iflib_private.h
  ifq.h
- iso88025.h
  mp_ring.h
  mppc.h
  netisr.h
  netisr_internal.h
  netmap.h
+ netmap_legacy.h
  netmap_user.h
+ netmap_virt.h
  paravirt.h
  pfil.h
  pfkeyv2.h
@@ -2379,11 +2384,13 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  ieee80211_superg.h
  ieee80211_tdma.h
  ieee80211_var.h
+ ieee80211_vht.h
  ieee80211_wds.h
+ ieee80211_wps.h
 %%BASE%%/usr/include/netinet/
+ dccp.h
  icmp6.h
  icmp_var.h
- if_atm.h
  if_ether.h
  igmp.h
  igmp_var.h
@@ -2431,11 +2438,10 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  sctp_bsd_addr.h
  sctp_constants.h
  sctp_crc32.h
- sctp_dtrace_declare.h
- sctp_dtrace_define.h
  sctp_header.h
  sctp_indata.h
  sctp_input.h
+ sctp_kdtrace.h
  sctp_lock_bsd.h
  sctp_os.h
  sctp_os_bsd.h
@@ -2453,6 +2459,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  tcp_fastopen.h
  tcp_fsm.h
  tcp_hostcache.h
+ tcp_hpts.h
+ tcp_log_buf.h
  tcp_lro.h
  tcp_offload.h
  tcp_pcap.h
@@ -2469,6 +2477,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  cc.h
  cc_cubic.h
  cc_module.h
+ cc_newreno.h
+%%BASE%%/usr/include/netinet/netdump/netdump.h
 %%BASE%%/usr/include/netinet6/
  icmp6.h
  in6.h
@@ -2603,6 +2613,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  _bus_dma.h
  _callout.h
  _cpuset.h
+ _domainset.h
  _ffcounter.h
  _iovec.h
  _kstack_cache.h
@@ -2612,12 +2623,14 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  _null.h
  _pctrie.h
  _pthreadtypes.h
+ _rangeset.h
  _rmlock.h
  _rwlock.h
  _semaphore.h
  _sigset.h
  _sockaddr_storage.h
  _stack.h
+ _stdarg.h
  _stdint.h
  _sx.h
  _task.h
@@ -2626,10 +2639,11 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  _timeval.h
  _types.h
  _ucontext.h
+ _uio.h
  _umtx.h
  _unrhdr.h
- _vm_domain.h
  aac_ioctl.h
+ abi_compat.h
  acct.h
  acl.h
  agpio.h
@@ -2638,6 +2652,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  apm.h
  assym.h
  ata.h
+ atomic_common.h
+ auxv.h
  bio.h
  bitset.h
  bitstring.h
@@ -2648,6 +2664,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  bufobj.h
  bus.h
  bus_dma.h
+ bus_dma_internal.h
  busdma_bufalloc.h
  callout.h
  capability.h
@@ -2658,7 +2675,10 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  cdrio.h
  cfictl.h
  chio.h
+ ck.h
  clock.h
+ cnv.h
+ compressor.h
  condvar.h
  conf.h
  cons.h
@@ -2669,20 +2689,18 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  cpuctl.h
  cpuset.h
  ctype.h
- dataacq.h
  devicestat.h
  devmap.h
- digiio.h
  dir.h
  dirent.h
  disk.h
  disk_zone.h
  disklabel.h
  diskmbr.h
- diskpc98.h
  dkstat.h
  dnv.h
  domain.h
+ domainset.h
  dtrace_bsd.h
  dvdio.h
  efi.h
@@ -2693,6 +2711,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  elf_common.h
  elf_generic.h
  endian.h
+ epoch.h
  errno.h
  eui64.h
  event.h
@@ -2713,7 +2732,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  gpio.h
  gpt.h
  gtaskqueue.h
- gzio.h
  hash.h
  hhook.h
  iconv.h
@@ -2736,12 +2754,13 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  kbio.h
  kdb.h
  kenv.h
+ kern_prefetch.h
  kernel.h
  kerneldump.h
  khelp.h
  kobj.h
+ kpilite.h
  ksem.h
- ksyms.h
  kthread.h
  ktr.h
  ktr_class.h
@@ -2760,7 +2779,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  loginclass.h
  mac.h
  malloc.h
- mbpool.h
  mbuf.h
  mchain.h
  md4.h
@@ -2781,7 +2799,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  mutex.h
  namei.h
  nlist_aout.h
- numa.h
  nv.h
  nvpair.h
  osd.h
@@ -2789,6 +2806,8 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  pciio.h
  pcpu.h
  pctrie.h
+ physmem.h
+ pidctrl.h
  pioctl.h
  pipe.h
  pmc.h
@@ -2810,6 +2829,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  racct.h
  random.h
  rangelock.h
+ rangeset.h
  rctl.h
  reboot.h
  refcount.h
@@ -2845,7 +2865,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  socketvar.h
  sockio.h
  sockopt.h
- sockstate.h
  soundcard.h
  spigenio.h
  stack.h
@@ -2880,6 +2899,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  timetc.h
  timex.h
  tree.h
+ tslog.h
  tty.h
  ttycom.h
  ttydefaults.h
@@ -2908,6 +2928,12 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  watchdog.h
  zlib.h
  zutil.h
+%%BASE%%/usr/include/sys/disk/
+ apm.h
+ bsd.h
+ gpt.h
+ mbr.h
+ vtoc.h
 %%BASE%%/usr/include/ufs/ffs/
  ffs_extern.h
  fs.h
@@ -2933,13 +2959,14 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  uma_dbg.h
  uma_int.h
  vm.h
- vm_domain.h
+ vm_domainset.h
  vm_extern.h
  vm_kern.h
  vm_map.h
  vm_object.h
  vm_page.h
  vm_pageout.h
+ vm_pagequeue.h
  vm_pager.h
  vm_param.h
  vm_phys.h
@@ -2957,6 +2984,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  apicvar.h
  apm_bios.h
  bus.h
+ bus_dma.h
  busdma_impl.h
  cputypes.h
  dump.h
@@ -2966,13 +2994,16 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  float.h
  fpu.h
  frame.h
+ ifunc.h
  init.h
+ intr_machdep.h
  legacyvar.h
  mca.h
  metadata.h
  mptable.h
  ofw_machdep.h
  pci_cfgreg.h
+ procctl.h
  psl.h
  ptrace.h
  pvclock.h
@@ -2986,6 +3017,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  stdarg.h
  sysarch.h
  trap.h
+ ucode.h
  ucontext.h
  vdso.h
  vmware.h
@@ -3026,6 +3058,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libc++.so.1
  libc.a
  libc.so
+ libc_nonshared.a
  libcam.a
  libcam.so
  libcompat.a
@@ -3061,6 +3094,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  librt.so
  libsbuf.a
  libsbuf.so.6
+ libssp_nonshared.a
  libthr.a
  libthr.so
  libthr.so.3
@@ -8870,7 +8904,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:23746:files/Makefile]
+[FILE:23926:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9035,6 +9069,8 @@ static_lib_FreeBSD=	${static_lib_generic} \
 			/usr/lib/libusbhid.a \
 			/usr/lib/libjail.a \
 			/usr/lib/libsbuf.a \
+			/usr/lib/libc_nonshared.a \
+			/usr/lib/libssp_nonshared.a \
 			/usr/lib/Scrt1.o \
 			/usr/lib/gcrt1.o \
 			/usr/lib/crt1.o \
@@ -9566,7 +9602,6 @@ install:
 .endif
 .if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
 	(cd ${DESTDIR}${BASE}/usr/lib && \
-		ln -s ${libc} libc.so && \
 		ln -s ${libm} libm.so && \
 		ln -s ${librt} librt.so && \
 		ln -s ${libkvm} libkvm.so && \
@@ -9591,9 +9626,12 @@ install:
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libgcc_s.so.1 ${DESTDIR}${BASE}/usr/lib/
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libcxxrt.so.1 ${DESTDIR}${BASE}/usr/lib/
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/libc++.so.1 ${DESTDIR}${BASE}/usr/lib/
+	sed -e 's|/lib/libc\.so|/usr/lib/libc.so|'  ../${OPSYS:tl}/usr/lib/libc.so \
+		> ${DESTDIR}${BASE}/usr/lib/libc.so
 .endif
 .if ${OPSYS} == DragonFly
 	(cd ${DESTDIR}${BASE}/usr/lib && \
+		ln -s ${libc} libc.so && \
 		ln -s libsbuf.so.3 libsbuf.so && \
 		ln -s libprop.so.3 libprop.so && \
 		ln -s libdevattr.so.3 libdevattr.so && \
@@ -9940,7 +9978,7 @@ RSYS=			${PREFIX}/${SYSPATH}
 FOS=			${WRKDIR}/${OPSYS:tl}
 
 
-[FILE:1888:files/validate_pkgs.sh]
+[FILE:2026:files/validate_pkgs.sh]
 #!/bin/sh
 #
 # $1: prefix
@@ -9955,12 +9993,13 @@ FOS=			${WRKDIR}/${OPSYS:tl}
 
 bmake=$1/bin/bmake
 uname=$1/bin/ravensys-uname
-answer1=$($bmake -V .MAKE.OS.NAME)
-answer2=$($bmake -V .MAKE.OS.ARCHITECTURE)
-answer3=$($bmake -V .MAKE.OS.ARCH.STANDARD)
-answer4=$($bmake -V .MAKE.OS.VERSION)
-answer5=$($bmake -V .MAKE.OS.RELEASE)
-answer6=$($bmake -V .MAKE.OS.MAJOR)
+/usr/bin/touch /tmp/blankmake
+answer1=$($bmake -f /tmp/blankmake -V .MAKE.OS.NAME)
+answer2=$($bmake -f /tmp/blankmake -V .MAKE.OS.ARCHITECTURE)
+answer3=$($bmake -f /tmp/blankmake -V .MAKE.OS.ARCH.STANDARD)
+answer4=$($bmake -f /tmp/blankmake -V .MAKE.OS.VERSION)
+answer5=$($bmake -f /tmp/blankmake -V .MAKE.OS.RELEASE)
+answer6=$($bmake -f /tmp/blankmake -V .MAKE.OS.MAJOR)
 uname1=$($uname -s)
 uname2=$($uname -m)
 uname3=$($uname -U)
