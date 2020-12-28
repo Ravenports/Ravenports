@@ -28,35 +28,8 @@ BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
 # ------------------------------------------------------------------------
-# Only keep one closed branch of gcc
-# As of 6 APR 2020, gcc 7.5 closed the branch on 14-NOV-2019
-# That leaves gcc7, gcc8, gcc9, and the gcc10 (upcoming)
+# Only keep the open branches of GCC
 # ------------------------------------------------------------------------
-# gcc7
-# ------------------------------------------------------------------------
-
-GCC7_BRANCH=			7
-GCC7_POINT=			5.0
-GCC7_VERSION=			${GCC7_BRANCH}.${GCC7_POINT}
-GCC7_SNAPSHOT=			20191114
-GCC7_BUILD_RELEASE=		yes
-GCC7_REVISION=			0
-GCC7_GNAT_UTIL_REVISION=	0
-GCC7_GNATCROSS_REVISION=	0
-GCC7_BOOTSTRAP_REVISION=	0
-
-.if ${GCC7_BUILD_RELEASE:Mno}
-GCC7_PORTVERSION=		${GCC7_BRANCH}.${GCC7_SNAPSHOT}
-GCC7_IDENTIFICATION=		gcc-${GCC7_BRANCH}-${GCC7_SNAPSHOT}
-GCC7_MS_SUBDIR=			snapshots/${GCC7_BRANCH}-${GCC7_SNAPSHOT}
-GCC7_PHASE=			snapshot
-.else
-GCC7_PORTVERSION=		${GCC7_VERSION}
-GCC7_IDENTIFICATION=		gcc-${GCC7_VERSION}
-GCC7_MS_SUBDIR=			releases/gcc-${GCC7_VERSION}
-GCC7_PHASE=			release
-.endif
-
 # ------------------------------------------------------------------------
 # gcc8
 # ------------------------------------------------------------------------
@@ -163,9 +136,6 @@ LIBXSLT_PYTHON_REVISION=	0
 # ruby
 # ------------------------------------------------------------------------
 
-RUBY_2.5_REVISION=		3
-RUBY_2.5_PATCHLEVEL=		0
-
 RUBY_2.6_REVISION=		3
 RUBY_2.6_PATCHLEVEL=		0
 
@@ -242,5 +212,6 @@ GNATCROSS_FREEBSD_12=		12.2
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.15.2
+QT6_VERSION=			6.0.0
 LUMINA_VERSION=			1.6.0
 LUMINA_RELEASE_TAG=		1.6.0
