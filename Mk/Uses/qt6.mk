@@ -8,9 +8,6 @@
 .if !defined(_INCLUDE_USES_QT6_MK)
 _INCLUDE_USES_QT6_MK=	yes
 
-# stage support
-# DESTDIRNAME=	INSTALL_ROOT
-
 # When configure used, set common switches
 BASE_CMAKE_ARGS=\
 	-DQT_QMAKE_TARGET_MKSPEC=${QMAKESPEC}\
@@ -26,28 +23,6 @@ BASE_CMAKE_ARGS=\
 	-DINSTALL_QMLDIR="${PREFIX}/lib/qt6/qml"\
 	-DINSTALL_SYSCONFDIR="${PREFIX}/etc/xdg"\
 	-DINSTALL_MKSPECSDIR="${PREFIX}/lib/qt6/mkspecs"
-
-BASE_CONF_ARGS=\
-	-opensource\
-	-confirm-license\
-	-no-pch\
-	-platform ${QMAKESPEC}\
-	-prefix      "${PREFIX}"\
-	-libdir      "${PREFIX}/lib/qt6"\
-	-bindir      "${PREFIX}/lib/qt6/bin"\
-	-plugindir   "${PREFIX}/lib/qt6/plugins"\
-	-qmldir      "${PREFIX}/lib/qt6/qml"\
-	-archdatadir "${PREFIX}/lib/qt6"\
-	-libexecdir  "${PREFIX}/libexec/qt6"\
-	-headerdir   "${PREFIX}/include/qt6"\
-	-datadir     "${PREFIX}/share/qt6"\
-	-sysconfdir  "${PREFIX}/etc/xdg"\
-	-docdir      "${PREFIX}/share/doc/qt6"\
-	-examplesdir "${PREFIX}/share/examples/${NAMEBASE}"\
-	-testsdir    "${PREFIX}/share/qt6/tests"\
-	-translationdir "${PREFIX}/share/qt6/translations"\
-	-nomake examples\
-	-nomake tests
 
 QMAKE_CMD=		${LOCALBASE}/lib/qt6/bin/qmake
 
@@ -96,16 +71,14 @@ QMAKESPEC=	unsupported-OS
 . endif
 
 . if "${NAMEBASE}" == "qt6-qtbase"
-HAS_CONFIGURE=		yes
-# CONFIGURE_ARGS+=	${BASE_CONF_ARGS}
 CMAKE_ARGS+=		${BASE_CMAKE_ARGS}
 . else
-.  if !defined(GNU_CONFIGURE)
-.   if !target(do-configure)
-do-configure:
-	(cd ${WRKSRC} && ${QMAKE_CMD} ${QMAKE_ARGS} -o Makefile)
-.   endif
-.  endif
+CMAKE_ARGS+=		-DCMAKE_PREFIX_PATH="${PREFIX}/lib/qt6/cmake"
+_USES_install+=		730:strip-qt6
 . endif
+
+strip-qt6:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt6/*.so ||:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt6/plugins/*/*.so ||:
 
 .endif		# _INCLUDE_USES_QT6_MK
