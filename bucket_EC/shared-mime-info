@@ -2,6 +2,7 @@
 
 NAMEBASE=		shared-mime-info
 VERSION=		2.1
+REVISION=		2
 KEYWORDS=		misc
 VARIANTS=		standard
 SDESC[standard]=	MIME types database from freedesktop.org project
@@ -13,7 +14,7 @@ SITES[main]=		https://gitlab.freedesktop.org/xdg/shared-mime-info/-/archive/2.1/
 DISTFILE[1]=		shared-mime-info-2.1.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			single
+			primary
 			nls
 
 OPTIONS_AVAILABLE=	none
@@ -25,12 +26,14 @@ BUILD_DEPENDS=		itstool:single:standard
 USES=			pkgconfig meson gettext-tools
 GNOME_COMPONENTS=	glib libxml2 intltool
 
-LICENSE=		GPLv2:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		misc/shared-mime-info
+MESON_ARGS=		-Dupdate-mimedb=false
+			-Dxdgmime-path="{{WRKSRC}}/src/xdgmime"
 
 SUB_FILES=		pkg-install-single
 SUB_LIST=		MIMEDIRS="{{CLEAN_MIMEDIRS}}"
@@ -43,7 +46,7 @@ post-extract:
 	${AWK} '/Copyright/,/file named COPYING/' \
 		${WRKSRC}/src/update-mime-database.c > ${WRKDIR}/TERMS
 
-[FILE:231:descriptions/desc.single]
+[FILE:231:descriptions/desc.primary]
 The freedesktop.org project provides a shared MIME database to avoid
 inconsistencies between desktops. This database has been created by
 converting the existing KDE and GNOME databases to a common format and
@@ -54,7 +57,7 @@ merging them together.
 3aeeee25ad445f257f614ed53837dee79fab70524b56e59b767f0d69e11fdff9      6738943 shared-mime-info-2.1.tar.gz
 
 
-[FILE:1147:manifests/plist.single]
+[FILE:1201:manifests/plist.primary]
 bin/update-mime-database
 lib/pkgconfig/shared-mime-info.pc
 share/gettext/its/
@@ -76,6 +79,7 @@ share/mime/packages/freedesktop.org.xml
 @rmtry share/mime/version
 @unexec rm -fr %D/share/mime/application 2>/dev/null || true
 @unexec rm -fr %D/share/mime/audio 2>/dev/null || true
+@unexec rm -fr %D/share/mime/font 2>/dev/null || true
 @unexec rm -fr %D/share/mime/image 2>/dev/null || true
 @unexec rm -fr %D/share/mime/inode 2>/dev/null || true
 @unexec rm -fr %D/share/mime/message 2>/dev/null || true

@@ -1222,23 +1222,9 @@ PATH:=			${PREPEND_PATH}:${PATH}
 .if defined(BUILD_WITH_CCACHE)
 CCACHE_DIR?=	/root/.ccache
 
-# Double guard against using ccache to build itself.
-# The port specification should list NO_CCACHE though
+.  if !defined(NO_CCACHE) && !defined(NO_BUILD)
 
-.  if ${NAMEBASE:Nccache} && !defined(NO_CCACHE) && !defined(NO_BUILD)
-
-# -----------------------------------------------
-# Incorporated in ravenadm
-# -----------------------------------------------
-# .if defined(BUILD_WITH_CCACHE) &&
-#    !defined(NO_BUILD) &&
-#    !defined(NO_CCACHE) &&
-#    ${NAMEBASE:Nccache}
-# BUILD_DEPENDS+= ccache:primary:standard
-# .endif
-# -----------------------------------------------
-
-_CCACHE_PATH=   ${LOCALBASE}/libexec/ccache
+_CCACHE_PATH=   /usr/libexec
 
 # Prepend the ccache dir into the PATH and setup ccache env
 PATH:=			${_CCACHE_PATH}:${PATH}
