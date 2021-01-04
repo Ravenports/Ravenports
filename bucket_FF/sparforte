@@ -497,7 +497,7 @@ share/examples/sparforte/
  |g;s|[ 	]*||g' | sed '/^$/d;s|=[0-9]*||g;' \
 
 
-[FILE:3776:files/new_configure.in]
+[FILE:3802:files/new_configure.in]
 #!/bin/sh
 # Configure script tailored for FreeBSD ports collection
 
@@ -546,19 +546,19 @@ if [ "${SETAPQ}" = "ON" ]; then
   if [ "${SETMYSQL}" = "ON" ]; then
      MYSQLLIBSSUB="-L@PREFIX@/lib/mysql -lmysqlclient -pthread -lm"
      APQLIBSSUB="${APQLIBSSUB} ./${APQ}/c_mysql.o"
-     if [ "${SETPGSQL}" -eq 0 ]; then
+     if [ "${SETPGSQL}" != "ON" ]; then
         echo "Executing APQ's configure (skipping PostgreSQL)"
-        (cd src/${APQ} && /usr/bin/env HAVE_MY=1 HAVE_PG=0 ./configure)
+        (cd src/${APQ} && /usr/bin/env HAVE_MY=1 HAVE_PG=0 /bin/sh ./configure)
      fi
   fi
   if [ "${SETPGSQL}" = "ON" ]; then
      PGLIBSSUB="-L@PREFIX@/lib -lintl -L@OPENSSLLIB@ -lssl -lcrypto -Wl,-rpath,@OPENSSLLIB@"
      if [ "${SETMYSQL}" = "ON" ]; then
         echo "Executing APQ's configure"
-        (cd src/${APQ} && /usr/bin/env HAVE_MY=1 HAVE_PG=1 ./configure)
+        (cd src/${APQ} && /usr/bin/env HAVE_MY=1 HAVE_PG=1 /bin/sh ./configure)
      else
         echo "Executing APQ's configure (skipping MySQL)"
-        (cd src/${APQ} && /usr/bin/env HAVE_MY=0 HAVE_PG=1 ./configure)
+        (cd src/${APQ} && /usr/bin/env HAVE_MY=0 HAVE_PG=1 /bin/sh ./configure)
      fi
   fi
 else
