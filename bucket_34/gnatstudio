@@ -31,12 +31,12 @@ BUILDRUN_DEPENDS=	fontconfig:primary:standard
 			freetype:primary:standard
 			clang:compiler:standard
 			gtkada:primary:standard
-			python-pygobject:primary:python_used
+			py27-pygobject:single:standard
 			libadalang:single:standard
 RUN_DEPENDS=		librsvg:primary:standard
 			gdb:single:standard
-			python-pep8:single:python_used
-			python-jedi:single:python_used
+			py27-pep8:single:standard
+			py27-jedi:single:standard
 EXRUN[primary]=		gcc9:complete:standard
 
 USES=			gprbuild:buildrun gettext-tools gmake pkgconfig zlib
@@ -89,6 +89,7 @@ post-patch:
 		${WRKSRC}/cli/src/gnatdoc_main.adb
 	${REINPLACE_CMD} \
 		-e 's|-lclang|-Wl,-rpath,${LOCALBASE}/lib -lclang|' \
+		-e 's|module="pygobject|module="py27-pygobject|' \
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's/relocatable/static/g' \
 		-e '/GPRBUILD_BUILD_TYPE_FLAGS=/ s|FLAGS=|FLAGS=-j${MAKE_JOBS_NUMBER} |' \

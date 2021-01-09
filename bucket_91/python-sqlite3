@@ -3,29 +3,24 @@
 NAMEBASE=		python-sqlite3
 VERSION=		3.9.1
 KEYWORDS=		databases python
-VARIANTS=		py27 py39 py38
+VARIANTS=		py39 py38
 SDESC[py38]=		Python 3.8 bindings to the SQLite3 library
 SDESC[py39]=		Python 3.9 bindings to the SQLite3 library
-SDESC[py27]=		Python 2.7 bindings to the SQLite3 library
 HOMEPAGE=		https://www.python.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	none pv27 pv38 pv39
-SITES[pv27]=		http://www.python.org/ftp/python/2.7.18/
+DOWNLOAD_GROUPS=	none pv38 pv39
 SITES[pv38]=		http://www.python.org/ftp/python/3.8.7/
 SITES[pv39]=		http://www.python.org/ftp/python/3.9.1/
-DISTFILE[1]=		Python-2.7.18.tar.xz:pv27
-DISTFILE[2]=		Python-3.8.7.tar.xz:pv38
-DISTFILE[3]=		Python-3.9.1.tar.xz:pv39
+DISTFILE[1]=		Python-3.8.7.tar.xz:pv38
+DISTFILE[2]=		Python-3.9.1.tar.xz:pv39
 SPKGS[py38]=		single
 SPKGS[py39]=		single
-SPKGS[py27]=		single
 
-OPTIONS_AVAILABLE=	PY27 PY39 PY38
+OPTIONS_AVAILABLE=	PY38 PY39
 OPTIONS_STANDARD=	none
-VOPTS[py38]=		PY27=OFF PY39=OFF PY38=ON
-VOPTS[py39]=		PY27=OFF PY39=ON PY38=OFF
-VOPTS[py27]=		PY27=ON PY39=OFF PY38=OFF
+VOPTS[py38]=		PY39=OFF PY38=ON
+VOPTS[py39]=		PY39=ON PY38=OFF
 
 BUILDRUN_DEPENDS=	sqlite:single:standard
 
@@ -37,14 +32,11 @@ CPE_PRODUCT=		python
 CPE_VENDOR=		python
 FPC_EQUIVALENT=		databases/py-sqlite3
 
-[PY38].DF_INDEX_ON=			2
+[PY38].DF_INDEX_ON=			1
 [PY38].USES_ON=				python:py38,sutools
 
-[PY39].DF_INDEX_ON=			3
+[PY39].DF_INDEX_ON=			2
 [PY39].USES_ON=				python:py39,sutools
-
-[PY27].DF_INDEX_ON=			1
-[PY27].USES_ON=				python:py27,sutools
 
 post-stage:
 	${MKDIR} ${STAGEDIR}${PYTHON_LIBDIR}/lib-dynload
@@ -52,10 +44,6 @@ post-stage:
 		${STAGEDIR}${PYTHON_LIBDIR}/lib-dynload
 	${STRIP_CMD} ${STAGEDIR}${PYTHON_LIBDIR}/lib-dynload/_sqlite3*.so
 	${RM} -r ${STAGEDIR}${PYTHON_SITELIBDIR}
-
-post-extract-PY27-ON:
-	${MV} ${WRKDIR}/Python-2.7.18 ${WRKDIR}/Python
-	${CP} ${FILESDIR}/setup.py ${WRKSRC}
 
 post-extract-PY38-ON:
 	${MV} ${WRKDIR}/Python-3.8.7  ${WRKDIR}/Python
