@@ -2,7 +2,7 @@
 
 NAMEBASE=		json-c
 VERSION=		0.15
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	JSON implementation in C
@@ -39,9 +39,19 @@ CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
 			-DDISABLE_WERROR:BOOL=ON
 
 post-install:
+	# install our PIC library
+	${INSTALL_DATA} ${WRKDIR}/.build/CMakeFiles/json-c.dir/libjson-c_pic.a\
+		${STAGEDIR}${PREFIX}/lib/
+	# install the documentation
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	(cd ${INSTALL_WRKSRC}/doc/html && \
 		${COPYTREE_SHARE} "*" ${STAGEDIR}${STD_DOCDIR})
+
+post-build:
+	# assemble PIC library
+	(cd ${WRKDIR}/.build/CMakeFiles/json-c.dir &&\
+	 ${AR} -crv libjson-c_pic.a *.o &&\
+	 ranlib libjson-c_pic.a)
 
 [FILE:182:descriptions/desc.primary]
 This is a port of json-c, an implementation of json in C. Json, JavaScript
@@ -53,7 +63,7 @@ JavaScript programming language.
 b8d80a1ddb718b3ba7492916237bbf86609e9709fb007e7f7d4322f02341a4c6       361488 json-c-0.15.tar.gz
 
 
-[FILE:433:manifests/plist.primary]
+[FILE:450:manifests/plist.primary]
 include/json-c/
  arraylist.h
  debug.h
@@ -75,6 +85,7 @@ lib/
  libjson-c.so
  libjson-c.so.%%SOMAJOR%%
  libjson-c.so.%%SOVERSION%%
+ libjson-c_pic.a
 lib/cmake/json-c/
  json-c-config.cmake
  json-c-targets-release.cmake
