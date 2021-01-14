@@ -49,27 +49,98 @@ BlocksRuntime
 087be3f1116e861cd969c9b0b0903c27028b52eaf45157276f50a9c2500687fc      2136216 compiler-rt-11.0.1.src.tar.xz
 
 
-[FILE:496:manifests/plist.single]
-lib/%%OPSYSLC%%/libclang_rt.builtins-x86_64.a
+[FILE:1806:manifests/plist.single]
+%%ONLY-FREEBSD%%lib/freebsd/
+ libclang_rt.asan-preinit-x86_64.a
+ libclang_rt.asan-x86_64.a
+ libclang_rt.asan-x86_64.a.syms
+ libclang_rt.asan-x86_64.so
+ libclang_rt.asan_cxx-x86_64.a
+ libclang_rt.asan_cxx-x86_64.a.syms
+ libclang_rt.cfi-x86_64.a
+ libclang_rt.cfi_diag-x86_64.a
+ libclang_rt.dd-x86_64.a
+ libclang_rt.dyndd-x86_64.so
+ libclang_rt.fuzzer-x86_64.a
+ libclang_rt.fuzzer_no_main-x86_64.a
+ libclang_rt.msan-x86_64.a
+ libclang_rt.msan-x86_64.a.syms
+ libclang_rt.msan_cxx-x86_64.a
+ libclang_rt.msan_cxx-x86_64.a.syms
+ libclang_rt.profile-x86_64.a
+ libclang_rt.safestack-x86_64.a
+ libclang_rt.stats-x86_64.a
+ libclang_rt.stats_client-x86_64.a
+ libclang_rt.tsan-x86_64.a
+ libclang_rt.tsan-x86_64.a.syms
+ libclang_rt.tsan_cxx-x86_64.a
+ libclang_rt.tsan_cxx-x86_64.a.syms
+ libclang_rt.ubsan_minimal-x86_64.a
+ libclang_rt.ubsan_minimal-x86_64.a.syms
+ libclang_rt.ubsan_minimal-x86_64.so
+ libclang_rt.ubsan_standalone-x86_64.a
+ libclang_rt.ubsan_standalone-x86_64.a.syms
+ libclang_rt.ubsan_standalone-x86_64.so
+ libclang_rt.ubsan_standalone_cxx-x86_64.a
+ libclang_rt.ubsan_standalone_cxx-x86_64.a.syms
+ libclang_rt.xray-basic-x86_64.a
+ libclang_rt.xray-fdr-x86_64.a
+ libclang_rt.xray-profiling-x86_64.a
+ libclang_rt.xray-x86_64.a
+%%ONLY-FREEBSD%%share/
+ asan_blacklist.txt
+ cfi_blacklist.txt
+ msan_blacklist.txt
+include/fuzzer/FuzzedDataProvider.h
+include/profile/InstrProfData.inc
+include/sanitizer/
+ allocator_interface.h
+ asan_interface.h
+ common_interface_defs.h
+ coverage_interface.h
+ dfsan_interface.h
+ hwasan_interface.h
+ linux_syscall_hooks.h
+ lsan_interface.h
+ msan_interface.h
+ netbsd_syscall_hooks.h
+ scudo_interface.h
+ tsan_interface.h
+ tsan_interface_atomic.h
+ ubsan_interface.h
 include/xray/
  xray_interface.h
  xray_log_interface.h
  xray_records.h
-include/fuzzer/FuzzedDataProvider.h
-include/profile/InstrProfData.inc
-include/sanitizer/
- ubsan_interface.h
- tsan_interface_atomic.h
- msan_interface.h
- linux_syscall_hooks.h
- lsan_interface.h
- scudo_interface.h
- netbsd_syscall_hooks.h
- hwasan_interface.h
- dfsan_interface.h
- tsan_interface.h
- asan_interface.h
- allocator_interface.h
- common_interface_defs.h
- coverage_interface.h
+lib/%%OPSYSLC%%/libclang_rt.builtins-x86_64.a
+
+
+[FILE:406:patches/patch-lib_fuzzer_FuzzerSHA1.cpp]
+--- lib/fuzzer/FuzzerSHA1.cpp.orig	2020-12-18 19:57:38 UTC
++++ lib/fuzzer/FuzzerSHA1.cpp
+@@ -40,7 +40,11 @@ namespace {  // Added for LibFuzzer
+ # define SHA_BIG_ENDIAN
+ # endif
+ #else // ! defined __LITTLE_ENDIAN__
++# if LIBFUZZER_FREEBSD
++# include <sys/endian.h>
++# else
+ # include <endian.h> // machine/endian.h
++# endif
+ # if __BYTE_ORDER__ ==  __ORDER_BIG_ENDIAN__
+ #  define SHA_BIG_ENDIAN
+ # endif
+
+
+[FILE:319:patches/patch-lib_sanitizer__common_sanitizer__platform__limits__freebsd.cpp]
+--- lib/sanitizer_common/sanitizer_platform_limits_freebsd.cpp.orig	2020-12-18 19:57:38 UTC
++++ lib/sanitizer_common/sanitizer_platform_limits_freebsd.cpp
+@@ -68,7 +68,6 @@
+ #include <stddef.h>
+ #include <stdio.h>
+ #include <stringlist.h>
+-#include <term.h>
+ #include <termios.h>
+ #include <time.h>
+ #include <utime.h>
 

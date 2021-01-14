@@ -2,6 +2,7 @@
 
 NAMEBASE=		mysql80
 VERSION=		8.0.22
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Multithreaded SQL database (server)
@@ -129,7 +130,7 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 
 post-patch:
 	${REINPLACE_CMD} -e 's|@LOCALBASE@|${LOCALBASE}|' \
-		-e 's|@OPENSSLLIB@|${OPENSSLLIB}|' \
+		-e 's|@OPENSSLLIB@|${OPENSSLLIB}|g' \
 		${WRKSRC}/scripts/CMakeLists.txt
 	${RM} ${WRKSRC}/cmake/os/FreeBSD.cmake
 	# current_path not supported by DragonFly
@@ -877,7 +878,7 @@ share/man/man1/
  
 
 
-[FILE:2951:patches/patch-scripts_CMakeLists.txt]
+[FILE:2975:patches/patch-scripts_CMakeLists.txt]
 --- scripts/CMakeLists.txt.orig	2020-09-23 12:37:48 UTC
 +++ scripts/CMakeLists.txt
 @@ -202,11 +202,7 @@ IF(MY_COMPILER_IS_GNU_OR_CLANG)
@@ -931,7 +932,7 @@ share/man/man1/
    GET_TARGET_PROPERTY(LIBMYSQL_OS_OUTPUT_NAME libmysql OUTPUT_NAME)
  ENDIF()
  
-+STRING(REPLACE "-lssl" "-L@OPENSSLLIB@ -lssl" CLIENT_LIBS "${CLIENT_LIBS}")
++STRING(REPLACE "-lssl" "-L@OPENSSLLIB@ -Wl,-rpath,@OPENSSLLIB@ -lssl" CLIENT_LIBS "${CLIENT_LIBS}")
  SET(CONFIG_CLIENT_LIBS "${CLIENT_LIBS}")
  SET(CONFIG_LIBS_PRIVATE "${CLIENT_LIBS}")
  SET(CONFIG_REQUIRES_PRIVATE "")
