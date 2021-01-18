@@ -27,9 +27,6 @@ VOPTS[extended]=	NOT_STD=ON STATIC=OFF EXTENDED=ON RAVENSW=OFF
 VOPTS[static]=		NOT_STD=ON STATIC=ON EXTENDED=OFF RAVENSW=OFF
 VOPTS[ravensw]=		NOT_STD=ON STATIC=OFF EXTENDED=OFF RAVENSW=ON
 
-BUILD_DEPENDS=		expat:static:standard
-			Zstandard:static:standard
-
 USES=			cpe libtool
 
 LICENSE=		BSD2CLAUSE:single BSD3CLAUSE:single PUBDOM:single
@@ -54,15 +51,15 @@ LDFLAGS=		-lpthread
 [STATIC].DESCRIPTION=			Build version for raven sysroots
 [STATIC].BUILD_DEPENDS_ON=		libressl:single:static
 					xz:single:static
-					bzip2:static:standard
-					zlib:static:standard
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 					--enable-static=yes
+[STATIC].USES_ON=			zstd:build
+					expat:build
+					bz2:build
+					zlib:build
 
 [RAVENSW].DESCRIPTION=			Build zstd-only version for ravensw
 [RAVENSW].BUILD_DEPENDS_ON=		libressl:single:static
-					Zstandard:shared:standard
-					expat:shared:standard
 [RAVENSW].CONFIGURE_ARGS_ON=		--enable-shared=yes
 					--enable-static=yes
 					--without-zlib
@@ -74,34 +71,30 @@ LDFLAGS=		-lpthread
 					--enable-bsdtar=no
 					--enable-bsdcat=no
 					--enable-bsdcpio=no
+[RAVENSW].USES_ON=			zstd
+					expat
 
 [EXTENDED].DESCRIPTION=			Build loaded version (common + lzo + lz4)
-[EXTENDED].BUILDRUN_DEPENDS_ON=		expat:shared:standard
-					Zstandard:shared:standard
-					libressl:single:standard
+[EXTENDED].BUILDRUN_DEPENDS_ON=		libressl:single:standard
 					xz:single:standard
-					bzip2:shared:standard
-					zlib:shared:standard
-					lzo:shared:standard
-					lz4:shared:standard
-[EXTENDED].BUILD_DEPENDS_ON=		bzip2:static:standard
-					zlib:static:standard
-					lzo:static:standard
-					lz4:static:standard
 [EXTENDED].CONFIGURE_ARGS_ON=		--enable-shared=yes
 					--with-lzo2
 					--with-lz4
+[EXTENDED].USES_ON=			lz4
+					lzo
+					zstd
+					expat
+					bz2
+					zlib
 
 [NOT_STD].DESCRIPTION=			Don't build common user version
 [NOT_STD].BUILDRUN_DEPENDS_OFF=		libressl:single:standard
-					expat:shared:standard
 					xz:single:standard
-					bzip2:shared:standard
-					zlib:shared:standard
-					Zstandard:shared:standard
-[NOT_STD].BUILD_DEPENDS_OFF=		bzip2:static:standard
-					zlib:static:standard
 [NOT_STD].CONFIGURE_ARGS_OFF=		--enable-shared=yes
+[NOT_STD].USES_OFF=			zstd
+					expat
+					bz2
+					zlib
 
 post-build-RAVENSW-ON:
 	# assemble PIC library

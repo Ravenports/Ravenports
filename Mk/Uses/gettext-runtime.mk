@@ -11,10 +11,10 @@ _INCLUDE_USES_GETTEXT_RUNTIME_MK=	yes
 # -----------------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------------
-# if ARGS :build (but not :run, :buildrun)
+# if ARGS contain :build (but not :run, :buildrun)
 # BUILD_DEPENDS+=	gettext:runtime:standard
 # -----------------------------------------------------
-# if ARGS are none or contain :buildrun (or :build and :run)
+# if ARGS contain nothing or :buildrun (or :build and :run)
 # BUILDRUN_DEPENDS+=   gettext:runtime:standard
 # -----------------------------------------------------
 # if ARGS contains :run (and not :build, :buildrun)
@@ -25,7 +25,7 @@ _INCLUDE_USES_GETTEXT_RUNTIME_MK=	yes
 # BUILD_DEPENDS+=      gettext:asprintf:standard
 # -----------------------------------------------------
 # if ARGS contains :asprintf
-#    and :buildrun (or :build and :run)
+#    and :buildrun (or :build and :run)(or nothing else)
 # BUILDRUN_DEPENDS+=   gettext:asprintf:standard
 # -----------------------------------------------------
 # if ARGS contains :asprintf

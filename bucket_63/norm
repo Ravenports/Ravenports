@@ -2,7 +2,7 @@
 
 NAMEBASE=		norm
 VERSION=		1.5.8
-REVISION=		2
+REVISION=		3
 KEYWORDS=		net
 VARIANTS=		standard
 SDESC[standard]=	NACK-Oriented Reliable Multicast (NORM)
@@ -201,8 +201,8 @@ lib/
      sys_macros.append(('WIN32',None))
 
 
-[FILE:1293:patches/patch-protolib_wscript]
---- protolib/wscript.orig	2019-11-11 14:54:17 UTC
+[FILE:1933:patches/patch-protolib_wscript]
+--- protolib/wscript.orig	2021-01-17 15:47:45 UTC
 +++ protolib/wscript
 @@ -59,7 +59,7 @@ def configure(ctx):
      # Use this USE variable to add flags to protolib's compilation
@@ -231,6 +231,21 @@ lib/
          protolib.source.extend(['src/unix/{0}.cpp'.format(x) for x in [
              'unixNet',
              'unixSerial',
+@@ -220,12 +220,12 @@ def build(ctx):
+             protolib.source.append('src/linux/linuxDetour.cpp')
+             protolib.use.append('NETFILTER_QUEUE')
+ 
+-    if system in ('darwin', 'freebsd', 'gnu/kfreebsd'):
++    if system in ('darwin', 'freebsd', 'dragonfly', 'gnu/kfreebsd'):
+         protolib.source.extend(['src/bsd/{0}.cpp'.format(x) for x in [
+             'bsdDetour',
+             'bsdRouteMgr',
+         ]])
+-        if system != 'gnu/kfreebsd':
++        if system != 'gnu/kfreebsd' and system != 'dragonfly':
+             protolib.source.append('src/bsd/bsdNet.cpp')
+         protolib.source.append('src/unix/bpfCap.cpp')
+ 
 
 
 [FILE:782:patches/patch-wscript]

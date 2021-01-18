@@ -112,14 +112,11 @@ OPTIONS_AVAILABLE=	LOADED
 OPTIONS_STANDARD=	none
 VOPTS[loaded]=		LOADED=ON
 
-BUILD_DEPENDS=		pcre:static:standard
-BUILDRUN_DEPENDS=	pcre:shared:standard
-
 USERS=			{{WWWOWN}}
 GROUPS=			{{WWWGRP}}
 USERGROUP_SPKG=		single
 
-USES=			cpe ssl zlib
+USES=			cpe ssl zlib pcre
 
 LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
@@ -187,8 +184,6 @@ VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-file-aio
 [LOADED].DESCRIPTION=			All options enabled (heavy dependencies)
 [LOADED].BUILDRUN_DEPENDS_ON=		libmaxminddb:single:standard
 					libGD:single:standard
-					expat:shared:standard
-[LOADED].BUILD_DEPENDS_ON=		expat:static:standard
 [LOADED].CONFIGURE_ARGS_OFF=		--without-mail_imap_module
 					--without-mail_pop3_module
 					--without-mail_smtp_module
@@ -288,6 +283,7 @@ VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-file-aio
 [LOADED].KEYWORDS_ON=			perl
 [LOADED].USES_ON=			perl
 					pgsql
+					expat
 
 post-patch:
 	${REINPLACE_CMD} 's!%%HTTP_PORT%%!80!; \

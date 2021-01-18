@@ -27,6 +27,7 @@ LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING.txt
 LICENSE_SCHEME=		solo
 
 MAKE_ARGS=		prefix="{{PREFIX}}"
+			ENABLE_NLS=yes
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/dos2unix
@@ -179,8 +180,8 @@ share/locale/zh_CN/LC_MESSAGES/dos2unix.mo
 share/locale/zh_TW/LC_MESSAGES/dos2unix.mo
 
 
-[FILE:1034:patches/patch-Makefile]
---- Makefile.orig	2020-10-12 20:16:07 UTC
+[FILE:1111:patches/patch-Makefile]
+--- Makefile.orig	2021-01-17 17:05:07 UTC
 +++ Makefile
 @@ -76,7 +76,7 @@ bindir          = $(exec_prefix)/bin
  datarootdir     = $(prefix)/share
@@ -191,7 +192,7 @@ share/locale/zh_TW/LC_MESSAGES/dos2unix.mo
  docdir          = $(datarootdir)/doc/$(docsubdir)
  localedir       = $(datarootdir)/locale
  mandir          = $(datarootdir)/man
-@@ -290,25 +290,9 @@ endif
+@@ -290,25 +290,13 @@ endif
          EXTRA_DEFS += -Dfreemint -D__OS=\"freemint\"
  endif
  
@@ -215,7 +216,11 @@ share/locale/zh_TW/LC_MESSAGES/dos2unix.mo
 -ifeq (sun,$(D2U_OS))
 -        # Running under SunOS/Solaris
 -        LIBS_EXTRA = -lintl
++  ifeq (linux,$(D2U_OS))
++        LIBS_EXTRA    = -liconv
++  else
 +        LIBS_EXTRA    = -lintl -liconv
++  endif
  endif
  
  ifeq (hp-ux,$(D2U_OS))

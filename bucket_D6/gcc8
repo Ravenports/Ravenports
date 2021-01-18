@@ -25,13 +25,16 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		gmp:static:standard
 			mpfr:static:standard
 			mpc:static:standard
-			zlib:static:standard
 BUILDRUN_DEPENDS=	binutils:single:ravensys
+B_DEPS[freebsd]=	libiconv:static:standard
+B_DEPS[darwin]=		libiconv:static:standard
+B_DEPS[solaris]=	libiconv:static:standard
+B_DEPS[dragonfly]=	libiconv:static:standard
 EXRUN[fortran_run]=	gcc8:libs:standard
 EXRUN[cxx_run]=		gcc8:libs:standard
 EXRUN[compilers]=	gcc8:cxx_run:standard
 
-USES=			cpe gmake iconv:build libtool perl:build
+USES=			cpe gmake libtool perl:build zlib:build
 
 DISTNAME=		gcc-8.4.0
 
@@ -56,7 +59,6 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,fortran"
 			--with-gmp={{LOCALBASE}}
 			--with-mpc={{LOCALBASE}}
 			--with-mpfr={{LOCALBASE}}
-			{{ICONV_CONFIGURE_ARG}}
 			--enable-shared
 			--enable-threads=posix
 			--enable-checking=release
@@ -77,16 +79,20 @@ VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/toolchain/bin/ld
+			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--enable-symvers=no
 			CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
 			CONFIGURE_ARGS=--without-gnu-ld
+			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
 VAR_OPSYS[darwin]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-ld=/usr/bin/ld
 			CONFIGURE_ARGS=--with-as=/usr/bin/as
+			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/toolchain/bin/ld
+			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
 
 post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
@@ -132,6 +138,14 @@ post-extract:
 	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS
 	${HEAD} -n 31 ${WRKSRC}/gcc/ada/adaint.h >> ${WRKDIR}/TERMS
 	${HEAD} -n 18 ${WRKSRC}/libiberty/hex.c >> ${WRKDIR}/TERMS
+	# Use iconv_pic.a instead of iconv.a
+	if [ -f ${LOCALBASE}/include/iconv.h ]; then \
+	${MKDIR} ${WRKDIR}/fake/include ${WRKDIR}/fake/lib ;\
+	${INSTALL_DATA} ${LOCALBASE}/include/iconv.h \
+		${WRKDIR}/fake/include/ ;\
+	${INSTALL_DATA} ${LOCALBASE}/lib/libiconv_pic.a \
+		${WRKDIR}/fake/lib/libiconv.a ;\
+	fi
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|cp -p -r |cp -RP |' \

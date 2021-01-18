@@ -21,8 +21,6 @@ OPTIONS_AVAILABLE=	RAVENSYS
 OPTIONS_STANDARD=	none
 VOPTS[ravensys]=	RAVENSYS=ON
 
-BUILD_DEPENDS=		zlib:static:standard
-
 USES=			cpe libtool
 
 LICENSE=		BSD2CLAUSE:single
@@ -41,10 +39,11 @@ MAKE_ENV=		INSTALL_STRIP_FLAG="{{STRIP}}"
 INSTALL_TARGET=		install-strip
 
 [RAVENSYS].DESCRIPTION=			Static version of file used by raven-sysroot
-[RAVENSYS].BUILDRUN_DEPENDS_OFF=	zlib:shared:standard
 [RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-shared=yes
 [RAVENSYS].CONFIGURE_ARGS_ON=		--enable-shared=no
 					--datarootdir=/usr/share
+[RAVENSYS].USES_OFF=			zlib
+[RAVENSYS].USES_ON=			zlib:build
 
 post-patch:
 	${REINPLACE_CMD} -e 's|$$(datadir)/misc|$$(datadir)/file|g' \

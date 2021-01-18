@@ -30,10 +30,10 @@ BUILDRUN_DEPENDS=	xdg-utils:single:standard
 			freetype:primary:standard
 			dbus:single:standard
 			wxWidgets:primary:standard
-B_DEPS[freebsd]=	clang:compiler:standard
 
 USES=			cpe gettext-tools gmake iconv pkgconfig sqlite
 			libtool
+C_USES[freebsd]=	clang
 GNOME_COMPONENTS=	cairo gtk3
 
 LICENSE=		GPLv2+:primary
@@ -55,11 +55,11 @@ CONFIGURE_ARGS=		--with-wx-config={{LOCALBASE}}/bin/wx-config
 			WXRC={{LOCALBASE}}/bin/wxrc-gtk3u-3.0
 
 MAKE_ARGS=		LIBTOOLFLAGS=--tag=CXX
-MAKE_ENV=		CCACHE_CPP2=true
 
 PLIST_SUB=		VERSION=3.52.0
 
 CFLAGS=			-Iputty
+VAR_OPSYS[freebsd]=	CONFIGURE_ENV=ax_cv_cxx_compile_cxx17__std_cpp17=yes
 
 post-patch:
 	# Use libidn2 instead of libidn
@@ -896,10 +896,3 @@ share/locale/zh_TW/LC_MESSAGES/filezilla.mo
  #include "../include/engine_context.h"
  #include "../include/notification.h"
 
-
-[FILE:129:freebsd/special.mk]
-CC=	clang
-CXX=	clang++
-
-# clang ICEs on the test.  Just assume c++17 works
-CONFIGURE_ENV+=	ax_cv_cxx_compile_cxx17__std_cpp17=yes

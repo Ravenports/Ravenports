@@ -2,6 +2,7 @@
 
 NAMEBASE=		libuuid
 VERSION=		2.36.1
+REVISION=		1
 KEYWORDS=		misc devel
 VARIANTS=		standard
 SDESC[standard]=	Tool/Lib for generating Universally Unique IDs
@@ -20,10 +21,12 @@ OPT_ON[freebsd]=	NOSETPROC
 OPT_ON[sunos]=		NOSETPROC
 OPT_ON[dragonfly]=	NOSETPROC
 
+BUILD_DEPENDS=		bison:primary:standard
+			libtool:single:standard
 B_DEPS[sunos]=		libbsd4sol:single:standard
 
-USES=			autoreconf cpe libtool pkgconfig gettext-tools:build
-			gtk-doc
+USES=			autoreconf:build cpe libtool pkgconfig
+			gettext-tools:build
 C_USES[sunos]=		perl:build
 
 DISTNAME=		util-linux-2.36.1
@@ -62,6 +65,9 @@ post-patch-NOSETPROC-ON:
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/bash-completion
+
+pre-configure:
+	cd ${WRKSRC} && ${SH} ./autogen.sh
 
 post-patch-sunos:
 	# there's a problem with nls, just mass-remove the macro

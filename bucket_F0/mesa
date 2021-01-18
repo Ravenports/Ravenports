@@ -29,21 +29,15 @@ OPT_ON[i386]=		X86_DRIVERS
 BUILD_DEPENDS=		autoselect-python:single:standard
 			python-Mako:single:python_used
 			libpthread-stubs:single:standard
-			zlib:static:standard
 			libelf:single:standard
 			libvdpau:single:standard
 			libva:single:standard
-			expat:static:standard
-			Zstandard:static:standard
-BUILDRUN_DEPENDS=	expat:shared:standard
-			zlib:shared:standard
-			libdrm:single:standard
-			Zstandard:shared:standard
+BUILDRUN_DEPENDS=	libdrm:single:standard
 EXRUN[drivers]=		mesa:libs:standard
 			libelf:single:standard
 
-USES=			cpe bison gettext-tools gmake meson pkgconfig
-			python:build shebangfix solaris-funcs
+USES=			cpe bison gettext-tools gmake meson pkgconfig zstd
+			zlib expat shebangfix solaris-funcs python:build
 			c++:libs,drivers
 XORG_COMPONENTS=	x11 xdamage xext xfixes xshmfence xxf86vm xv xrandr
 			xcb
@@ -137,7 +131,6 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 [LLVMPIPE].BUILDRUN_DEPENDS_ON=		llvm:single:standard
 					ocl-icd:primary:standard
 [LLVMPIPE].BUILD_DEPENDS_ON=		libclc:single:standard
-					clang:compiler:standard
 					opencl-headers:single:standard
 [LLVMPIPE].MAKEFILE_OFF=		MESON_ARGS+=-Dgallium-opencl=disabled
 [LLVMPIPE].MAKEFILE_ON=			GALLIUM_LLVM_DRIVERS+=R600
@@ -147,6 +140,7 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 					MESON_ARGS+=-Dgallium-va=enabled
 					MESON_ARGS+=-Dgallium-opencl=icd
 [LLVMPIPE].RUN_DEPENDS_ON=		clang:dynlibs:standard
+[LLVMPIPE].USES_ON=			clang:keepcc
 [LLVMPIPE].XORG_COMPONENTS_ON=		xvmc
 
 post-patch:
