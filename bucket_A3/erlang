@@ -181,15 +181,6 @@ post-install:
 	${LN} -s ../lib/erlang/lib/snmp-5.7/bin/snmpc ${STAGEDIR}${PREFIX}/bin/snmpc
 
 pre-configure:
-	# fix ./make/ configure
-	${REINPLACE_CMD} '/AC_CONFIG_AUX_DIR/ s|/erts/|/../erts/|' \
-		${WRKSRC}/make/configure.in
-	# file ./lib/* configure
-	${REINPLACE_CMD} '/AC_CONFIG_AUX_DIR/ s|(autoconf)|(../../erts/autoconf)|' \
-		${WRKSRC}/lib/crypto/configure.in \
-		${WRKSRC}/lib/megaco/configure.in \
-		${WRKSRC}/lib/odbc/configure.in \
-		${WRKSRC}/lib/snmp/configure.in
 	cd ${WRKSRC} && ./otp_build autoconf
 
 post-extract:
@@ -6761,6 +6752,24 @@ share/doc/erlang/
  else
 
 
+[FILE:437:patches/patch-lib_crypto_configure.in]
+--- lib/crypto/configure.in.orig	2020-12-21 07:24:16 UTC
++++ lib/crypto/configure.in
+@@ -26,10 +26,11 @@ dnl define([AC_CACHE_SAVE], )dnl
+ AC_INIT(vsn.mk)
+ 
+ if test -z "$ERL_TOP" || test ! -d "$ERL_TOP" ; then
++  :
+   AC_CONFIG_AUX_DIRS(autoconf)
+ else
+   erl_top=${ERL_TOP}
+-  AC_CONFIG_AUX_DIRS($erl_top/erts/autoconf)
++  AC_CONFIG_AUX_DIRS(../../erts/autoconf)
+ fi
+ 
+ if test "X$host" != "Xfree_source" -a "X$host" != "Xwin32"; then
+
+
 [FILE:373:patches/patch-lib_crypto_priv_Makefile]
 --- lib/crypto/priv/Makefile.orig	2020-11-17 12:23:13 UTC
 +++ lib/crypto/priv/Makefile
@@ -6790,6 +6799,60 @@ share/doc/erlang/
  #endif
 
 
+[FILE:435:patches/patch-lib_megaco_configure.in]
+--- lib/megaco/configure.in.orig	2020-12-21 07:24:16 UTC
++++ lib/megaco/configure.in
+@@ -26,10 +26,11 @@ dnl define([AC_CACHE_SAVE], )dnl
+ AC_INIT(vsn.mk)
+ 
+ if test -z "$ERL_TOP" || test ! -d $ERL_TOP ; then
++  :
+   AC_CONFIG_AUX_DIRS(autoconf)
+ else
+   erl_top=${ERL_TOP}
+-  AC_CONFIG_AUX_DIRS($erl_top/erts/autoconf)
++  AC_CONFIG_AUX_DIRS(../../erts/autoconf)
+ fi
+ 
+ if test "X$host" != "Xfree_source" -a "X$host" != "Xwin32"; then
+
+
+[FILE:451:patches/patch-lib_odbc_configure.in]
+--- lib/odbc/configure.in.orig	2020-12-21 07:24:16 UTC
++++ lib/odbc/configure.in
+@@ -26,10 +26,11 @@ dnl Process this file with autoconf to p
+ AC_INIT(c_src/odbcserver.c)
+ 
+ if test -z "$ERL_TOP" || test ! -d $ERL_TOP ; then
++  :
+   AC_CONFIG_AUX_DIRS(autoconf)
+ else
+   erl_top=${ERL_TOP}
+-  AC_CONFIG_AUX_DIRS($erl_top/erts/autoconf)
++  AC_CONFIG_AUX_DIRS(../../erts/autoconf)
+ fi
+ 
+ if test "X$host" != "Xfree_source" -a "X$host" != "Xwin32"; then
+
+
+[FILE:425:patches/patch-lib_snmp_configure.in]
+--- lib/snmp/configure.in.orig	2020-12-21 07:24:16 UTC
++++ lib/snmp/configure.in
+@@ -5,10 +5,11 @@ define([AC_CACHE_SAVE], )dnl
+ AC_INIT(vsn.mk)
+ 
+ if test -z "$ERL_TOP" || test ! -d $ERL_TOP ; then
++  :
+   AC_CONFIG_AUX_DIRS(autoconf)
+ else
+   erl_top=${ERL_TOP}
+-  AC_CONFIG_AUX_DIRS($erl_top/erts/autoconf)
++  AC_CONFIG_AUX_DIRS(../../erts/autoconf)
+ fi
+ 
+ if test "X$host" != "Xfree_source" -a "X$host" != "Xwin32"; then
+
+
 [FILE:1112:patches/patch-lib_stdlib_src_calendar.erl]
 --- lib/stdlib/src/calendar.erl.orig	2020-11-17 12:23:13 UTC
 +++ lib/stdlib/src/calendar.erl
@@ -6817,6 +6880,20 @@ share/doc/erlang/
      %% Return the valid universal times
      case {LtDst,Lt} of
  	{DateTime,DateTime} when UtDst =/= Ut ->
+
+
+[FILE:321:patches/patch-make_configure.in]
+--- make/configure.in.orig	2020-12-21 07:24:16 UTC
++++ make/configure.in
+@@ -82,7 +82,7 @@ AC_SUBST(ERL_TOP)
+ dnl
+ dnl Aux programs are found in erts/autoconf
+ dnl
+-AC_CONFIG_AUX_DIR(${srcdir}/erts/autoconf)
++AC_CONFIG_AUX_DIR(../erts/autoconf)
+ 
+ dnl
+ dnl Figure out what we are running on. And in violation of autoconf
 
 
 [FILE:448:files/epmd.in]
