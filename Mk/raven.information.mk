@@ -154,7 +154,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.24
-GTK4_PORT_VERSION=		4.0.2
+GTK4_PORT_VERSION=		4.0.3
 
 # ------------------------------------------------------------------------
 # default gcc and binutils
@@ -177,13 +177,13 @@ ASPELL_INSTALL_VERSION=		${ASPELL_CORE_VERSION:R}
 
 APR1_VERSION=			1.7.0
 APR1_UTIL_VERSION=		1.6.1
-SUBVERSION_VERSION=		1.14.0
+SUBVERSION_VERSION=		1.14.1
 
 # ------------------------------------------------------------------------
 # Miscellaneous master versions
 # ------------------------------------------------------------------------
 
-LIBFM_VERSION=			1.3.1
+LIBFM_VERSION=			1.3.2
 LIBTOOL_VERSION=		2.4.6
 FREI0R_VERSION=			1.7.0
 M17N_VERSION=			1.8.0
