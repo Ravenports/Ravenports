@@ -153,7 +153,7 @@ GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
-GTK3_PORT_VERSION=		3.24.24
+GTK3_PORT_VERSION=		3.24.25
 GTK4_PORT_VERSION=		4.0.3
 
 # ------------------------------------------------------------------------
@@ -196,7 +196,7 @@ FIREFOX_ESR_VERSION=		78.7.1
 FIREFOX_VERSION=		85.0.2
 LLVM_VERSION=			11.0.1
 ZLIB_VERSION=			1.2.11
-OPENEXR_VERSION=		2.5.4
+OPENEXR_VERSION=		2.5.5
 GHOSTSCRIPT_VERSION=		9.53.3
 
 # ------------------------------------------------------------------------
