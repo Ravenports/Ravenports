@@ -58,3 +58,18 @@ All NumPy wheels distributed on PyPI are BSD licensed.
 [FILE:95:distinfo]
 3bc63486a870294683980d76ec1e3efc786295ae00128f9ea38e2c6e74d5a60a      7750776 numpy-1.20.1.zip
 
+
+[FILE:592:patches/patch-numpy_f2py_cfuncs.py]
+--- numpy/f2py/cfuncs.py.orig	2021-02-07 09:26:20 UTC
++++ numpy/f2py/cfuncs.py
+@@ -549,6 +549,9 @@ cppmacros["F2PY_THREAD_LOCAL_DECL"] = ""
+ #define F2PY_THREAD_LOCAL_DECL __declspec(thread)
+ #elif defined(__STDC_VERSION__) \\
+       && (__STDC_VERSION__ >= 201112L) \\
++      && !defined(__DragonFly__) \\
++      && !defined(__FreeBSD__) \\
++      && !defined(__sun__) \\ 
+       && !defined(__STDC_NO_THREADS__) \\
+       && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12))
+ /* __STDC_NO_THREADS__ was first defined in a maintenance release of glibc 2.12,
+
