@@ -29,7 +29,7 @@ dos2unix:
 	@(cd ${DOS2UNIX_WRKSRC}; \
 		${ECHO_CMD} ${DOS2UNIX_FILES} | ${XARGS} ${SED} -i'' -e 's/$$//' )
 .    elif defined(DOS2UNIX_REGEX)
-	@${FIND} -E ${DOS2UNIX_WRKSRC} -type f -iregex '${DOS2UNIX_REGEX}' -print0 | \
+	@${FIND} ${DOS2UNIX_WRKSRC} -type f -regextype posix-extended -iregex '${DOS2UNIX_REGEX}' -print0 | \
 		${XARGS} -0 ${SED} -i'' -e 's/$$//'
 .    else
 .      for f in ${DOS2UNIX_GLOB}
