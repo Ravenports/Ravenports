@@ -42,7 +42,7 @@ case ${STRIPCOMP} in
 esac
 
 AWK=/usr/bin/awk
-rm -rf /tmp/shiny
+/bin/rm -rf /tmp/shiny
 /bin/mkdir -p /tmp/shiny
 
 PATCHLIST=

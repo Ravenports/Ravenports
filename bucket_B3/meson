@@ -2,6 +2,7 @@
 
 NAMEBASE=		meson
 VERSION=		0.57.1
+REVISION=		1
 KEYWORDS=		devel python
 VARIANTS=		standard
 SDESC[standard]=	High performance build system
@@ -18,6 +19,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 RUN_DEPENDS=		ninja:single:standard
+			autoselect-python:single:standard
 
 USES=			python:sutools
 
@@ -47,6 +49,36 @@ build system to actually start compiling code.
 [FILE:85:manifests/plist.single]
 @comment rest is auto-generated
 share/polkit-1/actions/com.mesonbuild.install.policy
+
+
+[FILE:683:patches/patch-mesonbuild_compilers_mixins_clike.py]
+--- mesonbuild/compilers/mixins/clike.py.orig	2021-02-01 20:35:16 UTC
++++ mesonbuild/compilers/mixins/clike.py
+@@ -81,7 +81,7 @@ class CLikeCompilerArgs(arglist.Compiler
+         # This covers all ld.bfd, ld.gold, ld.gold, and xild on Linux, which
+         # all act like (or are) gnu ld
+         # TODO: this could probably be added to the DynamicLinker instead
+-        if isinstance(self.compiler.linker, (GnuLikeDynamicLinkerMixin, SolarisDynamicLinker, CompCertDynamicLinker)):
++        if isinstance(self.compiler.linker, (GnuLikeDynamicLinkerMixin, CompCertDynamicLinker)):
+             group_start = -1
+             group_end = -1
+             for i, each in enumerate(new):
+
+
+[FILE:785:patches/patch-mesonbuild_compilers_mixins_gnu.py]
+Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
+
+--- mesonbuild/compilers/mixins/gnu.py.orig	2021-02-08 21:39:00 UTC
++++ mesonbuild/compilers/mixins/gnu.py
+@@ -153,7 +153,7 @@ class GnuLikeCompiler(Compiler, metaclas
+                                    'b_ndebug', 'b_staticpic', 'b_pie']}
+         if not (self.info.is_windows() or self.info.is_cygwin() or self.info.is_openbsd()):
+             self.base_options.add(OptionKey('b_lundef'))
+-        if not self.info.is_windows() or self.info.is_cygwin():
++        if not (self.info.is_windows() or self.info.is_sunos()) or self.info.is_cygwin():
+             self.base_options.add(OptionKey('b_asneeded'))
+         if not self.info.is_hurd():
+             self.base_options.add(OptionKey('b_sanitize'))
 
 
 [FILE:547:patches/patch-mesonbuild_environment.py]

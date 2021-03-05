@@ -47,6 +47,8 @@ SINGLE_JOB=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+VAR_OPSYS[sunos]=	VAR1=MACHINE=x86_64
+
 [I386].DESCRIPTION=			Optimize for i386 (instead of i486+)
 [I386].CONFIGURE_ARGS_ON=		386
 
@@ -107,11 +109,11 @@ post-patch-SKIP_MANPAGES-ON:
 
 do-configure:
 	${REINPLACE_CMD} -e "s|options 386|options|" ${WRKSRC}/config
-	(cd ${WRKSRC} && ${SETENV} CC="${CC}" FREEBSDCC="${CC}" \
-		CFLAGS="${CFLAGS}" PERL="${PERL}" \
-		./config --prefix=${PREFIX}/openssl \
-		--openssldir=${PREFIX}/etc/openssl \
-		--install_prefix=${STAGEDIR} \
+	(cd ${WRKSRC} && ${SETENV} CC="${CC}" FREEBSDCC="${CC}" ${VAR1}\
+		CFLAGS="${CFLAGS}" PERL="${PERL}"\
+		./config --prefix=${PREFIX}/openssl\
+		--openssldir=${PREFIX}/etc/openssl\
+		--install_prefix=${STAGEDIR}\
 		-L${PREFIX}/openssl/lib ${CONFIGURE_ARGS})
 
 post-configure:

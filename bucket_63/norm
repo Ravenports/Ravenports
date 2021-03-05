@@ -72,8 +72,8 @@ lib/cmake/norm/
  normTargets.cmake
 
 
-[FILE:341:patches/patch-protolib_CMakeLists.txt]
---- protolib/CMakeLists.txt.orig	2021-02-01 04:02:34 UTC
+[FILE:845:patches/patch-protolib_CMakeLists.txt]
+--- protolib/CMakeLists.txt.orig	2021-03-05 20:56:44 UTC
 +++ protolib/CMakeLists.txt
 @@ -20,6 +20,8 @@ include(CheckTypeSize)
  include(CheckIncludeFiles)
@@ -84,6 +84,16 @@ lib/cmake/norm/
  check_include_files( pcap.h HAVE_PCAP_H)
  if(HAVE_PCAP_H)
  	#list(APPEND PLATFORM_SOURCE_FILES ${COMMON}/pcapCap.cpp)
+@@ -233,6 +235,9 @@ elseif(UNIX)
+             SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+             SET(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+             SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
++        elseif(${CMAKE_SYSTEM_NAME} STREQUAL SunOS)
++		list(APPEND PLATFORM_DEFINITIONS SOLARIS)
++		list(APPEND PLATFORM_SOURCE_FILES src/unix/getifaddrs.cpp)
+ 	endif()
+ endif()
+ 
 
 
 [FILE:720:patches/patch-protolib_include_protoSocket.h]
@@ -98,6 +108,64 @@ lib/cmake/norm/
  #define _PROTOSOCKET_IGMPV3_SSM
  #endif // !WIN32 && !ANDROID && (!MACOSX || MCAST_JOIN_GROUP)
          
+
+
+[FILE:1361:patches/patch-protolib_src_unix_unixNet.cpp]
+--- protolib/src/unix/unixNet.cpp.orig	2021-03-05 19:41:33 UTC
++++ protolib/src/unix/unixNet.cpp
+@@ -136,7 +136,7 @@ bool ProtoNet::GetInterfaceAddressList(c
+     
+     if (ProtoAddress::ETH == addressType)
+     {
+-#ifdef SIOCGIFHWADDR
++#if defined(SIOCGIFHWADDR) && !defined(__sun)
+         // Probably Linux
+         // Get hardware (MAC) address instead of IP address
+         if (ioctl(socketFd, SIOCGIFHWADDR, &req) < 0)
+@@ -625,7 +625,7 @@ static int GetInterfaceList(struct ifcon
+ 
+     int ifNum = 32;  // first guess for max # of interfaces
+ #ifdef SIOCGIFNUM  // Solaris has this, others might
+-	if (ioctl(sock, SIOCGIFNUM, &ifNum) >= 0) ifNum++;
++	if (ioctl(sockFd, SIOCGIFNUM, &ifNum) >= 0) ifNum++;
+ #endif // SIOCGIFNUM
+     // We loop here until we get a fully successful SIOGIFCONF
+     // This returns us a list of all interfaces
+@@ -697,7 +697,7 @@ unsigned int ProtoNet::GetInterfaceIndex
+ #ifdef HAVE_IPV6
+     index = if_nametoindex(interfaceName);
+ #else
+-#ifdef SIOCGIFINDEX
++#if defined(SIOCGIFINDEX) && !defined(__sun)
+     int sockFd = socket(PF_INET, SOCK_DGRAM, 0);
+     if (sockFd < 0) 
+     {
+@@ -746,7 +746,7 @@ unsigned int ProtoNet::GetInterfaceName(
+         return 0;
+     }
+ #else
+-#ifdef SIOCGIFNAME
++#if defined(SIOCGIFNAME) && !defined(__sun)
+     int sockFd = socket(PF_INET, SOCK_DGRAM, 0);
+     if (sockFd < 0) 
+     {
+
+
+[FILE:386:patches/patch-src_common_normFile.cpp]
+--- src/common/normFile.cpp.orig	2021-03-05 19:54:19 UTC
++++ src/common/normFile.cpp
+@@ -13,7 +13,11 @@
+ #include <unistd.h>
+ // Most don't have the dirfd() function
+ #ifndef HAVE_DIRFD
++# ifdef __sun
++static inline int dirfd(DIR *dir) {return (dir->d_fd);}
++# else
+ static inline int dirfd(DIR *dir) {return (dir->dd_fd);}
++# endif
+ #endif // HAVE_DIRFD    
+ #endif // if/else WIN32
+ 
 
 
 [FILE:7148:files/getifaddrs.cpp]

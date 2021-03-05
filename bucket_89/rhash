@@ -124,8 +124,35 @@ share/man/man1/
  whirlpool-hash.1.gz
 
 
+[FILE:800:patches/patch-configure]
+$NetBSD: patch-configure,v 1.1 2020/08/24 12:58:52 schmonz Exp $
+
+Avoid choosing aligned_alloc() when it's not present, such as CentOS 6
+with lang/gcc7.
+
+--- configure.orig	2021-01-07 00:48:59 UTC
++++ configure
+@@ -655,6 +655,16 @@ elif test "$OPT_OPENSSL" = "auto" || tes
+   finish_check "$ALLOW_RUNTIME_LINKING"
+ fi
+ 
++start_check "libc provides aligned_alloc"
++HAS_STDC_ALIGNED_ALLOC=no
++if cc_check_statement "stdlib.h" 'aligned_alloc(256, 1024);' "-Werror -Wno-unused-result"; then
++  HAS_STDC_ALIGNED_ALLOC=yes
++fi
++if test "$HAS_STDC_ALIGNED_ALLOC" = "no"; then
++  BUILD_EXTRA_CFLAGS=$(join_params $BUILD_EXTRA_CFLAGS -DNOPE_DOES_NOT_HAS_STDC_ALIGNED_ALLOC)
++fi
++finish_check "$HAS_STDC_ALIGNED_ALLOC"
++
+ SHARED_VSCRIPT=
+ if ! darwin; then
+   start_check "linker support for --version-script"
+
+
 [FILE:430:patches/patch-librhash_byte__order.h]
---- librhash/byte_order.h.orig	2020-07-14 19:35:11 UTC
+--- librhash/byte_order.h.orig	2021-01-07 00:48:59 UTC
 +++ librhash/byte_order.h
 @@ -18,6 +18,13 @@
  extern "C" {
@@ -141,4 +168,23 @@ share/man/man1/
  /* if x86 compatible cpu */
  #if defined(i386) || defined(__i386__) || defined(__i486__) || \
  	defined(__i586__) || defined(__i686__) || defined(__pentium__) || \
+
+
+[FILE:680:patches/patch-librhash_util.h]
+$NetBSD: patch-librhash_util.h,v 1.1 2020/08/24 12:58:52 schmonz Exp $
+
+Avoid choosing aligned_alloc() when it's not present, such as CentOS 6
+with lang/gcc7.
+
+--- librhash/util.h.orig	2021-01-07 00:48:59 UTC
++++ librhash/util.h
+@@ -39,7 +39,7 @@ extern "C" {
+ # define rhash_aligned_alloc(alignment, size) _aligned_malloc((size), (alignment))
+ # define rhash_aligned_free(ptr) _aligned_free(ptr)
+ 
+-#elif (__STDC_VERSION__ >= 201112L || defined(_ISOC11_SOURCE)) && !defined(__APPLE__)
++#elif (__STDC_VERSION__ >= 201112L || defined(_ISOC11_SOURCE)) && !defined(__APPLE__) && !defined(NOPE_DOES_NOT_HAS_STDC_ALIGNED_ALLOC)
+ 
+ # define HAS_STDC_ALIGNED_ALLOC
+ # include <stdlib.h>
 

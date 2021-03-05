@@ -44,6 +44,11 @@ CONFIGURE_ARGS=		--disable-gtk-doc
 INSTALL_TARGET=		install-strip
 SOVERSION=		2.3.4
 
+post-patch:
+	# skip building examples
+	${REINPLACE_CMD} -e '/^SUBDIRS =/ s|examples||' \
+		${WRKSRC}/dbus/Makefile.in
+
 post-extract:
 	${AWK} '/^The Academic Free License/,/^--/' \
 		${WRKSRC}/COPYING > ${WRKDIR}/COPYING.AFL

@@ -19,6 +19,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libedit:single:standard
+			autoselect-python:single:standard
 
 USES=			python:build gmake cmake:insource clang:keepcc
 
@@ -34,13 +35,12 @@ MAKE_ENV=		MAKE={{GMAKE}}
 			CCACHE_CPP2=yes
 
 post-patch:
-	${REINPLACE_CMD} -e 's|/usr/bin/python|${PYTHON_CMD}|g' \
-		-e 's|"python |"${PYTHON_VERSION} |g' \
+	${REINPLACE_CMD} \
 		-e 's|__CLC_INTERNAL|__CLC_INTERNAL -nogpulib|'\
 		${WRKSRC}/build/ninja_syntax.py \
 		${WRKSRC}/configure.py
 	# add ccache support
-	if [ -n "${BUILD_WITH_CCACHE}" ]; then \
+	if [ "${BUILD_WITH_CCACHE}" = "yes" ]; then \
 	  ${SED} -i.ccache \
 	  -e "s|llvm_clang =.*|llvm_clang = '/usr/libexec/clang'|"\
 	  -e "s|cxx_compiler = os.*|cxx_compiler = '/usr/libexec/clang++'|"\
@@ -53,6 +53,11 @@ do-configure:
 		--pkgconfigdir=${PREFIX}/lib/pkgconfig \
 		--with-llvm-config=${LOCALBASE}/bin/llvm-config \
 		--prefix=${PREFIX})
+
+post-patch-sunos:
+	${SED} -i.sunos -e 's/-fno-rtti/-fno-rtti -fno-use-cxa-atexit/' \
+		-e '/lpthread/ s|-Wl,|-Wl,-rpath ${PREFIX}/toolchain/gcc9/lib/amd64 -Wl,|'\
+		${WRKSRC}/configure.py
 
 [FILE:312:descriptions/desc.single]
 libclc is an open source, BSD licensed implementation of the library

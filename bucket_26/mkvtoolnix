@@ -40,9 +40,11 @@ BUILDRUN_DEPENDS=	fmt:single:standard
 			pugixml:single:standard
 
 USES=			zlib pkgconfig gettext-tools gettext-runtime
+			solaris-funcs
 C_USES[freebsd]=	clang
 
 FPC_EQUIVALENT=		multimedia/mkvtoolnix
+SOL_FUNCTIONS=		timegm:src/common/date_time.cpp
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-boost="{{LOCALBASE}}"
@@ -54,6 +56,8 @@ CONFIGURE_ARGS=		--with-boost="{{LOCALBASE}}"
 BUILD_TARGET=		#skip
 MAKEFILE=		Rakefile
 MAKE_ENV=		V=1
+
+VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 
 [GUI].DESCRIPTION=			Include Graphic User Interface with tools
 [GUI].BUILDRUN_DEPENDS_ON=		qt5-qtmultimedia:single:standard
@@ -270,6 +274,29 @@ share/locale/zh_TW/LC_MESSAGES/mkvtoolnix.mo
    return ""
  end
  
+
+
+[FILE:690:patches/patch-src_common_locale.cpp]
+$NetBSD: patch-src_common_locale.cpp,v 1.2 2020/05/31 11:34:15 adam Exp $
+
+Remove broken SunOS section that is no longer needed.
+https://gitlab.com/mbunkus/mkvtoolnix/issues/2450
+
+--- src/common/locale.cpp.orig	2021-02-26 18:18:11 UTC
++++ src/common/locale.cpp
+@@ -284,12 +284,6 @@ get_local_charset() {
+   setlocale(LC_CTYPE, "");
+ #if defined(COMP_MINGW) || defined(COMP_MSC)
+   lc_charset = fmt::format("CP{0}", GetACP());
+-#elif defined(SYS_SOLARIS)
+-  int i;
+-
+-  lc_charset = nl_langinfo(CODESET);
+-  if (mtx::string::parse_number(lc_charset, i))
+-    lc_charset = "ISO"s + lc_charset + "-US"s;
+ #elif HAVE_NL_LANGINFO
+   lc_charset = nl_langinfo(CODESET);
+ #elif HAVE_LOCALE_CHARSET
 
 
 [FILE:339:patches/patch-src_common_os.h]

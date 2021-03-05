@@ -36,6 +36,15 @@ CONFIGURE_ARGS=		--enable-sample
 			--with-initscriptdir={{PREFIX}}/etc/rc.d
 			--with-nvme-devicescan=yes
 
+post-install-sunos:
+	# relocate man pages to match other systems (ravenports standard)
+	(cd ${STAGEDIR}${MANPREFIX}/man \
+	&& ${MV} man4/smartd.conf.4 man5/smartd.conf.5 \
+	&& ${MV} man1m/smartctl.1m man8/smartctl.8 \
+	&& ${MV} man1m/smartd.1m man8/smartd.8 \
+	&& ${MV} man1m/update-smart-drivedb.1m man8/update-smart-drivedb.8 \
+	&& ${RMDIR} man1m)
+
 [FILE:342:descriptions/desc.primary]
 Smartmontools provides two programs, smartctl and the smartd daemon. They are used to control and monitor storage devices using the S.M.A.R.T (Self-Monitoring, Analysis and Reporting Technology) system supported by most modern ATA/SATA, SCSI/SAS and NVMe disks. It is commonly used to provide early warnings before your storage devices fail.
 

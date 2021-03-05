@@ -20,14 +20,14 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	X86_DRIVERS ARM_DRIVERS LLVMPIPE WAYLAND
 OPTIONS_STANDARD=	X86_DRIVERS ARM_DRIVERS LLVMPIPE
 OPT_ON[freebsd]=	LLVMPIPE//i386|x86_64
+OPT_ON[sunos]=		LLVMPIPE
 OPT_ON[aarch64]=	ARM_DRIVERS
 OPT_ON[linux]=		LLVMPIPE//i386|x86_64
 OPT_ON[x86_64]=		X86_DRIVERS
 OPT_ON[dragonfly]=	LLVMPIPE//i386|x86_64
 OPT_ON[i386]=		X86_DRIVERS
 
-BUILD_DEPENDS=		autoselect-python:single:standard
-			python-Mako:single:python_used
+BUILD_DEPENDS=		python-Mako:single:python_used
 			libpthread-stubs:single:standard
 			libelf:single:standard
 			libvdpau:single:standard
@@ -84,10 +84,13 @@ SOL_FUNCTIONS=		dirfd:src/util/disk_cache.c
 			asprintf:src/loader/loader.c
 			asprintf:src/egl/main/eglcurrent.c
 			asprintf:src/util/u_string.h
+			asprintf:src/amd/common/ac_rtld.c
 			strnlen:src/util/ralloc.c
 			strnlen:src/mesa/main/errors.c
 			strndup:src/loader/loader.c
 			strndup:src/egl/drivers/dri2/platform_x11.c
+			strndup:src/gallium/drivers/r600/evergreen_compute.c
+			strndup:src/gallium/drivers/radeonsi/si_debug.c
 
 CONFIGURE_ENV=		ax_cv_check_cflags___Wno_initializer_overrides=no
 
@@ -324,6 +327,22 @@ in drm.h also, which causes build issues in xorg-server.
  
  #include <GL/gl.h>
  
+
+
+[FILE:227:patches/patch-src_amd_llvm_ac__llvm__build.h]
+--- src/amd/llvm/ac_llvm_build.h.orig	2021-01-29 18:33:19 UTC
++++ src/amd/llvm/ac_llvm_build.h
+@@ -34,6 +34,10 @@
+ 
+ #include <stdbool.h>
+ 
++#ifdef __sun
++#include <alloca.h>
++#endif
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
 
 
 [FILE:503:patches/patch-src_amd_vulkan_radv__device.c]
@@ -572,6 +591,27 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  {
 
 
+[FILE:544:patches/patch-src_gallium_drivers_radeonsi_si__state__shaders.c]
+--- src/gallium/drivers/radeonsi/si_state_shaders.c.orig	2021-01-29 18:33:19 UTC
++++ src/gallium/drivers/radeonsi/si_state_shaders.c
+@@ -2093,6 +2093,7 @@ static void si_build_shader_variant(stru
+       return;
+    }
+ 
++#ifndef __sun
+    if (shader->compiler_ctx_state.is_debug_context) {
+       FILE *f = open_memstream(&shader->shader_log, &shader->shader_log_size);
+       if (f) {
+@@ -2100,6 +2101,7 @@ static void si_build_shader_variant(stru
+          fclose(f);
+       }
+    }
++#endif
+ 
+    si_shader_init_pm4_state(sscreen, shader);
+ }
+
+
 [FILE:360:patches/patch-src_gallium_drivers_vc4_vc4__bufmgr.c]
 # define ETIME as ETIMEOUT same as in intel driver
 #
@@ -587,6 +627,23 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  
  #include "util/u_hash_table.h"
  #include "util/u_memory.h"
+
+
+[FILE:420:patches/patch-src_gallium_frontends_clover_api_memory.cpp]
+--- src/gallium/frontends/clover/api/memory.cpp.orig	2021-01-29 18:33:19 UTC
++++ src/gallium/frontends/clover/api/memory.cpp
+@@ -457,7 +457,11 @@ clSVMAlloc(cl_context d_ctx,
+       void *ptr = nullptr;
+       if (alignment < sizeof(void*))
+          alignment = sizeof(void*);
++#ifdef __sun
++      ptr = memalign(alignment, size);
++#else
+       posix_memalign(&ptr, alignment, size);
++#endif
+       return ptr;
+    }
+ 
 
 
 [FILE:292:patches/patch-src_gallium_winsys_amdgpu_drm_amdgpu__cs.c]
@@ -918,6 +975,20 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  #define UTIL_FUTEX_SUPPORTED 1
 
 
+[FILE:310:patches/patch-src_util_memstream.c]
+--- src/util/memstream.c.orig	2021-01-29 18:33:20 UTC
++++ src/util/memstream.c
+@@ -51,7 +51,7 @@ u_memstream_open(struct u_memstream *mem
+    }
+ 
+    return success;
+-#elif defined(__APPLE__)
++#elif defined(__APPLE__) || defined(__sun)
+    return false;
+ #else
+    FILE *const f = open_memstream(bufp, sizep);
+
+
 [FILE:592:patches/patch-src_util_os__memory__aligned.h]
 --- src/util/os_memory_aligned.h.orig	2021-01-29 18:33:20 UTC
 +++ src/util/os_memory_aligned.h
@@ -1063,7 +1134,7 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
 GALLIUM_DRIVERS+=	SWRAST
 
 
-[FILE:867:sunos/patch-src_gallium_targets_dri_meson.build]
+[FILE:891:sunos/patch-src_gallium_targets_dri_meson.build]
 --- src/gallium/targets/dri/meson.build.orig	2020-12-31 03:59:58 UTC
 +++ src/gallium/targets/dri/meson.build
 @@ -45,11 +45,12 @@ libgallium_dri = shared_library(
@@ -1073,7 +1144,7 @@ GALLIUM_DRIVERS+=	SWRAST
 -  link_args : [ld_args_build_id, ld_args_gc_sections, gallium_dri_ld_args],
 +  link_args : [ld_args_gc_sections, gallium_dri_ld_args],
    link_depends : gallium_dri_link_depends,
-+  link_whole : [libdri, libdricommon, libgallium, libr300, _libnir],
++  link_whole : [libdri, libdricommon, libgallium, libr300, libr600, _libnir, libamd_common],
    link_with : [
 -    libdri, libmesa_gallium, libdricommon, libmegadriver_stub, libgalliumvl,
 -    libgallium, libglapi, libpipe_loader_static, libws_null, libwsw, libswdri,
@@ -1082,6 +1153,20 @@ GALLIUM_DRIVERS+=	SWRAST
      libswkmsdri,
    ],
    dependencies : [
+
+
+[FILE:424:sunos/patch-src_gallium_targets_opencl_meson.build]
+--- src/gallium/targets/opencl/meson.build.orig	2021-01-29 18:33:19 UTC
++++ src/gallium/targets/opencl/meson.build
+@@ -90,7 +90,7 @@ libopencl = shared_library(
+   [],
+   link_args : [ld_args_gc_sections, opencl_link_args],
+   link_depends : opencl_link_deps,
+-  link_whole : libclover,
++  link_whole : [libclover,libmesa_format],
+   link_with : [libpipe_loader_dynamic, libgallium],
+   dependencies : [
+     idep_mesautil,
 
 
 [FILE:585:sunos/patch-src_gallium_targets_osmesa_meson.build]
@@ -1101,7 +1186,70 @@ GALLIUM_DRIVERS+=	SWRAST
      dep_ws2_32, dep_selinux, dep_thread, dep_clock, dep_unwind,
 
 
-[FILE:704:sunos/patch-src_gallium_targets_vdpau_meson.build]
+[FILE:2062:sunos/patch-src_gallium_targets_pipe-loader_meson.build]
+--- src/gallium/targets/pipe-loader/meson.build.orig	2021-01-29 18:33:19 UTC
++++ src/gallium/targets/pipe-loader/meson.build
+@@ -57,16 +57,16 @@ if with_gallium_v3d
+ endif
+ 
+ pipe_loaders = [
+-  [with_gallium_i915, 'i915', driver_i915, []],
+-  [with_gallium_iris, 'iris', [driver_iris, idep_xmlconfig], []],
+-  [with_gallium_nouveau, 'nouveau', driver_nouveau, []],
+-  [with_gallium_r300, 'r300', driver_r300, []],
+-  [with_gallium_r600, 'r600', driver_r600, []],
+-  [with_gallium_radeonsi, 'radeonsi', [driver_radeonsi, idep_xmlconfig], []],
+-  [with_gallium_freedreno, 'msm', driver_freedreno, []],
+-  [with_gallium_kmsro, 'kmsro', _kmsro_targets, []],
+-  [with_gallium_svga, 'vmwgfx', driver_svga, []],
+-  [with_gallium_softpipe, 'swrast', [driver_swrast, driver_swr], [libwsw, libws_null]],
++  [with_gallium_i915, 'i915', driver_i915, [], []],
++  [with_gallium_iris, 'iris', [driver_iris, idep_xmlconfig], [], []],
++  [with_gallium_nouveau, 'nouveau', driver_nouveau, [], []],
++  [with_gallium_r300, 'r300', driver_r300, [], [libr300,libradeonwinsys,libmesa_format]],
++  [with_gallium_r600, 'r600', driver_r600, [], [libr600,libradeonwinsys,libmesa_format,libgalliumvl]],
++  [with_gallium_radeonsi, 'radeonsi', [driver_radeonsi], [], [libradeonsi,libradeonwinsys,libamd_common,libamd_common_llvm,libmesa_format,_libxmlconfig,libgalliumvl]],
++  [with_gallium_freedreno, 'msm', driver_freedreno, [], []],
++  [with_gallium_kmsro, 'kmsro', _kmsro_targets, [], []],
++  [with_gallium_svga, 'vmwgfx', driver_svga, [], [libsvga,libsvgadrm,libmesa_format]],
++  [with_gallium_softpipe, 'swrast', [driver_swrast, driver_swr], [libwsw, libws_null], [libllvmpipe,libmesa_format,libsoftpipe]],
+ ]
+ 
+ foreach x : pipe_loaders
+@@ -80,6 +80,7 @@ foreach x : pipe_loaders
+       link_args : pipe_loader_link_args,
+       link_depends : pipe_loader_link_deps,
+       include_directories : pipe_loader_incs,
++      link_whole : [x[4]],
+       link_with : [pipe_loader_link_with, x[3]],
+       dependencies : [idep_mesautil, idep_nir, dep_thread, x[2]],
+       name_prefix : '',
+
+
+[FILE:838:sunos/patch-src_gallium_targets_va_meson.build]
+--- src/gallium/targets/va/meson.build.orig	2021-01-29 18:33:19 UTC
++++ src/gallium/targets/va/meson.build
+@@ -39,13 +39,14 @@ libva_gallium = shared_library(
+   include_directories : [
+     inc_include, inc_src, inc_mapi, inc_mesa, inc_gallium, inc_gallium_aux, inc_util, inc_gallium_winsys, inc_gallium_drivers,
+   ],
+-  link_whole : [libva_st],
++  link_whole : [libva_st, _libxmlconfig, libmesa_format, libloader, libpipe_loader_static],
+   link_with : [
+     libgalliumvlwinsys, libgalliumvl, libgallium,
+-    libpipe_loader_static, libws_null, libwsw, libswdri, libswkmsdri,
++    libws_null, libwsw, libswdri, libswkmsdri,
++    libr600, libradeonsi,
+   ],
+   dependencies : [
+-    dep_libdrm, driver_r600, driver_radeonsi, driver_nouveau,
++    dep_libdrm, driver_nouveau,
+     idep_mesautil,
+   ],
+   link_depends : va_link_depends,
+
+
+[FILE:761:sunos/patch-src_gallium_targets_vdpau_meson.build]
 --- src/gallium/targets/vdpau/meson.build.orig	2020-12-31 03:59:58 UTC
 +++ src/gallium/targets/vdpau/meson.build
 @@ -44,10 +44,10 @@ libvdpau_gallium = shared_library(
@@ -1109,7 +1257,7 @@ GALLIUM_DRIVERS+=	SWRAST
      inc_include, inc_src, inc_mapi, inc_mesa, inc_gallium, inc_gallium_aux, inc_util, inc_gallium_winsys, inc_gallium_drivers,
    ],
 -  link_whole : [libvdpau_st],
-+  link_whole : [libvdpau_st, libr300, libradeonwinsys, libpipe_loader_static, libmesa_format, _libxmlconfig],
++  link_whole : [libvdpau_st, libr300, libr600, libradeonsi, libradeonwinsys, libmesa_format, _libxmlconfig, libamd_common, libamd_common_llvm, libpipe_loader_static],
    link_with : [
      libgalliumvlwinsys, libgalliumvl, libgallium,
 -    libpipe_loader_static, libws_null, libwsw, libswdri, libswkmsdri,
@@ -1134,6 +1282,42 @@ GALLIUM_DRIVERS+=	SWRAST
      libws_null, libwsw, libswdri, libswkmsdri,
    ],
    link_depends : xa_link_depends,
+
+
+[FILE:846:sunos/patch-src_gallium_targets_xvmc_meson.build]
+--- src/gallium/targets/xvmc/meson.build.orig	2021-01-29 18:33:19 UTC
++++ src/gallium/targets/xvmc/meson.build
+@@ -39,12 +39,12 @@ libxvmc_gallium = shared_library(
+   include_directories : [
+     inc_include, inc_src, inc_mapi, inc_mesa, inc_gallium, inc_gallium_aux, inc_util, inc_gallium_winsys, inc_gallium_drivers,
+   ],
+-  link_whole : [libxvmc_st],
++  link_whole : [libxvmc_st,libradeonwinsys,libr600,_libxmlconfig,libmesa_format,libpipe_loader_static],
+   link_with : [
+     libgalliumvlwinsys, libgalliumvl, libgallium,
+     libpipe_loader_static, libws_null, libwsw, libswdri, libswkmsdri,
+   ],
+-  dependencies : [idep_mesautil, driver_r600, driver_nouveau],
++  dependencies : [idep_mesautil, driver_nouveau],
+   link_depends : xvmc_link_depends,
+   # Will be deleted during installation, see install_megadrivers.py
+   install : true,
+
+
+[FILE:510:sunos/patch-src_gbm_meson.build]
+--- src/gbm/meson.build.orig	2021-01-29 18:33:19 UTC
++++ src/gbm/meson.build
+@@ -49,8 +49,8 @@ libgbm = shared_library(
+   include_directories : incs_gbm,
+   c_args : [args_gbm],
+   link_args : [ld_args_gc_sections],
+-  link_with : libloader,
+-  dependencies : [deps_gbm, dep_dl, dep_thread, idep_mesautil, idep_xmlconfig],
++  link_with : [libloader, _libxmlconfig],
++  dependencies : [deps_gbm, dep_dl, dep_thread, idep_mesautil],
+   gnu_symbol_visibility : 'hidden',
+   version : '1.0.0',
+   install : true,
 
 
 [FILE:983:sunos/patch-src_mesa_drivers_dri_meson.build]

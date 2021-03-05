@@ -1077,6 +1077,60 @@ lib/qt5/qml/QtTest/
  #elif COMPILER_SUPPORTS(CXX_STATIC_ASSERT)
 
 
+[FILE:587:patches/patch-src_3rdparty_masm_wtf_Compiler.h]
+$NetBSD: patch-src_3rdparty_masm_wtf_Compiler.h,v 1.1 2018/07/30 15:24:45 jperkin Exp $
+
+Limit C11 _Static_assert to C code.
+
+--- src/3rdparty/masm/wtf/Compiler.h.orig	2018-06-15 11:30:15.000000000 +0000
++++ src/3rdparty/masm/wtf/Compiler.h
+@@ -134,7 +134,7 @@
+ #if GCC_VERSION_AT_LEAST(4, 8, 0)
+ #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+ #endif
+-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
++#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined(__cplusplus)
+ /* C11 support */
+ #define WTF_COMPILER_SUPPORTS_C_STATIC_ASSERT 1
+ #endif
+
+
+[FILE:722:patches/patch-src_qml_jit_qv4assemblercommon__p.h]
+$NetBSD: patch-src_qml_jit_qv4assemblercommon__p.h,v 1.2 2020/08/22 00:28:30 joerg Exp $
+
+Add NetBSD & Solaris support.
+
+--- src/qml/jit/qv4assemblercommon_p.h.orig	2020-01-21 16:34:07.735772770 +0000
++++ src/qml/jit/qv4assemblercommon_p.h
+@@ -66,7 +66,7 @@ namespace QV4 {
+ namespace JIT {
+ 
+ #if defined(Q_PROCESSOR_X86_64) || defined(ENABLE_ALL_ASSEMBLERS_FOR_REFACTORING_PURPOSES)
+-#if defined(Q_OS_LINUX) || defined(Q_OS_QNX) || defined(Q_OS_FREEBSD) || defined(Q_OS_DARWIN)
++#if defined(Q_OS_LINUX) || defined(Q_OS_QNX) || defined(Q_OS_FREEBSD) || defined(Q_OS_DARWIN) || defined(Q_OS_NETBSD) || defined(Q_OS_SOLARIS)
+ 
+ class PlatformAssembler_X86_64_SysV : public JSC::MacroAssembler<JSC::MacroAssemblerX86_64>
+ {
+
+
+[FILE:580:patches/patch-src_qmltest_qmltest.pro]
+$NetBSD: patch-src_qmltest_qmltest.pro,v 1.1 2021/01/12 16:46:45 jperkin Exp $
+
+Workaround linking issue on SunOS.
+
+--- src/qmltest/qmltest.pro.orig	2020-10-27 08:02:12.000000000 +0000
++++ src/qmltest/qmltest.pro
+@@ -6,6 +6,8 @@ DEFINES += QT_NO_URL_CAST_FROM_STRING QT
+ QT = core testlib-private
+ QT_PRIVATE = quick quick-private qml-private gui core-private
+ 
++solaris-*:LIBS += -mimpure-text
++
+ # Testlib is only a private dependency, which results in our users not
+ # inheriting testlibs's MODULE_CONFIG transitively. Make it explicit.
+ MODULE_CONFIG += $${QT.testlib.CONFIG}
+
+
 [FILE:275:patches/patch-tests_auto_quicktest_testfiltering_quicktestmain_quicktestmain.pro]
 --- tests/auto/quicktest/testfiltering/quicktestmain/quicktestmain.pro.orig	2020-08-24 09:20:54 UTC
 +++ tests/auto/quicktest/testfiltering/quicktestmain/quicktestmain.pro

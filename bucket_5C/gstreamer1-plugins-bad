@@ -19,7 +19,6 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		autoselect-python:single:standard
 BUILDRUN_DEPENDS=	gstreamer1:primary:standard
 			gstreamer1-plugins-base:primary:standard
 			libgcrypt:single:standard
@@ -467,4 +466,158 @@ share/locale/tr/LC_MESSAGES/gst-plugins-bad-%%GSTVER%%.mo
 share/locale/uk/LC_MESSAGES/gst-plugins-bad-%%GSTVER%%.mo
 share/locale/vi/LC_MESSAGES/gst-plugins-bad-%%GSTVER%%.mo
 share/locale/zh_CN/LC_MESSAGES/gst-plugins-bad-%%GSTVER%%.mo
+
+
+[FILE:451:sunos/patch-gst-libs_gst_adaptivedemux_meson.build]
+--- gst-libs/gst/adaptivedemux/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst-libs/gst/adaptivedemux/meson.build
+@@ -9,7 +9,7 @@ gstadaptivedemux = library('gstadaptived
+   soversion : soversion,
+   darwin_versions : osxversion,
+   install : true,
+-  dependencies : [gstbase_dep, gsturidownloader_dep],
++  dependencies : [gstbase_dep, gsturidownloader_dep, libintl_dep],
+ )
+ 
+ gstadaptivedemux_dep = declare_dependency(link_with : gstadaptivedemux,
+
+
+[FILE:457:sunos/patch-gst_aiff_meson.build]
+--- gst/aiff/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/aiff/meson.build
+@@ -6,7 +6,7 @@ gstaiff = library('gstaiff',
+   aiff_sources,
+   c_args : gst_plugins_bad_args,
+   include_directories : [configinc, libsinc],
+-  dependencies : [gstbase_dep, gsttag_dep, gstaudio_dep, gstpbutils_dep, libm],
++  dependencies : [gstbase_dep, gsttag_dep, gstaudio_dep, gstpbutils_dep, libm, libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:397:sunos/patch-gst_asfmux_meson.build]
+--- gst/asfmux/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/asfmux/meson.build
+@@ -10,7 +10,7 @@ gstasfmux = library('gstasfmux',
+   asfmux_sources,
+   c_args : gst_plugins_bad_args,
+   include_directories : [configinc, libsinc],
+-  dependencies : [gstbase_dep, gstrtp_dep],
++  dependencies : [gstbase_dep, gstrtp_dep, libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:594:sunos/patch-gst_camerabin2_meson.build]
+--- gst/camerabin2/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/camerabin2/meson.build
+@@ -12,7 +12,7 @@ gstcamerabin = library('gstcamerabin',
+   c_args : gst_plugins_bad_args + ['-DGST_USE_UNSTABLE_API'],
+   include_directories : [configinc, libsinc],
+   link_with : gstbasecamerabin,
+-  dependencies : [gstbasecamerabin_dep, gstphotography_dep, gsttag_dep, gstapp_dep, gstpbutils_dep, gstbase_dep],
++  dependencies : [gstbasecamerabin_dep, gstphotography_dep, gsttag_dep, gstapp_dep, gstpbutils_dep, gstbase_dep, libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:401:sunos/patch-gst_dvdspu_meson.build]
+--- gst/dvdspu/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/dvdspu/meson.build
+@@ -10,7 +10,7 @@ gstdvdspu = library('gstdvdspu',
+   dvdspu_sources,
+   c_args : gst_plugins_bad_args,
+   include_directories : [configinc, libsinc],
+-  dependencies : [gstbase_dep, gstvideo_dep],
++  dependencies : [gstbase_dep, gstvideo_dep, libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:436:sunos/patch-gst_festival_meson.build]
+--- gst/festival/meson.build.orig       2021-01-13 21:11:25 UTC
++++ gst/festival/meson.build
+@@ -6,7 +6,7 @@ gstfestival = library('gstfestival',
+   festival_sources,
+   c_args : gst_plugins_bad_args,
+   include_directories : [configinc],
+-  dependencies : [gstbase_dep, gstaudio_dep] + winsock2,
++  dependencies : [gstbase_dep, gstaudio_dep, socket_dep, nsl_dep] + winsock2,
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:397:sunos/patch-gst_midi_meson.build]
+--- gst/midi/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/midi/meson.build
+@@ -7,7 +7,7 @@ gstmidi = library('gstmidi',
+   midi_sources,
+   c_args : gst_plugins_bad_args,
+   include_directories : [configinc, libsinc],
+-  dependencies : [gstbase_dep, gsttag_dep, libm],
++  dependencies : [gstbase_dep, gsttag_dep, libm, libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:375:sunos/patch-gst_mpegpsmux_meson.build]
+--- gst/mpegpsmux/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/mpegpsmux/meson.build
+@@ -10,7 +10,7 @@ gstmpegpsmux = library('gstmpegpsmux',
+   psmux_sources,
+   c_args : gst_plugins_bad_args,
+   include_directories : [configinc],
+-  dependencies : [gstbase_dep],
++  dependencies : [gstbase_dep, libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:487:sunos/patch-gst_mpegtsdemux_meson.build]
+--- gst/mpegtsdemux/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/mpegtsdemux/meson.build
+@@ -12,6 +12,7 @@ gstmpegtsdemux = library('gstmpegtsdemux
+   c_args : gst_plugins_bad_args + ['-DGST_USE_UNSTABLE_API'],
+   include_directories : [configinc, libsinc],
+   dependencies : [gstcodecparsers_dep, gstmpegts_dep, gsttag_dep,
++                  libintl_dep,
+                   gstpbutils_dep, gstaudio_dep, gstbase_dep, libm],
+   install : true,
+   install_dir : plugins_install_dir,
+
+
+[FILE:390:sunos/patch-gst_pcapparse_meson.build]
+--- gst/pcapparse/meson.build.orig	2021-01-13 21:11:25 UTC
++++ gst/pcapparse/meson.build
+@@ -8,7 +8,7 @@ gstpcapparse = library('gstpcapparse',
+   capp_sources,
+   c_args : gst_plugins_bad_args,
+   include_directories : [configinc],
+-  dependencies : [gstbase_dep] + winsock2,
++  dependencies : [gstbase_dep, nsl_dep] + winsock2,
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:558:sunos/patch-meson.build]
+--- meson.build.orig	2021-01-13 21:11:25 UTC
++++ meson.build
+@@ -353,6 +353,9 @@ if gstgl_dep.found()
+ endif
+ 
+ libm = cc.find_library('m', required : false)
++libintl_dep = cc.find_library('intl', required : true)
++socket_dep = cc.find_library('socket', required : true)
++nsl_dep = cc.find_library('nsl', required : true)
+ glib_dep = dependency('glib-2.0', version : glib_req, fallback: ['glib', 'libglib_dep'])
+ gmodule_dep = dependency('gmodule-2.0', fallback: ['glib', 'libgmodule_dep'])
+ gio_dep = dependency('gio-2.0', fallback: ['glib', 'libgio_dep'])
 

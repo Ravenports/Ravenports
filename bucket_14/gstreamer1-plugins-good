@@ -20,7 +20,6 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		autoselect-python:single:standard
 BUILDRUN_DEPENDS=	gstreamer1:primary:standard
 			gstreamer1-plugins-base:primary:standard
 
@@ -95,7 +94,6 @@ MESON_ARGS=		-Dalpha=enabled
 			-Dlame=disabled
 			-Dlibcaca=disabled
 			-Dmpg123=disabled
-			-Doss=enabled
 			-Doss4=enabled
 			-Dosxaudio=disabled
 			-Dosxvideo=disabled
@@ -129,6 +127,11 @@ MESON_ARGS=		-Dalpha=enabled
 
 SOVERSION=		0.1803.0
 PLIST_SUB=		GSTVER=1.0
+
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=enabled
+VAR_OPSYS[sunos]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=disabled
+VAR_OPSYS[linux]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=enabled
+VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=enabled
 
 [FILE:91:descriptions/desc.primary]
 This package contains self-contained plugins from the "good" plugin set
@@ -715,4 +718,106 @@ share/locale/zh_TW/LC_MESSAGES/gst-plugins-good-%%GSTVER%%.mo
      goto dodgy_width;
  
    tmp = ilog2 (spec->segsize);
+
+
+[FILE:576:sunos/patch-gst_avi_meson.build]
+--- gst/avi/meson.build.orig	2021-01-13 21:08:52 UTC
++++ gst/avi/meson.build
+@@ -4,12 +4,13 @@ avi_sources = [
+   'gstavidemux.c',
+   'gstavisubtitle.c'
+ ]
++libintl_dep = cc.find_library('intl', required : true)
+ 
+ gstavi = library('gstavi',
+   avi_sources,
+   c_args : gst_plugins_good_args,
+   include_directories : [configinc, libsinc],
+-  dependencies : [gst_dep, gstriff_dep, gstaudio_dep, gstvideo_dep, gsttag_dep],
++  dependencies : [gst_dep, gstriff_dep, gstaudio_dep, gstvideo_dep, gsttag_dep,libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:624:sunos/patch-gst_isomp4_meson.build]
+--- gst/isomp4/meson.build.orig	2021-01-13 21:08:53 UTC
++++ gst/isomp4/meson.build
+@@ -16,6 +16,7 @@ mp4_sources = [
+   'properties.c',
+   'gstqtmuxmap.c'
+ ]
++libintl_dep = cc.find_library('intl', required : true)
+ 
+ gstisomp4 = library('gstisomp4',
+   mp4_sources,
+@@ -23,6 +24,7 @@ gstisomp4 = library('gstisomp4',
+   link_args : noseh_link_args,
+   include_directories : [configinc, libsinc],
+   dependencies : [gst_dep, gstriff_dep, gstaudio_dep, gstvideo_dep,
++                  libintl_dep,
+                   gstrtp_dep, gsttag_dep, gstpbutils_dep, zlib_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+
+
+[FILE:596:sunos/patch-gst_rtsp_meson.build]
+--- gst/rtsp/meson.build.orig	2021-01-13 21:08:53 UTC
++++ gst/rtsp/meson.build
+@@ -4,12 +4,13 @@ rtsp_sources = [
+   'gstrtpdec.c',
+   'gstrtspext.c',
+ ]
++libintl_dep = cc.find_library('intl', required : true)
+ 
+ gstrtsp = library('gstrtsp',
+   rtsp_sources,
+   c_args : gst_plugins_good_args,
+   include_directories : [configinc, libsinc],
+-  dependencies : [gstbase_dep, gio_dep, gstrtp_dep, gstrtsp_dep, gstsdp_dep, gstnet_dep],
++  dependencies : [gstbase_dep, gio_dep, gstrtp_dep, gstrtsp_dep, gstsdp_dep, gstnet_dep, libintl_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:540:sunos/patch-gst_udp_meson.build]
+--- gst/udp/meson.build.orig	2021-01-13 21:08:53 UTC
++++ gst/udp/meson.build
+@@ -6,12 +6,13 @@ udp_sources = [
+   'gstdynudpsink.c',
+   'gstudpnetutils.c'
+ ]
++socket_dep = cc.find_library('socket', required : true)
+ 
+ gstudp = library('gstudp',
+   udp_sources,
+   c_args : gst_plugins_good_args,
+   include_directories : [configinc, libsinc],
+-  dependencies : [gst_dep, gstbase_dep, gstnet_dep, gio_dep],
++  dependencies : [gst_dep, gstbase_dep, gstnet_dep, gio_dep,socket_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+ )
+
+
+[FILE:664:sunos/patch-sys_oss4_meson.build]
+--- sys/oss4/meson.build.orig	2021-01-13 21:08:53 UTC
++++ sys/oss4/meson.build
+@@ -15,13 +15,14 @@ if not oss4_option.disabled()
+ endif
+ 
+ if have_oss4
++  libintl_dep = cc.find_library('intl', required : true)
+   message('Required headers found, building Open Sound System 4 plugin.')
+ 
+   plugins += [library('gstoss4',
+     'oss4-audio.c', 'oss4-property-probe.c', 'oss4-sink.c', 'oss4-source.c',
+     c_args : gst_plugins_good_args,
+     include_directories : [configinc, libsinc],
+-    dependencies : [gstaudio_dep, gstbase_dep],
++    dependencies : [gstaudio_dep, gstbase_dep, libintl_dep],
+     install : true,
+     install_dir : plugins_install_dir)]
+ else
 

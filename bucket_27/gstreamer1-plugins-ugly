@@ -19,7 +19,6 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		autoselect-python:single:standard
 BUILDRUN_DEPENDS=	gstreamer1:primary:standard
 			gstreamer1-plugins-base:primary:standard
 
@@ -120,4 +119,30 @@ share/locale/tr/LC_MESSAGES/gst-plugins-ugly-%%GSTVER%%.mo
 share/locale/uk/LC_MESSAGES/gst-plugins-ugly-%%GSTVER%%.mo
 share/locale/vi/LC_MESSAGES/gst-plugins-ugly-%%GSTVER%%.mo
 share/locale/zh_CN/LC_MESSAGES/gst-plugins-ugly-%%GSTVER%%.mo
+
+
+[FILE:429:sunos/patch-gst_asfdemux_meson.build]
+--- gst/asfdemux/meson.build.orig	2021-01-13 21:09:15 UTC
++++ gst/asfdemux/meson.build
+@@ -13,6 +13,7 @@ gstasf = library('gstasf',
+   include_directories : [configinc, libsinc],
+   dependencies : [gstbase_dep, gstrtp_dep, gstvideo_dep,
+                   gstaudio_dep, gsttag_dep, gstriff_dep,
++                  libintl_dep,
+                   gstrtsp_dep, gstsdp_dep],
+   install : true,
+   install_dir : plugins_install_dir,
+
+
+[FILE:452:sunos/patch-meson.build]
+--- meson.build.orig	2021-01-13 21:09:15 UTC
++++ meson.build
+@@ -148,6 +148,7 @@ gstcheck_dep = dependency('gstreamer-che
+ gstcontroller_dep = dependency('gstreamer-controller-1.0', version : gst_req,
+   fallback : ['gstreamer', 'gst_controller_dep'])
+ 
++libintl_dep = cc.find_library('intl', required : true)
+ orc_dep = dependency('orc-0.4', version : '>= 0.4.16', required : get_option('orc'),
+     fallback : ['orc', 'orc_dep'])
+ if orc_dep.found()
 

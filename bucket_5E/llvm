@@ -2007,20 +2007,6 @@ share/opt-viewer/
  # Make sure we don't get -rdynamic in every binary. For those that need it,
 
 
-[FILE:463:patches/patch-cmake_config.guess]
---- cmake/config.guess.orig	2021-02-03 21:51:10 UTC
-+++ cmake/config.guess
-@@ -340,7 +340,7 @@ case "${UNAME_MACHINE}:${UNAME_SYSTEM}:$
-     i86pc:AuroraUX:5.*:* | i86xen:AuroraUX:5.*:*)
- 	echo i386-pc-auroraux${UNAME_RELEASE}
- 	exit ;;
--    i86pc:SunOS:5.*:* | i86xen:SunOS:5.*:*)
-+    i86pc:SunOS:5.*:* | i86xen:SunOS:5.*:* | x86_64:SunOS:5.*:*)
- 	eval $set_cc_for_build
- 	SUN_ARCH="i386"
- 	# If there is a compiler, see if it is configured for 64-bit objects.
-
-
 [FILE:757:patches/patch-cmake_modules_AddLLVM.cmake]
 --- cmake/modules/AddLLVM.cmake.orig	2021-02-03 21:51:10 UTC
 +++ cmake/modules/AddLLVM.cmake
@@ -2079,6 +2065,25 @@ Don't implement sys/regset.h workaround, fix source instead.
  #endif /* LLVM_C_DATATYPES_H */
 
 
+[FILE:353:patches/patch-include_llvm_ADT_SmallVector.h]
+Fix SunOS CS,DS conflict not handled by include/llvm-c/DataTypes.h
+
+--- include/llvm/ADT/SmallVector.h.orig	2021-02-03 21:51:10 UTC
++++ include/llvm/ADT/SmallVector.h
+@@ -33,6 +33,11 @@
+ #include <type_traits>
+ #include <utility>
+ 
++#ifdef __sun
++#undef CS
++#undef DS
++#endif
++
+ namespace llvm {
+ 
+ /// This is all the stuff common to all SmallVectors.
+
+
 [FILE:483:patches/patch-include_llvm_Analysis_ConstantFolding.h]
 $NetBSD: patch-include_llvm_Analysis_ConstantFolding.h,v 1.1 2019/01/26 21:17:20 tnn Exp $
 
@@ -2097,6 +2102,37 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  namespace llvm {
  class APInt;
  template <typename T> class ArrayRef;
+
+
+[FILE:454:patches/patch-include_llvm_DebugInfo_CodeView_CodeView.h]
+--- include/llvm/DebugInfo/CodeView/CodeView.h.orig	2021-02-03 21:51:10 UTC
++++ include/llvm/DebugInfo/CodeView/CodeView.h
+@@ -16,6 +16,25 @@
+ #include <cinttypes>
+ #include <type_traits>
+ 
++#ifdef __sun
++#undef ERR
++#undef EAX
++#undef ECX
++#undef EDX
++#undef EBX
++#undef ESP
++#undef EBP
++#undef ESI
++#undef EDI
++#undef EIP
++#undef CS
++#undef DS
++#undef ES
++#undef FS
++#undef GS
++#undef SS
++#endif
++
+ #include "llvm/Support/Endian.h"
+ 
+ namespace llvm {
 
 
 [FILE:410:patches/patch-lib_ObjectYAML_MachOYAML.cpp]
@@ -2121,6 +2157,36 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  namespace llvm {
  
  MachOYAML::LoadCommand::~LoadCommand() = default;
+
+
+[FILE:455:patches/patch-lib_Target_X86_MCTargetDesc_X86MCTargetDesc.h]
+--- lib/Target/X86/MCTargetDesc/X86MCTargetDesc.h.orig	2021-02-03 21:51:10 UTC
++++ lib/Target/X86/MCTargetDesc/X86MCTargetDesc.h
+@@ -16,6 +16,24 @@
+ #include <memory>
+ #include <string>
+ 
++#ifdef __sun
++#undef EAX
++#undef ECX
++#undef EDX
++#undef EBX
++#undef ESP
++#undef EBP
++#undef ESI
++#undef EDI
++#undef EIP
++#undef CS
++#undef DS
++#undef ES
++#undef FS
++#undef GS
++#undef SS
++#endif
++
+ namespace llvm {
+ class formatted_raw_ostream;
+ class MCAsmBackend;
 
 
 [FILE:505:patches/patch-tools_llvm-objcopy_MachO_MachOLayoutBuilder.cpp]
@@ -2193,6 +2259,32 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  namespace llvm {
  namespace objcopy {
  namespace macho {
+
+
+[FILE:488:patches/patch-tools_llvm-readobj_ELFDumper.cpp]
+--- tools/llvm-readobj/ELFDumper.cpp.orig	2021-02-03 21:51:10 UTC
++++ tools/llvm-readobj/ELFDumper.cpp
+@@ -68,6 +68,20 @@
+ #include <unordered_set>
+ #include <vector>
+ 
++#ifdef __sun
++extern "C" {
++  static size_t
++  strnlen(const char *s, size_t maxlen)
++  {
++       size_t len;
++       for (len = 0; len < maxlen; len++, s++) {
++               if (!*s) break;
++       }
++       return (len);
++  }
++}
++#endif
++
+ using namespace llvm;
+ using namespace llvm::object;
+ using namespace ELF;
 
 
 [FILE:435:patches/patch-tools_llvm-readobj_ObjDumper.cpp]

@@ -18,7 +18,6 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		gstreamer1-plugins-bad:primary:standard
-			autoselect-python:single:standard
 BUILDRUN_DEPENDS=	gstreamer1-plugins-base:primary:standard
 			gstreamer1:primary:standard
 			libssh2:single:standard
@@ -206,13 +205,11 @@ post-patch:
 	${REINPLACE_CMD} \
 		-e "/subdir..gst-libs../d" \
 		-e "/subdir..pkgconfig../d" \
-		${WRKSRC}/meson.build
-	${REINPLACE_CMD} -e "/subdir..wayland../d" \
-		${WRKSRC}/ext/meson.build
-	${REINPLACE_CMD} \
 		-e "/subdir..tools../d" \
 		-e "/subdir..data../d" \
 		${WRKSRC}/meson.build
+	${REINPLACE_CMD} -e "/subdir..wayland../d" \
+		${WRKSRC}/ext/meson.build
 
 [FILE:39:descriptions/desc.single]
 This package contains the CURL plugin.
@@ -224,4 +221,31 @@ b7e34b6b86272588fbd8b314dadfa6ceff895198cfb59e2950378e9e31ff22e0      5637764 gs
 
 [FILE:45:manifests/plist.single]
 lib/gstreamer-%%GSTVER%%/libgst%%PLUGIN%%.so
+
+
+[FILE:411:sunos/patch-ext_curl_meson.build]
+--- ext/curl/meson.build.orig	2021-01-13 21:11:25 UTC
++++ ext/curl/meson.build
+@@ -22,7 +22,7 @@ if curl_dep.found()
+     curl_sources,
+     c_args : gst_plugins_bad_args,
+     include_directories : [configinc, libsinc],
+-    dependencies : [gstbase_dep, curl_dep] + winsock2,
++    dependencies : [gstbase_dep, curl_dep, socket_dep] + winsock2,
+     install : true,
+     install_dir : plugins_install_dir,
+   )
+
+
+[FILE:451:sunos/patch-meson.build]
+--- meson.build.orig	2021-01-13 21:11:25 UTC
++++ meson.build
+@@ -353,6 +353,7 @@ if gstgl_dep.found()
+ endif
+ 
+ libm = cc.find_library('m', required : false)
++socket_dep = cc.find_library('socket', required : true)
+ glib_dep = dependency('glib-2.0', version : glib_req, fallback: ['glib', 'libglib_dep'])
+ gmodule_dep = dependency('gmodule-2.0', fallback: ['glib', 'libgmodule_dep'])
+ gio_dep = dependency('gio-2.0', fallback: ['glib', 'libgio_dep'])
 

@@ -7,12 +7,16 @@
 snippet_dirfd()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_DIRFD
+#define RAVSTATIC_DIRFD
+
 #include <dirent.h>
 
 static int
 dirfd(DIR *dirp) {
 	return (dirp->dd_fd);
 }
+#endif
 
 EOF
 } # snippet_dirfd
@@ -20,6 +24,9 @@ EOF
 snippet_mkdtemp()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_MKDTEMP
+#define RAVSTATIC_MKDTEMP
+
 #include <stdlib.h>
 #include <sys/stat.h>
 
@@ -31,6 +38,7 @@ mkdtemp(char *template) {
 		return (template);
 	}
 }
+#endif
 
 EOF
 } # snippet_mkdtemp
@@ -38,6 +46,9 @@ EOF
 snippet_asprintf()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_ASPRINTF
+#define RAVSTATIC_ASPRINTF
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -80,6 +91,7 @@ asprintf(char **strp, const char *fmt, ...)
     va_end(args);
     return (status);
 }
+#endif
 
 EOF
 } # snippet_asprintf
@@ -87,6 +99,9 @@ EOF
 snippet_strnlen()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_STRNLEN
+#define RAVSTATIC_STRNLEN
+
 #include <string.h>
 
 static size_t
@@ -98,6 +113,7 @@ strnlen(const char *s, size_t maxlen)
        }
        return (len);
 }
+#endif
 
 EOF
 } # snippet_strnlen
@@ -105,6 +121,9 @@ EOF
 snippet_strndup()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_STRNDUP
+#define RAVSTATIC_STRNDUP
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -123,6 +142,7 @@ strndup(const char *str, size_t n)
     copy[len] = '\0';
     return (copy);
 }
+#endif
 
 EOF
 } # snippet_strndup
@@ -222,6 +242,9 @@ EOF
 snippet_getline()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_GETLINE
+#define RAVSTATIC_GETLINE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -272,12 +295,17 @@ getline(char **buf, size_t *bufsiz, FILE *fp)
 {
 	return getdelim(buf, bufsiz, '\n', fp);
 }
+#endif
+
 EOF
 } # snippet_getline
 
 snippet_timegm()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_TIMEGM
+#define RAVSTATIC_TIMEGM
+
 #include <time.h>
 #include <errno.h>
 #include <limits.h>
@@ -440,6 +468,7 @@ timegm(struct tm *const tmp)
 	tmp->tm_isdst  = 0;
 	return ((time_t) result);
 }
+#endif
 
 EOF
 } # snippet_timegm
@@ -447,6 +476,9 @@ EOF
 snippet_strsep()
 {
 	cat << 'EOF'
+#ifndef RAVSTATIC_STRSEP
+#define RAVSTATIC_STRSEP
+
 #include <string.h>
 #include <stdio.h>
 
@@ -476,6 +508,7 @@ strsep(char **stringp, const char *delim)
 	}
 	/* NOTREACHED */
 }
+#endif
 
 EOF
 } # snippet_strsep
