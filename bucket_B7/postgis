@@ -2,6 +2,7 @@
 
 NAMEBASE=		postgis
 VERSION=		3.1.1
+REVISION=		1
 KEYWORDS=		databases geography
 VARIANTS=		standard
 SDESC[standard]=	Spatial and Geographic objects for PostgreSQL
@@ -17,14 +18,15 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	SFCGAL
 OPTIONS_STANDARD=	SFCGAL
 
+BUILD_DEPENDS=		libtool:single:standard
 BUILDRUN_DEPENDS=	proj:single:standard
 			geos:single:standard
 			gdal:single:standard
 			json-c:primary:standard
 			protobuf-c:single:standard
 
-USES=			gmake iconv libtool perl:build pkgconfig pcre
-			shebangfix gettext-tools gettext-runtime
+USES=			autoreconf:build gmake iconv libtool pkgconfig pcre
+			perl:build shebangfix gettext-tools gettext-runtime
 			pgsql:server,contrib
 GNOME_COMPONENTS=	libxml2 gtk2
 
@@ -65,6 +67,9 @@ post-install:
 		${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/postgis/utils )
 	# remove single readme that's not even in STD_DOCDIR
 	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/postgresql
+
+pre-configure:
+	(cd ${WRKSRC} && ${SH} ./autogen.sh)
 
 [FILE:751:descriptions/desc.single]
 PostGIS adds support for geographic objects to the PostgreSQL
@@ -624,4 +629,188 @@ share/postgresql/icons/hicolor/42x42/apps/shp2pgsql-gui.png
 share/postgresql/icons/hicolor/48x48/apps/shp2pgsql-gui.png
 share/postgresql/icons/hicolor/64x64/apps/shp2pgsql-gui.png
 share/postgresql/icons/hicolor/8x8/apps/shp2pgsql-gui.png
+
+
+[FILE:6224:patches/patch-configure.ac]
+--- configure.ac.orig	2021-01-28 19:10:31 UTC
++++ configure.ac
+@@ -864,6 +864,7 @@ elif test ! -z "$PKG_CONFIG"; then
+ 		[
+ 			PROJ_CPPFLAGS="$PROJ_CFLAGS"
+ 			PROJ_LDFLAGS="$PROJ_LIBS"
++			POSTGIS_PROJ_VERSION=`$PKG_CONFIG proj --modversion | sed 's/\([[0-9]]\).*\([[0-9]]\).*\([[0-9]]\)/\1\2/'`
+ 		],
+ 		[
+ 			PROJ_LDFLAGS="-lproj"
+@@ -885,8 +886,10 @@ AC_CHECK_HEADER([proj_api.h],
+ 		)]
+ 	)
+ 
+-dnl Return the PROJ.4 version number
+-AC_PROJ_VERSION([POSTGIS_PROJ_VERSION])
++dnl Return the PROJ.4 version number if not detected by pkg-config
++if test "x$POSTGIS_PROJ_VERSION" = "x"; then
++	AC_PROJ_VERSION([POSTGIS_PROJ_VERSION])
++fi
+ AC_DEFINE_UNQUOTED([POSTGIS_PROJ_VERSION], [$POSTGIS_PROJ_VERSION], [PROJ library version])
+ AC_SUBST([POSTGIS_PROJ_VERSION])
+ CPPFLAGS="$CPPFLAGS_SAVE"
+@@ -902,12 +905,15 @@ AC_SUBST([PROJ_LDFLAGS])
+ dnl Ensure we can link against libproj
+ LIBS_SAVE="$LIBS"
+ LIBS="$PROJ_LDFLAGS"
+-AC_CHECK_LIB([proj], [pj_get_release],
+-	[],
+-	[AC_MSG_ERROR([could not find libproj - you may need to specify the directory of a PROJ installation using --with-projdir])],
++AC_CHECK_LIB([proj], [pj_get_release], [],
++	[AC_CHECK_LIB([proj], [proj_info], [],
++		[AC_MSG_ERROR([could not find libproj - you may need to specify the directory of a PROJ installation using --with-projdir])],
++		[]
++		)],
+ 	[])
+ LIBS="$LIBS_SAVE"
+ 
++
+ dnl ===========================================================================
+ dnl Detect if json-c installed
+ dnl ===========================================================================
+@@ -1462,74 +1468,67 @@ dnl ====================================
+ 
+ dnl Wagyu will only be necessary if protobuf is present to build MVTs
+ 
+-HAVE_WAGYU=no
+ if test "x$HAVE_PROTOBUF" = "xyes"; then
+-    AC_ARG_WITH([wagyu], AC_HELP_STRING([--without-wagyu], [Don't use the wagyu library]), [], [])
+-
+-    if test "x$with_wagyu" != xno; then
+-            AC_MSG_RESULT([WAGYU: Wagyu usage requested])
++    DEPS_SUBDIR="deps"
++    AC_SUBST([DEPS_SUBDIR])
+ 
+-            DEPS_SUBDIR="deps"
+-            AC_SUBST([DEPS_SUBDIR])
++    WAGYU_LIB=libwagyu.la
++    AC_SUBST([WAGYU_LIB])
+ 
+-            WAGYU_LIB=libwagyu.la
+-            AC_SUBST([WAGYU_LIB])
+-
+-            dnl ============================================================
+-            dnl We force  to use the same compiler as Postgresql
+-            dnl ============================================================
+-            CXX_SAVE="$CXX"
+-            CC_SAVE="$CC"
+-            CFLAGS_SAVE="$CFLAGS"
+-            CXXFLAGS_SAVE="$CXXFLAGS"
+-            CPPFLAGS_SAVE="$CPPFLAGS"
+-            LDFLAGS_SAVE="$LDFLAGS"
+-            LIBS_SAVE="$LIBS"
+-
+-            WAGYU_CXX=`"$PG_CONFIG" --cc`
+-            CPPFLAGS="-x c++"
+-            CFLAGS=""
+-            LDFLAGS=""
+-            LIBS=""
+-            CXX="$WAGYU_CXX"
+-            AC_PROG_CXX
+-            AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
+-            WAGYU_CXX="$CXX -x c++"
+-
+-            dnl ============================================================
+-            dnl Check if we can declare the c++ stdlib
+-            dnl ============================================================
+-            CC="$WAGYU_CXX"
+-
+-            AC_CHECK_LIB(c++, main, [HAVE_CPP=yes], [HAVE_CPP=no])
+-            AC_CHECK_LIB(stdc++, main, [HAVE_STDCPP=yes], [HAVE_STDCPP=no])
+-
+-            if test "x$HAVE_CPP" = "xyes"; then
+-                WAGYU_LDFLAGS="-lc++"
+-            elif test "x$HAVE_STDCPP" = "xyes"; then
+-                WAGYU_LDFLAGS="-lstdc++"
+-            else
+-                AC_MSG_WARN("Could not find a C++ standard library")
+-                WAGYU_LDFLAGS=""
+-            fi
++    dnl ============================================================
++    dnl We force  to use the same compiler as Postgresql
++    dnl ============================================================
++    CXX_SAVE="$CXX"
++    CC_SAVE="$CC"
++    CFLAGS_SAVE="$CFLAGS"
++    CXXFLAGS_SAVE="$CXXFLAGS"
++    CPPFLAGS_SAVE="$CPPFLAGS"
++    LDFLAGS_SAVE="$LDFLAGS"
++    LIBS_SAVE="$LIBS"
++
++    WAGYU_CXX=`"$PG_CONFIG" --cc`
++    CPPFLAGS="-x c++"
++    CFLAGS=""
++    LDFLAGS=""
++    LIBS=""
++    CXX="$WAGYU_CXX"
++    AC_PROG_CXX
++    AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
++    WAGYU_CXX="$CXX -x c++"
++
++    dnl ============================================================
++    dnl Check if we can declare the c++ stdlib
++    dnl ============================================================
++    CC="$WAGYU_CXX"
++
++    AC_CHECK_LIB(c++, main, [HAVE_CPP=yes], [HAVE_CPP=no])
++    AC_CHECK_LIB(stdc++, main, [HAVE_STDCPP=yes], [HAVE_STDCPP=no])
++
++    if test "x$HAVE_CPP" = "xyes"; then
++        WAGYU_LDFLAGS="-lc++"
++    elif test "x$HAVE_STDCPP" = "xyes"; then
++        WAGYU_LDFLAGS="-lstdc++"
++    else
++        AC_MSG_WARN("Could not find a C++ standard library")
++        WAGYU_LDFLAGS=""
++    fi
+ 
+-            CXX="$CXX_SAVE"
+-            CC="$CC_SAVE"
+-            CFLAGS="$CFLAGS_SAVE"
+-            CXXFLAGS="$CXXFLAGS_SAVE"
+-            CPPFLAGS="$CPPFLAGS_SAVE"
+-            LDFLAGS="$LDFLAGS_SAVE"
+-            LIBS="$LIBS_SAVE"
+-
+-            HAVE_WAGYU=yes
+-            AC_DEFINE([HAVE_WAGYU], [1], [Define to 1 if wagyu is being built])
+-            AC_SUBST([HAVE_WAGYU])
+-            AC_SUBST([WAGYU_CXX])
+-            AC_SUBST([WAGYU_LDFLAGS])
++    CXX="$CXX_SAVE"
++    CC="$CC_SAVE"
++    CFLAGS="$CFLAGS_SAVE"
++    CXXFLAGS="$CXXFLAGS_SAVE"
++    CPPFLAGS="$CPPFLAGS_SAVE"
++    LDFLAGS="$LDFLAGS_SAVE"
++    LIBS="$LIBS_SAVE"
++
++    HAVE_WAGYU=yes
++    AC_DEFINE([HAVE_WAGYU], [1], [Define to 1 if wagyu is being built])
++    AC_SUBST([HAVE_WAGYU])
++    AC_SUBST([WAGYU_CXX])
++    AC_SUBST([WAGYU_LDFLAGS])
+ 
+-            DEPS_MAKEFILE_LIST="$DEPS_MAKEFILE_LIST
+-                    deps/wagyu/Makefile"
+-    fi
++    DEPS_MAKEFILE_LIST="$DEPS_MAKEFILE_LIST
++            deps/wagyu/Makefile"
+ fi
+ 
+ dnl ===========================================================================
+@@ -1653,7 +1652,6 @@ fi
+ 
+ AC_MSG_RESULT([  PCRE support:         ${HAVE_PCRE}])
+ AC_MSG_RESULT([  Perl:                 ${PERL}])
+-AC_MSG_RESULT([  Wagyu:                ${HAVE_WAGYU}])
+ 
+ AC_MSG_RESULT()
+ AC_MSG_RESULT([ --------------- Extensions --------------- ])
 
