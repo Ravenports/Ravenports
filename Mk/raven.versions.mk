@@ -130,8 +130,8 @@ FIREBIRD_3.0_VERSION=	3.0.7
 PHP_DEFAULT?=		7.4
 
 PHP_7.3_VERSION=	7.3.27
-PHP_7.4_VERSION=	7.4.15
-PHP_8.0_VERSION=	8.0.2
+PHP_7.4_VERSION=	7.4.16
+PHP_8.0_VERSION=	8.0.3
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
