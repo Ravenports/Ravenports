@@ -513,6 +513,38 @@ strsep(char **stringp, const char *delim)
 EOF
 } # snippet_strsep
 
+snippet_strcasestr()
+{
+	cat << 'EOF'
+#ifndef RAVSTATIC_STRCASESTR
+#define RAVSTATIC_STRCASESTR
+
+#include <ctype.h>
+#include <string.h>
+
+char *
+strcasestr(const char *s, const char *find)
+{
+	char c, sc;
+	size_t len;
+
+	if ((c = *find++) != 0) {
+		c = (char)tolower((unsigned char)c);
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+			} while ((char)tolower((unsigned char)sc) != c);
+		} while (strncasecmp(s, find, len) != 0);
+		s--;
+	}
+	return ((char *)s);
+}
+#endif
+
+EOF
+} # snippet_strcasestr
 
 case "$1" in
 	dirfd)    snippet_dirfd ;;
@@ -524,7 +556,8 @@ case "$1" in
 	getline)  snippet_getline ;;
 	err.h)    snippet_err_h ;;
 	timegm)   snippet_timegm ;;
+	strcasestr) snippet_strcasestr ;;
 	*) echo "Invalid selection (dirfd, mkdtemp, asprintf, strnlen, strsep"
-	   echo "                   strndup, getline, err.h, timegm)"
+	   echo "                   strndup, strcasestr, getline, err.h, timegm)"
 	   ;;
 esac

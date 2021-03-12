@@ -178,6 +178,11 @@ post-install:
 	${INSTALL_DATA} ${WRKSRC}/doc/APIchanges ${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_DATA} ${WRKSRC}/doc/*.txt ${STAGEDIR}${STD_DOCDIR}
 
+post-patch-sunos:
+	${REINPLACE_CMD} -e '/^enabled libxvid/ s/$$/ -lrt/' \
+		-e '/append SHFLAGS.*version_script/d' \
+		${WRKSRC}/configure
+
 [FILE:843:descriptions/desc.primary]
 FFmpeg is the leading multimedia framework, able to decode, encode,
 transcode, mux, demux, stream, filter and play pretty much anything that
@@ -448,26 +453,6 @@ share/ffmpeg/examples/
  scaling_video.c
  transcode_aac.c
  transcoding.c
-
-
-[FILE:403:patches/patch-configure]
---- configure.orig	2021-02-20 20:27:47 UTC
-+++ configure
-@@ -3744,13 +3744,7 @@ target_os_default=$(tolower $(uname -s))
- host_os=$target_os_default
- 
- # machine
--if test "$target_os_default" = aix; then
--    arch_default=$(uname -p)
--    strip_default="strip -X32_64"
--    nm_default="nm -g -X32_64"
--else
--    arch_default=$(uname -m)
--fi
-+arch_default=$(uname -p)
- cpu="generic"
- intrinsics="none"
- 
 
 
 [FILE:287:patches/patch-doc_Makefile]

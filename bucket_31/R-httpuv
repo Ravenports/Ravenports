@@ -48,6 +48,33 @@ information.)
 0be6c98927c7859d4bbfbbec8822c9f5e95352077d87640a76bc2ade07c83117      1805106 CRAN/httpuv_1.5.5.tar.gz
 
 
+[FILE:1090:patches/patch-src_Makevars]
+--- src/Makevars.orig	2020-06-05 16:40:07 UTC
++++ src/Makevars
+@@ -35,7 +35,7 @@ CONFIGURE_FLAGS="--quiet"
+ 
+ #### Other flags ####
+ # Uncomment to suppress lots of warnings on Fedora 28
+-# PKG_CPPFLAGS += -Wno-deprecated-declarations -Wno-parentheses
++PKG_CPPFLAGS += -Wno-deprecated-declarations -Wno-parentheses
+ # Fedora 28 defines _GLIBCXX_ASSERTIONS, so we better define it everywhere
+ # to catch issues earlier.
+ # jcheng 2018-06-18: Disabling _GLIBCXX_ASSERTIONS for now, as it causes
+@@ -64,9 +64,10 @@ libuv/m4/lt~obsolete.m4: libuv/m4/lt_obs
+ # precisely the same timestamp value.
+ libuv/Makefile: libuv/m4/lt~obsolete.m4
+ 	(cd libuv \
+-		&& touch aclocal.m4 \
+-		&& touch -r aclocal.m4 configure Makefile.in \
+ 		&& chmod +x configure \
++		&& touch configure.ac \
++		&& touch -r configure.ac Makefile.am aclocal.m4 *.in m4/* \
++               && touch -r aclocal.m4 configure.ac configure \
+ 		&& CC="$(CC)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure $(CONFIGURE_FLAGS))
+ 
+ libuv/.libs/libuv.a: libuv/Makefile
+
+
 [FILE:733:patches/patch-src_unix_freebsd.c]
 --- src/libuv/src/unix/freebsd.c.orig	2020-05-15 16:23:13 UTC
 +++ src/libuv/src/unix/freebsd.c

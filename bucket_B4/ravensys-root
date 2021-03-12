@@ -8946,7 +8946,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:24330:files/Makefile]
+[FILE:25071:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
@@ -9848,6 +9848,47 @@ install:
 		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/
 .  endfor
 .endif
+.if ${OPSYS} == SunOS
+	# Fix headers for C++
+	(cd ${DESTDIR}${BASE}/usr/include && sed -i'' -e \
+		's|\(__cplusplus >= 199711L\)|(!defined __clang__ \&\& \1)|g' \
+		ctype.h \
+		errno.h \
+		iso/ctype_iso.h \
+		iso/locale_iso.h \
+		iso/setjmp_iso.h \
+		iso/signal_iso.h \
+		iso/stdarg_iso.h \
+		iso/stddef_iso.h \
+		iso/stdio_iso.h \
+		iso/stdlib_iso.h \
+		iso/string_iso.h \
+		iso/time_iso.h \
+		iso/wchar_iso.h \
+		iso/wctype_iso.h \
+		limits.h \
+		locale.h \
+		memory.h \
+		mon.h \
+		setjmp.h \
+		signal.h \
+		stdarg.h \
+		stddef.h \
+		stdio.h \
+		stdlib.h \
+		string.h \
+		time.h \
+		wchar.h \
+		wctype.h \
+		sys/sunddi.h \
+		sys/systm.h \
+		sys/systm.h \
+		sys/time_impl.h \
+		sys/time_std_impl.h \
+		sys/types.h \
+		sys/un.h \
+	)
+.endif
 	# install ccache
 	cp ${LOCALBASE}/bin/ccache ${DESTDIR}${BASE}/usr/libexec/
 	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/cc
@@ -10029,7 +10070,7 @@ RSYS=			${PREFIX}/${SYSPATH}
 FOS=			${WRKDIR}/${OPSYS:tl}
 
 
-[FILE:2026:files/validate_pkgs.sh]
+[FILE:2080:files/validate_pkgs.sh]
 #!/bin/sh
 #
 # $1: prefix
@@ -10110,10 +10151,11 @@ if [ "$5" != "$uname3" ]; then
 	echo $recmsg2
 	exit 1
 fi
-if [ "$6-RAVEN" != "$uname4" ]; then
-	echo "$errmsg2 (OS.RELEASE)"
-	echo $recmsg2
-	exit 1
-fi
+# don't check release -- not all end in -RAVEN
+# if [ "$6-RAVEN" != "$uname4" ]; then
+#	echo "$errmsg2 (OS.RELEASE)"
+#	echo $recmsg2
+#	exit 1
+# fi
 echo "ravensys-uname verification test passed"
 

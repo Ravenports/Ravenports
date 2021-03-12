@@ -56,6 +56,18 @@ post-extract:
 	${CP} ${FILESDIR}/${d}_CMakeLists.txt ${WRKSRC}/${d}/CMakeLists.txt
 .endfor
 
+post-patch-sunos:
+	(cd ${WRKSRC} && \
+		${REINPLACE_CMD} -e '/define.*_POSIX_SOURCE/d' \
+		drivers/pgxwin_server.c\
+		drivers/xwdriv.c\
+		drivers/cgdriv.c\
+		sys/grgetc.c\
+		sys/grtermio.c\
+		sys_cray/grtermio.c\
+		sys_cray/grgetc.c\
+	)
+
 [FILE:408:descriptions/desc.primary]
 PGPLOT is a Fortran subroutine package for drawing graphs on a variety
 of display devices. For more details, see the manual ``PGPLOT Graphics

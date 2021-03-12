@@ -123,3 +123,59 @@ lib/cmake/lld/
  LLDTargets-release.cmake
  LLDTargets.cmake
 
+
+[FILE:503:patches/patch-MachO_ExportTrie.cpp]
+--- MachO/ExportTrie.cpp.orig	2021-02-03 21:51:10 UTC
++++ MachO/ExportTrie.cpp
+@@ -34,6 +34,22 @@
+ //
+ //===----------------------------------------------------------------------===//
+ 
++#ifdef __sun__
++#include <string.h>
++
++extern "C" {
++  static size_t
++  strnlen(const char *s, size_t maxlen)
++  {
++       size_t len;
++       for (len = 0; len < maxlen; len++, s++) {
++               if (!*s) break;
++       }
++       return (len);
++  }
++}
++#endif
++
+ #include "ExportTrie.h"
+ #include "Symbols.h"
+ 
+
+
+[FILE:525:patches/patch-MachO_InputFiles.cpp]
+--- MachO/InputFiles.cpp.orig	2021-02-03 21:51:10 UTC
++++ MachO/InputFiles.cpp
+@@ -41,6 +41,22 @@
+ //
+ //===----------------------------------------------------------------------===//
+ 
++#ifdef __sun__
++#include <string.h>
++
++extern "C" {
++  static size_t
++  strnlen(const char *s, size_t maxlen)
++  {
++       size_t len;
++       for (len = 0; len < maxlen; len++, s++) {
++               if (!*s) break;
++       }
++       return (len);
++  }
++}
++#endif
++
+ #include "InputFiles.h"
+ #include "Config.h"
+ #include "ExportTrie.h"
+

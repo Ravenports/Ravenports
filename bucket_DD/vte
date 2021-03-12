@@ -46,6 +46,8 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.6200.3
 PLIST_SUB=		VERSION=2.91
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+
 post-patch:
 	${REINPLACE_CMD} -e '/fstack-prot/d' ${WRKSRC}/meson.build
 	${REINPLACE_CMD} -e 's|linux|skipx|' ${WRKSRC}/src/pty.cc
@@ -194,7 +196,153 @@ share/locale/zh_HK/LC_MESSAGES/vte-%%VERSION%%.mo
 share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
-[FILE:1711:patches/patch-src_vte.cc]
+[FILE:703:patches/patch-src_app_app.cc]
+--- src/app/app.cc.orig	2021-02-16 15:35:49 UTC
++++ src/app/app.cc
+@@ -2487,7 +2487,15 @@ main(int argc,
+                struct termios tcattr;
+                if (tcgetattr(STDIN_FILENO, &tcattr) == 0) {
+                        saved_tcattr = tcattr;
++#ifdef __sun__
++	tcattr.c_iflag &= ~(IMAXBEL|IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
++	tcattr.c_oflag &= ~OPOST;
++	tcattr.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
++	tcattr.c_cflag &= ~(CSIZE|PARENB);
++	tcattr.c_cflag |= CS8;
++#else
+                        cfmakeraw(&tcattr);
++#endif
+                        if (tcsetattr(STDIN_FILENO, TCSANOW, &tcattr) == 0)
+                                reset_termios = true;
+                }
+
+
+[FILE:549:patches/patch-src_dumpkeys.c]
+--- src/dumpkeys.c.orig	2021-02-16 15:35:49 UTC
++++ src/dumpkeys.c
+@@ -167,7 +167,15 @@ main(int argc, char **argv)
+ 	}
+ 	original = tcattr;
+ 	signal(SIGINT, sigint_handler);
++#ifdef __sun__
++	tcattr.c_iflag &= ~(IMAXBEL|IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
++	tcattr.c_oflag &= ~OPOST;
++	tcattr.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
++	tcattr.c_cflag &= ~(CSIZE|PARENB);
++	tcattr.c_cflag |= CS8;
++#else
+ 	cfmakeraw(&tcattr);
++#endif
+ 	if (tcsetattr(STDIN_FILENO, TCSANOW, &tcattr) != 0) {
+ 		perror("tcsetattr");
+ 		return 1;
+
+
+[FILE:453:patches/patch-src_libc-glue.hh]
+--- src/libc-glue.hh.orig	2021-02-16 15:35:49 UTC
++++ src/libc-glue.hh
+@@ -220,7 +220,13 @@ fd_dup_cloexec(int oldfd,
+ {
+         auto r = int{};
+         do {
++#ifdef F_DUPFD_CLOEXEC
+                 r = fcntl(oldfd, F_DUPFD_CLOEXEC, newfd);
++#else
++                r = fcntl(oldfd, F_DUPFD, 0);
++                newfd = r;
++                fcntl(newfd, F_SETFD, FD_CLOEXEC);
++#endif
+         } while (r == -1 && errno == EINTR);
+         return r;
+ }
+
+
+[FILE:537:patches/patch-src_mev.c]
+--- src/mev.c.orig	2021-02-16 15:35:49 UTC
++++ src/mev.c
+@@ -364,7 +364,15 @@ main(int argc, char **argv)
+ 
+ 	original = tcattr;
+ 	signal(SIGINT, sigint_handler);
++#ifdef __sun__
++	tcattr.c_iflag &= ~(IMAXBEL|IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
++	tcattr.c_oflag &= ~OPOST;
++	tcattr.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
++	tcattr.c_cflag &= ~(CSIZE|PARENB);
++	tcattr.c_cflag |= CS8;
++#else
+ 	cfmakeraw(&tcattr);
++#endif
+ 	if (tcsetattr(STDIN_FILENO, TCSANOW, &tcattr) != 0) {
+ 		perror("tcsetattr");
+ 		return 1;
+
+
+[FILE:1433:patches/patch-src_pty.cc]
+--- src/pty.cc.orig	2021-02-16 15:35:49 UTC
++++ src/pty.cc
+@@ -78,6 +78,10 @@
+ 
+ #include "missing.hh"
+ 
++#ifndef O_CLOEXEC
++#define O_CLOEXEC 0
++#endif
++
+ namespace vte::base {
+ 
+ Pty*
+@@ -350,6 +354,7 @@ Pty::get_size(int* rows,
+         return false;
+ }
+ 
++#ifndef __sun__
+ static int
+ fd_set_cpkt(vte::libc::FD& fd)
+ {
+@@ -358,6 +363,7 @@ fd_set_cpkt(vte::libc::FD& fd)
+         int one = 1;
+         return ioctl(fd.get(), TIOCPKT, &one);
+ }
++#endif
+ 
+ static int
+ fd_setup(vte::libc::FD& fd)
+@@ -392,6 +398,7 @@ fd_setup(vte::libc::FD& fd)
+                 return -1;
+         }
+ 
++#ifndef __sun__
+         if (fd_set_cpkt(fd) < 0) {
+                 auto errsv = vte::libc::ErrnoSaver{};
+                 _vte_debug_print(VTE_DEBUG_PTY,
+@@ -399,6 +406,7 @@ fd_setup(vte::libc::FD& fd)
+                                  "ioctl(TIOCPKT)", g_strerror(errsv));
+                 return -1;
+         }
++#endif
+ 
+         return 0;
+ }
+@@ -458,6 +466,7 @@ _vte_pty_open_posix(void)
+         }
+ #endif /* !linux */
+ 
++#ifndef __sun__
+         if (fd_set_cpkt(fd) < 0) {
+                 auto errsv = vte::libc::ErrnoSaver{};
+                 _vte_debug_print(VTE_DEBUG_PTY,
+@@ -465,6 +474,7 @@ _vte_pty_open_posix(void)
+                                  "ioctl(TIOCPKT)", g_strerror(errsv));
+                 return {};
+         }
++#endif
+ 
+         if (grantpt(fd.get()) != 0) {
+                 auto errsv = vte::libc::ErrnoSaver{};
+
+
+[FILE:2127:patches/patch-src_vte.cc]
 --- src/vte.cc.orig	2021-02-16 15:35:49 UTC
 +++ src/vte.cc
 @@ -29,6 +29,13 @@
@@ -229,22 +377,29 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
  				switch (ret){
  					case -1:
  						err = errno;
-@@ -3988,6 +3999,7 @@ Terminal::pty_io_read(int const fd,
- 						eos = true;
+@@ -3989,11 +4000,13 @@ Terminal::pty_io_read(int const fd,
  						goto out;
  					default:
-+#ifndef __sun__
                                                  ret--;
- 
+-
++#ifndef __sun__
                                                  if (pkt_header == TIOCPKT_DATA) {
-@@ -4014,6 +4026,7 @@ Terminal::pty_io_read(int const fd,
-                                                         if (pkt_header & TIOCPKT_START) {
++#endif
+                                                         bp += ret;
+                                                         rem -= ret;
+                                                         len += ret;
++#ifndef __sun__
+                                                 } else {
+                                                         if (pkt_header & TIOCPKT_IOCTL) {
+                                                                 /* We'd like to always be informed when the termios change,
+@@ -4015,6 +4028,7 @@ Terminal::pty_io_read(int const fd,
                                                                  pty_scroll_lock_changed(false);
                                                          }
-+#endif
                                                  }
++#endif
  						break;
  				}
+ 			} while (rem);
 
 
 [FILE:267:patches/patch-src_widget.cc]

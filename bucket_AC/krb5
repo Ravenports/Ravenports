@@ -54,6 +54,7 @@ RC_SUBR=		kpropd:primary
 
 CPPFLAGS=		-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
+VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 
 post-patch:
 	${REINPLACE_CMD} -e "s|/usr/local|${PREFIX}|" \
@@ -464,6 +465,54 @@ share/examples/krb5/
  #elif defined( BSD ) && ( BSD >= 199103 ) || defined( __APPLE__ ) || \
        defined( __CYGWIN32__ ) || defined( __DJGPP__ ) || defined( __osf__ )
  #  include <machine/endian.h>
+
+
+[FILE:857:patches/patch-lib_kdb_kdb__log.c]
+$NetBSD: patch-lib_kdb_kdb__log.c,v 1.2 2020/04/09 10:57:05 adam Exp $
+
+Fix mmap/munmap -Werror=incompatible-pointer-types
+
+--- lib/kdb/kdb_log.c.orig	2021-02-18 16:35:16 UTC
++++ lib/kdb/kdb_log.c
+@@ -498,7 +498,7 @@ ulog_map(krb5_context context, const cha
+         }
+     }
+ 
+-    ulog = mmap(0, MAXLOGLEN, PROT_READ | PROT_WRITE, MAP_SHARED,
++    ulog = (kdb_hlog_t *)mmap(0, MAXLOGLEN, PROT_READ | PROT_WRITE, MAP_SHARED,
+                 log_ctx->ulogfd, 0);
+     if (ulog == MAP_FAILED) {
+         retval = errno;
+@@ -680,7 +680,11 @@ ulog_fini(krb5_context context)
+     if (log_ctx == NULL)
+         return;
+     if (log_ctx->ulog != NULL)
++#ifdef __sun
++        munmap((caddr_t)log_ctx->ulog, MAXLOGLEN);
++#else
+         munmap(log_ctx->ulog, MAXLOGLEN);
++#endif
+     if (log_ctx->ulogfd != -1)
+         close(log_ctx->ulogfd);
+     free(log_ctx);
+
+
+[FILE:506:patches/patch-patch-kprop_kproplog.c]
+$NetBSD: patch-kprop_kproplog.c,v 1.1 2020/04/09 10:57:49 adam Exp $
+
+Fix mmap -Werror=incompatible-pointer-types.
+
+--- kprop/kproplog.c.orig	2021-02-18 16:35:16 UTC
++++ kprop/kproplog.c
+@@ -412,7 +412,7 @@ map_ulog(const char *filename)
+         return NULL;
+     if (fstat(fd, &st) < 0)
+         return NULL;
+-    ulog = mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
++    ulog = (kdb_hlog_t *)mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+     return (ulog == MAP_FAILED) ? NULL : ulog;
+ }
+ 
 
 
 [FILE:1247:patches/patch-plugins_preauth_pkinit_pkinit__crypto__openssl.c]

@@ -7,6 +7,7 @@
 #  - strnlen
 #  - strndup
 #  - strsep
+#  - strcasestr
 #  - getline
 #  - timegm
 #  - <err.h>
@@ -34,6 +35,7 @@ SOL_FUNC_DIRFD=		${SOL_FUNCTIONS:Mdirfd\:*:C/.*://:O:u}
 SOL_FUNC_STRNLEN=	${SOL_FUNCTIONS:Mstrnlen\:*:C/.*://:O:u}
 SOL_FUNC_STRNDUP=	${SOL_FUNCTIONS:Mstrndup\:*:C/.*://:O:u}
 SOL_FUNC_STRSEP=	${SOL_FUNCTIONS:Mstrsep\:*:C/.*://:O:u}
+SOL_FUNC_STRCASESTR=	${SOL_FUNCTIONS:Mstrcasestr\:*:C/.*://:O:u}
 SOL_FUNC_GETLINE=	${SOL_FUNCTIONS:Mgetline\:*:C/.*://:O:u}
 SOL_FUNC_ERR_H=		${SOL_FUNCTIONS:Merr.h\:*:C/.*://:O:u}
 SOL_FUNC_TIMEGM=	${SOL_FUNCTIONS:Mtimegm\:*:C/.*://:O:u}
@@ -71,6 +73,10 @@ insertsolfunc:
 .for F in ${SOL_FUNC_STRSEP}
 	@${ECHO_MSG} "====>  Insert strsep to ${F}"
 	@${MK_SCRIPTS}/solaris-funcs.sh strsep >> ${WRKSRC}/${F}
+.endfor
+.for F in ${SOL_FUNC_STRCASESTR}
+	@${ECHO_MSG} "====>  Insert strcasestr to ${F}"
+	@${MK_SCRIPTS}/solaris-funcs.sh strcasestr >> ${WRKSRC}/${F}
 .endfor
 .for F in ${SOL_FUNC_GETLINE}
 	@${ECHO_MSG} "====>  Insert getline to ${F}"

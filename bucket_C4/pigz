@@ -34,7 +34,9 @@ MAKE_ARGS=		CC="{{CC}}"
 			CFLAGS="{{CFLAGS}}"
 			LDFLAGS="{{LDFLAGS}}"
 
-VAR_OPSYS[sunos]=	CFLAGS=-D_XPG6
+post-patch:
+	${REINPLACE_CMD} -e '/_XOPEN_SOURCE/d; /_POSIX_C_SOURCE/d'\
+		${WRKSRC}/pigz.c ${WRKSRC}/yarn.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/pigz ${STAGEDIR}${PREFIX}/bin
