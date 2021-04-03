@@ -2,6 +2,7 @@
 
 NAMEBASE=		evdev-proto
 VERSION=		5.11
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Input event device header files
@@ -68,7 +69,9 @@ post-patch:
 		${WRKSRC}/${FF} > ${WRKDIR}/.headers/${FF}.freebsd
 .endfor
 	${SED} -E -e \
-		'/# *include/s|<linux/types.h>|<sys/types.h>|' \
+		's/__u([[:digit:]]+)/uint\1_t/g ; \
+		s/__s([[:digit:]]+)/int\1_t/g ; \
+		/# *include/s|<linux/types.h>|<sys/types.h>|' \
 		${WRKSRC}/v4l2-controls.h > ${WRKDIR}/.headers/v4l2-controls.h.freebsd
 	${SED} -E -e \
 		's/__u([[:digit:]]+)/uint\1_t/g ; \

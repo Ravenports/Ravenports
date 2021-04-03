@@ -1293,6 +1293,48 @@ share/doc/wireshark/
  #endif
 
 
+[FILE:1302:patches/patch-fix-for-cmake320]
+From be2b0fc810fb2f2a80e471138dc29f0cbe87b209 Mon Sep 17 00:00:00 2001
+From: Gerald Combs <gerald@wireshark.org>
+Date: Fri, 26 Mar 2021 12:52:01 -0700
+Subject: [PATCH] CMake: Enable AUTO{MOC,UIC,RCC} earlier.
+
+Enable CMAKE_AUTOMOC, CMAKE_AUTOUIC, and CMAKE_AUTORCC before searching
+for Qt packages. This is apparently required for CMake 3.20.0 and later.
+Fixes #17314.
+---
+ CMakeLists.txt       | 4 ++++
+ ui/qt/CMakeLists.txt | 4 ----
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+--- CMakeLists.txt.orig	2021-03-10 18:21:20 UTC
++++ CMakeLists.txt
+@@ -1083,6 +1083,10 @@ ws_find_package(Systemd BUILD_sdjournal
+ 
+ # Build the Qt GUI?
+ if(BUILD_wireshark)
++	set(CMAKE_AUTOMOC ON)
++	set(CMAKE_AUTOUIC ON)
++	set(CMAKE_AUTORCC ON)
++
+ 	# Untested, may not work if CMAKE_PREFIX_PATH gets overwritten
+ 	# somewhere. The if WIN32 in this place is annoying as well.
+ 	if(WIN32)
+--- ui/qt/CMakeLists.txt.orig	2021-03-10 18:21:20 UTC
++++ ui/qt/CMakeLists.txt
+@@ -631,10 +631,6 @@ include_directories(
+ 	${CMAKE_CURRENT_SOURCE_DIR}
+ )
+ 
+-set(CMAKE_AUTOMOC TRUE)
+-set(CMAKE_AUTOUIC TRUE)
+-set(CMAKE_AUTORCC TRUE)
+-
+ if(NOT Qt5Widgets_VERSION VERSION_LESS "5.9")
+ 	# Drop the file modification time of source files from generated files
+ 	# to help with reproducible builds. We do not use QFileInfo.lastModified
+
+
 [FILE:304:patches/patch-ui_recent.h]
 --- ui/recent.h.orig	2021-03-10 18:21:20 UTC
 +++ ui/recent.h

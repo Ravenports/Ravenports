@@ -25,6 +25,8 @@ VOPTS[v26]=		RUBY26=ON RUBY27=OFF RUBY30=OFF
 VOPTS[v27]=		RUBY26=OFF RUBY27=ON RUBY30=OFF
 VOPTS[v30]=		RUBY26=OFF RUBY27=OFF RUBY30=ON
 
+USES=			mime-info:single
+
 DISTNAME=		mimemagic-0.4.3
 
 GENERATED=		yes
@@ -40,6 +42,10 @@ GENERATED=		yes
 [RUBY27].BUILDRUN_DEPENDS_ON=		ruby-nokogiri:single:v27
 					ruby-rake:single:v27
 [RUBY27].USES_ON=			gem:v27
+
+post-patch:
+	${REINPLACE_CMD} -e "s|/usr/local|${LOCALBASE}|" \
+		${WRKSRC}/ext/mimemagic/Rakefile
 
 [FILE:97:descriptions/desc.single]
 Fast mime detection by extension or content (Uses freedesktop.org.xml
