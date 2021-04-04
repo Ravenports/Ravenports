@@ -49,7 +49,7 @@ RUBY_3.0_VERSION=	3.0.0
 PYTHON3_DEFAULT?=	3.8
 
 PYTHON_2.7_VERSION=	2.7.18
-PYTHON_3.8_VERSION=	3.8.8
+PYTHON_3.8_VERSION=	3.8.9
 PYTHON_3.9_VERSION=	3.9.3
 
 #-------------------------------------------------------------------------
@@ -68,7 +68,7 @@ LUA_DEFAULT?=		5.3
 
 LUA_5.2_VERSION=	5.2.4
 LUA_5.3_VERSION=	5.3.6
-LUA_5.4_VERSION=	5.4.2
+LUA_5.4_VERSION=	5.4.3
 
 #-------------------------------------------------------------------------
 # TCL/TK
