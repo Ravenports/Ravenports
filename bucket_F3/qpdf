@@ -34,6 +34,9 @@ MUST_CONFIGURE=		gnu
 
 SOVERSION=		28.3.1
 
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fix-qdf
+
 [FILE:933:descriptions/desc.primary]
 QPDF is a program that can be used to linearize (web-optimize), encrypt
 (password-protect), decrypt, and inspect PDF files from the command-line. 
@@ -134,8 +137,25 @@ share/doc/qpdf/
  stylesheet.css
 
 
-[FILE:977:patches/patch-make_libtool.mk]
---- make/libtool.mk.orig	2019-09-03 07:26:46 UTC
+[FILE:457:patches/patch-libqpdf_QUtil.cc]
+--- libqpdf/QUtil.cc.orig	2021-03-11 17:59:41 UTC
++++ libqpdf/QUtil.cc
+@@ -905,7 +905,11 @@ QUtil::get_current_qpdf_time()
+                     static_cast<int>(ltime.tm_hour),
+                     static_cast<int>(ltime.tm_min),
+                     static_cast<int>(ltime.tm_sec),
++# if defined(__FreeBSD__)
++                    static_cast<int>(ltime.tm_gmtoff / 60));
++# else
+                     static_cast<int>(timezone / 60));
++# endif
+ #endif
+ }
+ 
+
+
+[FILE:964:patches/patch-make_libtool.mk]
+--- make/libtool.mk.orig	2021-03-11 17:59:41 UTC
 +++ make/libtool.mk
 @@ -1,7 +1,7 @@
  # --- Required interface definitions ---
@@ -147,7 +167,7 @@ share/doc/qpdf/
  
  OBJ=o
  LOBJ=lo
-@@ -112,14 +112,14 @@ install: all
+@@ -114,14 +114,14 @@ install: all
  	./mkinstalldirs -m 0755 $(DESTDIR)$(includedir)/qpdf
  	./mkinstalldirs -m 0755 $(DESTDIR)$(docdir)
  	./mkinstalldirs -m 0755 $(DESTDIR)$(mandir)/man1
@@ -164,5 +184,5 @@ share/doc/qpdf/
 +	$(LIBTOOL) --mode=install ./install-sh -s \
  		zlib-flate/$(OUTPUT_DIR)/zlib-flate \
  		$(DESTDIR)$(bindir)/zlib-flate
- 	./install-sh -m 0755 qpdf/fix-qdf $(DESTDIR)$(bindir)
+ 	$(LIBTOOL) --mode=install ./install-sh \
 

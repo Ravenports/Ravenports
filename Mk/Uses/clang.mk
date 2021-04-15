@@ -14,7 +14,9 @@ _INCLUDE_USES_CLANG_MK=	yes
 # BUILD_DEPENDS+=	clang:complete:standard
 # -----------------------------------------------------
 
-.if ${clang_ARGS:Nkeepcc}
+.if ${clang_ARGS:Mkeepcc}
+KEEPCC=	yes
+.else
 CC=	clang
 CXX=	clang++
 .endif
