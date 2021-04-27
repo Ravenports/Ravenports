@@ -453,6 +453,34 @@ share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
          uintptr_t current = reinterpret_cast<uintptr_t>(code);
 
 
+[FILE:730:patches/patch-Source_JavaScriptCore_runtime_IntlSegmenter.cpp]
+--- Source/JavaScriptCore/runtime/IntlSegmenter.cpp.orig	2021-02-26 09:57:05 UTC
++++ Source/JavaScriptCore/runtime/IntlSegmenter.cpp
+@@ -125,7 +125,7 @@ JSValue IntlSegmenter::segment(JSGlobalO
+     auto upconvertedCharacters = Box<Vector<UChar>>::create(string.charactersWithoutNullTermination());
+ 
+     UErrorCode status = U_ZERO_ERROR;
+-    auto segmenter = std::unique_ptr<UBreakIterator, UBreakIteratorDeleter>(ubrk_safeClone(m_segmenter.get(), nullptr, nullptr, &status));
++    auto segmenter = std::unique_ptr<UBreakIterator, UBreakIteratorDeleter>(ubrk_clone(m_segmenter.get(), &status));
+     if (U_FAILURE(status)) {
+         throwTypeError(globalObject, scope, "failed to initialize Segments"_s);
+         return { };
+
+
+[FILE:677:patches/patch-Source_JavaScriptCore_runtime_IntlSegments.cpp]
+--- Source/JavaScriptCore/runtime/IntlSegments.cpp.orig	2021-02-26 09:57:05 UTC
++++ Source/JavaScriptCore/runtime/IntlSegments.cpp
+@@ -100,7 +100,7 @@ JSObject* IntlSegments::createSegmentIte
+     auto scope = DECLARE_THROW_SCOPE(vm);
+ 
+     UErrorCode status = U_ZERO_ERROR;
+-    auto segmenter = std::unique_ptr<UBreakIterator, UBreakIteratorDeleter>(ubrk_safeClone(m_segmenter.get(), nullptr, nullptr, &status));
++    auto segmenter = std::unique_ptr<UBreakIterator, UBreakIteratorDeleter>(ubrk_clone(m_segmenter.get(), &status));
+     if (U_FAILURE(status)) {
+         throwTypeError(globalObject, scope, "failed to initialize SegmentIterator"_s);
+         return nullptr;
+
+
 [FILE:597:patches/patch-Source_ThirdParty_ANGLE_src_common_aligned__memory.cpp]
 --- Source/ThirdParty/ANGLE/src/common/aligned_memory.cpp.orig	2021-02-26 09:57:06 UTC
 +++ Source/ThirdParty/ANGLE/src/common/aligned_memory.cpp
