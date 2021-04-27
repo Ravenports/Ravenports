@@ -23,7 +23,7 @@ APQ_ODBC_REVISION=		0
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.75.0
+BOOST_VERSION=			1.76.0
 BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
@@ -112,7 +112,7 @@ GCC10_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			68.2
+ICU_VERSION=			69.1
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
@@ -193,7 +193,7 @@ GSTREAMER1_GST=			1.0
 GSTREAMER1_SOVERSION=		0.1804.0
 XORG_VERSION=			7.7
 FIREFOX_ESR_VERSION=		78.10.0
-FIREFOX_VERSION=		87.0
+FIREFOX_VERSION=		88.0
 LLVM_VERSION=			12.0.0
 ZLIB_VERSION=			1.2.11
 GHOSTSCRIPT_VERSION=		9.54.0
