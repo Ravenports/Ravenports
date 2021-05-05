@@ -114,6 +114,10 @@ VAR_OPSYS[openbsd]=	CONFIGURE_ARGS=--with-template=openbsd
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-template=freebsd
 			CONFIGURE_ARGS=--with-uuid=bsd
 
+post-patch:
+	${REINPLACE_CMD} -e 's|" -lncurses"|" -lncurses -ltinfo"|' \
+		${WRKSRC}/configure
+
 post-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/periodic/daily
 	${INSTALL_SCRIPT} ${WRKDIR}/502.pgsql \
