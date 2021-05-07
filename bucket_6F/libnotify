@@ -44,6 +44,13 @@ SOVERSION=		4.0.0
 post-patch:
 	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl-ns/|http://cdn.docbook.org/release/xsl/|" ${WRKSRC}/meson.build
 
+pre-build:
+	# workaround bad meson definition so <libnotify/*.h> headers can be found
+	${LN} -s ${STAGEDIR}${PREFIX}/include/libnotify ${LOCALBASE}/include/libnotify
+
+post-install:
+	${RM} ${LOCALBASE}/include/libnotify
+
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|link_args: libnotify_ldflags|link_args: []|'\
 		${WRKSRC}/libnotify/meson.build

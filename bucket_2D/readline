@@ -2,6 +2,7 @@
 
 NAMEBASE=		readline
 VERSION=		8.1.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Library for editing command lines during typing
@@ -132,7 +133,7 @@ share/readline/
  	if [ -z "$uninstall" ]; then
 
 
-[FILE:850:patches/patch-support_shobj-conf]
+[FILE:1146:patches/patch-support_shobj-conf]
 --- support/shobj-conf.orig	2019-12-13 14:51:17 UTC
 +++ support/shobj-conf
 @@ -95,7 +95,7 @@ sunos4*)
@@ -144,7 +145,7 @@ share/readline/
  	SHOBJ_LD='${CC}'
  	ld_used=`gcc -print-prog-name=ld`
  	if ${ld_used} -V 2>&1 | grep GNU >/dev/null 2>&1; then
-@@ -110,16 +110,7 @@ sunos5*-*gcc*|solaris2*-*gcc*)
+@@ -110,16 +110,8 @@ sunos5*-*gcc*|solaris2*-*gcc*)
  	fi
  
  #	SHLIB_XLDFLAGS='-R $(libdir)'
@@ -159,7 +160,16 @@ share/readline/
 -#	SHLIB_XLDFLAGS='-R $(libdir)'
 -	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
 +	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)${SHLIB_MINOR}'
++	SHLIB_LIBS='$(TERMCAP_LIB)'
  	;;
  
  # All versions of Linux (including Gentoo/FreeBSD) or the semi-mythical GNU Hurd.
+@@ -130,6 +122,7 @@ linux*-*|gnu*-*|k*bsd*-gnu-*|freebsd*|dr
+ 
+ 	SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir) -Wl,-soname,`basename $@ $(SHLIB_MINOR)`'
+ 	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)$(SHLIB_MINOR)'
++	SHLIB_LIBS='$(TERMCAP_LIB)'
+ 	;;
+ 
+ # Darwin/MacOS X
 
