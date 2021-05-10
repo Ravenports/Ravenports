@@ -2,6 +2,7 @@
 
 NAMEBASE=		clang
 VERSION=		12.0.0
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	C language family frontend for LLVM 12.0
@@ -1536,7 +1537,7 @@ lib/
  libclang.so.%%LLVM_MAJOR%%
 
 
-[FILE:2955:patches/patch-lib_Driver_ToolChains_DragonFly.cpp]
+[FILE:2904:patches/patch-lib_Driver_ToolChains_DragonFly.cpp]
 --- lib/Driver/ToolChains/DragonFly.cpp.orig	2021-04-06 16:38:18 UTC
 +++ lib/Driver/ToolChains/DragonFly.cpp
 @@ -71,7 +71,7 @@ void dragonfly::Linker::ConstructJob(Com
@@ -1601,18 +1602,17 @@ lib/
      }
    }
  
-@@ -188,8 +188,8 @@ DragonFly::DragonFly(const Driver &D, co
-     getProgramPaths().push_back(getDriver().Dir);
+@@ -189,7 +189,8 @@ DragonFly::DragonFly(const Driver &D, co
  
    getFilePaths().push_back(getDriver().Dir + "/../lib");
--  getFilePaths().push_back("/usr/lib");
+   getFilePaths().push_back("/usr/lib");
 -  getFilePaths().push_back("/usr/lib/gcc80");
 +  getFilePaths().push_back("@RAVEN_GCC@");
 +  getFilePaths().push_back("@RAVEN_GCC_TARGET@");
  }
  
  Tool *DragonFly::buildAssembler() const {
-@@ -199,3 +199,5 @@ Tool *DragonFly::buildAssembler() const
+@@ -199,3 +200,5 @@ Tool *DragonFly::buildAssembler() const
  Tool *DragonFly::buildLinker() const {
    return new tools::dragonfly::Linker(*this);
  }
