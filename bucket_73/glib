@@ -871,7 +871,27 @@ The /usr/local value is replaced by post-patch target
          dnl for a much more readable commandline, so that people can understand what
 
 
-[FILE:831:patches/patch-meson.build]
+[FILE:624:files/special.mk]
+glib_MAN=	gtester.1 gtester-report.1 glib-gettextize.1
+gio_MAN=	gdbus.1 gsettings.1 gio-querymodules.1 \
+		glib-compile-schemas.1 gapplication.1 \
+		glib-compile-resources.1 gresource.1 gdbus-codegen.1
+gobject_MAN=	glib-genmarshal.1 glib-mkenums.1 gobject-query.1
+pyscripts=	gio/tests/gengiotypefuncs.py \
+		gio/gio-querymodules-wrapper.py \
+		glib/update-gtranslit.py \
+		tests/gen-casefold-txt.py \
+		tests/gen-casemap-txt.py
+
+POST_PLIST_TARGET=	my-autolist
+
+my-autolist:
+	(cd ${STAGEDIR}${PREFIX} && ${FIND} share/glib-2.0/codegen \
+	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+	>> ${WRKDIR}/.manifest.single.mktmp
+
+
+[FILE:831:dragonfly/patch-meson.build]
 --- meson.build.orig	2021-04-08 14:00:16 UTC
 +++ meson.build
 @@ -2038,9 +2038,6 @@ endif
@@ -894,24 +914,27 @@ The /usr/local value is replaced by post-patch target
  
 
 
-[FILE:624:files/special.mk]
-glib_MAN=	gtester.1 gtester-report.1 glib-gettextize.1
-gio_MAN=	gdbus.1 gsettings.1 gio-querymodules.1 \
-		glib-compile-schemas.1 gapplication.1 \
-		glib-compile-resources.1 gresource.1 gdbus-codegen.1
-gobject_MAN=	glib-genmarshal.1 glib-mkenums.1 gobject-query.1
-pyscripts=	gio/tests/gengiotypefuncs.py \
-		gio/gio-querymodules-wrapper.py \
-		glib/update-gtranslit.py \
-		tests/gen-casefold-txt.py \
-		tests/gen-casemap-txt.py
-
-POST_PLIST_TARGET=	my-autolist
-
-my-autolist:
-	(cd ${STAGEDIR}${PREFIX} && ${FIND} share/glib-2.0/codegen \
-	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
-	>> ${WRKDIR}/.manifest.single.mktmp
+[FILE:831:freebsd/patch-meson.build]
+--- meson.build.orig	2021-04-08 14:00:16 UTC
++++ meson.build
+@@ -2038,9 +2038,6 @@ endif
+ # FIXME: glib-gettext.m4 has much more checks to detect broken/uncompatible
+ # implementations. This could be extended if issues are found in some platforms.
+ libintl_deps = []
+-if cc.has_function('ngettext')
+-  have_bind_textdomain_codeset = cc.has_function('bind_textdomain_codeset')
+-else
+   # First just find the bare library.
+   libintl = cc.find_library('intl', required : false)
+   # The bare library probably won't link without help if it's static.
+@@ -2072,7 +2069,6 @@ else
+     have_bind_textdomain_codeset = cc.has_function('bind_textdomain_codeset',
+                                                    dependencies : libintl_deps)
+   endif
+-endif
+ 
+ glib_conf.set('HAVE_BIND_TEXTDOMAIN_CODESET', have_bind_textdomain_codeset)
+ 
 
 
 [FILE:2798:darwin/patch-meson.build]
