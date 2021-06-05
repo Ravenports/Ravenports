@@ -143,31 +143,6 @@ share/doc/p11-kit/
 share/examples/p11-kit/pkcs11.conf.example
 
 
-[FILE:469:patches/patch-common_compat.c]
---- common/compat.c.orig	2020-12-11 15:25:36 UTC
-+++ common/compat.c
-@@ -38,7 +38,11 @@
-  * This is needed to expose pthread_mutexattr_settype and PTHREAD_MUTEX_DEFAULT
-  * on older pthreads implementations
-  */
-+#ifdef __sun__
-+#define _XOPEN_SOURCE 600
-+#else
- #define _XOPEN_SOURCE 700
-+#endif
- 
- #include "compat.h"
- #include "debug.h"
-@@ -48,6 +52,7 @@
- #include <errno.h>
- #include <stdint.h>
- #include <stdlib.h>
-+#include <stdint.h>
- #include <string.h>
- 
- /*-
-
-
 [FILE:354:patches/patch-common_message.c]
 --- common/message.c.orig	2020-12-11 14:48:46 UTC
 +++ common/message.c
@@ -183,11 +158,11 @@ share/examples/p11-kit/pkcs11.conf.example
  #define P11_DEBUG_FLAG P11_DEBUG_LIB
 
 
-[FILE:213:patches/patch-p11-kit_lists.c]
---- p11-kit/lists.c.orig	2020-12-11 15:25:36 UTC
+[FILE:214:patches/patch-p11-kit_lists.c]
+--- p11-kit/lists.c.orig	2021-05-25 07:15:23 UTC
 +++ p11-kit/lists.c
-@@ -41,6 +41,7 @@
- #include <ctype.h>
+@@ -43,6 +43,7 @@
+ #include <stdint.h>
  #include <string.h>
  #include <stdio.h>
 +#include <stdint.h>
@@ -196,12 +171,12 @@ share/examples/p11-kit/pkcs11.conf.example
  
 
 
-[FILE:334:patches/patch-p11-kit_server.c]
---- p11-kit/server.c.orig	2020-12-11 14:48:46 UTC
+[FILE:336:patches/patch-p11-kit_server.c]
+--- p11-kit/server.c.orig	2021-05-25 07:15:23 UTC
 +++ p11-kit/server.c
-@@ -84,6 +84,12 @@ typedef void (*sighandler_t)(int);
- 
- #endif /* OS_UNIX */
+@@ -91,6 +91,12 @@ typedef void (*sighandler_t)(int);
+ #define _(x) (x)
+ #endif
  
 +#ifdef __sun__
 +# ifndef SUN_LEN
