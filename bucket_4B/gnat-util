@@ -2,10 +2,11 @@
 
 NAMEBASE=		gnat-util
 VERSION=		9.3.0
+REVISION=		1
 KEYWORDS=		lang ada
 VARIANTS=		standard
 SDESC[standard]=	Library used to build GNAT tools such as ASIS
-HOMEPAGE=		http://libre.adacore.com
+HOMEPAGE=		https://www.adacore.com/community
 CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main extra
@@ -75,7 +76,7 @@ sources that is Gnat_Util solves this problem.
 82d9d84e39ef9ce6bfe0ed2dbcd1f4e209326972e727b3796ba141265055f7ac        42606 repinfo-input.adb
 
 
-[FILE:2327:manifests/plist.single]
+[FILE:2328:manifests/plist.single]
 include/gnat-util/
  ali-util.adb
  ali-util.ads
@@ -198,7 +199,6 @@ include/gnat-util/
  xsnamest.adb
  xutil.adb
  xutil.ads
-lib/gnat/gnat_util.gpr
 lib/gnat-util/
  ali-util.ali
  ali.ali
@@ -263,6 +263,7 @@ lib/gnat-util/
  xsnamest.ali
  xutil.ali
 share/gnat-util/gnat_ugn.texi
+share/gpr/gnat_util.gpr
 
 
 [FILE:461:patches/patch-alloc.ads]
@@ -335,7 +336,7 @@ share/gnat-util/gnat_ugn.texi
     Name_Unaligned_Valid                  : constant Name_Id := N + $;
 
 
-[FILE:2068:files/Makefile]
+[FILE:2070:files/Makefile]
 # To avoid a cirular dependency with GPRBuild, this custom BSD Makefile is
 # used instead of the provided asis.gpr file.
 
@@ -378,11 +379,11 @@ generate_sources:
 ${LIB_OBJS}: generate_sources
 
 install:
-	${MKDIR} ${DESTDIR}${PREFIX}/lib/gnat
+	${MKDIR} ${DESTDIR}${PREFIX}/share/gpr
 	${MKDIR} ${DESTDIR}${PREFIX}/lib/gnat-util
 	${MKDIR} ${DESTDIR}${PREFIX}/include/gnat-util
 
-	${BSD_INSTALL_DATA} ../gnat_util.gpr ${DESTDIR}${PREFIX}/lib/gnat
+	${BSD_INSTALL_DATA} ../gnat_util.gpr ${DESTDIR}${PREFIX}/share/gpr
 	find ../lib -type f -exec $(BSD_INSTALL_DATA) {} \
 		${DESTDIR}${PREFIX}/lib/gnat-util \;
 	find ../* -name \*\.ad\[bs\] -exec $(BSD_INSTALL_DATA) {} \
@@ -413,11 +414,11 @@ libgnat-util.a: ${LIB_OBJS}
 	mv ${.TARGET} *.ali ../lib
 
 
-[FILE:235:files/gnat_util.gpr]
+[FILE:242:files/gnat_util.gpr]
 project Gnat_Util is
    for Languages use ("ada", "C");
    for Library_Name use "gnat-util";
-   for Library_Dir use "../gnat-util";
+   for Library_Dir use "../../lib/gnat-util";
    for Source_Dirs use ("../../include/gnat-util");
    for Externally_Built use "true";
 end Gnat_Util;

@@ -2,6 +2,7 @@
 
 NAMEBASE=		asis
 VERSION=		2019
+REVISION=		1
 KEYWORDS=		lang ada
 VARIANTS=		standard
 SDESC[standard]=	Ada Semantic Interface Specification (GNAT)
@@ -62,7 +63,7 @@ do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/bin \
 		${STAGEDIR}${PREFIX}/include/asis \
 		${STAGEDIR}${PREFIX}/lib/asis \
-		${STAGEDIR}${PREFIX}/lib/gnat \
+		${STAGEDIR}${PREFIX}/share/gpr \
 		${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_PROGRAM} ${WRKSRC}/tools/asistant/asistant \
 		${STAGEDIR}${PREFIX}/bin
@@ -70,7 +71,7 @@ do-install:
 		${STAGEDIR}${PREFIX}/include/asis
 	${INSTALL_DATA} ${WRKSRC}/lib/*.ali ${STAGEDIR}${PREFIX}/lib/asis
 	${INSTALL_DATA} ${WRKSRC}/lib/*.a ${STAGEDIR}${PREFIX}/lib/asis
-	${INSTALL_DATA} ${FILESDIR}/asis.gpr ${STAGEDIR}${PREFIX}/lib/gnat
+	${INSTALL_DATA} ${FILESDIR}/asis.gpr ${STAGEDIR}${PREFIX}/share/gpr
 	(cd ${WRKSRC}/doc/html && ${COPYTREE_SHARE} . ${STAGEDIR}${STD_DOCDIR})
 
 [FILE:794:descriptions/desc.primary]
@@ -93,7 +94,7 @@ ASIS 95 is now available as ISO/IEC 15291:1999.
 37428655952f0ba7691b0c64b5f3849a42a2fd1fd7c3321460ed3ff0df7480ec      6173053 asis-2019-20190517-18AB5-src.tar.gz
 
 
-[FILE:5424:manifests/plist.primary]
+[FILE:5425:manifests/plist.primary]
 bin/asistant
 include/asis/
  a4g-a_alloc.ads
@@ -373,7 +374,7 @@ lib/asis/
  widechar.ali
  xsnamest.ali
  xutil.ali
-lib/gnat/asis.gpr
+share/gpr/asis.gpr
 
 
 [FILE:320:patches/patch-Makefile.stub]
@@ -445,6 +446,50 @@ lib/gnat/asis.gpr
        end if;
  
        --  GNAT/ASIS version check
+
+
+[FILE:1381:patches/patch-doc_share_conf.py]
+--- doc/share/conf.py.orig	2018-08-13 16:46:29 UTC
++++ doc/share/conf.py
+@@ -39,18 +39,18 @@ def get_gnat_version():
+             line = (vinfo.readline()).strip()
+             return line
+     except Exception:
+-        print 'Error opening or reading version_information file'
++        print ('Error opening or reading version_information file')
+         sys.exit(1)
+ 
+ 
+ # First retrieve the name of the documentation we are building
+ doc_name = os.environ.get('DOC_NAME', None)
+ if doc_name is None:
+-    print 'DOC_NAME environment variable should be set'
++    print ('DOC_NAME environment variable should be set')
+     sys.exit(1)
+ 
+ if doc_name not in DOCS:
+-    print '%s is not a valid documentation name' % doc_name
++    print ('%s is not a valid documentation name' % doc_name)
+     sys.exit(1)
+ 
+ 
+@@ -59,7 +59,7 @@ exclude_patterns = []
+ for d in os.listdir(root_source_dir):
+     if d not in ('share', doc_name, doc_name + '.rst'):
+         exclude_patterns.append(d)
+-        print 'ignoring %s' % d
++        print ('ignoring %s' % d)
+ 
+ extensions = []
+ templates_path = ['_templates']
+@@ -101,5 +101,5 @@ texinfo_documents = [
+ 
+ 
+ def setup(app):
+-    app.add_lexer('ada', ada_pygments.AdaLexer())
+-    app.add_lexer('gpr', ada_pygments.GNATProjectLexer())
++    app.add_lexer('ada', ada_pygments.AdaLexer)
++    app.add_lexer('gpr', ada_pygments.GNATProjectLexer)
 
 
 [FILE:275:files/asis.gpr]
