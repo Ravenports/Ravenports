@@ -615,9 +615,21 @@ expand_CRAN()
 }
 
 
+expand_ADACORE()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##ADACORE/}
+    local cluster="https://community.download.adacore.com/v1"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+
 process_site()
 {
     case "${1}" in
+	ADACORE/*)                 expand_ADACORE "${1}" ;;
 	APACHE/*)                  expand_APACHE "${1}" ;;
 	APACHE_COMMONS_BINARIES/*) expand_APACHE_COMMONS_BINARIES "${1}" ;;
 	APACHE_COMMONS_SOURCE/*)   expand_APACHE_COMMONS_SOURCE "${1}" ;;

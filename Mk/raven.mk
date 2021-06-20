@@ -1195,9 +1195,9 @@ PLIST_SUB+=	SOVERSION=${SOVERSION} SOMAJOR=${SOVERSION:R:R}
 COPYTREE_BIN=	${SH} ${MK_SCRIPTS}/copytree.sh ${BINMODE}
 COPYTREE_SHARE=	${SH} ${MK_SCRIPTS}/copytree.sh ${_SHAREMODE}
 
-MAKE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/lib/gnat"\
+MAKE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/share/gpr"\
 			F77="gfortran" FC="gfortran"
-CONFIGURE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/lib/gnat"\
+CONFIGURE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/share/gpr"\
 			F77="gfortran" FC="gfortran"
 
 # --------------------------------------------------------------------------
