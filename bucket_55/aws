@@ -71,7 +71,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 
 post-patch:
 	${REINPLACE_CMD} \
-		-e 's|@ADDITIONAL_RPATH@|${LOCALBASE}/lib:${OPENSSLLIB}:${LOCALBASE}/lib/xmlada/relocatable|' \
+		-e 's|@ADDITIONAL_RPATH@|${LOCALBASE}/lib:${OPENSSLLIB}|' \
 		${WRKSRC}/aws.gpr \
 		${WRKSRC}/src/src.gpr \
 		${WRKSRC}/include/include.gpr
@@ -85,8 +85,7 @@ do-build:
 		${MAKE_CMD} ${MAKE_ARGS} build build-doc)
 
 post-install-SHARED-ON:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libaws.so \
-		${STAGEDIR}${PREFIX}/lib/aws.relocatable/libaws.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/aws.relocatable/libaws.so
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
