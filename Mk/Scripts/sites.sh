@@ -626,6 +626,26 @@ expand_ADACORE()
 }
 
 
+expand_KERNEL_ORG()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR=${1##KERNEL_ORG/}
+    local cluster="\
+    https://cdn.kernel.org/pub \
+    https://www.kernel.org/pub \
+    https://download.xs4all.nl/ftp.kernel.org/pub \
+    https://mirrors.mit.edu/kernel \
+    http://ftp.nara.wide.ad.jp/pub/kernel.org \
+    http://ftp.yandex.ru/pub \
+    http://ftp.heanet.ie/pub/kernel.org/pub \
+    ftp://ftp.ntu.edu.tw \
+    ftp://ftp.riken.jp/Linux/kernel.org"
+    for site in ${cluster}; do
+	echo ${site}/${SUBDIR}/
+    done
+}
+
+
 process_site()
 {
     case "${1}" in
@@ -652,6 +672,7 @@ process_site()
 	GNU/*)                     expand_GNU "${1}" ;;
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
 	ISC/*)                     expand_ISC "${1}" ;;
+	KERNEL_ORG/*)              expand_KERNEL_ORG "${1}" ;;
 	MOZILLA/*)                 expand_MOZILLA "${1}" ;;
 	MYSQL/*)                   expand_MYSQL "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
