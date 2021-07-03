@@ -2,16 +2,19 @@
 
 NAMEBASE=		libluv
 VERSION=		1.41.0.0
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Bare libuv bindings for lua
 HOMEPAGE=		https://github.com/luvit/luv
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main compat
 SITES[main]=		GITHUB/luvit:luv:1.41.0-0
+SITES[compat]=		GITHUB/keplerproject:lua-compat-5.3:bc91f40:deps/lua-compat-5.3
 DISTFILE[1]=		generated:main
-DF_INDEX=		1
+DISTFILE[2]=		generated:compat
+DF_INDEX=		1 2
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
@@ -19,7 +22,7 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libuv:single:standard
 
-USES=			cmake lua
+USES=			cmake lua:build
 
 LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -35,6 +38,7 @@ CMAKE_ARGS=		-DWITH_SHARED_LIBUV:BOOL=ON
 			-DBUILD_SHARED_LIBS:BOOL=ON
 			-DWITH_LUA_ENGINE=Lua
 			-DLUA_BUILD_TYPE=System
+			-DLUA_COMPAT53_DIR=deps/lua-compat-5.3
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libluv.so
@@ -51,8 +55,9 @@ a unique uv_loop_t for each state. You can't share uv handles between
 states/loops.
 
 
-[FILE:104:distinfo]
+[FILE:226:distinfo]
 13382bc5e896f6247c0e8f7b7cbc12c99388b9a858118a8dc5477f5b7a977c8e       118079 luvit-luv-1.41.0-0.tar.gz
+30d559fadf00983f90aa52011c934def8f7540ffaa3973d9237f154ceea8413e        51289 keplerproject-lua-compat-5.3-bc91f40.tar.gz
 
 
 [FILE:135:manifests/plist.single]
