@@ -2,6 +2,7 @@
 
 NAMEBASE=		protobuf-c
 VERSION=		1.4.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	C bindings for Google's Protocol Buffers
@@ -16,8 +17,6 @@ SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-BROKEN[all]=		does not build with protobuf 3.17.1
 
 BUILDRUN_DEPENDS=	protobuf:single:standard
 
@@ -34,6 +33,10 @@ MUST_CONFIGURE=		gnu
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.0
 
+pre-configure:
+	# hack since protobuf 3.17.x
+	${LN} -s ${LOCALBASE}/include/google ${WRKSRC}/google
+
 [FILE:429:descriptions/desc.single]
 This is protobuf-c, a C implementation of the Google Protocol Buffers data
 serialization format. It includes libprotobuf-c, a pure C library that
@@ -47,12 +50,14 @@ that code has been split out into the protobuf-c-rpc project.
 1068bca1e9870e9492096f97c409cd15f10c5019c183e52ec6d53e8d18630cbf       134352 protobuf-c-protobuf-c-1.4.0.tar.gz
 
 
-[FILE:233:manifests/plist.single]
+[FILE:253:manifests/plist.single]
 bin/
  protoc-c
  protoc-gen-c
 include/google/protobuf-c/protobuf-c.h
-include/protobuf-c/protobuf-c.h
+include/protobuf-c/
+ protobuf-c.h
+ protobuf-c.proto
 lib/
  libprotobuf-c.a
  libprotobuf-c.so
