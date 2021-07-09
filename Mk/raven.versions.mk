@@ -40,7 +40,7 @@ RUBY_DEFAULT?=		2.7
 
 RUBY_2.6_VERSION=	2.6.6
 RUBY_2.7_VERSION=	2.7.2
-RUBY_3.0_VERSION=	3.0.1
+RUBY_3.0_VERSION=	3.0.2
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -122,6 +122,7 @@ FIREBIRD_DEFAULT?=	2.5
 
 FIREBIRD_2.5_VERSION=	2.5.8
 FIREBIRD_3.0_VERSION=	3.0.7
+FIREBIRD_4.0_VERSION=	4.0.0
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
