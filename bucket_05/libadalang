@@ -33,6 +33,7 @@ MUST_CONFIGURE=		yes
 
 MAKE_ARGS=		--build-mode
 			prod
+			--library-types=static,static-pic,relocatable
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
@@ -45,8 +46,6 @@ do-build:
 		${MAKE_ARGS:NDESTDIR=*})
 
 do-configure:
-	# must build as static since rpaths are either missing,
-	# refer to /construction, ignore gpr settings, etc
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} manage.py generate)
 	# prepare for mains.gpr modification
@@ -71,6 +70,8 @@ do-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 	${RM} -r ${STAGEDIR}${PREFIX}/share/examples/libadalang
 	${RM} ${STAGEDIR}${PREFIX}/python/setup.py
+	# override generated gpr with our own
+	${INSTALL_DATA} ${FILESDIR}/libadalang.gpr ${STAGEDIR}${PREFIX}/share/gpr
 
 [FILE:853:descriptions/desc.single]
 Libadalang is a project to build a high performance semantic engine for
@@ -93,7 +94,7 @@ code, such as IDEs. Its goals encompass, but are not limited to:
 79dd5d2c892d5aa5b372d7e7016ac6cf0023174e1bcef1b0e5d500c9c1ac3540      2354137 libadalang-2021-20210518-199BE-src.tar.gz
 
 
-[FILE:3310:manifests/plist.single]
+[FILE:5438:manifests/plist.single]
 bin/
  gnat_compare
  lal_parse
@@ -204,6 +205,78 @@ lib/libadalang.relocatable/
  libadalang-unparsing_implementation.ali
  libadalang.ali
  libadalang.so
+lib/libadalang.static/
+ libadalang-analysis.ali
+ libadalang-auto_provider.ali
+ libadalang-c.ali
+ libadalang-common.ali
+ libadalang-debug.ali
+ libadalang-doc_utils.ali
+ libadalang-env_hooks.ali
+ libadalang-expr_eval.ali
+ libadalang-generic_api.ali
+ libadalang-gpr_lock.ali
+ libadalang-helpers.ali
+ libadalang-implementation-c-extensions.ali
+ libadalang-implementation-c.ali
+ libadalang-implementation-extensions.ali
+ libadalang-implementation.ali
+ libadalang-internal_default_provider.ali
+ libadalang-introspection.ali
+ libadalang-introspection_implementation.ali
+ libadalang-iterators-extensions.ali
+ libadalang-iterators.ali
+ libadalang-lexer.ali
+ libadalang-lexer_implementation.ali
+ libadalang-lexer_state_machine.ali
+ libadalang-parsers.ali
+ libadalang-private_converters.ali
+ libadalang-project_provider.ali
+ libadalang-public_converters.ali
+ libadalang-rewriting.ali
+ libadalang-rewriting_implementation.ali
+ libadalang-sources.ali
+ libadalang-unit_files.ali
+ libadalang-unparsing.ali
+ libadalang-unparsing_implementation.ali
+ libadalang.a
+ libadalang.ali
+lib/libadalang.static-pic/
+ libadalang-analysis.ali
+ libadalang-auto_provider.ali
+ libadalang-c.ali
+ libadalang-common.ali
+ libadalang-debug.ali
+ libadalang-doc_utils.ali
+ libadalang-env_hooks.ali
+ libadalang-expr_eval.ali
+ libadalang-generic_api.ali
+ libadalang-gpr_lock.ali
+ libadalang-helpers.ali
+ libadalang-implementation-c-extensions.ali
+ libadalang-implementation-c.ali
+ libadalang-implementation-extensions.ali
+ libadalang-implementation.ali
+ libadalang-internal_default_provider.ali
+ libadalang-introspection.ali
+ libadalang-introspection_implementation.ali
+ libadalang-iterators-extensions.ali
+ libadalang-iterators.ali
+ libadalang-lexer.ali
+ libadalang-lexer_implementation.ali
+ libadalang-lexer_state_machine.ali
+ libadalang-parsers.ali
+ libadalang-private_converters.ali
+ libadalang-project_provider.ali
+ libadalang-public_converters.ali
+ libadalang-rewriting.ali
+ libadalang-rewriting_implementation.ali
+ libadalang-sources.ali
+ libadalang-unit_files.ali
+ libadalang-unparsing.ali
+ libadalang-unparsing_implementation.ali
+ libadalang.a
+ libadalang.ali
 ocaml/
  dune
  dune-project
@@ -214,6 +287,67 @@ python/libadalang/
  __init__.py
  _py2to3.py
 share/gpr/libadalang.gpr
+
+
+[FILE:1615:files/libadalang.gpr]
+with "langkit_support";
+with "gnatcoll_iconv";
+with "gnatcoll_gmp";
+with "gpr";
+with "xmlada_schema";
+with "xmlada_dom";
+with "xmlada_sax";
+with "xmlada_input_sources";
+with "xmlada_unicode";
+with "gnatcoll";
+
+library project Libadalang is
+   type BUILD_KIND is ("static", "static-pic", "relocatable");
+   BUILD : BUILD_KIND := external("LIBADALANG_LIBRARY_TYPE", external("LIBRARY_TYPE", "static-pic"));
+
+   for Languages use ("Ada", "C");
+
+   case BUILD is		 
+      when "static" =>
+         for Source_Dirs use ("../../include/libadalang");
+         for Library_Dir use "../../lib/libadalang.static";
+         for Library_Kind use "static";
+      when "static-pic" =>
+         for Source_Dirs use ("../../include/libadalang");
+         for Library_Dir use "../../lib/libadalang.static-pic";
+         for Library_Kind use "static-pic";
+      when "relocatable" =>
+         for Source_Dirs use ("../../include/libadalang");
+         for Library_Dir use "../../lib/libadalang.relocatable";
+         for Library_Kind use "relocatable";
+   end case;
+
+   for Library_Name use "adalang";
+
+   package Naming is
+      for dot_replacement use "-";
+      for casing use "lowercase";
+      for body_suffix ("c") use ".c";
+      for body_suffix ("ada") use ".adb";
+      for spec_suffix ("c") use ".h";
+      for spec_suffix ("ada") use ".ads";
+   end Naming;
+
+   package Linker is
+      null;
+   end Linker;
+
+   package Install is
+      for Active use "False";
+   end Install;
+
+   for Externally_Built use "True";
+
+   type Build_Mode_Type is
+     ("dev", "prod");
+
+   build_mode : build_mode_type := "prod";
+end Libadalang;
 
 
 [FILE:329:files/pc-patch-build_mains.gpr]

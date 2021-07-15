@@ -33,23 +33,31 @@ LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/langkit_support.ads
 LICENSE_SCHEME=		multi
 
-MAKE_ENV=		LIBRARY_TYPE="static-pic"
-
 INSTALL_REQ_TOOLCHAIN=	yes
 
 do-build:
+.for LT in static-pic relocatable static
+	@${ECHO_CMD} Building ${LT} library ...
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		gprbuild -p -P langkit_support.gpr\
-		-XLANGKIT_SUPPORT_LIBRARY_TYPE="static-pic"\
+		-XLIBRARY_TYPE="${LT}"\
 		-XBUILD_MODE="prod")
+.endfor
 
 do-install:
+.for LT in static-pic relocatable static
+	@${ECHO_CMD} Installing ${LT} library ...
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		gprinstall -p -P langkit_support.gpr\
 		--prefix=${STAGEDIR}${PREFIX}\
-		-XLANGKIT_SUPPORT_LIBRARY_TYPE="static-pic"\
+		--lib-subdir=lib/langkit_support.${LT}\
+		-XLIBRARY_TYPE="${LT}"\
 		-XBUILD_MODE="prod")
+.endfor
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
+	# replace gpr file
+	${INSTALL_DATA} ${FILESDIR}/langkit_support.gpr \
+		${STAGEDIR}${PREFIX}/share/gpr
 
 [FILE:116:descriptions/desc.single]
 Support files for Ada Langkit.
@@ -61,7 +69,7 @@ own project.
 7d3923754ebef6412d999e9d7f8c800ca52c1b3ef7bfe612cf1121f5ad2e3def      1029581 langkit-2021-20210518-19B8E-src.tar.gz
 
 
-[FILE:4221:manifests/plist.single]
+[FILE:7250:manifests/plist.single]
 include/langkit_support/
  langkit_support-adalog-abstract_relation.adb
  langkit_support-adalog-abstract_relation.ads
@@ -140,7 +148,96 @@ include/langkit_support/
  langkit_support-vectors.adb
  langkit_support-vectors.ads
  langkit_support.ads
-lib/langkit_support/
+lib/liblangkit_support.so
+lib/langkit_support.relocatable/
+ langkit_support-adalog-abstract_relation.ali
+ langkit_support-adalog-debug.ali
+ langkit_support-adalog-eq_same.ali
+ langkit_support-adalog-logic_ref.ali
+ langkit_support-adalog-logic_var.ali
+ langkit_support-adalog-main_support.ali
+ langkit_support-adalog-operations.ali
+ langkit_support-adalog-predicates.ali
+ langkit_support-adalog-pure_relations.ali
+ langkit_support-adalog-relations.ali
+ langkit_support-adalog-unify.ali
+ langkit_support-adalog-unify_lr.ali
+ langkit_support-adalog-unify_one_side.ali
+ langkit_support-adalog.ali
+ langkit_support-array_utils.ali
+ langkit_support-boxes.ali
+ langkit_support-bump_ptr-vectors.ali
+ langkit_support-bump_ptr.ali
+ langkit_support-cheap_sets.ali
+ langkit_support-diagnostics-output.ali
+ langkit_support-diagnostics.ali
+ langkit_support-errors.ali
+ langkit_support-file_readers.ali
+ langkit_support-generic_api-analysis.ali
+ langkit_support-generic_api.ali
+ langkit_support-hashes.ali
+ langkit_support-images.ali
+ langkit_support-internal.ali
+ langkit_support-iterators.ali
+ langkit_support-lexical_envs.ali
+ langkit_support-lexical_envs_impl.ali
+ langkit_support-packrat.ali
+ langkit_support-relative_get.ali
+ langkit_support-slocs.ali
+ langkit_support-symbols-precomputed.ali
+ langkit_support-symbols.ali
+ langkit_support-text.ali
+ langkit_support-token_data_handlers.ali
+ langkit_support-tree_traversal_iterator.ali
+ langkit_support-types.ali
+ langkit_support-vectors.ali
+ langkit_support.ali
+ liblangkit_support.so
+lib/langkit_support.static/
+ langkit_support-adalog-abstract_relation.ali
+ langkit_support-adalog-debug.ali
+ langkit_support-adalog-eq_same.ali
+ langkit_support-adalog-logic_ref.ali
+ langkit_support-adalog-logic_var.ali
+ langkit_support-adalog-main_support.ali
+ langkit_support-adalog-operations.ali
+ langkit_support-adalog-predicates.ali
+ langkit_support-adalog-pure_relations.ali
+ langkit_support-adalog-relations.ali
+ langkit_support-adalog-unify.ali
+ langkit_support-adalog-unify_lr.ali
+ langkit_support-adalog-unify_one_side.ali
+ langkit_support-adalog.ali
+ langkit_support-array_utils.ali
+ langkit_support-boxes.ali
+ langkit_support-bump_ptr-vectors.ali
+ langkit_support-bump_ptr.ali
+ langkit_support-cheap_sets.ali
+ langkit_support-diagnostics-output.ali
+ langkit_support-diagnostics.ali
+ langkit_support-errors.ali
+ langkit_support-file_readers.ali
+ langkit_support-generic_api-analysis.ali
+ langkit_support-generic_api.ali
+ langkit_support-hashes.ali
+ langkit_support-images.ali
+ langkit_support-internal.ali
+ langkit_support-iterators.ali
+ langkit_support-lexical_envs.ali
+ langkit_support-lexical_envs_impl.ali
+ langkit_support-packrat.ali
+ langkit_support-relative_get.ali
+ langkit_support-slocs.ali
+ langkit_support-symbols-precomputed.ali
+ langkit_support-symbols.ali
+ langkit_support-text.ali
+ langkit_support-token_data_handlers.ali
+ langkit_support-tree_traversal_iterator.ali
+ langkit_support-types.ali
+ langkit_support-vectors.ali
+ langkit_support.ali
+ liblangkit_support.a
+lib/langkit_support.static-pic/
  langkit_support-adalog-abstract_relation.ali
  langkit_support-adalog-debug.ali
  langkit_support-adalog-eq_same.ali
@@ -185,4 +282,85 @@ lib/langkit_support/
  langkit_support.ali
  liblangkit_support.a
 share/gpr/langkit_support.gpr
+
+
+[FILE:723:patches/patch-langkit__support.gpr]
+--- langkit_support.gpr.orig	2021-05-19 05:15:54 UTC
++++ langkit_support.gpr
+@@ -13,7 +13,7 @@ library project Langkit_Support is
+ 
+    for Languages use ("Ada");
+    for Source_Dirs use (".");
+-   for Object_Dir use "obj/" & Build_Mode;
++   for Object_Dir use "obj/" & Library_Kind_Param;
+ 
+    for Library_Name use "langkit_support";
+    for Library_Kind use Library_Kind_Param;
+@@ -61,7 +61,7 @@ library project Langkit_Support is
+       "Langkit_Support.Tree_Traversal_Iterator",
+       "Langkit_Support.Vectors");
+ 
+-   for Library_Dir use "lib/" & Library_Kind_Param & "/" & Build_Mode;
++   for Library_Dir use "lib/langkit_support." & Library_Kind_Param;
+ 
+    Common_Ada_Cargs := ("-gnatwa", "-gnatyg", "-fPIC");
+ 
+
+
+[FILE:1597:files/langkit_support.gpr]
+with "gnatcoll_iconv";
+with "gpr";
+with "xmlada_schema";
+with "xmlada_dom";
+with "xmlada_sax";
+with "xmlada_input_sources";
+with "xmlada_unicode";
+with "gnatcoll";
+
+library project Langkit_Support is
+   type BUILD_KIND is ("static", "static-pic", "relocatable");
+   BUILD : BUILD_KIND := external("LANGKIT_SUPPORT_BUILD",external("LIBRARY_TYPE", "static-pic"));
+
+   for Languages use ("Ada");
+
+   case BUILD is
+      when "static" =>
+         for Source_Dirs use ("../../include/langkit_support");
+         for Library_Dir use "../../lib/langkit_support.static";
+         for Library_Kind use "static";
+      when "static-pic" =>
+         for Source_Dirs use ("../../include/langkit_support");
+         for Library_Dir use "../../lib/langkit_support.static-pic";
+         for Library_Kind use "static-pic";
+      when "relocatable" =>
+         for Source_Dirs use ("../../include/langkit_support");
+         for Library_Dir use "../../lib/langkit_support.relocatable";
+         for Library_Kind use "relocatable";
+   end case;
+
+   for Library_Name use "langkit_support";
+
+   package Naming is
+      for dot_replacement use "-";
+      for casing use "lowercase";
+      for body_suffix ("ada") use ".adb";
+      for spec_suffix ("ada") use ".ads";
+   end Naming;
+
+   package Linker is
+      null;
+   end Linker;
+
+   package Install is
+      for Active use "False";
+   end Install;
+
+   for Externally_Built use "True";
+
+   type Build_Mode_Type is
+     ("dev", "prod");
+
+   common_ada_cargs   := ("-gnatwa", "-gnatyg", "-fPIC");
+   build_mode         : build_mode_type := "prod";
+end Langkit_Support;
 

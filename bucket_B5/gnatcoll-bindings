@@ -34,7 +34,7 @@ EXRUN[iconv]=		libiconv:shared:standard
 EXRUN[python]=		python27:single:standard
 EXRUN[gmp]=		gmp:shared:standard
 
-USES=			gprbuild gmake iconv:build python:py27,build
+USES=			gprbuild gmake iconv:build python:build
 
 DISTNAME=		gnatcoll-bindings-2021-20210518-19B15-src
 
@@ -47,31 +47,54 @@ LICENSE_SCHEME=		solo
 
 MAKE_ENV=		BUILD=PROD
 			GNATCOLL_PYTHON_CFLAGS="-I{{PYTHON_INCLUDEDIR}}"
-			GNATCOLL_PYTHON_LIBS="-L{{PREFIX}}/lib/python{{PYTHON_VER}}/config -lpython{{PYTHON_VER}}"
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.0
 
 do-build:
 .for component in gmp iconv readline syslog python
-.  for libtype in static-pic relocatable
+.  for libtype in static static-pic relocatable
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		gprbuild -p -XLIBRARY_TYPE=${libtype} \
 		-P ${component}/gnatcoll_${component}.gpr)
 .  endfor
 .endfor
 
+post-extract:
+	(cd ${WRKSRC} &&\
+	${MV} python python.disabled &&\
+	${MV} python3 python)
+
 do-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/gpr
 .for component in gmp iconv readline syslog python
-.  for libtype in static-pic relocatable
+.  for libtype in static static-pic relocatable
+	${MKDIR} ${WRKDIR}/${component}/${libtype}
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnatcoll_${component}.${libtype}
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV}\
-		gprinstall -p --prefix=${STAGEDIR}${PREFIX}\
+		gprinstall -p --prefix=${WRKDIR}/${component}/${libtype}\
 		-XLIBRARY_TYPE=${libtype} \
 		-P ${component}/gnatcoll_${component}.gpr)
 .  endfor
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/gnatcoll_${component}/libgnatcoll_${component}.so
+	${MKDIR} ${STAGEDIR}${PREFIX}/include/gnatcoll_${component}
+	${MV} ${WRKDIR}/${component}/static/include/gnatcoll_${component}/* \
+		${STAGEDIR}${PREFIX}/include/gnatcoll_${component}/
+.  for libtype in static static-pic relocatable
+	${MV} ${WRKDIR}/${component}/${libtype}/lib/gnatcoll_${component}/*.ali \
+		${STAGEDIR}${PREFIX}/lib/gnatcoll_${component}.${libtype}/
+	@if [ "${libtype}" = "relocatable" ]; then\
+		${INSTALL_LIB} ${WRKDIR}/${component}/${libtype}/lib/gnatcoll_${component}/*.so.0.0 \
+		${STAGEDIR}${PREFIX}/lib/ ;\
+		echo "Relocate ${libtype}/lib/gnatcoll_${component}/*.so.0.0" ;\
+	else\
+		${MV} ${WRKDIR}/${component}/${libtype}/lib/gnatcoll_${component}/*.a\
+		${STAGEDIR}${PREFIX}/lib/gnatcoll_${component}.${libtype}/ ;\
+		echo "Relocate ${libtype}/lib/gnatcoll_${component}/*.a" ;\
+	fi
+.  endfor
+	${SH} ${FILESDIR}/gen_gpr.sh "${component}" "${STAGEDIR}${PREFIX}" \
+		"-I${PYTHON_INCLUDEDIR}" "0.0"
 .endfor
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 
 [FILE:102:descriptions/desc.gmp]
 This is the bindings module of the GNAT Components Collection.
@@ -102,7 +125,7 @@ This subpackage contains syslog bindings.
 f539b843da85400d24f9898895b41880deb1d68b81019af4bb36c57caa9db6b4      1425986 gnatcoll-bindings-2021-20210518-19B15-src.tar.gz
 
 
-[FILE:1159:manifests/plist.gmp]
+[FILE:1806:manifests/plist.gmp]
 include/gnatcoll_gmp/
  gmp_support.c
  gnatcoll-gmp-integers-io.adb
@@ -128,7 +151,20 @@ lib/
  libgnatcoll_gmp.so
  libgnatcoll_gmp.so.%%SOMAJOR%%
  libgnatcoll_gmp.so.%%SOVERSION%%
-lib/gnatcoll_gmp/
+lib/gnatcoll_gmp.relocatable/
+ gnatcoll-gmp-integers-io.ali
+ gnatcoll-gmp-integers-misc.ali
+ gnatcoll-gmp-integers-number_theoretic.ali
+ gnatcoll-gmp-integers-random.ali
+ gnatcoll-gmp-integers-root_extraction.ali
+ gnatcoll-gmp-integers.ali
+ gnatcoll-gmp-lib.ali
+ gnatcoll-gmp-random_state.ali
+ gnatcoll-gmp.ali
+ libgnatcoll_gmp.so
+ libgnatcoll_gmp.so.%%SOMAJOR%%
+ libgnatcoll_gmp.so.%%SOVERSION%%
+lib/gnatcoll_gmp.static/
  gnatcoll-gmp-integers-io.ali
  gnatcoll-gmp-integers-misc.ali
  gnatcoll-gmp-integers-number_theoretic.ali
@@ -139,13 +175,21 @@ lib/gnatcoll_gmp/
  gnatcoll-gmp-random_state.ali
  gnatcoll-gmp.ali
  libgnatcoll_gmp.a
- libgnatcoll_gmp.so
- libgnatcoll_gmp.so.%%SOMAJOR%%
- libgnatcoll_gmp.so.%%SOVERSION%%
+lib/gnatcoll_gmp.static-pic/
+ gnatcoll-gmp-integers-io.ali
+ gnatcoll-gmp-integers-misc.ali
+ gnatcoll-gmp-integers-number_theoretic.ali
+ gnatcoll-gmp-integers-random.ali
+ gnatcoll-gmp-integers-root_extraction.ali
+ gnatcoll-gmp-integers.ali
+ gnatcoll-gmp-lib.ali
+ gnatcoll-gmp-random_state.ali
+ gnatcoll-gmp.ali
+ libgnatcoll_gmp.a
 share/gpr/gnatcoll_gmp.gpr
 
 
-[FILE:360:manifests/plist.iconv]
+[FILE:491:manifests/plist.iconv]
 include/gnatcoll_iconv/
  gnatcoll-iconv.adb
  gnatcoll-iconv.ads
@@ -154,19 +198,34 @@ lib/
  libgnatcoll_iconv.so
  libgnatcoll_iconv.so.%%SOMAJOR%%
  libgnatcoll_iconv.so.%%SOVERSION%%
-lib/gnatcoll_iconv/
+lib/gnatcoll_iconv.relocatable/
  gnatcoll-iconv.ali
- libgnatcoll_iconv.a
  libgnatcoll_iconv.so
  libgnatcoll_iconv.so.%%SOMAJOR%%
  libgnatcoll_iconv.so.%%SOVERSION%%
+lib/gnatcoll_iconv.static/
+ gnatcoll-iconv.ali
+ libgnatcoll_iconv.a
+lib/gnatcoll_iconv.static-pic/
+ gnatcoll-iconv.ali
+ libgnatcoll_iconv.a
 share/gpr/gnatcoll_iconv.gpr
 
 
-[FILE:635:manifests/plist.python]
+[FILE:1864:manifests/plist.python]
 include/gnatcoll_python/
  gnatcoll-any_types-python.adb
  gnatcoll-any_types-python.ads
+ gnatcoll-python-capsule.adb
+ gnatcoll-python-capsule.ads
+ gnatcoll-python-ctypes.ads
+ gnatcoll-python-errors.ads
+ gnatcoll-python-eval.ads
+ gnatcoll-python-exceptions.ads
+ gnatcoll-python-fileutils.adb
+ gnatcoll-python-fileutils.ads
+ gnatcoll-python-lifecycle.adb
+ gnatcoll-python-lifecycle.ads
  gnatcoll-python-state.adb
  gnatcoll-python-state.ads
  gnatcoll-python.adb
@@ -175,22 +234,54 @@ include/gnatcoll_python/
  gnatcoll-scripts-python.ads
  python_support.c
 lib/
- libgnatcoll_python.so
- libgnatcoll_python.so.%%SOMAJOR%%
- libgnatcoll_python.so.%%SOVERSION%%
-lib/gnatcoll_python/
+ libgnatcoll_python3.so
+ libgnatcoll_python3.so.%%SOMAJOR%%
+ libgnatcoll_python3.so.%%SOVERSION%%
+lib/gnatcoll_python.relocatable/
  gnatcoll-any_types-python.ali
+ gnatcoll-python-capsule.ali
+ gnatcoll-python-ctypes.ali
+ gnatcoll-python-errors.ali
+ gnatcoll-python-eval.ali
+ gnatcoll-python-exceptions.ali
+ gnatcoll-python-fileutils.ali
+ gnatcoll-python-lifecycle.ali
  gnatcoll-python-state.ali
  gnatcoll-python.ali
  gnatcoll-scripts-python.ali
- libgnatcoll_python.a
- libgnatcoll_python.so
- libgnatcoll_python.so.%%SOMAJOR%%
- libgnatcoll_python.so.%%SOVERSION%%
+ libgnatcoll_python3.so
+ libgnatcoll_python3.so.%%SOMAJOR%%
+ libgnatcoll_python3.so.%%SOVERSION%%
+lib/gnatcoll_python.static/
+ gnatcoll-any_types-python.ali
+ gnatcoll-python-capsule.ali
+ gnatcoll-python-ctypes.ali
+ gnatcoll-python-errors.ali
+ gnatcoll-python-eval.ali
+ gnatcoll-python-exceptions.ali
+ gnatcoll-python-fileutils.ali
+ gnatcoll-python-lifecycle.ali
+ gnatcoll-python-state.ali
+ gnatcoll-python.ali
+ gnatcoll-scripts-python.ali
+ libgnatcoll_python3.a
+lib/gnatcoll_python.static-pic/
+ gnatcoll-any_types-python.ali
+ gnatcoll-python-capsule.ali
+ gnatcoll-python-ctypes.ali
+ gnatcoll-python-errors.ali
+ gnatcoll-python-eval.ali
+ gnatcoll-python-exceptions.ali
+ gnatcoll-python-fileutils.ali
+ gnatcoll-python-lifecycle.ali
+ gnatcoll-python-state.ali
+ gnatcoll-python.ali
+ gnatcoll-scripts-python.ali
+ libgnatcoll_python3.a
 share/gpr/gnatcoll_python.gpr
 
 
-[FILE:382:manifests/plist.readline]
+[FILE:528:manifests/plist.readline]
 include/gnatcoll_readline/
  gnatcoll-readline.adb
  gnatcoll-readline.ads
@@ -198,16 +289,21 @@ lib/
  libgnatcoll_readline.so
  libgnatcoll_readline.so.%%SOMAJOR%%
  libgnatcoll_readline.so.%%SOVERSION%%
-lib/gnatcoll_readline/
+lib/gnatcoll_readline.relocatable/
  gnatcoll-readline.ali
- libgnatcoll_readline.a
  libgnatcoll_readline.so
  libgnatcoll_readline.so.%%SOMAJOR%%
  libgnatcoll_readline.so.%%SOVERSION%%
+lib/gnatcoll_readline.static/
+ gnatcoll-readline.ali
+ libgnatcoll_readline.a
+lib/gnatcoll_readline.static-pic/
+ gnatcoll-readline.ali
+ libgnatcoll_readline.a
 share/gpr/gnatcoll_readline.gpr
 
 
-[FILE:395:manifests/plist.syslog]
+[FILE:545:manifests/plist.syslog]
 include/gnatcoll_syslog/
  gnatcoll-traces-syslog.adb
  gnatcoll-traces-syslog.ads
@@ -216,11 +312,173 @@ lib/
  libgnatcoll_syslog.so
  libgnatcoll_syslog.so.%%SOMAJOR%%
  libgnatcoll_syslog.so.%%SOVERSION%%
-lib/gnatcoll_syslog/
+lib/gnatcoll_syslog.relocatable/
  gnatcoll-traces-syslog.ali
- libgnatcoll_syslog.a
  libgnatcoll_syslog.so
  libgnatcoll_syslog.so.%%SOMAJOR%%
  libgnatcoll_syslog.so.%%SOVERSION%%
+lib/gnatcoll_syslog.static/
+ gnatcoll-traces-syslog.ali
+ libgnatcoll_syslog.a
+lib/gnatcoll_syslog.static-pic/
+ gnatcoll-traces-syslog.ali
+ libgnatcoll_syslog.a
 share/gpr/gnatcoll_syslog.gpr
+
+
+[FILE:2167:files/gen_gpr.sh]
+#!/bin/sh
+# This scripts generates gpr files and creates symbolic links
+# Expected inputs: component, destdir, python-includes
+# component one of (gmp, iconv, readline, syslog, python)
+
+name="$1"
+destdir="$2"
+python_includes="$3"
+soversion="$4"
+
+case "$name" in
+	"gmp")	
+		component=GMP
+		component_upper=GMP
+		component_lower="gmp"
+		linker_opts='"-lgmp"'
+		;;
+	"iconv")	
+		component=Iconv
+		component_upper=ICONV
+		component_lower="iconv"
+		linker_opts='"-liconv"'
+		;;
+	"readline")
+		component=Readline
+		component_upper=READLINE
+		component_lower="readline"
+		linker_opts='"-lreadline"'
+		;;
+	"syslog")
+		component=Syslog
+		component_upper=SYSLOG
+		component_lower="syslog"
+		linker_opts=
+		;;
+	"python")
+		name=python3
+		component=Python
+		component_upper=PYTHON
+		component_lower="python"
+		linker_opts=
+		;;
+	*)
+		echo "Illegal component $component"
+		exit 1
+		;;
+esac
+
+dname=$(dirname "$0")
+filesdir=$(cd "$dname" && pwd -P)
+target="gnatcoll_${component_lower}.gpr"
+major="${soversion%.[0-9]}"
+
+case "$name" in
+	"python3")
+		pyhandle="s|%%PYTHON_ON%%||; s|%%PYTHON_INCLUDE%%|${python_includes}|"	
+		;;
+	*)
+		pyhandle="/%%PYTHON_ON%%/d"
+		;;
+esac
+
+case "$name" in
+	"iconv")
+		iconvhandle="s|%%ICONV_ON%%||"
+		;;
+	*)
+		iconvhandle="/%%ICONV_ON%%/d"
+		;;
+esac
+	
+sed \
+ -e "s|%%COMPONENT%%|${component}|"\
+ -e "s|%%COMPONENT_U%%|${component_upper}|"\
+ -e "s|%%COMPONENT_L%%|${component_lower}|"\
+ -e "s|%%NAME%%|${name}|"\
+ -e "s|%%LINKER_OPTS%%|${linker_opts}|"\
+ -e "${pyhandle}"\
+ -e "${iconvhandle}"\
+ "${filesdir}/gnatcoll_template.gpr" > "${destdir}/share/gpr/${target}"
+
+ln -s "libgnatcoll_${name}.so.${major}" "${destdir}/lib/libgnatcoll_${name}.so"
+ln -s "libgnatcoll_${name}.so.${soversion}" "${destdir}/lib/libgnatcoll_${name}.so.${major}"
+ln -s "../libgnatcoll_${name}.so.${soversion}" \
+	"${destdir}/lib/gnatcoll_${component_lower}.relocatable/libgnatcoll_${name}.so"
+ln -s "../libgnatcoll_${name}.so.${soversion}" \
+	"${destdir}/lib/gnatcoll_${component_lower}.relocatable/libgnatcoll_${name}.so.${major}"
+ln -s "../libgnatcoll_${name}.so.${soversion}" \
+	"${destdir}/lib/gnatcoll_${component_lower}.relocatable/libgnatcoll_${name}.so.${soversion}"
+
+
+[FILE:1997:files/gnatcoll_template.gpr]
+with "gpr";
+with "xmlada_schema";
+with "xmlada_dom";
+with "xmlada_sax";
+with "xmlada_input_sources";
+with "xmlada_unicode";
+with "gnatcoll";
+
+library project GnatColl_%%COMPONENT%% is
+   type BUILD_KIND is ("static", "static-pic", "relocatable");
+   BUILD : BUILD_KIND := external("GNATCOLL_%%COMPONENT_U%%_BUILD", external("LIBRARY_TYPE", "static-pic"));
+
+   for Languages use ("Ada", "C");
+
+   case BUILD is
+      when "static" =>
+         for Source_Dirs use ("../../include/gnatcoll_%%COMPONENT_L%%");
+         for Library_Dir use "../../lib/gnatcoll_%%COMPONENT_L%%.static";
+         for Library_Kind use "static";
+      when "static-pic" =>
+         for Source_Dirs use ("../../include/gnatcoll_%%COMPONENT_L%%");
+         for Library_Dir use "../../lib/gnatcoll_%%COMPONENT_L%%.static-pic";
+         for Library_Kind use "static-pic";
+      when "relocatable" =>
+         for Source_Dirs use ("../../include/gnatcoll_%%COMPONENT_L%%");
+         for Library_Dir use "../../lib/gnatcoll_%%COMPONENT_L%%.relocatable";
+         for Library_Kind use "relocatable";
+   end case;
+
+   for Library_Name use "gnatcoll_%%NAME%%";
+
+   package Naming is
+      for dot_replacement use "-";
+      for casing use "lowercase";
+      for body_suffix ("c") use ".c";
+      for body_suffix ("ada") use ".adb";
+      for spec_suffix ("c") use ".h";
+      for spec_suffix ("ada") use ".ads";
+   end Naming;
+
+   package Linker is
+      for Linker_Options use (%%LINKER_OPTS%%);
+   end Linker;
+
+   package Install is
+      for Active use "False";
+   end Install;
+
+   for Externally_Built use "True";
+
+   type Build_Type is
+     ("DEBUG", "PROD");
+
+   %%PYTHON_ON%%libpython_kind    := "shared";
+   %%PYTHON_ON%%python_static_lib := "";
+   %%PYTHON_ON%%python_libs       := ();
+   %%PYTHON_ON%%python_cflags     := ("%%PYTHON_INCLUDE%%");
+   %%ICONV_ON%%iconv_opt    := "-liconv";
+   build        : build_type := "PROD";
+   name         := "gnatcoll_%%NAME%%";
+   version      := "0.0";
+end GnatColl_%%COMPONENT%%;
 
