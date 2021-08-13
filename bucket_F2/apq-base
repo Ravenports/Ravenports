@@ -2,6 +2,7 @@
 
 NAMEBASE=		apq-base
 VERSION=		3.2.0
+REVISION=		1
 KEYWORDS=		databases ada
 VARIANTS=		standard
 SDESC[standard]=	APQ Ada95 database base library
@@ -39,14 +40,13 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}
 			--processors={{MAKE_JOBS_NUMBER}}
 
 post-patch:
-	${REINPLACE_CMD} -e '/for Object_Dir/d' ${WRKSRC}/gnat/apq.gpr.in
 	${REINPLACE_CMD} -e 's|processors=2|gprbuild_params="--autoconf=apq.cgpr"|' \
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's|-ws|-ws --autoconf=dummy.cgpr|' \
 		${WRKSRC}/scripts/buildutil.sh
 
 do-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/gpr \
 		${STAGEDIR}${PREFIX}/lib/apq/static \
 		${STAGEDIR}${PREFIX}/include/apq
 	${INSTALL_DATA} ${WRKDIR}/build/include/apq/* \
@@ -54,7 +54,7 @@ do-install:
 	${INSTALL_DATA} ${WRKDIR}/build/lib/apq/static/*.a* \
 		${STAGEDIR}${PREFIX}/lib/apq/static
 	${INSTALL_DATA} ${WRKDIR}/build/lib/gnat/apq.gpr \
-		${STAGEDIR}${PREFIX}/lib/gnat
+		${STAGEDIR}${PREFIX}/share/gpr
 
 [FILE:456:descriptions/desc.single]
 APQ is a database interface library written in Ada95.  This is the base
@@ -75,7 +75,7 @@ Some features:
 0a5cf0ecca4a6ed103948221184d21588aacd4e43438ce35dfea4a873679a9d8       115841 apq-3.2.0.tar.bz2
 
 
-[FILE:131:manifests/plist.single]
+[FILE:132:manifests/plist.single]
 include/apq/
  apq.adb
  apq.ads
@@ -85,5 +85,26 @@ lib/apq/static/
  apq.ali
  apq_helper.ali
  libapq.a
-lib/gnat/apq.gpr
+share/gpr/apq.gpr
+
+
+[FILE:737:patches/patch-gnat_apq.gpr.in]
+--- gnat/apq.gpr.in.orig	2012-08-10 02:00:55 UTC
++++ gnat/apq.gpr.in
+@@ -42,13 +42,12 @@ project APQ is
+ 
+ 	case Debug is
+ 		when "true" =>
+-			for Library_Dir use "../" & Project'Library_Name & "-debug/" & Project'Library_Kind;
++			for Library_Dir use "../../lib/" & Project'Library_Name & "-debug/" & Project'Library_Kind;
+ 		when "false" =>
+-			for Library_Dir use "../" & Project'Library_name & "/" & Project'Library_Kind;
++			for Library_Dir use "../../lib/" & Project'Library_name & "/" & Project'Library_Kind;
+ 	end case;
+ 
+ 
+-	for Object_Dir use Project'Library_Dir & "/objects/";
+ 
+ 	for Library_Version use "lib" & Project'Library_Name & ".so." & Version;
+ 	for Externally_Built use External( "APQ_EXTERNALLY_BUILT", "true" );
 

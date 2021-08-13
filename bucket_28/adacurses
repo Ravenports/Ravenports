@@ -2,7 +2,7 @@
 
 NAMEBASE=		adacurses
 VERSION=		20180127
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Ada95 bindings for ncurses
@@ -67,9 +67,9 @@ post-install:
 		${STAGEDIR}${PREFIX}/lib/adacurses/
 	${INSTALL_SCRIPT} ${WRKSRC}/gen/adacurses-config \
 		${STAGEDIR}${PREFIX}/bin/
-	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/gpr
 	${INSTALL_SCRIPT} ${WRKDIR}/adacurses.gpr \
-		${STAGEDIR}${PREFIX}/lib/gnat
+		${STAGEDIR}${PREFIX}/share/gpr
 	(cd ${WRKSRC}/doc && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_ARGS} THIS=adacurses install.html)
 
@@ -83,7 +83,7 @@ Eugen V. Melaragno and Nicolas Boulenguez.
 926e72aa6911ba5eeda4e3214aa2b1e2dba0aafcfeb820eee65db91c0ccf10fa       700458 AdaCurses-20180127.tgz
 
 
-[FILE:3548:manifests/plist.primary]
+[FILE:3549:manifests/plist.primary]
 bin/adacurses-config
 include/
  %%atic%%-aux.adb
@@ -198,7 +198,7 @@ lib/
 lib/adacurses/
  libAdaCurses.a
  terminal_interface.ali
-lib/gnat/adacurses.gpr
+share/gpr/adacurses.gpr
 share/man/man1/adacurses-config.1.gz
 
 
@@ -251,6 +251,19 @@ share/man/man1/adacurses-config.1.gz
  
  uninstall.html :
  	-rm -rf $(DOCDIR)
+
+
+[FILE:353:patches/patch-src_Makefile.in]
+--- src/Makefile.in.orig	2018-01-15 22:12:07 UTC
++++ src/Makefile.in
+@@ -136,6 +136,7 @@ GENERATED_SOURCES=$(ABASE).ads
+ LIBOBJS=$(ALIB).o                			\
+ 	$(ABASE)-aux.o           			\
+ 	$(ABASE).o               			\
++	$(ABASE)_constants.o                            \
+ 	$(ABASE)-terminfo.o				\
+ 	$(ABASE)-termcap.o				\
+ 	$(ABASE)-putwin.o				\
 
 
 [FILE:425:patches/patch-src_c__threaded__variables.h]

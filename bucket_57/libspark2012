@@ -2,6 +2,7 @@
 
 NAMEBASE=		libspark2012
 VERSION=		2012
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	SPARK 2012 Spark.Ada library
@@ -39,7 +40,7 @@ SPARK 2012 library to be compiled with the GNAT Ada compiler.
 862e6b23ff44aea02ab10a4dcc2c00a9893231286d51a6bc587230366c936db2        23773 libspark2012-2012.tar.bz2
 
 
-[FILE:1556:manifests/plist.single]
+[FILE:1557:manifests/plist.single]
 include/spark2012/
  spark-ada-command_line-unbounded_string.adb
  spark-ada-command_line-unbounded_string.ads
@@ -73,7 +74,6 @@ include/spark2012/
  spark-unsigned.adb
  spark-unsigned.ads
  spark.ads
-lib/gnat/spark2012.gpr
 lib/spark2012/
  libspark2012.a
  spark-ada-command_line-unbounded_string.ali
@@ -95,12 +95,13 @@ lib/spark2012/
  spark-crypto.ali
  spark-unsigned.ali
  spark.ali
+share/gpr/spark2012.gpr
 
 
-[FILE:781:patches/patch-Makefile]
---- Makefile.orig	2014-02-17 05:26:40.000000000 -0500
+[FILE:993:patches/patch-Makefile]
+--- Makefile.orig	2014-02-17 10:26:40 UTC
 +++ Makefile
-@@ -1,23 +1,13 @@
+@@ -1,27 +1,17 @@
 -all: nada
 +all: build
  
@@ -111,7 +112,7 @@ lib/spark2012/
  	gnatmake -p -P build_spark2012
  
  install:
- 	mkdir -p ${DESTDIR}${PREFIX}/lib/gnat \
+-	mkdir -p ${DESTDIR}${PREFIX}/lib/gnat \
 -		 ${DESTDIR}${PREFIX}/include/spark2012
 -	${BSD_INSTALL_DATA} spark2012.gpr \
 -		${DESTDIR}${PREFIX}/lib/gnat
@@ -120,6 +121,7 @@ lib/spark2012/
 -
 -install-orig:
 -	mkdir -p ${DESTDIR}${PREFIX}/lib/gnat \
++	mkdir -p ${DESTDIR}${PREFIX}/share/gpr \
  		 ${DESTDIR}${PREFIX}/lib/spark2012 \
  		 ${DESTDIR}${PREFIX}/include/spark2012
 -	${BSD_INSTALL_LIB} src/build/lib/libspark2012.a \
@@ -127,6 +129,11 @@ lib/spark2012/
  		${DESTDIR}${PREFIX}/lib/spark2012
  	${BSD_INSTALL_DATA} src/build/lib/*.ali \
  		${DESTDIR}${PREFIX}/lib/spark2012
+ 	${BSD_INSTALL_DATA} spark2012.gpr \
+-		${DESTDIR}${PREFIX}/lib/gnat
++		${DESTDIR}${PREFIX}/share/gpr
+ 	${BSD_INSTALL_DATA} src/*.ad[bs] \
+ 		${DESTDIR}${PREFIX}/include/spark2012
 
 
 [FILE:377:patches/patch-spark2012.gpr]

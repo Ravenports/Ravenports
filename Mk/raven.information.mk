@@ -14,10 +14,10 @@
 # ------------------------------------------------------------------------
 
 APQ_VERSION=			3.2.0
-APQ_BASE_REVISION=		0
-APQ_MYSQL_REVISION=		0
-APQ_PGSQL_REVISION=		0
-APQ_ODBC_REVISION=		0
+APQ_BASE_REVISION=		1
+APQ_MYSQL_REVISION=		1
+APQ_PGSQL_REVISION=		1
+APQ_ODBC_REVISION=		1
 
 # ------------------------------------------------------------------------
 # boost

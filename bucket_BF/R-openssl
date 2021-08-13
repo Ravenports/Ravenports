@@ -54,3 +54,26 @@ calculations on large multibyte integers.
 [FILE:104:distinfo]
 920fb4494da6cf78b55937a9f645d11dae4d7982afa640f28c1be74d486cc874      1311285 CRAN/openssl_1.4.4.tar.gz
 
+
+[FILE:587:patches/patch-src_ssl.c]
+Expose PF_UNSPEC
+
+--- src/ssl.c.orig	2021-04-30 12:20:43 UTC
++++ src/ssl.c
+@@ -1,5 +1,5 @@
+ //getaddrinfo is an extension (not C99)
+-#if !defined(_WIN32) && !defined(__sun) && !defined(_POSIX_C_SOURCE)
++#if !defined(_WIN32) && !defined(__sun) && !defined(_POSIX_C_SOURCE) && !defined(__DragonFly__)
+ #define _POSIX_C_SOURCE 200112L
+ #endif
+ 
+@@ -9,7 +9,7 @@
+ #endif
+ 
+ //see https://github.com/jeroen/openssl/issues/41
+-#if defined(__FreeBSD__) && !defined(__BSD_VISIBLE)
++#if defined(__FreeBSD__) && !defined(__BSD_VISIBLE) && !defined(__DragonFly__)
+ #define __BSD_VISIBLE 1
+ #endif
+ 
+
