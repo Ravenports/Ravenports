@@ -92,7 +92,6 @@ GCC10_VERSION=			${GCC10_BRANCH}.${GCC10_POINT}
 GCC10_SNAPSHOT=			20210408
 GCC10_BUILD_RELEASE=		yes
 GCC10_REVISION=			0
-GCC10_GNAT_UTIL_REVISION=	0
 GCC10_GNATCROSS_REVISION=	0
 GCC10_BOOTSTRAP_REVISION=	0
 
@@ -107,6 +106,20 @@ GCC10_IDENTIFICATION=		gcc-${GCC10_VERSION}
 GCC10_MS_SUBDIR=		releases/gcc-${GCC10_VERSION}
 GCC10_PHASE=			release
 .endif
+
+# ------------------------------------------------------------------------
+# base compiler
+# ------------------------------------------------------------------------
+
+GCCBASE_BRANCH=			10
+GCCBASE_POINT=			3.0
+GCCBASE_VERSION=		${GCCBASE_BRANCH}.${GCCBASE_POINT}
+GCCBASE_REVISION=		0
+GCCBASE_GNAT_UTIL_REVISION=	0
+GCCBASE_PORTVERSION=		${GCCBASE_VERSION}
+GCCBASE_IDENTIFICATION=		gcc-${GCCBASE_VERSION}
+GCCBASE_MS_SUBDIR=		releases/gcc-${GCCBASE_VERSION}
+GCCBASE_PHASE=			release
 
 # ------------------------------------------------------------------------
 # icu
@@ -163,6 +176,7 @@ GTK4_PORT_VERSION=		4.2.1
 CURRENT_GCC=			gcc9	# mirror in Uses/meson.mk
 CURRENT_GCC_VERSION=		${GCC9_VERSION}
 BINUTILS_VERSION=		2.35.1
+RPBASE_BINUTILS=		2.37
 
 # ------------------------------------------------------------------------
 # aspell

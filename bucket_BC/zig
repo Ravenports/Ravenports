@@ -17,7 +17,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[linux]=		during linking: undefined reference to `getrandom'
+BROKEN[linux]=		final linking: undefined reference to `getrandom'
 ONLY_FOR_OPSYS=		freebsd dragonfly netbsd linux
 
 BUILDRUN_DEPENDS=	llvm:single:standard
@@ -38,6 +38,10 @@ pre-build:
 	${REINPLACE_CMD} \
 		-e 's|@GCC_TARGET_LIBDIR@|${LOCALBASE}/toolchain/gcc9/${ASLIB}/gcc/${CONFIGURE_TARGET}/9.3.0|' \
 		${WRKSRC}/src/link/Elf.zig \
+
+post-patch-linux:
+	${REINPLACE_CMD} -e 's|EXE_LDFLAGS " "|EXE_LDFLAGS "-Wl,-rpath,${LOCALBASE}/lib "|'\
+		${WRKSRC}/CMakeLists.txt
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/zig

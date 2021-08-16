@@ -40,8 +40,10 @@ LICENSE_SCHEME=		multi
 FPC_EQUIVALENT=		devel/pcc-libs
 
 MUST_CONFIGURE=		gnu
+CONFIGURE_ENV=		ac_cv_build="{{CONFIGURE_TARGET}}"
 
 PLIST_SUB=		TARGET={{CONFIGURE_TARGET}}
+			SUBTARGET=1.2.0.DEVEL
 
 [FILE:39:descriptions/desc.single]
 Libraries for the Portable C Compiler.
@@ -51,8 +53,15 @@ Libraries for the Portable C Compiler.
 7ae7fe877bb4783742b55dddd31afdac6f437117e4e3b0fd7def9a184ecd583c       201338 pcc-libs-20210521.tgz
 
 
-[FILE:250:manifests/plist.single]
-lib/pcc/%%TARGET%%/1.2.0.DEVEL/include/
+[FILE:376:manifests/plist.single]
+%%ONLY-LINUX%%lib/pcc/%%TARGET%%/%%SUBTARGET%%/lib/
+ crtbegin.o
+ crtbeginS.o
+ crtbeginT.o
+ crtend.o
+ crtendS.o
+ crtendT.o
+lib/pcc/%%TARGET%%/%%SUBTARGET%%/include/
  float.h
  iso646.h
  libpcc_float.h
@@ -64,7 +73,7 @@ lib/pcc/%%TARGET%%/1.2.0.DEVEL/include/
  stdarg.h
  stdbool.h
  stddef.h
-lib/pcc/%%TARGET%%/1.2.0.DEVEL/lib/
+lib/pcc/%%TARGET%%/%%SUBTARGET%%/lib/
  libpcc.a
  libpccsoftfloat.a
 
@@ -82,6 +91,32 @@ Index: configure
  	esac
  	;;
  
+
+
+[FILE:622:patches/patch-csu_linux_Makefile]
+--- csu/linux/Makefile.orig	2014-10-13 11:07:26 UTC
++++ csu/linux/Makefile
+@@ -35,16 +35,16 @@ crtend.o: crtend.c
+ 	$(CC) -O2 $(CFLAGS) -c -o $@ $<
+ 
+ crtbeginS.o: crtbegin.c
+-	$(CC) -O2 $(CFLAGS) -fpic -c -o $@ $<
++	$(CC) -O2 $(CFLAGS) -fpic -c -o $@ ${.ALLSRC}
+ 
+ crtendS.o: crtend.c
+-	$(CC) -O2 $(CFLAGS) -fpic -c -o $@ $<
++	$(CC) -O2 $(CFLAGS) -fpic -c -o $@ ${.ALLSRC}
+ 
+ crtbeginT.o: crtbegin.c
+-	$(CC) -O2 $(CFLAGS) -c -o $@ $<
++	$(CC) -O2 $(CFLAGS) -c -o $@ ${.ALLSRC}
+ 
+ crtendT.o: crtend.c
+-	$(CC) -O2 $(CFLAGS) -c -o $@ $<
++	$(CC) -O2 $(CFLAGS) -c -o $@ ${.ALLSRC}
+ 
+ install:
+ 	mkdir -p ${DESTDIR}$(PCCLIBDIR)
 
 
 [FILE:278:patches/patch-libpcc_Makefile.in]
