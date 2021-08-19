@@ -4,7 +4,7 @@
 # need in a single location.  The data is extracted by using the
 # EXTRACT_INFO function on a specification definition, e.g.
 #
-# DEF[PORTVERSION]=		EXTRACT_INFO(GCC8_VERSION)
+# DEF[PORTVERSION]=		EXTRACT_INFO(GCC11_VERSION)
 # 
 # This file is only used at "compile-time", that is when the port
 # specification is used to generate the buildsheet.
@@ -30,32 +30,6 @@ BOOST_LIBRARIES_REVISION=	0
 # ------------------------------------------------------------------------
 # Only keep the open branches of GCC
 # ------------------------------------------------------------------------
-# ------------------------------------------------------------------------
-# gcc8
-# ------------------------------------------------------------------------
-
-GCC8_BRANCH=			8
-GCC8_POINT=			4.0
-GCC8_VERSION=			${GCC8_BRANCH}.${GCC8_POINT}
-GCC8_SNAPSHOT=			20200420
-GCC8_BUILD_RELEASE=		yes
-GCC8_REVISION=			0
-GCC8_GNAT_UTIL_REVISION=	0
-GCC8_GNATCROSS_REVISION=	0
-GCC8_BOOTSTRAP_REVISION=	0
-
-.if ${GCC8_BUILD_RELEASE:Mno}
-GCC8_PORTVERSION=		${GCC8_BRANCH}.${GCC8_SNAPSHOT}
-GCC8_IDENTIFICATION=		gcc-${GCC8_BRANCH}-${GCC8_SNAPSHOT}
-GCC8_MS_SUBDIR=			snapshots/${GCC8_BRANCH}-${GCC8_SNAPSHOT}
-GCC8_PHASE=			snapshot
-.else
-GCC8_PORTVERSION=		${GCC8_VERSION}
-GCC8_IDENTIFICATION=		gcc-${GCC8_VERSION}
-GCC8_MS_SUBDIR=			releases/gcc-${GCC8_VERSION}
-GCC8_PHASE=			release
-.endif
-
 # ------------------------------------------------------------------------
 # gcc9
 # ------------------------------------------------------------------------
@@ -105,6 +79,31 @@ GCC10_PORTVERSION=		${GCC10_VERSION}
 GCC10_IDENTIFICATION=		gcc-${GCC10_VERSION}
 GCC10_MS_SUBDIR=		releases/gcc-${GCC10_VERSION}
 GCC10_PHASE=			release
+.endif
+
+# ------------------------------------------------------------------------
+# gcc11
+# ------------------------------------------------------------------------
+
+GCC11_BRANCH=			11
+GCC11_POINT=			2.0
+GCC11_VERSION=			${GCC11_BRANCH}.${GCC11_POINT}
+GCC11_SNAPSHOT=			20210728
+GCC11_BUILD_RELEASE=		yes
+GCC11_REVISION=			0
+GCC11_GNATCROSS_REVISION=	0
+GCC11_BOOTSTRAP_REVISION=	0
+
+.if ${GCC11_BUILD_RELEASE:Mno}
+GCC11_PORTVERSION=		${GCC11_BRANCH}.${GCC11_SNAPSHOT}
+GCC11_IDENTIFICATION=		gcc-${GCC11_BRANCH}-${GCC11_SNAPSHOT}
+GCC11_MS_SUBDIR=		snapshots/${GCC11_BRANCH}-${GCC11_SNAPSHOT}
+GCC11_PHASE=			snapshot
+.else
+GCC11_PORTVERSION=		${GCC11_VERSION}
+GCC11_IDENTIFICATION=		gcc-${GCC11_VERSION}
+GCC11_MS_SUBDIR=		releases/gcc-${GCC11_VERSION}
+GCC11_PHASE=			release
 .endif
 
 # ------------------------------------------------------------------------
