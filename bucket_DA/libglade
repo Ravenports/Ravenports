@@ -43,10 +43,6 @@ PLIST_SUB=		XMLCATALOG="{{LOCALBASE}}/bin/xmlcatalog"
 
 LDFLAGS=		-lgmodule-2.0
 
-post-patch:
-	${REINPLACE_CMD} -E 's/in (python.*)+ none/in none/' \
-		${WRKSRC}/configure
-
 pre-patch:
 	${FIND} ${WRKSRC} -name "Makefile.in" -type f | \
 	${XARGS} ${REINPLACE_CMD} -e \
@@ -84,4 +80,27 @@ share/xml/libglade/glade-2.0.dtd
 @dir lib/libglade/2.0
 @postunexec %%XMLCATALOG%% --noout --del %D/share/xml/libglade/glade-2.0.dtd %%CATALOG_PORTS_XML%% || /usr/bin/true
 @preexec %%XMLCATALOG%% --noout --add "system" "http://glade.gnome.org/glade-2.0.dtd" %D/share/xml/libglade/glade-2.0.dtd %%CATALOG_PORTS_XML%% || /usr/bin/true
+
+
+[FILE:822:patches/patch-configure]
+--- configure.orig	2009-03-17 14:25:36 UTC
++++ configure
+@@ -13054,7 +13054,7 @@ $as_echo "$LINGUAS" >&6; }
+ 
+ 
+ 
+-        if test -n "$PYTHON"; then
++        if test -n ""; then
+       # If the user set $PYTHON, use it and don't search something else.
+       { $as_echo "$as_me:$LINENO: checking whether $PYTHON version >= 2.0" >&5
+ $as_echo_n "checking whether $PYTHON version >= 2.0... " >&6; }
+@@ -13088,7 +13088,7 @@ if test "${am_cv_pathless_PYTHON+set}" =
+   $as_echo_n "(cached) " >&6
+ else
+ 
+-	for am_cv_pathless_PYTHON in python python2 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 none; do
++	for am_cv_pathless_PYTHON in none; do
+ 	  test "$am_cv_pathless_PYTHON" = none && break
+ 	  prog="import sys, string
+ # split strings by '.' and convert to numeric.  Append some zeros
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		libtorrent-rasterbar
 VERSION=		2.0.4
+REVISION=		1
 KEYWORDS=		net_p2p
 VARIANTS=		standard
 SDESC[standard]=	Feature complete C++ bittorrent implementation
@@ -28,6 +29,9 @@ FPC_EQUIVALENT=		net-p2p/libtorrent-raster
 SOVERSION=		2.0.4
 PLIST_SUB=		SOMAJMIN=2.0
 
+pre-install:
+	find "${WRKSRC}" -name "*.orig" -type f -delete
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 
@@ -42,7 +46,7 @@ servers and embedded devices.
 55bcce16c4b85b8cccd20e7ff4a9fde92db66333a25d6504a83c0bb0a5f7f529      4311319 libtorrent-rasterbar-2.0.4.tar.gz
 
 
-[FILE:4999:manifests/plist.single]
+[FILE:4982:manifests/plist.single]
 include/libtorrent/
  add_torrent_params.hpp
  address.hpp
@@ -197,7 +201,6 @@ include/libtorrent/aux_/
  bandwidth_socket.hpp
  bind_to_device.hpp
  buffer.hpp
- buffer.hpp.orig
  byteswap.hpp
  chained_buffer.hpp
  container_wrapper.hpp
@@ -323,6 +326,40 @@ lib/cmake/LibtorrentRasterbar/
  LibtorrentRasterbarTargets.cmake
 lib/pkgconfig/libtorrent-rasterbar.pc
 share/cmake/Modules/FindLibtorrentRasterbar.cmake
+
+
+[FILE:1695:patches/patch-fix-boost-1.77]
+From 8ed34b67df8c795780f80db5be35ad468713110e Mon Sep 17 00:00:00 2001
+From: arvidn <arvid@libtorrent.org>
+Date: Thu, 19 Aug 2021 11:54:13 +0200
+Subject: [PATCH] bump handler allocation sizes for boost-1.77 (linux)
+
+---
+ include/libtorrent/aux_/allocating_handler.hpp | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+--- include/libtorrent/aux_/allocating_handler.hpp
++++ include/libtorrent/aux_/allocating_handler.hpp
+@@ -122,14 +122,14 @@ namespace libtorrent { namespace aux {
+ 	constexpr std::size_t fuzzer_write_cost = 0;
+ 	constexpr std::size_t fuzzer_read_cost = 0;
+ #endif
+-	constexpr std::size_t write_handler_max_size = tracking + debug_write_iter + openssl_write_cost + fuzzer_write_cost + 152;
+-	constexpr std::size_t read_handler_max_size = tracking + debug_read_iter + openssl_read_cost + fuzzer_read_cost + 152;
+-	constexpr std::size_t udp_handler_max_size = tracking + 144;
+-	constexpr std::size_t utp_handler_max_size = tracking + 168;
++	constexpr std::size_t write_handler_max_size = tracking + debug_write_iter + openssl_write_cost + fuzzer_write_cost + 168;
++	constexpr std::size_t read_handler_max_size = tracking + debug_read_iter + openssl_read_cost + fuzzer_read_cost + 168;
++	constexpr std::size_t udp_handler_max_size = tracking + 160;
++	constexpr std::size_t utp_handler_max_size = tracking + 184;
+ 	constexpr std::size_t abort_handler_max_size = tracking + 72;
+ 	constexpr std::size_t submit_handler_max_size = tracking + 72;
+ 	constexpr std::size_t deferred_handler_max_size = tracking + 80;
+-	constexpr std::size_t tick_handler_max_size = tracking + 112;
++	constexpr std::size_t tick_handler_max_size = tracking + 128;
+ #endif
+ 
+ 	enum HandlerName
 
 
 [FILE:700:patches/patch-include_libtorrent_aux___buffer.hpp]

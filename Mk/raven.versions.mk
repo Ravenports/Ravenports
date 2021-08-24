@@ -22,12 +22,11 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 
 #-------------------------------------------------------------------------
 # PERL5
-# Possible values: 5.30 and 5.32 (stage 5.34 to replace 5.30)
+# Possible values: 5.32 and 5.34
 #-------------------------------------------------------------------------
 
-PERL5_DEFAULT?=		5.30
+PERL5_DEFAULT?=		5.32
 
-PERL_5.30_VERSION=	5.30.3
 PERL_5.32_VERSION=	5.32.1
 PERL_5.34_VERSION=	5.34.0
 
