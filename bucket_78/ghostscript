@@ -780,3 +780,36 @@ Avoid GS conflict on older SunOS.
          DYNAMIC_FLAGS="-DGS_DEVS_SHARED -DGS_DEVS_SHARED_DIR=\\\"\$(gssharedir)\\\""
          X11_DEVS=""
 
+
+[FILE:505:patches/patch-leptonica_src_environ.h]
+--- leptonica/src/environ.h.orig	2021-03-30 07:40:28 UTC
++++ leptonica/src/environ.h
+@@ -172,7 +172,7 @@ typedef uintptr_t l_uintptr_t;
+  * To use them on MacOS, which does not support these functions, set it to 0.
+  *-------------------------------------------------------------------------*/
+ #if !defined(HAVE_CONFIG_H) && !defined(ANDROID_BUILD) && !defined(OS_IOS) && \
+-    !defined(_WIN32)
++    !defined(_WIN32) && !defined(__sun)
+ #define  HAVE_FMEMOPEN    1
+ #endif  /* ! HAVE_CONFIG_H etc. */
+ 
+
+
+[FILE:396:patches/patch-leptonica_src_sarray1.c]
+--- leptonica/src/sarray1.c.orig	2021-03-30 07:40:28 UTC
++++ leptonica/src/sarray1.c
+@@ -149,6 +149,13 @@
+ #endif  /* ! _WIN32 */
+ #include "allheaders.h"
+ 
++#ifdef __sun
++static int
++dirfd(DIR *dirp) {
++        return (dirp->d_fd);
++}
++#endif
++
+ static const l_uint32  MaxPtrArraySize = 25000000;  /* 25 million */
+ static const l_int32   InitialPtrArraySize = 50;      /*!< n'importe quoi */
+ 
+

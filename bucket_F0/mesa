@@ -20,7 +20,6 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	X86_DRIVERS ARM_DRIVERS LLVMPIPE WAYLAND
 OPTIONS_STANDARD=	X86_DRIVERS ARM_DRIVERS LLVMPIPE
 OPT_ON[freebsd]=	LLVMPIPE//i386|x86_64
-OPT_ON[sunos]=		LLVMPIPE
 OPT_ON[aarch64]=	ARM_DRIVERS
 OPT_ON[linux]=		LLVMPIPE//i386|x86_64
 OPT_ON[x86_64]=		X86_DRIVERS
@@ -119,7 +118,6 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 					DRI_DRIVERS+=I965
 					GALLIUM_DRIVERS+=R300
 					GALLIUM_DRIVERS+=SVGA
-					GALLIUM_DRIVERS+={{GALLIUM_LLVM_DRIVERS}}
 					VULKAN_DRIVERS+={{VULKAN_DRIVERS_X86}}
 
 [WAYLAND].DESCRIPTION=			Build Vulkan drivers for Wayland platform
@@ -138,6 +136,7 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 [LLVMPIPE].MAKEFILE_OFF=		MESON_ARGS+=-Dgallium-opencl=disabled
 [LLVMPIPE].MAKEFILE_ON=			GALLIUM_LLVM_DRIVERS+=R600
 					GALLIUM_LLVM_DRIVERS+=RADEONSI
+					GALLIUM_DRIVERS+={{GALLIUM_LLVM_DRIVERS}}
 					MESON_ARGS+=-Dllvm=true
 					MESON_ARGS+=-Dgallium-xvmc=enabled
 					MESON_ARGS+=-Dgallium-va=enabled
@@ -677,6 +676,58 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  )
 
 
+[FILE:1012:patches/patch-src_intel_common_intel__measure.c]
+--- src/intel/common/intel_measure.c.orig	2021-08-11 20:27:37 UTC
++++ src/intel/common/intel_measure.c
+@@ -42,6 +42,46 @@
+ #include "util/macros.h"
+ #include "util/u_debug.h"
+ 
++#ifdef __sun
++static int
++mkfifoat(int fd, const char *path, mode_t mode)
++{
++	int	er, curfd = -1, newfd = -1;
++
++	/* Get our current directory then switch to the given one. */
++
++	if (fd != AT_FDCWD) {
++		if ((curfd = open(".", O_RDONLY, 0)) == -1)
++			return -1;
++		if (fchdir(fd) == -1)
++			goto out;
++	}
++
++	if ((newfd = mkfifo(path, mode)) == -1)
++		goto out;
++
++	/* This leaves the fifo if it fails. */
++
++	if (curfd != -1 && fchdir(curfd) == -1)
++		goto out;
++	if (curfd != -1)
++		close(curfd);
++
++	return newfd;
++out:
++	/* Ignore errors in close(2). */
++
++	er = errno;
++	if (curfd != -1)
++		fchdir(curfd);
++	if (curfd != -1)
++		close(curfd);
++	if (newfd != -1)
++		close(newfd);
++	errno = er;
++	return -1;
++}
++#endif
+ 
+ static const struct debug_control debug_control[] = {
+    { "draw",            INTEL_MEASURE_DRAW       },
+
+
 [FILE:1014:patches/patch-src_intel_compiler_brw__eu__validate.c]
 --- src/intel/compiler/brw_eu_validate.c.orig	2021-08-11 20:27:37 UTC
 +++ src/intel/compiler/brw_eu_validate.c
@@ -1055,6 +1106,22 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  #define UTIL_FUTEX_SUPPORTED 1
 
 
+[FILE:239:patches/patch-src_util_libsync.h]
+--- src/util/libsync.h.orig	2021-08-11 20:27:38 UTC
++++ src/util/libsync.h
+@@ -36,6 +36,10 @@
+ #include <sys/poll.h>
+ #include <unistd.h>
+ 
++#ifdef __sun__
++#include <sys/ioccom.h>
++#endif
++
+ #if defined(__cplusplus)
+ extern "C" {
+ #endif
+
+
 [FILE:310:patches/patch-src_util_memstream.c]
 --- src/util/memstream.c.orig	2021-08-11 20:27:38 UTC
 +++ src/util/memstream.c
@@ -1229,7 +1296,7 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
 GALLIUM_DRIVERS+=	SWRAST
 
 
-[FILE:891:sunos/patch-src_gallium_targets_dri_meson.build]
+[FILE:911:sunos/patch-src_gallium_targets_dri_meson.build]
 --- src/gallium/targets/dri/meson.build.orig	2020-12-31 03:59:58 UTC
 +++ src/gallium/targets/dri/meson.build
 @@ -45,11 +45,12 @@ libgallium_dri = shared_library(
@@ -1239,7 +1306,7 @@ GALLIUM_DRIVERS+=	SWRAST
 -  link_args : [ld_args_build_id, ld_args_gc_sections, gallium_dri_ld_args],
 +  link_args : [ld_args_gc_sections, gallium_dri_ld_args],
    link_depends : gallium_dri_link_depends,
-+  link_whole : [libdri, libdricommon, libgallium, libr300, libr600, _libnir, libamd_common],
++  link_whole : [libdri, libdricommon, libgallium, libr300, _libnir, libglsl, libglcpp], # libr600, libamd_common
    link_with : [
 -    libdri, libmesa_gallium, libdricommon, libmegadriver_stub, libgalliumvl,
 -    libgallium, libglapi, libpipe_loader_static, libws_null, libwsw, libswdri,
@@ -1264,7 +1331,7 @@ GALLIUM_DRIVERS+=	SWRAST
      idep_mesautil,
 
 
-[FILE:585:sunos/patch-src_gallium_targets_osmesa_meson.build]
+[FILE:604:sunos/patch-src_gallium_targets_osmesa_meson.build]
 --- src/gallium/targets/osmesa/meson.build.orig	2020-12-31 03:59:58 UTC
 +++ src/gallium/targets/osmesa/meson.build
 @@ -49,9 +49,9 @@ libosmesa = shared_library(
@@ -1272,7 +1339,7 @@ GALLIUM_DRIVERS+=	SWRAST
    ],
    link_depends : osmesa_link_deps,
 -  link_whole : [libosmesa_st, libglapi_static],
-+  link_whole : [libosmesa_st, libglapi_static, libsoftpipe, libgallium, _libnir],
++  link_whole : [libosmesa_st, libglapi_static, libsoftpipe, libgallium, _libnir, libglsl, libglcpp],
    link_with : [
 -    libmesa_gallium, libgallium, libws_null, osmesa_link_with,
 +    libmesa_gallium, libws_null, osmesa_link_with,
@@ -1344,7 +1411,7 @@ GALLIUM_DRIVERS+=	SWRAST
    link_depends : va_link_depends,
 
 
-[FILE:761:sunos/patch-src_gallium_targets_vdpau_meson.build]
+[FILE:784:sunos/patch-src_gallium_targets_vdpau_meson.build]
 --- src/gallium/targets/vdpau/meson.build.orig	2020-12-31 03:59:58 UTC
 +++ src/gallium/targets/vdpau/meson.build
 @@ -44,10 +44,10 @@ libvdpau_gallium = shared_library(
@@ -1352,7 +1419,7 @@ GALLIUM_DRIVERS+=	SWRAST
      inc_include, inc_src, inc_mapi, inc_mesa, inc_gallium, inc_gallium_aux, inc_util, inc_gallium_winsys, inc_gallium_drivers,
    ],
 -  link_whole : [libvdpau_st],
-+  link_whole : [libvdpau_st, libr300, libr600, libradeonsi, libradeonwinsys, libmesa_format, _libxmlconfig, libamd_common, libamd_common_llvm, libpipe_loader_static],
++  link_whole : [libvdpau_st, libr300, libradeonwinsys, libmesa_format, _libxmlconfig, libpipe_loader_static, libgallium, _libnir], # libr600, libradeonsi, libamd_common, libamd_common_llvm,
    link_with : [
      libgalliumvlwinsys, libgalliumvl, libgallium,
 -    libpipe_loader_static, libws_null, libwsw, libswdri, libswkmsdri,
@@ -1362,7 +1429,7 @@ GALLIUM_DRIVERS+=	SWRAST
      idep_mesautil,
 
 
-[FILE:649:sunos/patch-src_gallium_targets_xa_meson.build]
+[FILE:670:sunos/patch-src_gallium_targets_xa_meson.build]
 --- src/gallium/targets/xa/meson.build.orig	2020-12-31 03:59:58 UTC
 +++ src/gallium/targets/xa/meson.build
 @@ -40,9 +40,9 @@ libxatracker = shared_library(
@@ -1370,7 +1437,7 @@ GALLIUM_DRIVERS+=	SWRAST
      inc_include, inc_src, inc_mapi, inc_mesa, inc_gallium, inc_gallium_aux, inc_util, inc_gallium_winsys, inc_gallium_drivers,
    ],
 -  link_whole : [libxa_st],
-+  link_whole : [libxa_st, libsvga, libsvgadrm, libpipe_loader_static, libmesa_format, _libxmlconfig],
++  link_whole : [libxa_st, libsvga, libsvgadrm, libpipe_loader_static, libmesa_format, _libxmlconfig, libgallium, _libnir],
    link_with : [
 -    libgalliumvl_stub, libgallium, libpipe_loader_static,
 +    libgalliumvl_stub, libgallium,
@@ -1415,7 +1482,7 @@ GALLIUM_DRIVERS+=	SWRAST
    install : true,
 
 
-[FILE:983:sunos/patch-src_mesa_drivers_dri_meson.build]
+[FILE:997:sunos/patch-src_mesa_drivers_dri_meson.build]
 --- src/mesa/drivers/dri/meson.build.orig	2020-12-31 03:59:58 UTC
 +++ src/mesa/drivers/dri/meson.build
 @@ -20,7 +20,7 @@
@@ -1433,7 +1500,7 @@ GALLIUM_DRIVERS+=	SWRAST
      link_with : [
 -      libmegadriver_stub, libdricommon, libglapi,
 -      libmesa_classic,
-+      libmegadriver_stub, libglapi,
++      libmegadriver_stub, libglapi, libintel_dev,
      ],
      dependencies : [
        dep_selinux, dep_libdrm, dep_m, dep_thread, dep_dl,

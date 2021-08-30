@@ -2,6 +2,7 @@
 
 NAMEBASE=		vimb
 VERSION=		3.6.0
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		standard
 SDESC[standard]=	Vim-like browser
@@ -33,6 +34,8 @@ FPC_EQUIVALENT=		www/vimb
 MAKE_ENV=		V=1
 
 CFLAGS=			-D_BSD_SOURCE
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			LDFLAGS=-lnsl
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/vimb
@@ -41,6 +44,9 @@ post-install:
 post-extract:
 	${MKDIR} ${WRKSRC}/.git
 	${TOUCH} ${WRKSRC}/.git/index
+
+pre-configure-sunos:
+	${REINPLACE_CMD} -e '/_XOPEN_SOURCE/ s/500/600/' ${WRKSRC}/config.mk
 
 [FILE:411:descriptions/desc.single]
 Vimb is a fast and lightweight vim like web browser based on the webkit
@@ -61,4 +67,137 @@ bin/vimb
 lib/vimb/webext_main.so
 share/applications/vimb.desktop
 share/man/man1/vimb.1.gz
+
+
+[FILE:951:patches/patch-src_file-storage.c]
+--- src/file-storage.c.orig	2020-01-02 22:17:49 UTC
++++ src/file-storage.c
+@@ -23,6 +23,7 @@
+ #include <glib/gstdio.h>
+ 
+ #include "file-storage.h"
++#include <fcntl.h>
+ 
+ struct filestorage {
+     char        *file_path;
+@@ -85,6 +86,11 @@ gboolean file_storage_append(FileStorage
+ {
+     FILE *f;
+     va_list args;
++    struct flock lock;
++
++    lock.l_whence = SEEK_SET;
++    lock.l_start = 0;
++    lock.l_len = 0;
+ 
+     g_assert(storage);
+ 
+@@ -96,11 +102,13 @@ gboolean file_storage_append(FileStorage
+         return TRUE;
+     }
+     if ((f = fopen(storage->file_path, "a+"))) {
+-        flock(fileno(f), LOCK_EX);
++        lock.l_type = F_WRLCK;
++        fcntl(fileno(f), F_SETLKW, &lock);
+         va_start(args, format);
+         vfprintf(f, format, args);
+         va_end(args);
+-        flock(fileno(f), LOCK_UN);
++        lock.l_type = F_UNLCK;
++        fcntl(fileno(f), F_SETLK, &lock);
+         fclose(f);
+         return TRUE;
+     }
+
+
+[FILE:809:patches/patch-src_history.c]
+--- src/history.c.orig	2020-01-02 22:17:49 UTC
++++ src/history.c
+@@ -259,8 +259,14 @@ static GList *load(FileStorage *s)
+ static void write_to_file(GList *list, const char *file)
+ {
+     FILE *f;
++    struct flock lock;
++
++    lock.l_whence = SEEK_SET;
++    lock.l_start = 0;
++    lock.l_len = 0;
+     if ((f = fopen(file, "w"))) {
+-        flock(fileno(f), LOCK_EX);
++        lock.l_type = F_WRLCK;
++        fcntl(fileno(f), F_SETLKW, &lock);
+ 
+         /* overwrite the history file with new unique history items */
+         for (GList *link = list; link; link = link->next) {
+@@ -272,7 +278,8 @@ static void write_to_file(GList *list, c
+             }
+         }
+ 
+-        flock(fileno(f), LOCK_UN);
++        lock.l_type = F_UNLCK;
++        fcntl(fileno(f), F_SETLK, &lock);
+         fclose(f);
+     }
+ }
+
+
+[FILE:1502:patches/patch-src_util.c]
+--- src/util.c.orig	2020-01-02 22:17:49 UTC
++++ src/util.c
+@@ -197,15 +197,22 @@ gboolean util_file_append(const char *fi
+ {
+     va_list args;
+     FILE *f;
++    struct flock lock;
++
++    lock.l_whence = SEEK_SET;
++    lock.l_start = 0;
++    lock.l_len = 0;
+ 
+     if (file && (f = fopen(file, "a+"))) {
+-        flock(fileno(f), LOCK_EX);
++        lock.l_type = F_WRLCK;
++        fcntl(fileno(f), F_SETLKW, &lock);
+ 
+         va_start(args, format);
+         vfprintf(f, format, args);
+         va_end(args);
+ 
+-        flock(fileno(f), LOCK_UN);
++        lock.l_type = F_UNLCK;
++        fcntl(fileno(f), F_SETLK, &lock);
+         fclose(f);
+ 
+         return TRUE;
+@@ -225,13 +232,19 @@ gboolean util_file_prepend(const char *f
+     va_list args;
+     char *content;
+     FILE *f;
++    struct flock lock;
++
+     if (!file) {
+         return FALSE;
+     }
+ 
++    lock.l_whence = SEEK_SET;
++    lock.l_start = 0;
++    lock.l_len = 0;
+     content = util_get_file_contents(file, NULL);
+     if ((f = fopen(file, "w"))) {
+-        flock(fileno(f), LOCK_EX);
++        lock.l_type = F_WRLCK;
++        fcntl(fileno(f), F_SETLKW, &lock);
+ 
+         va_start(args, format);
+         /* write new content to the file */
+@@ -241,7 +254,8 @@ gboolean util_file_prepend(const char *f
+         /* append previous file content */
+         fputs(content, f);
+ 
+-        flock(fileno(f), LOCK_UN);
++        lock.l_type = F_UNLCK;
++        fcntl(fileno(f), F_SETLK, &lock);
+         fclose(f);
+ 
+         res = TRUE;
 

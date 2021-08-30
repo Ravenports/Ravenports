@@ -2225,6 +2225,30 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  namespace llvm {
 
 
+[FILE:379:patches/patch-lib_ObjectYAML_MachOEmitter.cpp]
+--- lib/ObjectYAML/MachOEmitter.cpp.orig	2021-06-28 16:23:38 UTC
++++ lib/ObjectYAML/MachOEmitter.cpp
+@@ -23,6 +23,18 @@
+ 
+ #include "llvm/Support/Format.h"
+ 
++#ifdef __sun__
++static size_t
++strnlen(const char *s, size_t maxlen)
++{
++	size_t len;
++	for (len = 0; len < maxlen; len++, s++) {
++		if (!*s) break;
++	}
++	return (len);
++}
++#endif
++
+ using namespace llvm;
+ 
+ namespace {
+
+
 [FILE:410:patches/patch-lib_ObjectYAML_MachOYAML.cpp]
 --- lib/ObjectYAML/MachOYAML.cpp.orig	2021-06-28 16:23:38 UTC
 +++ lib/ObjectYAML/MachOYAML.cpp
@@ -2277,6 +2301,34 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  namespace llvm {
  class formatted_raw_ostream;
  class MCAsmBackend;
+
+
+[FILE:344:patches/patch-tools_llvm-jitlink_CMakeLists.txt]
+--- tools/llvm-jitlink/CMakeLists.txt.orig	2021-06-28 16:23:38 UTC
++++ tools/llvm-jitlink/CMakeLists.txt
+@@ -24,4 +24,8 @@ add_llvm_tool(llvm-jitlink
+   llvm-jitlink-macho.cpp
+   )
+ 
++if (CMAKE_SYSTEM_NAME MATCHES "(Solaris|SunOS)")
++   target_link_libraries(llvm-jitlink PRIVATE socket nsl)
++endif()
++
+ export_executable_symbols(llvm-jitlink)
+
+
+[FILE:404:patches/patch-tools_llvm-jitlink_llvm-jitlink-executor_CMakeLists.txt]
+--- tools/llvm-jitlink/llvm-jitlink-executor/CMakeLists.txt.orig	2021-06-28 16:23:38 UTC
++++ tools/llvm-jitlink/llvm-jitlink-executor/CMakeLists.txt
+@@ -11,4 +11,8 @@ add_llvm_utility(llvm-jitlink-executor
+   intrinsics_gen
+ )
+ 
++if (CMAKE_SYSTEM_NAME MATCHES "(Solaris|SunOS)")
++   target_link_libraries(llvm-jitlink-executor PRIVATE socket)
++endif()
++
+ export_executable_symbols(llvm-jitlink-executor)
 
 
 [FILE:505:patches/patch-tools_llvm-objcopy_MachO_MachOLayoutBuilder.cpp]

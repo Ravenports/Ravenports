@@ -37,7 +37,7 @@ RUN_DEPENDS=		freepats:single:standard
 
 USES=			autoreconf gmake iconv libtool pkgconfig jpeg
 			shebangfix gnome-icons:primary desktop-utils:primary
-			gettext-runtime gettext-tools
+			gettext-runtime gettext-tools solaris-funcs
 GNOME_COMPONENTS=	intltool gtk3
 
 LICENSE=		GPLv2+:primary ZLIB:primary CUSTOM1:primary
@@ -55,6 +55,9 @@ LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		audio/deadbeef
 SHEBANG_FILES=		yasmwrapper.sh
+SOL_FUNCTIONS=		strcasestr:plugins/artwork/artwork.c
+			strcasestr:plugins/artwork-legacy/artwork.c
+			strcasestr:junklib.c
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-alsa
@@ -145,7 +148,10 @@ Main features:
 f5329f13ee259d4a48b3410a336e0c45a5dc51eb948a4103884436d31ba565ca     13049446 DeaDBeeF-Player-deadbeef-1.8.4.tar.gz
 
 
-[FILE:3028:manifests/plist.primary]
+[FILE:3128:manifests/plist.primary]
+%%ONLY-DRAGONFLY%%lib/deadbeef/oss.so
+%%ONLY-FREEBSD%%lib/deadbeef/oss.so
+%%ONLY-LINUX%%lib/deadbeef/oss.so
 bin/deadbeef
 include/deadbeef/
  artwork.h
@@ -177,7 +183,6 @@ lib/deadbeef/
  mp3.so
  musepack.so
  notify.so
- oss.so
  pltbrowser_gtk3.so
  psf.so
  rg_scanner.so
@@ -418,6 +423,38 @@ share/doc/deadbeef/
  #elif HAVE_ICU
 
 
+[FILE:322:patches/patch-plugins_artwork-legacy_artwork.c]
+--- plugins/artwork-legacy/artwork.c.orig	2020-06-28 13:41:28 UTC
++++ plugins/artwork-legacy/artwork.c
+@@ -65,6 +65,10 @@
+ //#define trace(...) { fprintf (stderr, __VA_ARGS__); }
+ #define trace(...)
+ 
++#ifndef NAME_MAX
++# define NAME_MAX PATH_MAX
++#endif
++
+ DB_functions_t *deadbeef;
+ static DB_artwork_plugin_t plugin;
+ 
+
+
+[FILE:322:patches/patch-plugins_artwork_artwork.c]
+--- plugins/artwork/artwork.c.orig	2020-06-28 13:41:28 UTC
++++ plugins/artwork/artwork.c
+@@ -72,6 +72,10 @@
+ 
+ #define trace(...) { deadbeef->log_detailed (&plugin.plugin.plugin, 0, __VA_ARGS__); }
+ 
++#ifndef NAME_MAX
++# define NAME_MAX PATH_MAX
++#endif
++
+ DB_functions_t *deadbeef;
+ static ddb_artwork_plugin_t plugin;
+ 
+
+
 [FILE:1056:patches/patch-plugins_gme_game-music-emu-0.6pre_gme_blargg__endian.h]
 --- plugins/gme/game-music-emu-0.6pre/gme/blargg_endian.h.orig	2020-06-28 13:41:28 UTC
 +++ plugins/gme/game-music-emu-0.6pre/gme/blargg_endian.h
@@ -444,4 +481,41 @@ share/doc/deadbeef/
  	defined (__sparc__)     ||  BLARGG_CPU_POWERPC || \
  	(defined (BIG_ENDIAN) && BIG_ENDIAN+0 != 4321)
  	#define BLARGG_BIG_ENDIAN 1
+
+
+[FILE:744:patches/patch-plugins_sc68_libsc68_dial68_dial__conf.c]
+--- plugins/sc68/libsc68/dial68/dial_conf.c.orig	2020-06-28 13:41:28 UTC
++++ plugins/sc68/libsc68/dial68/dial_conf.c
+@@ -70,7 +70,7 @@ static inline void del_dial(dial_t * dia
+  * @retval  1  on unkown/unset key
+  * @retval -1  on error
+  */
+-static int getopt(const char * key, int op, sc68_dialval_t * val)
++static int dead_getopt(const char * key, int op, sc68_dialval_t * val)
+ {
+   option68_t * opt = option68_get(key, opt68_ALWAYS);
+   const int org = opt68_CFG;
+@@ -260,7 +260,7 @@ static int conf(void * data, const char
+     if (op == SC68_DIAL_SETI && keyis("sampling-rate")
+         && val->i > 0 && val->i < sprmax)
+       val->i = i_spr[val->i];
+-    res = getopt(key, op, val);
++    res = dead_getopt(key, op, val);
+   }
+ 
+ exit:
+
+
+[FILE:380:patches/patch-strdupa.h]
+--- strdupa.h.orig	2020-06-28 13:41:28 UTC
++++ strdupa.h
+@@ -31,7 +31,7 @@
+     ({									      \
+       const char *old = (s);					      \
+       size_t len = strlen (old) + 1;				      \
+-      char *newstr = (char *) alloca (len);			      \
++      char *newstr = (char *) __builtin_alloca (len);			      \
+       (char *) memcpy (newstr, old, len);				      \
+     })
+ #endif
 

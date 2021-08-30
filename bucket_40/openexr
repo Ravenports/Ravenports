@@ -34,6 +34,7 @@ PLIST_SUB=		MAJOR=3_1
 
 CMAKE_ARGS=		-DCMAKE_INSTALL_PREFIX={{PREFIX}}
 			-DOPENEXR_IS_SUBPROJECT=1
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 
 post-install:
 	# ${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*-3_1.so
@@ -272,4 +273,61 @@ share/examples/openexr/
  
  if(NOT OPENEXR_IS_SUBPROJECT)
    # Usual cmake option to build shared libraries or not, only overriden if OpenEXR is a top level project,
+
+
+[FILE:411:patches/patch-src_lib_OpenEXRCore_internal__posix__file__impl.h]
+--- src/lib/OpenEXRCore/internal_posix_file_impl.h.orig	2021-07-31 19:57:32 UTC
++++ src/lib/OpenEXRCore/internal_posix_file_impl.h
+@@ -21,6 +21,10 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++#ifndef O_CLOEXEC
++#define O_CLOEXEC 0
++#endif
++
+ #if defined __USE_UNIX98 || defined __USE_XOPEN2K8 ||                          \
+     (defined(_XOPEN_VERSION) && _XOPEN_VERSION >= 400)
+ #    define CAN_USE_PREAD 1
+
+
+[FILE:839:patches/patch-src_lib_OpenEXRCore_internal__xdr.h]
+--- src/lib/OpenEXRCore/internal_xdr.h.orig	2021-07-31 19:57:32 UTC
++++ src/lib/OpenEXRCore/internal_xdr.h
+@@ -64,6 +64,21 @@
+ #  include <sys/endian.h>
+ #  define EXR_HOST_IS_NOT_LITTLE_ENDIAN (__BYTE_ORDER != __LITTLE_ENDIAN)
+ 
++#elif defined(__sun)
++
++#  include <sys/byteorder.h>
++#  define EXR_HOST_IS_NOT_LITTLE_ENDIAN 1
++#  define LE_IN8(x)  *((uint8_t *)(x))
++#  define LE_IN16(x) (((uint16_t)LE_IN8((uint8_t *)(x) + 1) << 8) | LE_IN8(x))
++#  define LE_IN32(x) (((uint32_t)LE_IN16((uint8_t *)(x) + 2) << 16) | LE_IN16(x))
++#  define LE_IN64(x) (((uint64_t)LE_IN32((uint8_t *)(x) + 4) << 32) | LE_IN32(x))
++#  define htole16(x) LE_16(x)
++#  define le16toh(x) LE_IN16(x)
++#  define htole32(x) LE_32(x)
++#  define le32toh(x) LE_IN32(x)
++#  define htole64(x) LE_64(x)
++#  define le64toh(x) LE_IN64(x)
++
+ #else
+ 
+ #  include <endian.h>
+
+
+[FILE:554:patches/patch-src_lib_OpenEXR_ImfSystemSpecific.h]
+--- src/lib/OpenEXR/ImfSystemSpecific.h.orig	2021-07-31 19:57:32 UTC
++++ src/lib/OpenEXR/ImfSystemSpecific.h
+@@ -45,6 +45,8 @@ EXRAllocAligned (size_t size, size_t ali
+     return _aligned_malloc (size, alignment);
+ #elif defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+     return _mm_malloc (size, alignment);
++#elif defined(__sun)
++    return memalign(alignment, size);
+ #elif defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200112L)
+     void* ptr = 0;
+     // With fortify_source on, just doing the (void) cast trick
 

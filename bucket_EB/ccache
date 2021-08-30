@@ -90,10 +90,16 @@ share/doc/ccache/MANUAL.html
    include(FindPackageHandleStandardArgs)
 
 
-[FILE:566:patches/patch-cmake_config.h.in]
+[FILE:721:patches/patch-cmake_config.h.in]
 --- cmake/config.h.in.orig	2021-08-19 18:43:30 UTC
 +++ cmake/config.h.in
-@@ -40,12 +40,12 @@
+@@ -36,16 +36,18 @@
+ #cmakedefine _DARWIN_C_SOURCE
+ 
+ // Define to activate features from IEEE Stds 1003.1-2008.
++#if !defined(__sun)
+ #define _POSIX_C_SOURCE 200809L
++#endif
  
  #if defined(__SunOS_5_8) || defined(__SunOS_5_9) || defined(__SunOS_5_10)
  #  define _XOPEN_SOURCE 500
@@ -122,6 +128,51 @@ share/doc/ccache/MANUAL.html
  endif()
  
  set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+
+[FILE:448:patches/patch-src_third__party_CMakeLists.txt]
+--- src/third_party/CMakeLists.txt.orig	2021-08-19 18:43:30 UTC
++++ src/third_party/CMakeLists.txt
+@@ -46,6 +46,10 @@ target_include_directories(
+ target_link_libraries(third_party PRIVATE standard_settings)
+ target_link_libraries(third_party INTERFACE blake3)
+ 
++if(CMAKE_SYSTEM_NAME MATCHES "(Solaris|SunOS)")
++  target_link_libraries(third_party PUBLIC socket)
++endif()
++
+ if(WIN32)
+   target_link_libraries(third_party PRIVATE ws2_32)
+ endif()
+
+
+[FILE:303:patches/patch-src_third__party_httplib.cpp]
+--- src/third_party/httplib.cpp.orig	2021-08-19 18:43:30 UTC
++++ src/third_party/httplib.cpp
+@@ -730,7 +730,7 @@ bool bind_ip_address(socket_t sock, cons
+   return ret;
+ }
+ 
+-#if !defined _WIN32 && !defined ANDROID
++#if !defined _WIN32 && !defined ANDROID && !defined __sun
+ #define USE_IF2IP
+ #endif
+ 
+
+
+[FILE:288:patches/patch-src_third__party_httplib.h]
+--- src/third_party/httplib.h.orig	2021-08-19 18:43:30 UTC
++++ src/third_party/httplib.h
+@@ -161,7 +161,9 @@ using socket_t = SOCKET;
+ 
+ #include <arpa/inet.h>
+ #include <cstring>
++#ifndef __sun
+ #include <ifaddrs.h>
++#endif
+ #include <netdb.h>
+ #include <netinet/in.h>
+ #ifdef __linux__
 
 
 [FILE:333:files/Makefile.BSD.in]

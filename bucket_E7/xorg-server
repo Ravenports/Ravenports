@@ -43,7 +43,7 @@ BUILD_DEPENDS=		xorg-fontutil:single:standard
 RUN_DEPENDS=		xorg-xkeyboard-config:primary:standard
 			xorg-xkbcomp:single:standard
 
-USES=			cpe gmake libtool perl:build ssl
+USES=			cpe gmake libtool perl:build ssl solaris-funcs
 XORG_COMPONENTS=	xorgproto xtransproto pixman xshmfence xau xdmcp
 			xfont2
 
@@ -53,6 +53,7 @@ LICENSE_SCHEME=		solo
 
 CPE_VENDOR=		x.org
 FPC_EQUIVALENT=		x11-servers/xorg-server
+SOL_FUNCTIONS=		strnlen:xkb/XKBGAlloc.c
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-xkb-path={{LOCALBASE}}/share/X11/xkb
@@ -190,10 +191,10 @@ do-install-DMX-ON:
 post-install-XORG-ON:
 	# The .xorg dir because else the xorg-server might not load the
 	# correct libglx module.
-	@${MKDIR} ${STAGEDIR}${PREFIX}/lib/xorg/modules/extensions/.xorg
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/xorg/modules/extensions/.xorg
 	${INSTALL_LIB} ${WRKSRC}/hw/xfree86/dixmods/.libs/libglx.so \
 		${STAGEDIR}${PREFIX}/lib/xorg/modules/extensions/.xorg/
-	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/X11/xorg.conf.d
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/X11/xorg.conf.d
 	${RM} -r ${STAGEDIR}/var
 
 [FILE:71:descriptions/desc.single.standard]

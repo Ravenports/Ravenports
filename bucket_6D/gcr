@@ -63,10 +63,15 @@ PLIST_SUB=		GCK_SOVER=0.0.0
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 
-post-patch:
+pre-configure:
 	# timegm compat function untested by upstream in all cases
 	${REINPLACE_CMD} -e 's|"egg/egg-timegm.h"|<time.h>|' \
 		${WRKSRC}/gck/gck-slot.c
+
+pre-configure-sunos:
+	${REINPLACE_CMD} -e '/_XOPEN_SOURCE/d; s|#SUNOS ||' \
+		${WRKSRC}/gcr/meson.build \
+		${WRKSRC}/gck/meson.build
 
 [FILE:272:descriptions/desc.primary]
 GCR is a library for displaying certificates and crypto UI, accessing key 
@@ -375,6 +380,28 @@ share/doc/gcr/
  up.png
  viewer-widget.png
  widgets.html
+
+
+[FILE:571:patches/patch-gcr_meson.build]
+--- gcr/meson.build.orig	2021-03-27 06:18:27 UTC
++++ gcr/meson.build
+@@ -154,6 +154,8 @@ gcr_base_linkflags = cc.get_supported_li
+   '-Wl,--version-script,@0@'.format(gcr_base_symbolmap),
+ )
+ 
++#SUNOS gcr_base_linkflags += '-lsocket'
++
+ gcr_base_lib = shared_library('gcr-base-@0@'.format(gcr_major_version),
+   gcr_base_sources,
+   dependencies: gcr_base_deps,
+@@ -236,6 +238,7 @@ gcr_ssh_askpass = executable('gcr-ssh-as
+   include_directories: config_h_dir,
+   install: true,
+   install_dir: get_option('libexecdir'),
++#SUNOS link_args: ['-lsocket'],
+ )
+ 
+ # Services
 
 
 [FILE:458:patches/patch-gcr_test-secure-memory.c]
