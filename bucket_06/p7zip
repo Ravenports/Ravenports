@@ -119,6 +119,59 @@ Security: 48e83187-b6e9-11e6-b6cf-5453ed2e2b49
  
 
 
+[FILE:367:patches/patch-CPP_7zip_Archive_Wim_WimHandler.cpp]
+--- CPP/7zip/Archive/Wim/WimHandler.cpp.orig	2016-06-11 08:08:06 UTC
++++ CPP/7zip/Archive/Wim/WimHandler.cpp
+@@ -298,7 +298,7 @@ STDMETHODIMP CHandler::GetArchivePropert
+ 
+       AString res;
+ 
+-      bool numMethods = 0;
++      unsigned numMethods = 0;
+       for (unsigned i = 0; i < ARRAY_SIZE(k_Methods); i++)
+       {
+         if (methodMask & ((UInt32)1 << i))
+
+
+[FILE:424:patches/patch-CPP_7zip_Common_StreamObjects.cpp]
+CVE-2021-3465.patch
+
+--- CPP/7zip/Common/StreamObjects.cpp.orig	2015-06-19 10:52:08 UTC
++++ CPP/7zip/Common/StreamObjects.cpp
+@@ -157,6 +157,8 @@ STDMETHODIMP CDynBufSeqOutStream::Write(
+ 
+ STDMETHODIMP CBufPtrSeqOutStream::Write(const void *data, UInt32 size, UInt32 *processedSize)
+ {
++  if(_buffer == nullptr || _size == _pos)
++    return E_FAIL;
+   size_t rem = _size - _pos;
+   if (rem > size)
+     rem = (size_t)size;
+
+
+[FILE:783:patches/patch-CPP_Windows_ErrorMsg.cpp]
+--- CPP/Windows/ErrorMsg.cpp.orig	2015-01-18 18:20:28 UTC
++++ CPP/Windows/ErrorMsg.cpp
+@@ -13,7 +13,7 @@ UString MyFormatMessage(DWORD errorCode)
+   const char * txt = 0;
+   AString msg;
+ 
+-  switch(errorCode) {
++  switch(HRESULT(errorCode)) {
+     case ERROR_NO_MORE_FILES   : txt = "No more files"; break ;
+     case E_NOTIMPL             : txt = "E_NOTIMPL"; break ;
+     case E_NOINTERFACE         : txt = "E_NOINTERFACE"; break ;
+@@ -43,7 +43,7 @@ bool MyFormatMessage(DWORD messageID, CS
+   const char * txt = 0;
+   AString msg;
+ 
+-  switch(messageID) {
++  switch(HRESULT(messageID)) {
+     case ERROR_NO_MORE_FILES   : txt = "No more files"; break ;
+     case E_NOTIMPL             : txt = "E_NOTIMPL"; break ;
+     case E_NOINTERFACE         : txt = "E_NOINTERFACE"; break ;
+
+
 [FILE:386:patches/patch-CPP_Windows_System.cpp]
 --- CPP/Windows/System.cpp.orig	2015-11-20 21:33:04 UTC
 +++ CPP/Windows/System.cpp

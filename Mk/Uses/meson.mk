@@ -69,8 +69,8 @@ meson_badconfig:
 .  if defined(MESON_INSERT_RPATH)
 _USES_patch+=		875:meson_build_rpath
 
-# Hardcode RPATH, must follow CURRENT_GCC in raven.information.mk
-COMP_RPATH=		${PREFIX}/toolchain/gcc9/${ASLIB}:${PREFIX}/lib
+# Hardcode RPATH
+COMP_RPATH=		${PREFIX}/toolchain/ravensys-gcc/${ASLIB}:${PREFIX}/lib
 
 meson_build_rpath:
 	(cd ${WRKSRC} && ${REINPLACE_CMD} \

@@ -605,3 +605,59 @@ share/qt6/modules/
  Quick3DRuntimeRender.json
  Quick3DUtils.json
 
+
+[FILE:715:patches/patch-src_3rdparty_assimp_src_code_AssetLib_AMF_AMFImporter__Postprocess.cpp]
+--- src/3rdparty/assimp/src/code/AssetLib/AMF/AMFImporter_Postprocess.cpp.orig	2021-06-18 13:08:36 UTC
++++ src/3rdparty/assimp/src/code/AssetLib/AMF/AMFImporter_Postprocess.cpp
+@@ -329,8 +329,8 @@ void AMFImporter::Postprocess_AddMetadat
+     sceneNode.mMetaData = aiMetadata::Alloc(static_cast<unsigned int>(metadataList.size()));
+     size_t meta_idx(0);
+ 
+-    for (const AMFMetadata &metadata : metadataList) {
+-        sceneNode.mMetaData->Set(static_cast<unsigned int>(meta_idx++), metadata.Type, aiString(metadata.Value));
++    for (const AMFMetadata *metadata : metadataList) {
++        sceneNode.mMetaData->Set(static_cast<unsigned int>(meta_idx++), metadata->Type, aiString(metadata->Value));
+     }
+ }
+ 
+
+
+[FILE:338:patches/patch-src_3rdparty_assimp_src_code_Common_Importer.cpp]
+--- src/3rdparty/assimp/src/code/Common/Importer.cpp.orig	2021-06-18 13:08:36 UTC
++++ src/3rdparty/assimp/src/code/Common/Importer.cpp
+@@ -78,6 +78,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ #include <assimp/Profiler.h>
+ #include <assimp/commonMetaData.h>
+ 
++#include <exception>
+ #include <set>
+ #include <memory>
+ #include <cctype>
+
+
+[FILE:332:patches/patch-src_3rdparty_assimp_src_code_Common_Importer.h]
+--- src/3rdparty/assimp/src/code/Common/Importer.h.orig	2021-06-18 13:08:36 UTC
++++ src/3rdparty/assimp/src/code/Common/Importer.h
+@@ -44,6 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ #ifndef INCLUDED_AI_IMPORTER_H
+ #define INCLUDED_AI_IMPORTER_H
+ 
++#include <exception>
+ #include <map>
+ #include <vector>
+ #include <string>
+
+
+[FILE:414:patches/patch-src_3rdparty_assimp_src_include_assimp_Importer.hpp]
+--- src/3rdparty/assimp/src/include/assimp/Importer.hpp.orig	2021-06-18 13:08:36 UTC
++++ src/3rdparty/assimp/src/include/assimp/Importer.hpp
+@@ -59,6 +59,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ // Public ASSIMP data structures
+ #include <assimp/types.h>
+ 
++#include <exception>
++
+ namespace Assimp {
+ // =======================================================================
+ // Public interface to Assimp
+

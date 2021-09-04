@@ -165,3 +165,104 @@ lib/AdaYaml/yaml/
  yaml.ali
 lib/gnat/yaml.gpr
 
+
+[FILE:3933:patches/patch-fix-build-on-gcc11]
+From dd18ce4b06ed19bd0998f747a319cae09f41dd7a Mon Sep 17 00:00:00 2001
+From: Per Sandberg <per.sandberg@saabgroup.com>
+Date: Thu, 9 Apr 2020 09:28:39 +0200
+Subject: [PATCH] Make the code compile with GNAT 21.x
+
+---
+ src/implementation/yaml-dom-mapping_data.adb  |  2 +-
+ src/implementation/yaml-dom-node_memory.adb   | 10 +++++-----
+ src/implementation/yaml-dom-node_memory.ads   |  4 ++--
+ src/implementation/yaml-dom-sequence_data.adb |  3 +--
+ src/interface/yaml-dom.ads                    |  1 +
+ 5 files changed, 10 insertions(+), 10 deletions(-)
+
+--- src/implementation/yaml-dom-mapping_data.adb
++++ src/implementation/yaml-dom-mapping_data.adb
+@@ -144,7 +144,7 @@ package body Yaml.Dom.Mapping_Data is
+       procedure Raw_Insert (Container  : in out Instance;
+                             Key, Value : not null access Node.Instance) is
+       begin
+-         Container.Data.Insert (Key, Value);
++         Container.Data.Insert (Node_Pointer (Key), Node_Pointer (Value));
+       end Raw_Insert;
+    end Friend_Interface;
+ end Yaml.Dom.Mapping_Data;
+--- src/implementation/yaml-dom-node_memory.adb
++++ src/implementation/yaml-dom-node_memory.adb
+@@ -3,21 +3,21 @@
+ 
+ package body Yaml.Dom.Node_Memory is
+    procedure Visit (Object : in out Instance;
+-                    Value : not null access constant Node.Instance;
++                    Value : not null access Node.Instance;
+                     Previously_Visited : out Boolean) is
+    begin
+-      if Object.Data.Contains (Value) then
++      if Object.Data.Contains (Node_Pointer (Value)) then
+          Previously_Visited := True;
+       else
+-         Object.Data.Include (Value);
++         Object.Data.Include (Node_Pointer (Value));
+          Previously_Visited := False;
+       end if;
+    end Visit;
+ 
+    procedure Forget (Object : in out Instance;
+-                     Value  : not null access constant Node.Instance) is
++                     Value  : not null access Node.Instance) is
+    begin
+-      Object.Data.Exclude (Value);
++      Object.Data.Exclude (Node_Pointer (Value));
+    end Forget;
+ 
+    function Pop_First (Object : in out Instance)
+--- src/implementation/yaml-dom-node_memory.ads
++++ src/implementation/yaml-dom-node_memory.ads
+@@ -9,11 +9,11 @@ private package Yaml.Dom.Node_Memory is
+    type Instance is tagged limited private;
+ 
+    procedure Visit (Object : in out Instance;
+-                    Value  : not null access constant Node.Instance;
++                    Value  : not null access Node.Instance;
+                     Previously_Visited : out Boolean);
+ 
+    procedure Forget (Object : in out Instance;
+-                     Value  : not null access constant Node.Instance);
++                     Value  : not null access Node.Instance);
+ 
+    function Pop_First (Object : in out Instance)
+                        return not null access Node.Instance;
+--- src/implementation/yaml-dom-sequence_data.adb
++++ src/implementation/yaml-dom-sequence_data.adb
+@@ -5,7 +5,6 @@ with Yaml.Dom.Node;
+ 
+ package body Yaml.Dom.Sequence_Data is
+    use type Count_Type;
+-   use type Ada.Containers.Hash_Type;
+ 
+    type Iterator is new Iterators.Forward_Iterator with record
+       Container : not null access constant Instance;
+@@ -234,7 +233,7 @@ package body Yaml.Dom.Sequence_Data is
+       procedure Raw_Append (Container : in out Instance;
+                             New_Item  : not null access Node.Instance) is
+       begin
+-         Container.Data.Append (New_Item);
++         Container.Data.Append (Node_Pointer (New_Item));
+       end Raw_Append;
+    end Friend_Interface;
+ end Yaml.Dom.Sequence_Data;
+--- src/interface/yaml-dom.ads
++++ src/interface/yaml-dom.ads
+@@ -85,6 +85,7 @@ package Yaml.Dom is
+ 
+ private
+    type Node_Pointer is not null access all Node.Instance;
++   type Constant_Node_Pointer is not null access  constant Node.Instance;
+ 
+    function Nodes_Equal (Left, Right : access Node.Instance) return Boolean;
+ 
+

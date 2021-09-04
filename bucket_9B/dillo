@@ -80,3 +80,105 @@ share/man/man1/dillo.1.gz
 [FILE:31:manifests/plist.docs]
 share/doc/dillo/user_help.html
 
+
+[FILE:283:patches/patch-dpid_dpid.c]
+--- dpid/dpid.c.orig	2015-06-10 21:34:22 UTC
++++ dpid/dpid.c
+@@ -38,6 +38,13 @@
+ 
+ #define QUEUE 5
+ 
++int srs_fd;
++int numdpis;
++int numsocks;
++struct dp *dpi_attr_list;
++Dlist *services_list;
++fd_set sock_set;
++
+ volatile sig_atomic_t caught_sigchld = 0;
+ char *SharedKey = NULL;
+ 
+
+
+[FILE:885:patches/patch-dpid_dpid.h]
+--- dpid/dpid.h.orig	2015-06-10 21:34:22 UTC
++++ dpid/dpid.h
+@@ -25,10 +25,9 @@
+ 
+ /*! \TODO: Should read this from dillorc */
+ #define SRS_NAME "dpid.srs"
+-char *srs_name;
+ 
+ /*! dpid's service request socket file descriptor */
+-int srs_fd;
++extern int srs_fd;
+ 
+ /*! plugin state information
+  */
+@@ -49,19 +48,19 @@ struct service {
+ };
+ 
+ /*! Number of available plugins */
+-int numdpis;
++extern int numdpis;
+ 
+ /*! Number of sockets being watched */
+-int numsocks;
++extern int numsocks;
+ 
+ /*! State information for each plugin. */
+-struct dp *dpi_attr_list;
++extern struct dp *dpi_attr_list;
+ 
+ /*! service served for each plugin  */
+-Dlist *services_list;
++extern Dlist *services_list;
+ 
+ /*! Set of sockets watched for connections */
+-fd_set sock_set;
++extern fd_set sock_set;
+ 
+ /*! Set to 1 by the SIGCHLD handler dpi_sigchld */
+ extern volatile sig_atomic_t caught_sigchld;
+
+
+[FILE:335:patches/patch-dpid_dpid__common.h]
+--- dpid/dpid_common.h.orig	2015-06-30 14:06:08 UTC
++++ dpid/dpid_common.h
+@@ -38,10 +38,10 @@
+ 
+ 
+ /*! Error codes for dpid */
+-enum {
++enum dpi_errno {
+    no_errors,
+    dpid_srs_addrinuse /* dpid service request socket address already in use */
+-} dpi_errno;
++};
+ 
+ /*! Intended for identifying dillo plugins
+  * and related files
+
+
+[FILE:662:patches/patch-dpid_main.c]
+--- dpid/main.c.orig	2015-06-10 21:34:22 UTC
++++ dpid/main.c
+@@ -231,7 +231,7 @@ int main(void)
+    /* this sleep used to unmask a race condition */
+    // sleep(2);
+ 
+-   dpi_errno = no_errors;
++   enum dpi_errno error_code = no_errors;
+ 
+    /* Get list of available dpis */
+    numdpis = register_all(&dpi_attr_list);
+@@ -254,7 +254,7 @@ int main(void)
+ 
+    /* Initialise sockets */
+    if ((numsocks = init_ids_srs_socket()) == -1) {
+-      switch (dpi_errno) {
++      switch (error_code) {
+       case dpid_srs_addrinuse:
+          MSG_ERR("dpid refuses to start, possibly because:\n");
+          MSG_ERR("\t1) An instance of dpid is already running.\n");
+

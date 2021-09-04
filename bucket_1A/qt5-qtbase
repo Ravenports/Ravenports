@@ -3987,6 +3987,33 @@ Do not create .la files.
          "librt": {
 
 
+[FILE:317:patches/patch-src_corelib_global_qendian.h]
+--- src/corelib/global/qendian.h.orig	2020-10-27 08:02:11 UTC
++++ src/corelib/global/qendian.h
+@@ -44,6 +44,8 @@
+ #include <QtCore/qfloat16.h>
+ #include <QtCore/qglobal.h>
+ 
++#include <limits>
++
+ // include stdlib.h and hope that it defines __GLIBC__ for glibc-based systems
+ #include <stdlib.h>
+ #include <string.h>
+
+
+[FILE:302:patches/patch-src_corelib_global_qfloat16.h]
+--- src/corelib/global/qfloat16.h.orig	2020-10-27 08:02:11 UTC
++++ src/corelib/global/qfloat16.h
+@@ -43,6 +43,7 @@
+ 
+ #include <QtCore/qglobal.h>
+ #include <QtCore/qmetatype.h>
++#include <limits>
+ #include <string.h>
+ 
+ #if defined(QT_COMPILER_SUPPORTS_F16C) && defined(__AVX2__) && !defined(__F16C__)
+
+
 [FILE:470:patches/patch-src_corelib_io_io.pri]
 --- src/corelib/io/io.pri.orig	2020-10-27 08:02:11 UTC
 +++ src/corelib/io/io.pri
@@ -4019,6 +4046,34 @@ Do not create .la files.
 +#  endif
  # endif
      return name;
+ 
+
+
+[FILE:210:patches/patch-src_corelib_text_qbytearraymatcher.h]
+--- src/corelib/text/qbytearraymatcher.h.orig	2020-10-27 08:02:11 UTC
++++ src/corelib/text/qbytearraymatcher.h
+@@ -42,6 +42,8 @@
+ 
+ #include <QtCore/qbytearray.h>
+ 
++#include <limits>
++
+ QT_BEGIN_NAMESPACE
+ 
+ 
+
+
+[FILE:471:patches/patch-src_corelib_tools_qsharedpointer__impl.h]
+--- src/corelib/tools/qsharedpointer_impl.h.orig	2020-10-27 08:02:11 UTC
++++ src/corelib/tools/qsharedpointer_impl.h
+@@ -156,8 +156,6 @@ namespace QtSharedPointer {
+         inline void checkQObjectShared(...) { }
+         inline void setQObjectShared(...) { }
+ 
+-        inline void operator delete(void *ptr) { ::operator delete(ptr); }
+-        inline void operator delete(void *, void *) { }
+     };
+     // sizeof(ExternalRefCountData) = 12 (32-bit) / 16 (64-bit)
  
 
 
@@ -4171,6 +4226,20 @@ Do not create .la files.
  QT_BEGIN_NAMESPACE
  
  Q_DECLARE_LOGGING_CATEGORY(qLcEglfsKmsDebug)
+
+
+[FILE:634:patches/patch-src_plugins_platforms_xcb_qxcbwindow.cpp]
+--- src/plugins/platforms/xcb/qxcbwindow.cpp.orig	2020-10-27 08:02:11 UTC
++++ src/plugins/platforms/xcb/qxcbwindow.cpp
+@@ -698,7 +698,7 @@ void QXcbWindow::show()
+         if (isTransient(window())) {
+             const QWindow *tp = window()->transientParent();
+             if (tp && tp->handle())
+-                transientXcbParent = static_cast<const QXcbWindow *>(tp->handle())->winId();
++                transientXcbParent = tp->handle()->winId();
+             // Default to client leader if there is no transient parent, else modal dialogs can
+             // be hidden by their parents.
+             if (!transientXcbParent)
 
 
 [FILE:624:patches/patch-tests_auto_corelib_io_qprocess_qprocess.pro]

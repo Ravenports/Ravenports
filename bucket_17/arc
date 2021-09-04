@@ -93,7 +93,7 @@ share/man/man1/arc.1.gz
  	char	       *p = lst[n] + 1; /* filename pointer */
 
 
-[FILE:457:patches/patch-arc.h]
+[FILE:858:patches/patch-arc.h]
 --- arc.h.orig	2013-06-27 02:00:19 UTC
 +++ arc.h
 @@ -104,7 +104,7 @@ extern char     tmpchr[2];	/* Temporary
@@ -105,6 +105,15 @@ share/man/man1/arc.1.gz
  extern int      note;		/* true to print comments */
  extern int      bose;		/* true to be verbose */
  extern int      nocomp;		/* true to suppress compression */
+@@ -127,4 +127,8 @@ extern u_short	arctime;	/* archive time
+ extern u_short	olddate;	/* old archive date stamp */
+ extern u_short	oldtime;	/* old archive time stamp */
+ extern int      dosquash;	/* squash instead of crunch */
++extern long     stdlen;		/* bytes to read */
++extern u_char   *outbuf;
++extern u_char   *outend;
++extern short    crcval;		/* CRC check value */
+ #endif				/* DONT_DEFINE */
 
 
 [FILE:1152:patches/patch-arcadd.c]
@@ -266,10 +275,20 @@ share/man/man1/arc.1.gz
  		olddate = hdr->date;
 
 
-[FILE:340:patches/patch-arclzw.c]
+[FILE:597:patches/patch-arclzw.c]
 --- arclzw.c.orig	2013-06-27 02:00:19 UTC
 +++ arclzw.c
-@@ -558,7 +558,7 @@ decomp(squash, f, t)		/* decompress a fi
+@@ -56,8 +56,7 @@ static VOID     putcode();
+ 
+ extern u_char	*pinbuf;
+ u_char		*inbeg, *inend;
+-u_char          *outbuf;
+-u_char          *outbeg, *outend; 
++u_char          *outbeg; 
+ 
+ static int      sp;		/* current stack pointer */
+ static int	inflag;
+@@ -558,7 +557,7 @@ decomp(squash, f, t)		/* decompress a fi
  		 */
  		if (code >= free_ent) {
  			if (code > free_ent) {
@@ -321,10 +340,19 @@ share/man/man1/arc.1.gz
  	}
 
 
-[FILE:587:patches/patch-arcunp.c]
+[FILE:867:patches/patch-arcunp.c]
 --- arcunp.c.orig	2013-06-27 02:00:19 UTC
 +++ arcunp.c
-@@ -120,7 +120,7 @@ unpack(f, t, hdr)		/* unpack an archive
+@@ -37,8 +37,6 @@ extern int	lastc;
+ #define NOHIST 0		/* no relevant history */
+ #define INREP 1			/* sending a repeated value */
+ 
+-short    crcval;		/* CRC check value */
+-long     stdlen;		/* bytes to read */
+ #if	!DOS
+ static int	gotcr;		/* got a carriage return? */
+ #endif
+@@ -120,7 +118,7 @@ unpack(f, t, hdr)		/* unpack an archive
  		break;
  
  	default:		/* unknown method */
@@ -333,7 +361,7 @@ share/man/man1/arc.1.gz
  			printf("I don't know how to unpack file %s\n", hdr->name);
  			printf("I think you need a newer version of ARC\n");
  			nerrs++;
-@@ -132,7 +132,7 @@ unpack(f, t, hdr)		/* unpack an archive
+@@ -132,7 +130,7 @@ unpack(f, t, hdr)		/* unpack an archive
  	/* cleanups common to all methods */
  
  	if (crcval != hdr->crc) {

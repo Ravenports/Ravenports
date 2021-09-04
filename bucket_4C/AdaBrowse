@@ -20,8 +20,9 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		asis:primary:standard
+			gcc10:complete:standard
 
-USES=			gprbuild
+USES=			gprbuild dos2unix
 
 DISTNAME=		adabrowse_4.0.3
 
@@ -40,10 +41,9 @@ do-build:
 post-extract:
 	${CP} ${FILESDIR}/ad-* ${FILESDIR}/build.gpr ${WRKSRC}
 	${RM} ${WRKSRC}/sdefault.adb
-	${REINPLACE_CMD} -e '/Linker_Options/d' ${WRKSRC}/util-pipes.adb
 
 do-install:
-	@${MKDIR} ${STAGEDIR}/${STD_DOCDIR}
+	${MKDIR} ${STAGEDIR}/${STD_DOCDIR}
 	${INSTALL_PROGRAM} ${WRKSRC}/adabrowse \
 		${STAGEDIR}${PREFIX}/bin/adabrowse
 	${INSTALL_DATA} ${WRKSRC}/doc/*.html ${WRKSRC}/doc/*.css \
@@ -62,6 +62,101 @@ rendering of Ada 95 specs without bodies.  It is a command-line utility.
 
 [FILE:14:manifests/plist.primary]
 bin/adabrowse
+
+
+[FILE:422:patches/patch-ad-driver.adb]
+--- ad-driver.adb.orig	2021-09-04 15:38:31 UTC
++++ ad-driver.adb
+@@ -470,6 +470,7 @@ package body AD.Driver is
+                AIC.Set_File_Name
+                  (AIC.Subprogram_Index, Canonical (S (S'First + 2 .. S'Last)));
+             elsif S = "-P" then
++               Error ("-P is disabled in Ravenports");
+                I := I + 1;
+                Check_Following (I, N, S);
+                if Has_Project then
+
+
+[FILE:1069:patches/patch-ad-indices.adb]
+--- ad-indices.adb.orig	2021-09-04 16:03:27 UTC
++++ ad-indices.adb
+@@ -41,13 +41,10 @@
+ pragma License (GPL);
+ 
+ with Ada.Characters.Handling;
+-with Ada.Finalization;
+-with Ada.Strings.Maps;
+-with Ada.Strings.Unbounded;
+ with Ada.Strings.Wide_Unbounded;
+ with Ada.Unchecked_Deallocation;
++with System;
+ 
+-with Asis;
+ with Asis.Declarations;
+ with Asis.Elements;
+ 
+@@ -55,13 +52,10 @@ with Asis2.Declarations;
+ with Asis2.Naming;
+ with Asis2.Spans;
+ 
+-with AD.Crossrefs;
+ with AD.Exclusions;
+-with AD.Expressions;
+ with AD.Messages;
+ with AD.Options;
+ with AD.Predicates;
+-with AD.Printers;
+ with AD.Text_Utilities;
+ 
+ with GAL.ADT.Hash_Tables;
+@@ -625,8 +619,9 @@ package body AD.Indices is
+             Quit : in out Boolean)
+          is
+             pragma Warnings (Off, Quit); --  silence -gnatwa
++	     use type System.Address;
+          begin
+-            if Item.all'Access /= Idx then
++            if Item.all'Address /= Idx.all'Address then
+                AD.Printers.XRef_Index
+                  (Printer,
+                   ASU.To_String (Item.File_Name),
+
+
+[FILE:190:patches/patch-ad-setup.ads]
+--- ad-setup.ads.orig	2021-09-04 15:36:33 UTC
++++ ad-setup.ads
+@@ -11,6 +11,6 @@ package AD.Setup is
+ private
+ 
+    GNAT_Name : constant String :=
+-     "gcc";
++     "ada";
+ 
+ end AD.Setup;
+
+
+[FILE:853:patches/patch-util-pipes.adb]
+--- util-pipes.adb.orig	2021-09-04 15:38:31 UTC
++++ util-pipes.adb
+@@ -132,16 +132,8 @@ package body Util.Pipes is
+       --  <stdio.h>, the ISO C standard requires that they also be available
+       --  as real functions. Hence we may import them directly.
+ 
+-      pragma Linker_Options ("util-nl.o");
+-
+-      function Get_NL return Interfaces.C.int;
+-      pragma Import (C, Get_NL, "get_newline");
+-
+-      New_Line : constant Interfaces.C.int := Get_NL;
+-      --  '\n' is replaced at compile-time by a C compiler. Hence we cannot
+-      --  use fputs (To_C ("\n")) to generate whatever C expects as a newline.
+-      --  Therefore, we have a little C wrapper which just returns '\n', and
+-      --  we remember that value here.
++      New_Line : constant Interfaces.C.int := Interfaces.C.char'Pos
++        (Interfaces.C.nul);
+ 
+    end Std_IO;
+ 
 
 
 [FILE:242:files/ad-projects-impl.ads]
@@ -91,4 +186,8 @@ project Build is
    end Compiler;
 
 end Build;
+
+
+[FILE:47:files/special.mk]
+PREPEND_PATH=	${LOCALBASE}/toolchain/gcc10/bin
 

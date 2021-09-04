@@ -2,6 +2,7 @@
 
 NAMEBASE=		meson
 VERSION=		0.59.1
+REVISION=		1
 KEYWORDS=		devel python
 VARIANTS=		standard
 SDESC[standard]=	High performance build system
@@ -79,24 +80,6 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
              self.base_options.add(OptionKey('b_sanitize'))
 
 
-[FILE:666:patches/patch-mesonbuild_linkers_detect.py]
---- mesonbuild/linkers/detect.py.orig	2021-08-18 11:22:15 UTC
-+++ mesonbuild/linkers/detect.py
-@@ -141,6 +141,12 @@ def guess_nix_linker(env: 'Environment',
-         check_args = comp_class.LINKER_PREFIX + ['--version'] + extra_args
- 
-     override = []  # type: T.List[str]
-+    # sunos-only patch, hardcode to solaris (detection is broken)
-+    linker = SolarisDynamicLinker(
-+        compiler, for_machine, comp_class.LINKER_PREFIX, override,
-+        version='unknown version')
-+    return linker
-+
-     value = env.lookup_binary_entry(for_machine, comp_class.language + '_ld')
-     if value is not None:
-         override = comp_class.use_linker_args(value[0])
-
-
 [FILE:732:patches/patch-mesonbuild_linkers_linkers.py]
 --- mesonbuild/linkers/linkers.py.orig	2021-08-18 11:22:33 UTC
 +++ mesonbuild/linkers/linkers.py
@@ -160,4 +143,22 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
  
      # Apple's ld (the only one that supports bitcode) does not like -undefined
      # arguments or -headerpad_max_install_names when bitcode is enabled
+
+
+[FILE:666:sunos/patch-mesonbuild_linkers_detect.py]
+--- mesonbuild/linkers/detect.py.orig	2021-08-18 11:22:15 UTC
++++ mesonbuild/linkers/detect.py
+@@ -141,6 +141,12 @@ def guess_nix_linker(env: 'Environment',
+         check_args = comp_class.LINKER_PREFIX + ['--version'] + extra_args
+ 
+     override = []  # type: T.List[str]
++    # sunos-only patch, hardcode to solaris (detection is broken)
++    linker = SolarisDynamicLinker(
++        compiler, for_machine, comp_class.LINKER_PREFIX, override,
++        version='unknown version')
++    return linker
++
+     value = env.lookup_binary_entry(for_machine, comp_class.language + '_ld')
+     if value is not None:
+         override = comp_class.use_linker_args(value[0])
 

@@ -20,8 +20,10 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BROKEN[all]=		gcc10 instantiation error at scope_manager-scoped_store.adb:319
+
 BUILD_DEPENDS=		asis:primary:standard
-			gnatcoll-core:primary:standard
+			gcc10:complete:standard
 
 USES=			gprbuild
 
@@ -105,4 +107,45 @@ share/doc/adacontrol/
 share/doc/gps/html/
  adacontrol_pm.html
  adacontrol_ug.html
+
+
+[FILE:268:patches/patch-build.gpr]
+When adacontrol can build with the ravenports base compiler
+delete this patch.
+
+--- build.gpr.orig	2019-10-30 08:19:42 UTC
++++ build.gpr
+@@ -1,5 +1,4 @@
+ with "asis";
+-with "gnatcoll";
+ project Build is
+    for Languages use ("Ada");
+    for Source_Dirs use ("src/");
+
+
+[FILE:845:patches/patch-src_project__file-factory.ads]
+When adacontrol can build with the ravenports base compiler
+delete this patch.
+
+--- src/project_file-factory.ads.orig	2019-10-30 08:19:42 UTC
++++ src/project_file-factory.ads
+@@ -36,10 +36,10 @@
+ 
+ -- To have full support of GNAT .gpr project files,
+ -- uncomment the following lines :
+-with Project_File.Factory_Full;
+-package Project_File.Factory renames Project_File.Factory_Full;
++-- with Project_File.Factory_Full;
++-- package Project_File.Factory renames Project_File.Factory_Full;
+ 
+ -- To have support of .adp project files only (no GNAT .gpr project files, saves dependence on GnatColl),
+ -- uncomment the following lines :
+---  with Project_File.Factory_No_Gpr;
+---  package Project_File.Factory renames Project_File.Factory_No_Gpr;
++with Project_File.Factory_No_Gpr;
++package Project_File.Factory renames Project_File.Factory_No_Gpr;
+
+
+[FILE:47:files/special.mk]
+PREPEND_PATH=	${LOCALBASE}/toolchain/gcc10/bin
 

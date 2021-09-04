@@ -18,6 +18,8 @@ OPTIONS_AVAILABLE=	SQLITE FIREBIRD PGSQL MYSQL ORACLE AMF
 OPTIONS_STANDARD=	SQLITE FIREBIRD PGSQL MYSQL ORACLE AMF
 OPT_ON[all]=		SQLITE PGSQL MYSQL
 
+BROKEN[all]=		Builds everything over and over
+
 USES=			gmake pkgconfig gprbuild ada:single
 
 FPC_EQUIVALENT=		devel/matreshka
@@ -30,7 +32,7 @@ SINGLE_JOB=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		20.1
-PLIST_SUB=		LIBSUFFIX=9.3
+PLIST_SUB=		LIBSUFFIX=11.2
 
 [ORACLE].DESCRIPTION=			Oracle database support
 [ORACLE].BROKEN_ON=			not yet implemented
@@ -57,6 +59,11 @@ post-patch:
 		${WRKSRC}/tools/configure/configure-tests-mysql.adb \
 		${WRKSRC}/tools/configure/configure-tests-postgresql.adb \
 		${WRKSRC}/tools/configure/configure-tests-sqlite3.adb
+	# Added for gcc 11
+	${REINPLACE_CMD} -e "/No_Elaboration_Code/d" \
+		${WRKSRC}/source/league/ucd/matreshka-internals-unicode-ucd-core.ads \
+		${WRKSRC}/source/league/ucd/matreshka-internals-unicode-ucd-cases.ads \
+		${WRKSRC}/source/league/ucd/matreshka-internals-unicode-ucd-colls.ads
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/matreshka/*/*.${LIBEXT}

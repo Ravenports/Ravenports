@@ -35,12 +35,11 @@ BOOST_LIBRARIES_REVISION=	0
 # ------------------------------------------------------------------------
 
 GCC9_BRANCH=			9
-GCC9_POINT=			3.0
+GCC9_POINT=			4.0
 GCC9_VERSION=			${GCC9_BRANCH}.${GCC9_POINT}
-GCC9_SNAPSHOT=			20200312
+GCC9_SNAPSHOT=			20210601
 GCC9_BUILD_RELEASE=		yes
 GCC9_REVISION=			0
-GCC9_GNAT_UTIL_REVISION=	1
 GCC9_GNATCROSS_REVISION=	0
 GCC9_BOOTSTRAP_REVISION=	0
 
@@ -90,7 +89,7 @@ GCC11_POINT=			2.0
 GCC11_VERSION=			${GCC11_BRANCH}.${GCC11_POINT}
 GCC11_SNAPSHOT=			20210728
 GCC11_BUILD_RELEASE=		yes
-GCC11_REVISION=			0
+GCC11_REVISION=			1
 GCC11_GNATCROSS_REVISION=	0
 GCC11_BOOTSTRAP_REVISION=	0
 
@@ -107,14 +106,13 @@ GCC11_PHASE=			release
 .endif
 
 # ------------------------------------------------------------------------
-# base compiler
+# Ravenports base compiler
 # ------------------------------------------------------------------------
 
 GCCBASE_BRANCH=			11
 GCCBASE_POINT=			2.0
 GCCBASE_VERSION=		${GCCBASE_BRANCH}.${GCCBASE_POINT}
 GCCBASE_REVISION=		0
-GCCBASE_GNAT_UTIL_REVISION=	0
 GCCBASE_PORTVERSION=		${GCCBASE_VERSION}
 GCCBASE_IDENTIFICATION=		gcc-${GCCBASE_VERSION}
 GCCBASE_MS_SUBDIR=		releases/gcc-${GCCBASE_VERSION}
@@ -169,12 +167,10 @@ GTK3_PORT_VERSION=		3.24.30
 GTK4_PORT_VERSION=		4.4.0
 
 # ------------------------------------------------------------------------
-# default gcc and binutils
+# Ravenports binutils
 # ------------------------------------------------------------------------
 
-CURRENT_GCC=			gcc9	# mirror in Uses/meson.mk
-CURRENT_GCC_VERSION=		${GCC9_VERSION}
-BINUTILS_VERSION=		2.35.1
+BINUTILS_VERSION=		2.37
 RPBASE_BINUTILS=		2.37
 
 # ------------------------------------------------------------------------

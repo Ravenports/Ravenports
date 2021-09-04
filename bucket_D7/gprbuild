@@ -2,6 +2,7 @@
 
 NAMEBASE=		gprbuild
 VERSION=		2021
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Adacore multi-language software build tool
@@ -57,7 +58,7 @@ PLIST_SUB=		JQUERY=3.5.1
 post-patch:
 	${SED} -i"" \
 		-e "s|@LOCALBASE@|${LOCALBASE}|" \
-		-e "s|@GCCX@|gcc9|" \
+		-e "s|@GCCX@|ravensys-gcc|" \
 		${WRKSRC}/share/gprconfig/compilers.xml
 	# the relocatable library fails to build, limit to static(-pic)
 	${RM} ${WRKSRC}/gprconfig_kbase/db/*.orig
@@ -989,7 +990,7 @@ Revert to older code compatible with gcc9
  
 
 
-[FILE:1679:patches/patch-src_gprlib.adb]
+[FILE:1689:patches/patch-src_gprlib.adb]
 --- src/gprlib.adb.orig	2021-05-19 05:22:13 UTC
 +++ src/gprlib.adb
 @@ -745,9 +745,6 @@ procedure Gprlib is
@@ -1031,11 +1032,11 @@ Revert to older code compatible with gcc9
                       Libgnat :=
                         new String'
 -                         ("-lgnat-" & Line (6 .. Last));
-+                         ("-lgnat-" & Line (6));
++                         ("-lgnat-" & Line (6 .. 7));
                       Libgnarl :=
                         new String'
 -                         ("-lgnarl-" & Line (6 .. Last));
-+                         ("-lgnarl-" & Line (6));
++                         ("-lgnarl-" & Line (6 .. 7));
                    end if;
  
                 else

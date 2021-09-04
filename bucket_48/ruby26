@@ -70,6 +70,7 @@ PLIST_SUB=		XY={{RUBY_SUFFIX}}
 			MODULE={{MODULE:Uso}}
 
 CFLAGS=			-Wno-attributes
+			-Wno-address-of-packed-member
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-jit-support
 VAR_OPSYS[darwin]=	CONFIGURE_ENV=ac_cv_func_backtrace=no
 			MAKEFILE_LINE=MODULE=bundle
@@ -1421,6 +1422,20 @@ share/examples/ruby%%XY%%/webrick/
  httpd.rb
  httpproxy.rb
  httpsd.rb
+
+
+[FILE:340:patches/patch-compile.c]
+--- compile.c.orig	2021-09-02 03:09:01 UTC
++++ compile.c
+@@ -8466,7 +8466,7 @@ struct ibf_dump {
+ rb_iseq_t * iseq_alloc(void);
+ 
+ struct ibf_load {
+-    const RUBY_ALIGNAS(SIZEOF_VALUE) char *buff;
++    const char *buff;
+     const struct ibf_header *header;
+     ID *id_list;     /* [id0, ...] */
+     VALUE iseq_list; /* [iseq0, ...] */
 
 
 [FILE:2759:patches/patch-configure.ac]

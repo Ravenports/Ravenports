@@ -207,6 +207,82 @@ share/man/man8/dhcrelay.8.gz
  	@BINDLT@ @BINDIOMUX@ @BINDCONFIG@ --enable-full-report
 
 
+[FILE:482:patches/patch-client_dhclient.c]
+--- client/dhclient.c.orig	2021-05-14 13:06:48 UTC
++++ client/dhclient.c
+@@ -83,8 +83,8 @@ static const char message [] = "Internet
+ static const char url [] = "For info, please visit https://www.isc.org/software/dhcp/";
+ #endif /* UNIT_TEST */
+ 
+-u_int16_t local_port = 0;
+-u_int16_t remote_port = 0;
++extern u_int16_t local_port;
++extern u_int16_t remote_port;
+ #if defined(DHCPv6) && defined(DHCP4o6)
+ int dhcp4o6_state = -1; /* -1 = stopped, 0 = polling, 1 = started */
+ #endif
+
+
+[FILE:430:patches/patch-common_discover.c]
+--- common/discover.c.orig	2021-05-14 10:51:30 UTC
++++ common/discover.c
+@@ -45,8 +45,8 @@ struct interface_info *fallback_interfac
+ 
+ int interfaces_invalidated;
+ int quiet_interface_discovery;
+-u_int16_t local_port;
+-u_int16_t remote_port;
++u_int16_t local_port = 0;
++u_int16_t remote_port = 0;
+ u_int16_t relay_port = 0;
+ int dhcpv4_over_dhcpv6 = 0;
+ int (*dhcp_interface_setup_hook) (struct interface_info *, struct iaddr *);
+
+
+[FILE:412:patches/patch-relay_dhcrelay.c]
+--- relay/dhcrelay.c.orig	2021-05-14 13:07:09 UTC
++++ relay/dhcrelay.c
+@@ -95,8 +95,8 @@ enum { forward_and_append,	/* Forward an
+        forward_untouched,	/* Forward without changes. */
+        discard } agent_relay_mode = forward_and_replace;
+ 
+-u_int16_t local_port;
+-u_int16_t remote_port;
++extern u_int16_t local_port;
++extern u_int16_t remote_port;
+ 
+ /* Relay agent server list. */
+ struct server_list {
+
+
+[FILE:303:patches/patch-server_mdb.c]
+--- server/mdb.c.orig	2021-05-14 10:51:30 UTC
++++ server/mdb.c
+@@ -67,7 +67,7 @@ static host_id_info_t *host_id_info = NU
+ 
+ int numclasseswritten;
+ 
+-omapi_object_type_t *dhcp_type_host;
++extern omapi_object_type_t *dhcp_type_host;
+ 
+ isc_result_t enter_class(cd, dynamicp, commit)
+ 	struct class *cd;
+
+
+[FILE:454:patches/patch-server_mdb6.c]
+--- server/mdb6.c.orig	2021-05-14 10:51:30 UTC
++++ server/mdb6.c
+@@ -1945,7 +1945,7 @@ create_prefix6(struct ipv6_pool *pool, s
+ 		}
+ 		new_ds.data = new_ds.buffer->data;
+ 		memcpy(new_ds.buffer->data, ds.data, ds.len);
+-		memcpy(new_ds.buffer->data + ds.len, &tmp, sizeof(tmp));
++		memcpy(&new_ds.buffer->data[0] + ds.len, &tmp, sizeof(tmp));
+ 		data_string_forget(&ds, MDL);
+ 		data_string_copy(&ds, &new_ds, MDL);
+ 		data_string_forget(&new_ds, MDL);
+
+
 [FILE:12136:files/isc-dhcpd.in]
 #! /bin/sh
 
