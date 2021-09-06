@@ -3,7 +3,8 @@
 NAMEBASE=		gnatcross-binutils
 VERSION=		2.37
 KEYWORDS=		lang
-VARIANTS=		FARM64_R11 FAMD64_R12 FI386_R12 SOL10
+VARIANTS=		FARM64_R11 FAMD64_R12 FI386_R12 SOL10 NAMD64_R9
+SDESC[NAMD64_R9]=	C/Ada cross-compiler linker (NetBSD/AMD64 R9)
 SDESC[FARM64_R11]=	C/Ada cross-compiler linker (FreeBSD/ARM64 R11)
 SDESC[SOL10]=		C/Ada cross-compiler linker (Solaris 10)
 SDESC[FI386_R12]=	C/Ada cross-compiler linker (FreeBSD/I386 R12)
@@ -15,17 +16,24 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SOURCEWARE/binutils/releases
 DISTFILE[1]=		binutils-2.37.tar.bz2:main
 DF_INDEX=		1
+SPKGS[NAMD64_R9]=	single
 SPKGS[FARM64_R11]=	single
 SPKGS[SOL10]=		single
 SPKGS[FI386_R12]=	single
 SPKGS[FAMD64_R12]=	single
 
-OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 FI386R12 SOL10
+OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 FI386R12 SOL10 NAMD64R9
 OPTIONS_STANDARD=	none
+VOPTS[NAMD64_R9]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=OFF
+			NAMD64R9=ON
 VOPTS[FARM64_R11]=	FARM64R11=ON FAMD64R12=OFF FI386R12=OFF SOL10=OFF
+			NAMD64R9=OFF
 VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=ON
+			NAMD64R9=OFF
 VOPTS[FI386_R12]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=ON SOL10=OFF
+			NAMD64R9=OFF
 VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON FI386R12=OFF SOL10=OFF
+			NAMD64R9=OFF
 
 BUILD_DEPENDS=		gmp:static:standard
 			mpfr:static:standard
@@ -66,6 +74,14 @@ PLIST_SUB=		TARGET="{{XCCTARGET}}"
 					BRANCH2=
 					BRANCH_PREFIX={{PREFIX}}/{{BRANCH2}}
 					SRPREFIX=gnatcross-sysroot-aarch64
+
+[NAMD64R9].DESCRIPTION=			Create binutils for NetBSD/AMD64 Release 9
+[NAMD64R9].BUILDRUN_DEPENDS_ON=		gnatcross-sysroot-netbsd:single:AMD64_R9
+[NAMD64R9].MAKEFILE_ON=			PREFIX={{LOCALBASE}}/NetBSD9_AMD64
+					XCCTARGET=x86_64-raven-netbsd9.2
+					BRANCH2=
+					BRANCH_PREFIX={{PREFIX}}/{{BRANCH2}}
+					SRPREFIX=gnatcross-sysroot-amd64
 
 [SOL10].DESCRIPTION=			Create binutils for Solaris 10 (x86-64)
 [SOL10].BUILDRUN_DEPENDS_ON=		gnatcross-sysroot-solaris:single:SOL10
@@ -120,6 +136,12 @@ FreeBSD/I386 Release 12.
 This package provides the cross-tools required to build the
 native system -> gnat cross compiler.  This variant sets the target as
 Solaris 10 (x86_64).
+
+
+[FILE:155:descriptions/desc.single.NAMD64_R9]
+This package provides the cross-tools required to build the
+native system -> gnat cross compiler.  This variant sets the target as
+NetBSD/AMD64 Release 9.
 
 
 [FILE:100:distinfo]
@@ -762,6 +784,149 @@ bin/
  %%TARGET%%-strings
  %%TARGET%%-strip
 lib/bfd-plugins/libdep.so
+
+
+[FILE:2224:manifests/plist.single.NAMD64_R9]
+bin/
+ x86_64-raven-netbsd9.2-addr2line
+ x86_64-raven-netbsd9.2-ar
+ x86_64-raven-netbsd9.2-as
+ x86_64-raven-netbsd9.2-c++filt
+ x86_64-raven-netbsd9.2-elfedit
+ x86_64-raven-netbsd9.2-gprof
+ x86_64-raven-netbsd9.2-ld
+ x86_64-raven-netbsd9.2-ld.bfd
+ x86_64-raven-netbsd9.2-nm
+ x86_64-raven-netbsd9.2-objcopy
+ x86_64-raven-netbsd9.2-objdump
+ x86_64-raven-netbsd9.2-ranlib
+ x86_64-raven-netbsd9.2-readelf
+ x86_64-raven-netbsd9.2-size
+ x86_64-raven-netbsd9.2-strings
+ x86_64-raven-netbsd9.2-strip
+lib/bfd-plugins/libdep.so
+x86_64-raven-netbsd9.2/bin/
+ ar
+ as
+ ld
+ ld.bfd
+ nm
+ objcopy
+ objdump
+ ranlib
+ readelf
+ strip
+x86_64-raven-netbsd9.2/lib/ldscripts/
+ elf_i386.x
+ elf_i386.xbn
+ elf_i386.xc
+ elf_i386.xce
+ elf_i386.xd
+ elf_i386.xdc
+ elf_i386.xdce
+ elf_i386.xde
+ elf_i386.xdw
+ elf_i386.xdwe
+ elf_i386.xe
+ elf_i386.xn
+ elf_i386.xr
+ elf_i386.xs
+ elf_i386.xsc
+ elf_i386.xsce
+ elf_i386.xse
+ elf_i386.xsw
+ elf_i386.xswe
+ elf_i386.xu
+ elf_i386.xw
+ elf_i386.xwe
+ elf_iamcu.x
+ elf_iamcu.xbn
+ elf_iamcu.xc
+ elf_iamcu.xce
+ elf_iamcu.xd
+ elf_iamcu.xdc
+ elf_iamcu.xdce
+ elf_iamcu.xde
+ elf_iamcu.xdw
+ elf_iamcu.xdwe
+ elf_iamcu.xe
+ elf_iamcu.xn
+ elf_iamcu.xr
+ elf_iamcu.xs
+ elf_iamcu.xsc
+ elf_iamcu.xsce
+ elf_iamcu.xse
+ elf_iamcu.xsw
+ elf_iamcu.xswe
+ elf_iamcu.xu
+ elf_iamcu.xw
+ elf_iamcu.xwe
+ elf_k1om.x
+ elf_k1om.xbn
+ elf_k1om.xc
+ elf_k1om.xce
+ elf_k1om.xd
+ elf_k1om.xdc
+ elf_k1om.xdce
+ elf_k1om.xde
+ elf_k1om.xdw
+ elf_k1om.xdwe
+ elf_k1om.xe
+ elf_k1om.xn
+ elf_k1om.xr
+ elf_k1om.xs
+ elf_k1om.xsc
+ elf_k1om.xsce
+ elf_k1om.xse
+ elf_k1om.xsw
+ elf_k1om.xswe
+ elf_k1om.xu
+ elf_k1om.xw
+ elf_k1om.xwe
+ elf_l1om.x
+ elf_l1om.xbn
+ elf_l1om.xc
+ elf_l1om.xce
+ elf_l1om.xd
+ elf_l1om.xdc
+ elf_l1om.xdce
+ elf_l1om.xde
+ elf_l1om.xdw
+ elf_l1om.xdwe
+ elf_l1om.xe
+ elf_l1om.xn
+ elf_l1om.xr
+ elf_l1om.xs
+ elf_l1om.xsc
+ elf_l1om.xsce
+ elf_l1om.xse
+ elf_l1om.xsw
+ elf_l1om.xswe
+ elf_l1om.xu
+ elf_l1om.xw
+ elf_l1om.xwe
+ elf_x86_64.x
+ elf_x86_64.xbn
+ elf_x86_64.xc
+ elf_x86_64.xce
+ elf_x86_64.xd
+ elf_x86_64.xdc
+ elf_x86_64.xdce
+ elf_x86_64.xde
+ elf_x86_64.xdw
+ elf_x86_64.xdwe
+ elf_x86_64.xe
+ elf_x86_64.xn
+ elf_x86_64.xr
+ elf_x86_64.xs
+ elf_x86_64.xsc
+ elf_x86_64.xsce
+ elf_x86_64.xse
+ elf_x86_64.xsw
+ elf_x86_64.xswe
+ elf_x86_64.xu
+ elf_x86_64.xw
+ elf_x86_64.xwe
 
 
 [FILE:358:patches/patch-gas_configure.tgt]

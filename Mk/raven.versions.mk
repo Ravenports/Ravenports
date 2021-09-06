@@ -5,7 +5,7 @@
 # Users who want to override these defaults can easily do so by defining
 # DEFAULT_VERSIONS in their make.conf as follows:
 #
-# DEFAULT_VERSIONS=	perl5=5.20 ruby=2.0
+# DEFAULT_VERSIONS=	perl5=5.34 ruby=2.7
 #
 
 .if !defined(_INCLUDE_BSD_DEFAULT_VERSIONS_MK)
@@ -95,7 +95,7 @@ PGSQL_13_VERSION=	13.4
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.6,5.7,8.0), mariadb-(10.2,10.3,10.4,10.5 [10.6]),
+# Possible values: oracle-(5.7,8.0), mariadb-(10.2,10.3,10.4,10.5 [10.6]),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #-------------------------------------------------------------------------
 
@@ -103,7 +103,6 @@ MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.26
 MYSQL_oracle-5.7_VERSION=	5.7.35
-MYSQL_oracle-5.6_VERSION=	5.6.51
 MYSQL_mariadb-10.2_VERSION=	10.2.39
 MYSQL_mariadb-10.3_VERSION=	10.3.30
 MYSQL_mariadb-10.4_VERSION=	10.4.20
@@ -115,7 +114,7 @@ MYSQL_percona-5.5_VERSION=	5.5.54
 
 #-------------------------------------------------------------------------
 # Firebird database server
-# Possible values: 2.5, 3.0
+# Possible values: 2.5, 3.0 (later 4.0)
 #-------------------------------------------------------------------------
 
 FIREBIRD_DEFAULT?=	2.5
