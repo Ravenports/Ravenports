@@ -340,7 +340,7 @@ makesum:
 EXTRACT_ONLY?=	${DF_INDEX}
 
 .for N in ${EXTRACT_ONLY}
-EXTRACT_HEAD_${N}?=	${TAR} -xf
+EXTRACT_HEAD_${N}?=	env LANG=en_US.UTF-8 ${TAR} -xf
 EXTRACT_TAIL_${N}?=	--no-same-owner --no-same-permissions
 .endfor
 
