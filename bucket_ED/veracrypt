@@ -48,9 +48,12 @@ MAKE_ENV=		WX_CONFIG="{{LOCALBASE}}/bin/wx-config"
 
 SUB_FILES=		pkg-message-primary-freebsd
 
+CXXFLAGS=		-std=c++14
+
 post-patch:
-	${REINPLACE_CMD} -e 's|wx-config|${LOCALBASE}/bin/wx-config|g' \
+	${REINPLACE_CMD} -e 's|/wx-config|${LOCALBASE}/bin/wx-config|g' \
 		-e '/export LFLAGS/ s|:=|:= ${LDFLAGS}|' \
+		-e '/export CXXFLAGS/ s|:=|:= ${CXXFLAGS}|' \
 		${WRKSRC}/src/Makefile
 	${REINPLACE_CMD} \
 		-e 's|/usr/bin|${PREFIX}/bin|g' \
@@ -64,14 +67,14 @@ post-extract:
 		${WRKSRC}/License.txt > ${WRKDIR}/license.truecrypt30
 
 do-install:
-	@${MKDIR} ${STAGEDIR}${PREFIX}/share/applications/
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/applications/
 	${INSTALL_PROGRAM} ${WRKSRC}/src/Main/veracrypt ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_DATA} ${WRKSRC}/src/Setup/FreeBSD/veracrypt.desktop \
 		${STAGEDIR}${PREFIX}/share/applications/
 	(cd ${WRKSRC}/src/Resources/Icons && ${COPYTREE_SHARE} . \
 		${STAGEDIR}${PREFIX}/share/pixmaps "-name '*.xpm'")
 	# web documentation
-	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	(cd ${WRKSRC}/doc/html && ${COPYTREE_SHARE} . ${STAGEDIR}${STD_DOCDIR})
 
 [FILE:936:descriptions/desc.primary]

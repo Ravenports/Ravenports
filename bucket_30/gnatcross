@@ -27,6 +27,8 @@ VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=ON
 VOPTS[FI386_R12]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=ON SOL10=OFF
 VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON FI386R12=OFF SOL10=OFF
 
+BROKEN[linux]=		libcpp won't build properly on FreeBSD hosts or genmatch segfaults
+
 BUILD_DEPENDS=		gmp:static:standard
 			mpfr:static:standard
 			mpc:static:standard
@@ -34,7 +36,7 @@ B_DEPS[freebsd]=	libiconv:static:standard
 B_DEPS[darwin]=		libiconv:static:standard
 B_DEPS[dragonfly]=	libiconv:static:standard
 
-USES=			cpe gmake libtool perl:build zlib:build iconv:build
+USES=			cpe gmake libtool perl:build zlib:build
 
 DISTNAME=		gcc-11.2.0
 
@@ -147,6 +149,13 @@ post-stage:
 		${FIND} * \( -type f -or -type l \) | ${SORT} | \
 		${SED} -e '/^bin\//d' -e '/^${XCCTARGET}\/bin\//d' \
 		>> ${WRKDIR}/.manifest.single.mktmp)
+
+post-patch-linux:
+	# libcpp won't link with libc's iconv functions properly
+	# so remove iconv capability on linux-based cross compiler
+	${MV} ${WRKSRC}/libcpp/charset.c ${WRKSRC}/libcpp/charset.c.orig
+	${ECHO} "#define LIBICONV_PLUG 1" > ${WRKSRC}/libcpp/charset.c
+	${CAT} ${WRKSRC}/libcpp/charset.c.orig >> ${WRKSRC}/libcpp/charset.c
 
 post-patch-FI386R12-ON:
 	# work around malloc detection issue
