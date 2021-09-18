@@ -2,6 +2,7 @@
 
 NAMEBASE=		scribus
 VERSION=		1.5.7
+REVISION=		1
 KEYWORDS=		print editors
 VARIANTS=		standard
 SDESC[standard]=	Page Layout and Desktop Publishing
@@ -3762,6 +3763,25 @@ share/doc/scribus/ru/
  	target_link_libraries(${EXE_NAME} util execinfo)
  endif()
  
+
+
+[FILE:332:patches/patch-scribus_fonts_sfnt.cpp]
+--- scribus/fonts/sfnt.cpp.orig	2021-09-18 21:58:29 UTC
++++ scribus/fonts/sfnt.cpp
+@@ -19,9 +19,13 @@
+ #include "scconfig.h"
+ 
+ #include <harfbuzz/hb.h>
++# if HB_VERSION_ATLEAST(3, 0, 0)
++#  undef HAVE_HARFBUZZ_SUBSET
++# else
+ #ifdef HAVE_HARFBUZZ_SUBSET
+ #include <harfbuzz/hb-subset.h>
+ #endif
++# endif
+ 
+ struct HbBlobDeleter
+ {
 
 
 [FILE:442:patches/patch-scribus_third__party_lib2geom_isnan.h]
