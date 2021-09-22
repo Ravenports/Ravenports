@@ -103,11 +103,11 @@ MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.26
 MYSQL_oracle-5.7_VERSION=	5.7.35
-MYSQL_mariadb-10.2_VERSION=	10.2.39
-MYSQL_mariadb-10.3_VERSION=	10.3.30
-MYSQL_mariadb-10.4_VERSION=	10.4.20
-MYSQL_mariadb-10.5_VERSION=	10.5.11
-MYSQL_mariadb-10.6_VERSION=	10.6.3
+MYSQL_mariadb-10.2_VERSION=	10.2.40
+MYSQL_mariadb-10.3_VERSION=	10.3.31
+MYSQL_mariadb-10.4_VERSION=	10.4.21
+MYSQL_mariadb-10.5_VERSION=	10.5.12
+MYSQL_mariadb-10.6_VERSION=	10.6.4
 MYSQL_percona-5.7_VERSION=	5.7.17
 MYSQL_percona-5.6_VERSION=	5.6.35
 MYSQL_percona-5.5_VERSION=	5.5.54
@@ -130,8 +130,8 @@ FIREBIRD_4.0_VERSION=	4.0.0
 
 PHP_DEFAULT?=		7.4
 
-PHP_7.3_VERSION=	7.3.30
-PHP_7.4_VERSION=	7.4.23
+PHP_7.3_VERSION=	7.3.31
+PHP_7.4_VERSION=	7.4.24
 PHP_8.0_VERSION=	8.0.11
 
 #-------------------------------------------------------------------------
