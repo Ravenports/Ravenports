@@ -54,6 +54,82 @@ information about geometries.
  # If pkg-config is unavailable or does not find the library, try setting
 
 
+[FILE:869:patches/patch-src_absl_base_config.h]
+--- src/absl/base/config.h.orig	2021-09-21 13:18:13 UTC
++++ src/absl/base/config.h
+@@ -374,6 +374,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMES
+ #ifdef ABSL_HAVE_MMAP
+ #error ABSL_HAVE_MMAP cannot be directly set
+ #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||   \
++    defined(__DragonFly__) || \
+     defined(__ros__) || defined(__native_client__) || defined(__asmjs__) || \
+     defined(__wasm__) || defined(__Fuchsia__) || defined(__sun) || \
+     defined(__ASYLO__) || defined(__myriad2__)
+@@ -387,6 +388,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMES
+ #ifdef ABSL_HAVE_PTHREAD_GETSCHEDPARAM
+ #error ABSL_HAVE_PTHREAD_GETSCHEDPARAM cannot be directly set
+ #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
++    defined(__DragonFly__) || \
+     defined(__ros__)
+ #define ABSL_HAVE_PTHREAD_GETSCHEDPARAM 1
+ #endif
+
+
+[FILE:431:patches/patch-src_absl_base_internal_endian.h]
+--- src/absl/base/internal/endian.h.orig	2021-09-21 13:18:13 UTC
++++ src/absl/base/internal/endian.h
+@@ -19,7 +19,7 @@
+ // The following guarantees declaration of the byte swap functions
+ #ifdef _MSC_VER
+ #include <stdlib.h>  // NOLINT(build/include)
+-#elif defined(__FreeBSD__)
++#elif defined(__FreeBSD__) || defined(__DragonFly__)
+ #include <sys/endian.h>
+ #elif defined(__GLIBC__)
+ #include <byteswap.h>  // IWYU pragma: export
+
+
+[FILE:484:patches/patch-src_absl_base_internal_raw__logging.cc]
+--- src/absl/base/internal/raw_logging.cc.orig	2021-09-21 13:18:13 UTC
++++ src/absl/base/internal/raw_logging.cc
+@@ -37,6 +37,7 @@
+ // This preprocessor token is also defined in raw_io.cc.  If you need to copy
+ // this, consider moving both to config.h instead.
+ #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
++    defined(__DragonFly__) || \
+     defined(__Fuchsia__) || defined(__native_client__) || \
+     defined(__EMSCRIPTEN__) || defined(__ASYLO__)
+ 
+
+
+[FILE:316:patches/patch-src_absl_base_internal_sysinfo.cc]
+--- src/absl/base/internal/sysinfo.cc.orig	2021-09-21 13:18:13 UTC
++++ src/absl/base/internal/sysinfo.cc
+@@ -31,7 +31,7 @@
+ #include <sys/syscall.h>
+ #endif
+ 
+-#if defined(__APPLE__) || defined(__FreeBSD__)
++#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
+ #include <sys/sysctl.h>
+ #endif
+ 
+
+
+[FILE:379:patches/patch-src_absl_base_internal_unscaledcycleclock.cc]
+--- src/absl/base/internal/unscaledcycleclock.cc.orig	2021-09-21 13:18:13 UTC
++++ src/absl/base/internal/unscaledcycleclock.cc
+@@ -23,7 +23,7 @@
+ #if defined(__powerpc__) || defined(__ppc__)
+ #ifdef __GLIBC__
+ #include <sys/platform/ppc.h>
+-#elif defined(__FreeBSD__)
++#elif defined(__FreeBSD__) || defined(__DragonFly__)
+ #include <sys/sysctl.h>
+ #include <sys/types.h>
+ #endif
+
+
 [FILE:442:patches/patch-src_s2_util_math_exactfloat_exactfloat.cc]
 --- src/s2/util/math/exactfloat/exactfloat.cc.orig	2021-01-04 12:00:17 UTC
 +++ src/s2/util/math/exactfloat/exactfloat.cc
