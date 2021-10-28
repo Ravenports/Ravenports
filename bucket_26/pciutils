@@ -38,11 +38,13 @@ MAKE_ARGS=		PREFIX={{PREFIX}}
 
 INSTALL_TARGET=		install install-lib
 SOVERSION=		3.7.0
+PLIST_SUB=		LIBNAME={{LIBNAME:Ulibpci}}
 
 CFLAGS=			-fPIC
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=LIBNAME=libpciutils
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libpci.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libpc*.so
 
 [FILE:123:descriptions/desc.library]
 libpci is a common portable library which offers access to the PCI 
@@ -64,17 +66,17 @@ registers. For example, you can adjust the latency timers with it.
 2432e7a2e12000502d36cf769ab6e5a0cf4931e5050ccaf8b02984b2d3cb0948       507777 pciutils-3.7.0.tar.gz
 
 
-[FILE:137:manifests/plist.library]
+[FILE:157:manifests/plist.library]
 include/pci/
  config.h
  header.h
  pci.h
  types.h
 lib/
- libpci.so
- libpci.so.%%SOMAJOR%%
- libpci.so.%%SOVERSION%%
-lib/pkgconfig/libpci.pc
+ %%LIBNAME%%.so
+ %%LIBNAME%%.so.%%SOMAJOR%%
+ %%LIBNAME%%.so.%%SOVERSION%%
+lib/pkgconfig/%%LIBNAME%%.pc
 
 
 [FILE:166:manifests/plist.primary]

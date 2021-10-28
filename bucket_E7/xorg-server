@@ -62,7 +62,6 @@ CONFIGURE_ARGS=		--with-xkb-path={{LOCALBASE}}/share/X11/xkb
 			--without-xmlto
 			--without-fop
 			--localstatedir=/var
-			--with-shared-memory-dir=/tmp
 			--disable-config-hal
 			--disable-config-udev
 			--disable-config-udev-kms
@@ -70,10 +69,12 @@ CONFIGURE_ARGS=		--with-xkb-path={{LOCALBASE}}/share/X11/xkb
 			--without-dtrace
 			--enable-glamor
 			--enable-xcsecurity
+			--enable-xtrans-send-fds=yes
 
 INSTALL_TARGET=		install-strip
 
 VAR_OPSYS[sunos]=	CFLAGS=-DO_CLOEXEC=0
+VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 
 [DEVD].DESCRIPTION=			Use devd for autoconfiguration of input devices
 
@@ -1050,8 +1051,10 @@ bin/Xwayland
 +}
 
 
-[FILE:1081:patches/patch-configure]
---- configure.orig	2021-07-08 19:22:30 UTC
+[FILE:1623:patches/patch-configure]
+For NetBSD, force pass thread configure and set USE_AMD64_IOPL
+
+--- configure.orig	2021-07-29 18:48:26 UTC
 +++ configure
 @@ -12065,7 +12065,7 @@ echo 'failed to copy INSTALL from util-m
  
@@ -1087,6 +1090,25 @@ bin/Xwayland
  	;;
    i*86)
  	I386_VIDEO=yes
+@@ -23255,7 +23260,7 @@ $as_echo "#define USE_DEV_IO 1" >>confde
+ $as_echo "#define USE_DEV_IO 1" >>confdefs.h
+  ;;
+ 		*netbsd*)
+-$as_echo "#define USE_I386_IOPL 1" >>confdefs.h
++$as_echo "#define USE_AMD64_IOPL 1" >>confdefs.h
+ 
+ 				SYS_LIBS=-lx86_64
+ 				;;
+@@ -25069,7 +25074,8 @@ case ${host_os} in
+ 	netbsd*)
+ 	# use libc stubs, don't link against libpthread, to allow
+ 	# dynamic loading
+-	ax_pthread_flags=""
++	ax_pthread_flags="none"
++	ax_pthread_ok="yes"
+ 	;;
+ esac
+ 
 
 
 [FILE:256:patches/patch-hw_kdrive_ephyr_hostx.c]
@@ -1202,9 +1224,8 @@ bin/Xwayland
              if (i >= 310)
 
 
-[FILE:315:patches/patch-hw_xfree86_os-support_bsd_i386__video.c]
-Index: programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c
---- hw/xfree86/os-support/bsd/i386_video.c.orig	2021-07-08 19:22:18 UTC
+[FILE:519:patches/patch-hw_xfree86_os-support_bsd_i386__video.c]
+--- hw/xfree86/os-support/bsd/i386_video.c.orig	2021-07-29 18:48:14 UTC
 +++ hw/xfree86/os-support/bsd/i386_video.c
 @@ -32,6 +32,7 @@
  #include "xf86Priv.h"
@@ -1214,6 +1235,16 @@ Index: programs/Xserver/hw/xfree86/os-support/bsd/i386_video.c
  #include <sys/mman.h>
  
  #include "xf86_OSlib.h"
+@@ -42,6 +43,9 @@
+ #else
+ #define MAP_FLAGS (MAP_FILE | MAP_SHARED)
+ #endif
++#if defined(__NetBSD__) && defined(USE_AMD64_IOPL)
++#define amd64_iopl x86_64_iopl
++#endif
+ 
+ #ifdef __OpenBSD__
+ #define SYSCTL_MSG "\tCheck that you have set 'machdep.allowaperture=1'\n"\
 
 
 [FILE:380:patches/patch-hw_xfree86_os-support_bsd_ppc__video.c]

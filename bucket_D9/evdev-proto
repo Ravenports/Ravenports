@@ -94,6 +94,16 @@ do-extract:
 	${MKDIR} ${WRKSRC} ${WRKDIR}/.headers
 	${INSTALL_DATA} ${DISTDIR}/${DIST_SUBDIR}/* ${WRKSRC}/
 
+do-install-netbsd:
+.for HH in input.h uinput.h v4l2-controls.h v4l2-common.h videodev2.h joystick.h
+	${INSTALL_DATA} ${WRKDIR}/.headers/${HH}.freebsd \
+		${STAGEDIR}${PREFIX}/include/linux/${HH}
+.endfor
+	${INSTALL_DATA} \
+		${WRKSRC}/input-event-codes.h \
+		${WRKSRC}/const.h \
+		${STAGEDIR}${PREFIX}/include/linux/
+
 do-install-sunos:
 .for HH in input.h uinput.h v4l2-controls.h v4l2-common.h videodev2.h joystick.h
 	${INSTALL_DATA} ${WRKDIR}/.headers/${HH}.freebsd \

@@ -131,6 +131,7 @@ PLIST_SUB=		GSTVER=1.0
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=enabled
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=disabled
 VAR_OPSYS[linux]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=enabled
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=enabled
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=MESON_ARGS+=-Doss=enabled
 
 [FILE:91:descriptions/desc.primary]
@@ -142,9 +143,10 @@ for GStreamer (1).
 3aaeeea7765fbf8801acce4a503a9b05f73f04e8a35352e9d00232cfd555796b      3294052 gst-plugins-good-1.18.5.tar.xz
 
 
-[FILE:1167:manifests/plist.primary]
+[FILE:1225:manifests/plist.primary]
 %%ONLY-DRAGONFLY%%lib/gstreamer-%%GSTVER%%/libgstossaudio.so
 %%ONLY-FREEBSD%%lib/gstreamer-%%GSTVER%%/libgstossaudio.so
+%%ONLY-NETBSD%%lib/gstreamer-%%GSTVER%%/libgstossaudio.so
 %%ONLY-LINUX%%lib/gstreamer-%%GSTVER%%/libgstossaudio.so
 lib/gstreamer-%%GSTVER%%/
  libgstalaw.so
@@ -718,6 +720,25 @@ share/locale/zh_TW/LC_MESSAGES/gst-plugins-good-%%GSTVER%%.mo
      goto dodgy_width;
  
    tmp = ilog2 (spec->segsize);
+
+
+[FILE:586:netbsd/patch-sys_oss_meson.build]
+--- sys/oss/meson.build.orig	2021-09-08 19:02:51 UTC
++++ sys/oss/meson.build
+@@ -25,11 +25,12 @@ if not oss_option.disabled()
+ endif
+ 
+ if have_oss
++  ossaudio_dep = cc.find_library('ossaudio', required: true)
+   plugins += [library('gstossaudio',
+     'gstossaudio.c', 'gstosshelper.c', 'gstosssink.c', 'gstosssrc.c',
+     c_args : gst_plugins_good_args,
+     include_directories : [configinc, libsinc],
+-    dependencies : [gstaudio_dep, gstbase_dep],
++    dependencies : [gstaudio_dep, gstbase_dep, ossaudio_dep],
+     install : true,
+     install_dir : plugins_install_dir)]
+ endif
 
 
 [FILE:576:sunos/patch-gst_avi_meson.build]

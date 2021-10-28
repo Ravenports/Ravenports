@@ -37,6 +37,7 @@ FPC_EQUIVALENT=		graphics/exiv2
 PLIST_SUB=		SOVERSION=0.27.4
 			SOMAJOR=27
 
+CXXFLAGS=		-Wno-deprecated-declarations
 CMAKE_ARGS=		-DEXIV2_ENABLE_VIDEO:BOOL=ON
 			-DEXIV2_BUILD_PO:BOOL=ON
 			-DEXIV2_BUILD_DOC:BOOL=OFF
@@ -164,4 +165,76 @@ share/locale/sv/LC_MESSAGES/exiv2.mo
 share/locale/ug/LC_MESSAGES/exiv2.mo
 share/locale/uk/LC_MESSAGES/exiv2.mo
 share/locale/vi/LC_MESSAGES/exiv2.mo
+
+
+[FILE:680:patches/patch-cmake_config.h.cmake]
+$NetBSD: patch-cmake_config.h.cmake,v 1.1 2019/10/25 09:44:26 kamil Exp $
+
+--- cmake/config.h.cmake.orig	2021-06-15 14:08:36 UTC
++++ cmake/config.h.cmake
+@@ -35,7 +35,17 @@
+ 
+ /* Define to `const' or to empty, depending on the second argument of `iconv'. */
+ #cmakedefine ICONV_ACCEPTS_CONST_INPUT
+-#if defined(ICONV_ACCEPTS_CONST_INPUT) || defined(__NetBSD__)
++
++#if defined(__NetBSD__)
++#include <sys/param.h>
++#if __NetBSD_Prereq__(9,99,17)
++#define NETBSD_POSIX_ICONV 1
++#else
++#define NETBSD_POSIX_ICONV 0
++#endif
++#endif
++
++#if defined(ICONV_ACCEPTS_CONST_INPUT) || (defined(__NetBSD__) && !NETBSD_POSIX_ICONV)
+ #define EXV_ICONV_CONST const
+ #else
+ #define EXV_ICONV_CONST
+
+
+[FILE:448:patches/patch-include_exiv2_types.hpp]
+$NetBSD: patch-include_exiv2_types.hpp,v 1.1 2018/01/29 09:58:34 jperkin Exp $
+
+Remove bogus forward declaration.
+
+--- include/exiv2/types.hpp.orig	2021-06-15 14:08:36 UTC
++++ include/exiv2/types.hpp
+@@ -81,7 +81,6 @@
+ 
+ // *****************************************************************************
+ // forward declarations
+-struct tm;
+ 
+ // *****************************************************************************
+ // namespace extensions
+
+
+[FILE:1014:patches/patch-src_convert.cpp]
+$NetBSD: patch-src_convert.cpp,v 1.2 2019/10/25 09:44:26 kamil Exp $
+
+Support NetBSD and SunOS iconv being special.
+
+--- src/convert.cpp.orig	2021-06-15 14:08:36 UTC
++++ src/convert.cpp
+@@ -1545,11 +1545,19 @@ namespace {
+             char outbuf[256];
+             char* outptr = outbuf;
+             size_t outbytesleft = sizeof(outbuf);
++#if (defined(__NetBSD__) && !NETBSD_POSIX_ICONV) || defined(__sun)
++            size_t rc = iconv(cd,
++                              const_cast<char **>(&inptr),
++                              &inbytesleft,
++                              &outptr,
++                              &outbytesleft);
++#else
+             size_t rc = iconv(cd,
+                               &inptr,
+                               &inbytesleft,
+                               &outptr,
+                               &outbytesleft);
++#endif
+             const size_t outbytesProduced = sizeof(outbuf) - outbytesleft;
+             if (rc == size_t(-1) && errno != E2BIG) {
+ #ifndef SUPPRESS_WARNINGS
 

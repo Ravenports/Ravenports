@@ -56,6 +56,7 @@ post-patch-dragonfly:
 post-install:
 	${STRIP_CMD} \
 		${STAGEDIR}${PREFIX}/lib/libsndio.${LIBEXT} \
+		${STAGEDIR}${PREFIX}/bin/sndioctl \
 		${STAGEDIR}${PREFIX}/bin/sndiod \
 		${STAGEDIR}${PREFIX}/bin/aucat \
 		${STAGEDIR}${PREFIX}/bin/midicat
@@ -147,10 +148,10 @@ share/man/man8/sndiod.8.gz
   */
 
 
-[FILE:908:patches/patch-configure]
+[FILE:1113:patches/patch-configure]
 --- configure.orig	2021-06-16 07:32:46 UTC
 +++ configure
-@@ -64,10 +64,9 @@ case `uname` in
+@@ -64,16 +64,16 @@ case `uname` in
  	Linux)
  		alsa=yes
  		ldadd="-lrt"
@@ -163,7 +164,14 @@ share/man/man8/sndiod.8.gz
  		defs='-D_GNU_SOURCE -DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
  		;;
  	NetBSD)
-@@ -97,6 +96,17 @@ case `uname` in
+ 		sun=no
+ 		rmidi=yes
+ 		user=_sndio
++		so_ldflags="-Wl,-soname=libsndio.so.\${MAJ}.\${MIN}"
+ 		so_link="libsndio.so"
+ 		defs='-DHAVE_ARC4RANDOM -DHAVE_ISSETUGID \\\
+ 		-DHAVE_STRLCAT -DHAVE_STRLCPY \\\
+@@ -97,6 +97,17 @@ case `uname` in
  		-DHAVE_STRLCAT -DHAVE_STRLCPY -DHAVE_STRTONUM \\\
  		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
  		;;

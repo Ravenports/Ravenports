@@ -21,13 +21,16 @@ DISTFILE[7]=		cargo-1.54.0-x86_64-unknown-freebsd.tar.gz:main
 DISTFILE[8]=		rustc-1.54.0-x86_64-unknown-linux-gnu.tar.gz:main
 DISTFILE[9]=		rust-std-1.54.0-x86_64-unknown-linux-gnu.tar.gz:main
 DISTFILE[10]=		cargo-1.54.0-x86_64-unknown-linux-gnu.tar.gz:main
+DISTFILE[11]=		rustc-1.54.0-x86_64-unknown-netbsd.tar.gz:main
+DISTFILE[12]=		rust-std-1.54.0-x86_64-unknown-netbsd.tar.gz:main
+DISTFILE[13]=		cargo-1.54.0-x86_64-unknown-netbsd.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-ONLY_FOR_OPSYS=		dragonfly freebsd linux
+ONLY_FOR_OPSYS=		dragonfly freebsd linux netbsd
 
 BUILD_DEPENDS=		bash:primary:standard
 			cmake:single:standard
@@ -83,6 +86,8 @@ VAR_OPSYS[freebsd]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.54.0
 			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.54.0
 VAR_OPSYS[linux]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.54.0
 			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.54.0
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.54.0
+			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.54.0
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.54.0
 			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.54.0
 
@@ -95,12 +100,16 @@ post-patch:
 	${REINPLACE_CMD} -e 's/"files":{[^}]*}/"files":{}/' \
 		 ${WRKSRC}/vendor/*/.cargo-checksum.json
 	# for rust 1.43 bootstrap built with libressl 3.0
-	(cd ${LOCALBASE}/libressl/lib && \
+	# (cd ${LOCALBASE}/libressl/lib && \
 		${LN} -s libssl.so libssl.so.47 && \
 		${LN} -s libcrypto.so libcrypto.so.45)
 
 post-configure-linux:
 	${LN} -s ${LOCALBASE}/lib/libz.so.1 ${WRKDIR}/bootstrap/lib
+
+post-configure-netbsd:
+	${LN} -s ${LOCALBASE}/toolchain/ravensys-gcc/lib/libgcc_s.so.1 \
+	${WRKDIR}/bootstrap/lib/libgcc_s.so.1
 
 post-configure-freebsd:
 	${LN} -s ${LOCALBASE}/toolchain/ravensys-gcc/lib/libstdc++.so \
@@ -211,7 +220,7 @@ build tool, smart multi-editor support with auto-completion and type
 inspections, an auto-formatter, and more.
 
 
-[FILE:1215:distinfo]
+[FILE:1578:distinfo]
 aec85a7c1f40b7a40818a58ae13632f8a12cfaa4d3e2a10957d0e9d16dfdd556    117197580 rustc-1.55.0-src.tar.xz
 1eb9659bac191beb69d51b1c20e224623f42fe1ebf0444330dc760fde1accf86     50689743 rustc-1.54.0-x86_64-unknown-dragonfly.tar.zst
 b5dfaabe1182e0e2b0dc956327eaa8a1ba833de271805524fe5bfac9ff2bd827     25760250 rust-std-1.54.0-x86_64-unknown-dragonfly.tar.zst
@@ -222,6 +231,9 @@ f504cad489fe606dd1a7d064253d6e0d0e5450674cfd941b8f848953efce99e5     34885712 ru
 cd4c1c5db3b8ca3f76fac42d209e83640794eb8c2bbfb71b71e5f93b584d159c     77533242 rustc-1.54.0-x86_64-unknown-linux-gnu.tar.gz
 487c51ac97e7f7deceae904b70e9bb031574dbeefe07b39b24e3fb00740962eb     36403525 rust-std-1.54.0-x86_64-unknown-linux-gnu.tar.gz
 8c4f404e6fd3e26a535230d1d47d162d0e4a51a0ff82025ae526b5121bdbf6ad      8688778 cargo-1.54.0-x86_64-unknown-linux-gnu.tar.gz
+13d4bd3a8135d4e7fe865b180621cebd76e1f4ac9e99515a28244fb853a7f593    102767594 rustc-1.54.0-x86_64-unknown-netbsd.tar.gz
+1fa0277edacf2948ea5acbf0335e826a6b07202362d60c661f194f685e2209e1     32365583 rust-std-1.54.0-x86_64-unknown-netbsd.tar.gz
+ac346baa955c9a0be5633370b6f6942400464126cd5bf25e1337b36f3103d343      8641989 cargo-1.54.0-x86_64-unknown-netbsd.tar.gz
 
 
 [FILE:96:manifests/plist.single]
@@ -358,7 +370,7 @@ lib/rustlib/
      }
 
 
-[FILE:415:files/special.mk]
+[FILE:478:files/special.mk]
 .if "${OPSYS}" == "DragonFly"
 DF_INDEX+=		2 3 4
 COMPEXT=		zst
@@ -369,6 +381,9 @@ COMPEXT=		gz
 DF_INDEX+=		8 9 10
 COMPEXT=		gz
 SFX=			${ARCH_STANDARD}-unknown-linux-gnu
+.elif "${OPSYS}" == "NetBSD"
+DF_INDEX+=		11 12 13
+COMPEXT=		gz
 .endif
 SFX?=			${ARCH_STANDARD}-unknown-${OPSYS:tl}
 SRC_RUSTC?=		rustc-${BOOTSTRAP_RUST}-${SFX}

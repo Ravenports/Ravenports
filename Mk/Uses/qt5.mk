@@ -57,6 +57,13 @@ QMAKE_LIBS_THREAD=
 QMAKE_LFLAGS_THREAD=	-pthread
 QMAKE_X11_SYS_LIBS=	-lm
 
+. elif "${OPSYS}" == "NetBSD"
+
+QMAKESPEC=		netbsd-g++
+QMAKE_LIBS_THREAD=
+QMAKE_LFLAGS_THREAD=	-pthread
+QMAKE_X11_SYS_LIBS=	-lm
+
 . elif "${OPSYS}" == "DragonFly"
 
 QMAKESPEC=		dragonfly-g++

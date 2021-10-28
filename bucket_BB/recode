@@ -2,7 +2,7 @@
 
 NAMEBASE=		recode
 VERSION=		3.6
-REVISION=		2
+REVISION=		3
 KEYWORDS=		converters
 VARIANTS=		standard
 SDESC[standard]=	Converts files between character sets and usages
@@ -39,7 +39,10 @@ CONFIGURE_ARGS=		--without-included-gettext
 
 LDFLAGS=		{{ICONV_LIB}}
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/librecode.so
+
+pre-configure:
 	${REINPLACE_CMD} -E \
 		'/Project-Id-Version/ { \
 			s/3\.[45](r|\.[0-9])?/3.6/; \
@@ -48,11 +51,6 @@ post-patch:
 	${REINPLACE_CMD} 's,"iconv\.h","${ICONV_PREFIX}/include/iconv.h",' \
 		${WRKSRC}/src/libiconv.c
 	${CP} ${WRKSRC}/lib/error.c ${WRKSRC}/src
-	${REINPLACE_CMD} -e '/linkopts=/ s|=|=-Wl,-rpath,${PREFIX}/lib|' \
-		${WRKSRC}/ltmain.sh
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/librecode.so
 
 post-extract:
 	${CP} ${FILESDIR}/ru.po ${WRKSRC}/i18n
@@ -213,6 +211,82 @@ share/locale/sv/LC_MESSAGES/recode.mo
  
  # ifdef HAVE_STRERROR_R
  #  define __strerror_r strerror_r
+
+
+[FILE:2511:patches/patch-ltconfig]
+--- ltconfig.orig	2008-02-19 04:13:35 UTC
++++ ltconfig
+@@ -1187,13 +1187,8 @@ EOF
+     ;;
+ 
+   netbsd*)
+-    if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
+-      archive_cmds='$CC -shared $libobjs $deplibs $linkopts ${wl}-soname $wl$soname -o $lib'
++      archive_cmds='$CC -shared $libobjs $deplibs $linkopts -liconv ${wl}-soname $wl$soname -o $lib'
+       archive_expsym_cmds='$CC -shared $libobjs $deplibs $linkopts ${wl}-soname $wl$soname ${wl}-retain-symbols-file $wl$export_symbols -o $lib'
+-    else
+-      archive_cmds='$LD -Bshareable $libobjs $deplibs $linkopts -o $lib'
+-      # can we support soname and/or expsyms with a.out? -oliva
+-    fi
+     ;;
+ 
+   solaris* | sysv5*)
+@@ -1354,8 +1349,8 @@ else
+     ;;
+ 
+   # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
+-  freebsd*)
+-    archive_cmds='$CC -shared -o $lib $libobjs $deplibs $linkopts'
++  freebsd*|dragonfly*)
++    archive_cmds='$CC -shared -o $lib $libobjs $deplibs $linkopts -liconv ${wl}-soname $wl$soname'
+     hardcode_libdir_flag_spec='-R$libdir'
+     hardcode_direct=yes
+     hardcode_shlibpath_var=no
+@@ -1385,11 +1380,7 @@ else
+     ;;
+ 
+   netbsd*)
+-    if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
+-      archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linkopts'  # a.out
+-    else
+       archive_cmds='$LD -shared -o $lib $libobjs $deplibs $linkopts'      # ELF
+-    fi
+     hardcode_libdir_flag_spec='${wl}-R$libdir'
+     hardcode_direct=yes
+     hardcode_shlibpath_var=no
+@@ -1868,7 +1859,7 @@ freebsd1*)
+   dynamic_linker=no
+   ;;
+   
+-freebsd*)
++freebsd*|dragonfly*)
+   objformat=`test -x /usr/bin/objformat && /usr/bin/objformat || echo aout`
+   version_type=freebsd-$objformat
+   case "$version_type" in
+@@ -1982,21 +1973,15 @@ linux-gnu*)
+   ;;
+ 
+ netbsd*)
+-  version_type=sunos
+-  if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
+-    library_names_spec='${libname}${release}.so$versuffix ${libname}.so$versuffix'
+-    finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
+-    dynamic_linker='NetBSD (a.out) ld.so'
+-  else
++  version_type=freebsd-elf
+     library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major ${libname}${release}.so ${libname}.so'
+     soname_spec='${libname}${release}.so$major'
+     dynamic_linker='NetBSD ld.elf_so'
+-  fi
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
+ openbsd*)
+-  version_type=sunos
++  version_type=freebsd-elf
+   if test "$with_gnu_ld" = yes; then
+     need_lib_prefix=no
+     need_version=no
 
 
 [FILE:1097:patches/patch-src-Makefile.in]

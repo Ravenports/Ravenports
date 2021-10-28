@@ -48,11 +48,6 @@ CFLAGS=			-std=gnu89
 [ENCODINGS].DESCRIPTION=		Include extra character sets
 [ENCODINGS].CONFIGURE_ENABLE_BOTH=	extra-encodings
 
-post-patch:
-	${REINPLACE_CMD} -e 's:ei_ksc5601:ei_euc_kr:g' ${WRKSRC}/lib/aliases.h
-	${REINPLACE_CMD} -e 's:gawk:awk:g' ${WRKSRC}/configure \
-		${WRKSRC}/libcharset/configure
-
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 	# install-strip doesn't seem to work
@@ -67,6 +62,11 @@ post-build:
 	(cd ${WRKSRC}/lib/.libs &&\
 	 ${AR} -cq libiconv_pic.a *.o &&\
 	 ranlib libiconv_pic.a)
+
+pre-configure:
+	${REINPLACE_CMD} -e 's:ei_ksc5601:ei_euc_kr:g' ${WRKSRC}/lib/aliases.h
+	${REINPLACE_CMD} -e 's:gawk:awk:g' ${WRKSRC}/configure \
+		${WRKSRC}/libcharset/configure
 
 [FILE:621:descriptions/desc.static]
 This library provides an iconv() implementation, for use on systems which

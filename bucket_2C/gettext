@@ -60,6 +60,7 @@ PLIST_SUB=		VERSION=0
 			LIBINTL=8.2.0
 			GTS_SOMAJOR=0
 			GTS_SOVERSION=0.1.1
+			EXTERNAL="{{EXTERNAL}}"
 
 TEST_TARGET=		check
 
@@ -117,36 +118,15 @@ on libstdc++.
 d20fcbb537e02dcf1383197ba05bd0734ef7bf5db06bdb241eb69b7d16b73192      9714352 gettext-0.21.tar.xz
 
 
-[FILE:1156:manifests/plist.runtime.standard]
-%%ONLY-DARWIN%%include/libintl.h
-%%ONLY-DARWIN%%lib/
+[FILE:673:manifests/plist.runtime.standard]
+%%EXTERNAL%%include/libintl.h
+%%EXTERNAL%%lib/
  libintl.a
  libintl.so
  libintl.so.%%LIBINTL%%
  libintl.so.8
-%%ONLY-DARWIN%%share/locale/locale.alias
-%%ONLY-DRAGONFLY%%include/libintl.h
-%%ONLY-DRAGONFLY%%lib/
- libintl.a
- libintl.so
- libintl.so.%%LIBINTL%%
- libintl.so.8
-%%ONLY-DRAGONFLY%%share/locale/locale.alias
-%%ONLY-FREEBSD%%include/libintl.h
-%%ONLY-FREEBSD%%lib/
- libintl.a
- libintl.so
- libintl.so.%%LIBINTL%%
- libintl.so.8
-%%ONLY-FREEBSD%%share/locale/locale.alias
+%%EXTERNAL%%share/locale/locale.alias
 %%ONLY-LINUX%%lib/preloadable_libintl.so
-%%ONLY-SUNOS%%include/libintl.h
-%%ONLY-SUNOS%%lib/
- libintl.a
- libintl.so
- libintl.so.%%LIBINTL%%
- libintl.so.8
-%%ONLY-SUNOS%%share/locale/locale.alias
 bin/
  envsubst
  gettext
@@ -546,4 +526,13 @@ share/locale/zh_TW/LC_MESSAGES/
        tested = 1;
      }
    return result;
+
+
+[FILE:141:files/special.mk]
+# On linux, libintl is part of glibc so libintl.so doesn't get installed
+.if ${OPSYS} == Linux
+EXTERNAL="@comment "
+.else
+EXTERNAL=""
+.endif
 

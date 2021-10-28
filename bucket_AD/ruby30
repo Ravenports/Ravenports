@@ -65,6 +65,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		XY={{RUBY_SUFFIX}}
 			XDOTY={{RUBY_VER}}
 			MODULE={{MODULE:Uso}}
+			MJIT={{MJIT}}
 
 CFLAGS=			-Wno-attributes
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-jit-support
@@ -157,11 +158,8 @@ This package contains the Ruby Documentation System for Ruby24.
 570e7773100f625599575f363831166d91d49a1ab97d3ab6495af44774155c40     14746080 ruby/ruby-3.0.2.tar.xz
 
 
-[FILE:18452:manifests/plist.primary]
-%%ONLY-DARWIN%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-DRAGONFLY%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-FREEBSD%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-LINUX%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
+[FILE:18172:manifests/plist.primary]
+%%MJIT%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
 bin/
  erb%%XY%%
  irb%%XY%%
@@ -1544,7 +1542,7 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  remarks.markdown
 
 
-[FILE:2728:patches/patch-configure.ac]
+[FILE:2736:patches/patch-configure.ac]
 --- configure.ac.orig	2021-07-07 10:08:35 UTC
 +++ configure.ac
 @@ -302,14 +302,6 @@ AS_CASE(["$host_os:$build_os"],
@@ -1593,7 +1591,7 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  	])
  	],
 -    [freebsd*|dragonfly*], [
-+    [freebsd*|dragonfly*|linux*|solaris*], [
++    [freebsd*|dragonfly*|netbsd*|linux*|solaris*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
  	LIBRUBY_SONAME='$(LIBRUBY_SO)'
 -	AS_IF([test "$rb_cv_binary_elf" != "yes" ], [
@@ -1647,9 +1645,15 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  puts %[\
 
 
-[FILE:378:files/special.mk]
+[FILE:439:files/special.mk]
 # Macros to change variables in rbconfig.rb
 RB_SET_CONF_VAR=${SH} -c '${REINPLACE_CMD} -E -e "s,(CONFIG\[\"$$0\"\][[:space:]]*=[[:space:]]*)(\(?)(.*)(\)?),\1\2$$1\4," ${WRKSRC}/rbconfig.rb' --
+
+.if ${OPSYS} == SunOS
+MJIT="@comment "
+.else
+MJIT=""
+.endif
 
 POST_PLIST_TARGET=	rdoc-autolist
 

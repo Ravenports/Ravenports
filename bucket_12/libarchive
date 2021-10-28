@@ -46,13 +46,17 @@ CONFIGURE_ENV=		ac_cv_lib_md_MD5Init=no
 INSTALL_TARGET=		install-strip
 SOVERSION=		13.5.2
 
+CFLAGS=			-I{{LOCALBASE}}/libressl/include
+CPPFLAGS=		-I{{LOCALBASE}}/libressl/include
 LDFLAGS=		-lpthread
+			-L{{LOCALBASE}}/libressl/lib
 
 [STATIC].DESCRIPTION=			Build version for raven sysroots
 [STATIC].BUILD_DEPENDS_ON=		libressl:single:static
 					xz:single:static
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 					--enable-static=yes
+[STATIC].LDFLAGS_OFF=			-Wl,-rpath,{{LOCALBASE}}/libressl/lib
 [STATIC].USES_ON=			zstd:build
 					expat:build
 					bz2:build

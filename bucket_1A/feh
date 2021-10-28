@@ -39,12 +39,16 @@ MAKE_ENV=		exif=1
 			LDFLAGS="{{LDFLAGS}}"
 
 VAR_OPSYS[sunos]=	CFLAGS=-DNAME_MAX=14
+VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 
 post-patch:
 	${REINPLACE_CMD} \
 		-e 's|install-doc||' \
 		-e 's|install-examples||' \
 		${WRKSRC}/Makefile
+
+post-patch-netbsd:
+	${REINPLACE_CMD} -e '/std/d' ${WRKSRC}/config.mk
 
 post-patch-dragonfly:
 	${REINPLACE_CMD} -e '/std/d' ${WRKSRC}/config.mk

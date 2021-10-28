@@ -2,6 +2,7 @@
 
 NAMEBASE=		cyrus-sasl
 VERSION=		2.1.27
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Cyrus Simple Authentication Service Layer (SASL)
@@ -40,6 +41,7 @@ CONFIGURE_ARGS=		--disable-alwaystrue
 			--disable-krb4
 			--disable-gssapi
 			--disable-otp
+			--disable-sample
 			--enable-anon
 			--enable-cram
 			--enable-digest
@@ -51,13 +53,11 @@ CONFIGURE_ARGS=		--disable-alwaystrue
 			--with-dblib=berkeley
 			--with-bdb-libdir={{BDB_LIB_DIR}}
 			--with-bdb-incdir={{BDB_INCLUDE_DIR}}
-			--with-bdb={{BDB_LIB_NAME}}
 			--with-authdaemond=/var/run/authdaemond/socket
 			--with-configdir={{PREFIX}}/lib/sasl2:{{PREFIX}}/etc/sasl2
 			--with-plugindir={{PREFIX}}/lib/sasl2
 			--with-dbpath={{PREFIX}}/etc/sasldb2
 			--with-lib-subdir=lib
-			--with-pkgconfigdir={{PREFIX}}/lib/pkgconfig
 			--includedir={{PREFIX}}/include
 			--enable-static
 			--with-rc4=openssl
@@ -76,6 +76,7 @@ SUB_LIST=		SASLDB_NAME=sasldb2
 			CYRUS_USER=cyrus
 
 CFLAGS=			-Wno-pointer-sign
+VAR_OPSYS[netbsd]=	CONFIGURE_ENV=ac_cv_lib_dl_dlopen=no
 VAR_ARCH[x86_64]=	CPPFLAGS=-fPIC
 
 post-install:
@@ -432,6 +433,24 @@ share/doc/cyrus-sasl/legacy/
  testing.txt
  upgrading.html
  windows.html
+
+
+[FILE:519:patches/patch-CVE-2019-19906]
+$NetBSD: patch-CVE-2019-19906,v 1.1 2020/05/14 14:27:32 nia Exp $
+
+https://github.com/cyrusimap/cyrus-sasl/commit/dcc9f51cbd4ed622cfb0f9b1c141eb2ffe3b12f1.patch
+
+--- lib/common.c.orig	2018-01-19 14:13:40.000000000 +0000
++++ lib/common.c
+@@ -190,7 +190,7 @@ int _sasl_add_string(char **out, size_t 
+ 
+   if (add==NULL) add = "(null)";
+ 
+-  addlen=strlen(add); /* only compute once */
++  addlen=strlen(add)+1; /* only compute once */
+   if (_buf_alloc(out, alloclen, (*outlen)+addlen)!=SASL_OK)
+     return SASL_NOMEM;
+ 
 
 
 [FILE:1733:patches/patch-configure]

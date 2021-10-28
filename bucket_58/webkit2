@@ -69,6 +69,7 @@ PLIST_SUB=		JSSOVERSION=0.0.0
 			JSSOMAJOR=0
 			WKAPI=4.1
 			WKAPIMAJOR=4
+			INTRO="@comment "
 
 CXXFLAGS=		-DFIXED_EXECUTABLE_MEMORY_POOL_SIZE_IN_MB=32
 CMAKE_ARGS=		-DPORT=GTK
@@ -78,6 +79,7 @@ CMAKE_ARGS=		-DPORT=GTK
 			-DENABLE_WAYLAND_TARGET:BOOL=OFF
 			-DENABLE_BUBBLEWRAP_SANDBOX:BOOL=OFF
 			-DENABLE_GAMEPAD:BOOL=OFF
+			-DENABLE_INTROSPECTION:BOOL=OFF
 			-DSUPPRESS_ASSERT:BOOL=ON
 			-DUSE_SYSTEMD:BOOL=OFF
 			-DUSE_GSTREAMER_GL:BOOL=OFF
@@ -120,7 +122,15 @@ and Midori.
 880c8ee626f67019f67557ca09e59a23ecf245e60f6173215f1a8823cb09af34     24998292 webkitgtk-2.34.0.tar.xz
 
 
-[FILE:6371:manifests/plist.primary]
+[FILE:6389:manifests/plist.primary]
+%%INTRO%%lib/girepository-1.0/
+ JavaScriptCore-%%WKAPI%%.typelib
+ WebKit2-%%WKAPI%%.typelib
+ WebKit2WebExtension-%%WKAPI%%.typelib
+%%INTRO%%share/gir-1.0/
+ JavaScriptCore-%%WKAPI%%.gir
+ WebKit2-%%WKAPI%%.gir
+ WebKit2WebExtension-%%WKAPI%%.gir
 bin/
  MiniBrowser-%%WKAPIMAJOR%%
  WebKitWebDriver
@@ -351,10 +361,6 @@ lib/
  libwebkit2gtk-%%WKAPI%%.so
  libwebkit2gtk-%%WKAPI%%.so.%%SOMAJOR%%
  libwebkit2gtk-%%WKAPI%%.so.%%SOVERSION%%
-lib/girepository-1.0/
- JavaScriptCore-%%WKAPI%%.typelib
- WebKit2-%%WKAPI%%.typelib
- WebKit2WebExtension-%%WKAPI%%.typelib
 lib/pkgconfig/
  javascriptcoregtk-%%WKAPI%%.pc
  webkit2gtk-%%WKAPI%%.pc
@@ -365,10 +371,6 @@ libexec/webkit2gtk-%%WKAPI%%/
  WebKitNetworkProcess
  WebKitWebProcess
  jsc
-share/gir-1.0/
- JavaScriptCore-%%WKAPI%%.gir
- WebKit2-%%WKAPI%%.gir
- WebKit2WebExtension-%%WKAPI%%.gir
 
 
 [FILE:2566:manifests/plist.nls]
@@ -452,6 +454,130 @@ share/locale/zh_CN/LC_MESSAGES/WebKit2GTK-%%WKAPI%%.mo
  #elif OS(LINUX)
          size_t page = pageSize();
          uintptr_t current = reinterpret_cast<uintptr_t>(code);
+
+
+[FILE:3892:patches/patch-Source_JavaScriptCore_runtime_MachineContext.h]
+$NetBSD: patch-Source_JavaScriptCore_runtime_MachineContext.h,v 1.2 2021/05/13 08:20:58 leot Exp $
+
+Add support for NetBSD.
+
+--- Source/JavaScriptCore/runtime/MachineContext.h.orig	2021-09-01 09:16:46 UTC
++++ Source/JavaScriptCore/runtime/MachineContext.h
+@@ -195,6 +195,22 @@ static inline void*& stackPointerImpl(mc
+ #error Unknown Architecture
+ #endif
+ 
++#elif OS(NETBSD)
++
++#if CPU(X86)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_UESP]);
++#elif CPU(X86_64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_RSP]);
++#elif CPU(ARM)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_SP]);
++#elif CPU(ARM64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_SP]);
++#elif CPU(MIPS)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_SP]);
++#else
++#error Unknown Architecture
++#endif
++
+ #elif OS(FUCHSIA) || OS(LINUX)
+ 
+ #if CPU(X86)
+@@ -346,6 +362,22 @@ static inline void*& framePointerImpl(mc
+ #error Unknown Architecture
+ #endif
+ 
++#elif OS(NETBSD)
++
++#if CPU(X86)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_EBP]);
++#elif CPU(X86_64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_RBP]);
++#elif CPU(ARM)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_FP]);
++#elif CPU(ARM64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_FP]);
++#elif CPU(MIPS)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_S8]);
++#else
++#error Unknown Architecture
++#endif
++
+ #elif OS(FUCHSIA) || OS(LINUX)
+ 
+ // The following sequence depends on glibc's sys/ucontext.h.
+@@ -496,6 +528,22 @@ static inline void*& instructionPointerI
+ #else
+ #error Unknown Architecture
+ #endif
++ 
++#elif OS(NETBSD)
++
++#if CPU(X86)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_EIP]);
++#elif CPU(X86_64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_RIP]);
++#elif CPU(ARM)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_PC]);
++#elif CPU(ARM64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_PC]);
++#elif CPU(MIPS)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_EPC]);
++#else
++#error Unknown Architecture
++#endif
+ 
+ #elif OS(FUCHSIA) || OS(LINUX)
+ 
+@@ -654,6 +702,22 @@ inline void*& argumentPointer<1>(mcontex
+ #else
+ #error Unknown Architecture
+ #endif
++ 
++#elif OS(NETBSD)
++
++#if CPU(X86)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_EDX]);
++#elif CPU(X86_64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_RSI]);
++#elif CPU(ARM)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_R1]);
++#elif CPU(ARM64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_X1]);
++#elif CPU(MIPS)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_A1]);
++#else
++#error Unknown Architecture
++#endif
+ 
+ #elif OS(FUCHSIA) || OS(LINUX)
+ 
+@@ -771,6 +835,22 @@ inline void*& llintInstructionPointer(mc
+ #else
+ #error Unknown Architecture
+ #endif
++ 
++#elif OS(NETBSD)
++
++#if CPU(X86)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_ESI]);
++#elif CPU(X86_64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_R8]);
++#elif CPU(ARM)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_R8]);
++#elif CPU(ARM64)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_X4]);
++#elif CPU(MIPS)
++    return reinterpret_cast<void*&>((uintptr_t&) machineContext.__gregs[_REG_T4]);
++#else
++#error Unknown Architecture
++#endif
+ 
+ #elif OS(FUCHSIA) || OS(LINUX)
+ 
 
 
 [FILE:597:patches/patch-Source_ThirdParty_ANGLE_src_common_aligned__memory.cpp]
@@ -610,6 +736,24 @@ Support MAP_FILE if unavailable.
 +elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
      list(APPEND WTF_SOURCES
          generic/MemoryFootprintGeneric.cpp
+ 
+
+
+[FILE:591:patches/patch-Source_WTF_wtf_PlatformHave.h]
+$NetBSD: patch-Source_WTF_wtf_PlatformHave.h,v 1.2 2021/05/13 08:20:58 leot Exp $
+
+Add support for NetBSD.
+
+--- Source/WTF/wtf/PlatformHave.h.orig	2021-09-01 09:16:49 UTC
++++ Source/WTF/wtf/PlatformHave.h
+@@ -222,7 +222,7 @@
+ #define HAVE_HOSTED_CORE_ANIMATION 1
+ #endif
+ 
+-#if OS(DARWIN) || OS(FUCHSIA) || ((OS(FREEBSD) || OS(LINUX)) && (CPU(X86) || CPU(X86_64) || CPU(ARM) || CPU(ARM64) || CPU(MIPS)))
++#if OS(DARWIN) || OS(FUCHSIA) || ((OS(FREEBSD) || OS(NETBSD) || OS(LINUX)) && (CPU(X86) || CPU(X86_64) || CPU(ARM) || CPU(ARM64) || CPU(MIPS)))
+ #define HAVE_MACHINE_CONTEXT 1
+ #endif
  
 
 

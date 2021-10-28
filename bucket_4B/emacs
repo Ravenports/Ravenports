@@ -183,6 +183,9 @@ post-install-dragonfly:
 post-install-darwin:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
+post-install-netbsd:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
+
 post-install-sunos:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
@@ -4242,7 +4245,7 @@ share/metainfo/emacs.appdata.xml
  	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
 
 
-[FILE:1532:patches/patch-configure]
+[FILE:1700:patches/patch-configure]
 --- configure.orig	2021-03-18 12:01:17 UTC
 +++ configure
 @@ -4975,9 +4975,9 @@ case "${canonical}" in
@@ -4278,12 +4281,20 @@ share/metainfo/emacs.appdata.xml
      else
        TERMINFO=no
        LIBS_TERMCAP="-ltermcap"
-@@ -18198,7 +18198,7 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&
+@@ -18191,14 +18191,14 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&
+     LIBS_TERMCAP=
+     ;;
+ 
+-  netbsd)
++  xxnetbsd)
+     if test "x$LIBS_TERMCAP" != "x-lterminfo"; then
+       TERMINFO=no
+       LIBS_TERMCAP="-ltermcap"
      fi
      ;;
  
 -  openbsd | dragonfly) LIBS_TERMCAP="-lncurses" ;;
-+  openbsd | dragonfly) LIBS_TERMCAP="-lncurses -ltinfo" ;;
++  openbsd | dragonfly | netbsd) LIBS_TERMCAP="-lncurses -ltinfo" ;;
  
    ## hpux: Make sure we get select from libc rather than from libcurses
    ##  because libcurses on HPUX 10.10 has a broken version of select.
@@ -4301,6 +4312,32 @@ share/metainfo/emacs.appdata.xml
                 ebrowse${EXEEXT}
  
  # Things that Emacs runs internally, or during the build process,
+
+
+[FILE:772:patches/patch-lib-src_emacsclient.c]
+$NetBSD: patch-lib-src_emacsclient.c,v 1.2 2020/09/20 15:44:33 wiz Exp $
+
+Workaround for:
+On NetBSD, fstat on a socket returns zero instead of the user id.
+Reported upstream as http://debbugs.gnu.org/cgi/bugreport.cgi?bug=43002
+
+This is only needed for NetBSD 9 and earlier, fixed in current in
+https://mail-index.netbsd.org/source-changes/2020/08/26/msg121023.html
+
+--- lib-src/emacsclient.c.orig	2020-07-29 21:40:41.000000000 +0000
++++ lib-src/emacsclient.c
+@@ -1478,6 +1478,11 @@ set_local_socket (char const *server_nam
+       struct stat connect_stat;
+       if (fstat (s, &connect_stat) != 0)
+ 	sock_status = errno;
++#if defined(__NetBSD__)
++      else if (1) {
++        return s;
++      }
++#endif
+       else if (connect_stat.st_uid == uid)
+ 	return s;
+       else
 
 
 [FILE:682:patches/patch-lisp_dired.el]

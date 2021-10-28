@@ -49,6 +49,13 @@ CMAKE_ARGS=		-DLIB_INSTALL_DIR=lib
 			-Denable-dbus:BOOL=TRUE
 			-Denable-readline:BOOL=TRUE
 			-Denable-libsndfile:BOOL=TRUE
+VAR_OPSYS[netbsd]=	LDFLAGS=-lossaudio
+
+pre-configure-netbsd:
+	${REINPLACE_CMD} \
+		-e "s,/dev/dsp,/dev/audio,g" \
+		-e "s,/dev/midi,/dev/rmidi0,g" \
+		${WRKSRC}/src/drivers/fluid_oss.c
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fluidsynth

@@ -68,12 +68,19 @@ SOVERSION=		1.77.0
 PLIST_SUB=		BOOSTVER=1.77.0
 			SOMAJMIN=1.77
 			PYLIB_SUFFIX={{PYTHON_SUFFIX}}
+			MATH_C99L={{MATHC99L}}
+			MATH_TR1L={{MATHTR1L}}
+			STADDR2LINE={{STADDR2LINE}}
+			FIBER={{FIBER}}
 SUB_FILES=		pkg-message-python
 SUB_LIST=		PYTHON_INCLUDEDIR="{{PYTHON_INCLUDEDIR}}"
 			PYTHON_LIBDIR="{{PYTHON_LIBDIR}}"
 			PYTHON_VERSION="{{PYTHON_VERSION}}"
 
 VAR_OPSYS[freebsd]=	MAKE_ARGS=pch=off
+VAR_OPSYS[netbsd]=	MAKE_ARGS=pch=off
+			MAKEFILE_LINE=STADDR2LINE="@comment "
+			MAKEFILE_LINE=FIBER="@comment "
 
 [PY38].USES_ON=				python:py38,build
 
@@ -133,7 +140,35 @@ This subpackage contains the python library subset.
 fc9f85fc030e233142908241af7a846e60630aa7388de9a5fafb1f3a26840854    110361537 boost_1_77_0.tar.bz2
 
 
-[FILE:314485:manifests/plist.rest]
+[FILE:314772:manifests/plist.rest]
+%%FIBER%%lib/
+ libboost_fiber.a
+ libboost_fiber.so
+ libboost_fiber.so.%%SOVERSION%%
+%%FIBER%%lib/cmake/boost_fiber-%%BOOSTVER%%/
+ libboost_fiber-variant-shared.cmake
+ libboost_fiber-variant-static.cmake
+%%MATH_C99L%%lib/
+ libboost_math_c99l.a
+ libboost_math_c99l.so
+ libboost_math_c99l.so.%%SOVERSION%%
+%%MATH_C99L%%lib/cmake/boost_math_c99l-%%BOOSTVER%%/
+ libboost_math_c99l-variant-shared.cmake
+ libboost_math_c99l-variant-static.cmake
+%%MATH_TR1L%%lib/
+ libboost_math_tr1l.a
+ libboost_math_tr1l.so
+ libboost_math_tr1l.so.%%SOVERSION%%
+%%MATH_TR1L%%lib/cmake/boost_math_tr1l-%%BOOSTVER%%/
+ libboost_math_tr1l-variant-shared.cmake
+ libboost_math_tr1l-variant-static.cmake
+%%STADDR2LINE%%lib/
+ libboost_stacktrace_addr2line.a
+ libboost_stacktrace_addr2line.so
+ libboost_stacktrace_addr2line.so.%%SOVERSION%%
+%%STADDR2LINE%%lib/cmake/boost_stacktrace_addr2line-%%BOOSTVER%%/
+ libboost_stacktrace_addr2line-variant-shared.cmake
+ libboost_stacktrace_addr2line-variant-static.cmake
 include/boost/
  align.hpp
  aligned_storage.hpp
@@ -15884,9 +15919,6 @@ lib/
  libboost_date_time.so
  libboost_date_time.so.%%SOVERSION%%
  libboost_exception.a
- libboost_fiber.a
- libboost_fiber.so
- libboost_fiber.so.%%SOVERSION%%
  libboost_filesystem.a
  libboost_filesystem.so
  libboost_filesystem.so.%%SOVERSION%%
@@ -15914,18 +15946,12 @@ lib/
  libboost_math_c99f.a
  libboost_math_c99f.so
  libboost_math_c99f.so.%%SOVERSION%%
- libboost_math_c99l.a
- libboost_math_c99l.so
- libboost_math_c99l.so.%%SOVERSION%%
  libboost_math_tr1.a
  libboost_math_tr1.so
  libboost_math_tr1.so.%%SOVERSION%%
  libboost_math_tr1f.a
  libboost_math_tr1f.so
  libboost_math_tr1f.so.%%SOVERSION%%
- libboost_math_tr1l.a
- libboost_math_tr1l.so
- libboost_math_tr1l.so.%%SOVERSION%%
  libboost_nowide.a
  libboost_nowide.so
  libboost_nowide.so.%%SOVERSION%%
@@ -15944,9 +15970,6 @@ lib/
  libboost_serialization.a
  libboost_serialization.so
  libboost_serialization.so.%%SOVERSION%%
- libboost_stacktrace_addr2line.a
- libboost_stacktrace_addr2line.so
- libboost_stacktrace_addr2line.so.%%SOVERSION%%
  libboost_stacktrace_basic.a
  libboost_stacktrace_basic.so
  libboost_stacktrace_basic.so.%%SOVERSION%%
@@ -16020,8 +16043,6 @@ lib/cmake/boost_exception-%%BOOSTVER%%/
 lib/cmake/boost_fiber-%%BOOSTVER%%/
  boost_fiber-config-version.cmake
  boost_fiber-config.cmake
- libboost_fiber-variant-shared.cmake
- libboost_fiber-variant-static.cmake
 lib/cmake/boost_fiber_numa-%%BOOSTVER%%/
  boost_fiber_numa-config-version.cmake
  boost_fiber_numa-config.cmake
@@ -16079,8 +16100,6 @@ lib/cmake/boost_math_c99f-%%BOOSTVER%%/
 lib/cmake/boost_math_c99l-%%BOOSTVER%%/
  boost_math_c99l-config-version.cmake
  boost_math_c99l-config.cmake
- libboost_math_c99l-variant-shared.cmake
- libboost_math_c99l-variant-static.cmake
 lib/cmake/boost_math_tr1-%%BOOSTVER%%/
  boost_math_tr1-config-version.cmake
  boost_math_tr1-config.cmake
@@ -16094,8 +16113,6 @@ lib/cmake/boost_math_tr1f-%%BOOSTVER%%/
 lib/cmake/boost_math_tr1l-%%BOOSTVER%%/
  boost_math_tr1l-config-version.cmake
  boost_math_tr1l-config.cmake
- libboost_math_tr1l-variant-shared.cmake
- libboost_math_tr1l-variant-static.cmake
 lib/cmake/boost_nowide-%%BOOSTVER%%/
  boost_nowide-config-version.cmake
  boost_nowide-config.cmake
@@ -16129,8 +16146,6 @@ lib/cmake/boost_serialization-%%BOOSTVER%%/
 lib/cmake/boost_stacktrace_addr2line-%%BOOSTVER%%/
  boost_stacktrace_addr2line-config-version.cmake
  boost_stacktrace_addr2line-config.cmake
- libboost_stacktrace_addr2line-variant-shared.cmake
- libboost_stacktrace_addr2line-variant-static.cmake
 lib/cmake/boost_stacktrace_backtrace-%%BOOSTVER%%/
  boost_stacktrace_backtrace-config-version.cmake
  boost_stacktrace_backtrace-config.cmake
@@ -16439,6 +16454,47 @@ lib/cmake/boost_python-%%BOOSTVER%%/
  libboost_python-variant-static-py%%PYTHON_VER%%.cmake
 
 
+[FILE:482:patches/patch-boost_config_detail_suffix.hpp]
+$NetBSD: patch-boost_config_detail_suffix.hpp,v 1.1 2017/08/24 19:31:32 adam Exp $
+
+--- boost/config/detail/suffix.hpp.orig	2021-08-05 09:41:19 UTC
++++ boost/config/detail/suffix.hpp
+@@ -248,7 +248,7 @@
+ //
+ #if (defined(__MT__) || defined(_MT) || defined(_REENTRANT) \
+     || defined(_PTHREADS) || defined(__APPLE__) || defined(__DragonFly__)) \
+-    && !defined(BOOST_HAS_THREADS)
++    || defined(__NetBSD__) && !defined(BOOST_HAS_THREADS)
+ #  define BOOST_HAS_THREADS
+ #endif
+ 
+
+
+[FILE:681:patches/patch-boost_config_platform_bsd.hpp]
+$NetBSD: patch-boost_config_platform_bsd.hpp,v 1.2 2021/09/29 16:11:04 adam Exp $
+
+--- boost/config/platform/bsd.hpp.orig	2021-08-05 09:41:19 UTC
++++ boost/config/platform/bsd.hpp
+@@ -38,7 +38,7 @@
+ // and not in <unistd.h>
+ //
+ #if (defined(__FreeBSD__) && (__FreeBSD__ <= 3))\
+-   || defined(__OpenBSD__) || defined(__DragonFly__) 
++   || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
+ #  define BOOST_HAS_PTHREADS
+ #endif
+ 
+@@ -64,7 +64,7 @@
+ //
+ // The BSD <ctype.h> has macros only, no functions:
+ //
+-#if !defined(__OpenBSD__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__DragonFly__)
+ #  define BOOST_NO_CTYPE_FUNCTIONS
+ #endif
+ 
+
+
 [FILE:481:patches/patch-boost_interprocess_detail_workaround.hpp]
 --- boost/interprocess/detail/workaround.hpp.orig	2021-08-05 09:41:53 UTC
 +++ boost/interprocess/detail/workaround.hpp
@@ -16453,7 +16509,39 @@ lib/cmake/boost_python-%%BOOSTVER%%/
  
 
 
-[FILE:565:patches/patch-boost_math_tools_config.hpp]
+[FILE:671:patches/patch-boost_math_special__functions_expm1.hpp]
+$NetBSD: patch-boost_math_special__functions_expm1.hpp,v 1.1 2017/05/29 14:39:29 ryoon Exp $
+
+--- boost/math/special_functions/expm1.hpp.orig	2021-08-05 09:42:10 UTC
++++ boost/math/special_functions/expm1.hpp
+@@ -293,7 +293,7 @@ inline typename tools::promote_args<T>::
+ #endif
+ 
+ #if defined(BOOST_HAS_EXPM1) && !(defined(__osf__) && defined(__DECCXX_VER))
+-#  ifdef BOOST_MATH_USE_C99
++#  if defined(BOOST_MATH_USE_C99) && !defined(__NetBSD__)
+ inline float expm1(float x, const policies::policy<>&){ return ::expm1f(x); }
+ #     ifndef BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
+ inline long double expm1(long double x, const policies::policy<>&){ return ::expm1l(x); }
+
+
+[FILE:578:patches/patch-boost_math_special__functions_log1p.hpp]
+$NetBSD: patch-boost_math_special__functions_log1p.hpp,v 1.1 2017/05/29 14:39:29 ryoon Exp $
+
+--- boost/math/special_functions/log1p.hpp.orig	2021-08-05 09:42:10 UTC
++++ boost/math/special_functions/log1p.hpp
+@@ -325,7 +325,7 @@ inline typename tools::promote_args<T>::
+ #  undef log1p
+ #endif
+ 
+-#if defined(BOOST_HAS_LOG1P) && !(defined(__osf__) && defined(__DECCXX_VER))
++#if defined(BOOST_HAS_LOG1P) && !(defined(__osf__) && defined(__DECCXX_VER)) && !defined(__NetBSD__)
+ #  ifdef BOOST_MATH_USE_C99
+ template <class Policy>
+ inline float log1p(float x, const Policy& pol)
+
+
+[FILE:1300:patches/patch-boost_math_tools_config.hpp]
 --- boost/math/tools/config.hpp.orig	2021-08-05 09:42:10 UTC
 +++ boost/math/tools/config.hpp
 @@ -81,7 +81,7 @@
@@ -16461,13 +16549,86 @@ lib/cmake/boost_python-%%BOOSTVER%%/
  #include <boost/math/tools/user.hpp>
  
 -#if (defined(__CYGWIN__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__EMSCRIPTEN__)\
-+#if (defined(__CYGWIN__) || defined(__NetBSD__) || defined(__EMSCRIPTEN__)\
++#if (defined(__CYGWIN__) || defined(__EMSCRIPTEN__)\
     || (defined(__hppa) && !defined(__OpenBSD__)) || (defined(__NO_LONG_DOUBLE_MATH) && (DBL_MANT_DIG != LDBL_MANT_DIG))) \
     && !defined(BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
  #  define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
+@@ -155,7 +155,7 @@
+ #  define BOOST_MATH_NO_DEDUCED_FUNCTION_POINTERS
+ #endif
+ 
+-#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))
++#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)) && !defined(__NetBSD__)
+ #  define BOOST_MATH_USE_C99
+ #endif
+ 
+@@ -304,6 +304,7 @@ struct non_type {};
+ // And then the actual configuration:
+ //
+ #if defined(BOOST_MATH_STANDALONE) && defined(_GLIBCXX_USE_FLOAT128) && defined(__GNUC__) && defined(__GNUC_MINOR__) && defined(__GNUC_PATCHLEVEL__) && !defined(__STRICT_ANSI__) \
++   && !defined(__NetBSD__) \
+    && !defined(BOOST_MATH_DISABLE_FLOAT128) && !defined(BOOST_MATH_USE_FLOAT128)
+ #  define BOOST_MATH_USE_FLOAT128
+ #elif defined(BOOST_HAS_FLOAT128) && !defined(BOOST_MATH_USE_FLOAT128)
 
 
-[FILE:611:patches/patch-boost_thread_pthread_thread__data.hpp]
+[FILE:797:patches/patch-boost_process_detail_posix_handles.hpp]
+$NetBSD: patch-boost_process_detail_posix_handles.hpp,v 1.2 2020/09/10 07:54:52 tnn Exp $
+
+dirfd(3) on NetBSD is implemented as a macro and cannot use namespace prefix.
+
+--- boost/process/detail/posix/handles.hpp.orig	2021-08-05 09:42:29 UTC
++++ boost/process/detail/posix/handles.hpp
+@@ -31,7 +31,11 @@ inline std::vector<native_handle_type> g
+     else
+         ec.clear();
+ 
++#ifdef dirfd
++    auto my_fd = dirfd(dir.get());
++#else
+     auto my_fd = ::dirfd(dir.get());
++#endif
+ 
+     struct ::dirent * ent_p;
+ 
+@@ -115,7 +119,11 @@ struct limit_handles_ : handler_base_ext
+             return;
+         }
+ 
++#ifdef dirfd
++        auto my_fd = dirfd(dir);
++#else
+         auto my_fd = ::dirfd(dir);
++#endif
+         struct ::dirent * ent_p;
+ 
+         while ((ent_p = readdir(dir)) != nullptr)
+
+
+[FILE:1083:patches/patch-boost_process_detail_posix_is__running.hpp]
+$NetBSD: patch-boost_process_detail_posix_is__running.hpp,v 1.1 2020/09/09 06:38:52 tnn Exp $
+
+Cannot use static asserts on WIFEXITED() & friends because the
+internal _W_INT macro uses (void*) which is not allowed in constexprs.
+
+--- boost/process/detail/posix/is_running.hpp.orig	2021-08-05 09:42:29 UTC
++++ boost/process/detail/posix/is_running.hpp
+@@ -17,10 +17,12 @@ namespace boost { namespace process { na
+ // This bit arrangement of status codes is not guaranteed by POSIX, but (according to comments in
+ // the glibc <bits/waitstatus.h> header) is the same across systems in practice.
+ constexpr int still_active = 0x017f;
++#if !defined(__NetBSD__)
+ static_assert(WIFSTOPPED(still_active), "Expected still_active to indicate WIFSTOPPED");
+ static_assert(!WIFEXITED(still_active), "Expected still_active to not indicate WIFEXITED");
+ static_assert(!WIFSIGNALED(still_active), "Expected still_active to not indicate WIFSIGNALED");
+ static_assert(!WIFCONTINUED(still_active), "Expected still_active to not indicate WIFCONTINUED");
++#endif
+ 
+ inline bool is_running(int code)
+ {
+
+
+[FILE:214:patches/patch-boost_thread_pthread_thread__data.hpp]
 --- boost/thread/pthread/thread_data.hpp.orig	2021-08-05 09:42:51 UTC
 +++ boost/thread/pthread/thread_data.hpp
 @@ -32,6 +32,7 @@
@@ -16478,16 +16639,6 @@ lib/cmake/boost_python-%%BOOSTVER%%/
  #include <pthread.h>
  #include <unistd.h>
  
-@@ -57,9 +58,7 @@ namespace boost
- #else
-           std::size_t page_size = ::sysconf( _SC_PAGESIZE);
- #endif
--#ifdef PTHREAD_STACK_MIN
-           if (size<PTHREAD_STACK_MIN) size=PTHREAD_STACK_MIN;
--#endif
-           size = ((size+page_size-1)/page_size)*page_size;
-           int res = pthread_attr_setstacksize(&val_, size);
-           BOOST_VERIFY(!res && "pthread_attr_setstacksize failed");
 
 
 [FILE:551:patches/patch-tools_build_src_tools_gcc.jam]

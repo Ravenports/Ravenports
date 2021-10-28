@@ -68,14 +68,14 @@ share/doc/dosfstools/
  TODO.dosfstools-2.x
 
 
-[FILE:694:patches/patch-src_blkdev_blkdev.c]
+[FILE:742:patches/patch-src_blkdev_blkdev.c]
 --- src/blkdev/blkdev.c.orig	2021-01-31 12:49:12 UTC
 +++ src/blkdev/blkdev.c
 @@ -7,7 +7,9 @@
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <sys/ioctl.h>
-+#if !defined(__DragonFly__) && !defined(__FreeBSD__)
++#if !defined(__DragonFly__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
  #include <sys/sysmacros.h>
 +#endif
  #include <unistd.h>
@@ -85,7 +85,7 @@ share/doc/dosfstools/
  #endif /* FDGETPRM */
  
  #ifdef HAVE_SYS_DISKLABEL_H
-+# if !defined(__DragonFly__) && !defined(__FreeBSD__)
++# if !defined(__DragonFly__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
  	{
  		/*
  		 * This code works for FreeBSD 4.11 i386, except for the full device
@@ -99,17 +99,29 @@ share/doc/dosfstools/
  	{
 
 
-[FILE:305:patches/patch-src_device__info.c]
+[FILE:572:patches/patch-src_device__info.c]
 --- src/device_info.c.orig	2021-01-31 12:49:12 UTC
 +++ src/device_info.c
 @@ -24,7 +24,9 @@
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <sys/ioctl.h>
-+#if !defined(__DragonFly__) && !defined(__FreeBSD__)
++#if !defined(__DragonFly__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
  #include <sys/sysmacros.h>
 +#endif
  
  #ifdef HAVE_LINUX_LOOP_H
  #include <linux/loop.h>
+@@ -334,7 +336,11 @@ int is_device_mounted(const char *path)
+ #endif
+ 
+ #if HAVE_DECL_GETMNTINFO
++# ifdef __NetBSD__
++    struct statvfs *stat;
++# else
+     struct statfs *stat;
++# endif
+     int count, i;
+ 
+     count = getmntinfo(&stat, 0);
 

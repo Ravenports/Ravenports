@@ -68,6 +68,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		XY={{RUBY_SUFFIX}}
 			XDOTY={{RUBY_VER}}
 			MODULE={{MODULE:Uso}}
+			MJIT="{{MJIT}}"
 
 CFLAGS=			-Wno-attributes
 			-Wno-address-of-packed-member
@@ -157,11 +158,8 @@ This package contains the Ruby Documentation System for Ruby24.
 5db187882b7ac34016cd48d7032e197f07e4968f406b0690e20193b9b424841f     11567284 ruby/ruby-2.6.6.tar.xz
 
 
-[FILE:17372:manifests/plist.primary]
-%%ONLY-DARWIN%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-DRAGONFLY%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-FREEBSD%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-LINUX%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
+[FILE:17092:manifests/plist.primary]
+%%MJIT%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
 bin/
  erb%%XY%%
  irb%%XY%%
@@ -1425,9 +1423,9 @@ share/examples/ruby%%XY%%/webrick/
 
 
 [FILE:340:patches/patch-compile.c]
---- compile.c.orig	2021-09-02 03:09:01 UTC
+--- compile.c.orig	2020-03-31 11:23:13 UTC
 +++ compile.c
-@@ -8466,7 +8466,7 @@ struct ibf_dump {
+@@ -8465,7 +8465,7 @@ struct ibf_dump {
  rb_iseq_t * iseq_alloc(void);
  
  struct ibf_load {
@@ -1438,7 +1436,7 @@ share/examples/ruby%%XY%%/webrick/
      VALUE iseq_list; /* [iseq0, ...] */
 
 
-[FILE:2759:patches/patch-configure.ac]
+[FILE:2767:patches/patch-configure.ac]
 --- configure.ac.orig	2020-03-31 11:23:13 UTC
 +++ configure.ac
 @@ -180,13 +180,6 @@ AS_CASE(["$host_os:$build_os"],
@@ -1486,7 +1484,7 @@ share/examples/ruby%%XY%%/webrick/
  	])
  	],
 -    [freebsd*|dragonfly*], [
-+    [freebsd*|dragonfly*|linux*|solaris*], [
++    [freebsd*|dragonfly*|netbsd*|linux*|solaris*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
  	LIBRUBY_SONAME='$(LIBRUBY_SO)'
 -	AS_IF([test "$rb_cv_binary_elf" != "yes" ], [
@@ -1656,9 +1654,15 @@ share/examples/ruby%%XY%%/webrick/
    code = File.read(file, encoding: "utf-8:-")
 
 
-[FILE:378:files/special.mk]
+[FILE:439:files/special.mk]
 # Macros to change variables in rbconfig.rb
 RB_SET_CONF_VAR=${SH} -c '${REINPLACE_CMD} -E -e "s,(CONFIG\[\"$$0\"\][[:space:]]*=[[:space:]]*)(\(?)(.*)(\)?),\1\2$$1\4," ${WRKSRC}/rbconfig.rb' --
+
+.if ${OPSYS} == SunOS
+MJIT="@comment "
+.else
+MJIT=""
+.endif
 
 POST_PLIST_TARGET=	rdoc-autolist
 

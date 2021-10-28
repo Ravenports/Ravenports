@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnutls
 VERSION=		3.6.16
+REVISION=		1
 KEYWORDS=		security net
 VARIANTS=		standard
 SDESC[standard]=	GNU Transport Layer Security library
@@ -64,14 +65,16 @@ PLIST_SUB=		SOXXVERSION=28.1.0
 
 post-patch:
 	${RM} ${WRKSRC}/doc/*.info*
-	# strdupa not available on BSD, just avoid it everywhere
-	${REINPLACE_CMD} -e 's/strdupa/strdup/' \
-		${WRKSRC}/doc/examples/tlsproxy/tlsproxy.c
 
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-post-patch-sunos:
+pre-configure:
+	# strdupa not available on BSD, just avoid it everywhere
+	${REINPLACE_CMD} -e 's/strdupa/strdup/' \
+		${WRKSRC}/doc/examples/tlsproxy/tlsproxy.c
+
+pre-configure-sunos:
 	${REINPLACE_CMD} -e '/_POSIX_C_SOURCE/d' \
 		${WRKSRC}/tests/pkcs11/pkcs11-mock.h
 

@@ -71,11 +71,12 @@ Java software.
 4cba7b7acd1d3c42c44bb0c14be6637098c7faf2b330ce876bc5f3b915d09745     24814903 icu4c-69_1-src.tgz
 
 
-[FILE:3626:manifests/plist.single]
+[FILE:3680:manifests/plist.single]
 %%ONLY-DARWIN%%share/icu/%%ICUVER%%/config/mh-darwin
 %%ONLY-DRAGONFLY%%share/icu/%%ICUVER%%/config/mh-bsd-gcc
 %%ONLY-FREEBSD%%share/icu/%%ICUVER%%/config/mh-bsd-gcc
 %%ONLY-LINUX%%share/icu/%%ICUVER%%/config/mh-linux
+%%ONLY-NETBSD%%share/icu/%%ICUVER%%/config/mh-bsd-gcc
 %%ONLY-SUNOS%%share/icu/%%ICUVER%%/config/mh-solaris-gcc
 bin/
  derb
@@ -451,6 +452,39 @@ Avoid sys/regset.h pollution on SunOS.
  #endif
  
  /**
+
+
+[FILE:900:patches/patch-common_uposixdefs.h]
+$NetBSD: patch-common_uposixdefs.h,v 1.6 2018/07/26 22:37:48 abs Exp $
+
+C99 and related define overrides.
+Do not play _XOPEN_SOURCE games on NetBSD, as it breaks at least gcc 6.4 on NetBSD-8.0
+
+--- common/uposixdefs.h.orig	2021-04-08 00:10:27 UTC
++++ common/uposixdefs.h
+@@ -44,8 +44,10 @@
+      * and define _XOPEN_SOURCE to different values depending on __STDC_VERSION__.
+      * In C++ source code (e.g., putil.cpp), __STDC_VERSION__ is not defined at all.
+      */
++#if !defined(_SCO_DS) && !defined(__NetBSD__)
+ #   define _XOPEN_SOURCE 600
+ #endif
++#endif
+ 
+ /*
+  * Make sure things like readlink and such functions work.
+@@ -54,9 +56,11 @@
+  *
+  * z/OS needs this definition for timeval and to get usleep.
+  */
++#if !defined(__sun) && !defined(_SCO_DS)
+ #if !defined(_XOPEN_SOURCE_EXTENDED) && defined(__TOS_MVS__)
+ #   define _XOPEN_SOURCE_EXTENDED 1
+ #endif
++#endif
+ 
+ /**
+  * Solaris says:
 
 
 [FILE:413:patches/patch-i18n_Makefile.in]

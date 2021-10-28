@@ -2761,6 +2761,20 @@ share/locale/zh_CN/LC_MESSAGES/
 share/locale/zh_TW/LC_MESSAGES/ecpg-%%PGVER%%.mo
 
 
+[FILE:393:patches/patch-configure]
+--- configure.orig	2021-08-09 20:49:05 UTC
++++ configure
+@@ -11904,7 +11904,7 @@ if ac_fn_c_try_link "$LINENO"; then :
+       # recognize dependent libraries; assume curses is needed if we didn't
+       # find any dependency.
+       case $host_os in
+-        netbsd* | openbsd*)
++        xxxxxx*)
+           if test x"$pgac_lib" = x"" ; then
+             pgac_lib=" -lcurses"
+           fi ;;
+
+
 [FILE:349:patches/patch-doc-Makefile]
 --- doc/Makefile.orig	2021-08-09 20:49:05 UTC
 +++ doc/Makefile
@@ -2832,10 +2846,20 @@ share/locale/zh_TW/LC_MESSAGES/ecpg-%%PGVER%%.mo
  # creates the exports file when MAKE_EXPORTS = true.
 
 
-[FILE:587:patches/patch-src_Makefile.shlib]
+[FILE:863:patches/patch-src_Makefile.shlib]
 --- src/Makefile.shlib.orig	2021-08-09 20:49:05 UTC
 +++ src/Makefile.shlib
-@@ -212,6 +212,9 @@ endif
+@@ -166,6 +166,9 @@ ifeq ($(PORTNAME), freebsd)
+ endif
+ 
+ ifeq ($(PORTNAME), netbsd)
++  ifdef SO_MAJOR_VERSION
++    shlib		= lib$(NAME)$(DLSUFFIX).$(SO_MAJOR_VERSION)
++  endif
+   LINK.shared		= $(COMPILER) -shared
+   ifdef soname
+     LINK.shared		+= -Wl,-x,-soname,$(soname)
+@@ -212,6 +215,9 @@ endif
  
  ifeq ($(PORTNAME), linux)
    LINK.shared		= $(COMPILER) -shared
@@ -2845,7 +2869,7 @@ share/locale/zh_TW/LC_MESSAGES/ecpg-%%PGVER%%.mo
    ifdef soname
      LINK.shared		+= -Wl,-soname,$(soname)
    endif
-@@ -223,6 +226,9 @@ ifeq ($(PORTNAME), linux)
+@@ -223,6 +229,9 @@ ifeq ($(PORTNAME), linux)
  endif
  
  ifeq ($(PORTNAME), solaris)

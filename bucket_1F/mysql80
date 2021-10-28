@@ -128,15 +128,6 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 [INNOBASE].CMAKE_ARGS_OFF=		-DWITHOUT_INNOBASE_STORAGE_ENGINE=1
 [INNOBASE].CMAKE_ARGS_ON=		-DWITH_INNOBASE_STORAGE_ENGINE=1
 
-post-patch:
-	${REINPLACE_CMD} -e 's|@LOCALBASE@|${LOCALBASE}|' \
-		-e 's|@OPENSSLLIB@|${OPENSSLLIB}|g' \
-		${WRKSRC}/scripts/CMakeLists.txt
-	${RM} ${WRKSRC}/cmake/os/FreeBSD.cmake
-	# current_path not supported by DragonFly
-	${REINPLACE_CMD} -e '/mock_server/d' \
-		${WRKSRC}/router/src/CMakeLists.txt
-
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/mysql/keyring \
 		${STAGEDIR}/var/db/mysql_secure \
@@ -167,8 +158,18 @@ post-install:
 		$$1 != "mysqld_multi") print}'); \
 	(cd ${STAGEDIR}${PREFIX}/bin && ${STRIP_CMD} $$list)
 
+pre-configure:
+	${REINPLACE_CMD} -e 's|@LOCALBASE@|${LOCALBASE}|' \
+		-e 's|@OPENSSLLIB@|${OPENSSLLIB}|g' \
+		${WRKSRC}/scripts/CMakeLists.txt
+	${RM} ${WRKSRC}/cmake/os/FreeBSD.cmake
+	# current_path not supported by DragonFly
+	${REINPLACE_CMD} -e '/mock_server/d' \
+		${WRKSRC}/router/src/CMakeLists.txt
+
 post-extract:
 	${RM} -rv ${WRKSRC}/sql/sql_hints.yy.cc ${WRKSRC}/sql/sql_hints.yy.h
+	${CP} ${FILESDIR}/ffsll.cc ${WRKSRC}/sql/
 
 [FILE:294:descriptions/desc.server]
 MySQL is a very fast, multi-threaded, multi-user and robust SQL
@@ -623,10 +624,68 @@ share/man/man1/
        GET_FILENAME_COMPONENT(CRYPTO_EXT "${CRYPTO_LIBRARY}" EXT)
 
 
-[FILE:505:patches/patch-configure.cmake]
+[FILE:303:patches/patch-config.h.cmake]
+--- config.h.cmake.orig	2021-07-01 07:53:49 UTC
++++ config.h.cmake
+@@ -79,6 +79,7 @@
+ #cmakedefine HAVE_FDATASYNC 1
+ #cmakedefine HAVE_DECL_FDATASYNC 1
+ #cmakedefine HAVE_FEDISABLEEXCEPT 1
++#cmakedefine HAVE_FFSLL 1
+ #cmakedefine HAVE_FSYNC 1
+ #cmakedefine HAVE_GETHRTIME 1
+ #cmakedefine HAVE_GETPASS 1
+
+
+[FILE:2287:patches/patch-configure.cmake]
+* check for EVFILT_USER, if missing disable kqueue (necessary on NetBSD 9.x)
+
 --- configure.cmake.orig	2021-07-01 07:53:49 UTC
 +++ configure.cmake
-@@ -582,6 +582,7 @@ int main(int ac, char **av)
+@@ -183,11 +183,6 @@ ENDIF()
+ #
+ INCLUDE (CheckIncludeFiles)
+ 
+-IF(FREEBSD)
+-  # On FreeBSD some includes, e.g. sasl/sasl.h, is in /usr/local/include
+-  LIST(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
+-ENDIF()
+-
+ CHECK_INCLUDE_FILES (alloca.h HAVE_ALLOCA_H)
+ CHECK_INCLUDE_FILES (arpa/inet.h HAVE_ARPA_INET_H)
+ CHECK_INCLUDE_FILES (dlfcn.h HAVE_DLFCN_H)
+@@ -238,6 +233,7 @@ CHECK_FUNCTION_EXISTS (fcntl HAVE_FCNTL)
+ CHECK_FUNCTION_EXISTS (fdatasync HAVE_FDATASYNC)
+ CHECK_SYMBOL_EXISTS(fdatasync "unistd.h" HAVE_DECL_FDATASYNC)
+ CHECK_FUNCTION_EXISTS (fedisableexcept HAVE_FEDISABLEEXCEPT)
++CHECK_FUNCTION_EXISTS (ffsll HAVE_FFSLL)
+ CHECK_FUNCTION_EXISTS (fsync HAVE_FSYNC)
+ CHECK_FUNCTION_EXISTS (gethrtime HAVE_GETHRTIME)
+ CHECK_FUNCTION_EXISTS (getpass HAVE_GETPASS)
+@@ -298,6 +294,7 @@ CHECK_SYMBOL_EXISTS(TIOCGWINSZ "sys/ioct
+ CHECK_SYMBOL_EXISTS(FIONREAD "sys/ioctl.h" FIONREAD_IN_SYS_IOCTL)
+ CHECK_SYMBOL_EXISTS(FIONREAD "sys/filio.h" FIONREAD_IN_SYS_FILIO)
+ CHECK_SYMBOL_EXISTS(MADV_DONTDUMP "sys/mman.h" HAVE_MADV_DONTDUMP)
++CHECK_SYMBOL_EXISTS(EVFILT_USER "sys/event.h" HAVE_EVFILT_USER)
+ CHECK_CXX_SOURCE_COMPILES(
+ "#include <sys/types.h>
+  #include <sys/stat.h>
+@@ -330,6 +327,14 @@ ELSEIF(HAVE_TIMER_CREATE AND HAVE_TIMER_
+   SET(HAVE_POSIX_TIMERS 1 CACHE INTERNAL "Have POSIX timer-related functions")
+ ENDIF()
+ 
++IF (NOT HAVE_EVFILT_USER)
++  SET(HAVE_KQUEUE 0)
++  SET(HAVE_KQUEUE_TIMERS 0)
++  IF(HAVE_TIMER_CREATE AND HAVE_TIMER_SETTIME)
++    SET(HAVE_POSIX_TIMERS 1 CACHE INTERNAL "Have POSIX timer-related functions")
++  ENDIF()
++ENDIF()
++
+ IF(NOT HAVE_POSIX_TIMERS AND NOT HAVE_KQUEUE_TIMERS AND NOT WIN32)
+   MESSAGE(FATAL_ERROR "No mysys timer support detected!")
+ ENDIF()
+@@ -582,6 +587,7 @@ int main(int ac, char **av)
  HAVE_SYS_GETTID)
  
  # Check for pthread_getthreadid_np()
@@ -634,7 +693,7 @@ share/man/man1/
  CHECK_C_SOURCE_COMPILES("
  #include <pthread_np.h>
  int main(int ac, char **av)
-@@ -590,6 +591,7 @@ int main(int ac, char **av)
+@@ -590,6 +596,7 @@ int main(int ac, char **av)
    return (tid != 0 ? 0 : 1);
  }"
  HAVE_PTHREAD_GETTHREADID_NP)
@@ -642,6 +701,21 @@ share/man/man1/
  
  # Check for pthread_threadid_np()
  CHECK_C_SOURCE_COMPILES("
+
+
+[FILE:388:patches/patch-extra_icu_source_common_uposixdefs.h]
+--- extra/icu/source/common/uposixdefs.h.orig	2021-07-01 07:53:49 UTC
++++ extra/icu/source/common/uposixdefs.h
+@@ -44,7 +44,9 @@
+      * and define _XOPEN_SOURCE to different values depending on __STDC_VERSION__.
+      * In C++ source code (e.g., putil.cpp), __STDC_VERSION__ is not defined at all.
+      */
++# if !defined(__NetBSD__)
+ #   define _XOPEN_SOURCE 600
++# endif
+ #endif
+ 
+ /*
 
 
 [FILE:427:patches/patch-include_my__compare.h]
@@ -658,22 +732,47 @@ share/man/man1/
  #define HA_MAX_POSSIBLE_KEY_BUFF (HA_MAX_KEY_LENGTH + 24 + 6 + 6)
 
 
-[FILE:419:patches/patch-include_my__thread__os__id.h]
+[FILE:1042:patches/patch-include_my__thread__os__id.h]
 --- include/my_thread_os_id.h.orig	2021-07-01 07:53:49 UTC
 +++ include/my_thread_os_id.h
-@@ -84,8 +84,12 @@ static inline my_thread_os_id_t my_threa
+@@ -36,6 +36,10 @@
+ #include <unistd.h>
+ #endif
+ 
++#ifdef __NetBSD__
++#include <lwp.h>
++#endif
++
+ #ifdef HAVE_PTHREAD_GETTHREADID_NP
+ #include <pthread_np.h> /* pthread_getthreadid_np() */
+ #endif                  /* HAVE_PTHREAD_GETTHREADID_NP */
+@@ -83,17 +87,25 @@ static inline my_thread_os_id_t my_threa
+   /* FreeBSD 10.2 */
    return pthread_getthreadid_np();
  #else
++#ifdef __NetBSD__
++  return (int)_lwp_self();
++#else
  #ifdef HAVE_INTEGER_PTHREAD_SELF
 +#  ifdef __DragonFly__
 +  return syscall(SYS_lwp_gettid);
 +#  else
    /* Unknown platform, fallback. */
    return pthread_self();
-+#  endif
++#  endif /* __DragonFly__ */
  #else
    /* Feature not available. */
    return 0;
+ #endif /* HAVE_INTEGER_PTHREAD_SELF */
++#endif /* __NetBSD__ */
+ #endif /* HAVE_PTHREAD_GETTHREADID_NP */
+ #endif /* _WIN32 */
+ #endif /* HAVE_SYS_GETTID */
+-#endif /* HAVE_SYS_THREAD_SELFID */
++#endif /* HAVE_PTHREAD_THREADID_NP */
+ }
+ 
+ #endif /* MY_THREAD_OS_ID_INCLUDED */
 
 
 [FILE:480:patches/patch-include_myisam.h]
@@ -690,7 +789,27 @@ share/man/man1/
  #define MI_MAX_KEY_BUFF (MI_MAX_KEY_LENGTH + MI_MAX_KEY_SEG * 6 + 8 + 8)
 
 
-[FILE:1039:patches/patch-libmysql_CMakeLists.txt]
+[FILE:353:patches/patch-include_tables__contained__in.h]
+--- include/tables_contained_in.h.orig	2021-07-01 07:53:49 UTC
++++ include/tables_contained_in.h
+@@ -26,9 +26,14 @@
+ 
+ #include <string.h>
+ 
++#include "my_config.h"
+ #include "my_inttypes.h"
+ #include "sql/sql_optimizer.h"
+ 
++#ifndef HAVE_FFSLL
++int ffsll(longlong);
++#endif
++
+ #ifdef _MSC_VER
+ #include <intrin.h>
+ #pragma intrinsic(_BitScanForward64)
+
+
+[FILE:1046:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2021-07-01 07:53:49 UTC
 +++ libmysql/CMakeLists.txt
 @@ -243,7 +243,7 @@ IF(WIN32)
@@ -698,7 +817,7 @@ share/man/man1/
    SET(HAVE_DNS_SRV 1)
    MESSAGE(STATUS "Found Win32 DNS SRV APIs")
 -ELSEIF(FREEBSD)
-+ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
++ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|NetBSD")
    SET(HAVE_DNS_SRV 1)
    SET(HAVE_UNIX_DNS_SRV 1 PARENT_SCOPE)
    MESSAGE(STATUS "BSD built in DNS SRV APIs")
@@ -723,7 +842,7 @@ share/man/man1/
    SET(UNIX_VERSION     VERSION     "${OS_SHARED_LIB_VERSION}")
 
 
-[FILE:247:patches/patch-libmysql_dns__srv.cc]
+[FILE:270:patches/patch-libmysql_dns__srv.cc]
 --- libmysql/dns_srv.cc.orig	2021-07-01 07:53:49 UTC
 +++ libmysql/dns_srv.cc
 @@ -31,7 +31,7 @@
@@ -731,10 +850,82 @@ share/man/man1/
  #ifdef HAVE_UNIX_DNS_SRV
  
 -#ifdef __FreeBSD__
-+#if defined __FreeBSD__ | defined __DragonFly__
++#if defined __FreeBSD__ || defined __DragonFly__ || defined __NetBSD__
  #include <netinet/in.h>
  #endif
  #include <netdb.h>
+
+
+[FILE:2034:patches/patch-mysys_kqueue__timers.cc]
+$NetBSD: patch-mysys_kqueue__timers.cc,v 1.1 2021/05/13 15:25:20 jdolecek Exp $
+
+* support pre NetBSD 10 __intptr_t udata type
+* Fix for systems whcich do not define EVFILT_USER
+
+--- mysys/kqueue_timers.cc.orig	2021-07-01 07:53:49 UTC
++++ mysys/kqueue_timers.cc
+@@ -40,6 +40,18 @@
+ #include "mysys_err.h"
+ #include "mysys_priv.h" /* key_thread_timer_notifier */
+ 
++#ifdef __NetBSD__
++#include <sys/param.h>
++#if __NetBSD_Version__ < 999001400
++#define KEVENT_UDATA_TYPE_CAST (__intptr_t)
++#else
++#define KEVENT_UDATA_TYPE_CAST
++#endif
++#else
++#define KEVENT_UDATA_TYPE_CAST
++#endif
++
++
+ /* Kernel event queue file descriptor. */
+ static int kq_fd = -1;
+ 
+@@ -69,10 +81,12 @@ static void *timer_notify_thread_func(vo
+     }
+ 
+     if (kev.filter == EVFILT_TIMER) {
+-      timer = static_cast<my_timer_t *>(kev.udata);
++      timer = static_cast<my_timer_t *>((void *)kev.udata);
+       assert(timer->id == kev.ident);
+       timer->notify_function(timer);
++#ifdef EVFILT_USER
+     } else if (kev.filter == EVFILT_USER)
++#endif
+       break;
+   }
+ 
+@@ -91,7 +105,9 @@ static void *timer_notify_thread_func(vo
+ static int start_helper_thread(void) {
+   struct kevent kev;
+ 
++#ifdef EVFILT_USER
+   EV_SET(&kev, 0, EVFILT_USER, EV_ADD, 0, 0, 0);
++#endif
+ 
+   if (kevent(kq_fd, &kev, 1, NULL, 0, NULL) < 0) {
+     my_message_local(ERROR_LEVEL, EE_FAILED_TO_CREATE_TIMER, errno);
+@@ -134,7 +150,9 @@ int my_timer_initialize(void) {
+ void my_timer_deinitialize(void) {
+   struct kevent kev;
+ 
++#ifdef EVFILT_USER
+   EV_SET(&kev, 0, EVFILT_USER, 0, NOTE_TRIGGER, 0, 0);
++#endif
+ 
+   if (kevent(kq_fd, &kev, 1, NULL, 0, NULL) < 0)
+     my_message_local(ERROR_LEVEL,
+@@ -165,7 +183,7 @@ int my_timer_create(my_timer_t *timer) {
+ int my_timer_set(my_timer_t *timer, unsigned long time) {
+   struct kevent kev;
+ 
+-  EV_SET(&kev, timer->id, EVFILT_TIMER, EV_ADD | EV_ONESHOT, 0, time, timer);
++  EV_SET(&kev, timer->id, EVFILT_TIMER, EV_ADD | EV_ONESHOT, 0, time,KEVENT_UDATA_TYPE_CAST timer);
+ 
+   return kevent(kq_fd, &kev, 1, NULL, 0, NULL);
+ }
 
 
 [FILE:1964:patches/patch-mysys_my__default.cc]
@@ -830,20 +1021,21 @@ share/man/man1/
      SET(RPATH_PLUGIN_TO_LIB "${RPATH_ORIGIN}/private")
 
 
-[FILE:360:patches/patch-router_src_harness_include_mysql_harness_net__ts_impl_netif.h]
+[FILE:390:patches/patch-router_src_harness_include_mysql_harness_net__ts_impl_netif.h]
 --- router/src/harness/include/mysql/harness/net_ts/impl/netif.h.orig	2021-07-01 07:53:49 UTC
 +++ router/src/harness/include/mysql/harness/net_ts/impl/netif.h
-@@ -31,6 +31,7 @@
+@@ -31,6 +31,8 @@
  #include <string>
  
  #if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__) || \
 +    defined(__DragonFly__) || \
++    defined(__NetBSD__) || \
      defined(__sun__)
  #define HAVE_IFADDRS_H
  #endif
 
 
-[FILE:454:patches/patch-router_src_harness_include_mysql_harness_net__ts_internet.h]
+[FILE:890:patches/patch-router_src_harness_include_mysql_harness_net__ts_internet.h]
 --- router/src/harness/include/mysql/harness/net_ts/internet.h.orig	2021-07-01 07:53:49 UTC
 +++ router/src/harness/include/mysql/harness/net_ts/internet.h
 @@ -43,6 +43,7 @@
@@ -854,6 +1046,46 @@ share/man/man1/
  #include <netinet/ip6.h>  // in6_addr_t
  #include <netinet/tcp.h>  // TCP_NODELAY
  #include <sys/ioctl.h>    // ioctl
+@@ -598,8 +599,12 @@ class resolver_base {
+   static constexpr flags canonical_name = AI_CANONNAME;
+   static constexpr flags numeric_host = AI_NUMERICHOST;
+   static constexpr flags numeric_service = AI_NUMERICSERV;
++#ifdef AI_V4MAPPED
+   static constexpr flags v4_mapped = AI_V4MAPPED;
++#endif
++#ifdef AI_ALL
+   static constexpr flags all_matching = AI_ALL;
++#endif
+   static constexpr flags address_configured = AI_ADDRCONFIG;
+ };
+ 
+
+
+[FILE:785:patches/patch-router_src_harness_include_mysql_harness_net_ts_local.h]
+$NetBSD: patch-router_src_harness_include_mysql_harness_net_ts_local.h,v 1.1 2021/05/13 15:25:20 jdolecek Exp $
+
+NetBSD has uucred, not sockpeercred.
+
+--- router/src/harness/include/mysql/harness/net_ts/local.h.orig	2021-05-09 01:07:01.720111634 +0000
++++ router/src/harness/include/mysql/harness/net_ts/local.h
+@@ -44,7 +44,7 @@
+ 
+ #ifdef NET_TS_HAS_UNIX_SOCKET
+ 
+-#if defined(__FreeBSD__) || defined(__APPLE__)
++#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__NetBSD__)
+ #include <sys/ucred.h>
+ #endif
+ 
+@@ -229,7 +229,7 @@ class cred {
+ #elif defined(__FreeBSD__) || defined(__APPLE__)
+   using value_type = struct xucred;
+ #elif defined(__NetBSD__)
+-  using value_type = struct sockpeercred;
++  using value_type = struct uucred;
+ #else
+ #error "unsupported OS"
+ #endif
 
 
 [FILE:287:patches/patch-router_src_harness_include_mysql_harness_tty.h]
@@ -973,15 +1205,26 @@ share/man/man1/
        CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${file}.pl.in
 
 
-[FILE:538:patches/patch-sql_CMakeLists.txt]
+[FILE:843:patches/patch-sql_CMakeLists.txt]
 --- sql/CMakeLists.txt.orig	2021-07-01 07:53:49 UTC
 +++ sql/CMakeLists.txt
-@@ -687,10 +687,10 @@ ENDIF()
+@@ -599,6 +599,10 @@ SET(SQL_SHARED_SOURCES
+   daemon_proxy_keyring/daemon_proxy_keyring.cc
+ )
+ 
++IF(NOT HAVE_FFSLL)
++LIST(APPEND SQL_SHARED_SOURCES ffsll.cc)
++ENDIF()
++
+ # BISON_TARGET(<Name> <YaccInput> <CodeOutput>
+ #              [COMPILE_FLAGS <flags>]
+ #              [DEFINES_FILE <file>]
+@@ -687,10 +691,10 @@ ENDIF()
  IF(LINUX)
    LIST(APPEND SQL_SHARED_SOURCES
      resourcegroups/platform/thread_attrs_api_linux.cc)
 -ELSEIF(APPLE)
-+ELSEIF(APPLE OR CMAKE_SYSTEM_NAME MATCHES "DragonFly")
++ELSEIF(APPLE OR CMAKE_SYSTEM_NAME MATCHES "(DragonFly|NetBSD)")
    LIST(APPEND SQL_SHARED_SOURCES
      resourcegroups/platform/thread_attrs_api_apple.cc)
 -ELSEIF(FREEBSD)
@@ -1078,6 +1321,55 @@ share/man/man1/
    info->s->file_map = (uchar *)my_mmap(
        nullptr, (size_t)size,
        info->s->mode == O_RDONLY ? PROT_READ : PROT_READ | PROT_WRITE,
+
+
+[FILE:486:patches/patch-vio_viosocket.cc]
+$NetBSD: patch-vio_viosocket.cc,v 1.2 2021/06/22 10:12:37 nia Exp $
+
+* define ppoll on older NetBSD that only has pollts
+
+--- vio/viosocket.cc.orig	2021-07-01 07:53:49 UTC
++++ vio/viosocket.cc
+@@ -70,6 +70,13 @@
+ 
+ #include "mysql/psi/mysql_socket.h"
+ 
++#ifdef __NetBSD__
++#include <sys/param.h>
++#if !__NetBSD_Prereq__(9,99,71)
++#define ppoll pollts
++#endif
++#endif
++
+ int vio_errno(Vio *vio MY_ATTRIBUTE((unused))) {
+ /* These transport types are not Winsock based. */
+ #ifdef _WIN32
+
+
+[FILE:364:files/ffsll.cc]
+/*
+ * Public domain version of ffsll by Niclas Rosenvik
+ * used here for platforms that miss a system ffsll.
+ */
+
+#include <sys/types.h>
+
+int
+ffsll(long long int v)
+{
+size_t llbits = sizeof(long long int) * 8;
+long long unsigned int comp_mask = 1;
+
+for (size_t i=0; i < llbits; ++i)
+{
+  if (v & comp_mask) {
+    return (i+1);
+  }
+  comp_mask <<= 1;
+}
+
+return 0;
+}
 
 
 [FILE:2182:files/my.cnf.sample.in]

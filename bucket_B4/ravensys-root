@@ -4,20 +4,22 @@ NAMEBASE=		ravensys-root
 VERSION=		3.2
 REVISION=		5
 KEYWORDS=		raven
-VARIANTS=		dragonfly freebsd_amd64 linux sunos macos
+VARIANTS=		dragonfly freebsd_amd64 linux sunos macos netbsd_amd64
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
 SDESC[freebsd_amd64]=	FreeBSD-amd64 system root for Ravenports build env
 SDESC[linux]=		Linux system root for Ravenports build env
 SDESC[dragonfly]=	DragonFly64 system root for Ravenports build env
+SDESC[netbsd_amd64]=	NetBSD-amd64 system root for Ravenports build env
 SDESC[macos]=		MacOS/Darwin system root for Ravenports build env
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main avalon dragonlace freebsd_amd64 ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
+DOWNLOAD_GROUPS=	main avalon dragonlace freebsd_amd64 netbsd ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[avalon]=		https://mirror-master.dragonflybsd.org/iso-images/
 SITES[dragonlace]=	http://downloads.dragonlace.net/misc/
 SITES[freebsd_amd64]=	http://ftp-archive.freebsd.org/pub/FreeBSD-Archive/old-releases/amd64/amd64/ISO-IMAGES/12.2/
+SITES[netbsd]=		https://cdn.netbsd.org/pub/NetBSD/NetBSD-9.2/images/
 SITES[ubuntu1]=		http://security.ubuntu.com/ubuntu/pool/main/g/glibc/
 SITES[ubuntu10]=	UBUNTU/a/acl
 SITES[ubuntu11]=	http://security.ubuntu.com/ubuntu/pool/main/s/systemd/
@@ -53,24 +55,28 @@ DISTFILE[21]=		libacl1-dev_2.2.52-3_amd64.deb:ubuntu10
 DISTFILE[22]=		libacl1_2.2.52-3_amd64.deb:ubuntu10
 DISTFILE[23]=		libudev1_229-4ubuntu21.27_amd64.deb:ubuntu11
 DISTFILE[24]=		libudev-dev_229-4ubuntu21.27_amd64.deb:ubuntu11
+DISTFILE[25]=		NetBSD-9.2-amd64.iso:netbsd
 SPKGS[sunos]=		single
 SPKGS[freebsd_amd64]=	single
 SPKGS[linux]=		single
 SPKGS[dragonfly]=	single
+SPKGS[netbsd_amd64]=	single
 SPKGS[macos]=		single
 
-OPTIONS_AVAILABLE=	DRAGONFLY FREEBSDAMD64 LINUX SUNOS MACOS
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSDAMD64 LINUX SUNOS MACOS NET64
 OPTIONS_STANDARD=	none
 VOPTS[sunos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=ON
-			MACOS=OFF
+			MACOS=OFF NET64=OFF
 VOPTS[freebsd_amd64]=	DRAGONFLY=OFF FREEBSDAMD64=ON LINUX=OFF SUNOS=OFF
-			MACOS=OFF
+			MACOS=OFF NET64=OFF
 VOPTS[linux]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=ON SUNOS=OFF
-			MACOS=OFF
+			MACOS=OFF NET64=OFF
 VOPTS[dragonfly]=	DRAGONFLY=ON FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
-			MACOS=OFF
+			MACOS=OFF NET64=OFF
+VOPTS[netbsd_amd64]=	DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
+			MACOS=OFF NET64=ON
 VOPTS[macos]=		DRAGONFLY=OFF FREEBSDAMD64=OFF LINUX=OFF SUNOS=OFF
-			MACOS=ON
+			MACOS=ON NET64=OFF
 
 BUILD_DEPENDS=		nawk:single:standard
 			diffutils:primary:ravensys
@@ -103,7 +109,7 @@ B_DEPS[linux]=		shadow:single:standard bash:primary:static
 USES=			bz2:build
 
 EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 23 24 14
-			15
+			15 25
 EXTRACT_DEB_PACKAGE=	3 4 5 6 7 8 9 10 11 12 13 17 18 19 21 22 23 24 14
 
 INVALID_RPATH=		yes
@@ -118,35 +124,20 @@ MAKE_ENV=		OPSYS="{{OPSYS}}"
 			OSMAJOR="{{MAJOR}}"
 			MKDIR="{{MKDIR}}"
 			GCCX=ravensys-gcc
-			libm={{Libm_{{OPSYS}}}}
-			libc={{Libc_{{OPSYS}}}}
-			libutil={{Libutil_{{OPSYS}}}}
-			libusb={{Libusb_{{OPSYS}}}}
-			libusbhid={{Libusbhid_{{OPSYS}}}}
-			libcrypt={{Libcrypt_{{OPSYS}}}}
-			libkvm={{Libkvm_{{OPSYS}}}}
-			libcam={{Libcam_{{OPSYS}}}}
-			librt={{Librt_{{OPSYS}}}}
-			librpcsvc={{Librpcsvc_{{OPSYS}}}}
 SINGLE_JOB=		yes
 
-PLIST_SUB=		SONAME_LIBM={{Libm_{{OPSYS}}}}
-			SONAME_LIBC={{Libc_{{OPSYS}}}}
-			SONAME_LIBUTIL={{Libutil_{{OPSYS}}}}
-			SONAME_LIBUSB={{Libusb_{{OPSYS}}}}
-			SONAME_LIBUSBHID={{Libusbhid_{{OPSYS}}}}
-			SONAME_LIBCRYPT={{Libcrypt_{{OPSYS}}}}
-			SONAME_LIBKVM={{Libkvm_{{OPSYS}}}}
-			SONAME_LIBRT={{Librt_{{OPSYS}}}}
-			SONAME_LIBRPCSVC={{Librpcsvc_{{OPSYS}}}}
-			SONAME_LIBCAM={{Libcam_{{OPSYS}}}}
-			BASE={{SYSPATH}}
+PLIST_SUB=		BASE={{SYSPATH}}
 
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1202000/12.2/12
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/i86pc/x86_64/510200910/5.10/5.10
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
 VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SYSTEM=NetBSD/x86_64/x86_64/902000000/9.2/9
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600000/6.0/6.0
+
+[NET64].DESCRIPTION=			Ravenports system root for NetBSD/AMD64
+[NET64].DF_INDEX_ON=			25
+[NET64].ONLY_FOR_OPSYS_ON=		netbsd
 
 [MACOS].DESCRIPTION=			Ravenports system root for MacOS/Darwin
 [MACOS].DF_INDEX_ON=			20
@@ -160,7 +151,7 @@ VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600000/6.0/6.
 [SUNOS].DF_INDEX_ON=			16
 [SUNOS].ONLY_FOR_OPSYS_ON=		sunos
 
-[FREEBSDAMD64].DESCRIPTION=		Ravenports system root for FreeBSD-amd64
+[FREEBSDAMD64].DESCRIPTION=		Ravenports system root for FreeBSD/AMD64
 [FREEBSDAMD64].DF_INDEX_ON=		15
 [FREEBSDAMD64].ONLY_FOR_OPSYS_ON=	freebsd
 
@@ -186,14 +177,15 @@ VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600000/6.0/6.
 					14
 [LINUX].ONLY_FOR_OPSYS_ON=		linux
 
-post-install-MACOS-ON:
-	${CHMOD} 600 ${STAGEDIR}${RSYS}/usr/share/master.passwd
-	${STAGEDIR}${RSYS}/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
-		${STAGEDIR}${RSYS}/usr/share/master.passwd
-	# autogenerate System/Library part of manifest
-	(cd ${STAGEDIR}${PREFIX} && \
-		${FIND} ${SYSPATH}/System \( -type f -or -type l \) | ${SORT} \
-		>> ${WRKDIR}/.manifest.single.mktmp)
+post-extract-NET64-ON:
+	@${MKDIR} ${WRKSRC} ${WRKDIR}/netbsd
+	(cd ${WRKDIR}/netbsd \
+		&& ${TAR} -xf ${WRKDIR}/${NAMEBASE}_25/amd64/binary/sets/base.tar.xz \
+		&& ${TAR} -xf ${WRKDIR}/${NAMEBASE}_25/amd64/binary/sets/comp.tar.xz \
+		&& ${TAR} -xf ${WRKDIR}/${NAMEBASE}_25/amd64/binary/sets/etc.tar.xz)
+	${RM} -r ${WRKDIR}/${NAMEBASE}_25
+	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+	${INSTALL_DATA} ${FILESDIR}/netbsd.mk ${WRKSRC}/system_specifics.mk
 
 post-extract-LINUX-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/linux
@@ -203,37 +195,21 @@ post-extract-LINUX-ON:
 .endfor
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+	${INSTALL_DATA} ${FILESDIR}/linux.mk ${WRKSRC}/system_specifics.mk
 
 post-extract-MACOS-ON:
 	${MV} ${WRKDIR}/mac-sysroot ${WRKDIR}/darwin
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+	${INSTALL_DATA} ${FILESDIR}/sunos.mk ${WRKSRC}/system_specifics.mk
 
 post-extract-FREEBSDAMD64-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_15 ${WRKDIR}/freebsd
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
+	${INSTALL_DATA} ${FILESDIR}/freebsd.mk ${WRKSRC}/system_specifics.mk
 	(cd ${WRKDIR}/freebsd && ${TAR} -xf usr/freebsd-dist/base.txz \
 		--no-same-owner --no-same-permissions)
-
-post-install-FREEBSDAMD64-ON:
-	${INSTALL_DATA} ${FOS}/etc/group \
-		${STAGEDIR}${RSYS}/usr/share/group
-	${INSTALL_DATA} ${FOS}/etc/master.passwd \
-		${STAGEDIR}${RSYS}/usr/share/master.passwd
-	${INSTALL_DATA} ${FOS}/etc/defaults/rc.conf \
-		${STAGEDIR}${RSYS}/usr/share/rc.conf
-	/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
-		${STAGEDIR}${RSYS}/usr/share/master.passwd
-	${MKDIR} ${STAGEDIR}${RSYS}/var/run
-	# handle ldconfig hints
-	${INSTALL_PROGRAM} ${FOS}/sbin/ldconfig \
-		${STAGEDIR}${RSYS}/usr/bin/ldconfig
-	${FOS}/usr/sbin/chroot ${STAGEDIR}${RSYS} /usr/bin/ldconfig /usr/lib
-	${RM} ${STAGEDIR}${RSYS}/usr/bin/ldconfig
-	${MV} ${STAGEDIR}${RSYS}/var/run/ld-elf.so.hints \
-		${STAGEDIR}${RSYS}/usr/share/
-	${RM} -r ${STAGEDIR}${RSYS}/var
 
 pre-fetch:
 	${SH} ${FILESDIR}/validate_pkgs.sh ${PREFIX} ${OPSYS} ${ARCH} \
@@ -250,35 +226,7 @@ post-extract-DRAGONFLY-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_2 ${WRKDIR}/dragonfly
 	@${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/Makefile ${WRKSRC}/
-
-post-install-DRAGONFLY-ON:
-	${SED} -e '/^git_daemon:/d; /^dhcpd:/d' ${FOS}/etc/group \
-		> ${STAGEDIR}${RSYS}/usr/share/group
-	${SED} -e '/^git_daemon:/d; /^dhcpd:/d' ${FOS}/etc/master.passwd \
-		> ${STAGEDIR}${RSYS}/usr/share/master.passwd
-	${INSTALL_DATA} ${FOS}/etc/defaults/rc.conf \
-		${STAGEDIR}${RSYS}/usr/share/rc.conf
-	/usr/sbin/pwd_mkdb -p -d ${STAGEDIR}${RSYS}/usr/share \
-		${STAGEDIR}${RSYS}/usr/share/master.passwd
-	${MKDIR} ${STAGEDIR}${RSYS}/var/run
-	# handle ldconfig hints
-	${INSTALL_PROGRAM} ${FOS}/sbin/ldconfig \
-		${STAGEDIR}${RSYS}/usr/bin/ldconfig
-	${FOS}/usr/sbin/chroot ${STAGEDIR}${RSYS} /usr/bin/ldconfig /usr/lib
-	${RM} ${STAGEDIR}${RSYS}/usr/bin/ldconfig
-	${MV} ${STAGEDIR}${RSYS}/var/run/ld-elf.so.hints \
-		${STAGEDIR}${RSYS}/usr/share/
-	${RM} -r ${STAGEDIR}${RSYS}/var
-
-post-install-LINUX-ON:
-	${INSTALL_DATA} ${FILESDIR}/linux-group \
-		${STAGEDIR}${RSYS}/usr/share/group
-	${INSTALL_DATA} ${FILESDIR}/linux-passwd \
-		${STAGEDIR}${RSYS}/usr/share/passwd
-	${INSTALL_DATA} ${FOS}/etc/ld.so.conf.d/x86_64-linux-gnu.conf \
-		${STAGEDIR}${RSYS}/usr/share/x86_64-linux-gnu.conf
-	${ECHO} "include /etc/ld.so.conf.d/*.conf" > ${STAGEDIR}${RSYS}/usr/share/ld.so.conf
-	${LN} -s asm-generic ${STAGEDIR}${RSYS}/usr/include/asm
+	${INSTALL_DATA} ${FILESDIR}/dragonfly.mk ${WRKSRC}/system_specifics.mk
 
 [FILE:102:descriptions/desc.single.dragonfly]
 Raven system root
@@ -314,7 +262,14 @@ This is the full environment for Mac 10.13.6 minus the toolchain for
 Ravenports.
 
 
-[FILE:2633:distinfo]
+[FILE:101:descriptions/desc.single.netbsd_amd64]
+Raven system root
+
+This is the full environment for NetBSD/AMD64 minus the toolchain for
+Ravenports.
+
+
+[FILE:2732:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 94ec00ad865686f8cbf559836bf1c290c464d7da544fcbe9cbfddea8a161b675    265912207 dfly-x86_64-6.0.0_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
@@ -339,9 +294,10 @@ f5b76ad0e3316cd99703bbc59c056fad02be0de6c0d9316dd437b89732dc0ff1        73590 li
 a6f4378176071b6d9f2b6f0402edf8ef6cd2cc53ad4052089642aad358fe55a6        16114 libacl1_2.2.52-3_amd64.deb
 e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 libudev1_229-4ubuntu21.27_amd64.deb
 53dccf23123851f83a0789e00e214b989711af868085e505c4c092f7f67a15cf       150304 libudev-dev_229-4ubuntu21.27_amd64.deb
+5f1bca14c4090122f31713dd86a926f63109dd6fb3c05f9b9b150a78acc8bc7e    488970240 NetBSD-9.2-amd64.iso
 
 
-[FILE:15668:manifests/plist.single.dragonfly]
+[FILE:15608:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -1542,16 +1498,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  _uchar.h
  _wchar.h
 %%BASE%%/usr/lib/
- %%SONAME_LIBC%%
- %%SONAME_LIBCAM%%
- %%SONAME_LIBCRYPT%%
- %%SONAME_LIBKVM%%
- %%SONAME_LIBM%%
- %%SONAME_LIBRPCSVC%%
- %%SONAME_LIBRT%%
- %%SONAME_LIBUSB%%
- %%SONAME_LIBUSBHID%%
- %%SONAME_LIBUTIL%%
  Scrt1.o
  crt1.o
  crti.o
@@ -1559,10 +1505,13 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  gcrt1.o
  libc.a
  libc.so
+ libc.so.8
  libcam.a
  libcam.so
+ libcam.so.3
  libcrypt.a
  libcrypt.so
+ libcrypt.so.4
  libdevattr.so
  libdevattr.so.3
  libdevinfo.so
@@ -1577,8 +1526,10 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libkinfo.so.2
  libkvm.a
  libkvm.so
+ libkvm.so.3
  libm.a
  libm.so
+ libm.so.4
  libprop.so
  libprop.so.3
  libpthread.a
@@ -1586,17 +1537,22 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libpthread.so.0
  librpcsvc.a
  librpcsvc.so
+ librpcsvc.so.3
  librt.a
  librt.so
+ librt.so.0
  libsbuf.a
  libsbuf.so
  libsbuf.so.3
  libusb.a
  libusb.so
+ libusb.so.2
  libusbhid.a
  libusbhid.so
+ libusbhid.so.4
  libutil.a
  libutil.so
+ libutil.so.4
 %%BASE%%/usr/lib/gcc80/
  libgcc_pic.a
  libstdc++.so.9
@@ -1641,7 +1597,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:18713:manifests/plist.single.freebsd_amd64]
+[FILE:18653:manifests/plist.single.freebsd_amd64]
 %%BASE%%/bin/
  [
  cat
@@ -3055,16 +3011,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  _uchar.h
  _wchar.h
 %%BASE%%/usr/lib/
- %%SONAME_LIBC%%
- %%SONAME_LIBCAM%%
- %%SONAME_LIBCRYPT%%
- %%SONAME_LIBKVM%%
- %%SONAME_LIBM%%
- %%SONAME_LIBRPCSVC%%
- %%SONAME_LIBRT%%
- %%SONAME_LIBUSB%%
- %%SONAME_LIBUSBHID%%
- %%SONAME_LIBUTIL%%
  Scrt1.o
  crt1.o
  crti.o
@@ -3076,12 +3022,15 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libc++.so.1
  libc.a
  libc.so
+ libc.so.7
  libc_nonshared.a
  libcam.a
  libcam.so
+ libcam.so.7
  libcompat.a
  libcrypt.a
  libcrypt.so
+ libcrypt.so.5
  libcxxrt.so.1
  libdevstat.a
  libdevstat.so
@@ -3099,8 +3048,10 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libjail.so.1
  libkvm.a
  libkvm.so
+ libkvm.so.7
  libm.a
  libm.so
+ libm.so.5
  libprocstat.a
  libprocstat.so
  libprocstat.so.1
@@ -3108,8 +3059,10 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libpthread.so
  librpcsvc.a
  librpcsvc.so
+ librpcsvc.so.5
  librt.a
  librt.so
+ librt.so.1
  libsbuf.a
  libsbuf.so.6
  libssp_nonshared.a
@@ -3118,10 +3071,13 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  libthr.so.3
  libusb.a
  libusb.so
+ libusb.so.3
  libusbhid.a
  libusbhid.so
+ libusbhid.so.4
  libutil.a
  libutil.so
+ libutil.so.9
 %%BASE%%/usr/lib/pkgconfig/
  libusb-0.1.pc
  libusb-1.0.pc
@@ -8966,84 +8922,1831 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 @dir %%BASE%%/usr/local
 
 
-[FILE:25148:files/Makefile]
+[FILE:20905:manifests/plist.single.netbsd_amd64]
+%%BASE%%/bin/
+ [
+ cat
+ chflags
+ chmod
+ cp
+ date
+ echo
+ expr
+ hostname
+ kill
+ link
+ ln
+ ls
+ md5
+ mkdir
+ mv
+ pax
+ pwd
+ realpath
+ rm
+ rmdir
+ sh
+ sha256
+ sleep
+ test
+ unlink
+%%BASE%%/libexec/ld.elf_so
+%%BASE%%/usr/bin/
+ awk
+ basename
+ bsdcat
+ bunzip2
+ bzcat
+ bzegrep
+ bzfgrep
+ bzgrep
+ bzip2
+ chgrp
+ chown
+ cmp
+ comm
+ cpio
+ cut
+ diff
+ diff3
+ dirname
+ dupe
+ egrep
+ env
+ false
+ fetch
+ fgrep
+ file
+ find
+ flex
+ flex++
+ genpatch
+ gm4
+ grep
+ groupadd
+ gunzip
+ gzip
+ head
+ id
+ install
+ join
+ ldd
+ less
+ lockf
+ lorder
+ lzcat
+ lzcmp
+ lzdiff
+ lzegrep
+ lzfgrep
+ lzgrep
+ lzma
+ m4
+ make
+ makewhatis
+ mkfifo
+ mknod
+ mktemp
+ more
+ mtree
+ objdump-sysroot
+ od
+ patch
+ portfix
+ printenv
+ printf
+ ravensw
+ readlink
+ rpcgen
+ sdiff
+ sed
+ seq
+ sort
+ stat
+ tail
+ tar
+ tee
+ touch
+ tr
+ true
+ uname
+ uniq
+ unlzma
+ unxz
+ unzip
+ useradd
+ vi
+ wc
+ which
+ whoami
+ xargs
+ xz
+ xzcat
+ xzcmp
+ xzdiff
+ xzegrep
+ xzfgrep
+ xzgrep
+ yacc
+ zcat
+ zcmp
+ zdiff
+ zegrep
+ zfgrep
+ zgrep
+%%BASE%%/usr/include/
+ aio.h
+ ar.h
+ assert.h
+ atomic.h
+ bitstring.h
+ bluetooth.h
+ complex.h
+ cpio.h
+ ctype.h
+ dirent.h
+ disktab.h
+ dlfcn.h
+ dwarf.h
+ elf.h
+ endian.h
+ err.h
+ errno.h
+ fcntl.h
+ fenv.h
+ float.h
+ fmtmsg.h
+ fnmatch.h
+ fstab.h
+ fts.h
+ ftw.h
+ getopt.h
+ glob.h
+ grp.h
+ iconv.h
+ ieeefp.h
+ ifaddrs.h
+ inttypes.h
+ iso646.h
+ kvm.h
+ langinfo.h
+ libgen.h
+ libproc.h
+ limits.h
+ link.h
+ link_elf.h
+ locale.h
+ login_cap.h
+ lwp.h
+ machine
+ malloc.h
+ math.h
+ memory.h
+ mntopts.h
+ monetary.h
+ mpool.h
+ mqueue.h
+ ndbm.h
+ netconfig.h
+ netdb.h
+ netgroup.h
+ netpgp.h
+ nl_types.h
+ nlist.h
+ paths.h
+ pci.h
+ perfuse.h
+ poll.h
+ pthread.h
+ pthread_queue.h
+ pthread_types.h
+ puffs.h
+ puffsdump.h
+ pwd.h
+ quota.h
+ re_comp.h
+ regex.h
+ regexp.h
+ res_update.h
+ resolv.h
+ sched.h
+ sdp.h
+ search.h
+ semaphore.h
+ setjmp.h
+ sgtty.h
+ sha1.h
+ signal.h
+ soundcard.h
+ spawn.h
+ stab.h
+ stdalign.h
+ stdarg.h
+ stdbool.h
+ stddef.h
+ stdint.h
+ stdio.h
+ stdlib.h
+ stdnoreturn.h
+ string.h
+ stringlist.h
+ strings.h
+ struct.h
+ sysexits.h
+ syslog.h
+ tar.h
+ termios.h
+ threads.h
+ time.h
+ ttyent.h
+ ucontext.h
+ ulimit.h
+ unistd.h
+ unwind.h
+ usbhid.h
+ util.h
+ utime.h
+ utmp.h
+ utmpx.h
+ uuid.h
+ vis.h
+ wchar.h
+ wctype.h
+ wordexp.h
+%%BASE%%/usr/include/altq/
+ altq.h
+ altq_afmap.h
+ altq_blue.h
+ altq_cbq.h
+ altq_cdnr.h
+ altq_classq.h
+ altq_conf.h
+ altq_fifoq.h
+ altq_flowvalve.h
+ altq_hfsc.h
+ altq_jobs.h
+ altq_priq.h
+ altq_red.h
+ altq_rio.h
+ altq_rmclass.h
+ altq_rmclass_debug.h
+ altq_var.h
+ altq_wfq.h
+ altqconf.h
+ if_altq.h
+%%BASE%%/usr/include/amd64/
+ ansi.h
+ aout_machdep.h
+ asm.h
+ bootinfo.h
+ bswap.h
+ byte_swap.h
+ cdefs.h
+ cpu.h
+ cpu_rng.h
+ disklabel.h
+ elf_machdep.h
+ endian.h
+ endian_machdep.h
+ fenv.h
+ float.h
+ fpu.h
+ frame.h
+ frame_regs.h
+ gdt.h
+ ieee.h
+ ieeefp.h
+ int_const.h
+ int_fmtio.h
+ int_limits.h
+ int_mwgwtypes.h
+ int_types.h
+ intr.h
+ intrdefs.h
+ joystick.h
+ kcore.h
+ limits.h
+ linux32_machdep.h
+ lock.h
+ math.h
+ mcontext.h
+ mtrr.h
+ mutex.h
+ netbsd32_machdep.h
+ param.h
+ pcb.h
+ pci_machdep.h
+ pio.h
+ pmap.h
+ proc.h
+ profile.h
+ psl.h
+ pte.h
+ ptrace.h
+ reg.h
+ rwlock.h
+ segments.h
+ setjmp.h
+ signal.h
+ sljit_machdep.h
+ specialreg.h
+ sysarch.h
+ trap.h
+ tss.h
+ types.h
+ userret.h
+ vmparam.h
+ wchar_limits.h
+%%BASE%%/usr/include/arpa/
+ ftp.h
+ inet.h
+ nameser.h
+ nameser_compat.h
+ telnet.h
+ tftp.h
+%%BASE%%/usr/include/crypto/cryptodev.h
+%%BASE%%/usr/include/dev/
+ biovar.h
+ ccdvar.h
+ cgdvar.h
+ fssvar.h
+ keylock.h
+ kttcpio.h
+ lockstat.h
+ md.h
+ spkrio.h
+ vndvar.h
+%%BASE%%/usr/include/dev/apm/
+ apmbios.h
+ apmio.h
+%%BASE%%/usr/include/dev/ata/
+ atareg.h
+ atavar.h
+ satareg.h
+%%BASE%%/usr/include/dev/bluetooth/
+ bcsp.h
+ btdev.h
+ bth5.h
+ bthidev.h
+ btsco.h
+%%BASE%%/usr/include/dev/dec/
+ dec_boot.h
+ lk201.h
+%%BASE%%/usr/include/dev/dm/netbsd-dm.h
+%%BASE%%/usr/include/dev/dmover/dmover_io.h
+%%BASE%%/usr/include/dev/dtv/
+ dtvio.h
+ dtvio_demux.h
+ dtvio_frontend.h
+%%BASE%%/usr/include/dev/filemon/filemon.h
+%%BASE%%/usr/include/dev/hdaudio/
+ hdaudioio.h
+ hdaudioreg.h
+%%BASE%%/usr/include/dev/hdmicec/hdmicecio.h
+%%BASE%%/usr/include/dev/hid/hid.h
+%%BASE%%/usr/include/dev/hpc/hpcfbio.h
+%%BASE%%/usr/include/dev/i2c/i2c_io.h
+%%BASE%%/usr/include/dev/i2o/
+ i2o.h
+ iopio.h
+%%BASE%%/usr/include/dev/ic/
+ athioctl.h
+ bt8xx.h
+ hd44780var.h
+ icp_ioctl.h
+ icpreg.h
+ isp_ioctl.h
+ mlxio.h
+ mlxreg.h
+ nvmeio.h
+ nvmereg.h
+ qemufwcfgio.h
+ rrunnerreg.h
+ rrunnervar.h
+ wdcreg.h
+ wi_ieee.h
+%%BASE%%/usr/include/dev/ir/irdaio.h
+%%BASE%%/usr/include/dev/isa/
+ isvio.h
+ spkrio.h
+ wtreg.h
+%%BASE%%/usr/include/dev/iscsi/
+ iscsi.h
+ iscsi_ioctl.h
+%%BASE%%/usr/include/dev/nvmm/
+ nvmm.h
+ nvmm_ioctl.h
+%%BASE%%/usr/include/dev/nvmm/x86/nvmm_x86.h
+%%BASE%%/usr/include/dev/ofw/openfirmio.h
+%%BASE%%/usr/include/dev/pci/
+ amrio.h
+ amrreg.h
+ mlyio.h
+ mlyreg.h
+ pcidevs.h
+ pcidevs_data.h
+ pciio.h
+ pcireg.h
+ tgareg.h
+ tweio.h
+ twereg.h
+%%BASE%%/usr/include/dev/pckbc/pckbdreg.h
+%%BASE%%/usr/include/dev/pcmcia/
+ if_cnwioctl.h
+ if_rayreg.h
+%%BASE%%/usr/include/dev/pud/pud_msgif.h
+%%BASE%%/usr/include/dev/putter/putter.h
+%%BASE%%/usr/include/dev/raidframe/
+ raidframeio.h
+ raidframevar.h
+%%BASE%%/usr/include/dev/sbus/mbppio.h
+%%BASE%%/usr/include/dev/scsipi/
+ scsi_all.h
+ scsi_disk.h
+ scsi_spc.h
+ scsiconf.h
+ scsipi_all.h
+ scsipi_cd.h
+ scsipi_debug.h
+ scsipiconf.h
+ ses.h
+%%BASE%%/usr/include/dev/spi/spi_io.h
+%%BASE%%/usr/include/dev/sun/
+ disklabel.h
+ eeprom.h
+ fbio.h
+ idprom.h
+ kbd_reg.h
+ kbio.h
+ vuid_event.h
+%%BASE%%/usr/include/dev/tc/
+ sfbreg.h
+ sticio.h
+ sticreg.h
+%%BASE%%/usr/include/dev/usb/
+ if_umbreg.h
+ mbim.h
+ ukyopon.h
+ urio.h
+ usb.h
+ usbhid.h
+ utoppy.h
+%%BASE%%/usr/include/dev/vme/xio.h
+%%BASE%%/usr/include/dev/wscons/
+ wsconsio.h
+ wsdisplay_usl_io.h
+ wsksymdef.h
+ wsksymvar.h
+%%BASE%%/usr/include/event2/
+ buffer.h
+ buffer_compat.h
+ bufferevent.h
+ bufferevent_compat.h
+ bufferevent_ssl.h
+ bufferevent_struct.h
+ dns.h
+ dns_compat.h
+ dns_struct.h
+ event-config.h
+ event.h
+ event_compat.h
+ event_struct.h
+ http.h
+ http_compat.h
+ http_struct.h
+ keyvalq_struct.h
+ listener.h
+ rpc.h
+ rpc_compat.h
+ rpc_struct.h
+ tag.h
+ tag_compat.h
+ thread.h
+ util.h
+ visibility.h
+%%BASE%%/usr/include/fs/autofs/
+ autofs_ioctl.h
+ autofs_mount.h
+%%BASE%%/usr/include/fs/efs/
+ efs.h
+ efs_mount.h
+ efs_sb.h
+%%BASE%%/usr/include/fs/hfs/
+ hfs.h
+ libhfs.h
+%%BASE%%/usr/include/fs/nilfs/
+ nilfs_fs.h
+ nilfs_mount.h
+%%BASE%%/usr/include/fs/ptyfs/ptyfs.h
+%%BASE%%/usr/include/fs/puffs/puffs_msgif.h
+%%BASE%%/usr/include/fs/smbfs/smbfs.h
+%%BASE%%/usr/include/fs/sysvbfs/
+ bfs.h
+ sysvbfs_args.h
+%%BASE%%/usr/include/fs/tmpfs/tmpfs_args.h
+%%BASE%%/usr/include/fs/udf/
+ ecma167-udf.h
+ udf_mount.h
+%%BASE%%/usr/include/fs/v7fs/
+ v7fs.h
+ v7fs_args.h
+%%BASE%%/usr/include/msdosfs/
+ bootsect.h
+ bpb.h
+ denode.h
+ direntry.h
+ fat.h
+ msdosfsmount.h
+%%BASE%%/usr/include/net/
+ bpf.h
+ bpfdesc.h
+ bpfjit.h
+ dlt.h
+ ethertypes.h
+ if.h
+ if_arc.h
+ if_arp.h
+ if_bridgevar.h
+ if_dl.h
+ if_ether.h
+ if_fddi.h
+ if_gif.h
+ if_gre.h
+ if_hippi.h
+ if_ieee1394.h
+ if_ipsec.h
+ if_l2tp.h
+ if_llc.h
+ if_media.h
+ if_mpls.h
+ if_pflog.h
+ if_ppp.h
+ if_pppoe.h
+ if_sppp.h
+ if_srt.h
+ if_stf.h
+ if_tap.h
+ if_token.h
+ if_tun.h
+ if_types.h
+ if_vlanvar.h
+ net_stats.h
+ netisr.h
+ npf.h
+ pfil.h
+ pfkeyv2.h
+ pfvar.h
+ ppp-comp.h
+ ppp_defs.h
+ radix.h
+ raw_cb.h
+ route.h
+ slcompress.h
+ slip.h
+ zlib.h
+%%BASE%%/usr/include/net/agr/if_agrioctl.h
+%%BASE%%/usr/include/net80211/
+ _ieee80211.h
+ ieee80211.h
+ ieee80211_crypto.h
+ ieee80211_ioctl.h
+ ieee80211_netbsd.h
+ ieee80211_node.h
+ ieee80211_proto.h
+ ieee80211_radiotap.h
+ ieee80211_rssadapt.h
+ ieee80211_sysctl.h
+ ieee80211_var.h
+%%BASE%%/usr/include/netbt/
+ bluetooth.h
+ hci.h
+ l2cap.h
+ rfcomm.h
+ sco.h
+%%BASE%%/usr/include/netcan/
+ can.h
+ can_link.h
+%%BASE%%/usr/include/netinet/
+ dccp.h
+ icmp6.h
+ icmp_var.h
+ if_ether.h
+ if_inarp.h
+ igmp.h
+ igmp_var.h
+ in.h
+ in_gif.h
+ in_l2tp.h
+ in_offload.h
+ in_pcb.h
+ in_pcb_hdr.h
+ in_selsrc.h
+ in_systm.h
+ in_var.h
+ ip.h
+ ip6.h
+ ip_auth.h
+ ip_carp.h
+ ip_compat.h
+ ip_ecn.h
+ ip_encap.h
+ ip_fil.h
+ ip_frag.h
+ ip_htable.h
+ ip_icmp.h
+ ip_lookup.h
+ ip_mroute.h
+ ip_nat.h
+ ip_pool.h
+ ip_proxy.h
+ ip_scan.h
+ ip_state.h
+ ip_sync.h
+ ip_var.h
+ ipf_rb.h
+ ipl.h
+ pim.h
+ pim_var.h
+ portalgo.h
+ sctp.h
+ sctp_uio.h
+ tcp.h
+ tcp_debug.h
+ tcp_fsm.h
+ tcp_seq.h
+ tcp_timer.h
+ tcp_var.h
+ tcp_vtw.h
+ tcpip.h
+ udp.h
+ udp_var.h
+%%BASE%%/usr/include/netinet6/
+ in6.h
+ in6_gif.h
+ in6_ifattach.h
+ in6_l2tp.h
+ in6_pcb.h
+ in6_var.h
+ ip6_mroute.h
+ ip6_var.h
+ ip6protosw.h
+ mld6_var.h
+ nd6.h
+ pim6.h
+ pim6_var.h
+ raw_ip6.h
+ udp6.h
+ udp6_var.h
+%%BASE%%/usr/include/netipsec/
+ ah_var.h
+ esp_var.h
+ ipcomp_var.h
+ ipip_var.h
+ ipsec.h
+ ipsec_var.h
+ ipsecif.h
+ keysock.h
+%%BASE%%/usr/include/nfs/
+ krpc.h
+ nfs.h
+ nfsdiskless.h
+ nfsm_subs.h
+ nfsmount.h
+ nfsnode.h
+ nfsproto.h
+ nfsrtt.h
+ nfsrvcache.h
+ rpcv2.h
+ xdr_subs.h
+%%BASE%%/usr/include/ntfs/
+ ntfs.h
+ ntfs_inode.h
+ ntfsmount.h
+%%BASE%%/usr/include/prop/
+ plistref.h
+ prop_array.h
+ prop_bool.h
+ prop_data.h
+ prop_dictionary.h
+ prop_ingest.h
+ prop_number.h
+ prop_object.h
+ prop_string.h
+ proplib.h
+%%BASE%%/usr/include/protocols/
+ dumprestore.h
+ routed.h
+ rwhod.h
+ talkd.h
+ timed.h
+%%BASE%%/usr/include/rpc/
+ auth.h
+ auth_unix.h
+ clnt.h
+ clnt_soc.h
+ nettype.h
+ pmap_clnt.h
+ pmap_prot.h
+ pmap_rmt.h
+ raw.h
+ rpc.h
+ rpc_com.h
+ rpc_msg.h
+ rpcb_clnt.h
+ rpcb_prot.h
+ rpcent.h
+ svc.h
+ svc_auth.h
+ svc_soc.h
+ types.h
+ xdr.h
+%%BASE%%/usr/include/rpcsvc/
+ bootparam_prot.h
+ bootparam_prot.x
+ klm_prot.h
+ klm_prot.x
+ mount.h
+ mount.x
+ nfs_prot.h
+ nfs_prot.x
+ nlm_prot.h
+ nlm_prot.x
+ rex.h
+ rex.x
+ rnusers.h
+ rnusers.x
+ rquota.h
+ rquota.x
+ rstat.h
+ rstat.x
+ rusers.h
+ rusers.x
+ rwall.h
+ rwall.x
+ sm_inter.h
+ sm_inter.x
+ spray.h
+ spray.x
+ yp.h
+ yp.x
+ yp_prot.h
+ ypclnt.h
+ yppasswd.h
+ yppasswd.x
+%%BASE%%/usr/include/security/
+ openpam.h
+ openpam_attr.h
+ openpam_version.h
+ pam_appl.h
+ pam_constants.h
+ pam_mod_misc.h
+ pam_modules.h
+ pam_types.h
+%%BASE%%/usr/include/ssp/
+ ssp.h
+ stdio.h
+ string.h
+ strings.h
+ unistd.h
+%%BASE%%/usr/include/sys/
+ acct.h
+ agpio.h
+ aio.h
+ ansi.h
+ aout_mids.h
+ ataio.h
+ atomic.h
+ audioio.h
+ bitops.h
+ bootblock.h
+ bswap.h
+ buf.h
+ callback.h
+ callout.h
+ cdbr.h
+ cdefs.h
+ cdefs_aout.h
+ cdefs_elf.h
+ cdio.h
+ chio.h
+ clock.h
+ clockctl.h
+ common_ansi.h
+ common_int_const.h
+ common_int_fmtio.h
+ common_int_limits.h
+ common_int_mwgwtypes.h
+ common_int_types.h
+ common_limits.h
+ common_lock.h
+ common_wchar_limits.h
+ condvar.h
+ conf.h
+ core.h
+ cpufreq.h
+ cpuio.h
+ ctype_bits.h
+ ctype_inline.h
+ device.h
+ device_if.h
+ dir.h
+ dirent.h
+ disk.h
+ disklabel.h
+ disklabel_acorn.h
+ disklabel_gpt.h
+ disklabel_rdb.h
+ dkbad.h
+ dkio.h
+ dkstat.h
+ domain.h
+ drvctlio.h
+ dvdio.h
+ endian.h
+ envsys.h
+ errno.h
+ evcnt.h
+ event.h
+ exec.h
+ exec_aout.h
+ exec_coff.h
+ exec_ecoff.h
+ exec_elf.h
+ exec_script.h
+ extattr.h
+ extent.h
+ fcntl.h
+ fd_set.h
+ fdio.h
+ featuretest.h
+ file.h
+ filedesc.h
+ filio.h
+ flashio.h
+ float_ieee754.h
+ fstypes.h
+ gcq.h
+ gmon.h
+ gpio.h
+ hash.h
+ idtype.h
+ ieee754.h
+ intr.h
+ intrio.h
+ inttypes.h
+ ioccom.h
+ ioctl.h
+ ioctl_compat.h
+ iostat.h
+ ipc.h
+ ipmi.h
+ joystick.h
+ kcore.h
+ kcov.h
+ kcpuset.h
+ kgdb.h
+ kmem.h
+ ksem.h
+ ksyms.h
+ ktrace.h
+ localcount.h
+ localedef.h
+ lock.h
+ lockf.h
+ lua.h
+ lwp.h
+ lwpctl.h
+ malloc.h
+ mallocvar.h
+ mbuf.h
+ md4.h
+ md5.h
+ midiio.h
+ mman.h
+ module.h
+ mount.h
+ mqueue.h
+ msg.h
+ msgbuf.h
+ mtio.h
+ mutex.h
+ namei.h
+ null.h
+ param.h
+ pcu.h
+ pipe.h
+ pmf.h
+ poll.h
+ pool.h
+ power.h
+ proc.h
+ protosw.h
+ pset.h
+ psref.h
+ ptrace.h
+ ptree.h
+ queue.h
+ quota.h
+ quotactl.h
+ radioio.h
+ ras.h
+ rbtree.h
+ reboot.h
+ resource.h
+ resourcevar.h
+ rmd160.h
+ rnd.h
+ rndio.h
+ rwlock.h
+ scanio.h
+ sched.h
+ scsiio.h
+ sdt.h
+ select.h
+ selinfo.h
+ sem.h
+ semaphore.h
+ sha1.h
+ sha2.h
+ sha3.h
+ shm.h
+ siginfo.h
+ signal.h
+ signalvar.h
+ sigtypes.h
+ sleepq.h
+ socket.h
+ socketvar.h
+ sockio.h
+ soundcard.h
+ spawn.h
+ specificdata.h
+ stat.h
+ statvfs.h
+ stdarg.h
+ stdbool.h
+ stdint.h
+ swap.h
+ syncobj.h
+ syscall.h
+ syscallargs.h
+ sysctl.h
+ syslimits.h
+ syslog.h
+ tape.h
+ termios.h
+ time.h
+ timeb.h
+ timepps.h
+ times.h
+ timespec.h
+ timex.h
+ tls.h
+ trace.h
+ tree.h
+ tty.h
+ ttychars.h
+ ttycom.h
+ ttydefaults.h
+ ttydev.h
+ types.h
+ ucontext.h
+ ucred.h
+ uio.h
+ un.h
+ unistd.h
+ unpcb.h
+ utsname.h
+ uuid.h
+ verified_exec.h
+ videoio.h
+ vmmeter.h
+ vnode.h
+ vnode_if.h
+ wait.h
+ wapbl.h
+ wapbl_replay.h
+ wdog.h
+ xattr.h
+%%BASE%%/usr/include/ufs/ext2fs/
+ ext2fs.h
+ ext2fs_dinode.h
+ ext2fs_dir.h
+ ext2fs_extents.h
+ ext2fs_extern.h
+%%BASE%%/usr/include/ufs/ffs/
+ ffs_extern.h
+ fs.h
+%%BASE%%/usr/include/ufs/lfs/
+ lfs.h
+ lfs_accessors.h
+ lfs_extern.h
+ lfs_inode.h
+%%BASE%%/usr/include/ufs/mfs/
+ mfs_extern.h
+ mfsnode.h
+%%BASE%%/usr/include/ufs/ufs/
+ dinode.h
+ dir.h
+ extattr.h
+ inode.h
+ quota.h
+ quota1.h
+ quota2.h
+ ufs_bswap.h
+ ufs_extern.h
+ ufs_wapbl.h
+ ufsmount.h
+%%BASE%%/usr/include/uvm/
+ uvm.h
+ uvm_amap.h
+ uvm_anon.h
+ uvm_aobj.h
+ uvm_device.h
+ uvm_extern.h
+ uvm_fault.h
+ uvm_fault_i.h
+ uvm_glue.h
+ uvm_km.h
+ uvm_loan.h
+ uvm_map.h
+ uvm_object.h
+ uvm_page.h
+ uvm_pager.h
+ uvm_param.h
+ uvm_pdaemon.h
+ uvm_pglist.h
+ uvm_pmap.h
+ uvm_prot.h
+ uvm_stat.h
+ uvm_swap.h
+%%BASE%%/usr/include/x86/
+ aout_machdep.h
+ bootinfo.h
+ cacheinfo.h
+ cpu.h
+ cpu_extended_state.h
+ cpu_rng.h
+ cpu_ucode.h
+ cputypes.h
+ cpuvar.h
+ float.h
+ fpu.h
+ ieee.h
+ ieeefp.h
+ intr.h
+ intrdefs.h
+ lock.h
+ math.h
+ mtrr.h
+ mutex.h
+ pio.h
+ pmap.h
+ pmap_pv.h
+ psl.h
+ pte.h
+ rwlock.h
+ specialreg.h
+ sysarch.h
+ trap.h
+ via_padlock.h
+%%BASE%%/usr/lib/
+ crt0.o
+ crtbegin.o
+ crtbeginS.o
+ crtbeginT.o
+ crtend.o
+ crtendS.o
+ crti.o
+ crtn.o
+ gcrt0.o
+ libc.a
+ libc.so
+ libc.so.12
+ libcompat.a
+ libcrypt.a
+ libcrypt.so
+ libcrypt.so.1
+ libdevmapper.a
+ libdevmapper.so
+ libdevmapper.so.1
+ libdl.a
+ libedit.so.3
+ libexecinfo.so.0
+ libkvm.a
+ libkvm.so
+ libkvm.so.6
+ libm.a
+ libm.so
+ libm.so.0
+ libossaudio.a
+ libossaudio.so
+ libossaudio.so.1
+ libpci.a
+ libpci.so
+ libpci.so.2
+ libperfuse.a
+ libperfuse.so
+ libperfuse.so.0
+ libposix.a
+ libposix.so
+ libposix.so.0
+ libpthread.a
+ libpthread.so
+ libpthread.so.1
+ libpuffs.a
+ libpuffs.so
+ libpuffs.so.2
+ libquota.a
+ libquota.so
+ libquota.so.1
+ librpcsvc.a
+ librpcsvc.so
+ librpcsvc.so.1
+ librt.a
+ librt.so
+ librt.so.1
+ libterminfo.so.1
+ libusbhid.a
+ libusbhid.so
+ libusbhid.so.1
+ libutil.a
+ libutil.so
+ libutil.so.7
+ libx86_64.a
+ libx86_64.so
+ libx86_64.so.0
+%%BASE%%/usr/lib/i18n/libUTF8.so.5.0
+%%BASE%%/usr/libexec/
+ c++
+ cc
+ ccache
+ clang
+ clang++
+ g++
+ gcc
+ ld.elf_so
+%%BASE%%/usr/sbin/pwd_mkdb
+%%BASE%%/usr/share/
+ ARCH
+ OPSYS
+ OSMAJOR
+ OSRELEASE
+ OSVERSION
+ STDARCH
+ group
+ ld.so.hints
+ master.passwd
+ passwd
+ pwd.db
+ rc.conf
+ spwd.db
+ terminfo.db
+%%BASE%%/usr/share/file/magic.mgc
+%%BASE%%/usr/share/locale/en_US.UTF-8/
+ LC_CTYPE
+ LC_MONETARY
+ LC_NUMERIC
+ LC_TIME
+%%BASE%%/usr/share/locale/en_US.UTF-8/LC_MESSAGES/SYS_LC_MESSAGES
+%%BASE%%/usr/share/zoneinfo/
+ CET
+ CST6CDT
+ Cuba
+ EET
+ EST
+ EST5EDT
+ Egypt
+ Eire
+ Factory
+ GB
+ GB-Eire
+ GMT
+ GMT+0
+ GMT-0
+ GMT0
+ Greenwich
+ HST
+ Hongkong
+ Iceland
+ Iran
+ Israel
+ Jamaica
+ Japan
+ Kwajalein
+ Libya
+ MET
+ MST
+ MST7MDT
+ NZ
+ NZ-CHAT
+ Navajo
+ PRC
+ PST8PDT
+ Poland
+ Portugal
+ ROC
+ ROK
+ Singapore
+ TZDATA_VERSION
+ Turkey
+ UCT
+ UTC
+ Universal
+ W-SU
+ WET
+ Zulu
+ iso3166.tab
+ leapseconds
+ posixrules
+ zone.tab
+ zone1970.tab
+%%BASE%%/usr/share/zoneinfo/Africa/
+ Abidjan
+ Accra
+ Addis_Ababa
+ Algiers
+ Asmara
+ Asmera
+ Bamako
+ Bangui
+ Banjul
+ Bissau
+ Blantyre
+ Brazzaville
+ Bujumbura
+ Cairo
+ Casablanca
+ Ceuta
+ Conakry
+ Dakar
+ Dar_es_Salaam
+ Djibouti
+ Douala
+ El_Aaiun
+ Freetown
+ Gaborone
+ Harare
+ Johannesburg
+ Juba
+ Kampala
+ Khartoum
+ Kigali
+ Kinshasa
+ Lagos
+ Libreville
+ Lome
+ Luanda
+ Lubumbashi
+ Lusaka
+ Malabo
+ Maputo
+ Maseru
+ Mbabane
+ Mogadishu
+ Monrovia
+ Nairobi
+ Ndjamena
+ Niamey
+ Nouakchott
+ Ouagadougou
+ Porto-Novo
+ Sao_Tome
+ Timbuktu
+ Tripoli
+ Tunis
+ Windhoek
+%%BASE%%/usr/share/zoneinfo/America/
+ Adak
+ Anchorage
+ Anguilla
+ Antigua
+ Araguaina
+ Aruba
+ Asuncion
+ Atikokan
+ Atka
+ Bahia
+ Bahia_Banderas
+ Barbados
+ Belem
+ Belize
+ Blanc-Sablon
+ Boa_Vista
+ Bogota
+ Boise
+ Buenos_Aires
+ Cambridge_Bay
+ Campo_Grande
+ Cancun
+ Caracas
+ Catamarca
+ Cayenne
+ Cayman
+ Chicago
+ Chihuahua
+ Coral_Harbour
+ Cordoba
+ Costa_Rica
+ Creston
+ Cuiaba
+ Curacao
+ Danmarkshavn
+ Dawson
+ Dawson_Creek
+ Denver
+ Detroit
+ Dominica
+ Edmonton
+ Eirunepe
+ El_Salvador
+ Ensenada
+ Fort_Nelson
+ Fort_Wayne
+ Fortaleza
+ Glace_Bay
+ Godthab
+ Goose_Bay
+ Grand_Turk
+ Grenada
+ Guadeloupe
+ Guatemala
+ Guayaquil
+ Guyana
+ Halifax
+ Havana
+ Hermosillo
+ Indianapolis
+ Inuvik
+ Iqaluit
+ Jamaica
+ Jujuy
+ Juneau
+ Knox_IN
+ Kralendijk
+ La_Paz
+ Lima
+ Los_Angeles
+ Louisville
+ Lower_Princes
+ Maceio
+ Managua
+ Manaus
+ Marigot
+ Martinique
+ Matamoros
+ Mazatlan
+ Mendoza
+ Menominee
+ Merida
+ Metlakatla
+ Mexico_City
+ Miquelon
+ Moncton
+ Monterrey
+ Montevideo
+ Montreal
+ Montserrat
+ Nassau
+ New_York
+ Nipigon
+ Nome
+ Noronha
+ Nuuk
+ Ojinaga
+ Panama
+ Pangnirtung
+ Paramaribo
+ Phoenix
+ Port-au-Prince
+ Port_of_Spain
+ Porto_Acre
+ Porto_Velho
+ Puerto_Rico
+ Punta_Arenas
+ Rainy_River
+ Rankin_Inlet
+ Recife
+ Regina
+ Resolute
+ Rio_Branco
+ Rosario
+ Santa_Isabel
+ Santarem
+ Santiago
+ Santo_Domingo
+ Sao_Paulo
+ Scoresbysund
+ Shiprock
+ Sitka
+ St_Barthelemy
+ St_Johns
+ St_Kitts
+ St_Lucia
+ St_Thomas
+ St_Vincent
+ Swift_Current
+ Tegucigalpa
+ Thule
+ Thunder_Bay
+ Tijuana
+ Toronto
+ Tortola
+ Vancouver
+ Virgin
+ Whitehorse
+ Winnipeg
+ Yakutat
+ Yellowknife
+%%BASE%%/usr/share/zoneinfo/America/Argentina/
+ Buenos_Aires
+ Catamarca
+ ComodRivadavia
+ Cordoba
+ Jujuy
+ La_Rioja
+ Mendoza
+ Rio_Gallegos
+ Salta
+ San_Juan
+ San_Luis
+ Tucuman
+ Ushuaia
+%%BASE%%/usr/share/zoneinfo/America/Indiana/
+ Indianapolis
+ Knox
+ Marengo
+ Petersburg
+ Tell_City
+ Vevay
+ Vincennes
+ Winamac
+%%BASE%%/usr/share/zoneinfo/America/Kentucky/
+ Louisville
+ Monticello
+%%BASE%%/usr/share/zoneinfo/America/North_Dakota/
+ Beulah
+ Center
+ New_Salem
+%%BASE%%/usr/share/zoneinfo/Antarctica/
+ Casey
+ Davis
+ DumontDUrville
+ Macquarie
+ Mawson
+ McMurdo
+ Palmer
+ Rothera
+ South_Pole
+ Syowa
+ Troll
+ Vostok
+%%BASE%%/usr/share/zoneinfo/Arctic/Longyearbyen
+%%BASE%%/usr/share/zoneinfo/Asia/
+ Aden
+ Almaty
+ Amman
+ Anadyr
+ Aqtau
+ Aqtobe
+ Ashgabat
+ Ashkhabad
+ Atyrau
+ Baghdad
+ Bahrain
+ Baku
+ Bangkok
+ Barnaul
+ Beirut
+ Bishkek
+ Brunei
+ Calcutta
+ Chita
+ Choibalsan
+ Chongqing
+ Chungking
+ Colombo
+ Dacca
+ Damascus
+ Dhaka
+ Dili
+ Dubai
+ Dushanbe
+ Famagusta
+ Gaza
+ Harbin
+ Hebron
+ Ho_Chi_Minh
+ Hong_Kong
+ Hovd
+ Irkutsk
+ Istanbul
+ Jakarta
+ Jayapura
+ Jerusalem
+ Kabul
+ Kamchatka
+ Karachi
+ Kashgar
+ Kathmandu
+ Katmandu
+ Khandyga
+ Kolkata
+ Krasnoyarsk
+ Kuala_Lumpur
+ Kuching
+ Kuwait
+ Macao
+ Macau
+ Magadan
+ Makassar
+ Manila
+ Muscat
+ Nicosia
+ Novokuznetsk
+ Novosibirsk
+ Omsk
+ Oral
+ Phnom_Penh
+ Pontianak
+ Pyongyang
+ Qatar
+ Qostanay
+ Qyzylorda
+ Rangoon
+ Riyadh
+ Saigon
+ Sakhalin
+ Samarkand
+ Seoul
+ Shanghai
+ Singapore
+ Srednekolymsk
+ Taipei
+ Tashkent
+ Tbilisi
+ Tehran
+ Tel_Aviv
+ Thimbu
+ Thimphu
+ Tokyo
+ Tomsk
+ Ujung_Pandang
+ Ulaanbaatar
+ Ulan_Bator
+ Urumqi
+ Ust-Nera
+ Vientiane
+ Vladivostok
+ Yakutsk
+ Yangon
+ Yekaterinburg
+ Yerevan
+%%BASE%%/usr/share/zoneinfo/Atlantic/
+ Azores
+ Bermuda
+ Canary
+ Cape_Verde
+ Faeroe
+ Faroe
+ Jan_Mayen
+ Madeira
+ Reykjavik
+ South_Georgia
+ St_Helena
+ Stanley
+%%BASE%%/usr/share/zoneinfo/Australia/
+ ACT
+ Adelaide
+ Brisbane
+ Broken_Hill
+ Canberra
+ Currie
+ Darwin
+ Eucla
+ Hobart
+ LHI
+ Lindeman
+ Lord_Howe
+ Melbourne
+ NSW
+ North
+ Perth
+ Queensland
+ South
+ Sydney
+ Tasmania
+ Victoria
+ West
+ Yancowinna
+%%BASE%%/usr/share/zoneinfo/Brazil/
+ Acre
+ DeNoronha
+ East
+ West
+%%BASE%%/usr/share/zoneinfo/Canada/
+ Atlantic
+ Central
+ Eastern
+ Mountain
+ Newfoundland
+ Pacific
+ Saskatchewan
+ Yukon
+%%BASE%%/usr/share/zoneinfo/Chile/
+ Continental
+ EasterIsland
+%%BASE%%/usr/share/zoneinfo/Etc/
+ GMT
+ GMT+0
+ GMT+1
+ GMT+10
+ GMT+11
+ GMT+12
+ GMT+2
+ GMT+3
+ GMT+4
+ GMT+5
+ GMT+6
+ GMT+7
+ GMT+8
+ GMT+9
+ GMT-0
+ GMT-1
+ GMT-10
+ GMT-11
+ GMT-12
+ GMT-13
+ GMT-14
+ GMT-2
+ GMT-3
+ GMT-4
+ GMT-5
+ GMT-6
+ GMT-7
+ GMT-8
+ GMT-9
+ GMT0
+ Greenwich
+ UCT
+ UTC
+ Universal
+ Zulu
+%%BASE%%/usr/share/zoneinfo/Europe/
+ Amsterdam
+ Andorra
+ Astrakhan
+ Athens
+ Belfast
+ Belgrade
+ Berlin
+ Bratislava
+ Brussels
+ Bucharest
+ Budapest
+ Busingen
+ Chisinau
+ Copenhagen
+ Dublin
+ Gibraltar
+ Guernsey
+ Helsinki
+ Isle_of_Man
+ Istanbul
+ Jersey
+ Kaliningrad
+ Kiev
+ Kirov
+ Lisbon
+ Ljubljana
+ London
+ Luxembourg
+ Madrid
+ Malta
+ Mariehamn
+ Minsk
+ Monaco
+ Moscow
+ Nicosia
+ Oslo
+ Paris
+ Podgorica
+ Prague
+ Riga
+ Rome
+ Samara
+ San_Marino
+ Sarajevo
+ Saratov
+ Simferopol
+ Skopje
+ Sofia
+ Stockholm
+ Tallinn
+ Tirane
+ Tiraspol
+ Ulyanovsk
+ Uzhgorod
+ Vaduz
+ Vatican
+ Vienna
+ Vilnius
+ Volgograd
+ Warsaw
+ Zagreb
+ Zaporozhye
+ Zurich
+%%BASE%%/usr/share/zoneinfo/Indian/
+ Antananarivo
+ Chagos
+ Christmas
+ Cocos
+ Comoro
+ Kerguelen
+ Mahe
+ Maldives
+ Mauritius
+ Mayotte
+ Reunion
+%%BASE%%/usr/share/zoneinfo/Mexico/
+ BajaNorte
+ BajaSur
+ General
+%%BASE%%/usr/share/zoneinfo/Pacific/
+ Apia
+ Auckland
+ Bougainville
+ Chatham
+ Chuuk
+ Easter
+ Efate
+ Enderbury
+ Fakaofo
+ Fiji
+ Funafuti
+ Galapagos
+ Gambier
+ Guadalcanal
+ Guam
+ Honolulu
+ Johnston
+ Kiritimati
+ Kosrae
+ Kwajalein
+ Majuro
+ Marquesas
+ Midway
+ Nauru
+ Niue
+ Norfolk
+ Noumea
+ Pago_Pago
+ Palau
+ Pitcairn
+ Pohnpei
+ Ponape
+ Port_Moresby
+ Rarotonga
+ Saipan
+ Samoa
+ Tahiti
+ Tarawa
+ Tongatapu
+ Truk
+ Wake
+ Wallis
+ Yap
+%%BASE%%/usr/share/zoneinfo/US/
+ Alaska
+ Aleutian
+ Arizona
+ Central
+ East-Indiana
+ Eastern
+ Hawaii
+ Indiana-Starke
+ Michigan
+ Mountain
+ Pacific
+ Samoa
+@dir %%BASE%%/usr/lib/pkgconfig
+@dir %%BASE%%/usr/local
+
+
+[FILE:5934:files/Makefile]
 # Create identical sysroot regardless of host system
 
 all: sysroot
 
-Libexec_DragonFly=	/libexec/ld-elf.so.2
-Libexec_FreeBSD=	/libexec/ld-elf.so.1
-Libexec_Linux=		# empty
-
-Libelf_FreeBSD=		libelf.so.2
-Libthr_FreeBSD=		libthr.so.3
-Libsbuf_FreeBSD=	libsbuf.so.6
-Libdevstat_FreeBSD=	libdevstat.so.7
-Libprocstat_FreeBSD=	libprocstat.so.1
-Libgeom_FreeBSD=	libgeom.so.5
-Libbsdxml_FreeBSD=	libbsdxml.so.4
+.include "system_specifics.mk"
 
 CPA=			-RpP
 
-# /bin/cat    (archivers/libarchive)
-# /bin/md5    (ravensys-utils)
-# /bin/sha256 (ravensys-utils)
-
-Bin_DragonFly=	/bin/[ \
-		/usr/bin/chflags \
-		/bin/chmod \
-		/bin/cp \
-		/bin/date \
-		/bin/echo \
-		/bin/expr \
-		/bin/hostname \
-		/bin/kill \
-		/bin/link \
-		/bin/ln \
-		/rescue/ls \
-		/bin/mkdir \
-		/bin/mv \
-		/bin/pax \
-		/bin/pwd \
-		/bin/realpath \
-		/bin/rm \
-		/bin/rmdir \
-		/rescue/sh \
-		/bin/sleep \
-		/bin/test \
-		/bin/unlink
-
-Bin_FreeBSD=	/bin/[ \
-		/bin/chflags \
-		/bin/chmod \
-		/bin/cp \
-		/bin/date \
-		/bin/echo \
-		/bin/expr \
-		/bin/hostname \
-		/bin/kill \
-		/bin/link \
-		/bin/ln \
-		/rescue/ls \
-		/bin/mkdir \
-		/bin/mv \
-		/bin/pax \
-		/bin/pwd \
-		/bin/realpath \
-		/bin/rm \
-		/bin/rmdir \
-		/rescue/sh \
-		/bin/sleep \
-		/bin/test \
-		/bin/unlink \
-		# end
-
-Bin_Linux=	/bin/hostname \
-		/bin/pax \
-		/bin/dash \
-		/bin/sh \
-		# rest comes form coreutils
-
+# pulled in from other packges:
+# ----------------------------------------
+# /bin/cat        (archivers/libarchive)
+# /bin/md5        (ravensys-utils)
+# /bin/sha256     (ravensys-utils)
 # /usr/bin/awk    (lang/nawk)
 # /usr/bin/cpio	  (archivers/libarchive)
 # /usr/bin/bzip2* (archivers/bzip2)
@@ -9070,527 +10773,14 @@ Bin_Linux=	/bin/hostname \
 # /usr/bin/sort   (sysutils/coreutils)
 # /usr/bin/objdump-sysroot (devel/binutils)
 
-Usr_Bin_DragonFly= \
-		/usr/bin/basename \
-		/usr/bin/chgrp \
-		/usr/sbin/chown \
-		/usr/bin/comm \
-		/usr/bin/cut \
-		/usr/bin/dirname \
-		/usr/bin/env \
-		/usr/bin/false \
-		/usr/bin/head \
-		/usr/bin/id \
-		/usr/bin/join \
-		/usr/bin/ldd \
-		/usr/bin/mkfifo \
-		/usr/bin/mktemp \
-		/usr/bin/printenv \
-		/usr/bin/printf \
-		/usr/bin/readlink \
-		/usr/bin/stat \
-		/usr/bin/tail \
-		/usr/bin/tee \
-		/usr/bin/touch \
-		/usr/bin/tr \
-		/usr/bin/true \
-		/usr/bin/tsort \
-		/usr/bin/uniq \
-		/usr/bin/which \
-		/usr/bin/whoami \
-		# end
-
-Usr_Bin_FreeBSD=	${Usr_Bin_DragonFly}
-
-Usr_Bin_Linux=	# all come from coreutils except two
-		# /bin/which and /usr/bin/ldd are scripts, special handling
-
-Usr_Sbin_DragonFly= 	/usr/sbin/pw \
-			/usr/sbin/pwd_mkdb \
-			# end
-Usr_Sbin_FreeBSD=	${Usr_Sbin_DragonFly}
-Usr_Sbin_Linux=		# end
-
-static_lib_generic=	/usr/lib/libc.a \
-			/usr/lib/libm.a \
-			/usr/lib/librt.a \
-			/usr/lib/libutil.a \
-			/usr/lib/libcrypt.a \
-			/usr/lib/librpcsvc.a \
-			/usr/lib/libpthread.a
-static_lib_FreeBSD=	${static_lib_generic} \
-			/usr/lib/libbsdxml.a \
-			/usr/lib/libcam.a \
-			/usr/lib/libcompat.a \
-			/usr/lib/libdevstat.a \
-			/usr/lib/libgeom.a \
-			/usr/lib/libkvm.a \
-			/usr/lib/libprocstat.a \
-			/usr/lib/libthr.a \
-			/usr/lib/libusb.a \
-			/usr/lib/libusbhid.a \
-			/usr/lib/libjail.a \
-			/usr/lib/libsbuf.a \
-			/usr/lib/libc_nonshared.a \
-			/usr/lib/libssp_nonshared.a \
-			/usr/lib/Scrt1.o \
-			/usr/lib/gcrt1.o \
-			/usr/lib/crt1.o \
-			/usr/lib/crti.o \
-			/usr/lib/crtn.o
-static_lib_DragonFly=	${static_lib_generic} \
-			/usr/lib/libcam.a \
-			/usr/lib/libkvm.a \
-			/usr/lib/libsbuf.a \
-			/usr/lib/libusb.a \
-			/usr/lib/libusbhid.a \
-			/usr/lib/Scrt1.o \
-			/usr/lib/gcrt1.o \
-			/usr/lib/crt1.o \
-			/usr/lib/crti.o \
-			/usr/lib/crtn.o
-static_lib_Linux=	# Linux doesn't use /usr/lib but a sudirectory, needs special list
-Linux_static_libs=	libc.a \
-			libc_nonshared.a \
-			libm.a \
-			libutil.a \
-			libcrypt.a \
-			libpthread.a \
-			libpthread_nonshared.a \
-			libdl.a \
-			libnsl.a \
-			librt.a \
-			libresolv.a \
-			libanl.a \
-			libmvec.a \
-			libmvec_nonshared.a \
-			librpcsvc.a \
-			libieee.a \
-			Mcrt1.o \
-			Scrt1.o \
-			crt1.o \
-			crti.o \
-			crtn.o \
-			gcrt1.o \
-			# end
-dynamic_generic=	/lib/${libc} \
-			/lib/${libm} \
-			/lib/${libutil} \
-			/lib/${libcrypt} \
-			/lib/${libkvm} \
-			/lib/${libcam} \
-			/usr/lib/${librpcsvc} \
-			/usr/lib/${librt}
-dynamic_lib_FreeBSD=	${dynamic_generic} \
-			/lib/${Libbsdxml_FreeBSD} \
-			/lib/${Libelf_FreeBSD} \
-			/lib/${Libgeom_FreeBSD} \
-			/lib/${Libsbuf_FreeBSD} \
-			/lib/${Libthr_FreeBSD} \
-			/lib/${Libdevstat_FreeBSD} \
-			/usr/lib/libexecinfo.so.1 \
-			/lib/libjail.so.1 \
-			/usr/lib/${Libprocstat_FreeBSD} \
-			/usr/lib/${libusb} \
-			/usr/lib/${libusbhid}
-dynamic_lib_DragonFly=	${dynamic_generic} \
-			/lib/libsbuf.so.3 \
-			/lib/libprop.so.3 \
-			/lib/libdevattr.so.3 \
-			/lib/libdevstat.so.3 \
-			/usr/lib/libdevinfo.so.3 \
-			/usr/lib/libdevmapper.so.0 \
-			/usr/lib/libkinfo.so.2 \
-			/usr/lib/libpthread.so \
-			/usr/lib/libpthread.so.0 \
-			/usr/lib/libexecinfo.so.1 \
-			/usr/lib/${libusb} \
-			/usr/lib/${libusbhid}
-dynamic_lib_Linux=	# Linux doesn't use /usr/lib, needs special list
-Linux_RTLD=		ld-2.23.so/ld-linux-x86-64.so.2
-Linux_C_lib=		libc-2.23.so/libc.so.6
-Linux_thread_lib=	libpthread-2.23.so/libpthread.so.0
-			# /lib/x86_64-linux-gnu => /lib64
-			# real file / soname (also symlink)
-			# use to create /usr/lib64/<lib>.so => /lib64/soname
-Linux_shared_libs=	${Linux_C_lib} \
-			${Linux_thread_lib} \
-			libm-2.23.so/libm.so.6 \
-			libutil-2.23.so/libutil.so.1 \
-			libcrypt-2.23.so/libcrypt.so.1 \
-			libdl-2.23.so/libdl.so.2 \
-			libnsl-2.23.so/libnsl.so.1 \
-			librt-2.23.so/librt.so.1 \
-			libresolv-2.23.so/libresolv.so.2 \
-			libanl-2.23.so/libanl.so.1 \
-			libmvec-2.23.so/libmvec.so.1 \
-			libnss_compat-2.23.so/libnss_compat.so.2 \
-			libnss_dns-2.23.so/libnss_dns.so.2 \
-			libnss_files-2.23.so/libnss_files.so.2 \
-			libnss_hesiod-2.23.so/libnss_hesiod.so.2 \
-			libnss_nis-2.23.so/libnss_nis.so.2 \
-			libnss_nisplus-2.23.so/libnss_nisplus.so.2 \
-			libudev.so.1.6.4/libudev.so.1 \
-			# end
-Linux_extra_libs1=	libattr.so.1.1.0/libattr.so.1 \
-			libacl.so.1.1.0/libacl.so.1 \
-			# end (/lib)
-Linux_extra_libs2=	# libustr-1.0.so.1.0.4/libustr-1.0.so.1 \
-			# end (/usr/lib)
-Linux_single_libs1=	# end (/lib/TARGET)
-Linux_single_libs2=	# libsemanage.so.1 \
-			# end (/usr/lib/TARGET)
-posix_headers=		aio.h \
-			assert.h \
-			complex.h \
-			cpio.h \
-			ctype.h \
-			dirent.h \
-			dlfcn.h \
-			errno.h \
-			fcntl.h \
-			fenv.h \
-			float.h \
-			fmtmsg.h \
-			fnmatch.h \
-			ftw.h \
-			glob.h \
-			grp.h \
-			iconv.h \
-			inttypes.h \
-			iso646.h \
-			langinfo.h \
-			libgen.h \
-			limits.h \
-			locale.h \
-			math.h \
-			monetary.h \
-			mqueue.h \
-			ndbm.h \
-			netdb.h \
-			nl_types.h \
-			poll.h \
-			pthread.h \
-			pwd.h \
-			regex.h \
-			sched.h \
-			search.h \
-			semaphore.h \
-			setjmp.h \
-			signal.h \
-			spawn.h \
-			stdarg.h \
-			stdbool.h \
-			stddef.h \
-			stdint.h \
-			stdio.h \
-			stdlib.h \
-			string.h \
-			strings.h \
-			stropts.h \
-			syslog.h \
-			tar.h \
-			termios.h \
-			tgmath.h \
-			time.h \
-			trace.h \
-			ulimit.h \
-			unistd.h \
-			utime.h \
-			utmpx.h \
-			wchar.h \
-			wctype.h \
-			wordexp.h \
-			# end
-
-headers_SunOS_dirs=	#end
-headers_SunOS=		#end
-
-headers_Darwin_dirs=	#end
-headers_Darwin=		#end
-
-headers_FreeBSD_dirs=	arpa \
-			cam \
-			crypto \
-			dev \
-			fs \
-			geom \
-			machine \
-			net \
-			net80211 \
-			netipsec \
-			netinet \
-			netinet6 \
-			nfsclient \
-			rpc \
-			rpcsvc \
-			sys \
-			ufs \
-			vm \
-			x86 \
-			xlocale \
-			# end
-
-headers_DragonFly_dirs=	arpa \
-			bus \
-			cpu \
-			crypto \
-			dev \
-			libprop \
-			machine \
-			net \
-			netbt \
-			netinet \
-			netinet6 \
-			netproto \
-			protocols \
-			rpc \
-			rpcsvc \
-			sys \
-			vfs \
-			vm \
-			xlocale \
-			# end
-
-headers_BSD=		${posix_headers:Nstropts.h:Ntrace.h} \
-			ar.h \
-			bitstring.h \
-			bluetooth.h \
-			camlib.h \
-			devinfo.h \
-			devstat.h \
-			efivar.h \
-			elf-hints.h \
-			elf.h \
-			err.h \
-			floatingpoint.h \
-			fstab.h \
-			fts.h \
-			getopt.h \
-			ieeefp.h \
-			ifaddrs.h \
-			kvm.h \
-			libusb.h \
-			libusb20.h \
-			libusb20_desc.h \
-			libutil.h \
-			link.h \
-			linker_set.h \
-			login_cap.h \
-			memory.h \
-			mpool.h \
-			netconfig.h \
-			nlist.h \
-			osreldate.h \
-			paths.h \
-			printf.h \
-			pthread_np.h \
-			readpassphrase.h \
-			res_update.h \
-			resolv.h \
-			runetype.h \
-			sdp.h \
-			stdalign.h \
-			stdnoreturn.h \
-			stringlist.h \
-			sysexits.h \
-			syslog.h \
-			timeconv.h \
-			timers.h \
-			ttyent.h \
-			uchar.h \
-			ucontext.h \
-			usb.h \
-			usbhid.h \
-			uuid.h \
-			vis.h \
-			xlocale.h \
-			# end
-
-headers_DragonFly=	${headers_BSD} \
-			devattr.h \
-			dfregress.h \
-			disktab.h \
-			evtr.h \
-			kinfo.h \
-			kinfo_pcpu.h \
-			libcryptsetup.h \
-			luks.h \
-			mntopts.h \
-			re_comp.h \
-			util.h
-
-headers_FreeBSD=	${headers_BSD} \
-			_ctype.h \
-			bsm/audit.h \
-			libusb20.h \
-			libusb20_desc.h \
-			kenv.h \
-			libgeom.h \
-			libprocstat.h \
-			malloc_np.h \
-			jail.h \
-			# end
-
-headers_Linux_dirs=	acl \
-			arpa \
-			attr \
-			asm-generic \
-			drm \
-			linux \
-			net \
-			netash \
-			netatalk \
-			netax25 \
-			neteconet \
-			netinet \
-			netipx \
-			netiucv \
-			netpacket \
-			netrom \
-			netrose \
-			nfs \
-			protocols \
-			rpc \
-			rpcsvc \
-			sound \
-			scsi \
-			sys \
-			x86_64-linux-gnu \
-			#end
-headers_Linux=		_G_config.h \
-			aio.h \
-			aliases.h \
-			alloca.h \
-			ar.h \
-			argp.h \
-			argz.h \
-			assert.h \
-			byteswap.h \
-			complex.h \
-			cpio.h \
-			crypt.h \
-			ctype.h \
-			dirent.h \
-			dlfcn.h \
-			elf.h \
-			endian.h \
-			envz.h \
-			err.h \
-			errno.h \
-			error.h \
-			execinfo.h \
-			fcntl.h \
-			features.h \
-			fenv.h \
-			fmtmsg.h \
-			fnmatch.h \
-			fstab.h \
-			fts.h \
-			ftw.h \
-			gconv.h \
-			getopt.h \
-			glob.h \
-			gnu-versions.h \
-			grp.h \
-			gshadow.h \
-			iconv.h \
-			ifaddrs.h \
-			inttypes.h \
-			langinfo.h \
-			lastlog.h \
-			libgen.h \
-			libintl.h \
-			libio.h \
-			libudev.h \
-			limits.h \
-			link.h \
-			locale.h \
-			malloc.h \
-			math.h \
-			mcheck.h \
-			memory.h \
-			mntent.h \
-			monetary.h \
-			mqueue.h \
-			netdb.h \
-			nl_types.h \
-			nss.h \
-			obstack.h \
-			paths.h \
-			poll.h \
-			printf.h \
-			pthread.h \
-			pty.h \
-			pwd.h \
-			re_comp.h \
-			regex.h \
-			regexp.h \
-			resolv.h \
-			sched.h \
-			search.h \
-			semaphore.h \
-			setjmp.h \
-			sgtty.h \
-			shadow.h \
-			signal.h \
-			spawn.h \
-			stab.h \
-			stdc-predef.h \
-			stdint.h \
-			stdio.h \
-			stdio_ext.h \
-			stdlib.h \
-			string.h \
-			strings.h \
-			stropts.h \
-			syscall.h \
-			sysexits.h \
-			syslog.h \
-			tar.h \
-			termio.h \
-			termios.h \
-			tgmath.h \
-			thread_db.h \
-			time.h \
-			ttyent.h \
-			uchar.h \
-			ucontext.h \
-			ulimit.h \
-			unistd.h \
-			ustat.h \
-			utime.h \
-			utmp.h \
-			utmpx.h \
-			values.h \
-			wait.h \
-			wchar.h \
-			wctype.h \
-			wordexp.h \
-			xlocale.h \
-			# end
-
-pcfiles_Linux=		libudev.pc \
-			# end
-pcfiles_SunOS=		# end
-pcfiles_Darwin=		# end
-pcfiles_FreeBSD=	libusb-0.1.pc \
-			libusb-2.0.pc \
-			libusb-1.0.pc \
-			# end
-pcfiles_DragonFly=	libusb-0.1.pc \
-			libusb-2.0.pc \
-			libusb-1.0.pc \
-			# end
 
 sysroot:
 	@echo "building not required"
 
-install:
-.if "${OPSYS}" == "Darwin"
-	${MKDIR} ${DESTDIR}/${BASE}
-	mv ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
-.endif
+common-skeleton:
+	@echo "==================================="
+	@echo "===  Create common directories  ==="
+	@echo "==================================="
 	${MKDIR} \
 		${DESTDIR}${BASE}/bin \
 		${DESTDIR}${BASE}/usr/bin \
@@ -9606,43 +10796,15 @@ install:
 		${DESTDIR}${BASE}/usr/include/rpcsvc \
 		${DESTDIR}${BASE}/usr/sbin \
 		# end
-.if "${OPSYS}" == "DragonFly"
-	${MKDIR} \
-		${DESTDIR}${BASE}/libexec \
-		${DESTDIR}${BASE}/usr/include/compat \
-		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8 \
-		${DESTDIR}${BASE}/usr/lib/gcc80 \
-		# end
-.endif
-.if "${OPSYS}" == "FreeBSD"
-	${MKDIR} \
-		${DESTDIR}${BASE}/libexec \
-		${DESTDIR}${BASE}/usr/include/bsm \
-		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8 \
-		# end
-.endif
-.if "${OPSYS}" == "Linux"
-	${MKDIR} \
-		${DESTDIR}${BASE}/lib \
-		${DESTDIR}${BASE}/lib64 \
-		${DESTDIR}${BASE}/lib/x86_64-linux-gnu \
-		${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu \
-		${DESTDIR}${BASE}/usr/lib/pkgconfig \
-		# end
-.endif
 
-.if "${OPSYS}" == "SunOS"
-	cp ${CPA} ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
-	# use BSD's which (from ravensys-utils)
-	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/which ${DESTDIR}${BASE}/usr/bin/
-	# /bin/sh is really /usr/xpg4/bin/sh, move it there
-	# Move /usr/bin/bash (from distro) to /bin/bash
-	# hardlink /bin/bash to /bin/sh
-	${MKDIR} ${DESTDIR}${BASE}/usr/xpg4/bin
-	mv ${DESTDIR}${BASE}/bin/sh ${DESTDIR}${BASE}/usr/xpg4/bin/
-	mv ${DESTDIR}${BASE}/usr/bin/bash ${DESTDIR}${BASE}/bin/bash
-	ln ${DESTDIR}${BASE}/bin/bash ${DESTDIR}${BASE}/bin/sh
-.elif "${OPSYS}" == "Darwin"
+
+skeleton: platform-skeleton
+
+install-common: skeleton
+	@echo "=================================="
+	@echo "===  Common file installation  ==="
+	@echo "=================================="
+.if "${OPSYS}" == "Darwin" || "${OPSYS}" == "SunOS"
 	# do nothing
 .else
 .  for item in ${Bin_${OPSYS}}
@@ -9664,142 +10826,6 @@ install:
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/lib/
 .  endfor
 .endif
-.if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
-	(cd ${DESTDIR}${BASE}/usr/lib && \
-		ln -s ${libm} libm.so && \
-		ln -s ${librt} librt.so && \
-		ln -s ${libkvm} libkvm.so && \
-		ln -s ${libcam} libcam.so && \
-		ln -s ${libcrypt} libcrypt.so && \
-		ln -s ${libutil} libutil.so && \
-		ln -s ${librpcsvc} librpcsvc.so && \
-		ln -s ${libusb} libusb.so && \
-		ln -s ${libusbhid} libusbhid.so)
-	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/lorder ${DESTDIR}${BASE}/usr/bin/
-.endif
-.if ${OPSYS} == FreeBSD
-	(cd ${DESTDIR}${BASE}/usr/lib && \
-		ln -s ${Libthr_FreeBSD} libthr.so && \
-		ln -s ${Libbsdxml_FreeBSD} libbsdxml.so && \
-		ln -s ${Libdevstat_FreeBSD} libdevstat.so && \
-		ln -s ${Libprocstat_FreeBSD} libprocstat.so && \
-		ln -s ${Libgeom_FreeBSD} libgeom.so && \
-		ln -s ${PREFIX}/lib/libexecinfo.so libexecinfo.so && \
-		ln -s libthr.so libpthread.so && \
-		ln -s libjail.so.1 libjail.so)
-	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libgcc_s.so.1 ${DESTDIR}${BASE}/usr/lib/
-	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libcxxrt.so.1 ${DESTDIR}${BASE}/usr/lib/
-	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/libc++.so.1 ${DESTDIR}${BASE}/usr/lib/
-	sed -e 's|/lib/libc\.so|/usr/lib/libc.so|'  ../${OPSYS:tl}/usr/lib/libc.so \
-		> ${DESTDIR}${BASE}/usr/lib/libc.so
-.endif
-.if ${OPSYS} == DragonFly
-	(cd ${DESTDIR}${BASE}/usr/lib && \
-		ln -s ${libc} libc.so && \
-		ln -s libsbuf.so.3 libsbuf.so && \
-		ln -s libprop.so.3 libprop.so && \
-		ln -s libdevattr.so.3 libdevattr.so && \
-		ln -s libdevstat.so.3 libdevstat.so && \
-		ln -s libdevinfo.so.3 libdevinfo.so && \
-		ln -s libkinfo.so.2 libkinfo.so && \
-		ln -s libdevmapper.so.0 libdevmapper.so)
-	(cd ${DESTDIR}${BASE}/usr/include && \
-		ln -s /usr/include/dev/misc/evdev compat/linux && \
-		ln -s vfs fs && \
-		ln -s vfs ufs && \
-		ln -s vfs/nfs nfs && \
-		ln -s vfs/ntfs ntfs && \
-		ln -s vfs/isofs isofs && \
-		ln -s vfs/msdos msdosfs && \
-		ln -s netproto/smb netsmb && \
-		ln -s bus/pccard pccard && \
-		ln -s bus/cam cam)
-.  for item in gcc80/libstdc++.so.9
-	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/${item} ${DESTDIR}${BASE}/usr/lib/${item}
-.  endfor
-.  for item in gcc80/libgcc_pic.a
-	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/lib/${item} ${DESTDIR}${BASE}/usr/lib/${item}
-.  endfor
-.endif
-.if ${OPSYS} == Linux
-.  for item in ${Linux_static_libs}
-	${BSD_INSTALL_DATA} ../linux/usr/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
-.  endfor
-.  for item in ${Linux_shared_libs}
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:T:R} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
-.  endfor
-.  for item in ${Linux_RTLD}
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-.  endfor
-.  for item in ${Linux_extra_libs1}
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T:R} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-.  endfor
-.  for item in ${Linux_extra_libs2}
-	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
-	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
-.  endfor
-.  for item in ${Linux_single_libs1}
-	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
-.  endfor
-.  for item in ${Linux_single_libs2}
-	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
-.  endfor
-	ln -s /lib/x86_64-linux-gnu/${Linux_RTLD:H} ${DESTDIR}${BASE}/lib64/${Linux_RTLD:T}
-	# symlink libgcc_s.so.1 which lpthread needs in a specific location
-	ln -s /raven/toolchain/${GCCX}/lib64/libgcc_s.so.1 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/libgcc_s.so.1
-	# certain shared libraries must be executable
-	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_RTLD:H}
-	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_C_lib:H}
-	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_thread_lib:H}
-	# From linux-only shadow package
-.  for sbinitem in useradd usermod groupadd
-	cp ${CPA} ${LOCALBASE}/sbin/${sbinitem} ${DESTDIR}${BASE}/usr/bin/
-.  endfor
-	# lorder is system-specific.  Linux has it natively though
-	${BSD_INSTALL_SCRIPT} ../linux/usr/bin/lorder ${DESTDIR}${BASE}/usr/bin/
-	# ldd and which are scripts, can't be stripped
-	${BSD_INSTALL_SCRIPT} ../linux/usr/bin/ldd ${DESTDIR}${BASE}/usr/bin/
-	${BSD_INSTALL_SCRIPT} ../linux/bin/which ${DESTDIR}${BASE}/usr/bin/
-	# convert ldd from bash to dash
-	sed -i'' -e "s|/bin/bash|/bin/dash|" ${DESTDIR}${BASE}/usr/bin/ldd
-	# i386 version conflicts with amd64 version, so copy just the i386 files separately
-	cp ${CPA} ../ravensys-root_14/usr/include/i386-linux-gnu ${DESTDIR}${BASE}/usr/include/
-	# locales
-	${MKDIR} ${DESTDIR}${BASE}/usr/lib/locale
-	${MKDIR} ${DESTDIR}${BASE}/usr/share/i18n/charmaps
-	${MKDIR} ${DESTDIR}${BASE}/usr/share/i18n/locales
-	cp ${CPA} ../linux/usr/share/i18n/charmaps/UTF-8.gz ${DESTDIR}${BASE}/usr/share/i18n/charmaps/
-	cp ${CPA} ../linux/usr/lib/locale/C.UTF-8 ${DESTDIR}${BASE}/usr/lib/locale/
-.  for locale in C POSIX en_US en_GB iso14651_t1 iso14651_t1_common i18n translit_*
-	cp ${CPA} ../linux/usr/share/i18n/locales/${locale} ${DESTDIR}${BASE}/usr/share/i18n/locales/
-.  endfor
-	env I18NPATH=${DESTDIR}${BASE}/usr/share/i18n ../linux/usr/bin/localedef --prefix=${DESTDIR}${BASE} -f UTF-8 -i en_US en_US.UTF-8
-	# from bash package
-	cp ${CPA} ${LOCALBASE}/bin/bash ${DESTDIR}${BASE}/bin/
-.endif
-.if ${OPSYS} == Linux || ${OPSYS} == SunOS || ${OPSYS} == Darwin
-	# use coreutils that FreeBSD and DragonFly passed on (/bin)
-.  for item in [ chmod cp date echo expr kill link ln ls mkdir mv pwd \
-	realpath rm rmdir sleep test unlink
-	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/${item}
-.  endfor
-	# use coreutils that FreeBSD and DragonFly passed on (/usr/bin)
-.  for item in basename chgrp chown comm cut dirname env false head id \
-	join mkfifo mktemp printenv printf readlink tail tee touch \
-	tee tr true tsort uniq whoami
-	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
-.  endfor
-.  if ${OPSYS} == Linux || ${OPSYS} == SunOS
-.    for item in stat
-	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
-.    endfor
-.  endif
-.endif
 
 	# for convenience from listing hundreds of files, copy all from specific directories
 .  for hdr in ${headers_${OPSYS}_dirs}
@@ -9814,9 +10840,11 @@ install:
 		${DESTDIR}${BASE}/usr/lib/pkgconfig/
 .  endif
 .endfor
+
 .for item in md5 sha256 cat
-	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
 .endfor
+	# use cp -r because they are links, scripts, compiled all mixed
 .for item in m4 bzip2 bunzip2 bzcat bzgrep bzegrep bzfgrep lockf \
 	grep file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
 	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
@@ -9824,98 +10852,31 @@ install:
 	unzip less mtree bsdcat dupe genpatch portfix patch fetch \
 	rpcgen sed find xargs cmp diff diff3 sdiff \
 	install wc sort od mknod seq
-	cp ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/
 .endfor
 .for item in ${headers_${OPSYS}}
 	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/include/${item} ${DESTDIR}${BASE}/usr/include/${item}
 .endfor
-.if ${OPSYS} == DragonFly
-	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
-	rm ${DESTDIR}${BASE}/usr/include/net/zlib.h
-	rm -rf ${DESTDIR}${BASE}/usr/include/net/ipfw*
-	rm -rf ${DESTDIR}${BASE}/usr/include/net/pf
-	rmdir  ${DESTDIR}${BASE}/usr/include/vfs/mfs
-	# fix timespec* for c++17
-	sed -i '/if __ISO_C_VISIBLE >= 2011$$/ s#$$# || (defined(__cplusplus) \&\& __cplusplus >= 201703) &#' \
-		${DESTDIR}${BASE}/usr/include/time.h
-.endif
-.if ${OPSYS} == FreeBSD
-	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
-	rmdir ${DESTDIR}${BASE}/usr/include/dev/nand
-	rmdir ${DESTDIR}${BASE}/usr/include/dev/powermac_nvram
-.endif
-	cp ${LOCALBASE}/toolchain/bin/objdump ${DESTDIR}${BASE}/usr/bin/objdump-sysroot
+
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/toolchain/bin/objdump ${DESTDIR}${BASE}/usr/bin/objdump-sysroot
 .for item in nawk/awk less/more bmake/make \
 	bsdcpio/cpio bsdtar/tar ravensys-uname/uname nvi/vi
-	cp ${LOCALBASE}/bin/${item:H} ${DESTDIR}${BASE}/usr/bin/${item:T}
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/${item:H} ${DESTDIR}${BASE}/usr/bin/${item:T}
 .endfor
 	ln -s m4 ${DESTDIR}${BASE}/usr/bin/gm4
-	cp ${LOCALBASE}/share/misc/terminfo.db.default ${DESTDIR}${BASE}/usr/share/terminfo.db
-	cp ${LOCALBASE}/sbin/ravensw ${DESTDIR}${BASE}/usr/bin/
-	cp ${LOCALBASE}/sbin/makewhatis ${DESTDIR}${BASE}/usr/bin/
-	cp ${LOCALBASE}/share/file/magic.mgc ${DESTDIR}${BASE}/usr/share/file/
+	${BSD_INSTALL_DATA} ${LOCALBASE}/share/misc/terminfo.db.default ${DESTDIR}${BASE}/usr/share/terminfo.db
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/sbin/ravensw ${DESTDIR}${BASE}/usr/bin/
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/sbin/makewhatis ${DESTDIR}${BASE}/usr/bin/
+	${BSD_INSTALL_DATA} ${LOCALBASE}/share/file/magic.mgc ${DESTDIR}${BASE}/usr/share/file/
 	sed -e "s|${LOCALBASE}|/usr|g" ${LOCALBASE}/bin/egrep \
 		> ${DESTDIR}${BASE}/usr/bin/egrep
 	sed -e "s|${LOCALBASE}|/usr|g" ${LOCALBASE}/bin/fgrep \
 		> ${DESTDIR}${BASE}/usr/bin/fgrep
 	chmod 755 ${DESTDIR}${BASE}/usr/bin/egrep \
 		${DESTDIR}${BASE}/usr/bin/fgrep
-.if ${OPSYS} == Darwin
-	rm ${DESTDIR}${BASE}/usr/bin/objdump-sysroot
-.endif
-.if ${OPSYS} == DragonFly || ${OPSYS} == FreeBSD
-.  for LC in COLLATE CTYPE MESSAGES MONETARY NUMERIC TIME
-	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/share/locale/en_US.UTF-8/LC_${LC} \
-		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/
-.  endfor
-.endif
-.if ${OPSYS} == SunOS
-	# Fix headers for C++
-	(cd ${DESTDIR}${BASE}/usr/include && sed -i'' \
-		-e 's|\(__cplusplus >= 199711L\)|(!defined __clang__ \&\& \1)|g' \
-		ctype.h \
-		errno.h \
-		iso/ctype_iso.h \
-		iso/locale_iso.h \
-		iso/math_iso.h \
-		iso/setjmp_iso.h \
-		iso/signal_iso.h \
-		iso/stdarg_iso.h \
-		iso/stddef_iso.h \
-		iso/stdio_iso.h \
-		iso/stdlib_iso.h \
-		iso/string_iso.h \
-		iso/time_iso.h \
-		iso/wchar_iso.h \
-		iso/wctype_iso.h \
-		limits.h \
-		locale.h \
-		math.h \
-		memory.h \
-		mon.h \
-		setjmp.h \
-		signal.h \
-		stdarg.h \
-		stddef.h \
-		stdio.h \
-		stdlib.h \
-		string.h \
-		time.h \
-		wchar.h \
-		wctype.h \
-		sys/sunddi.h \
-		sys/mdb_modapi.h \
-		sys/systm.h \
-		sys/systm.h \
-		sys/time.h \
-		sys/time_impl.h \
-		sys/time_std_impl.h \
-		sys/types.h \
-		sys/un.h \
-	)
-.endif
+
 	# install ccache
-	cp ${LOCALBASE}/bin/ccache ${DESTDIR}${BASE}/usr/libexec/
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/ccache ${DESTDIR}${BASE}/usr/libexec/
 	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/cc
 	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/gcc
 	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/c++
@@ -9931,10 +10892,765 @@ install:
 		&& ${ECHO} ${OSREL}     > OSRELEASE \
 		&& ${ECHO} ${OSMAJOR}   > OSMAJOR
 
-extra-includes:
-.for item in ${headers_${OPSYS}}
-	@fgrep "#include" /usr/include/${item} || true
-.endfor
+
+
+# on platform makefiles create the following:
+# 1) platform-skeleton: common-skeleton
+# 2) install-platform: install-common
+
+install: install-platform
+
+
+[FILE:1621:files/darwin.mk]
+# For MacOS (Untested)
+
+headers_Darwin_dirs=	# end
+headers_Darwin=			# end
+pcfiles_Darwin=			# end
+
+position-macos:
+	${MKDIR} ${DESTDIR}/${BASE}
+	mv ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
+
+common-skeleton: position-macos
+
+platform-skeleton: common-skeleton
+	@echo "========================================="
+	@echo "===  No extra directories for Darwin  ==="
+	@echo "========================================="
+
+
+install-platform: install-common
+	@echo "=================================="
+	@echo "===  Darwin file installation  ==="
+	@echo "=================================="
+	# use coreutils that FreeBSD and DragonFly passed on (/bin)
+.  for item in [ chmod cp date echo expr kill link ln ls mkdir mv pwd \
+	realpath rm rmdir sleep test unlink
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/${item}
+.  endfor
+	# use coreutils that FreeBSD and DragonFly passed on (/usr/bin)
+.  for item in basename chgrp chown comm cut dirname env false head id \
+	join mkfifo mktemp printenv printf readlink tail tee touch \
+	tee tr true tsort uniq whoami
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
+.  endfor
+
+	# remove ELF tool on Mach system
+	rm ${DESTDIR}${BASE}/usr/bin/objdump-sysroot
+
+
+	# former "post-install" target
+	chmod 600 ${DESTDIR}${BASE}/usr/share/master.passwd
+	${DESTDIR}${BASE}/usr/sbin/pwd_mkdb -p -d ${DESTDIR}${BASE}/usr/share \
+		${DESTDIR}${BASE}/usr/share/master.passwd
+	# autogenerate System/Library part of manifest
+	(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} share/raven/sysroot/Darwin/System \( -type f -or -type l \) | ${SORT} \
+		>> ${WRKDIR}/.manifest.single.mktmp)
+		
+		
+
+[FILE:7123:files/dragonfly.mk]
+# For DragonFly
+
+Libexec_DragonFly=	/libexec/ld-elf.so.2
+
+Bin_DragonFly=\
+	/bin/[ \
+	/usr/bin/chflags \
+	/bin/chmod \
+	/bin/cp \
+	/bin/date \
+	/bin/echo \
+	/bin/expr \
+	/bin/hostname \
+	/bin/kill \
+	/bin/link \
+	/bin/ln \
+	/rescue/ls \
+	/bin/mkdir \
+	/bin/mv \
+	/bin/pax \
+	/bin/pwd \
+	/bin/realpath \
+	/bin/rm \
+	/bin/rmdir \
+	/rescue/sh \
+	/bin/sleep \
+	/bin/test \
+	/bin/unlink \
+	# end
+
+Usr_Bin_DragonFly= \
+	/usr/bin/basename \
+	/usr/bin/chgrp \
+	/usr/sbin/chown \
+	/usr/bin/comm \
+	/usr/bin/cut \
+	/usr/bin/dirname \
+	/usr/bin/env \
+	/usr/bin/false \
+	/usr/bin/head \
+	/usr/bin/id \
+	/usr/bin/join \
+	/usr/bin/ldd \
+	/usr/bin/mkfifo \
+	/usr/bin/mktemp \
+	/usr/bin/printenv \
+	/usr/bin/printf \
+	/usr/bin/readlink \
+	/usr/bin/stat \
+	/usr/bin/tail \
+	/usr/bin/tee \
+	/usr/bin/touch \
+	/usr/bin/tr \
+	/usr/bin/true \
+	/usr/bin/tsort \
+	/usr/bin/uniq \
+	/usr/bin/which \
+	/usr/bin/whoami \
+	# end
+
+Usr_Sbin_DragonFly=\
+	/usr/sbin/pw \
+	/usr/sbin/pwd_mkdb \
+	# end
+
+static_lib_DragonFly=\
+	/usr/lib/libc.a \
+	/usr/lib/libm.a \
+	/usr/lib/librt.a \
+	/usr/lib/libutil.a \
+	/usr/lib/libcrypt.a \
+	/usr/lib/librpcsvc.a \
+	/usr/lib/libpthread.a \
+	/usr/lib/libcam.a \
+	/usr/lib/libkvm.a \
+	/usr/lib/libsbuf.a \
+	/usr/lib/libusb.a \
+	/usr/lib/libusbhid.a \
+	/usr/lib/Scrt1.o \
+	/usr/lib/gcrt1.o \
+	/usr/lib/crt1.o \
+	/usr/lib/crti.o \
+	/usr/lib/crtn.o \
+	# end
+
+dynamic_lib_DragonFly=\
+	/lib/libc.so.8 \
+	/lib/libm.so.4 \
+	/lib/libutil.so.4 \
+	/lib/libcrypt.so.4 \
+	/lib/libkvm.so.3 \
+	/lib/libcam.so.3 \
+	/lib/libsbuf.so.3 \
+	/lib/libprop.so.3 \
+	/lib/libdevattr.so.3 \
+	/lib/libdevstat.so.3 \
+	/usr/lib/librpcsvc.so.3 \
+	/usr/lib/librt.so.0 \
+	/usr/lib/libdevinfo.so.3 \
+	/usr/lib/libdevmapper.so.0 \
+	/usr/lib/libkinfo.so.2 \
+	/usr/lib/libpthread.so \
+	/usr/lib/libpthread.so.0 \
+	/usr/lib/libexecinfo.so.1 \
+	/usr/lib/libusb.so.2 \
+	/usr/lib/libusbhid.so.4 \
+	# end
+
+headers_DragonFly_dirs=\
+	arpa \
+	bus \
+	cpu \
+	crypto \
+	dev \
+	libprop \
+	machine \
+	net \
+	netbt \
+	netinet \
+	netinet6 \
+	netproto \
+	protocols \
+	rpc \
+	rpcsvc \
+	sys \
+	vfs \
+	vm \
+	xlocale \
+	# end
+
+posix_headers=\
+	aio.h \
+	assert.h \
+	complex.h \
+	cpio.h \
+	ctype.h \
+	dirent.h \
+	dlfcn.h \
+	errno.h \
+	fcntl.h \
+	fenv.h \
+	float.h \
+	fmtmsg.h \
+	fnmatch.h \
+	ftw.h \
+	glob.h \
+	grp.h \
+	iconv.h \
+	inttypes.h \
+	iso646.h \
+	langinfo.h \
+	libgen.h \
+	limits.h \
+	locale.h \
+	math.h \
+	monetary.h \
+	mqueue.h \
+	ndbm.h \
+	netdb.h \
+	nl_types.h \
+	poll.h \
+	pthread.h \
+	pwd.h \
+	regex.h \
+	sched.h \
+	search.h \
+	semaphore.h \
+	setjmp.h \
+	signal.h \
+	spawn.h \
+	stdarg.h \
+	stdbool.h \
+	stddef.h \
+	stdint.h \
+	stdio.h \
+	stdlib.h \
+	string.h \
+	strings.h \
+	syslog.h \
+	tar.h \
+	termios.h \
+	tgmath.h \
+	time.h \
+	ulimit.h \
+	unistd.h \
+	utime.h \
+	utmpx.h \
+	wchar.h \
+	wctype.h \
+	wordexp.h \
+	# end
+
+headers_BSD=\
+	${posix_headers} \
+	ar.h \
+	bitstring.h \
+	bluetooth.h \
+	camlib.h \
+	devinfo.h \
+	devstat.h \
+	efivar.h \
+	elf-hints.h \
+	elf.h \
+	err.h \
+	floatingpoint.h \
+	fstab.h \
+	fts.h \
+	getopt.h \
+	ieeefp.h \
+	ifaddrs.h \
+	kvm.h \
+	libusb.h \
+	libusb20.h \
+	libusb20_desc.h \
+	libutil.h \
+	link.h \
+	linker_set.h \
+	login_cap.h \
+	memory.h \
+	mpool.h \
+	netconfig.h \
+	nlist.h \
+	osreldate.h \
+	paths.h \
+	printf.h \
+	pthread_np.h \
+	readpassphrase.h \
+	res_update.h \
+	resolv.h \
+	runetype.h \
+	sdp.h \
+	stdalign.h \
+	stdnoreturn.h \
+	stringlist.h \
+	sysexits.h \
+	syslog.h \
+	timeconv.h \
+	timers.h \
+	ttyent.h \
+	uchar.h \
+	ucontext.h \
+	usb.h \
+	usbhid.h \
+	uuid.h \
+	vis.h \
+	xlocale.h \
+	# end
+
+headers_DragonFly=\
+	${headers_BSD} \
+	devattr.h \
+	dfregress.h \
+	disktab.h \
+	evtr.h \
+	kinfo.h \
+	kinfo_pcpu.h \
+	libcryptsetup.h \
+	luks.h \
+	mntopts.h \
+	re_comp.h \
+	util.h \
+	# end
+
+pcfiles_DragonFly=\
+	libusb-0.1.pc \
+	libusb-2.0.pc \
+	libusb-1.0.pc \
+	# end
+
+platform-skeleton: common-skeleton
+	@echo "================================================"
+	@echo "===  Create extra directories for DragonFly  ==="
+	@echo "================================================"
+	${MKDIR} \
+		${DESTDIR}${BASE}/libexec \
+		${DESTDIR}${BASE}/usr/include/compat \
+		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8 \
+		${DESTDIR}${BASE}/usr/lib/gcc80 \
+		# end
+
+install-platform: install-common
+	@echo "====================================="
+	@echo "===  DragonFly file installation  ==="
+	@echo "====================================="
+	(cd ${DESTDIR}${BASE}/usr/lib && \
+		ln -s libm.so.4 libm.so && \
+		ln -s librt.so.0 librt.so && \
+		ln -s libkvm.so.3 libkvm.so && \
+		ln -s libcam.so.3 libcam.so && \
+		ln -s libcrypt.so.4 libcrypt.so && \
+		ln -s libutil.so.4 libutil.so && \
+		ln -s librpcsvc.so.3 librpcsvc.so && \
+		ln -s libusb.so.2 libusb.so && \
+		ln -s libusbhid.so.4 libusbhid.so && \
+		ln -s libc.so.8 libc.so && \
+		ln -s libsbuf.so.3 libsbuf.so && \
+		ln -s libprop.so.3 libprop.so && \
+		ln -s libdevattr.so.3 libdevattr.so && \
+		ln -s libdevstat.so.3 libdevstat.so && \
+		ln -s libdevinfo.so.3 libdevinfo.so && \
+		ln -s libkinfo.so.2 libkinfo.so && \
+		ln -s libdevmapper.so.0 libdevmapper.so)		
+	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/lorder ${DESTDIR}${BASE}/usr/bin/
+	(cd ${DESTDIR}${BASE}/usr/include && \
+		ln -s ../dev/misc/evdev compat/linux && \
+		ln -s vfs fs && \
+		ln -s vfs ufs && \
+		ln -s vfs/nfs nfs && \
+		ln -s vfs/ntfs ntfs && \
+		ln -s vfs/isofs isofs && \
+		ln -s vfs/msdosfs msdosfs && \
+		ln -s netproto/smb netsmb && \
+		ln -s bus/pccard pccard && \
+		ln -s bus/cam cam)
+.  for item in gcc80/libstdc++.so.9
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/${item} ${DESTDIR}${BASE}/usr/lib/${item}
+.  endfor
+.  for item in gcc80/libgcc_pic.a
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/lib/${item} ${DESTDIR}${BASE}/usr/lib/${item}
+.  endfor
+
+	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
+	rm ${DESTDIR}${BASE}/usr/include/net/zlib.h
+	rm -rf ${DESTDIR}${BASE}/usr/include/net/ipfw*
+	rm -rf ${DESTDIR}${BASE}/usr/include/net/pf
+	rmdir  ${DESTDIR}${BASE}/usr/include/vfs/mfs
+	# fix timespec* for c++17
+	sed -i '/if __ISO_C_VISIBLE >= 2011$$/ s#$$# || (defined(__cplusplus) \&\& __cplusplus >= 201703) &#' \
+		${DESTDIR}${BASE}/usr/include/time.h
+
+	# locale information
+.  for LC in COLLATE CTYPE MESSAGES MONETARY NUMERIC TIME
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/share/locale/en_US.UTF-8/LC_${LC} \
+		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/
+.  endfor
+
+	# former "post-install" target
+	sed -e '/^git_daemon:/d; /^dhcpd:/d' ../${OPSYS:tl}/etc/group \
+		> ${DESTDIR}${BASE}/usr/share/group
+	sed -e '/^git_daemon:/d; /^dhcpd:/d' ../${OPSYS:tl}/etc/master.passwd \
+		> ${DESTDIR}${BASE}/usr/share/master.passwd
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/defaults/rc.conf \
+		${DESTDIR}${BASE}/usr/share/rc.conf
+	/usr/sbin/pwd_mkdb -p -d ${DESTDIR}${BASE}/usr/share \
+		${DESTDIR}${BASE}/usr/share/master.passwd
+	${MKDIR} ${DESTDIR}${BASE}/var/run
+	# handle ldconfig hints
+	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}/sbin/ldconfig \
+		${DESTDIR}${BASE}/usr/bin/ldconfig
+	../${OPSYS:tl}/usr/sbin/chroot ${DESTDIR}${BASE} /usr/bin/ldconfig /usr/lib
+	rm ${DESTDIR}${BASE}/usr/bin/ldconfig
+	mv ${DESTDIR}${BASE}/var/run/ld-elf.so.hints \
+		${DESTDIR}${BASE}/usr/share/
+	rm -rf ${DESTDIR}${BASE}/var
+
+[FILE:6699:files/freebsd.mk]
+# For FreeBSD
+
+Libexec_FreeBSD=	/libexec/ld-elf.so.1
+
+Bin_FreeBSD=\
+	/bin/[ \
+	/bin/chflags \
+	/bin/chmod \
+	/bin/cp \
+	/bin/date \
+	/bin/echo \
+	/bin/expr \
+	/bin/hostname \
+	/bin/kill \
+	/bin/link \
+	/bin/ln \
+	/rescue/ls \
+	/bin/mkdir \
+	/bin/mv \
+	/bin/pax \
+	/bin/pwd \
+	/bin/realpath \
+	/bin/rm \
+	/bin/rmdir \
+	/rescue/sh \
+	/bin/sleep \
+	/bin/test \
+	/bin/unlink \
+	# end
+
+Usr_Bin_FreeBSD=\
+	/usr/bin/basename \
+	/usr/bin/chgrp \
+	/usr/sbin/chown \
+	/usr/bin/comm \
+	/usr/bin/cut \
+	/usr/bin/dirname \
+	/usr/bin/env \
+	/usr/bin/false \
+	/usr/bin/head \
+	/usr/bin/id \
+	/usr/bin/join \
+	/usr/bin/ldd \
+	/usr/bin/mkfifo \
+	/usr/bin/mktemp \
+	/usr/bin/printenv \
+	/usr/bin/printf \
+	/usr/bin/readlink \
+	/usr/bin/stat \
+	/usr/bin/tail \
+	/usr/bin/tee \
+	/usr/bin/touch \
+	/usr/bin/tr \
+	/usr/bin/true \
+	/usr/bin/tsort \
+	/usr/bin/uniq \
+	/usr/bin/which \
+	/usr/bin/whoami \
+	# end
+
+Usr_Sbin_FreeBSD=\
+	/usr/sbin/pw \
+	/usr/sbin/pwd_mkdb \
+	# end
+
+static_lib_FreeBSD=\
+	/usr/lib/libc.a \
+	/usr/lib/libm.a \
+	/usr/lib/librt.a \
+	/usr/lib/libutil.a \
+	/usr/lib/libcrypt.a \
+	/usr/lib/librpcsvc.a \
+	/usr/lib/libpthread.a \
+	/usr/lib/libbsdxml.a \
+	/usr/lib/libcam.a \
+	/usr/lib/libcompat.a \
+	/usr/lib/libdevstat.a \
+	/usr/lib/libgeom.a \
+	/usr/lib/libkvm.a \
+	/usr/lib/libprocstat.a \
+	/usr/lib/libthr.a \
+	/usr/lib/libusb.a \
+	/usr/lib/libusbhid.a \
+	/usr/lib/libjail.a \
+	/usr/lib/libsbuf.a \
+	/usr/lib/libc_nonshared.a \
+	/usr/lib/libssp_nonshared.a \
+	/usr/lib/Scrt1.o \
+	/usr/lib/gcrt1.o \
+	/usr/lib/crt1.o \
+	/usr/lib/crti.o \
+	/usr/lib/crtn.o \
+	# end
+
+dynamic_lib_FreeBSD=\
+	/lib/libc.so.7 \
+	/lib/libm.so.5 \
+	/lib/libutil.so.9 \
+	/lib/libcrypt.so.5 \
+	/lib/libkvm.so.7 \
+	/lib/libcam.so.7 \
+	/lib/libbsdxml.so.4 \
+	/lib/libelf.so.2 \
+	/lib/libgeom.so.5 \
+	/lib/libsbuf.so.6 \
+	/lib/libthr.so.3 \
+	/lib/libdevstat.so.7 \
+	/lib/libjail.so.1 \
+	/usr/lib/libexecinfo.so.1 \
+	/usr/lib/librpcsvc.so.5\
+	/usr/lib/librt.so.1 \
+	/usr/lib/libprocstat.so.1 \
+	/usr/lib/libusb.so.3 \
+	/usr/lib/libusbhid.so.4 \
+	# end
+
+headers_FreeBSD_dirs=\
+	arpa \
+	cam \
+	crypto \
+	dev \
+	fs \
+	geom \
+	machine \
+	net \
+	net80211 \
+	netipsec \
+	netinet \
+	netinet6 \
+	nfsclient \
+	rpc \
+	rpcsvc \
+	sys \
+	ufs \
+	vm \
+	x86 \
+	xlocale \
+	# end
+
+posix_headers=\
+	aio.h \
+	assert.h \
+	complex.h \
+	cpio.h \
+	ctype.h \
+	dirent.h \
+	dlfcn.h \
+	errno.h \
+	fcntl.h \
+	fenv.h \
+	float.h \
+	fmtmsg.h \
+	fnmatch.h \
+	ftw.h \
+	glob.h \
+	grp.h \
+	iconv.h \
+	inttypes.h \
+	iso646.h \
+	langinfo.h \
+	libgen.h \
+	limits.h \
+	locale.h \
+	math.h \
+	monetary.h \
+	mqueue.h \
+	ndbm.h \
+	netdb.h \
+	nl_types.h \
+	poll.h \
+	pthread.h \
+	pwd.h \
+	regex.h \
+	sched.h \
+	search.h \
+	semaphore.h \
+	setjmp.h \
+	signal.h \
+	spawn.h \
+	stdarg.h \
+	stdbool.h \
+	stddef.h \
+	stdint.h \
+	stdio.h \
+	stdlib.h \
+	string.h \
+	strings.h \
+	syslog.h \
+	tar.h \
+	termios.h \
+	tgmath.h \
+	time.h \
+	ulimit.h \
+	unistd.h \
+	utime.h \
+	utmpx.h \
+	wchar.h \
+	wctype.h \
+	wordexp.h \
+	# end
+
+headers_BSD=\
+	${posix_headers} \
+	ar.h \
+	bitstring.h \
+	bluetooth.h \
+	camlib.h \
+	devinfo.h \
+	devstat.h \
+	efivar.h \
+	elf-hints.h \
+	elf.h \
+	err.h \
+	floatingpoint.h \
+	fstab.h \
+	fts.h \
+	getopt.h \
+	ieeefp.h \
+	ifaddrs.h \
+	kvm.h \
+	libusb.h \
+	libusb20.h \
+	libusb20_desc.h \
+	libutil.h \
+	link.h \
+	linker_set.h \
+	login_cap.h \
+	memory.h \
+	mpool.h \
+	netconfig.h \
+	nlist.h \
+	osreldate.h \
+	paths.h \
+	printf.h \
+	pthread_np.h \
+	readpassphrase.h \
+	res_update.h \
+	resolv.h \
+	runetype.h \
+	sdp.h \
+	stdalign.h \
+	stdnoreturn.h \
+	stringlist.h \
+	sysexits.h \
+	syslog.h \
+	timeconv.h \
+	timers.h \
+	ttyent.h \
+	uchar.h \
+	ucontext.h \
+	usb.h \
+	usbhid.h \
+	uuid.h \
+	vis.h \
+	xlocale.h \
+	# end
+
+headers_FreeBSD=\
+	${headers_BSD} \
+	_ctype.h \
+	bsm/audit.h \
+	libusb20.h \
+	libusb20_desc.h \
+	kenv.h \
+	libgeom.h \
+	libprocstat.h \
+	malloc_np.h \
+	jail.h \
+	# end
+
+pcfiles_FreeBSD=\
+	libusb-0.1.pc \
+	libusb-2.0.pc \
+	libusb-1.0.pc \
+	# end
+
+platform-skeleton: common-skeleton
+	@echo "=============================================="
+	@echo "===  Create extra directories for FreeBSD  ==="
+	@echo "=============================================="
+	${MKDIR} \
+		${DESTDIR}${BASE}/libexec \
+		${DESTDIR}${BASE}/usr/include/bsm \
+		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8 \
+		# end
+
+install-platform: install-common
+	@echo "==================================="
+	@echo "===  FreeBSD file installation  ==="
+	@echo "==================================="
+	(cd ${DESTDIR}${BASE}/usr/lib && \
+		ln -s libm.so.5 libm.so && \
+		ln -s librt.so.1 librt.so && \
+		ln -s libkvm.so.7 libkvm.so && \
+		ln -s libcam.so.7 libcam.so && \
+		ln -s libcrypt.so.5 libcrypt.so && \
+		ln -s libutil.so.9 libutil.so && \
+		ln -s librpcsvc.so.5 librpcsvc.so && \
+		ln -s libusb.so.3 libusb.so && \
+		ln -s libusbhid.so.4 libusbhid.so && \
+		ln -s libthr.so.3 libthr.so && \
+		ln -s libbsdxml.so.4 libbsdxml.so && \
+		ln -s libdevstat.so.7 libdevstat.so && \
+		ln -s libprocstat.so.1 libprocstat.so && \
+		ln -s libgeom.so.5 libgeom.so && \
+		ln -s ${PREFIX}/lib/libexecinfo.so libexecinfo.so && \
+		ln -s libthr.so libpthread.so && \
+		ln -s libjail.so.1 libjail.so)
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libgcc_s.so.1 ${DESTDIR}${BASE}/usr/lib/
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/libcxxrt.so.1 ${DESTDIR}${BASE}/usr/lib/
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/libc++.so.1 ${DESTDIR}${BASE}/usr/lib/
+	sed -e 's|/lib/libc\.so|/usr/lib/libc.so|'  ../${OPSYS:tl}/usr/lib/libc.so \
+		> ${DESTDIR}${BASE}/usr/lib/libc.so
+	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/lorder ${DESTDIR}${BASE}/usr/bin/
+
+	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
+	rmdir ${DESTDIR}${BASE}/usr/include/dev/nand
+	rmdir ${DESTDIR}${BASE}/usr/include/dev/powermac_nvram
+	
+	# locale information
+.  for LC in COLLATE CTYPE MESSAGES MONETARY NUMERIC TIME
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/share/locale/en_US.UTF-8/LC_${LC} \
+		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/
+.  endfor
+
+	# former "post-install" target
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/group \
+		${DESTDIR}${BASE}/usr/share/group
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/master.passwd \
+		${DESTDIR}${BASE}/usr/share/master.passwd
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/defaults/rc.conf \
+		${DESTDIR}${BASE}/usr/share/rc.conf
+	/usr/sbin/pwd_mkdb -p -d ${DESTDIR}${BASE}/usr/share \
+		${DESTDIR}${BASE}/usr/share/master.passwd
+	${MKDIR} ${DESTDIR}${BASE}/var/run
+	# handle ldconfig hints
+	${INSTALL_PROGRAM} ../${OPSYS:tl}/sbin/ldconfig \
+		${DESTDIR}${BASE}/usr/bin/ldconfig
+	../${OPSYS:tl}/usr/sbin/chroot ${DESTDIR}${BASE} /usr/bin/ldconfig /usr/lib
+	rm ${DESTDIR}${BASE}/usr/bin/ldconfig
+	mv ${DESTDIR}${BASE}/var/run/ld-elf.so.hints \
+		${DESTDIR}${BASE}/usr/share/
+	rm -rf ${DESTDIR}${BASE}/var
 
 
 [FILE:938:files/linux-group]
@@ -10051,48 +11767,818 @@ saned:x:120:128::/var/lib/saned:/bin/false
 usbmux:x:121:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false
 
 
-[FILE:954:files/special.mk]
-Libc_DragonFly=		libc.so.8
-Libc_FreeBSD=		libc.so.7
+[FILE:8810:files/linux.mk]
+# For Linux
 
-Libm_DragonFly=		libm.so.4
-Libm_FreeBSD=		libm.so.5
+Libexec_Linux=		# empty
 
-Libutil_DragonFly=	libutil.so.4
-Libutil_FreeBSD=	libutil.so.9
+Bin_Linux=\
+	/bin/hostname \
+	/bin/pax \
+	/bin/dash \
+	/bin/sh \
+	# rest comes form coreutils
 
-Libusb_DragonFly=	libusb.so.2
-Libusb_FreeBSD=		libusb.so.3
+Usr_Bin_Linux=		# all come from coreutils except two
+	# /bin/which and /usr/bin/ldd are scripts, special handling
 
-Libusbhid_DragonFly=	libusbhid.so.4
-Libusbhid_FreeBSD=	libusbhid.so.4
+Usr_Sbin_Linux=		# end
+static_lib_Linux=	# Linux doesn't use /usr/lib but a sudirectory, needs special list
 
-Libcrypt_DragonFly=	libcrypt.so.4
-Libcrypt_FreeBSD=	libcrypt.so.5
+Linux_static_libs=\
+	libc.a \
+	libc_nonshared.a \
+	libm.a \
+	libutil.a \
+	libcrypt.a \
+	libpthread.a \
+	libpthread_nonshared.a \
+	libdl.a \
+	libnsl.a \
+	librt.a \
+	libresolv.a \
+	libanl.a \
+	libmvec.a \
+	libmvec_nonshared.a \
+	librpcsvc.a \
+	libieee.a \
+	Mcrt1.o \
+	Scrt1.o \
+	crt1.o \
+	crti.o \
+	crtn.o \
+	gcrt1.o \
+	# end
 
-Libkvm_DragonFly=	libkvm.so.3
-Libkvm_FreeBSD=		libkvm.so.7
+dynamic_lib_Linux=	# Linux doesn't use /usr/lib, needs special list
 
-Librt_DragonFly=	librt.so.0
-Librt_FreeBSD=		librt.so.1
+Linux_RTLD=\
+	ld-2.23.so/ld-linux-x86-64.so.2
 
-Librpcsvc_DragonFly=	librpcsvc.so.3
-Librpcsvc_FreeBSD=	librpcsvc.so.5
+Linux_C_lib=\
+	libc-2.23.so/libc.so.6
 
-Libcam_DragonFly=	libcam.so.3
-Libcam_FreeBSD=		libcam.so.7
+Linux_thread_lib=\
+	libpthread-2.23.so/libpthread.so.0
+	
+# /lib/x86_64-linux-gnu => /lib64
+# real file / soname (also symlink)
+# use to create /usr/lib64/<lib>.so => /lib64/soname
 
+Linux_shared_libs=\
+	${Linux_C_lib} \
+	${Linux_thread_lib} \
+	libm-2.23.so/libm.so.6 \
+	libutil-2.23.so/libutil.so.1 \
+	libcrypt-2.23.so/libcrypt.so.1 \
+	libdl-2.23.so/libdl.so.2 \
+	libnsl-2.23.so/libnsl.so.1 \
+	librt-2.23.so/librt.so.1 \
+	libresolv-2.23.so/libresolv.so.2 \
+	libanl-2.23.so/libanl.so.1 \
+	libmvec-2.23.so/libmvec.so.1 \
+	libnss_compat-2.23.so/libnss_compat.so.2 \
+	libnss_dns-2.23.so/libnss_dns.so.2 \
+	libnss_files-2.23.so/libnss_files.so.2 \
+	libnss_hesiod-2.23.so/libnss_hesiod.so.2 \
+	libnss_nis-2.23.so/libnss_nis.so.2 \
+	libnss_nisplus-2.23.so/libnss_nisplus.so.2 \
+	libudev.so.1.6.4/libudev.so.1 \
+	# end
+
+Linux_extra_libs1=\
+	libattr.so.1.1.0/libattr.so.1 \
+	libacl.so.1.1.0/libacl.so.1 \
+	# end (/lib)
+
+Linux_extra_libs2=\
+	# libustr-1.0.so.1.0.4/libustr-1.0.so.1 \
+	# end (/usr/lib)
+
+Linux_single_libs1=\
+	# end (/lib/TARGET)
+
+Linux_single_libs2=\
+	# libsemanage.so.1 \
+	# end (/usr/lib/TARGET)
+
+headers_Linux_dirs=\
+	acl \
+	arpa \
+	attr \
+	asm-generic \
+	drm \
+	linux \
+	net \
+	netash \
+	netatalk \
+	netax25 \
+	neteconet \
+	netinet \
+	netipx \
+	netiucv \
+	netpacket \
+	netrom \
+	netrose \
+	nfs \
+	protocols \
+	rpc \
+	rpcsvc \
+	sound \
+	scsi \
+	sys \
+	x86_64-linux-gnu \
+	#end
+
+
+headers_Linux=\
+	_G_config.h \
+	aio.h \
+	aliases.h \
+	alloca.h \
+	ar.h \
+	argp.h \
+	argz.h \
+	assert.h \
+	byteswap.h \
+	complex.h \
+	cpio.h \
+	crypt.h \
+	ctype.h \
+	dirent.h \
+	dlfcn.h \
+	elf.h \
+	endian.h \
+	envz.h \
+	err.h \
+	errno.h \
+	error.h \
+	execinfo.h \
+	fcntl.h \
+	features.h \
+	fenv.h \
+	fmtmsg.h \
+	fnmatch.h \
+	fstab.h \
+	fts.h \
+	ftw.h \
+	gconv.h \
+	getopt.h \
+	glob.h \
+	gnu-versions.h \
+	grp.h \
+	gshadow.h \
+	iconv.h \
+	ifaddrs.h \
+	inttypes.h \
+	langinfo.h \
+	lastlog.h \
+	libgen.h \
+	libintl.h \
+	libio.h \
+	libudev.h \
+	limits.h \
+	link.h \
+	locale.h \
+	malloc.h \
+	math.h \
+	mcheck.h \
+	memory.h \
+	mntent.h \
+	monetary.h \
+	mqueue.h \
+	netdb.h \
+	nl_types.h \
+	nss.h \
+	obstack.h \
+	paths.h \
+	poll.h \
+	printf.h \
+	pthread.h \
+	pty.h \
+	pwd.h \
+	re_comp.h \
+	regex.h \
+	regexp.h \
+	resolv.h \
+	sched.h \
+	search.h \
+	semaphore.h \
+	setjmp.h \
+	sgtty.h \
+	shadow.h \
+	signal.h \
+	spawn.h \
+	stab.h \
+	stdc-predef.h \
+	stdint.h \
+	stdio.h \
+	stdio_ext.h \
+	stdlib.h \
+	string.h \
+	strings.h \
+	stropts.h \
+	syscall.h \
+	sysexits.h \
+	syslog.h \
+	tar.h \
+	termio.h \
+	termios.h \
+	tgmath.h \
+	thread_db.h \
+	time.h \
+	ttyent.h \
+	uchar.h \
+	ucontext.h \
+	ulimit.h \
+	unistd.h \
+	ustat.h \
+	utime.h \
+	utmp.h \
+	utmpx.h \
+	values.h \
+	wait.h \
+	wchar.h \
+	wctype.h \
+	wordexp.h \
+	xlocale.h \
+	# end
+
+pcfiles_Linux=\
+	libudev.pc \
+	# end
+
+platform-skeleton: common-skeleton
+	@echo "============================================"
+	@echo "===  Create extra directories for Linux  ==="
+	@echo "============================================"
+	${MKDIR} \
+		${DESTDIR}${BASE}/lib \
+		${DESTDIR}${BASE}/lib64 \
+		${DESTDIR}${BASE}/lib/x86_64-linux-gnu \
+		${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu \
+		${DESTDIR}${BASE}/usr/lib/pkgconfig \
+		# end
+
+install-platform: install-common
+	@echo "================================="
+	@echo "===  Linux file installation  ==="
+	@echo "================================="
+.  for item in ${Linux_static_libs}
+	${BSD_INSTALL_DATA} ../linux/usr/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_shared_libs}
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:T:R} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_RTLD}
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_extra_libs1}
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item:T:R} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_extra_libs2}
+	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:H} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item:T} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_single_libs1}
+	cp ${CPA} ../linux/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/
+.  endfor
+.  for item in ${Linux_single_libs2}
+	cp ${CPA} ../linux/usr/lib/x86_64-linux-gnu/${item} ${DESTDIR}${BASE}/usr/lib/x86_64-linux-gnu/
+.  endfor
+	ln -s /lib/x86_64-linux-gnu/${Linux_RTLD:H} ${DESTDIR}${BASE}/lib64/${Linux_RTLD:T}
+	# symlink libgcc_s.so.1 which lpthread needs in a specific location
+	ln -s /raven/toolchain/${GCCX}/lib64/libgcc_s.so.1 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/libgcc_s.so.1
+	# certain shared libraries must be executable
+	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_RTLD:H}
+	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_C_lib:H}
+	chmod 755 ${DESTDIR}${BASE}/lib/x86_64-linux-gnu/${Linux_thread_lib:H}
+	# From linux-only shadow package
+.  for sbinitem in useradd usermod groupadd
+	cp ${CPA} ${LOCALBASE}/sbin/${sbinitem} ${DESTDIR}${BASE}/usr/bin/
+.  endfor
+	# lorder is system-specific.  Linux has it natively though
+	${BSD_INSTALL_SCRIPT} ../linux/usr/bin/lorder ${DESTDIR}${BASE}/usr/bin/
+	# ldd and which are scripts, can't be stripped
+	${BSD_INSTALL_SCRIPT} ../linux/usr/bin/ldd ${DESTDIR}${BASE}/usr/bin/
+	${BSD_INSTALL_SCRIPT} ../linux/bin/which ${DESTDIR}${BASE}/usr/bin/
+	# convert ldd from bash to dash
+	sed -i'' -e "s|/bin/bash|/bin/dash|" ${DESTDIR}${BASE}/usr/bin/ldd
+	# i386 version conflicts with amd64 version, so copy just the i386 files separately
+	cp ${CPA} ../ravensys-root_14/usr/include/i386-linux-gnu ${DESTDIR}${BASE}/usr/include/
+	# locales
+	${MKDIR} ${DESTDIR}${BASE}/usr/lib/locale
+	${MKDIR} ${DESTDIR}${BASE}/usr/share/i18n/charmaps
+	${MKDIR} ${DESTDIR}${BASE}/usr/share/i18n/locales
+	cp ${CPA} ../linux/usr/share/i18n/charmaps/UTF-8.gz ${DESTDIR}${BASE}/usr/share/i18n/charmaps/
+	cp ${CPA} ../linux/usr/lib/locale/C.UTF-8 ${DESTDIR}${BASE}/usr/lib/locale/
+.  for locale in C POSIX en_US en_GB iso14651_t1 iso14651_t1_common i18n translit_*
+	cp ${CPA} ../linux/usr/share/i18n/locales/${locale} ${DESTDIR}${BASE}/usr/share/i18n/locales/
+.  endfor
+	env I18NPATH=${DESTDIR}${BASE}/usr/share/i18n ../linux/usr/bin/localedef --prefix=${DESTDIR}${BASE} -f UTF-8 -i en_US en_US.UTF-8
+	# from bash package
+	cp ${CPA} ${LOCALBASE}/bin/bash ${DESTDIR}${BASE}/bin/
+
+	# use coreutils that FreeBSD and DragonFly passed on (/bin)
+.  for item in [ chmod cp date echo expr kill link ln ls mkdir mv pwd \
+	realpath rm rmdir sleep test unlink
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/${item}
+.  endfor
+	# use coreutils that FreeBSD and DragonFly passed on (/usr/bin)
+.  for item in basename chgrp chown comm cut dirname env false head id \
+	join mkfifo mktemp printenv printf readlink tail tee touch \
+	tee tr true tsort uniq whoami
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
+.  endfor
+
+.  for item in stat
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
+.  endfor
+
+
+	# former "post-install" target
+	${BSD_INSTALL_DATA} /port/files/linux-group \
+		${DESTDIR}${BASE}/usr/share/group
+	${BSD_INSTALL_DATA} /port/files/linux-passwd \
+		${DESTDIR}${BASE}/usr/share/passwd
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/ld.so.conf.d/x86_64-linux-gnu.conf \
+		${DESTDIR}${BASE}/usr/share/x86_64-linux-gnu.conf
+	echo "include /etc/ld.so.conf.d/*.conf" > ${DESTDIR}${BASE}/usr/share/ld.so.conf
+	ln -s asm-generic ${DESTDIR}${BASE}/usr/include/asm
+
+
+[FILE:6893:files/netbsd.mk]
+# For NetBSD
+
+Libexec_NetBSD=		/libexec/ld.elf_so
+
+# no realpath in NetBSD
+
+Bin_NetBSD=\
+	/bin/[ \
+	/usr/bin/chflags \
+	/bin/chmod \
+	/bin/cp \
+	/bin/date \
+	/bin/echo \
+	/bin/expr \
+	/bin/hostname \
+	/bin/kill \
+	/usr/sbin/link \
+	/bin/ln \
+	/bin/ls \
+	/bin/mkdir \
+	/bin/mv \
+	/bin/pax \
+	/bin/pwd \
+	/bin/rm \
+	/bin/rmdir \
+	/bin/sh \
+	/bin/sleep \
+	/bin/test \
+	/usr/sbin/unlink \
+	# end
+
+# chgrp is /bin/symlink to /sbin/chown
+# no tsort
+
+Usr_Bin_NetBSD= \
+	/usr/bin/basename \
+	/sbin/chown \
+	/usr/bin/comm \
+	/usr/bin/cut \
+	/usr/bin/dirname \
+	/usr/bin/env \
+	/usr/bin/head \
+	/usr/bin/id \
+	/usr/bin/join \
+	/usr/bin/ldd \
+	/usr/bin/mkfifo \
+	/usr/bin/mktemp \
+	/usr/bin/printenv \
+	/usr/bin/printf \
+	/usr/bin/readlink \
+	/usr/bin/stat \
+	/usr/bin/tail \
+	/usr/bin/tee \
+	/usr/bin/touch \
+	/usr/bin/tr \
+	/usr/bin/uniq \
+	/usr/bin/which \
+	/usr/bin/whoami \
+	/usr/sbin/groupadd \
+	/usr/sbin/useradd \
+	# end
+
+Usr_Sbin_NetBSD=\
+	/usr/sbin/pwd_mkdb \
+	# end
+
+static_lib_NetBSD=\
+	/usr/lib/libc.a \
+	/usr/lib/libm.a \
+	/usr/lib/librt.a \
+	/usr/lib/libutil.a \
+	/usr/lib/libcrypt.a \
+	/usr/lib/libcompat.a \
+	/usr/lib/libdevmapper.a \
+	/usr/lib/librpcsvc.a \
+	/usr/lib/libpthread.a \
+	/usr/lib/libkvm.a \
+	/usr/lib/libusbhid.a \
+	/usr/lib/libx86_64.a \
+	/usr/lib/libpci.a \
+	/usr/lib/libossaudio.a \
+	/usr/lib/libposix.a \
+	/usr/lib/libperfuse.a \
+	/usr/lib/libpuffs.a \
+	/usr/lib/libquota.a \
+	/usr/lib/crt0.o \
+	/usr/lib/crtbegin.o \
+	/usr/lib/crtbeginS.o \
+	/usr/lib/crtbeginT.o \
+	/usr/lib/crtend.o \
+	/usr/lib/crtendS.o \
+	/usr/lib/crti.o \
+	/usr/lib/crtn.o \
+	/usr/lib/gcrt0.o \
+	# end
+
+# /bin/sh (for now)
+ONLY_SO=\
+	/usr/lib/libedit.so.3 \
+	/usr/lib/libterminfo.so.1 \
+	/usr/lib/libexecinfo.so.0 \
+	# end
+
+dynamic_lib_NetBSD=\
+	/usr/lib/libc.so.12 \
+	/usr/lib/libm.so.0 \
+	/usr/lib/libutil.so.7 \
+	/usr/lib/libcrypt.so.1 \
+	/usr/lib/libkvm.so.6 \
+	/usr/lib/librpcsvc.so.1 \
+	/usr/lib/librt.so.1 \
+	/usr/lib/libdevmapper.so.1 \
+	/usr/lib/libpthread.so.1 \
+	/usr/lib/libusbhid.so.1 \
+	/usr/lib/libx86_64.so.0 \
+	/usr/lib/libpci.so.2 \
+	/usr/lib/libossaudio.so.1 \
+	/usr/lib/libposix.so.0 \
+	/usr/lib/libperfuse.so.0 \
+	/usr/lib/libpuffs.so.2 \
+	/usr/lib/libquota.so.1 \
+	${ONLY_SO} \
+	# end
+
+headers_NetBSD_dirs=\
+	altq \
+	amd64 \
+	arpa \
+	crypto \
+	dev \
+	event2 \
+	fs \
+	msdosfs \
+	net \
+	net80211 \
+	netbt \
+	netcan \
+	netinet \
+	netinet6 \
+	netipsec \
+	nfs \
+	ntfs \
+	prop \
+	protocols \
+	rpc \
+	rpcsvc \
+	security \
+	ssp \
+	sys \
+	ufs \
+	uvm \
+	x86 \
+	# end
+
+posix_headers=\
+	aio.h \
+	assert.h \
+	complex.h \
+	cpio.h \
+	ctype.h \
+	dirent.h \
+	dlfcn.h \
+	errno.h \
+	fcntl.h \
+	fenv.h \
+	float.h \
+	fmtmsg.h \
+	fnmatch.h \
+	ftw.h \
+	glob.h \
+	grp.h \
+	iconv.h \
+	inttypes.h \
+	iso646.h \
+	langinfo.h \
+	libgen.h \
+	limits.h \
+	locale.h \
+	math.h \
+	monetary.h \
+	mqueue.h \
+	ndbm.h \
+	netdb.h \
+	nl_types.h \
+	poll.h \
+	pthread.h \
+	pwd.h \
+	regex.h \
+	sched.h \
+	search.h \
+	semaphore.h \
+	setjmp.h \
+	sha1.h \
+	signal.h \
+	spawn.h \
+	stdarg.h \
+	stdbool.h \
+	stddef.h \
+	stdint.h \
+	stdio.h \
+	stdlib.h \
+	string.h \
+	strings.h \
+	syslog.h \
+	tar.h \
+	termios.h \
+	time.h \
+	ulimit.h \
+	unistd.h \
+	utime.h \
+	utmpx.h \
+	wchar.h \
+	wctype.h \
+	wordexp.h \
+	# end
+
+headers_BSD=\
+	${posix_headers} \
+	ar.h \
+	atomic.h \
+	bitstring.h \
+	bluetooth.h \
+	dwarf.h \
+	endian.h \
+	elf.h \
+	err.h \
+	fstab.h \
+	fts.h \
+	getopt.h \
+	ieeefp.h \
+	ifaddrs.h \
+	kvm.h \
+	libproc.h \
+	link.h \
+	link_elf.h \
+	login_cap.h \
+	memory.h \
+	mpool.h \
+	netconfig.h \
+	netgroup.h \
+	netpgp.h \
+	nlist.h \
+	paths.h \
+	res_update.h \
+	resolv.h \
+	sdp.h \
+	sgtty.h \
+	soundcard.h \
+	stdalign.h \
+	stdnoreturn.h \
+	stringlist.h \
+	sysexits.h \
+	syslog.h \
+	ttyent.h \
+	ucontext.h \
+	usbhid.h \
+	utmp.h \
+	vis.h \
+	# end
+
+headers_NetBSD=\
+	${headers_BSD} \
+	disktab.h \
+	lwp.h \
+	malloc.h \
+	mntopts.h \
+	pci.h \
+	perfuse.h \
+	pthread_queue.h \
+	pthread_types.h \
+	puffs.h \
+	puffsdump.h \
+	quota.h \
+	regexp.h \
+	re_comp.h \
+	stab.h \
+	struct.h \
+	threads.h \
+	unwind.h \
+	util.h \
+	uuid.h \
+	# end
+
+pcfiles_NetBSD=\
+	# end
+
+
+
+platform-skeleton: common-skeleton
+	@echo "============================================="
+	@echo "===  Create extra directories for NetBSD  ==="
+	@echo "============================================="
+	${MKDIR} \
+		${DESTDIR}${BASE}/libexec \
+		${DESTDIR}${BASE}/usr/lib/i18n \
+		${DESTDIR}${BASE}/usr/share/etc \
+		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/LC_MESSAGES \
+		# end
+
+install-platform: install-common
+	@echo "=================================="
+	@echo "===  NetBSD file installation  ==="
+	@echo "=================================="
+
+	(cd ${DESTDIR}${BASE}/usr/lib && \
+		ln -s libc.so.12 libc.so && \
+		ln -s libm.so.0 libm.so && \
+		ln -s libutil.so.7 libutil.so && \
+		ln -s libcrypt.so.1 libcrypt.so && \
+		ln -s libkvm.so.6 libkvm.so && \
+		ln -s librpcsvc.so.1 librpcsvc.so && \
+		ln -s librt.so.1 librt.so && \
+		ln -s libdevmapper.so.1 libdevmapper.so && \
+		ln -s libpthread.so.1 libpthread.so && \
+		ln -s libpci.so.2 libpci.so && \
+		ln -s libossaudio.so.1 libossaudio.so && \
+		ln -s libposix.so.0 libposix.so && \
+		ln -s libperfuse.so.0 libperfuse.so && \
+		ln -s libpuffs.so.2 libpuffs.so && \
+		ln -s libquota.so.1 libquota.so && \
+		ln -s libx86_64.so.0 libx86_64.so && \
+		ln -s libusbhid.so.1 libusbhid.so)
+
+.for SCRIPT in lorder false true
+	${BSD_INSTALL_SCRIPT} ../${OPSYS:tl}/usr/bin/${SCRIPT} ${DESTDIR}${BASE}/usr/bin/
+.endfor
+	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}/sbin/chown ${DESTDIR}${BASE}/usr/bin/chgrp
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/bsd_realpath \
+		${DESTDIR}${BASE}/bin/realpath
+
+	cp ${LOCALBASE}/lib/libdl.a ${DESTDIR}${BASE}/usr/lib/
+
+	# locale information
+.  for LC in CTYPE MONETARY NUMERIC TIME
+	cp ../${OPSYS:tl}/usr/share/locale/en_US.UTF-8/LC_${LC} \
+		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/
+.  endfor
+	cp ../${OPSYS:tl}/usr/share/locale/en_US.UTF-8/LC_MESSAGES/SYS_LC_MESSAGES \
+		${DESTDIR}${BASE}/usr/share/locale/en_US.UTF-8/LC_MESSAGES/
+	cp ../${OPSYS:tl}/usr/lib/i18n/libUTF8.so.5.0 \
+		${DESTDIR}${BASE}/usr/lib/i18n/
+
+	# former "post-install" target
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/group \
+		${DESTDIR}${BASE}/usr/share/group
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/master.passwd \
+		${DESTDIR}${BASE}/usr/share/master.passwd
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/etc/defaults/rc.conf \
+		${DESTDIR}${BASE}/usr/share/rc.conf
+	/usr/sbin/pwd_mkdb -p -d ${DESTDIR}${BASE}/usr/share \
+		${DESTDIR}${BASE}/usr/share/master.passwd
+	mv ${DESTDIR}${BASE}/usr/share/etc/* ${DESTDIR}${BASE}/usr/share
+	rmdir ${DESTDIR}${BASE}/usr/share/etc
+	rmdir ${DESTDIR}${BASE}/usr/include/dev/ieee1394
+
+	ln -s /libexec/ld.elf_so ${DESTDIR}${BASE}/usr/libexec/ld.elf_so
+	echo "Dummy - not used on NetBSD/AMD64" > ${DESTDIR}${BASE}/usr/share/ld.so.hints
+
+	ln -s amd64 ${DESTDIR}${BASE}/usr/include/machine
+
+	# entire timezone data
+	cp ${CPA} ../${OPSYS:tl}/usr/share/zoneinfo \
+		${DESTDIR}${BASE}/usr/share/
+
+
+[FILE:348:files/special.mk]
 # Override bmake settings (important for bootstraps and sysroot rebases)
-OPSYS=			${SYSTEM:H:H:H:H:H}
-ARCH=			${SYSTEM:H:H:H:H:T}
+OPSYS=				${SYSTEM:H:H:H:H:H}
+ARCH=				${SYSTEM:H:H:H:H:T}
 ARCH_STANDARD=		${SYSTEM:H:H:H:T}
-OSVERSION=		${SYSTEM:H:H:T}
-OSREL=			${SYSTEM:H:T}
-MAJOR=			${SYSTEM:T}
+OSVERSION=			${SYSTEM:H:H:T}
+OSREL=				${SYSTEM:H:T}
+MAJOR=				${SYSTEM:T}
 
-SYSPATH=		share${RAVENBASE}/sysroot/${OPSYS}
-RSYS=			${PREFIX}/${SYSPATH}
-FOS=			${WRKDIR}/${OPSYS:tl}
+SYSPATH=			share${RAVENBASE}/sysroot/${OPSYS}
+RSYS=				${PREFIX}/${SYSPATH}
+FOS=				${WRKDIR}/${OPSYS:tl}
+
+
+[FILE:2409:files/sunos.mk]
+# For Solaris 10
+
+headers_SunOS_dirs=		# end
+headers_SunOS=			# end
+pcfiles_SunOS=			# end
+
+platform-skeleton: common-skeleton
+	@echo "=========================================="
+	@echo "===  No extra directories for Solaris  ==="
+	@echo "=========================================="
+
+
+install-platform: install-common
+	@echo "==================================="
+	@echo "===  Solaris file installation  ==="
+	@echo "==================================="
+	
+	cp ${CPA} ../${OPSYS:tl}/* ${DESTDIR}${BASE}/
+	# use BSD's which (from ravensys-utils)
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/which ${DESTDIR}${BASE}/usr/bin/
+	# /bin/sh is really /usr/xpg4/bin/sh, move it there
+	# Move /usr/bin/bash (from distro) to /bin/bash
+	# hardlink /bin/bash to /bin/sh
+	${MKDIR} ${DESTDIR}${BASE}/usr/xpg4/bin
+	mv ${DESTDIR}${BASE}/bin/sh ${DESTDIR}${BASE}/usr/xpg4/bin/
+	mv ${DESTDIR}${BASE}/usr/bin/bash ${DESTDIR}${BASE}/bin/bash
+	ln ${DESTDIR}${BASE}/bin/bash ${DESTDIR}${BASE}/bin/sh
+
+	# use coreutils that FreeBSD and DragonFly passed on (/bin)
+.  for item in [ chmod cp date echo expr kill link ln ls mkdir mv pwd \
+	realpath rm rmdir sleep test unlink
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/${item}
+.  endfor
+	# use coreutils that FreeBSD and DragonFly passed on (/usr/bin)
+.  for item in basename chgrp chown comm cut dirname env false head id \
+	join mkfifo mktemp printenv printf readlink tail tee touch \
+	tee tr true tsort uniq whoami
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
+.  endfor
+.  for item in stat
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
+.  endfor
+
+	# Fix headers for C++
+	(cd ${DESTDIR}${BASE}/usr/include && sed -i'' \
+		-e 's|\(__cplusplus >= 199711L\)|(!defined __clang__ \&\& \1)|g' \
+		ctype.h \
+		errno.h \
+		iso/ctype_iso.h \
+		iso/locale_iso.h \
+		iso/math_iso.h \
+		iso/setjmp_iso.h \
+		iso/signal_iso.h \
+		iso/stdarg_iso.h \
+		iso/stddef_iso.h \
+		iso/stdio_iso.h \
+		iso/stdlib_iso.h \
+		iso/string_iso.h \
+		iso/time_iso.h \
+		iso/wchar_iso.h \
+		iso/wctype_iso.h \
+		limits.h \
+		locale.h \
+		math.h \
+		memory.h \
+		mon.h \
+		setjmp.h \
+		signal.h \
+		stdarg.h \
+		stddef.h \
+		stdio.h \
+		stdlib.h \
+		string.h \
+		time.h \
+		wchar.h \
+		wctype.h \
+		sys/sunddi.h \
+		sys/mdb_modapi.h \
+		sys/systm.h \
+		sys/systm.h \
+		sys/time.h \
+		sys/time_impl.h \
+		sys/time_std_impl.h \
+		sys/types.h \
+		sys/un.h \
+	)
 
 
 [FILE:2080:files/validate_pkgs.sh]

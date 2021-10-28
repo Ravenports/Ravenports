@@ -42,6 +42,9 @@ PLIST_SUB=		COMPVER=11.2.0
 			GNARL=11
 			PREVGCC=gcc9
 			CTF={{SKIP_CTF:U}}
+			SSP={{SSP}}
+
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SSP="@comment "
 
 post-install:
 	${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
@@ -62,7 +65,7 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:63989:manifests/plist.single]
+[FILE:64433:manifests/plist.single]
 %%PREVGCC%%
 %%CTF%%include/
  ctf-api.h
@@ -116,6 +119,17 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  gnu-user64.h
  linux-common.h
  linux64.h
+%%ONLY-NETBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtbeginT.o
+ crtendS.o
+%%ONLY-NETBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
+%%ONLY-NETBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ netbsd-elf.h
+ netbsd-protos.h
+ netbsd-stdint.h
+ netbsd.h
+%%ONLY-NETBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/netbsd64.h
 %%ONLY-SUNOS%%bin/
  ld.lld
  ld.sun
@@ -168,6 +182,17 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
 %%ONLY-SUNOS%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  sol2.h
  sysv4.h
+%%SSP%%ravensys-gcc/%%ASLIB%%/
+ libssp.a
+ libssp.so
+ libssp.so.0
+ libssp.so.0.0.0
+ libssp_nonshared.a
+%%SSP%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include/ssp/
+ ssp.h
+ stdio.h
+ string.h
+ unistd.h
 bin/
  addr2line
  ar
@@ -223,11 +248,6 @@ ravensys-gcc/%%ASLIB%%/
  libquadmath.so
  libquadmath.so.0
  libquadmath.so.0.0.0
- libssp.a
- libssp.so
- libssp.so.0
- libssp.so.0.0.0
- libssp_nonshared.a
  libstdc++.a
  libstdc++.so
  libstdc++.so.6
@@ -3653,11 +3673,6 @@ ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include/
  xsaveoptintrin.h
  xsavesintrin.h
  xtestintrin.h
-ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include/ssp/
- ssp.h
- stdio.h
- string.h
- unistd.h
 ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/install-tools/
  fixinc_list
  gsyslimits.h

@@ -187,11 +187,21 @@ dependencies for ports that require clang to build.
 428b6060a28b22adf0cdf5d827abbc2ba81809f4661ede3d02b1d3fedaa3ead5      2739604 clang-tools-extra-13.0.0.src.tar.xz
 
 
-[FILE:18322:manifests/plist.compiler]
+[FILE:18475:manifests/plist.compiler]
 %%ONLY-DRAGONFLY%%lib/clang/%%LLVM_RELEASE%%/include/
  stdatomic.h
  varargs.h
 %%ONLY-LINUX%%lib/clang/%%LLVM_RELEASE%%/include/
+ limits.h
+ stdalign.h
+ stdarg.h
+ stdatomic.h
+ stdbool.h
+ stddef.h
+ stdint.h
+ stdnoreturn.h
+ varargs.h
+%%ONLY-NETBSD%%lib/clang/%%LLVM_RELEASE%%/include/
  limits.h
  stdalign.h
  stdarg.h
@@ -1800,14 +1810,14 @@ lib/
        Builder.defineMacro("__GNUG__", Twine(GNUCMajor));
 
 
-[FILE:574:patches/patch-lib_Interpreter_IncrementalParser.cpp]
+[FILE:601:patches/patch-lib_Interpreter_IncrementalParser.cpp]
 --- lib/Interpreter/IncrementalParser.cpp.orig	2021-09-24 16:18:10 UTC
 +++ lib/Interpreter/IncrementalParser.cpp
 @@ -53,7 +53,11 @@ public:
            switch (CI.getFrontendOpts().ProgramAction) {
            default:
              Err = llvm::createStringError(
-+#ifdef __DragonFly__
++#if defined __DragonFly__ || defined __NetBSD__
 +                std::errc::operation_not_supported,
 +#else
                  std::errc::state_not_recoverable,
@@ -1817,14 +1827,14 @@ lib/
                  CI.getFrontendOpts().ProgramAction);
 
 
-[FILE:2514:patches/patch-lib_Interpreter_Interpreter.cpp]
+[FILE:2649:patches/patch-lib_Interpreter_Interpreter.cpp]
 --- lib/Interpreter/Interpreter.cpp.orig	2021-09-24 16:18:10 UTC
 +++ lib/Interpreter/Interpreter.cpp
 @@ -47,14 +47,22 @@ GetCC1Arguments(DiagnosticsEngine *Diagn
    // failed. Extract that job from the Compilation.
    const driver::JobList &Jobs = Compilation->getJobs();
    if (!Jobs.size() || !isa<driver::Command>(*Jobs.begin()))
-+#ifdef __DragonFly__
++#if defined __DragonFly__ || defined __NetBSD__
 +    return llvm::createStringError(std::errc::operation_not_supported,
 +#else
      return llvm::createStringError(std::errc::state_not_recoverable,
@@ -1835,7 +1845,7 @@ lib/
    // The one job we find should be to invoke clang again.
    const driver::Command *Cmd = cast<driver::Command>(&(*Jobs.begin()));
    if (llvm::StringRef(Cmd->getCreator().getName()) != "clang")
-+#ifdef __DragonFly__
++#if defined __DragonFly__ || defined __NetBSD__
 +    return llvm::createStringError(std::errc::operation_not_supported,
 +#else
      return llvm::createStringError(std::errc::state_not_recoverable,
@@ -1847,7 +1857,7 @@ lib/
    // Create the actual diagnostics engine.
    Clang->createDiagnostics();
    if (!Clang->hasDiagnostics())
-+#ifdef __DragonFly__
++#if defined __DragonFly__ || defined __NetBSD__
 +    return llvm::createStringError(std::errc::operation_not_supported,
 +#else
      return llvm::createStringError(std::errc::state_not_recoverable,
@@ -1857,7 +1867,7 @@ lib/
  
    DiagsBuffer->FlushDiagnostics(Clang->getDiagnostics());
    if (!Success)
-+#ifdef __DragonFly__
++#if defined __DragonFly__ || defined __NetBSD__
 +    return llvm::createStringError(std::errc::operation_not_supported,
 +#else
      return llvm::createStringError(std::errc::state_not_recoverable,
@@ -1869,7 +1879,7 @@ lib/
    Clang->setTarget(TargetInfo::CreateTargetInfo(
        Clang->getDiagnostics(), Clang->getInvocation().TargetOpts));
    if (!Clang->hasTarget())
-+#ifdef __DragonFly__
++#if defined __DragonFly__ || defined __NetBSD__
 +    return llvm::createStringError(std::errc::operation_not_supported,
 +#else
      return llvm::createStringError(std::errc::state_not_recoverable,

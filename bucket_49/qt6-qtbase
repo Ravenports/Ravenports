@@ -19,6 +19,8 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BROKEN[netbsd]=		detects 'unsupported-OS' instead of netbsd-g++
+
 BUILD_DEPENDS=		evdev-proto:single:standard
 BUILDRUN_DEPENDS=	pcre2:primary:standard
 			harfbuzz:icu:standard
@@ -86,13 +88,16 @@ VAR_OPSYS[sunos]=	VAR1=solaris
 			VAR2=" /lib/64"
 VAR_OPSYS[linux]=	VAR1=linux
 			VAR2=" /usr/lib/x86_64-linux-gnu"
+VAR_OPSYS[netbsd]=	VAR1=netbsd
 VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 
 post-patch:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
+.for platform in dragonfly-g++ netbsd-g++ #unsupported-OS
 	${INSTALL_DATA} ${WRKSRC}/mkspecs/freebsd-g++/qplatformdefs.h \
-		${WRKSRC}/mkspecs/dragonfly-g++/
-.for MKS in dragonfly-g++ freebsd-g++ linux-g++ solaris-g++-64
+		${WRKSRC}/mkspecs/${platform}/
+.endfor
+.for MKS in dragonfly-g++ freebsd-g++ linux-g++ solaris-g++-64 netbsd-g++
 	${INSTALL_DATA} ${WRKDIR}/qmake.conf ${WRKSRC}/mkspecs/${MKS}/
 .endfor
 	# Clean up files created by patching

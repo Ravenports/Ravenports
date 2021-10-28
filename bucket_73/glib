@@ -738,6 +738,47 @@ The /usr/local value is replaced by post-patch target
  /* notes on macros:
 
 
+[FILE:352:patches/patch-glib_gcharset.c]
+--- glib/gcharset.c.orig	2021-09-17 10:17:56 UTC
++++ glib/gcharset.c
+@@ -279,6 +279,11 @@ _g_get_ctype_charset (const char **chars
+ 
+ #ifdef HAVE_LANGINFO_CODESET
+   raw = nl_langinfo (CODESET);
++# if defined __NetBSD__
++  if (strcmp(raw, "646") == 0) {
++     raw = "ASCII";
++  }
++# endif
+ #else
+   G_LOCK (aliases);
+   raw = _g_locale_charset_raw ();
+
+
+[FILE:608:patches/patch-glib_gconvert.c]
+--- glib/gconvert.c.orig	2021-09-17 10:17:56 UTC
++++ glib/gconvert.c
+@@ -215,6 +215,18 @@ g_iconv_open (const gchar  *to_codeset,
+ 	      const gchar  *from_codeset)
+ {
+   iconv_t cd;
++#if defined __NetBSD__
++  {
++    const char * nbsd_new_codeset;
++    const char * nbsd_old_codeset;
++
++    nbsd_new_codeset = (strcmp(to_codeset, "646")) ? to_codeset : "ASCII";
++    nbsd_old_codeset = (strcmp(from_codeset, "646")) ? from_codeset : "ASCII";
++
++   if (try_conversion (nbsd_new_codeset, nbsd_old_codeset, &cd))
++      goto out;
++  }
++#endif
+   
+   if (!try_conversion (to_codeset, from_codeset, &cd))
+     {
+
+
 [FILE:228:patches/patch-glib_giounix.c]
 --- glib/giounix.c.orig	2021-09-17 10:17:56 UTC
 +++ glib/giounix.c
@@ -802,6 +843,24 @@ The /usr/local value is replaced by post-patch target
  
    conf_dir_vector = g_strsplit (conf_dirs, G_SEARCHPATH_SEPARATOR_S, 0);
  #endif
+
+
+[FILE:524:patches/patch-glib_libcharset_localcharset.c]
+--- glib/libcharset/localcharset.c.orig	2021-09-17 10:17:56 UTC
++++ glib/libcharset/localcharset.c
+@@ -287,6 +287,12 @@ _g_locale_charset_raw (void)
+ 
+   /* Most systems support nl_langinfo (CODESET) nowadays.  */
+   codeset = nl_langinfo (CODESET);
++# if defined(__NetBSD__)
++  /* If "646" is returned on NetBSD iconv cannot convert it so override. */
++  if (strcmp(codeset, "646") == 0) {
++     codeset = "ASCII";
++  }
++# endif
+ 
+ #  ifdef __CYGWIN__
+   /* Cygwin 2006 does not have locales.  nl_langinfo (CODESET) always
 
 
 [FILE:295:patches/patch-glib_tests_include.c]

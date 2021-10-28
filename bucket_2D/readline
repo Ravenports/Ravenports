@@ -133,7 +133,7 @@ share/readline/
  	if [ -z "$uninstall" ]; then
 
 
-[FILE:1146:patches/patch-support_shobj-conf]
+[FILE:1491:patches/patch-support_shobj-conf]
 --- support/shobj-conf.orig	2019-12-13 14:51:17 UTC
 +++ support/shobj-conf
 @@ -95,7 +95,7 @@ sunos4*)
@@ -145,7 +145,7 @@ share/readline/
  	SHOBJ_LD='${CC}'
  	ld_used=`gcc -print-prog-name=ld`
  	if ${ld_used} -V 2>&1 | grep GNU >/dev/null 2>&1; then
-@@ -110,16 +110,8 @@ sunos5*-*gcc*|solaris2*-*gcc*)
+@@ -110,26 +110,19 @@ sunos5*-*gcc*|solaris2*-*gcc*)
  	fi
  
  #	SHLIB_XLDFLAGS='-R $(libdir)'
@@ -164,7 +164,11 @@ share/readline/
  	;;
  
  # All versions of Linux (including Gentoo/FreeBSD) or the semi-mythical GNU Hurd.
-@@ -130,6 +122,7 @@ linux*-*|gnu*-*|k*bsd*-gnu-*|freebsd*|dr
+-linux*-*|gnu*-*|k*bsd*-gnu-*|freebsd*|dragonfly*)
++linux*-*|gnu*-*|k*bsd*-gnu-*|freebsd*|dragonfly*|netbsd*)
+ 	SHOBJ_CFLAGS=-fPIC
+ 	SHOBJ_LD='${CC}'
+ 	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
  
  	SHLIB_XLDFLAGS='-Wl,-rpath,$(libdir) -Wl,-soname,`basename $@ $(SHLIB_MINOR)`'
  	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)$(SHLIB_MINOR)'
@@ -172,4 +176,13 @@ share/readline/
  	;;
  
  # Darwin/MacOS X
+@@ -174,7 +167,7 @@ darwin*)
+ 	SHLIB_LIBS='-lncurses'	# see if -lcurses works on MacOS X 10.1 
+ 	;;
+ 
+-openbsd*|netbsd*|mirbsd*)
++openbsd*|mirbsd*)
+ 	SHOBJ_CFLAGS=-fPIC
+ 	SHOBJ_LD='${CC}'
+ 	SHOBJ_LDFLAGS='-shared'
 

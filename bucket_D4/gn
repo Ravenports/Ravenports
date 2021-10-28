@@ -17,7 +17,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-NOT_FOR_OPSYS=		sunos netbsd
+NOT_FOR_OPSYS=		sunos
 
 USES=			ninja python:build shebangfix c++:single
 C_USES[linux]=		iconv
@@ -44,9 +44,11 @@ BUILD_TARGET=		#nothing
 CFLAGS=			-Wno-deprecated-copy
 VAR_OPSYS[linux]=	LDFLAGS=-liconv
 
-post-patch:
-	${REINPLACE_CMD} 's/"python"/"${PYTHON_CMD:T}"/' \
+pre-configure:
+	${REINPLACE_CMD} -e 's/"python"/"${PYTHON_CMD:T}"/' \
 		${WRKSRC}/src/gn/exec_process_unittest.cc
+	${REINPLACE_CMD} -e 's|%%SELF_PATH%%|${PREFIX}/bin/gn|' \
+		${WRKSRC}/src/util/exe_path.cc
 
 do-install:
 	${INSTALL_PROGRAM} ${INSTALL_WRKSRC}/gn ${STAGEDIR}${PREFIX}/bin
@@ -63,21 +65,23 @@ c1780642bf2fe31d50823a0dc8d81715b8accd343885618c74642240b6f42a00       996749 cg
 bin/gn
 
 
-[FILE:1437:patches/patch-build_gen.py]
+[FILE:1519:patches/patch-build_gen.py]
 .git/ is missing in archive, so use version from environment
 
 --- build/gen.py.orig	2020-08-12 19:30:44 UTC
 +++ build/gen.py
-@@ -47,6 +47,8 @@ class Platform(object):
+@@ -47,6 +47,10 @@ class Platform(object):
        self._platform = 'fuchsia'
      elif self._platform.startswith('freebsd'):
        self._platform = 'freebsd'
 +    elif self._platform.startswith('dragonfly'):
 +      self._platform = 'freebsd'
++    elif self._platform.startswith('netbsd'):
++      self._platform = 'freebsd'
      elif self._platform.startswith('openbsd'):
        self._platform = 'openbsd'
      elif self._platform.startswith('haiku'):
-@@ -149,25 +151,16 @@ def main(argv):
+@@ -149,25 +153,16 @@ def main(argv):
  
  
  def GenerateLastCommitPosition(host, header):
@@ -107,10 +111,10 @@ bin/gn
    old_contents = ''
 
 
-[FILE:302:patches/patch-src_gn_args.cc]
+[FILE:389:patches/patch-src_gn_args.cc]
 --- src/gn/args.cc.orig	2020-08-12 19:30:44 UTC
 +++ src/gn/args.cc
-@@ -308,6 +308,8 @@ void Args::SetSystemVarsLocked(Scope* de
+@@ -308,8 +308,12 @@ void Args::SetSystemVarsLocked(Scope* de
    os = "mac";
  #elif defined(OS_LINUX)
    os = "linux";
@@ -118,11 +122,15 @@ bin/gn
 +  os = "freebsd";
  #elif defined(OS_FREEBSD)
    os = "freebsd";
++#elif defined(OS_NETBSD)
++  os = "netbsd";
  #elif defined(OS_AIX)
+   os = "aix";
+ #elif defined(OS_OPENBSD)
 
 
 [FILE:310:patches/patch-src_gn_version.h]
---- src/gn/version.h.orig	2020-09-21 09:21:46 UTC
+--- src/gn/version.h.orig	2020-08-12 19:30:44 UTC
 +++ src/gn/version.h
 @@ -8,6 +8,15 @@
  #include <optional>
@@ -172,7 +180,7 @@ bin/gn
      defined(OS_QNX) || defined(OS_SOLARIS) || defined(OS_HAIKU) || \
 
 
-[FILE:570:patches/patch-src_util_exe__path.cc]
+[FILE:960:patches/patch-src_util_exe__path.cc]
 --- src/util/exe_path.cc.orig	2020-08-12 19:30:44 UTC
 +++ src/util/exe_path.cc
 @@ -15,7 +15,7 @@
@@ -193,4 +201,22 @@ bin/gn
  
  base::FilePath GetExePath() {
    int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+@@ -69,6 +69,17 @@ base::FilePath GetExePath() {
+   return base::FilePath(buf);
+ }
+ 
++#elif defined(OS_NETBSD)
++
++base::FilePath GetExePath() {
++  /*
++   * Not sure how this is done in NetBSD, just hardcode
++   * it to installed location.
++   */
++  const char *self_path = "%%SELF_PATH%%";
++  return base::FilePath(self_path);
++}
++
+ #elif defined(OS_HAIKU)
+ 
+ base::FilePath GetExePath() {
 

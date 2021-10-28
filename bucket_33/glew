@@ -35,8 +35,10 @@ INSTALL_TARGET=		install.all
 SOVERSION=		2.2.0
 
 post-patch:
+.for plat in dragonfly netbsd
 	${CP} ${WRKSRC}/config/Makefile.freebsd \
-		${WRKSRC}/config/Makefile.dragonfly
+		${WRKSRC}/config/Makefile.${plat}
+.endfor
 
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
@@ -226,7 +228,7 @@ share/doc/glew/
  clean:
 
 
-[FILE:797:patches/patch-config_Makefile.freebsd]
+[FILE:848:patches/patch-config_Makefile.freebsd]
 --- config/Makefile.freebsd.orig	2020-03-15 11:53:59 UTC
 +++ config/Makefile.freebsd
 @@ -1,19 +1,19 @@
@@ -254,7 +256,8 @@ share/doc/glew/
 -LIB.SHARED    = lib$(NAME).so.$(SO_VERSION)
 +LIB.SHARED    = lib$(NAME).so.$(GLEW_VERSION)
  LIB.STATIC    = lib$(NAME).a
- LDFLAGS.SO    = -shared -soname $(LIB.SONAME)
+-LDFLAGS.SO    = -shared -soname $(LIB.SONAME)
++LDFLAGS.SO    = -shared -Wl,-soname,$(LIB.SONAME)
 
 
 [FILE:1148:patches/patch-config_Makefile.linux]

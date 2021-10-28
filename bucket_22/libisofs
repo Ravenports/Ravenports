@@ -32,11 +32,11 @@ MUST_CONFIGURE=		gnu
 
 SOVERSION=		6.91.0
 
-post-patch:
-	${REINPLACE_CMD} -e '/libdata/d' ${WRKSRC}/configure
-
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libisofs.so
+
+pre-configure:
+	${REINPLACE_CMD} -e '/libdata/d' ${WRKSRC}/configure
 
 [FILE:764:descriptions/desc.single]
 Libisofs is a library to create an ISO-9660 filesystem with extensions 
@@ -60,10 +60,42 @@ aaa0ed80a7501979316f505b0b017f29cba0ea5463b751143bad2c360215a88e       870395 li
 
 [FILE:138:manifests/plist.single]
 include/libisofs/libisofs.h
-lib/pkgconfig/libisofs-1.pc
 lib/
- libisofs.so
- libisofs.so.%%SOVERSION%%
  libisofs.a
+ libisofs.so
  libisofs.so.%%SOMAJOR%%
+ libisofs.so.%%SOVERSION%%
+lib/pkgconfig/libisofs-1.pc
+
+
+[FILE:989:patches/patch-configure]
+--- configure.orig	2021-02-07 09:34:02 UTC
++++ configure
+@@ -2498,7 +2498,7 @@ test -n "$target_alias" &&
+ 
+ 
+ case $target_os in
+-freebsd* | netbsd*)
++xxxxxx*)
+         LDFLAGS="$LDFLAGS -L/usr/local/lib"
+         CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+         ;;
+@@ -11503,7 +11503,7 @@ netbsdelf*-gnu)
+ 
+ netbsd*)
+   # ts B51007 : changed version_type for lt_main.sh from "sunos" to "netbsd"
+-  version_type=netbsd
++  version_type=freebsd-elf
+   need_lib_prefix=no
+   need_version=no
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
+@@ -11543,7 +11543,7 @@ openbsd*)
+   # ts B60722 : changed version_type for lt_main.sh from "sunos" to "netbsd"
+   #             http://www.openbsd.org/faq/ports/specialtopics.html
+   #             "Understanding shared libraries number rules"
+-  version_type=netbsd
++  version_type=freebsd-elf
+   sys_lib_dlsearch_path_spec="/usr/lib"
+   need_lib_prefix=no
+   # Some older versions of OpenBSD (3.3 at least) *do* need versioned libs.
 

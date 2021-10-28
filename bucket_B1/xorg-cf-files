@@ -23,8 +23,16 @@ FPC_EQUIVALENT=		x11/xorg-cf-files
 MUST_CONFIGURE=		gnu
 
 post-patch:
+	${MV} ${WRKSRC}/NetBSD.cf ${WRKSRC}/NetBSD.cf.original
+	${CP} ${WRKSRC}/DragonFly.cf ${WRKSRC}/NetBSD.cf
+
+pre-configure:
 	${REINPLACE_CMD} 's|\(define ExtraXaw[^ ]*\) [$$].*|\1 /**/|' \
 			${WRKSRC}/X11.tmpl
+	# Tweak NetBSD some more
+	${REINPLACE_CMD} -e '/osreldate.h/d' \
+		-e 's/__DragonFly_version/DefaultOSTeenyVersion/' \
+		${WRKSRC}/NetBSD.cf
 
 [FILE:48:descriptions/desc.single]
 X.org cf files for use with imake based builds.

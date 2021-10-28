@@ -68,6 +68,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		XY={{RUBY_SUFFIX}}
 			XDOTY={{RUBY_VER}}
 			MODULE={{MODULE:Uso}}
+			MJIT="{{MJIT}}"
 
 CFLAGS=			-Wno-attributes
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-jit-support
@@ -156,11 +157,8 @@ This package contains the Ruby Documentation System for Ruby24.
 1b95ab193cc8f5b5e59d2686cb3d5dcf1ddf2a86cb6950e0b4bdaae5040ec0d6     12037052 ruby/ruby-2.7.2.tar.xz
 
 
-[FILE:18878:manifests/plist.primary]
-%%ONLY-DARWIN%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-DRAGONFLY%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-FREEBSD%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
-%%ONLY-LINUX%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
+[FILE:18598:manifests/plist.primary]
+%%MJIT%%include/ruby-%%XDOTY%%/%%RUBY_ARCH%%/rb_mjit_min_header-%%RUBY_VERSION%%.h
 bin/
  erb%%XY%%
  irb%%XY%%
@@ -1497,7 +1495,7 @@ share/examples/ruby%%XY%%/webrick/
  httpsd.rb
 
 
-[FILE:2759:patches/patch-configure.ac]
+[FILE:2767:patches/patch-configure.ac]
 --- configure.ac.orig	2020-10-01 12:15:38 UTC
 +++ configure.ac
 @@ -177,13 +177,7 @@ AS_CASE(["$host_os:$build_os"],
@@ -1546,7 +1544,7 @@ share/examples/ruby%%XY%%/webrick/
  	])
  	],
 -    [freebsd*|dragonfly*], [
-+    [freebsd*|dragonfly*|linux*|solaris*], [
++    [freebsd*|dragonfly*|netbsd*|linux*|solaris*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
  	LIBRUBY_SONAME='$(LIBRUBY_SO)'
 -	AS_IF([test "$rb_cv_binary_elf" != "yes" ], [
@@ -1714,9 +1712,15 @@ share/examples/ruby%%XY%%/webrick/
    code = File.read(file, encoding: "utf-8:-")
 
 
-[FILE:378:files/special.mk]
+[FILE:439:files/special.mk]
 # Macros to change variables in rbconfig.rb
 RB_SET_CONF_VAR=${SH} -c '${REINPLACE_CMD} -E -e "s,(CONFIG\[\"$$0\"\][[:space:]]*=[[:space:]]*)(\(?)(.*)(\)?),\1\2$$1\4," ${WRKSRC}/rbconfig.rb' --
+
+.if ${OPSYS} == SunOS
+MJIT="@comment "
+.else
+MJIT=""
+.endif
 
 POST_PLIST_TARGET=	rdoc-autolist
 

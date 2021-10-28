@@ -1,6 +1,7 @@
 #!/bin/sh
-# This script is specific to FreeBSD/DragonFly/Linux/Solaris/MacOS
+# This script is specific to FreeBSD/DragonFly/NetBSD/Linux/Solaris/MacOS
 # This script will need augmentation for other OS.
+# shellcheck disable=SC1091,SC2154
 
 set -e
 
@@ -10,7 +11,7 @@ validate_env dp_ECHO_MSG dp_GID_FILES dp_GID_OFFSET dp_INSTALL dp_OPSYS \
 	dp_OSVERSION dp_PREFIX dp_PW dp_SCRIPTSDIR dp_UG_DEINSTALL \
 	dp_UG_INSTALL dp_UID_FILES dp_UID_OFFSET dp_SYSTEM_UID dp_SYSTEM_GID
 
-[ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_DO_USERS_GROUPS}" ] && set -x
+[ -n "${DEBUG_MK_SCRIPTS}" ] || [ -n "${DEBUG_MK_SCRIPTS_DO_USERS_GROUPS}" ] && set -x
 
 set -u
 
@@ -25,8 +26,8 @@ error() {
 	exit 1
 }
 
-USERS_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' ${dp_SYSTEM_UID})
-GROUP_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' ${dp_SYSTEM_GID})
+USERS_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' "${dp_SYSTEM_UID}")
+GROUP_BLACKLIST=$(awk -F":" '!/^#/ {if (NF) print $1}' "${dp_SYSTEM_GID}")
 GROUP_SEARCH_PROG="'{if (\$1 == name) found=1} END {exit found?0:1}'"
 SUNOS_GROUPLIST_PROG="'\
 {n=split(\$4,ray,\"(\");\
@@ -62,7 +63,7 @@ if [ -n "${SYSGROUPS}" ]; then
 	for group in ${SYSGROUPS}; do
 	    if ! echo "${GROUP_BLACKLIST}" | grep -qw "${group}"; then
 		# _bgpd:*:130:
-		oneline=$(grep -h -m 1 "^${group}:" ${dp_GID_FILES}) || \
+		oneline=$(grep -h -m 1 "^${group}:" "${dp_GID_FILES}") || \
 			error "** Cannot find any information about group \`${group}' in ${dp_GID_FILES}."
 		o_IFS=${IFS}
 		IFS=":"
@@ -71,7 +72,10 @@ if [ -n "${SYSGROUPS}" ]; then
 				error "Group line for group ${group} has no gid"
 			fi
 			gid=$((gid+dp_GID_OFFSET))
-			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
+			if [ "${dp_OPSYS}" = "Linux" ] ||\
+			   [ "${dp_OPSYS}" = "SunOS" ] ||\
+			   [ "${dp_OPSYS}" = "NetBSD" ];
+			then
 				cat >> "${dp_UG_INSTALL}" <<-eot2
 if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Using existing group '$group'."
@@ -128,7 +132,7 @@ if [ -n "${SYSUSERS}" ]; then
 	    if ! echo "${USERS_BLACKLIST}" | grep -qw "${user}"; then
 	        # Format of Mk/Templates/UID.ravenports
 	        # smmsp:*:25:smmsp::0:0:Sendmail Submission User:/var/spool/clientmqueue:/usr/sbin/nologin
-	        oneline=$(grep -h -m 1 "^${user}:" ${dp_UID_FILES}) || \
+	        oneline=$(grep -h -m 1 "^${user}:" "${dp_UID_FILES}") || \
 			error "** Cannot find any information about user \`${user}' in ${dp_UID_FILES}."
 		o_IFS=${IFS}
 		IFS=":"
@@ -140,7 +144,10 @@ if [ -n "${SYSUSERS}" ]; then
 			if [ -n "$class" ]; then
 				class="-L $class"
 			fi
-			if [ "${dp_OPSYS}" = "SunOS" -a "$shell" = "/usr/sbin/nologin" ]; then
+			if [ "${dp_OPSYS}" = "SunOS" ] && [ "$shell" = "/usr/sbin/nologin" ]; then
+				shell="/usr/bin/false"
+			fi
+			if [ "${dp_OPSYS}" = "NetBSD" ] && [ "$shell" = "/usr/sbin/nologin" ]; then
 				shell="/usr/bin/false"
 			fi
 			homedir=$(echo "$homedir" | sed "s|^LOCALBASE/|${dp_PREFIX}/|")
@@ -150,7 +157,10 @@ if id ${user} >/dev/null 2>&1; then
 else
   echo "Creating user '$login' with uid '$uid', member of $group group."
 eot2
-			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
+			if [ "${dp_OPSYS}" = "Linux" ] ||\
+			   [ "${dp_OPSYS}" = "SunOS" ] ||\
+			   [ "${dp_OPSYS}" = "NetBSD" ];
+			then
 				cat >> "${dp_UG_INSTALL}" <<-eot2
   useradd -u $uid -g $group $class -c "$gecos" -d $homedir -s $shell $login
 fi
@@ -206,7 +216,7 @@ fi
 if [ -n "${SYSGROUPS}" ]; then
 	for sysgroup in ${SYSGROUPS}; do
 		# mail:*:6:postfix,clamav
-		oneline=$(grep -h -m 1 "^${sysgroup}:" ${dp_GID_FILES}) || \
+		oneline=$(grep -h -m 1 "^${sysgroup}:" "${dp_GID_FILES}") || \
 			error "** Cannot find $sysgroup group in ${dp_UID_FILES}. Perhaps it exists only on blacklist?"
 		o_IFS=${IFS}
 		IFS=":"
@@ -223,11 +233,13 @@ if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1
   usermod -a -G ${group} ${login}
 fi
 eot2
-						elif [ "${dp_OPSYS}" = "SunOS" ]; then
+						elif [ "${dp_OPSYS}" = "SunOS" ] ||\
+						     [ "${dp_OPSYS}" = "NetBSD" ];
+						then
 							cat >> "${dp_UG_INSTALL}" <<-eot2
 if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Adding user '${login}' to group '${group}'."
-  group_list=`id -a ${login} | awk -F'=' -vnewgroup=${group} ${SUNOS_GROUPLIST_PROG}`
+  group_list=$(id -a "${login}" | awk -F'=' -vnewgroup="${group}" "${SUNOS_GROUPLIST_PROG}")
   usermod -G ${group_list} ${login}
 fi
 eot2
@@ -280,7 +292,7 @@ fi
 if [ -n "${SYSGROUPS}" ]; then
 	for group in ${SYSGROUPS}; do
 		if ! echo "${GROUP_BLACKLIST}" | grep -qw "${group}"; then
-			if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
+			if [ "${dp_OPSYS}" = "Linux" ] || [ "${dp_OPSYS}" = "SunOS" ]; then
 				cat >> "${dp_UG_DEINSTALL}" <<-eot
 if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "==> You should manually remove the \"${group}\" group "

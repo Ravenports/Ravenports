@@ -392,7 +392,30 @@ include/skia/include/utils/mac/SkCGUtils.h
 lib/libskia.a
 
 
-[FILE:508:patches/patch-third__party_externals_dng__sdk_source_RawEnvironment.h]
+[FILE:667:patches/patch-src_gpu_GrAutoLocaleSetter.h]
+--- src/gpu/GrAutoLocaleSetter.h.orig	2020-03-19 21:10:56 UTC
++++ src/gpu/GrAutoLocaleSetter.h
+@@ -49,7 +49,7 @@ public:
+         } else {
+             fShouldRestoreLocale = false;
+         }
+-#elif HAVE_LOCALE_T
++#elif HAVE_LOCALE_T && !defined __NetBSD__
+ #if HAVE_XLOCALE
+         // In xlocale nullptr means the C locale.
+         if (0 == strcmp(name, "C")) {
+@@ -73,7 +73,7 @@ public:
+             setlocale(LC_ALL, fOldLocale.c_str());
+         }
+         _configthreadlocale(fOldPerThreadLocale);
+-#elif HAVE_LOCALE_T
++#elif HAVE_LOCALE_T && !defined __NetBSD__
+         if (fLocale) {
+              uselocale(fOldLocale);
+              freelocale(fLocale);
+
+
+[FILE:531:patches/patch-third__party_externals_dng__sdk_source_RawEnvironment.h]
 --- third_party/externals/dng_sdk/source/RawEnvironment.h.orig	2019-03-13 04:56:20 UTC
 +++ third_party/externals/dng_sdk/source/RawEnvironment.h
 @@ -5,7 +5,7 @@
@@ -400,7 +423,7 @@ lib/libskia.a
  // platforms. Other constants, such as qLinux, only need to be defined if we're
  // actually compiling for that platform.
 -#if defined(__linux__)
-+#if defined(__linux__) || defined(__DragonFly__) || defined(__FreeBSD__)
++#if defined(__linux__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
  #define qMacOS 0
  #define qWinOS 0
  #define qLinux 1

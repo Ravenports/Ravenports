@@ -37,6 +37,8 @@ CONFIGURE_ARGS=		--enable-binaries
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.5.1
 
+VAR_OPSYS[netbsd]=	MAKE_ENV=LIBOSSAUDIO=-lossaudio
+
 [FILE:384:descriptions/desc.primary]
 The Speex is a patent-free, Open Source/Free Software voice codec. Unlike 
 other codecs like MP3 and Ogg Vorbis, Speex is designed to compress voice 
@@ -78,10 +80,10 @@ share/man/man1/
 share/doc/speex/manual.pdf
 
 
-[FILE:406:patches/patch-configure]
---- configure.orig      2014-12-06 19:58:24 UTC
+[FILE:401:patches/patch-configure]
+--- configure.orig	2016-12-07 23:21:04 UTC
 +++ configure
-@@ -2486,6 +2486,7 @@ case $enable_silent_rules in # (((
+@@ -2507,6 +2507,7 @@ case $enable_silent_rules in # (((
     no) AM_DEFAULT_VERBOSITY=1;;
      *) AM_DEFAULT_VERBOSITY=0;;
  esac
@@ -89,4 +91,23 @@ share/doc/speex/manual.pdf
  am_make=${MAKE-make}
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $am_make supports nested variables" >&5
  $as_echo_n "checking whether $am_make supports nested variables... " >&6; }
+
+
+[FILE:550:patches/patch-src_Makefile.in]
+--- src/Makefile.in.orig	2016-12-07 23:21:03 UTC
++++ src/Makefile.in
+@@ -366,11 +366,11 @@ include_HEADERS =
+ noinst_HEADERS = wav_io.h
+ speexenc_SOURCES = speexenc.c wav_io.c skeleton.c
+ speexenc_LDADD = $(top_builddir)/libspeex/libspeex.la \
+-	$(OGG_LIBS)  @FFT_LIBS@	@SPEEXDSP_LIBS@
++	$(OGG_LIBS)  @FFT_LIBS@	@SPEEXDSP_LIBS@ $(LIBOSSAUDIO)
+ 
+ speexdec_SOURCES = speexdec.c wav_io.c
+ speexdec_LDADD = $(top_builddir)/libspeex/libspeex.la \
+-	$(OGG_LIBS) @WINMM_LIBS@ @FFT_LIBS@
++	$(OGG_LIBS) @WINMM_LIBS@ @FFT_LIBS@ $(LIBOSSAUDIO)
+ 
+ all: all-am
+ 
 

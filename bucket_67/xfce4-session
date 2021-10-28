@@ -174,3 +174,69 @@ share/locale/zh_CN/LC_MESSAGES/xfce4-session.mo
 share/locale/zh_HK/LC_MESSAGES/xfce4-session.mo
 share/locale/zh_TW/LC_MESSAGES/xfce4-session.mo
 
+
+[FILE:360:patches/patch-config.h.in]
+$NetBSD: patch-config.h.in,v 1.2 2017/06/22 09:40:24 youri Exp $
+
+Add NetBSD backend.
+
+--- config.h.in.orig	2020-12-22 23:09:19 UTC
++++ config.h.in
+@@ -12,6 +12,9 @@
+ /* OpenBSD suspend/hibernate backend */
+ #undef BACKEND_TYPE_OPENBSD
+ 
++/* NetBSD suspend/hibernate backend */
++#undef BACKEND_TYPE_NETBSD
++
+ /* Define for debugging support */
+ #undef DEBUG
+ 
+
+
+[FILE:999:patches/patch-configure]
+Add NetBSD backend detection.
+
+--- configure.orig	2020-12-22 23:09:11 UTC
++++ configure
+@@ -17798,6 +17798,8 @@ if test x$with_backend = x; then
+     with_backend=freebsd ;; #(
+   *-*dragonfly*) :
+     with_backend=freebsd ;; #(
++  *-*netbsd*) :
++    with_backend=netbsd ;; #(
+   *-openbsd*) :
+     with_backend=openbsd ;; #(
+   *) :
+@@ -17827,6 +17829,11 @@ if test x$with_backend = xopenbsd; then
+ $as_echo "#define BACKEND_TYPE_OPENBSD 1" >>confdefs.h
+ 
+ fi
++if test x$with_backend = xnetbsd; then
++
++$as_echo "#define BACKEND_TYPE_NETBSD 1" >>confdefs.h
++
++fi
+ 
+ ac_config_files="$ac_config_files Makefile doc/Makefile icons/Makefile icons/16x16/Makefile icons/24x24/Makefile icons/24x24-actions/Makefile icons/32x32/Makefile icons/48x48-actions/Makefile icons/48x48/Makefile icons/128x128/Makefile icons/scalable/Makefile libxfsm/Makefile po/Makefile.in settings/Makefile scripts/Makefile scripts/xinitrc.in xfce4-session/Makefile xfce4-session-logout/Makefile xfsm-shutdown-helper/Makefile"
+ 
+
+
+[FILE:533:patches/patch-libxfsm_xfsm-shutdown-common.h]
+$NetBSD: patch-libxfsm_xfsm-shutdown-common.h,v 1.1 2019/05/23 02:56:07 gutteridge Exp $
+
+Add NetBSD commands.
+
+--- libxfsm/xfsm-shutdown-common.h.orig	2019-05-05 22:00:21 UTC
++++ libxfsm/xfsm-shutdown-common.h
+@@ -70,4 +70,9 @@
+ #define UP_BACKEND_HIBERNATE_COMMAND "/usr/sbin/ZZZ"
+ #endif
+ 
++#ifdef BACKEND_TYPE_NETBSD
++#define UP_BACKEND_SUSPEND_COMMAND      "/sbin/sysctl -w hw.acpi.sleep.state=1"
++#define UP_BACKEND_HIBERNATE_COMMAND    "/sbin/sysctl -w hw.acpi.sleep.state=4"
++#endif
++
+ #endif /* __XFSM_SHUTDOWN_COMMON_H_ */
+

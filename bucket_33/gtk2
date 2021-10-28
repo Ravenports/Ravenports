@@ -50,17 +50,15 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 [CUPS].BUILDRUN_DEPENDS_ON=		cups:single:standard
 [CUPS].CONFIGURE_ENABLE_BOTH=		cups
 
-post-patch:
-	${REINPLACE_CMD} -e 's|[{]libdir[}]/locale|{datadir}/locale|g' \
-		${WRKSRC}/configure
-	${REINPLACE_CMD} -e 's|file,cups|file,cups,lpr|' \
-		${WRKSRC}/gtk/Makefile.in
-
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gtk-2.0/modules
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gtk-2.0/2.10.0/engines
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gtk-2.0/2.10.0/loaders
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gtk-2.0/2.10.0/modules
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|[{]libdir[}]/locale|{datadir}/locale|g' \
+		${WRKSRC}/configure
 
 [FILE:226:descriptions/desc.primary]
 GTK+, or the GIMP Toolkit, is a multi-platform toolkit for creating
@@ -850,7 +848,7 @@ share/locale/zh_TW/LC_MESSAGES/
  BUILT_SOURCES = \
 
 
-[FILE:580:patches/patch-gtk_Makefile.in]
+[FILE:1471:patches/patch-gtk_Makefile.in]
 --- gtk/Makefile.in.orig	2020-12-21 01:10:41 UTC
 +++ gtk/Makefile.in
 @@ -182,8 +182,7 @@ host_triplet = @host@
@@ -863,6 +861,24 @@ share/locale/zh_TW/LC_MESSAGES/
  subdir = gtk
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
  am__aclocal_m4_deps = $(top_srcdir)/m4/introspection.m4 \
+@@ -2014,7 +2013,7 @@ SUBDIRS = theme-bits . tests
+ DIST_SUBDIRS = theme-bits tests
+ @HAVE_CUPS_FALSE@@HAVE_PAPI_CUPS_FALSE@@HAVE_PAPI_FALSE@GTK_PRINT_BACKENDS = file,lpr
+ @HAVE_CUPS_FALSE@@HAVE_PAPI_CUPS_FALSE@@HAVE_PAPI_TRUE@GTK_PRINT_BACKENDS = file,papi
+-@HAVE_CUPS_TRUE@@HAVE_PAPI_CUPS_FALSE@GTK_PRINT_BACKENDS = file,cups
++@HAVE_CUPS_TRUE@@HAVE_PAPI_CUPS_FALSE@GTK_PRINT_BACKENDS = file,cups,lpr
+ @HAVE_PAPI_CUPS_TRUE@GTK_PRINT_BACKENDS = file,papi,cups
+ GTK_BASE_CFLAGS_DEFINES = \
+ 	-DGTK_VERSION=\"$(GTK_VERSION)\"		\
+@@ -7523,7 +7522,7 @@ gtkbuiltincache.h: @REBUILD@ stamp-icons
+ 	$(gtk_update_icon_cache_program) --force --ignore-theme-index		\
+ 	   --include-image-data							\
+ 	   --source builtin_icons stock-icons > gtkbuiltincache.h.tmp &&        \
+-	mv gtkbuiltincache.h.tmp gtkbuiltincache.h
++	mv gtkbuiltincache.h.tmp gtkbuiltincache.h ||: true
+ 
+ install-data-local:
+ 
 
 
 [FILE:580:patches/patch-gtk_gtkbuilderparser.c]

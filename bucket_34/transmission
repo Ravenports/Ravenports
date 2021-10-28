@@ -451,6 +451,51 @@ share/transmission/web/style/transmission/images/buttons/torrent_buttons.png
  endif()
 
 
+[FILE:482:patches/patch-cli_CMakeLists.txt]
+--- cli/CMakeLists.txt.orig	2020-05-22 11:04:23 UTC
++++ cli/CMakeLists.txt
+@@ -9,6 +9,9 @@ tr_win32_app_info(${PROJECT_NAME}_WIN32_
+ 
+ add_executable(${TR_NAME}-cli cli.c ${${PROJECT_NAME}_WIN32_RC_FILE})
+ include_directories(${TR_NAME}-cli ${CURL_INCLUDE_DIRS})
++if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
++   target_link_libraries(${TR_NAME}-cli quota)
++endif()
+ target_link_libraries(${TR_NAME}-cli ${TR_NAME})
+ 
+ install(TARGETS ${TR_NAME}-cli DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+
+[FILE:388:patches/patch-daemon_CMakeLists.txt]
+--- daemon/CMakeLists.txt.orig	2020-05-22 11:04:23 UTC
++++ daemon/CMakeLists.txt
+@@ -36,6 +36,9 @@ add_executable(${TR_NAME}-daemon
+     ${${PROJECT_NAME}_HEADERS}
+     ${${PROJECT_NAME}_WIN32_RC_FILE})
+ 
++if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
++   target_link_libraries(${TR_NAME}-daemon quota)
++endif()
+ target_link_libraries(${TR_NAME}-daemon
+     ${TR_NAME}
+     ${EVENT2_LIBRARIES}
+
+
+[FILE:360:patches/patch-gtk_CMakeLists.txt]
+--- gtk/CMakeLists.txt.orig	2020-05-22 11:04:23 UTC
++++ gtk/CMakeLists.txt
+@@ -158,6 +158,9 @@ add_executable(${TR_NAME}-gtk WIN32
+     ${${PROJECT_NAME}_WIN32_RC_FILE}
+ )
+ 
++if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
++   target_link_libraries(${TR_NAME}-gtk quota)
++endif()
+ target_link_libraries(${TR_NAME}-gtk
+     ${TR_NAME}
+     ${LIBAPPINDICATOR_LIBRARIES}
+
+
 [FILE:181:patches/patch-po_CMakeLists.txt]
 --- po/CMakeLists.txt.orig	2020-05-22 11:04:23 UTC
 +++ po/CMakeLists.txt
@@ -475,6 +520,36 @@ share/transmission/web/style/transmission/images/buttons/torrent_buttons.png
  #include "FaviconCache.h"
  #include "Typedefs.h"
  
+
+
+[FILE:340:patches/patch-qt_CMakeLists.txt]
+--- qt/CMakeLists.txt.orig	2020-05-22 11:04:23 UTC
++++ qt/CMakeLists.txt
+@@ -217,6 +217,9 @@ add_executable(${TR_NAME}-qt WIN32
+     ${${PROJECT_NAME}_WIN32_RC_FILE}
+ )
+ 
++if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
++   target_link_libraries(${TR_NAME}-qt quota)
++endif()
+ target_link_libraries(${TR_NAME}-qt
+     ${TR_NAME}
+     ${QT_TARGETS}
+
+
+[FILE:544:patches/patch-utils_CMakeLists.txt]
+--- utils/CMakeLists.txt.orig	2020-05-22 11:04:23 UTC
++++ utils/CMakeLists.txt
+@@ -10,6 +10,9 @@ foreach(P create edit remote show)
+ 
+     add_executable(${TR_NAME}-${P} ${P}.c ${${PROJECT_NAME}_${P}_WIN32_RC_FILE})
+     include_directories(${TR_NAME}-${P} ${EVENT2_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS})
++    if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
++       target_link_libraries(${TR_NAME}-${P} quota)
++    endif()
+     target_link_libraries(${TR_NAME}-${P} ${TR_NAME})
+ 
+     install(TARGETS ${TR_NAME}-${P} DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 
 [FILE:129:files/special.mk]

@@ -87,6 +87,11 @@ VAR_OPSYS[darwin]=	PLIST_SUB=SOABI=.cpython-38m-darwin
 			PLIST_SUB=FULLABI={{ABIFLAGS}}-darwin
 			PLIST_SUB=PLAT=darwin
 			CONFIGURE_ARGS=--enable-framework=no
+VAR_OPSYS[netbsd]=	PLIST_SUB=SOABI=.cpython-38
+			PLIST_SUB=SCD=
+			PLIST_SUB=FULLABI={{ABIFLAGS}}
+			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+			CONFIGURE_ENV=ac_cv_lib_dl_dlopen=false
 VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=.cpython-38
 			PLIST_SUB=SCD=
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
@@ -98,13 +103,6 @@ VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=.cpython-38
 [PYMALLOC].DESCRIPTION=			Enable specialized mallocs
 [PYMALLOC].CONFIGURE_WITH_BOTH=		pymalloc
 
-post-patch:
-	${REINPLACE_CMD} -e 's|/usr/local/bin/python|${python_CMD}|' \
-		${WRKSRC}/Lib/cgi.py
-	${REINPLACE_CMD} -e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
-		${WRKSRC}/setup.py
-	${REINPLACE_CMD} -e 's| make| gmake|g' ${WRKSRC}/Mac/Makefile.in
-
 post-install:
 	for i in ${STAGEDIR}${PREFIX}/lib/python3.8/lib-dynload/*.so; do \
 		${STRIP_CMD} $$i; \
@@ -112,11 +110,18 @@ post-install:
 	${INSTALL_DATA} ${WRKSRC}/Tools/gdb/libpython.py \
 		${STAGEDIR}${PREFIX}/lib/libpython3.8${ABIFLAGS}.so.1.0-gdb.py
 
+pre-configure:
+	${REINPLACE_CMD} -e 's|/usr/local/bin/python|${python_CMD}|' \
+		${WRKSRC}/Lib/cgi.py
+	${REINPLACE_CMD} -e 's|/usr/local/include/db4|${PREFIX}/include/db${BDB_VER}|' \
+		${WRKSRC}/setup.py
+	${REINPLACE_CMD} -e 's| make| gmake|g' ${WRKSRC}/Mac/Makefile.in
+
 post-install-DEBUG-OFF:
 	# Upstream Issue: http://bugs.python.org/issue17975
 	${RM} ${STAGEDIR}${PREFIX}/lib/libpython3.so
 
-post-patch-sunos:
+pre-configure-sunos:
 	# non-understood missing ref to uuid_generate_time_safe even
 	# though it is correctly present in libuuid (hack to fix uuid
 	# module)

@@ -27,6 +27,7 @@ BUILDRUN_DEPENDS=	boost-libraries:rest:python_used
 			judy:primary:standard
 			krb5:primary:standard
 			curl:primary:standard
+BR_DEPS[netbsd]=	openpam:single:standard
 
 USERS=			mysql
 GROUPS=			mysql
@@ -52,6 +53,8 @@ FPC_EQUIVALENT=		databases/mariadb104-server
 SHEBANG_FILES=		scripts/*.sh
 
 INSTALL_REQ_TOOLCHAIN=	yes
+PLIST_SUB=		AUTHSOCKET={{AUTHSOCKET}}
+			PAM={{PAM:U"@comment "}}
 
 CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_INCLUDEDIR=include/mysql
@@ -85,15 +88,10 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DWITH_PCRE=bundled
 			-Wno-dev
 VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
+			MAKEFILE_LINE=PAM=
 
 post-patch:
-	${REINPLACE_CMD} 's|/usr/bin/env python|${PYTHON_CMD}|' \
-		${WRKSRC}/CMakeLists.txt
-	${REINPLACE_CMD} 's|%%PREFIX%%|${PREFIX}|g' \
-		${WRKSRC}/mysys/my_default.c
-	${REINPLACE_CMD} 's|%%LOCALBASE%%|${LOCALBASE}|g' \
-		${WRKSRC}/scripts/mysql_config.sh \
-		${WRKSRC}/scripts/CMakeLists.txt
 	${CP} ${WRKSRC}/cmake/os/FreeBSD.cmake \
 		${WRKSRC}/cmake/os/DragonFly.cmake
 
@@ -105,7 +103,7 @@ post-install:
 	# strip plugins and libraries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadb.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadbd.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/plugin/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/*/*.so
 	# strip binaries
 	@flist=$$(${FIND} ${STAGEDIR}${PREFIX}/bin -type f -perm /111 -print) ;\
 	for f in $$flist; do \
@@ -113,11 +111,28 @@ post-install:
 		&& ${ECHO_CMD} "Auto-stripping $$f"\
 		&& ${STRIP_CMD} $$f || ${TRUE} ;\
 	done
+	# if pam config file exists, set it as a sample
+	# remove testsuite files too
+	if [ -f "${STAGEDIR}${PREFIX}/etc/mariadb/user_map.conf" ]; then \
+		(cd ${STAGEDIR}${PREFIX}/etc/mariadb && \
+		${MV} user_map.conf user_map.conf.sample) ;\
+		${RM} -r ${STAGEDIR}/suite ;\
+	fi
+
+pre-configure:
+	${REINPLACE_CMD} 's|/usr/bin/env python|${PYTHON_CMD}|' \
+		${WRKSRC}/CMakeLists.txt
+	${REINPLACE_CMD} 's|%%PREFIX%%|${PREFIX}|g' \
+		${WRKSRC}/mysys/my_default.c
+	${REINPLACE_CMD} 's|%%LOCALBASE%%|${LOCALBASE}|g' \
+		${WRKSRC}/scripts/mysql_config.sh \
+		${WRKSRC}/scripts/CMakeLists.txt
 
 post-configure:
 	${REINPLACE_CMD} -Ee 's|(#define INCLUDE.*)"$$|\1 -I${PREFIX}/include"|' \
 		-e 's|(#define LIBS .*)"$$|\1 -L${PREFIX}/lib"|' \
 		${BUILD_WRKSRC}/libmariadb/mariadb_config/mariadb_config.c
+	# Fix build failure in mbstream, see https://jira.mariadb.org/browse/MDEV-14072
 	${REINPLACE_CMD} -e 's| ${PREFIX}/lib/liblz4.so\(.* ${PREFIX}/lib/liblz4.so.*\)|\1|' \
 		-e 's| ${PREFIX}/lib/liblzo2.so\(.* ${PREFIX}/lib/liblzo2.so.*\)|\1|' \
 		-e 's| ${PREFIX}/lib/libsnappy.so\(.* ${PREFIX}/lib/libsnappy.so\)|\1|' \
@@ -154,7 +169,13 @@ This package contains the client and related files.
 ab4f1ca69a30c5372e191a68e8b543a74168327680fb1f4067e8cc0a5582e4bd    101914615 mariadb-10.5.12.tar.gz
 
 
-[FILE:11553:manifests/plist.server]
+[FILE:11753:manifests/plist.server]
+%%PAM%%@sample etc/mariadb/user_map.conf.sample
+%%PAM%%lib/mysql/plugin/
+ auth_pam.so
+ auth_pam_v1.so
+%%PAM%%lib/mysql/plugin/auth_pam_tool_dir/auth_pam_tool
+%%PAM%%lib/mysql/security/pam_user_map.so
 bin/
  aria_chk
  aria_dump_log
@@ -990,6 +1011,22 @@ share/doc/mariadb105/
  #endif /* defined(HAVE_CURSES_H) && defined(HAVE_TERM_H) */
 
 
+[FILE:500:patches/patch-cmake_install__layout.cmake]
+--- cmake/install_layout.cmake.orig	2021-08-03 08:29:07 UTC
++++ cmake/install_layout.cmake
+@@ -128,8 +128,8 @@ SET(INSTALL_SUPPORTFILESDIR_STANDALONE
+ SET(INSTALL_MYSQLDATADIR_STANDALONE     "data")
+ 
+ SET(INSTALL_UNIX_ADDRDIR_STANDALONE     "/tmp/mysql.sock")
+-SET(INSTALL_PAMDIR_STANDALONE           "share")
+-SET(INSTALL_PAMDATADIR_STANDALONE       "share")
++SET(INSTALL_PAMDIR_STANDALONE           "lib/mysql/security")
++SET(INSTALL_PAMDATADIR_STANDALONE       "etc/mariadb")
+ #
+ # RPM layout
+ #
+
+
 [FILE:1966:patches/patch-cmake_readline.cmake]
 --- cmake/readline.cmake.orig	2021-08-03 08:29:07 UTC
 +++ cmake/readline.cmake
@@ -1367,6 +1404,74 @@ share/doc/mariadb105/
  /* MySQL header files */
  #include "./my_global.h"
  
+
+
+[FILE:474:patches/patch-storage_rocksdb_rdb__io__watchdog.cc]
+If timer_t is an integer type, setting it to nullptr fails.
+
+--- storage/rocksdb/rdb_io_watchdog.cc.orig	2021-08-03 08:29:09 UTC
++++ storage/rocksdb/rdb_io_watchdog.cc
+@@ -111,7 +111,11 @@ void Rdb_io_watchdog::io_check_callback(
+     sql_print_warning("Deleting the watchdog I/O timer failed with %d.", errno);
+   }
+ 
++#ifdef __NetBSD__
++  m_io_check_watchdog_timer = 0;
++#else
+   m_io_check_watchdog_timer = nullptr;
++#endif
+ 
+   RDB_MUTEX_UNLOCK_CHECK(m_reset_mutex);
+ }
+
+
+[FILE:1227:patches/patch-storage_rocksdb_rdb__io__watchdog.h]
+If timer_t is an integer type, setting it to nullptr fails.
+
+--- storage/rocksdb/rdb_io_watchdog.h.orig	2021-08-03 08:29:09 UTC
++++ storage/rocksdb/rdb_io_watchdog.h
+@@ -32,6 +32,12 @@
+ /* MyRocks header files */
+ #include "./rdb_utils.h"
+ 
++#ifdef __NetBSD__
++#define NULLTIMER	0
++#else
++#define NULLTIMER	nullptr
++#endif
++
+ namespace myrocks {
+ 
+ // Rdb_io_watchdog does not support Windows ATM.
+@@ -60,7 +66,7 @@ class Rdb_io_watchdog {
+       ret = timer_delete(m_io_check_watchdog_timer);
+ 
+       if (!ret) {
+-        m_io_check_watchdog_timer = nullptr;
++        m_io_check_watchdog_timer = NULLTIMER;
+       }
+     }
+ 
+@@ -68,7 +74,7 @@ class Rdb_io_watchdog {
+       ret = timer_delete(m_io_check_timer);
+ 
+       if (!ret) {
+-        m_io_check_timer = nullptr;
++        m_io_check_timer = NULLTIMER;
+       }
+     }
+ 
+@@ -93,8 +99,8 @@ class Rdb_io_watchdog {
+ 
+  public:
+   explicit Rdb_io_watchdog(std::vector<std::string> &&directories)
+-      : m_io_check_timer(nullptr),
+-        m_io_check_watchdog_timer(nullptr),
++      : m_io_check_timer(NULLTIMER),
++        m_io_check_watchdog_timer(NULLTIMER),
+         m_io_in_progress(false),
+         m_dirs_to_check(std::move(directories)),
+         m_buf(nullptr) {
 
 
 [FILE:328:patches/patch-storage_rocksdb_rocksdb_port_jemalloc__helper.h]
