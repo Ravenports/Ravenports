@@ -2,7 +2,7 @@
 
 NAMEBASE=		skia
 VERSION=		2020-03-19
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Open-source 2D graphics library
@@ -28,13 +28,13 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		gn:single:standard
-			WebP:single:standard
+BUILDRUN_DEPENDS=	WebP:single:standard
 			harfbuzz:primary:standard
 			harfbuzz:icu:standard
 			freetype:primary:standard
 
-USES=			ninja python:py27,build jpeg:build png:build
-			expat:build zlib:build
+USES=			ninja python:py27,build jpeg png expat zlib
+			c++:single
 
 LICENSE=		BSD3CLAUSE:single
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
@@ -44,6 +44,8 @@ CONFIGURE_OUTSOURCE=	yes
 CONFIGURE_ENV=		AUTOPYTHON=2.7
 
 MAKE_ENV=		AUTOPYTHON=2.7
+
+SOVERSION=		1.0
 
 post-patch:
 	${REINPLACE_CMD} -e 's|/usr/include/harfbuzz|${LOCALBASE}/include/harfbuzz|'\
@@ -56,6 +58,7 @@ do-configure:
 	(cd ${WRKSRC} && ${SETENV} ${CONFIGURE_ENV} \
 		gn gen ${CONFIGURE_WRKSRC} --args="\
 		is_official_build=true \
+		is_component_build=true \
 		skia_use_system_libjpeg_turbo=true \
 		skia_use_system_libpng=true \
 		skia_use_system_libwebp=true \
@@ -63,14 +66,16 @@ do-configure:
 		skia_use_system_expat=true \
 		skia_use_system_zlib=true \
 		skia_use_system_harfbuzz=true \
-		skia_use_system_freetype2=true \
+		skia_enable_fontmgr_empty=true \
 		")
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib
 	${MKDIR} ${STAGEDIR}${PREFIX}/include/skia
-	${INSTALL_DATA} ${BUILD_WRKSRC}/libskia.a \
-		${STAGEDIR}${PREFIX}/lib
+	${INSTALL_LIB} ${BUILD_WRKSRC}/libskia.so \
+		${STAGEDIR}${PREFIX}/lib/libskia.so.1.0
+	(cd ${STAGEDIR}${PREFIX}/lib && \
+		${LN} -s libskia.so.1.0 libskia.so)
 	(cd ${WRKSRC} && ${COPYTREE_SHARE} \
 		include ${STAGEDIR}${PREFIX}/include/skia)
 
@@ -89,7 +94,7 @@ a523111f2911a68efc3f1488dc60c8bd4d41746731ce28014ae273767a28311e       421656 sk
 d55c6e50ea609021d5dea5d26f0bad3625ad07c2ba122377fb304d30bc92013c       287368 skia-src/skia-mirror-zlib-47af7c5.tar.gz
 
 
-[FILE:5575:manifests/plist.single]
+[FILE:5604:manifests/plist.single]
 include/skia/include/android/
  SkAndroidFrameworkUtils.h
  SkAnimatedImage.h
@@ -389,7 +394,56 @@ include/skia/include/utils/
  SkTextUtils.h
  SkTraceEventPhase.h
 include/skia/include/utils/mac/SkCGUtils.h
-lib/libskia.a
+lib/
+ libskia.so
+ libskia.so.%%SOVERSION%%
+
+
+[FILE:1205:patches/patch-BUILD.gn]
+--- BUILD.gn.orig	2020-03-19 21:10:56 UTC
++++ BUILD.gn
+@@ -984,6 +984,7 @@ component("skia") {
+     "src/ports/SkImageGenerator_skia.cpp",
+     "src/ports/SkMemory_malloc.cpp",
+     "src/ports/SkOSFile_stdio.cpp",
++    "src/ports/SkDebug_stdio.cpp",
+     "src/sfnt/SkOTTable_name.cpp",
+     "src/sfnt/SkOTUtils.cpp",
+   ]
+@@ -1028,7 +1029,6 @@ component("skia") {
+   }
+ 
+   if (is_linux || target_cpu == "wasm") {
+-    sources += [ "src/ports/SkDebug_stdio.cpp" ]
+     if (skia_use_egl) {
+       libs += [ "GLESv2" ]
+     }
+@@ -1040,7 +1040,6 @@ component("skia") {
+ 
+   if (is_mac) {
+     sources += [
+-      "src/ports/SkDebug_stdio.cpp",
+       "src/ports/SkImageEncoder_CG.cpp",
+       "src/ports/SkImageGeneratorCG.cpp",
+     ]
+@@ -1054,7 +1053,6 @@ component("skia") {
+ 
+   if (is_ios) {
+     sources += [
+-      "src/ports/SkDebug_stdio.cpp",
+       "src/ports/SkFontHost_mac.cpp",
+       "src/ports/SkImageEncoder_CG.cpp",
+       "src/ports/SkImageGeneratorCG.cpp",
+@@ -1071,9 +1069,6 @@ component("skia") {
+     ]
+   }
+ 
+-  if (is_fuchsia) {
+-    sources += [ "src/ports/SkDebug_stdio.cpp" ]
+-  }
+ 
+   if (skia_enable_spirv_validation) {
+     deps += [ "//third_party/spirv-tools:spvtools_val" ]
 
 
 [FILE:667:patches/patch-src_gpu_GrAutoLocaleSetter.h]
