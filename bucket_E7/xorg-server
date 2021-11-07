@@ -3,12 +3,10 @@
 NAMEBASE=		xorg-server
 VERSION=		21.1.0
 KEYWORDS=		x11_servers
-VARIANTS=		standard virtual dmx xephyr nest wayland
+VARIANTS=		standard virtual xephyr nest
 SDESC[xephyr]=		X server from X.Org based on kdrive
 SDESC[virtual]=		X virtual framebuffer server from X.Org
-SDESC[wayland]=		X Clients under Wayland
 SDESC[standard]=	X.Org X server and related programs
-SDESC[dmx]=		Distributed Multihead X from X.Org
 SDESC[nest]=		Nesting X server from X.Org
 HOMEPAGE=		https://www.x.org/
 CONTACT=		nobody
@@ -19,23 +17,17 @@ DISTFILE[1]=		xorg-server-21.1.0.tar.xz:main
 DF_INDEX=		1
 SPKGS[xephyr]=		single
 SPKGS[virtual]=		single
-SPKGS[wayland]=		single
 SPKGS[standard]=	single
-SPKGS[dmx]=		single
 SPKGS[nest]=		single
 
-OPTIONS_AVAILABLE=	XORG VIRTUAL DMX XEPHYR NEST WAYLAND DEVD SUID
+OPTIONS_AVAILABLE=	XORG VIRTUAL XEPHYR NEST DEVD SUID
 OPTIONS_STANDARD=	XORG DEVD SUID
-VOPTS[xephyr]=		XORG=OFF VIRTUAL=OFF DMX=OFF XEPHYR=ON NEST=OFF
-			WAYLAND=OFF DEVD=OFF SUID=OFF
-VOPTS[virtual]=		XORG=OFF VIRTUAL=ON DMX=OFF XEPHYR=OFF NEST=OFF
-			WAYLAND=OFF DEVD=OFF SUID=OFF
-VOPTS[wayland]=		XORG=OFF VIRTUAL=OFF DMX=OFF XEPHYR=OFF NEST=OFF
-			WAYLAND=ON DEVD=OFF SUID=OFF
-VOPTS[dmx]=		XORG=OFF VIRTUAL=OFF DMX=ON XEPHYR=OFF NEST=OFF
-			WAYLAND=OFF DEVD=OFF SUID=OFF
-VOPTS[nest]=		XORG=OFF VIRTUAL=OFF DMX=OFF XEPHYR=OFF NEST=ON
-			WAYLAND=OFF DEVD=OFF SUID=OFF
+VOPTS[xephyr]=		XORG=OFF VIRTUAL=OFF XEPHYR=ON NEST=OFF DEVD=OFF
+			SUID=OFF
+VOPTS[virtual]=		XORG=OFF VIRTUAL=ON XEPHYR=OFF NEST=OFF DEVD=OFF
+			SUID=OFF
+VOPTS[nest]=		XORG=OFF VIRTUAL=OFF XEPHYR=OFF NEST=ON DEVD=OFF
+			SUID=OFF
 OPT_ON[all]=		XORG SUID
 
 BUILD_DEPENDS=		xorg-fontutil:single:standard
@@ -102,23 +94,6 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 					xcb-util-keysyms
 					xcb-render-util
 
-[DMX].DESCRIPTION=			Build as distributed multihead X server
-[DMX].BUILD_DEPENDS_ON=			libepoxy:single:standard
-					mesa:drivers:standard
-					xorg-xtst:single:standard
-					xorg-xres:single:standard
-[DMX].CONFIGURE_ENABLE_BOTH=		dmx
-[DMX].XORG_COMPONENTS_ON=		dmx
-					x11
-					xaw
-					xext
-					xfixes
-					xi
-					xmu
-					xpm
-					xrender
-					xt
-
 [VIRTUAL].DESCRIPTION=			Build as virtual framebuffer server
 [VIRTUAL].BUILD_DEPENDS_ON=		libepoxy:single:standard
 					mesa:drivers:standard
@@ -138,19 +113,6 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 [XORG].XORG_COMPONENTS_ON=		pciaccess
 					xfont2
 
-[WAYLAND].DESCRIPTION=			Build Wayland X clients
-[WAYLAND].BUILDRUN_DEPENDS_ON=		libdrm:single:standard
-					libepoxy:single:standard
-					wayland:primary:standard
-[WAYLAND].BUILD_DEPENDS_ON=		mesa:drivers:standard
-					wayland-protocols:single:standard
-					evdev-proto:single:standard
-[WAYLAND].CONFIGURE_ARGS_ON=		--disable-xquartz
-					--disable-xwin
-[WAYLAND].CONFIGURE_ENABLE_BOTH=	xwayland
-[WAYLAND].XORG_COMPONENTS_ON=		x11
-					xext
-
 [SUID].DESCRIPTION=			Install the Xorg server with setuid bit set
 
 post-patch:
@@ -161,10 +123,6 @@ post-patch:
 
 do-install-XEPHYR-ON:
 	(cd ${WRKSRC}/hw/kdrive/ephyr && \
-		DESTDIR=${STAGEDIR} ${MAKE_CMD} install)
-
-do-install-WAYLAND-ON:
-	(cd ${WRKSRC}/hw/xwayland && \
 		DESTDIR=${STAGEDIR} ${MAKE_CMD} install)
 
 post-install-XORG-OFF:
@@ -186,10 +144,6 @@ do-install-NEST-ON:
 	(cd ${WRKSRC}/hw/xnest && \
 		DESTDIR=${STAGEDIR} ${MAKE_CMD} install)
 
-do-install-DMX-ON:
-	(cd ${WRKSRC}/hw/dmx && \
-		DESTDIR=${STAGEDIR} ${MAKE_CMD} install)
-
 post-install-XORG-ON:
 	# The .xorg dir because else the xorg-server might not load the
 	# correct libglx module.
@@ -207,13 +161,6 @@ This package contains the X.Org X server and some associated programs.
 This package contains Xvfb, a virtual framebuffer X server.
 
 
-[FILE:287:descriptions/desc.single.dmx]
-Xdmx is proxy X server that provides multi-head support for multiple
-displays attached to different machines (each of which is running a
-typical X server).  When Xinerama is used with Xdmx, the multiple displays
-on multiple machines are presented to the user as a single unified screen.
-
-
 [FILE:173:descriptions/desc.single.xephyr]
 Xephyr is a kdrive server that outputs to a window on a pre-existing
 'host' X display.  Think Xnest but with support for modern extensions
@@ -223,12 +170,6 @@ like composite, damage and randr.
 [FILE:78:descriptions/desc.single.nest]
 This package contains Xnest, a nesting X Server that displays on an X
 Server.
-
-
-[FILE:148:descriptions/desc.single.wayland]
-XWayland is an X Server running as a Wayland client, thus capable of
-displaying native X11 client applications in a Wayland compositor
-environment.
 
 
 [FILE:104:distinfo]
@@ -435,27 +376,6 @@ bin/Xvfb
 share/man/man1/Xvfb.1.gz
 
 
-[FILE:214:manifests/plist.single.dmx]
-bin/
- Xdmx
- dmxaddinput
- dmxaddscreen
- dmxinfo
- dmxreconfig
- dmxresize
- dmxrminput
- dmxrmscreen
- dmxtodmx
- dmxwininfo
- vdltodmx
- xdmxconfig
-share/man/man1/
- Xdmx.1.gz
- dmxtodmx.1.gz
- vdltodmx.1.gz
- xdmxconfig.1.gz
-
-
 [FILE:38:manifests/plist.single.xephyr]
 bin/Xephyr
 share/man/man1/Xephyr.1.gz
@@ -464,10 +384,6 @@ share/man/man1/Xephyr.1.gz
 [FILE:36:manifests/plist.single.nest]
 bin/Xnest
 share/man/man1/Xnest.1.gz
-
-
-[FILE:13:manifests/plist.single.wayland]
-bin/Xwayland
 
 
 [FILE:293:patches/patch-config_config-backends.h]

@@ -2,7 +2,7 @@
 
 NAMEBASE=		qemu
 VERSION=		6.1.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		emulators
 VARIANTS=		standard
 SDESC[standard]=	Fast CPU emulator and virtualizer for x86 platform
@@ -22,8 +22,6 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		texi2html:primary:standard
-			python-Sphinx:single:python_used
-			python-sphinx-rtd-theme:single:python_used
 BUILDRUN_DEPENDS=	nettle:primary:standard
 			fontconfig:primary:standard
 			freetype:primary:standard
@@ -54,7 +52,6 @@ CONFIGURE_ARGS=		--disable-usb-redir
 			--disable-kvm
 			--disable-xen
 			--disable-vde
-			--enable-docs
 			--enable-nettle
 			--enable-profiler
 			--enable-curses
@@ -70,6 +67,7 @@ MAKE_ENV=		BSD_MAKE="{{MAKE}}"
 INSTALL_WRKSRC=		{{WRKSRC}}/build
 PLIST_SUB=		JQUERY=3.5.1
 			UNDERSCORE=1.13.1
+			MAN="@comment "
 
 CFLAGS=			-I{{NCURSESBASE}}/include/ncursesw
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-netmap
@@ -95,6 +93,8 @@ post-install:
 		${STAGEDIR}${PREFIX}/etc
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/qemu-*
 	(cd ${WRKSRC} && ${COPYTREE_SHARE} docs ${STAGEDIR}${STD_DOCDIR}/)
+	# remove sphinx leftovers
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}/docs/sphinx
 	# remove empty directories
 	${RM} -r ${STAGEDIR}/var
 
@@ -126,9 +126,23 @@ Many live cd isos also work.
 eebc089db3414bbeedf1e464beda0a7515aad30f73261abc246c9b27503a3c96    111258808 qemu-6.1.0.tar.xz
 
 
-[FILE:3527:manifests/plist.primary]
+[FILE:3548:manifests/plist.primary]
 @sample etc/qemu-ifdown.sample
 @sample etc/qemu-ifup.sample
+%%MAN%%share/man/man1/
+ qemu-img.1.gz
+ qemu-storage-daemon.1.gz
+ qemu.1.gz
+%%MAN%%share/man/man7/
+ qemu-block-drivers.7.gz
+ qemu-cpu-models.7.gz
+ qemu-ga-ref.7.gz
+ qemu-qmp-ref.7.gz
+ qemu-storage-daemon-qmp-ref.7.gz
+%%MAN%%share/man/man8/
+ qemu-ga.8.gz
+ qemu-nbd.8.gz
+ qemu-pr-helper.8.gz
 %%ONLY-LINUX%%bin/
  qemu-aarch64
  qemu-aarch64_be
@@ -215,20 +229,6 @@ share/icons/hicolor/48x48/apps/qemu.png
 share/icons/hicolor/512x512/apps/qemu.png
 share/icons/hicolor/64x64/apps/qemu.png
 share/icons/hicolor/scalable/apps/qemu.svg
-share/man/man1/
- qemu-img.1.gz
- qemu-storage-daemon.1.gz
- qemu.1.gz
-share/man/man7/
- qemu-block-drivers.7.gz
- qemu-cpu-models.7.gz
- qemu-ga-ref.7.gz
- qemu-qmp-ref.7.gz
- qemu-storage-daemon-qmp-ref.7.gz
-share/man/man8/
- qemu-ga.8.gz
- qemu-nbd.8.gz
- qemu-pr-helper.8.gz
 share/qemu/
  QEMU,cgthree.bin
  QEMU,tcx.bin
@@ -341,101 +341,7 @@ share/qemu/keymaps/
  tr
 
 
-[FILE:9227:manifests/plist.docs]
-share/doc/qemu/
- .buildinfo
- genindex.html
- index.html
- objects.inv
- search.html
- searchindex.js
-share/doc/qemu/_static/
- basic.css
- doctools.js
- documentation_options.js
- file.png
- jquery-%%JQUERY%%.js
- jquery.js
- language_data.js
- minus.png
- plus.png
- pygments.css
- qemu_128x128.png
- qemu_32x32.png
- searchtools.js
- theme_overrides.css
- underscore-%%UNDERSCORE%%.js
- underscore.js
-share/doc/qemu/_static/css/
- badge_only.css
- theme.css
-share/doc/qemu/_static/css/fonts/
- Roboto-Slab-Bold.woff
- Roboto-Slab-Bold.woff2
- Roboto-Slab-Regular.woff
- Roboto-Slab-Regular.woff2
- fontawesome-webfont.eot
- fontawesome-webfont.svg
- fontawesome-webfont.ttf
- fontawesome-webfont.woff
- fontawesome-webfont.woff2
- lato-bold-italic.woff
- lato-bold-italic.woff2
- lato-bold.woff
- lato-bold.woff2
- lato-normal-italic.woff
- lato-normal-italic.woff2
- lato-normal.woff
- lato-normal.woff2
-share/doc/qemu/_static/js/
- badge_only.js
- html5shiv-printshiv.min.js
- html5shiv.min.js
- theme.js
-share/doc/qemu/about/
- build-platforms.html
- deprecated.html
- index.html
- license.html
- removed-features.html
-share/doc/qemu/devel/
- atomics.html
- bitops.html
- block-coroutine-wrapper.html
- build-system.html
- ci.html
- clocks.html
- code-of-conduct.html
- conflict-resolution.html
- control-flow-integrity.html
- decodetree.html
- ebpf_rss.html
- fuzzing.html
- index.html
- kconfig.html
- loads-stores.html
- memory.html
- migration.html
- modules.html
- multi-process.html
- multi-thread-tcg.html
- qapi-code-gen.html
- qgraph.html
- qom.html
- qtest.html
- reset.html
- s390-dasd-ipl.html
- secure-coding-practices.html
- stable-process.html
- style.html
- tcg-icount.html
- tcg-plugins.html
- tcg.html
- testing.html
- tracing.html
- ui.html
- vfio-migration.html
- writing-qmp-commands.html
+[FILE:4860:manifests/plist.docs]
 share/doc/qemu/docs/
  COLO-FT.txt
  amd-memory-encryption.txt
@@ -586,21 +492,7 @@ share/doc/qemu/docs/specs/
  vmcoreinfo.txt
  vmgenid.txt
  vmw_pvscsi-spec.txt
-share/doc/qemu/docs/sphinx/
- depfile.py
- hxtool.py
- kerneldoc.py
- kernellog.py
- qapidoc.py
- qmp_lexer.py
 share/doc/qemu/docs/sphinx-static/theme_overrides.css
-share/doc/qemu/docs/sphinx/__pycache__/
- depfile.cpython-38.pyc
- hxtool.cpython-38.pyc
- kerneldoc.cpython-38.pyc
- kernellog.cpython-38.pyc
- qapidoc.cpython-38.pyc
- qmp_lexer.cpython-38.pyc
 share/doc/qemu/docs/spin/
  aio_notify.promela
  aio_notify_accept.promela
@@ -731,145 +623,6 @@ share/doc/qemu/docs/tools/
 share/doc/qemu/docs/user/
  index.rst
  main.rst
-share/doc/qemu/interop/
- barrier.html
- bitmaps.html
- dbus-vmstate.html
- dbus.html
- index.html
- live-block-operations.html
- pr-helper.html
- qemu-ga-ref.html
- qemu-ga.html
- qemu-qmp-ref.html
- qemu-storage-daemon-qmp-ref.html
- vhost-user-gpu.html
- vhost-user.html
- vhost-vdpa.html
-share/doc/qemu/specs/
- acpi_hest_ghes.html
- acpi_hw_reduced_hotplug.html
- index.html
- ppc-spapr-numa.html
- ppc-spapr-xive.html
- ppc-xive.html
- tpm.html
-share/doc/qemu/system/
- authz.html
- barrier.html
- bootindex.html
- cpu-hotplug.html
- device-emulation.html
- gdb.html
- generic-loader.html
- guest-loader.html
- images.html
- index.html
- invocation.html
- keys.html
- linuxboot.html
- managed-startup.html
- monitor.html
- multi-process.html
- mux-chardev.html
- pr-manager.html
- qemu-block-drivers.html
- qemu-cpu-models.html
- qemu-manpage.html
- quickstart.html
- secrets.html
- security.html
- target-arm.html
- target-avr.html
- target-i386.html
- target-m68k.html
- target-mips.html
- target-ppc.html
- target-riscv.html
- target-rx.html
- target-s390x.html
- target-sparc.html
- target-sparc64.html
- target-xtensa.html
- targets.html
- tls.html
- virtio-net-failover.html
- vnc-security.html
-share/doc/qemu/system/arm/
- aspeed.html
- collie.html
- cpu-features.html
- cubieboard.html
- digic.html
- emcraft-sf2.html
- emulation.html
- gumstix.html
- highbank.html
- imx25-pdk.html
- integratorcp.html
- kzm.html
- mainstone.html
- mps2.html
- musca.html
- musicpal.html
- nrf.html
- nseries.html
- nuvoton.html
- orangepi.html
- palm.html
- raspi.html
- realview.html
- sabrelite.html
- sbsa.html
- stellaris.html
- stm32.html
- sx1.html
- versatile.html
- vexpress.html
- virt.html
- xlnx-versal-virt.html
- xscale.html
-share/doc/qemu/system/devices/
- ivshmem.html
- net.html
- nvme.html
- usb.html
- vhost-user.html
- virtio-pmem.html
-share/doc/qemu/system/i386/
- microvm.html
- pc.html
-share/doc/qemu/system/ppc/
- embedded.html
- powermac.html
- powernv.html
- ppce500.html
- prep.html
- pseries.html
-share/doc/qemu/system/riscv/
- microchip-icicle-kit.html
- shakti-c.html
- sifive_u.html
- virt.html
-share/doc/qemu/system/s390x/
- 3270.html
- bootdevices.html
- css.html
- protvirt.html
- vfio-ap.html
- vfio-ccw.html
-share/doc/qemu/tools/
- index.html
- qemu-img.html
- qemu-nbd.html
- qemu-pr-helper.html
- qemu-storage-daemon.html
- qemu-trace-stap.html
- virtfs-proxy-helper.html
- virtiofsd.html
-share/doc/qemu/user/
- index.html
- main.html
 
 
 [FILE:297:manifests/plist.nls]

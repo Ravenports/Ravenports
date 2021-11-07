@@ -2,6 +2,7 @@
 
 NAMEBASE=		mupdf
 VERSION=		1.19.0
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Lightweight PDF and XPS viewer
@@ -112,7 +113,7 @@ rendering pages to image files is provided.
 21affcd4fcabf1cc7a896db95ba971552ba9df229ebec7720313a8803185deed     90778757 mupdf-1.19.0-source.tar.gz
 
 
-[FILE:958:manifests/plist.primary]
+[FILE:954:manifests/plist.primary]
 bin/
  mupdf
  mupdf-gl
@@ -139,6 +140,7 @@ include/mupdf/fitz/
  device.h
  display-list.h
  document.h
+ export.h
  filter.h
  font.h
  geometry.h
@@ -184,7 +186,6 @@ include/mupdf/pdf/
  javascript.h
  name-table.h
  object.h
- output-pdf.h
  page.h
  parse.h
  resource.h
@@ -199,7 +200,7 @@ share/man/man1/
  mutool.1.gz
 
 
-[FILE:494:manifests/plist.docs]
+[FILE:597:manifests/plist.docs]
 share/doc/mupdf/
  CHANGES
  README
@@ -218,9 +219,13 @@ share/doc/mupdf/
  manual-mutool-create.html
  manual-mutool-draw.html
  manual-mutool-extract.html
+ manual-mutool-info.html
  manual-mutool-merge.html
+ manual-mutool-pages.html
+ manual-mutool-poster.html
  manual-mutool-run.html
  manual-mutool-show.html
+ manual-mutool-sign.html
  manual-mutool-trace.html
  style.css
  template.html
@@ -247,19 +252,23 @@ share/examples/mupdf/
  trace-device.js
 
 
-[FILE:675:patches/patch-Makefile]
---- Makefile.orig	2020-10-07 10:35:03 UTC
+[FILE:772:patches/patch-Makefile]
+--- Makefile.orig	2021-10-05 10:44:43 UTC
 +++ Makefile
-@@ -214,13 +214,17 @@ MUPDF_LIB = $(OUT)/libmupdf.$(SO)
- 
- $(MUPDF_LIB) : $(MUPDF_OBJ) $(THIRD_OBJ) $(THREAD_OBJ) $(PKCS7_OBJ)
+@@ -252,9 +252,9 @@ $(THIRD_GLUT_LIB) : $(THIRD_GLUT_OBJ)
+ $(THREAD_LIB) : $(THREAD_OBJ)
+ $(PKCS7_LIB) : $(PKCS7_OBJ)
  else
 -MUPDF_LIB = $(OUT)/libmupdf.a
--THIRD_LIB = $(OUT)/libmupdf-third.a
 +MUPDF_LIB = libmupdf.so.$(SOVERSION)
 +THIRD_LIB = libmupdfthird.so.$(SOVERSION)
- THREAD_LIB = $(OUT)/libmupdf-threads.a
- PKCS7_LIB = $(OUT)/libmupdf-pkcs7.a
+ LIBS_TO_INSTALL_IN_LIB = $(MUPDF_LIB) $(THIRD_LIB)
+-THIRD_LIB = $(OUT)/libmupdf-third.a
+ ifneq ($(USE_SYSTEM_GLUT),yes)
+ THIRD_GLUT_LIB = $(OUT)/libmupdf-glut.a
+ endif
+@@ -269,7 +269,11 @@ $(PKCS7_LIB) : $(PKCS7_OBJ)
+ endif
  
  $(MUPDF_LIB) : $(MUPDF_OBJ)
 +	$(CC) $(LDFLAGS) -fPIC -shared -Wl,-soname=$@ -o $@ $^ $(LIBS)
@@ -269,22 +278,22 @@ share/examples/mupdf/
 +
  $(THREAD_LIB) : $(THREAD_OBJ)
  $(PKCS7_LIB) : $(PKCS7_OBJ)
- endif
+ 
 
 
-[FILE:668:patches/patch-Makerules]
---- Makerules.orig	2020-10-07 10:35:03 UTC
+[FILE:646:patches/patch-Makerules]
+--- Makerules.orig	2021-10-05 10:44:43 UTC
 +++ Makerules
-@@ -115,7 +115,7 @@ else ifeq ($(OS),MACOS)
-   LD = xcrun ld
-   RANLIB = xcrun ranlib
+@@ -155,7 +155,7 @@ else ifeq ($(OS),MACOS)
+     endif
+   endif
  
 -else ifeq ($(OS),Linux)
 +else ifeq ($(OS),%%OPSYS%%)
    HAVE_OBJCOPY := yes
  
    ifeq ($(shell pkg-config --exists freetype2 && echo yes),yes)
-@@ -177,7 +177,7 @@ else ifeq ($(OS),Linux)
+@@ -217,7 +217,7 @@ else ifeq ($(OS),Linux)
  	X11_LIBS := $(shell pkg-config --libs x11 xext)
    endif
  
@@ -296,7 +305,7 @@ share/examples/mupdf/
 
 
 [FILE:546:patches/patch-Makethird]
---- Makethird.orig	2020-10-07 10:35:03 UTC
+--- Makethird.orig	2021-10-05 10:44:43 UTC
 +++ Makethird
 @@ -1,5 +1,6 @@
  # GNU Makefile for third party libraries used by MuPDF

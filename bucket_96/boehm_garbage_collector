@@ -26,7 +26,7 @@ VOPTS[redirect]=	THREADED=OFF REDIRECT=ON
 
 BUILD_DEPENDS=		libatomic_ops:single:standard
 
-USES=			cpe libtool pkgconfig c++:single
+USES=			cpe cmake pkgconfig c++:single
 
 DISTNAME=		gc-8.2.0
 
@@ -38,14 +38,6 @@ CPE_PRODUCT=		garbage_collector
 CPE_VENDOR=		boehm-demers-weiser
 FPC_EQUIVALENT=		devel/boehm-gc
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--enable-cplusplus
-			--disable-static
-			--disable-docs
-
-SINGLE_JOB=		yes
-
-INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.4.0
 PLIST_SUB=		GCVERSION=1.5.0
@@ -55,25 +47,24 @@ PLIST_SUB=		GCVERSION=1.5.0
 			TBAVERSION=1.5.0
 			TBAMAJOR=1
 
-VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-mmap
-VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--enable-mmap
-VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--enable-mmap
+CMAKE_ARGS=		-Denable_docs:BOOL=OFF
+			-Denable_cplusplus:BOOL=ON
 
 [THREADED].DESCRIPTION=			Enable posix thread support
-[THREADED].CONFIGURE_ARGS_OFF=		--disable-threads
-[THREADED].CONFIGURE_ARGS_ON=		--enable-threads=posix
-[THREADED].CONFIGURE_ENABLE_BOTH=	parallel-mark
+[THREADED].CMAKE_ARGS_OFF=		-Denable_threads:BOOL=OFF
+[THREADED].CMAKE_ARGS_ON=		-Denable_threads:BOOL=ON
+					-Denable_parallel_mark:BOOL=ON
 
 [REDIRECT].DESCRIPTION=			Enable malloc redirection support
-[REDIRECT].CONFIGURE_ENABLE_BOTH=	redirect-malloc
+[REDIRECT].CMAKE_ARGS_OFF=		-Denable_redirect_malloc:BOOL=OFF
+[REDIRECT].CMAKE_ARGS_ON=		-Denable_redirect_malloc:BOOL=ON
 
 post-patch:
 	${REINPLACE_CMD} -e "s|%%PREFIX%%|${PREFIX}|g" ${WRKSRC}/doc/gc.man
-	${REINPLACE_CMD} -e "s|: install-dist_pkgdataDATA|: |" \
-		${WRKSRC}/Makefile.in
 
 post-install:
 	${INSTALL_MAN} ${WRKSRC}/doc/gc.man ${STAGEDIR}${MANPREFIX}/man/man3/gc.3
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 
 [FILE:741:descriptions/desc.single]
 The Boehm-Weiser garbage collection package, for C and C++ -
@@ -95,7 +86,8 @@ such source code modifications.  See the man page and header files.
 2540f7356cb74f6c5b75326c6d38a066edd796361fd7d4ed26e494d9856fed8f      1183225 gc-8.2.0.tar.gz
 
 
-[FILE:525:manifests/plist.single]
+[FILE:709:manifests/plist.single]
+%%THREADED-ON%%include/gc/gc_pthread_redirects.h
 include/
  gc.h
  gc_cpp.h
@@ -108,6 +100,8 @@ include/gc/
  gc_backptr.h
  gc_config_macros.h
  gc_cpp.h
+ gc_disclaim.h
+ gc_gcj.h
  gc_inline.h
  gc_mark.h
  gc_tiny_fl.h
@@ -128,6 +122,11 @@ lib/
  libgctba.so
  libgctba.so.%%TBAMAJOR%%
  libgctba.so.%%TBAVERSION%%
+lib/cmake/bdwgc/
+ BDWgcConfig.cmake
+ BDWgcConfigVersion.cmake
+ BDWgcTargets-release.cmake
+ BDWgcTargets.cmake
 lib/pkgconfig/bdw-gc.pc
 share/man/man3/gc.3.gz
 
