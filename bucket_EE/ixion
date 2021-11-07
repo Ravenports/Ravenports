@@ -11,9 +11,9 @@ CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main libre
 SITES[main]=		https://gitlab.com/ixion/ixion/-/archive/0.17.0/
-SITES[libre]=		https://gitlab.com/ixion/ixion/-/archive/0.15.0/
+SITES[libre]=		https://gitlab.com/ixion/ixion/-/archive/0.16.1/
 DISTFILE[1]=		ixion-0.17.0.tar.bz2:main
-DISTFILE[2]=		ixion-0.15.0.tar.bz2:libre
+DISTFILE[2]=		ixion-0.16.1.tar.bz2:libre
 SPKGS[libre]=		single
 SPKGS[standard]=	single
 
@@ -21,7 +21,7 @@ OPTIONS_AVAILABLE=	LIBRE
 OPTIONS_STANDARD=	none
 VOPTS[libre]=		LIBRE=ON
 
-BUILD_DEPENDS=		mdds:single:standard
+BUILD_DEPENDS=		mdds-1.7:single:standard
 			spdlog:single:standard
 BUILDRUN_DEPENDS=	boost-libraries:rest:python_default
 
@@ -45,16 +45,16 @@ CMAKE_ARGS=		-DMDDS_INCLUDEDIR="{{LOCALBASE}}/include/mdds-1.2"
 			-DCMAKE_SKIP_BUILD_RPATH:BOOL=YES
 VAR_OPSYS[linux]=	LDFLAGS=-ldl
 
-[LIBRE].DESCRIPTION=			Build older 0.15 version for Libreoffice
+[LIBRE].DESCRIPTION=			Build older 0.16 version for Libreoffice
 [LIBRE].DF_INDEX_OFF=			1
 [LIBRE].DF_INDEX_ON=			2
 [LIBRE].MAKEFILE_OFF=			VER=0.17
 					VAR_VERSION=0.17.0
-[LIBRE].MAKEFILE_ON=			VER=0.15
-					VAR_VERSION=0.15.0
+[LIBRE].MAKEFILE_ON=			VER=0.16
+					VAR_VERSION=0.16.1
 
 post-patch-LIBRE-ON:
-	${REINPLACE_CMD} -e '/input_cell/ s|nullptr_t|std::nullptr_t|' \
+	#${REINPLACE_CMD} -e '/input_cell/ s|nullptr_t|std::nullptr_t|' \
 		${WRKSRC}/include/ixion/model_context.hpp
 
 post-install:
@@ -78,7 +78,7 @@ calculation of only the affected cells need to be calculated.
 
 [FILE:198:distinfo]
 63f3942defc684be82046b9d7454602dadafced9be7b3b60e9e8a5fa63ee91a8       191134 ixion-0.17.0.tar.bz2
-654dd3fb9c6932e35b0c333f69574fa7c2eb05788e8c7fa9580fba27cb054a82       163162 ixion-0.15.0.tar.bz2
+1d01fcf56855334d6e0a75bd02339e08fd78359e09902660d4ad994f153d3167       173888 ixion-0.16.1.tar.bz2
 
 
 [FILE:677:manifests/plist.single]
@@ -121,7 +121,7 @@ include/ixion-%%VER%%/ixion/interface/
 lib/libixion-%%VER%%.so
 
 
-[FILE:657:manifests/plist.single.libre]
+[FILE:717:manifests/plist.single.libre]
 bin/
  ixion-formula-tokenizer
  ixion-parser
@@ -130,10 +130,12 @@ include/ixion-%%VER%%/ixion/
  address.hpp
  address_iterator.hpp
  cell.hpp
+ cell_access.hpp
  column_store_type.hpp
  compute_engine.hpp
  config.hpp
  dirty_cell_tracker.hpp
+ document.hpp
  env.hpp
  exceptions.hpp
  formula.hpp
@@ -151,11 +153,12 @@ include/ixion-%%VER%%/ixion/
  model_context.hpp
  model_iterator.hpp
  module.hpp
+ named_expressions_iterator.hpp
  table.hpp
  types.hpp
 include/ixion-%%VER%%/ixion/interface/
  formula_model_access.hpp
  session_handler.hpp
  table_handler.hpp
-lib/liblibixion-%%VER%%.so
+lib/libixion-%%VER%%.so
 
