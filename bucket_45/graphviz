@@ -2,6 +2,7 @@
 
 NAMEBASE=		graphviz
 VERSION=		2.49.3
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Graph visualization tools
@@ -21,14 +22,17 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		groff:primary:standard
+			expat:static:standard
+			git:primary:lite
 BUILDRUN_DEPENDS=	freeglut:primary:standard
 			libGD:single:standard
 			gts:single:standard
 			WebP:single:standard
+			libltdl:single:standard
+			expat:shared:standard
 
-USES=			bison cpe gmake jpeg mesa libtool:keepla pkgconfig
-			shebangfix iconv gettext-tools gettext-runtime
-			autoreconf python:build
+USES=			bison cpe cmake jpeg mesa pkgconfig zlib shebangfix
+			iconv gettext-tools gettext-runtime python:build
 GNOME_COMPONENTS=	pango cairo librsvg gtk2
 XORG_COMPONENTS=	xaw xpm xmu xt sm ice xext x11 xau xdmcp xrender
 			xinerama xi xrandr xcursor xfixes
@@ -40,90 +44,23 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		graphics/graphviz
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-x
-			--with-nls
-			--with-gtk
-			--with-gts
-			--with-gdk
-			--with-gdk-pixbuf
-			--with-gnomeui
-			--with-rsvg
-			--with-webp
-			--with-digcola
-			--with-ipsepcola
-			--with-pangocairo
-			--with-ghostscript=no
-			--with-qt=no
-			--without-ann
-			--without-ming
-			--without-devil
-			--without-poppler
-			--without-smyrna
-			--without-glade
-			--without-gtkgl
-			--without-gtkglext
-			--disable-io
-			--disable-ocaml
-			--disable-java
-			--disable-sharp
-			--disable-lua
-			--disable-tcl
-			--disable-php
-			--disable-perl
-			--disable-ruby
-			--disable-guile
-			--disable-python
-			--program-transform-name="s/x/x/"
-			--enable-r=no
-			--with-freetype2=yes
-			--with-libgd
-			--with-fontconfigincludedir={{LOCALBASE}}/include
-			--with-fontconfiglibdir={{LOCALBASE}}/lib
-			--with-iconvlibdir={{ICONV_PREFIX}}/lib
-			--with-iconvincludedir={{ICONV_PREFIX}}/include
-CONFIGURE_ENV=		ac_cv_func_pango_fc_font_lock_face=no
-
-MAKE_ARGS=		pkgconfigdir={{PREFIX}}/lib/pkgconfig
-MAKE_ENV=		EXPR_COMPAT=yes
-
-INSTALL_TARGET=		install-strip
-INSTALL_REQ_TOOLCHAIN=	yes
-
-VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS=-lsocket
-
-post-patch:
-	${REINPLACE_CMD} -e 's|#include "gui.h"|#include "gui/gui.h"|' \
-		${WRKSRC}/cmd/smyrna/tvnodes.h
-	${FIND} ${WRKSRC} -name Makefile.am | \
-		${XARGS} ${REINPLACE_CMD} \
-		-e 's| $$(pkgdatadir)/doc/pdf| ${STD_DOCDIR}/pdf|' \
-		-e 's| $$(pkgdatadir)/doc/html/schema| ${STD_DOCDIR}/html/schema|' \
-		-e 's| $$(pkgdatadir)/doc/html/info| ${STD_DOCDIR}/html/info|' \
-		-e 's| $$(pkgdatadir)/doc/html| ${STD_DOCDIR}/html|' \
-		-e 's| $$(pkgdatadir)/doc| ${STD_DOCDIR}|' \
-		-e 's| $$(pkgdatadir)/demo| ${STD_EXAMPLESDIR}|' \
-		-e 's| $$(datadir)/@PACKAGE@/demo| ${STD_EXAMPLESDIR}|';
-	(cd ${WRKSRC} && ${SH} ${WRKSRC}/autogen.sh)
+SET_DEBUGGING_ON=	yes
+LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/graphviz
+OPTIMIZER_LEVEL=	0
+CMAKE_ARGS=		-Denable_ltdl:BOOL=ON
+			-Dwith_expat:BOOL=ON
+			-Dwith_digcola:BOOL=ON
+			-Dwith_ipsepcola:BOOL=OFF
+			-Dwith_ortho:BOOL=ON
+			-Dwith_sfdp:BOOL=ON
+			-Dwith_smyrna:BOOL=OFF
+			-Dwith_zlib:BOOL=ON
+			-Duse_sanitizers:BOOL=OFF
+			-Duse_coverage:BOOL=OFF
+			-Dwith_cxx_api:BOOL=OFF
+			-Dwith_cxx_tests:BOOL=OFF
 
 post-install:
-	# various
-	(cd ${WRKSRC}/lib/expr && ${MAKE_ENV} ${MAKE} ${MAKE_ARGS} all)
-	(cd ${WRKSRC} && ${INSTALL_DATA} \
-		lib/cdt/dthdr.h \
-		lib/pathplan/tri.h \
-		lib/pathplan/pathplan.h \
-		lib/pathplan/pathutil.h \
-		lib/pathplan/solvers.h \
-		lib/pathplan/vis.h \
-		lib/pathplan/vispath.h \
-		lib/common/arith.h \
-		lib/common/logic.h \
-		lib/common/globals.h \
-		lib/gvc/gvcint.h \
-		${STAGEDIR}${PREFIX}/include/graphviz/)
-	${RM} ${STAGEDIR}${MANPREFIX}/man/man1/smyrna.1
-	${RM} ${STAGEDIR}${MANPREFIX}/man/man1/mingle.1
 	# documentation
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}/html ${STAGEDIR}${STD_DOCDIR}/pdf
 	cd ${WRKSRC} && \
@@ -152,7 +89,7 @@ post-install:
 		${WRKSRC}/tclpkg/tclpathplan/demo/pathplan_data/*.dat \
 		${STAGEDIR}${STD_EXAMPLESDIR}/pathplan_data/
 
-post-patch-freebsd:
+pre-configure-freebsd:
 	${REINPLACE_CMD} -e 's|SF_FLAGS|SFIO_FLAGS|g' ${WRKSRC}/lib/sfio/*.[ch]; \
 
 [FILE:540:descriptions/desc.primary]
@@ -174,61 +111,43 @@ The package contains:
 5801664769ab88c2fb8ccb6ab0957cceabe6d4632b193041440e97790f53a9df     30570399 graphviz-2.49.3.tar.gz
 
 
-[FILE:4276:manifests/plist.primary]
+[FILE:1700:manifests/plist.primary]
 bin/
  acyclic
  bcomps
  ccomps
  circo
- cluster
- diffimg
  dijkstra
  dot
- dot2gxl
- dot_builtins
- dotty
- edgepaint
  fdp
  gc
  gml2gv
  graphml2gv
  gv2gml
- gv2gxl
  gvcolor
  gvgen
- gvmap
- gvmap.sh
  gvpack
  gvpr
- gxl2dot
  gxl2gv
- lneato
  mm2gv
  neato
  nop
  osage
  patchwork
- prune
  sccmap
  sfdp
  tred
  twopi
  unflatten
- vimdot
 include/graphviz/
  arith.h
  cdt.h
  cgraph.h
  color.h
- dthdr.h
  geom.h
- globals.h
  graphviz_version.h
- gv.cpp
- gv.i
  gvc.h
  gvcext.h
- gvcint.h
  gvcjob.h
  gvcommon.h
  gvconfig.h
@@ -238,94 +157,45 @@ include/graphviz/
  gvplugin_loadimage.h
  gvplugin_render.h
  gvplugin_textlayout.h
- gvpr.h
- logic.h
  pack.h
  pathgeom.h
  pathplan.h
- pathutil.h
- solvers.h
  textspan.h
- tri.h
  types.h
  usershape.h
- vis.h
- vispath.h
  xdot.h
 lib/
- libcdt.la
  libcdt.so
  libcdt.so.5
  libcdt.so.5.0.0
- libcgraph.la
  libcgraph.so
  libcgraph.so.6
  libcgraph.so.6.0.0
- libgvc.la
  libgvc.so
  libgvc.so.6
  libgvc.so.6.0.0
- libgvpr.la
- libgvpr.so
- libgvpr.so.2
- libgvpr.so.2.0.0
- liblab_gamut.la
- liblab_gamut.so
- liblab_gamut.so.1
- liblab_gamut.so.1.0.0
- libpathplan.la
  libpathplan.so
  libpathplan.so.4
  libpathplan.so.4.0.0
- libxdot.la
  libxdot.so
  libxdot.so.4
  libxdot.so.4.0.0
 lib/graphviz/
- libgvplugin_core.la
  libgvplugin_core.so
  libgvplugin_core.so.6
  libgvplugin_core.so.6.0.0
- libgvplugin_dot_layout.la
  libgvplugin_dot_layout.so
  libgvplugin_dot_layout.so.6
  libgvplugin_dot_layout.so.6.0.0
- libgvplugin_gd.la
  libgvplugin_gd.so
  libgvplugin_gd.so.6
  libgvplugin_gd.so.6.0.0
- libgvplugin_gdk.la
- libgvplugin_gdk.so
- libgvplugin_gdk.so.6
- libgvplugin_gdk.so.6.0.0
- libgvplugin_gtk.la
- libgvplugin_gtk.so
- libgvplugin_gtk.so.6
- libgvplugin_gtk.so.6.0.0
- libgvplugin_neato_layout.la
  libgvplugin_neato_layout.so
  libgvplugin_neato_layout.so.6
  libgvplugin_neato_layout.so.6.0.0
- libgvplugin_pango.la
  libgvplugin_pango.so
  libgvplugin_pango.so.6
  libgvplugin_pango.so.6.0.0
- libgvplugin_rsvg.la
- libgvplugin_rsvg.so
- libgvplugin_rsvg.so.6
- libgvplugin_rsvg.so.6.0.0
- libgvplugin_visio.la
- libgvplugin_visio.so
- libgvplugin_visio.so.6
- libgvplugin_visio.so.6.0.0
- libgvplugin_webp.la
- libgvplugin_webp.so
- libgvplugin_webp.so.6
- libgvplugin_webp.so.6.0.0
- libgvplugin_xlib.la
- libgvplugin_xlib.so
- libgvplugin_xlib.so.6
- libgvplugin_xlib.so.6.0.0
 lib/pkgconfig/
  libcdt.pc
  libcgraph.pc
@@ -334,163 +204,34 @@ lib/pkgconfig/
  liblab_gamut.pc
  libpathplan.pc
  libxdot.pc
-share/graphviz/graphs/directed/
- KW91.gv
- Latin1.gv
- NaN.gv
- abstract.gv
- alf.gv
- arrows.gv
- awilliams.gv
- biological.gv
- clust.gv
- clust1.gv
- clust2.gv
- clust3.gv
- clust4.gv
- clust5.gv
- crazy.gv
- ctext.gv
- dfa.gv
- fig6.gv
- fsm.gv
- grammar.gv
- hashtable.gv
- honda-tokoro.gv
- japanese.gv
- jcctree.gv
- jsort.gv
- ldbxtried.gv
- longflat.gv
- mike.gv
- nhg.gv
- oldarrows.gv
- pgram.gv
- pm2way.gv
- pmpipe.gv
- polypoly.gv
- proc3d.gv
- psfonttest.gv
- record2.gv
- records.gv
- rowe.gv
- russian.gv
- sdh.gv
- shells.gv
- states.gv
- structs.gv
- switch.gv
- table.gv
- train11.gv
- trapeziumlr.gv
- tree.gv
- triedds.gv
- try.gv
- unix.gv
- unix2.gv
- viewfile.gv
- world.gv
-share/graphviz/graphs/undirected/
- ER.gv
- Heawood.gv
- Petersen.gv
- ngk10_4.gv
- process.gv
-share/graphviz/gvpr/
- addedges
- addranks
- addrings
- anon
- attr
- bb
- bbox
- binduce
- bipart
- chkclusters
- chkedges
- cliptree
- col
- collapse
- color
- cycle
- dechain
- deghist
- deledges
- delmulti
- delnodes
- depath
- dijkstra
- flatten
- get-layers-list
- group
- histogram
- indent
- knbhd
- maxdeg
- path
- rotate
- scale
- scalexy
- span
- topon
- treetoclust
-share/graphviz/lefty/
- dotty.lefty
- dotty_draw.lefty
- dotty_edit.lefty
- dotty_layout.lefty
- dotty_ui.lefty
- lefty.psp
 share/man/man1/
  acyclic.1.gz
  bcomps.1.gz
  ccomps.1.gz
- circo.1.gz
- cluster.1.gz
- diffimg.1.gz
  dijkstra.1.gz
  dot.1.gz
- dot2gxl.1.gz
- dotty.1.gz
- edgepaint.1.gz
- fdp.1.gz
  gc.1.gz
  gml2gv.1.gz
  graphml2gv.1.gz
- gv2gml.1.gz
- gv2gxl.1.gz
  gvcolor.1.gz
  gvgen.1.gz
- gvmap.1.gz
- gvmap.sh.1.gz
  gvpack.1.gz
  gvpr.1.gz
- gxl2dot.1.gz
  gxl2gv.1.gz
- lefty.1.gz
- lneato.1.gz
  mm2gv.1.gz
- neato.1.gz
  nop.1.gz
  osage.1.gz
  patchwork.1.gz
- prune.1.gz
  sccmap.1.gz
- sfdp.1.gz
  tred.1.gz
- twopi.1.gz
  unflatten.1.gz
- vimdot.1.gz
 share/man/man3/
  cdt.3.gz
  cgraph.3.gz
- expr.3.gz
  gvc.3.gz
- gvpr.3.gz
  pack.3.gz
  pathplan.3.gz
  xdot.3.gz
-share/man/man7/graphviz.7.gz
 @postexec %D/bin/dot -c
 @postunexec rm -f %D/lib/graphviz/config6
 
@@ -520,39 +261,18 @@ share/examples/graphviz/pathplan_data/
  unknown.dat
 
 
-[FILE:655:manifests/plist.docs]
+[FILE:331:manifests/plist.docs]
 share/doc/graphviz/
- AUTHORS
- CHANGELOG.md
  Dot.ref
- NEWS
- addingLayout.txt
- cpl1.0.txt
- fontfaq.txt
  latex_suggestions.txt
 share/doc/graphviz/html/
  FAQ.html
  build.html
  char.html
- gdtclft.entities.example.png
  index.html
  internal_todo.html
- pspdf.png
  todo.html
  winbuild.html
-share/doc/graphviz/html/info/
- arrows.html
- attrs.html
- colors.html
- command.html
- index.html
- lang.html
- output.html
- shapes.html
-share/doc/graphviz/html/schema/
- arguments.xml
- attributes.xml
- attributes.xslt
 share/doc/graphviz/pdf/
  Agraph.pdf
  dotguide.pdf

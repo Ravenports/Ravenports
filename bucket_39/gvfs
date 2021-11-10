@@ -204,3 +204,17 @@ share/locale/zh_CN/LC_MESSAGES/gvfs.mo
 share/locale/zh_HK/LC_MESSAGES/gvfs.mo
 share/locale/zh_TW/LC_MESSAGES/gvfs.mo
 
+
+[FILE:417:patches/patch-meson.build]
+--- meson.build.orig	2021-04-30 11:19:33 UTC
++++ meson.build
+@@ -119,6 +119,8 @@ if cc.compiles(statfs_code.format('statf
+   config_h.set('STATFS_ARGS', 2)
+ elif cc.compiles(statfs_code.format('statfs("/", &st, sizeof (st), 0)'))
+   config_h.set('STATFS_ARGS', 4)
++elif host_machine.system() in ['netbsd']
++  config_h.set('STATFS_ARGS', 2)
+ else
+   error('unable to determine number of arguments to statfs()')
+ endif
+

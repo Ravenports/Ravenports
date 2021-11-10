@@ -158,7 +158,46 @@ share/gdb%%VER%%/syscalls/
 share/man/man1/gdb%%VER%%.1.gz
 
 
-[FILE:1022:patches/patch-gdb_amd64-bsd-nat.c]
+[FILE:1242:patches/patch-gdb_aarch64-linux-tdep.c]
+--- gdb/aarch64-linux-tdep.c.orig	2021-09-13 01:32:09 UTC
++++ gdb/aarch64-linux-tdep.c
+@@ -1725,13 +1725,13 @@ aarch64_linux_report_signal_info (struct
+     return;
+ 
+   CORE_ADDR fault_addr = 0;
+-  long si_code = 0;
++  long db_si_code = 0;
+ 
+   try
+     {
+       /* Sigcode tells us if the segfault is actually a memory tag
+ 	 violation.  */
+-      si_code = parse_and_eval_long ("$_siginfo.si_code");
++      db_si_code = parse_and_eval_long ("$_siginfo.si_code");
+ 
+       fault_addr
+ 	= parse_and_eval_long ("$_siginfo._sifields._sigfault.si_addr");
+@@ -1743,7 +1743,7 @@ aarch64_linux_report_signal_info (struct
+     }
+ 
+   /* If this is not a memory tag violation, just return.  */
+-  if (si_code != SEGV_MTEAERR && si_code != SEGV_MTESERR)
++  if (db_si_code != SEGV_MTEAERR && db_si_code != SEGV_MTESERR)
+     return;
+ 
+   uiout->text ("\n");
+@@ -1751,7 +1751,7 @@ aarch64_linux_report_signal_info (struct
+   uiout->field_string ("sigcode-meaning", _("Memory tag violation"));
+ 
+   /* For synchronous faults, show additional information.  */
+-  if (si_code == SEGV_MTESERR)
++  if (db_si_code == SEGV_MTESERR)
+     {
+       uiout->text (_(" while accessing address "));
+       uiout->field_core_addr ("fault-addr", gdbarch, fault_addr);
+
+
+[FILE:1122:patches/patch-gdb_amd64-bsd-nat.c]
 --- gdb/amd64-bsd-nat.c.orig	2021-07-03 17:41:09 UTC
 +++ gdb/amd64-bsd-nat.c
 @@ -28,6 +28,7 @@
@@ -169,23 +208,29 @@ share/man/man1/gdb%%VER%%.1.gz
  
  #include "amd64-tdep.h"
  #include "amd64-nat.h"
-@@ -142,12 +143,19 @@ amd64bsd_store_inferior_registers (struc
+@@ -142,12 +143,25 @@ amd64bsd_store_inferior_registers (struc
    if (regnum == -1 || amd64_native_gregset_supplies_p (gdbarch, regnum))
      {
        struct reg regs;
++#ifndef __NetBSD__
 +      register_t old_rflags;
++#endif
  
        if (gdb_ptrace (PT_GETREGS, ptid, (PTRACE_TYPE_ARG3) &regs, 0) == -1)
  	perror_with_name (_("Couldn't get registers"));
  
++#ifndef __NetBSD__
 +      old_rflags = regs.r_rflags;
++#endif
        amd64_collect_native_gregset (regcache, &regs, regnum);
  
++#ifndef __NetBSD__
 +      /* This is a workaround about the PSL_USERCHANGE posix limitation. */
 +      if ((regs.r_rflags ^ old_rflags ) & ~PSL_USERCHANGE)
-+	{
-+	  regs.r_rflags ^= (regs.r_rflags ^ old_rflags ) & ~PSL_USERCHANGE;
-+	}
++      {
++         regs.r_rflags ^= (regs.r_rflags ^ old_rflags ) & ~PSL_USERCHANGE;
++      }
++#endif
        if (gdb_ptrace (PT_SETREGS, ptid, (PTRACE_TYPE_ARG3) &regs, 0) == -1)
  	perror_with_name (_("Couldn't write registers"));
  
@@ -307,6 +352,39 @@ index 868fe04..1311080 100644
  #include "features/s390-linux32.c"
  #include "features/s390x-linux64.c"
  
+
+
+[FILE:1017:patches/patch-gdb_sparc64-linux-tdep.c]
+--- gdb/sparc64-linux-tdep.c.orig	2021-09-13 01:32:09 UTC
++++ gdb/sparc64-linux-tdep.c
+@@ -129,14 +129,14 @@ sparc64_linux_report_signal_info (struct
+     return;
+ 
+   CORE_ADDR addr = 0;
+-  long si_code = 0;
++  long db_si_code = 0;
+ 
+   try
+     {
+-      /* Evaluate si_code to see if the segfault is ADI related.  */
+-      si_code = parse_and_eval_long ("$_siginfo.si_code\n");
++      /* Evaluate db_si_code to see if the segfault is ADI related.  */
++      db_si_code = parse_and_eval_long ("$_siginfo.si_code\n");
+ 
+-      if (si_code >= SEGV_ACCADI && si_code <= SEGV_ADIPERR)
++      if (db_si_code >= SEGV_ACCADI && db_si_code <= SEGV_ADIPERR)
+ 	addr = parse_and_eval_long ("$_siginfo._sifields._sigfault.si_addr");
+     }
+   catch (const gdb_exception &exception)
+@@ -145,7 +145,7 @@ sparc64_linux_report_signal_info (struct
+     }
+ 
+   /* Print out ADI event based on sig_code value */
+-  switch (si_code)
++  switch (db_si_code)
+     {
+     case SEGV_ACCADI:	/* adi not enabled */
+       uiout->text ("\n");
 
 
 [FILE:580:patches/patch-gdbsupport_common-defs.h]
