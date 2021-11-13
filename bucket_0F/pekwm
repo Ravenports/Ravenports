@@ -2,6 +2,7 @@
 
 NAMEBASE=		pekwm
 VERSION=		0.2.0
+REVISION=		1
 KEYWORDS=		x11_wm
 VARIANTS=		standard
 SDESC[standard]=	Light, unobtrusive and configurable WM
@@ -19,7 +20,7 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	png:single:standard
 
-USES=			cmake iconv jpeg pkgconfig c++:single cclibs:single
+USES=			cmake jpeg pkgconfig c++:single cclibs:single
 XORG_COMPONENTS=	xft xpm x11 sm ice xext xrandr
 
 LICENSE=		GPLv2:single
@@ -31,15 +32,11 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11-wm/pekwm
 
-CONFIGURE_ARGS=		--enable-shape
-			--enable-xinerama
-			--enable-xrandr
-			--enable-xft
-			--enable-image-xpm
-			--enable-image-jpeg
-			--enable-image-png
-			--disable-debug
-			--disable-pedantic
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/pekwm
+.for f in bg ctrl dialog panel screenshot wm
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/pekwm_${f}
+.endfor
 
 [FILE:204:descriptions/desc.single]
 PekWM is a lightweight and unobtrusive window manager. It was once based on 
