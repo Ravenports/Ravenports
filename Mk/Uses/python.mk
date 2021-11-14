@@ -3,7 +3,7 @@
 #
 # Feature:	python
 # Usage:	USES=python
-# Valid ARGS:	(py27 or py38 or py39), build, wheel
+# Valid ARGS:	(py27 or py38 or py39 [py310]), build, wheel
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -80,6 +80,8 @@ _INCLUDE_USES_PYTHON_MK=	yes
 _PYTHON_VERSION=	3.9
 .  elif !empty(python_ARGS:Mpy38)
 _PYTHON_VERSION=	3.8
+.  elif !empty(python_ARGS:Mpy310)
+_PYTHON_VERSION=	3.10
 .  elif !empty(python_ARGS:Mpy27)
 _PYTHON_VERSION=	2.7
 .  else
@@ -96,6 +98,7 @@ PYTHON_MAJOR_VER=	${PYTHON_VER:R}
 PYTHON_REL=		${PYTHON_${_PYTHON_VERSION}_VERSION:S/.//}
 PYTHON_CMD=		${LOCALBASE}/bin/python${PYTHON_VER}
 
+# Since python 3.8, abiflags have become an empty string (m flag was removed)
 PYTHON_ABIVER:=		# empty (unset or python2.7)
 .  if ${PYTHON_VER:N2.7}
 .    if exists(${PYTHON_CMD}-config)
