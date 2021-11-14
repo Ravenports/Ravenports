@@ -95,7 +95,7 @@ PGSQL_13_VERSION=	13.4
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.7,8.0), mariadb-(10.2,10.3,10.4,10.5 [10.6]),
+# Possible values: oracle-(5.7,8.0), mariadb-(10.2,10.3,10.4,10.5,10.6),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #-------------------------------------------------------------------------
 
@@ -103,11 +103,11 @@ MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.27
 MYSQL_oracle-5.7_VERSION=	5.7.36
-MYSQL_mariadb-10.2_VERSION=	10.2.40
-MYSQL_mariadb-10.3_VERSION=	10.3.31
-MYSQL_mariadb-10.4_VERSION=	10.4.21
-MYSQL_mariadb-10.5_VERSION=	10.5.12
-MYSQL_mariadb-10.6_VERSION=	10.6.4
+MYSQL_mariadb-10.2_VERSION=	10.2.41
+MYSQL_mariadb-10.3_VERSION=	10.3.32
+MYSQL_mariadb-10.4_VERSION=	10.4.22
+MYSQL_mariadb-10.5_VERSION=	10.5.13
+MYSQL_mariadb-10.6_VERSION=	10.6.5
 MYSQL_percona-5.7_VERSION=	5.7.17
 MYSQL_percona-5.6_VERSION=	5.6.35
 MYSQL_percona-5.5_VERSION=	5.5.54
