@@ -3,7 +3,8 @@
 NAMEBASE=		python-setuptools
 VERSION=		59.0.1
 KEYWORDS=		python devel sysutils
-VARIANTS=		py38 py39
+VARIANTS=		py38 py39 py310
+SDESC[py310]=		Python package development process library (PY310)
 SDESC[py38]=		Python package development process library (PY 38)
 SDESC[py39]=		Python package development process library (PY 39)
 HOMEPAGE=		https://github.com/pypa/setuptools
@@ -13,13 +14,15 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPI/s/setuptools
 DISTFILE[1]=		setuptools-59.0.1.tar.gz:main
 DF_INDEX=		1
+SPKGS[py310]=		single
 SPKGS[py38]=		single
 SPKGS[py39]=		single
 
-OPTIONS_AVAILABLE=	PY38 PY39
+OPTIONS_AVAILABLE=	PY38 PY39 PY310
 OPTIONS_STANDARD=	none
-VOPTS[py38]=		PY38=ON PY39=OFF
-VOPTS[py39]=		PY38=OFF PY39=ON
+VOPTS[py310]=		PY38=OFF PY39=OFF PY310=ON
+VOPTS[py38]=		PY38=ON PY39=OFF PY310=OFF
+VOPTS[py39]=		PY38=OFF PY39=ON PY310=OFF
 
 USES=			cpe
 
@@ -48,6 +51,12 @@ PLIST_SUB=		STVER=59.0.1
 [PY39].MAKEFILE_ON=			PYTHON_CMD={{LOCALBASE}}/bin/python3.9
 [PY39].PLIST_SUB_ON=			PYVER=3.9
 					SITEPKG=lib/python3.9/site-packages
+
+[PY310].DESCRIPTION=			Version for Python 3.10
+[PY310].BUILDRUN_DEPENDS_ON=		python310:single:standard
+[PY310].MAKEFILE_ON=			PYTHON_CMD={{LOCALBASE}}/bin/python3.10
+[PY310].PLIST_SUB_ON=			PYVER=3.10
+					SITEPKG=lib/python3.10/site-packages
 
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
