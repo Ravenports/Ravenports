@@ -29,13 +29,13 @@ BUILD_DEPENDS=		gmp:static:standard
 			gmp:shared:standard
 			gprbuild:gprlib:standard
 			readline:single:standard
-			python38:single:standard
+			python39:single:standard
 BUILDRUN_DEPENDS=	gnatcoll-core:primary:standard
 			xmlada:primary:standard
 EXRUN[readline]=	readline:single:standard
 EXRUN[iconv]=		libiconv:shared:standard
 EXRUN[python]=		python27:single:standard
-EXRUN[python3]=		python38:single:standard
+EXRUN[python3]=		python39:single:standard
 EXRUN[gmp]=		gmp:shared:standard
 
 USES=			gprbuild gmake iconv:build python:py27,build
@@ -67,8 +67,8 @@ do-build:
 		GNATCOLL_PYTHON_CFLAGS="-I${PYTHON_INCLUDEDIR}" \
 		gprbuild -p -XLIBRARY_TYPE=${libtype} \
 		-P python/gnatcoll_python.gpr)
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} AUTOPYTHON=3.8 \
-		GNATCOLL_PYTHON_CFLAGS="-I${LOCALBASE}/include/python3.8" \
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} AUTOPYTHON=3.9 \
+		GNATCOLL_PYTHON_CFLAGS="-I${LOCALBASE}/include/python3.9" \
 		gprbuild -p -XLIBRARY_TYPE=${libtype} \
 		-P python3/gnatcoll_python3.gpr)
 .  endfor
@@ -111,9 +111,9 @@ do-install:
 	${SH} ${FILESDIR}/gen_gpr.sh \
 		"${component}" \
 		"${STAGEDIR}${PREFIX}" \
-		"-I${ "${component:Mpython3}" != "":?${LOCALBASE}/include/python3.8:${PYTHON_INCLUDEDIR}}" \
+		"-I${ "${component:Mpython3}" != "":?${LOCALBASE}/include/python3.9:${PYTHON_INCLUDEDIR}}" \
 		"0.0" \
-		"-lpython3.8"
+		"-lpython3.9"
 .endfor
 
 [FILE:102:descriptions/desc.gmp]

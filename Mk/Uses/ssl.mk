@@ -6,7 +6,7 @@
 # Feature:	Implement default SSL version
 # Usage:	USES=ssl
 # Valid ARGS:	buildrun (default), build, run
-#               openssl, libressl, openssl-devel, libressl-devel
+#               openssl10, openssl11, openssl30, libressl, libressl-devel
 #
 # Port makefile can now set these variable
 # OPENSSL_RPATH=yes	- pass RFLAGS options to CFLAGS

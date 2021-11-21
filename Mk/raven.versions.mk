@@ -43,10 +43,10 @@ RUBY_3.0_VERSION=	3.0.2
 
 #-------------------------------------------------------------------------
 # PYTHON
-# Possible values: 2.7, 3.8, 3.9 [3.10]
+# Possible values: 2.7, 3.9, 3.10
 #-------------------------------------------------------------------------
 
-PYTHON3_DEFAULT?=	3.8
+PYTHON3_DEFAULT?=	3.9
 
 PYTHON_2.7_VERSION=	2.7.18
 PYTHON_3.8_VERSION=	3.8.12
@@ -55,7 +55,7 @@ PYTHON_3.10_VERSION=	3.10.0
 
 #-------------------------------------------------------------------------
 # SSL
-# Possible values: openssl, openssl-devel, libressl, libressl-devel
+# Possible values: openssl10, openssl11, openssl30, libressl, libressl-devel
 #-------------------------------------------------------------------------
 
 SSL_DEFAULT?=		libressl
