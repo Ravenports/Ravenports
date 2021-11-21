@@ -49,7 +49,6 @@ RUBY_3.0_VERSION=	3.0.2
 PYTHON3_DEFAULT?=	3.9
 
 PYTHON_2.7_VERSION=	2.7.18
-PYTHON_3.8_VERSION=	3.8.12
 PYTHON_3.9_VERSION=	3.9.8
 PYTHON_3.10_VERSION=	3.10.0
 
@@ -83,12 +82,11 @@ TCL_8.6_VERSION=	8.6.12
 
 #-------------------------------------------------------------------------
 # PGSQL
-# Possible values: 9.6, 10, 11, 12, 13 [future 14]
+# Possible values: 10, 11, 12, 13, 14
 #-------------------------------------------------------------------------
 
 PGSQL_DEFAULT?=		12
 
-PGSQL_9.6_VERSION=	9.6.24
 PGSQL_10_VERSION=	10.19
 PGSQL_11_VERSION=	11.14
 PGSQL_12_VERSION=	12.9
@@ -132,9 +130,9 @@ FIREBIRD_4.0_VERSION=	4.0.0
 
 PHP_DEFAULT?=		7.4
 
-PHP_7.3_VERSION=	7.3.32
-PHP_7.4_VERSION=	7.4.25
-PHP_8.0_VERSION=	8.0.12
+PHP_7.3_VERSION=	7.3.33
+PHP_7.4_VERSION=	7.4.26
+PHP_8.0_VERSION=	8.0.13
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
