@@ -2,6 +2,7 @@
 
 NAMEBASE=		nmap
 VERSION=		7.92
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Port scanning utility for large networks
@@ -17,6 +18,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILDRUN_DEPENDS=	libpcap:single:standard
+
 USES=			gmake cpe pcre ssl
 
 FPC_EQUIVALENT=		security/nmap
@@ -27,6 +30,7 @@ CONFIGURE_ARGS=		--with-openssl={{OPENSSLBASE}}
 			--without-zenmap
 			--without-ndiff
 			--with-libpcre={{LOCALBASE}}
+			--with-libpcap={{LOCALBASE}}
 			--with-liblua=included
 			--without-nmap-update
 
@@ -901,7 +905,7 @@ share/nmap/scripts/
 
 
 [FILE:317:patches/patch-Makefile.in]
---- Makefile.in.orig	2020-08-27 19:13:31 UTC
+--- Makefile.in.orig	2021-07-19 23:06:50 UTC
 +++ Makefile.in
 @@ -10,7 +10,7 @@ mandir = @mandir@
  top_srcdir = @top_srcdir@
@@ -951,6 +955,25 @@ share/nmap/scripts/
  			   where that prevents other users of the interface
 
 
+[FILE:445:patches/patch-libdnet-stripped_src_arp-bsd.c]
+$NetBSD: patch-libdnet-stripped_src_arp-bsd.c,v 1.1 2016/04/09 06:38:05 adam Exp $
+
+Fix building on systems where RTF_LLINFO is not defined.
+
+--- libdnet-stripped/src/arp-bsd.c.orig	2008-09-19 06:12:25 UTC
++++ libdnet-stripped/src/arp-bsd.c
+@@ -22,6 +22,9 @@
+ #include <net/if.h>
+ #include <net/if_dl.h>
+ #include <net/route.h>
++#ifndef RTF_LLINFO
++#define RTF_LLINFO RTF_LLDATA
++#endif
+ #include <netinet/in.h>
+ #include <netinet/if_ether.h>
+ 
+
+
 [FILE:394:patches/patch-liblua__Makefile]
 --- liblua/Makefile.orig	2018-10-17 00:30:14 UTC
 +++ liblua/Makefile
@@ -981,7 +1004,7 @@ share/nmap/scripts/
 
 
 [FILE:189:patches/patch-nmap.cc]
---- nmap.cc.orig	2020-10-09 22:18:58 UTC
+--- nmap.cc.orig	2021-07-28 20:52:01 UTC
 +++ nmap.cc
 @@ -69,6 +69,7 @@
  #include <shlobj.h>

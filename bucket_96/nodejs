@@ -20,6 +20,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BROKEN[sunos]=		The ld.sun linker does not support required options
+BROKEN[netbsd]=		Run OOM on mksnapshot step near end
 
 BUILDRUN_DEPENDS=	icu:single:standard
 			libuv:single:standard
@@ -42,7 +43,6 @@ SHEBANG_FILES=		tools/specialize_node_d.py
 
 MUST_CONFIGURE=		yes
 CONFIGURE_ARGS=		--prefix={{PREFIX}}
-			--without-snapshot
 			--without-npm
 			--without-dtrace
 			--shared-libuv
@@ -56,6 +56,14 @@ MAKE_ENV=		CC.host={{CC}}
 			LINK.target={{CXX}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
+
+VAR_OPSYS[netbsd]=	CONFIGURE_ENV=GYP_DEFINES="OS=netbsd"
+			MAKE_ENV=GYP_DEFINES="OS=netbsd"
+
+pre-configure-netbsd:
+	# hack to avoid undefined reference to 'engine_load_devcrypto_int'
+	${REINPLACE_CMD} -e 's/ifndef OPENSSL_NO_DEVCRYPTOENG/if 0/' \
+		${WRKSRC}/deps/openssl/openssl/crypto/init.c
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/node
@@ -3298,6 +3306,68 @@ share/doc/node/
  lldb_commands.py
 
 
+[FILE:686:patches/patch-common.gypi]
+--- common.gypi.orig	2021-11-09 13:29:17 UTC
++++ common.gypi
+@@ -379,11 +379,11 @@
+           'BUILDING_UV_SHARED=1',
+         ],
+       }],
+-      [ 'OS in "linux freebsd openbsd solaris aix"', {
++      [ 'OS in "linux freebsd openbsd netbsd solaris aix"', {
+         'cflags': [ '-pthread' ],
+         'ldflags': [ '-pthread' ],
+       }],
+-      [ 'OS in "linux freebsd openbsd solaris android aix cloudabi"', {
++      [ 'OS in "linux freebsd openbsd netbsd solaris android aix cloudabi"', {
+         'cflags': [ '-Wall', '-Wextra', '-Wno-unused-parameter', ],
+         'cflags_cc': [ '-fno-rtti', '-fno-exceptions', '-std=gnu++17' ],
+         'defines': [ '__STDC_FORMAT_MACROS' ],
+
+
+[FILE:501:patches/patch-deps_cares_cares.gyp]
+--- deps/cares/cares.gyp.orig	2021-11-09 13:29:17 UTC
++++ deps/cares/cares.gyp
+@@ -165,6 +165,10 @@
+           'include_dirs': [ 'config/freebsd' ],
+           'sources': [ 'config/freebsd/ares_config.h' ]
+         }],
++        [ 'OS=="netbsd"', {
++          'include_dirs': [ 'config/netbsd' ],
++          'sources': [ 'config/netbsd/ares_config.h' ]
++        }],
+         [ 'OS=="openbsd"', {
+           'include_dirs': [ 'config/openbsd' ],
+           'sources': [ 'config/openbsd/ares_config.h' ]
+
+
+[FILE:528:patches/patch-deps_openssl_openssl_util_perl_OpenSSL_config.pm]
+--- deps/openssl/openssl/util/perl/OpenSSL/config.pm.orig	2021-11-09 13:29:19 UTC
++++ deps/openssl/openssl/util/perl/OpenSSL/config.pm
+@@ -744,6 +744,7 @@ EOF
+       [ 'sparc64-.*-.*bsd.*',     { target => "BSD-sparc64" } ],
+       [ 'ia64-.*-.*bsd.*',        { target => "BSD-ia64" } ],
+       [ 'x86_64-.*-dragonfly.*',  { target => "BSD-x86_64" } ],
++      [ 'x86_64-.*-*bsd.*',       { target => "BSD-x86_64" } ],
+       [ 'amd64-.*-.*bsd.*',       { target => "BSD-x86_64" } ],
+       [ '.*86.*-.*-.*bsd.*',
+         sub {
+
+
+[FILE:414:patches/patch-deps_uv_common.gypi]
+--- deps/uv/common.gypi.orig	2021-11-09 13:29:19 UTC
++++ deps/uv/common.gypi
+@@ -135,7 +135,7 @@
+           }]
+         ]
+       }],
+-      ['OS in "freebsd dragonflybsd linux openbsd solaris android aix"', {
++      ['OS in "freebsd dragonflybsd linux openbsd netbsd solaris android aix"', {
+         'cflags': [ '-Wall' ],
+         'cflags_cc': [ '-fno-rtti', '-fno-exceptions' ],
+         'target_conditions': [
+
+
 [FILE:478:patches/patch-deps_v8_src_base_platform_condition-variable.cc]
 --- deps/v8/src/base/platform/condition-variable.cc.orig	2021-11-09 13:29:19 UTC
 +++ deps/v8/src/base/platform/condition-variable.cc
@@ -3334,10 +3404,33 @@ share/doc/node/
  void OS::SignalCodeMovingGC() {}
 
 
-[FILE:704:patches/patch-deps_v8_src_base_platform_platform-posix.cc]
+[FILE:1632:patches/patch-deps_v8_src_base_platform_platform-posix.cc]
 --- deps/v8/src/base/platform/platform-posix.cc.orig	2021-11-09 13:29:19 UTC
 +++ deps/v8/src/base/platform/platform-posix.cc
-@@ -1055,6 +1055,7 @@ void Thread::SetThreadLocal(LocalStorage
+@@ -840,8 +840,13 @@ Thread::Thread(const Options& options)
+     : data_(new PlatformData),
+       stack_size_(options.stack_size()),
+       start_semaphore_(nullptr) {
++#if V8_OS_NETBSD
++  if (stack_size_ > 0 && static_cast<size_t>(stack_size_) < sysconf(_SC_THREAD_STACK_MIN)) {
++    stack_size_ = sysconf(_SC_THREAD_STACK_MIN);
++#else
+   if (stack_size_ > 0 && static_cast<size_t>(stack_size_) < PTHREAD_STACK_MIN) {
+     stack_size_ = PTHREAD_STACK_MIN;
++#endif
+   }
+   set_name(options.name());
+ }
+@@ -857,7 +862,7 @@ static void SetThreadName(const char* na
+   pthread_set_name_np(pthread_self(), name);
+ #elif V8_OS_NETBSD
+   STATIC_ASSERT(Thread::kMaxThreadNameLength <= PTHREAD_MAX_NAMELEN_NP);
+-  pthread_setname_np(pthread_self(), "%s", name);
++  pthread_setname_np(pthread_self(), "%s", (void *)name);
+ #elif V8_OS_MACOSX
+   // pthread_setname_np is only available in 10.6 or later, so test
+   // for it at runtime.
+@@ -1055,6 +1060,7 @@ void Thread::SetThreadLocal(LocalStorage
  // support it. MacOS and FreeBSD are different here.
  #if !defined(V8_OS_FREEBSD) && !defined(V8_OS_MACOSX) && !defined(_AIX) && \
      !defined(V8_OS_SOLARIS)
@@ -3345,7 +3438,7 @@ share/doc/node/
  
  // static
  Stack::StackSlot Stack::GetStackStart() {
-@@ -1080,6 +1081,7 @@ Stack::StackSlot Stack::GetStackStart()
+@@ -1080,6 +1086,7 @@ Stack::StackSlot Stack::GetStackStart()
  #endif  // !defined(V8_LIBC_GLIBC)
  }
  
@@ -3353,6 +3446,19 @@ share/doc/node/
  #endif  // !defined(V8_OS_FREEBSD) && !defined(V8_OS_MACOSX) &&
          // !defined(_AIX) && !defined(V8_OS_SOLARIS)
  
+
+
+[FILE:296:patches/patch-deps_v8_src_base_strings.h]
+--- deps/v8/src/base/strings.h.orig	2021-11-09 13:29:19 UTC
++++ deps/v8/src/base/strings.h
+@@ -5,6 +5,7 @@
+ #ifndef V8_BASE_STRINGS_H_
+ #define V8_BASE_STRINGS_H_
+ 
++#include <stdarg.h> // for va_list
+ #include "src/base/base-export.h"
+ #include "src/base/macros.h"
+ #include "src/base/vector.h"
 
 
 [FILE:616:patches/patch-deps_v8_src_base_utils_random-number-generator.cc]
@@ -3445,6 +3551,100 @@ share/doc/node/
       V8_OS_FREEBSD)
  #define V8_TRAP_HANDLER_SUPPORTED true
  // Arm64 (non-simulator) on Mac.
+
+
+[FILE:321:patches/patch-deps_v8_tools_run-llprof.sh]
+--- deps/v8/tools/run-llprof.sh.orig	2021-11-09 13:29:21 UTC
++++ deps/v8/tools/run-llprof.sh
+@@ -46,7 +46,7 @@ framework, then calls the low level tick
+ EOF
+ }
+ 
+-if [ $# -eq 0 ] || [ "$1" == "-h" ]  || [ "$1" == "--help" ] ; then
++if [ $# -eq 0 ] || [ "$1" = "-h" ]  || [ "$1" = "--help" ] ; then
+   usage
+   exit 1
+ fi
+
+
+[FILE:216:patches/patch-node.gypi]
+--- node.gypi.orig	2021-11-09 13:29:21 UTC
++++ node.gypi
+@@ -245,6 +245,7 @@
+     [ 'OS=="solaris"', {
+       'libraries': [
+         '-lkstat',
++        '-lsocket',
+         '-lumem',
+       ],
+       'defines!': [
+
+
+[FILE:638:patches/patch-src_inspector__agent.cc]
+--- src/inspector_agent.cc.orig	2021-11-09 13:29:21 UTC
++++ src/inspector_agent.cc
+@@ -96,7 +96,7 @@ static int StartDebugSignalHandler() {
+   CHECK_EQ(0, uv_sem_init(&start_io_thread_semaphore, 0));
+   pthread_attr_t attr;
+   CHECK_EQ(0, pthread_attr_init(&attr));
+-#if defined(PTHREAD_STACK_MIN) && !defined(__FreeBSD__)
++#if defined(PTHREAD_STACK_MIN) && !defined(__FreeBSD__) && !defined(__NetBSD__)
+   // PTHREAD_STACK_MIN is 2 KB with musl libc, which is too small to safely
+   // receive signals. PTHREAD_STACK_MIN + MINSIGSTKSZ is 8 KB on arm64, which
+   // is the musl architecture with the biggest MINSIGSTKSZ so let's use that
+
+
+[FILE:600:patches/patch-src_node__postmortem__metadata.cc]
+--- src/node_postmortem_metadata.cc.orig	2021-11-09 13:29:21 UTC
++++ src/node_postmortem_metadata.cc
+@@ -12,6 +12,10 @@
+ #define NODEDBG_OFFSET(Class, Member, Type) \
+     NODEDBG_SYMBOL(offset_ ## Class ## __ ## Member ## __ ## Type)
+ 
++// Some systems provide macros for the types as well, which get expanded
++// by the nested macros here.
++#undef uintptr_t
++
+ // These are the constants describing Node internal structures. Every constant
+ // should use the format described above.  These constants are declared as
+ // global integers so that they'll be present in the generated node binary. They
+
+
+[FILE:511:patches/patch-tools_gyp_pylib_gyp_generator_make.py]
+--- tools/gyp/pylib/gyp/generator/make.py.orig	2021-11-09 13:29:22 UTC
++++ tools/gyp/pylib/gyp/generator/make.py
+@@ -2398,7 +2398,7 @@ def GenerateOutput(target_list, target_d
+                 "flock_index": 2,
+             }
+         )
+-    elif flavor == "freebsd":
++    elif flavor == "freebsd" or flavor == 'dragonflybsd' or flavor == 'netbsd':
+         # Note: OpenBSD has sysutils/flock. lockf seems to be FreeBSD specific.
+         header_params.update({"flock": "lockf"})
+     elif flavor == "openbsd":
+
+
+[FILE:980:patches/patch-tools_gyp_pylib_gyp_xcode__emulation.py]
+--- tools/gyp/pylib/gyp/xcode_emulation.py.orig	2021-11-09 13:29:22 UTC
++++ tools/gyp/pylib/gyp/xcode_emulation.py
+@@ -607,7 +607,7 @@ class XcodeSettings:
+ 
+         self._Appendf(cflags, "GCC_OPTIMIZATION_LEVEL", "-O%s", default="s")
+ 
+-        if self._Test("GCC_GENERATE_DEBUGGING_SYMBOLS", "YES", default="YES"):
++        if self._Test("GCC_GENERATE_DEBUGGING_SYMBOLS", "YES", default="NO"):
+             dbg_format = self._Settings().get("DEBUG_INFORMATION_FORMAT", "dwarf")
+             if dbg_format == "dwarf":
+                 cflags.append("-gdwarf-2")
+@@ -1099,7 +1099,7 @@ class XcodeSettings:
+         # For static libraries, no dSYMs are created.
+         result = []
+         if (
+-            self._Test("GCC_GENERATE_DEBUGGING_SYMBOLS", "YES", default="YES")
++            self._Test("GCC_GENERATE_DEBUGGING_SYMBOLS", "YES", default="NO")
+             and self._Test(
+                 "DEBUG_INFORMATION_FORMAT", "dwarf-with-dsym", default="dwarf"
+             )
 
 
 [FILE:424:patches/patch-tools_install.py]

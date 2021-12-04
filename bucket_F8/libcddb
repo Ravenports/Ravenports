@@ -17,6 +17,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		bash:primary:standard
+
 USES=			iconv libtool fbsd10fix
 
 FPC_EQUIVALENT=		audio/libcddb
@@ -25,6 +27,10 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-cdio
 
 INSTALL_TARGET=		install-strip
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|/bin/sh|${LOCALBASE}/bin/bash|' \
+		${WRKSRC}/configure
 
 [FILE:221:descriptions/desc.single]
 Libcddb is a library that implements the different protocols (CDDBP,

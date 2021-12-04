@@ -19,6 +19,8 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+ONLY_FOR_OPSYS=		freebsd linux sunos
+
 BUILD_DEPENDS=		yasm:single:standard
 BUILDRUN_DEPENDS=	fuse2:single:standard
 			wxWidgets:primary:standard
@@ -50,7 +52,7 @@ SUB_FILES=		pkg-message-primary-freebsd
 
 CXXFLAGS=		-std=c++14
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e 's|/wx-config|${LOCALBASE}/bin/wx-config|g' \
 		-e '/export LFLAGS/ s|:=|:= ${LDFLAGS}|' \
 		-e '/export CXXFLAGS/ s|:=|:= ${CXXFLAGS}|' \

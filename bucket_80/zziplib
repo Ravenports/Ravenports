@@ -54,6 +54,11 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib${l}-0.so.13.0.72
 .endfor
 
+pre-configure:
+	# NetBSD mkdir doesn't recognize -v
+	${REINPLACE_CMD} -e 's/mkdir -vp/mkdir -p/g' \
+		${WRKSRC}/docs/CMakeLists.txt
+
 [FILE:258:descriptions/desc.primary]
 zziplib provides read access to zipped files in a zip-archive, using 
 compression based solely on free algorithms provided by zlib. It also 
