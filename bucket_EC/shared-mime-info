@@ -2,7 +2,7 @@
 
 NAMEBASE=		shared-mime-info
 VERSION=		2.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		misc
 VARIANTS=		standard
 SDESC[standard]=	MIME types database from freedesktop.org project
@@ -20,8 +20,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		itstool:single:standard
-			xmlto:single:standard
+BUILD_DEPENDS=		xmlto:single:standard
 
 USES=			pkgconfig meson gettext-tools
 GNOME_COMPONENTS=	glib libxml2 intltool
@@ -169,10 +168,62 @@ share/locale/zh_HK/LC_MESSAGES/shared-mime-info.mo
 share/locale/zh_TW/LC_MESSAGES/shared-mime-info.mo
 
 
-[FILE:336:patches/patch-meson.build]
+[FILE:1043:patches/patch-data_meson_build]
+$OpenBSD: patch-data_meson_build,v 1.3 2021/12/02 21:18:01 ajacoutot Exp $
+
+From 5a406b06792e26a83c7346b3c2443c0bd8d4cdb2 Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz@archlinux.org>
+Date: Mon, 8 Nov 2021 18:22:47 -0500
+Subject: [PATCH] migrate from custom itstool to builtin msgfmt for creating translated XML
+
+Index: data/meson.build
+--- data/meson.build.orig
++++ data/meson.build
+@@ -1,18 +1,12 @@
+ 
+ install_man('update-mime-database.1')
+ 
+-freedesktop_org_xml = custom_target('freedesktop.org.xml',
+-    input : files(
+-        'freedesktop.org.xml.in',
+-        'its/shared-mime-info.its',
+-        'its/shared-mime-info.loc',
+-    ),
++freedesktop_org_xml = i18n.merge_file(
++    input: 'freedesktop.org.xml.in',
+     output: 'freedesktop.org.xml',
+-    command: [
+-        find_program('freedesktop_generate.sh'),
+-        meson.source_root(),
+-        meson.build_root()
+-    ],
++    data_dirs: '.',
++    po_dir: '../po',
++    type: 'xml',
+     install: true,
+     install_dir: get_option('datadir') / 'mime' / 'packages',
+ )
+
+
+[FILE:913:patches/patch-meson.build]
+$OpenBSD: patch-meson_build,v 1.1 2021/12/02 21:18:01 ajacoutot Exp $
+
+From 5a406b06792e26a83c7346b3c2443c0bd8d4cdb2 Mon Sep 17 00:00:00 2001
+From: Eli Schwartz <eschwartz@archlinux.org>
+Date: Mon, 8 Nov 2021 18:22:47 -0500
+Subject: [PATCH] migrate from custom itstool to builtin msgfmt for creating translated XML
+
 --- meson.build.orig	2020-12-31 19:12:16 UTC
 +++ meson.build
-@@ -74,7 +74,7 @@ configure_file(
+@@ -20,7 +20,6 @@ config.set_quoted('VERSION', meson.proje
+ ###############################################################################
+ # Find tools
+ 
+-itstool = find_program('itstool')
+ xmllint = find_program('xmllint')
+ xmlto   = find_program('xmlto')
+ 
+@@ -74,7 +73,7 @@ configure_file(
          'prefix': get_option('prefix'),
          'VERSION': meson.project_version()
      },
