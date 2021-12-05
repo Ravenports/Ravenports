@@ -37,8 +37,8 @@ A cross-platform interface to file system operations, built on top of the
 e1c7ebeab0322a171b871422efdccb02c63b797a98b694ccb4423ed20e3c8e62       793203 CRAN/fs_1.5.1.tar.gz
 
 
-[FILE:1024:patches/patch-src_Makevars]
---- src/Makevars.orig	2020-07-29 15:12:05 UTC
+[FILE:1046:patches/patch-src_Makevars]
+--- src/Makevars.orig	2021-11-29 22:54:06 UTC
 +++ src/Makevars
 @@ -10,6 +10,7 @@ OBJECTS = $(SOURCES:.cc=.o)
  ifeq ($(UNAME), SunOS)
@@ -55,7 +55,7 @@ e1c7ebeab0322a171b871422efdccb02c63b797a98b694ccb4423ed20e3c8e62       793203 CR
 +ifeq ($(UNAME), NetBSD)
 +PKG_LIBS += -lkvm
 +endif
- ifeq ($(UNAME), Linux)
+ ifneq ($(filter $(UNAME), Linux AIX OS400),)
  OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
  endif
 @@ -29,7 +33,7 @@ $(SHLIB): $(LIBUV)/.libs/libuv.a
@@ -70,7 +70,7 @@ e1c7ebeab0322a171b871422efdccb02c63b797a98b694ccb4423ed20e3c8e62       793203 CR
 
 
 [FILE:1611:patches/patch-src_libuv-1.38.1_src_unix_fs.c]
---- src/libuv-1.38.1/src/unix/fs.c.orig	2020-07-03 16:51:27 UTC
+--- src/libuv-1.38.1/src/unix/fs.c.orig	2021-11-29 22:54:06 UTC
 +++ src/libuv-1.38.1/src/unix/fs.c
 @@ -972,7 +972,6 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {
@@ -99,7 +99,7 @@ e1c7ebeab0322a171b871422efdccb02c63b797a98b694ccb4423ed20e3c8e62       793203 CR
 
 
 [FILE:1068:patches/patch-src_libuv-1.38.1_src_unix_udp.c]
---- src/libuv-1.38.1/src/unix/udp.c.orig	2020-07-31 20:15:23 UTC
+--- src/libuv-1.38.1/src/unix/udp.c.orig	2021-11-29 22:54:06 UTC
 +++ src/libuv-1.38.1/src/unix/udp.c
 @@ -854,7 +854,7 @@ static int uv__udp_set_membership6(uv_ud
  }
@@ -122,7 +122,7 @@ e1c7ebeab0322a171b871422efdccb02c63b797a98b694ccb4423ed20e3c8e62       793203 CR
 
 
 [FILE:367:patches/patch-src_unix_getmode.cc]
---- src/unix/getmode.cc.orig	2020-03-30 12:54:20 UTC
+--- src/unix/getmode.cc.orig	2021-11-29 22:54:06 UTC
 +++ src/unix/getmode.cc
 @@ -2,6 +2,7 @@
  #include "utils.h"
