@@ -22,7 +22,7 @@ APQ_ODBC_REVISION=		1
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.77.0
+BOOST_VERSION=			1.78.0
 BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
