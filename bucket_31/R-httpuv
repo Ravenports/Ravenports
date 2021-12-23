@@ -47,8 +47,8 @@ information.)
 4e8cd21d192e2e5dfd1b5cc660a009b5918de2f04658a37f34102779a772a65b      1814842 CRAN/httpuv_1.6.4.tar.gz
 
 
-[FILE:1269:patches/patch-src_Makevars]
---- src/Makevars.orig	2020-06-05 16:40:07 UTC
+[FILE:1171:patches/patch-src_Makevars]
+--- src/Makevars.orig	2021-12-13 19:41:14 UTC
 +++ src/Makevars
 @@ -17,6 +17,9 @@ endif
  ifeq ($(UNAME), FreeBSD)
@@ -69,23 +69,22 @@ information.)
  # Fedora 28 defines _GLIBCXX_ASSERTIONS, so we better define it everywhere
  # to catch issues earlier.
  # jcheng 2018-06-18: Disabling _GLIBCXX_ASSERTIONS for now, as it causes
-@@ -64,9 +67,10 @@ libuv/m4/lt~obsolete.m4: libuv/m4/lt_obs
- # precisely the same timestamp value.
- libuv/Makefile: libuv/m4/lt~obsolete.m4
- 	(cd libuv \
--		&& touch aclocal.m4 \
--		&& touch -r aclocal.m4 configure Makefile.in \
- 		&& chmod +x configure \
-+		&& touch configure.ac \
-+		&& touch -r configure.ac Makefile.am aclocal.m4 *.in m4/* \
-+               && touch -r aclocal.m4 configure.ac configure \
- 		&& CC="$(CC)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY)" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure $(CONFIGURE_FLAGS))
- 
- libuv/.libs/libuv.a: libuv/Makefile
+@@ -74,8 +77,9 @@ libuv/Makefile: libuv/m4/lt~obsolete.m4
+ 	cd libuv; \
+ 	if ! command -v automake >/dev/null 2>&1 ; then \
+ 		echo "automake not found. Touching files so configure will not try to run automake."; \
+-		touch aclocal.m4; \
+-		touch -r aclocal.m4 configure Makefile.in; \
++		touch configure.ac; \
++		touch -r configure.ac Makefile.am aclocal.m4 *.in m4/*; \
++		touch -r aclocal.m4 configure.ac configure; \
+ 	else \
+ 		echo "automake found. Running autogen.sh."; \
+ 		sh autogen.sh; \
 
 
 [FILE:733:patches/patch-src_unix_freebsd.c]
---- src/libuv/src/unix/freebsd.c.orig	2020-05-15 16:23:13 UTC
+--- src/libuv/src/unix/freebsd.c.orig	2020-06-05 16:40:07 UTC
 +++ src/libuv/src/unix/freebsd.c
 @@ -58,7 +58,8 @@ void uv__platform_loop_delete(uv_loop_t*
  
@@ -118,7 +117,7 @@ information.)
 
 
 [FILE:1597:patches/patch-src_unix_fs.c]
---- src/libuv/src/unix/fs.c.orig	2020-05-15 16:23:13 UTC
+--- src/libuv/src/unix/fs.c.orig	2020-06-05 16:40:07 UTC
 +++ src/libuv/src/unix/fs.c
 @@ -976,7 +976,6 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {
@@ -147,7 +146,7 @@ information.)
 
 
 [FILE:1063:patches/patch-src_unix_udp.c]
---- src/libuv/src/unix/udp.c.orig	2020-05-15 16:23:13 UTC
+--- src/libuv/src/unix/udp.c.orig	2020-06-05 16:40:07 UTC
 +++ src/libuv/src/unix/udp.c
 @@ -850,7 +850,7 @@ static int uv__udp_set_membership6(uv_ud
  }
