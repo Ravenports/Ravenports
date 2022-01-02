@@ -145,9 +145,6 @@ LIBXSLT_PYTHON_REVISION=	0
 # ruby
 # ------------------------------------------------------------------------
 
-RUBY_2.6_REVISION=		0
-RUBY_2.6_PATCHLEVEL=		0
-
 RUBY_2.7_REVISION=		0
 RUBY_2.7_PATCHLEVEL=		0
 
