@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtk4
 VERSION=		4.6.0
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Gimp Toolkit for X11 GUI
@@ -16,6 +17,7 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			nls
+			icon_cache
 
 OPTIONS_AVAILABLE=	CUPS BROADWAY FFMPEG
 OPTIONS_STANDARD=	CUPS BROADWAY FFMPEG
@@ -27,10 +29,10 @@ BUILD_DEPENDS=		sassc:single:standard
 BUILDRUN_DEPENDS=	libepoxy:single:standard
 			libxkbcommon:single:standard
 			graphene:primary:standard
+EXRUN[icon_cache]=	gdk-pixbuf:primary:standard
 
-USES=			gettext-tools gmake pkgconfig gnome-icons:primary
-			schemas:primary perl:build python:build cpe meson
-			gtk-doc
+USES=			gettext-tools gmake pkgconfig cpe meson gtk-doc
+			schemas:primary perl:build python:build
 GNOME_COMPONENTS=	atk cairo gdkpixbuf pango
 XORG_COMPONENTS=	xext x11 xinerama xi xrandr xcursor xfixes xdamage
 			xcomposite
@@ -85,6 +87,7 @@ post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gtk-4.0/modules
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gtk-4.0/4.0.0/engines
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gtk-4.0/4.0.0/loaders
+	# gtk4 has no icons in share/icons so skip gtk3 post-install step.
 
 [FILE:266:descriptions/desc.primary]
 GTK+, or the GIMP Toolkit, is a multi-platform toolkit for creating
@@ -95,11 +98,16 @@ application suites.
 This package contains GTK version 4.0.
 
 
+[FILE:104:descriptions/desc.icon_cache]
+This package contains the gtk-update-icon-cache utility from the
+fourth generation of the GIMP toolkit.
+
+
 [FILE:102:distinfo]
 782d5951fbfd585fc9ec76c09d07e28e6014c72db001fb567fff217fb96e4d8c     22655868 gnome4/gtk-4.6.0.tar.xz
 
 
-[FILE:8076:manifests/plist.primary]
+[FILE:8023:manifests/plist.primary]
 @comment introspection lib/girepository-1.0/Gdk-4.0.typelib
 @comment introspection lib/girepository-1.0/GdkX11-4.0.typelib
 @comment introspection lib/girepository-1.0/Gsk-4.0.typelib
@@ -125,7 +133,6 @@ bin/
  gtk4-encode-symbolic-svg
  gtk4-launch
  gtk4-query-settings
- gtk4-update-icon-cache
 include/gtk-4.0/gdk/
  gdk-autocleanup.h
  gdk.h
@@ -505,7 +512,6 @@ share/man/man1/
  gtk4-encode-symbolic-svg.1.gz
  gtk4-launch.1.gz
  gtk4-query-settings.1.gz
- gtk4-update-icon-cache.1.gz
 @dir lib/gtk-4.0/%%GTK_VERSION%%/engines
 @dir lib/gtk-4.0/%%GTK_VERSION%%/loaders
 @dir lib/gtk-4.0/modules
@@ -860,6 +866,11 @@ share/locale/zh_HK/LC_MESSAGES/
 share/locale/zh_TW/LC_MESSAGES/
  gtk40-properties.mo
  gtk40.mo
+
+
+[FILE:70:manifests/plist.icon_cache]
+bin/gtk4-update-icon-cache
+share/man/man1/gtk4-update-icon-cache.1.gz
 
 
 [FILE:410:patches/patch-gtk_roaring_roaring.h]
