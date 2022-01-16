@@ -2,6 +2,7 @@
 
 NAMEBASE=		bind
 VERSION=		9.16.24
+REVISION=		1
 KEYWORDS=		dns net
 VARIANTS=		standard
 SDESC[standard]=	Berkeley Internet Name Domain (Domain Name Server)
@@ -1025,7 +1026,7 @@ zone "1.168.192.in-addr.arpa" {
 */
 
 
-[FILE:12389:files/named.in]
+[FILE:11623:files/named.in]
 #!/bin/sh
 #
 
@@ -1050,7 +1051,6 @@ zone "1.168.192.in-addr.arpa" {
 # named_wait_host (str):	    Hostname to check if named_wait is enabled
 # named_auto_forward (str):	    Set up forwarders from /etc/resolv.conf
 # named_auto_forward_only (str):    Do "forward only" instead of "forward first"
-%%NATIVE_PKCS11%%# named_pkcs11_engine (str):	    Path to the PKCS#11 library to use.
 #
 
 . /etc/rc.subr
@@ -1081,7 +1081,6 @@ named_wait=${named_wait:-"NO"}
 named_wait_host=${named_wait_host:-"localhost"}
 named_auto_forward=${named_auto_forward:-"NO"}
 named_auto_forward_only=${named_auto_forward_only:-"NO"}
-%%NATIVE_PKCS11%%named_pkcs11_engine=${named_pkcs11_engine:-""}
 
 # Not configuration variables but having them here keeps rclint happy
 required_dirs="${named_chrootdir}"
@@ -1311,16 +1310,6 @@ named_prestart()
 
 	command_args="-u ${named_uid:=root} -c ${named_conf} ${command_args}"
 
-%%NATIVE_PKCS11%%	if [ -z "${named_pkcs11_engine}"]; then
-%%NATIVE_PKCS11%%		err 3 "named_pkcs11_engine has to be set to the PKCS#11 engine's library you want to use"
-%%NATIVE_PKCS11%%	elif [ ! -f ${named_pkcs11_engine} ]; then
-%%NATIVE_PKCS11%%		err 3 "named_pkcs11_engine the PKCS#11 engine's library you want to use doesn't exist"
-%%NATIVE_PKCS11%%	else
-%%NATIVE_PKCS11%%		mkdir -p ${named_chrootdir}${named_pkcs11_engine%/*}
-%%NATIVE_PKCS11%%		cp -p ${named_pkcs11_engine} ${named_chrootdir}${named_pkcs11_engine}
-%%NATIVE_PKCS11%%		command_args="-E ${named_pkcs11_engine} ${command_args}"
-%%NATIVE_PKCS11%%	fi
-
 	local line nsip firstns
 
 	# Is the user using a sandbox?
@@ -1527,7 +1516,7 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:dc3::35
 ; End of file
 
 
-[FILE:1633:files/pkg-message-server.in]
+[FILE:1637:files/pkg-message-server.in]
 **********************************************************************
 *            _  _____ _____ _____ _   _ _____ ___ ___  _   _         *
 *           / \|_   _|_   _| ____| \ | |_   _|_ _/ _ \| \ | |        *
@@ -1540,7 +1529,7 @@ M.ROOT-SERVERS.NET.      3600000      AAAA  2001:dc3::35
 *   'rndc-confgen -a' to generate the proper conf file, with a new   *
 *            random key, and appropriate file permissions.           *
 *                                                                    *
-*     The %%PREFIX%%/etc/rc.d/named script will do that for you.     *
+*     The %%PREFIX%%/etc/rc.d/named script will do that for you.         *
 *                                                                    *
 *      If using syslog to log the BIND9 activity, and using a        *
 *     chroot'ed installation, you will need to tell syslog to        *
