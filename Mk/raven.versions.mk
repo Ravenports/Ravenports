@@ -95,7 +95,7 @@ PGSQL_14_VERSION=	14.1
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.7,8.0), mariadb-(10.2,10.3,10.4,10.5,10.6),
+# Possible values: oracle-(5.7,8.0), mariadb-(10.[234567]),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #-------------------------------------------------------------------------
 
@@ -108,6 +108,7 @@ MYSQL_mariadb-10.3_VERSION=	10.3.32
 MYSQL_mariadb-10.4_VERSION=	10.4.22
 MYSQL_mariadb-10.5_VERSION=	10.5.13
 MYSQL_mariadb-10.6_VERSION=	10.6.5
+MYSQL_mariadb-10.7_VERSION=	10.7.1
 MYSQL_percona-5.7_VERSION=	5.7.17
 MYSQL_percona-5.6_VERSION=	5.6.35
 MYSQL_percona-5.5_VERSION=	5.5.54
@@ -121,7 +122,7 @@ FIREBIRD_DEFAULT?=	2.5
 
 FIREBIRD_2.5_VERSION=	2.5.9
 FIREBIRD_3.0_VERSION=	3.0.7
-FIREBIRD_4.0_VERSION=	4.0.0
+FIREBIRD_4.0_VERSION=	4.0.1
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
