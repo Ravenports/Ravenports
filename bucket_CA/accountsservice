@@ -159,6 +159,36 @@ share/locale/zh_TW/LC_MESSAGES/accounts-service.mo
 share/doc/accountsservice/spec/AccountsService.html
 
 
+[FILE:645:patches/patch-fix-meson]
+From ac9b14f1c1bbca413987d0bbfeaad05804107e9a Mon Sep 17 00:00:00 2001
+From: Luca Boccassi <bluca@debian.org>
+Date: Sun, 31 Oct 2021 12:29:14 +0000
+Subject: [PATCH] Fix build with meson 0.60
+
+Positional parameters to merge_file() were never allowed and always
+ignored, so just drop it.
+See: https://github.com/mesonbuild/meson/issues/9441
+
+Fixes #97
+---
+ data/meson.build | 1 -
+ 1 file changed, 1 deletion(-)
+
+--- data/meson.build.orig
++++ data/meson.build
+@@ -33,7 +33,6 @@ configure_file(
+ policy = act_namespace.to_lower() + '.policy'
+ 
+ i18n.merge_file(
+-  policy,
+   input: policy + '.in',
+   output: policy,
+   po_dir: po_dir,
+-- 
+GitLab
+
+
+
 [FILE:424:patches/patch-meson.build]
 --- meson.build.orig	2019-04-23 15:16:09 UTC
 +++ meson.build

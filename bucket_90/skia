@@ -47,11 +47,16 @@ MAKE_ENV=		AUTOPYTHON=2.7
 
 SOVERSION=		1.0
 
-post-patch:
+pre-patch:
 	${REINPLACE_CMD} -e 's|/usr/include/harfbuzz|${LOCALBASE}/include/harfbuzz|'\
 		${WRKSRC}/third_party/harfbuzz/BUILD.gn
 	${REINPLACE_CMD} -e 's|/usr/include/freetype2|${LOCALBASE}/include/freetype2|'\
 		${WRKSRC}/third_party/freetype2/BUILD.gn
+	# Delete reference to gn function "set_sources_assignment_filter"
+	# https://gn.googlesource.com/gn/+/55e535a6716e57320fdd3901f0347a5c30562199
+	${REINPLACE_CMD} -e '/set_sources_assignment_filter/d' \
+		-e '/visibility/d' \
+		${WRKSRC}/BUILD.gn
 
 do-configure:
 	${MKDIR} ${CONFIGURE_WRKSRC}
