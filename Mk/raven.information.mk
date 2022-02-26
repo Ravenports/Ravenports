@@ -129,7 +129,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.9.12
+LIBXML2_VERSION=		2.9.13
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -137,7 +137,7 @@ LIBXML2_PYTHON_REVISION=	0
 # libxslt
 # ------------------------------------------------------------------------
 
-LIBXSLT_VERSION=		1.1.34
+LIBXSLT_VERSION=		1.1.35
 LIBXSLT_REVISION=		0
 LIBXSLT_PYTHON_REVISION=	0
 
@@ -170,7 +170,7 @@ GTK4_PORT_VERSION=		4.6.1
 # Ravenports binutils
 # ------------------------------------------------------------------------
 
-BINUTILS_VERSION=		2.37
+BINUTILS_VERSION=		2.38
 RPBASE_BINUTILS=		2.37
 
 # ------------------------------------------------------------------------
