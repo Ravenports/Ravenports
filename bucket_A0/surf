@@ -2,7 +2,7 @@
 
 NAMEBASE=		surf
 VERSION=		2.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		www
 VARIANTS=		standard
 SDESC[standard]=	Simple webkit browser adhering suckless principles
@@ -18,7 +18,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	webkitgtk:complete:standard
+BUILDRUN_DEPENDS=	webkit2:primary:gtk3
 			gcr:primary:standard
 RUN_DEPENDS=		curl:primary:standard
 			dmenu:single:standard
@@ -42,10 +42,15 @@ post-patch:
 		/^GTKLIB/s| =| ?=| ; \
 		/^CPPFLAGS/s| =| +=|' \
 		${WRKSRC}/config.mk
+	${REINPLACE_CMD} 's|-4.0|-4.1|g' ${WRKSRC}/config.mk
 
 pre-build:
 	# workaround missing common.h
 	echo "#define MSGBUFSZ 8" > ${WRKSRC}/common.h
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/surf
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/surf/webext-surf.so
 
 [FILE:338:descriptions/desc.single]
 Surf is the web browser by the suckless.org community. It's based on 
