@@ -66,31 +66,17 @@ All NumPy wheels distributed on PyPI are BSD licensed.
 076aee5a3763d41da6bef9565fdf3cb987606f567cd8b104aded2b38b7b47abf     11447735 numpy-1.22.2.zip
 
 
-[FILE:592:patches/patch-numpy_f2py_cfuncs.py]
---- numpy/f2py/cfuncs.py.orig	2021-02-07 09:26:20 UTC
+[FILE:535:patches/patch-numpy_f2py_cfuncs.py]
+--- numpy/f2py/cfuncs.py.orig	2022-01-29 12:20:32 UTC
 +++ numpy/f2py/cfuncs.py
-@@ -549,6 +549,9 @@ cppmacros["F2PY_THREAD_LOCAL_DECL"] = ""
- #define F2PY_THREAD_LOCAL_DECL __declspec(thread)
+@@ -578,6 +578,9 @@ cppmacros["F2PY_THREAD_LOCAL_DECL"] = ""
+ #define F2PY_THREAD_LOCAL_DECL __thread
  #elif defined(__STDC_VERSION__) \\
        && (__STDC_VERSION__ >= 201112L) \\
 +      && !defined(__DragonFly__) \\
 +      && !defined(__FreeBSD__) \\
 +      && !defined(__sun__) \\ 
        && !defined(__STDC_NO_THREADS__) \\
-       && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12))
- /* __STDC_NO_THREADS__ was first defined in a maintenance release of glibc 2.12,
-
-
-[FILE:458:patches/patch-setup.py]
---- setup.py.orig	2022-01-13 14:18:42 UTC
-+++ setup.py
-@@ -80,7 +80,7 @@ if os.path.exists('MANIFEST'):
- # so that it is in sys.modules
- import numpy.distutils.command.sdist
- import setuptools
--if int(setuptools.__version__.split('.')[0]) >= 60:
-+if int(setuptools.__version__.split('.')[0]) >= 61:
-     raise RuntimeError(
-         "Setuptools version is '{}', version < '60.0.0' is required. "
-         "See pyproject.toml".format(setuptools.__version__))
+       && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12)) \\
+       && !defined(__OpenBSD__)
 
