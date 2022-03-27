@@ -2,6 +2,7 @@
 
 NAMEBASE=		tcl86
 VERSION=		8.6.12
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Tool Command Language
@@ -2064,7 +2065,7 @@ share/man/mann/
  install-private-headers:
 
 
-[FILE:1331:patches/patch-unix_configure]
+[FILE:1399:patches/patch-unix_configure]
 --- unix/configure.orig	2021-11-04 15:04:06 UTC
 +++ unix/configure
 @@ -7306,9 +7306,13 @@ fi
@@ -2082,13 +2083,14 @@ share/man/mann/
  
  	    CFLAGS_OPTIMIZE="-O2"
  	    # egcs-2.91.66 on Redhat Linux 6.0 generates lots of warnings
-@@ -7318,11 +7322,13 @@ fi
+@@ -7317,12 +7321,15 @@ fi
+ 	    #CFLAGS_OPTIMIZE="${CFLAGS_OPTIMIZE} -D__NO_STRING_INLINES -D__NO_MATH_INLINES"
  
  	    SHLIB_LD='${CC} ${CFLAGS} ${LDFLAGS} -shared'
++	    TCL_SHLIB_LD_EXTRAS="-Wl,-soname,libtcl${TCL_TRIM_DOTS}.so.1"
  	    DL_OBJS="tclLoadDl.o"
 -	    DL_LIBS="-ldl"
--	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
-+	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic -Wl,-soname,libtcl${TCL_TRIM_DOTS}.so.1"
+ 	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
  
  	    case $system in
 -	    DragonFly-*|FreeBSD-*)
@@ -2099,7 +2101,7 @@ share/man/mann/
  		if test "${TCL_THREADS}" = "1"; then
  
  		    # The -pthread needs to go in the LDFLAGS, not LIBS
-@@ -7498,7 +7504,7 @@ fi
+@@ -7498,7 +7505,7 @@ fi
  	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
  	    TCL_LIB_VERSIONS_OK=nodots
  	    ;;

@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnucash
 VERSION=		4.9
+REVISION=		1
 KEYWORDS=		finance
 VARIANTS=		standard
 SDESC[standard]=	Financial accounting software
@@ -35,9 +36,10 @@ BUILDRUN_DEPENDS=	gnome-keyring:primary:standard
 			libdbi-drivers:primary:sqlite
 			libofx:primary:standard
 			guile22:single:standard
-			webkitgtk:complete:standard
+			webkit2:primary:gtk3
 			gwenhywfar:gtk3:standard
-RUN_DEPENDS=		perl-Date-Manip:single:perl_default
+RUN_DEPENDS=		hicolor-icon-theme:single:standard
+			perl-Date-Manip:single:perl_default
 			perl-Finance-Quote:single:perl_default
 			perl-libwww-perl:single:perl_default
 
@@ -107,6 +109,7 @@ post-patch:
 		{} +)
 	${SED} -i.flag -e '/-Wno-deprecated-register/d' \
 		${WRKSRC}/libgnucash/engine/CMakeLists.txt
+	${REINPLACE_CMD} 's|-4.0|-4.1|g' ${WRKSRC}/CMakeLists.txt
 	${MKDIR} ${WRKSRC}/bin
 
 post-install:

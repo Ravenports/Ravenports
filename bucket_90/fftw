@@ -2,6 +2,7 @@
 
 NAMEBASE=		fftw
 VERSION=		3.3.10
+REVISION=		1
 KEYWORDS=		math
 VARIANTS=		standard float long quad
 SDESC[quad]=		Fast Fourier Transform library (quad precision)
@@ -26,46 +27,45 @@ VOPTS[quad]=		FLOAT=OFF LONG=OFF QUAD=ON FLAV=ON
 VOPTS[float]=		FLOAT=ON LONG=OFF QUAD=OFF FLAV=ON
 VOPTS[long]=		FLOAT=OFF LONG=ON QUAD=OFF FLAV=ON
 
-USES=			gmake libtool makeinfo perl:build pkgconfig
-			fortran:single
+USES=			cmake makeinfo perl:build pkgconfig fortran:single
+
+LICENSE=		GPLv2+:single
+LICENSE_TERMS=		single:{{WRKSRC}}/COPYRIGHT
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		math/fftw3
 INFO_SUBDIR=		.
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--enable-shared
-			--enable-threads
-			--enable-openmp
-
-INSTALL_TARGET=		install-strip
-INSTALL_REQ_TOOLCHAIN=	yes
-SOVERSION=		3.6.10
+SOVERSION=		3.6.9
 PLIST_SUB=		OPENMPI="@comment "
+
+CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
+			-DBUILD_TESTS:BOOL=ON
+			-DENABLE_OPENMP:BOOL=ON
+			-DENABLE_THREADS:BOOL=ON
 
 [FLAV].DESCRIPTION=			Enabled for non-standard variants
 [FLAV].INFO_OFF=			single:fftw3
 
 [QUAD].DESCRIPTION=			Build quad precision version of fftw
-[QUAD].CONFIGURE_ARGS_ON=		--enable-quad-precision
+[QUAD].CMAKE_ARGS_ON=			-DENABLE_QUAD_PRECISION:BOOL=ON
 
 [FLOAT].DESCRIPTION=			Build float version of fftw
-[FLOAT].CONFIGURE_ARGS_ON=		--enable-float
+[FLOAT].CMAKE_ARGS_ON=			-DENABLE_FLOAT:BOOL=ON
 
 [LONG].DESCRIPTION=			Build long double version of fftw
-[LONG].CONFIGURE_ARGS_ON=		--enable-long-double
+[LONG].CMAKE_ARGS_ON=			-DENABLE_LONG_DOUBLE:BOOL=ON
 
 post-patch:
 	${REINPLACE_CMD} -e 's|/etc/fftw|${PREFIX}/etc/fftw|' \
-		${WRKSRC}/Makefile.in \
 		${WRKSRC}/api/import-system-wisdom.c \
 		${WRKSRC}/doc/fftw3* \
 		${WRKSRC}/tools/*
 
-post-patch-FLAV-ON:
-	${REINPLACE_CMD} -E \
-	-e '/(DIST_COMMON|bin_SCRIPTS|BUILT_SOURCES|EXTRA_DIST) =/,\
-	/[^\]$$/s/[^[:blank:]]*fftw-wisdom-to-conf[^[:blank:]]*//' \
-		${WRKSRC}/tools/Makefile.in
+post-patch-QUAD-ON:
+	${REINPLACE_CMD} -e '/target_link_libraries/ s| m)| m quadmath)|' \
+		${WRKSRC}/CMakeLists.txt
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.${LIBEXT}
@@ -89,10 +89,7 @@ most architectures without modification.
 56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467      4144100 fftw-3.3.10.tar.gz
 
 
-[FILE:530:manifests/plist.single.standard]
-bin/
- fftw-wisdom
- fftw-wisdom-to-conf
+[FILE:445:manifests/plist.single.standard]
 include/
  fftw3.f
  fftw3.f03
@@ -100,91 +97,78 @@ include/
  fftw3l.f03
  fftw3q.f03
 lib/
- libfftw3.a
  libfftw3.so
  libfftw3.so.%%SOMAJOR%%
  libfftw3.so.%%SOVERSION%%
- libfftw3_omp.a
  libfftw3_omp.so
  libfftw3_omp.so.%%SOMAJOR%%
  libfftw3_omp.so.%%SOVERSION%%
- libfftw3_threads.a
  libfftw3_threads.so
  libfftw3_threads.so.%%SOMAJOR%%
  libfftw3_threads.so.%%SOVERSION%%
 lib/cmake/fftw3/
  FFTW3Config.cmake
  FFTW3ConfigVersion.cmake
+ FFTW3LibraryDepends-release.cmake
+ FFTW3LibraryDepends.cmake
 lib/pkgconfig/fftw3.pc
-share/man/man1/
- fftw-wisdom-to-conf.1.gz
- fftw-wisdom.1.gz
 
 
-[FILE:434:manifests/plist.single.float]
-bin/fftwf-wisdom
+[FILE:409:manifests/plist.single.float]
 lib/
- libfftw3f.a
  libfftw3f.so
  libfftw3f.so.%%SOMAJOR%%
  libfftw3f.so.%%SOVERSION%%
- libfftw3f_omp.a
  libfftw3f_omp.so
  libfftw3f_omp.so.%%SOMAJOR%%
  libfftw3f_omp.so.%%SOVERSION%%
- libfftw3f_threads.a
  libfftw3f_threads.so
  libfftw3f_threads.so.%%SOMAJOR%%
  libfftw3f_threads.so.%%SOVERSION%%
-lib/cmake/fftw3/
+lib/cmake/fftw3f/
+ FFTW3LibraryDepends-%%CMAKE_BUILD_TYPE%%.cmake
+ FFTW3LibraryDepends.cmake
  FFTW3fConfig.cmake
  FFTW3fConfigVersion.cmake
 lib/pkgconfig/fftw3f.pc
-share/man/man1/fftwf-wisdom.1.gz
 
 
-[FILE:434:manifests/plist.single.long]
-bin/fftwl-wisdom
+[FILE:409:manifests/plist.single.long]
 lib/
- libfftw3l.a
  libfftw3l.so
  libfftw3l.so.%%SOMAJOR%%
  libfftw3l.so.%%SOVERSION%%
- libfftw3l_omp.a
  libfftw3l_omp.so
  libfftw3l_omp.so.%%SOMAJOR%%
  libfftw3l_omp.so.%%SOVERSION%%
- libfftw3l_threads.a
  libfftw3l_threads.so
  libfftw3l_threads.so.%%SOMAJOR%%
  libfftw3l_threads.so.%%SOVERSION%%
-lib/cmake/fftw3/
+lib/cmake/fftw3l/
+ FFTW3LibraryDepends-%%CMAKE_BUILD_TYPE%%.cmake
+ FFTW3LibraryDepends.cmake
  FFTW3lConfig.cmake
  FFTW3lConfigVersion.cmake
 lib/pkgconfig/fftw3l.pc
-share/man/man1/fftwl-wisdom.1.gz
 
 
-[FILE:434:manifests/plist.single.quad]
-bin/fftwq-wisdom
+[FILE:396:manifests/plist.single.quad]
 lib/
- libfftw3q.a
  libfftw3q.so
  libfftw3q.so.%%SOMAJOR%%
  libfftw3q.so.%%SOVERSION%%
- libfftw3q_omp.a
  libfftw3q_omp.so
  libfftw3q_omp.so.%%SOMAJOR%%
  libfftw3q_omp.so.%%SOVERSION%%
- libfftw3q_threads.a
  libfftw3q_threads.so
  libfftw3q_threads.so.%%SOMAJOR%%
  libfftw3q_threads.so.%%SOVERSION%%
-lib/cmake/fftw3/
+lib/cmake/fftw3q/
+ FFTW3LibraryDepends-release.cmake
+ FFTW3LibraryDepends.cmake
  FFTW3qConfig.cmake
  FFTW3qConfigVersion.cmake
 lib/pkgconfig/fftw3q.pc
-share/man/man1/fftwq-wisdom.1.gz
 
 
 [FILE:289:patches/patch-simd-support_taint.c]
