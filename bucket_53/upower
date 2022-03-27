@@ -60,6 +60,7 @@ VAR_OPSYS[sunos]=	CONFIGURE_ARGS=-Dos_backend=dummy
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=-Dos_backend=linux
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=-Dos_backend=netbsd
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=-Dos_backend=freebsd
+			CFLAGS=-D__WANT_NO_INLINED___ERROR
 
 post-stage:
 	${RM} -r ${STAGEDIR}/var
@@ -177,20 +178,27 @@ share/doc/upower/
          install_dir: get_option('prefix') / get_option('mandir') / 'man@0@'.format(man[1]),
 
 
-[FILE:415:patches/patch-meson.build]
---- meson.build.orig	2022-02-23 16:46:51 UTC
+[FILE:631:patches/patch-meson.build]
+--- meson.build.orig	2022-03-09 17:46:34 UTC
 +++ meson.build
-@@ -81,6 +81,7 @@ if os_backend == 'linux'
-     endif
-     cdata.set10('HAVE_IDEVICE', true)
+@@ -83,6 +83,10 @@ if os_backend == 'linux'
    endif
-+  subdir('rules')
  endif
  
++if os_backend == 'freebsd'
++  gudev_dep = cc.find_library('kvm', required: true)
++endif
++
  historydir = get_option('historydir')
-@@ -105,7 +106,6 @@ endif
+ if historydir == ''
+     historydir = get_option('prefix') / get_option('localstatedir') / 'lib' / 'upower'
+@@ -104,8 +108,10 @@ endif
+ # Generate configuration file
  config_h = configure_file(output: 'config.h', configuration: cdata)
  
++if os_backend == 'linux'
++  subdir('rules')
++endif
  subdir('etc')
 -subdir('rules')
  subdir('po')
