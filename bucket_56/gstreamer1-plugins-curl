@@ -201,18 +201,19 @@ MESON_ARGS=		-Daccurip=disabled
 PLIST_SUB=		GSTVER=1.0
 			PLUGIN=curl
 
-post-patch:
+post-install:
+	${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/gstreamer-plugins-bad-1.0.pc
+
+pre-configure:
 	${REINPLACE_CMD} \
 		-e "/subdir..gst-libs../d" \
-		-e "/subdir..pkgconfig../d" \
 		-e "/subdir..tools../d" \
 		-e "/subdir..data../d" \
 		${WRKSRC}/meson.build
 	${REINPLACE_CMD} -e "/subdir..wayland../d" \
 		${WRKSRC}/ext/meson.build
-
-post-install:
-	${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/gstreamer-plugins-bad-1.0.pc
+	${REINPLACE_CMD} -e "s/not gstva_dep.found()/true/" \
+		${WRKSRC}/sys/va/meson.build
 
 [FILE:39:descriptions/desc.single]
 This package contains the CURL plugin.
