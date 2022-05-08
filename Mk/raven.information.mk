@@ -129,7 +129,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.9.13
+LIBXML2_VERSION=		2.9.14
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -164,7 +164,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.33
-GTK4_PORT_VERSION=		4.6.2
+GTK4_PORT_VERSION=		4.6.3
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -197,9 +197,9 @@ LIBTOOL_VERSION=		2.4.7
 FREI0R_VERSION=			1.8.0
 M17N_VERSION=			1.8.0
 GLIBC_VERSION=			2.26
-GSTREAMER1_VERSION=		1.20.1		# only even (1.16.x, 1.18.x)
+GSTREAMER1_VERSION=		1.20.2		# only even (1.16.x, 1.18.x)
 GSTREAMER1_GST=			1.0
-GSTREAMER1_SOVERSION=		0.2001.0
+GSTREAMER1_SOVERSION=		0.2002.0
 XORG_VERSION=			7.7
 FIREFOX_ESR_VERSION=		91.8.0
 FIREFOX_VERSION=		95.0.2
