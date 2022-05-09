@@ -2,6 +2,7 @@
 
 NAMEBASE=		zig
 VERSION=		0.9.1
+REVISION=		1
 KEYWORDS=		devel lang
 VARIANTS=		standard
 SDESC[standard]=	Programming language
@@ -20,11 +21,11 @@ OPTIONS_STANDARD=	none
 BROKEN[linux]=		final linking: undefined reference to `getrandom'
 ONLY_FOR_OPSYS=		freebsd dragonfly netbsd linux
 
-BUILDRUN_DEPENDS=	llvm:single:standard
-			lld:single:standard
-RUN_DEPENDS=		libcxx:primary:standard
+BUILD_DEPENDS=		clang13:complete:standard
+			lld13:single:standard
+BUILDRUN_DEPENDS=	llvm13:single:standard
 
-USES=			cmake clang
+USES=			cmake
 
 LICENSE=		MIT:single
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
@@ -39,7 +40,7 @@ pre-build:
 		-e 's|@GCC_TARGET_LIBDIR@|${LOCALBASE}/toolchain/ravensys-gcc/${ASLIB}/gcc/${CONFIGURE_TARGET}/11.2.0|' \
 		${WRKSRC}/src/link/Elf.zig \
 
-post-patch-linux:
+pre-configure-linux:
 	${REINPLACE_CMD} -e 's|EXE_LDFLAGS " "|EXE_LDFLAGS "-Wl,-rpath,${LOCALBASE}/lib "|'\
 		${WRKSRC}/CMakeLists.txt
 
@@ -50,6 +51,12 @@ post-install:
 	# remove licenses out of place
 	${RM} ${STAGEDIR}${PREFIX}/lib/zig/*/LICENSE.TXT
 	${RM} ${STAGEDIR}${PREFIX}/lib/zig/libc/glibc/LICENSES
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g' \
+		${WRKSRC}/cmake/Findclang.cmake \
+		${WRKSRC}/cmake/Findllvm.cmake \
+		${WRKSRC}/cmake/Findlld.cmake
 
 [FILE:94:descriptions/desc.single]
 General purpose programming language designed for robustness, optimality, and maintainability
@@ -14036,6 +14043,19 @@ lib/zig/tsan/ubsan/
  ubsan_flags.inc
  ubsan_init.h
  ubsan_platform.h
+
+
+[FILE:387:patches/patch-cmake_Findllvm.cmake]
+--- cmake/Findllvm.cmake.orig	2022-02-14 20:03:19 UTC
++++ cmake/Findllvm.cmake
+@@ -71,6 +71,7 @@ elseif(ZIG_USE_LLVM_CONFIG)
+   find_program(LLVM_CONFIG_EXE
+       NAMES llvm-config-13 llvm-config-13.0 llvm-config130 llvm-config13 llvm-config
+       PATHS
++          "/usr/local/llvm13/bin"
+           "/mingw64/bin"
+           "/c/msys64/mingw64/bin"
+           "c:/msys64/mingw64/bin"
 
 
 [FILE:2390:patches/patch-src_link_Elf.zig]
