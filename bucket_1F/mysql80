@@ -2,7 +2,7 @@
 
 NAMEBASE=		mysql80
 VERSION=		8.0.29
-REVISION=		1
+REVISION=		2
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Multithreaded SQL database (server)
@@ -29,6 +29,7 @@ OPT_ON[all]=		PERFORMANCE
 
 BUILD_DEPENDS=		libedit:single:standard
 BUILDRUN_DEPENDS=	libevent:single:standard
+			protobuf:single:standard
 B_DEPS[linux]=		patchelf:primary:standard
 EXRUN[client]=		libedit:single:standard
 			zlib:complete:standard
@@ -64,7 +65,6 @@ PLIST_SUB=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
 			RPCGEN=
-			PROTOBUF_SOVER=3.19.4
 RC_SUBR=		mysql-server:server
 SUB_FILES=		my.cnf.sample
 SUB_LIST=		MY_DBDIR=/var/db/mysql
@@ -94,6 +94,7 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 			-DWITH_BOOST="{{WRKSRC}}/boost"
 			-DWITH_EDITLINE=system
 			-DWITH_LIBEVENT=system
+			-DWITH_PROTOBUF=system
 			-DWITH_LZ4=system
 			-DWITH_ZLIB=system
 			-DWITH_SSL={{OPENSSLBASE}}
@@ -148,10 +149,8 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/lib*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/plugin/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libmysql*.so.1
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libprotobuf-lite.so.*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/mysqld
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysqlrouter/*.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/private/libprotobuf*
 	# Linux doesn't like -R flags
 	${SED} -i'' -e 's| -R| -Wl,-rpath,|g' \
 		${STAGEDIR}${PREFIX}/bin/mysql_config
@@ -195,7 +194,7 @@ This package contains the MySQL client.
 fd34a84c65fc7b15609d55b1f5d128c4d5543a6b95fa638569c3277c5c7bb048    327770349 mysql-boost-8.0.29.tar.gz
 
 
-[FILE:6914:manifests/plist.server]
+[FILE:6786:manifests/plist.server]
 @sample etc/mysql/my.cnf.sample
 @sample etc/mysql/mysqlrouter.conf.sample
 %%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
@@ -239,7 +238,6 @@ lib/
  libmysqlrouter_metadata_cache.so.1
  libmysqlrouter_mysqlxmessages.so.1
  libmysqlrouter_routing.so.1
- libprotobuf-lite.so.%%PROTOBUF_SOVER%%
 lib/mysql/libmysqlservices.a
 lib/mysql/plugin/
  adt_null.so
@@ -366,9 +364,6 @@ lib/mysqlrouter/
  router_openssl.so
  router_protobuf.so
  routing.so
-lib/private/
- libprotobuf-lite.so.%%PROTOBUF_SOVER%%
- libprotobuf.so.%%PROTOBUF_SOVER%%
 lib/private/icudt69l/unames.icu
 lib/private/icudt69l/brkitr/
  burmesedict.dict
