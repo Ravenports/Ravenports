@@ -2159,9 +2159,9 @@ share/info/
  zsh.info-6
 
 
-[FILE:362:patches/patch-Functions_VCS__Info_test-repo-git-rebase-apply]
---- Functions/VCS_Info/test-repo-git-rebase-apply.orig	2022-05-20 19:18:51.395157000 +0200
-+++ Functions/VCS_Info/test-repo-git-rebase-apply	2022-05-20 19:19:39.024513000 +0200
+[FILE:314:patches/patch-Functions_VCS__Info_test-repo-git-rebase-apply]
+--- Functions/VCS_Info/test-repo-git-rebase-apply.orig	2022-05-08 06:18:22 UTC
++++ Functions/VCS_Info/test-repo-git-rebase-apply
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/zsh -f
 +#!__PREFIX__/bin/zsh -f
@@ -2170,21 +2170,39 @@ share/info/
  #
 
 
-[FILE:362:patches/patch-Functions_VCS__Info_test-repo-git-rebase-merge]
---- Functions/VCS_Info/test-repo-git-rebase-merge.orig	2022-05-20 19:18:38.427476000 +0200
-+++ Functions/VCS_Info/test-repo-git-rebase-merge	2022-05-20 19:19:19.266731000 +0200
+[FILE:314:patches/patch-Functions_VCS__Info_test-repo-git-rebase-merge]
+--- Functions/VCS_Info/test-repo-git-rebase-merge.orig	2022-05-08 06:18:22 UTC
++++ Functions/VCS_Info/test-repo-git-rebase-merge
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/zsh -f
 +#!__PREFIX__/bin/zsh -f
  #
  # This script creates a test repository for testing the git backend's behaviour during rebase-apply operations.
  #
+
+
+[FILE:370:dragonfly/patch-Src_Modules_watch.c]
+--- Src/Modules/watch.c.orig	2022-05-08 06:18:22 UTC
++++ Src/Modules/watch.c
+@@ -30,8 +30,11 @@
+ #include "watch.mdh"
+ 
+ /* Headers for utmp/utmpx structures */
+-#ifdef HAVE_UTMP_H
++#if defined(HAVE_UTMP_H) && !defined(HAVE_UTMPX_H)
+ # include <utmp.h>
++#else
++# undef HAVE_STRUCT_UTMP
++# undef HAVE_STRUCT_UTMP_UT_HOST
+ #endif
+ #ifdef HAVE_UTMPX_H
+ # include <utmpx.h>
 
 
 [FILE:1124:dragonfly/patch-Src_jobs.c]
---- Src/jobs.c.orig	2022-02-12 12:44:25 UTC
+--- Src/jobs.c.orig	2022-05-08 06:18:22 UTC
 +++ Src/jobs.c
-@@ -743,15 +743,15 @@ printtime(struct timeval *real, child_ti
+@@ -753,15 +753,15 @@ printtime(struct timeval *real, child_ti
      /* go ahead and compute these, since almost every TIMEFMT will have them */
      elapsed_time = real->tv_sec + real->tv_usec / 1000000.0;
  
@@ -2203,7 +2221,7 @@ share/info/
  	user_time    = ti->ut / (double) clktck;
  	system_time  = ti->st / (double) clktck;
  	percent      =  100.0 * (ti->ut + ti->st)
-@@ -881,7 +881,7 @@ printtime(struct timeval *real, child_ti
+@@ -891,7 +891,7 @@ printtime(struct timeval *real, child_ti
  #endif
  #ifdef HAVE_STRUCT_RUSAGE_RU_MAXRSS
  	    case 'M':
@@ -2214,27 +2232,9 @@ share/info/
  #ifdef HAVE_STRUCT_RUSAGE_RU_MAJFLT
 
 
-[FILE:352:dragonfly/patch-Src_watch.c]
---- Src/watch.c.orig	2022-02-12 12:44:25 UTC
-+++ Src/watch.c
-@@ -30,8 +30,11 @@
- #include "zsh.mdh"
- 
- /* Headers for utmp/utmpx structures */
--#ifdef HAVE_UTMP_H
-+#if defined(HAVE_UTMP_H) && !defined(HAVE_UTMPX_H)
- # include <utmp.h>
-+#else
-+# undef HAVE_STRUCT_UTMP
-+# undef HAVE_STRUCT_UTMP_UT_HOST
- #endif
- #ifdef HAVE_UTMPX_H
- # include <utmpx.h>
-
-
-[FILE:418:freebsd/patch-Src_Modules_watch.c]
---- Src/Modules/watch.c.orig	2022-05-20 19:05:18.932447000 +0200
-+++ Src/Modules/watch.c	2022-05-20 19:06:22.250719000 +0200
+[FILE:370:freebsd/patch-Src_Modules_watch.c]
+--- Src/Modules/watch.c.orig	2022-05-08 06:18:22 UTC
++++ Src/Modules/watch.c
 @@ -30,8 +30,11 @@
  #include "watch.mdh"
  
@@ -2251,9 +2251,9 @@ share/info/
 
 
 [FILE:1124:freebsd/patch-Src_jobs.c]
---- Src/jobs.c.orig	2022-02-12 12:44:25 UTC
+--- Src/jobs.c.orig	2022-05-08 06:18:22 UTC
 +++ Src/jobs.c
-@@ -743,15 +743,15 @@ printtime(struct timeval *real, child_ti
+@@ -753,15 +753,15 @@ printtime(struct timeval *real, child_ti
      /* go ahead and compute these, since almost every TIMEFMT will have them */
      elapsed_time = real->tv_sec + real->tv_usec / 1000000.0;
  
@@ -2272,7 +2272,7 @@ share/info/
  	user_time    = ti->ut / (double) clktck;
  	system_time  = ti->st / (double) clktck;
  	percent      =  100.0 * (ti->ut + ti->st)
-@@ -881,7 +881,7 @@ printtime(struct timeval *real, child_ti
+@@ -891,7 +891,7 @@ printtime(struct timeval *real, child_ti
  #endif
  #ifdef HAVE_STRUCT_RUSAGE_RU_MAXRSS
  	    case 'M':
