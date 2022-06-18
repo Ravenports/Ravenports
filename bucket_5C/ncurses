@@ -2,6 +2,7 @@
 
 NAMEBASE=		ncurses
 VERSION=		6.3
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard static
 SDESC[standard]=	Terminal-independent lib for full-screen output
@@ -71,7 +72,6 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		ABI_VER=6
 			REL_VER=6.3
 
-CPPFLAGS=		-P
 VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS="-lrt -lresolv -lsocket"
 
 [STATIC].CONFIGURE_ARGS_OFF=		--with-shared=yes
@@ -81,7 +81,7 @@ post-install-STATIC-OFF:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.${LIBEXT}
 	${MV} ${STAGEDIR}${PREFIX}/share/misc/terminfo.db \
 		${STAGEDIR}${PREFIX}/share/misc/terminfo.db.default
-	@${MKDIR} ${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/c++
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/c++
 .for f in Makefile README blue.c bs.6 bs.c cardfile.c cardfile.dat ditto.c dots.c filter.c firework.c firstlast.c gdc.6 gdc.c hanoi.c hashtest.c knight.c lrtest.c ncurses.c newdemo.c railroad.c rain.c tclock.c test.priv.h testaddch.c testcurs.c testscanw.c view.c worm.c xmas.c
 	${INSTALL_DATA} ${WRKSRC}/build.nowidec/test/${f} \
 		${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/
@@ -90,7 +90,7 @@ post-install-STATIC-OFF:
 	${INSTALL_DATA} ${WRKSRC}/build.nowidec/c++/${f} \
 		${STAGEDIR}${PREFIX}/share/examples/ncurses/nowidec/c++/
 .endfor
-	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 .for f in ANNOUNCE NEWS README doc/html/announce.html doc/hackguide.doc doc/html/hackguide.html doc/html/index.html doc/ncurses-intro.doc doc/html/ncurses-intro.html
 	${INSTALL_DATA} ${WRKSRC}/${f} ${STAGEDIR}${STD_DOCDIR}/
 .endfor
@@ -119,7 +119,6 @@ post-build:
 	# compiler even there.
 	(cd ${.CURDIR} && ${MAKE} ${.MAKEFLAGS} \
 		INSTALL_WRKSRC=${WRKSRC}/build.widec do-install)
-	# Remove -ldb-5 from pc files.  It's been statically linked in
 
 post-configure:
 	cd ${.CURDIR} && \
@@ -133,8 +132,8 @@ post-configure:
 .endfor
 
 post-extract:
-	@${MKDIR} ${WRKSRC}/build.widec
-	@${MKDIR} ${WRKSRC}/build.nowidec
+	${MKDIR} ${WRKSRC}/build.widec
+	${MKDIR} ${WRKSRC}/build.nowidec
 
 post-patch-freebsd:
 	# static libdb requires post-linking with pthread library
@@ -1287,10 +1286,10 @@ share/misc/tabset/
  vt300
 
 
-[FILE:1005:patches/patch-configure]
---- configure.orig	2020-02-08 21:06:19 UTC
+[FILE:1337:patches/patch-configure]
+--- configure.orig	2021-10-17 15:12:23 UTC
 +++ configure
-@@ -5602,7 +5602,7 @@ echo $ECHO_N "checking for an rpath opti
+@@ -5947,7 +5947,7 @@ echo $ECHO_N "checking for an rpath opti
  		LD_RPATH_OPT="-Wl,-rpath,"
  		;;
  	(dragonfly*)
@@ -1299,7 +1298,7 @@ share/misc/tabset/
  		;;
  	(netbsd*)
  		LD_RPATH_OPT="-Wl,-rpath,"
-@@ -5611,7 +5611,7 @@ echo $ECHO_N "checking for an rpath opti
+@@ -5956,7 +5956,7 @@ echo $ECHO_N "checking for an rpath opti
  		LD_RPATH_OPT="-rpath "
  		;;
  	(solaris2*)
@@ -1308,7 +1307,7 @@ share/misc/tabset/
  		;;
  	(*)
  		;;
-@@ -6098,11 +6098,11 @@ CF_EOF
+@@ -6568,11 +6568,11 @@ CF_EOF
  		# tested with SunOS 5.5.1 (solaris 2.5.1) and gcc 2.7.2
  		# tested with SunOS 5.10 (solaris 10) and gcc 3.4.3
  		if test "$DFT_LWR_MODEL" = "shared" ; then
@@ -1322,4 +1321,16 @@ share/misc/tabset/
  		fi
  
  	test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
+@@ -9870,7 +9870,10 @@ case "$host_os" in
+ 	cf_xopen_source="-D_DARWIN_C_SOURCE"
+ 	cf_XOPEN_SOURCE=
+ 	;;
+-(freebsd*|dragonfly*|midnightbsd*)
++(freebsd*)
++	cf_XOPEN_SOURCE=
++	;;
++(dragonfly*|midnightbsd*)
+ 	# 5.x headers associate
+ 	#	_XOPEN_SOURCE=600 with _POSIX_C_SOURCE=200112L
+ 	#	_XOPEN_SOURCE=500 with _POSIX_C_SOURCE=199506L
 

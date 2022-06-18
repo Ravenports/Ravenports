@@ -2,6 +2,7 @@
 
 NAMEBASE=		booch95
 VERSION=		20190412
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Ada95 Booch Components
@@ -43,6 +44,7 @@ post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_DATA} ${WRKSRC}/html/* ${STAGEDIR}${STD_DOCDIR}/
 	${RM} ${STAGEDIR}${STD_DOCDIR}/Makefile
+	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 
 post-extract:
 	 ${AWK} '/^package / {exit}; {print $$0}' ${WRKSRC}/src/bc.ads \
@@ -72,7 +74,7 @@ multiway, and AVL trees.
 cc4ec5bb67af1224028a32e974bbff4fbf1310e714b4c4fcbb4db0bd190b4105       573357 bc-20190412.tar.bz2
 
 
-[FILE:28048:manifests/plist.primary]
+[FILE:28027:manifests/plist.primary]
 include/bc/bc.relocatable/
  bc-containers-bags-bounded.adb
  bc-containers-bags-bounded.ads
@@ -878,8 +880,7 @@ lib/bc/bc.static/
  bc-trees.ali
  bc.ali
  libbc.a
-lib/gnat/bc.gpr
-lib/gnat/manifests/bc
+share/gpr/bc.gpr
 
 
 [FILE:284:manifests/plist.docs]
@@ -901,4 +902,18 @@ share/doc/booch95/
  overview.html
  release.html
  x.ada
+
+
+[FILE:410:patches/patch-Makefile]
+--- Makefile.orig	2019-04-12 16:38:21 UTC
++++ Makefile
+@@ -20,7 +20,7 @@ prefix ?= $(realpath $(dir $(shell which
+ 
+ # Work out where to install the GPR
+ debian = $(and $(wildcard /etc/debian_version),$(filter $(prefix),/usr))
+-GPR_INSTALL_SUBDIR = $(if $(debian),share/ada/adainclude,lib/gnat)
++GPR_INSTALL_SUBDIR = $(if $(debian),share/ada/adainclude,share/gpr)
+ 
+ GPRBUILD ?= gprbuild
+ GPRCLEAN ?= gprclean
 

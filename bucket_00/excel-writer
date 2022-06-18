@@ -2,6 +2,7 @@
 
 NAMEBASE=		excel-writer
 VERSION=		17r2
+REVISION=		1
 KEYWORDS=		misc ada
 VARIANTS=		standard
 SDESC[standard]=	Create Excel files with basic formats (Ada lib)
@@ -48,13 +49,13 @@ post-extract:
 		> ${WRKSRC}/runme.sh
 
 do-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnat \
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/gpr \
 		${STAGEDIR}${PREFIX}/lib/excel_writer \
 		${STAGEDIR}${PREFIX}/include/excel_writer \
 		${STAGEDIR}${STD_DOCDIR} \
 		${STAGEDIR}${STD_EXAMPLESDIR}
 	${INSTALL_DATA} ${FILESDIR}/excel_writer.gpr \
-		${STAGEDIR}${PREFIX}/lib/gnat
+		${STAGEDIR}${PREFIX}/share/gpr
 	${INSTALL_DATA} ${WRKSRC}/src/* \
 		${STAGEDIR}${PREFIX}/include/excel_writer
 	${INSTALL_DATA} ${WRKSRC}/lib/*  \
@@ -83,7 +84,7 @@ Excel_Out is a package that can generate basically formatted Excel files.
 214fb98bfbac2bd463ed897e579f0ae23ff2f87488bf4b833fe6d7263421b56b        60039 excel_writer_17_r2.zip
 
 
-[FILE:315:manifests/plist.primary]
+[FILE:316:manifests/plist.primary]
 bin/biff_dump
 include/excel_writer/
  csv.adb
@@ -99,7 +100,7 @@ lib/excel_writer/
  ieee_754-generic_double_precision.ali
  ieee_754.ali
  libexcelwriter.a
-lib/gnat/excel_writer.gpr
+share/gpr/excel_writer.gpr
 
 
 [FILE:40:manifests/plist.docs]
@@ -171,15 +172,15 @@ project Excel_Writer is
 end Excel_Writer;
 
 
-[FILE:473:files/runme.sh.in]
+[FILE:489:files/runme.sh.in]
 #!/bin/sh
 
 # This script will:
 # 1) Build the example executable in /tmp
 # 2) Tell the user how to execute it
 
-GNATMAKE=@PREFIX@/gcc-aux/bin/gnatmake
-ADA_PROJECT_PATH=@PREFIX@/lib/gnat
+GNATMAKE=@PREFIX@/toolchain/ravensys-gcc/bin/gnatmake
+ADA_PROJECT_PATH=@PREFIX@/share/gpr
 export ADA_PROJECT_PATH
 
 ${GNATMAKE} -P example

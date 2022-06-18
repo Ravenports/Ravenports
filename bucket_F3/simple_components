@@ -2,6 +2,7 @@
 
 NAMEBASE=		simple_components
 VERSION=		4.57
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Simple Ada Components
@@ -50,7 +51,6 @@ do-install:
 .for PROJECT in components-connections_server-http_server-sqlite_browser components-connections_server-secure components-connections_server-smtp components-connections_server-mqtt components-connections_server-modbus components-connections_server-elv_max_cube components-odbc strings_edit tables components components-gnutls components-sqlite components-connections_server components-connections_server-http_server
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprinstall -p \
 		--prefix=${STAGEDIR}${PREFIX} \
-		--project-subdir=${STAGEDIR}${PREFIX}/lib/gnat \
 		--sources-subdir=${STAGEDIR}${PREFIX}/include/${PORTNAME}/${PROJECT} \
 		--lib-subdir=${STAGEDIR}${PREFIX}/lib/${PORTNAME}/${PROJECT} \
 		${PROJECT}.gpr)
@@ -58,7 +58,7 @@ do-install:
 	# end of workaround: remove dummy object file
 	${RM} ${WRKSRC}/strings_edit-text_edit.o
 	# Eject manifests, we don't use them
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gnat/manifests
+	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 
 [FILE:924:descriptions/desc.single]
 This is a library created by Dmitry Kazakov out of necessity, which was
@@ -88,7 +88,7 @@ WWW:
 5c306caf09db7e1bc63a45c1ef00321ca7400ce95e28a53e3ec5f98bffe869d1      4448813 sc-20200101/components_4_57.tgz
 
 
-[FILE:44141:manifests/plist.single]
+[FILE:44142:manifests/plist.single]
 %%HS%%/
  %%SSM%%-http_client-signaled.adb
  %%SSM%%-http_client-signaled.ads
@@ -1417,7 +1417,12 @@ lib/%%SE%%/
  %%SE%%-utf8.o
  %%SE%%.ali
  %%SE%%.o
-lib/gnat/
+lib/tables/
+ tables-names.ali
+ tables-names.o
+ tables.ali
+ tables.o
+share/gpr/
  %%SE%%.gpr
  components-%%CS%%-elv_max_cube.gpr
  components-%%CS%%-http_server-sqlite_browser.gpr
@@ -1432,9 +1437,4 @@ lib/gnat/
  components-sqlite.gpr
  components.gpr
  tables.gpr
-lib/tables/
- tables-names.ali
- tables-names.o
- tables.ali
- tables.o
 
