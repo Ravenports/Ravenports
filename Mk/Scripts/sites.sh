@@ -243,24 +243,14 @@ expand_GCC()
     local SUBDIR=${1##GCC/}
     local cluster="\
         http://mirrors.kernel.org/sourceware/gcc \
-	http://gcc.parentingamerica.com \
-	http://gcc.skazkaforyou.com \
+        http://mirror.koddos.net/gcc \
+        https://ftp.nluug.nl/languages/gcc \
+        https://mirrorservice.org/sites/sourceware.org/pub/gcc \
+        https://bigsearcher.com/mirrors/gcc \
 	http://gcc.cybermirror.org \
-	http://gcc-uk.internet.bs \
-	http://www.netgull.com/gcc \
 	http://robotlab.itk.ppke.hu/gcc \
-	http://gcc.fyxm.net \
 	http://ftp-stud.hs-esslingen.de/pub/Mirrors/sourceware.org/gcc \
-	ftp://ftp.funet.fi/pub/mirrors/sourceware.org/pub/gcc \
-	ftp://gcc.gnu.org/pub/gcc \
-	ftp://ftp.lip6.fr/pub/gcc \
-	ftp://ftp.irisa.fr/pub/mirrors/gcc.gnu.org/gcc \
-	ftp://ftp.uvsq.fr/pub/gcc \
-	ftp://ftp.gwdg.de/pub/misc/gcc \
-	ftp://ftp.mpi-sb.mpg.de/pub/gnu/mirror/gcc.gnu.org/pub/gcc \
-	ftp://ftp.nluug.nl/mirror/languages/gcc \
-	ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc \
-	ftp://ftp.ntua.gr/pub/gnu/gcc"
+	http://mirrors.concertpass.com/gcc"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
     done

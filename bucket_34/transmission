@@ -2,6 +2,7 @@
 
 NAMEBASE=		transmission
 VERSION=		3.00
+REVISION=		1
 KEYWORDS=		net_p2p
 VARIANTS=		standard daemon gtk qt web
 SDESC[web]=		Lightweight BitTorrent client (web client)
@@ -103,12 +104,6 @@ CMAKE_ARGS=		-DENABLE_NLS:BOOL=ON
 [GTK].RUN_DEPENDS_ON=			xdg-utils:single:standard
 [GTK].USES_ON=				gettext-tools:build
 					desktop-utils:single
-
-post-patch:
-	# allow use of dht 0.26 (tranmission expects older 0.24)
-	${REINPLACE_CMD} -e 's|dht/dht.h|dht.h|' \
-		${WRKSRC}/cmake/FindDHT.cmake \
-		${WRKSRC}/libtransmission/tr-dht.c
 
 post-install-DAEMON-ON:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/transmission/home

@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root
 VERSION=		3.2
-REVISION=		5
+REVISION=		6
 KEYWORDS=		raven
 VARIANTS=		dragonfly freebsd_amd64 linux sunos macos netbsd_amd64
 SDESC[sunos]=		Solaris 10 system root for Ravenports build env
@@ -32,7 +32,7 @@ SITES[ubuntu7]=		http://security.ubuntu.com/ubuntu/pool/main/s/shadow/
 SITES[ubuntu8]=		http://security.ubuntu.com/ubuntu/pool/main/l/linux/
 SITES[ubuntu9]=		UBUNTU/a/attr
 DISTFILE[1]=		dummy-tarball.tar.gz:main
-DISTFILE[2]=		dfly-x86_64-6.0.0_REL.iso.bz2:avalon
+DISTFILE[2]=		dfly-x86_64-6.2.2_REL.iso.bz2:avalon
 DISTFILE[3]=		libc6_2.23-0ubuntu9_amd64.deb:ubuntu1
 DISTFILE[4]=		libc6-dev_2.23-0ubuntu9_amd64.deb:ubuntu1
 DISTFILE[5]=		hostname_3.16ubuntu2_amd64.deb:ubuntu2
@@ -133,7 +133,7 @@ VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/i86pc/x86_64/510200910/5.10/5.10
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
 VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SYSTEM=NetBSD/x86_64/x86_64/902000000/9.2/9
-VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600000/6.0/6.0
+VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600200/6.2/6.2
 
 [NET64].DESCRIPTION=			Ravenports system root for NetBSD/AMD64
 [NET64].DF_INDEX_ON=			25
@@ -271,7 +271,7 @@ Ravenports.
 
 [FILE:2732:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
-94ec00ad865686f8cbf559836bf1c290c464d7da544fcbe9cbfddea8a161b675    265912207 dfly-x86_64-6.0.0_REL.iso.bz2
+f645e3865f243fc532d9cf4d5363b4ceec7fe3c103a3ea40f5d29504f4dd2ea3    257548264 dfly-x86_64-6.2.2_REL.iso.bz2
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 libc6_2.23-0ubuntu9_amd64.deb
 78e65208532ef0db23d28a915b55b2b50e4ff117affa29a6fcd9fcb94536c147      2081588 libc6-dev_2.23-0ubuntu9_amd64.deb
 78ffb1d52ec35aafb91eefa09ddd4b66a264c114697b71ddb4867bc86dfe39c3        11548 hostname_3.16ubuntu2_amd64.deb
@@ -297,7 +297,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
 5f1bca14c4090122f31713dd86a926f63109dd6fb3c05f9b9b150a78acc8bc7e    488970240 NetBSD-9.2-amd64.iso
 
 
-[FILE:15608:manifests/plist.single.dragonfly]
+[FILE:15881:manifests/plist.single.dragonfly]
 %%BASE%%/bin/
  [
  cat
@@ -748,6 +748,12 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  bktr_tuner.h
  ioctl_bt848.h
 %%BASE%%/usr/include/dev/video/meteor/ioctl_meteor.h
+%%BASE%%/usr/include/dev/virtual/nvmm/
+ nvmm.h
+ nvmm_internal.h
+ nvmm_ioctl.h
+ nvmm_os.h
+%%BASE%%/usr/include/dev/virtual/nvmm/x86/nvmm_x86.h
 %%BASE%%/usr/include/libprop/
  plistref.h
  prop_array.h
@@ -837,7 +843,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  types.h
  ucontext.h
  vframe.h
- vmm.h
  vmparam.h
  wchar.h
  wchar_limits.h
@@ -1109,6 +1114,7 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  _termios.h
  _timespec.h
  _timeval.h
+ _ucontext.h
  _uio.h
  acct.h
  acl.h
@@ -1154,7 +1160,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  devfs_rules.h
  device.h
  devicestat.h
- dir.h
  dirent.h
  disk.h
  disklabel.h
@@ -1374,7 +1379,6 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  vfscache.h
  vfsops.h
  vkernel.h
- vmm.h
  vmmeter.h
  vmspace.h
  vnioctl.h
@@ -1387,6 +1391,16 @@ e7c8b5394c6bef779daa7fef0dd628b71f6b9efc537bf0ece3067bd0dedc264e        54458 li
  autofs.h
  autofs_ioctl.h
  autofs_mount.h
+%%BASE%%/usr/include/vfs/ext2fs/
+ ext2_dinode.h
+ ext2_dir.h
+ ext2_extents.h
+ ext2_extern.h
+ ext2_mount.h
+ ext2fs.h
+ fs.h
+ htree.h
+ inode.h
 %%BASE%%/usr/include/vfs/fuse/
  fuse.h
  fuse_abi.h
