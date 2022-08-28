@@ -2,6 +2,7 @@
 
 NAMEBASE=		gobject-introspection
 VERSION=		1.72.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Introspection data generator for GObject libraries
@@ -31,14 +32,9 @@ LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING.GPL
 LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		devel/gobject-introspection
-SHEBANG_FILES=		misc/update-gtkdoc-tests.py
-			misc/update-vulkan-gir.py
-			misc/update-glib-annotations.py
-			tests/gi-tester
 
-CONFIGURE_ARGS=		-Dpython={{PYTHON}}
-
-MAKE_ENV=		HOME={{WRKDIR}}
+CONFIGURE_ARGS=		-Dpython={{PYTHON_CMD}}
+			-Ddoctool=disabled
 
 INSTALL_TARGET=		install-strip
 
@@ -48,8 +44,9 @@ post-install:
 		-type f -name "meson.build*" -delete
 
 pre-configure:
-	${REINPLACE_CMD} -e 's|python@0@|python${PYTHON_VER}|' \
+	${REINPLACE_CMD} -e 's|%%PYTHON_CMD%%|${PYTHON_CMD}|' \
 		${WRKSRC}/tools/meson.build
+	# ${REINPLACE_CMD} -e "/'tests'/d" ${WRKSRC}/meson.build
 
 [FILE:364:descriptions/desc.single]
 GObject Introspection is a project for providing machine readable
@@ -68,8 +65,8 @@ introspection data.
 [FILE:3973:manifests/plist.single]
 %%ONLY-DRAGONFLY%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-FREEBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
-%%ONLY-NETBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-LINUX%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%-x86_64-linux-gnu.so
+%%ONLY-NETBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-SUNOS%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 bin/
  g-ir-annotation-tool
