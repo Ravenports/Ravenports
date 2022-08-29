@@ -2,6 +2,7 @@
 
 NAMEBASE=		mesa
 VERSION=		22.1.2
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Mesa 3D Graphics Library
@@ -57,12 +58,16 @@ CPE_VENDOR=		mesa3d
 FPC_EQUIVALENT=		graphics/mesa-libs
 MESON_ARGS=		-Dplatforms=x11{{WAYPLAT}}
 			-Dzstd=enabled
-			-Ddri3=true
+			-Ddri3=enabled
 			-Dgallium-drivers={{GALLIUM_DRIVERS:tW:tl:C/[[:space:]]/,/g}}
 			-Dgallium-vdpau=enabled
 			-Dosmesa=true
-			-Dlibunwind=false
+			-Dlibunwind=disabled
 			-Dgles1=disabled
+			-Dgles2=disabled
+			-Dglx=auto
+			-Dopengl=true
+			-Degl=disabled
 			-Dvulkan-drivers={{VULKAN_DRIVERS:tW:tl:C/[[:space:]]/,/g}}
 SHEBANG_FILES=		src/gallium/*/*/*.py
 			src/gallium/tools/trace/*.py
@@ -144,6 +149,12 @@ post-patch:
 	${REINPLACE_CMD} -e 's|/etc/|${PREFIX}/etc/|g' \
 		${WRKSRC}/src/util/xmlconfig.c
 
+post-install:
+	${RM} ${STAGEDIR}${PREFIX}/lib/libGL.so*
+	${RM} ${STAGEDIR}${PREFIX}/include/GL/g*.h
+	${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/gl.pc
+	${RM} -r ${STAGEDIR}${PREFIX}/include/KHR
+
 post-extract:
 	${AWK} '/Copyright/,/DEALINGS/' ${WRKSRC}/include/GL/glext.h \
 		> ${WRKDIR}/LICENSE_KHRONOS
@@ -185,7 +196,7 @@ libglapi and gbm.
 0971226b4a6a3d10cfc255736b33e4017e18c14c9db1e53863ac1f8ae0deb9ea     15992280 mesa-22.1.2.tar.xz
 
 
-[FILE:981:manifests/plist.libs]
+[FILE:566:manifests/plist.libs]
 %%LLVMPIPE-ON%%etc/OpenCL/vendors/mesa.icd
 %%LLVMPIPE-ON%%lib/
  libMesaOpenCL.so
@@ -202,40 +213,8 @@ include/
  xa_composite.h
  xa_context.h
  xa_tracker.h
-include/EGL/
- egl.h
- eglext.h
- eglextchromium.h
- eglmesaext.h
- eglplatform.h
-include/GL/
- gl.h
- glcorearb.h
- glext.h
- glx.h
- glxext.h
- osmesa.h
-include/GLES2/
- gl2.h
- gl2ext.h
- gl2platform.h
-include/GLES3/
- gl3.h
- gl31.h
- gl32.h
- gl3ext.h
- gl3platform.h
-include/KHR/khrplatform.h
+include/GL/osmesa.h
 lib/
- libEGL.so
- libEGL.so.1
- libEGL.so.1.0.0
- libGL.so
- libGL.so.1
- libGL.so.1.2.0
- libGLESv2.so
- libGLESv2.so.2
- libGLESv2.so.2.0.0
  libOSMesa.so
  libOSMesa.so.8
  libOSMesa.so.8.0.0
@@ -249,10 +228,7 @@ lib/
  libxatracker.so.2
  libxatracker.so.2.5.0
 lib/pkgconfig/
- egl.pc
  gbm.pc
- gl.pc
- glesv2.pc
  osmesa.pc
  xatracker.pc
 
