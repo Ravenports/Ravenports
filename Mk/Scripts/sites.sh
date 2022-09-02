@@ -81,15 +81,14 @@ expand_SOURCEFORGE()
     	SUBDIR=${1##SF/}
     fi
     local cluster="\
-    http://iweb.dl.sourceforge.net/project \
     http://vorboss.dl.sourceforge.net/project \
     http://freefr.dl.sourceforge.net/project \
-    http://kent.dl.sourceforge.net/project \
     http://jaist.dl.sourceforge.net/project \
     http://netcologne.dl.sourceforge.net/project \
-    http://cytranet.dl.sourceforge.net/project \
     http://netix.dl.sourceforge.net/project \
     http://ufpr.dl.sourceforge.net/project \
+    http://excellmedia.dl.sourceforge.net/project \
+    http://nchc.dl.sourceforge.net/project \
     http://superb-sea2.dl.sourceforge.net/project \
     http://superb-dca2.dl.sourceforge.net/project"
     for site in ${cluster}; do
