@@ -2,6 +2,7 @@
 
 NAMEBASE=		mate-desktop
 VERSION=		1.26.0
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	MATE desktop common UI API library
@@ -18,15 +19,15 @@ SPKGS[standard]=	complete
 			nls
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILD_DEPENDS=		iso-codes:primary:standard
 BUILDRUN_DEPENDS=	startup-notification:single:standard
 
 USES=			gettext-runtime gettext-tools:build libtool
 			pkgconfig gmake gtk-doc
-GNOME_COMPONENTS=	dconf glib gdkpixbuf gtk3 intltool introspection
+GNOME_COMPONENTS=	dconf glib gdkpixbuf gtk3 intltool
 
 LICENSE=		GPLv2+:primary LGPL20+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -62,6 +63,9 @@ CONFIGURE_ARGS=		--enable-gtk-doc
 INSTALL_TARGET=		install-strip
 SOVERSION=		17.1.4
 
+[INTROSPECTION].DESCRIPTION=		Build with introspection
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
+
 [FILE:83:descriptions/desc.primary]
 This package contains a collection of common MATE APIs not included in 
 libmateui.
@@ -71,7 +75,9 @@ libmateui.
 5f7c6b9b88886cb3393b3ffd57f9e9ec29f03a3c23ce8d4b45292de0aa4652a3      1189048 mate/mate-desktop-1.26.0.tar.xz
 
 
-[FILE:1872:manifests/plist.primary]
+[FILE:1912:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/MateDesktop-2.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/MateDesktop-2.0.gir
 bin/
  mate-about
  mate-color-select
@@ -97,12 +103,10 @@ lib/
  libmate-desktop-2.so
  libmate-desktop-2.so.%%SOMAJOR%%
  libmate-desktop-2.so.%%SOVERSION%%
-lib/girepository-1.0/MateDesktop-2.0.typelib
 lib/pkgconfig/mate-desktop-2.0.pc
 share/applications/
  mate-about.desktop
  mate-color-select.desktop
-share/gir-1.0/MateDesktop-2.0.gir
 share/glib-2.0/schemas/
  org.mate.accessibility-keyboard.gschema.xml
  org.mate.accessibility-startup.gschema.xml

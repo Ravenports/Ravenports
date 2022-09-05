@@ -16,10 +16,10 @@ DIST_SUBDIR=		gnome3
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	CAIRO
+OPTIONS_STANDARD=	CAIRO
+OPT_ON[all]=		CAIRO
 
-BUILD_DEPENDS=		cairo:single:standard
 BUILDRUN_DEPENDS=	libffi:single:standard
 
 USES=			bison meson pkgconfig shebangfix python
@@ -32,11 +32,14 @@ LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING.GPL
 LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		devel/gobject-introspection
-
-CONFIGURE_ARGS=		-Dpython={{PYTHON_CMD}}
+MESON_ARGS=		-Dpython={{PYTHON_CMD}}
 			-Ddoctool=disabled
 
 INSTALL_TARGET=		install-strip
+
+[CAIRO].DESCRIPTION=			Include cairo for tests
+[CAIRO].BUILD_DEPENDS_ON=		cairo:single:standard
+[CAIRO].CONFIGURE_ARGS_OFF=		-Dcairo=disabled
 
 post-install:
 	# remove artifacts from doctemplates fix
@@ -46,7 +49,6 @@ post-install:
 pre-configure:
 	${REINPLACE_CMD} -e 's|%%PYTHON_CMD%%|${PYTHON_CMD}|' \
 		${WRKSRC}/tools/meson.build
-	# ${REINPLACE_CMD} -e "/'tests'/d" ${WRKSRC}/meson.build
 
 [FILE:364:descriptions/desc.single]
 GObject Introspection is a project for providing machine readable

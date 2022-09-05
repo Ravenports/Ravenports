@@ -17,8 +17,8 @@ SPKGS[standard]=	complete
 			primary
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILDRUN_DEPENDS=	freetype:primary:standard
 			harfbuzz:primary:standard
@@ -27,7 +27,7 @@ BUILDRUN_DEPENDS=	freetype:primary:standard
 RUN_DEPENDS=		xorg-truetype-fonts:single:standard
 
 USES=			cpe gmake meson perl:build pkgconfig zlib:build
-GNOME_COMPONENTS=	cairo glib introspection
+GNOME_COMPONENTS=	cairo glib
 XORG_COMPONENTS=	x11 xft xrender
 
 LICENSE=		GPLv2+:primary
@@ -38,13 +38,16 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/pango/pango.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11-toolkits/pango
-
-CONFIGURE_ARGS=		-Dgtk_doc=false
+MESON_ARGS=		-Dgtk_doc=false
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		VERSION=1.8.0
 			LIBVERSION=0.5000.8
+
+[INTROSPECTION].DESCRIPTION=		Build introspection files
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dintrospection=disabled
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e "s|'-D_POSIX_C_SOURCE=200809L', ||" \
@@ -61,7 +64,21 @@ code is platform- and toolkit-independent.
 cf626f59dd146c023174c4034920e9667f1d25ac2c1569516d63136c311255fa      4298760 gnome2/pango-1.50.8.tar.xz
 
 
-[FILE:1377:manifests/plist.primary]
+[FILE:1417:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Pango-1.0.typelib
+ PangoCairo-1.0.typelib
+ PangoFT2-1.0.typelib
+ PangoFc-1.0.typelib
+ PangoOT-1.0.typelib
+ PangoXft-1.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Pango-1.0.gir
+ PangoCairo-1.0.gir
+ PangoFT2-1.0.gir
+ PangoFc-1.0.gir
+ PangoOT-1.0.gir
+ PangoXft-1.0.gir
 bin/
  pango-list
  pango-segmentation
@@ -118,13 +135,6 @@ lib/
  libpangoxft-1.0.so
  libpangoxft-1.0.so.%%LIBVERSION%%
  libpangoxft-1.0.so.0
-lib/girepository-1.0/
- Pango-1.0.typelib
- PangoCairo-1.0.typelib
- PangoFT2-1.0.typelib
- PangoFc-1.0.typelib
- PangoOT-1.0.typelib
- PangoXft-1.0.typelib
 lib/pkgconfig/
  pango.pc
  pangocairo.pc
@@ -132,11 +142,4 @@ lib/pkgconfig/
  pangoft2.pc
  pangoot.pc
  pangoxft.pc
-share/gir-1.0/
- Pango-1.0.gir
- PangoCairo-1.0.gir
- PangoFT2-1.0.gir
- PangoFc-1.0.gir
- PangoOT-1.0.gir
- PangoXft-1.0.gir
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		gcr
 VERSION=		3.40.0
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Library for bits of crypto UI and parsing
@@ -17,8 +18,8 @@ SPKGS[standard]=	complete
 			nls
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILD_DEPENDS=		libtool:single:standard
 			intltool:single:standard
@@ -32,7 +33,7 @@ BUILDRUN_DEPENDS=	dbus:single:standard
 USES=			gettext-tools gmake pkgconfig gtk-doc meson
 			python:build schemas:primary desktop-utils:primary
 			mime-info:primary solaris-funcs
-GNOME_COMPONENTS=	gtk3 introspection
+GNOME_COMPONENTS=	gtk3
 
 LICENSE=		LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -46,7 +47,6 @@ GLIB_SCHEMAS=		org.gnome.crypto.pgp.gschema.xml
 GTKDOC_OUTPUT_BASEDIR=	gcr
 MESON_ARGS=		-Dgtk_doc=true
 			-Dgtk=true
-			-Dintrospection=true
 SOL_FUNCTIONS=		err.h:err.h
 			timegm:gck/gck-slot.c
 
@@ -62,6 +62,11 @@ PLIST_SUB=		GCK_SOVER=0.0.0
 			GCRUI_SOMAJOR=1
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+
+[INTROSPECTION].DESCRIPTION=		Build vala bindings with introspection
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dintrospection=false
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dintrospection=true
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 pre-configure:
 	# timegm compat function untested by upstream in all cases
@@ -84,7 +89,23 @@ GNOME desktop. It was splitt off from gnome-keyring.
 f4aab5cfd6ca94243235715b60121dddb592a8984578abe9835815d4402ce1fa      2190682 GNOME-gcr-3.40.0.tar.gz
 
 
-[FILE:2867:manifests/plist.primary]
+[FILE:2927:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Gck-1.typelib
+ Gcr-3.typelib
+ GcrUi-3.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Gck-1.gir
+ Gcr-3.gir
+ GcrUi-3.gir
+%%INTROSPECTION-ON%%share/vala/vapi/
+ gck-1.deps
+ gck-1.vapi
+ gcr-3.deps
+ gcr-3.vapi
+ gcr-ui-3.deps
+ gcr-ui-3.vapi
+ pkcs11.vapi
 bin/gcr-viewer
 include/gck-1/gck/
  gck-deprecated.h
@@ -159,10 +180,6 @@ lib/
  libgcr-ui-3.so
  libgcr-ui-3.so.%%GCRUI_SOMAJOR%%
  libgcr-ui-3.so.%%GCRUI_SOVER%%
-lib/girepository-1.0/
- Gck-1.typelib
- Gcr-3.typelib
- GcrUi-3.typelib
 lib/pkgconfig/
  gck-1.pc
  gcr-3.pc
@@ -180,10 +197,6 @@ share/applications/
 share/dbus-1/services/
  org.gnome.keyring.PrivatePrompter.service
  org.gnome.keyring.SystemPrompter.service
-share/gir-1.0/
- Gck-1.gir
- Gcr-3.gir
- GcrUi-3.gir
 share/icons/hicolor/16x16/apps/
  gcr-gnupg.png
  gcr-key-pair.png
@@ -219,14 +232,6 @@ share/icons/hicolor/48x48/apps/
  gcr-password.png
  gcr-smart-card.png
 share/mime/packages/gcr-crypto-types.xml
-share/vala/vapi/
- gck-1.deps
- gck-1.vapi
- gcr-3.deps
- gcr-3.vapi
- gcr-ui-3.deps
- gcr-ui-3.vapi
- pkcs11.vapi
 @glib-schemas share/glib-2.0/schemas/org.gnome.crypto.pgp.gschema.xml
 
 

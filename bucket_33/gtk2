@@ -18,13 +18,13 @@ SPKGS[standard]=	complete
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	CUPS
+OPTIONS_AVAILABLE=	CUPS INTROSPECTION
 OPTIONS_STANDARD=	none
 
 USES=			gettext-tools gmake libtool pkgconfig
 			gnome-icons:primary perl:build python:build
 			shebangfix cpe
-GNOME_COMPONENTS=	atk cairo gdkpixbuf pango introspection
+GNOME_COMPONENTS=	atk cairo gdkpixbuf pango
 XORG_COMPONENTS=	xext x11 xinerama xi xrandr xcursor xfixes xdamage
 			xcomposite
 
@@ -45,6 +45,10 @@ PLIST_SUB=		LIBVERSION=0.2400.33
 			LIBGAILVER=18.0.1
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+
+[INTROSPECTION].DESCRIPTION=		Build with introspection
+[INTROSPECTION].CONFIGURE_ENABLE_BOTH=	introspection
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [CUPS].BROKEN_ON=			CUPS option not supported yet
 [CUPS].BUILDRUN_DEPENDS_ON=		cups:single:standard
@@ -71,8 +75,16 @@ application suites.
 ac2ac757f5942d318a311a54b0c80b5ef295f299c2a73c632f6bfb1ff49cc6da     12661828 gnome2/gtk+-2.24.33.tar.xz
 
 
-[FILE:6433:manifests/plist.primary]
+[FILE:6473:manifests/plist.primary]
 %%CUPS-ON%%lib/gtk-2.0/%%GTK_VERSION%%/printbackends/libprintbackend-cups.so
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Gdk-2.0.typelib
+ GdkX11-2.0.typelib
+ Gtk-2.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Gdk-2.0.gir
+ GdkX11-2.0.gir
+ Gtk-2.0.gir
 bin/
  gtk-builder-convert
  gtk-demo
@@ -351,10 +363,6 @@ lib/
  libgtk-x11-2.0.so
  libgtk-x11-2.0.so.%%LIBVERSION%%
  libgtk-x11-2.0.so.0
-lib/girepository-1.0/
- Gdk-2.0.typelib
- GdkX11-2.0.typelib
- Gtk-2.0.typelib
 lib/gtk-2.0/%%GTK_VERSION%%/engines/libpixmap.so
 lib/gtk-2.0/%%GTK_VERSION%%/immodules/
  im-am-et.so
@@ -382,10 +390,6 @@ lib/pkgconfig/
  gtk+-unix-print-2.0.pc
  gtk+-x11-2.0.pc
 share/aclocal/gtk-2.0.m4
-share/gir-1.0/
- Gdk-2.0.gir
- GdkX11-2.0.gir
- Gtk-2.0.gir
 share/gtk-2.0/demo/
  alphatest.png
  apple-red.png

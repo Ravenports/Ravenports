@@ -18,8 +18,8 @@ SPKGS[standard]=	complete
 			nls
 			icon_cache
 
-OPTIONS_AVAILABLE=	DBUS CUPS CLOUDPRINT COLORD BROADWAY
-OPTIONS_STANDARD=	DBUS BROADWAY
+OPTIONS_AVAILABLE=	DBUS CUPS CLOUDPRINT COLORD BROADWAY INTROSPECTION
+OPTIONS_STANDARD=	DBUS BROADWAY INTROSPECTION
 OPT_ON[all]=		DBUS BROADWAY
 
 BUILDRUN_DEPENDS=	libepoxy:single:standard
@@ -28,7 +28,7 @@ EXRUN[icon_cache]=	gdk-pixbuf:primary:standard
 
 USES=			gettext-tools gmake libtool pkgconfig
 			schemas:primary perl:build python:build cpe
-GNOME_COMPONENTS=	atk cairo gdkpixbuf pango introspection
+GNOME_COMPONENTS=	atk cairo gdkpixbuf pango
 XORG_COMPONENTS=	xext x11 xinerama xi xrandr xcursor xfixes xdamage
 			xcomposite
 
@@ -45,7 +45,6 @@ GLIB_SCHEMAS=		org.gtk.Demo.gschema.xml
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-x11-backend
 			--disable-wayland-backend
-			--enable-introspection
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -56,6 +55,10 @@ CPPFLAGS=		-fno-omit-frame-pointer
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 			LDFLAGS=-lintl
 			CPPFLAGS=-DO_CLOEXEC=0
+
+[INTROSPECTION].DESCRIPTION=		Build with introspection files
+[INTROSPECTION].CONFIGURE_ENABLE_BOTH=	introspection
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [CLOUDPRINT].DESCRIPTION=		Support for printing to cloud
 [CLOUDPRINT].BROKEN_ON=			CLOUDPRINT option not supported yet
@@ -116,7 +119,7 @@ third generation of the GIMP toolkit.
 dbc69f90ddc821b8d1441f00374dc1da4323a2eafa9078e61edbe5eeefa852ec     21587592 gnome3/gtk+-3.24.34.tar.xz
 
 
-[FILE:10477:manifests/plist.primary]
+[FILE:10517:manifests/plist.primary]
 %%BROADWAY-ON%%bin/broadwayd
 %%BROADWAY-ON%%include/gtk-3.0/gdk/gdkbroadway.h
 %%BROADWAY-ON%%include/gtk-3.0/gdk/broadway/
@@ -131,6 +134,14 @@ dbc69f90ddc821b8d1441f00374dc1da4323a2eafa9078e61edbe5eeefa852ec     21587592 gn
  gtk+-broadway-3.0.pc
 %%CLOUDPRINT-ON%%lib/gtk-3.0/%%GTK_VERSION%%/printbackends/libprintbackend-cloudprint.so
 %%CUPS-ON%%lib/gtk-3.0/%%GTK_VERSION%%/printbackends/libprintbackend-cups.so
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Gdk-3.0.typelib
+ GdkX11-3.0.typelib
+ Gtk-3.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Gdk-3.0.gir
+ GdkX11-3.0.gir
+ Gtk-3.0.gir
 bin/
  gtk-builder-tool
  gtk-encode-symbolic-svg
@@ -554,10 +565,6 @@ lib/
  libgtk-3.so
  libgtk-3.so.%%LIBVERSION%%
  libgtk-3.so.0
-lib/girepository-1.0/
- Gdk-3.0.typelib
- GdkX11-3.0.typelib
- Gtk-3.0.typelib
 lib/gtk-3.0/%%GTK_VERSION%%/immodules/
  im-am-et.so
  im-cedilla.so
@@ -588,10 +595,6 @@ share/applications/
 share/gettext/its/
  gtkbuilder.its
  gtkbuilder.loc
-share/gir-1.0/
- Gdk-3.0.gir
- GdkX11-3.0.gir
- Gtk-3.0.gir
 share/glib-2.0/schemas/org.gtk.Settings.EmojiChooser.gschema.xml
 share/gtk-3.0/gtkbuilder.rng
 share/gtk-3.0/valgrind/gtk.supp

@@ -2,6 +2,7 @@
 
 NAMEBASE=		vte
 VERSION=		0.68.0
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Virtual Terminal Emulator widget
@@ -18,8 +19,8 @@ SPKGS[standard]=	complete
 			docs
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILD_DEPENDS=		bash:primary:standard
 			cmake:single:standard
@@ -29,7 +30,7 @@ BUILDRUN_DEPENDS=	gnutls:primary:standard
 			pcre2:primary:standard
 
 USES=			gettext-runtime gettext-tools:build meson pkgconfig
-GNOME_COMPONENTS=	cairo gdkpixbuf gtk3 intltool introspection
+GNOME_COMPONENTS=	cairo gdkpixbuf gtk3 intltool
 
 LICENSE=		LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -47,6 +48,13 @@ SOVERSION=		0.6800.0
 PLIST_SUB=		VERSION=2.91
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+
+[INTROSPECTION].DESCRIPTION=		Build vala bindings with introspection
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dgir=false
+					-Dvapi=false
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dgir=true
+					-Dvapi=true
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 post-patch:
 	${REINPLACE_CMD} -e '/fstack-prot/d' ${WRKSRC}/meson.build
@@ -67,7 +75,12 @@ support for the GNOME 3 desktop.
 cfb6fe3a11967de4f1ac5f7e0606d821036dca3171f9eddf35183956f7879e55       507598 gnome3/vte-0.68.0.tar.bz2
 
 
-[FILE:710:manifests/plist.primary]
+[FILE:770:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/Vte-%%VERSION%%.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/Vte-%%VERSION%%.gir
+%%INTROSPECTION-ON%%share/vala/vapi/
+ vte-%%VERSION%%.deps
+ vte-%%VERSION%%.vapi
 bin/vte-%%VERSION%%
 etc/profile.d/
  vte.csh
@@ -88,16 +101,11 @@ lib/
  libvte-%%VERSION%%.so
  libvte-%%VERSION%%.so.%%SOMAJOR%%
  libvte-%%VERSION%%.so.%%SOVERSION%%
-lib/girepository-1.0/Vte-%%VERSION%%.typelib
 lib/pkgconfig/vte-%%VERSION%%.pc
 libexec/vte-urlencode-cwd
-share/gir-1.0/Vte-%%VERSION%%.gir
 share/glade/catalogs/vte-%%VERSION%%.xml
 share/glade/pixmaps/hicolor/16x16/actions/widget-vte-terminal.png
 share/glade/pixmaps/hicolor/22x22/actions/widget-vte-terminal.png
-share/vala/vapi/
- vte-%%VERSION%%.deps
- vte-%%VERSION%%.vapi
 
 
 [FILE:4669:manifests/plist.nls]

@@ -2,6 +2,7 @@
 
 NAMEBASE=		libpeas
 VERSION=		1.32.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		py310 py39
 SDESC[py310]=		GObject-based plugins engine (3.10)
@@ -26,17 +27,16 @@ SPKGS[py39]=		complete
 			nls
 			docs
 
-OPTIONS_AVAILABLE=	PY310 PY39
-OPTIONS_STANDARD=	none
-VOPTS[py310]=		PY310=ON PY39=OFF
-VOPTS[py39]=		PY310=OFF PY39=ON
+OPTIONS_AVAILABLE=	PY310 PY39 INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
+VOPTS[py310]=		PY310=ON PY39=OFF INTROSPECTION=OFF
+VOPTS[py39]=		PY310=OFF PY39=ON INTROSPECTION=OFF
 
-BUILD_DEPENDS=		python-gi-docgen:single:python_default
-BUILDRUN_DEPENDS=	gobject-introspection:single:standard
+BUILDRUN_DEPENDS=	python-PyGObject:single:python_used
 
 USES=			cpe meson pkgconfig gtk-doc gettext-runtime
 			gettext-tools:build
-GNOME_COMPONENTS=	gtk3 intltool introspection pygobject
+GNOME_COMPONENTS=	gtk3 intltool
 
 LICENSE=		LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -50,9 +50,7 @@ FPC_EQUIVALENT=		devel/libpeas
 MESON_ARGS=		-Dlua51=false
 			-Dvapi=false
 			-Dglade_catalog=false
-			-Dintrospection=true
 			-Dwidgetry=true
-			-Dgtk_doc=true
 			-Ddemos=true
 			-Dpython3=true
 			-Dpython2=false
@@ -63,6 +61,14 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.3200.0
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+
+[INTROSPECTION].DESCRIPTION=		Build documentation with introspection
+[INTROSPECTION].BUILD_DEPENDS_ON=	python-gi-docgen:single:python_default
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dintrospection=false
+					-Dgtk_doc=false
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dintrospection=true
+					-Dgtk_doc=true
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [PY39].USES_ON=				python:py39
 
@@ -98,7 +104,13 @@ This subpackage contains example code.
 d625520fa02e8977029b246ae439bc218968965f1e82d612208b713f1dcc3d0e       193572 libpeas-1.32.0.tar.xz
 
 
-[FILE:929:manifests/plist.primary]
+[FILE:969:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Peas-1.0.typelib
+ PeasGtk-1.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Peas-1.0.gir
+ PeasGtk-1.0.gir
 include/libpeas-1.0/libpeas/
  peas-activatable.h
  peas-autocleanups.h
@@ -124,15 +136,9 @@ lib/
  libpeas-gtk-1.0.so
  libpeas-gtk-1.0.so.%%SOMAJOR%%
  libpeas-gtk-1.0.so.%%SOVERSION%%
-lib/girepository-1.0/
- Peas-1.0.typelib
- PeasGtk-1.0.typelib
 lib/pkgconfig/
  libpeas-1.0.pc
  libpeas-gtk-1.0.pc
-share/gir-1.0/
- Peas-1.0.gir
- PeasGtk-1.0.gir
 share/icons/hicolor/16x16/actions/libpeas-plugin.png
 share/icons/hicolor/22x22/actions/libpeas-plugin.png
 share/icons/hicolor/32x32/actions/libpeas-plugin.png
@@ -229,8 +235,8 @@ lib/locale/zh_HK/LC_MESSAGES/libpeas-1.0.mo
 lib/locale/zh_TW/LC_MESSAGES/libpeas-1.0.mo
 
 
-[FILE:6705:manifests/plist.docs]
-share/doc/libpeas-1.0/
+[FILE:6745:manifests/plist.docs]
+%%INTROSPECTION-ON%%share/doc/libpeas-1.0/
  RedHatDisplay-Black.woff
  RedHatDisplay-Black.woff2
  RedHatDisplay-BlackItalic.woff
@@ -379,7 +385,7 @@ share/doc/libpeas-1.0/
  vfunc.ExtensionSet.call.html
  vfunc.ExtensionSet.extension_added.html
  vfunc.ExtensionSet.extension_removed.html
-share/doc/libpeas-gtk-1.0/
+%%INTROSPECTION-ON%%share/doc/libpeas-gtk-1.0/
  RedHatDisplay-Black.woff
  RedHatDisplay-Black.woff2
  RedHatDisplay-BlackItalic.woff

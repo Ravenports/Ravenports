@@ -2,6 +2,7 @@
 
 NAMEBASE=		libwnck
 VERSION=		40.1
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	GNOME window navigator construction kit library
@@ -16,14 +17,14 @@ SPKGS[standard]=	complete
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILDRUN_DEPENDS=	startup-notification:single:standard
 
 USES=			bison gettext-runtime gettext-tools:build gmake
 			libtool pkgconfig meson
-GNOME_COMPONENTS=	gtk3 intltool introspection
+GNOME_COMPONENTS=	gtk3 intltool
 XORG_COMPONENTS=	xres x11
 
 LICENSE=		LGPL20+:complete
@@ -42,6 +43,11 @@ SOVERSION=		0.3.0
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 
+[INTROSPECTION].DESCRIPTION=		Build with introspection
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dintrospection=disabled
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dintrospection=enabled
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
+
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|link_args: libwnck_ldflags|link_args: []|'\
 		${WRKSRC}/libwnck/meson.build
@@ -55,7 +61,9 @@ create pagers and tasklists. Libwnck is part of the GNOME project.
 03134fa114ef3fbe34075aa83678f58aa2debe9fcef4ea23c0779e28601d6611       455624 libwnck-40.1.tar.xz
 
 
-[FILE:363:manifests/plist.primary]
+[FILE:403:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/Wnck-3.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/Wnck-3.0.gir
 include/libwnck-3.0/libwnck/
  application.h
  class-group.h
@@ -74,9 +82,7 @@ lib/
  libwnck-3.so
  libwnck-3.so.%%SOMAJOR%%
  libwnck-3.so.%%SOVERSION%%
-lib/girepository-1.0/Wnck-3.0.typelib
 lib/pkgconfig/libwnck-3.0.pc
-share/gir-1.0/Wnck-3.0.gir
 
 
 [FILE:4093:manifests/plist.nls]

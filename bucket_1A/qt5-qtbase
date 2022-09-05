@@ -2,7 +2,7 @@
 
 NAMEBASE=		qt5-qtbase
 VERSION=		5.15.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_toolkits devel
 VARIANTS=		standard
 SDESC[standard]=	Qt5 - QtBase component
@@ -24,6 +24,7 @@ BUILD_DEPENDS=		evdev-proto:single:standard
 BUILDRUN_DEPENDS=	pcre2:primary:standard
 			harfbuzz:icu:standard
 			icu:single:standard
+			libdrm:single:standard
 			libxkbcommon:single:standard
 			at-spi2-atk:single:standard
 
@@ -131,7 +132,9 @@ This package contains the Qt5 qtbase submodule.
 909fad2591ee367993a75d7e2ea50ad4db332f05e1c38dd7a5a274e156a4e0f8     50179672 qtbase-everywhere-src-5.15.2.tar.xz
 
 
-[FILE:73549:manifests/plist.primary]
+[FILE:73654:manifests/plist.primary]
+@comment needs mesa gbm lib/qt5/cmake/Qt5Gui/Qt5Gui_QEglFSKmsGbmIntegrationPlugin.cmake
+@comment needs mesa gbm lib/qt5/plugins/egldeviceintegrations/libqeglfs-kms-integration.so
 %%ONLY-FREEBSD%%lib/qt5/cmake/Qt5Gui/
  Qt5Gui_QBsdFbIntegrationPlugin.cmake
  Qt5Gui_QBsdKeyboardPlugin.cmake
@@ -2932,7 +2935,6 @@ lib/qt5/cmake/Qt5Gui/
  Qt5Gui_QEglFSEmulatorIntegrationPlugin.cmake
  Qt5Gui_QEglFSIntegrationPlugin.cmake
  Qt5Gui_QEglFSKmsEglDeviceIntegrationPlugin.cmake
- Qt5Gui_QEglFSKmsGbmIntegrationPlugin.cmake
  Qt5Gui_QEglFSX11IntegrationPlugin.cmake
  Qt5Gui_QGifPlugin.cmake
  Qt5Gui_QICOPlugin.cmake
@@ -3713,7 +3715,6 @@ lib/qt5/plugins/bearer/libqgenericbearer.so
 lib/qt5/plugins/egldeviceintegrations/
  libqeglfs-emu-integration.so
  libqeglfs-kms-egldevice-integration.so
- libqeglfs-kms-integration.so
  libqeglfs-x11-integration.so
 lib/qt5/plugins/generic/libqtuiotouchplugin.so
 lib/qt5/plugins/imageformats/
@@ -4076,6 +4077,22 @@ Do not create .la files.
      };
      // sizeof(ExternalRefCountData) = 12 (32-bit) / 16 (64-bit)
  
+
+
+[FILE:665:patches/patch-src_gui_configure.json]
+main.cpp:13:20: error: invalid conversion from 'EGLNativeDisplayType' {aka 'void*'} to 'Display*' [-fpermissive]
+   13 |     Display *dpy = EGL_DEFAULT_DISPLAY;[D
+
+--- src/gui/configure.json.orig	2020-10-27 08:02:11 UTC
++++ src/gui/configure.json
+@@ -844,6 +844,7 @@
+                     "// has to be disabled in plugins like xcb in this case since the native display,",
+                     "// window and pixmap types will be different than what an X-based platform",
+                     "// plugin would expect."
++                    , "#define USE_X11"
+                 ],
+                 "include": [ "EGL/egl.h", "X11/Xlib.h" ],
+                 "main": [
 
 
 [FILE:1096:patches/patch-src_network_kernel_qnetworkinterface__unix.cpp]

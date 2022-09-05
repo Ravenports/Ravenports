@@ -2,6 +2,7 @@
 
 NAMEBASE=		poppler
 VERSION=		22.04.0
+REVISION=		1
 KEYWORDS=		graphics print
 VARIANTS=		standard
 SDESC[standard]=	PDF rendering library
@@ -19,11 +20,10 @@ SPKGS[standard]=	complete
 			qt5
 			utils
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILD_DEPENDS=		cairo:single:standard
-			gobject-introspection:single:standard
 			qt5-qttools:single:standard
 			qt5-qtbase:primary:standard
 			boost-libraries:rest:python_used
@@ -72,6 +72,9 @@ CMAKE_ARGS=		-DENABLE_GLIB=ON
 			-DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
 			-DCMAKE_PREFIX_PATH:PATH="{{PREFIX}}/lib/qt5/cmake/"
 			-DENABLE_UNSTABLE_API_ABI_HEADERS=ON
+
+[INTROSPECTION].DESCRIPTION=		Build with introspection
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libpop*.so
@@ -274,7 +277,9 @@ lib/
 lib/pkgconfig/poppler-cpp.pc
 
 
-[FILE:485:manifests/plist.glib]
+[FILE:525:manifests/plist.glib]
+%%INTROSPECTION-ON%%lib/girepository-1.0/Poppler-0.18.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/Poppler-0.18.gir
 include/poppler/glib/
  poppler-action.h
  poppler-annot.h
@@ -294,9 +299,7 @@ lib/
  libpoppler-glib.so
  libpoppler-glib.so.%%GLIB_SOMAJOR%%
  libpoppler-glib.so.%%GLIB_SOVERSION%%
-lib/girepository-1.0/Poppler-0.18.typelib
 lib/pkgconfig/poppler-glib.pc
-share/gir-1.0/Poppler-0.18.gir
 
 
 [FILE:318:manifests/plist.qt5]

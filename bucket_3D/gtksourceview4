@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtksourceview4
 VERSION=		4.8.3
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	GTK3 syntax highlighting text widget
@@ -18,13 +19,11 @@ SPKGS[standard]=	complete
 			nls
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
-
-BUILD_DEPENDS=		vala:single:standard
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 USES=			meson pkgconfig gettext-tools gtk-doc
-GNOME_COMPONENTS=	cairo gdkpixbuf gtk3 introspection libxml2
+GNOME_COMPONENTS=	cairo gdkpixbuf gtk3 libxml2
 
 DISTNAME=		gtksourceview-4.8.3
 
@@ -39,11 +38,17 @@ FPC_EQUIVALENT=		x11-toolkits/gtksourceview4
 GTKDOC_OUTPUT_BASEDIR=	gtksourceview-4.0
 MESON_ARGS=		-Dglade_catalog=false
 			-Dinstall_tests=false
-			-Dgir=true
-			-Dvapi=true
 			-Dgtk_doc=true
 
 INSTALL_REQ_TOOLCHAIN=	yes
+
+[INTROSPECTION].DESCRIPTION=		Build vala bindings with introspection
+[INTROSPECTION].BUILD_DEPENDS_ON=	vala:single:standard
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dgir=false
+					-Dvapi=false
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dgir=true
+					-Dvapi=true
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [FILE:283:descriptions/desc.primary]
 GtkSourceView is a portable C library that extends the standard GTK+
@@ -57,7 +62,12 @@ source code editor.
 c30019506320ca2474d834cced1e2217ea533e00eb2a3f4eb7879007940ec682      1165036 gnome3/gtksourceview-4.8.3.tar.xz
 
 
-[FILE:3917:manifests/plist.primary]
+[FILE:3977:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/GtkSource-4.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/GtkSource-4.gir
+%%INTROSPECTION-ON%%share/vala/vapi/
+ gtksourceview-4.deps
+ gtksourceview-4.vapi
 include/gtksourceview-4/gtksourceview/
  gtksource-enumtypes.h
  gtksource.h
@@ -105,9 +115,7 @@ lib/
  libgtksourceview-4.so
  libgtksourceview-4.so.0
  libgtksourceview-4.so.0.0.0
-lib/girepository-1.0/GtkSource-4.typelib
 lib/pkgconfig/gtksourceview-4.pc
-share/gir-1.0/GtkSource-4.gir
 share/gtksourceview-4/language-specs/
  R.lang
  abnf.lang
@@ -290,9 +298,6 @@ share/gtksourceview-4/styles/
  solarized-light.xml
  styles.rng
  tango.xml
-share/vala/vapi/
- gtksourceview-4.deps
- gtksourceview-4.vapi
 
 
 [FILE:3945:manifests/plist.nls]

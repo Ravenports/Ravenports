@@ -2,6 +2,7 @@
 
 NAMEBASE=		caja
 VERSION=		1.26.0
+REVISION=		1
 KEYWORDS=		x11_fm
 VARIANTS=		standard
 SDESC[standard]=	File manager for the MATE desktop
@@ -18,8 +19,8 @@ SPKGS[standard]=	complete
 			nls
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILD_DEPENDS=		appstream-glib:primary:standard
 BUILDRUN_DEPENDS=	exempi:single:standard
@@ -31,7 +32,7 @@ BUILDRUN_DEPENDS=	exempi:single:standard
 USES=			desktop-utils:primary gettext-runtime
 			gettext-tools:build gmake gtk-doc libtool
 			mime-info:primary pkgconfig schemas:primary
-GNOME_COMPONENTS=	gdkpixbuf glib gtk3 introspection intltool pango
+GNOME_COMPONENTS=	gdkpixbuf glib gtk3 intltool pango
 XORG_COMPONENTS=	sm
 
 LICENSE=		GPLv2+:primary LGPL20+:primary
@@ -55,6 +56,10 @@ CONFIGURE_ARGS=		--disable-dependency-tracking
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.4.0
 
+[INTROSPECTION].DESCRIPTION=		Build with introspection
+[INTROSPECTION].CONFIGURE_ENABLE_BOTH=	introspection
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
+
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/doc
 	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/libcaja-extension \
@@ -70,7 +75,9 @@ environment. It is responsible for the desktop and icon management, too.
 a200a6fad3a5fbc70d10f8626788e2f4f31bde363649bc50a6bb8a85b2880ad4      5283368 mate/caja-1.26.0.tar.xz
 
 
-[FILE:2564:manifests/plist.primary]
+[FILE:2604:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/Caja-2.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/Caja-2.0.gir
 bin/
  caja
  caja-autorun-software
@@ -94,7 +101,6 @@ lib/
  libcaja-extension.so
  libcaja-extension.so.%%SOMAJOR%%
  libcaja-extension.so.%%SOVERSION%%
-lib/girepository-1.0/Caja-2.0.typelib
 lib/pkgconfig/libcaja-extension.pc
 share/applications/
  caja-autorun-software.desktop
@@ -160,7 +166,6 @@ share/caja/ui/
  caja-shell-ui.xml
  caja-spatial-window-ui.xml
 share/dbus-1/services/org.mate.freedesktop.FileManager1.service
-share/gir-1.0/Caja-2.0.gir
 share/icons/hicolor/16x16/emblems/emblem-note.png
 share/icons/hicolor/24x24/emblems/emblem-note.png
 share/icons/hicolor/48x48/emblems/emblem-note.png

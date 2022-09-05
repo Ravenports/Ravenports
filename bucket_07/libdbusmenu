@@ -2,6 +2,7 @@
 
 NAMEBASE=		libdbusmenu
 VERSION=		16.04.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Library for passing menus over DBus
@@ -16,15 +17,14 @@ SPKGS[standard]=	complete
 			primary
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
-BUILD_DEPENDS=		vala:single:standard
 BUILDRUN_DEPENDS=	json-glib:primary:standard
 
 USES=			gmake libtool gtk-doc gettext-tools pkgconfig
 			python:run shebangfix
-GNOME_COMPONENTS=	glib intltool libxslt introspection gtk3
+GNOME_COMPONENTS=	glib intltool libxslt gtk3
 
 LICENSE=		LGPL21:primary LGPL3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -43,9 +43,7 @@ CONFIGURE_ARGS=		--disable-static
 			--disable-dumper
 			--disable-tests
 			--disable-massivedebugging
-			--enable-introspection=yes
 			--disable-nls
-			--enable-vala
 			--with-gtk=3
 
 INSTALL_TARGET=		install-strip
@@ -54,6 +52,12 @@ SOVERSION=		4.0.12
 PLIST_SUB=		VERSION="0.4"
 
 CFLAGS=			-Wno-unused-value
+
+[INTROSPECTION].DESCRIPTION=		Build with introspection and vala bindings
+[INTROSPECTION].BUILD_DEPENDS_ON=	vala:single:standard
+[INTROSPECTION].CONFIGURE_ENABLE_BOTH=	introspection
+					vala
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 post-install:
 	# gtk-doc can only handle one directory, so pre-move the other one
@@ -71,7 +75,16 @@ and import their menus over DBus.
 b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a       760376 libdbusmenu-16.04.0.tar.gz
 
 
-[FILE:768:manifests/plist.primary]
+[FILE:828:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Dbusmenu-%%VERSION%%.typelib
+ DbusmenuGtk3-%%VERSION%%.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Dbusmenu-%%VERSION%%.gir
+ DbusmenuGtk3-%%VERSION%%.gir
+%%INTROSPECTION-ON%%share/vala/vapi/
+ Dbusmenu-%%VERSION%%.vapi
+ DbusmenuGtk3-%%VERSION%%.vapi
 include/libdbusmenu-glib-%%VERSION%%/libdbusmenu-glib/
  client.h
  dbusmenu-glib.h
@@ -93,19 +106,10 @@ lib/
  libdbusmenu-gtk3.so
  libdbusmenu-gtk3.so.%%SOMAJOR%%
  libdbusmenu-gtk3.so.%%SOVERSION%%
-lib/girepository-1.0/
- Dbusmenu-%%VERSION%%.typelib
- DbusmenuGtk3-%%VERSION%%.typelib
 lib/pkgconfig/
  dbusmenu-glib-%%VERSION%%.pc
  dbusmenu-gtk3-%%VERSION%%.pc
 libexec/dbusmenu-bench
-share/gir-1.0/
- Dbusmenu-%%VERSION%%.gir
- DbusmenuGtk3-%%VERSION%%.gir
-share/vala/vapi/
- Dbusmenu-%%VERSION%%.vapi
- DbusmenuGtk3-%%VERSION%%.vapi
 
 
 [FILE:988:manifests/plist.docs]

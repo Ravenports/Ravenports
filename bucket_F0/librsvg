@@ -2,6 +2,7 @@
 
 NAMEBASE=		librsvg
 VERSION=		2.54.4
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	SVG vector-graphic files rendering library
@@ -18,17 +19,16 @@ SPKGS[standard]=	complete
 			primary
 			docs
 
-OPTIONS_AVAILABLE=	RUSTLESS
-OPTIONS_STANDARD=	RUSTLESS
+OPTIONS_AVAILABLE=	RUSTLESS INTROSPECTION
+OPTIONS_STANDARD=	RUSTLESS INTROSPECTION
 OPT_ON[sunos]=		RUSTLESS
 
 BUILD_DEPENDS=		python-docutils:single:python_default
-			python-gi-docgen:single:python_default
 BUILDRUN_DEPENDS=	freetype:primary:standard
 
 USES=			cpe gettext-tools gmake gtk-doc png libtool
 			pkgconfig perl:build python:build
-GNOME_COMPONENTS=	cairo pango gdkpixbuf libxml2 introspection libcroco
+GNOME_COMPONENTS=	cairo pango gdkpixbuf libxml2 libcroco
 
 DISTNAME=		generic-librsvg
 
@@ -44,12 +44,18 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-vala
 			--disable-Bsymbolic
 			--docdir={{STD_DOCDIR}}
-			--enable-gtk-doc
+			--enable-gtk-doc-html=yes
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		PORTVERSION=2.54.4
 			GTK_VERSION=2.10.0
+
+[INTROSPECTION].DESCRIPTION=		Build with introspection
+[INTROSPECTION].BUILD_DEPENDS_ON=	python-gi-docgen:single:python_default
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	--enable-introspection=no
+[INTROSPECTION].CONFIGURE_ARGS_ON=	--enable-gtk-doc
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [RUSTLESS].DESCRIPTION=			Build version 2.40.21 instead (no rust)
 [RUSTLESS].BUILD_DEPENDS_OFF=		rust:single:standard
@@ -99,7 +105,9 @@ ea152a243f6a43c0e036a28c70de3fcbcdea5664c6811c78592bc229ecc24833     28214908 li
 f7628905f1cada84e87e2b14883ed57d8094dca3281d5bcb24ece4279e9a92ba      1655860 librsvg-2.40.21.tar.xz
 
 
-[FILE:931:manifests/plist.primary]
+[FILE:971:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/Rsvg-2.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/Rsvg-2.0.gir
 %%RUSTLESS-OFF%%include/librsvg-2.0/librsvg/
  rsvg-features.h
  rsvg-version.h
@@ -118,17 +126,15 @@ lib/
 lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/
  libpixbufloader-svg.a
  libpixbufloader-svg.so
-lib/girepository-1.0/Rsvg-2.0.typelib
 lib/pkgconfig/librsvg-2.0.pc
-share/gir-1.0/Rsvg-2.0.gir
 share/man/man1/rsvg-convert.1.gz
 share/thumbnailers/librsvg.thumbnailer
 @postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
 @postunexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
 
 
-[FILE:3900:manifests/plist.docs]
-%%RUSTLESS-OFF%%share/doc/Rsvg-2.0/
+[FILE:3920:manifests/plist.docs]
+%%RUSTLESS-OFF%%%%INTROSPECTION-ON%%share/doc/Rsvg-2.0/
  RedHatDisplay-Black.woff
  RedHatDisplay-Black.woff2
  RedHatDisplay-BlackItalic.woff

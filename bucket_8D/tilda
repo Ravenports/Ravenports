@@ -84,7 +84,7 @@ share/locale/zh_CN/LC_MESSAGES/tilda.mo
 share/locale/zh_TW/LC_MESSAGES/tilda.mo
 
 
-[FILE:834:patches/patch-src_tilda.c]
+[FILE:1038:patches/patch-src_tilda.c]
 --- src/tilda.c.orig	2020-12-24 10:31:23 UTC
 +++ src/tilda.c
 @@ -13,6 +13,10 @@
@@ -98,7 +98,17 @@ share/locale/zh_TW/LC_MESSAGES/tilda.mo
  #define _POSIX_SOURCE /* feature test macro for signal functions */
  #define _XOPEN_SOURCE /* feature test macro for popen */
  
-@@ -232,7 +236,11 @@ nomatch:
+@@ -54,7 +58,9 @@
+ #include <sys/stat.h>
+ #include <sys/file.h>
+ #include <errno.h>
++#if !defined(__DragonFly__)
+ #include <sys/dir.h>
++#endif
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <string.h>
+@@ -232,7 +238,11 @@ nomatch:
  static GSList *getPids() {
      GSList *pids = NULL;
      FILE *ps_output;
