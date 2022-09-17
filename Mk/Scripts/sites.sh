@@ -81,7 +81,6 @@ expand_SOURCEFORGE()
     	SUBDIR=${1##SF/}
     fi
     local cluster="\
-    http://vorboss.dl.sourceforge.net/project \
     http://freefr.dl.sourceforge.net/project \
     http://jaist.dl.sourceforge.net/project \
     http://netcologne.dl.sourceforge.net/project \
