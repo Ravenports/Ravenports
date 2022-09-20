@@ -122,7 +122,7 @@ FIREBIRD_DEFAULT?=	2.5
 
 FIREBIRD_2.5_VERSION=	2.5.9
 FIREBIRD_3.0_VERSION=	3.0.7
-FIREBIRD_4.0_VERSION=	4.0.1
+FIREBIRD_4.0_VERSION=	4.0.2
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
