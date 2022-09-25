@@ -2,7 +2,7 @@
 
 NAMEBASE=		xmlto
 VERSION=		0.0.28
-REVISION=		4
+REVISION=		5
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	Front-end to an XSL toolchain
@@ -43,7 +43,12 @@ MAKE_ENV=		HOME=/dev/null
 SUB_FILES=		pkg-message-single
 SUB_LIST=		DATADIR={{LOCALBASE}}/share/xmlto
 
-post-patch:
+post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/xmlto
+	${INSTALL_DATA} ${DISTDIR}/${DIST_SUBDIR}/xhtml2fo.xsl \
+		${STAGEDIR}${PREFIX}/share/xmlto
+
+pre-configure:
 	# get rid of nonstandard "type" option -t:
 	${SED} -i'' -e 's/type -t/which/;' \
 		${WRKSRC}/format/docbook/epub \
@@ -52,15 +57,10 @@ post-patch:
 		${WRKSRC}/format/fo/pdf \
 		${WRKSRC}/format/xhtml1/txt
 	# Fix schema url
-	${SED} -i'' -e 's|docbook.sourceforge.net|cdn.docbook.org|g' \
-		${WRKSRC}/format/docbook/*
+	${SED} -i'' -e 's|http://docbook.sourceforge.net/release/xsl/current|file://${LOCALBASE}/share/xsl/docbook|g' \
+		${WRKSRC}/format/docbook/* ${WRKSRC}/xmlto.in
 	# get rid of GNU-make-ism (BSD make defines $< only in suffix rules)
 	${REINPLACE_CMD} -e '/^GEN_MANPAGE/{s/\$$</$$>/;}' ${WRKSRC}/Makefile.in
-
-post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/xmlto
-	${INSTALL_DATA} ${DISTDIR}/${DIST_SUBDIR}/xhtml2fo.xsl \
-		${STAGEDIR}${PREFIX}/share/xmlto
 
 [FILE:458:descriptions/desc.single]
 xmlto is a front-end to an XSL toolchain. It chooses an appropriate
@@ -160,7 +160,7 @@ share/xmlto/format/xhtml1/
  	case YY_END_OF_BUFFER:
 
 
-[FILE:1640:patches/patch-xmlto.in]
+[FILE:1209:patches/patch-xmlto.in]
 This patch makes sure that w3m or others will not pollute $HOME/
 
 Avoid pointless bashisms.
@@ -195,15 +195,6 @@ Avoid use of non POSIX local builtin.
    IFS=":"
    for asearchpath in "$1"; do
      # wrangle relative paths into absolute ones so that the user
-@@ -578,7 +580,7 @@ fi
- if [ "$PROFILE" -eq 1 ]
- then
-   PROF_PROCESSED="$XSLT_PROCESSED_DIR/$(basename "${INPUT_FILE%.*}").prof"
--  PROFILE_STYLESHEET="http://docbook.sourceforge.net/release/xsl/current/profiling/profile.xsl"
-+  PROFILE_STYLESHEET="http://cdn.docbook.org/release/xsl/current/profiling/profile.xsl"
-   [ "$VERBOSE" -ge 1 ] && echo >&2 "Profiling stylesheet: ${PROFILE_STYLESHEET}"
- 
-   [ "${VERBOSE}" -ge 1 ] && \
 @@ -651,4 +653,6 @@ then
    # Extremely verbose
    BASH="${BASH} -x"

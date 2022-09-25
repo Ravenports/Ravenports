@@ -2,6 +2,7 @@
 
 NAMEBASE=		shared-mime-info
 VERSION=		2.2
+REVISION=		1
 KEYWORDS=		misc
 VARIANTS=		standard
 SDESC[standard]=	MIME types database from freedesktop.org project
@@ -36,13 +37,16 @@ MESON_ARGS=		-Dupdate-mimedb=false
 SUB_FILES=		pkg-install-single
 SUB_LIST=		MIMEDIRS="{{CLEAN_MIMEDIRS}}"
 
-post-patch:
-	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g' \
-		${WRKSRC}/src/update-mime-database.c
-
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/pkgconfig \
 		${STAGEDIR}${PREFIX}/lib/
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g' \
+		${WRKSRC}/src/update-mime-database.c
+	# Use local dtd
+	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
+		${WRKSRC}/data/shared-mime-info-spec.xml
 
 post-extract:
 	${AWK} '/Copyright/,/file named COPYING/' \
@@ -169,6 +173,19 @@ share/locale/wa/LC_MESSAGES/shared-mime-info.mo
 share/locale/zh_CN/LC_MESSAGES/shared-mime-info.mo
 share/locale/zh_HK/LC_MESSAGES/shared-mime-info.mo
 share/locale/zh_TW/LC_MESSAGES/shared-mime-info.mo
+
+
+[FILE:414:patches/patch-data_shared-mime-info-spec.xml]
+--- data/shared-mime-info-spec.xml.orig	2022-03-27 10:19:00 UTC
++++ data/shared-mime-info-spec.xml
+@@ -1,6 +1,6 @@
+ <?xml version="1.0" standalone="no"?>
+ <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+-"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
++"file://%%LOCALBASE%%/share/xml/docbook/4.1.2/docbookx.dtd" [
+   <!ENTITY updated "2 October 2018">
+   <!ENTITY version "0.21">
+ ]>
 
 
 [FILE:594:patches/patch-src_update-mime-database.c]

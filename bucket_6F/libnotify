@@ -42,15 +42,16 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		4.0.0
 PLIST_SUB=		NOTIFYVERS=0.7
 
-post-patch:
-	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl-ns/|http://cdn.docbook.org/release/xsl/|" ${WRKSRC}/meson.build
-
 pre-build:
 	# workaround bad meson definition so <libnotify/*.h> headers can be found
 	${LN} -s ${STAGEDIR}${PREFIX}/include/libnotify ${LOCALBASE}/include/libnotify
 
 post-install:
 	${RM} ${LOCALBASE}/include/libnotify
+
+pre-configure:
+	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl-ns/current/|file://${LOCALBASE}/share/xsl/docbook/|" \
+		${WRKSRC}/meson.build
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e 's|link_args: libnotify_ldflags|link_args: []|'\

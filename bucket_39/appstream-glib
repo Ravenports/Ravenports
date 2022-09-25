@@ -52,9 +52,14 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		8.0.10
 PLIST_SUB=		INTRO="@comment "
 
-post-patch:
-	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net|http://cdn.docbook.org|" \
+pre-configure:
+	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl/current/|file://${LOCALBASE}/share/xsl/docbook/|" \
 		${WRKSRC}/data/meson.build
+	${REINPLACE_CMD} -e "s|http://www.oasis-open.org/docbook/xml/|file://${LOCALBASE}/share/xml/docbook/|" \
+		${WRKSRC}/data/appstream-builder.xml \
+		${WRKSRC}/data/appstream-compose.xml \
+		${WRKSRC}/data/appstream-util.xml \
+		${WRKSRC}/docs/api/appstream-glib-docs.xml
 
 [FILE:97:descriptions/desc.primary]
 This library provides objects and helper methods to help reading and
