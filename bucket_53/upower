@@ -63,10 +63,16 @@ VAR_OPSYS[linux]=	CONFIGURE_ARGS=-Dos_backend=linux
 			CONFIGURE_ARGS=-Dudevrulesdir=/etc/udev/rules.d
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=-Dos_backend=netbsd
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=-Dos_backend=freebsd
+			CONFIGURE_ARGS=-Dudevrulesdir=no
+			CONFIGURE_ARGS=-Dudevhwdbdir=no
 			CFLAGS=-D__WANT_NO_INLINED___ERROR
 
 post-stage:
 	${RM} -r ${STAGEDIR}/var
+
+pre-configure:
+	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl/current/|file://${LOCALBASE}/share/xsl/docbook/|" \
+		${WRKSRC}/doc/man/meson.build
 
 [FILE:863:descriptions/desc.primary]
 UPower is an abstraction for enumerating power devices, listening to 
@@ -161,20 +167,6 @@ share/doc/upower/
  up.png
  upower.1.html
  upowerd.8.html
-
-
-[FILE:732:patches/patch-doc_man_meson.build]
---- doc/man/meson.build.orig	2022-07-21 09:06:49 UTC
-+++ doc/man/meson.build
-@@ -10,7 +10,7 @@ foreach man: man_pages
-         '@0@.@1@'.format(man[0], man[1]),
-         input: files(join_paths(man[0] + '.xml')),
-         output: '@0@.@1@'.format(man[0], man[1]),
--        command: [xsltproc, '--output', '@OUTPUT@', '-nonet', 'http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl', '@INPUT@'],
-+        command: [xsltproc, '--output', '@OUTPUT@', '-nonet', 'http://cdn.docbook.org/release/xsl/current/manpages/docbook.xsl', '@INPUT@'],
-         build_by_default: get_option('man'),
-         install: get_option('man'),
-         install_dir: get_option('prefix') / get_option('mandir') / 'man@0@'.format(man[1]),
 
 
 [FILE:300:patches/patch-meson.build]

@@ -2,6 +2,7 @@
 
 NAMEBASE=		libproxy
 VERSION=		0.4.18
+REVISION=		1
 KEYWORDS=		net devel
 VARIANTS=		standard minimal
 SDESC[minimal]=		Libproxy without any additional bindings
@@ -58,7 +59,8 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 [PERL].USES_ON=				perl
 
 [VALA].DESCRIPTION=			Build with Vala binding
-[VALA].BUILDRUN_DEPENDS_ON=		vala:single:standard
+[VALA].BUILDRUN_DEPENDS_ON=		dbus:single:standard
+[VALA].BUILD_DEPENDS_ON=		vala:single:standard
 [VALA].CMAKE_ARGS_OFF=			-DWITH_VALA:BOOL=OFF
 [VALA].CMAKE_ARGS_ON=			-DWITH_VALA:BOOL=ON
 
@@ -79,10 +81,12 @@ post-patch:
 post-install-PERL-ON:
 	${STRIP_CMD} ${STAGEDIR}${SITE_ARCH}/auto/Net/Libproxy/Libproxy.so
 
+post-install-VALA-ON:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libproxy/0.4.18/modules/config_pacrunner.so
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/proxy
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libproxy.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libproxy/0.4.18/modules/config_pacrunner.so
 
 [FILE:218:descriptions/desc.single]
 Libproxy is a library that provides automatic proxy configuration 
@@ -94,11 +98,12 @@ to work with GConf/Gsettings for GNOME or kreadconfig/kreadconfig5 for KDE.
 0b4a9218d88f6cf9fa25996a3f38329a11f688a9d026141d9d0e966d8fa63837        98037 libproxy-libproxy-0.4.18.tar.gz
 
 
-[FILE:489:manifests/plist.single]
+[FILE:500:manifests/plist.single]
 %%ONLY-DARWIN%%lib/libproxy/%%VERSION%%/modules/pacrunner_webkit.%%SHARED_OBJECT%%
 %%PERL-ON%%%%SITE_ARCH%%/Net/Libproxy.pm
 %%PERL-ON%%%%SITE_ARCH%%/auto/Net/Libproxy/Libproxy.so
 %%PYTHON-ON%%%%PYTHON_SITELIBDIR%%/libproxy.py
+%%VALA-ON%%lib/libproxy/%%VERSION%%/modules/config_pacrunner.so
 %%VALA-ON%%share/vala/vapi/libproxy-1.0.vapi
 bin/proxy
 include/proxy.h
@@ -106,7 +111,6 @@ lib/
  libproxy.so
  libproxy.so.%%SOMAJOR%%
  libproxy.so.%%SOVERSION%%
-lib/libproxy/%%VERSION%%/modules/config_pacrunner.so
 lib/pkgconfig/libproxy-1.0.pc
 share/cmake/Modules/Findlibproxy.cmake
 

@@ -42,15 +42,15 @@ MESON_ARGS=		-Dbuild-examples=false
 SOVERSION=		0.0.0
 PLIST_SUB=		API_VERSION="2.0"
 
-post-patch:
-	${REINPLACE_CMD} -e 's|/docbook.sourceforge.net/|/cdn.docbook.org/|'\
-		${WRKSRC}/docs/doc-manual.am \
-		${WRKSRC}/tools/tutorial-custom-cmd.py
-
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/doc/libsigc* \
 		${STAGEDIR}${STD_DOCDIR}
 	${RM} -r ${STAGEDIR}${PREFIX}/share/devhelp
+
+pre-configure:
+	${REINPLACE_CMD} -e "s|http://cdn.docbook.org/release/xsl/current/|file://${LOCALBASE}/share/xsl/docbook/|" \
+		${WRKSRC}/docs/doc-manual.am \
+		${WRKSRC}/tools/tutorial-custom-cmd.py
 
 [FILE:176:descriptions/desc.primary]
 Libsigc++ -- The Typesafe Callback Framework for C++

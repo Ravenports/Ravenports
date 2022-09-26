@@ -47,8 +47,8 @@ information.)
 41395fd324c5cb884d4f2a8060744758904119db22eeb312f2ea1e7ad7711293      1875264 CRAN/httpuv_1.6.6.tar.gz
 
 
-[FILE:1171:patches/patch-src_Makevars]
---- src/Makevars.orig	2021-12-13 19:41:14 UTC
+[FILE:1183:patches/patch-src_Makevars]
+--- src/Makevars.orig	2022-09-08 16:53:08 UTC
 +++ src/Makevars
 @@ -17,6 +17,9 @@ endif
  ifeq ($(UNAME), FreeBSD)
@@ -79,55 +79,21 @@ information.)
 +		touch -r configure.ac Makefile.am aclocal.m4 *.in m4/*; \
 +		touch -r aclocal.m4 configure.ac configure; \
  	else \
- 		echo "automake found. Running autogen.sh."; \
- 		sh autogen.sh; \
+ 		echo "automake found. Running autoupdate and autogen.sh."; \
+ 		autoupdate; \
 
 
-[FILE:733:patches/patch-src_unix_freebsd.c]
---- src/libuv/src/unix/freebsd.c.orig	2020-06-05 16:40:07 UTC
-+++ src/libuv/src/unix/freebsd.c
-@@ -58,7 +58,8 @@ void uv__platform_loop_delete(uv_loop_t*
- 
- 
- #ifdef __DragonFly__
--int uv_exepath(char* buffer, size_t* size) {
-+/* deprecated long ago, use KERN_PROC_PATHNAME sysctl */
-+int uv_exepath_procfs(char* buffer, size_t* size) {
-   char abspath[PATH_MAX * 2 + 1];
-   ssize_t abspath_size;
- 
-@@ -80,7 +81,8 @@ int uv_exepath(char* buffer, size_t* siz
- 
-   return 0;
- }
--#else
-+#endif
-+
- int uv_exepath(char* buffer, size_t* size) {
-   char abspath[PATH_MAX * 2 + 1];
-   int mib[4];
-@@ -110,7 +112,6 @@ int uv_exepath(char* buffer, size_t* siz
- 
-   return 0;
- }
--#endif
- 
- uint64_t uv_get_free_memory(void) {
-   int freecount;
-
-
-[FILE:1597:patches/patch-src_unix_fs.c]
---- src/libuv/src/unix/fs.c.orig	2020-06-05 16:40:07 UTC
+[FILE:1481:patches/patch-src_unix_fs.c]
+--- src/libuv/src/unix/fs.c.orig	2022-03-31 20:36:47 UTC
 +++ src/libuv/src/unix/fs.c
-@@ -976,7 +976,6 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
+@@ -1127,13 +1127,13 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {
  #if defined(__linux__)                                                         \
      || defined(_AIX71)                                                         \
 -    || defined(__sun)                                                          \
      || defined(__HAIKU__)
-   /* utimesat() has nanosecond resolution but we stick to microseconds
-    * for the sake of consistency with other platforms.
-@@ -986,6 +985,7 @@ static ssize_t uv__fs_utime(uv_fs_t* req
+   struct timespec ts[2];
+   ts[0] = uv__fs_to_timespec(req->atime);
    ts[1] = uv__fs_to_timespec(req->mtime);
    return utimensat(AT_FDCWD, req->path, ts, 0);
  #elif defined(__APPLE__)                                                      \
@@ -135,7 +101,7 @@ information.)
      || defined(__DragonFly__)                                                 \
      || defined(__FreeBSD__)                                                   \
      || defined(__FreeBSD_kernel__)                                            \
-@@ -1019,7 +1019,6 @@ static ssize_t uv__fs_utime(uv_fs_t* req
+@@ -1167,7 +1167,6 @@ static ssize_t uv__fs_utime(uv_fs_t* req
  static ssize_t uv__fs_lutime(uv_fs_t* req) {
  #if defined(__linux__)            ||                                           \
      defined(_AIX71)               ||                                           \
@@ -143,27 +109,4 @@ information.)
      defined(__HAIKU__)
    struct timespec ts[2];
    ts[0] = uv__fs_to_timespec(req->atime);
-
-
-[FILE:1063:patches/patch-src_unix_udp.c]
---- src/libuv/src/unix/udp.c.orig	2020-06-05 16:40:07 UTC
-+++ src/libuv/src/unix/udp.c
-@@ -850,7 +850,7 @@ static int uv__udp_set_membership6(uv_ud
- }
- 
- 
--#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__)
-+#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__) && !defined(__DragonFly__)
- static int uv__udp_set_source_membership4(uv_udp_t* handle,
-                                           const struct sockaddr_in* multicast_addr,
-                                           const char* interface_addr,
-@@ -1045,7 +1045,7 @@ int uv_udp_set_source_membership(uv_udp_
-                                  const char* interface_addr,
-                                  const char* source_addr,
-                                  uv_membership membership) {
--#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__)
-+#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__) && !defined(__DragonFly__)
-   int err;
-   struct sockaddr_storage mcast_addr;
-   struct sockaddr_in* mcast_addr4;
 

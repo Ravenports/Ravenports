@@ -55,11 +55,11 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 					-Dvapi=true
 [INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e '/fstack-prot/d' ${WRKSRC}/meson.build
 	${REINPLACE_CMD} -e 's|linux|skipx|' ${WRKSRC}/src/pty.cc
 
-post-patch-sunos:
+pre-configure-sunos:
 	${REINPLACE_CMD} \
 		-e 's|sys/ioctl\.h|sys/termios.h|' \
 		-e '/Bsymbolic-functions/d' \
@@ -206,6 +206,20 @@ share/locale/xh/LC_MESSAGES/vte-%%VERSION%%.mo
 share/locale/zh_CN/LC_MESSAGES/vte-%%VERSION%%.mo
 share/locale/zh_HK/LC_MESSAGES/vte-%%VERSION%%.mo
 share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
+
+
+[FILE:271:patches/patch-meson.build]
+--- meson.build.orig	2022-09-03 16:50:59 UTC
++++ meson.build
+@@ -229,6 +229,8 @@ if system == 'freebsd'
+ 
+   libc_feature_defines = []
+ 
++elif system == 'dragonfly'
++  libc_feature_defines = []
+ elif system == 'netbsd'
+   libc_feature_defines += [
+     '_NETBSD_SOURCE',
 
 
 [FILE:703:patches/patch-src_app_app.cc]
