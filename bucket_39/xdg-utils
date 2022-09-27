@@ -2,6 +2,7 @@
 
 NAMEBASE=		xdg-utils
 VERSION=		1.1.5
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Basic desktop integration functions
@@ -34,9 +35,13 @@ FPC_EQUIVALENT=		devel/xdg-utils
 
 MUST_CONFIGURE=		gnu
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|' \
 		${WRKSRC}/scripts/xdg-*
+	${REINPLACE_CMD} \
+		-e "s|http://docbook.sourceforge.net/release/xsl/current/|file://${LOCALBASE}/share/xsl/docbook/|" \
+		-e "s|http://www.oasis-open.org/docbook/xml/|file://${LOCALBASE}/share/xml/docbook/|" \
+		${WRKSRC}/scripts/desc/*.xml
 
 [FILE:394:descriptions/desc.single]
 xdg-utils is a set of tools that allows applications to easily integrate

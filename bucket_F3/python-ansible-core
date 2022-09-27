@@ -21,13 +21,12 @@ OPTIONS_STANDARD=	none
 VOPTS[py310]=		PY39=OFF PY310=ON
 VOPTS[py39]=		PY39=ON PY310=OFF
 
-USES=			cpe shebangfix
+USES=			cpe
 
 DISTNAME=		ansible_core-2.13.4.dist-info
 
 CPE_PRODUCT=		ansible
 CPE_VENDOR=		redhat
-SHEBANG_REGEX=		[.]/test/.*[.]py
 GENERATED=		yes
 
 [PY39].RUN_DEPENDS_ON=			python-Jinja2:single:py39
@@ -43,6 +42,10 @@ GENERATED=		yes
 					python-packaging:single:py310
 					python-resolvelib:single:py310
 [PY310].USES_ON=			python:py310,wheel
+
+post-install:
+	${GREP} -rl "#!/usr/bin/env python" ${STAGEDIR}${PYTHON_SITELIBDIR}/ansible* |\
+	${XARGS} ${SED} -i'' -e 's|/usr/bin/env python|${PYTHON_CMD}|'
 
 [FILE:3355:descriptions/desc.single]
 |PyPI version| |Docs badge| |Chat badge| |Build Status| |Code Of Conduct|
