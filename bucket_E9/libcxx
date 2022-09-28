@@ -26,7 +26,7 @@ BUILD_DEPENDS=		python-Sphinx:single:python_default
 			llvm:single:standard
 BUILDRUN_DEPENDS=	llvm-libunwind:single:standard
 
-USES=			cmake cclibs:primary python:build
+USES=			cmake cclibs:primary python:build clang
 
 DISTNAME=		llvm
 
@@ -47,13 +47,14 @@ CMAKE_ARGS=		-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
 			-DLLVM_ENABLE_SPHINX=ON
 			-DLIBCXX_CXX_ABI_LIBRARY_PATH={{WRKDIR}}/.build/lib
 			-DLIBCXX_INCLUDE_BENCHMARKS:BOOL=OFF
+			-DPython3_EXECUTABLE={{PYTHON_CMD}}
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libc++.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libc++abi.so
 
 pre-configure:
-	${REINPLACE_CMD} -e '/add_dependencies(cxx_static unwind)/d' \
+	# ${REINPLACE_CMD} -e '/add_dependencies(cxx_static unwind)/d' \
 		${WRKSRC}/projects/libcxx/src/CMakeLists.txt
 
 post-extract:
@@ -823,6 +824,20 @@ lib/libc++experimental.a
      return _DefaultRuneLocale.__runetype;
  #elif defined(__NetBSD__)
      return _C_ctype_tab_ + 1;
+
+
+[FILE:680:patches/patch-projects_libcxxabi_src_CMakeLists.txt]
+--- projects/libcxxabi/src/CMakeLists.txt.orig	2022-09-20 06:05:50 UTC
++++ projects/libcxxabi/src/CMakeLists.txt
+@@ -165,7 +165,7 @@ if (LIBCXXABI_USE_LLVM_UNWINDER)
+     target_link_libraries(cxxabi_shared_objects PUBLIC unwind_shared_objects) # propagate usage requirements
+     target_sources(cxxabi_shared_objects PUBLIC $<TARGET_OBJECTS:unwind_shared_objects>)
+   else()
+-    target_link_libraries(cxxabi_shared_objects PUBLIC unwind_shared)
++    target_link_libraries(cxxabi_shared_objects PUBLIC unwind)
+   endif()
+ endif()
+ target_link_libraries(cxxabi_shared_objects PRIVATE cxx-headers ${LIBCXXABI_BUILTINS_LIBRARY} ${LIBCXXABI_SHARED_LIBRARIES} ${LIBCXXABI_LIBRARIES})
 
 
 [FILE:476:files/CMakeLists.txt]
