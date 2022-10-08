@@ -51,8 +51,10 @@ shebangonefile() {
 		;;
 	"${LOCALBASE}"/bin/perl5.* | "${PREFIX}"/bin/perl5.*)
 		# perl ports are allowed to have these shebangs.
-		if [ "${NAMEBASE}" != "perl-5.34" ] &&\
+		if [ "${NAMEBASE}" != "perl-5.36" ] &&\
+		   [ "${NAMEBASE}" != "perl-5.34" ] &&\
 		   [ "${NAMEBASE}" != "perl-5.32" ] &&\
+		   [ "${VARIANT}" != "536" ] &&\
 		   [ "${VARIANT}" != "534" ] &&\
 		   [ "${VARIANT}" != "532" ];
 		then
