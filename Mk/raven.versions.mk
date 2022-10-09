@@ -98,6 +98,14 @@ PGSQL_14_VERSION=	14.5
 # MYSQL and derivatives
 # Possible values: oracle-(5.7,8.0), mariadb-(10.[23456789], 10.10),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
+#
+# Short term MariaDB releases:
+#   MariaDB 10.7   EOL 14 Feb 2023
+#   MariaDB 10.8   EOL 20 May 2023
+#   MariaDB 10.9   EOL 22 Aug 2023
+#   MariaDB 10.10  DEVELOPMENT
+#
+# LONG TERM SUPPORT - MariaDB 10.6 (EOL 06 Jul 2026)
 #-------------------------------------------------------------------------
 
 MYSQL_DEFAULT=			oracle-8.0
