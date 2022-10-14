@@ -2,6 +2,7 @@
 
 NAMEBASE=		qt6-qtbase
 VERSION=		6.4.0
+REVISION=		1
 KEYWORDS=		x11_toolkits devel
 VARIANTS=		standard
 SDESC[standard]=	Qt6 - QtBase component
@@ -110,7 +111,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt6/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt6/plugins/*/*.so
 .for F in androiddeployqt androidtestrunner qdbuscpp2xml \
-	qdbusxml2cpp qmake qmake6
+	qdbusxml2cpp qmake qmake6 qtpaths qtpaths6
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt6/bin/${F}
 .endfor
 .for F in cmake_automoc_parser moc qlalr rcc uic qvkgen tracegen
@@ -4288,6 +4289,20 @@ share/doc/qt6/global/template/style/
      endif()
  endfunction()
  
+
+
+[FILE:458:patches/patch-cmake_QtRpathHelpers.cmake]
+--- cmake/QtRpathHelpers.cmake.orig	2022-09-19 10:23:04 UTC
++++ cmake/QtRpathHelpers.cmake
+@@ -5,6 +5,8 @@ function(qt_internal_get_relative_rpath_
+         set(rpath_rel_base "@loader_path")
+     elseif(LINUX OR SOLARIS OR FREEBSD OR HURD)
+         set(rpath_rel_base "$ORIGIN")
++    elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
++        set(rpath_rel_base "$ORIGIN")
+     else()
+         set(rpath_rel_base "NO_KNOWN_RPATH_REL_BASE")
+     endif()
 
 
 [FILE:360:patches/patch-mkspecs_features_qt__module.prf]

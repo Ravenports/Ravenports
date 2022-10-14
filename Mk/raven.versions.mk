@@ -22,12 +22,11 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 
 #-------------------------------------------------------------------------
 # PERL5
-# Possible values: 5.32 and 5.34
+# Possible values: 5.34 and 5.36
 #-------------------------------------------------------------------------
 
-PERL5_DEFAULT?=		5.32
+PERL5_DEFAULT?=		5.34
 
-PERL_5.32_VERSION=	5.32.1
 PERL_5.34_VERSION=	5.34.1
 PERL_5.36_VERSION=	5.36.0
 
@@ -112,7 +111,6 @@ MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.31
 MYSQL_oracle-5.7_VERSION=	5.7.40
-MYSQL_mariadb-10.2_VERSION=	10.2.44
 MYSQL_mariadb-10.3_VERSION=	10.3.36
 MYSQL_mariadb-10.4_VERSION=	10.4.26
 MYSQL_mariadb-10.5_VERSION=	10.5.17
