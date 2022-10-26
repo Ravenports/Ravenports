@@ -2,6 +2,7 @@
 
 NAMEBASE=		synth
 VERSION=		2.12
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	Custom package repository builder for FreeBSD
@@ -21,6 +22,7 @@ ONLY_FOR_OPSYS=		freebsd dragonfly
 
 BUILD_DEPENDS=		adacurses:primary:standard
 			ini_file_manager:complete:standard
+RUN_DEPENDS=		ncurses:primary:standard
 
 USES=			gprbuild bdb:5,static
 
@@ -66,6 +68,8 @@ do-install:
 	${INSTALL_DATA} ${WRKSRC}/shell-completers/_synth \
 		${STAGEDIR}${PREFIX}/share/zsh/site-functions
 	${INSTALL_DATA} ${WRKSRC}/www/* ${STAGEDIR}${PREFIX}/share/synth
+	# synth expects pkg to be at ${PREFIX}/sbin/pkg so symlink to it
+	(cd ${STAGEDIR}${PREFIX}/sbin && ln -s /usr/local/sbin/pkg)
 
 [FILE:1155:descriptions/desc.single]
 Synth is a custom packge repository builder for FreeBSD and DragonFly.
@@ -96,10 +100,11 @@ Synth requires no preparation; it works immediately upon installation.
 eab5a3375f0b52f2a6ee835ba9e343120379d190ee8de21a2716b675eddceb32       172039 jrmarino-synth-2.12.tar.gz
 
 
-[FILE:268:manifests/plist.single]
+[FILE:277:manifests/plist.single]
 bin/synth
 etc/bash_completion.d/_synth.bash
 libexec/synthexec
+sbin/pkg
 share/man/man1/synth.1.gz
 share/synth/
  favicon.png
