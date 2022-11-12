@@ -42,6 +42,7 @@ BUILDRUN_DEPENDS=	nss:primary:standard
 			dbus-glib:primary:standard
 			startup-notification:single:standard
 			botan:primary:standard
+BR_DEPS[linux]=		sndio:single:standard
 
 USES=			cpe desktop-utils:single gmake jpeg png zlib
 			perl:build pkgconfig iconv bz2 python:build
@@ -104,6 +105,7 @@ QMAKE_ARGS=		--prefix="{{PREFIX}}"
 			--disable-hardening
 			--without-wasm-sandboxed-libraries
 VAR_OPSYS[linux]=	QMAKE_ARGS=--disable-elf-hack
+			QMAKE_ARGS=--enable-audio-backends=sndio
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
@@ -163,16 +165,21 @@ freedom and choice in how they communicate.
 c4bec51c09d216b4ba03210c6ef3b7eef4e76f1fa4957e9d11f79d3e5825164e    504792532 thunderbird-102.3.3.source.tar.xz
 
 
-[FILE:673:manifests/plist.single]
+[FILE:805:manifests/plist.single]
 bin/thunderbird
 lib/thunderbird/
+ Throbber-small.gif
  application.ini
+ crashreporter
+ crashreporter.ini
  dependentlibs.list
  liblgpllibs.so
  libmozgtk.so
+ libmozsandbox.so
  libmozsqlite3.so
  librnp.so
  libxul.so
+ minidump-analyzer
  omni.ja
  pingsender
  platform.ini
@@ -193,6 +200,7 @@ lib/thunderbird/chrome/icons/default/
  default64.png
 lib/thunderbird/defaults/messenger/mailViews.dat
 lib/thunderbird/defaults/pref/channel-prefs.js
+lib/thunderbird/fonts/TwemojiMozilla.ttf
 lib/thunderbird/isp/
  Bogofilter.sfd
  DSPAM.sfd
