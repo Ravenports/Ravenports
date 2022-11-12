@@ -2,6 +2,7 @@
 
 NAMEBASE=		sbcl
 VERSION=		2.2.9
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Steel Bank Common Lisp
@@ -19,9 +20,9 @@ DF_INDEX=		1
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD LINUX SUNOS NETBSD MACOS
-			CONCURRENCY
+			CONCURRENCY SIMD
 OPTIONS_STANDARD=	DRAGONFLY FREEBSD LINUX SUNOS NETBSD MACOS
-			CONCURRENCY
+			CONCURRENCY SIMD
 OPTGROUP_RADIO=		SYSTEM
 OPTDESCR[SYSTEM]=	Operating System
 OPTGROUP[SYSTEM]=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD
@@ -71,6 +72,10 @@ CMAKE_ARGS=		--prefix="{{PREFIX}}"
 
 [NETBSD].DESCRIPTION=			build for NetBSD
 
+[SIMD].DESCRIPTION=			Enable SB-SIMD (requires AVX2 CPU)
+[SIMD].CMAKE_ARGS_OFF=			--without-sb-simd
+[SIMD].CMAKE_ARGS_ON=			--with-sb-simd
+
 [MACOS].DESCRIPTION=			build for MacOS
 
 [DRAGONFLY].DESCRIPTION=		Build for DragonFly BSD
@@ -106,6 +111,11 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/sbcl
 	${RM} ${STAGEDIR}${PREFIX}/${INFO_PATH}/dir
 	${RM} -rf ${STAGEDIR}${STD_DOCDIR}
+
+post-install-SIMD-ON:
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/sbcl/sb-simd
+	${INSTALL_DATA} ${WRKSRC}/contrib/sb-simd/code/*.[la]* \
+		${STAGEDIR}${PREFIX}/lib/sbcl/sb-simd/
 
 post-extract:
 	${MV} ${WRKDIR}/sbcl-1.2.7-* ${WRKDIR}/bootstrap
@@ -153,14 +163,41 @@ c61f5e777e56921d2452d0fa6b71024ccd9b99bc659676498d398b8663176492     10463348 sb
 92094d7a5ea19891a6245064b12d4e1125aa065634ad24b6607ab08c37e95b40     10528686 sbcl-1.2.7-x86-64-linux-binary.tar.bz2
 
 
-[FILE:3154:manifests/plist.single]
+[FILE:3722:manifests/plist.single]
 @sample etc/sbclrc.sample
-%%ONLY-DRAGONFLY%%lib/sbcl/contrib/
+%%SIMD-ON%%lib/sbcl/contrib/
  sb-simd.asd
  sb-simd.fasl
-%%ONLY-LINUX%%lib/sbcl/contrib/
+%%SIMD-ON%%lib/sbcl/sb-simd/
+ constants.lisp
+ cpu-identification.lisp
+ define-arefs.lisp
+ define-associatives.lisp
+ define-comparisons.lisp
+ define-custom-vops.lisp
+ define-fake-vops.lisp
+ define-ifs.lisp
+ define-instruction-vops.lisp
+ define-instructions.lisp
+ define-modify-macros.lisp
+ define-reducers.lisp
+ define-reffers.lisp
+ define-rounders.lisp
+ define-scalar-casts.lisp
+ define-simd-casts.lisp
+ define-types.lisp
+ define-unequals.lisp
+ define-vop-functions.lisp
+ define-vref-vops.lisp
+ define-vrefs.lisp
+ instruction-set-case.lisp
+ instruction-set.lisp
+ missing-instruction.lisp
+ packages.lisp
+ printable.lisp
+ record.lisp
  sb-simd.asd
- sb-simd.fasl
+ utilities.lisp
 bin/sbcl
 lib/sbcl/
  sbcl.mk
@@ -204,8 +241,6 @@ lib/sbcl/contrib/
  sb-rotate-byte.fasl
  sb-rt.asd
  sb-rt.fasl
- sb-simd.asd
- sb-simd.fasl
  sb-simple-streams.asd
  sb-simple-streams.fasl
  sb-sprof.asd

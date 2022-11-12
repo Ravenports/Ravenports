@@ -2,6 +2,7 @@
 
 NAMEBASE=		nfdump
 VERSION=		1.7.0.1
+REVISION=		1
 KEYWORDS=		net_mgmt
 VARIANTS=		standard
 SDESC[standard]=	Tools to collect and process netflow data
@@ -14,12 +15,14 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	PCAP
+OPTIONS_STANDARD=	PCAP
+OPT_ON[freebsd]=	PCAP
+OPT_ON[netbsd]=		PCAP
+OPT_ON[dragonfly]=	PCAP
 
 BUILDRUN_DEPENDS=	flex:primary:standard
 			rrdtool:primary:standard
-			libpcap:single:standard
 
 USES=			cpe autoreconf libtool pkgconfig
 
@@ -33,20 +36,22 @@ FPC_EQUIVALENT=		net-mgmt/nfdump
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-rrdpath={{LOCALBASE}}
 			--enable-nftrack
-			--enable-readpcap
-			--enable-nfpcapd
 			--enable-sflow
 			--enable-nfprofile
 			--enable-fixtimebug
 			--enable-nsel
 			--disable-influxdb
-			--disable-compat15
 
 SINGLE_JOB=		yes
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		VERSION=1.7.0
+
+[PCAP].DESCRIPTION=			Include Package Capture capability
+[PCAP].BUILDRUN_DEPENDS_ON=		libpcap:single:standard
+[PCAP].CONFIGURE_ARGS_ON=		--enable-readpcap
+					--enable-nfpcapd
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/etc/nfdump.conf.dist \
@@ -78,14 +83,15 @@ ft2nfdump - flow-tools to nfdump - optional component.
 d7c4b400f506bee1b0f0baecb9285bb7230588f0afa050bb898d5d48454b1632       740435 phaag-nfdump-1.7.0.1.tar.gz
 
 
-[FILE:303:manifests/plist.single]
+[FILE:342:manifests/plist.single]
 @sample etc/nfdump.conf.sample
+%%PCAP-ON%%bin/nfpcapd
+%%PCAP-ON%%share/man/man1/nfpcapd.1.gz
 bin/
  nfanon
  nfcapd
  nfdump
  nfexpire
- nfpcapd
  nfprofile
  nfreplay
  nftrack
@@ -99,7 +105,6 @@ share/man/man1/
  nfcapd.1.gz
  nfdump.1.gz
  nfexpire.1.gz
- nfpcapd.1.gz
  nfprofile.1.gz
  nfreplay.1.gz
  sfcapd.1.gz
