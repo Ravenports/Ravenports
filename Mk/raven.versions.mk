@@ -43,7 +43,7 @@ RUBY_3.1_VERSION=	3.1.2
 
 #-------------------------------------------------------------------------
 # PYTHON
-# Possible values: 2.7, 3.9, 3.10
+# Possible values: 2.7, 3.9, 3.10, 3.11
 #-------------------------------------------------------------------------
 
 PYTHON3_DEFAULT?=	3.9
@@ -51,6 +51,7 @@ PYTHON3_DEFAULT?=	3.9
 PYTHON_2.7_VERSION=	2.7.18
 PYTHON_3.9_VERSION=	3.9.15
 PYTHON_3.10_VERSION=	3.10.8
+PYTHON_3.11_VERSION=	3.11.0
 
 #-------------------------------------------------------------------------
 # SSL
@@ -95,7 +96,7 @@ PGSQL_14_VERSION=	14.5
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.7,8.0), mariadb-(10.[3456789], 10.10),
+# Possible values: oracle-(5.7,8.0), mariadb-(10.[3456789], 10.1[01]),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #
 # Short term MariaDB releases:
@@ -103,6 +104,7 @@ PGSQL_14_VERSION=	14.5
 #   MariaDB 10.8   EOL 20 May 2023
 #   MariaDB 10.9   EOL 22 Aug 2023
 #   MariaDB 10.10  DEVELOPMENT
+#   MariaDB 10.11  DEVELOPMENT
 #
 # LONG TERM SUPPORT - MariaDB 10.6 (EOL 06 Jul 2026)
 #-------------------------------------------------------------------------
@@ -111,14 +113,15 @@ MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.31
 MYSQL_oracle-5.7_VERSION=	5.7.40
-MYSQL_mariadb-10.3_VERSION=	10.3.36
-MYSQL_mariadb-10.4_VERSION=	10.4.26
-MYSQL_mariadb-10.5_VERSION=	10.5.17
-MYSQL_mariadb-10.6_VERSION=	10.6.10
-MYSQL_mariadb-10.7_VERSION=	10.7.6
-MYSQL_mariadb-10.8_VERSION=	10.8.5
-MYSQL_mariadb-10.9_VERSION=	10.9.3
+MYSQL_mariadb-10.3_VERSION=	10.3.37
+MYSQL_mariadb-10.4_VERSION=	10.4.27
+MYSQL_mariadb-10.5_VERSION=	10.5.18
+MYSQL_mariadb-10.6_VERSION=	10.6.11
+MYSQL_mariadb-10.7_VERSION=	10.7.7
+MYSQL_mariadb-10.8_VERSION=	10.8.6
+MYSQL_mariadb-10.9_VERSION=	10.9.4
 MYSQL_mariadb-10.10_VERSION=	10.10.1
+MYSQL_mariadb-10.11_VERSION=	10.11.0
 MYSQL_percona-5.7_VERSION=	5.7.17
 MYSQL_percona-5.6_VERSION=	5.6.35
 MYSQL_percona-5.5_VERSION=	5.5.54
