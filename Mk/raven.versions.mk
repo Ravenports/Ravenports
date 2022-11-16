@@ -83,16 +83,18 @@ TCL_8.6_VERSION=	8.6.12
 
 #-------------------------------------------------------------------------
 # PGSQL
-# Possible values: 10, 11, 12, 13, 14
+# Possible values: 10, 11, 12, 13, 14, 15
+# PGSQL 10 is no longer being updated
 #-------------------------------------------------------------------------
 
 PGSQL_DEFAULT?=		12
 
-PGSQL_10_VERSION=	10.22
-PGSQL_11_VERSION=	11.17
-PGSQL_12_VERSION=	12.12
-PGSQL_13_VERSION=	13.8
-PGSQL_14_VERSION=	14.5
+PGSQL_10_VERSION=	10.23
+PGSQL_11_VERSION=	11.18
+PGSQL_12_VERSION=	12.13
+PGSQL_13_VERSION=	13.9
+PGSQL_14_VERSION=	14.6
+PGSQL_15_VERSION=	15.1
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
