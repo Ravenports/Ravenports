@@ -2,7 +2,7 @@
 
 NAMEBASE=		cbsd
 VERSION=		13.1.16
-REVISION=		1
+REVISION=		2
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	FreeBSD jails, bhyve and Xen manager
@@ -34,7 +34,7 @@ USERS=			cbsd
 GROUPS=			cbsd
 USERGROUP_SPKG=		single
 
-USES=			pkgconfig ssl cmake
+USES=			pkgconfig:buildrun ssl cmake
 
 LICENSE=		BSD2CLAUSE:single
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
@@ -115,7 +115,7 @@ the CLI using the underlying utilities (Not that you would want to!)
 e86fc8a063f238946ca7812d5d9a0af6a949100aa543a46e5cebb341b87b1847      6505274 cbsd-cbsd-13.1.16.tar.gz
 
 
-[FILE:24565:manifests/plist.single]
+[FILE:24599:manifests/plist.single]
 @sample cbsd/cbsd.conf.sample
 @sample cbsd/etc/modules.conf.sample
 @sample cbsd/etc/spice.conf.sample
@@ -127,7 +127,10 @@ e86fc8a063f238946ca7812d5d9a0af6a949100aa543a46e5cebb341b87b1847      6505274 cb
  racct-jail-statsd
  vale-ctl
 @(cbsd,cbsd,500) bin/cbsd
-cbsd/securecmd
+cbsd/
+ ObsoleteFiles
+ securecmd
+cbsd/.ssh/config
 cbsd/bhyvectl/
  bcheckpoint
  bchroot
@@ -1434,7 +1437,7 @@ share/man/man8/cbsd.8.gz
  	gettimeofday(&now_time, NULL);
 
 
-[FILE:2351:files/CM.txt]
+[FILE:2240:files/CM.txt]
 cmake_minimum_required(VERSION 3.16)
 project(cbsd)
 
@@ -1450,14 +1453,15 @@ install(DIRECTORY nodectl DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING
 install(DIRECTORY qemuctl DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "q*")
 install(DIRECTORY vboxctl DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "v*")
 install(DIRECTORY xenctl DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "x*")
-install(DIRECTORY rc.d DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*")
-install(DIRECTORY subr DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*")
-install(DIRECTORY sudoexec DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*")
-install(DIRECTORY system DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*")
-install(DIRECTORY release DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*")
-install(DIRECTORY upgrade DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*")
+install(DIRECTORY .ssh DESTINATION cbsd USE_SOURCE_PERMISSIONS)
+install(DIRECTORY rc.d DESTINATION cbsd USE_SOURCE_PERMISSIONS)
+install(DIRECTORY subr DESTINATION cbsd USE_SOURCE_PERMISSIONS)
+install(DIRECTORY sudoexec DESTINATION cbsd USE_SOURCE_PERMISSIONS)
+install(DIRECTORY system DESTINATION cbsd USE_SOURCE_PERMISSIONS)
+install(DIRECTORY release DESTINATION cbsd USE_SOURCE_PERMISSIONS)
+install(DIRECTORY upgrade DESTINATION cbsd USE_SOURCE_PERMISSIONS)
 install(DIRECTORY man DESTINATION cbsd USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*.[12345678]")
-install(DIRECTORY etc/defaults DESTINATION cbsd/etc USE_SOURCE_PERMISSIONS FILES_MATCHING PATTERN "*")
+install(DIRECTORY etc/defaults DESTINATION cbsd/etc USE_SOURCE_PERMISSIONS)
 install(DIRECTORY modules/
   DESTINATION cbsd/modules
   USE_SOURCE_PERMISSIONS
@@ -1483,7 +1487,7 @@ install(DIRECTORY misc/
 )
 
 install(FILES man/cbsd.8 DESTINATION share/man/man8)
-install(FILES securecmd DESTINATION cbsd)
+install(FILES securecmd ObsoleteFiles DESTINATION cbsd)
 install(FILES cbsd.conf DESTINATION cbsd RENAME cbsd.conf.sample)
 install(FILES etc/modules.conf DESTINATION cbsd/etc RENAME modules.conf.sample)
 install(FILES etc/spice.conf DESTINATION cbsd/etc RENAME spice.conf.sample)
