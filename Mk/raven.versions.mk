@@ -79,7 +79,7 @@ LUA_5.4_VERSION=	5.4.4
 TCL_DEFAULT?=		8.6
 
 TCL_8.5_VERSION=	8.5.19
-TCL_8.6_VERSION=	8.6.12
+TCL_8.6_VERSION=	8.6.13
 
 #-------------------------------------------------------------------------
 # PGSQL
@@ -148,7 +148,7 @@ PHP_DEFAULT?=		7.4
 
 PHP_7.4_VERSION=	7.4.33
 PHP_8.0_VERSION=	8.0.25
-PHP_8.1_VERSION=	8.1.12
+PHP_8.1_VERSION=	8.1.13
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
