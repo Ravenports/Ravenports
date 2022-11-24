@@ -222,6 +222,6 @@ GNATCROSS_NETBSD_9=		9.2
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.15.6
-QT6_VERSION=			6.4.0
+QT6_VERSION=			6.4.1
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
