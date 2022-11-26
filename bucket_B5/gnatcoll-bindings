@@ -16,7 +16,6 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			gmp
 			iconv
-			python
 			python3
 			readline
 			syslog
@@ -34,11 +33,10 @@ BUILDRUN_DEPENDS=	gnatcoll-core:primary:standard
 			xmlada:primary:standard
 EXRUN[readline]=	readline:single:standard
 EXRUN[iconv]=		libiconv:shared:standard
-EXRUN[python]=		python27:single:standard
 EXRUN[python3]=		python39:single:standard
 EXRUN[gmp]=		gmp:shared:standard
 
-USES=			gprbuild gmake iconv:build python:py27,build
+USES=			gprbuild gmake iconv:build python:build
 
 LICENSE=		GPLv3+:iconv
 LICENSE_TERMS=		iconv:{{WRKDIR}}/TERMS
@@ -62,27 +60,20 @@ do-build:
 .  endfor
 	# handle python components separately
 .  for libtype in static static-pic relocatable
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} AUTOPYTHON=2.7 \
-		GNATCOLL_PYTHON_CFLAGS="-I${PYTHON_INCLUDEDIR}" \
-		gprbuild -p -XLIBRARY_TYPE=${libtype} \
-		-P python/gnatcoll_python.gpr)
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} AUTOPYTHON=3.9 \
 		GNATCOLL_PYTHON_CFLAGS="-I${LOCALBASE}/include/python3.9" \
 		gprbuild -p -XLIBRARY_TYPE=${libtype} \
-		-P python3/gnatcoll_python3.gpr)
+		-P python/gnatcoll_python.gpr)
 .  endfor
 .endfor
 
-pre-configure:
-	${MV} ${WRKSRC}/python3/gnatcoll_python.gpr \
-	      ${WRKSRC}/python3/gnatcoll_python3.gpr
-	${REINPLACE_CMD} -e '/project/ s|GnatColl_Python|GnatColl_Python3|' \
-		-e '/^end / s|GnatColl_Python|GnatColl_Python3|' \
-		${WRKSRC}/python3/gnatcoll_python3.gpr
+post-extract:
+	${MV} ${WRKSRC}/python ${WRKSRC}/python2
+	${MV} ${WRKSRC}/python3 ${WRKSRC}/python
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/gpr
-.for component in gmp iconv readline syslog python python3
+.for component in gmp iconv readline syslog python
 .  for libtype in static static-pic relocatable
 	${MKDIR} ${WRKDIR}/${component}/${libtype}
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gnatcoll_${component}.${libtype}
@@ -111,7 +102,7 @@ do-install:
 	${SH} ${FILESDIR}/gen_gpr.sh \
 		"${component}" \
 		"${STAGEDIR}${PREFIX}" \
-		"-I${ "${component:Mpython3}" != "":?${LOCALBASE}/include/python3.9:${PYTHON_INCLUDEDIR}}" \
+		"-I${LOCALBASE}/include/python3.9" \
 		"0.0" \
 		"-lpython3.9"
 .endfor
@@ -124,11 +115,6 @@ This subpackage contains gmp bindings.
 [FILE:104:descriptions/desc.iconv]
 This is the bindings module of the GNAT Components Collection.
 This subpackage contains iconv bindings.
-
-
-[FILE:110:descriptions/desc.python]
-This is the bindings module of the GNAT Components Collection.
-This subpackage contains the python2 bindings.
 
 
 [FILE:110:descriptions/desc.python3]
@@ -242,46 +228,8 @@ lib/gnatcoll_iconv.static-pic/
 share/gpr/gnatcoll_iconv.gpr
 
 
-[FILE:945:manifests/plist.python]
+[FILE:1864:manifests/plist.python3]
 include/gnatcoll_python/
- gnatcoll-any_types-python.adb
- gnatcoll-any_types-python.ads
- gnatcoll-python-state.adb
- gnatcoll-python-state.ads
- gnatcoll-python.adb
- gnatcoll-python.ads
- gnatcoll-scripts-python.adb
- gnatcoll-scripts-python.ads
- python_support.c
-lib/
- libgnatcoll_python.so
- libgnatcoll_python.so.%%SOMAJOR%%
- libgnatcoll_python.so.%%SOVERSION%%
-lib/gnatcoll_python.relocatable/
- gnatcoll-any_types-python.ali
- gnatcoll-python-state.ali
- gnatcoll-python.ali
- gnatcoll-scripts-python.ali
- libgnatcoll_python.so
- libgnatcoll_python.so.%%SOMAJOR%%
- libgnatcoll_python.so.%%SOVERSION%%
-lib/gnatcoll_python.static/
- gnatcoll-any_types-python.ali
- gnatcoll-python-state.ali
- gnatcoll-python.ali
- gnatcoll-scripts-python.ali
- libgnatcoll_python.a
-lib/gnatcoll_python.static-pic/
- gnatcoll-any_types-python.ali
- gnatcoll-python-state.ali
- gnatcoll-python.ali
- gnatcoll-scripts-python.ali
- libgnatcoll_python.a
-share/gpr/gnatcoll_python.gpr
-
-
-[FILE:1829:manifests/plist.python3]
-include/gnatcoll_python3/
  gnatcoll-any_types-python.adb
  gnatcoll-any_types-python.ads
  gnatcoll-python-capsule.adb
@@ -303,9 +251,9 @@ include/gnatcoll_python3/
  python_support.c
 lib/
  libgnatcoll_python3.so
- libgnatcoll_python3.so.0
- libgnatcoll_python3.so.0.0
-lib/gnatcoll_python3.relocatable/
+ libgnatcoll_python3.so.%%SOMAJOR%%
+ libgnatcoll_python3.so.%%SOVERSION%%
+lib/gnatcoll_python.relocatable/
  gnatcoll-any_types-python.ali
  gnatcoll-python-capsule.ali
  gnatcoll-python-ctypes.ali
@@ -318,9 +266,9 @@ lib/gnatcoll_python3.relocatable/
  gnatcoll-python.ali
  gnatcoll-scripts-python.ali
  libgnatcoll_python3.so
- libgnatcoll_python3.so.0
- libgnatcoll_python3.so.0.0
-lib/gnatcoll_python3.static/
+ libgnatcoll_python3.so.%%SOMAJOR%%
+ libgnatcoll_python3.so.%%SOVERSION%%
+lib/gnatcoll_python.static/
  gnatcoll-any_types-python.ali
  gnatcoll-python-capsule.ali
  gnatcoll-python-ctypes.ali
@@ -333,7 +281,7 @@ lib/gnatcoll_python3.static/
  gnatcoll-python.ali
  gnatcoll-scripts-python.ali
  libgnatcoll_python3.a
-lib/gnatcoll_python3.static-pic/
+lib/gnatcoll_python.static-pic/
  gnatcoll-any_types-python.ali
  gnatcoll-python-capsule.ali
  gnatcoll-python-ctypes.ali
@@ -346,7 +294,7 @@ lib/gnatcoll_python3.static-pic/
  gnatcoll-python.ali
  gnatcoll-scripts-python.ali
  libgnatcoll_python3.a
-share/gpr/gnatcoll_python3.gpr
+share/gpr/gnatcoll_python.gpr
 
 
 [FILE:528:manifests/plist.readline]
@@ -394,7 +342,7 @@ lib/gnatcoll_syslog.static-pic/
 share/gpr/gnatcoll_syslog.gpr
 
 
-[FILE:2352:files/gen_gpr.sh]
+[FILE:2217:files/gen_gpr.sh]
 #!/bin/sh
 # This scripts generates gpr files and creates symbolic links
 # Expected inputs: component, destdir, python-includes
@@ -432,17 +380,10 @@ case "$name" in
 		linker_opts=
 		;;
 	"python")
-		name=python
+		name=python3
 		component=Python
 		component_upper=PYTHON
 		component_lower="python"
-		linker_opts='"-lpython2.7"'
-		;;
-	"python3")
-		name=python3
-		component=Python3
-		component_upper=PYTHON3
-		component_lower="python3"
 		linker_opts="${python3_linking}"
 		;;
 	*)
