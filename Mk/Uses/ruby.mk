@@ -130,7 +130,7 @@ ruby-setup-configure:
 ruby-extconf-configure:
 .  if defined(RUBY_EXTCONF_SUBDIRS)
 .    for d in ${RUBY_EXTCONF_SUBDIRS}
-	@if [ -f "${CONFIGURE_WRKSRC}/${RUBY_EXTCONF}"]; then \
+	@if [ -f "${CONFIGURE_WRKSRC}/${RUBY_EXTCONF}" ]; then \
 	${ECHO_MSG} "===>  Running ${RUBY_EXTCONF} in ${d} to configure";\
 	(cd ${CONFIGURE_WRKSRC}/${d} && \
 		${SETENV} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \
@@ -139,7 +139,7 @@ ruby-extconf-configure:
 	fi
 .    endfor
 .  else
-	@if [ -f "${CONFIGURE_WRKSRC}/${RUBY_EXTCONF}"]; then \
+	@if [ -f "${CONFIGURE_WRKSRC}/${RUBY_EXTCONF}" ]; then \
 	${ECHO_MSG} "===>  Running ${RUBY_EXTCONF} to configure";\
 	(cd ${CONFIGURE_WRKSRC} && \
 		${SETENV} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \

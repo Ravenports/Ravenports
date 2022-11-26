@@ -97,7 +97,7 @@ do-build:
 _USES_install+= 780:post-install-gem
 
 do-install:
-	if [ -z "${CONFIGURE_ARGS}"]; then \
+	if [ -z "${CONFIGURE_ARGS}" ]; then \
 	  (cd ${BUILD_WRKSRC} && ${SETENV} ${GEM_ENV} \
 	  ${RUBYGEMBIN} install ${RUBYGEM_ARGS} ${GEMFILE} --) ;\
 	else \
