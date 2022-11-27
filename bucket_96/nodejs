@@ -2694,14 +2694,14 @@ share/doc/node/
    // source for pthread_cond_timedwait() to use the monotonic clock.
 
 
-[FILE:541:patches/patch-deps_v8_src_base_platform_memory.h]
+[FILE:561:patches/patch-deps_v8_src_base_platform_memory.h]
 --- deps/v8/src/base/platform/memory.h.orig	2022-11-14 02:26:05 UTC
 +++ deps/v8/src/base/platform/memory.h
 @@ -20,10 +20,12 @@
  #if V8_OS_DARWIN
  #include <malloc/malloc.h>
  #else  // !V8_OS_DARWIN
-+# ifndef __DragonFly__
++# if !V8_OS_FREEBSD && !V8_OS_DRAGONFLYBSD
  #include <malloc.h>
 +# endif
  #endif  // !V8_OS_DARWIN
