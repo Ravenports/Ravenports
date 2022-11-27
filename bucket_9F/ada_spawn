@@ -2,6 +2,7 @@
 
 NAMEBASE=		ada_spawn
 VERSION=		23.0.0
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Simple API to spawn communicating processes
@@ -210,19 +211,42 @@ share/gpr/
  
 
 
-[FILE:1045:files/ptsname_r.c]
+[FILE:521:patches/patch-source_spawn_spawn-posix.ads]
+--- source/spawn/spawn-posix.ads.orig	2022-09-26 13:44:48 UTC
++++ source/spawn/spawn-posix.ads
+@@ -154,7 +154,7 @@ package Spawn.Posix is
+      (fd     : Interfaces.C.int;
+       buf    : out Interfaces.C.char_array;
+       buflen : Interfaces.C.size_t) return Interfaces.C.int
+-     with Import, Convention => C, External_Name => "ptsname_r";
++     with Import, Convention => C, External_Name => "__ptsname_r";
+ 
+    function setsid return Interfaces.C.int
+      with Import, Convention => C, External_Name => "setsid";
+
+
+[FILE:1353:files/ptsname_r.c]
 #ifdef __DragonFly__
+# define __NEEDS_PTSNAME_R__
+#endif
+#ifdef __FreeBSD__
+# include <sys/param.h>
+# if __FreeBSD_version < 1203000
+#  define __NEEDS_PTSNAME_R__
+# endif
+#endif
+
+#ifdef __NEEDS_PTSNAME_R__
 
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 
-
 /* Store at most BUFLEN characters of the pathname of the slave pseudo
    terminal associated with the master FD is open on in BUF.
    Return 0 on success, otherwise an error number.  */
 int
-ptsname_r (int fd, char *buf, size_t buflen)
+__ptsname_r (int fd, char *buf, size_t buflen)
 {
   int saved_errno = errno;
   char tmpbuf[5 + 4 + 10 + 1];
@@ -253,6 +277,16 @@ ptsname_r (int fd, char *buf, size_t buflen)
      exist.  */
   errno = saved_errno;
   return 0;
+}
+
+#else
+
+#include <stdlib.h>
+
+int
+__ptsname_r (int fd, char *buf, size_t buflen)
+{
+  return ptsname_r (fd, buf, buflen);
 }
 
 #endif
