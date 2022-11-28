@@ -105,6 +105,31 @@ GCC11_PHASE=			release
 .endif
 
 # ------------------------------------------------------------------------
+# gcc12
+# ------------------------------------------------------------------------
+
+GCC12_BRANCH=			12
+GCC12_POINT=			2.0
+GCC12_VERSION=			${GCC12_BRANCH}.${GCC12_POINT}
+GCC12_SNAPSHOT=			20220819
+GCC12_BUILD_RELEASE=		yes
+GCC12_REVISION=			0
+GCC12_GNATCROSS_REVISION=	0
+GCC12_BOOTSTRAP_REVISION=	0
+
+.if ${GCC12_BUILD_RELEASE:Mno}
+GCC12_PORTVERSION=		${GCC12_BRANCH}.${GCC12_SNAPSHOT}
+GCC12_IDENTIFICATION=		gcc-${GCC12_BRANCH}-${GCC12_SNAPSHOT}
+GCC12_MS_SUBDIR=		snapshots/${GCC12_BRANCH}-${GCC12_SNAPSHOT}
+GCC12_PHASE=			snapshot
+.else
+GCC12_PORTVERSION=		${GCC12_VERSION}
+GCC12_IDENTIFICATION=		gcc-${GCC12_VERSION}
+GCC12_MS_SUBDIR=		releases/gcc-${GCC12_VERSION}
+GCC12_PHASE=			release
+.endif
+
+# ------------------------------------------------------------------------
 # Ravenports base compiler
 # ------------------------------------------------------------------------
 
