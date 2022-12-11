@@ -3,26 +3,24 @@
 NAMEBASE=		python-sqlite3
 VERSION=		3.11.0
 KEYWORDS=		databases python
-VARIANTS=		py39 py310
+VARIANTS=		py311 py310
 SDESC[py310]=		Python 3.10 bindings to the SQLite3 library
-SDESC[py39]=		Python 3.9 bindings to the SQLite3 library
+SDESC[py311]=		Python 3.11 bindings to the SQLite3 library
 HOMEPAGE=		https://www.python.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	none pv310 pv311 pv39
+DOWNLOAD_GROUPS=	none pv310 pv311
 SITES[pv310]=		https://www.python.org/ftp/python/3.10.8/
 SITES[pv311]=		https://www.python.org/ftp/python/3.11.0/
-SITES[pv39]=		https://www.python.org/ftp/python/3.9.15/
-DISTFILE[1]=		Python-3.9.15.tar.xz:pv39
-DISTFILE[2]=		Python-3.10.8.tar.xz:pv310
-DISTFILE[3]=		Python-3.11.0.tar.xz:pv311
+DISTFILE[1]=		Python-3.10.8.tar.xz:pv310
+DISTFILE[2]=		Python-3.11.0.tar.xz:pv311
 SPKGS[py310]=		single
-SPKGS[py39]=		single
+SPKGS[py311]=		single
 
-OPTIONS_AVAILABLE=	PY39 PY310 PY311
+OPTIONS_AVAILABLE=	PY310 PY311
 OPTIONS_STANDARD=	none
-VOPTS[py310]=		PY39=OFF PY310=ON PY311=OFF
-VOPTS[py39]=		PY39=ON PY310=OFF PY311=OFF
+VOPTS[py310]=		PY310=ON PY311=OFF
+VOPTS[py311]=		PY310=OFF PY311=ON
 
 BUILDRUN_DEPENDS=	sqlite:single:standard
 
@@ -34,16 +32,14 @@ CPE_PRODUCT=		python
 CPE_VENDOR=		python
 FPC_EQUIVALENT=		databases/py-sqlite3
 
-[PY39].DF_INDEX_ON=			1
-[PY39].USES_ON=				python:py39,sutools
-
-[PY310].DF_INDEX_ON=			2
+[PY310].DF_INDEX_ON=			1
 [PY310].USES_ON=			python:py310,sutools
 
-[PY311].DESCRIPTION=			Build with python 3.11
+[PY311].DF_INDEX_ON=			2
+[PY311].USES_ON=			python:py311,sutools
 
 post-extract-PY311-ON:
-	${MV} ${WRKDIR}/Python-3.10.8  ${WRKDIR}/Python
+	${MV} ${WRKDIR}/Python-3.11.0  ${WRKDIR}/Python
 	${CP} ${FILESDIR}/setup3.py ${WRKSRC}/setup.py
 
 post-stage:
@@ -55,10 +51,6 @@ post-stage:
 
 post-extract-PY310-ON:
 	${MV} ${WRKDIR}/Python-3.10.8  ${WRKDIR}/Python
-	${CP} ${FILESDIR}/setup3.py ${WRKSRC}/setup.py
-
-post-extract-PY39-ON:
-	${MV} ${WRKDIR}/Python-3.9.15  ${WRKDIR}/Python
 	${CP} ${FILESDIR}/setup3.py ${WRKSRC}/setup.py
 
 [FILE:472:descriptions/desc.single]
@@ -131,13 +123,13 @@ setup(name = "sqlite3",
       )
 
 
-[FILE:1422:files/setup3.py]
+[FILE:1526:files/setup3.py]
 #!/usr/bin/env python
 # To use:
 #       python setup.py install
 #
 
-__version__ = "$FreeBSD: head/databases/py-sqlite3/files/setup3.py 417946 2016-07-03 00:17:29Z wen $"
+import platform
 
 try:
     import distutils
@@ -155,7 +147,6 @@ lib_dirs = [prefix + "/lib"]
 libs = ["sqlite3"]
 macros = [('MODULE_NAME', '"sqlite3"')]
 sqlite_srcs = [
-'_sqlite/cache.c',
 '_sqlite/connection.c',
 '_sqlite/cursor.c',
 '_sqlite/microprotocols.c',
@@ -164,6 +155,14 @@ sqlite_srcs = [
 '_sqlite/row.c',
 '_sqlite/statement.c',
 '_sqlite/util.c']
+
+major, minor = map(int, platform.python_version_tuple()[:2])
+
+if (major, minor) <= (3, 10):
+    sqlite_srcs.append('_sqlite/cache.c',)
+
+if (major, minor) >= (3, 11):
+    sqlite_srcs.append('_sqlite/blob.c',)
 
 try:
     import ctypes

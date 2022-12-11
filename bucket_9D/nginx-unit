@@ -16,19 +16,19 @@ SPKGS[standard]=	complete
 			unitd
 			python
 			perl
-			php74
 			php80
 			php81
+			php82
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		php74:single:standard
+BUILD_DEPENDS=		php82:single:standard
 			php81:single:standard
 			php80:single:standard
 EXRUN[php80]=		php80:single:standard
 EXRUN[php81]=		php81:single:standard
-EXRUN[php74]=		php74:single:standard
+EXRUN[php82]=		php82:single:standard
 EXRUN[python]=		python
 EXRUN[perl]=		perl
 
@@ -75,9 +75,9 @@ post-configure:
 	(cd ${CONFIGURE_WRKSRC} \
 	  && ./configure python --config=python${PYTHON_VER}-config \
 	  && ./configure perl --module=perl${PERL_VER} \
-	  && ./configure php --module=php74\
-			--config=php-config74\
-			--lib-path=${PREFIX}/lib/php74 \
+	  && ./configure php --module=php82\
+			--config=php-config82\
+			--lib-path=${PREFIX}/lib/php82 \
 	  && ./configure php --module=php80\
 			--config=php-config80\
 			--lib-path=${PREFIX}/lib/php80 \
@@ -104,16 +104,16 @@ This subpackage contains NGINX Unit server module for the default python.
 This subpackage contains NGINX Unit server module for the default perl.
 
 
-[FILE:67:descriptions/desc.php74]
-This subpackage contains NGINX Unit server module for the PHP 7.4.
-
-
 [FILE:67:descriptions/desc.php80]
 This subpackage contains NGINX Unit server module for the PHP 8.0.
 
 
 [FILE:67:descriptions/desc.php81]
 This subpackage contains NGINX Unit server module for the PHP 8.1.
+
+
+[FILE:67:descriptions/desc.php82]
+This subpackage contains NGINX Unit server module for the PHP 8.2.
 
 
 [FILE:97:distinfo]
@@ -135,16 +135,16 @@ libexec/unit/modules/python%%PY3VER%%.unit.%%SHARED_OBJECT%%
 libexec/unit/modules/perl%%PERL_VER%%.unit.%%SHARED_OBJECT%%
 
 
-[FILE:50:manifests/plist.php74]
-libexec/unit/modules/php74.unit.%%SHARED_OBJECT%%
-
-
 [FILE:50:manifests/plist.php80]
 libexec/unit/modules/php80.unit.%%SHARED_OBJECT%%
 
 
 [FILE:50:manifests/plist.php81]
 libexec/unit/modules/php81.unit.%%SHARED_OBJECT%%
+
+
+[FILE:50:manifests/plist.php82]
+libexec/unit/modules/php82.unit.%%SHARED_OBJECT%%
 
 
 [FILE:401:patches/patch-auto_sendfile]
@@ -160,6 +160,58 @@ libexec/unit/modules/php81.unit.%%SHARED_OBJECT%%
 +
                        int main() {
                            off_t  sent;
+ 
+
+
+[FILE:1436:patches/patch-fix-php82]
+From 48b6a7b311272896be9212e170fcee8d1da25e79 Mon Sep 17 00:00:00 2001
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 2 Jun 2022 16:16:35 +0200
+Subject: [PATCH] PHP: Fixed php_module_startup() call for PHP 8.2.
+
+PHP 8.2 changed the prototype of the function, removing the last
+parameter.
+
+Signed-off-by: Remi Collet <remi@remirepo.net>
+Cc: Timo Stark <t.stark@nginx.com>
+Cc: George Peter Banyard <girgias@php.net>
+Tested-by: Andy Postnikov <apostnikov@gmail.com>
+Acked-by: Andy Postnikov <apostnikov@gmail.com>
+Reviewed-by: Andrew Clayton <a.clayton@nginx.com>
+Signed-off-by: Alejandro Colomar <alx@nginx.com>
+---
+ auto/modules/php   | 4 ++++
+ docs/changes.xml   | 6 ++++++
+ src/nxt_php_sapi.c | 4 ++++
+ 3 files changed, 14 insertions(+)
+
+--- auto/modules/php.orig
++++ auto/modules/php
+@@ -149,7 +149,11 @@ nxt_feature_test="
+     #include <php_main.h>
+ 
+     int main() {
++    #if (PHP_VERSION_ID < 80200)
+         php_module_startup(NULL, NULL, 0);
++    #else
++        php_module_startup(NULL, NULL);
++    #endif
+         return 0;
+     }"
+ 
+--- src/nxt_php_sapi.c.orig
++++ src/nxt_php_sapi.c
+@@ -1150,7 +1150,11 @@ nxt_php_vcwd_chdir(nxt_unit_request_info_t *req, u_char *dir)
+ static int
+ nxt_php_startup(sapi_module_struct *sapi_module)
+ {
++#if (PHP_VERSION_ID < 80200)
+     return php_module_startup(sapi_module, &nxt_php_unit_module, 1);
++#else
++    return php_module_startup(sapi_module, &nxt_php_unit_module);
++#endif
+ }
+ 
  
 
 

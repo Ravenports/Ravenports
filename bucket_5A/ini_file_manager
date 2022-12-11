@@ -2,6 +2,7 @@
 
 NAMEBASE=		ini_file_manager
 VERSION=		10
+REVISION=		1
 KEYWORDS=		misc ada
 VARIANTS=		standard
 SDESC[standard]=	Ini configuration file manipulator for Ada
@@ -15,7 +16,6 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			docs
-			examples
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -26,26 +26,27 @@ DISTNAME=		ini-files-code
 
 LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKDIR}}/LICENSE
-LICENSE_AWK=		MIT:"^-----"
-LICENSE_SOURCE=		MIT:{{WRKSRC}}/config.ads
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		misc/ini_file_manager
 
+INSTALL_REQ_TOOLCHAIN=	yes
+
+post-patch:
+	# Done here because it comes with DOS endings
+	${AWK} '/^--  Change log/ {exit}; {print}' ${WRKSRC}/config.ads > ${WRKDIR}/LICENSE
+	# install our gpr build
+	${CP} ${FILESDIR}/construct.gpr ${WRKSRC}/ini_file_manager.gpr
+
 do-build:
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -p -Pini_files)
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -v -p -Pini_file_manager)
 
 do-install:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		gprinstall -p -Pini_files --no-manifest \
-		--sources-subdir=include/ini_file_manager \
-		--lib-subdir=lib/ini_file_manager \
+		gprinstall -v -p -Pini_file_manager --no-manifest \
 		--prefix=${STAGEDIR}${PREFIX})
-	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
-	${MV} ${STAGEDIR}${PREFIX}/bin/* ${STAGEDIR}${STD_EXAMPLESDIR}
 	${INSTALL_DATA} ${WRKSRC}/README.md ${STAGEDIR}${STD_DOCDIR}/
-	${STRIP_CMD} ${STAGEDIR}${STD_EXAMPLESDIR}/*
 
 [FILE:492:descriptions/desc.primary]
 The Ini file manager consists of a package, Config, which can read or write
@@ -68,25 +69,33 @@ on a Windows-based computer.
 8ad0e74862557d8121dd0bc6b34c037ebe60bfca4eb8d879dc25e55f27ef1175        16446 ini-files-10.zip
 
 
-[FILE:163:manifests/plist.primary]
+[FILE:130:manifests/plist.primary]
 include/ini_file_manager/
  config.adb
  config.ads
- rosetta_read_cfg.adb
- rosetta_updt_cfg.adb
- rosetta_updt_cfg_reset.adb
- test_config.adb
-share/gpr/ini_files.gpr
+lib/ini_file_manager/
+ config.ali
+ libinifiles.a
+share/gpr/ini_file_manager.gpr
 
 
 [FILE:37:manifests/plist.docs]
 share/doc/ini_file_manager/README.md
 
 
-[FILE:106:manifests/plist.examples]
-share/examples/ini_file_manager/
- rosetta_read_cfg
- rosetta_updt_cfg
- rosetta_updt_cfg_reset
- test_config
+[FILE:377:files/construct.gpr]
+project Ini_File_Manager is
+
+   for Languages use ("ada");
+   for Source_Files use ("config.ads", "config.adb");
+   for Object_Dir use "obj";
+   for Library_Name use "inifiles";
+   for Library_Dir use "lib";
+   for Library_Kind use "static-pic";
+
+   package Builder is
+      for Default_Switches ("ada") use ("-gnatf", "-gnatws", "-O2");
+   end Builder;
+
+end Ini_File_Manager;
 

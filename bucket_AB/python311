@@ -2,6 +2,7 @@
 
 NAMEBASE=		python311
 VERSION=		3.11.0
+REVISION=		1
 KEYWORDS=		lang python
 VARIANTS=		standard
 SDESC[standard]=	Interpreted object-oriented programming language
@@ -48,7 +49,7 @@ CONFIGURE_ARGS=		--with-system-ffi
 			--enable-ipv6
 			--with-openssl={{OPENSSLBASE}}
 CONFIGURE_ENV=		OPT=""
-			DISABLED_EXTENSIONS="_sqlite3 _tkinter _gdbm _crypt"
+			DISABLED_EXTENSIONS="_sqlite3 _tkinter _gdbm"
 
 MAKE_ARGS=		INSTALL_SHARED="{{INSTALL_LIB}}"
 SINGLE_JOB=		yes
@@ -142,8 +143,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 a57dc82d77358617ba65b9841cee1e3b441f386c3789ddc0676eca077f2951c3     19819768 Python-3.11.0.tar.xz
 
 
-[FILE:234862:manifests/plist.single]
-@comment lib/python%%XYDOT%%/lib-dynload/_crypt%%SOABI%%.so
+[FILE:234822:manifests/plist.single]
 %%DEBUG-ON%%bin/
  python%%XYDOT%%%%ABI%%
  python%%XYDOT%%%%ABI%%-config
@@ -3235,6 +3235,7 @@ lib/python%%XYDOT%%/lib-dynload/
  _codecs_kr%%SOABI%%.so
  _codecs_tw%%SOABI%%.so
  _contextvars%%SOABI%%.so
+ _crypt%%SOABI%%.so
  _csv%%SOABI%%.so
  _ctypes%%SOABI%%.so
  _ctypes_test%%SOABI%%.so
@@ -8056,18 +8057,21 @@ share/man/man1/python%%XYDOT%%.1.gz
  #if defined(__FreeBSD__) && defined(_XOPEN_SOURCE_EXTENDED)
 
 
-[FILE:445:patches/patch-Include_pymacro.h]
+[FILE:587:patches/patch-Include_pymacro.h]
 --- Include/pymacro.h.orig	2022-10-24 17:35:39 UTC
 +++ Include/pymacro.h
-@@ -6,7 +6,7 @@
+@@ -6,8 +6,10 @@
  // the static_assert() macro. Define the static_assert() macro in Python until
  // <sys/cdefs.h> suports C11:
  // https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=255290
 -#if defined(__FreeBSD__) && !defined(static_assert)
 +#if (defined(__FreeBSD__) || defined(__DragonFly__)) && !defined(static_assert)
++# if !(defined(__cplusplus) && __cplusplus >= 201103L)
  #  define static_assert _Static_assert
++# endif
  #endif
  
+ // static_assert is defined in glibc from version 2.16. Before it requires
 
 
 [FILE:1644:patches/patch-Lib_distutils_command_install__lib.py]
@@ -8313,7 +8317,7 @@ record file nonetheless.
  LIBEXPAT_CFLAGS
 
 
-[FILE:1596:patches/patch-setup.py]
+[FILE:2122:patches/patch-setup.py]
 --- setup.py.orig	2022-10-24 17:35:39 UTC
 +++ setup.py
 @@ -56,7 +56,10 @@ with warnings.catch_warnings():
@@ -8348,6 +8352,20 @@ record file nonetheless.
  
          curses_enabled = True
          if curses_library.startswith('ncurses'):
+@@ -1176,7 +1173,12 @@ class PyBuildExt(build_ext):
+             self.missing.append('_curses_panel')
+ 
+     def detect_crypt(self):
+-        self.addext(Extension('_crypt', ['_cryptmodule.c']))
++        if self.compiler.find_library_file(self.lib_dirs, 'crypt'):
++            libs = ['crypt']
++        else:
++            libs = []
++
++        self.addext(Extension('_crypt', ['_cryptmodule.c'], libraries=libs))
+ 
+     def detect_dbm_gdbm(self):
+         # Modules that provide persistent dictionary-like semantics.  You will
 
 
 [FILE:417:files/pkg-message-single.in]

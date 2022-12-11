@@ -76,6 +76,7 @@ do-build:
 
 post-install:
 	${FIND} ${STAGEDIR}${PREFIX} -type f -name ".gitignore" -delete
+	${FIND} ${STAGEDIR}${PREFIX} -type f -name "*.orig" -delete
 	${FIND} ${STAGEDIR}${PREFIX} -type d -empty -delete
 	${FIND} ${STAGEDIR}${PREFIX} -type d -name "__pycache__" | ${XARGS} rm -rf
 	${INSTALL_SCRIPT} ${WRKDIR}/gps ${STAGEDIR}${PREFIX}/bin
@@ -1346,6 +1347,22 @@ Change-Id: I737ad812fc4c85617bb71fc49a3dde1547967b8e
  
      def __on_preferences_changed(self, hook):
          changed = False
+
+
+[FILE:432:patches/patch-share_support_core_gs__utils_____init____.py]
+Fix collections for Python 3.10+
+
+--- share/support/core/gs_utils/__init__.py.orig	2022-05-11 12:25:42 UTC
++++ share/support/core/gs_utils/__init__.py
+@@ -2,7 +2,7 @@
+ # exported by GPS to make it easier to write plugins
+ 
+ from GPS import pwd, cd, Action, EditorBuffer, MDI
+-from collections import MutableMapping as DictMixin
++from collections.abc import MutableMapping as DictMixin
+ import types
+ import GPS
+ import GPS.Browsers
 
 
 [FILE:903:patches/patch-shared.gpr.in]
