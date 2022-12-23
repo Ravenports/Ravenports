@@ -251,10 +251,10 @@ share/gtk-doc/html/libgtop/
  up.png
 
 
-[FILE:347:freebsd/patch-config.h.in]
---- config.h.in.orig	2015-08-13 20:06:02.824731000 +0200
-+++ config.h.in	2015-08-13 20:07:06.011319000 +0200
-@@ -115,6 +115,9 @@
+[FILE:299:patches/patch-config.h.in]
+--- config.h.in.orig	2019-03-11 08:56:47 UTC
++++ config.h.in
+@@ -119,6 +119,9 @@
  /* defined if you have linux/isdn.h */
  #undef HAVE_ISDN_H
  
@@ -266,10 +266,46 @@ share/gtk-doc/html/libgtop/
  
 
 
-[FILE:1654:freebsd/patch-configure]
---- configure.orig	2015-08-13 20:06:09.161030000 +0200
-+++ configure	2015-08-13 20:07:04.020683000 +0200
-@@ -14503,6 +14503,57 @@
+[FILE:3134:patches/patch-configure]
+--- configure.orig	2019-03-11 08:56:47 UTC
++++ configure
+@@ -13955,7 +13955,7 @@ $as_echo_n "checking for libgtop sysdeps
+ 	  libgtop_sysdeps_private_fsusage=yes
+ 	  libgtop_postinstall='chgrp kmem $(bindir)/libgtop_server2 && chmod 2555 $(bindir)/libgtop_server2'
+ 	  ;;
+-	freebsd*|kfreebsd*)
++	freebsd*|dragonfly*|kfreebsd*)
+ 	  libgtop_sysdeps_dir=freebsd
+ 	  libgtop_need_server=yes
+ 	  libgtop_sysdeps_private_mountlist=yes
+@@ -14020,7 +14020,7 @@ $as_echo "$libgtop_sysdeps_dir" >&6; }
+ 
+ 
+ 	case "$host_os" in
+-	*bsd*)
++	*bsd*|dragonfly*)
+ 	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for kvm_open in -lkvm" >&5
+ $as_echo_n "checking for kvm_open in -lkvm... " >&6; }
+ if ${ac_cv_lib_kvm_kvm_open+:} false; then :
+@@ -14101,6 +14101,8 @@ $as_echo_n "checking for I4B... " >&6; }
+ 
+ #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__FreeBSD_kernel__)
+ #include <net/if_sppp.h>
++#elif defined(__DragonFly__)
++#include <net/sppp/if_sppp.h>
+ #else
+ #include <i4b/sppp/if_sppp.h>
+ #endif
+@@ -14147,6 +14149,8 @@ $as_echo_n "checking for I4B accounting.
+ 
+ #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__FreeBSD_kernel__)
+ #include <net/if_sppp.h>
++#elif defined(__DragonFly__)
++#include <net/sppp/if_sppp.h>
+ #else
+ #include <i4b/sppp/if_sppp.h>
+ #endif
+@@ -14462,6 +14466,57 @@ $as_echo "#define HAVE_IFADDRS_H 1" >>co
  
  fi
  
@@ -327,17 +363,26 @@ share/gtk-doc/html/libgtop/
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for an ANSI C-conforming const" >&5
  $as_echo_n "checking for an ANSI C-conforming const... " >&6; }
  if ${ac_cv_c_const+:} false; then :
+@@ -18806,7 +18861,7 @@ if test x$cross_compiling = xyes ; then
+         sunos*)
+           fu_cv_sys_stat_statfs4=yes
+           ;;
+-        freebsd*)
++        freebsd*|dragonfly*)
+           fu_cv_sys_stat_statfs2_bsize=yes
+           ;;
+         osf*)
 
 
-[FILE:715:freebsd/patch-examples_mountlist.c]
+[FILE:801:patches/patch-examples_mountlist.c]
 Remove unreliable and non-portable way to demonstrate memory utilization
 with sbrk(2).
 
 https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
 
---- examples/mountlist.c.orig
+--- examples/mountlist.c.orig	2019-02-04 20:15:22 UTC
 +++ examples/mountlist.c
-@@ -71,16 +71,12 @@
+@@ -71,16 +71,12 @@ main (int argc, char *argv [])
  
  	printf ("Host = '%s' - %u\n\n", buffer, port);
  
@@ -354,7 +399,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  	mount_entries = glibtop_get_mountlist (&mount_list, 1);
  
  	if (mount_entries == NULL)
-@@ -108,8 +104,6 @@
+@@ -108,8 +104,6 @@ main (int argc, char *argv [])
  
  	g_free (mount_entries);
  
@@ -365,10 +410,246 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  	exit (0);
 
 
-[FILE:5109:freebsd/patch-sysdeps_freebsd_procmap.c]
---- sysdeps/freebsd/procmap.c.orig	2021-06-06 05:13:00 UTC
+[FILE:696:patches/patch-sysdeps_common_fsusage.c]
+--- sysdeps/common/fsusage.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/common/fsusage.c
+@@ -140,7 +140,7 @@ _glibtop_get_fsusage_read_write(glibtop
+ }
+ 
+ 
+-#elif defined(__FreeBSD__)
++#elif defined(__FreeBSD__) || defined(__DragonFly__)
+ void
+ _glibtop_freebsd_get_fsusage_read_write(glibtop *server,
+ 					glibtop_fsusage *buf,
+@@ -279,7 +279,7 @@ glibtop_get_fsusage_s (glibtop *server,
+     return;
+ 
+ #if (defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__)) \
+-	|| defined(__FreeBSD__) || defined(__OpenBSD__)
++	|| defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+   /* Solaris but not SunOS and FreeBSD */
+   buf->block_size = fsd.f_frsize;
+ #else
+
+
+[FILE:964:patches/patch-sysdeps_common_mountlist.c]
+--- sysdeps/common/mountlist.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/common/mountlist.c
+@@ -106,7 +106,7 @@ static struct mount_entry *read_filesyst
+ #endif
+ 
+ 
+-#if defined (MOUNTED_GETMNTINFO) && !defined (__NetBSD__) && !defined (__OpenBSD__) && !defined(__FreeBSD__)
++#if defined (MOUNTED_GETMNTINFO) && !defined (__NetBSD__) && !defined (__OpenBSD__) && !defined(__FreeBSD__) && !defined(__DragonFly__)
+ static const char *
+ fstype_to_string (short t)
+ {
+@@ -309,7 +309,7 @@ read_filesystem_list (void)
+ 	me = (struct mount_entry *) g_malloc (sizeof (struct mount_entry));
+ 	me->me_devname = g_strdup (fsp->f_mntfromname);
+ 	me->me_mountdir = g_strdup (fsp->f_mntonname);
+-#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__)
++#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+ 	me->me_type = g_strdup (fsp->f_fstypename);
+ #else
+ 	me->me_type = g_strdup (fstype_to_string (fsp->f_type));
+
+
+[FILE:304:patches/patch-sysdeps_freebsd_glibtop__machine.h]
+--- sysdeps/freebsd/glibtop_machine.h.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/glibtop_machine.h
+@@ -26,7 +26,9 @@
+ #include <nlist.h>
+ #include <limits.h>
+ #include <kvm.h>
++#ifndef __DragonFly__
+ #include <sys/dkstat.h>
++#endif
+ #include <time.h>
+ #include <sys/user.h>
+ #include <sys/types.h>
+
+
+[FILE:233:patches/patch-sysdeps_freebsd_mountlist.c]
+--- sysdeps/freebsd/mountlist.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/mountlist.c
+@@ -99,6 +99,7 @@ static gboolean ignore_mount_entry(const
+ 		"mfs",
+ 		"none",
+ 		"nfs",
++		"null",
+ 		"nullfs",
+ 		"nwfs",
+ 		"portalfs",
+
+
+[FILE:681:patches/patch-sysdeps_freebsd_netload.c]
+DFLYGC 6.2
+
+--- sysdeps/freebsd/netload.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/netload.c
+@@ -108,7 +108,11 @@ glibtop_get_netload_p (glibtop *server,
+                         memset(&ifmr, 0, sizeof(ifmr));
+                         (void)strlcpy(ifmr.ifm_name, ifa->ifa_name,
+                                 sizeof(ifmr.ifm_name));
++#ifndef SIOCGIFXMEDIA
++                        if (
++#else
+                         if (ioctl(s, SIOCGIFXMEDIA, (caddr_t)&ifmr) < 0 &&
++#endif
+                             ioctl(s, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
+                                 glibtop_warn_io_r(server, "ioctl(SIOCGIFMEDIA)");
+                         } else {
+
+
+[FILE:375:patches/patch-sysdeps_freebsd_open.c]
+--- sysdeps/freebsd/open.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/open.c
+@@ -43,6 +43,10 @@ glibtop_open_s (glibtop *server, const c
+ 	server->real_ncpu = ncpus - 1;
+ 	server->ncpu = MIN(GLIBTOP_NCPU - 1, server->real_ncpu);
+ 
++#ifdef __DragonFly__
++	server->os_version_code = __DragonFly_version;
++#else
+ 	server->os_version_code = __FreeBSD_version;
++#endif
+ 
+ }
+
+
+[FILE:387:patches/patch-sysdeps_freebsd_procio.c]
+--- sysdeps/freebsd/procio.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/procio.c
+@@ -74,7 +74,9 @@ glibtop_get_proc_io_p (glibtop *server,
+ 
+ 	   FIXME: seems the blocksize is 1024 but ...
+ 	*/
++#ifndef __DragonFly__
+ 	buf->disk_rbytes = pinfo->ki_rusage.ru_inblock << 10;
+ 	buf->disk_wbytes = pinfo->ki_rusage.ru_oublock << 10;
+ 	buf->flags = _glibtop_sysdeps_proc_io;
++#endif
+ }
+
+
+[FILE:1217:patches/patch-sysdeps_freebsd_prockernel.c]
+--- sysdeps/freebsd/prockernel.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/prockernel.c
+@@ -89,9 +89,14 @@ glibtop_get_proc_kernel_p (glibtop *serv
+ 
+ 	glibtop_suid_leave (server);
+ 
++#ifdef __DragonFly__
++#define	PROC_WCHAN	kp_lwp.kl_wchan
++#define	PROC_WMESG	kp_lwp.kl_wmesg
++#else
+ #define	PROC_WCHAN	ki_wchan
+ #define	PROC_WMESG	ki_wmesg
+ #define	PROC_WMESG	ki_wmesg
++#endif
+ 
+ 	buf->nwchan = (unsigned long) pinfo [0].PROC_WCHAN;
+ 
+@@ -105,6 +110,11 @@ glibtop_get_proc_kernel_p (glibtop *serv
+ 		buf->wchan [0] = 0;
+ 	}
+ 
++#ifdef __DragonFly__
++	buf->k_flags = (unsigned long) pinfo [0].kp_flags;
++	buf->min_flt = (unsigned long) pinfo [0].kp_ru.ru_minflt;
++	buf->maj_flt = (unsigned long) pinfo [0].kp_ru.ru_majflt;
++#else
+ 	buf->k_flags = (unsigned long) pinfo [0].ki_flag;
+ 	buf->min_flt = (unsigned long) pinfo [0].ki_rusage.ru_minflt;
+ 	buf->maj_flt = (unsigned long) pinfo [0].ki_rusage.ru_majflt;
+@@ -112,6 +122,7 @@ glibtop_get_proc_kernel_p (glibtop *serv
+ 	buf->cmin_flt = (unsigned long) buf->min_flt + pinfo [0].ki_rusage_ch.ru_minflt;
+ 	buf->cmaj_flt = (unsigned long) buf->maj_flt + pinfo [0].ki_rusage_ch.ru_majflt;
+ #endif
++#endif
+ 
+ 	buf->flags |= _glibtop_sysdeps_proc_kernel_pstats;
+ 
+
+
+[FILE:1916:patches/patch-sysdeps_freebsd_proclist.c]
+--- sysdeps/freebsd/proclist.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/proclist.c
+@@ -94,7 +94,7 @@ glibtop_get_proclist_p (glibtop *server,
+ 	for (i = 0; i < len; i++) {
+ 		pid_t pid;
+ 
+-		pid = (pid_t) pinfo[i].ki_pid;
++		pid = (pid_t) pinfo[i].kp_pid;
+ 
+ 		/* If a process has many threads, kern.proc.all reports multiple
+ 		   times the same pid. So don't look twice at the same pid.
+@@ -115,41 +115,41 @@ glibtop_get_proclist_p (glibtop *server,
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_UID:
+-				if ((uid_t) arg != pinfo[i].ki_ruid)
++				if ((uid_t) arg != pinfo[i].kp_ruid)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_PGRP:
+-				if ((pid_t) arg != pinfo[i].ki_pgid)
++				if ((pid_t) arg != pinfo[i].kp_pgid)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_SESSION:
+-				if ((pid_t) arg != pinfo[i].ki_sid)
++				if ((pid_t) arg != pinfo[i].kp_sid)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_TTY:
+-				if ((dev_t) arg != pinfo[i].ki_tdev)
++				if ((dev_t) arg != pinfo[i].kp_tdev)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_RUID:
+-				if ((uid_t) arg != pinfo[i].ki_ruid)
++				if ((uid_t) arg != pinfo[i].kp_ruid)
+ 					continue;
+ 				break;
+ 			}
+ 
+ 		if (which & GLIBTOP_EXCLUDE_NOTTY)
+-			if (pinfo[i].ki_tdev == (dev_t) -1) continue;
++			if (pinfo[i].kp_tdev == (dev_t) -1) continue;
+ 
+ 		if (which & GLIBTOP_EXCLUDE_IDLE) {
+ 			glibtop_get_proc_state_p (server, &procstate, pid);
+ 			if (procstate.flags & (1L << GLIBTOP_PROC_STATE_STATE))
+ 				if (procstate.state != GLIBTOP_PROCESS_RUNNING) continue;
+ 
+-			if (pinfo[i].ki_ppid == 0 && !strcmp(pinfo[i].ki_comm, "idle"))
++			if (pinfo[i].kp_ppid == 0 && !strcmp(pinfo[i].kp_comm, "idle"))
+ 				continue;
+ 		}
+ 
+ 		if (which & GLIBTOP_EXCLUDE_SYSTEM)
+-			if (pinfo[i].ki_ruid == (uid_t) 0) continue;
++			if (pinfo[i].kp_ruid == (uid_t) 0) continue;
+ 
+ 		g_array_append_val (pids, pid);
+ 	}
+
+
+[FILE:5721:patches/patch-sysdeps_freebsd_procmap.c]
+--- sysdeps/freebsd/procmap.c.orig	2019-02-04 20:15:22 UTC
 +++ sysdeps/freebsd/procmap.c
-@@ -34,6 +34,8 @@
+@@ -24,6 +24,7 @@
+ #include <glibtop/error.h>
+ #include <glibtop/procmap.h>
+ 
++#ifndef __DragonFly__ /* TODO */
+ #include <glibtop_suid.h>
+ 
+ #include <kvm.h>
+@@ -34,6 +35,8 @@
  #include <vm/vm_map.h>
  #include <vm/vm.h>
  
@@ -377,7 +658,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  #define _KVM_VNODE
  #include <sys/vnode.h>
  #undef _KVM_VNODE
-@@ -51,14 +53,15 @@
+@@ -51,13 +54,14 @@
  #define _KERNEL
  #include <sys/mount.h>
  #include <ufs/ufs/quota.h>
@@ -389,13 +670,12 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  #include <fs/devfs/devfs_int.h>
  #endif
  #undef _KERNEL
+-
 +#include <ufs/ufs/inode.h>
  
--
  #if (__FreeBSD_version >= 1101001)
  #define _KERNEL
- #include <ufs/ufs/extattr.h>
-@@ -95,12 +98,14 @@ _glibtop_sysdeps_freebsd_dev_inode (glibtop *server, s
+@@ -95,12 +99,14 @@ _glibtop_sysdeps_freebsd_dev_inode (glib
          struct cdev_priv priv;
  #if __FreeBSD_version < 800039
          struct cdev si;
@@ -411,7 +691,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
   	             (char *) &tagptr, sizeof (tagptr)) != sizeof (tagptr) ||
              kvm_read (server->machine->kd, (gulong) tagptr,
  		     (char *) tagstr, sizeof (tagstr)) != sizeof (tagstr))
-@@ -120,7 +125,7 @@ _glibtop_sysdeps_freebsd_dev_inode (glibtop *server, s
+@@ -120,7 +126,7 @@ _glibtop_sysdeps_freebsd_dev_inode (glib
                  return;
          }
  
@@ -420,10 +700,21 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
   	              sizeof (inode)) != sizeof (inode))
          {
                  glibtop_warn_io_r (server, "kvm_read (inode)");
-@@ -231,6 +236,32 @@ _glibtop_init_proc_map_p (glibtop *server)
+@@ -222,6 +228,9 @@ _glibtop_sysdeps_freebsd_dev_inode (glib
+ 	    } /* end-if IS_UFS */
+ }
+ #endif
++#else
++static const unsigned long _glibtop_sysdeps_proc_map = 0;
++#endif /* __DragonFly__ */
+ 
+ /* Init function. */
+ 
+@@ -231,20 +240,51 @@ _glibtop_init_proc_map_p (glibtop *serve
          server->sysdeps.proc_map = _glibtop_sysdeps_proc_map;
  }
  
++#ifndef __DragonFly__
 +static int
 +vm_map_reader(void *token, vm_map_entry_t addr, vm_map_entry_t dest)
 +{
@@ -433,7 +724,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
 +	return (kvm_read (kd, (gulong) addr, dest, sizeof(*dest)) == sizeof(*dest));
 +}
 +
-+#if (__FreeBSD_version < 1300062)
++#if (__FreeBSD_version < 1300062) && !defined(__DragonFly__)
 +typedef int vm_map_entry_reader(void *token, vm_map_entry_t addr,
 +    vm_map_entry_t dest);
 +
@@ -449,13 +740,18 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
 +	return (next);
 +}
 +#endif
++#endif
 +
  /* Provides detailed information about a process. */
  
  glibtop_map_entry *
-@@ -238,13 +269,12 @@ glibtop_get_proc_map_p (glibtop *server, glibtop_proc_
+ glibtop_get_proc_map_p (glibtop *server, glibtop_proc_map *buf,
                          pid_t pid)
  {
++#ifdef __DragonFly__
++	memset (buf, 0, sizeof (glibtop_proc_map));
++	return NULL;
++#else
          struct kinfo_proc *pinfo;
 -        struct vm_map_entry entry, *first;
 +        struct vm_map_entry entry;
@@ -469,7 +765,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  
          memset (buf, 0, sizeof (glibtop_proc_map));
  
-@@ -273,16 +303,6 @@ glibtop_get_proc_map_p (glibtop *server, glibtop_proc_
+@@ -273,16 +313,6 @@ glibtop_get_proc_map_p (glibtop *server,
                  return NULL;
          }
  
@@ -486,7 +782,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
          /* Walk through the `vm_map_entry' list ... */
  
          /* I tested this a few times with `mmap'; as soon as you write
-@@ -292,21 +312,17 @@ glibtop_get_proc_map_p (glibtop *server, glibtop_proc_
+@@ -292,21 +322,17 @@ glibtop_get_proc_map_p (glibtop *server,
          maps = g_array_sized_new(FALSE, FALSE, sizeof(glibtop_map_entry),
                                   vmspace.vm_map.nentries);
  
@@ -515,7 +811,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  
                  if (entry.eflags & (MAP_ENTRY_IS_SUB_MAP))
                          continue;
-@@ -377,7 +393,7 @@ glibtop_get_proc_map_p (glibtop *server, glibtop_proc_
+@@ -377,7 +403,7 @@ glibtop_get_proc_map_p (glibtop *server,
                  if (entry.protection & VM_PROT_EXECUTE)
                          mentry->perm |= GLIBTOP_MAP_PERM_EXECUTE;
  
@@ -524,12 +820,58 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  
          glibtop_suid_leave (server);
  
+@@ -388,4 +414,5 @@ glibtop_get_proc_map_p (glibtop *server,
+         buf->total  = (guint64) (buf->number * buf->size);
+ 
+         return (glibtop_map_entry*) g_array_free(maps, FALSE);
++#endif
+ }
 
 
-[FILE:1911:freebsd/patch-sysdeps_freebsd_procopenfiles.c]
---- sysdeps/freebsd/procopenfiles.c.orig	2014-10-12 07:17:26 UTC
+[FILE:961:patches/patch-sysdeps_freebsd_procmem.c]
+--- sysdeps/freebsd/procmem.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/procmem.c
+@@ -34,8 +34,10 @@
+ #include <vm/vm_map.h>
+ 
+ #include <sys/vnode.h>
++#ifndef __DragonFly__
+ #include <ufs/ufs/quota.h>
+ #include <ufs/ufs/inode.h>
++#endif
+ 
+ #include <sys/ucred.h>
+ #include <sys/user.h>
+@@ -92,12 +94,23 @@ glibtop_get_proc_mem_p (glibtop *server,
+ 
+ #define        PROC_VMSPACE   ki_vmspace
+ 
++#ifdef __DragonFly__
++       buf->rss_rlim = pinfo [0].kp_vm_rssize;
++#else
+        buf->rss_rlim = pinfo [0].ki_rssize;
++#endif
+ 
++#ifdef __DragonFly__
++       buf->vsize = buf->size = (guint64)
++	       pinfo [0].kp_vm_map_size;
++       buf->resident = buf->rss = (guint64)
++	       ps_pgtok (pinfo [0].kp_vm_rssize) * 1024;
++#else
+        buf->vsize = buf->size = (guint64)
+ 	       pinfo [0].ki_size;
+        buf->resident = buf->rss = (guint64)
+ 	       ps_pgtok (pinfo [0].ki_rssize) * 1024;
++#endif
+ 
+        buf->flags |= _glibtop_sysdeps_proc_mem;
+ 
+
+
+[FILE:1869:patches/patch-sysdeps_freebsd_procopenfiles.c]
+--- sysdeps/freebsd/procopenfiles.c.orig	2019-02-04 20:15:22 UTC
 +++ sysdeps/freebsd/procopenfiles.c
-@@ -322,12 +322,21 @@ glibtop_get_proc_open_files_s (glibtop *server, glibto
+@@ -322,12 +322,21 @@ glibtop_get_proc_open_files_s (glibtop *
  				struct sockaddr_un *sun;
  
  				entry.type = GLIBTOP_FILE_TYPE_LOCALSOCKET;
@@ -551,7 +893,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  					g_strlcpy(entry.info.localsock.name,
  						  addrstr,
  						  sizeof(entry.info.localsock.name));
-@@ -335,7 +344,11 @@ glibtop_get_proc_open_files_s (glibtop *server, glibto
+@@ -335,7 +344,11 @@ glibtop_get_proc_open_files_s (glibtop *
  				} else {
  					char *addrstr;
  
@@ -563,7 +905,7 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  					g_strlcpy(entry.info.localsock.name,
  						  addrstr,
  						  sizeof(entry.info.localsock.name));
-@@ -349,12 +362,20 @@ glibtop_get_proc_open_files_s (glibtop *server, glibto
+@@ -349,12 +362,20 @@ glibtop_get_proc_open_files_s (glibtop *
  					entry.type = GLIBTOP_FILE_TYPE_INETSOCKET;
  				else
  					entry.type = GLIBTOP_FILE_TYPE_INET6SOCKET;
@@ -584,4 +926,175 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  			}
  		} else if (kif->kf_type == KF_TYPE_PIPE) {
  			entry.type = GLIBTOP_FILE_TYPE_PIPE;
+
+
+[FILE:460:patches/patch-sysdeps_freebsd_procsegment.c]
+--- sysdeps/freebsd/procsegment.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/procsegment.c
+@@ -67,8 +67,13 @@ glibtop_get_proc_segment_p (glibtop *ser
+ 		return;
+ 	}
+ 
++#ifdef __DragonFly__
++	buf->text_rss = pinfo[0].kp_vm_tsize * pagesize;
++	buf->data_rss = pinfo[0].kp_vm_dsize * pagesize;
++#else
+ 	buf->text_rss = pinfo[0].ki_tsize * pagesize;
+ 	buf->data_rss = pinfo[0].ki_dsize * pagesize;
++#endif
+ 
+ 	buf->flags = _glibtop_sysdeps_proc_segment;
+ }
+
+
+[FILE:574:patches/patch-sysdeps_freebsd_procsignal.c]
+--- sysdeps/freebsd/procsignal.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/procsignal.c
+@@ -64,10 +64,17 @@ glibtop_get_proc_signal_p (glibtop *serv
+ 		return;
+ 	}
+ 
++#ifdef __DragonFly__
++#define	PROC_SIGLIST	kp_siglist
++#define	PROC_SIGMASK	kp_lwp.kl_sigmask
++#define	PROC_SIGIGNORE	kp_sigignore
++#define	PROC_SIGCATCH	kp_sigcatch
++#else
+ #define	PROC_SIGLIST	ki_siglist
+ #define	PROC_SIGMASK	ki_sigmask
+ #define	PROC_SIGIGNORE	ki_sigignore
+ #define	PROC_SIGCATCH	ki_sigcatch
++#endif
+ 
+ 	/* signal: mask of pending signals.
+ 	 *         pinfo [0].kp_proc.p_siglist
+
+
+[FILE:1227:patches/patch-sysdeps_freebsd_procstate.c]
+--- sysdeps/freebsd/procstate.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/procstate.c
+@@ -59,11 +59,46 @@ glibtop_get_proc_state_p (glibtop *serve
+ 		return;
+ 	}
+ 
++#ifdef __DragonFly__
++	buf->uid = pinfo[0].kp_ruid;
++	buf->gid = pinfo[0].kp_rgid;
++#else
+ 	buf->uid = pinfo[0].ki_ruid;
+ 	buf->gid = pinfo[0].ki_rgid;
++#endif
+ 
++#ifdef __DragonFly__
++	g_strlcpy (buf->cmd, pinfo[0].kp_comm, sizeof (buf->cmd));
++#else
+ 	g_strlcpy (buf->cmd, pinfo[0].ki_comm, sizeof (buf->cmd));
++#endif
+ 
++#ifdef __DragonFly__
++	switch (pinfo[0].kp_stat) {
++	case SACTIVE:
++		switch (pinfo[0].kp_lwp.kl_stat) {
++		case LSRUN:
++			buf->state = GLIBTOP_PROCESS_RUNNING;
++			break;
++		case LSSLEEP:
++			buf->state = GLIBTOP_PROCESS_INTERRUPTIBLE;
++			break;
++		case LSSTOP:
++			buf->state = GLIBTOP_PROCESS_STOPPED;
++			break;
++		default:
++			buf->state = 0;
++			break;
++		}
++	case SZOMB:
++		buf->state = GLIBTOP_PROCESS_ZOMBIE;
++		break;
++	case SIDL:
++	default:
++		buf->state = 0;
++	break;
++	}
++#else
+ 	switch (pinfo[0].ki_stat) {
+ 		case SRUN:
+ 			buf->state = GLIBTOP_PROCESS_RUNNING;
+@@ -86,6 +121,7 @@ glibtop_get_proc_state_p (glibtop *serve
+ 			buf->state = 0;
+ 			break;
+ 	}
++#endif
+ 
+ 	buf->flags = _glibtop_sysdeps_proc_state;
+ }
+
+
+[FILE:1173:patches/patch-sysdeps_freebsd_proctime.c]
+--- sysdeps/freebsd/proctime.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/proctime.c
+@@ -92,8 +92,12 @@ glibtop_get_proc_time_p (glibtop *server
+ 	}
+ 
+ 	buf->frequency = (ci.stathz ? ci.stathz : ci.hz);
++#ifdef __DragonFly__
++	buf->rtime = 0; /* XXX TODO */
++#else
+ 	buf->rtime = pinfo [0].ki_runtime * buf->frequency / 1000000;
+ 	buf->flags = _glibtop_sysdeps_proc_time;
++#endif
+ 
+ 	/*
+ 	  All the following used to be 'if (pinfo [0].ki_flag & PS_INMEM)'
+@@ -101,6 +105,13 @@ glibtop_get_proc_time_p (glibtop *server
+ 	  I have no idea what this PS_INMEM is, but it works perfectly
+ 	  without this check.
+ 	 */
++#ifdef __DragonFly__
++	buf->utime = 0;
++	buf->stime = 0;
++	buf->cutime = 0;
++	buf->cstime = 0;
++           buf->start_time = 0;
++#else
+ 	buf->utime = tv2sec_freq (pinfo [0].ki_rusage.ru_utime, buf->frequency);
+ 	buf->stime = tv2sec_freq (pinfo [0].ki_rusage.ru_stime, buf->frequency);
+ 	buf->cutime = tv2sec_freq (pinfo [0].ki_childtime, buf->frequency);
+@@ -111,4 +122,5 @@ glibtop_get_proc_time_p (glibtop *server
+ #endif
+            buf->start_time = tv2sec (pinfo [0].ki_start);
+            buf->flags |= _glibtop_sysdeps_proc_time_user;
++#endif
+ }
+
+
+[FILE:768:patches/patch-sysdeps_freebsd_procuid.c]
+--- sysdeps/freebsd/procuid.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/procuid.c
+@@ -62,6 +62,17 @@ glibtop_get_proc_uid_p (glibtop *server,
+ 		return;
+ 	}
+ 
++#ifdef __DragonFly__
++#define	PROC_RUID	kp_ruid
++#define	PROC_EUID	kp_uid
++#define	PROC_RGID	kp_rgid
++#define	PROC_SVGID	kp_svgid
++#define	PROC_PPID	kp_ppid
++#define	PROC_PGID	kp_pgid
++#define	PROC_TPGID	kp_tpgid
++#define	PROC_NICE	kp_nice
++#define	PROC_PRIORITY	kp_lwp.kl_tdprio
++#else
+ #define	PROC_RUID	ki_ruid
+ #define	PROC_EUID	ki_uid
+ #define	PROC_RGID	ki_rgid
+@@ -71,6 +82,7 @@ glibtop_get_proc_uid_p (glibtop *server,
+ #define	PROC_TPGID	ki_tpgid
+ #define	PROC_NICE	ki_nice
+ #define	PROC_PRIORITY	ki_pri.pri_user
++#endif
+ 
+ 	buf->uid  = pinfo [0].PROC_RUID;
+ 	buf->euid = pinfo [0].PROC_EUID;
 
