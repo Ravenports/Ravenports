@@ -2,6 +2,7 @@
 
 NAMEBASE=		mpg123
 VERSION=		1.31.1
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	Console MP3 player and decoder library
@@ -12,12 +13,15 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://www.mpg123.de/download/
 DISTFILE[1]=		mpg123-1.31.1.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			library
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libltdl:single:standard
+EXRUN[primary]=		mpg123:library:standard
 
 USES=			cpe gmake libtool
 
@@ -41,17 +45,32 @@ VAR_OPSYS[sunos]=	VAR1=sun
 VAR_OPSYS[linux]=	VAR1=oss
 VAR_OPSYS[dragonfly]=	VAR1=oss
 
-[FILE:216:descriptions/desc.single]
+[FILE:216:descriptions/desc.primary]
 The mpg123 reads one or more files (or standard input if "-" is specified)
 or URLs and plays them on the audio device (default) or outputs them to
 stdout.  The file/URL is assumed to be an MPEG-1/2 audio bit stream.
+
+
+[FILE:50:descriptions/desc.library]
+This subpackage contains the libraries of mpg123.
 
 
 [FILE:100:distinfo]
 5dcb0936efd44cb583498b6585845206f002a7b19d5066a2683be361954d955a      1093324 mpg123-1.31.1.tar.bz2
 
 
-[FILE:628:manifests/plist.single]
+[FILE:93:manifests/plist.primary]
+bin/
+ mpg123
+ mpg123-id3dump
+ mpg123-strip
+ out123
+share/man/man1/
+ mpg123.1.gz
+ out123.1.gz
+
+
+[FILE:535:manifests/plist.library]
 %%ONLY-DRAGONFLY%%lib/mpg123/output_oss.so
 %%ONLY-FREEBSD%%lib/mpg123/output_oss.so
 %%ONLY-LINUX%%lib/mpg123/output_oss.so
@@ -59,11 +78,6 @@ stdout.  The file/URL is assumed to be an MPEG-1/2 audio bit stream.
  output_oss.so
  output_sun.so
 %%ONLY-SUNOS%%lib/mpg123/output_sun.so
-bin/
- mpg123
- mpg123-id3dump
- mpg123-strip
- out123
 include/
  fmt123.h
  mpg123.h
@@ -84,7 +98,4 @@ lib/pkgconfig/
  libmpg123.pc
  libout123.pc
  libsyn123.pc
-share/man/man1/
- mpg123.1.gz
- out123.1.gz
 
