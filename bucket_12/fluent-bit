@@ -251,7 +251,42 @@ include/monkey/mk_core/
 lib/fluent-bit/libfluent-bit.so
 
 
-[FILE:430:patches/patch-include_fluent-bit_flb__endian.h]
+[FILE:880:patches/patch-include_fluent-bit_flb__coro.h]
+NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
+_XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
+
+--- include/fluent-bit/flb_coro.h.orig	2022-11-22 14:33:00 UTC
++++ include/fluent-bit/flb_coro.h
+@@ -20,11 +20,6 @@
+ #ifndef FLB_CORO_H
+ #define FLB_CORO_H
+ 
+-/* Required by OSX */
+-#ifndef _XOPEN_SOURCE
+-#define _XOPEN_SOURCE
+-#endif
+-
+ #ifndef _DEFAULT_SOURCE
+ #define _DEFAULT_SOURCE
+ #endif
+@@ -64,7 +59,12 @@ struct flb_coro {
+ #ifdef FLB_CORO_STACK_SIZE
+ #define FLB_CORO_STACK_SIZE_BYTE      FLB_CORO_STACK_SIZE
+ #else
++# if defined(__NetBSD__) && !defined(PTHREAD_STACK_MIN)
++#include <machine/vmparam.h>
++#define FLB_CORO_STACK_SIZE_BYTE      (16 * PAGE_SIZE)
++# else
+ #define FLB_CORO_STACK_SIZE_BYTE      ((3 * PTHREAD_STACK_MIN) / 2)
++# endif
+ #endif
+ 
+ #define FLB_CORO_DATA(coro)      (((char *) coro) + sizeof(struct flb_coro))
+
+
+[FILE:496:patches/patch-include_fluent-bit_flb__endian.h]
+_XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
+
 --- include/fluent-bit/flb_endian.h.orig	2022-11-22 14:33:00 UTC
 +++ include/fluent-bit/flb_endian.h
 @@ -39,7 +39,7 @@
@@ -263,6 +298,22 @@ lib/fluent-bit/libfluent-bit.so
  #include <sys/endian.h>
  #elif defined(__APPLE__)
  #include <libkern/OSByteOrder.h>
+
+
+[FILE:272:patches/patch-include_fluent-bit_flb__output.h]
+--- include/fluent-bit/flb_output.h.orig	2022-11-22 14:33:00 UTC
++++ include/fluent-bit/flb_output.h
+@@ -20,10 +20,6 @@
+ #ifndef FLB_OUTPUT_H
+ #define FLB_OUTPUT_H
+ 
+-#ifndef _XOPEN_SOURCE
+-#define _XOPEN_SOURCE
+-#endif
+-
+ #ifndef _GNU_SOURCE
+ #define _GNU_SOURCE
+ #endif
 
 
 [FILE:388:patches/patch-lib_chunkio_deps_crc32_crc32.c]
@@ -314,6 +365,26 @@ lib/fluent-bit/libfluent-bit.so
  endif()
  
  # Check for LTTng-UST
+
+
+[FILE:635:patches/patch-lib_monkey_include_monkey_mk__thread__libco.h]
+NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
+
+--- lib/monkey/include/monkey/mk_thread_libco.h.orig	2022-11-22 14:33:00 UTC
++++ lib/monkey/include/monkey/mk_thread_libco.h
+@@ -51,7 +51,12 @@ struct mk_thread {
+     void (*cb_destroy) (void *);
+ };
+ 
++#if defined(__NetBSD__) && !defined(PTHREAD_STACK_MIN)
++#include <machine/vmparam.h>
++#define MK_THREAD_STACK_SIZE      (16 * PAGE_SIZE)
++#else
+ #define MK_THREAD_STACK_SIZE      ((3 * PTHREAD_STACK_MIN) / 2)
++#endif
+ #define MK_THREAD_DATA(th)        (((char *) th) + sizeof(struct mk_thread))
+ 
+ extern MK_EXPORT MK_TLS_DEFINE(struct mk_thread, mk_thread);
 
 
 [FILE:491:patches/patch-lib_monkey_mk__core_deps_libevent_buffer.c]
@@ -389,7 +460,7 @@ lib/fluent-bit/libfluent-bit.so
  
 
 
-[FILE:856:patches/patch-src_flb__network.c]
+[FILE:904:patches/patch-src_flb__network.c]
 --- src/flb_network.c.orig	2022-11-22 14:33:00 UTC
 +++ src/flb_network.c
 @@ -1801,7 +1801,7 @@ static int net_address_unix_socket_peer_
@@ -397,7 +468,7 @@ lib/fluent-bit/libfluent-bit.so
                                                  size_t *output_data_size)
  {
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
      unsigned int peer_credentials_size;
      struct ucred peer_credentials;
  #endif
@@ -406,7 +477,7 @@ lib/fluent-bit/libfluent-bit.so
      }
  
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
      peer_credentials_size = sizeof(struct ucred);
  
      result = getsockopt(fd,

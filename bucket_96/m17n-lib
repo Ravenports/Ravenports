@@ -2,6 +2,7 @@
 
 NAMEBASE=		m17n-lib
 VERSION=		1.8.0
+REVISION=		1
 KEYWORDS=		textproc devel
 VARIANTS=		standard
 SDESC[standard]=	Multilingual text processing library
@@ -177,4 +178,18 @@ lib/pkgconfig/
  AC_SUBST(THAI_WORDSEG_LD_FLAGS)
  
  AC_SUBST(CONFIG_FLAGS)
+
+
+[FILE:260:files/special.mk]
+# Strip -ldl from all platforms except linux
+
+.if "${OPSYS}" != "Linux"
+_USES_configure+= 452:remove_libdl
+.endif
+
+remove_libdl:
+	@echo "BSD: Remove -ldl linkage"
+	${REINPLACE_CMD} -e 's| -ldl||' \
+		${WRKSRC}/example/Makefile.am \
+		${WRKSRC}/src/Makefile.am
 

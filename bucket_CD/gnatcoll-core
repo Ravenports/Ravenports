@@ -49,6 +49,8 @@ SOVERSION=		0.0
 PLIST_SUB=		JQUERY=3.6.0
 			UNDERSCORE=1.13.1
 
+VAR_OPSYS[linux]=	MAKEFILE_LINE=DYNLINK="-ldl"
+
 pre-build:
 	(cd ${BUILD_WRKSRC}/docs && ${DO_MAKE_BUILD} html)
 
@@ -61,7 +63,10 @@ do-configure:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} setup)
 
 pre-configure:
-	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|' ${WRKSRC}/gnatcoll.gpr
+	${REINPLACE_CMD} \
+		-e 's|@PREFIX@|${PREFIX}|' \
+		-e 's|@DYNLINK@|${DYNLINK}|' \
+		${WRKSRC}/gnatcoll.gpr
 
 [FILE:736:descriptions/desc.primary]
 This is the core module of the GNAT Components Collection.
@@ -622,9 +627,18 @@ share/examples/gnatcoll/projects/
  gpr_sources.gpr
 
 
-[FILE:851:patches/patch-gnatcoll.gpr]
+[FILE:1141:patches/patch-gnatcoll.gpr]
 --- gnatcoll.gpr.orig	2022-09-22 17:07:27 UTC
 +++ gnatcoll.gpr
+@@ -97,7 +97,7 @@ project GnatColl is
+    end case;
+    case OS is
+       when "unix" =>
+-         Extra_Libs := Extra_Libs & ("-ldl"); --  For gnatcoll.plugins
++         Extra_Libs := Extra_Libs & ("@DYNLINK@"); --  For gnatcoll.plugins
+       when others =>
+          null;
+    end case;
 @@ -116,7 +116,7 @@ project GnatColl is
  
     case Library_Type is
@@ -645,10 +659,10 @@ share/examples/gnatcoll/projects/
     end Install;
 
 
-[FILE:964:patches/patch-src_os_unix_libc-wrappers.c]
---- src/os/unix/libc-wrappers.c.orig	2022-11-24 17:24:11 UTC
+[FILE:1269:patches/patch-src_os_unix_libc-wrappers.c]
+--- src/os/unix/libc-wrappers.c.orig	2022-09-22 17:07:27 UTC
 +++ src/os/unix/libc-wrappers.c
-@@ -247,6 +247,14 @@ void __gnatcoll_readdir(DIR *dirp, struc
+@@ -247,6 +247,23 @@ void __gnatcoll_readdir(DIR *dirp, struc
  
    if (result != NULL)
    {
@@ -659,16 +673,41 @@ share/examples/gnatcoll/projects/
 +     buf->file_type = (unsigned char) result->d_type;
 +     strncpy(buf->name, result->d_name, result->d_namlen);
 +     buf->name[result->d_namlen] = '\0';
-+#else   /* All other platforms besides DragonFly below */
++
++#elif defined(__NetBSD__)
++     buf->inode = (uint_64) result->d_fileno;
++     buf->offset = 0;
++     buf->reclen = (uint_32) result->d_reclen;
++     buf->file_type = (unsigned char) result->d_type;
++     strncpy(buf->name, result->d_name, 511);
++     buf->name[511] = '\0';
++
++#else   /* All other platforms besides DragonFly and NetBSD below */
       buf->inode = (uint_64) result->d_ino;
  #if defined(__APPLE__)
       buf->offset = 0;
-@@ -257,6 +265,7 @@ void __gnatcoll_readdir(DIR *dirp, struc
+@@ -257,6 +274,7 @@ void __gnatcoll_readdir(DIR *dirp, struc
       buf->file_type = (unsigned char) result->d_type;
       strncpy(buf->name, result->d_name, GNATCOLL_DIRENT_NAME_MAX);
       buf->name[GNATCOLL_DIRENT_NAME_MAX - 1] = '\0';
-+#endif /* ifdef __DragonFly__ */
++#endif /* ifdef __DragonFly__ || __NetBSD__ */
    } else {
       buf->inode = 0;
       buf->offset = 0;
+
+
+[FILE:294:patches/patch-src_os_unix_process-wrappers.c]
+--- src/os/unix/process-wrappers.c.orig	2022-09-22 17:07:27 UTC
++++ src/os/unix/process-wrappers.c
+@@ -28,6 +28,10 @@
+ #include <unistd.h>
+ #include <sys/wait.h>
+ #include <signal.h>
++#ifdef __NetBSD__
++#include <sys/select.h>
++#include <sys/time.h>
++#endif
+ 
+ typedef long long int sint_64;
+ 
 

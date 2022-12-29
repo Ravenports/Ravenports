@@ -44,6 +44,17 @@ post-patch:
 	${REINPLACE_CMD} 's|libdata/pkgconfig|lib/pkgconfig|' \
 		${WRKSRC}/cmake/Config.cmake
 
+post-patch-netbsd:
+	${REINPLACE_CMD} 's|SFML_SYSTEM_OPENBSD|SFML_SYSTEM_NETBSD|' \
+		${WRKSRC}/src/SFML/Window/CursorImpl.hpp \
+		${WRKSRC}/src/SFML/Window/GlContext.cpp \
+		${WRKSRC}/src/SFML/Window/SensorImpl.hpp \
+		${WRKSRC}/src/SFML/Window/WindowImpl.cpp \
+		${WRKSRC}/src/SFML/Window/InputImpl.hpp \
+		${WRKSRC}/src/SFML/Window/ClipboardImpl.hpp \
+		${WRKSRC}/include/SFML/OpenGL.hpp \
+		${WRKSRC}/include/SFML/Window/WindowHandle.hpp
+
 post-patch-dragonfly:
 	${REINPLACE_CMD} 's|FreeBSD|DragonFly|' \
 		${WRKSRC}/cmake/Config.cmake \
@@ -213,4 +224,209 @@ lib/pkgconfig/
  sfml-network.pc
  sfml-system.pc
  sfml-window.pc
+
+
+[FILE:891:patches/patch-CMakeLists.txt]
+$NetBSD: patch-CMakeLists.txt,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- CMakeLists.txt.orig	2018-10-15 19:41:39.000000000 +0000
++++ CMakeLists.txt
+@@ -140,7 +140,7 @@ endif()
+ # For miscellaneous files
+ if(SFML_OS_WINDOWS OR SFML_OS_IOS)
+     set(DEFAULT_INSTALL_MISC_DIR .)
+-elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_OPENBSD)
++elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_NETBSD OR SFML_OS_OPENBSD)
+     set(DEFAULT_INSTALL_MISC_DIR share/SFML)
+ elseif(SFML_OS_MACOSX)
+     set(DEFAULT_INSTALL_MISC_DIR /usr/local/share/SFML)
+@@ -277,7 +277,7 @@ endif()
+ # on Linux and BSD-like OS, install pkg-config files by default
+ set(SFML_INSTALL_PKGCONFIG_DEFAULT FALSE)
+ 
+-if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_OPENBSD)
++if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_NETBSD OR SFML_OS_OPENBSD)
+     set(SFML_INSTALL_PKGCONFIG_DEFAULT TRUE)
+ endif()
+ 
+
+
+[FILE:1007:patches/patch-cmake_Config.cmake]
+$NetBSD: patch-cmake_Config.cmake,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- cmake/Config.cmake.orig	2018-10-15 19:41:39.000000000 +0000
++++ cmake/Config.cmake
+@@ -31,6 +31,10 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "^k?Fre
+     set(SFML_OS_FREEBSD 1)
+     # don't use the OpenGL ES implementation on FreeBSD
+     set(OPENGL_ES 0)
++elseif(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
++    set(SFML_OS_NETBSD 1)
++    # XXX we want to use OPENGL_ES for some NetBSD, but which?
++    set(OPENGL_ES 0)
+ elseif(CMAKE_SYSTEM_NAME MATCHES "^OpenBSD$")
+     set(SFML_OS_OPENBSD 1)
+     # don't use the OpenGL ES implementation on OpenBSD
+@@ -77,6 +81,10 @@ if(SFML_OS_FREEBSD OR SFML_OS_OPENBSD)
+     set(SFML_PKGCONFIG_DIR "/libdata/pkgconfig")
+ endif()
+ 
++if(SFML_OS_NETBSD)
++    set(SFML_PKGCONFIG_DIR "/lib/pkgconfig")
++endif()
++
+ # detect the compiler and its version
+ # Note: on some platforms (OS X), CMAKE_COMPILER_IS_GNUCXX is true
+ # even when CLANG is used, therefore the Clang test is done first
+
+
+[FILE:418:patches/patch-include_SFML_Config.hpp]
+$NetBSD: patch-include_SFML_Config.hpp,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- include/SFML/Config.hpp.orig	2018-10-15 19:41:39.000000000 +0000
++++ include/SFML/Config.hpp
+@@ -86,6 +86,11 @@
+         // FreeBSD
+         #define SFML_SYSTEM_FREEBSD
+ 
++    #elif defined(__NetBSD__)
++
++        // NetBSD
++        #define SFML_SYSTEM_NETBSD
++
+     #elif defined(__OpenBSD__)
+ 
+         // OpenBSD
+
+
+[FILE:552:patches/patch-src_SFML_System_CMakeLists.txt]
+$NetBSD: patch-src_SFML_System_CMakeLists.txt,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- src/SFML/System/CMakeLists.txt.orig	2018-10-15 19:41:39.000000000 +0000
++++ src/SFML/System/CMakeLists.txt
+@@ -90,7 +90,7 @@ sfml_add_library(sfml-system
+                  SOURCES ${SRC} ${PLATFORM_SRC})
+ 
+ # setup dependencies
+-if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_MACOSX)
++if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_NETBSD OR SFML_OS_MACOSX)
+     target_link_libraries(sfml-system PRIVATE pthread)
+ endif()
+ if(SFML_OS_LINUX)
+
+
+[FILE:1810:patches/patch-src_SFML_Window_CMakeLists.txt]
+$NetBSD: patch-src_SFML_Window_CMakeLists.txt,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- src/SFML/Window/CMakeLists.txt.orig	2018-10-15 19:41:39.000000000 +0000
++++ src/SFML/Window/CMakeLists.txt
+@@ -79,7 +79,7 @@ if(SFML_OS_WINDOWS)
+ 
+     # make sure that we use the Unicode version of the Win API functions
+     add_definitions(-DUNICODE -D_UNICODE)
+-elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_OPENBSD)
++elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_NETBSD OR SFML_OS_OPENBSD)
+     set(PLATFORM_SRC
+         ${SRCROOT}/Unix/CursorImpl.hpp
+         ${SRCROOT}/Unix/CursorImpl.cpp
+@@ -110,7 +110,7 @@ elseif(SFML_OS_LINUX OR SFML_OS_FREEBSD 
+             ${SRCROOT}/Unix/JoystickImpl.cpp
+             ${SRCROOT}/Unix/JoystickImpl.hpp
+         )
+-    elseif(SFML_OS_FREEBSD)
++    elseif(SFML_OS_FREEBSD OR SFML_OS_NETBSD)
+         set(PLATFORM_SRC
+             ${PLATFORM_SRC}
+             ${SRCROOT}/FreeBSD/JoystickImpl.cpp
+@@ -235,7 +235,7 @@ if ((NOT BUILD_SHARED_LIBS) AND SFML_OS_
+ endif()
+ 
+ # find and setup usage for external libraries
+-if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OPENBSD)
++if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_NETBSD OR SFML_OPENBSD)
+     sfml_find_package(X11 INCLUDE "X11_INCLUDE_DIR" LINK "X11_X11_LIB" "X11_Xrandr_LIB")
+     target_link_libraries(sfml-window PRIVATE X11)
+ endif()
+@@ -277,7 +277,7 @@ if(SFML_OS_LINUX)
+     target_link_libraries(sfml-window PRIVATE UDev)
+ elseif(SFML_OS_WINDOWS)
+     target_link_libraries(sfml-window PRIVATE winmm gdi32)
+-elseif(SFML_OS_FREEBSD)
++elseif(SFML_OS_FREEBSD OR SFML_OS_NETBSD)
+     target_link_libraries(sfml-window PRIVATE usbhid)
+ elseif(SFML_OS_MACOSX)
+     target_link_libraries(sfml-window PRIVATE "-framework Foundation" "-framework AppKit" "-framework IOKit" "-framework Carbon")
+
+
+[FILE:683:patches/patch-src_SFML_Window_FreeBSD_JoystickImpl.cpp]
+$NetBSD: patch-src_SFML_Window_FreeBSD_JoystickImpl.cpp,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- src/SFML/Window/FreeBSD/JoystickImpl.cpp.orig	2017-02-08 11:29:16.000000000 +0000
++++ src/SFML/Window/FreeBSD/JoystickImpl.cpp
+@@ -53,6 +53,16 @@ namespace
+     std::map<unsigned int, std::string> plugged;
+     std::map<int, std::pair<int, int> > hatValueMap;
+ 
++#if defined(__NetBSD__)
++    int hid_get_report_id(int fd)
++    {
++        int id;
++        if (ioctl(fd, USB_GET_REPORT_ID, &id) < 0)
++            return -1; 
++        return id;
++    }
++#endif
++
+     bool isJoystick(const char *name)
+     {
+         int file = ::open(name, O_RDONLY | O_NONBLOCK);
+
+
+[FILE:529:patches/patch-src_SFML_Window_FreeBSD_JoystickImpl.hpp]
+$NetBSD: patch-src_SFML_Window_FreeBSD_JoystickImpl.hpp,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- src/SFML/Window/FreeBSD/JoystickImpl.hpp.orig	2015-08-24 16:01:06.000000000 +0000
++++ src/SFML/Window/FreeBSD/JoystickImpl.hpp
+@@ -28,6 +28,9 @@
+ ////////////////////////////////////////////////////////////
+ // Headers
+ ////////////////////////////////////////////////////////////
++#if defined(__NetBSD__)
++#include <dev/usb/usb.h>
++#endif
+ #include <dev/usb/usbhid.h>
+ #include <usbhid.h>
+ #include <vector>
+
+
+[FILE:477:patches/patch-src_SFML_Window_JoystickImpl.hpp]
+$NetBSD: patch-src_SFML_Window_JoystickImpl.hpp,v 1.1 2020/05/21 08:42:00 plunky Exp $
+
+add NetBSD support
+
+--- src/SFML/Window/JoystickImpl.hpp.orig	2015-08-24 16:01:06.000000000 +0000
++++ src/SFML/Window/JoystickImpl.hpp
+@@ -86,7 +86,7 @@ struct JoystickState
+ 
+     #include <SFML/Window/Unix/JoystickImpl.hpp>
+ 
+-#elif defined(SFML_SYSTEM_FREEBSD)
++#elif defined(SFML_SYSTEM_FREEBSD) || defined (SFML_SYSTEM_NETBSD)
+ 
+     #include <SFML/Window/FreeBSD/JoystickImpl.hpp>
+ 
 

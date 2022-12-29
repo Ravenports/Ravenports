@@ -2,6 +2,7 @@
 
 NAMEBASE=		cdrdao
 VERSION=		1.2.4
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	Tool to write CD-Rs in Disk-At-Once Mode
@@ -29,15 +30,20 @@ FPC_EQUIVALENT=		sysutils/cdrdao
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-gcdmaster=no
-			--without-pcctsbin
-			--without-pcctsinc
+			--with-pcctsbin={{PREFIX}}/bin
+			--with-pcctsinc={{PREFIX}}/include/pccts
 			--with-posix-threads=no
-			--with-scglib
 CONFIGURE_ENV=		AO_LIBS=-lao
 			MAD_LIBS=-lmad
 			VORBISFILE_LIBS=-lvorbisfile
 
 MAKE_ENV=		CCOM=cc
+
+VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-scglib
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--with-scglib
+			LDFLAGS=-lvolmgt
+			LDFLAGS=-lnsl
+VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-scglib
 
 post-patch:
 .for i in 45libdeflt 45libedc 45libfile 45libhfs_iso 45libparanoia 45libunls \
@@ -72,6 +78,10 @@ do-install:
 	${INSTALL_DATA} ${WRKSRC}/dao/cdrdao.drivers \
 		${STAGEDIR}${PREFIX}/share/cdrdao/drivers
 
+post-extract-netbsd:
+	(cd ${WRKSRC}/scsilib/RULES \
+		&& ${CP} -p i386-netbsd-cc.rul x86_64-netbsd-cc.rul)
+
 post-extract-freebsd:
 	(cd ${WRKSRC}/scsilib/RULES \
 		&& ${CP} -p i386-freebsd-cc.rul amd64-freebsd-cc.rul)
@@ -103,7 +113,7 @@ share/man/man1/
  toc2cue.1.gz
 
 
-[FILE:1038:patches/patch-configure]
+[FILE:1032:patches/patch-configure]
 --- configure.orig	2018-05-16 10:47:00 UTC
 +++ configure
 @@ -7436,7 +7436,7 @@ if test "$scglib" = yes; then
@@ -138,13 +148,27 @@ share/man/man1/
  
  case "$host" in
 -  *-linux* | *-freebsd* | *-kfreebsd*-gnu | *-solaris*)
-+  *-linux* | *-freebsd* | *-kfreebsd*-gnu | *-dragonfly* | *-solaris*)
++  *-linux* | *-freebsd* | *-netbsd* | *-dragonfly* | *-solaris*)
  	     sound_if_obj=SoundIF-ao.o
  	     ;;
  
 
 
-[FILE:306:patches/patch-dao_ScsiIf-freebsd-cam.cc]
+[FILE:303:patches/patch-dao_GenericMMC.cc]
+--- dao/GenericMMC.cc.orig	2018-05-15 13:30:52 UTC
++++ dao/GenericMMC.cc
+@@ -2064,7 +2064,7 @@ CdRawToc *GenericMMC::getRawToc(int sess
+     return NULL;
+   }
+ 
+-  dataLen = ((reqData[0] << 8) | reqData[1]) + 2;
++  dataLen = (dataLen + 1) & ~1;
+   
+   log_message(4, "Raw toc data len: %d", dataLen);
+ 
+
+
+[FILE:561:patches/patch-dao_ScsiIf-freebsd-cam.cc]
 --- dao/ScsiIf-freebsd-cam.cc.orig	2018-05-16 10:46:39 UTC
 +++ dao/ScsiIf-freebsd-cam.cc
 @@ -28,7 +28,11 @@
@@ -159,6 +183,181 @@ share/man/man1/
  
  #include "ScsiIf.h"
  #include "log.h"
+@@ -221,6 +225,12 @@ int ScsiIf::inquiry()
+ 	for (i = 3; i >= 0 && revision_[i] == ' '; i--)
+ 		revision_[i] = 0;
+ 
++	if (vendor_[0] == 0)
++		strncpy(vendor_, "UNKNOWN", 8);
++
++	if (product_[0] == 0)
++		strncpy(product_, "UNKNOWN", 8);
++
+ 	return 0;
+ }
+ 
+
+
+[FILE:292:patches/patch-dao_ScsiIf-lib.cc]
+--- dao/ScsiIf-lib.cc.orig	2018-05-15 13:30:52 UTC
++++ dao/ScsiIf-lib.cc
+@@ -288,6 +288,12 @@ int ScsiIf::inquiry()
+     revision_[i] = 0;
+   }
+ 
++  if (vendor_[0] == 0)
++    strncpy(vendor_, "UNKNOWN", 8);
++
++  if (product_[0] == 0)
++    strncpy(product_, "UNKNOWN", 8);
++
+   return 0;
+ }
+ 
+
+
+[FILE:510:patches/patch-dao_ScsiIf-linux.cc]
+--- dao/ScsiIf-linux.cc.orig	2018-05-16 10:46:39 UTC
++++ dao/ScsiIf-linux.cc
+@@ -33,6 +33,7 @@
+ #include <asm/param.h>
+ #include <scsi/scsi.h>
+ #include <scsi/sg.h>
++#include <sys/stat.h>
+ 
+ #include "ScsiIf.h"
+ #include "sg_err.h"
+@@ -276,7 +277,13 @@ int ScsiIf::inquiry()
+     for (i = 3; i >= 0 && revision_[i] == ' '; i--) {
+ 	revision_[i] = 0;
+     }
+-  
++
++    if (vendor_[0] == 0)
++	strncpy(vendor_, "UNKNOWN", 8);
++
++    if (product_[0] == 0)
++	strncpy(product_, "UNKNOWN", 8); 
++
+     return 0;
+ }
+ 
+
+
+[FILE:3580:patches/patch-dao_ScsiIf-netbsd.cc]
+--- dao/ScsiIf-netbsd.cc.orig	2018-05-15 13:30:52 UTC
++++ dao/ScsiIf-netbsd.cc
+@@ -22,9 +22,7 @@
+ #include <unistd.h>
+ 
+ #include "ScsiIf.h"
+-
+-/* can't include trackdb/util.h */
+-extern void message(int level, const char *fmt, ...);
++#include "log.h"
+ 
+ #include "decodeSense.cc"
+ 
+@@ -91,7 +89,7 @@ int ScsiIf::init()
+ {
+ 	if (impl_->name_ == NULL) return 1;
+ 	if ((impl_->fd_ = open(impl_->name_, O_RDWR, 0)) < 0) {
+-		message(-2, "init: %s", strerror(errno));
++		log_message(-2, "init: %s", strerror(errno));
+ 		return 1;
+ 	}
+ 	if (inquiry()) return 2;
+@@ -193,29 +191,29 @@ void ScsiIf::printError()
+ 		p += snprintf(p, s + sizeof(s) - p, ", BUF=%p", impl_->screq_.databuf);
+ 		p += snprintf(p, s + sizeof(s) - p, ", LEN=%lu", impl_->screq_.datalen);
+ 		p += snprintf(p, s + sizeof(s) - p, ", TO=%lu", impl_->screq_.timeout);
+-		message(-2, s);
++		log_message(-2, s);
+ 	}
+ 	if (impl_->error_ != NULL) {
+-		message(-2, impl_->error_);
++		log_message(-2, impl_->error_);
+ 	} else switch (impl_->screq_.retsts) {
+ 		case SCCMD_OK: switch (impl_->screq_.status) {
+-			case 0x00: message(-2, "GOOD"); break;
+-			case 0x02: message(-2, "CHECK CONDITION"); break;
+-			case 0x04: message(-2, "CONDITION MET"); break;
+-			case 0x08: message(-2, "BUSY"); break;
+-			case 0x10: message(-2, "INTERMEDIATE"); break;
+-			case 0x14: message(-2, "INTERMEDIATE, CONDITION MET"); break;
+-			case 0x18: message(-2, "RESERVATION CONFLICT"); break;
+-			case 0x22: message(-2, "COMMAND TERMINATED"); break;
+-			case 0x28: message(-2, "QUEUE FULL"); break;
+-			default: message(-2, "undefined status");
++			case 0x00: log_message(-2, "GOOD"); break;
++			case 0x02: log_message(-2, "CHECK CONDITION"); break;
++			case 0x04: log_message(-2, "CONDITION MET"); break;
++			case 0x08: log_message(-2, "BUSY"); break;
++			case 0x10: log_message(-2, "INTERMEDIATE"); break;
++			case 0x14: log_message(-2, "INTERMEDIATE, CONDITION MET"); break;
++			case 0x18: log_message(-2, "RESERVATION CONFLICT"); break;
++			case 0x22: log_message(-2, "COMMAND TERMINATED"); break;
++			case 0x28: log_message(-2, "QUEUE FULL"); break;
++			default: log_message(-2, "undefined status");
+ 		} break;
+-		case SCCMD_TIMEOUT: message(-2, "timeout"); break;
+-		case SCCMD_BUSY: message(-2, "busy"); break;
++		case SCCMD_TIMEOUT: log_message(-2, "timeout"); break;
++		case SCCMD_BUSY: log_message(-2, "busy"); break;
+ 		case SCCMD_SENSE: decodeSense(impl_->screq_.sense,
+ 		                              impl_->screq_.senselen_used); break;
+-		case SCCMD_UNKNOWN: message(-2, "unknown error"); break;
+-		default: message(-2, "undefined retsts"); break;
++		case SCCMD_UNKNOWN: log_message(-2, "unknown error"); break;
++		default: log_message(-2, "undefined retsts"); break;
+ 	}
+ }
+ 
+@@ -259,7 +257,7 @@ int ScsiIf::inquiry()
+ 	return inq(impl_->fd_, vendor_, product_, revision_);
+ }
+ 
+-ScsiIf::ScanData *ScsiIf::scan(int *len)
++ScsiIf::ScanData *ScsiIf::scan(int *len, char *devpath)
+ {
+ 	DIR *dirp;
+ 	struct dirent *dp;
+@@ -289,6 +287,9 @@ ScsiIf::ScanData *ScsiIf::scan(int *len)
+ 			strcat(s, dp->d_name);
+ 			if ((fd = open(s, O_RDWR, 0)) >= 0) {
+ 				if (ioctl(fd, SCIOCIDENTIFY, &saddr) >= 0) {
++#if 1
++					scanData[*len].dev = s;
++#else
+ 					switch (saddr.type) {
+ 						case TYPE_SCSI:
+ 							scanData[*len].bus = saddr.addr.scsi.scbus;
+@@ -305,6 +306,7 @@ ScsiIf::ScanData *ScsiIf::scan(int *len)
+ 							scanData[*len].id =
+ 							scanData[*len].lun = -1;
+ 					}
++#endif
+ 					if (inq(fd, scanData[*len].vendor,
+ 					            scanData[*len].product,
+ 					            scanData[*len].revision) == 0) (*len)++;
+
+
+[FILE:291:patches/patch-dao_ScsiIf-nt.cc]
+--- dao/ScsiIf-nt.cc.orig	2018-05-15 13:30:52 UTC
++++ dao/ScsiIf-nt.cc
+@@ -332,6 +332,12 @@ int ScsiIf::inquiry()
+      revision_[i] = 0;
+   }
+ 
++  if (vendor_[0] == 0)
++    strncpy(vendor_, "UNKNOWN", 8);
++
++  if (product_[0] == 0)
++    strncpy(product_, "UNKNOWN", 8);
++
+   return 0;
+ }
+ 
 
 
 [FILE:666:patches/patch-dao_cdrdao.man]
@@ -210,6 +409,42 @@ share/man/man1/
  
 
 
+[FILE:307:patches/patch-gcdmaster_SampleDisplay.cc]
+--- gcdmaster/SampleDisplay.cc.orig	2018-05-16 10:25:12 UTC
++++ gcdmaster/SampleDisplay.cc
+@@ -1025,8 +1025,6 @@ void SampleDisplay::updateSamples()
+ 
+ 	}
+ 
+-	if (&pixmap_ == 0)
+-	  std::cout << "null !!" << std::endl;
+ 
+ 	if (0 && (gint)di < sampleEndX_) {
+ 	  pos = sampleBuf[len -1].left() * halfHeight;
+
+
+[FILE:656:patches/patch-gcdmaster_SoundIF-solaris.cc]
+--- gcdmaster/SoundIF-solaris.cc.orig	2018-05-16 10:25:12 UTC
++++ gcdmaster/SoundIF-solaris.cc
+@@ -45,6 +45,7 @@
+  * Sound interface for Solaris. Thanks to Tobias Oetiker <oetiker@ee.ethz.ch>.
+  */
+ 
++#include <sys/types.h>
+ #include <sys/audioio.h>
+ #include <stdio.h>
+ #include <assert.h>
+@@ -197,7 +198,7 @@ int SoundIFImpl::setupDevice()
+   auinf.play.sample_rate=44100;
+   auinf.play.channels=2;
+   auinf.play.precision=16;
+-  auinf.play.encoding=AUDIO_ENCODING_LINEAR;
++  auinf.play.encoding=AUDIO_ENCODING_SLINEAR_BE;
+ 
+   if (ioctl(dspFd_, AUDIO_SETINFO, &auinf) < 0) {
+     log_message(-1, _("Cannot setup audio interface: %s"), strerror(errno));
+
+
 [FILE:1010:patches/patch-scsilib_RULES_i386-freebsd-cc.rul]
 --- scsilib/RULES/i386-freebsd-cc.rul.orig	2002-10-15 20:43:39 UTC
 +++ scsilib/RULES/i386-freebsd-cc.rul
@@ -224,6 +459,40 @@ share/man/man1/
  CPPOPTS=	-I. -I$(ARCHDIR) -I$(OINCSDIR) $(INCDIRS:%=-I%) $(OSDEFS)
  COPTS=
 @@ -57,14 +58,14 @@ LNDYNLIB=	@$(SYMLINK) $(TARGET) $(PTARGE
+ 
+ FLOAT_OPTIONS=	
+ 
+-CC=		@echo "	==> COMPILING \"$@\""; gcc
+-LDCC=		@echo "	==> LINKING \"$@\""; gcc
+-DYNLD=		@echo "	==> LINKING dynamic library \"$@\""; gcc
+-RANLIB=		@echo "	==> RANDOMIZING ARCHIVE \"$@\""; ranlib
++CCCOM=		$(CC)
++LDCC=		$(CCCOM)
++DYNLD=		$(CCCOM)
++RANLIB=		ranlib
+ ARFLAGS=	cr
+ LORDER=		lorder
+ TSORT=		tsort
+ 
+ RMDEP=		:
+-MKDEP=		@echo "	==> MAKING DEPENDENCIES \"$@\""; $(RMDEP); gcc -M
++MKDEP=		$(CCCOM) -M
+ MKDEP_OUT=
+
+
+[FILE:1000:patches/patch-scsilib_RULES_i386-netbsd-cc.rul]
+--- scsilib/RULES/i386-netbsd-cc.rul.orig	2002-10-15 20:43:40 UTC
++++ scsilib/RULES/i386-netbsd-cc.rul
+@@ -24,7 +24,7 @@ include $(SRCROOT)/$(RULESDIR)/rules.prg
+ ###########################################################################
+ 
+ CPPFLAGS=	$(CPPOPTS) $(CPPOPTX)
+-CFLAGS=		$(COPTS) $(CWARNOPTS) $(COPTOPT) $(GCCOPTOPT) $(COPTX)
++CFLAGS=		$(COPTS) $(CWARNOPTS) $(XCFLAGS) $(GCCOPTOPT) $(COPTX)
+ 
+ #OSDEFS=		-DIS_UNIX
+ CPPOPTS=	-I. -I$(ARCHDIR) -I$(OINCSDIR) $(INCDIRS:%=-I%) $(OSDEFS)
+@@ -58,14 +58,14 @@ LNDYNLIB=	@$(SYMLINK) $(TARGET) $(PTARGE
  
  FLOAT_OPTIONS=	
  
@@ -411,4 +680,50 @@ share/man/man1/
    outFormat_.bits = 16;
    outFormat_.rate = 44100;
    outFormat_.channels = 2;
+
+
+[FILE:1109:patches/patch-trackdb_TrackData.cc]
+--- trackdb/TrackData.cc.orig	2018-05-15 13:30:52 UTC
++++ trackdb/TrackData.cc
+@@ -642,7 +642,7 @@ int TrackData::waveLength(const char *fi
+   char magic[4];
+   long headerLen = 0;
+   long len;
+-  short waveFormat;
++  unsigned short waveFormat;
+   short waveChannels;
+   long waveRate;
+   short waveBits;
+@@ -715,7 +715,7 @@ int TrackData::waveLength(const char *fi
+ 
+   waveFormat = readShort(fp);
+ 
+-  if (waveFormat != 1) {
++  if (waveFormat != 1 && waveFormat != 0xfffe) {
+     // not PCM format
+     log_message(-2, "%s: not in PCM format.", filename);
+     fclose(fp);
+@@ -749,7 +749,21 @@ int TrackData::waveLength(const char *fi
+     return 2;
+   }
+   
+-  len -= 16;
++  if (waveFormat == 1)
++    len -= 16;
++  else {
++    readShort(fp); // cbsize
++    readShort(fp); // validbits
++    readLong(fp); // channelmask
++    waveFormat = readShort(fp); // subformat
++    if (waveFormat != 1) {
++      // not PCM format
++      log_message(-2, "%s: not in PCM format.", filename);
++      fclose(fp);
++      return 2;
++    }
++    len -= 26;
++  }
+ 
+   // skip chunk data
+   if (fseek(fp, len, SEEK_CUR) != 0) {
 

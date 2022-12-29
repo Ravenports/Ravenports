@@ -219,6 +219,26 @@ include/monkey/mk_core/
 lib/fluent-bit/libfluent-bit.so
 
 
+[FILE:602:patches/patch-include_fluent-bit_flb__coro.h]
+NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
+
+--- include/fluent-bit/flb_coro.h.orig	2022-03-22 22:42:32 UTC
++++ include/fluent-bit/flb_coro.h
+@@ -65,7 +65,12 @@ struct flb_coro {
+ #ifdef FLB_CORO_STACK_SIZE
+ #define FLB_CORO_STACK_SIZE      FLB_CORO_STACK_SIZE
+ #else
++# if defined(__NetBSD__) && !defined(PTHREAD_STACK_MIN)
++#include <machine/vmparam.h>
++#define FLB_CORO_STACK_SIZE      (16 * PAGE_SIZE)
++# else
+ #define FLB_CORO_STACK_SIZE      ((3 * PTHREAD_STACK_MIN) / 2)
++# endif
+ #endif
+ 
+ #define FLB_CORO_DATA(coro)      (((char *) coro) + sizeof(struct flb_coro))
+
+
 [FILE:430:patches/patch-include_fluent-bit_flb__endian.h]
 --- include/fluent-bit/flb_endian.h.orig	2022-03-22 22:42:32 UTC
 +++ include/fluent-bit/flb_endian.h
@@ -282,6 +302,26 @@ lib/fluent-bit/libfluent-bit.so
  endif()
  
  # Check for LTTng-UST
+
+
+[FILE:635:patches/patch-lib_monkey_include_monkey_mk__thread__libco.h]
+NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
+
+--- lib/monkey/include/monkey/mk_thread_libco.h.orig	2022-03-22 22:42:32 UTC
++++ lib/monkey/include/monkey/mk_thread_libco.h
+@@ -51,7 +51,12 @@ struct mk_thread {
+     void (*cb_destroy) (void *);
+ };
+ 
++#if defined(__NetBSD__) && !defined(PTHREAD_STACK_MIN)
++#include <machine/vmparam.h>
++#define MK_THREAD_STACK_SIZE      (16 * PAGE_SIZE)
++#else
+ #define MK_THREAD_STACK_SIZE      ((3 * PTHREAD_STACK_MIN) / 2)
++#endif
+ #define MK_THREAD_DATA(th)        (((char *) th) + sizeof(struct mk_thread))
+ 
+ extern MK_EXPORT MK_TLS_DEFINE(struct mk_thread, mk_thread);
 
 
 [FILE:491:patches/patch-lib_monkey_mk__core_deps_libevent_buffer.c]

@@ -22,6 +22,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		evdev-proto:single:standard
 BR_DEPS[freebsd]=	argp-standalone:single:standard
 BR_DEPS[sunos]=		argp-standalone:single:standard
+BR_DEPS[netbsd]=	argp-standalone:single:standard
 BR_DEPS[dragonfly]=	argp-standalone:single:standard
 
 USES=			gmake jpeg libtool pkgconfig perl:build shebangfix
@@ -372,7 +373,21 @@ share/locale/uk/LC_MESSAGES/
  v4l-utils.mo
 
 
-[FILE:1676:patches/patch-lib_libv4lconvert_libv4lsyscall-priv.h]
+[FILE:301:patches/patch-lib_libv4lconvert_control_libv4lcontrol.c]
+--- lib/libv4lconvert/control/libv4lcontrol.c.orig	2021-10-16 09:28:31 UTC
++++ lib/libv4lconvert/control/libv4lcontrol.c
+@@ -20,7 +20,7 @@
+  */
+ 
+ #include <sys/types.h>
+-#ifndef __OpenBSD__
++#if !defined(__OpenBSD__) && !defined(__NetBSD__)
+ #include <sys/sysmacros.h>
+ #endif
+ #include <sys/mman.h>
+
+
+[FILE:1722:patches/patch-lib_libv4lconvert_libv4lsyscall-priv.h]
 --- lib/libv4lconvert/libv4lsyscall-priv.h.orig	2017-01-22 17:33:34 UTC
 +++ lib/libv4lconvert/libv4lsyscall-priv.h
 @@ -51,7 +51,7 @@
@@ -380,7 +395,7 @@ share/locale/uk/LC_MESSAGES/
  #endif
  
 -#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__NetBSD__)
  #include <sys/time.h>
  #include <sys/syscall.h>
  #include <sys/types.h>
@@ -417,7 +432,7 @@ share/locale/uk/LC_MESSAGES/
  	syscall(SYS_write, (int)(fd), (const void *)(buf), (size_t)(len));
  
 -#if defined(__FreeBSD__)
-+#if defined(__FreeBSD__) || defined (__DragonFly__)
++#if defined(__FreeBSD__) || defined (__DragonFly__) || defined(__NetBSD__)
  #define SYS_MMAP(addr, len, prot, flags, fd, off) \
  	__syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
  			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))

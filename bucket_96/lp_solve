@@ -37,7 +37,7 @@ pre-build:
 	${FIND} ${WRKSRC} -name "ccc" | ${XARGS} ${REINPLACE_CMD} -e \
 		"s|^c=.*$$|c='${CC}'|g ; \
 		 s|^opts=.*$$|opts='${CFLAGS}'|g ; \
-		 s|-fpic|-fPIC|g"
+		 s|-fpic|-fPIC|g${SEDINSTR}"
 
 do-build:
 	(cd ${WRKSRC}/lp_solve  && ${SETENV} TMPDIR="${WRKDIR}" ${SH} -x ccc)
@@ -134,4 +134,14 @@ lib/
  #endif
  }
  
+
+
+[FILE:116:files/special.mk]
+# Strip -ldl from all platforms except linux
+
+.if "${OPSYS}" == "Linux"
+SEDINSTR=
+.else
+SEDINSTR=; s|-ldl||g
+.endif
 

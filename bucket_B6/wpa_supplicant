@@ -38,6 +38,7 @@ OPT_ON[sunos]=		NDIS
 OPT_ON[all]=		WIRED TLS PEAP TTLS MSCHAPV2 GTC LEAP OTP PSK WPS
 			PKCS SMARTCARD IEEE80211R SYSLOG INTERWORKING
 			HOTSPOT
+OPT_ON[netbsd]=		BSD NDIS
 OPT_ON[dragonfly]=	BSD NDIS
 
 BUILDRUN_DEPENDS=	libpcap:single:standard
@@ -62,6 +63,7 @@ SUB_FILES=		pkg-message-single-dragonfly
 CFLAGS=			-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
 VAR_OPSYS[freebsd]=	LDFLAGS=-lutil
+VAR_OPSYS[netbsd]=	LDFLAGS=-lutil
 VAR_OPSYS[dragonfly]=	LDFLAGS=-lutil
 
 [IEEE80211AC].DESCRIPTION=		Very High Throughput, AP mode (IEEE 802.11ac)
@@ -216,6 +218,11 @@ post-patch-WIRED-ON:
 post-patch-PEAP-ON:
 	${ECHO_CMD} CONFIG_EAP_PEAP=y >> ${BUILD_WRKSRC}/.config
 
+post-patch-netbsd:
+	${ECHO_CMD} CONFIG_L2_PACKET=freebsd >> ${BUILD_WRKSRC}/.config
+	${CP} ${FILESDIR}/Packet32.[ch] ${FILESDIR}/ntddndis.h \
+		${WRKSRC}/src/utils
+
 post-patch-dragonfly:
 	${ECHO_CMD} CONFIG_L2_PACKET=freebsd >> ${BUILD_WRKSRC}/.config
 	${CP} ${FILESDIR}/Packet32.[ch] ${FILESDIR}/ntddndis.h \
@@ -341,16 +348,17 @@ sbin/
  wpa_supplicant
 
 
-[FILE:371:patches/patch-src-l2_packet-l2_packet_freebsd.c]
+[FILE:398:patches/patch-src-l2_packet-l2_packet_freebsd.c]
 --- src/l2_packet/l2_packet_freebsd.c.orig	2022-01-16 20:51:29 UTC
 +++ src/l2_packet/l2_packet_freebsd.c
-@@ -8,7 +8,10 @@
+@@ -8,7 +8,11 @@
   */
  
  #include "includes.h"
 -#if defined(__APPLE__) || defined(__GLIBC__)
 +#if defined(__FreeBSD__) \
 + || defined(__DragonFly__) \
++ || defined(__NetBSD__) \
 + || defined(__APPLE__) \
 + || defined(__GLIBC__)
  #include <net/bpf.h>
@@ -478,7 +486,7 @@ sbin/
  	if (daemonize)
 
 
-[FILE:9504:files/Packet32.c]
+[FILE:9591:files/Packet32.c]
 /*-
  * Copyright (c) 2005
  *      Bill Paul <wpaul@windriver.com>.  All rights reserved.
@@ -527,14 +535,16 @@ sbin/
 #include <sys/fcntl.h>
 #include <net/if.h>
 #include <net/if_dl.h>
+#if defined(__FreeBSD__) || defined(__DragonFly__)
 #include <net/if_var.h>
+#endif
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <net/route.h>
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__NetBSD__)
 #include <net80211/ieee80211_ioctl.h>
 #endif
 #ifdef __DragonFly__
@@ -1091,6 +1101,76 @@ to /etc/rc.conf
 
 
 [FILE:328:freebsd/patch-wpa__supplicant_wpa__supplicant.c]
+--- wpa_supplicant/wpa_supplicant.c.orig	2022-01-16 20:51:29 UTC
++++ wpa_supplicant/wpa_supplicant.c
+@@ -7311,7 +7311,7 @@ struct wpa_global * wpa_supplicant_init(
+ 	if (params == NULL)
+ 		return NULL;
+ 
+-#ifdef CONFIG_DRIVER_NDIS
++#ifdef XXXCONFIG_DRIVER_NDIS
+ 	{
+ 		void driver_ndis_init_ops(void);
+ 		driver_ndis_init_ops();
+
+
+[FILE:481:netbsd/patch-wpa__supplicant_Makefile]
+--- wpa_supplicant/Makefile.orig	2022-01-16 20:51:29 UTC
++++ wpa_supplicant/Makefile
+@@ -123,6 +123,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
+ OBJS_p += ../src/utils/os_$(CONFIG_OS).o
+ OBJS_c += ../src/utils/os_$(CONFIG_OS).o
+ 
++ifdef CONFIG_DRIVER_NDIS
++OBJS += ../src/utils/Packet32.o
++ifdef CONFIG_PRIVSEP
++OBJS += ../src/drivers/driver_ndis.o
++endif
++OBJS_priv += ../src/utils/Packet32.o
++endif
++
+ ifdef CONFIG_WPA_TRACE
+ CFLAGS += -DWPA_TRACE
+ OBJS += ../src/utils/trace.o
+
+
+[FILE:1269:netbsd/patch-wpa__supplicant_main.c]
+--- wpa_supplicant/main.c.orig	2022-01-16 20:51:29 UTC
++++ wpa_supplicant/main.c
+@@ -66,7 +66,7 @@ static void usage(void)
+ 	       "  -c = Configuration file\n"
+ 	       "  -C = ctrl_interface parameter (only used if -c is not)\n"
+ 	       "  -d = increase debugging verbosity (-dd even more)\n"
+-	       "  -D = driver name (can be multiple drivers: nl80211,wext)\n"
++	       "  -D = driver name (can be multiple drivers: bsd,wired)\n"
+ 	       "  -e = entropy file\n"
+ #ifdef CONFIG_DEBUG_FILE
+ 	       "  -f = log output to debug file instead of stdout\n"
+@@ -105,8 +105,7 @@ static void usage(void)
+ 	       "  -W = wait for a control interface monitor before starting\n");
+ 
+ 	printf("example:\n"
+-	       "  wpa_supplicant -D%s -iwlan0 -c/etc/wpa_supplicant.conf\n",
+-	       wpa_drivers[0] ? wpa_drivers[0]->name : "nl80211");
++                "  wpa_supplicant -Dbsd -iwlan0 -c/etc/wpa_supplicant.conf\n");
+ #endif /* CONFIG_NO_STDOUT_DEBUG */
+ }
+ 
+@@ -199,6 +198,11 @@ int main(int argc, char *argv[])
+ 
+ 	wpa_supplicant_fd_workaround(1);
+ 
++#ifdef CONFIG_DRIVER_NDIS
++	void driver_ndis_init_ops(void);
++	driver_ndis_init_ops();
++#endif /* CONFIG_DRIVER_NDIS */
++
+ 	for (;;) {
+ 		c = getopt(argc, argv,
+ 			   "b:Bc:C:D:de:f:g:G:hi:I:KLMm:No:O:p:P:qsTtuvW");
+
+
+[FILE:328:netbsd/patch-wpa__supplicant_wpa__supplicant.c]
 --- wpa_supplicant/wpa_supplicant.c.orig	2022-01-16 20:51:29 UTC
 +++ wpa_supplicant/wpa_supplicant.c
 @@ -7311,7 +7311,7 @@ struct wpa_global * wpa_supplicant_init(

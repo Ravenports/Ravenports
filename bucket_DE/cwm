@@ -17,6 +17,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BR_DEPS[linux]=		libbsd:single:standard
+
 USES=			pkgconfig:build fonts solaris-funcs gmake
 XORG_COMPONENTS=	x11 xft xinerama xrandr
 
@@ -34,6 +36,10 @@ SOL_FUNCTIONS=		err.h:err.h
 			getline:kbfunc.c
 
 SINGLE_JOB=		yes
+
+VAR_OPSYS[linux]=	CFLAGS=-DLIBBSD_OVERLAY
+			CFLAGS=-I{{LOCALBASE}}/include/bsd
+			LDFLAGS=-lbsd
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/cwm ${STAGEDIR}${PREFIX}/bin

@@ -2,7 +2,7 @@
 
 NAMEBASE=		mysql80
 VERSION=		8.0.31
-REVISION=		2
+REVISION=		3
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Multithreaded SQL database (server)
@@ -28,11 +28,15 @@ OPTGROUP[STORAGE]=	ARCHIVE BLACKHOLE EXAMPLE FEDERATED INNOBASE
 OPT_ON[all]=		PERFORMANCE
 
 BUILD_DEPENDS=		libedit:single:standard
+			Zstandard:static:standard
 BUILDRUN_DEPENDS=	libevent:single:standard
 			protobuf:single:standard
+			Zstandard:shared:standard
+			icu:single:standard
 B_DEPS[linux]=		patchelf:primary:standard
 EXRUN[client]=		libedit:single:standard
 			zlib:complete:standard
+			Zstandard:shared:standard
 			openssl11:single:standard
 
 USERS=			mysql
@@ -97,6 +101,8 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 			-DWITH_PROTOBUF=system
 			-DWITH_LZ4=system
 			-DWITH_ZLIB=system
+			-DWITH_ZSTD=system
+			-DWITH_ICU=system
 			-DWITH_SSL={{OPENSSLBASE}}
 			-DINSTALL_MYSQLTESTDIR=0
 			-DZLIB_INCLUDE_DIR={{LOCALBASE}}/include
@@ -194,7 +200,7 @@ This package contains the MySQL client.
 7867f3fd8ca423d283a6162c819c766863ecffbf9b59b4756dc7bb81184c1d6a    334504577 mysql-boost-8.0.31.tar.gz
 
 
-[FILE:6926:manifests/plist.server]
+[FILE:6478:manifests/plist.server]
 @sample etc/mysql/my.cnf.sample
 @sample etc/mysql/mysqlrouter.conf.sample
 %%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
@@ -368,40 +374,6 @@ lib/mysqlrouter/
  router_openssl.so
  router_protobuf.so
  routing.so
-lib/private/icudt69l/unames.icu
-lib/private/icudt69l/brkitr/
- burmesedict.dict
- char.brk
- cjdict.dict
- de.res
- el.res
- en.res
- en_US.res
- en_US_POSIX.res
- es.res
- fr.res
- it.res
- ja.res
- khmerdict.dict
- laodict.dict
- line.brk
- line_cj.brk
- line_loose.brk
- line_loose_cj.brk
- line_normal.brk
- line_normal_cj.brk
- pt.res
- res_index.res
- root.res
- ru.res
- sent.brk
- sent_el.brk
- thaidict.dict
- title.brk
- word.brk
- word_POSIX.brk
- zh.res
- zh_Hant.res
 libexec/mysqld
 share/man/man1/
  ibd2sdi.1.gz
@@ -820,6 +792,29 @@ share/man/man1/
  #ifdef _MSC_VER
  #include <intrin.h>
  #pragma intrinsic(_BitScanForward64)
+
+
+[FILE:695:patches/patch-include_violite.h]
+$NetBSD: patch-include_violite.h,v 1.1 2022/11/27 22:12:25 nia Exp $
+
+pthread_t on NetBSD is a pointer to a struct. To account for the
+C++ type system we need to use an actual NULL pointer rather than
+an incompatible integer type.
+
+--- include/violite.h.orig	2022-09-13 16:15:16 UTC
++++ include/violite.h
+@@ -343,7 +343,11 @@ struct Vio {
+     It is initialized to 0 here, meaning don't attempt to send a signal, to
+     keep non-server code unaffected.
+   */
++#ifdef __NetBSD__
++  std::optional<my_thread_t> thread_id = nullptr;
++#else
+   std::optional<my_thread_t> thread_id = 0;
++#endif
+   sigset_t signal_mask;  // Signal mask
+   /*
+     Flag to indicate whether we are in poll or shutdown.
 
 
 [FILE:1037:patches/patch-libmysql_CMakeLists.txt]

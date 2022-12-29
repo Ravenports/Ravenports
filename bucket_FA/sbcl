@@ -143,10 +143,6 @@ do-install:
 	# build documentation
 	${DO_MAKE_BUILD} -C ${WRKSRC}/doc/manual info html
 
-post-build-linux:
-	# sb-posix fails on linux, tests might be bogus.  skip testing this module
-	${TOUCH} ${WRKSRC}/obj/asdf-cache/sb-posix/test-passed.test-report
-
 [FILE:343:descriptions/desc.single]
 Steel Bank Common Lisp (SBCL) is a high performance Common Lisp compiler. 
 It is open source / free software, with a permissive license. In addition 
@@ -384,6 +380,21 @@ lib/sbcl/sb-sprof/
  sb-sprof.asd
  test.lisp
 share/man/man1/sbcl.1.gz
+
+
+[FILE:316:patches/patch-make-config.sh]
+Linux LARGEFILE option does not seem to build.
+
+--- make-config.sh.orig	2022-10-30 19:42:45 UTC
++++ make-config.sh
+@@ -523,7 +523,6 @@ case "$sbcl_os" in
+         # src/runtime/Config.foo-linux too.
+         case "$sbcl_arch" in
+ 	    mips | arm | x86 | x86-64)
+-		printf ' :largefile' >> $ltf
+ 		;;
+         esac
+ 
 
 
 [FILE:1222:files/city.cc.license]

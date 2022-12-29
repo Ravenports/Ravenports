@@ -72,19 +72,9 @@ VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-jit-support
 VAR_OPSYS[darwin]=	CONFIGURE_ENV=ac_cv_func_backtrace=no
 			MAKEFILE_LINE=MODULE=bundle
 
-post-patch:
-	${FIND} ${WRKSRC}/ -name "*.orig" -delete
-	# Disable all bundled gems
-	# We install these from other ports
-	cd ${BUILD_WRKSRC} && \
-		${MV} gems gems.orig && \
-		${MKDIR} gems && \
-		${TOUCH} gems/bundled_gems
-.for d in bin/bundle bin/bundler bin/gem lib/bundler ext/dbm ext/gdbm
-	${RM} -r ${BUILD_WRKSRC}/${d}
-.endfor
-	${RM} ${BUILD_WRKSRC}/man/bundle*
-	${RM} ${BUILD_WRKSRC}/man/gemfile*
+pre-configure-linux:
+	# <sys/vnode.h> does not exist on linux
+	${REINPLACE_CMD} -e '/vnode\.h/d' ${WRKSRC}/dir.c
 
 pre-install:
 	${MKDIR} ${STAGEDIR}${RUBY_DOCDIR}/readline \
@@ -93,10 +83,6 @@ pre-install:
 		${STAGEDIR}${RUBY_DOCDIR}/syslog \
 		${STAGEDIR}${RUBY_EXAMPLESDIR}/bigdecimal \
 		# RDoc generated disabled ${STAGEDIR}${RUBY_RIDIR}
-
-post-patch-linux:
-	# <sys/vnode.h> does not exist on linux
-	${REINPLACE_CMD} -e '/vnode\.h/d' ${WRKSRC}/dir.c
 
 post-install:
 	# strip ruby binaries
@@ -129,6 +115,20 @@ post-build:
 	${RB_SET_CONF_VAR} "INSTALL_PROGRAM" "ENV['RB_USER_INSTALL'] ? '${INSTALL} ${COPY} ${STRIP} -m ${BINMODE}' : '${INSTALL_PROGRAM}'"
 	${RB_SET_CONF_VAR} "INSTALL_SCRIPT" "ENV['RB_USER_INSTALL'] ? '${INSTALL} ${COPY} -m ${BINMODE}' : '${INSTALL_SCRIPT}'"
 	${RB_SET_CONF_VAR} "INSTALL_DATA" "ENV['RB_USER_INSTALL'] ? '${INSTALL} ${COPY} -m ${SHAREMODE}' : '${INSTALL_DATA}'"
+
+pre-configure:
+	${FIND} ${WRKSRC}/ -name "*.orig" -delete
+	# Disable all bundled gems
+	# We install these from other ports
+	cd ${BUILD_WRKSRC} && \
+		${MV} gems gems.orig && \
+		${MKDIR} gems && \
+		${TOUCH} gems/bundled_gems
+.for d in bin/bundle bin/bundler bin/gem lib/bundler ext/dbm ext/gdbm
+	${RM} -r ${BUILD_WRKSRC}/${d}
+.endfor
+	${RM} ${BUILD_WRKSRC}/man/bundle*
+	${RM} ${BUILD_WRKSRC}/man/gemfile*
 
 [FILE:665:descriptions/desc.primary]
 Ruby is the interpreted scripting language for quick and
@@ -1630,42 +1630,33 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  remarks.markdown
 
 
-[FILE:2907:patches/patch-configure.ac]
+[FILE:1827:patches/patch-configure.ac]
 --- configure.ac.orig	2022-11-24 10:20:31 UTC
 +++ configure.ac
-@@ -325,14 +325,6 @@ AS_CASE(["$host_os:$build_os"],
-     # clang version 1.0 (http://llvm.org/svn/llvm-project/cfe/tags/Apple/clang-23 exported)
-     # Apple clang version 2.0 (tags/Apple/clang-137) (based on LLVM 2.9svn)
-     # Apple clang version 2.1 (tags/Apple/clang-163.7.1) (based on LLVM 3.0svn)
--    AC_PREPROC_IFELSE(
--	[AC_LANG_PROGRAM([
--	    @%:@if defined __APPLE_CC__ && defined __clang_major__ && __clang_major__ < 3
--	    @%:@error premature clang
--	    @%:@endif
--	])],
--	[],
--	[AC_MSG_ERROR([clang version 3.0 or later is required])])
- ])
+@@ -121,13 +121,6 @@ dnl checks for alternative programs
+ AC_CANONICAL_BUILD
+ AC_CANONICAL_HOST
+ AC_CANONICAL_TARGET
+-AS_CASE(["$target_cpu-$target_os"],
+-    [aarch64-darwin*], [
+-        target_cpu=arm64
+-        AS_CASE(["$target_vendor"], [unknown], [target_vendor=apple target=${target/-unknown-/-apple-}])
+-        target="${target/aarch64/arm64}"
+-        target_alias="${target_alias/aarch64/arm64}"
+-    ])
  
- AS_CASE(["$target_os"],
-@@ -355,7 +347,7 @@ AC_SUBST(GCC)
- AC_SUBST(LD)
- AS_IF([test "$GCC" = yes], [
-     linker_flag=-Wl,
--    : ${optflags=-O3}
-+    : ${optflags=}
-     gcc_major=`echo =__GNUC__ | $CC -E -xc - | sed '/^=/!d;s///'`
-     gcc_minor=`echo =__GNUC_MINOR__ | $CC -E -xc - | sed '/^=/!d;s///'`
-     test -n "$gcc_major" || gcc_major=0
-@@ -1015,7 +1007,6 @@ AS_CASE(["$target_os"],
- [rhapsody*], [	],
- [darwin*], [
- 		ORIG_LIBS="$LIBS"
--		RUBY_PREPEND_OPTION(LIBS, -lobjc)
- 		RUBY_APPEND_OPTIONS(CPPFLAGS, -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT)
- 		AC_CACHE_CHECK([whether syscall(2) is deprecated], rb_cv_syscall_deprecated,
- 		    [RUBY_WERROR_FLAG([
-@@ -3452,7 +3443,7 @@ AS_CASE("$enable_shared", [yes], [
+ AC_ARG_PROGRAM
+ RUBY_RM_RECURSIVE
+@@ -3067,7 +3060,7 @@ AS_IF([test "$rb_cv_dlopen" = yes], [
+ 
+             AC_MSG_CHECKING([whether $flag is accepted for bundle])
+             : > conftest.c
+-            AS_IF([${LDSHARED/'$(CC)'/$CC} -o conftest.bundle $flag conftest.c >/dev/null 2>conftest.err &&
++            AS_IF([${LDSHARED} -o conftest.bundle $flag conftest.c >/dev/null 2>conftest.err &&
+                 test ! -s conftest.err], [
+                 AC_MSG_RESULT([yes])
+                 RUBY_APPEND_OPTIONS(DLDFLAGS, [$flag])
+@@ -3452,7 +3445,7 @@ AS_CASE("$enable_shared", [yes], [
      [sunos4*], [
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	],
@@ -1674,7 +1665,7 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  	RUBY_APPEND_OPTIONS(LIBRUBY_DLDFLAGS, ['-Wl,-soname,$(LIBRUBY_SONAME)' "$LDFLAGS_OPTDIR"])
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	AS_IF([test "$load_relative" = yes], [
-@@ -3461,17 +3452,9 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3461,7 +3454,7 @@ AS_CASE("$enable_shared", [yes], [
  	    LIBRUBY_RELATIVE=yes
  	])
  	],
@@ -1682,28 +1673,7 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
 +    [freebsd*|dragonfly*|netbsd*|linux*|solaris*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
  	LIBRUBY_SONAME='$(LIBRUBY_SO)'
--	AS_IF([test "$rb_cv_binary_elf" != "yes" ], [
--	    LIBRUBY_SO="$LIBRUBY_SO.\$(TEENY)"
--	    LIBRUBY_ALIASES=''
--	], [test "$load_relative" = yes], [
--	    libprefix="'\$\$ORIGIN/../${libdir_basename}'"
--	    LIBRUBY_RPATHFLAGS="-Wl,-rpath,${libprefix}"
--	    LIBRUBY_RELATIVE=yes
--	])
- 	],
-     [netbsd*], [
- 	LIBRUBY_SONAME='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
-@@ -3510,8 +3493,8 @@ AS_CASE("$enable_shared", [yes], [
- 	],
-     [darwin*], [
- 	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT)'
--	LIBRUBY_SONAME='$(LIBRUBY_SO)'
--	LIBRUBY_ALIASES='lib$(RUBY_INSTALL_NAME).$(SOEXT)'
-+	LIBRUBY_SONAME='lib$(RUBY_SO_NAME).$(SOEXT)'
-+	LIBRUBY_ALIASES='lib$(RUBY_SO_NAME).$(MAJOR)$(MINOR).$(SOEXT)'
- 	AS_IF([test "$load_relative" = yes], [
- 	    libprefix="@executable_path/../${libdir_basename}"
- 	    LIBRUBY_RELATIVE=yes
+ 	AS_IF([test "$rb_cv_binary_elf" != "yes" ], [
 
 
 [FILE:469:patches/patch-lib_mkmf.rb]

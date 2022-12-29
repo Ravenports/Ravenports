@@ -2,7 +2,7 @@
 
 NAMEBASE=		ede
 VERSION=		2.1
-REVISION=		3
+REVISION=		4
 KEYWORDS=		x11_wm
 VARIANTS=		standard
 SDESC[standard]=	Extremely light-weight desktop environment
@@ -1582,6 +1582,22 @@ share/wallpapers/
 +#SubInclude TOP data desktop-links ;
 +#SubInclude TOP data pekwm ;
  SubInclude TOP data wallpapers ;
+
+
+[FILE:370:patches/patch-ede-panel_Jamfile]
+--- ede-panel/Jamfile.orig	2014-06-21 21:24:20 UTC
++++ ede-panel/Jamfile
+@@ -11,7 +11,9 @@
+ SubDir TOP ede-panel ;
+ 
+ EdeProgram  ede-panel : Hider.cpp Panel.cpp AppletManager.cpp ede-panel.cpp ;
+-LinkAgainst ede-panel : -ldl ;
++if $(OS) = "LINUX" {
++	LinkAgainst ede-panel : -ldl ;
++}
+ #ObjectC++Flags Panel.cpp : -DEDE_PANEL_LOCAL_APPLETS ;
+ 
+ if $(OS) != "SOLARIS" {
 
 
 [FILE:399:patches/patch-evoke_Jamfile]

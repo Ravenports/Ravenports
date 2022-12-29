@@ -16,8 +16,11 @@ SPKGS[standard]=	complete
 			primary
 			docs
 
-OPTIONS_AVAILABLE=	TESTED
-OPTIONS_STANDARD=	TESTED
+OPTIONS_AVAILABLE=	TESTED BSD
+OPTIONS_STANDARD=	TESTED BSD
+OPT_ON[freebsd]=	BSD
+OPT_ON[netbsd]=		BSD
+OPT_ON[dragonfly]=	BSD
 
 BUILD_DEPENDS=		ruby-asciidoctor:single:ruby_default
 			source-highlight:primary:standard
@@ -40,13 +43,13 @@ MAKE_ARGS=		NUM_CPUS={{MAKE_JOBS_NUMBER}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-VAR_OPSYS[freebsd]=	MAKE_ARGS=OS=bsd
-VAR_OPSYS[netbsd]=	MAKE_ARGS=OS=bsd
-VAR_OPSYS[dragonfly]=	MAKE_ARGS=OS=bsd
+[BSD].DESCRIPTION=			Build on BSD platform
+[BSD].EXTRA_PATCHES_ON=			extra-src_anet-sockets-inet.adb
+[BSD].MAKE_ARGS_ON=			OS=bsd
 
 [TESTED].DESCRIPTION=			Run unit test suite before installation
 [TESTED].BUILD_DEPENDS_ON=		ahven:primary:standard
-[TESTED].BUILD_TARGET_ON=		build-tests
+[TESTED].BUILD_TARGET_ON=		tests
 
 post-install:
 	(cd ${WRKSRC}/doc && ${COPYTREE_SHARE} html ${STAGEDIR}${STD_DOCDIR})
@@ -80,7 +83,19 @@ Anet is a networking library for the Ada programming language featuring:
 f2b41d8e783fbc73a731936398e4a9ee6094e399109986dea8e2dc644bff69b5        52955 libanet-0.4.3.tar.bz2
 
 
-[FILE:1750:manifests/plist.primary]
+[FILE:2077:manifests/plist.primary]
+%%ONLY-LINUX%%lib/anet/
+ anet-sockets-thin-packet.ali
+ anet-sockets-thin-netlink.ali
+ anet-sockets-packet.ali
+ anet-sockets-netlink.ali
+%%ONLY-LINUX%%include/anet/
+ anet-sockets-thin-packet.ads
+ anet-sockets-thin-netlink.ads
+ anet-sockets-packet.ads
+ anet-sockets-packet.adb
+ anet-sockets-netlink.ads
+ anet-sockets-netlink.adb
 include/anet/
  anet-arp.adb
  anet-arp.ads
@@ -169,7 +184,7 @@ share/gpr/anet.gpr
 share/doc/anet/html/index.html
 
 
-[FILE:3023:patches/patch-src_anet-sockets-inet.adb]
+[FILE:3023:files/extra-src_anet-sockets-inet.adb]
 --- src/anet-sockets-inet.adb.orig	2022-12-04 16:02:18 UTC
 +++ src/anet-sockets-inet.adb
 @@ -69,7 +69,7 @@ package body Anet.Sockets.Inet is

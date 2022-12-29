@@ -18,6 +18,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		evdev-proto:single:standard
+B_DEPS[linux]=		libbsd:single:standard
 
 USES=			meson
 
@@ -93,4 +94,18 @@ lib/pkgconfig/libudev.pc
  #ifdef HAVE_LIBPROCSTAT_H
  #include <sys/sysctl.h>
  #include <sys/queue.h>
+
+
+[FILE:207:patches/patch-utils.h]
+--- utils.h.orig	2021-09-04 13:20:25 UTC
++++ utils.h
+@@ -10,6 +10,8 @@
+ 
+ #ifdef HAVE_SYS_TREE_H
+ #include <sys/tree.h>
++#elif defined(__linux__)
++#include <bsd/sys/tree.h>
+ #else
+ #include "tree.h"
+ #endif
 
