@@ -101,10 +101,6 @@ post-patch:
 	# Disable vendor checksums
 	${REINPLACE_CMD} -e 's/"files":{[^}]*}/"files":{}/' \
 		 ${WRKSRC}/vendor/*/.cargo-checksum.json
-	# for rust 1.63 bootstrap built with libressl 3.0
-	(cd ${LOCALBASE}/libressl/lib && \
-		${LN} -s libssl.so libssl.so.48 && \
-		${LN} -s libcrypto.so libcrypto.so.46)
 
 post-configure-linux:
 	${LN} -s ${LOCALBASE}/lib/libz.so.1 ${WRKDIR}/bootstrap/lib
@@ -125,6 +121,12 @@ do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} x.py build --verbose --config ./config.toml \
 		--jobs ${MAKE_JOBS_NUMBER})
+
+post-patch-dragonfly:
+	# for rust 1.64 bootstrap (leave commented out)
+	# (cd ${LOCALBASE}/libressl/lib && \
+		${LN} -s /usr/lib/libssl.so.50.0.0 libssl.so.50 && \
+		${LN} -s /usr/lib/libcrypto.so.47.0.0 libcrypto.so.47)
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/lib/rustlib/install.log
@@ -376,6 +378,23 @@ lib/rustlib/
  pub const SIGCKPTEXIT: ::c_int = 34;
 
 
+[FILE:459:patches/patch-vendor_libssh2-sys_libssh2_src_openssl.h]
+--- vendor/libssh2-sys/libssh2/src/openssl.h.orig	2022-11-02 16:21:41 UTC
++++ vendor/libssh2-sys/libssh2/src/openssl.h
+@@ -57,8 +57,9 @@
+ #include <openssl/pem.h>
+ #include <openssl/rand.h>
+ 
+-#if OPENSSL_VERSION_NUMBER >= 0x10100000L && \
+-    !defined(LIBRESSL_VERSION_NUMBER)
++#if (OPENSSL_VERSION_NUMBER >= 0x10100000L && \
++    !defined(LIBRESSL_VERSION_NUMBER)) || \
++    LIBRESSL_VERSION_NUMBER >= 0x3050000fL
+ # define HAVE_OPAQUE_STRUCTS 1
+ #endif
+ 
+
+
 [FILE:436:patches/patch-vendor_openssl-probe_src_lib.rs]
 --- vendor/openssl-probe/src/lib.rs.orig	2022-11-02 16:21:42 UTC
 +++ vendor/openssl-probe/src/lib.rs
@@ -391,6 +410,21 @@ lib/rustlib/
          "/usr/lib/ssl",
          "/usr/ssl",
          "/etc/openssl",
+
+
+[FILE:471:patches/patch-vendor_openssl-sys_build_main.rs]
+--- vendor/openssl-sys/build/main.rs.orig	2022-11-02 16:21:42 UTC
++++ vendor/openssl-sys/build/main.rs
+@@ -254,6 +254,9 @@ See rust-openssl README for more informa
+             (3, 3, _) => ('3', '3', 'x'),
+             (3, 4, 0) => ('3', '4', '0'),
+             (3, 4, _) => ('3', '4', 'x'),
++            (3, 5, _) => ('3', '5', 'x'),
++            (3, 6, 0) => ('3', '6', '0'),
++            (3, 6, _) => ('3', '6', 'x'),
+             _ => version_error(),
+         };
+ 
 
 
 [FILE:824:patches/patch-vendor_os__info_src_freebsd_mod.rs]

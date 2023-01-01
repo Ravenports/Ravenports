@@ -2,7 +2,7 @@
 
 NAMEBASE=		docbook-xsl
 VERSION=		1.79.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	XSL DocBook stylesheets
@@ -58,6 +58,9 @@ do-install:
 	for i in $${files}; do \
 		${INSTALL_DATA} $${i} ${STAGEDIR}${PREFIX}/share/xsl/docbook; \
 	done
+	# fix docbook URL
+	${GREP} -rl '/docbook.sourceforge.net/' ${STAGEDIR} | ${XARGS} \
+		${SED} -i'' -e 's|/docbook.sourceforge.net/|/cdn.docbook.org/|g'
 
 [FILE:120:descriptions/desc.primary]
 These are XSL stylesheets for teh DocBook Document Type Definition (DTD)

@@ -2,6 +2,7 @@
 
 NAMEBASE=		docbook-xml
 VERSION=		5.1
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	DocBook XML DTD
@@ -51,6 +52,9 @@ pre-install:
 post-install:
 	${INSTALL_DATA} ${FILESDIR}/catalog412.xml \
 	    ${STAGEDIR}${PREFIX}/share/xml/docbook/4.1.2/catalog.xml
+	# fix docbook URL
+	${GREP} -rl '/docbook.sourceforge.net/' ${STAGEDIR} | ${XARGS} \
+		${SED} -i'' -e 's|/docbook.sourceforge.net/|/cdn.docbook.org/|g'
 
 post-extract:
 	${MV} ${WRKDIR}/docbook-5.0.1 ${WRKDIR}/docbook-xml_6
