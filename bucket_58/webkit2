@@ -2,6 +2,7 @@
 
 NAMEBASE=		webkit2
 VERSION=		2.38.3
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		api40 api41 api50
 SDESC[api50]=		Opensource browser engine using GTK4 (API 5.0)
@@ -129,17 +130,21 @@ post-patch:
 
 post-install-API40-ON:
 	(cd ${STAGEDIR}${PREFIX}/bin && \
-	 ${LN} -s ../libexec/webkit2gtk-4.0/jsc jsc-4 && \
-	 ${LN} -s ../libexec/webkit2gtk-4.0/MiniBrowser MiniBrowser-4)
+	 ${LN} -s ../libexec/webkit2gtk-4.0/jsc jsc-4.0 && \
+	 ${LN} -s ../libexec/webkit2gtk-4.0/MiniBrowser MiniBrowser-4.0)
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/webkit2gtk-4.0/injected-bundle/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/webkit2gtk-4.0/*
+	${MV} ${STAGEDIR}${PREFIX}/bin/WebKitWebDriver \
+		${STAGEDIR}${PREFIX}/bin/WebKitWebDriver-4.0
 
 post-install-API50-ON:
 	(cd ${STAGEDIR}${PREFIX}/bin && \
-	 ${LN} -s ../libexec/webkit2gtk-5.0/jsc jsc-5 && \
-	 ${LN} -s ../libexec/webkit2gtk-5.0/MiniBrowser MiniBrowser-5)
+	 ${LN} -s ../libexec/webkit2gtk-5.0/jsc jsc-5.0 && \
+	 ${LN} -s ../libexec/webkit2gtk-5.0/MiniBrowser MiniBrowser-5.0)
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/webkit2gtk-5.0/injected-bundle/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/webkit2gtk-5.0/*
+	${MV} ${STAGEDIR}${PREFIX}/bin/WebKitWebDriver \
+		${STAGEDIR}${PREFIX}/bin/WebKitWebDriver-5.0
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so.*.*
@@ -147,10 +152,12 @@ post-install:
 
 post-install-API41-ON:
 	(cd ${STAGEDIR}${PREFIX}/bin && \
-	 ${LN} -s ../libexec/webkit2gtk-4.1/jsc jsc-4 && \
-	 ${LN} -s ../libexec/webkit2gtk-4.1/MiniBrowser MiniBrowser-4)
+	 ${LN} -s ../libexec/webkit2gtk-4.1/jsc jsc-4.1 && \
+	 ${LN} -s ../libexec/webkit2gtk-4.1/MiniBrowser MiniBrowser-4.1)
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/webkit2gtk-4.1/injected-bundle/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/webkit2gtk-4.1/*
+	${MV} ${STAGEDIR}${PREFIX}/bin/WebKitWebDriver \
+		${STAGEDIR}${PREFIX}/bin/WebKitWebDriver-4.1
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e '/USE_FILE_LOCK/ s|1|0|' \
@@ -184,9 +191,9 @@ and Surf.
  WebKit2-%%WKAPI%%.gir
  WebKit2WebExtension-%%WKAPI%%.gir
 bin/
- MiniBrowser-%%WKAPIMAJOR%%
- WebKitWebDriver
- jsc-%%WKAPIMAJOR%%
+ MiniBrowser-%%WKAPI%%
+ WebKitWebDriver-%%WKAPI%%
+ jsc-%%WKAPI%%
 include/webkitgtk-%%WKAPI%%/JavaScriptCore/
  JSBase.h
  JSContextRef.h

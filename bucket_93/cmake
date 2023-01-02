@@ -2,6 +2,7 @@
 
 NAMEBASE=		cmake
 VERSION=		3.25.1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Cross-platform Makefile generator
@@ -19,14 +20,13 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		python-Sphinx:single:python_default
-BUILDRUN_DEPENDS=	curl:primary:standard
-			expat:complete:standard
+BUILDRUN_DEPENDS=	expat:complete:standard
 			jsoncpp:single:standard
 			libarchive:single:standard
 			libuv:single:standard
 			rhash:single:standard
 
-USES=			execinfo ncurses c++:single zlib
+USES=			ncurses c++:single zlib
 
 LICENSE=		BSD3CLAUSE:single
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/Copyright.txt
@@ -40,6 +40,8 @@ CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
 			--docdir="/share/doc/cmake"
 			--mandir="/share/man"
 			--system-libs
+			--no-system-curl
+			--no-system-nghttp2
 			--parallel={{MAKE_JOBS_NUMBER}}
 			--init="{{FILESDIR}}/InitialCache.cmake"
 CONFIGURE_ENV=		MAKE=make
@@ -3368,6 +3370,19 @@ share/vim/vimfiles/syntax/cmake.vim
  // For isascii
  // NOLINTNEXTLINE(bugprone-reserved-identifier)
  #  define _XOPEN_SOURCE 700
+
+
+[FILE:324:patches/patch-Utilities_cmcurl_lib_curl__setup.h]
+--- Utilities/cmcurl/lib/curl_setup.h.orig	2022-11-30 13:57:03 UTC
++++ Utilities/cmcurl/lib/curl_setup.h
+@@ -24,6 +24,7 @@
+  *
+  ***************************************************************************/
+ 
++#define __BSD_VISIBLE 1
+ #if defined(BUILDING_LIBCURL) && !defined(CURL_NO_OLDIES)
+ #define CURL_NO_OLDIES
+ #endif
 
 
 [FILE:369:patches/patch-Utilities_cmlibuv_src_unix_core.c]

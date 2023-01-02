@@ -2,6 +2,7 @@
 
 NAMEBASE=		zlib
 VERSION=		1.2.13
+REVISION=		1
 KEYWORDS=		archivers
 VARIANTS=		standard
 SDESC[standard]=	Ubiquitous compression library
@@ -33,10 +34,20 @@ MUST_CONFIGURE=		yes
 CONFIGURE_ENV=		prefix="{{PREFIX}}"
 			cflags="{{CFLAGS}}"
 
+SINGLE_JOB=		yes
+
 SOVERSION=		1.2.13
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libz.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libz.so
+	# install our PIC library
+	${INSTALL_DATA} ${WRKSRC}/libz_pic.a ${STAGEDIR}${PREFIX}/lib/
+
+post-build:
+	# assemble PIC library
+	(cd ${WRKSRC} \
+	 && ${AR} -cq libz_pic.a *.lo \
+	 && ranlib libz_pic.a)
 
 [FILE:628:descriptions/desc.static]
 zlib is designed to be a free, general-purpose, legally unencumbered -- 
@@ -62,11 +73,13 @@ This package contains only the shared libraries.
 b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30      1497445 zlib-1.2.13.tar.gz
 
 
-[FILE:84:manifests/plist.static]
+[FILE:98:manifests/plist.static]
 include/
  zconf.h
  zlib.h
-lib/libz.a
+lib/
+ libz.a
+ libz_pic.a
 lib/pkgconfig/zlib.pc
 share/man/man3/zlib.3.gz
 

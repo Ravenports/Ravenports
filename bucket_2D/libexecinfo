@@ -2,6 +2,7 @@
 
 NAMEBASE=		libexecinfo
 VERSION=		1.1
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		standard
@@ -24,9 +25,19 @@ LICENSE_AWK=		BSD2CLAUSE:"^$$"
 LICENSE_SOURCE=		BSD2CLAUSE:{{WRKSRC}}/execinfo.h
 LICENSE_SCHEME=		solo
 
+SINGLE_JOB=		yes
+
 post-install:
 	${INSTALL_MAN} ${FILESDIR}/backtrace.3 \
 		${STAGEDIR}${MANPREFIX}/man/man3/
+	# install our PIC library
+	${INSTALL_DATA} ${WRKSRC}/libexecinfo_pic.a ${STAGEDIR}${PREFIX}/lib/
+
+post-build:
+	# assemble PIC library
+	(cd ${WRKSRC} \
+	 && ${AR} -cq libexecinfo_pic.a *.So \
+	 && ranlib libexecinfo_pic.a)
 
 [FILE:762:descriptions/desc.single]
 Backtrace Information Library (libexecinfo, -lexecinfo)
@@ -53,12 +64,13 @@ executing thread.
 c9a21913e7fdac8ef6b33250b167aa1fc0a7b8a175145e26913a4c19d8a59b1f         4841 libexecinfo-1.1.tar.bz2
 
 
-[FILE:103:manifests/plist.single]
+[FILE:122:manifests/plist.single]
 include/execinfo.h
 lib/
  libexecinfo.a
  libexecinfo.so
  libexecinfo.so.2
+ libexecinfo_pic.a
 share/man/man3/backtrace.3.gz
 
 
