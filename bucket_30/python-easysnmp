@@ -21,6 +21,8 @@ OPTIONS_STANDARD=	none
 VOPTS[py310]=		PY310=ON PY311=OFF
 VOPTS[py311]=		PY310=OFF PY311=ON
 
+BUILDRUN_DEPENDS=	net-snmp:single:standard
+
 DISTNAME=		easysnmp-0.2.6
 
 GENERATED=		yes
@@ -134,4 +136,19 @@ version=1)
 
 [FILE:100:distinfo]
 8326df1bc8d9cdb29e3e43d55d56cb24c0d98f6997a7a1571f32815e8bdfef15        43038 easysnmp-0.2.6.tar.gz
+
+
+[FILE:465:patches/patch-setup.py]
+--- setup.py.orig	2022-07-16 15:53:20 UTC
++++ setup.py
+@@ -55,6 +55,9 @@ else:
+         elif flag[:2] == '-f':  # -flat_namespace
+             link_args.append(flag)
+             pass_next = False
++        elif flag[:10] == '-Wl,-rpath':
++            link_args.append(flag)
++            pass_next = False
+ 
+     # link_args += [flag for flag in s_split(netsnmp_libs) if flag[:2] == '-f']
+     libs = [flag[2:] for flag in s_split(netsnmp_libs) if flag[:2] == '-l']
 

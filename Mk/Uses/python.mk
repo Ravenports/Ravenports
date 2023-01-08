@@ -197,7 +197,14 @@ do-install:
 		--root ${STAGEDIR} \
 		${DISTDIR}/${DIST_SUBDIR}/${DISTFILE_1:C/:.*//}
 	# compile them separately (avoids embedded stagedir)
-	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / .)
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
+	# Don't allow LICENSE to be put at {PYTHON_SITELIBDIR}
+	@for badfile in LICENSE LICENCE README README.md; do \
+	  if [ -f "${STAGEDIR}${PYTHON_SITELIBDIR}/$$badfile" ]; then \
+	    ${RM} "${STAGEDIR}${PYTHON_SITELIBDIR}/$$badfile"; \
+	    ${ECHO_MSG} "Removed illegally installed ${PYTHON_SITELIBDIR}/$$badfile"; \
+	  fi; \
+	done
 .    endif
 
 .  elif exists(${WRKSRC}/${PYSETUP})
