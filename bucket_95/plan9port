@@ -23,6 +23,8 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BROKEN[netbsd]=		libthread does not build (i386 only)
+
 BUILDRUN_DEPENDS=	fontconfig:primary:standard
 			freetype:primary:standard
 RUN_DEPENDS=		ghostscript:primary:standard
@@ -56,14 +58,6 @@ SHEBANG_FILES=		src/cmd/map/mapdemo.rc
 			acid/transcript
 SHEBANG_LANG=		rc
 
-post-patch:
-	${REINPLACE_CMD} -e 's|/lib/font/bit|${PREFIX}/plan9/font|' \
-		${WRKSRC}/src/cmd/acme/acme.c
-	${REINPLACE_CMD} -e 's|#!/bin/rc|#!${PREFIX}/plan9/bin/rc|' \
-		${WRKSRC}/src/cmd/upas/ml/mlmgr.c \
-		${WRKSRC}/src/cmd/tcs/font/mkfile
-	${REINPLACE_CMD} -e 's|ulong|u64int|' ${WRKSRC}/src/libmach/FreeBSD.c
-
 do-build:
 	cd ${WRKSRC} && ./INSTALL -b
 
@@ -71,6 +65,14 @@ do-configure:
 	${ECHO_CMD} 'CFLAGS="${CFLAGS}"' >> ${WRKSRC}/LOCAL.config
 	${ECHO_CMD} 'LDFLAGS="${LDFLAGS}"' >> ${WRKSRC}/LOCAL.config
 	${ECHO_CMD} 'FONTSRV=fontsrv' >> ${WRKSRC}/LOCAL.config
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|/lib/font/bit|${PREFIX}/plan9/font|' \
+		${WRKSRC}/src/cmd/acme/acme.c
+	${REINPLACE_CMD} -e 's|#!/bin/rc|#!${PREFIX}/plan9/bin/rc|' \
+		${WRKSRC}/src/cmd/upas/ml/mlmgr.c \
+		${WRKSRC}/src/cmd/tcs/font/mkfile
+	${REINPLACE_CMD} -e 's|ulong|u64int|' ${WRKSRC}/src/libmach/FreeBSD.c
 
 post-extract:
 	${GREP} -rl "/usr/local" ${WRKSRC} | \

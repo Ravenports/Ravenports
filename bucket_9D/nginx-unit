@@ -163,6 +163,27 @@ libexec/unit/modules/php82.unit.%%SHARED_OBJECT%%
  
 
 
+[FILE:467:patches/patch-auto_shmem]
+$NetBSD: patch-auto_shmem,v 1.1 2021/12/13 23:10:22 gutteridge Exp $
+
+Fix sandboxed builds on NetBSD, where /var/shm typically doesn't exist.
+
+--- auto/shmem.orig	2022-12-15 12:42:01 UTC
++++ auto/shmem
+@@ -9,7 +9,11 @@ NXT_SHM_PREFIX="/"
+ 
+ nxt_feature="shm_open()"
+ nxt_feature_name=NXT_HAVE_SHM_OPEN
++if [ $NXT_SYSTEM = NetBSD ]; then
++nxt_feature_run=no
++else
+ nxt_feature_run=yes
++fi
+ nxt_feature_incs=
+ nxt_feature_libs=
+ nxt_feature_test="#include <sys/mman.h>
+
+
 [FILE:877:files/unitd.in]
 #!/bin/sh
 #

@@ -2,6 +2,7 @@
 
 NAMEBASE=		postgresql15
 VERSION=		15.1
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Powerful, open source object-relational database
@@ -93,6 +94,7 @@ SUB_FILES=		502.pgsql
 SUB_LIST=		PG_GROUP=pgsql
 			PG_USER=pgsql
 			PG_UID=60000
+			DATADIR=data150
 
 LDFLAGS=		-lpthread
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-template=freebsd
@@ -3125,7 +3127,7 @@ esac
 exit $rc
 
 
-[FILE:3171:files/postgresql.in]
+[FILE:3182:files/postgresql.in]
 #!/bin/sh
 
 # PROVIDE: postgresql
@@ -3136,7 +3138,7 @@ exit $rc
 #
 #  postgresql_enable="YES"
 #  # optional
-#  postgresql_data="/var/db/%%PG_USER%%/data100"
+#  postgresql_data="%%PREFIX%%/%%PG_USER%%/%%DATADIR%%"
 #  postgresql_flags="-w -s -m fast"
 #  postgresql_initdb_flags="--encoding=utf-8 --lc-collate=C"
 #  postgresql_class="default"
@@ -3160,7 +3162,7 @@ load_rc_config postgresql
 postgresql_enable=${postgresql_enable:-"NO"}
 postgresql_flags=${postgresql_flags:-"-w -s -m fast"}
 postgresql_user=${postgresql_user:-"%%PG_USER%%"}
-eval postgresql_data=${postgresql_data:-"~${postgresql_user}/data100"}
+eval postgresql_data=${postgresql_data:-"~${postgresql_user}/%%DATADIR%%"}
 postgresql_class=${postgresql_class:-"default"}
 postgresql_initdb_flags=${postgresql_initdb_flags:-"--encoding=utf-8 --lc-collate=C"}
 

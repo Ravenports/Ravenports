@@ -359,6 +359,12 @@ create-extract-dirs:
 extract-message:
 	@${ECHO_MSG} "===>  Extracting for ${TWO_PART_ID}"
 
+disable-network:
+	@if [ -f "/etc/resolv.conf" ]; then \
+	  mv /etc/resolv.conf /etc/resolv.conf.orig; \
+	  echo "nameserver 127.0.0.1" > /etc/resolv.conf; \
+	fi
+
 extract-fixup-modes:
 	@${CHMOD} -R u+w,a+rX ${WRKDIR}
 

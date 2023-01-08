@@ -441,15 +441,15 @@ Closes: #570
  namespace COLLADABU
 
 
-[FILE:495:patches/patch-COLLADABaseUtils_include_COLLADABUPlatform.h]
---- COLLADABaseUtils/include/COLLADABUPlatform.h.orig	2018-01-13 00:23:52 UTC
+[FILE:518:patches/patch-COLLADABaseUtils_include_COLLADABUPlatform.h]
+--- COLLADABaseUtils/include/COLLADABUPlatform.h.orig	2023-01-06 00:08:58 UTC
 +++ COLLADABaseUtils/include/COLLADABUPlatform.h
 @@ -23,7 +23,7 @@
  #  define COLLADABU_OS_WIN64
  #elif (defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__))
  #  define COLLADABU_OS_WIN32
 -#elif defined(__linux__) || defined(__linux) || defined(__FreeBSD__)
-+#elif defined(__linux__) || defined(__linux) || defined(__FreeBSD__) || defined(__DragonFly__)
++#elif defined(__linux__) || defined(__linux) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  #  define COLLADABU_OS_LINUX
  #endif
  
@@ -469,7 +469,7 @@ Closes: #570
      #define COLLADABU_HASH_MAP std::unordered_map
 
 
-[FILE:385:patches/patch-common_libBuffer_include_CommonFWriteBufferFlusher.h]
+[FILE:407:patches/patch-common_libBuffer_include_CommonFWriteBufferFlusher.h]
 --- common/libBuffer/include/CommonFWriteBufferFlusher.h.orig	2018-01-13 00:23:52 UTC
 +++ common/libBuffer/include/CommonFWriteBufferFlusher.h
 @@ -35,7 +35,7 @@ namespace std {
@@ -477,13 +477,13 @@ Closes: #570
  #   include <cstdlib> /* size_t */
  #   include <cstdio>  /* FILE */
 -#ifdef __FreeBSD__
-+#if defined __FreeBSD__ || defined __DragonFly__
++#if defined __FreeBSD__ || defined __DragonFly__ || defined __NetBSD__
  #include <stdint.h> /* int64_t */
  #endif
  #endif
 
 
-[FILE:1354:patches/patch-common_libBuffer_src_CommonFWriteBufferFlusher.cpp]
+[FILE:1423:patches/patch-common_libBuffer_src_CommonFWriteBufferFlusher.cpp]
 --- common/libBuffer/src/CommonFWriteBufferFlusher.cpp.orig	2018-01-13 00:23:52 UTC
 +++ common/libBuffer/src/CommonFWriteBufferFlusher.cpp
 @@ -90,7 +90,7 @@ namespace Common
@@ -491,7 +491,7 @@ Closes: #570
  #elif defined( _WIN32)
  		FilePosType currentPos = _ftelli64(mStream);
 -#elif defined (__APPLE__) || defined(__FreeBSD__)
-+#elif defined (__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
++#elif defined (__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  		FilePosType currentPos = ftello(mStream);
  #else
  		FilePosType currentPos = ftello64(mStream);
@@ -500,7 +500,7 @@ Closes: #570
  #elif defined( _WIN32)
  			return (_fseeki64(mStream, 0, SEEK_END) == 0);
 -#elif defined (__APPLE__) || defined(__FreeBSD__)
-+#elif defined (__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
++#elif defined (__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  			return (fseeko(mStream, 0, SEEK_END) == 0);
  #else
  			return (fseeko64(mStream, 0, SEEK_END) == 0);
@@ -509,7 +509,7 @@ Closes: #570
  #elif defined( _WIN32)
  				bool success = (_fseeki64(mStream, pos, SEEK_SET) == 0);
 -#elif defined (__APPLE__) || defined(__FreeBSD__)
-+#elif defined (__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
++#elif defined (__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  				bool success = (fseeko(mStream, pos, SEEK_SET) == 0);
  #else
  				bool success = (fseeko64(mStream, pos, SEEK_SET) == 0);

@@ -2,7 +2,7 @@
 
 NAMEBASE=		cmake
 VERSION=		3.25.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Cross-platform Makefile generator
@@ -26,7 +26,7 @@ BUILDRUN_DEPENDS=	expat:complete:standard
 			libuv:single:standard
 			rhash:single:standard
 
-USES=			ncurses c++:single zlib
+USES=			ncurses c++:single zlib ssl:build
 
 LICENSE=		BSD3CLAUSE:single
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/Copyright.txt
@@ -45,13 +45,25 @@ CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
 			--parallel={{MAKE_JOBS_NUMBER}}
 			--init="{{FILESDIR}}/InitialCache.cmake"
 CONFIGURE_ENV=		MAKE=make
+			OPENSSL_ROOT_DIR={{OPENSSLBASE}}
 
 INSTALL_TARGET=		install/strip
 PLIST_SUB=		MANPAGES="@comment "
 
 VAR_OPSYS[netbsd]=	CXXFLAGS=-D_NETBSD_SOURCE
 
-post-patch:
+post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/cmake \
+		${STAGEDIR}${PREFIX}/share/emacs/site-lisp
+	(cd ${WRKSRC} && \
+		${COPYTREE_SHARE} Modules ${STAGEDIR}${PREFIX}/share/cmake)
+	(cd ${WRKSRC} && \
+		${COPYTREE_SHARE} Templates ${STAGEDIR}${PREFIX}/share/cmake)
+	${INSTALL_DATA} ${WRKSRC}/Auxiliary/cmake-mode.el \
+		${STAGEDIR}${PREFIX}/share/emacs/site-lisp/
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+
+pre-configure:
 	${REINPLACE_CMD} -e "s@CYGWIN@true@g" \
 		${WRKSRC}/Modules/FindCurses.cmake
 	${REINPLACE_CMD} -e "s@<form.h>@<ncurses/form.h>@g" \
@@ -71,21 +83,14 @@ post-patch:
 		${WRKSRC}/Modules/FindDCMTK.cmake
 	${REINPLACE_CMD} -e 's|__APPLE__|__SKIPME__|' \
 		${WRKSRC}/Source/cmGlobalXCodeGenerator.cxx
+	# Hardcode CA bundle
+	${REINPLACE_CMD} -e 's|@RAVEN_CERT@|${LOCALBASE}/share/certs/ca-root-nss.crt|'\
+		${WRKSRC}/Utilities/cmcurl/lib/CMakeLists.txt
+	# Remove backups
 	${FIND} ${WRKSRC} -name "*.bak" -delete -o -name "*.orig" -delete
 	# cmake-gui(1) will be installed by a separate port.  Remove the man page's
 	# source to prevent it from being built/installed by devel/cmake.
 	${RM} ${WRKSRC}/Help/manual/cmake-gui.1.rst
-
-post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/cmake \
-		${STAGEDIR}${PREFIX}/share/emacs/site-lisp
-	(cd ${WRKSRC} && \
-		${COPYTREE_SHARE} Modules ${STAGEDIR}${PREFIX}/share/cmake)
-	(cd ${WRKSRC} && \
-		${COPYTREE_SHARE} Templates ${STAGEDIR}${PREFIX}/share/cmake)
-	${INSTALL_DATA} ${WRKSRC}/Auxiliary/cmake-mode.el \
-		${STAGEDIR}${PREFIX}/share/emacs/site-lisp/
-	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 [FILE:415:descriptions/desc.single]
 CMake is used to control the software compilation process using simple
@@ -3327,7 +3332,7 @@ share/vim/vimfiles/syntax/cmake.vim
 
 
 [FILE:392:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2022-11-16 14:42:03 UTC
+--- CMakeLists.txt.orig	2022-11-30 13:57:03 UTC
 +++ CMakeLists.txt
 @@ -493,7 +493,7 @@ if(NOT CMake_TEST_EXTERNAL_CMAKE)
  
@@ -3341,7 +3346,7 @@ share/vim/vimfiles/syntax/cmake.vim
 
 
 [FILE:542:patches/patch-Modules_FindSDL.cmake]
---- Modules/FindSDL.cmake.orig	2022-11-16 14:42:03 UTC
+--- Modules/FindSDL.cmake.orig	2022-11-30 13:57:03 UTC
 +++ Modules/FindSDL.cmake
 @@ -124,6 +124,11 @@ else()
    set(VC_LIB_PATH_SUFFIX lib/x86)
@@ -3357,8 +3362,25 @@ share/vim/vimfiles/syntax/cmake.vim
  find_library(SDL_LIBRARY_TEMP
 
 
+[FILE:607:patches/patch-Source_Modules_CMakeBuildUtilities.cmake]
+--- Source/Modules/CMakeBuildUtilities.cmake.orig	2022-11-30 13:57:03 UTC
++++ Source/Modules/CMakeBuildUtilities.cmake
+@@ -149,11 +149,7 @@ else()
+   if(CMAKE_TESTS_CDASH_SERVER)
+     set(CMAKE_CURL_TEST_URL "${CMAKE_TESTS_CDASH_SERVER}/user.php")
+   endif()
+-  set(_CMAKE_USE_OPENSSL_DEFAULT OFF)
+-  if(NOT DEFINED CMAKE_USE_OPENSSL AND NOT WIN32 AND NOT APPLE
+-      AND CMAKE_SYSTEM_NAME MATCHES "(Linux|FreeBSD)")
+     set(_CMAKE_USE_OPENSSL_DEFAULT ON)
+-  endif()
+   option(CMAKE_USE_OPENSSL "Use OpenSSL." ${_CMAKE_USE_OPENSSL_DEFAULT})
+   mark_as_advanced(CMAKE_USE_OPENSSL)
+   if(CMAKE_USE_OPENSSL)
+
+
 [FILE:457:patches/patch-Source_cmSystemTools.cxx]
---- Source/cmSystemTools.cxx.orig	2022-11-16 14:42:03 UTC
+--- Source/cmSystemTools.cxx.orig	2022-11-30 13:57:03 UTC
 +++ Source/cmSystemTools.cxx
 @@ -6,7 +6,8 @@
  // NOLINTNEXTLINE(bugprone-reserved-identifier)
@@ -3370,6 +3392,19 @@ share/vim/vimfiles/syntax/cmake.vim
  // For isascii
  // NOLINTNEXTLINE(bugprone-reserved-identifier)
  #  define _XOPEN_SOURCE 700
+
+
+[FILE:320:patches/patch-Utilities_cmcurl_lib_CMakeLists.txt]
+--- Utilities/cmcurl/lib/CMakeLists.txt.orig	2022-11-30 13:57:03 UTC
++++ Utilities/cmcurl/lib/CMakeLists.txt
+@@ -24,6 +24,7 @@
+ set(LIB_NAME cmcurl)
+ set(LIBCURL_OUTPUT_NAME cmcurl)
+ add_definitions(-DBUILDING_LIBCURL)
++add_definitions(-DCURL_CA_BUNDLE="@RAVEN_CERT@")
+ 
+ if(BUILD_SHARED_LIBS)
+   set(CURL_STATICLIB NO)
 
 
 [FILE:324:patches/patch-Utilities_cmcurl_lib_curl__setup.h]
@@ -3385,8 +3420,24 @@ share/vim/vimfiles/syntax/cmake.vim
  #endif
 
 
+[FILE:360:patches/patch-Utilities_cmcurl_lib_url.c]
+--- Utilities/cmcurl/lib/url.c.orig	2022-11-30 13:57:03 UTC
++++ Utilities/cmcurl/lib/url.c
+@@ -647,6 +647,10 @@ CURLcode Curl_init_userdefined(struct Cu
+     CURL_HTTP_VERSION_1_1
+ #endif
+     ;
++#if defined(__FreeBSD__)
++  /* different handling of signals and threads */
++  set->no_signal = TRUE;
++#endif
+   Curl_http2_init_userset(set);
+   return result;
+ }
+
+
 [FILE:369:patches/patch-Utilities_cmlibuv_src_unix_core.c]
---- Utilities/cmlibuv/src/unix/core.c.orig	2022-11-16 14:42:03 UTC
+--- Utilities/cmlibuv/src/unix/core.c.orig	2022-11-30 13:57:03 UTC
 +++ Utilities/cmlibuv/src/unix/core.c
 @@ -86,6 +86,11 @@ extern char** environ;
  # include <sys/cpuset.h>
@@ -3403,7 +3454,7 @@ share/vim/vimfiles/syntax/cmake.vim
 
 
 [FILE:1578:patches/patch-Utilities_cmlibuv_src_unix_fs.c]
---- Utilities/cmlibuv/src/unix/fs.c.orig	2022-11-16 14:42:03 UTC
+--- Utilities/cmlibuv/src/unix/fs.c.orig	2022-11-30 13:57:03 UTC
 +++ Utilities/cmlibuv/src/unix/fs.c
 @@ -1150,7 +1150,6 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {

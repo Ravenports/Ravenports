@@ -471,19 +471,6 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=221751
  #include <sys/types.h>
 
 
-[FILE:233:patches/patch-sysdeps_freebsd_mountlist.c]
---- sysdeps/freebsd/mountlist.c.orig	2019-02-04 20:15:22 UTC
-+++ sysdeps/freebsd/mountlist.c
-@@ -99,6 +99,7 @@ static gboolean ignore_mount_entry(const
- 		"mfs",
- 		"none",
- 		"nfs",
-+		"null",
- 		"nullfs",
- 		"nwfs",
- 		"portalfs",
-
-
 [FILE:681:patches/patch-sysdeps_freebsd_netload.c]
 DFLYGC 6.2
 
@@ -572,70 +559,6 @@ DFLYGC 6.2
  
  	buf->flags |= _glibtop_sysdeps_proc_kernel_pstats;
  
-
-
-[FILE:1916:patches/patch-sysdeps_freebsd_proclist.c]
---- sysdeps/freebsd/proclist.c.orig	2019-02-04 20:15:22 UTC
-+++ sysdeps/freebsd/proclist.c
-@@ -94,7 +94,7 @@ glibtop_get_proclist_p (glibtop *server,
- 	for (i = 0; i < len; i++) {
- 		pid_t pid;
- 
--		pid = (pid_t) pinfo[i].ki_pid;
-+		pid = (pid_t) pinfo[i].kp_pid;
- 
- 		/* If a process has many threads, kern.proc.all reports multiple
- 		   times the same pid. So don't look twice at the same pid.
-@@ -115,41 +115,41 @@ glibtop_get_proclist_p (glibtop *server,
- 					continue;
- 				break;
- 			case GLIBTOP_KERN_PROC_UID:
--				if ((uid_t) arg != pinfo[i].ki_ruid)
-+				if ((uid_t) arg != pinfo[i].kp_ruid)
- 					continue;
- 				break;
- 			case GLIBTOP_KERN_PROC_PGRP:
--				if ((pid_t) arg != pinfo[i].ki_pgid)
-+				if ((pid_t) arg != pinfo[i].kp_pgid)
- 					continue;
- 				break;
- 			case GLIBTOP_KERN_PROC_SESSION:
--				if ((pid_t) arg != pinfo[i].ki_sid)
-+				if ((pid_t) arg != pinfo[i].kp_sid)
- 					continue;
- 				break;
- 			case GLIBTOP_KERN_PROC_TTY:
--				if ((dev_t) arg != pinfo[i].ki_tdev)
-+				if ((dev_t) arg != pinfo[i].kp_tdev)
- 					continue;
- 				break;
- 			case GLIBTOP_KERN_PROC_RUID:
--				if ((uid_t) arg != pinfo[i].ki_ruid)
-+				if ((uid_t) arg != pinfo[i].kp_ruid)
- 					continue;
- 				break;
- 			}
- 
- 		if (which & GLIBTOP_EXCLUDE_NOTTY)
--			if (pinfo[i].ki_tdev == (dev_t) -1) continue;
-+			if (pinfo[i].kp_tdev == (dev_t) -1) continue;
- 
- 		if (which & GLIBTOP_EXCLUDE_IDLE) {
- 			glibtop_get_proc_state_p (server, &procstate, pid);
- 			if (procstate.flags & (1L << GLIBTOP_PROC_STATE_STATE))
- 				if (procstate.state != GLIBTOP_PROCESS_RUNNING) continue;
- 
--			if (pinfo[i].ki_ppid == 0 && !strcmp(pinfo[i].ki_comm, "idle"))
-+			if (pinfo[i].kp_ppid == 0 && !strcmp(pinfo[i].kp_comm, "idle"))
- 				continue;
- 		}
- 
- 		if (which & GLIBTOP_EXCLUDE_SYSTEM)
--			if (pinfo[i].ki_ruid == (uid_t) 0) continue;
-+			if (pinfo[i].kp_ruid == (uid_t) 0) continue;
- 
- 		g_array_append_val (pids, pid);
- 	}
 
 
 [FILE:5721:patches/patch-sysdeps_freebsd_procmap.c]
@@ -1097,4 +1020,81 @@ DFLYGC 6.2
  
  	buf->uid  = pinfo [0].PROC_RUID;
  	buf->euid = pinfo [0].PROC_EUID;
+
+
+[FILE:233:dragonfly/patch-sysdeps_freebsd_mountlist.c]
+--- sysdeps/freebsd/mountlist.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/mountlist.c
+@@ -99,6 +99,7 @@ static gboolean ignore_mount_entry(const
+ 		"mfs",
+ 		"none",
+ 		"nfs",
++		"null",
+ 		"nullfs",
+ 		"nwfs",
+ 		"portalfs",
+
+
+[FILE:1916:dragonfly/patch-sysdeps_freebsd_proclist.c]
+--- sysdeps/freebsd/proclist.c.orig	2019-02-04 20:15:22 UTC
++++ sysdeps/freebsd/proclist.c
+@@ -94,7 +94,7 @@ glibtop_get_proclist_p (glibtop *server,
+ 	for (i = 0; i < len; i++) {
+ 		pid_t pid;
+ 
+-		pid = (pid_t) pinfo[i].ki_pid;
++		pid = (pid_t) pinfo[i].kp_pid;
+ 
+ 		/* If a process has many threads, kern.proc.all reports multiple
+ 		   times the same pid. So don't look twice at the same pid.
+@@ -115,41 +115,41 @@ glibtop_get_proclist_p (glibtop *server,
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_UID:
+-				if ((uid_t) arg != pinfo[i].ki_ruid)
++				if ((uid_t) arg != pinfo[i].kp_ruid)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_PGRP:
+-				if ((pid_t) arg != pinfo[i].ki_pgid)
++				if ((pid_t) arg != pinfo[i].kp_pgid)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_SESSION:
+-				if ((pid_t) arg != pinfo[i].ki_sid)
++				if ((pid_t) arg != pinfo[i].kp_sid)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_TTY:
+-				if ((dev_t) arg != pinfo[i].ki_tdev)
++				if ((dev_t) arg != pinfo[i].kp_tdev)
+ 					continue;
+ 				break;
+ 			case GLIBTOP_KERN_PROC_RUID:
+-				if ((uid_t) arg != pinfo[i].ki_ruid)
++				if ((uid_t) arg != pinfo[i].kp_ruid)
+ 					continue;
+ 				break;
+ 			}
+ 
+ 		if (which & GLIBTOP_EXCLUDE_NOTTY)
+-			if (pinfo[i].ki_tdev == (dev_t) -1) continue;
++			if (pinfo[i].kp_tdev == (dev_t) -1) continue;
+ 
+ 		if (which & GLIBTOP_EXCLUDE_IDLE) {
+ 			glibtop_get_proc_state_p (server, &procstate, pid);
+ 			if (procstate.flags & (1L << GLIBTOP_PROC_STATE_STATE))
+ 				if (procstate.state != GLIBTOP_PROCESS_RUNNING) continue;
+ 
+-			if (pinfo[i].ki_ppid == 0 && !strcmp(pinfo[i].ki_comm, "idle"))
++			if (pinfo[i].kp_ppid == 0 && !strcmp(pinfo[i].kp_comm, "idle"))
+ 				continue;
+ 		}
+ 
+ 		if (which & GLIBTOP_EXCLUDE_SYSTEM)
+-			if (pinfo[i].ki_ruid == (uid_t) 0) continue;
++			if (pinfo[i].kp_ruid == (uid_t) 0) continue;
+ 
+ 		g_array_append_val (pids, pid);
+ 	}
 

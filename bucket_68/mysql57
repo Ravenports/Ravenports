@@ -638,12 +638,27 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
  #define HA_MAX_POSSIBLE_KEY_BUFF    (HA_MAX_KEY_LENGTH + 24+ 6+6)
 
 
-[FILE:419:patches/patch-include_my__thread__os__id.h]
+[FILE:932:patches/patch-include_my__thread__os__id.h]
 --- include/my_thread_os_id.h.orig	2022-08-30 03:50:14 UTC
 +++ include/my_thread_os_id.h
-@@ -88,8 +88,12 @@ static inline my_thread_os_id_t my_threa
+@@ -37,6 +37,10 @@
+ #include <pthread.h>                /* pthread_self */
+ #endif
+ 
++#ifdef __NetBSD__
++#include <lwp.h>
++#endif
++
+ #ifdef HAVE_PTHREAD_GETTHREADID_NP
+ #include <pthread_np.h>             /* pthread_getthreadid_np() */
+ #endif /* HAVE_PTHREAD_GETTHREADID_NP */
+@@ -87,13 +91,21 @@ static inline my_thread_os_id_t my_threa
+   /* FreeBSD 10.2 */
    return pthread_getthreadid_np();
  #else
++#ifdef __NetBSD__
++  return (int)_lwp_self();
++#else
  #ifdef HAVE_INTEGER_PTHREAD_SELF
 +#  ifdef __DragonFly__
 +  return syscall(SYS_lwp_gettid);
@@ -654,6 +669,11 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
  #else
    /* Feature not available. */
    return 0;
+ #endif /* HAVE_INTEGER_PTHREAD_SELF */
++#endif /* __NetBSD__ */
+ #endif /* HAVE_PTHREAD_GETTHREADID_NP */
+ #endif /* _WIN32 */
+ #endif /* HAVE_SYS_GETTID */
 
 
 [FILE:549:patches/patch-include_myisam.h]
@@ -670,7 +690,7 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
  #define MI_MAX_KEY_BUFF  (MI_MAX_KEY_LENGTH+MI_MAX_KEY_SEG*6+8+8)
 
 
-[FILE:459:patches/patch-libmysql_CMakeLists.txt]
+[FILE:466:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2022-08-30 03:50:14 UTC
 +++ libmysql/CMakeLists.txt
 @@ -316,7 +316,7 @@ IF(NOT DISABLE_SHARED)
@@ -678,7 +698,7 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
    IF(UNIX)
      # libtool compatability
 -    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD" OR APPLE)
-+    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|Linux|SunOS" OR APPLE)
++    IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|NetBSD|DragonFly|Linux|SunOS" OR APPLE)
        SET(OS_SHARED_LIB_VERSION "${SHARED_LIB_MAJOR_VERSION}")
      ELSE()
        SET(OS_SHARED_LIB_VERSION
@@ -760,6 +780,46 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
      by current user.
 
 
+[FILE:910:patches/patch-mysys_kqueue__timers.c]
+$NetBSD: patch-mysys_kqueue__timers.c,v 1.2 2021/04/21 13:26:54 adam Exp $
+
+Fix for systems which do not define EVFILT_USER.
+
+--- mysys/kqueue_timers.c.orig	2022-08-30 03:50:14 UTC
++++ mysys/kqueue_timers.c
+@@ -74,8 +74,10 @@ timer_notify_thread_func(void *arg MY_AT
+       assert(timer->id == kev.ident);
+       timer->notify_function(timer);
+     }
++#ifdef EVFILT_USER
+     else if (kev.filter == EVFILT_USER)
+       break;
++#endif
+   }
+ 
+   close(kq_fd);
+@@ -96,7 +98,9 @@ start_helper_thread(void)
+ {
+   struct kevent kev;
+ 
++#ifdef EVFILT_USER
+   EV_SET(&kev, 0, EVFILT_USER, EV_ADD, 0, 0, 0);
++#endif
+ 
+   if (kevent(kq_fd, &kev, 1, NULL, 0, NULL) < 0)
+   {
+@@ -150,7 +154,9 @@ my_timer_deinitialize(void)
+ {
+   struct kevent kev;
+ 
++#ifdef EVFILT_USER
+   EV_SET(&kev, 0, EVFILT_USER, 0, NOTE_TRIGGER, 0, 0);
++#endif
+ 
+   if (kevent(kq_fd, &kev, 1, NULL, 0, NULL) < 0)
+     my_message_local(ERROR_LEVEL,
+
+
 [FILE:430:patches/patch-plugin_password__validation_validate__password.cc]
 --- plugin/password_validation/validate_password.cc.orig	2022-08-30 03:50:14 UTC
 +++ plugin/password_validation/validate_password.cc
@@ -772,6 +832,80 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
  #include <set>
  #include <iostream>
  #include <fstream>
+
+
+[FILE:598:patches/patch-rapid_plugin_group__replication_libmysqlgcs_src_bindings_xcom_xcom_sock__probe__ix.c]
+--- rapid/plugin/group_replication/libmysqlgcs/src/bindings/xcom/xcom/sock_probe_ix.c.orig	2022-08-30 03:50:14 UTC
++++ rapid/plugin/group_replication/libmysqlgcs/src/bindings/xcom/xcom/sock_probe_ix.c
+@@ -147,7 +147,11 @@ static int init_sock_probe(sock_probe *s
+    interfaces. We are doing this, since the size of sockaddr differs on
+    some platforms.
+    */
++#if defined(__NetBSD__)
++  for (i= 0, ptr=(char*) s->ifc.ifc_buf, end= (char*)s->ifc.ifc_buf + s->ifc.ifc_len;
++#else
+   for (i= 0, ptr= s->ifc.ifc_buf, end= s->ifc.ifc_buf + s->ifc.ifc_len;
++#endif
+        ptr<end;
+        i++)
+   {
+
+
+[FILE:831:patches/patch-rapid_plugin_group__replication_libmysqlgcs_src_bindings_xcom_xcom_xcom__memory.c]
+$NetBSD: patch-rapid_plugin_group__replication_libmysqlgcs_src_bindings_xcom_xcom_xcom__memory.c,v 1.1 2017/03/16 15:46:22 maya Exp $
+
+Workaround netbsd prototype of xdrproc_t being 2 arguments.
+
+--- rapid/plugin/group_replication/libmysqlgcs/src/bindings/xcom/xcom/xcom_memory.c.orig	2022-08-30 03:50:14 UTC
++++ rapid/plugin/group_replication/libmysqlgcs/src/bindings/xcom/xcom/xcom_memory.c
+@@ -50,7 +50,14 @@ my_xdr_free (xdrproc_t proc, char *objp)
+     is the case). This will keep this code cross-platform
+     and cross-version compatible.
+   */
++#ifdef __NetBSD__
++  /* NetBSD doesn't have a variadic xdrproc_t...
++   * see https://bugzilla.redhat.com/show_bug.cgi?id=1128820#c24 
++   * for a similar problem */
++  (*proc) (&x, objp);
++#else
+   (*proc) (&x, objp, 0);
++#endif
+ }
+ 
+ void xcom_xdr_free(xdrproc_t f, char *p)
+
+
+[FILE:1075:patches/patch-rapid_plugin_group__replication_libmysqlgcs_src_bindings_xcom_xcom_xcom__transport.c]
+$NetBSD: patch-rapid_plugin_group__replication_libmysqlgcs_src_bindings_xcom_xcom_xcom__transport.c,v 1.1 2017/03/16 15:46:22 maya Exp $
+
+Workaround netbsd prototype of xdrproc_t being 2 arguments.
+
+--- rapid/plugin/group_replication/libmysqlgcs/src/bindings/xcom/xcom/xcom_transport.c.orig	2022-08-30 03:50:14 UTC
++++ rapid/plugin/group_replication/libmysqlgcs/src/bindings/xcom/xcom/xcom_transport.c
+@@ -360,7 +360,11 @@ int apply_xdr(xcom_proto x_proto, gpoint
+ 	*/
+ 	if (xdr.x_ops){
+ 		xdr.x_public = (caddr_t)&x_proto; /* Supply protocol version in user field of xdr */
++#ifdef __NetBSD__
++		s = xdrfunc(&xdr, xdrdata);
++#else
+ 		s = xdrfunc(&xdr, xdrdata, 0);
++#endif
+ 	}
+ 	xdr_destroy(&xdr);
+ 	return s;
+@@ -594,7 +598,11 @@ xdr_proto_sizeof (xcom_proto x_proto, xd
+     is the case). This will keep this code cross-platform
+     and cross-version compatible.
+   */
++#ifdef __NetBSD__
++  stat = func (&x, data);
++#else
+   stat = func (&x, data, 0);
++#endif
+   free (x.x_private);
+   // x_handy is int type for old XDR
+   return stat == TRUE ? (uint64_t)x.x_handy : 0;
 
 
 [FILE:678:patches/patch-rapid_plugin_x_mysqlx__configure.cmake]
@@ -922,7 +1056,7 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
        if (req.sink)
 
 
-[FILE:440:patches/patch-sql_locks_shared__spin__lock.cc]
+[FILE:463:patches/patch-sql_locks_shared__spin__lock.cc]
 --- sql/locks/shared_spin_lock.cc.orig	2022-08-30 03:50:14 UTC
 +++ sql/locks/shared_spin_lock.cc
 @@ -239,7 +239,7 @@ lock::Shared_spin_lock &lock::Shared_spi
@@ -930,7 +1064,7 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
      this->spin_exclusive_lock();
    }
 -#if defined(__APPLE__)
-+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
++#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
    my_atomic_store64(&this->m_exclusive_owner, reinterpret_cast<int64>(self));
  #else
    my_atomic_store64(&this->m_exclusive_owner, self);
@@ -1057,15 +1191,15 @@ Disable HAVE_SOLARIS_LARGE_PAGES, only supported on Oracle Solaris.
  static Sys_var_plugin Sys_default_storage_engine(
 
 
-[FILE:440:patches/patch-storage_innobase_include_srv0mon.h]
+[FILE:473:patches/patch-storage_innobase_include_srv0mon.h]
 --- storage/innobase/include/srv0mon.h.orig	2022-08-30 03:50:14 UTC
 +++ storage/innobase/include/srv0mon.h
 @@ -41,6 +41,10 @@ Created 12/15/2009	Jimmy Yang
  /* Required for FreeBSD so that INT64_MAX is defined. */
  #define __STDC_LIMIT_MACROS
  #endif /* __STDC_LIMIT_MACROS */
-+#ifdef __DragonFly__
-+/* The hack above doen't work for dragonfly, stdint.h already imported */
++#if defined(__DragonFly__) || defined(__NetBSD__)
++/* The hack above doen't work for this platform, stdint.h already imported */
 +#include <machine/int_limits.h>
 +#endif
  

@@ -141,10 +141,50 @@ and how to successfully get involved.
 2386da9a471cc00a1f47845e27d916d5ec5346ae9696e01a8a34760858fe9dd2     10903184 numpy-1.24.1.tar.gz
 
 
-[FILE:535:patches/patch-numpy_f2py_cfuncs.py]
---- numpy/f2py/cfuncs.py.orig	2022-01-29 12:20:32 UTC
+[FILE:1275:patches/patch-numpy_core_include_numpy_npy__math.h]
+--- numpy/core/include/numpy/npy_math.h.orig	2022-12-26 03:52:52 UTC
++++ numpy/core/include/numpy/npy_math.h
+@@ -318,7 +318,11 @@ NPY_INPLACE npy_longdouble npy_tanl(npy_
+ NPY_INPLACE npy_longdouble npy_expl(npy_longdouble x);
+ NPY_INPLACE npy_longdouble npy_sqrtl(npy_longdouble x);
+ NPY_INPLACE npy_longdouble npy_hypotl(npy_longdouble x, npy_longdouble y);
++#if defined(__NetBSD__)
++#define npy_log2l __builtin_log2l
++#else
+ NPY_INPLACE npy_longdouble npy_log2l(npy_longdouble x);
++#endif
+ NPY_INPLACE npy_longdouble npy_atan2l(npy_longdouble x, npy_longdouble y);
+ NPY_INPLACE npy_longdouble npy_powl(npy_longdouble x, npy_longdouble y);
+ NPY_INPLACE npy_longdouble npy_modfl(npy_longdouble x, npy_longdouble* y);
+@@ -336,14 +340,22 @@ NPY_INPLACE npy_longdouble npy_modfl(npy
+ #define npy_cbrtl cbrtl
+ #define npy_log10l log10l
+ #define npy_logl logl
++#if defined(__NetBSD__)
++#define npy_expm1l expm1
++#else
+ #define npy_expm1l expm1l
++#endif
+ #define npy_asinl asinl
+ #define npy_acosl acosl
+ #define npy_atanl atanl
+ #define npy_asinhl asinhl
+ #define npy_acoshl acoshl
+ #define npy_atanhl atanhl
++#if defined(__NetBSD__)
++#define npy_log1pl log1p
++#else
+ #define npy_log1pl log1pl
++#endif
+ #define npy_exp2l exp2l
+ #define npy_fmodl fmodl
+ #define npy_frexpl frexpl
+
+
+[FILE:564:patches/patch-numpy_f2py_cfuncs.py]
+--- numpy/f2py/cfuncs.py.orig	2022-12-26 03:52:53 UTC
 +++ numpy/f2py/cfuncs.py
-@@ -578,6 +578,9 @@ cppmacros["F2PY_THREAD_LOCAL_DECL"] = ""
+@@ -546,6 +546,9 @@ cppmacros["F2PY_THREAD_LOCAL_DECL"] = ""
  #define F2PY_THREAD_LOCAL_DECL __thread
  #elif defined(__STDC_VERSION__) \\
        && (__STDC_VERSION__ >= 201112L) \\
@@ -153,5 +193,5 @@ and how to successfully get involved.
 +      && !defined(__sun__) \\ 
        && !defined(__STDC_NO_THREADS__) \\
        && (!defined(__GLIBC__) || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ > 12)) \\
-       && !defined(__OpenBSD__)
+       && !defined(NPY_OS_OPENBSD) && !defined(NPY_OS_HAIKU)
 

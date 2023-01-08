@@ -58,6 +58,7 @@ SOL_FUNCTIONS=		strnlen:xkb/XKBGAlloc.c
 
 VAR_OPSYS[sunos]=	CFLAGS=-DO_CLOEXEC=0
 VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
+			CONFIGURE_ARGS=-Dsecure-rpc=false
 
 [DEVD].DESCRIPTION=			Use devd for autoconfiguration of input devices
 
@@ -1117,6 +1118,20 @@ share/man/man1/Xnest.1.gz
  /* Device to open as xf86Info.consoleFd */
  static char consoleDev[PATH_MAX] = "/dev/fb";
  
+
+
+[FILE:459:patches/patch-include_meson.build]
+--- include/meson.build.orig	2022-12-19 10:53:03 UTC
++++ include/meson.build
+@@ -384,7 +384,7 @@ if host_machine.system() == 'freebsd' or
+     endif
+ elif host_machine.system() == 'netbsd'
+     if host_machine.cpu_family() == 'x86' or host_machine.cpu_family() == 'x86_64'
+-        xorg_data.set('USE_I386_IOPL', '1')
++        xorg_data.set('USE_AMD64_IOPL', '1')
+     endif
+ elif host_machine.system() == 'openbsd'
+     if host_machine.cpu_family() == 'x86'
 
 
 [FILE:193:patches/patch-os_backtrace.c]

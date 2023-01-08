@@ -255,7 +255,7 @@ POST_PLIST_TARGET+=	perl-autolist
 perl-autolist:
 	@if [ ! -d /port/manifests ]; then \
 	    echo "... Generate single subpackage manifest"; \
-	    (cd ${STAGEDIR}${PREFIX} && ${FIND} lib bin \
+	    (cd ${STAGEDIR}${PREFIX} && ${FIND} lib bin sbin \
 		\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
 		>> ${WRKDIR}/.manifest.single.mktmp; \
 	fi

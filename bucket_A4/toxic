@@ -2,6 +2,7 @@
 
 NAMEBASE=		toxic
 VERSION=		0.11.3
+REVISION=		1
 KEYWORDS=		net net_im net_p2p
 VARIANTS=		standard
 SDESC[standard]=	Ncurses-based Tox client
@@ -25,8 +26,8 @@ BUILDRUN_DEPENDS=	curl:primary:standard
 			qrencode:single:standard
 			toxcore:single:standard
 
-USES=			desktop-utils:single gmake ncurses pkgconfig python
-			shebangfix
+USES=			desktop-utils:single gmake ncurses pkgconfig
+			python:build shebangfix
 XORG_COMPONENTS=	x11
 
 LICENSE=		GPLv3+:single
@@ -44,21 +45,15 @@ MAKE_ARGS=		ENABLE_PYTHON=1
 			PREFIX="{{PREFIX}}"
 			USER_CFLAGS="{{CFLAGS}}"
 			USER_LDFLAGS="{{LDFLAGS}}"
+SINGLE_JOB=		yes
 
 CFLAGS=			-I{{NCURSESINC}}
 
 post-patch:
-	if [ "${PYTHON_SUFFIX}" -gt 37 ]; then \
-		${REINPLACE_CMD} \
-		-e 's|LIBS = python3|LIBS = python-${PYTHON_VER}|' \
-		-e 's|python3-config|python${PYTHON_VER}-config --embed|g' \
-		${WRKSRC}/cfg/checks/python.mk ;\
-	else \
-		${REINPLACE_CMD} \
-		-e 's|LIBS = python3|LIBS = python-${PYTHON_VER}|' \
+	${REINPLACE_CMD} \
+		-e 's|LIBS = python3|LIBS = python${PYTHON_VER}|' \
 		-e 's|python3-config|python${PYTHON_VER}-config|g' \
-		${WRKSRC}/cfg/checks/python.mk ;\
-	fi
+		${WRKSRC}/cfg/checks/python.mk
 	# log the build
 	${REINPLACE_CMD} -e '/@.[(]CC[)]/ s|@||' ${WRKSRC}/Makefile
 
@@ -90,4 +85,20 @@ share/toxic/sounds/
  ToxicRecvMessage.wav
  ToxicTransferComplete.wav
  ToxicTransferStart.wav
+
+
+[FILE:347:patches/patch-Makefile]
+--- Makefile.orig	2023-01-05 22:54:08 UTC
++++ Makefile
+@@ -42,10 +42,6 @@ ifeq ($(UNAME_S), OpenBSD)
+ LIBS := $(filter-out ncursesw, $(LIBS))
+ LDFLAGS += -lncursesw
+ endif
+-ifeq ($(UNAME_S), NetBSD)
+-LIBS := $(filter-out ncursesw, $(LIBS))
+-LDFLAGS += -lncursesw
+-endif
+ ifeq ($(UNAME_S), Darwin)
+     -include $(CFG_DIR)/systems/Darwin.mk
+ endif
 

@@ -35,6 +35,7 @@ _FETCH_SEQ=		100:fetch-message \
 
 _EXTRACT_DEP=		fetch
 _EXTRACT_SEQ=		100:extract-message \
+			101:disable-network \
 			150:checksum \
 			200:clean-wrkdir \
 			250:create-extract-dirs \

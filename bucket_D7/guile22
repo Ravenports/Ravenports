@@ -2,6 +2,7 @@
 
 NAMEBASE=		guile22
 VERSION=		2.2.7
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	GNU Ubiquitous Intelligent Language for Extensions
@@ -53,6 +54,23 @@ SOVERSION=		1.4.2
 PLIST_SUB=		GUILE_VER=2.2
 			RLSOVERSION=0.0.0
 			RLSOMAJOR=0
+
+CFLAGS=			-fno-stack-check
+			-g
+
+post-configure-netbsd:
+	# https://debbugs.gnu.org/cgi/bugreport.cgi?bug=24002
+	${ECHO} '#define FLEXIBLE_ARRAY_MEMBER /**/' >> ${WRKSRC}/config.h
+
+pre-configure-netbsd:
+	# work around locale segfault
+	${REINPLACE_CMD} -e 's/GUILE_AUTO_COMPILE=0/LC_ALL=en_US.UTF-8 GUILE_AUTO_COMPILE=0/' \
+		${WRKSRC}/libguile/Makefile.in \
+		${WRKSRC}/bootstrap/Makefile.in \
+		${WRKSRC}/module/Makefile.in \
+		${WRKSRC}/guile-readline/Makefile.in
+	${REINPLACE_CMD} -e 's|$$(AM_V_GEN)|LC_ALL=en_US.UTF-8|' \
+		${WRKSRC}/Makefile.in
 
 [FILE:322:descriptions/desc.single]
 GUILE, GNU's Ubiquitous Intelligent Language for Extension, is a library
@@ -891,14 +909,14 @@ share/guile/%%GUILE_VER%%/web/server/http.scm
 share/man/man1/guile.1.gz
 
 
-[FILE:440:patches/patch-lib_signal.in.h]
+[FILE:462:patches/patch-lib_signal.in.h]
 --- lib/signal.in.h.orig	2017-03-07 13:51:20 UTC
 +++ lib/signal.in.h
 @@ -60,6 +60,7 @@
     But avoid namespace pollution on glibc systems.*/
  #if (@GNULIB_PTHREAD_SIGMASK@ || defined GNULIB_POSIXCHECK) \
      && ((defined __APPLE__ && defined __MACH__) \
-+	|| defined __DragonFly__ \
++	|| defined __DragonFly__ || defined __NetBSD__ \
          || defined __FreeBSD__ || defined __OpenBSD__ || defined __osf__ \
          || defined __sun || defined __ANDROID__) \
      && ! defined __GLIBC__
@@ -932,6 +950,24 @@ share/man/man1/guile.1.gz
  #include <stdio.h>
  #include <string.h>
  
+
+
+[FILE:517:patches/patch-libguile_loader.c]
+$NetBSD: patch-libguile_loader.c,v 1.2 2019/06/23 09:14:58 wiz Exp $
+
+Use correct mmap permissions for later PROT_WRITE mprotect.
+
+--- libguile/loader.c.orig	2018-01-08 16:21:04.790894906 +0000
++++ libguile/loader.c
+@@ -484,7 +484,7 @@ map_file_contents (int fd, size_t len, i
+   char *data;
+ 
+ #ifdef HAVE_SYS_MMAN_H
+-  data = mmap (NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
++  data = mmap (NULL, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+   if (data == MAP_FAILED)
+     SCM_SYSERROR;
+   *is_read_only = 1;
 
 
 [FILE:626:patches/patch-libguile_numbers.c]
