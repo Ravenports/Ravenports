@@ -10,6 +10,7 @@
 # CARGO_CARGOLOCK    Default path for cargo LOCK file
 # CARGO_CARGO_BIN    Location of cargo binary
 # CARGO_TARGET_DIR   Location of the cargo output directory
+# CARGO_BUILD_TARGET Either "release" or "debug"
 #
 # Environment for cargo (CARGO_ENV)
 #  - CARGO_HOME: local cache of the registry index
@@ -84,8 +85,10 @@ CARGO_TEST_ARGS+=	--features='${CARGO_FEATURES}'
 .if !defined(WITH_DEBUG)
 CARGO_BUILD_ARGS+=	--release
 CARGO_TEST_ARGS+=	--release
+CARGO_BUILD_TARGET=	release
 .else
 CARGO_INSTALL_ARGS+=	--debug
+CARGO_BUILD_TARGET=	debug
 .endif
 
 # always use system versions over bundled

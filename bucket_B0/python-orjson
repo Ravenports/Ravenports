@@ -91,8 +91,20 @@ CARGO_CARGOLOCK=	{{WRKSRC}}/Cargo.lock
 CARGO_CARGOTOML=	{{WRKSRC}}/Cargo.toml
 GENERATED=		yes
 
+PLIST_SUB=		VER=3.8.4
+
+CARGO_SKIP_CONFIGURE=	yes
+CARGO_SKIP_BUILD=	yes
+CARGO_SKIP_INSTALL=	yes
+
+[PY310].BUILD_DEPENDS_ON=		python-setuptools-rust:single:py310
+					python-maturin:single:py310
+					python-pip:single:py310
 [PY310].USES_ON=			python:py310
 
+[PY311].BUILD_DEPENDS_ON=		python-setuptools-rust:single:py311
+					python-maturin:single:py311
+					python-pip:single:py311
 [PY311].USES_ON=			python:py311
 
 post-patch:
@@ -101,6 +113,29 @@ post-patch:
 	echo "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKSRC}/.cargo/config.toml
 	echo "[source.crates-io]" >> ${WRKSRC}/.cargo/config.toml
 	echo "replace-with = 'cargo'" >> ${WRKSRC}/.cargo/config.toml
+
+do-build:
+	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} maturin build \
+		--release \
+		--interpreter ${PYTHON_CMD})
+
+do-install:
+	# Due to upstream not supplying a setup.py file or other way to install
+	# using pip command for now...
+	${SETENV} ${MAKE_ENV} pip install \
+		--verbose \
+		--no-index \
+		--no-compile \
+		--progress-bar off \
+		--root=${STAGEDIR} \
+		--root-user-action=ignore \
+		--disable-pip-version-check \
+		--no-deps ${INSTALL_WRKSRC}/target/wheels/*.whl
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
+	${INSTALL_LIB} ${WRKSRC}/target/release/liborjson.so \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/orjson
+	${CHMOD} +x ${STAGEDIR}${PYTHON_SITELIBDIR}/orjson/liborjson.so
+	${STRIP_CMD} ${STAGEDIR}${PYTHON_SITELIBDIR}/orjson/orjson.*.so
 
 [FILE:1392:descriptions/desc.single]
 orjson is a fast, correct JSON library for Python. It benchmarks as the
@@ -162,4 +197,24 @@ f27f6278552951f1f2b8cf9da965d10969b2efdea95a6ec47987ab46edfe263a        28621 ru
 a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0        31564 rust/crates/smallvec-1.10.0.tar.gz
 9410d0f6853b1d94f0e519fb95df60f29d2c1eff2d921ffdf01a4c8a3b54f12d        23224 rust/crates/target-lexicon-0.12.5.tar.gz
 49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f        14895 rust/crates/version_check-0.9.4.tar.gz
+
+
+[FILE:401:manifests/plist.single]
+%%PYTHON_SITELIBDIR%%/orjson/
+ __init__.py
+ __init__.pyi
+ liborjson.so
+ orjson.cpython-%%PYTHON_SUFFIX%%.so
+ py.typed
+%%PYTHON_SITELIBDIR%%/orjson-%%VER%%.dist-info/
+ INSTALLER
+ METADATA
+ RECORD
+ REQUESTED
+ WHEEL
+ direct_url.json
+%%PYTHON_SITELIBDIR%%/orjson-%%VER%%.dist-info/license_files/
+ LICENSE-APACHE
+ LICENSE-MIT
+%%PYTHON_SITELIBDIR%%/orjson/__pycache__/__init__.cpython-%%PYTHON_SUFFIX%%.pyc
 
