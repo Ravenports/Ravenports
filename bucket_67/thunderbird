@@ -43,6 +43,7 @@ BUILDRUN_DEPENDS=	nss:primary:standard
 			startup-notification:single:standard
 			botan:primary:standard
 BR_DEPS[linux]=		sndio:single:standard
+BR_DEPS[netbsd]=	sndio:single:standard
 
 USES=			cpe desktop-utils:single gmake jpeg png zlib
 			perl:build pkgconfig iconv bz2 python:build
@@ -106,6 +107,7 @@ QMAKE_ARGS=		--prefix="{{PREFIX}}"
 			--without-wasm-sandboxed-libraries
 VAR_OPSYS[linux]=	QMAKE_ARGS=--disable-elf-hack
 			QMAKE_ARGS=--enable-audio-backends=sndio
+VAR_OPSYS[netbsd]=	QMAKE_ARGS=--enable-audio-backends=sndio
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
@@ -135,6 +137,11 @@ post-patch:
 	${REINPLACE_CMD} -e 's/"files":{[^}]*}/"files":{}/' \
 		 ${WRKSRC}/third_party/rust/packed_simd_2/.cargo-checksum.json
 
+pre-configure-netbsd:
+	# Fix error: expected constructor __RCSID("$NetBSD: keyring.c,v 1.50 2011/06/25 00:37:44 agc Exp $");
+	${REINPLACE_CMD} -e 's/__NetBSD__/__NEVER__/' \
+		${WRKSRC}/comm/third_party/rnp/src/librekey/key_store_pgp.cpp
+
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/applications
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/pixmaps
@@ -151,6 +158,10 @@ post-install:
 pre-configure:
 	(cd ${WRKSRC} && ${LOCALBASE}/bin/autoconf-2.13)
 	(cd ${WRKSRC}/js/src/ && ${LOCALBASE}/bin/autoconf-2.13)
+
+post-install-netbsd:
+	${PAXCTL} +m ${STAGEDIR}${PREFIX}/lib/thunderbird/thunderbird
+	${PAXCTL} +m ${STAGEDIR}${PREFIX}/lib/thunderbird/thunderbird-bin
 
 [FILE:391:descriptions/desc.single]
 Thunderbird is a free and open source email, newsfeed, chat, and
@@ -742,7 +753,7 @@ index 0069865..9bb1864 100644
      "--enable-geckodriver",
 
 
-[FILE:406:patches/patch-comm__third_party__rnpdefs.mozbuild]
+[FILE:416:patches/patch-comm__third_party__rnpdefs.mozbuild]
 --- comm/third_party/rnpdefs.mozbuild.orig	2021-08-11 20:13:25.176921000 +0200
 +++ comm/third_party/rnpdefs.mozbuild	2021-08-11 20:14:08.855374000 +0200
 @@ -43,6 +43,6 @@
@@ -750,7 +761,7 @@ index 0069865..9bb1864 100644
  
  
 -if CONFIG["OS_ARCH"] in ("Linux", "SunOS"):
-+if CONFIG["OS_ARCH"] in ("Linux", "FreeBSD", "DragonFly", "SunOS"):
++if CONFIG["OS_ARCH"] in ("Linux", "FreeBSD", "DragonFly", "SunOS", "NetBSD"):
      CFLAGS += ["-fPIC"]
      CXXFLAGS += ["-fPIC"]
 

@@ -38,8 +38,8 @@ CONFIGURE_ARGS=		--enable-shared
 			--with-default-snmp-version="3"
 			--with-logfile="/var/log/snmpd.log"
 			--with-persistent-directory="/var/net-snmp"
-			--with-mib-modules="smux disman/event-mib mibII/mta_sendmail mibII/tcpTable ucd-snmp/diskio mibII/ipv6"
-			--with-out-mib-modules="ucd_snmp host ucd-snmp/memory sctp-mib"
+			--with-mib-modules="smux disman/event-mib mibII/mta_sendmail ucd-snmp/diskio{{OPSYS_MODS:S/,/ /}}"
+			--with-out-mib-modules="ucd_snmp host ucd-snmp/memory sctp-mib{{OPSYS_NOMODS:S/,/ /}}"
 			--with-sys-contact="default_user@contact.domain"
 			--with-sys-location="defaultlocation"
 CONFIGURE_ENV=		PERLPROG="{{PERL}}"
@@ -51,9 +51,13 @@ RC_SUBR=		snmpd:single
 			snmptrapd:single
 SUB_FILES=		pkg-message-single
 
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=OPSYS_MODS=,mibII/tcpTable,mibII/ipv6
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=OPSYS_MODS=,mibII/kernel_netbsd
+			MAKEFILE_LINE=OPSYS_NOMODS=,mibII/ipv6,mibII/tcpTable,mibII/udpTable
 VAR_OPSYS[dragonfly]=	MAKE_ENV=MIB_SYSTEM_LIBS=-lkinfo
 			MAKE_ENV=OPSYS=DragonFly
 			CONFIGURE_ARGS=ac_cv_IFNET_NEEDS_KERNEL=no
+			MAKEFILE_LINE=OPSYS_MODS=,mibII/tcpTable,mibII/ipv6
 
 post-extract-linux:
 	for XX in 7 8 9 10 11 12 13 14 15 16 17; do \

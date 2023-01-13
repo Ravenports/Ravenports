@@ -46,6 +46,7 @@ MKTEMP=		/usr/bin/mktemp
 MV=		/bin/mv
 PATCH=		/usr/bin/patch
 PAX=		/bin/pax
+PAXCTL=		/usr/sbin/paxctl
 PRINTF=		/usr/bin/printf
 REALPATH=	/bin/realpath
 RM=		/bin/rm -f

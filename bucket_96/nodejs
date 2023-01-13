@@ -20,7 +20,6 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BROKEN[sunos]=		The ld.sun linker does not support required options
-BROKEN[netbsd]=		Run OOM on mksnapshot step near end
 
 BUILDRUN_DEPENDS=	icu:single:standard
 			libuv:single:standard
@@ -56,13 +55,22 @@ MAKE_ENV=		CC.host={{CC}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-VAR_OPSYS[netbsd]=	CONFIGURE_ENV=GYP_DEFINES="OS=netbsd"
-			MAKE_ENV=GYP_DEFINES="OS=netbsd"
+VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--dest-os=netbsd
+			CONFIGURE_ARGS=--experimental-enable-pointer-compression
+
+post-configure-netbsd:
+	# Fixes "Fatal process OOM in Failed to reserve virtual memory for CodeRange" error
+	# in addition to enable-pointer-compression option
+	${REINPLACE_CMD} -E 's|(call do_cmd,link\))|\1\n\t${PAXCTL} +m $$@|'\
+		${WRKSRC}/out/tools/v8_gypfiles/mksnapshot.target.mk \
+		${WRKSRC}/out/node_mksnapshot.target.mk
 
 pre-configure-netbsd:
 	# hack to avoid undefined reference to 'engine_load_devcrypto_int'
 	${REINPLACE_CMD} -e 's/ifndef OPENSSL_NO_DEVCRYPTOENG/if 0/' \
 		${WRKSRC}/deps/openssl/openssl/crypto/init.c
+	${REINPLACE_CMD} -e 's/=="freebsd"/=="netbsd"/g' \
+		${WRKSRC}/deps/openssl/*.gypi
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/node
@@ -92,6 +100,9 @@ pre-configure-dragonfly:
 	# using freebsd's config, but large pages not supported
 	${REINPLACE_CMD} -e '/"linux freebsd mac"/ s/ freebsd//' \
 		${WRKSRC}/node.gyp
+
+post-install-netbsd:
+	${PAXCTL} +m ${STAGEDIR}${PREFIX}/bin/node
 
 [FILE:263:descriptions/desc.primary]
 Node.js is a JavaScript runtime built on Chrome's V8 JavaScript
@@ -2620,7 +2631,7 @@ share/doc/node/
 
 
 [FILE:686:patches/patch-common.gypi]
---- common.gypi.orig	2022-11-29 18:29:49 UTC
+--- common.gypi.orig	2022-12-14 11:28:40 UTC
 +++ common.gypi
 @@ -393,11 +393,11 @@
            'BUILDING_UV_SHARED=1',
@@ -2638,8 +2649,22 @@ share/doc/node/
          'defines': [ '__STDC_FORMAT_MACROS' ],
 
 
+[FILE:533:patches/patch-configure.py]
+--- configure.py.orig	2022-12-14 11:28:40 UTC
++++ configure.py
+@@ -45,7 +45,7 @@ from utils import SearchFiles
+ parser = argparse.ArgumentParser()
+ 
+ valid_os = ('win', 'mac', 'solaris', 'freebsd', 'openbsd', 'linux',
+-            'android', 'aix', 'cloudabi', 'ios')
++            'android', 'aix', 'cloudabi', 'ios', 'netbsd')
+ valid_arch = ('arm', 'arm64', 'ia32', 'mips', 'mipsel', 'mips64el', 'ppc',
+               'ppc64', 'x64', 'x86', 'x86_64', 's390x', 'riscv64', 'loong64')
+ valid_arm_float_abi = ('soft', 'softfp', 'hard')
+
+
 [FILE:501:patches/patch-deps_cares_cares.gyp]
---- deps/cares/cares.gyp.orig	2022-11-29 18:29:49 UTC
+--- deps/cares/cares.gyp.orig	2022-12-14 11:28:40 UTC
 +++ deps/cares/cares.gyp
 @@ -165,6 +165,10 @@
            'include_dirs': [ 'config/freebsd' ],
@@ -2655,7 +2680,7 @@ share/doc/node/
 
 
 [FILE:579:patches/patch-deps_openssl_openssl_util_perl_OpenSSL_config.pm]
---- deps/openssl/openssl/util/perl/OpenSSL/config.pm.orig	2022-11-29 18:29:51 UTC
+--- deps/openssl/openssl/util/perl/OpenSSL/config.pm.orig	2022-12-14 11:28:42 UTC
 +++ deps/openssl/openssl/util/perl/OpenSSL/config.pm
 @@ -781,6 +781,7 @@ EOF
        [ 'sparc64-.*-.*bsd.*',     { target => "BSD-sparc64" } ],
@@ -2668,7 +2693,7 @@ share/doc/node/
 
 
 [FILE:414:patches/patch-deps_uv_common.gypi]
---- deps/uv/common.gypi.orig	2022-11-29 18:29:51 UTC
+--- deps/uv/common.gypi.orig	2022-12-14 11:28:42 UTC
 +++ deps/uv/common.gypi
 @@ -135,7 +135,7 @@
            }]
@@ -2682,7 +2707,7 @@ share/doc/node/
 
 
 [FILE:478:patches/patch-deps_v8_src_base_platform_condition-variable.cc]
---- deps/v8/src/base/platform/condition-variable.cc.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/base/platform/condition-variable.cc.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/base/platform/condition-variable.cc
 @@ -20,6 +20,7 @@ namespace base {
  
@@ -2694,8 +2719,8 @@ share/doc/node/
    // source for pthread_cond_timedwait() to use the monotonic clock.
 
 
-[FILE:579:patches/patch-deps_v8_src_base_platform_memory.h]
---- deps/v8/src/base/platform/memory.h.orig	2022-11-29 18:29:51 UTC
+[FILE:596:patches/patch-deps_v8_src_base_platform_memory.h]
+--- deps/v8/src/base/platform/memory.h.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/base/platform/memory.h
 @@ -20,10 +20,12 @@
  #if V8_OS_DARWIN
@@ -2707,37 +2732,50 @@ share/doc/node/
  #endif  // !V8_OS_DARWIN
  
 -#if (V8_OS_POSIX && !V8_OS_AIX && !V8_OS_SOLARIS) || V8_OS_WIN
-+#if (V8_OS_POSIX && !V8_OS_AIX && !V8_OS_SOLARIS && !V8_OS_DRAGONFLYBSD && !V8_OS_FREEBSD) || V8_OS_WIN
++#if (V8_OS_POSIX && !V8_OS_AIX && !V8_OS_SOLARIS && !V8_OS_DRAGONFLYBSD && !V8_OS_FREEBSD && !V8_OS_NETBSD) || V8_OS_WIN
  #define V8_HAS_MALLOC_USABLE_SIZE 1
  #endif  // (V8_OS_POSIX && !V8_OS_AIX && !V8_OS_SOLARIS) || V8_OS_WIN
  
 
 
-[FILE:638:patches/patch-deps_v8_src_base_platform_platform-freebsd.cc]
---- deps/v8/src/base/platform/platform-freebsd.cc.orig	2022-11-29 18:29:51 UTC
+[FILE:1134:patches/patch-deps_v8_src_base_platform_platform-freebsd.cc]
+--- deps/v8/src/base/platform/platform-freebsd.cc.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/base/platform/platform-freebsd.cc
-@@ -48,6 +48,9 @@ static unsigned StringToLong(char* buffe
+@@ -48,7 +48,10 @@ static unsigned StringToLong(char* buffe
  }
  
  std::vector<OS::SharedLibraryAddress> OS::GetSharedLibraryAddresses() {
+-  std::vector<SharedLibraryAddress> result;
 +#ifdef __DragonFly__
 +  return std::vector<SharedLibraryAddress>();
 +#else
-   std::vector<SharedLibraryAddress> result;
++  std::vector<SharedLibraryAddress> address_result;
    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_VMMAP, getpid()};
    size_t miblen = sizeof(mib) / sizeof(mib[0]);
-@@ -91,6 +94,7 @@ std::vector<OS::SharedLibraryAddress> OS
+   size_t buffer_size;
+@@ -81,7 +84,7 @@ std::vector<OS::SharedLibraryAddress> OS
+           } else {
+             lib_name = std::string(path);
+           }
+-          result.push_back(SharedLibraryAddress(
++          address_result.push_back(SharedLibraryAddress(
+               lib_name, reinterpret_cast<uintptr_t>(map->kve_start),
+               reinterpret_cast<uintptr_t>(map->kve_end)));
+         }
+@@ -90,7 +93,8 @@ std::vector<OS::SharedLibraryAddress> OS
+       }
      }
    }
-   return result;
+-  return result;
++  return address_result;
 +#endif
  }
  
  void OS::SignalCodeMovingGC() {}
 
 
-[FILE:2525:patches/patch-deps_v8_src_base_platform_platform-posix.cc]
---- deps/v8/src/base/platform/platform-posix.cc.orig	2022-11-29 18:29:51 UTC
+[FILE:3699:patches/patch-deps_v8_src_base_platform_platform-posix.cc]
+--- deps/v8/src/base/platform/platform-posix.cc.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/base/platform/platform-posix.cc
 @@ -54,7 +54,9 @@
  #include <mach/mach.h>
@@ -2749,7 +2787,7 @@ share/doc/node/
  #endif
  
  #if V8_OS_LINUX
-@@ -71,7 +73,7 @@
+@@ -71,17 +73,10 @@
  #include <sys/syscall.h>
  #endif
  
@@ -2758,7 +2796,17 @@ share/doc/node/
  #define MAP_ANONYMOUS MAP_ANON
  #endif
  
-@@ -133,7 +135,7 @@ int GetFlagsForMemoryPermission(OS::Memo
+-#if defined(V8_OS_SOLARIS)
+-#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE > 2) || defined(__EXTENSIONS__)
+-extern "C" int madvise(caddr_t, size_t, int);
+-#else
+-extern int madvise(caddr_t, size_t, int);
+-#endif
+-#endif
+ 
+ #ifndef MADV_FREE
+ #define MADV_FREE MADV_DONTNEED
+@@ -133,7 +128,7 @@ int GetFlagsForMemoryPermission(OS::Memo
    int flags = MAP_ANONYMOUS;
    flags |= (page_type == PageType::kShared) ? MAP_SHARED : MAP_PRIVATE;
    if (access == OS::MemoryPermission::kNoAccess) {
@@ -2767,21 +2815,48 @@ share/doc/node/
      flags |= MAP_NORESERVE;
  #endif  // !V8_OS_AIX && !V8_OS_FREEBSD && !V8_OS_QNX
  #if V8_OS_QNX
-@@ -1064,8 +1066,13 @@ Thread::Thread(const Options& options)
+@@ -391,6 +386,13 @@ void* OS::GetRandomMmapAddr() {
+ #endif
+ #endif
+ #endif
++#if V8_OS_NETBSD
++ /*
++  * Avoid using a random hint, some low numbers cause spurious ENOMEM on netbsd
++  * (PR port-arm/55533)
++  */
++  raw_addr = 0;
++#endif
+   return reinterpret_cast<void*>(raw_addr);
+ }
+ 
+@@ -552,12 +554,10 @@ bool OS::DiscardSystemPages(void* addres
+     // MADV_FREE_REUSABLE sometimes fails, so fall back to MADV_DONTNEED.
+     ret = madvise(address, size, MADV_DONTNEED);
+   }
+-#elif defined(_AIX) || defined(V8_OS_SOLARIS)
+-  int ret = madvise(reinterpret_cast<caddr_t>(address), size, MADV_FREE);
++elif defined(POSIX_MADV_DONTNEED)
++  int ret = posix_madvise(address, size, POSIX_MADV_DONTNEED);
+   if (ret != 0 && errno == ENOSYS)
+     return true;  // madvise is not available on all systems.
+-  if (ret != 0 && errno == EINVAL)
+-    ret = madvise(reinterpret_cast<caddr_t>(address), size, MADV_DONTNEED);
+ #else
+   int ret = madvise(address, size, MADV_DONTNEED);
+ #endif
+@@ -1064,7 +1064,11 @@ Thread::Thread(const Options& options)
      : data_(new PlatformData),
        stack_size_(options.stack_size()),
        start_semaphore_(nullptr) {
 +#if V8_OS_NETBSD
-+  if (stack_size_ > 0 && static_cast<size_t>(stack_size_) < sysconf(_SC_THREAD_STACK_MIN))
-+      stack_size_ = sysconf(_SC_THREAD_STACK_MIN);
++  const int min_stack_size = sysconf(_SC_THREAD_STACK_MIN);
 +#else
    const int min_stack_size = static_cast<int>(PTHREAD_STACK_MIN);
-   if (stack_size_ > 0) stack_size_ = std::max(stack_size_, min_stack_size);
 +#endif
+   if (stack_size_ > 0) stack_size_ = std::max(stack_size_, min_stack_size);
    set_name(options.name());
  }
- 
-@@ -1080,7 +1087,7 @@ static void SetThreadName(const char* na
+@@ -1080,7 +1084,7 @@ static void SetThreadName(const char* na
    pthread_set_name_np(pthread_self(), name);
  #elif V8_OS_NETBSD
    static_assert(Thread::kMaxThreadNameLength <= PTHREAD_MAX_NAMELEN_NP);
@@ -2790,7 +2865,7 @@ share/doc/node/
  #elif V8_OS_DARWIN
    // pthread_setname_np is only available in 10.6 or later, so test
    // for it at runtime.
-@@ -1228,6 +1235,7 @@ void Thread::SetThreadLocal(LocalStorage
+@@ -1228,6 +1232,7 @@ void Thread::SetThreadLocal(LocalStorage
  // support it. MacOS and FreeBSD are different here.
  #if !defined(V8_OS_FREEBSD) && !defined(V8_OS_DARWIN) && !defined(_AIX) && \
      !defined(V8_OS_SOLARIS)
@@ -2798,7 +2873,7 @@ share/doc/node/
  
  // static
  Stack::StackSlot Stack::GetStackStart() {
-@@ -1253,6 +1261,7 @@ Stack::StackSlot Stack::GetStackStart()
+@@ -1253,6 +1258,7 @@ Stack::StackSlot Stack::GetStackStart()
  #endif  // !defined(V8_LIBC_GLIBC)
  }
  
@@ -2809,7 +2884,7 @@ share/doc/node/
 
 
 [FILE:296:patches/patch-deps_v8_src_base_strings.h]
---- deps/v8/src/base/strings.h.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/base/strings.h.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/base/strings.h
 @@ -5,6 +5,7 @@
  #ifndef V8_BASE_STRINGS_H_
@@ -2822,7 +2897,7 @@ share/doc/node/
 
 
 [FILE:598:patches/patch-deps_v8_src_base_utils_random-number-generator.cc]
---- deps/v8/src/base/utils/random-number-generator.cc.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/base/utils/random-number-generator.cc.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/base/utils/random-number-generator.cc
 @@ -56,7 +56,7 @@ RandomNumberGenerator::RandomNumberGener
    DCHECK_EQ(0, result);
@@ -2836,7 +2911,7 @@ share/doc/node/
 
 
 [FILE:451:patches/patch-deps_v8_src_d8_d8-posix.cc]
---- deps/v8/src/d8/d8-posix.cc.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/d8/d8-posix.cc.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/d8/d8-posix.cc
 @@ -339,7 +339,7 @@ static Local<Value> GetStdout(Isolate* i
  // See http://code.google.com/p/v8/issues/detail?id=401.
@@ -2850,7 +2925,7 @@ share/doc/node/
 
 
 [FILE:484:patches/patch-deps_v8_src_libsampler_sampler.cc]
---- deps/v8/src/libsampler/sampler.cc.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/libsampler/sampler.cc.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/libsampler/sampler.cc
 @@ -495,7 +495,7 @@ void SignalHandler::FillRegisterState(vo
    state->fp =
@@ -2864,7 +2939,7 @@ share/doc/node/
 
 
 [FILE:669:patches/patch-deps_v8_src_trap-handler_handler-inside-posix.cc]
---- deps/v8/src/trap-handler/handler-inside-posix.cc.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/trap-handler/handler-inside-posix.cc.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/trap-handler/handler-inside-posix.cc
 @@ -27,7 +27,7 @@
  
@@ -2887,7 +2962,7 @@ share/doc/node/
 
 
 [FILE:426:patches/patch-deps_v8_src_trap-handler_handler-inside-posix.h]
---- deps/v8/src/trap-handler/handler-inside-posix.h.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/trap-handler/handler-inside-posix.h.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/trap-handler/handler-inside-posix.h
 @@ -13,7 +13,7 @@ namespace v8 {
  namespace internal {
@@ -2901,7 +2976,7 @@ share/doc/node/
 
 
 [FILE:472:patches/patch-deps_v8_src_trap-handler_trap-handler.h]
---- deps/v8/src/trap-handler/trap-handler.h.orig	2022-11-29 18:29:51 UTC
+--- deps/v8/src/trap-handler/trap-handler.h.orig	2022-12-14 11:28:42 UTC
 +++ deps/v8/src/trap-handler/trap-handler.h
 @@ -20,6 +20,7 @@ namespace trap_handler {
  // X64 on Linux, Windows, MacOS, FreeBSD.
@@ -2914,7 +2989,7 @@ share/doc/node/
 
 
 [FILE:216:patches/patch-node.gypi]
---- node.gypi.orig	2022-11-29 18:29:52 UTC
+--- node.gypi.orig	2022-12-14 11:28:44 UTC
 +++ node.gypi
 @@ -266,6 +266,7 @@
      [ 'OS=="solaris"', {
@@ -2927,7 +3002,7 @@ share/doc/node/
 
 
 [FILE:640:patches/patch-src_inspector__agent.cc]
---- src/inspector_agent.cc.orig	2022-11-29 18:29:52 UTC
+--- src/inspector_agent.cc.orig	2022-12-14 11:28:44 UTC
 +++ src/inspector_agent.cc
 @@ -98,7 +98,7 @@ static int StartDebugSignalHandler() {
    CHECK_EQ(0, uv_sem_init(&start_io_thread_semaphore, 0));
@@ -2941,7 +3016,7 @@ share/doc/node/
 
 
 [FILE:600:patches/patch-src_node__postmortem__metadata.cc]
---- src/node_postmortem_metadata.cc.orig	2022-11-29 18:29:52 UTC
+--- src/node_postmortem_metadata.cc.orig	2022-12-14 11:28:44 UTC
 +++ src/node_postmortem_metadata.cc
 @@ -13,6 +13,10 @@
  #define NODEDBG_OFFSET(Class, Member, Type) \
@@ -2957,7 +3032,7 @@ share/doc/node/
 
 
 [FILE:511:patches/patch-tools_gyp_pylib_gyp_generator_make.py]
---- tools/gyp/pylib/gyp/generator/make.py.orig	2022-11-29 18:29:52 UTC
+--- tools/gyp/pylib/gyp/generator/make.py.orig	2022-12-14 11:28:45 UTC
 +++ tools/gyp/pylib/gyp/generator/make.py
 @@ -2490,7 +2490,7 @@ def GenerateOutput(target_list, target_d
                  "flock_index": 2,
@@ -2971,7 +3046,7 @@ share/doc/node/
 
 
 [FILE:980:patches/patch-tools_gyp_pylib_gyp_xcode__emulation.py]
---- tools/gyp/pylib/gyp/xcode_emulation.py.orig	2022-11-29 18:29:52 UTC
+--- tools/gyp/pylib/gyp/xcode_emulation.py.orig	2022-12-14 11:28:45 UTC
 +++ tools/gyp/pylib/gyp/xcode_emulation.py
 @@ -607,7 +607,7 @@ class XcodeSettings:
  
@@ -2994,7 +3069,7 @@ share/doc/node/
 
 
 [FILE:424:patches/patch-tools_install.py]
---- tools/install.py.orig	2022-11-29 18:29:52 UTC
+--- tools/install.py.orig	2022-12-14 11:28:45 UTC
 +++ tools/install.py
 @@ -181,7 +181,7 @@ def files(action):
    action(['deps/v8/tools/gdbinit'], 'share/doc/node/')

@@ -199,6 +199,9 @@ post-patch-dragonfly:
 		echo "${F} was not altered" || /usr/bin/true
 .endfor
 
+pre-configure-netbsd:
+	${REINPLACE_CMD} -e 's|#! /bin/sh|#!${LOCALBASE}/bin/bash|' ${WRKSRC}/configure
+
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/libreoffice/sdk/classes
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/libreoffice/share/uno_packages
@@ -215,6 +218,11 @@ pre-configure:
 		-e 's|{CCACHE/\*sccache\*/}|{CCACHE}|g' \
 		${WRKSRC}/configure
 
+pre-build-netbsd:
+	cd ${BUILD_WRKSRC} &&\
+	${DO_MAKE_BUILD} Executable_gengal &&\
+	${PAXCTL} +m instdir/program/gengal.bin
+
 post-configure:
 	${TOUCH} ${WRKSRC}/src.downloaded
 
@@ -225,6 +233,9 @@ post-extract:
 	${CP} ${DISTDIR}/dtoa-20180411.tgz ${WRKSRC}/tarballs
 	${CP} ${DISTDIR}/skia-m103-b301ff025004c9cd82816c86c547588e6c24b466.tar.xz ${WRKSRC}/tarballs
 	${CP} ${DISTDIR}/dragonbox-1.1.0.tar.gz ${WRKSRC}/tarballs
+
+post-install-netbsd:
+	${PAXCTL} +m ${STAGEDIR}${PREFIX}/lib/libreoffice/program/soffice.bin
 
 [FILE:444:descriptions/desc.single]
 LibreOffice is a powerful office suite -- its clean interface and
@@ -4019,6 +4030,62 @@ netbsd: Workaround bad substition errors
          if test ! -f "${qt5_platformsdir}"/libqwasm.a -o ! -f "$QT5_PLATFORMS_SRCDIR"/wasm_shell.html; then
              as_fn_error $? "No Qt5 WASM QPA plugin found in ${qt5_platformsdir} or ${QT5_PLATFORMS_SRCDIR}" "$LINENO" 5
          fi
+
+
+[FILE:326:patches/patch-external_skia_UnpackedTarball__skia.mk]
+--- external/skia/UnpackedTarball_skia.mk.orig	2022-11-16 17:29:15 UTC
++++ external/skia/UnpackedTarball_skia.mk
+@@ -38,6 +38,7 @@ skia_patches := \
+     allow-no-es2restrictions.patch.1 \
+     vk_mem_alloc.patch.1 \
+     tdf148624.patch.1 \
++    netbsd.patch.0 \
+ 
+ $(eval $(call gb_UnpackedTarball_set_patchlevel,skia,1))
+ 
+
+
+[FILE:1666:patches/patch-external_skia_netbsd.patch.0]
+$NetBSD: patch-external_skia_netbsd.patch.0,v 1.4 2022/08/22 13:58:32 ryoon Exp $
+
+* Support NetBSD. It has no uselocale(3).
+* Fix build failure (isnan etc. are not defined) under NetBSD/amd64 9.99.88
+  (GCC 10.3.0) at least.
+
+--- external/skia/netbsd.patch.0.orig	2022-08-19 00:29:47.661827273 +0000
++++ external/skia/netbsd.patch.0
+@@ -0,0 +1,31 @@
++* Support NetBSD. It has no uselocale(3).
++* Fix build failure (isnan etc. are not defined) under NetBSD/amd64 9.99.88
++  (GCC 10.3.0) at least.
++
++--- src/gpu/ganesh/GrAutoLocaleSetter.h.orig	2022-08-19 00:39:34.308186035 +0000
+++++ src/gpu/ganesh/GrAutoLocaleSetter.h
++@@ -27,7 +27,7 @@
++ #define HAVE_XLOCALE 0
++ #endif
++ 
++-#if defined(SK_BUILD_FOR_ANDROID) || defined(__UCLIBC__) || defined(_NEWLIB_VERSION)
+++#if defined(SK_BUILD_FOR_ANDROID) || defined(__UCLIBC__) || defined(_NEWLIB_VERSION) || defined(__NetBSD__)
++ #define HAVE_LOCALE_T 0
++ #else
++ #define HAVE_LOCALE_T 1
++--- src/sksl/dsl/DSLExpression.cpp.orig	2022-08-19 00:40:37.794860287 +0000
+++++ src/sksl/dsl/DSLExpression.cpp
++@@ -63,10 +63,10 @@ DSLExpression::DSLExpression(float value
++     : fExpression(SkSL::Literal::MakeFloat(ThreadContext::Context(),
++                                            pos,
++                                            value)) {
++-    if (!isfinite(value)) {
++-        if (isinf(value)) {
+++    if (!std::isfinite(value)) {
+++        if (std::isinf(value)) {
++             ThreadContext::ReportError("floating point value is infinite");
++-        } else if (isnan(value)) {
+++        } else if (std::isnan(value)) {
++             ThreadContext::ReportError("floating point value is NaN");
++         }
++     }
 
 
 [FILE:471:patches/patch-include_LibreOfficeKit_LibreOfficeKitInit.h]
