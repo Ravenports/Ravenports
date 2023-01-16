@@ -27,6 +27,7 @@ BUILDRUN_DEPENDS=	dbus:single:standard
 			video4linux:primary:standard
 RUN_DEPENDS=		gtk3:primary:standard
 B_DEPS[freebsd]=	evdev-proto:single:standard
+B_DEPS[netbsd]=		evdev-proto:single:standard
 B_DEPS[dragonfly]=	evdev-proto:single:standard
 
 USES=			cmake desktop-utils:single dos2unix pkgconfig
@@ -84,6 +85,23 @@ share/icons/hicolor/64x64/apps/utox-64x64.png
 share/icons/hicolor/72x72/apps/utox-72x72.png
 share/icons/hicolor/96x96/apps/utox-96x96.png
 share/icons/hicolor/scalable/apps/utox.svg
+
+
+[FILE:761:patches/patch-src_xlib_v4l.c]
+--- src/xlib/v4l.c.orig	2023-01-16 05:08:24 UTC
++++ src/xlib/v4l.c
+@@ -16,9 +16,9 @@
+ int utox_v4l_fd = -1;
+ 
+ #include <sys/mman.h>
+-#if defined(__linux__) || defined(__FreeBSD__) || defined(__kFreeBSD__) || defined(__DragonFly__) // FreeBSD and DragonFlyBSD will have the proper includes after installing v4l_compat
++#if defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__DragonFly__) // FreeBSD and DragonFlyBSD will have the proper includes after installing v4l_compat
+ #include <linux/videodev2.h>
+-#elif defined(__OpenBSD__) || defined(__NetBSD__) // OpenBSD and NetBSD have V4L in base
++#elif defined(__OpenBSD__)  // OpenBSD and NetBSD have V4L in base
+ #include <sys/videoio.h>
+ #else
+ #error "Unsupported platform for V4L"
 
 
 [FILE:920:patches/patch-third__party_minini_minini_dev_minIni.c]

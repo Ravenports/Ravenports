@@ -21,8 +21,6 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[netbsd]=		detects 'unsupported-OS' instead of netbsd-g++
-
 BUILD_DEPENDS=		evdev-proto:single:standard
 			elftoolchain:libraries:standard
 BUILDRUN_DEPENDS=	pcre2:primary:standard
@@ -54,6 +52,9 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		6.4.1
 PLIST_SUB=		QTVER=6.4.1
 			SOMAJORMIN=6.4
+			INPSUPPORT={{FEAT_INPSUPPORT}}
+			XCB={{FEAT_XCB}}
+			EVDEV={{FEAT_EVDEV}}
 SUB_FILES=		qmake.conf
 SUB_LIST=		CC={{CC:Q}}
 			CXX={{CXX:Q}}
@@ -92,11 +93,15 @@ VAR_OPSYS[sunos]=	VAR1=solaris
 VAR_OPSYS[linux]=	VAR1=linux
 			VAR2=" /usr/lib/x86_64-linux-gnu"
 VAR_OPSYS[netbsd]=	VAR1=netbsd
+			MAKEFILE_LINE=FEAT_EVDEV="@comment "
 VAR_OPSYS[dragonfly]=	VAR1=dragonfly
+			MAKEFILE_LINE=FEAT_INPSUPPORT="@comment "
+			MAKEFILE_LINE=FEAT_XCB="@comment "
+			MAKEFILE_LINE=FEAT_EVDEV="@comment "
 
 post-patch:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
-.for platform in dragonfly-g++ netbsd-g++ #unsupported-OS
+.for platform in dragonfly-g++ netbsd-g++
 	${INSTALL_DATA} ${WRKSRC}/mkspecs/freebsd-g++/qplatformdefs.h \
 		${WRKSRC}/mkspecs/${platform}/
 .endfor
@@ -143,53 +148,8 @@ This package contains the Qt6 qtbase submodule.
 532ad71cc0f9c8f7cb92766c47bc3d23263c60876becd9053802f9727af24fae     47988872 qtbase-everywhere-src-6.4.1.tar.xz
 
 
-[FILE:89677:manifests/plist.primary]
-%%ONLY-FREEBSD%%include/qt6/QtInputSupport/
- QIntegrityHIDManager
- QtInputSupport
- QtInputSupportDepends
- QtInputSupportVersion
- qintegrityhidmanager.h
- qtinputsupportversion.h
-%%ONLY-FREEBSD%%include/qt6/QtInputSupport/%%QTVER%%/QtInputSupport/private/
- devicehandlerlist_p.h
- qevdevkeyboard_defaultmap_p.h
- qevdevkeyboardhandler_p.h
- qevdevkeyboardmanager_p.h
- qevdevmousehandler_p.h
- qevdevmousemanager_p.h
- qevdevtablethandler_p.h
- qevdevtabletmanager_p.h
- qevdevtouchfilter_p.h
- qevdevtouchhandler_p.h
- qevdevtouchmanager_p.h
- qevdevutil_p.h
- qlibinputhandler_p.h
- qlibinputkeyboard_p.h
- qlibinputpointer_p.h
- qlibinputtouch_p.h
- qoutputmapping_p.h
- qtslib_p.h
-%%ONLY-FREEBSD%%lib/qt6/
- libQt6InputSupport.a
- libQt6InputSupport.prl
- libQt6XcbQpa.prl
- libQt6XcbQpa.so
- libQt6XcbQpa.so.%%SOMAJOR%%
- libQt6XcbQpa.so.%%SOVERSION%%
-%%ONLY-FREEBSD%%lib/qt6/cmake/Qt6Gui/
- Qt6QComposePlatformInputContextPluginAdditionalTargetInfo.cmake
- Qt6QComposePlatformInputContextPluginConfig.cmake
- Qt6QComposePlatformInputContextPluginConfigVersion.cmake
- Qt6QComposePlatformInputContextPluginConfigVersionImpl.cmake
- Qt6QComposePlatformInputContextPluginTargets-release.cmake
- Qt6QComposePlatformInputContextPluginTargets.cmake
- Qt6QEglFSX11IntegrationPluginAdditionalTargetInfo.cmake
- Qt6QEglFSX11IntegrationPluginConfig.cmake
- Qt6QEglFSX11IntegrationPluginConfigVersion.cmake
- Qt6QEglFSX11IntegrationPluginConfigVersionImpl.cmake
- Qt6QEglFSX11IntegrationPluginTargets-release.cmake
- Qt6QEglFSX11IntegrationPluginTargets.cmake
+[FILE:84544:manifests/plist.primary]
+%%EVDEV%%lib/qt6/cmake/Qt6Gui/
  Qt6QEvdevKeyboardPluginAdditionalTargetInfo.cmake
  Qt6QEvdevKeyboardPluginConfig.cmake
  Qt6QEvdevKeyboardPluginConfigVersion.cmake
@@ -214,31 +174,54 @@ This package contains the Qt6 qtbase submodule.
  Qt6QEvdevTouchScreenPluginConfigVersionImpl.cmake
  Qt6QEvdevTouchScreenPluginTargets-release.cmake
  Qt6QEvdevTouchScreenPluginTargets.cmake
+%%EVDEV%%lib/qt6/plugins/generic/
+ libqevdevkeyboardplugin.so
+ libqevdevmouseplugin.so
+ libqevdevtabletplugin.so
+ libqevdevtouchplugin.so
+%%INPSUPPORT%%include/qt6/QtInputSupport/
+ QIntegrityHIDManager
+ QtInputSupport
+ QtInputSupportDepends
+ QtInputSupportVersion
+ qintegrityhidmanager.h
+ qtinputsupportversion.h
+%%INPSUPPORT%%include/qt6/QtInputSupport/%%QTVER%%/QtInputSupport/private/
+ devicehandlerlist_p.h
+ qevdevkeyboard_defaultmap_p.h
+ qevdevkeyboardhandler_p.h
+ qevdevkeyboardmanager_p.h
+ qevdevmousehandler_p.h
+ qevdevmousemanager_p.h
+ qevdevtablethandler_p.h
+ qevdevtabletmanager_p.h
+ qevdevtouchfilter_p.h
+ qevdevtouchhandler_p.h
+ qevdevtouchmanager_p.h
+ qevdevutil_p.h
+ qlibinputhandler_p.h
+ qlibinputkeyboard_p.h
+ qlibinputpointer_p.h
+ qlibinputtouch_p.h
+ qoutputmapping_p.h
+ qtslib_p.h
+%%INPSUPPORT%%lib/qt6/
+ libQt6InputSupport.a
+ libQt6InputSupport.prl
+%%INPSUPPORT%%lib/qt6/cmake/Qt6Gui/
+ Qt6QComposePlatformInputContextPluginAdditionalTargetInfo.cmake
+ Qt6QComposePlatformInputContextPluginConfig.cmake
+ Qt6QComposePlatformInputContextPluginConfigVersion.cmake
+ Qt6QComposePlatformInputContextPluginConfigVersionImpl.cmake
+ Qt6QComposePlatformInputContextPluginTargets-release.cmake
+ Qt6QComposePlatformInputContextPluginTargets.cmake
  Qt6QIbusPlatformInputContextPluginAdditionalTargetInfo.cmake
  Qt6QIbusPlatformInputContextPluginConfig.cmake
  Qt6QIbusPlatformInputContextPluginConfigVersion.cmake
  Qt6QIbusPlatformInputContextPluginConfigVersionImpl.cmake
  Qt6QIbusPlatformInputContextPluginTargets-release.cmake
  Qt6QIbusPlatformInputContextPluginTargets.cmake
- Qt6QXcbEglIntegrationPluginAdditionalTargetInfo.cmake
- Qt6QXcbEglIntegrationPluginConfig.cmake
- Qt6QXcbEglIntegrationPluginConfigVersion.cmake
- Qt6QXcbEglIntegrationPluginConfigVersionImpl.cmake
- Qt6QXcbEglIntegrationPluginTargets-release.cmake
- Qt6QXcbEglIntegrationPluginTargets.cmake
- Qt6QXcbGlxIntegrationPluginAdditionalTargetInfo.cmake
- Qt6QXcbGlxIntegrationPluginConfig.cmake
- Qt6QXcbGlxIntegrationPluginConfigVersion.cmake
- Qt6QXcbGlxIntegrationPluginConfigVersionImpl.cmake
- Qt6QXcbGlxIntegrationPluginTargets-release.cmake
- Qt6QXcbGlxIntegrationPluginTargets.cmake
- Qt6QXcbIntegrationPluginAdditionalTargetInfo.cmake
- Qt6QXcbIntegrationPluginConfig.cmake
- Qt6QXcbIntegrationPluginConfigVersion.cmake
- Qt6QXcbIntegrationPluginConfigVersionImpl.cmake
- Qt6QXcbIntegrationPluginTargets-release.cmake
- Qt6QXcbIntegrationPluginTargets.cmake
-%%ONLY-FREEBSD%%lib/qt6/cmake/Qt6InputSupportPrivate/
+%%INPSUPPORT%%lib/qt6/cmake/Qt6InputSupportPrivate/
  Qt6InputSupportPrivateAdditionalTargetInfo.cmake
  Qt6InputSupportPrivateConfig.cmake
  Qt6InputSupportPrivateConfigVersion.cmake
@@ -247,146 +230,19 @@ This package contains the Qt6 qtbase submodule.
  Qt6InputSupportPrivateTargets-release.cmake
  Qt6InputSupportPrivateTargets.cmake
  Qt6InputSupportPrivateVersionlessTargets.cmake
-%%ONLY-FREEBSD%%lib/qt6/cmake/Qt6XcbQpaPrivate/
- Qt6XcbQpaPrivateAdditionalTargetInfo.cmake
- Qt6XcbQpaPrivateConfig.cmake
- Qt6XcbQpaPrivateConfigVersion.cmake
- Qt6XcbQpaPrivateConfigVersionImpl.cmake
- Qt6XcbQpaPrivateDependencies.cmake
- Qt6XcbQpaPrivateTargets-release.cmake
- Qt6XcbQpaPrivateTargets.cmake
- Qt6XcbQpaPrivateVersionlessTargets.cmake
-%%ONLY-FREEBSD%%lib/qt6/metatypes/
- qt6inputsupportprivate_release_metatypes.json
- qt6xcbqpaprivate_release_metatypes.json
-%%ONLY-FREEBSD%%lib/qt6/mkspecs/modules/
- qt_lib_input_support_private.pri
- qt_lib_xcb_qpa_lib_private.pri
-%%ONLY-FREEBSD%%lib/qt6/plugins/egldeviceintegrations/libqeglfs-x11-integration.so
-%%ONLY-FREEBSD%%lib/qt6/plugins/generic/
- libqevdevkeyboardplugin.so
- libqevdevmouseplugin.so
- libqevdevtabletplugin.so
- libqevdevtouchplugin.so
-%%ONLY-FREEBSD%%lib/qt6/plugins/platforminputcontexts/
+%%INPSUPPORT%%lib/qt6/metatypes/qt6inputsupportprivate_release_metatypes.json
+%%INPSUPPORT%%lib/qt6/mkspecs/modules/qt_lib_input_support_private.pri
+%%INPSUPPORT%%lib/qt6/plugins/platforminputcontexts/
  libcomposeplatforminputcontextplugin.so
  libibusplatforminputcontextplugin.so
-%%ONLY-FREEBSD%%lib/qt6/plugins/platforms/libqxcb.so
-%%ONLY-FREEBSD%%lib/qt6/plugins/xcbglintegrations/
- libqxcb-egl-integration.so
- libqxcb-glx-integration.so
-%%ONLY-FREEBSD%%share/qt6/modules/
- InputSupportPrivate.json
- XcbQpaPrivate.json
-%%ONLY-LINUX%%include/qt6/QtInputSupport/
- QIntegrityHIDManager
- QtInputSupport
- QtInputSupportDepends
- QtInputSupportVersion
- qintegrityhidmanager.h
- qtinputsupportversion.h
-%%ONLY-LINUX%%include/qt6/QtInputSupport/%%QTVER%%/QtInputSupport/private/
- devicehandlerlist_p.h
- qevdevkeyboard_defaultmap_p.h
- qevdevkeyboardhandler_p.h
- qevdevkeyboardmanager_p.h
- qevdevmousehandler_p.h
- qevdevmousemanager_p.h
- qevdevtablethandler_p.h
- qevdevtabletmanager_p.h
- qevdevtouchfilter_p.h
- qevdevtouchhandler_p.h
- qevdevtouchmanager_p.h
- qevdevutil_p.h
- qlibinputhandler_p.h
- qlibinputkeyboard_p.h
- qlibinputpointer_p.h
- qlibinputtouch_p.h
- qoutputmapping_p.h
- qtslib_p.h
-%%ONLY-LINUX%%lib/qt6/
- libQt6InputSupport.a
- libQt6InputSupport.prl
- libQt6XcbQpa.prl
- libQt6XcbQpa.so
- libQt6XcbQpa.so.%%SOMAJOR%%
- libQt6XcbQpa.so.%%SOVERSION%%
+%%INPSUPPORT%%share/qt6/modules/InputSupportPrivate.json
 %%ONLY-LINUX%%lib/qt6/cmake/Qt6Gui/
- Qt6QComposePlatformInputContextPluginAdditionalTargetInfo.cmake
- Qt6QComposePlatformInputContextPluginConfig.cmake
- Qt6QComposePlatformInputContextPluginConfigVersion.cmake
- Qt6QComposePlatformInputContextPluginConfigVersionImpl.cmake
- Qt6QComposePlatformInputContextPluginTargets-release.cmake
- Qt6QComposePlatformInputContextPluginTargets.cmake
- Qt6QEglFSX11IntegrationPluginAdditionalTargetInfo.cmake
- Qt6QEglFSX11IntegrationPluginConfig.cmake
- Qt6QEglFSX11IntegrationPluginConfigVersion.cmake
- Qt6QEglFSX11IntegrationPluginConfigVersionImpl.cmake
- Qt6QEglFSX11IntegrationPluginTargets-release.cmake
- Qt6QEglFSX11IntegrationPluginTargets.cmake
- Qt6QEvdevKeyboardPluginAdditionalTargetInfo.cmake
- Qt6QEvdevKeyboardPluginConfig.cmake
- Qt6QEvdevKeyboardPluginConfigVersion.cmake
- Qt6QEvdevKeyboardPluginConfigVersionImpl.cmake
- Qt6QEvdevKeyboardPluginTargets-release.cmake
- Qt6QEvdevKeyboardPluginTargets.cmake
- Qt6QEvdevMousePluginAdditionalTargetInfo.cmake
- Qt6QEvdevMousePluginConfig.cmake
- Qt6QEvdevMousePluginConfigVersion.cmake
- Qt6QEvdevMousePluginConfigVersionImpl.cmake
- Qt6QEvdevMousePluginTargets-release.cmake
- Qt6QEvdevMousePluginTargets.cmake
- Qt6QEvdevTabletPluginAdditionalTargetInfo.cmake
- Qt6QEvdevTabletPluginConfig.cmake
- Qt6QEvdevTabletPluginConfigVersion.cmake
- Qt6QEvdevTabletPluginConfigVersionImpl.cmake
- Qt6QEvdevTabletPluginTargets-release.cmake
- Qt6QEvdevTabletPluginTargets.cmake
- Qt6QEvdevTouchScreenPluginAdditionalTargetInfo.cmake
- Qt6QEvdevTouchScreenPluginConfig.cmake
- Qt6QEvdevTouchScreenPluginConfigVersion.cmake
- Qt6QEvdevTouchScreenPluginConfigVersionImpl.cmake
- Qt6QEvdevTouchScreenPluginTargets-release.cmake
- Qt6QEvdevTouchScreenPluginTargets.cmake
- Qt6QIbusPlatformInputContextPluginAdditionalTargetInfo.cmake
- Qt6QIbusPlatformInputContextPluginConfig.cmake
- Qt6QIbusPlatformInputContextPluginConfigVersion.cmake
- Qt6QIbusPlatformInputContextPluginConfigVersionImpl.cmake
- Qt6QIbusPlatformInputContextPluginTargets-release.cmake
- Qt6QIbusPlatformInputContextPluginTargets.cmake
  Qt6QLinuxFbIntegrationPluginAdditionalTargetInfo.cmake
  Qt6QLinuxFbIntegrationPluginConfig.cmake
  Qt6QLinuxFbIntegrationPluginConfigVersion.cmake
  Qt6QLinuxFbIntegrationPluginConfigVersionImpl.cmake
  Qt6QLinuxFbIntegrationPluginTargets-release.cmake
  Qt6QLinuxFbIntegrationPluginTargets.cmake
- Qt6QXcbEglIntegrationPluginAdditionalTargetInfo.cmake
- Qt6QXcbEglIntegrationPluginConfig.cmake
- Qt6QXcbEglIntegrationPluginConfigVersion.cmake
- Qt6QXcbEglIntegrationPluginConfigVersionImpl.cmake
- Qt6QXcbEglIntegrationPluginTargets-release.cmake
- Qt6QXcbEglIntegrationPluginTargets.cmake
- Qt6QXcbGlxIntegrationPluginAdditionalTargetInfo.cmake
- Qt6QXcbGlxIntegrationPluginConfig.cmake
- Qt6QXcbGlxIntegrationPluginConfigVersion.cmake
- Qt6QXcbGlxIntegrationPluginConfigVersionImpl.cmake
- Qt6QXcbGlxIntegrationPluginTargets-release.cmake
- Qt6QXcbGlxIntegrationPluginTargets.cmake
- Qt6QXcbIntegrationPluginAdditionalTargetInfo.cmake
- Qt6QXcbIntegrationPluginConfig.cmake
- Qt6QXcbIntegrationPluginConfigVersion.cmake
- Qt6QXcbIntegrationPluginConfigVersionImpl.cmake
- Qt6QXcbIntegrationPluginTargets-release.cmake
- Qt6QXcbIntegrationPluginTargets.cmake
-%%ONLY-LINUX%%lib/qt6/cmake/Qt6InputSupportPrivate/
- Qt6InputSupportPrivateAdditionalTargetInfo.cmake
- Qt6InputSupportPrivateConfig.cmake
- Qt6InputSupportPrivateConfigVersion.cmake
- Qt6InputSupportPrivateConfigVersionImpl.cmake
- Qt6InputSupportPrivateDependencies.cmake
- Qt6InputSupportPrivateTargets-release.cmake
- Qt6InputSupportPrivateTargets.cmake
- Qt6InputSupportPrivateVersionlessTargets.cmake
 %%ONLY-LINUX%%lib/qt6/cmake/Qt6Network/
  Qt6QNetworkManagerNetworkInformationPluginAdditionalTargetInfo.cmake
  Qt6QNetworkManagerNetworkInformationPluginConfig.cmake
@@ -394,7 +250,39 @@ This package contains the Qt6 qtbase submodule.
  Qt6QNetworkManagerNetworkInformationPluginConfigVersionImpl.cmake
  Qt6QNetworkManagerNetworkInformationPluginTargets-release.cmake
  Qt6QNetworkManagerNetworkInformationPluginTargets.cmake
-%%ONLY-LINUX%%lib/qt6/cmake/Qt6XcbQpaPrivate/
+%%ONLY-LINUX%%lib/qt6/plugins/networkinformation/libqnetworkmanager.so
+%%ONLY-LINUX%%lib/qt6/plugins/platforms/libqlinuxfb.so
+%%XCB%%lib/qt6/
+ libQt6XcbQpa.prl
+ libQt6XcbQpa.so
+ libQt6XcbQpa.so.%%SOMAJOR%%
+ libQt6XcbQpa.so.%%SOVERSION%%
+%%XCB%%lib/qt6/cmake/Qt6Gui/
+ Qt6QEglFSX11IntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QEglFSX11IntegrationPluginConfig.cmake
+ Qt6QEglFSX11IntegrationPluginConfigVersion.cmake
+ Qt6QEglFSX11IntegrationPluginConfigVersionImpl.cmake
+ Qt6QEglFSX11IntegrationPluginTargets-release.cmake
+ Qt6QEglFSX11IntegrationPluginTargets.cmake
+ Qt6QXcbEglIntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QXcbEglIntegrationPluginConfig.cmake
+ Qt6QXcbEglIntegrationPluginConfigVersion.cmake
+ Qt6QXcbEglIntegrationPluginConfigVersionImpl.cmake
+ Qt6QXcbEglIntegrationPluginTargets-release.cmake
+ Qt6QXcbEglIntegrationPluginTargets.cmake
+ Qt6QXcbGlxIntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QXcbGlxIntegrationPluginConfig.cmake
+ Qt6QXcbGlxIntegrationPluginConfigVersion.cmake
+ Qt6QXcbGlxIntegrationPluginConfigVersionImpl.cmake
+ Qt6QXcbGlxIntegrationPluginTargets-release.cmake
+ Qt6QXcbGlxIntegrationPluginTargets.cmake
+ Qt6QXcbIntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QXcbIntegrationPluginConfig.cmake
+ Qt6QXcbIntegrationPluginConfigVersion.cmake
+ Qt6QXcbIntegrationPluginConfigVersionImpl.cmake
+ Qt6QXcbIntegrationPluginTargets-release.cmake
+ Qt6QXcbIntegrationPluginTargets.cmake
+%%XCB%%lib/qt6/cmake/Qt6XcbQpaPrivate/
  Qt6XcbQpaPrivateAdditionalTargetInfo.cmake
  Qt6XcbQpaPrivateConfig.cmake
  Qt6XcbQpaPrivateConfigVersion.cmake
@@ -403,31 +291,14 @@ This package contains the Qt6 qtbase submodule.
  Qt6XcbQpaPrivateTargets-release.cmake
  Qt6XcbQpaPrivateTargets.cmake
  Qt6XcbQpaPrivateVersionlessTargets.cmake
-%%ONLY-LINUX%%lib/qt6/metatypes/
- qt6inputsupportprivate_release_metatypes.json
- qt6xcbqpaprivate_release_metatypes.json
-%%ONLY-LINUX%%lib/qt6/mkspecs/modules/
- qt_lib_input_support_private.pri
- qt_lib_xcb_qpa_lib_private.pri
-%%ONLY-LINUX%%lib/qt6/plugins/egldeviceintegrations/libqeglfs-x11-integration.so
-%%ONLY-LINUX%%lib/qt6/plugins/generic/
- libqevdevkeyboardplugin.so
- libqevdevmouseplugin.so
- libqevdevtabletplugin.so
- libqevdevtouchplugin.so
-%%ONLY-LINUX%%lib/qt6/plugins/networkinformation/libqnetworkmanager.so
-%%ONLY-LINUX%%lib/qt6/plugins/platforminputcontexts/
- libcomposeplatforminputcontextplugin.so
- libibusplatforminputcontextplugin.so
-%%ONLY-LINUX%%lib/qt6/plugins/platforms/
- libqlinuxfb.so
- libqxcb.so
-%%ONLY-LINUX%%lib/qt6/plugins/xcbglintegrations/
+%%XCB%%lib/qt6/metatypes/qt6xcbqpaprivate_release_metatypes.json
+%%XCB%%lib/qt6/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri
+%%XCB%%lib/qt6/plugins/egldeviceintegrations/libqeglfs-x11-integration.so
+%%XCB%%lib/qt6/plugins/platforms/libqxcb.so
+%%XCB%%lib/qt6/plugins/xcbglintegrations/
  libqxcb-egl-integration.so
  libqxcb-glx-integration.so
-%%ONLY-LINUX%%share/qt6/modules/
- InputSupportPrivate.json
- XcbQpaPrivate.json
+%%XCB%%share/qt6/modules/XcbQpaPrivate.json
 include/qt6/QtConcurrent/
  QtConcurrent
  QtConcurrentDepends

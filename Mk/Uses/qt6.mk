@@ -64,9 +64,16 @@ QMAKE_LIBS_THREAD=	-lpthread
 QMAKE_LFLAGS_THREAD=
 QMAKE_X11_SYS_LIBS=	-lm
 
+. elif "${OPSYS}" == "NetBSD"
+
+QMAKESPEC=		netbsd-g++
+QMAKE_LIBS_THREAD=
+QMAKE_LFLAGS_THREAD=	-pthread
+QMAKE_X11_SYS_LIBS=	-lm
+
 . else
 
-QMAKESPEC=	unsupported-OS
+QMAKESPEC=	unsupported-Ravenports-OS
 
 . endif
 

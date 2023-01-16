@@ -43,12 +43,18 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-nls
 			--with-threads
 
+MAKE_ENV=		PAXCTL={{PAXCTL:Uecho}}
+
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.5.0
 PLIST_SUB=		GUILE_VER=3.0
 			RLSOVERSION=0.0.0
 			RLSOMAJOR=0
+
+VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--enable-jit=no
+			CONFIGURE_ARGS=--enable-lto=no
+			MAKEFILE_LINE=PAXCTL=/usr/sbin/paxctl
 
 [FILE:322:descriptions/desc.single]
 GUILE, GNU's Ubiquitous Intelligent Language for Extension, is a library
@@ -950,7 +956,7 @@ share/man/man1/guile.1.gz
 
 
 [FILE:461:patches/patch-lib_signal.in.h]
---- lib/signal.in.h.orig	2021-01-20 22:03:56 UTC
+--- lib/signal.in.h.orig	2021-09-30 12:30:38 UTC
 +++ lib/signal.in.h
 @@ -60,6 +60,7 @@
     But avoid namespace pollution on glibc systems.*/
@@ -962,8 +968,25 @@ share/man/man1/guile.1.gz
      && ! defined __GLIBC__
 
 
+[FILE:607:patches/patch-libguile_Makefile.in]
+$NetBSD: patch-libguile_Makefile.in,v 1.1 2022/03/08 00:09:30 wiz Exp $
+
+Disable PaX MPROTECT for guile binary (needed due to its JIT).
+
+--- libguile/Makefile.in.orig	2022-02-10 20:03:22 UTC
++++ libguile/Makefile.in
+@@ -2771,6 +2771,7 @@ libguile-@GUILE_EFFECTIVE_VERSION@.la: $
+ guile$(EXEEXT): $(guile_OBJECTS) $(guile_DEPENDENCIES) $(EXTRA_guile_DEPENDENCIES) 
+ 	@rm -f guile$(EXEEXT)
+ 	$(AM_V_CCLD)$(guile_LINK) $(guile_OBJECTS) $(guile_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/guile$(EXEEXT)
+ install-binSCRIPTS: $(bin_SCRIPTS)
+ 	@$(NORMAL_INSTALL)
+ 	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
+
+
 [FILE:409:patches/patch-libguile_filesys.c]
---- libguile/filesys.c.orig	2021-05-10 08:07:12 UTC
+--- libguile/filesys.c.orig	2021-05-11 18:54:00 UTC
 +++ libguile/filesys.c
 @@ -1520,6 +1520,9 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp", 1,
        mode_bits = scm_i_mode_bits (mode);
@@ -992,10 +1015,28 @@ share/man/man1/guile.1.gz
  int
 
 
+[FILE:505:patches/patch-libguile_loader.c]
+$NetBSD: patch-libguile_loader.c,v 1.1 2022/03/08 00:09:30 wiz Exp $
+
+Use correct mmap permissions for later PROT_WRITE mprotect.
+
+--- libguile/loader.c.orig	2021-02-03 22:00:27 UTC
++++ libguile/loader.c
+@@ -501,7 +501,7 @@ map_file_contents (int fd, size_t len, i
+   char *data;
+ 
+ #ifdef HAVE_SYS_MMAN_H
+-  data = mmap (NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
++  data = mmap (NULL, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+   if (data == MAP_FAILED)
+     SCM_SYSERROR;
+   *is_read_only = 1;
+
+
 [FILE:460:patches/patch-libguile_numbers.c]
---- libguile/numbers.c.orig	2021-04-27 19:21:21 UTC
+--- libguile/numbers.c.orig	2022-02-10 19:37:59 UTC
 +++ libguile/numbers.c
-@@ -209,7 +209,7 @@ static double atanh (double x) { return
+@@ -192,7 +192,7 @@ static double atanh (double x) { return
  
  
  #if defined (GUILE_I)
@@ -1019,4 +1060,121 @@ share/man/man1/guile.1.gz
  #include <sched.h>
  
  /* Threads 
+
+
+[FILE:7433:patches/patch-test-suite_standalone_Makefile.in]
+$NetBSD: patch-test-suite_standalone_Makefile.in,v 1.1 2022/03/08 00:09:30 wiz Exp $
+
+Disable PaX MPROTECT for some tests (needed due to its JIT).
+
+--- test-suite/standalone/Makefile.in.orig	2022-02-10 20:03:23 UTC
++++ test-suite/standalone/Makefile.in
+@@ -2361,86 +2361,107 @@ libtest-ffi.la: $(libtest_ffi_la_OBJECTS
+ test-conversion$(EXEEXT): $(test_conversion_OBJECTS) $(test_conversion_DEPENDENCIES) $(EXTRA_test_conversion_DEPENDENCIES) 
+ 	@rm -f test-conversion$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_conversion_LINK) $(test_conversion_OBJECTS) $(test_conversion_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-conversion$(EXEEXT)
+ 
+ test-foreign-object-c$(EXEEXT): $(test_foreign_object_c_OBJECTS) $(test_foreign_object_c_DEPENDENCIES) $(EXTRA_test_foreign_object_c_DEPENDENCIES) 
+ 	@rm -f test-foreign-object-c$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_foreign_object_c_LINK) $(test_foreign_object_c_OBJECTS) $(test_foreign_object_c_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-foreign-object-c$(EXEEXT)
+ 
+ test-list$(EXEEXT): $(test_list_OBJECTS) $(test_list_DEPENDENCIES) $(EXTRA_test_list_DEPENDENCIES) 
+ 	@rm -f test-list$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_list_LINK) $(test_list_OBJECTS) $(test_list_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-list$(EXEEXT)
+ 
+ test-loose-ends$(EXEEXT): $(test_loose_ends_OBJECTS) $(test_loose_ends_DEPENDENCIES) $(EXTRA_test_loose_ends_DEPENDENCIES) 
+ 	@rm -f test-loose-ends$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_loose_ends_LINK) $(test_loose_ends_OBJECTS) $(test_loose_ends_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-loose-ends$(EXEEXT)
+ 
+ test-num2integral$(EXEEXT): $(test_num2integral_OBJECTS) $(test_num2integral_DEPENDENCIES) $(EXTRA_test_num2integral_DEPENDENCIES) 
+ 	@rm -f test-num2integral$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_num2integral_LINK) $(test_num2integral_OBJECTS) $(test_num2integral_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-num2integral$(EXEEXT)
+ 
+ test-pthread-create$(EXEEXT): $(test_pthread_create_OBJECTS) $(test_pthread_create_DEPENDENCIES) $(EXTRA_test_pthread_create_DEPENDENCIES) 
+ 	@rm -f test-pthread-create$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_pthread_create_LINK) $(test_pthread_create_OBJECTS) $(test_pthread_create_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-pthread-create$(EXEEXT)
+ 
+ test-pthread-create-secondary$(EXEEXT): $(test_pthread_create_secondary_OBJECTS) $(test_pthread_create_secondary_DEPENDENCIES) $(EXTRA_test_pthread_create_secondary_DEPENDENCIES) 
+ 	@rm -f test-pthread-create-secondary$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_pthread_create_secondary_LINK) $(test_pthread_create_secondary_OBJECTS) $(test_pthread_create_secondary_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-pthread-create-secondary$(EXEEXT)
+ 
+ test-round$(EXEEXT): $(test_round_OBJECTS) $(test_round_DEPENDENCIES) $(EXTRA_test_round_DEPENDENCIES) 
+ 	@rm -f test-round$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_round_LINK) $(test_round_OBJECTS) $(test_round_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-round$(EXEEXT)
+ 
+ test-scm-c-bind-keyword-arguments$(EXEEXT): $(test_scm_c_bind_keyword_arguments_OBJECTS) $(test_scm_c_bind_keyword_arguments_DEPENDENCIES) $(EXTRA_test_scm_c_bind_keyword_arguments_DEPENDENCIES) 
+ 	@rm -f test-scm-c-bind-keyword-arguments$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_c_bind_keyword_arguments_LINK) $(test_scm_c_bind_keyword_arguments_OBJECTS) $(test_scm_c_bind_keyword_arguments_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-c-bind-keyword-arguments$(EXEEXT)
+ 
+ test-scm-c-read$(EXEEXT): $(test_scm_c_read_OBJECTS) $(test_scm_c_read_DEPENDENCIES) $(EXTRA_test_scm_c_read_DEPENDENCIES) 
+ 	@rm -f test-scm-c-read$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_c_read_LINK) $(test_scm_c_read_OBJECTS) $(test_scm_c_read_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-c-read$(EXEEXT)
+ 
+ test-scm-spawn-thread$(EXEEXT): $(test_scm_spawn_thread_OBJECTS) $(test_scm_spawn_thread_DEPENDENCIES) $(EXTRA_test_scm_spawn_thread_DEPENDENCIES) 
+ 	@rm -f test-scm-spawn-thread$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_spawn_thread_LINK) $(test_scm_spawn_thread_OBJECTS) $(test_scm_spawn_thread_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-spawn-thread$(EXEEXT)
+ 
+ test-scm-take-locale-symbol$(EXEEXT): $(test_scm_take_locale_symbol_OBJECTS) $(test_scm_take_locale_symbol_DEPENDENCIES) $(EXTRA_test_scm_take_locale_symbol_DEPENDENCIES) 
+ 	@rm -f test-scm-take-locale-symbol$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_take_locale_symbol_LINK) $(test_scm_take_locale_symbol_OBJECTS) $(test_scm_take_locale_symbol_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-take-locale-symbol$(EXEEXT)
+ 
+ test-scm-take-u8vector$(EXEEXT): $(test_scm_take_u8vector_OBJECTS) $(test_scm_take_u8vector_DEPENDENCIES) $(EXTRA_test_scm_take_u8vector_DEPENDENCIES) 
+ 	@rm -f test-scm-take-u8vector$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_take_u8vector_LINK) $(test_scm_take_u8vector_OBJECTS) $(test_scm_take_u8vector_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-take-u8vector$(EXEEXT)
+ 
+ test-scm-to-latin1-string$(EXEEXT): $(test_scm_to_latin1_string_OBJECTS) $(test_scm_to_latin1_string_DEPENDENCIES) $(EXTRA_test_scm_to_latin1_string_DEPENDENCIES) 
+ 	@rm -f test-scm-to-latin1-string$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_to_latin1_string_LINK) $(test_scm_to_latin1_string_OBJECTS) $(test_scm_to_latin1_string_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-to-latin1-string$(EXEEXT)
+ 
+ test-scm-values$(EXEEXT): $(test_scm_values_OBJECTS) $(test_scm_values_DEPENDENCIES) $(EXTRA_test_scm_values_DEPENDENCIES) 
+ 	@rm -f test-scm-values$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_values_LINK) $(test_scm_values_OBJECTS) $(test_scm_values_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-values$(EXEEXT)
+ 
+ test-scm-with-guile$(EXEEXT): $(test_scm_with_guile_OBJECTS) $(test_scm_with_guile_DEPENDENCIES) $(EXTRA_test_scm_with_guile_DEPENDENCIES) 
+ 	@rm -f test-scm-with-guile$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_scm_with_guile_LINK) $(test_scm_with_guile_OBJECTS) $(test_scm_with_guile_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-scm-with-guile$(EXEEXT)
+ 
+ test-smob-mark$(EXEEXT): $(test_smob_mark_OBJECTS) $(test_smob_mark_DEPENDENCIES) $(EXTRA_test_smob_mark_DEPENDENCIES) 
+ 	@rm -f test-smob-mark$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_smob_mark_LINK) $(test_smob_mark_OBJECTS) $(test_smob_mark_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-smob-mark$(EXEEXT)
+ 
+ test-smob-mark-race$(EXEEXT): $(test_smob_mark_race_OBJECTS) $(test_smob_mark_race_DEPENDENCIES) $(EXTRA_test_smob_mark_race_DEPENDENCIES) 
+ 	@rm -f test-smob-mark-race$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_smob_mark_race_LINK) $(test_smob_mark_race_OBJECTS) $(test_smob_mark_race_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-smob-mark-race$(EXEEXT)
+ 
+ test-srfi-4$(EXEEXT): $(test_srfi_4_OBJECTS) $(test_srfi_4_DEPENDENCIES) $(EXTRA_test_srfi_4_DEPENDENCIES) 
+ 	@rm -f test-srfi-4$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_srfi_4_LINK) $(test_srfi_4_OBJECTS) $(test_srfi_4_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-srfi-4$(EXEEXT)
+ 
+ test-unwind$(EXEEXT): $(test_unwind_OBJECTS) $(test_unwind_DEPENDENCIES) $(EXTRA_test_unwind_DEPENDENCIES) 
+ 	@rm -f test-unwind$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_unwind_LINK) $(test_unwind_OBJECTS) $(test_unwind_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-unwind$(EXEEXT)
+ 
+ test-with-guile-module$(EXEEXT): $(test_with_guile_module_OBJECTS) $(test_with_guile_module_DEPENDENCIES) $(EXTRA_test_with_guile_module_DEPENDENCIES) 
+ 	@rm -f test-with-guile-module$(EXEEXT)
+ 	$(AM_V_CCLD)$(test_with_guile_module_LINK) $(test_with_guile_module_OBJECTS) $(test_with_guile_module_LDADD) $(LIBS)
++	$(PAXCTL) +m .libs/test-with-guile-module$(EXEEXT)
+ 
+ mostlyclean-compile:
+ 	-rm -f *.$(OBJEXT)
 
