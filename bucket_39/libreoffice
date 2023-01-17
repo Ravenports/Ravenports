@@ -3996,6 +3996,57 @@ share/mime/packages/libreoffice.xml
  echo "Install $OOINSTDIR/basis$VERSION/program/java-set-classpath";
 
 
+[FILE:729:patches/patch-bridges_source_cpp__uno_gcc3__linux__intel_share.hxx]
+$NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__intel_share.hxx,v 1.2 2019/06/27 13:50:49 ryoon Exp $
+
+* NetBSD has no _Unwind_Exception, fix runtime crash
+
+--- bridges/source/cpp_uno/gcc3_linux_intel/share.hxx.orig	2022-11-16 17:29:15 UTC
++++ bridges/source/cpp_uno/gcc3_linux_intel/share.hxx
+@@ -62,6 +62,15 @@ public:
+ 
+ namespace CPPU_CURRENT_NAMESPACE
+ {
++#if defined(__NetBSD__)
++struct _Unwind_Exception
++{
++    unsigned exception_class __attribute__((__mode__(__DI__)));
++    void * exception_cleanup;
++    unsigned private_1 __attribute__((__mode__(__word__)));
++    unsigned private_2 __attribute__((__mode__(__word__)));
++} __attribute__((__aligned__));
++#endif
+ 
+ void dummy_can_throw_anything( char const * );
+ 
+
+
+[FILE:889:patches/patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx]
+$NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/06/27 13:50:49 ryoon Exp $
+
+* NetBSD has no _Unwind_Exception, fix runtime crash
+
+--- bridges/source/cpp_uno/gcc3_linux_x86-64/share.hxx.orig	2022-11-16 17:29:15 UTC
++++ bridges/source/cpp_uno/gcc3_linux_x86-64/share.hxx
+@@ -105,6 +105,16 @@ public:
+ // <https://mentorembedded.github.io/cxx-abi/abi-eh.html>,
+ // libcxxabi/src/cxa_exception.hpp:
+ namespace __cxxabiv1 {
++#if defined(__NetBSD__)
++struct _Unwind_Exception
++{
++    unsigned exception_class __attribute__((__mode__(__DI__)));
++    void * exception_cleanup;
++    unsigned private_1 __attribute__((__mode__(__word__)));
++    unsigned private_2 __attribute__((__mode__(__word__)));
++} __attribute__((__aligned__));
++#endif
++
+ struct __cxa_exception {
+ #if defined _LIBCPPABI_VERSION // detect libc++abi
+ #if defined __LP64__ || LIBCXXABI_ARM_EHABI
+
+
 [FILE:1375:patches/patch-configure]
 netbsd: Workaround bad substition errors
 
@@ -4045,14 +4096,14 @@ netbsd: Workaround bad substition errors
  
 
 
-[FILE:1666:patches/patch-external_skia_netbsd.patch.0]
+[FILE:1630:patches/patch-external_skia_netbsd.patch.0]
 $NetBSD: patch-external_skia_netbsd.patch.0,v 1.4 2022/08/22 13:58:32 ryoon Exp $
 
 * Support NetBSD. It has no uselocale(3).
 * Fix build failure (isnan etc. are not defined) under NetBSD/amd64 9.99.88
   (GCC 10.3.0) at least.
 
---- external/skia/netbsd.patch.0.orig	2022-08-19 00:29:47.661827273 +0000
+--- /dev/null	2023-01-17 03:18:16 UTC
 +++ external/skia/netbsd.patch.0
 @@ -0,0 +1,31 @@
 +* Support NetBSD. It has no uselocale(3).
@@ -4268,6 +4319,23 @@ Seems to be needed by NetBSD shell to get past the fact no files are generated.
  
 
 
+[FILE:324:patches/patch-store_source_storbase.hxx]
+$NetBSD: patch-store_source_storbase.hxx,v 1.2 2019/08/10 11:41:29 ryoon Exp $
+
+include <cstdlib> for std::free()
+
+--- store/source/storbase.hxx.orig	2022-11-16 17:29:15 UTC
++++ store/source/storbase.hxx
+@@ -35,6 +35,7 @@
+ 
+ #include <memory>
+ #include <utility>
++#include <cstdlib>
+ 
+ /** @file store common internals.
+ */
+
+
 [FILE:213:patches/patch-svtools_source_svrtf_parrtf.cxx]
 --- svtools/source/svrtf/parrtf.cxx.orig	2022-11-16 17:29:15 UTC
 +++ svtools/source/svrtf/parrtf.cxx
@@ -4279,6 +4347,24 @@ Seems to be needed by NetBSD shell to get past the fact no files are generated.
  
  int SvRTFParser::GetNextToken_()
  {
+
+
+[FILE:539:patches/patch-sw_source_core_bastyp_calc.cxx]
+$NetBSD: patch-sw_source_core_bastyp_calc.cxx,v 1.2 2021/08/22 02:41:50 ryoon Exp $
+
+For NetBSD at least.
+
+--- sw/source/core/bastyp/calc.cxx.orig	2022-11-16 17:29:15 UTC
++++ sw/source/core/bastyp/calc.cxx
+@@ -1076,7 +1076,7 @@ SwSbxValue SwCalc::PrimFunc(bool &rChkPo
+             return StdFunc(&acos, true);
+         case CALC_ABS:
+             SAL_INFO("sw.calc", "abs");
+-            return StdFunc(&abs, false);
++            return StdFunc(&fabs, false);
+         case CALC_SIGN:
+         {
+             SAL_INFO("sw.calc", "sign");
 
 
 [FILE:997:patches/patch-sysui_desktop_share_create_tree.sh]
@@ -4337,7 +4423,17 @@ Seems to be needed by NetBSD shell to get past the fact no files are generated.
      }
 
 
-[FILE:609:patches/patch-vcl_unx_generic_app_geninst.cxx]
+[FILE:1547:patches/patch-vcl_unx_generic_app_geninst.cxx]
+$NetBSD: patch-vcl_unx_generic_app_geninst.cxx,v 1.3 2022/08/22 13:58:32 ryoon Exp $
+
+Set "OS Environment" on NetBSD,same as FreeBSD.
+
+To Fix:
+Help -> About LibreOffice
+ Environment: OS: unknown
+
+Tweaked by Yasushi Oshima, PR pkg/56048.
+
 --- vcl/unx/generic/app/geninst.cxx.orig	2022-11-16 17:29:15 UTC
 +++ vcl/unx/generic/app/geninst.cxx
 @@ -22,7 +22,7 @@
@@ -4349,7 +4445,7 @@ Seems to be needed by NetBSD shell to get past the fact no files are generated.
  #  include <sys/utsname.h>
  #endif
  
-@@ -72,7 +72,7 @@ OUString SalGenericInstance::getOSVersio
+@@ -72,14 +72,18 @@ OUString SalGenericInstance::getOSVersio
          }
          fclose( pVersion );
      }
@@ -4358,6 +4454,26 @@ Seems to be needed by NetBSD shell to get past the fact no files are generated.
      struct utsname stName;
      if ( uname( &stName ) != 0 )
          return aKernelVer;
+ 
++    aKernelVer = OUString::createFromAscii( stName.release );
++#if defined(__NetBSD__)
++    return OUString::createFromAscii( stName.sysname ) + " " +
++        aKernelVer.copy( 0, aKernelVer.getLength() );
++#else
+     sal_Int32 nDots = 0;
+     sal_Int32 nIndex = 0;
+-    aKernelVer = OUString::createFromAscii( stName.release );
+     while ( nIndex++ < aKernelVer.getLength() )
+     {
+         const char c = stName.release[ nIndex ];
+@@ -87,6 +91,7 @@ OUString SalGenericInstance::getOSVersio
+             break;
+     }
+     aKernelVer = OUString::createFromAscii(stName.sysname) + " " + aKernelVer.copy(0, nIndex);
++#endif
+ #elif defined(EMSCRIPTEN)
+ #define str(s) #s
+ #define xstr(s) str(s)
 
 
 [FILE:1563:files/special.mk]
