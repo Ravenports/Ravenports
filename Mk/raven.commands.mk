@@ -46,7 +46,6 @@ MKTEMP=		/usr/bin/mktemp
 MV=		/bin/mv
 PATCH=		/usr/bin/patch
 PAX=		/bin/pax
-PAXCTL=		/usr/sbin/paxctl
 PRINTF=		/usr/bin/printf
 REALPATH=	/bin/realpath
 RM=		/bin/rm -f
@@ -76,6 +75,12 @@ XZ_CMD=		/usr/bin/xz ${XZ_LEVEL}
 STRIP_CMD=	/usr/bin/strip
 . else
 STRIP_CMD=	/raven/toolchain/bin/strip
+. endif
+
+. if "${.MAKE.OS.NAME}" == "NetBSD"
+PAXCTL=		/usr/sbin/paxctl
+. else
+PAXCTL=		true SKIP paxctl
 . endif
 
 .endif

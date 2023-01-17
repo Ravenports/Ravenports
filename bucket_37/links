@@ -2,9 +2,11 @@
 
 NAMEBASE=		links
 VERSION=		2.28
+REVISION=		1
 KEYWORDS=		www
-VARIANTS=		standard
-SDESC[standard]=	Lynx-like web browser for terminal and X11
+VARIANTS=		standard x11
+SDESC[x11]=		Lynx-like web browser for the terminal and X11
+SDESC[standard]=	Lynx-like web browser (terminal-only variant)
 HOMEPAGE=		http://links.twibright.com
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
@@ -12,10 +14,12 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://links.twibright.com/download/
 DISTFILE[1]=		links-2.28.tar.gz:main
 DF_INDEX=		1
+SPKGS[x11]=		single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	X11
 OPTIONS_STANDARD=	none
+VOPTS[x11]=		X11=ON
 
 BUILDRUN_DEPENDS=	brotli:single:standard
 			libevent:single:standard
@@ -34,6 +38,17 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		www/links
 
 MUST_CONFIGURE=		gnu
+
+[X11].DESCRIPTION=			Build with X11 support
+[X11].BUILDRUN_DEPENDS_ON=		freetype:primary:standard
+					fontconfig:primary:standard
+					libevent:single:standard
+					png:single:standard
+[X11].CONFIGURE_ARGS_ON=		--enable-graphics
+					--x-includes={{PREFIX}}/include/X11
+					--x-libraries={{PREFIX}}/lib/X11
+[X11].USES_ON=				fortran:single
+[X11].XORG_COMPONENTS_ON=		x11
 
 [FILE:127:descriptions/desc.single]
 Links is a portable web browser that can run in both graphics or text 
