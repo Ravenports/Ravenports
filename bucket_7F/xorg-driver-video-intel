@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-driver-video-intel
 VERSION=		2.99.917.916
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		x11_drivers
 VARIANTS=		standard
@@ -42,6 +43,10 @@ FPC_EQUIVALENT=		x11-drivers/xf86-video-intel
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-udev
+			--disable-tools
+			--enable-dri
+			--enable-dri2
+			--enable-dri3
 			--with-builderstring="2.99.917.916"
 CONFIGURE_ENV=		ac_cv_header_sys_sysinfo_h=no
 
@@ -111,7 +116,7 @@ lib/xorg/modules/drivers/intel_drv.so
 share/man/man4/intel.4.gz
 
 
-[FILE:1202:patches/patch-benchmarks_dri3-swap.c]
+[FILE:1201:patches/patch-benchmarks_dri3-swap.c]
 dri3-swap.c:237:24: error: variable 'tmp' is uninitialized when used here [-Werror,-Wuninitialized]
                         list_for_each_entry(tmp, &mru, link) {
                                             ^~~
@@ -126,9 +131,9 @@ dri3-swap.c:236:22: note: initialize the variable 'tmp' to silence this warning
                                           ^
                                            = NULL
 
---- benchmarks/dri3-swap.c.orig	2019-02-21 22:26:50 UTC
+--- benchmarks/dri3-swap.c.orig	2021-01-15 20:59:05 UTC
 +++ benchmarks/dri3-swap.c
-@@ -233,7 +233,7 @@ static void run(Display *dpy, Window win)
+@@ -233,7 +233,7 @@ static void run(Display *dpy, Window win
  	clock_gettime(CLOCK_MONOTONIC, &start);
  	do {
  		for (n = 0; n < 1000; n++) {
@@ -139,39 +144,138 @@ dri3-swap.c:236:22: note: initialize the variable 'tmp' to silence this warning
  					b = tmp;
 
 
-[FILE:864:patches/patch-hyphen]
+[FILE:3970:patches/patch-hyphen]
 Add hyphen to RANDR output names for consistency with modesetting(4x)
 
---- src/sna/sna_display.c.orig	2018-12-03 09:01:25 UTC
+--- src/sna/sna_display.c.orig	2021-01-15 20:59:05 UTC
 +++ src/sna/sna_display.c
-@@ -5126,7 +5126,7 @@ sna_output_add(struct sna *sna, unsigned id, unsigned 
- 		output_name = output_names[compat_conn.conn.connector_type];
- 	else
- 		output_name = "UNKNOWN";
--	len = snprintf(name, 32, "%s%d", output_name, compat_conn.conn.connector_type_id);
-+	len = snprintf(name, 32, "%s-%d", output_name, compat_conn.conn.connector_type_id);
- 	if (output_ignored(scrn, name))
- 		return 0;
+@@ -467,7 +467,7 @@ static inline uint32_t fb_id(struct kgem
  
---- src/uxa/intel_display.c.orig	2018-12-03 09:01:25 UTC
+ unsigned sna_crtc_count_sprites(xf86CrtcPtr crtc)
+ {
+-	struct plane *sprite;
++	struct plane *sprite = NULL;
+ 	unsigned count;
+ 
+ 	count = 0;
+@@ -479,7 +479,7 @@ unsigned sna_crtc_count_sprites(xf86Crtc
+ 
+ static struct plane *lookup_sprite(struct sna_crtc *crtc, unsigned idx)
+ {
+-	struct plane *sprite;
++	struct plane *sprite = NULL;
+ 
+ 	list_for_each_entry(sprite, &crtc->sprites, link)
+ 		if (idx-- == 0)
+@@ -1727,7 +1727,7 @@ static bool wait_for_shadow(struct sna *
+ 
+ 	if ((flags & MOVE_WRITE) == 0) {
+ 		if ((flags & __MOVE_SCANOUT) == 0) {
+-			struct sna_crtc *crtc;
++			struct sna_crtc *crtc = NULL;
+ 
+ 			list_for_each_entry(crtc, &sna->mode.shadow_crtc, shadow_link) {
+ 				if (overlap(&sna->mode.shadow_region.extents,
+@@ -1768,7 +1768,7 @@ static bool wait_for_shadow(struct sna *
+ 
+ 	flip_active = sna->mode.flip_active;
+ 	if (flip_active) {
+-		struct sna_crtc *crtc;
++		struct sna_crtc *crtc = NULL;
+ 		list_for_each_entry(crtc, &sna->mode.shadow_crtc, shadow_link)
+ 			flip_active -= crtc->flip_pending;
+ 		DBG(("%s: %d flips still pending, shadow flip_active=%d\n",
+@@ -3263,7 +3263,7 @@ static void
+ sna_crtc_destroy(xf86CrtcPtr crtc)
+ {
+ 	struct sna_crtc *sna_crtc = to_sna_crtc(crtc);
+-	struct plane *sprite, *sn;
++	struct plane *sprite = NULL, *sn;
+ 
+ 	if (sna_crtc == NULL)
+ 		return;
+@@ -3652,7 +3652,7 @@ bool sna_has_sprite_format(struct sna *s
+ 
+ 	for (i = 0; i < sna->mode.num_real_crtc; i++) {
+ 		struct sna_crtc *sna_crtc = to_sna_crtc(config->crtc[i]);
+-		struct plane *plane;
++		struct plane *plane = NULL;
+ 
+ 		list_for_each_entry(plane, &sna_crtc->sprites, link) {
+ 			struct local_mode_get_plane p;
+@@ -8639,7 +8639,7 @@ sna_mode_disable_secondary_planes(struct
+ 	for (c = 0; c < sna->mode.num_real_crtc; c++) {
+ 		xf86CrtcPtr crtc = config->crtc[c];
+ 		struct sna_crtc *sna_crtc = to_sna_crtc(crtc);
+-		struct plane *plane;
++		struct plane *plane = NULL;
+ 
+ 		list_for_each_entry(plane, &sna_crtc->sprites, link) {
+ 			struct local_mode_get_plane p;
+@@ -8737,7 +8737,7 @@ static bool
+ sna_crtc_hide_planes(struct sna *sna, struct sna_crtc *crtc)
+ {
+ 	struct local_mode_set_plane s;
+-	struct plane *plane;
++	struct plane *plane = NULL;
+ 
+ 	if (crtc->primary.id == 0)
+ 		return false;
+@@ -8774,7 +8774,7 @@ void sna_mode_reset(struct sna *sna)
+ 
+ 	for (i = 0; i < sna->mode.num_real_crtc; i++) {
+ 		struct sna_crtc *sna_crtc = to_sna_crtc(config->crtc[i]);
+-		struct plane *plane;
++		struct plane *plane = NULL;
+ 
+ 		assert(sna_crtc != NULL);
+ 
+--- src/uxa/intel_display.c.orig	2021-01-15 20:59:05 UTC
 +++ src/uxa/intel_display.c
-@@ -1484,7 +1484,7 @@ drmmode_create_name(ScrnInfoPtr pScrn, drmModeConnecto
- 		else
- 			output_name = "UNKNOWN";
+@@ -1872,7 +1872,7 @@ intel_drm_abort_one(struct intel_drm_que
+ void
+ intel_drm_abort(ScrnInfoPtr scrn, Bool (*match)(void *data, void *match_data), void *match_data)
+ {
+-	struct intel_drm_queue *q;
++	struct intel_drm_queue *q = NULL;
  
--		snprintf(name, 32, "%s%d",
-+		snprintf(name, 32, "%s-%d",
- 			 output_name, koutput->connector_type_id);
- 	}
- }
+ 	list_for_each_entry(q, &intel_drm_queue, list) {
+ 		if (match(q->data, match_data)) {
+@@ -1888,7 +1888,7 @@ intel_drm_abort(ScrnInfoPtr scrn, Bool (
+ void
+ intel_drm_abort_seq(ScrnInfoPtr scrn, uint32_t seq)
+ {
+-	struct intel_drm_queue *q;
++	struct intel_drm_queue *q = NULL;
+ 
+ 	list_for_each_entry(q, &intel_drm_queue, list) {
+ 		if (q->seq == seq) {
+@@ -1905,7 +1905,7 @@ intel_drm_abort_seq(ScrnInfoPtr scrn, ui
+ static void
+ intel_drm_abort_scrn(ScrnInfoPtr scrn)
+ {
+-	struct intel_drm_queue *q, *tmp;
++	struct intel_drm_queue *q = NULL, *tmp;
+ 
+ 	list_for_each_entry_safe(q, tmp, &intel_drm_queue, list) {
+ 		if (q->scrn == scrn)
+@@ -1994,7 +1994,7 @@ static void
+ intel_drm_handler(int fd, uint32_t frame, uint32_t sec, uint32_t usec, void *user_ptr)
+ {
+ 	uint32_t user_data = (intptr_t)user_ptr;
+-	struct intel_drm_queue *q;
++	struct intel_drm_queue *q = NULL;
+ 
+ 	list_for_each_entry(q, &intel_drm_queue, list) {
+ 		if (q->seq == user_data) {
 
 
-[FILE:799:patches/patch-prefer-iris]
+[FILE:774:patches/patch-prefer-iris]
 Chase https://gitlab.freedesktop.org/mesa/mesa/-/commit/adaa3583f507
 
---- src/sna/sna_dri2.c.orig	2020-11-16 15:23:28 UTC
+--- src/sna/sna_dri2.c.orig	2021-01-15 20:59:05 UTC
 +++ src/sna/sna_dri2.c
-@@ -3707,8 +3707,10 @@ static const char *dri_driver_name(struct sna *sna)
+@@ -3707,8 +3707,10 @@ static const char *dri_driver_name(struc
  			return has_i830_dri() ? "i830" : "i915";
  		else if (sna->kgem.gen < 040)
  			return "i915";
@@ -183,9 +287,9 @@ Chase https://gitlab.freedesktop.org/mesa/mesa/-/commit/adaa3583f507
  	}
  
  	return s;
---- src/uxa/intel_dri.c.orig	2020-11-16 15:23:28 UTC
+--- src/uxa/intel_dri.c.orig	2021-01-15 20:59:05 UTC
 +++ src/uxa/intel_dri.c
-@@ -1540,8 +1540,10 @@ static const char *dri_driver_name(intel_screen_privat
+@@ -1540,8 +1540,10 @@ static const char *dri_driver_name(intel
  			return has_i830_dri() ? "i830" : "i915";
  		else if (INTEL_INFO(intel)->gen < 040)
  			return "i915";
@@ -353,7 +457,7 @@ kgem.c:7503:24: note: initialize the variable 'bo' to silence this warning
                               ^
                                = NULL
 
---- src/intel_list.h.orig	2019-02-21 22:26:50 UTC
+--- src/intel_list.h.orig	2021-01-15 20:59:05 UTC
 +++ src/intel_list.h
 @@ -325,12 +325,12 @@ list_is_empty(const struct list *head)
   *
@@ -382,14 +486,53 @@ kgem.c:7503:24: note: initialize the variable 'bo' to silence this warning
  	 pos = tmp, tmp = __container_of(pos->member.next, tmp, member))
 
 
-[FILE:1007:patches/patch-src_sna_kgem.c]
+[FILE:1144:patches/patch-src_legacy_i810_i810__dri.c]
+$NetBSD: patch-src_legacy_i810_i810__dri.c,v 1.1 2015/04/20 13:39:00 khorben Exp $
+
+CID 1107540: Make the code safe avoiding random stack access. In
+the first loop where there is a singleton point to pptSrc, only
+access that singleton, no matter what.
+
+November 2013 patch from NetBSD xsrc:
+http://mail-index.netbsd.org/source-changes/2013/11/14/msg049188.html
+
+--- src/legacy/i810/i810_dri.c.orig	2021-01-15 20:59:05 UTC
++++ src/legacy/i810/i810_dri.c
+@@ -1104,10 +1104,17 @@ I810DRIMoveBuffers(WindowPtr pParent, DD
+ 	    while ((pboxNext >= pbox) && (pboxBase->y1 == pboxNext->y1))
+ 	       pboxNext--;
+ 	    pboxTmp = pboxNext + 1;
+-	    pptTmp = pptSrc + (pboxTmp - pbox);
+-	    while (pboxTmp <= pboxBase) {
+-	       *pboxNew1++ = *pboxTmp++;
+-	       *pptNew1++ = *pptTmp++;
++	    if (pptSrc == &ptOldOrg) {
++		if (pboxTmp <= pboxBase) {
++	          *pboxNew1++ = *pboxTmp;
++	          *pptNew1++ = *pptSrc;
++		}
++	    } else {
++	       pptTmp = pptSrc + (pboxTmp - pbox);
++	       while (pboxTmp <= pboxBase) {
++	          *pboxNew1++ = *pboxTmp++;
++	          *pptNew1++ = *pptTmp++;
++	       }
+ 	    }
+ 	    pboxBase = pboxNext;
+ 	 }
+
+
+[FILE:4511:patches/patch-src_sna_kgem.c]
+https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/issues/171
+https://gitlab.freedesktop.org/E5ten/xf86-video-intel/-/commit/a92ccaf05efe8f11b3c5cd217d48ad3cf4caa090
+
 --- src/sna/kgem.c.orig	2021-01-15 20:59:05 UTC
 +++ src/sna/kgem.c
 @@ -71,7 +71,11 @@ search_snoop_cache(struct kgem *kgem, un
  #define DBG_NO_USERPTR 0
  #define DBG_NO_UNSYNCHRONIZED_USERPTR 0
  #define DBG_NO_COHERENT_MMAP_GTT 0
-+#if defined __DragonFLy__
++#if defined __DragonFly__
 +#define DBG_NO_LLC 1
 +#else
  #define DBG_NO_LLC 0
@@ -419,9 +562,211 @@ kgem.c:7503:24: note: initialize the variable 'bo' to silence this warning
  }
  
  static bool test_has_no_reloc(struct kgem *kgem)
+@@ -2861,7 +2870,7 @@ static bool kgem_bo_move_to_cache(struct
+ static struct kgem_bo *
+ search_snoop_cache(struct kgem *kgem, unsigned int num_pages, unsigned flags)
+ {
+-	struct kgem_bo *bo, *first = NULL;
++	struct kgem_bo *bo = NULL, *first = NULL;
+ 
+ 	DBG(("%s: num_pages=%d, flags=%x\n", __FUNCTION__, num_pages, flags));
+ 
+@@ -3127,7 +3136,7 @@ void kgem_retire__buffers(struct kgem *k
+ 
+ static bool kgem_retire__flushing(struct kgem *kgem)
+ {
+-	struct kgem_bo *bo, *next;
++	struct kgem_bo *bo = NULL, *next;
+ 	bool retired = false;
+ 
+ 	list_for_each_entry_safe(bo, next, &kgem->flushing, request) {
+@@ -3425,7 +3434,7 @@ static void kgem_commit__check_reloc(str
+ #ifndef NDEBUG
+ static void kgem_commit__check_buffers(struct kgem *kgem)
+ {
+-	struct kgem_buffer *bo;
++	struct kgem_buffer *bo = NULL;
+ 
+ 	list_for_each_entry(bo, &kgem->active_buffers, base.list)
+ 		assert(bo->base.exec == NULL);
+@@ -3437,7 +3446,7 @@ static void kgem_commit__check_buffers(s
+ static void kgem_commit(struct kgem *kgem)
+ {
+ 	struct kgem_request *rq = kgem->next_request;
+-	struct kgem_bo *bo, *next;
++	struct kgem_bo *bo = NULL, *next;
+ 
+ 	kgem_commit__check_reloc(kgem);
+ 
+@@ -3551,7 +3560,7 @@ static void kgem_close_inactive(struct k
+ 
+ static void kgem_finish_buffers(struct kgem *kgem)
+ {
+-	struct kgem_buffer *bo, *next;
++	struct kgem_buffer *bo = NULL, *next;
+ 
+ 	list_for_each_entry_safe(bo, next, &kgem->batch_buffers, base.list) {
+ 		DBG(("%s: buffer handle=%d, used=%d, exec?=%d, write=%d, mmapped=%s, refcnt=%d\n",
+@@ -3940,7 +3949,7 @@ static int compact_batch_surface(struct
+ 
+ static struct kgem_bo *first_available(struct kgem *kgem, struct list *list)
+ {
+-	struct kgem_bo *bo;
++	struct kgem_bo *bo = NULL;
+ 
+ 	list_for_each_entry(bo, list, list) {
+ 		assert(bo->refcnt > 0);
+@@ -4224,7 +4233,7 @@ void _kgem_submit(struct kgem *kgem)
+ 		       kgem->nreloc, kgem->nexec, kgem->nfence, kgem->aperture, kgem->aperture_fenced, kgem->aperture_high, kgem->aperture_total, -ret);
+ 
+ 		for (i = 0; i < kgem->nexec; i++) {
+-			struct kgem_bo *bo, *found = NULL;
++			struct kgem_bo *bo = NULL, *found = NULL;
+ 
+ 			list_for_each_entry(bo, &kgem->next_request->buffers, request) {
+ 				if (bo->handle == kgem->exec[i].handle) {
+@@ -4588,7 +4597,7 @@ bool kgem_cleanup_cache(struct kgem *kge
+ static struct kgem_bo *
+ search_linear_cache(struct kgem *kgem, unsigned int num_pages, unsigned flags)
+ {
+-	struct kgem_bo *bo, *first = NULL;
++	struct kgem_bo *bo = NULL, *first = NULL;
+ 	bool use_active = (flags & CREATE_INACTIVE) == 0;
+ 	struct list *cache;
+ 
+@@ -5392,7 +5401,7 @@ struct kgem_bo *kgem_create_2d(struct kg
+ 			       uint32_t flags)
+ {
+ 	struct list *cache;
+-	struct kgem_bo *bo;
++	struct kgem_bo *bo = NULL;
+ 	uint32_t pitch, tiled_height, size;
+ 	uint32_t handle;
+ 	int i, bucket, retry;
+@@ -7245,7 +7254,7 @@ void kgem_bo_sync__gtt(struct kgem *kgem
+ void kgem_clear_dirty(struct kgem *kgem)
+ {
+ 	struct list * const buffers = &kgem->next_request->buffers;
+-	struct kgem_bo *bo;
++	struct kgem_bo *bo = NULL;
+ 
+ 	list_for_each_entry(bo, buffers, request) {
+ 		if (!bo->gpu_dirty)
+@@ -7525,7 +7534,7 @@ struct kgem_bo *kgem_create_buffer(struc
+ 				   uint32_t size, uint32_t flags,
+ 				   void **ret)
+ {
+-	struct kgem_buffer *bo;
++	struct kgem_buffer *bo = NULL;
+ 	unsigned offset, alloc;
+ 	struct kgem_bo *old;
+ 
 
 
-[FILE:387:patches/patch-src_sna_sna__video.c]
+[FILE:856:patches/patch-src_sna_kgem__debug.c]
+$NetBSD: patch-src_sna_kgem__debug.c,v 1.1 2022/03/15 18:53:42 tnn Exp $
+
+https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/issues/171
+https://gitlab.freedesktop.org/E5ten/xf86-video-intel/-/commit/a92ccaf05efe8f11b3c5cd217d48ad3cf4caa090
+
+--- src/sna/kgem_debug.c.orig	2021-01-15 20:59:05 UTC
++++ src/sna/kgem_debug.c
+@@ -56,7 +56,7 @@ struct kgem_bo *
+ kgem_debug_get_bo_for_reloc_entry(struct kgem *kgem,
+ 				  struct drm_i915_gem_relocation_entry *reloc)
+ {
+-	struct kgem_bo *bo;
++	struct kgem_bo *bo = NULL;
+ 
+ 	if (reloc == NULL)
+ 		return NULL;
+@@ -86,7 +86,7 @@ static int kgem_debug_handle_is_fenced(s
+ 
+ static int kgem_debug_handle_tiling(struct kgem *kgem, uint32_t handle)
+ {
+-	struct kgem_bo *bo;
++	struct kgem_bo *bo = NULL;
+ 
+ 	list_for_each_entry(bo, &kgem->next_request->buffers, request)
+ 		if (bo->target_handle == handle)
+
+
+[FILE:851:patches/patch-src_sna_sna__damage.c]
+$NetBSD: patch-src_sna_sna__damage.c,v 1.1 2022/03/15 18:53:42 tnn Exp $
+
+https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/issues/171
+https://gitlab.freedesktop.org/E5ten/xf86-video-intel/-/commit/a92ccaf05efe8f11b3c5cd217d48ad3cf4caa090
+
+--- src/sna/sna_damage.c.orig	2021-01-15 20:59:05 UTC
++++ src/sna/sna_damage.c
+@@ -215,7 +215,7 @@ static void __sna_damage_reduce(struct s
+ 	int n, nboxes;
+ 	BoxPtr boxes, free_boxes = NULL;
+ 	pixman_region16_t *region = &damage->region;
+-	struct sna_damage_box *iter;
++	struct sna_damage_box *iter = NULL;
+ 
+ 	assert(damage->mode != DAMAGE_ALL);
+ 	assert(damage->dirty);
+@@ -1808,7 +1808,7 @@ void _sna_damage_debug_get_region(struct
+ {
+ 	int n, nboxes;
+ 	BoxPtr boxes;
+-	struct sna_damage_box *iter;
++	struct sna_damage_box *iter = NULL;
+ 
+ 	RegionCopy(r, &damage->region);
+ 	if (!damage->dirty)
+
+
+[FILE:614:patches/patch-src_sna_sna__dri3.c]
+$NetBSD: patch-src_sna_sna__dri3.c,v 1.1 2022/03/15 18:53:42 tnn Exp $
+
+https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/issues/171
+https://gitlab.freedesktop.org/E5ten/xf86-video-intel/-/commit/a92ccaf05efe8f11b3c5cd217d48ad3cf4caa090
+
+--- src/sna/sna_dri3.c.orig	2021-01-15 20:59:05 UTC
++++ src/sna/sna_dri3.c
+@@ -175,7 +175,7 @@ static PixmapPtr sna_dri3_pixmap_from_fd
+ {
+ 	struct sna *sna = to_sna_from_screen(screen);
+ 	PixmapPtr pixmap;
+-	struct sna_pixmap *priv;
++	struct sna_pixmap *priv = NULL;
+ 	struct kgem_bo *bo;
+ 
+ 	DBG(("%s(fd=%d, width=%d, height=%d, stride=%d, depth=%d, bpp=%d)\n",
+
+
+[FILE:977:patches/patch-src_sna_sna__present.c]
+$NetBSD: patch-src_sna_sna__present.c,v 1.1 2022/03/15 18:53:42 tnn Exp $
+
+https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/issues/171
+https://gitlab.freedesktop.org/E5ten/xf86-video-intel/-/commit/a92ccaf05efe8f11b3c5cd217d48ad3cf4caa090
+
+--- src/sna/sna_present.c.orig	2021-01-15 20:59:05 UTC
++++ src/sna/sna_present.c
+@@ -376,7 +376,7 @@ sna_present_get_crtc(WindowPtr window)
+ static void add_keepalive(struct sna *sna, xf86CrtcPtr crtc, uint64_t msc)
+ {
+ 	struct list *q = sna_crtc_vblank_queue(crtc);
+-	struct sna_present_event *info, *tmp;
++	struct sna_present_event *info, *tmp = NULL;
+ 	union drm_wait_vblank vbl;
+ 
+ 	list_for_each_entry(tmp, q, link) {
+@@ -480,7 +480,7 @@ static int
+ sna_present_queue_vblank(RRCrtcPtr crtc, uint64_t event_id, uint64_t msc)
+ {
+ 	struct sna *sna = to_sna_from_screen(crtc->pScreen);
+-	struct sna_present_event *info, *tmp;
++	struct sna_present_event *info, *tmp = NULL;
+ 	const struct ust_msc *swap;
+ 	struct list *q;
+ 
+
+
+[FILE:561:patches/patch-src_sna_sna__video.c]
 --- src/sna/sna_video.c.orig	2021-01-15 20:59:05 UTC
 +++ src/sna/sna_video.c
 @@ -59,7 +59,7 @@
@@ -433,9 +778,37 @@ kgem.c:7503:24: note: initialize the variable 'bo' to silence this warning
  #include <sys/types.h>
  #include <sys/endian.h>
  #ifdef __OpenBSD__
+@@ -67,6 +67,9 @@
+ #else
+ #define bswap_32 bswap32
+ #endif
++#elif defined(__sun)
++#include <sys/byteorder.h>
++#define bswap_32 BSWAP_32
+ #else
+ #include <byteswap.h>
+ #endif
 
 
-[FILE:4765:patches/patch-test_present-speed.c]
+[FILE:592:patches/patch-src_uxa_intel__batchbuffer.c]
+$NetBSD: patch-src_uxa_intel__batchbuffer.c,v 1.1 2022/03/15 18:53:42 tnn Exp $
+
+Similar to https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/issues/171
+
+--- src/uxa/intel_batchbuffer.c.orig	2021-01-15 20:59:05 UTC
++++ src/uxa/intel_batchbuffer.c
+@@ -142,7 +142,7 @@ void intel_batch_teardown(ScrnInfoPtr sc
+ static void intel_batch_do_flush(ScrnInfoPtr scrn)
+ {
+ 	intel_screen_private *intel = intel_get_screen_private(scrn);
+-	struct intel_uxa_pixmap *priv;
++	struct intel_uxa_pixmap *priv = NULL;
+ 
+ 	list_for_each_entry(priv, &intel->batch_pixmaps, batch)
+ 		priv->dirty = 0;
+
+
+[FILE:4751:patches/patch-test_present-speed.c]
 present-speed.c:317:23: error: variable 'b' is uninitialized when used here [-Werror,-Wuninitialized]
                 list_for_each_entry(b, &mru, link)
                                     ^
@@ -497,9 +870,9 @@ present-speed.c:467:22: note: initialize the variable 'tmp' to silence this warn
                                           ^
                                            = NULL
 
---- test/present-speed.c.orig	2019-02-21 22:26:50 UTC
+--- test/present-speed.c.orig	2021-01-15 20:59:05 UTC
 +++ test/present-speed.c
-@@ -226,7 +226,7 @@ static void run(Display *dpy, Window win, const char *
+@@ -226,7 +226,7 @@ static void run(Display *dpy, Window win
  	clock_gettime(CLOCK_MONOTONIC, &start);
  	do {
  		for (n = 0; n < 1000; n++) {

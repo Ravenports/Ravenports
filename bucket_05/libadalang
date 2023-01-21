@@ -2,6 +2,7 @@
 
 NAMEBASE=		libadalang
 VERSION=		23.0.0
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		lang devel
 VARIANTS=		standard
@@ -23,19 +24,23 @@ BUILDRUN_DEPENDS=	langkit:single:standard
 
 USES=			gprbuild python:build ada:single
 
-LICENSE=		GPLv3+:single
+LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
-LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
+LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/extensions/src/libadalang-auto_provider.ads
 LICENSE_SCHEME=		solo
 
 MUST_CONFIGURE=		yes
 
 MAKE_ARGS=		--build-mode
-			prod
+			dev
 			--library-types=static,static-pic,relocatable
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+SET_DEBUGGING_ON=	yes
+OPTIMIZER_LEVEL=	0
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 
@@ -52,10 +57,6 @@ do-configure:
 		< ${FILESDIR}/pc-patch-build_mains.gpr
 	${REINPLACE_CMD} -e 's|@LIBS@|"-lgnarl","-Wl,-rpath,${PREFIX}/lib"${XTRALIB}|' \
 		${WRKSRC}/build/mains.gpr
-
-post-extract:
-	${AWK} '/Libadalang is free software/,/www.gnu.org/' \
-		${WRKSRC}/ada/copyright.py > ${WRKDIR}/TERMS
 
 do-install:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \

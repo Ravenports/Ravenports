@@ -2,6 +2,7 @@
 
 NAMEBASE=		dbus
 VERSION=		1.14.4
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Message bus system for IPC communication
@@ -70,6 +71,11 @@ post-install:
 	# install xmlcat catalogs
 	(cd ${WRKDIR} && ${INSTALL_DATA} catalog* \
 		${STAGEDIR}${PREFIX}/share/xml/dbus-1/)
+	# Workaround for software looking for machine-id in wrong place (lumina)
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/lib
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run
+	${LN} -s /var/lib/dbus ${STAGEDIR}${PREFIX}/var/lib/dbus
+	${LN} -s /var/run/dbus ${STAGEDIR}${PREFIX}/var/run/dbus
 
 post-extract:
 	${AWK} '/^The Academic Free License/,/^but the BSD, MIT/' \
@@ -88,7 +94,7 @@ daemon).
 7c0f9b8e5ec0ff2479383e62c0084a3a29af99edf1514e9f659b81b30d4e353e      1368196 dbus-1.14.4.tar.xz
 
 
-[FILE:1295:manifests/plist.single]
+[FILE:1321:manifests/plist.single]
 bin/
  dbus-cleanup-sockets
  dbus-daemon
@@ -147,6 +153,8 @@ share/man/man1/
 share/xml/dbus-1/
  busconfig.dtd
  introspect.dtd
+var/lib/dbus
+var/run/dbus
 @dir /var/lib/dbus
 @dir /var/run/dbus
 @dir share/dbus-1/services
@@ -402,7 +410,7 @@ PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN" "busconfig.dtd"
 </catalog>
 
 
-[FILE:785:files/dbus.in]
+[FILE:645:files/dbus.in]
 #!/bin/sh
 #
 # $FreeBSD: head/devel/dbus/files/dbus.in 431498 2017-01-14 22:48:49Z tijl $
@@ -437,9 +445,6 @@ dbus_prestart()
 dbus_poststop()
 {
     rm -f $pidfile
-# The following two lines may be removed after 2018-01-01
-    rm -f /var/db/dbus/machine-id
-    [ ! -d /var/db/dbus ] || rmdir /var/db/dbus
 }
 
 load_rc_config ${name}
