@@ -21,7 +21,7 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	llvm:single:standard
 
-USES=			cmake c++:single solaris-funcs bdb:static zlib:build
+USES=			cmake c++:single solaris-funcs zlib:build
 
 DISTNAME=		lld-15.0.7.src
 
@@ -33,29 +33,21 @@ LICENSE_SCHEME=		solo
 CMAKE_BUILD_TYPE=	Release
 SOL_FUNCTIONS=		strnlen:lib/ReaderWriter/MachO/MachONormalizedFileBinaryUtils.h
 
+LDFLAGS=		-lpthread
 VAR_OPSYS[sunos]=	VAR1=socket;nsl;
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
-	${MV} /tmp/*.so ${LOCALBASE}/lib/
-	${MV} /tmp/*.cmake ${LOCALBASE}/lib/cmake/llvm/LLVMExports.cmake
 	# remove libunwind header hack
 	${RM} -r ${STAGEDIR}${PREFIX}/include/mach-o
-
-pre-configure:
-	# prevent lld linking execinfo & tinfo  as a shared library
-	# insert link requirement to libdb (version 5) for static libtinfo
-	${MV} ${LOCALBASE}/lib/libexecinfo.so /tmp
-	${MV} ${LOCALBASE}/lib/libtinfo.so /tmp
-	${MV} ${LOCALBASE}/lib/libz.so /tmp
-	${MV} ${LOCALBASE}/lib/cmake/llvm/LLVMExports.cmake /tmp
-	${SED} -e 's|;tinfo;|;tinfo;db;${VAR1}|' /tmp/LLVMExports.cmake \
-		> ${LOCALBASE}/lib/cmake/llvm/LLVMExports.cmake
 
 post-extract:
 	# issues with 12.0.0 - 14.0.3; might not be necessary in future
 	${MV} ${WRKDIR}/libunwind-15.0.7.src/include/mach-o \
 		${WRKSRC}/include/
+	# statically link zlib
+	${RM} ${LOCALBASE}/lib/libz.so
+	${MV} ${LOCALBASE}/lib/libz_pic.a ${LOCALBASE}/lib/libz.a
 
 [FILE:308:descriptions/desc.single]
 LLD is a linker from the LLVM project. That is a drop-in replacement for
