@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-server
 VERSION=		21.1.6
+REVISION=		1
 KEYWORDS=		x11_servers
 VARIANTS=		standard virtual xephyr nest
 SDESC[xephyr]=		X server from X.Org based on kdrive
@@ -107,8 +108,7 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 [XORG].CONFIGURE_ARGS_ON=		-Ddocs=true
 					-Ddevel-docs=true
 					-Dxorg=true
-[XORG].SUB_FILES_ON=			pkg-install-single
-					pkg-deinstall-single
+					-Dlog_dir=/var/log
 [XORG].XORG_COMPONENTS_ON=		pciaccess
 					xfont2
 
@@ -1198,36 +1198,4 @@ share/man/man1/Xnest.1.gz
  static void
  kill_server(int server_pid)
  {
-
-
-[FILE:135:files/pkg-deinstall-single.in]
-#!/bin/sh
-
-PREFIX="${PKG_PREFIX-/raven}"
-
-case $2 in
-DEINSTALL)
-	/bin/rm -rf ${PREFIX}/lib/xorg/modules/extensions/libglx.so*
-	;;
-esac
-
-
-[FILE:531:files/pkg-install-single.in]
-#!/bin/sh
-
-PREFIX="${PKG_PREFIX-/raven}"
-
-case $2 in
-POST-INSTALL)
-	if [ -f ${PREFIX}/lib/xorg/modules/extensions/.nvidia/libglx.so.1 ]; then
-	  /bin/ln -f ${PREFIX}/lib/xorg/modules/extensions/.nvidia/libglx.so.1 \
-		${PREFIX}/lib/xorg/modules/extensions/libglx.so
-	  /bin/ln -f ${PREFIX}/lib/xorg/modules/extensions/.nvidia/libglx.so.1 \
-		${PREFIX}/lib/xorg/modules/extensions/libglx.so.1
-	else
-	  /bin/ln -f ${PREFIX}/lib/xorg/modules/extensions/.xorg/libglx.so \
-		${PREFIX}/lib/xorg/modules/extensions/libglx.so
-	fi
-	;;
-esac
 

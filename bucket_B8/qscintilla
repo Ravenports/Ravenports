@@ -2,9 +2,11 @@
 
 NAMEBASE=		qscintilla
 VERSION=		2.13.3
+REVISION=		1
 KEYWORDS=		devel
-VARIANTS=		standard
-SDESC[standard]=	Qt port of the Scintilla C++ editor control
+VARIANTS=		qt5 qt6
+SDESC[qt5]=		Qt5 port of the Scintilla C++ editor control
+SDESC[qt6]=		Qt6 port of the Scintilla C++ editor control
 HOMEPAGE=		https://www.riverbankcomputing.com/software/qscintilla/intro
 CONTACT=		nobody
 
@@ -12,17 +14,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.riverbankcomputing.com/static/Downloads/QScintilla/2.13.3/
 DISTFILE[1]=		QScintilla_src-2.13.3.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	complete
+SPKGS[qt5]=		complete
 			primary
 			docs
-			nls
+SPKGS[qt6]=		complete
+			primary
+			docs
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	QT5 QT6
 OPTIONS_STANDARD=	none
+VOPTS[qt5]=		QT5=ON QT6=OFF
+VOPTS[qt6]=		QT5=OFF QT6=ON
 
-BUILDRUN_DEPENDS=	qt5-qtbase:primary:standard
+BUILDRUN_DEPENDS=	libglvnd:single:standard
 
-USES=			gmake qt5 mesa
+USES=			gmake
 
 DISTNAME=		QScintilla_src-2.13.3/src
 
@@ -33,10 +39,21 @@ LICENSE_AWK=		TERMS:"SCINTILLAQT_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/ScintillaQt.h
 LICENSE_SCHEME=		solo
 
-FPC_EQUIVALENT=		devel/qscintilla2-qt5
+FPC_EQUIVALENT=		devel/qscintilla2-qt6
 
 SOVERSION=		15.1.1
 PLIST_SUB=		SOMAJORMIN=15.1
+			Q={{VAR1}}
+
+[QT5].DESCRIPTION=			Qt5 variant
+[QT5].BUILDRUN_DEPENDS_ON=		qt5-qtbase:primary:standard
+[QT5].MAKEFILE_ON=			VAR1=qt5
+[QT5].USES_ON=				qt5
+
+[QT6].DESCRIPTION=			Qt6 variant
+[QT6].BUILDRUN_DEPENDS_ON=		qt6-qtbase:primary:standard
+[QT6].MAKEFILE_ON=			VAR1=qt6
+[QT6].USES_ON=				qt6
 
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}/html
@@ -68,8 +85,8 @@ QScintilla to be developed and distributed.
 711d28e37c8fccaa8229e8e39a5b3b2d97f3fffc63da10b71c71b84fa3649398      3060031 QScintilla_src-2.13.3.tar.gz
 
 
-[FILE:1369:manifests/plist.primary]
-include/qt5/Qsci/
+[FILE:1504:manifests/plist.primary]
+include/%%Q%%/Qsci/
  qsciabstractapis.h
  qsciapis.h
  qscicommand.h
@@ -123,13 +140,13 @@ include/qt5/Qsci/
  qsciscintillabase.h
  qscistyle.h
  qscistyledtext.h
-lib/qt5/
- libqscintilla2_qt5.so
- libqscintilla2_qt5.so.%%SOMAJOR%%
- libqscintilla2_qt5.so.%%SOMAJORMIN%%
- libqscintilla2_qt5.so.%%SOVERSION%%
-lib/qt5/mkspecs/features/qscintilla2.prf
-share/qt5/qsci/api/python/
+lib/%%Q%%/
+ libqscintilla2_%%Q%%.so
+ libqscintilla2_%%Q%%.so.%%SOMAJOR%%
+ libqscintilla2_%%Q%%.so.%%SOMAJORMIN%%
+ libqscintilla2_%%Q%%.so.%%SOVERSION%%
+lib/%%Q%%/mkspecs/features/qscintilla2.prf
+share/%%Q%%/qsci/api/python/
  Python-2.4.api
  Python-2.5.api
  Python-2.6.api
@@ -143,13 +160,246 @@ share/qt5/qsci/api/python/
  Python-3.7.api
  Python-3.8.api
  Python-3.9.api
-
-
-[FILE:117:manifests/plist.nls]
-share/qt5/translations/
+share/%%Q%%/translations/
  qscintilla_cs.qm
  qscintilla_de.qm
  qscintilla_es.qm
  qscintilla_fr.qm
  qscintilla_pt_br.qm
+
+
+[FILE:5535:manifests/plist.docs]
+share/doc/qscintilla/NEWS
+share/doc/qscintilla/Scintilla/
+ Design.html
+ Icons.html
+ LPegLexer.html
+ Lexer.txt
+ Privacy.html
+ SciBreak.jpg
+ SciCoding.html
+ SciRest.jpg
+ SciTEIco.png
+ SciWord.jpg
+ ScintillaDoc.html
+ ScintillaDownload.html
+ ScintillaHistory.html
+ ScintillaRelated.html
+ ScintillaToDo.html
+ ScintillaUsage.html
+ Steps.html
+ StyleMetadata.html
+ annotations.png
+ index.html
+ styledmargin.png
+share/doc/qscintilla/html/
+ annotated.html
+ bc_s.png
+ bdwn.png
+ classQsciAPIs-members.html
+ classQsciAPIs.html
+ classQsciAbstractAPIs-members.html
+ classQsciAbstractAPIs.html
+ classQsciCommand-members.html
+ classQsciCommand.html
+ classQsciCommandSet-members.html
+ classQsciCommandSet.html
+ classQsciDocument-members.html
+ classQsciDocument.html
+ classQsciLexer-members.html
+ classQsciLexer.html
+ classQsciLexerAVS-members.html
+ classQsciLexerAVS.html
+ classQsciLexerBash-members.html
+ classQsciLexerBash.html
+ classQsciLexerBatch-members.html
+ classQsciLexerBatch.html
+ classQsciLexerCMake-members.html
+ classQsciLexerCMake.html
+ classQsciLexerCPP-members.html
+ classQsciLexerCPP.html
+ classQsciLexerCSS-members.html
+ classQsciLexerCSS.html
+ classQsciLexerCSharp-members.html
+ classQsciLexerCSharp.html
+ classQsciLexerCoffeeScript-members.html
+ classQsciLexerCoffeeScript.html
+ classQsciLexerCustom-members.html
+ classQsciLexerCustom.html
+ classQsciLexerD-members.html
+ classQsciLexerD.html
+ classQsciLexerDiff-members.html
+ classQsciLexerDiff.html
+ classQsciLexerEDIFACT-members.html
+ classQsciLexerEDIFACT.html
+ classQsciLexerFortran-members.html
+ classQsciLexerFortran.html
+ classQsciLexerFortran77-members.html
+ classQsciLexerFortran77.html
+ classQsciLexerHTML-members.html
+ classQsciLexerHTML.html
+ classQsciLexerIDL-members.html
+ classQsciLexerIDL.html
+ classQsciLexerJSON-members.html
+ classQsciLexerJSON.html
+ classQsciLexerJava-members.html
+ classQsciLexerJava.html
+ classQsciLexerJavaScript-members.html
+ classQsciLexerJavaScript.html
+ classQsciLexerLua-members.html
+ classQsciLexerLua.html
+ classQsciLexerMakefile-members.html
+ classQsciLexerMakefile.html
+ classQsciLexerMarkdown-members.html
+ classQsciLexerMarkdown.html
+ classQsciLexerMatlab-members.html
+ classQsciLexerMatlab.html
+ classQsciLexerOctave-members.html
+ classQsciLexerOctave.html
+ classQsciLexerPO-members.html
+ classQsciLexerPO.html
+ classQsciLexerPOV-members.html
+ classQsciLexerPOV.html
+ classQsciLexerPascal-members.html
+ classQsciLexerPascal.html
+ classQsciLexerPerl-members.html
+ classQsciLexerPerl.html
+ classQsciLexerPostScript-members.html
+ classQsciLexerPostScript.html
+ classQsciLexerProperties-members.html
+ classQsciLexerProperties.html
+ classQsciLexerPython-members.html
+ classQsciLexerPython.html
+ classQsciLexerRuby-members.html
+ classQsciLexerRuby.html
+ classQsciLexerSQL-members.html
+ classQsciLexerSQL.html
+ classQsciLexerSpice-members.html
+ classQsciLexerSpice.html
+ classQsciLexerTCL-members.html
+ classQsciLexerTCL.html
+ classQsciLexerTeX-members.html
+ classQsciLexerTeX.html
+ classQsciLexerVHDL-members.html
+ classQsciLexerVHDL.html
+ classQsciLexerVerilog-members.html
+ classQsciLexerVerilog.html
+ classQsciLexerXML-members.html
+ classQsciLexerXML.html
+ classQsciLexerYAML-members.html
+ classQsciLexerYAML.html
+ classQsciMacro-members.html
+ classQsciMacro.html
+ classQsciPrinter-members.html
+ classQsciPrinter.html
+ classQsciScintilla-members.html
+ classQsciScintilla.html
+ classQsciScintillaBase-members.html
+ classQsciScintillaBase.html
+ classQsciStyle-members.html
+ classQsciStyle.html
+ classQsciStyledText-members.html
+ classQsciStyledText.html
+ classes.html
+ closed.png
+ dir_68267d1309a1af8e8297ef4c3efbcdba.html
+ dir_e7e7b0b6fe362def31d601fa026bbeed.html
+ doc.png
+ doxygen.css
+ doxygen.svg
+ dynsections.js
+ folderclosed.png
+ folderopen.png
+ functions.html
+ functions_b.html
+ functions_c.html
+ functions_d.html
+ functions_e.html
+ functions_enum.html
+ functions_eval.html
+ functions_eval_b.html
+ functions_eval_c.html
+ functions_eval_d.html
+ functions_eval_e.html
+ functions_eval_f.html
+ functions_eval_g.html
+ functions_eval_h.html
+ functions_eval_i.html
+ functions_eval_j.html
+ functions_eval_k.html
+ functions_eval_l.html
+ functions_eval_m.html
+ functions_eval_n.html
+ functions_eval_o.html
+ functions_eval_p.html
+ functions_eval_q.html
+ functions_eval_r.html
+ functions_eval_s.html
+ functions_eval_t.html
+ functions_eval_u.html
+ functions_eval_v.html
+ functions_eval_w.html
+ functions_eval_x.html
+ functions_eval_z.html
+ functions_f.html
+ functions_func.html
+ functions_func_b.html
+ functions_func_c.html
+ functions_func_d.html
+ functions_func_e.html
+ functions_func_f.html
+ functions_func_g.html
+ functions_func_h.html
+ functions_func_i.html
+ functions_func_k.html
+ functions_func_l.html
+ functions_func_m.html
+ functions_func_o.html
+ functions_func_p.html
+ functions_func_q.html
+ functions_func_r.html
+ functions_func_s.html
+ functions_func_t.html
+ functions_func_u.html
+ functions_func_v.html
+ functions_func_w.html
+ functions_func_z.html
+ functions_func_~.html
+ functions_g.html
+ functions_h.html
+ functions_i.html
+ functions_j.html
+ functions_k.html
+ functions_l.html
+ functions_m.html
+ functions_n.html
+ functions_o.html
+ functions_p.html
+ functions_q.html
+ functions_r.html
+ functions_s.html
+ functions_t.html
+ functions_u.html
+ functions_v.html
+ functions_w.html
+ functions_x.html
+ functions_z.html
+ functions_~.html
+ hierarchy.html
+ index.html
+ jquery.js
+ menu.js
+ menudata.js
+ nav_f.png
+ nav_g.png
+ nav_h.png
+ open.png
+ splitbar.png
+ sync_off.png
+ sync_on.png
+ tab_a.png
+ tab_b.png
+ tab_h.png
+ tab_s.png
+ tabs.css
 

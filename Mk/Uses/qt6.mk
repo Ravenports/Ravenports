@@ -79,9 +79,19 @@ QMAKESPEC=	unsupported-Ravenports-OS
 
 . if "${NAMEBASE}" == "qt6-qtbase"
 CMAKE_ARGS+=		${BASE_CMAKE_ARGS}
-. else
+. elif ${NAMEBASE:Mqt6-qt*}
 CMAKE_ARGS+=		-DCMAKE_PREFIX_PATH="${PREFIX}/lib/qt6/cmake"
 _USES_install+=		730:strip-qt6
+. else
+# stage support
+DESTDIRNAME=	INSTALL_ROOT
+
+.  if !defined(GNU_CONFIGURE)
+.   if !target(do-configure)
+do-configure:
+	(cd ${WRKSRC} && ${QMAKE_CMD} ${QMAKE_ARGS} -o Makefile)
+.   endif
+.  endif
 . endif
 
 strip-qt6:
