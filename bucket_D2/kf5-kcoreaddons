@@ -4,7 +4,7 @@ NAMEBASE=		kf5-kcoreaddons
 VERSION=		5.102.0
 KEYWORDS=		devel
 VARIANTS=		standard
-SDESC[standard]=	KF5 addons to QtCore
+SDESC[standard]=	KF5 add-ons to QtCore
 HOMEPAGE=		https://api.kde.org/frameworks/kcoreaddons/html/index.html
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
@@ -31,12 +31,20 @@ USES=			cmake mime-info:primary
 
 DISTNAME=		kcoreaddons-5.102.0
 
-LICENSE=		LGPL20+:primary
+LICENSE=		GPLv2+:primary LGPL20:primary LGPL20+:primary
+			LGPL21:primary LGPL21+:primary LGPL3:primary
+			MPL:primary CUSTOM1:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
-LICENSE_FILE=		LGPL20+:{{WRKSRC}}/LICENSES/LGPL-2.0-or-later.txt
-LICENSE_AWK=		TERMS:"ifndef KCOREADDONS_H"
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/lib/kcoreaddons.h
-LICENSE_SCHEME=		solo
+LICENSE_NAME=		CUSTOM1:"The Qt Company Qt LGPL Exception version 1.1"
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/LICENSES/GPL-2.0-or-later.txt
+			LGPL20:{{WRKSRC}}/LICENSES/LGPL-2.0-only.txt
+			LGPL20+:{{WRKSRC}}/LICENSES/LGPL-2.0-or-later.txt
+			LGPL21:{{WRKSRC}}/LICENSES/LGPL-2.1-only.txt
+			LGPL21+:{{WRKSRC}}/LICENSES/LGPL-2.1-or-later.txt
+			LGPL3:{{WRKSRC}}/LICENSES/LGPL-3.0-only.txt
+			MPL:{{WRKSRC}}/LICENSES/MPL-1.1.txt
+			CUSTOM1:{{WRKSRC}}/LICENSES/Qt-LGPL-exception-1.1.txt
+LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		devel/kf5-kcoreaddons
 
@@ -47,6 +55,20 @@ CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt5/cmake
 post-stage:
 	(cd ${STAGEDIR}${PREFIX} && ${STRIP_CMD} bin/desktoptojson \
 		lib/libKF5CoreAddons.so)
+
+post-extract:
+	${ECHO} "Terms extracted from 'src/lib/io/kdirwatch.h':" > ${WRKDIR}/TERMS
+	${SED} -n '/ifndef/!p;//q' ${WRKSRC}/src/lib/io/kdirwatch.h >> ${WKRDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/lib/caching/posix_fallocate_mac.h':" >> \
+		${WRKDIR}/TERMS
+	${SED} -n '/ifndef/!p;//q' ${WRKSRC}/src/lib/caching/posix_fallocate_mac.h >> \
+		${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/lib/util/klibexec.h':" >> ${WRKDIR}/TERMS
+	${SED} -n '/ifndef/!p;//q' ${WRKSRC}/src/lib/util/klibexec.h >> \
+		${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/lib/util/kprocesslist.h':" >> ${WRKDIR}/TERMS
+	${SED} -n '/ifndef/!p;//q' ${WRKSRC}/src/lib/util/kprocesslist.h >> \
+		${WRKDIR}/TERMS
 
 [FILE:277:descriptions/desc.primary]
 KCoreAddons provides classes built on top of QtCore to perform various 

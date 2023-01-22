@@ -38,6 +38,9 @@ FPC_EQUIVALENT=		graphics/libdrm
 MESON_ARGS=		-Dman-pages=enabled
 			-Dinstall-test-programs=true
 			-Dcairo-tests=disabled
+			-Dradeon=enabled
+			-Damdgpu=enabled
+			-Dnouveau=enabled
 SOL_FUNCTIONS=		getline:amdgpu/amdgpu_asic_id.c
 			asprintf:xf86drm.c
 			asprintf:tests/modetest/modetest.c
@@ -47,10 +50,27 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lrt
+VAR_OPSYS[netbsd]=	LDFLAGS=-lpci
 
 [X86].DESCRIPTION=			DRM Drivers for amd64 and i386 architectures
+[X86].CONFIGURE_ARGS_OFF=		-Dintel=disabled
+					-Dvmwgfx=disabled
+[X86].CONFIGURE_ARGS_ON=		-Dintel=enabled
+					-Dvmwgfx=enabled
 
 [ARM].DESCRIPTION=			DRM Drivers for AARCH64 architecture
+[ARM].CONFIGURE_ARGS_OFF=		-Detnaviv=disabled
+					-Dexynos=disabled
+					-Dfreedreno=disabled
+					-Domap=disabled
+					-Dtegra=disabled
+					-Dvc4=disabled
+[ARM].CONFIGURE_ARGS_ON=		-Detnaviv=enabled
+					-Dexynos=enabled
+					-Dfreedreno=enabled
+					-Domap=enabled
+					-Dtegra=enabled
+					-Dvc4=enabled
 
 [FILE:70:descriptions/desc.single]
 Userspace interface to kernel DRM (Direct Rendering Module) services.
@@ -160,6 +180,26 @@ share/man/man7/
  drm-kms.7.gz
  drm-memory.7.gz
  drm.7.gz
+
+
+[FILE:425:patches/patch-amdgpu_amdgpu__cs.c]
+$NetBSD: patch-amdgpu_amdgpu__cs.c,v 1.3 2022/03/13 15:20:01 tnn Exp $
+
+libc-supplied compat alloca(3) should not be used
+
+--- amdgpu/amdgpu_cs.c.orig	2022-11-03 08:33:36 UTC
++++ amdgpu/amdgpu_cs.c
+@@ -28,9 +28,7 @@
+ #include <pthread.h>
+ #include <sched.h>
+ #include <sys/ioctl.h>
+-#if HAVE_ALLOCA_H
+-# include <alloca.h>
+-#endif
++#define alloca(size) __builtin_alloca(size)
+ 
+ #include "xf86drm.h"
+ #include "amdgpu_drm.h"
 
 
 [FILE:834:patches/patch-amdgpu_amdgpu__device.c]
@@ -289,6 +329,24 @@ define ETIME as ETIMEOUT same as done in mesa
  #endif
 
 
+[FILE:542:patches/patch-meson.build]
+$NetBSD: patch-meson.build,v 1.3 2022/11/03 20:52:29 triaxx Exp $
+
+xxx how to deal with this properly?
+
+--- meson.build.orig	2022-11-03 08:33:36 UTC
++++ meson.build
+@@ -40,7 +40,7 @@ with_freedreno_kgsl = get_option('freedr
+ with_install_tests = get_option('install-test-programs')
+ with_tests = get_option('tests')
+ 
+-if ['freebsd', 'dragonfly', 'netbsd'].contains(host_machine.system())
++if ['dragonfly'].contains(host_machine.system())
+   dep_pthread_stubs = dependency('pthread-stubs', version : '>= 0.4')
+ else
+   dep_pthread_stubs = []
+
+
 [FILE:267:patches/patch-tests_drmdevice.c]
 --- tests/drmdevice.c.orig	2022-11-03 08:33:36 UTC
 +++ tests/drmdevice.c
@@ -343,7 +401,7 @@ define ETIME as ETIMEOUT same as done in mesa
  int ioctl(int fd, int request, ...)
 
 
-[FILE:2132:patches/patch-xf86drm.c]
+[FILE:7504:patches/patch-xf86drm.c]
 --- xf86drm.c.orig	2022-11-03 08:33:36 UTC
 +++ xf86drm.c
 @@ -63,7 +63,17 @@
@@ -365,7 +423,19 @@ define ETIME as ETIMEOUT same as done in mesa
  #include <sys/param.h>
  #include <sys/pciio.h>
  #endif
-@@ -313,8 +323,10 @@ drmGetFormatModifierNameFromArm(uint64_t
+@@ -86,7 +96,10 @@
+ #endif
+ 
+ #ifdef __NetBSD__
+-#define DRM_MAJOR 34
++#define DRM_MAJOR 180
++#include <sys/param.h>
++#include <dev/pci/pcireg.h>
++#include <pci.h>
+ #endif
+ 
+ #ifdef __OpenBSD__
+@@ -313,8 +326,10 @@ drmGetFormatModifierNameFromArm(uint64_t
      char *modifier_name = NULL;
      bool result = false;
  
@@ -376,7 +446,7 @@ define ETIME as ETIMEOUT same as done in mesa
          return NULL;
  
      switch (type) {
-@@ -459,8 +471,10 @@ drmGetFormatModifierNameFromAmd(uint64_t
+@@ -459,8 +474,10 @@ drmGetFormatModifierNameFromAmd(uint64_t
      tile_version = AMD_FMT_MOD_GET(TILE_VERSION, modifier);
      dcc = AMD_FMT_MOD_GET(DCC, modifier);
  
@@ -387,7 +457,7 @@ define ETIME as ETIMEOUT same as done in mesa
          return NULL;
  
      /* add tile  */
-@@ -963,7 +977,7 @@ static int drmGetMinorBase(int type)
+@@ -963,7 +980,7 @@ static int drmGetMinorBase(int type)
  
  static int drmGetMinorType(int major, int minor)
  {
@@ -396,7 +466,7 @@ define ETIME as ETIMEOUT same as done in mesa
      char name[SPECNAMELEN];
      int id;
  
-@@ -3219,7 +3233,7 @@ drm_public int drmIsMaster(int fd)
+@@ -3219,7 +3236,7 @@ drm_public int drmIsMaster(int fd)
  
  drm_public char *drmGetDeviceNameFromFd(int fd)
  {
@@ -405,7 +475,7 @@ define ETIME as ETIMEOUT same as done in mesa
      struct stat sbuf;
      int maj, min;
      int nodetype;
-@@ -3266,7 +3280,7 @@ static bool drmNodeIsDRM(int maj, int mi
+@@ -3266,7 +3283,7 @@ static bool drmNodeIsDRM(int maj, int mi
      snprintf(path, sizeof(path), "/sys/dev/char/%d:%d/device/drm",
               maj, min);
      return stat(path, &sbuf) == 0;
@@ -414,7 +484,7 @@ define ETIME as ETIMEOUT same as done in mesa
      char name[SPECNAMELEN];
  
      if (!devname_r(makedev(maj, min), S_IFCHR, name, sizeof(name)))
-@@ -3389,7 +3403,7 @@ static char *drmGetMinorNameForFD(int fd
+@@ -3389,7 +3406,7 @@ static char *drmGetMinorNameForFD(int fd
  
      closedir(sysdir);
      return NULL;
@@ -423,7 +493,73 @@ define ETIME as ETIMEOUT same as done in mesa
      struct stat sbuf;
      char dname[SPECNAMELEN];
      const char *mname;
-@@ -3600,7 +3614,7 @@ get_pci_path(int maj, int min, char *pci
+@@ -3574,6 +3591,65 @@ static int drmParseSubsystemType(int maj
+             return DRM_BUS_VIRTIO;
+      }
+     return subsystem_type;
++#elif defined(__NetBSD__)
++    int type, fd;
++    drmSetVersion sv;
++    char *buf;
++    unsigned domain, bus, dev;
++    int func;
++    int ret;
++
++    /* Get the type of device we're looking for to pick the right pathname.  */
++    type = drmGetMinorType(maj, min);
++    if (type == -1)
++	return -ENODEV;
++
++    /* Open the device.  Don't try to create it if it's not there.  */
++    fd = drmOpenMinor(min, 0, type);
++    if (fd < 0)
++	return -errno;
++
++    /*
++     * Set the interface version to 1.4 or 1.1, which has the effect of
++     * populating the bus id for us.
++     */
++    sv.drm_di_major = 1;
++    sv.drm_di_minor = 4;
++    sv.drm_dd_major = -1;
++    sv.drm_dd_minor = -1;
++    if (drmSetInterfaceVersion(fd, &sv)) {
++	sv.drm_di_major = 1;
++	sv.drm_di_minor = 1;
++	sv.drm_dd_major = -1;
++	sv.drm_dd_minor = -1;
++	if (drmSetInterfaceVersion(fd, &sv)) {
++	    /*
++	     * We're probably not the master.  Hope the master already
++	     * set the version to >=1.1 so that we can get the busid.
++	     */
++	}
++     }
++
++    /* Get the bus id.  */
++    buf = drmGetBusid(fd);
++
++    /* We're done with the device now.  */
++    (void)close(fd);
++
++    /* If there is no bus id, fail.  */
++    if (buf == NULL)
++	return -ENODEV;
++
++    /* Find a string we know about; otherwise -EINVAL.  */
++    ret = -EINVAL;
++    if (strncmp(buf, "pci:", 4) == 0)
++	ret = DRM_BUS_PCI;
++
++    /* We're done with the bus id.  */
++    free(buf);
++
++    /* Success or not, we're done.  */
++    return ret;
+ #elif defined(__OpenBSD__) || defined(__DragonFly__) || defined(__FreeBSD__)
+     return DRM_BUS_PCI;
+ #else
+@@ -3600,7 +3676,7 @@ get_pci_path(int maj, int min, char *pci
  }
  #endif
  
@@ -432,6 +568,129 @@ define ETIME as ETIMEOUT same as done in mesa
  static int get_sysctl_pci_bus_info(int maj, int min, drmPciBusInfoPtr info)
  {
      char dname[SPECNAMELEN];
+@@ -3685,6 +3761,73 @@ static int drmParsePciBusInfo(int maj, i
+     info->func = func;
+ 
+     return 0;
++#elif defined(__NetBSD__)
++    int type, fd;
++    drmSetVersion sv;
++    char *buf;
++    unsigned domain, bus, dev;
++    int func;
++    int ret;
++
++    /* Get the type of device we're looking for to pick the right pathname.  */
++    type = drmGetMinorType(maj, min);
++    if (type == -1)
++	return -ENODEV;
++
++    /* Open the device.  Don't try to create it if it's not there.  */
++    fd = drmOpenMinor(min, 0, type);
++    if (fd < 0)
++	return -errno;
++
++    /*
++     * Set the interface version to 1.4 or 1.1, which has the effect of
++     * populating the bus id for us.
++     */
++    sv.drm_di_major = 1;
++    sv.drm_di_minor = 4;
++    sv.drm_dd_major = -1;
++    sv.drm_dd_minor = -1;
++    if (drmSetInterfaceVersion(fd, &sv)) {
++	sv.drm_di_major = 1;
++	sv.drm_di_minor = 1;
++	sv.drm_dd_major = -1;
++	sv.drm_dd_minor = -1;
++	if (drmSetInterfaceVersion(fd, &sv)) {
++            /*
++	     * We're probably not the master.  Hope the master already
++	     * set the version to >=1.1 so that we can get the busid.
++	     */
++	}
++    }
++
++    /* Get the bus id.  */
++    buf = drmGetBusid(fd);
++
++    /* We're done with the device now.  */
++    (void)close(fd);
++
++    /* If there is no bus id, fail.  */
++    if (buf == NULL)
++	return -ENODEV;
++
++    /* Parse the bus id.  */
++    ret = sscanf(buf, "pci:%04x:%02x:%02x.%d", &domain, &bus, &dev, &func);
++
++    /* We're done with the bus id.  */
++    free(buf);
++
++    /* If scanf didn't return 4 -- domain, bus, dev, func -- then fail.  */
++    if (ret != 4)
++	return -ENODEV;
++
++    /* Populate the results.  */
++    info->domain = domain;
++    info->bus = bus;
++    info->dev = dev;
++    info->func = func;
++
++    /* Success!  */
++    return 0;
+ #elif defined(__OpenBSD__) || defined(__DragonFly__)
+     struct drm_pciinfo pinfo;
+     int fd, type;
+@@ -3857,6 +4000,48 @@ static int drmParsePciDeviceInfo(int maj
+         return parse_config_sysfs_file(maj, min, device);
+ 
+     return 0;
++#elif defined(__NetBSD__)
++    drmPciBusInfo businfo;
++    char fname[PATH_MAX];
++    int pcifd;
++    pcireg_t id, class, subsys;
++    int ret;
++
++    /* Find where on the bus the device lives.  */
++    ret = drmParsePciBusInfo(maj, min, &businfo);
++    if (ret)
++	return ret;
++
++    /* Open the pciN device node to get at its config registers.  */
++    if (snprintf(fname, sizeof fname, "/dev/pci%u", businfo.domain)
++	>= sizeof fname)
++	return -ENODEV;
++    if ((pcifd = open(fname, O_RDONLY)) == -1)
++	return -errno;
++
++    ret = -1;
++    /* Read the id and class pci config registers.  */
++    if (pcibus_conf_read(pcifd, businfo.bus, businfo.dev, businfo.func,
++	    PCI_ID_REG, &id) == -1)
++	goto out;
++    if (pcibus_conf_read(pcifd, businfo.bus, businfo.dev, businfo.func,
++	    PCI_CLASS_REG, &class) == -1)
++	goto out;
++    if (pcibus_conf_read(pcifd, businfo.bus, businfo.dev, businfo.func,
++	    PCI_SUBSYS_ID_REG, &subsys) == -1)
++	goto out;
++
++    ret = 0;
++    device->vendor_id = PCI_VENDOR(id);
++    device->device_id = PCI_PRODUCT(id);
++    device->subvendor_id = PCI_SUBSYS_VENDOR(subsys);
++    device->subdevice_id = PCI_SUBSYS_ID(subsys);
++    device->revision_id = PCI_REVISION(class);
++out:
++    if (ret == -1)
++	ret = -errno;
++    close(pcifd);
++    return ret;
+ #elif defined(__OpenBSD__) || defined(__DragonFly__)
+     struct drm_pciinfo pinfo;
+     int fd, type;
 
 
 [FILE:397:patches/patch-xf86drm.h]
@@ -449,31 +708,40 @@ define ETIME as ETIMEOUT same as done in mesa
  #define DRM_IOC_READ            IOC_OUT
 
 
-[FILE:797:patches/patch-xf86drmMode.c]
-From e41ca0a00f88ef8f8d1999417f198db033172f8d Mon Sep 17 00:00:00 2001
-From: Emmanuel Vadot <manu@FreeBSD.org>
-Date: Thu, 4 Jun 2020 11:05:27 +0200
-Subject: [PATCH] xf86Mode: Always include sys/types.h
-
-On FreeBSD when building with GCC this include is needed for sysctl.h
-On Clang based build it is included via header polution and I'm sure
-that it is also the case on Linux.
-
-Signed-off-by: Emmanuel Vadot <manu@FreeBSD.org>
----
- xf86drmMode.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/xf86drmMode.c b/xf86drmMode.c
-index 5af27c4a..6121fe89 100644
+[FILE:635:patches/patch-xf86drmMode.c]
 --- xf86drmMode.c.orig	2022-11-03 08:33:36 UTC
 +++ xf86drmMode.c
-@@ -37,6 +37,7 @@
- #include <limits.h>
- #include <stdint.h>
+@@ -39,9 +39,7 @@
  #include <stdlib.h>
-+#include <sys/types.h>
  #include <sys/ioctl.h>
  #if HAVE_SYS_SYSCTL_H
- #ifdef __FreeBSD__
+-#ifdef __FreeBSD__
+ #include <sys/types.h>
+-#endif
+ #include <sys/sysctl.h>
+ #endif
+ #include <stdio.h>
+@@ -1119,7 +1117,7 @@ drm_public int drmModePageFlipTarget(int
+ 
+ drm_public int drmModeSetPlane(int fd, uint32_t plane_id, uint32_t crtc_id,
+ 		    uint32_t fb_id, uint32_t flags,
+-		    int32_t crtc_x, int32_t crtc_y,
++		    uint32_t crtc_x, int32_t crtc_y,
+ 		    uint32_t crtc_w, uint32_t crtc_h,
+ 		    uint32_t src_x, uint32_t src_y,
+ 		    uint32_t src_w, uint32_t src_h)
+
+
+[FILE:505:patches/patch-xf86drmMode.h]
+--- xf86drmMode.h.orig	2022-11-03 08:33:36 UTC
++++ xf86drmMode.h
+@@ -429,7 +429,7 @@ extern drmModePlaneResPtr drmModeGetPlan
+ extern drmModePlanePtr drmModeGetPlane(int fd, uint32_t plane_id);
+ extern int drmModeSetPlane(int fd, uint32_t plane_id, uint32_t crtc_id,
+ 			   uint32_t fb_id, uint32_t flags,
+-			   int32_t crtc_x, int32_t crtc_y,
++			   uint32_t crtc_x, int32_t crtc_y,
+ 			   uint32_t crtc_w, uint32_t crtc_h,
+ 			   uint32_t src_x, uint32_t src_y,
+ 			   uint32_t src_w, uint32_t src_h);
 

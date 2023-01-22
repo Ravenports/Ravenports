@@ -33,12 +33,14 @@ GNOME_COMPONENTS=	libxml2 libxslt
 
 DISTNAME=		kdoctools-5.102.0
 
-LICENSE=		LGPL21+:primary
+LICENSE=		GPLv2+:primary LGPL21:primary LGPL21+:primary
+			LGPL3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
-LICENSE_FILE=		LGPL21+:{{WRKSRC}}/LICENSES/LGPL-2.1-or-later.txt
-LICENSE_AWK=		TERMS:"ifndef _KDOCTOOLS_XSLT_H_"
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/docbookxslt.h
-LICENSE_SCHEME=		solo
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/LICENSES/GPL-2.0-or-later.txt
+			LGPL21:{{WRKSRC}}/LICENSES/LGPL-2.1-only.txt
+			LGPL21+:{{WRKSRC}}/LICENSES/LGPL-2.1-or-later.txt
+			LGPL3:{{WRKSRC}}/LICENSES/LGPL-3.0-only.txt
+LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		devel/kf5-kdoctools
 
@@ -50,6 +52,16 @@ post-stage:
 	(cd ${STAGEDIR}${PREFIX} && ${STRIP_CMD} bin/checkXML5 \
 		bin/meinproc5 \
 		lib/libKF5DocTools.so)
+
+post-extract:
+	${ECHO} "Terms extracted from 'src/customization/dtd/rdbhier2.elements':" > \
+		${WRKDIR}/TERMS
+	${SED} -n '/suggestions/!p;//q' ${WRKSRC}/src/customization/dtd/rdbhier2.elements >> \
+		${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/checkXML5.cpp':" >> ${WRKDIR}/TERMS
+	${SED} -n '/loggingcategory/!p;//q' ${WRKSRC}/src/checkXML5.cpp >> ${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/docbookxslt.h':" >> ${WRKDIR}/TERMS
+	${SED} -n '/KDOCTOOLS/!p;//q' ${WRKSRC}/src/docbookxslt.h >> ${WRKDIR}/TERMS
 
 [FILE:90:descriptions/desc.primary]
 Kdoctools provide tools to generate documentation in various formats from 

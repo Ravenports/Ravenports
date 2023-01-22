@@ -2,7 +2,7 @@
 
 NAMEBASE=		gnatstudio
 VERSION=		20220512
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Multilanguage IDE for Ada, SPARK, C/C++, and more
@@ -112,6 +112,9 @@ pre-configure:
 post-extract:
 	${FIND} ${WRKSRC} -type f -name ".cvsignore" -delete
 	${FIND} ${WRKSRC} -type d -empty -delete
+
+post-install-netbsd:
+	${PAXCTL} +m ${STAGEDIR}${PREFIX}/bin/gnatstudio
 
 [FILE:1090:descriptions/desc.primary]
 A Lightweight, Powerful IDE
@@ -1144,6 +1147,19 @@ share/examples/gnatstudio/xml/
  
 
 
+[FILE:406:patches/patch-code__analysis_src_code__analysis__module.adb]
+--- code_analysis/src/code_analysis_module.adb.orig	2022-05-11 12:25:42 UTC
++++ code_analysis/src/code_analysis_module.adb
+@@ -2288,6 +2288,7 @@ package body Code_Analysis_Module is
+    is
+       Root : Node_Ptr;
+       Success_1, Success_2 : Boolean;
++      pragma Unreferenced (Success_1, Success_2);
+    begin
+       Root     := new XML_Utils.Node;
+       Root.Tag := new String'("Code_Analysis_Tree");
+
+
 [FILE:398:patches/patch-common_core_src_os-utils.c]
 --- common/core/src/os-utils.c.orig	2022-05-11 12:25:42 UTC
 +++ common/core/src/os-utils.c
@@ -1278,6 +1294,42 @@ share/examples/gnatstudio/xml/
     package CodePeer is
 
 
+[FILE:1008:patches/patch-gnatstudio_src_gps-main.adb]
+--- gnatstudio/src/gps-main.adb.orig	2022-05-11 12:25:42 UTC
++++ gnatstudio/src/gps-main.adb
+@@ -773,30 +773,6 @@ procedure GPS.Main is
+          end if;
+       end;
+ 
+-      --  Python startup path
+-
+-      declare
+-         Python_Path : constant String := Env.Value ("PYTHONPATH", "");
+-         New_Val     : String_Access;
+-
+-      begin
+-         if Python_Path = "" then
+-            New_Val := new String'
+-              (+Create_From_Dir
+-                 (Prefix_Dir, "share/gnatstudio/python").Full_Name);
+-         else
+-            New_Val := new String'
+-              (+To_Path
+-                 (From_Path (+Python_Path) &
+-                  (1 => Create_From_Dir
+-                       (Prefix_Dir, "share/gnatstudio/python"))));
+-         end if;
+-
+-         Setenv ("PYTHONPATH", New_Val.all);
+-         Trace (Me, "PYTHONPATH=" & New_Val.all);
+-         Free (New_Val);
+-      end;
+-
+       for J of Env.Keys loop
+          Each_Environment_Variable (J, Env.Value (J));
+       end loop;
+
+
 [FILE:782:patches/patch-lal_core_lal-ada__languages.adb]
 From 158d754604c284b4c23b4e4793ce969366a1dffb Mon Sep 17 00:00:00 2001
 From: Anthony Leonardo Gracio <leonardo@.adacore.com>
@@ -1301,6 +1353,21 @@ Change-Id: I737ad812fc4c85617bb71fc49a3dde1547967b8e
              Messages  => Errors);
        exception
           when E : others =>
+
+
+[FILE:536:patches/patch-python_core_gps-python__core.adb]
+--- python/core/gps-python_core.adb.orig	2022-05-11 12:25:42 UTC
++++ python/core/gps-python_core.adb
+@@ -43,8 +43,7 @@ package body GPS.Python_Core is
+          if Python_Home.Is_Empty then
+             declare
+                Packaged_Python_Location : constant Virtual_File :=
+-                 Create (+Executable_Location)
+-                 / (+"share") / (+"gnatstudio") / (+"python");
++                 Create (+Executable_Location);
+             begin
+                Register_Python_Scripting
+                  (Kernel.Scripts,
 
 
 [FILE:1300:patches/patch-share_plug-ins_dispatching.py]
@@ -1352,14 +1419,16 @@ Fix collections for Python 3.10+
  import GPS.Browsers
 
 
-[FILE:903:patches/patch-shared.gpr.in]
+[FILE:987:patches/patch-shared.gpr.in]
 --- shared.gpr.in.orig	2022-05-11 12:25:42 UTC
 +++ shared.gpr.in
-@@ -50,7 +50,7 @@ project Shared is
+@@ -49,8 +49,8 @@ project Shared is
+          when "Debug" =>
              for Switches ("Ada") use Common &
                ("-O0", "-gnata", "-gnatVa", "-gnatQ", "-gnatygO",
-                "-gnatwaCJe", "-gnateE");
+-               "-gnatwaCJe", "-gnateE");
 -            for Switches ("C") use ("-g", "-O1");
++               "-gnatwaCJ", "-gnateE", "-fstack-check");
 +            for Switches ("C") use ("-g", "-O1", "-Wno-implicit-function-declaration");
  
           when "Production" =>
@@ -1392,7 +1461,7 @@ Fix collections for Python 3.10+
     package Compiler is
 
 
-[FILE:517:files/gps.in]
+[FILE:518:files/gps.in]
 #!/bin/sh
 #
 # GPS wrapper written by John Marino
@@ -1404,7 +1473,7 @@ VIAS=$(echo ${PATH} | /usr/bin/tr ":" " ")
 
 if [ -z "${ADA_PROJECT_PATH}" ]
 then
-	ADA_PROJECT_PATH=%%PREFIX%%/lib/gnat
+	ADA_PROJECT_PATH=%%PREFIX%%/share/gpr
 	export ADA_PROJECT_PATH
 fi
 

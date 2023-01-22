@@ -14,29 +14,25 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	SQLITE FIREBIRD PGSQL MYSQL ORACLE AMF
-OPTIONS_STANDARD=	SQLITE FIREBIRD PGSQL MYSQL ORACLE AMF
-OPT_ON[all]=		SQLITE PGSQL MYSQL
-
-BROKEN[all]=		Builds everything over and over
+OPTIONS_AVAILABLE=	SQLITE PGSQL MYSQL AMF
+OPTIONS_STANDARD=	SQLITE PGSQL MYSQL AMF
+OPT_ON[all]=		SQLITE PGSQL MYSQL AMF
 
 USES=			gmake pkgconfig gprbuild ada:single
+
+DISTNAME=		matreshka-21.0/matreshka
 
 FPC_EQUIVALENT=		devel/matreshka
 
 MUST_CONFIGURE=		yes
 CONFIGURE_ARGS=		--prefix={{PREFIX}}
+			--gprdir={{PREFIX}}/share/gpr
 
 MAKE_ENV=		SMP_MFLAGS=-j{{MAKE_JOBS_NUMBER}}
-SINGLE_JOB=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
-SOVERSION=		21.0
+SOVERSION=		20.0
 PLIST_SUB=		LIBSUFFIX=11.2
-
-[ORACLE].DESCRIPTION=			Oracle database support
-[ORACLE].BROKEN_ON=			not yet implemented
-[ORACLE].CONFIGURE_ENABLE_BOTH=		oracle
 
 [SQLITE].CONFIGURE_ENABLE_BOTH=		sqlite3
 [SQLITE].USES_ON=			sqlite
@@ -44,26 +40,11 @@ PLIST_SUB=		LIBSUFFIX=11.2
 [MYSQL].CONFIGURE_ENABLE_BOTH=		mysql
 [MYSQL].USES_ON=			mysql:client
 
-[FIREBIRD].BROKEN_ON=			not yet implemented
-[FIREBIRD].CONFIGURE_ARGS_ON=		--with-firebird-libdir={{LOCALBASE}}/lib
-[FIREBIRD].CONFIGURE_ENABLE_BOTH=	firebird
-
 [PGSQL].CONFIGURE_ENABLE_BOTH=		postgresql
 [PGSQL].USES_ON=			pgsql:client
 
 [AMF].DESCRIPTION=			Build Ada Modeling Framework
 [AMF].CONFIGURE_ENABLE_BOTH=		amf
-
-post-patch:
-	${REINPLACE_CMD} -e "s|@PREFIX@|${LOCALBASE}|" \
-		${WRKSRC}/tools/configure/configure-tests-mysql.adb \
-		${WRKSRC}/tools/configure/configure-tests-postgresql.adb \
-		${WRKSRC}/tools/configure/configure-tests-sqlite3.adb
-	# Added for gcc 11
-	${REINPLACE_CMD} -e "/No_Elaboration_Code/d" \
-		${WRKSRC}/source/league/ucd/matreshka-internals-unicode-ucd-core.ads \
-		${WRKSRC}/source/league/ucd/matreshka-internals-unicode-ucd-cases.ads \
-		${WRKSRC}/source/league/ucd/matreshka-internals-unicode-ucd-colls.ads
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/matreshka/*/*.${LIBEXT}
@@ -71,6 +52,13 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/uaflex
 
 pre-configure:
+	${REINPLACE_CMD} -e "s|@PREFIX@|${LOCALBASE}|" \
+		${WRKSRC}/tools/configure/configure-tests-mysql.adb \
+		${WRKSRC}/tools/configure/configure-tests-postgresql.adb \
+		${WRKSRC}/tools/configure/configure-tests-sqlite3.adb
+	# skip manifest installation
+	${REINPLACE_CMD} -E '/GPRINSTALL_FLAGS/ s|(GPRINSTALL_FLAGS =)|\1 --no-manifest|' \
+		${WRKSRC}/Makefile.install
 	(cd ${WRKSRC} && ${SETENV} ${CONFIGURE_ENV} ${MAKE_CMD} config)
 
 [FILE:879:descriptions/desc.single]
@@ -102,7 +90,7 @@ Modeling framework:
 24bee1b61091211d513f7cfa53a3be479078a32dab90da83b5ccb2c9c9103218     40700684 godunko-matreshka-21.0.tar.gz
 
 
-[FILE:235838:manifests/plist.single]
+[FILE:239016:manifests/plist.single]
 %%AMF-ON%%include/matreshka/sql_amf/
  amf-boolean_collections-internals.adb
  amf-boolean_collections-internals.ads
@@ -2731,6 +2719,25 @@ Modeling framework:
  amf-utp.ads
  amf-visitors-utp_iterators.ads
  amf-visitors-utp_visitors.ads
+%%AMF-ON%%lib/
+ libmatreshka-amf-%%LIBSUFFIX%%.so
+ libmatreshka-amf-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-amf-dd-%%LIBSUFFIX%%.so
+ libmatreshka-amf-dd-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-dd-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-amf-mofext-%%LIBSUFFIX%%.so
+ libmatreshka-amf-mofext-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-mofext-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-amf-ocl-%%LIBSUFFIX%%.so
+ libmatreshka-amf-ocl-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-ocl-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-amf-uml-%%LIBSUFFIX%%.so
+ libmatreshka-amf-uml-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-uml-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-amf-utp-%%LIBSUFFIX%%.so
+ libmatreshka-amf-utp-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-utp-%%LIBSUFFIX%%.so.%%SOVERSION%%
 %%AMF-ON%%lib/matreshka/sql_amf/
  amf-boolean_collections-internals.ali
  amf-boolean_collections.ali
@@ -2955,9 +2962,9 @@ Modeling framework:
  amf-xmi-error_handlers.ali
  amf-xmi.ali
  amf.ali
- libmatreshka-amf-8.2.so
- libmatreshka-amf-8.2.so.%%SOMAJOR%%
- libmatreshka-amf-8.2.so.%%SOVERSION%%
+ libmatreshka-amf-%%LIBSUFFIX%%.so
+ libmatreshka-amf-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-%%LIBSUFFIX%%.so.%%SOVERSION%%
  xmi-reader.ali
  xmi-writer.ali
  xmi.ali
@@ -3128,9 +3135,9 @@ Modeling framework:
  amf-internals-tables-di_string_data_00.ali
  amf-visitors-dg_iterators.ali
  amf-visitors-dg_visitors.ali
- libmatreshka-amf-dd-8.2.so
- libmatreshka-amf-dd-8.2.so.%%SOMAJOR%%
- libmatreshka-amf-dd-8.2.so.%%SOVERSION%%
+ libmatreshka-amf-dd-%%LIBSUFFIX%%.so
+ libmatreshka-amf-dd-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-dd-%%LIBSUFFIX%%.so.%%SOVERSION%%
 %%AMF-ON%%lib/matreshka/sql_amf_mofext/
  amf-factories-mof_factories.ali
  amf-internals-factories-mof_factories.ali
@@ -3156,9 +3163,9 @@ Modeling framework:
  amf-transformations-cmof_to_uml_mof.ali
  amf-visitors-mof_iterators.ali
  amf-visitors-mof_visitors.ali
- libmatreshka-amf-mofext-8.2.so
- libmatreshka-amf-mofext-8.2.so.%%SOMAJOR%%
- libmatreshka-amf-mofext-8.2.so.%%SOVERSION%%
+ libmatreshka-amf-mofext-%%LIBSUFFIX%%.so
+ libmatreshka-amf-mofext-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-mofext-%%LIBSUFFIX%%.so.%%SOVERSION%%
 %%AMF-ON%%lib/matreshka/sql_amf_ocl/
  amf-factories-ocl_factories.ali
  amf-internals-factories-ocl_factories.ali
@@ -3366,9 +3373,9 @@ Modeling framework:
  amf-ocl.ali
  amf-visitors-ocl_iterators.ali
  amf-visitors-ocl_visitors.ali
- libmatreshka-amf-ocl-8.2.so
- libmatreshka-amf-ocl-8.2.so.%%SOMAJOR%%
- libmatreshka-amf-ocl-8.2.so.%%SOVERSION%%
+ libmatreshka-amf-ocl-%%LIBSUFFIX%%.so
+ libmatreshka-amf-ocl-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-ocl-%%LIBSUFFIX%%.so.%%SOVERSION%%
 %%AMF-ON%%lib/matreshka/sql_amf_uml/
  amf-factories-primitive_types_factories.ali
  amf-factories-standard_profile_l2_factories.ali
@@ -4649,9 +4656,9 @@ Modeling framework:
  amf-visitors-uml_visitors.ali
  amf-visitors-umldi_iterators.ali
  amf-visitors-umldi_visitors.ali
- libmatreshka-amf-uml-8.2.so
- libmatreshka-amf-uml-8.2.so.%%SOMAJOR%%
- libmatreshka-amf-uml-8.2.so.%%SOVERSION%%
+ libmatreshka-amf-uml-%%LIBSUFFIX%%.so
+ libmatreshka-amf-uml-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-uml-%%LIBSUFFIX%%.so.%%SOVERSION%%
 %%AMF-ON%%lib/matreshka/sql_amf_utp/
  amf-factories-utp_factories.ali
  amf-internals-factories-utp_factories.ali
@@ -4795,9 +4802,16 @@ Modeling framework:
  amf-utp.ali
  amf-visitors-utp_iterators.ali
  amf-visitors-utp_visitors.ali
- libmatreshka-amf-utp-8.2.so
- libmatreshka-amf-utp-8.2.so.%%SOMAJOR%%
- libmatreshka-amf-utp-8.2.so.%%SOVERSION%%
+ libmatreshka-amf-utp-%%LIBSUFFIX%%.so
+ libmatreshka-amf-utp-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-amf-utp-%%LIBSUFFIX%%.so.%%SOVERSION%%
+%%AMF-ON%%share/gpr/
+ matreshka_amf.gpr
+ matreshka_amf_dd.gpr
+ matreshka_amf_mofext.gpr
+ matreshka_amf_ocl.gpr
+ matreshka_amf_uml.gpr
+ matreshka_amf_utp.gpr
 %%AMF-ON%%share/matreshka/amf/metamodels/
  CMOF24.cmof
  DC10.cmof
@@ -5667,6 +5681,43 @@ include/matreshka/xml/
  xml-templates-streams-holders.ads
  xml-templates-streams.ads
  xml-templates.ads
+lib/
+ libleague-%%LIBSUFFIX%%.so
+ libleague-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libleague-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-fastcgi-%%LIBSUFFIX%%.so
+ libmatreshka-fastcgi-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-fastcgi-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-servlet-%%LIBSUFFIX%%.so
+ libmatreshka-servlet-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-servlet-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-soap-%%LIBSUFFIX%%.so
+ libmatreshka-soap-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-soap-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-soap-wsse-%%LIBSUFFIX%%.so
+ libmatreshka-soap-wsse-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-soap-wsse-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-sql-%%LIBSUFFIX%%.so
+ libmatreshka-sql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-sql-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-sql-mysql-%%LIBSUFFIX%%.so
+ libmatreshka-sql-mysql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-sql-mysql-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-sql-postgresql-%%LIBSUFFIX%%.so
+ libmatreshka-sql-postgresql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-sql-postgresql-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-sql-sqlite3-%%LIBSUFFIX%%.so
+ libmatreshka-sql-sqlite3-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-sql-sqlite3-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libmatreshka-xml-%%LIBSUFFIX%%.so
+ libmatreshka-xml-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-xml-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libspikedog-api-%%LIBSUFFIX%%.so
+ libspikedog-api-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libspikedog-api-%%LIBSUFFIX%%.so.%%SOVERSION%%
+ libspikedog-core-%%LIBSUFFIX%%.so
+ libspikedog-core-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libspikedog-core-%%LIBSUFFIX%%.so.%%SOVERSION%%
 lib/matreshka/fastcgi/
  fastcgi-application.ali
  fastcgi-field_names.ali
@@ -6223,6 +6274,19 @@ lib/matreshka/xml/
  xml-templates-streams.ali
  xml-templates.ali
 share/gdb/python/matreshka/matreshka.py
+share/gpr/
+ matreshka_fastcgi.gpr
+ matreshka_league.gpr
+ matreshka_servlet.gpr
+ matreshka_soap.gpr
+ matreshka_soap_wsse.gpr
+ matreshka_spikedog_api.gpr
+ matreshka_spikedog_core.gpr
+ matreshka_sql.gpr
+ matreshka_sql_mysql.gpr
+ matreshka_sql_postgresql.gpr
+ matreshka_sql_sqlite3.gpr
+ matreshka_xml.gpr
 share/matreshka/cldr/common/collation/
  af.xml
  ar.xml
@@ -6320,9 +6384,9 @@ share/matreshka/cldr/common/uca/allkeys_CLDR.txt
 
 
 [FILE:472:patches/patch-tools_configure_configure-tests-mysql.adb]
---- tools/configure/configure-tests-mysql.adb.orig	2015-03-17 15:01:56 UTC
+--- tools/configure/configure-tests-mysql.adb.orig	2021-08-30 10:37:26 UTC
 +++ tools/configure/configure-tests-mysql.adb
-@@ -219,7 +219,7 @@ package body Configure.Tests.MySQL is
+@@ -223,7 +223,7 @@ package body Configure.Tests.MySQL is
               (MySQL_Library_Options,
                +"""-L"
                   & Self.Switches.Libdir
@@ -6334,7 +6398,7 @@ share/matreshka/cldr/common/uca/allkeys_CLDR.txt
 
 
 [FILE:915:patches/patch-tools_configure_configure-tests-postgresql.adb]
---- tools/configure/configure-tests-postgresql.adb.orig	2011-12-27 08:20:56 UTC
+--- tools/configure/configure-tests-postgresql.adb.orig	2021-08-30 10:37:26 UTC
 +++ tools/configure/configure-tests-postgresql.adb
 @@ -187,7 +187,7 @@ package body Configure.Tests.PostgreSQL
               (PostgreSQL_Library_Options,
@@ -6357,7 +6421,7 @@ share/matreshka/cldr/common/uca/allkeys_CLDR.txt
 
 
 [FILE:812:patches/patch-tools_configure_configure-tests-sqlite3.adb]
---- tools/configure/configure-tests-sqlite3.adb.orig	2015-05-13 12:17:27 UTC
+--- tools/configure/configure-tests-sqlite3.adb.orig	2021-08-30 10:37:26 UTC
 +++ tools/configure/configure-tests-sqlite3.adb
 @@ -87,7 +87,7 @@ package body Configure.Tests.SQLite3 is
               (SQLite3_Library_Options,

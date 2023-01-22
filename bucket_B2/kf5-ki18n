@@ -28,12 +28,12 @@ USES=			cmake gettext-runtime gettext-tools python:build
 
 DISTNAME=		ki18n-5.102.0
 
-LICENSE=		LGPL20+:primary
+LICENSE=		LGPL20+:primary LGPL21:primary LGPL3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL20+:{{WRKSRC}}/LICENSES/LGPL-2.0-or-later.txt
-LICENSE_AWK=		TERMS:"ki18n_logging.h"
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/i18n/main.cpp
-LICENSE_SCHEME=		solo
+			LGPL21:{{WRKSRC}}/LICENSES/LGPL-2.1-only.txt
+			LGPL3:{{WRKSRC}}/LICENSES/LGPL-3.0-only.txt
+LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		devel/k5f-ki18n
 
@@ -46,6 +46,17 @@ post-stage:
 		lib/libKF5I18nLocaleData.so \
 		lib/qt5/plugins/kf5/ktranscript.so \
 		lib/qt5/qml/org/kde/i18n/localeData/libki18nlocaledataqmlplugin.so)
+
+post-extract:
+	${ECHO} "Terms extracted from 'src/i18n/main.cpp':" > \
+		${WRKDIR}/TERMS
+	${SED} -n '/ki18n_logging/!p;//q' ${WRKSRC}/src/i18n/main.cpp >> \
+		${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/i18n/klocalizedtranslator.h':" >> \
+		${WRKDIR}/TERMS
+	${SED} -n '/KLOCALIZEDTRANSLATOR_H/!p;//q' \
+		${WRKSRC}/src/i18n/klocalizedtranslator.h >> \
+		${WRKDIR}/TERMS
 
 [FILE:267:descriptions/desc.primary]
 Ki18n provides functionality for internationalizing user interface text in 

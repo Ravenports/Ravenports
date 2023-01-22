@@ -27,12 +27,18 @@ USES=			cmake cpe
 
 DISTNAME=		kconfig-5.102.0
 
-LICENSE=		GPLv2+:primary
+LICENSE=		BSD2CLAUSE:primary BSD3CLAUSE:primary GPLv2+:primary
+			LGPL20:primary LGPL20+:primary LGPL21:primary
+			LGPL3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
-LICENSE_FILE=		GPLv2+:{{WRKSRC}}/LICENSES/GPL-2.0-or-later.txt
-LICENSE_AWK=		TERMS:"specified as bool"
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/kreadconfig/kreadconfig.cpp
-LICENSE_SCHEME=		solo
+LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSES/BSD-2-Clause.txt
+			BSD3CLAUSE:{{WRKSRC}}/LICENSES/BSD-3-Clause.txt
+			GPLv2+:{{WRKSRC}}/LICENSES/GPL-2.0-or-later.txt
+			LGPL20:{{WRKSRC}}/LICENSES/LGPL-2.0-only.txt
+			LGPL20+:{{WRKSRC}}/LICENSES/LGPL-2.0-or-later.txt
+			LGPL21:{{WRKSRC}}/LICENSES/LGPL-2.1-only.txt
+			LGPL3:{{WRKSRC}}/LICENSES/LGPL-3.0-only.txt
+LICENSE_SCHEME=		multi
 
 CPE_PRODUCT=		kconfig
 CPE_VENDOR=		kde
@@ -50,6 +56,23 @@ post-stage:
 		lib/libKF5ConfigQml.so \
 		lib/libexec/kf5/kconf_update \
 		lib/libexec/kf5/kconfig_compiler_kf5)
+
+post-extract:
+	${ECHO} "Terms extracted from 'src/core/kemailsettings.h':" > ${WRKDIR}/TERMS
+	${SED} -n '/KEMAILSETTINGS/!p;//q' ${WRKSRC}/src/core/kemailsettings.h >> \
+		${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'KF5ConfigMacros.cmake':" >> ${WRKDIR}/TERMS
+	${SED} -n '/include/!p;//q' ${WRKSRC}/KF5ConfigMacros.cmake >> ${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/kreadconfig/kreadconfig.cpp':" >> ${WRKDIR}/TERMS
+	${SED} -n '/specified/!p;//q' ${WRKSRC}/src/kreadconfig/kreadconfig.cpp >> \
+		${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/kconf_update/kconf_update.cpp':" >> ${WRKDIR}/TERMS
+	${SED} -n '/include/!p;//q' ${WRKSRC}/src/kconf_update/kconf_update.cpp >> \
+		${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/core/kconfig.h':" >> ${WRKDIR}/TERMS
+	${SED} -n '/ifndef/!p;//q' ${WRKSRC}/src/core/kconfig.h >> ${WRKDIR}/TERMS
+	${ECHO} "Terms extracted from 'src/gui/kwindowconfig.h':" >> ${WRKDIR}/TERMS
+	${SED} -n '/ifndef/!p;//q' ${WRKSRC}/src/gui/kwindowconfig.h >> ${WRKDIR}/TERMS
 
 [FILE:151:descriptions/desc.primary]
 KConfigWidgets provides easy-to-use classes to create configuration 
