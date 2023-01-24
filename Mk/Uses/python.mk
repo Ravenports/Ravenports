@@ -3,7 +3,7 @@
 #
 # Feature:	python
 # Usage:	USES=python
-# Valid ARGS:	(py27 or py39 or py310 or py311), build, wheel
+# Valid ARGS:	(py310 or v11), build, wheel
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -76,14 +76,10 @@ _INCLUDE_USES_PYTHON_MK=	yes
 #                       python-pip:single:pyXX (if "wheel")
 # ------------------------------------------------------
 
-.  if !empty(python_ARGS:Mpy39)
-_PYTHON_VERSION=	3.9
-.  elif !empty(python_ARGS:Mpy310)
+.  if !empty(python_ARGS:Mpy310)
 _PYTHON_VERSION=	3.10
-.  elif !empty(python_ARGS:Mpy311)
+.  elif !empty(python_ARGS:Mv11)
 _PYTHON_VERSION=	3.11
-.  elif !empty(python_ARGS:Mpy27)
-_PYTHON_VERSION=	2.7
 .  else
 _PYTHON_VERSION=	${PYTHON3_DEFAULT}
 .  endif
@@ -100,25 +96,17 @@ PYTHON_CMD=		${LOCALBASE}/bin/python${PYTHON_VER}
 
 # Since python 3.8, abiflags have become an empty string (m flag was removed)
 PYTHON_ABIVER:=		# empty (unset or python2.7)
-.  if ${PYTHON_VER:N2.7}
-.    if exists(${PYTHON_CMD}-config)
+.  if exists(${PYTHON_CMD}-config)
 PYTHON_ABIVER!=		${PYTHON_CMD}-config --abiflags
-.    else
+.  else
 PYTHON_ABIVER:=		determined-later
-.    endif
 .  endif
 
 PYTHON_PLATFORM=	${OPSYS:tl}${MAJOR:R}
 PYTHON_INCLUDEDIR=	${LOCALBASE}/include/python${PYTHON_VER}${PYTHON_ABIVER}
 PYTHON_LIBDIR=		${LOCALBASE}/lib/python${PYTHON_VER}
 PYTHON_SITELIBDIR=	${PYTHON_LIBDIR}/site-packages
-
-# PEP 0488 (https://www.python.org/dev/peps/pep-0488/)
-.  if ${PYTHON_REL} < 3500
-PYTHON_PYOEXTENSION=	pyo
-.  else
 PYTHON_PYOEXTENSION=	opt-1.pyc
-.  endif
 
 # --------------------------------------
 # distutils support
@@ -159,12 +147,6 @@ PLIST_SUB+=	PYTHON_INCLUDEDIR=${PYTHON_INCLUDEDIR:S;${PREFIX}/;;} \
 		PYTHON_VERSION=python${PYTHON_VER} \
 		PYTHON_MAJOR_VER=${PYTHON_MAJOR_VER} \
 		PYTHON_ABIVER=${PYTHON_ABIVER}
-
-.if ${PYTHON_MAJOR_VER:M3}
-PLIST_SUB+=	PYTHON3="" PYTHON2="@comment "
-.else
-PLIST_SUB+=	PYTHON2="" PYTHON3="@comment "
-.endif
 
 # By default CMake picks up the highest available version of Python package.
 # Enforce the version required by the port or the default.

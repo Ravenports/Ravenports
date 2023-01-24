@@ -5,7 +5,7 @@
 # Users who want to override these defaults can easily do so by defining
 # DEFAULT_VERSIONS in their make.conf as follows:
 #
-# DEFAULT_VERSIONS=	perl5=5.34 ruby=2.7
+# DEFAULT_VERSIONS=	perl5=5.36 ruby=3.2
 #
 
 .if !defined(_INCLUDE_BSD_DEFAULT_VERSIONS_MK)
@@ -43,12 +43,11 @@ RUBY_3.2_VERSION=	3.2.0
 
 #-------------------------------------------------------------------------
 # PYTHON
-# Possible values: 2.7, 3.10, 3.11
+# Possible values: 3.10, 3.11
 #-------------------------------------------------------------------------
 
 PYTHON3_DEFAULT?=	3.10
 
-PYTHON_2.7_VERSION=	2.7.18
 PYTHON_3.10_VERSION=	3.10.9
 PYTHON_3.11_VERSION=	3.11.1
 
