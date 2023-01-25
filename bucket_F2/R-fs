@@ -70,18 +70,17 @@ A cross-platform interface to file system operations, built on top of the
  	$(MAKE) --directory=$(LIBUV) \
 
 
-[FILE:1611:patches/patch-src_libuv-1.38.1_src_unix_fs.c]
---- src/libuv-1.38.1/src/unix/fs.c.orig	2021-11-29 22:54:06 UTC
-+++ src/libuv-1.38.1/src/unix/fs.c
-@@ -972,7 +972,6 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
+[FILE:1592:patches/patch-src_libuv-1.44.2_src_unix_fs.c]
+--- src/libuv-1.44.2/src/unix/fs.c.orig	2022-05-25 13:21:41 UTC
++++ src/libuv-1.44.2/src/unix/fs.c
+@@ -1139,13 +1139,13 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {
  #if defined(__linux__)                                                         \
      || defined(_AIX71)                                                         \
 -    || defined(__sun)                                                          \
      || defined(__HAIKU__)
-   /* utimesat() has nanosecond resolution but we stick to microseconds
-    * for the sake of consistency with other platforms.
-@@ -982,6 +981,7 @@ static ssize_t uv__fs_utime(uv_fs_t* req
+   struct timespec ts[2];
+   ts[0] = uv__fs_to_timespec(req->atime);
    ts[1] = uv__fs_to_timespec(req->mtime);
    return utimensat(AT_FDCWD, req->path, ts, 0);
  #elif defined(__APPLE__)                                                      \
@@ -89,37 +88,14 @@ A cross-platform interface to file system operations, built on top of the
      || defined(__DragonFly__)                                                 \
      || defined(__FreeBSD__)                                                   \
      || defined(__FreeBSD_kernel__)                                            \
-@@ -1015,7 +1015,6 @@ static ssize_t uv__fs_utime(uv_fs_t* req
+@@ -1179,7 +1179,6 @@ static ssize_t uv__fs_utime(uv_fs_t* req
  static ssize_t uv__fs_lutime(uv_fs_t* req) {
  #if defined(__linux__)            ||                                           \
      defined(_AIX71)               ||                                           \
 -    defined(__sun)                ||                                           \
-     defined(__HAIKU__)
-   struct timespec ts[2];
-   ts[0] = uv__fs_to_timespec(req->atime);
-
-
-[FILE:1068:patches/patch-src_libuv-1.38.1_src_unix_udp.c]
---- src/libuv-1.38.1/src/unix/udp.c.orig	2021-11-29 22:54:06 UTC
-+++ src/libuv-1.38.1/src/unix/udp.c
-@@ -854,7 +854,7 @@ static int uv__udp_set_membership6(uv_ud
- }
- 
- 
--#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__)
-+#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__) && !defined(__DragonFly__)
- static int uv__udp_set_source_membership4(uv_udp_t* handle,
-                                           const struct sockaddr_in* multicast_addr,
-                                           const char* interface_addr,
-@@ -1033,7 +1033,7 @@ int uv_udp_set_source_membership(uv_udp_
-                                  const char* interface_addr,
-                                  const char* source_addr,
-                                  uv_membership membership) {
--#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__)
-+#if !defined(__OpenBSD__) && !defined(__NetBSD__) && !defined(__ANDROID__) && !defined(__DragonFly__)
-   int err;
-   union uv__sockaddr mcast_addr;
-   union uv__sockaddr src_addr;
+     defined(__HAIKU__)            ||                                           \
+     defined(__GNU__)              ||                                           \
+     defined(__OpenBSD__)
 
 
 [FILE:367:patches/patch-src_unix_getmode.cc]
