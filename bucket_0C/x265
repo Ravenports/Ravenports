@@ -2,6 +2,7 @@
 
 NAMEBASE=		x265
 VERSION=		3.5
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	Library for encoding h.265/HEVC video streams
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://bitbucket.org/multicoreware/x265_git/downloads/
 DISTFILE[1]=		x265_3.5.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,12 +23,12 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		nasm:primary:standard
 			git:primary:lite
 
-USES=			cpe cmake c++:single
+USES=			cpe cmake c++:primary
 
 DISTNAME=		x265_3.5/source
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/../COPYING
 LICENSE_AWK=		TERMS:"X265_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/x265.h
@@ -43,7 +46,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/x265
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libx265.${LIBEXT}
 
-[FILE:618:descriptions/desc.single]
+[FILE:618:descriptions/desc.primary]
 High Efficiency Video Coding (HEVC) is the latest generation video compression
 standard.
 
@@ -66,15 +69,18 @@ WWW: http://www.x265.org/
 e70a3335cacacbba0b3a20ec6fecd6783932288ebc8163ad74bcc9606477cae8      1537044 x265_3.5.tar.gz
 
 
-[FILE:117:manifests/plist.single]
+[FILE:38:manifests/plist.primary]
 bin/x265
+lib/libx265.so.%%SOVERSION%%
+
+
+[FILE:82:manifests/plist.dev]
 include/
  x265.h
  x265_config.h
 lib/
  libx265.a
  libx265.so
- libx265.so.%%SOVERSION%%
 lib/pkgconfig/x265.pc
 
 

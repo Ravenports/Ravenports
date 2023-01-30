@@ -19,7 +19,7 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	png:single:standard
 
-USES=			cmake iconv pkgconfig
+USES=			cmake iconv pkgconfig zlib:build
 
 LICENSE=		LGPL21:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -35,6 +35,10 @@ MUST_CONFIGURE=		gnu
 SOVERSION=		4.1.1
 
 CMAKE_ARGS=		-DBUILD_SHARED_LIBS=ON
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libqrencode.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/qrencode
 
 [FILE:467:descriptions/desc.single]
 Libqrencode is a C library for encoding data in a QR Code symbol, a kind of

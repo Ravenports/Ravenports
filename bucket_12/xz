@@ -2,10 +2,10 @@
 
 NAMEBASE=		xz
 VERSION=		5.4.1
+REVISION=		1
 KEYWORDS=		archivers raven
-VARIANTS=		standard static
+VARIANTS=		standard
 SDESC[standard]=	LZMA compression and decompression tools
-SDESC[static]=		LZMA compression and decompression tools (static)
 HOMEPAGE=		https://tukaani.org/xz/
 CONTACT=		nobody
 
@@ -13,17 +13,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/lzmautils
 DISTFILE[1]=		xz-5.4.1.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
-SPKGS[static]=		single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
+			man
+			docs
+			examples
 
-OPTIONS_AVAILABLE=	STATIC
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-VOPTS[static]=		STATIC=ON
 
 USES=			cpe libtool
 
-LICENSE=		PUBDOM:single GPLv2+:single
-LICENSE_TERMS=		single:{{WRKSRC}}/COPYING
+LICENSE=		PUBDOM:primary GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
 LICENSE_FILE=		PUBDOM:{{WRKDIR}}/LICENSE_PUBDOM
 			GPLv2+:{{WRKSRC}}/COPYING.GPLv2
 LICENSE_SCHEME=		multi
@@ -32,17 +36,33 @@ CPE_VENDOR=		tukaani
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-nls
-			--disable-doc
+			{{SYMVER:U--enable-symbol-versions}}
 CONFIGURE_ENV=		gl_cv_posix_shell=/bin/sh
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		5.4.1
 
-VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-symbol-versions
-VAR_OPSYS[linux]=	CONFIGURE_ARGS=--enable-symbol-versions
-VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--enable-symbol-versions
+VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYMVER=
 
-[STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
+post-install:
+	# install static version of xz
+	${INSTALL_PROGRAM} ${WRKSRC}/src/xz/.libs/xz-static ${STAGEDIR}${PREFIX}/bin
+	# remove redundant license
+	${RM} ${STAGEDIR}${STD_DOCDIR}/COPYING*
+	# mv examples to their place
+	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}/new
+	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}/old
+	${MV} ${STAGEDIR}${STD_DOCDIR}/examples/* ${STAGEDIR}${STD_EXAMPLESDIR}/new
+	${MV} ${STAGEDIR}${STD_DOCDIR}/examples_old/*  ${STAGEDIR}${STD_EXAMPLESDIR}/old
+	${RMDIR} ${STAGEDIR}${STD_DOCDIR}/exam*
+
+post-build:
+	# create statically linked version of xz
+	(cd ${WRKSRC}/src/xz && ${CC} -o .libs/xz-static \
+	xz-args.o xz-coder.o xz-file_io.o xz-hardware.o xz-main.o xz-message.o xz-mytime.o \
+	xz-options.o xz-signals.o xz-suffix.o xz-util.o xz-tuklib_open_stdxxx.o \
+	xz-tuklib_progname.o xz-tuklib_exit.o xz-tuklib_mbstr_width.o xz-tuklib_mbstr_fw.o \
+	xz-list.o ../liblzma/.libs/liblzma.a -lpthread)
 
 do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE} check)
@@ -51,7 +71,7 @@ post-extract:
 	${AWK} '/You can do whatever/,/lawyers/' \
 		${WRKSRC}/COPYING > ${WRKDIR}/LICENSE_PUBDOM
 
-[FILE:902:descriptions/desc.single]
+[FILE:902:descriptions/desc.primary]
 XZ Utils is free general-purpose data compression software with a
 high compression ratio.  XZ Utils is the successor to LZMA Utils.
 
@@ -71,11 +91,21 @@ The XZ Utils package consists of several components:
   from LZMA Utils to XZ Utils.
 
 
+[FILE:67:descriptions/desc.tools]
+This packages contains the command line tools of LZMA compression.
+
+
 [FILE:94:distinfo]
 e4b0f81582efa155ccf27bb88275254a429d44968e488fc94b806f2a61cd3e22      2528617 xz-5.4.1.tar.gz
 
 
-[FILE:768:manifests/plist.single.standard]
+[FILE:55:manifests/plist.primary]
+lib/
+ liblzma.so.%%SOMAJOR%%
+ liblzma.so.%%SOVERSION%%
+
+
+[FILE:194:manifests/plist.tools]
 bin/
  lzcat
  lzcmp
@@ -91,6 +121,7 @@ bin/
  unlzma
  unxz
  xz
+ xz-static
  xzcat
  xzcmp
  xzdec
@@ -100,6 +131,9 @@ bin/
  xzgrep
  xzless
  xzmore
+
+
+[FILE:226:manifests/plist.dev]
 include/lzma.h
 include/lzma/
  base.h
@@ -119,9 +153,10 @@ include/lzma/
 lib/
  liblzma.a
  liblzma.so
- liblzma.so.%%SOMAJOR%%
- liblzma.so.%%SOVERSION%%
 lib/pkgconfig/liblzma.pc
+
+
+[FILE:309:manifests/plist.man]
 share/man/man1/
  lzcat.1.gz
  lzcmp.1.gz
@@ -148,71 +183,28 @@ share/man/man1/
  xzmore.1.gz
 
 
-[FILE:704:manifests/plist.single.static]
-bin/
- lzcat
- lzcmp
- lzdiff
- lzegrep
- lzfgrep
- lzgrep
- lzless
- lzma
- lzmadec
- lzmainfo
- lzmore
- unlzma
- unxz
- xz
- xzcat
- xzcmp
- xzdec
- xzdiff
- xzegrep
- xzfgrep
- xzgrep
- xzless
- xzmore
-include/lzma.h
-include/lzma/
- base.h
- bcj.h
- block.h
- check.h
- container.h
- delta.h
- filter.h
- hardware.h
- index.h
- index_hash.h
- lzma12.h
- stream_flags.h
- version.h
- vli.h
-lib/liblzma.a
-lib/pkgconfig/liblzma.pc
-share/man/man1/
- lzcat.1.gz
- lzcmp.1.gz
- lzdiff.1.gz
- lzegrep.1.gz
- lzfgrep.1.gz
- lzgrep.1.gz
- lzless.1.gz
- lzma.1.gz
- lzmadec.1.gz
- lzmainfo.1.gz
- lzmore.1.gz
- unlzma.1.gz
- unxz.1.gz
- xz.1.gz
- xzcat.1.gz
- xzcmp.1.gz
- xzdec.1.gz
- xzdiff.1.gz
- xzegrep.1.gz
- xzfgrep.1.gz
- xzgrep.1.gz
- xzless.1.gz
- xzmore.1.gz
+[FILE:115:manifests/plist.docs]
+share/doc/xz/
+ AUTHORS
+ NEWS
+ README
+ THANKS
+ TODO
+ faq.txt
+ history.txt
+ lzma-file-format.txt
+ xz-file-format.txt
+
+
+[FILE:187:manifests/plist.examples]
+share/examples/xz/new/
+ 00_README.txt
+ 01_compress_easy.c
+ 02_decompress.c
+ 03_compress_custom.c
+ 04_compress_easy_mt.c
+ Makefile
+share/examples/xz/old/
+ xz_pipe_comp.c
+ xz_pipe_decomp.c
 

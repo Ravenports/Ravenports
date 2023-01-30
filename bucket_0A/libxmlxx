@@ -2,6 +2,7 @@
 
 NAMEBASE=		libxmlxx
 VERSION=		5.0.2
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	API 5.0 C++ wrapper for libxml2 parser library
@@ -12,18 +13,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNOME/libxml++/5.0
 DISTFILE[1]=		libxml++-5.0.2.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			gmake pkgconfig perl:build meson c++:single
+USES=			gmake pkgconfig perl:build meson c++:primary
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		libxml++-5.0.2
 
-LICENSE=		LGPL21:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"__LIBXMLCPP_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/libxml++/libxml++.h
@@ -37,7 +40,7 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.0
 PLIST_SUB=		API="5.0"
 
-[FILE:291:descriptions/desc.single]
+[FILE:291:descriptions/desc.primary]
 This library provides a C++ interface to XML files. It uses libxml2 to
 access the XML files, and in order to configure libxml++ you must have
 both libxml2 and pkg-config installed.
@@ -50,7 +53,13 @@ which is incompatible with the 2.6 ABI/API.
 7c17cc3e5a2214314dee5a1354f4b436f266ded6185232a0534f352a76240d5a       796484 libxml++-5.0.2.tar.xz
 
 
-[FILE:1078:manifests/plist.single]
+[FILE:73:manifests/plist.primary]
+lib/
+ libxml++-%%API%%.so.%%SOMAJOR%%
+ libxml++-%%API%%.so.%%SOVERSION%%
+
+
+[FILE:1008:manifests/plist.dev]
 include/libxml++-%%API%%/libxml++/
  attribute.h
  attributedeclaration.h
@@ -98,10 +107,7 @@ include/libxml++-%%API%%/libxml++/validators/
  schemavalidatorbase.h
  validator.h
  xsdvalidator.h
-lib/
- libxml++-%%API%%.so
- libxml++-%%API%%.so.%%SOMAJOR%%
- libxml++-%%API%%.so.%%SOVERSION%%
+lib/libxml++-%%API%%.so
 lib/libxml++-%%API%%/include/libxml++config.h
 lib/pkgconfig/libxml++-%%API%%.pc
 

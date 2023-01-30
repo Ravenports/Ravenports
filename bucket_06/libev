@@ -2,6 +2,7 @@
 
 NAMEBASE=		libev
 VERSION=		4.33
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	High-performance event loop/event model
@@ -12,12 +13,23 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://dist.schmorp.de/libev/Attic/
 DISTFILE[1]=		libev-4.33.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			libtool pkgconfig
+
+LICENSE=		BSD2CLAUSE:primary GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		BSD2CLAUSE:{{WRKDIR}}/BSD2CLAUSE
+			GPLv2+:stock
+LICENSE_AWK=		BSD2CLAUSE:"DAMAGE.$"
+LICENSE_SOURCE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		dual
 
 FPC_EQUIVALENT=		devel/libev
 
@@ -32,7 +44,11 @@ post-patch:
 post-install:
 	${INSTALL_DATA} ${WRKDIR}/libev.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig/
 
-[FILE:769:descriptions/desc.single]
+post-extract:
+	${AWK} '/Alternatively,/,/or the GPL./' ${WRKSRC}/LICENSE > \
+		${WRKDIR}/TERMS
+
+[FILE:769:descriptions/desc.primary]
 A full-featured and high-performance event loop that is loosely modelled
 after libevent, but without its limitations and bugs. It is used in GNU
 Virtual Private Ethernet, rxvt-unicode, auditd, the Deliantra MORPG Server
@@ -53,16 +69,23 @@ is also available.
 507eb7b8d1015fbec5b935f34ebed15bf346bed04a11ab82b8eee848c4205aea       569527 libev-4.33.tar.gz
 
 
-[FILE:121:manifests/plist.single]
+[FILE:33:manifests/plist.primary]
+lib/
+ libev.so.4
+ libev.so.4.0.0
+
+
+[FILE:70:manifests/plist.dev]
 include/
  ev++.h
  ev.h
 lib/
  libev.a
  libev.so
- libev.so.4
- libev.so.4.0.0
 lib/pkgconfig/libev.pc
+
+
+[FILE:23:manifests/plist.man]
 share/man/man3/ev.3.gz
 
 

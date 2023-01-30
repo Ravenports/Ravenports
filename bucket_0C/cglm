@@ -2,6 +2,7 @@
 
 NAMEBASE=		cglm
 VERSION=		0.8.8
+REVISION=		1
 KEYWORDS=		math
 VARIANTS=		standard
 SDESC[standard]=	GLM library for C
@@ -12,23 +13,27 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/recp:cglm:v0.8.8
 DISTFILE[1]=		generate:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cmake
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		math/cglm
 
+SOVERSION=		0.8.8
+
 post-stage:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libcglm.so.0.8.8
 
-[FILE:85:descriptions/desc.single]
+[FILE:85:descriptions/desc.primary]
 CGLM is a highly optimized 2D and 3D math library for OpenGL, but a
 version for 'C'.
 
@@ -37,7 +42,13 @@ version for 'C'.
 8e3fd955eb7e961e9cf737743009437c29648dcc618bdabaa65db1047445f542       631074 generate
 
 
-[FILE:1950:manifests/plist.single]
+[FILE:55:manifests/plist.primary]
+lib/
+ libcglm.so.%%SOMAJOR%%
+ libcglm.so.%%SOVERSION%%
+
+
+[FILE:1916:manifests/plist.dev]
 include/cglm/
  affine-mat.h
  affine-post.h
@@ -195,10 +206,7 @@ include/cglm/struct/clipspace/
  view_lh_zo.h
  view_rh_no.h
  view_rh_zo.h
-lib/
- libcglm.so
- libcglm.so.0
- libcglm.so.0.8.8
+lib/libcglm.so
 lib/cmake/cglm/
  cglmConfig-release.cmake
  cglmConfig.cmake

@@ -2,6 +2,7 @@
 
 NAMEBASE=		lzo
 VERSION=		2.10
+REVISION=		1
 KEYWORDS=		archivers devel
 VARIANTS=		standard
 SDESC[standard]=	Portable speedy, lossless data compression library
@@ -13,8 +14,8 @@ SITES[main]=		http://download.openpkg.org/components/cache/lzo/
 DISTFILE[1]=		lzo-2.10.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
 			docs
 			examples
 
@@ -23,8 +24,8 @@ OPTIONS_STANDARD=	none
 
 USES=			libtool
 
-LICENSE=		GPLv2:static
-LICENSE_TERMS=		static:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"__LZO1_H_INCLUDED"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/lzo/lzo1.h
@@ -53,7 +54,7 @@ do-test:
 	(cd ${WRKSRC} && ${SETENV} MALLOC_OPTIONS=jz \
 		${MAKE} check test SHELL="${SH} -x")
 
-[FILE:833:descriptions/desc.static]
+[FILE:779:descriptions/desc.primary]
 LZO is a data compression library which is suitable for data
 de-/compression in real-time. This means it favours speed over
 compression ratio.
@@ -72,22 +73,18 @@ LZO implements a number of algorithms with the following features:
    + Algorithm is thread safe.
    + Algorithm is lossless.
 
-This package contains the header and static library.
-
-
-[FILE:186:descriptions/desc.shared]
-LZO is a data compression library which is suitable for data
-de-/compression in real-time. This means it favours speed over
-compression ratio.
-
-This package contains the shared library.
-
 
 [FILE:94:distinfo]
 c0f892943208266f9b6543b3ae308fab6284c5c90e627931446fb49b4221a072       600622 lzo-2.10.tar.gz
 
 
-[FILE:173:manifests/plist.static]
+[FILE:37:manifests/plist.primary]
+lib/
+ liblzo2.so.2
+ liblzo2.so.2.0.0
+
+
+[FILE:187:manifests/plist.dev]
 include/lzo/
  lzo1.h
  lzo1a.h
@@ -102,15 +99,22 @@ include/lzo/
  lzoconf.h
  lzodefs.h
  lzoutil.h
-lib/liblzo2.a
+lib/
+ liblzo2.a
+ liblzo2.so
 lib/pkgconfig/lzo2.pc
 
 
-[FILE:49:manifests/plist.shared]
-lib/
- liblzo2.so
- liblzo2.so.2
- liblzo2.so.2.0.0
+[FILE:105:manifests/plist.examples]
+share/examples/lzo/
+ dict.c
+ lzopack.c
+ overlap.c
+ portab.h
+ portab_a.h
+ precomp.c
+ precomp2.c
+ simple.c
 
 
 [FILE:280:patches/patch-include__lzo__lzodefs.h]

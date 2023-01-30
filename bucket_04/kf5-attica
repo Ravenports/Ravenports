@@ -12,7 +12,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://download.kde.org/stable/frameworks/5.102/
 DISTFILE[1]=		attica-5.102.0.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -24,8 +26,8 @@ USES=			cmake
 
 DISTNAME=		attica-5.102.0
 
-LICENSE=		LGPL20+:single LGPL21:single LGPL3:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL20+:primary LGPL21:primary LGPL3:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL20+:{{WRKSRC}}/LICENSES/LGPL-2.0-or-later.txt
 			LGPL21:{{WRKSRC}}/LICENSES/LGPL-2.1-only.txt
 			LGPL3:{{WRKSRC}}/LICENSES/LGPL-3.0-only.txt
@@ -43,7 +45,7 @@ post-extract:
 	${ECHO} "Terms extracted from 'src/person.h':" >> ${WRKDIR}/TERMS
 	${SED} -n '/ifndef/!p;//q' ${WRKSRC}/src/person.h >> ${WRKDIR}/TERMS
 
-[FILE:436:descriptions/desc.single]
+[FILE:436:descriptions/desc.primary]
 Attica is a Qt library that implements the Open Collaboration Services API 
 (version 1.6). The REST API is defined here:
 
@@ -59,7 +61,17 @@ plugin exists in kdebase.
 db872f06d57d5ff4ac7701c9f17e93e73c34340553f2b4db137b0b17091df0f6        69432 attica-5.102.0.tar.xz
 
 
-[FILE:1509:manifests/plist.single]
+[FILE:175:manifests/plist.primary]
+lib/
+ libKF5Attica.so.%%SOMAJOR%%
+ libKF5Attica.so.%%SOVERSION%%
+lib/qt5/mkspecs/modules/qt_Attica.pri
+share/qlogging-categories5/
+ attica.categories
+ attica.renamecategories
+
+
+[FILE:1337:manifests/plist.dev]
 include/KF5/Attica/attica_version.h
 include/KF5/Attica/Attica/
  AccountBalance
@@ -145,20 +157,13 @@ include/KF5/Attica/attica/
  remoteaccount.h
  topic.h
  version.h
-lib/
- libKF5Attica.so
- libKF5Attica.so.%%SOMAJOR%%
- libKF5Attica.so.%%SOVERSION%%
+lib/libKF5Attica.so
 lib/cmake/KF5Attica/
  KF5AtticaConfig.cmake
  KF5AtticaConfigVersion.cmake
  KF5AtticaTargets-release.cmake
  KF5AtticaTargets.cmake
 lib/pkgconfig/libKF5Attica.pc
-lib/qt5/mkspecs/modules/qt_Attica.pri
-share/qlogging-categories5/
- attica.categories
- attica.renamecategories
 
 
 [FILE:234:patches/patch-metainfo.yaml]

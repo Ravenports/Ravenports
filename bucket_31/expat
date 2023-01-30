@@ -2,6 +2,7 @@
 
 NAMEBASE=		expat
 VERSION=		2.5.0
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	XML 1.0 parser written in C
@@ -13,15 +14,15 @@ SITES[main]=		SF/expat/expat/2.5.0
 DISTFILE[1]=		expat-2.5.0.tar.bz2:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cpe libtool
 
-LICENSE=		MIT:static
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -48,39 +49,34 @@ post-build:
 	 ${AR} -cq libexpat_pic.a *.o &&\
 	 ranlib libexpat_pic.a)
 
-[FILE:453:descriptions/desc.static]
+[FILE:388:descriptions/desc.primary]
 This is Expat, a C library for parsing XML, written by James Clark.
 Expat is a stream-oriented XML parser.  This means that you register
 handlers with the parser before starting the parse.  These handlers
 are called when the parser discovers the associated structures in the
 document being parsed.  A start tag is an example of the kind of
 structures for which you may register handlers.
-
-This package contains the static library, header, and man page.
-
-
-[FILE:452:descriptions/desc.shared]
-This is Expat, a C library for parsing XML, written by James Clark.
-Expat is a stream-oriented XML parser.  This means that you register
-handlers with the parser before starting the parse.  These handlers
-are called when the parser discovers the associated structures in the
-document being parsed.  A start tag is an example of the kind of
-structures for which you may register handlers.
-
-This package contains the shared library and xmlwf executable.
 
 
 [FILE:98:distinfo]
 6f0e6e01f7b30025fa05c85fdad1e5d0ec7fd35d9f61b22f34998de11969ff67       569205 expat-2.5.0.tar.bz2
 
 
-[FILE:220:manifests/plist.static]
+[FILE:67:manifests/plist.primary]
+bin/xmlwf
+lib/
+ libexpat.so.%%SOMAJOR%%
+ libexpat.so.%%SOVERSION%%
+
+
+[FILE:233:manifests/plist.dev]
 include/
  expat.h
  expat_config.h
  expat_external.h
 lib/
  libexpat.a
+ libexpat.so
  libexpat_pic.a
 lib/cmake/expat-%%VERSION%%/
  expat-config-version.cmake
@@ -88,12 +84,4 @@ lib/cmake/expat-%%VERSION%%/
  expat-noconfig.cmake
  expat.cmake
 lib/pkgconfig/expat.pc
-
-
-[FILE:80:manifests/plist.shared]
-bin/xmlwf
-lib/
- libexpat.so
- libexpat.so.%%SOMAJOR%%
- libexpat.so.%%SOVERSION%%
 

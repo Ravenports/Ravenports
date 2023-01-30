@@ -2,6 +2,7 @@
 
 NAMEBASE=		harfbuzz
 VERSION=		6.0.0
+REVISION=		1
 KEYWORDS=		print
 VARIANTS=		standard
 SDESC[standard]=	OpenType text shaping engine
@@ -14,6 +15,7 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			icu
 			docs
 
@@ -24,8 +26,9 @@ BUILD_DEPENDS=		icu:single:standard
 BUILDRUN_DEPENDS=	graphite:single:standard
 EXRUN[icu]=		harfbuzz:primary:standard
 			icu:single:standard
+EXRUN[dev]=		glib:dev:standard
 
-USES=			cpe meson pkgconfig gtk-doc c++:primary
+USES=			cpe meson zlib pkgconfig gtk-doc c++:primary
 GNOME_COMPONENTS=	cairo glib introspection
 
 LICENSE=		MIT:primary
@@ -55,12 +58,22 @@ These are the harfbuzz libraries needed for ICU support.
 6d753948587db3c7c3ba8cc4f8e6bf83f5c448d2591a9f7ec306467f3a4fe4fa     36351334 harfbuzz-harfbuzz-6.0.0.tar.gz
 
 
-[FILE:1058:manifests/plist.primary]
+[FILE:265:manifests/plist.primary]
 bin/
  hb-ot-shape-closure
  hb-shape
  hb-subset
  hb-view
+lib/
+ libharfbuzz-gobject.so.%%SOMAJOR%%
+ libharfbuzz-gobject.so.%%SOVERSION%%
+ libharfbuzz-subset.so.%%SOMAJOR%%
+ libharfbuzz-subset.so.%%SOVERSION%%
+ libharfbuzz.so.%%SOMAJOR%%
+ libharfbuzz.so.%%SOVERSION%%
+
+
+[FILE:798:manifests/plist.dev]
 include/harfbuzz/
  hb-aat-layout.h
  hb-aat.h
@@ -102,14 +115,8 @@ include/harfbuzz/
  hb.h
 lib/
  libharfbuzz-gobject.so
- libharfbuzz-gobject.so.%%SOMAJOR%%
- libharfbuzz-gobject.so.%%SOVERSION%%
  libharfbuzz-subset.so
- libharfbuzz-subset.so.%%SOMAJOR%%
- libharfbuzz-subset.so.%%SOVERSION%%
  libharfbuzz.so
- libharfbuzz.so.%%SOMAJOR%%
- libharfbuzz.so.%%SOVERSION%%
 lib/cmake/harfbuzz/harfbuzz-config.cmake
 lib/girepository-1.0/HarfBuzz-0.0.typelib
 lib/pkgconfig/

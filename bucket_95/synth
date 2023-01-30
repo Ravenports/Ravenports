@@ -2,7 +2,7 @@
 
 NAMEBASE=		synth
 VERSION=		2.12
-REVISION=		2
+REVISION=		3
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	Custom package repository builder for FreeBSD
@@ -22,9 +22,8 @@ ONLY_FOR_OPSYS=		freebsd dragonfly
 
 BUILD_DEPENDS=		adacurses:primary:standard
 			ini_file_manager:complete:standard
-RUN_DEPENDS=		ncurses:primary:standard
 
-USES=			gprbuild bdb:5,static
+USES=			gprbuild ncurses
 
 LICENSE=		ISCL:single
 LICENSE_FILE=		ISCL:{{WRKSRC}}/License.txt
@@ -51,6 +50,8 @@ pre-configure:
 	# Support Ini-File-Manager 09
 	${REINPLACE_CMD} -e "s|(File_Name =>|(Config_File_Name =>|" \
 		${WRKSRC}/src/parameters.adb
+	# Fix paths in the man page
+	${REINPLACE_CMD} -e "s|/usr/local|${PREFIX}|g" ${WRKSRC}/synth.1
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/bash_completion.d \

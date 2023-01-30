@@ -2,6 +2,7 @@
 
 NAMEBASE=		glib
 VERSION=		2.74.5
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Some useful routines of C programming
@@ -15,6 +16,8 @@ DIST_SUBDIR=		gnome2
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
+			man
 			nls
 
 OPTIONS_AVAILABLE=	none
@@ -23,7 +26,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		xmlto:single:standard
 BUILDRUN_DEPENDS=	libffi:single:standard
 			pcre2:primary:standard
-RUN_DEPENDS=		zlib:static:standard
+EXRUN[dev]=		zlib:dev:standard
 
 USES=			gettext-tools gettext-runtime gmake libtool
 			perl:build pkgconfig python:build shebangfix zlib
@@ -96,9 +99,9 @@ more.  It is a foundation for writing portable applications.
 ceba83a5999ceb31a4c4fc9921207cb9ffffd2ab1d6ec03c162d3f608a5c14c8      5211852 gnome2/glib-2.74.5.tar.xz
 
 
-[FILE:6661:manifests/plist.primary]
+[FILE:1544:manifests/plist.primary]
 @comment share/glib-2.0/codegen auto-generated
-%%EXCLUDE-DARWIN%%lib/
+lib/
  libgio-2.0.so.%%LIBVERSION%%
  libglib-2.0.so.%%LIBVERSION%%
  libgmodule-2.0.so.%%LIBVERSION%%
@@ -132,6 +135,61 @@ bin/
  gsettings
  gtester
  gtester-report
+lib/
+ libgio-2.0.so.0
+ libglib-2.0.so.0
+ libgmodule-2.0.so.0
+ libgobject-2.0.so.0
+ libgthread-2.0.so.0
+lib/glib-2.0/include/glibconfig.h
+share/gdb/auto-load%%RESETPREFIX%%/lib/
+ libglib-2.0.so.%%LIBVERSION%%-gdb.py
+ libgobject-2.0.so.%%LIBVERSION%%-gdb.py
+share/gettext/its/
+ gschema.its
+ gschema.loc
+share/glib-2.0/codegen/
+ __init__.py
+ codegen.py
+ codegen_docbook.py
+ codegen_main.py
+ codegen_rst.py
+ config.py
+ dbustypes.py
+ parser.py
+ utils.py
+share/glib-2.0/gdb/
+ glib_gdb.py
+ gobject_gdb.py
+share/glib-2.0/gettext/po/Makefile.in.in
+share/glib-2.0/schemas/gschema.dtd
+share/glib-2.0/valgrind/glib.supp
+@dir lib/gio/modules
+@dir share/GConf/gsettings
+@postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
+@postexec %D/bin/glib-compile-schemas %D/share/glib-2.0/schemas 2>/dev/null || /usr/bin/true
+@postunexec /bin/rm -f %D/share/glib-2.0/schemas/gschemas.compiled || /usr/bin/true
+
+
+[FILE:4803:manifests/plist.dev]
+share/aclocal/
+ glib-2.0.m4
+ glib-gettext.m4
+ gsettings.m4
+lib/pkgconfig/
+ gio-2.0.pc
+ gio-unix-2.0.pc
+ glib-2.0.pc
+ gmodule-2.0.pc
+ gmodule-export-2.0.pc
+ gmodule-no-export-2.0.pc
+ gobject-2.0.pc
+ gthread-2.0.pc
+lib/
+ libgobject-2.0.so
+ libglib-2.0.so
+ libgmodule-2.0.so
+ libgthread-2.0.so
 include/gio-unix-2.0/gio/
  gdesktopappinfo.h
  gfiledescriptorbased.h
@@ -415,51 +473,9 @@ include/glib-2.0/gobject/
  gvaluetypes.h
 lib/
  libgio-2.0.so
- libgio-2.0.so.0
- libglib-2.0.so
- libglib-2.0.so.0
- libgmodule-2.0.so
- libgmodule-2.0.so.0
- libgobject-2.0.so
- libgobject-2.0.so.0
- libgthread-2.0.so
- libgthread-2.0.so.0
-lib/glib-2.0/include/glibconfig.h
-lib/pkgconfig/
- gio-2.0.pc
- gio-unix-2.0.pc
- glib-2.0.pc
- gmodule-2.0.pc
- gmodule-export-2.0.pc
- gmodule-no-export-2.0.pc
- gobject-2.0.pc
- gthread-2.0.pc
-share/aclocal/
- glib-2.0.m4
- glib-gettext.m4
- gsettings.m4
-share/gdb/auto-load%%RESETPREFIX%%/lib/
- libglib-2.0.so.%%LIBVERSION%%-gdb.py
- libgobject-2.0.so.%%LIBVERSION%%-gdb.py
-share/gettext/its/
- gschema.its
- gschema.loc
-share/glib-2.0/codegen/
- __init__.py
- codegen.py
- codegen_docbook.py
- codegen_main.py
- codegen_rst.py
- config.py
- dbustypes.py
- parser.py
- utils.py
-share/glib-2.0/gdb/
- glib_gdb.py
- gobject_gdb.py
-share/glib-2.0/gettext/po/Makefile.in.in
-share/glib-2.0/schemas/gschema.dtd
-share/glib-2.0/valgrind/glib.supp
+
+
+[FILE:306:manifests/plist.man]
 share/man/man1/
  gapplication.1.gz
  gdbus-codegen.1.gz
@@ -476,11 +492,6 @@ share/man/man1/
  gsettings.1.gz
  gtester-report.1.gz
  gtester.1.gz
-@dir lib/gio/modules
-@dir share/GConf/gsettings
-@postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
-@postexec %D/bin/glib-compile-schemas %D/share/glib-2.0/schemas 2>/dev/null || /usr/bin/true
-@postunexec /bin/rm -f %D/share/glib-2.0/schemas/gschemas.compiled || /usr/bin/true
 
 
 [FILE:3855:manifests/plist.nls]

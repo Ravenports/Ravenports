@@ -12,10 +12,10 @@ _INCLUDE_USES_EXPAT_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {expat_ARGS:Mbuild}
-# BUILD_DEPENDS+=	expat:static:standard
+# BUILD_DEPENDS+=	expat:dev:standard
 #.else
-# BUILD_DEPENDS+=	expat:static:standard
-# BUILDRUN_DEPENDS+=	expat:shared:standard
+# BUILD_DEPENDS+=	expat:dev:standard
+# BUILDRUN_DEPENDS+=	expat:primary:standard
 #.endif
 # -----------------------------------------------
 

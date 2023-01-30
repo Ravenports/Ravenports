@@ -2,6 +2,7 @@
 
 NAMEBASE=		stterm
 VERSION=		0.9
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	Simple terminal emulator for X which sucks less
@@ -19,7 +20,7 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	xorg-truetype-fonts:single:standard
 
-USES=			ncurses
+USES=			ncurses zlib:build
 XORG_COMPONENTS=	xext xft
 
 DISTNAME=		st-0.9
@@ -70,10 +71,32 @@ Currently implemented features:
 f36359799734eae785becb374063f0be833cf22f88b4f169cd251b99324e08e7        48171 st-0.9.tar.gz
 
 
-[FILE:60:manifests/plist.single]
+[FILE:159:manifests/plist.single]
 bin/st
 share/applications/st.desktop
 share/man/man1/st.1.gz
+share/site-terminfo/s/
+ st-mono
+ st
+ st-256color
+ st-meta
+ st-meta-256color
+ st-bs
+ st-bs-256color
+
+
+[FILE:406:patches/patch-Makefile]
+--- Makefile.orig	2022-10-04 17:41:26 UTC
++++ Makefile
+@@ -47,7 +47,7 @@ install: st
+ 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+ 	sed "s/VERSION/$(VERSION)/g" < st.1 > $(DESTDIR)$(MANPREFIX)/man1/st.1
+ 	chmod 644 $(DESTDIR)$(MANPREFIX)/man1/st.1
+-	tic -sx st.info
++	tic -sx -o $(DESTDIR)$(PREFIX)/share/site-terminfo st.info
+ 	@echo Please see the README file regarding the terminfo entry of st.
+ 
+ uninstall:
 
 
 [FILE:203:files/st.desktop]

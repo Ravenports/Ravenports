@@ -2,7 +2,7 @@
 
 NAMEBASE=		zlib
 VERSION=		1.2.13
-REVISION=		1
+REVISION=		2
 KEYWORDS=		archivers
 VARIANTS=		standard
 SDESC[standard]=	Ubiquitous compression library
@@ -14,15 +14,16 @@ SITES[main]=		http://www.zlib.net/
 DISTFILE[1]=		zlib-1.2.13.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cpe
 
-LICENSE=		ZLIB:complete
+LICENSE=		ZLIB:primary
 LICENSE_FILE=		ZLIB:{{WRKDIR}}/LICENSE
 LICENSE_AWK=		ZLIB:"ifndef ZLIB_H"
 LICENSE_SOURCE=		ZLIB:{{WRKSRC}}/zlib.h
@@ -49,7 +50,7 @@ post-build:
 	 && ${AR} -cq libz_pic.a *.lo \
 	 && ranlib libz_pic.a)
 
-[FILE:628:descriptions/desc.static]
+[FILE:566:descriptions/desc.primary]
 zlib is designed to be a free, general-purpose, legally unencumbered -- 
 that is, not covered by any patents -- lossless data-compression library
 for use on virtually any computer hardware and operating system. The
@@ -59,21 +60,18 @@ the compression method currently used in zlib essentially never expands
 the data.  zlib's memory footprint is also independent of the input data 
 and can be reduced, if necessary, at some cost in compression.
 
-This is the core package that excludes the shared libraries.
-
-
-[FILE:168:descriptions/desc.shared]
-A Massively Spiffy Yet Delicately Unobtrusive Compression Library
-(Also Free, Not to Mention Unencumbered by Patents)
-
-This package contains only the shared libraries.
-
 
 [FILE:97:distinfo]
 b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30      1497445 zlib-1.2.13.tar.gz
 
 
-[FILE:98:manifests/plist.static]
+[FILE:49:manifests/plist.primary]
+lib/
+ libz.so.%%SOMAJOR%%
+ libz.so.%%SOVERSION%%
+
+
+[FILE:82:manifests/plist.dev]
 include/
  zconf.h
  zlib.h
@@ -81,14 +79,11 @@ lib/
  libz.a
  libz_pic.a
 lib/pkgconfig/zlib.pc
-share/man/man3/zlib.3.gz
-
-
-[FILE:58:manifests/plist.shared]
-lib/
  libz.so
- libz.so.%%SOMAJOR%%
- libz.so.%%SOVERSION%%
+
+
+[FILE:25:manifests/plist.man]
+share/man/man3/zlib.3.gz
 
 
 [FILE:1168:patches/patch-configure]

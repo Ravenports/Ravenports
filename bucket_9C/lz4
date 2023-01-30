@@ -2,6 +2,7 @@
 
 NAMEBASE=		lz4
 VERSION=		1.9.4
+REVISION=		1
 KEYWORDS=		archivers
 VARIANTS=		standard
 SDESC[standard]=	LZ4 compression library, lossless and very fast
@@ -13,16 +14,17 @@ SITES[main]=		GITHUB/lz4:lz4:v1.9.4
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cpe gmake pkgconfig
 
-LICENSE=		BSD2CLAUSE:static GPLv2+:static
-LICENSE_TERMS=		static:{{WRKSRC}}/LICENSE
+LICENSE=		BSD2CLAUSE:primary GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/LICENSE
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/lib/LICENSE
 			GPLv2+:stock
 LICENSE_SCHEME=		multi
@@ -50,7 +52,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lz4*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/liblz4.${LIBEXT}
 
-[FILE:435:descriptions/desc.static]
+[FILE:380:descriptions/desc.primary]
 LZ4 is a very fast lossless compression algorithm, providing compression
 speed at 400 MB/s per core, scalable with multi-cores CPU. It also features
 an extremely fast decoder, with speed in multiple GB/s per core, typically
@@ -58,46 +60,36 @@ reaching RAM speed limits on multi-core systems.
 
 A high compression derivative, called LZ4_HC, is also provided. It trades
 CPU time for compression ratio.
-
-This package contains the static library and headers.
-
-
-[FILE:441:descriptions/desc.shared]
-LZ4 is a very fast lossless compression algorithm, providing compression
-speed at 400 MB/s per core, scalable with multi-cores CPU. It also features
-an extremely fast decoder, with speed in multiple GB/s per core, typically
-reaching RAM speed limits on multi-core systems.
-
-A high compression derivative, called LZ4_HC, is also provided. It trades
-CPU time for compression ratio.
-
-This package contains the shared libraries and executables.
 
 
 [FILE:99:distinfo]
 0b0e3aa07c8c063ddf40b082bdf7e37a1562bda40a0ff5272957f3e987e0e54b       354063 lz4-lz4-1.9.4.tar.gz
 
 
-[FILE:93:manifests/plist.static]
-include/
- lz4.h
- lz4frame.h
- lz4frame_static.h
- lz4hc.h
-lib/liblz4.a
-lib/pkgconfig/liblz4.pc
-
-
-[FILE:157:manifests/plist.shared]
+[FILE:84:manifests/plist.primary]
 bin/
  lz4
  lz4c
  lz4cat
  unlz4
 lib/
- liblz4.so
  liblz4.so.%%SOMAJOR%%
  liblz4.so.%%SOVERSION%%
+
+
+[FILE:106:manifests/plist.dev]
+include/
+ lz4.h
+ lz4frame.h
+ lz4frame_static.h
+ lz4hc.h
+lib/
+ liblz4.a
+lib/pkgconfig/liblz4.pc
+ liblz4.so
+
+
+[FILE:62:manifests/plist.man]
 share/man/man1/
  lz4.1.gz
  lz4c.1.gz

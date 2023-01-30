@@ -7,7 +7,7 @@ KEYWORDS=		net net_im net_p2p
 VARIANTS=		standard
 SDESC[standard]=	Ncurses-based Tox client
 HOMEPAGE=		https://github.com/Jfreegman/toxic
-CONTACT=		Leonid_Bobrov[goleo@disroot.org]
+CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/JFreegman:toxic:v0.11.3
@@ -20,6 +20,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		evdev-proto:single:standard
+			libsodium:dev:standard
 BUILDRUN_DEPENDS=	curl:primary:standard
 			freealut:single:standard
 			libnotify:primary:standard
@@ -27,7 +28,7 @@ BUILDRUN_DEPENDS=	curl:primary:standard
 			toxcore:single:standard
 
 USES=			desktop-utils:single gmake ncurses pkgconfig
-			python:build shebangfix
+			zlib:build python:build shebangfix
 XORG_COMPONENTS=	x11
 
 LICENSE=		GPLv3+:single
@@ -49,16 +50,16 @@ SINGLE_JOB=		yes
 
 CFLAGS=			-I{{NCURSESINC}}
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/toxic
+
+pre-configure:
 	${REINPLACE_CMD} \
 		-e 's|LIBS = python3|LIBS = python${PYTHON_VER}|' \
 		-e 's|python3-config|python${PYTHON_VER}-config|g' \
 		${WRKSRC}/cfg/checks/python.mk
 	# log the build
 	${REINPLACE_CMD} -e '/@.[(]CC[)]/ s|@||' ${WRKSRC}/Makefile
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/toxic
 
 [FILE:63:descriptions/desc.single]
 Toxic is a Tox-based instant messenging and video chat client.
@@ -87,9 +88,18 @@ share/toxic/sounds/
  ToxicTransferStart.wav
 
 
-[FILE:347:patches/patch-Makefile]
---- Makefile.orig	2023-01-05 22:54:08 UTC
+[FILE:720:patches/patch-Makefile]
+--- Makefile.orig	2021-12-24 19:21:26 UTC
 +++ Makefile
+@@ -3,7 +3,7 @@ CFG_DIR = $(BASE_DIR)/cfg
+ 
+ -include $(CFG_DIR)/global_vars.mk
+ 
+-LIBS = toxcore ncursesw libconfig libcurl
++LIBS = toxcore ncurses libconfig libcurl
+ 
+ CFLAGS ?= -std=c99 -pthread -Wall -Wpedantic -Wunused -fstack-protector-all -Wvla -Wno-missing-braces
+ CFLAGS += '-DTOXICVER="$(VERSION)"' -DHAVE_WIDECHAR -D_XOPEN_SOURCE_EXTENDED -D_FILE_OFFSET_BITS=64
 @@ -42,10 +42,6 @@ ifeq ($(UNAME_S), OpenBSD)
  LIBS := $(filter-out ncursesw, $(LIBS))
  LDFLAGS += -lncursesw

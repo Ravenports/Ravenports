@@ -2,7 +2,7 @@
 #
 # Feature:	ncurses
 # Usage:	USES=ncurses
-# Valid ARGS:	none or "static"
+# Valid ARGS:	buildrun (default, implicit), build
 #
 # Port makefile can now set this variable
 # NCURSES_RPATH= defined	- pass RFLAGS options to CFLAGS
@@ -13,8 +13,15 @@
 # NCURSESINC		- path to the matching includes
 # NCURSESRPATH		- rpath for dynamic linker
 #
-# BUILDRUN_DEPENDS	- are added by ravenadm (version based on ARGS)
-#
+# -----------------------------------------------
+# Incorporated in ravenadm
+# -----------------------------------------------
+# BUILD_DEPENDS+=       ncurses:dev:standard
+# BUILDRUN_DEPENDS+=	ncurses:terminfo:standard
+#.if {ncurses_ARGS:Mbuildrun}
+# BUILDRUN_DEPENDS+=	ncurses:primary:standard
+#.endif
+# -----------------------------------------------
 
 .if !defined(_INCLUDE_USES_NCURSES_MK)
 _INCLUDE_USES_NCURSES_MK=	yes

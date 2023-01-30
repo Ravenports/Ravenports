@@ -2,6 +2,7 @@
 
 NAMEBASE=		libiconv
 VERSION=		1.17
+REVISION=		1
 KEYWORDS=		converters devel
 VARIANTS=		standard
 SDESC[standard]=	Character set conversion library
@@ -13,8 +14,9 @@ SITES[main]=		GNU/libiconv
 DISTFILE[1]=		libiconv-1.17.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	ENCODINGS
 OPTIONS_STANDARD=	ENCODINGS
@@ -22,8 +24,8 @@ OPT_ON[all]=		ENCODINGS
 
 USES=			libtool fbsd10fix
 
-LICENSE=		GPLv3+:static
-LICENSE_TERMS=		static:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^\#include"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/iconv.c
@@ -68,7 +70,7 @@ pre-configure:
 	${REINPLACE_CMD} -e 's:gawk:awk:g' ${WRKSRC}/configure \
 		${WRKSRC}/libcharset/configure
 
-[FILE:621:descriptions/desc.static]
+[FILE:564:descriptions/desc.primary]
 This library provides an iconv() implementation, for use on systems which
 don't have one, or whose implementation cannot convert from/to Unicode.
 
@@ -80,21 +82,21 @@ be approximated through one or several similarly looking characters.
 libiconv is for you if your application needs to support multiple character
 encodings, but that support lacks from your system.
 
-This package contains the headers and static libraries.
-
-
-[FILE:213:descriptions/desc.shared]
-This library provides an iconv() implementation, for use on systems which
-don't have one, or whose implementation cannot convert from/to Unicode.
-
-This package contains the iconv program and the shared libraries.
-
 
 [FILE:99:distinfo]
 8f74213b56238c85a50a5329f77e06198771e70dd9a739779f4c02f65d971313      5413283 libiconv-1.17.tar.gz
 
 
-[FILE:221:manifests/plist.static]
+[FILE:105:manifests/plist.primary]
+bin/iconv
+lib/
+ libcharset.so.1
+ libcharset.so.1.0.0
+ libiconv.so.%%SOMAJOR%%
+ libiconv.so.%%SOVERSION%%
+
+
+[FILE:123:manifests/plist.dev]
 include/
  iconv.h
  libcharset.h
@@ -103,6 +105,11 @@ lib/
  libcharset.a
  libiconv.a
  libiconv_pic.a
+ libcharset.so
+ libiconv.so
+
+
+[FILE:126:manifests/plist.man]
 share/man/man1/iconv.1.gz
 share/man/man3/
  iconv.3.gz
@@ -110,17 +117,6 @@ share/man/man3/
  iconv_open.3.gz
  iconv_open_into.3.gz
  iconvctl.3.gz
-
-
-[FILE:133:manifests/plist.shared]
-bin/iconv
-lib/
- libcharset.so
- libcharset.so.1
- libcharset.so.1.0.0
- libiconv.so
- libiconv.so.%%SOMAJOR%%
- libiconv.so.%%SOVERSION%%
 
 
 [FILE:2344:patches/patch-include_iconv.h.in]

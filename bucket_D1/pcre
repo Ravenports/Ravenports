@@ -2,6 +2,7 @@
 
 NAMEBASE=		pcre
 VERSION=		8.45
+REVISION=		2
 KEYWORDS=		devel textproc
 VARIANTS=		standard
 SDESC[standard]=	Perl Compatible Regular Expressions library
@@ -13,16 +14,18 @@ SITES[main]=		SF/pcre/pcre/8.45
 DISTFILE[1]=		pcre-8.45.tar.bz2:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			cpp
+			dev
+			man
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe c++:shared libtool
+USES=			cpe libtool c++:cpp
 
-LICENSE=		BSD3CLAUSE:static
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -55,33 +58,52 @@ post-patch:
 	${REINPLACE_CMD} -e "/^\.rs/d" ${WRKSRC}/doc/*.3 ${WRKSRC}/doc/*.1
 	${REINPLACE_CMD} -e "s/??//g" ${WRKSRC}/doc/pcre_compile2.3
 
-[FILE:386:descriptions/desc.static.standard]
+[FILE:324:descriptions/desc.primary]
 The PCRE library is a set of functions that implement regular expression
 pattern matching using the same syntax and semantics as Perl 5. PCRE has
 its own native API, as well as a set of wrapper functions that correspond
 to the POSIX regular expression API. The PCRE library is free, even for
 building proprietary software.
 
-This package contains the static libraries and the man pages.
 
 
-[FILE:385:descriptions/desc.shared.standard]
+[FILE:365:descriptions/desc.cpp]
 The PCRE library is a set of functions that implement regular expression
 pattern matching using the same syntax and semantics as Perl 5. PCRE has
 its own native API, as well as a set of wrapper functions that correspond
 to the POSIX regular expression API. The PCRE library is free, even for
 building proprietary software.
 
-This package contains the shared libraries and executables.
-
+This package contains the c++ libraries.
 
 
 [FILE:96:distinfo]
 4dae6fdcd2bb0bb6c37b5f97c33c2be954da743985369cddac3546e3218bffb8      1578809 pcre-8.45.tar.bz2
 
 
-[FILE:2782:manifests/plist.static.standard]
-bin/pcre-config
+[FILE:301:manifests/plist.primary]
+bin/
+ pcre-config
+ pcregrep
+ pcretest
+lib/
+ libpcre.so.%%SOMAJOR%%
+ libpcre.so.%%SOVERSION%%
+ libpcre16.so.%%PCRE16_SOMAJOR%%
+ libpcre16.so.%%PCRE16_SOVERSION%%
+ libpcre32.so.%%PCRE32_SOMAJOR%%
+ libpcre32.so.%%PCRE32_SOVERSION%%
+ libpcreposix.so.%%POSIX_SOMAJOR%%
+ libpcreposix.so.%%POSIX_SOVERSION%%
+
+
+[FILE:69:manifests/plist.cpp]
+lib/
+ libpcrecpp.so.%%CPP_SOMAJOR%%
+ libpcrecpp.so.%%CPP_SOVERSION%%
+
+
+[FILE:322:manifests/plist.dev]
 include/
  pcre.h
  pcre_scanner.h
@@ -91,16 +113,24 @@ include/
  pcreposix.h
 lib/
  libpcre.a
+ libpcre.so
  libpcre16.a
+ libpcre16.so
  libpcre32.a
+ libpcre32.so
  libpcrecpp.a
+ libpcrecpp.so
  libpcreposix.a
+ libpcreposix.so
 lib/pkgconfig/
  libpcre.pc
  libpcre16.pc
  libpcre32.pc
  libpcrecpp.pc
  libpcreposix.pc
+
+
+[FILE:2516:manifests/plist.man]
 share/man/man1/
  pcre-config.1.gz
  pcregrep.1.gz
@@ -208,24 +238,71 @@ share/man/man3/
  pcreunicode.3.gz
 
 
-[FILE:424:manifests/plist.shared.standard]
-bin/
- pcregrep
- pcretest
-lib/
- libpcre.so
- libpcre.so.%%SOMAJOR%%
- libpcre.so.%%SOVERSION%%
- libpcre16.so
- libpcre16.so.%%PCRE16_SOMAJOR%%
- libpcre16.so.%%PCRE16_SOVERSION%%
- libpcre32.so
- libpcre32.so.%%PCRE32_SOMAJOR%%
- libpcre32.so.%%PCRE32_SOVERSION%%
- libpcrecpp.so
- libpcrecpp.so.%%CPP_SOMAJOR%%
- libpcrecpp.so.%%CPP_SOVERSION%%
- libpcreposix.so
- libpcreposix.so.%%POSIX_SOMAJOR%%
- libpcreposix.so.%%POSIX_SOVERSION%%
+[FILE:1269:manifests/plist.docs]
+share/doc/pcre/
+ AUTHORS
+ COPYING
+ ChangeLog
+ LICENCE
+ NEWS
+ README
+ pcre-config.txt
+ pcre.txt
+ pcregrep.txt
+ pcretest.txt
+share/doc/pcre/html/
+ NON-AUTOTOOLS-BUILD.txt
+ README.txt
+ index.html
+ pcre-config.html
+ pcre.html
+ pcre16.html
+ pcre32.html
+ pcre_assign_jit_stack.html
+ pcre_compile.html
+ pcre_compile2.html
+ pcre_config.html
+ pcre_copy_named_substring.html
+ pcre_copy_substring.html
+ pcre_dfa_exec.html
+ pcre_exec.html
+ pcre_free_study.html
+ pcre_free_substring.html
+ pcre_free_substring_list.html
+ pcre_fullinfo.html
+ pcre_get_named_substring.html
+ pcre_get_stringnumber.html
+ pcre_get_stringtable_entries.html
+ pcre_get_substring.html
+ pcre_get_substring_list.html
+ pcre_jit_exec.html
+ pcre_jit_stack_alloc.html
+ pcre_jit_stack_free.html
+ pcre_maketables.html
+ pcre_pattern_to_host_byte_order.html
+ pcre_refcount.html
+ pcre_study.html
+ pcre_utf16_to_host_byte_order.html
+ pcre_utf32_to_host_byte_order.html
+ pcre_version.html
+ pcreapi.html
+ pcrebuild.html
+ pcrecallout.html
+ pcrecompat.html
+ pcrecpp.html
+ pcredemo.html
+ pcregrep.html
+ pcrejit.html
+ pcrelimits.html
+ pcrematching.html
+ pcrepartial.html
+ pcrepattern.html
+ pcreperform.html
+ pcreposix.html
+ pcreprecompile.html
+ pcresample.html
+ pcrestack.html
+ pcresyntax.html
+ pcretest.html
+ pcreunicode.html
 

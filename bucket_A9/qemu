@@ -23,6 +23,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		texi2html:primary:standard
 			python-Sphinx:single:python_used
 			python-sphinx-rtd-theme:single:python_used
+			harfbuzz:dev:standard
 BUILDRUN_DEPENDS=	nettle:primary:standard
 			fontconfig:primary:standard
 			freetype:primary:standard
@@ -936,7 +937,7 @@ share/locale/zh_CN/LC_MESSAGES/qemu.mo
  # include <endian.h>
 
 
-[FILE:1986:patches/patch-meson.build]
+[FILE:2368:patches/patch-meson.build]
 --- meson.build.orig	2022-12-14 16:28:45 UTC
 +++ meson.build
 @@ -47,7 +47,7 @@ genh = []
@@ -957,23 +958,32 @@ share/locale/zh_CN/LC_MESSAGES/qemu.mo
    nvmm = cc.find_library('nvmm', required: get_option('nvmm'))
    if nvmm.found()
      accelerators += 'CONFIG_NVMM'
+@@ -887,7 +887,7 @@ if have_system and get_option('curses').
+       return 0;
+     }'''
+ 
+-  curses_dep_list = targetos == 'windows' ? ['ncurses', 'ncursesw'] : ['ncursesw']
++  curses_dep_list = targetos == 'windows' ? ['ncurses', 'ncursesw'] : ['ncurses']
+   curses = dependency(curses_dep_list,
+                       required: false,
+                       method: 'pkg-config',
 @@ -910,15 +910,16 @@ if have_system and get_option('curses').
        has_curses_h = cc.has_header('curses.h', args: curses_compile_args)
      endif
      if has_curses_h
 -      curses_libname_list = (targetos == 'windows' ? ['pdcurses'] : ['ncursesw', 'cursesw'])
-+      libtinfo = cc.find_library('tinfow', required: false, static: enable_static)
-+      curses_libname_list = (targetos == 'windows' ? ['pdcurses'] : ['ncursesw'])
++      libtinfo = cc.find_library('tinfo', required: false, static: enable_static)
++      curses_libname_list = (targetos == 'windows' ? ['pdcurses'] : ['ncurses'])
        foreach curses_libname : curses_libname_list
          libcurses = cc.find_library(curses_libname,
                                      required: false,
                                      kwargs: static_kwargs)
          if libcurses.found()
 -          if cc.links(curses_test, args: curses_compile_args, dependencies: libcurses)
-+          if cc.links(curses_test, args: curses_compile_args, dependencies: [libcurses,libtinfo])
++          if cc.links(curses_test, args: curses_compile_args, dependencies: [libncurses,libtinfo])
              curses = declare_dependency(compile_args: curses_compile_args,
 -                                        dependencies: [libcurses])
-+                                        dependencies: [libcurses, libtinfo])
++                                        dependencies: [libncurses, libtinfo])
              break
            else
              msg = 'curses library not usable'

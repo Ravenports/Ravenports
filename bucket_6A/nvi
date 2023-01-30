@@ -2,6 +2,7 @@
 
 NAMEBASE=		nvi
 VERSION=		1.81.6
+REVISION=		1
 KEYWORDS=		editors
 VARIANTS=		standard
 SDESC[standard]=	Berkeley nvi with additional features
@@ -17,7 +18,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			bdb:static iconv:build libtool ncurses:static
+USES=			bdb:static iconv:build libtool ncurses:build
 			pkgconfig
 
 FPC_EQUIVALENT=		editors/nvi2
@@ -26,8 +27,7 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_OUTSOURCE=	yes
 CONFIGURE_WRKSRC=	{{WRKSRC}}/build_unix
 CONFIGURE_SCRIPT=	dist/configure
-CONFIGURE_ARGS=		--with-db-prefix={{LOCALBASE}}
-			--program-prefix=n
+CONFIGURE_ARGS=		--program-prefix=n
 			--enable-widechar
 			--enable-shared=no
 			--with-curses={{NCURSESBASE}}
@@ -36,14 +36,18 @@ CPPFLAGS=		-I{{NCURSESINC}}
 LDFLAGS=		-L{{NCURSESLIB}}
 VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS="-lrt -lsocket"
 
-post-patch:
-	${REINPLACE_CMD} -e '/libvi_la_LIBADD =/s,$$, ${ICONV_LIB},' \
-		${WRKSRC}/dist/Makefile.in
-	${REINPLACE_CMD} -e 's,-ldb,-l${BDB_LIB_NAME} -lpthread,g' \
-		${WRKSRC}/dist/configure
-
 post-install:
 	${RM} -r ${STAGEDIR}${MANPREFIX}/man/cat1
+
+pre-configure:
+	${REINPLACE_CMD} -e '/libvi_la_LIBADD =/s,$$, ${ICONV_LIB},' \
+		${WRKSRC}/dist/Makefile.in
+
+post-extract:
+	# disable shared iconv and ncurses
+	${RM} ${LOCALBASE}/lib/libiconv.so
+	${RM} ${LOCALBASE}/lib/libncurses.so
+	${RM} ${LOCALBASE}/lib/libtinfo.so
 
 [FILE:258:descriptions/desc.single]
 Nvi is an implementation of the ex/vi text editor originally distributed
@@ -128,7 +132,7 @@ share/vi/tcl/
  
 
 
-[FILE:1731:patches/patch-dist_configure]
+[FILE:1721:patches/patch-dist_configure]
 --- dist/configure.orig	2007-11-18 16:43:54 UTC
 +++ dist/configure
 @@ -21142,7 +21142,7 @@
@@ -145,7 +149,7 @@ share/vi/tcl/
  
  	if test "$vi_cv_widechar" = "yes"; then
 -	    for vi_cv_curses in ncurses ncursesw curses; do
-+	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow -ldb" curses; do
++	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow" curses; do
  		as_ac_Lib=`echo "ac_cv_lib_$vi_cv_curses''_waddnwstr" | $as_tr_sh`
  { echo "$as_me:$LINENO: checking for waddnwstr in -l$vi_cv_curses" >&5
  echo $ECHO_N "checking for waddnwstr in -l$vi_cv_curses... $ECHO_C" >&6; }
@@ -154,7 +158,7 @@ share/vi/tcl/
  	    done
  	else
 -	    for vi_cv_curses in ncurses ncursesw curses; do
-+	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow -ldb" curses; do
++	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow" curses; do
  		as_ac_Lib=`echo "ac_cv_lib_$vi_cv_curses''_initscr" | $as_tr_sh`
  { echo "$as_me:$LINENO: checking for initscr in -l$vi_cv_curses" >&5
  echo $ECHO_N "checking for initscr in -l$vi_cv_curses... $ECHO_C" >&6; }

@@ -2,6 +2,7 @@
 
 NAMEBASE=		leveldb
 VERSION=		1.23
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Fast key-value storage library
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/google:leveldb:1.23
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,9 +23,9 @@ OPTIONS_STANDARD=	none
 BUILDRUN_DEPENDS=	snappy:single:standard
 			sqlite:single:standard
 
-USES=			c++:single cmake
+USES=			c++:primary cmake
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -34,7 +37,7 @@ CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
 			-DLEVELDB_BUILD_BENCHMARKS:BOOL=OFF
 			-DLEVELDB_BUILD_TESTS:BOOL=OFF
 
-[FILE:867:descriptions/desc.single]
+[FILE:867:descriptions/desc.primary]
 LevelDB is a fast key-value storage library written at Google that provides
 an ordered mapping from string keys to string values.
 
@@ -59,7 +62,13 @@ Features:
 9a37f8a6174f09bd622bc723b55881dc541cd50747cbd08831c2a82d620f6d76       242925 google-leveldb-1.23.tar.gz
 
 
-[FILE:376:manifests/plist.single]
+[FILE:61:manifests/plist.primary]
+lib/
+ libleveldb.so.%%SOMAJOR%%
+ libleveldb.so.%%SOVERSION%%
+
+
+[FILE:318:manifests/plist.dev]
 include/leveldb/
  c.h
  cache.h
@@ -76,10 +85,7 @@ include/leveldb/
  table.h
  table_builder.h
  write_batch.h
-lib/
- libleveldb.so
- libleveldb.so.%%SOMAJOR%%
- libleveldb.so.%%SOVERSION%%
+lib/libleveldb.so
 lib/cmake/leveldb/
  leveldbConfig.cmake
  leveldbConfigVersion.cmake

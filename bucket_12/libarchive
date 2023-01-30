@@ -53,7 +53,6 @@ LDFLAGS=		-lpthread
 
 [STATIC].DESCRIPTION=			Build version for raven sysroots
 [STATIC].BUILD_DEPENDS_ON=		libressl:single:static
-					xz:single:static
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 					--enable-static=yes
 [STATIC].LDFLAGS_OFF=			-Wl,-rpath,{{LOCALBASE}}/libressl/lib
@@ -61,6 +60,7 @@ LDFLAGS=		-lpthread
 					expat:build
 					bz2:build
 					zlib:build
+					xz:build
 
 [RAVENSW].DESCRIPTION=			Build zstd-only version for ravensw
 [RAVENSW].BUILD_DEPENDS_ON=		libressl:single:static
@@ -80,7 +80,6 @@ LDFLAGS=		-lpthread
 
 [EXTENDED].DESCRIPTION=			Build loaded version (common + lzo + lz4)
 [EXTENDED].BUILDRUN_DEPENDS_ON=		libressl:single:standard
-					xz:single:standard
 [EXTENDED].CONFIGURE_ARGS_ON=		--enable-shared=yes
 					--with-lzo2
 					--with-lz4
@@ -90,21 +89,28 @@ LDFLAGS=		-lpthread
 					expat
 					bz2
 					zlib
+					xz
 
 [NOT_STD].DESCRIPTION=			Don't build common user version
 [NOT_STD].BUILDRUN_DEPENDS_OFF=		libressl:single:standard
-					xz:single:standard
 [NOT_STD].CONFIGURE_ARGS_OFF=		--enable-shared=yes
 [NOT_STD].USES_OFF=			zstd
 					expat
 					bz2
 					zlib
+					xz
 
 post-build-RAVENSW-ON:
 	# assemble PIC library
 	(cd ${WRKSRC}/libarchive/.libs &&\
 	 ${AR} -cruv libarchive_pic.a *.o &&\
 	 ranlib libarchive_pic.a)
+
+pre-configure-STATIC-ON:
+	# Remove dead symlinks that confust linker
+	${RM} ${LOCALBASE}/lib/libbz2.so
+	${RM} ${LOCALBASE}/lib/libexpat.so
+	${RM} ${LOCALBASE}/lib/liblzma.so
 
 do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} check)

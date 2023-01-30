@@ -12,10 +12,10 @@ _INCLUDE_USES_LZ4_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {lz4_ARGS:Mbuild}
-# BUILD_DEPENDS+=	lz4:static:standard
+# BUILD_DEPENDS+=	lz4:dev:standard
 #.else
-# BUILD_DEPENDS+=	lz4:static:standard
-# BUILDRUN_DEPENDS+=	lz4:shared:standard
+# BUILD_DEPENDS+=	lz4:dev:standard
+# BUILDRUN_DEPENDS+=	lz4:primary:standard
 #.endif
 # -----------------------------------------------
 
