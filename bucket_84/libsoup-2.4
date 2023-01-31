@@ -2,7 +2,7 @@
 
 NAMEBASE=		libsoup-2.4
 VERSION=		2.74.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Simple Object Access Protocol implementation in C
@@ -15,12 +15,14 @@ DISTFILE[1]=		libsoup-2.74.0.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			nls
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		vala:single:standard
 BUILDRUN_DEPENDS=	brotli:single:standard
 			glib-networking:primary:standard
 			libpsl:single:standard
@@ -44,13 +46,13 @@ CPE_VENDOR=		gnome
 FPC_EQUIVALENT=		devel/libsoup
 GTKDOC_OUTPUT_BASEDIR=	libsoup-2.4
 MESON_ARGS=		-Dgtk_doc=true
-			-Dintrospection=disabled
+			-Dintrospection=enabled
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.11.1
 PLIST_SUB=		LIBVERSION=2.4
-			INTRO="@comment "
+			INTRO=""
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 VAR_OPSYS[linux]=	CFLAGS=-D_GNU_SOURCE
@@ -73,7 +75,15 @@ work well with GTK applications.
 33b1d4e0d639456c675c227877e94a8078d731233e2d57689c11abcef7d3c48e      1498224 libsoup-2.74.0.tar.xz
 
 
-[FILE:1918:manifests/plist.primary]
+[FILE:177:manifests/plist.primary]
+lib/
+ libsoup-%%LIBVERSION%%.so.%%SOMAJOR%%
+ libsoup-%%LIBVERSION%%.so.%%SOVERSION%%
+ libsoup-gnome-%%LIBVERSION%%.so.%%SOMAJOR%%
+ libsoup-gnome-%%LIBVERSION%%.so.%%SOVERSION%%
+
+
+[FILE:1746:manifests/plist.dev]
 %%INTRO%%lib/girepository-1.0/
  Soup-%%LIBVERSION%%.typelib
  SoupGNOME-%%LIBVERSION%%.typelib
@@ -150,11 +160,7 @@ include/libsoup-gnome-%%LIBVERSION%%/libsoup/
  soup-gnome.h
 lib/
  libsoup-%%LIBVERSION%%.so
- libsoup-%%LIBVERSION%%.so.%%SOMAJOR%%
- libsoup-%%LIBVERSION%%.so.%%SOVERSION%%
  libsoup-gnome-%%LIBVERSION%%.so
- libsoup-gnome-%%LIBVERSION%%.so.%%SOMAJOR%%
- libsoup-gnome-%%LIBVERSION%%.so.%%SOVERSION%%
 lib/pkgconfig/
  libsoup-%%LIBVERSION%%.pc
  libsoup-gnome-%%LIBVERSION%%.pc

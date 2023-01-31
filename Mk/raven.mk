@@ -428,6 +428,8 @@ compile-package-desc:
 	@${ECHO} "It may contain headers, pc files, static and PIC libraries and SO links." >> ${_DESC_FILE}.${sp}
 .    elif ${sp:Mman}
 	@${ECHO} "This is man page subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
+.    elif ${sp:Mlang}
+	@${ECHO} "This is language subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
 .    elif ${sp:Mcomplete}
 	@${ECHO} "This is the ${TWO_PART_ID} metapackage." > ${_DESC_FILE}.${sp}
 	@${ECHO} "It pulls in all subpackages of ${TWO_PART_ID}." >> ${_DESC_FILE}.${sp}
