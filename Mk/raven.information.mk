@@ -211,8 +211,8 @@ ASPELL_INSTALL_VERSION=		${ASPELL_CORE_VERSION:R}
 # apr1 and other apache projects
 # ------------------------------------------------------------------------
 
-APR1_VERSION=			1.7.0
-APR1_UTIL_VERSION=		1.6.1
+APR1_VERSION=			1.7.1
+APR1_UTIL_VERSION=		1.6.2
 SUBVERSION_VERSION=		1.14.2
 
 # ------------------------------------------------------------------------
@@ -242,6 +242,7 @@ LATEST_JQUERY=			3.6.0
 
 GNATCROSS_FREEBSD_11=		11.3
 GNATCROSS_FREEBSD_12=		12.2
+GNATCROSS_MIDNIGHTBSD_3=	12.3
 GNATCROSS_NETBSD_9=		9.2
 
 # ------------------------------------------------------------------------

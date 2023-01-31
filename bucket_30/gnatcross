@@ -3,10 +3,12 @@
 NAMEBASE=		gnatcross
 VERSION=		11.3.0
 KEYWORDS=		lang
-VARIANTS=		FARM64_R11 FAMD64_R12 FI386_R12 SOL10
+VARIANTS=		FARM64_R11 FAMD64_R12 FI386_R12 SOL10 MAMD64_R3 MI386_R3
 SDESC[FARM64_R11]=	C/Ada cross-compiler, target: FreeBSD/ARM64 (R11)
+SDESC[MAMD64_R3]=	C/Ada cross-compiler, tgt: MidnightBSD/AMD64 (R3)
 SDESC[SOL10]=		C/Ada cross-compiler, target: Solaris 10 (x86-64)
 SDESC[FI386_R12]=	C/Ada cross-compiler, target: FreeBSD/I386 (R11)
+SDESC[MI386_R3]=	C/Ada cross-compiler, tgt: MidnightBSD/I386 (R3)
 SDESC[FAMD64_R12]=	C/Ada cross-compiler, target: FreeBSD/AMD64 (R12)
 HOMEPAGE=		http://www.dragonlace.net
 CONTACT=		John_Marino[draco@marino.st]
@@ -23,16 +25,26 @@ DISTFILE[6]=		patch-diff-gcc-testsuite:draco
 DIST_SUBDIR=		gcc11_11.3.0-rev1
 DF_INDEX=		1
 SPKGS[FARM64_R11]=	single
+SPKGS[MAMD64_R3]=	single
 SPKGS[SOL10]=		single
 SPKGS[FI386_R12]=	single
+SPKGS[MI386_R3]=	single
 SPKGS[FAMD64_R12]=	single
 
-OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 FI386R12 SOL10
+OPTIONS_AVAILABLE=	FARM64R11 FAMD64R12 FI386R12 SOL10 MAMD64R3 MI386R3
 OPTIONS_STANDARD=	none
 VOPTS[FARM64_R11]=	FARM64R11=ON FAMD64R12=OFF FI386R12=OFF SOL10=OFF
+			MAMD64R3=OFF MI386R3=OFF
+VOPTS[MAMD64_R3]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=OFF
+			MAMD64R3=ON MI386R3=OFF
 VOPTS[SOL10]=		FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=ON
+			MAMD64R3=OFF MI386R3=OFF
 VOPTS[FI386_R12]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=ON SOL10=OFF
+			MAMD64R3=OFF MI386R3=OFF
+VOPTS[MI386_R3]=	FARM64R11=OFF FAMD64R12=OFF FI386R12=OFF SOL10=OFF
+			MAMD64R3=OFF MI386R3=ON
 VOPTS[FAMD64_R12]=	FARM64R11=OFF FAMD64R12=ON FI386R12=OFF SOL10=OFF
+			MAMD64R3=OFF MI386R3=OFF
 
 BROKEN[linux]=		libcpp won't build properly on FreeBSD hosts or genmatch segfaults
 
@@ -128,6 +140,22 @@ VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
 					PREFIX={{LOCALBASE}}/FreeBSD12_AMD64
 					SRPREFIX={{PREFIX}}/sysroot
 					XCCTARGET=x86_64-raven-freebsd12.2
+					TARGET_SPECIFIC=--disable-multilib
+
+[MAMD64R3].DESCRIPTION=			Set target to MidnightBSD/AMD64 (Release 3)
+[MAMD64R3].BUILDRUN_DEPENDS_ON=		gnatcross-binutils:single:MAMD64_R3
+[MAMD64R3].MAKEFILE_ON=			OS_LABEL4VERS="[{{OPSYS}}/{{ARCH}} x MidnightBSD_3/AMD64]"
+					PREFIX={{LOCALBASE}}/MidnightBSD3_AMD64
+					SRPREFIX={{PREFIX}}/sysroot
+					XCCTARGET=x86_64-raven-freebsd12.3
+					TARGET_SPECIFIC=--disable-multilib
+
+[MI386R3].DESCRIPTION=			Set target to MidnightBSD/I386 (Release 3)
+[MI386R3].BUILDRUN_DEPENDS_ON=		gnatcross-binutils:single:MI386_R3
+[MI386R3].MAKEFILE_ON=			OS_LABEL4VERS="[{{OPSYS}}/{{ARCH}} x MidnightBSD_3/I386]"
+					PREFIX={{LOCALBASE}}/MidnightBSD3_I386
+					SRPREFIX={{PREFIX}}/sysroot
+					XCCTARGET=i386-raven-freebsd12.3
 					TARGET_SPECIFIC=--disable-multilib
 
 post-install-FAMD64R12-ON:
@@ -242,6 +270,16 @@ that targets the FreeBSD/I386 operating system (Release 12).
 [FILE:128:descriptions/desc.single.SOL10]
 This package contains a C/C++/Fortran/Ada cross-compiler based on GCC 11
 that targets the Solaris 10 operating system (x86-64).
+
+
+[FILE:138:descriptions/desc.single.MAMD64_R3]
+This package contains a C/C++/Fortran/Ada cross-compiler based on GCC 11
+that targets the MidnightBSD/AMD64 operating system (Release 3).
+
+
+[FILE:137:descriptions/desc.single.MI386_R3]
+This package contains a C/C++/Fortran/Ada cross-compiler based on GCC 11
+that targets the MidnightBSD/I386 operating system (Release 3).
 
 
 [FILE:690:distinfo]
