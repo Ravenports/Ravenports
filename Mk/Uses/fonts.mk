@@ -1,12 +1,11 @@
 # handle fonts
 # Feature:	fonts
 # Usage:	USES=fonts
-# Valid ARGS:	fc, fontsdir, fcfontsdir, none (empty means fcfontsdir)
+# Valid ARGS:	fc, fontsdir, fcfontsdir (implicit)
 
-#  fc		Add @fc ${FONTSDIR} to single subpackage manifest
-#  fontsdir	Add @fontsdir ${FONTSDIR} to single subpackage manifest
-#  fcfontsdir	Add @fcfontsdir ${FONTSDIR} to single subpackage manifest
-#  none		No special handling of ${FONTSDIR} in single subpackage manifest
+#  fc		Add @fc ${FONTSDIR} to primary|single subpackage manifest
+#  fontsdir	Add @fontsdir ${FONTSDIR} to primary|single subpackage manifest
+#  fcfontsdir	Add @fcfontsdir ${FONTSDIR} to primary|single subpackage manifest
 
 # Ports should use USES=fonts with an argument only when necessary.
 # By default, @fcfontsdir ${FONTSDIR} is added and it updates font
@@ -48,14 +47,20 @@ fonts_ARGS=	fcfontsdir
 # Incorporated in ravenadm
 # -----------------------------------------------
 # if argument = fc:
+# BUILD_DEPENDS+=	fontconfig:dev:standard
 # BUILDRUN_DEPENDS+=	fontconfig:primary:standard
 # -----------------------------------------------
 # if argument = fcfontsdir:
+# BUILD_DEPENDS+=	fontconfig:dev:standard
 # BUILDRUN_DEPENDS+=	fontconfig:primary:standard
-#			xorg-mkfontscale:single:standard
+# RUN_DEPENDS+=		xorg-mkfontscale:single:standard
 # -----------------------------------------------
-# if argument = fontdir or no argument passed:
-# BUILDRUN_DEPENDS+=	xorg-mkfontscale:single:standard
+# if argument = fontsdir:
+# RUN_DEPENDS+=		xorg-mkfontscale:single:standard
+# -----------------------------------------------
+# Unrecognized arguments are removed from buildsheet
+# If multiple recognized arguments are provided, all after
+# the first one removed.
 # -----------------------------------------------
 
 FONTNAME?=	you-must-define-FONTNAME
@@ -64,14 +69,19 @@ FONTSDIR?=	${FONTROOTDIR}/${FONTNAME}
 SUB_LIST+=	FONTSDIR="${FONTSDIR}"
 PLIST_SUB+=	FONTSDIR="${FONTSDIR:S,^${PREFIX}/,,}"
 
-.if !empty(fonts_ARGS:Nnone)
+.  if ${SUBPACKAGES:Mprimary}
+SPKGMANIFEST=	${WRKDIR}/.manifest.primary.mktmp
+.  elif ${SUBPACKAGES:Msingle}
+SPKGMANIFEST=	${WRKDIR}/.manifest.single.mktmp
+.  else
+SPKGMANIFEST=	${WRKDIR}/font.mk-error
+.  endif
+
 _USES_stage+=	933:add-plist-fonts
-.endif
 
 .  if !target(add-plist-fonts)
 add-plist-fonts:
-	# fonts packages must always have one subpackage: single
-	@echo "@${fonts_ARGS} ${FONTSDIR}" >> ${WRKDIR}/.manifest.single.mktmp
+	@echo "@${fonts_ARGS} ${FONTSDIR}" >> ${SPKGMANIFEST}
 .  endif
 
 .endif	# _INCLUDE_USES_FONTS_MK
