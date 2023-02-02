@@ -21,7 +21,7 @@ BUILD_DEPENDS=		jam:primary:standard
 BUILDRUN_DEPENDS=	fltk:primary:standard
 			dbus:single:standard
 
-USES=			pkgconfig python zlib shebangfix
+USES=			pkgconfig python jpeg zlib shebangfix
 
 LICENSE=		LGPL20+:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -41,17 +41,19 @@ CXXFLAGS=		-fPIC
 post-patch:
 		${CP} ${FILESDIR}/scheme.h ${WRKSRC}/edelib/ts
 
-post-stage:
-		${RM} -r ${STAGEDIR}${PREFIX}/share/doc
-
 do-build:
-		(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-			jam)
+		(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} jam)
 
 do-install:
 		(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 			prefix="${STAGEDIR}${PREFIX}" \
 			jam install)
+		# strip
+		${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/edelib-dbus-explorer
+		${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/edelib-script
+		${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/edelib-update-font-cache
+		# remove documents
+		${RM} -r ${STAGEDIR}${PREFIX}/share/doc
 
 [FILE:235:descriptions/desc.single]
 Edelib is the support library for Equinox Desktop Environment. It provides 
