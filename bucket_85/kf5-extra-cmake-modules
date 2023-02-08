@@ -2,6 +2,7 @@
 
 NAMEBASE=		kf5-extra-cmake-modules
 VERSION=		5.102.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	KF5 Extra modules and scripts for CMake
@@ -449,10 +450,10 @@ share/doc/extra-cmake-modules/html/toolchain/Android.html
  set_package_properties(OpenEXR PROPERTIES
 
 
-[FILE:684:patches/patch-kde-modules_KDEMetaInfoPlatformCheck.cmake]
+[FILE:886:patches/patch-kde-modules_KDEMetaInfoPlatformCheck.cmake]
 --- kde-modules/KDEMetaInfoPlatformCheck.cmake.orig	2023-01-12 21:43:20 UTC
 +++ kde-modules/KDEMetaInfoPlatformCheck.cmake
-@@ -46,6 +46,10 @@ if (NOT "${KF_IGNORE_PLATFORM_CHECK}")
+@@ -46,6 +46,14 @@ if (NOT "${KF_IGNORE_PLATFORM_CHECK}")
                  if (CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
                      set(_MetainfoFoundSupportedPlatform true)
                  endif()
@@ -460,25 +461,32 @@ share/doc/extra-cmake-modules/html/toolchain/Android.html
 +                if (CMAKE_SYSTEM_NAME MATCHES "DragonFly")
 +                    set(_MetainfoFoundSupportedPlatform true)
 +                endif()
++            elseif (${CMAKE_MATCH_1} STREQUAL "NetBSD")
++                if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
++                    set(_MetainfoFoundSupportedPlatform true)
++                endif()
              elseif (${CMAKE_MATCH_1} STREQUAL "Windows")
                  if (WIN32)
                      set(_MetainfoFoundSupportedPlatform true)
 
 
-[FILE:234:patches/patch-metainfo.yaml]
+[FILE:254:patches/patch-metainfo.yaml]
 --- metainfo.yaml.orig	2023-01-12 21:43:20 UTC
 +++ metainfo.yaml
-@@ -5,6 +5,7 @@ type: functional
+@@ -5,6 +5,8 @@ type: functional
  platforms:
      - name: Linux
      - name: FreeBSD
 +    - name: DragonFly
++    - name: NetBSD
      - name: Windows
      - name: macOS
      - name: Android
 
 
-[FILE:650:patches/patch-modules_ECMGeneratePkgConfigFile.cmake]
+[FILE:693:patches/patch-modules_ECMGeneratePkgConfigFile.cmake]
+We never install pc files at /raven/libdata/pkgconfig!
+
 --- modules/ECMGeneratePkgConfigFile.cmake.orig	2023-01-12 21:43:20 UTC
 +++ modules/ECMGeneratePkgConfigFile.cmake
 @@ -212,7 +212,7 @@ Requires: ${PKGCONFIG_TARGET_DEPS}
@@ -486,7 +494,7 @@ share/doc/extra-cmake-modules/html/toolchain/Android.html
  
    if(EGPF_INSTALL)
 -    if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-+    if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
++    if(CMAKE_SYSTEM_NAME MATCHES "NONE")
        set(ECM_PKGCONFIG_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/libdata/pkgconfig" CACHE PATH "The directory where pkgconfig will be installed to.")
      else()
        set(ECM_PKGCONFIG_INSTALL_DIR "${EGPF_LIB_INSTALL_DIR}/pkgconfig" CACHE PATH "The directory where pkgconfig will be installed to.")

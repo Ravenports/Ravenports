@@ -2,7 +2,7 @@
 
 NAMEBASE=		llvm
 VERSION=		15.0.7
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel lang
 VARIANTS=		standard
 SDESC[standard]=	Low Level Virtual Machine (version 15.0)
@@ -22,9 +22,7 @@ OPT_ON[freebsd]=	GOLD//x86_64
 OPT_ON[linux]=		GOLD//x86_64
 OPT_ON[dragonfly]=	GOLD//x86_64
 
-BUILD_DEPENDS=		ncurses:primary:standard
-
-USES=			cmake ninja python:build execinfo zlib bdb:static
+USES=			cmake ninja python:build execinfo zlib ncurses:dev
 			shebangfix c++:single
 GNOME_COMPONENTS=	libxml2
 
@@ -100,11 +98,12 @@ post-install:
 
 post-extract:
 	${CP} ${WRKDIR}/cmake-*/Modules/* ${WRKSRC}/cmake/modules/
-	# disable detection of shared db5
-	${RM} ${LOCALBASE}/lib/db5/libdb.so
-	# disable detection of shared curses/tinfo
+	# disable detection of shared ncurses/tinfo
 	${RM} ${LOCALBASE}/lib/libtinfo.so
 	${RM} ${LOCALBASE}/lib/libncurses.so
+	# Use PIC versions of ncurses/tinfo instead of static
+	${MV} ${LOCALBASE}/lib/libtinfo_pic.a ${LOCALBASE}/lib/libtinfo.a
+	${MV} ${LOCALBASE}/lib/libncurses_pic.a ${LOCALBASE}/lib/libncurses.a
 
 [FILE:834:descriptions/desc.single]
 The LLVM Project is a collection of modular and reusable compiler and

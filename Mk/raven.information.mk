@@ -229,7 +229,6 @@ GSTREAMER1_GST=			1.0
 GSTREAMER1_SOVERSION=		0.2200.0
 XORG_VERSION=			7.7
 LLVM_VERSION=			15.0.7
-LLVM_13_VERSION=		13.0.1
 ZLIB_VERSION=			1.2.13
 GHOSTSCRIPT_VERSION=		10.00.0
 SPHINX_UNDERSCORE=		1.13.1
@@ -246,10 +245,11 @@ GNATCROSS_MIDNIGHTBSD_3=	12.3
 GNATCROSS_NETBSD_9=		9.2
 
 # ------------------------------------------------------------------------
-# Qt and Lumina versions
+# Qt and Qt-based desktops
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.15.6
 QT6_VERSION=			6.4.2
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
+KDE_FRAMEWORKS_VERSION=		5.102.0

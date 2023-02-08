@@ -28,7 +28,7 @@ BUILDRUN_DEPENDS=	icu:single:standard
 RUN_DEPENDS=		tesseract-data:latin:standard
 EXRUN[tools]=		tesseract:library:standard
 
-USES=			cpe autoreconf libtool fontconfig pkgconfig
+USES=			cpe autoreconf libtool fontconfig pkgconfig gettext
 			fortran:library,tools
 C_USES[freebsd]=	fortran:library
 
@@ -48,6 +48,9 @@ LDFLAGS=		-lpthread
 
 post-patch:
 	${REINPLACE_CMD} -e 's|-O3 -DNDEBUG||' ${WRKSRC}/configure.ac
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
 
 [FILE:291:descriptions/desc.library]
 The Tesseract OCR engine was one of the top 3 engines in the 1995 UNLV
