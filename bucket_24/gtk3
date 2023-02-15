@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtk3
 VERSION=		3.24.36
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Gimp Toolkit for X11 GUI
@@ -15,6 +16,7 @@ DIST_SUBDIR=		gnome3
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			nls
 			icon_cache
 
@@ -23,9 +25,9 @@ OPTIONS_STANDARD=	DBUS BROADWAY INTROSPECTION
 OPT_ON[all]=		DBUS BROADWAY INTROSPECTION
 
 BUILD_DEPENDS=		harfbuzz:dev:standard
-			dbus:dev:standard
 BUILDRUN_DEPENDS=	libepoxy:single:standard
 EXRUN[primary]=		gtk3:icon_cache:standard
+EXRUN[dev]=		at-spi2-atk:dev:standard
 EXRUN[icon_cache]=	gdk-pixbuf:primary:standard
 
 USES=			pkgconfig meson schemas:primary perl:build
@@ -67,7 +69,9 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 [CLOUDPRINT].CONFIGURE_ARGS_ON=		-Dcloudproviders=true
 
 [DBUS].DESCRIPTION=			AT-SPI ATK bridge support (requires dbus)
-[DBUS].BUILDRUN_DEPENDS_ON=		at-spi2-atk:single:standard
+[DBUS].BUILDRUN_DEPENDS_ON=		at-spi2-atk:primary:standard
+					dbus:primary:standard
+[DBUS].BUILD_DEPENDS_ON=		at-spi2-atk:dev:standard
 
 [COLORD].BROKEN_ON=			COLORD option not supported yet
 
@@ -110,29 +114,11 @@ third generation of the GIMP toolkit.
 27a6ef157743350c807ffea59baa1d70226dbede82a5e953ffd58ea6059fe691     12540184 gnome3/gtk+-3.24.36.tar.xz
 
 
-[FILE:10550:manifests/plist.primary]
+[FILE:2468:manifests/plist.primary]
 %%BROADWAY-ON%%bin/broadwayd
-%%BROADWAY-ON%%include/gtk-3.0/gdk/gdkbroadway.h
-%%BROADWAY-ON%%include/gtk-3.0/gdk/broadway/
- gdkbroadwaycursor.h
- gdkbroadwaydisplay.h
- gdkbroadwaymonitor.h
- gdkbroadwayvisual.h
- gdkbroadwaywindow.h
 %%BROADWAY-ON%%lib/gtk-3.0/%%GTK_VERSION%%/immodules/im-broadway.so
-%%BROADWAY-ON%%lib/pkgconfig/
- gdk-broadway-3.0.pc
- gtk+-broadway-3.0.pc
 %%CLOUDPRINT-ON%%lib/gtk-3.0/%%GTK_VERSION%%/printbackends/libprintbackend-cloudprint.so
 %%CUPS-ON%%lib/gtk-3.0/%%GTK_VERSION%%/printbackends/libprintbackend-cups.so
-%%INTROSPECTION-ON%%lib/girepository-1.0/
- Gdk-3.0.typelib
- GdkX11-3.0.typelib
- Gtk-3.0.typelib
-%%INTROSPECTION-ON%%share/gir-1.0/
- Gdk-3.0.gir
- GdkX11-3.0.gir
- Gtk-3.0.gir
 bin/
  gtk-builder-tool
  gtk-encode-symbolic-svg
@@ -144,6 +130,101 @@ bin/
  gtk3-icon-browser
  gtk3-widget-factory
 etc/gtk-3.0/im-multipress.conf
+lib/
+ libgailutil-3.so.0
+ libgailutil-3.so.0.0.0
+ libgdk-3.so.%%LIBVERSION%%
+ libgdk-3.so.0
+ libgtk-3.so.%%LIBVERSION%%
+ libgtk-3.so.0
+lib/gtk-3.0/%%GTK_VERSION%%/immodules/
+ im-am-et.so
+ im-cedilla.so
+ im-cyrillic-translit.so
+ im-inuktitut.so
+ im-ipa.so
+ im-multipress.so
+ im-thai.so
+ im-ti-er.so
+ im-ti-et.so
+ im-viqr.so
+ im-xim.so
+lib/gtk-3.0/%%GTK_VERSION%%/printbackends/
+ libprintbackend-file.so
+ libprintbackend-lpr.so
+share/applications/
+ gtk3-demo.desktop
+ gtk3-icon-browser.desktop
+ gtk3-widget-factory.desktop
+share/gettext/its/
+ gtkbuilder.its
+ gtkbuilder.loc
+share/glib-2.0/schemas/org.gtk.Settings.EmojiChooser.gschema.xml
+share/gtk-3.0/gtkbuilder.rng
+share/gtk-3.0/emoji/
+ de.gresource
+ es.gresource
+ fr.gresource
+ zh.gresource
+share/gtk-3.0/valgrind/gtk.supp
+share/icons/hicolor/16x16/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/22x22/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/24x24/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/256x256/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/32x32/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/48x48/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/themes/Default/gtk-3.0/gtk-keys.css
+share/themes/Emacs/gtk-3.0/gtk-keys.css
+@dir lib/gtk-3.0/%%GTK_VERSION%%/engines
+@dir lib/gtk-3.0/%%GTK_VERSION%%/loaders
+@dir lib/gtk-3.0/modules
+@postexec %D/bin/gtk-query-immodules-3.0 --update-cache > /dev/null 2>&1 || /usr/bin/true
+@rmtry lib/gtk-3.0/%%GTK_VERSION%%/immodules.cache
+
+
+[FILE:8087:manifests/plist.dev]
+%%BROADWAY-ON%%include/gtk-3.0/gdk/gdkbroadway.h
+%%BROADWAY-ON%%include/gtk-3.0/gdk/broadway/
+ gdkbroadwaycursor.h
+ gdkbroadwaydisplay.h
+ gdkbroadwaymonitor.h
+ gdkbroadwayvisual.h
+ gdkbroadwaywindow.h
+%%BROADWAY-ON%%lib/pkgconfig/
+ gdk-broadway-3.0.pc
+ gtk+-broadway-3.0.pc
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Gdk-3.0.typelib
+ GdkX11-3.0.typelib
+ Gtk-3.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Gdk-3.0.gir
+ GdkX11-3.0.gir
+ Gtk-3.0.gir
 include/gail-3.0/libgail-util/
  gail-util.h
  gailmisc.h
@@ -548,29 +629,8 @@ include/gtk-3.0/unix-print/gtk/
  gtkunixprint.h
 lib/
  libgailutil-3.so
- libgailutil-3.so.0
- libgailutil-3.so.0.0.0
  libgdk-3.so
- libgdk-3.so.%%LIBVERSION%%
- libgdk-3.so.0
  libgtk-3.so
- libgtk-3.so.%%LIBVERSION%%
- libgtk-3.so.0
-lib/gtk-3.0/%%GTK_VERSION%%/immodules/
- im-am-et.so
- im-cedilla.so
- im-cyrillic-translit.so
- im-inuktitut.so
- im-ipa.so
- im-multipress.so
- im-thai.so
- im-ti-er.so
- im-ti-et.so
- im-viqr.so
- im-xim.so
-lib/gtk-3.0/%%GTK_VERSION%%/printbackends/
- libprintbackend-file.so
- libprintbackend-lpr.so
 lib/pkgconfig/
  gail-3.0.pc
  gdk-3.0.pc
@@ -579,58 +639,6 @@ lib/pkgconfig/
  gtk+-unix-print-3.0.pc
  gtk+-x11-3.0.pc
 share/aclocal/gtk-3.0.m4
-share/applications/
- gtk3-demo.desktop
- gtk3-icon-browser.desktop
- gtk3-widget-factory.desktop
-share/gettext/its/
- gtkbuilder.its
- gtkbuilder.loc
-share/glib-2.0/schemas/org.gtk.Settings.EmojiChooser.gschema.xml
-share/gtk-3.0/gtkbuilder.rng
-share/gtk-3.0/emoji/
- de.gresource
- es.gresource
- fr.gresource
- zh.gresource
-share/gtk-3.0/valgrind/gtk.supp
-share/icons/hicolor/16x16/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/22x22/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/24x24/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/256x256/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/32x32/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/48x48/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/themes/Default/gtk-3.0/gtk-keys.css
-share/themes/Emacs/gtk-3.0/gtk-keys.css
-@dir lib/gtk-3.0/%%GTK_VERSION%%/engines
-@dir lib/gtk-3.0/%%GTK_VERSION%%/loaders
-@dir lib/gtk-3.0/modules
-@postexec %D/bin/gtk-query-immodules-3.0 --update-cache > /dev/null 2>&1 || /usr/bin/true
-@rmtry lib/gtk-3.0/%%GTK_VERSION%%/immodules.cache
 
 
 [FILE:7151:manifests/plist.nls]

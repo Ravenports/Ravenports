@@ -2,6 +2,7 @@
 
 NAMEBASE=		at-spi2-atk
 VERSION=		2.38.0
+REVISION=		1
 KEYWORDS=		accessibility x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Assisted Technology Provider module for GTK+
@@ -13,13 +14,18 @@ SITES[main]=		GNOME/at-spi2-atk/2.38
 DISTFILE[1]=		at-spi2-atk-2.38.0.tar.xz:main
 DIST_SUBDIR=		gnome3
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		dbus:dev:standard
+			at-spi2-core:dev:standard
 BUILDRUN_DEPENDS=	at-spi2-core:primary:standard
+EXRUN[dev]=		dbus:dev:standard
+			at-spi2-core:dev:standard
 
 USES=			cpe gmake libtool pkgconfig meson
 GNOME_COMPONENTS=	atk intltool
@@ -33,7 +39,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 			LDFLAGS=-lrt
 
-[FILE:290:descriptions/desc.single]
+[FILE:290:descriptions/desc.primary]
 This is the Gnome Accessibility Project's Assistive Technology
 Service Provider Interface.  It allows accessibility applications
 and assistive technologies to announce their respective existence
@@ -47,13 +53,16 @@ framework.
 cfa008a5af822b36ae6287f18182c40c91dd699c55faa38605881ed175ca464f        97464 gnome3/at-spi2-atk-2.38.0.tar.xz
 
 
-[FILE:247:manifests/plist.single]
-include/at-spi2-atk/2.0/atk-bridge.h
+[FILE:156:manifests/plist.primary]
 lib/
- libatk-bridge-2.0.so
  libatk-bridge-2.0.so.0
  libatk-bridge-2.0.so.0.0.0
 lib/gnome-settings-daemon-3.0/gtk-modules/at-spi2-atk.desktop
 lib/gtk-2.0/modules/libatk-bridge.so
+
+
+[FILE:94:manifests/plist.dev]
+include/at-spi2-atk/2.0/atk-bridge.h
+lib/libatk-bridge-2.0.so
 lib/pkgconfig/atk-bridge-2.0.pc
 

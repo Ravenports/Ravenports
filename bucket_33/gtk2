@@ -2,7 +2,7 @@
 
 NAMEBASE=		gtk2
 VERSION=		2.24.33
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Gimp Toolkit for X11 GUI
@@ -16,6 +16,7 @@ DIST_SUBDIR=		gnome2
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			nls
 
 OPTIONS_AVAILABLE=	CUPS INTROSPECTION
@@ -76,8 +77,103 @@ application suites.
 ac2ac757f5942d318a311a54b0c80b5ef295f299c2a73c632f6bfb1ff49cc6da     12661828 gnome2/gtk+-2.24.33.tar.xz
 
 
-[FILE:6473:manifests/plist.primary]
+[FILE:1847:manifests/plist.primary]
 %%CUPS-ON%%lib/gtk-2.0/%%GTK_VERSION%%/printbackends/libprintbackend-cups.so
+bin/
+ gtk-builder-convert
+ gtk-demo
+ gtk-query-immodules-2.0
+etc/gtk-2.0/im-multipress.conf
+lib/
+ libgailutil.so.%%LIBGAILVER%%
+ libgailutil.so.18
+ libgdk-x11-2.0.so.%%LIBVERSION%%
+ libgdk-x11-2.0.so.0
+ libgtk-x11-2.0.so.%%LIBVERSION%%
+ libgtk-x11-2.0.so.0
+lib/gtk-2.0/%%GTK_VERSION%%/engines/libpixmap.so
+lib/gtk-2.0/%%GTK_VERSION%%/immodules/
+ im-am-et.so
+ im-cedilla.so
+ im-cyrillic-translit.so
+ im-inuktitut.so
+ im-ipa.so
+ im-multipress.so
+ im-thai.so
+ im-ti-er.so
+ im-ti-et.so
+ im-viqr.so
+ im-xim.so
+lib/gtk-2.0/%%GTK_VERSION%%/printbackends/
+ libprintbackend-file.so
+ libprintbackend-lpr.so
+lib/gtk-2.0/modules/
+ libferret.so
+ libgail.so
+share/gtk-2.0/demo/
+ alphatest.png
+ apple-red.png
+ appwindow.c
+ assistant.c
+ background.jpg
+ builder.c
+ button_box.c
+ changedisplay.c
+ clipboard.c
+ colorsel.c
+ combobox.c
+ demo.ui
+ dialog.c
+ drawingarea.c
+ editable_cells.c
+ entry_buffer.c
+ entry_completion.c
+ expander.c
+ floppybuddy.gif
+ gnome-applets.png
+ gnome-calendar.png
+ gnome-foot.png
+ gnome-fs-directory.png
+ gnome-fs-regular.png
+ gnome-gimp.png
+ gnome-gmush.png
+ gnome-gsame.png
+ gnu-keys.png
+ gtk-logo-rgb.gif
+ hypertext.c
+ iconview.c
+ iconview_edit.c
+ images.c
+ infobar.c
+ links.c
+ list_store.c
+ menus.c
+ offscreen_window.c
+ offscreen_window2.c
+ panes.c
+ pickers.c
+ pixbufs.c
+ printing.c
+ rotated_text.c
+ search_entry.c
+ sizegroup.c
+ spinner.c
+ stock_browser.c
+ textscroll.c
+ textview.c
+ toolpalette.c
+ tree_store.c
+ ui_manager.c
+share/themes/Default/gtk-2.0-key/gtkrc
+share/themes/Emacs/gtk-2.0-key/gtkrc
+share/themes/Raleigh/gtk-2.0/gtkrc
+@dir lib/gtk-2.0/%%GTK_VERSION%%/loaders
+@dir lib/gtk-2.0/%%GTK_VERSION%%/modules
+@postexec %D/bin/gtk-query-immodules-2.0 --update-cache > /dev/null 2>&1 || /usr/bin/true
+@rmtry lib/gtk-2.0/%%GTK_VERSION%%/immodules.cache
+
+
+[FILE:4631:manifests/plist.dev]
 %%INTROSPECTION-ON%%lib/girepository-1.0/
  Gdk-2.0.typelib
  GdkX11-2.0.typelib
@@ -86,11 +182,6 @@ ac2ac757f5942d318a311a54b0c80b5ef295f299c2a73c632f6bfb1ff49cc6da     12661828 gn
  Gdk-2.0.gir
  GdkX11-2.0.gir
  Gtk-2.0.gir
-bin/
- gtk-builder-convert
- gtk-demo
- gtk-query-immodules-2.0
-etc/gtk-2.0/im-multipress.conf
 include/gail-1.0/gail/gailwidget.h
 include/gail-1.0/libgail-util/
  gail-util.h
@@ -356,33 +447,8 @@ include/gtk-unix-print-2.0/gtk/
  gtkunixprint.h
 lib/
  libgailutil.so
- libgailutil.so.%%LIBGAILVER%%
- libgailutil.so.18
  libgdk-x11-2.0.so
- libgdk-x11-2.0.so.%%LIBVERSION%%
- libgdk-x11-2.0.so.0
  libgtk-x11-2.0.so
- libgtk-x11-2.0.so.%%LIBVERSION%%
- libgtk-x11-2.0.so.0
-lib/gtk-2.0/%%GTK_VERSION%%/engines/libpixmap.so
-lib/gtk-2.0/%%GTK_VERSION%%/immodules/
- im-am-et.so
- im-cedilla.so
- im-cyrillic-translit.so
- im-inuktitut.so
- im-ipa.so
- im-multipress.so
- im-thai.so
- im-ti-er.so
- im-ti-et.so
- im-viqr.so
- im-xim.so
-lib/gtk-2.0/%%GTK_VERSION%%/printbackends/
- libprintbackend-file.so
- libprintbackend-lpr.so
-lib/gtk-2.0/modules/
- libferret.so
- libgail.so
 lib/pkgconfig/
  gail.pc
  gdk-2.0.pc
@@ -391,67 +457,6 @@ lib/pkgconfig/
  gtk+-unix-print-2.0.pc
  gtk+-x11-2.0.pc
 share/aclocal/gtk-2.0.m4
-share/gtk-2.0/demo/
- alphatest.png
- apple-red.png
- appwindow.c
- assistant.c
- background.jpg
- builder.c
- button_box.c
- changedisplay.c
- clipboard.c
- colorsel.c
- combobox.c
- demo.ui
- dialog.c
- drawingarea.c
- editable_cells.c
- entry_buffer.c
- entry_completion.c
- expander.c
- floppybuddy.gif
- gnome-applets.png
- gnome-calendar.png
- gnome-foot.png
- gnome-fs-directory.png
- gnome-fs-regular.png
- gnome-gimp.png
- gnome-gmush.png
- gnome-gsame.png
- gnu-keys.png
- gtk-logo-rgb.gif
- hypertext.c
- iconview.c
- iconview_edit.c
- images.c
- infobar.c
- links.c
- list_store.c
- menus.c
- offscreen_window.c
- offscreen_window2.c
- panes.c
- pickers.c
- pixbufs.c
- printing.c
- rotated_text.c
- search_entry.c
- sizegroup.c
- spinner.c
- stock_browser.c
- textscroll.c
- textview.c
- toolpalette.c
- tree_store.c
- ui_manager.c
-share/themes/Default/gtk-2.0-key/gtkrc
-share/themes/Emacs/gtk-2.0-key/gtkrc
-share/themes/Raleigh/gtk-2.0/gtkrc
-@dir lib/gtk-2.0/%%GTK_VERSION%%/loaders
-@dir lib/gtk-2.0/%%GTK_VERSION%%/modules
-@postexec %D/bin/gtk-query-immodules-2.0 --update-cache > /dev/null 2>&1 || /usr/bin/true
-@rmtry lib/gtk-2.0/%%GTK_VERSION%%/immodules.cache
 
 
 [FILE:6364:manifests/plist.nls]
