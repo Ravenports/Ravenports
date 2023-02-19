@@ -2,6 +2,7 @@
 
 NAMEBASE=		libsoup
 VERSION=		3.2.2
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Simple Object Access Protocol implementation in C
@@ -14,6 +15,7 @@ DISTFILE[1]=		libsoup-3.2.2.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			nls
 			docs
 
@@ -28,6 +30,7 @@ BUILDRUN_DEPENDS=	brotli:single:standard
 			libnghttp2:primary:standard
 			krb5:primary:standard
 RUN_DEPENDS=		libgcrypt:single:standard
+EXRUN[dev]=		libnghttp2:dev:standard
 
 USES=			gmake libtool pkgconfig sqlite meson cpe
 GNOME_COMPONENTS=	glib intltool libxml2
@@ -80,7 +83,14 @@ work well with GTK applications.
 83673c685b910fb7d39f1f28eee5afbefb71c05798fc350ac3bf1b885e1efaa1      1530460 libsoup-3.2.2.tar.xz
 
 
-[FILE:1288:manifests/plist.primary]
+[FILE:85:manifests/plist.primary]
+lib/
+ libsoup-%%LIBVERSION%%.so.%%SOMAJOR%%
+ libsoup-%%LIBVERSION%%.so.%%SOVERSION%%
+
+
+[FILE:1206:manifests/plist.dev]
+lib/pkgconfig/libsoup-%%LIBVERSION%%.pc
 %%INTROSPECTION-ON%%lib/girepository-1.0/Soup-%%LIBVERSION%%.typelib
 %%INTROSPECTION-ON%%share/gir-1.0/Soup-%%LIBVERSION%%.gir
 %%INTROSPECTION-ON%%share/vala/vapi/
@@ -130,11 +140,7 @@ include/libsoup-%%LIBVERSION%%/libsoup/
  soup-websocket-extension.h
  soup-websocket.h
  soup.h
-lib/
- libsoup-%%LIBVERSION%%.so
- libsoup-%%LIBVERSION%%.so.%%SOMAJOR%%
- libsoup-%%LIBVERSION%%.so.%%SOVERSION%%
-lib/pkgconfig/libsoup-%%LIBVERSION%%.pc
+lib/libsoup-%%LIBVERSION%%.so
 
 
 [FILE:3715:manifests/plist.nls]

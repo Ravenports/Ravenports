@@ -52,7 +52,7 @@ LDFLAGS=		-lpthread
 			-L{{LOCALBASE}}/libressl/lib
 
 [STATIC].DESCRIPTION=			Build version for raven sysroots
-[STATIC].BUILD_DEPENDS_ON=		libressl:single:static
+[STATIC].BUILD_DEPENDS_ON=		libressl:dev:standard
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 					--enable-static=yes
 [STATIC].LDFLAGS_OFF=			-Wl,-rpath,{{LOCALBASE}}/libressl/lib
@@ -63,7 +63,7 @@ LDFLAGS=		-lpthread
 					xz:build
 
 [RAVENSW].DESCRIPTION=			Build zstd-only version for ravensw
-[RAVENSW].BUILD_DEPENDS_ON=		libressl:single:static
+[RAVENSW].BUILD_DEPENDS_ON=		libressl:dev:standard
 [RAVENSW].CONFIGURE_ARGS_ON=		--enable-shared=yes
 					--enable-static=yes
 					--without-zlib
@@ -79,7 +79,8 @@ LDFLAGS=		-lpthread
 					expat
 
 [EXTENDED].DESCRIPTION=			Build loaded version (common + lzo + lz4)
-[EXTENDED].BUILDRUN_DEPENDS_ON=		libressl:single:standard
+[EXTENDED].BUILDRUN_DEPENDS_ON=		libressl:primary:standard
+[EXTENDED].BUILD_DEPENDS_ON=		libressl:dev:standard
 [EXTENDED].CONFIGURE_ARGS_ON=		--enable-shared=yes
 					--with-lzo2
 					--with-lz4
@@ -92,7 +93,8 @@ LDFLAGS=		-lpthread
 					xz
 
 [NOT_STD].DESCRIPTION=			Don't build common user version
-[NOT_STD].BUILDRUN_DEPENDS_OFF=		libressl:single:standard
+[NOT_STD].BUILDRUN_DEPENDS_OFF=		libressl:primary:standard
+[NOT_STD].BUILD_DEPENDS_OFF=		libressl:dev:standard
 [NOT_STD].CONFIGURE_ARGS_OFF=		--enable-shared=yes
 [NOT_STD].USES_OFF=			zstd
 					expat
@@ -111,6 +113,7 @@ pre-configure-STATIC-ON:
 	${RM} ${LOCALBASE}/lib/libbz2.so
 	${RM} ${LOCALBASE}/lib/libexpat.so
 	${RM} ${LOCALBASE}/lib/liblzma.so
+	${RM} ${LOCALBASE}/libressl/lib*.so
 
 do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} check)
@@ -118,6 +121,7 @@ do-test:
 post-install-RAVENSW-ON:
 	${RM} -r ${STAGEDIR}${MANPREFIX}/man/man[135]
 	${RM} ${STAGEDIR}${PREFIX}/lib/libarchive.so*
+	${RM} ${LOCALBASE}/libressl/lib*.so
 	# install our PIC library
 	${INSTALL_DATA} ${WRKSRC}/libarchive/.libs/libarchive_pic.a \
 		${STAGEDIR}${PREFIX}/lib/

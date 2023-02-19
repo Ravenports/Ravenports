@@ -20,10 +20,10 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		libressl:single:static
+BUILD_DEPENDS=		libressl:primary:standard
 BUILDRUN_DEPENDS=	nspr:single:standard
 
-USES=			cpe gmake perl:build sqlite zlib
+USES=			cpe gmake perl:build sqlite zlib ssl:build
 
 DISTNAME=		nss-3.88.1/nss
 
@@ -58,7 +58,11 @@ VAR_OPSYS[sunos]=	MAKE_ENV=NS_USE_GCC=1
 VAR_OPSYS[linux]=	MAKE_ENV=RPATH=-Wl,-rpath,{{PREFIX}}/lib/nss
 VAR_ARCH[x86_64]=	MAKE_ENV=USE_64=1
 
-post-patch:
+post-build:
+	${SETENV} ${MAKE_ENV} ${PERL} ${WRKDIR}/MAca-bundle.pl \
+		< ${WRKSRC}/lib/ckfw/builtins/certdata.txt > ${WRKDIR}/ca-root-nss.crt
+
+pre-configure:
 	${REINPLACE_CMD} '/NSS_DEFAULT_SYSTEM/s,/etc,${PREFIX}&,' \
 		${WRKSRC}/lib/sysinit/nsssysinit.c
 	(cd ${WRKSRC} && \
@@ -69,10 +73,8 @@ post-patch:
 		${XARGS} ${GREP} -l -F '/bin/bash' | \
 		${XARGS} ${REINPLACE_CMD} -e 's|#! */bin/bash|#!${SH}|'
 	${REINPLACE_CMD} -e 's/@OS_RELEASE@/${OSREL}/' ${WRKSRC}/coreconf/arch.mk
-
-post-build:
-	${SETENV} ${MAKE_ENV} ${PERL} ${WRKDIR}/MAca-bundle.pl \
-		< ${WRKSRC}/lib/ckfw/builtins/certdata.txt > ${WRKDIR}/ca-root-nss.crt
+	# prevent attempt to link to shared ssl libraries
+	${RM} ${LOCALBASE}/libressl/lib*.so
 
 do-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/include/nss/nss \

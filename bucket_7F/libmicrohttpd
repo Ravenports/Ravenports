@@ -2,6 +2,7 @@
 
 NAMEBASE=		libmicrohttpd
 VERSION=		0.9.75
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		standard
 SDESC[standard]=	Small C library to run an HTTP server
@@ -12,25 +13,29 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/libmicrohttpd
 DISTFILE[1]=		libmicrohttpd-0.9.75.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		gnutls:dev:standard
 BUILDRUN_DEPENDS=	gnutls:primary:standard
 			libgcrypt:single:standard
 
 USES=			cpe libtool makeinfo
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"CONNECTION_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/microhttpd/connection.h
 LICENSE_SCHEME=		solo
 
-INFO=			single:libmicrohttpd
-			single:libmicrohttpd-tutorial
+INFO=			man:libmicrohttpd
+			man:libmicrohttpd-tutorial
 CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		www/libmicrohttpd
 INFO_SUBDIR=		.
@@ -48,7 +53,7 @@ post-patch-dragonfly:
 		${WRKSRC}/configure
 	${TOUCH} ${WRKSRC}/configure -r ${WRKSRC}/Makefile
 
-[FILE:286:descriptions/desc.single]
+[FILE:286:descriptions/desc.primary]
 libmicrohttpd is a small C library for embedding  HTTP server functionality
 into other  applications. It is reentrant, fast, supports HTTP 1.1, and
 permits listening on multiple ports. The API is simple and still powerful
@@ -59,14 +64,21 @@ enough to allow programmers to use the entire HTTP feature set.
 9278907a6f571b391aab9644fd646a5108ed97311ec66f6359cebbedb0a4e3bb      1952076 libmicrohttpd-0.9.75.tar.gz
 
 
-[FILE:234:manifests/plist.single]
-include/microhttpd.h
+[FILE:113:manifests/plist.primary]
 share/info/libmicrohttpd_performance_data.png
+lib/
+ libmicrohttpd.so.%%SOMAJOR%%
+ libmicrohttpd.so.%%SOVERSION%%
+
+
+[FILE:92:manifests/plist.dev]
+include/microhttpd.h
 lib/
  libmicrohttpd.a
  libmicrohttpd.so
- libmicrohttpd.so.%%SOMAJOR%%
- libmicrohttpd.so.%%SOVERSION%%
 lib/pkgconfig/libmicrohttpd.pc
+
+
+[FILE:34:manifests/plist.man]
 share/man/man3/libmicrohttpd.3.gz
 

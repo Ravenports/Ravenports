@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-server
 VERSION=		21.1.7
+REVISION=		1
 KEYWORDS=		x11_servers
 VARIANTS=		standard virtual xephyr nest
 SDESC[xephyr]=		X server from X.Org based on kdrive
@@ -30,9 +31,10 @@ VOPTS[nest]=		XORG=OFF VIRTUAL=OFF XEPHYR=OFF NEST=ON DEVD=OFF
 			SUID=OFF
 OPT_ON[all]=		XORG SUID
 
-BUILD_DEPENDS=		xorg-fontutil:single:standard
-			xorg-xkbfile:single:standard
+BUILD_DEPENDS=		libdrm:dev:standard
 			libgpg-error:dev:standard
+			xorg-fontutil:single:standard
+			xorg-xkbfile:single:standard
 BUILDRUN_DEPENDS=	xorg-xcvt:single:standard
 RUN_DEPENDS=		xorg-xkeyboard-config:primary:standard
 			xorg-xkbcomp:single:standard
@@ -74,7 +76,7 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 					xext
 
 [XEPHYR].DESCRIPTION=			Build as kdrive-base X server
-[XEPHYR].BUILDRUN_DEPENDS_ON=		libdrm:single:standard
+[XEPHYR].BUILDRUN_DEPENDS_ON=		libdrm:primary:standard
 					libepoxy:single:standard
 					libglvnd:single:standard
 [XEPHYR].BUILD_DEPENDS_ON=		mesa:drivers:standard
@@ -97,11 +99,11 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 [VIRTUAL].CONFIGURE_ARGS_ON=		-Dxvfb=true
 
 [XORG].DESCRIPTION=			Build as X server (don't change setting!)
-[XORG].BUILDRUN_DEPENDS_ON=		libdrm:single:standard
+[XORG].BUILDRUN_DEPENDS_ON=		libdrm:primary:standard
 					libepoxy:single:standard
 					mesa:drivers:standard
-[XORG].BUILD_DEPENDS_ON=		xorg-sgml-doctools:single:standard
-					xmlto:single:standard
+[XORG].BUILD_DEPENDS_ON=		xmlto:single:standard
+					xorg-sgml-doctools:single:standard
 [XORG].CONFIGURE_ARGS_OFF=		-Ddocs=false
 					-Ddevel-docs=false
 					-Dxorg=false

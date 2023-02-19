@@ -2,6 +2,7 @@
 
 NAMEBASE=		openssl10
 VERSION=		1.0.2u
+REVISION=		1
 KEYWORDS=		security devel
 VARIANTS=		standard
 SDESC[standard]=	SSL and crypto library
@@ -12,14 +13,15 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.openssl.org/source/
 DISTFILE[1]=		openssl-1.0.2u.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
-OPTIONS_AVAILABLE=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386
-			THREADS
-OPTIONS_STANDARD=	SKIP_MANPAGES ASM EC SHARED SSE2 SSL2 SSL3 I386
-			THREADS
+OPTIONS_AVAILABLE=	ASM EC SSE2 SSL2 SSL3 I386 THREADS
+OPTIONS_STANDARD=	ASM EC SSE2 SSL2 SSL3 I386 THREADS
 OPT_ON[x86_64]=		ASM EC
-OPT_ON[all]=		SHARED SSE2 SSL2 SSL3 THREADS
+OPT_ON[all]=		SSE2 SSL2 SSL3 THREADS
 OPT_ON[i386]=		I386
 
 RUN_DEPENDS=		autoselect-ssl:single:standard
@@ -28,7 +30,7 @@ USES=			cpe perl:build
 
 DISTNAME=		openssl-1.0.2u
 
-LICENSE=		OpenSSL:single
+LICENSE=		OpenSSL:primary
 LICENSE_FILE=		OpenSSL:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -41,14 +43,17 @@ CONFIGURE_ARGS=		no-md2
 			no-rfc3779
 			no-sctp
 			no-gmp
+			shared
 
 MAKE_ARGS=		WHOLE_ARCHIVE_FLAG=--whole-archive
 MAKE_ENV=		LIBRPATH="{{BASE}}/lib"
 			GREP_OPTIONS=
+			SHLIBVER=9
 SINGLE_JOB=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		BASE=openssl10
+			SHLIBVER=9
 
 VAR_OPSYS[sunos]=	VAR1=MACHINE=x86_64
 
@@ -64,15 +69,8 @@ VAR_OPSYS[sunos]=	VAR1=MACHINE=x86_64
 [THREADS].CONFIGURE_ARGS_OFF=		no-threads
 [THREADS].CONFIGURE_ARGS_ON=		threads
 
-[SHARED].DESCRIPTION=			Build shared libs
-[SHARED].CONFIGURE_ARGS_ON=		shared
-[SHARED].MAKE_ENV_ON=			SHLIBVER=9
-[SHARED].PLIST_SUB_ON=			SHLIBVER=9
-
 [SSE2].DESCRIPTION=			Runtime SSE2 detection
 [SSE2].CONFIGURE_ARGS_OFF=		no-sse2
-
-[SKIP_MANPAGES].DESCRIPTION=		Avoid installing OpenSSL manpages
 
 [SSL2].DESCRIPTION=			SSLv2 protocol support
 [SSL2].CONFIGURE_ARGS_OFF=		no-ssl2
@@ -91,24 +89,18 @@ post-patch:
 	${REINPLACE_CMD} -e 's|ERR_R_MALLOC_ERROR|ERR_R_MALLOC_FAILURE|' \
 		${WRKSRC}/crypto/bio/bss_dgram.c
 
-post-install-SHARED-OFF:
-	${RMDIR} ${STAGEDIR}${PREFIX}/openssl10/lib/engines
-
-post-install-SHARED-ON:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl10/bin/openssl
 .for i in libcrypto libssl
 	${INSTALL_LIB} ${WRKSRC}/$i.so.9 ${STAGEDIR}${PREFIX}/openssl10/lib
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl10/lib/$i.so.9
 	${LN} -sf $i.so.9 ${STAGEDIR}${PREFIX}/openssl10/lib/$i.so
 .endfor
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl10/lib/engines/*.so
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl10/bin/openssl
-
-post-patch-SKIP_MANPAGES-ON:
-	${GREP} -L openssl_manual_section ${WRKSRC}/doc/crypto/*.pod | ${XARGS} ${RM}
-	${RM} -r ${WRKSRC}/doc/ssl/*.pod
-	${REINPLACE_CMD} -e 's|pod doc/ssl/\*\.pod|pod|' ${WRKSRC}/Makefile.org
+	# Handle man pages
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/man.d
+	${ECHO_CMD} "MANPATH ${PREFIX}/openssl10/share/man" \
+		>> ${STAGEDIR}${PREFIX}/etc/man.d/openssl10.conf
 
 do-configure:
 	${REINPLACE_CMD} -e "s|options 386|options|" ${WRKSRC}/config
@@ -125,14 +117,6 @@ post-configure:
 		-e 's|LIBVERSION=[^ ]* |LIBVERSION=9 |' \
 		${WRKSRC}/Makefile
 
-post-install-SKIP_MANPAGES-ON:
-	${RM} -r ${STAGEDIR}${MANPREFIX}/man
-
-post-install-SKIP_MANPAGES-OFF:
-	${MKDIR} ${STAGEDIR}${PREFIX}/etc/man.d
-	${ECHO_CMD} "MANPATH ${PREFIX}/openssl10/share/man" \
-		>> ${STAGEDIR}${PREFIX}/etc/man.d/openssl10.conf
-
 post-patch-freebsd:
 	${REINPLACE_CMD} -e '/define HAVE_CRYPTODEV/d' \
 		${WRKSRC}/crypto/engine/eng_cryptodev.c
@@ -141,7 +125,7 @@ post-patch-SSL3-OFF:
 	${REINPLACE_CMD} -e '/for protocol in TLSv1.2 SSLv3;/ s/ SSLv3//' \
 		${WRKSRC}/test/testssl
 
-[FILE:737:descriptions/desc.single.standard]
+[FILE:737:descriptions/desc.primary]
 The OpenSSL Project is a collaborative effort to develop a robust,
 commercial-grade, full-featured, and Open Source toolkit implementing
 the Secure Sockets Layer (SSL v2/v3) and Transport Layer Security
@@ -161,11 +145,50 @@ to some simple license conditions.
 ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16      5355412 openssl-1.0.2u.tar.gz
 
 
-[FILE:42216:manifests/plist.single]
+[FILE:511:manifests/plist.primary]
 @sample etc/%%BASE%%/openssl.cnf.sample
 %%BASE%%/bin/
  c_rehash
  openssl
+%%BASE%%/lib/
+ libcrypto.so.%%SHLIBVER%%
+ libssl.so.%%SHLIBVER%%
+%%BASE%%/lib/engines/
+ lib4758cca.so
+ libaep.so
+ libatalla.so
+ libcapi.so
+ libchil.so
+ libcswift.so
+ libgmp.so
+ libgost.so
+ libnuron.so
+ libpadlock.so
+ libsureware.so
+ libubsec.so
+etc/%%BASE%%/misc/
+ CA.pl
+ CA.sh
+ c_hash
+ c_info
+ c_issuer
+ c_name
+ tsget
+@dir etc/%%BASE%%/certs
+@dir etc/%%BASE%%/private
+@rmtry %%BASE%%/share/man/mandoc.db
+@rmtry %%BASE%%/share/man/whatis
+
+
+[FILE:843:manifests/plist.dev]
+%%BASE%%/lib/
+ libssl.so
+%%BASE%%/lib/pkgconfig/
+ libcrypto.pc
+ libssl.pc
+ openssl.pc
+%%BASE%%/lib/
+ libcrypto.so
 %%BASE%%/include/openssl/
  aes.h
  asn1.h
@@ -245,29 +268,10 @@ ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16      5355412 op
 %%BASE%%/lib/
  libcrypto.a
  libssl.a
-%%BASE%%/lib/pkgconfig/
- libcrypto.pc
- libssl.pc
- openssl.pc
-%%SHARED-ON%%%%BASE%%/lib/
- libcrypto.so
- libcrypto.so.%%SHLIBVER%%
- libssl.so
- libssl.so.%%SHLIBVER%%
-%%SHARED-ON%%%%BASE%%/lib/engines/
- lib4758cca.so
- libaep.so
- libatalla.so
- libcapi.so
- libchil.so
- libcswift.so
- libgmp.so
- libgost.so
- libnuron.so
- libpadlock.so
- libsureware.so
- libubsec.so
-%%SKIP_MANPAGES-OFF%%%%BASE%%/share/man/man1/
+
+
+[FILE:40759:manifests/plist.man]
+%%BASE%%/share/man/man1/
  CA.pl.1.gz
  asn1parse.1.gz
  c_rehash.1.gz
@@ -367,7 +371,7 @@ ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16      5355412 op
  verify.1.gz
  version.1.gz
  x509.1.gz
-%%SKIP_MANPAGES-OFF%%%%BASE%%/share/man/man3/
+%%BASE%%/share/man/man3/
  ASN1_OBJECT_free.3.gz
  ASN1_OBJECT_new.3.gz
  ASN1_STRING_cmp.3.gz
@@ -1956,23 +1960,11 @@ ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16      5355412 op
  ui.3.gz
  ui_compat.3.gz
  x509.3.gz
-%%SKIP_MANPAGES-OFF%%%%BASE%%/share/man/man5/
+%%BASE%%/share/man/man5/
  config.5.gz
  x509v3_config.5.gz
-%%SKIP_MANPAGES-OFF%%%%BASE%%/share/man/man7/des_modes.7.gz
-%%SKIP_MANPAGES-OFF%%etc/man.d/%%BASE%%.conf
-etc/%%BASE%%/misc/
- CA.pl
- CA.sh
- c_hash
- c_info
- c_issuer
- c_name
- tsget
-@dir etc/%%BASE%%/certs
-@dir etc/%%BASE%%/private
-@rmtry %%BASE%%/share/man/mandoc.db
-@rmtry %%BASE%%/share/man/whatis
+%%BASE%%/share/man/man7/des_modes.7.gz
+etc/man.d/%%BASE%%.conf
 
 
 [FILE:7379:patches/patch-Configure]
