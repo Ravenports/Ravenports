@@ -559,6 +559,8 @@ DF_INDEX=		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 			261 262 263 264
 SPKGS[standard]=	complete
 			primary
+			dev
+			man
 			docs
 
 OPTIONS_AVAILABLE=	INTROSPECTION
@@ -568,6 +570,7 @@ OPT_ON[all]=		INTROSPECTION
 BUILD_DEPENDS=		python-docutils:single:python_default
 			harfbuzz:dev:standard
 BUILDRUN_DEPENDS=	freetype:primary:standard
+EXRUN[dev]=		cairo:dev:standard
 
 USES=			cpe gmake gtk-doc png libtool pkgconfig perl:build
 			python:build cargo execinfo
@@ -902,10 +905,20 @@ c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680       661999 ru
 38e47154248a2dba5ca6965e26b1a59146210736ea9b862362b6d72682e57f8d         5763 rust/crates/yeslogic-fontconfig-sys-2.11.2.tar.gz
 
 
-[FILE:840:manifests/plist.primary]
+[FILE:537:manifests/plist.primary]
+bin/rsvg-convert
+lib/
+ librsvg-2.so.%%SOMAJOR%%
+ librsvg-2.so.%%SOVERSION%%
+lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/libpixbufloader-svg.so
+share/thumbnailers/librsvg.thumbnailer
+@postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
+@postunexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
+
+
+[FILE:315:manifests/plist.dev]
 %%INTROSPECTION-ON%%lib/girepository-1.0/Rsvg-2.0.typelib
 %%INTROSPECTION-ON%%share/gir-1.0/Rsvg-2.0.gir
-bin/rsvg-convert
 include/librsvg-2.0/librsvg/
  rsvg-cairo.h
  rsvg-features.h
@@ -914,16 +927,12 @@ include/librsvg-2.0/librsvg/
 lib/
  librsvg-2.a
  librsvg-2.so
- librsvg-2.so.%%SOMAJOR%%
- librsvg-2.so.%%SOVERSION%%
-lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/
- libpixbufloader-svg.a
- libpixbufloader-svg.so
+lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/libpixbufloader-svg.a
 lib/pkgconfig/librsvg-2.0.pc
+
+
+[FILE:33:manifests/plist.man]
 share/man/man1/rsvg-convert.1.gz
-share/thumbnailers/librsvg.thumbnailer
-@postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
-@postunexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
 
 
 [FILE:3447:manifests/plist.docs]

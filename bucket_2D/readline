@@ -2,6 +2,7 @@
 
 NAMEBASE=		readline
 VERSION=		8.2.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Library for editing command lines during typing
@@ -14,7 +15,12 @@ SITES[patches]=		GNU/readline/readline-8.2-patches
 DISTFILE[1]=		readline-8.2.tar.gz:main
 DISTFILE[2]=		readline82-001:patches
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
+			examples
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -23,16 +29,16 @@ USES=			cpe ncurses
 
 DISTNAME=		readline-8.2
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"_READLINE_H_"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/readline.h
 LICENSE_SCHEME=		solo
 
-INFO=			single:history
-			single:readline
-			single:rluserman
+INFO=			dev:history
+			dev:readline
+			dev:rluserman
 CPE_UPDATE=		1
 CPE_VENDOR=		gnu
 CPE_VERSION=		8.2
@@ -49,11 +55,14 @@ SOVERSION=		8.2
 CFLAGS=			-I{{NCURSESINC}}
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libhistory.${LIBEXT} \
-		${STAGEDIR}${PREFIX}/lib/libreadline.${LIBEXT}
-	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libhistory.so \
+		${STAGEDIR}${PREFIX}/lib/libreadline.so
+	# relocate examples
+	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
+	${MV} ${STAGEDIR}${PREFIX}/share/readline/* ${STAGEDIR}${STD_EXAMPLESDIR}/
+	${RMDIR} ${STAGEDIR}${PREFIX}/share/readline
 
-[FILE:395:descriptions/desc.single]
+[FILE:395:descriptions/desc.primary]
 The GNU Readline library provides a set of functions for use by
 applications that allow users to edit command lines as they are typed in.
 Both Emacs and vi editing modes are available. The Readline library
@@ -67,7 +76,15 @@ csh-like history expansion on previous commands.
 bbf97f1ec40a929edab5aa81998c1e2ef435436c597754916e6a5868f273aff7         1198 readline82-001
 
 
-[FILE:603:manifests/plist.single]
+[FILE:119:manifests/plist.primary]
+lib/
+ libhistory.so.%%SOMAJOR%%
+ libhistory.so.%%SOVERSION%%
+ libreadline.so.%%SOMAJOR%%
+ libreadline.so.%%SOVERSION%%
+
+
+[FILE:212:manifests/plist.dev]
 include/readline/
  chardefs.h
  history.h
@@ -80,19 +97,21 @@ include/readline/
 lib/
  libhistory.a
  libhistory.so
- libhistory.so.%%SOMAJOR%%
- libhistory.so.%%SOVERSION%%
  libreadline.a
  libreadline.so
- libreadline.so.%%SOMAJOR%%
- libreadline.so.%%SOVERSION%%
 lib/pkgconfig/
  history.pc
  readline.pc
+
+
+[FILE:45:manifests/plist.man]
 share/man/man3/
  history.3.gz
  readline.3.gz
-share/readline/
+
+
+[FILE:241:manifests/plist.examples]
+share/examples/readline/
  excallback.c
  fileman.c
  hist_erasedups.c
@@ -110,6 +129,13 @@ share/readline/
  rlptytest.c
  rltest.c
  rlversion.c
+
+
+[FILE:46:manifests/plist.docs]
+share/doc/readline/
+ CHANGES
+ INSTALL
+ README
 
 
 [FILE:682:patches/patch-support_shlib-install]

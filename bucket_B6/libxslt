@@ -13,7 +13,10 @@ SITES[main]=		GNOME/libxslt/1.1
 DISTFILE[1]=		libxslt-1.1.37.tar.xz:main
 DIST_SUBDIR=		gnome2
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -25,7 +28,7 @@ BUILDRUN_DEPENDS=	libgpg-error:primary:standard
 USES=			cpe gmake libtool pkgconfig
 GNOME_COMPONENTS=	libxml2
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -40,15 +43,16 @@ CONFIGURE_ARGS=		--with-html-dir={{PREFIX}}/share/doc
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
-PLIST_SUB=		XSLTVERSION=1.1.37
-			EXSLTVERSION=0.8.20
+SOVERSION=		1.1.37
+PLIST_SUB=		EXSLTSOVERSION=0.8.20
+			EXSLTSOMAJOR=0
 
 post-install:
 	# docs are disabled via patch
 	${INSTALL_MAN} ${WRKSRC}/doc/xsltproc.1 \
 		${STAGEDIR}${MANPREFIX}/man/man1/
 
-[FILE:462:descriptions/desc.single]
+[FILE:462:descriptions/desc.primary]
 Libxslt is the XSLT C library developed for the GNOME project.  XSLT
 itself is a an XML language to define transformation for XML.  Libxslt is
 based on libxml2, the XML C library developed for the GNOME project.  It
@@ -63,10 +67,20 @@ the command line processing tool.
 3a4b27dc8027ccd6146725950336f1ec520928f320f144eb5fa7990ae6123ab4      1588572 gnome2/libxslt-1.1.37.tar.xz
 
 
-[FILE:749:manifests/plist.single]
+[FILE:183:manifests/plist.primary]
 bin/
  xslt-config
  xsltproc
+lib/
+ libexslt.so.%%EXSLTSOMAJOR%%
+ libexslt.so.%%EXSLTSOVERSION%%
+ libxslt.so.%%SOMAJOR%%
+ libxslt.so.%%SOVERSION%%
+ xsltConf.sh
+@dir lib/libxslt-plugins
+
+
+[FILE:522:manifests/plist.dev]
 include/libexslt/
  exslt.h
  exsltconfig.h
@@ -96,13 +110,8 @@ include/libxslt/
 lib/
  libexslt.a
  libexslt.so
- libexslt.so.%%EXSLTVERSION%%
- libexslt.so.0
  libxslt.a
  libxslt.so
- libxslt.so.%%XSLTVERSION%%
- libxslt.so.1
- xsltConf.sh
 lib/cmake/libxslt/
  FindGcrypt.cmake
  libxslt-config.cmake
@@ -110,11 +119,13 @@ lib/pkgconfig/
  libexslt.pc
  libxslt.pc
 share/aclocal/libxslt.m4
+
+
+[FILE:74:manifests/plist.man]
 share/man/man1/xsltproc.1.gz
 share/man/man3/
  libexslt.3.gz
  libxslt.3.gz
-@dir lib/libxslt-plugins
 
 
 [FILE:507:patches/patch-Makefile.in]

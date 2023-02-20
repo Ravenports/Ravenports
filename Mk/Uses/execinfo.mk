@@ -2,7 +2,7 @@
 #
 # Feature:	execinfo
 # Usage:	USES=execinfo
-# Valid ARGS:	none or build
+# Valid ARGS:	buildrun (implicit), build
 
 .if !defined(_INCLUDE_USES_EXECINFO_MK)
 _INCLUDE_USES_EXECINFO_MK=	yes
@@ -10,9 +10,13 @@ _INCLUDE_USES_EXECINFO_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	libexecinfo:single:standard
-# if "build" argument is present:
-# BUILD_DEPENDS+=	libexecinfo:single:standard
+#.if ${zstd_ARGS:Mbuild}
+# BUILD_DEPENDS+=	libexecinfo:dev:standard
+#.else
+# BUILD_DEPENDS+=	libexecinfo:dev:standard
+# BUILDRUN_DEPENDS+=	libexecinfo:primary:standard
+#.endif
+#
 # NOTE: On Darwin, this module is a no-op.
 #       libexec requires ELF-formatted files,
 #       while MacOS uses Mach-O format

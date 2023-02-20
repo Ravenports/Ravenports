@@ -12,21 +12,24 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://cairographics.org/releases/
 DISTFILE[1]=		cairomm-1.16.2.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		glib:dev:standard
 BUILDRUN_DEPENDS=	freetype:primary:standard
-			libsigcxx:primary:standard
+EXRUN[dev]=		fontconfig:dev:standard
+			libsigcxx:dev:standard
 
 USES=			gmake pkgconfig png meson zlib:build
-GNOME_COMPONENTS=	cairo
+GNOME_COMPONENTS=	cairo libsigc++30
 XORG_COMPONENTS=	x11 xext xrender
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/cairomm/cairomm.h
@@ -40,7 +43,7 @@ MESON_ARGS=		-Dbuild-documentation=false
 SOVERSION=		1.4.0
 PLIST_SUB=		API=1.16
 
-[FILE:44:descriptions/desc.single]
+[FILE:44:descriptions/desc.primary]
 C++ interface to cairo 2D graphics library.
 
 
@@ -48,7 +51,13 @@ C++ interface to cairo 2D graphics library.
 6a63bf98a97dda2b0f55e34d1b5f3fb909ef8b70f9b8d382cb1ff3978e7dc13f       593504 cairomm-1.16.2.tar.xz
 
 
-[FILE:660:manifests/plist.single]
+[FILE:77:manifests/plist.primary]
+lib/
+ libcairomm-%%API%%.so.%%SOMAJOR%%
+ libcairomm-%%API%%.so.%%SOVERSION%%
+
+
+[FILE:586:manifests/plist.dev]
 include/cairomm-%%API%%/cairomm/
  cairomm.h
  context.h
@@ -72,11 +81,8 @@ include/cairomm-%%API%%/cairomm/
  win32_font.h
  win32_surface.h
  xlib_surface.h
+lib/libcairomm-%%API%%.so
 lib/cairomm-%%API%%/include/cairommconfig.h
-lib/
- libcairomm-%%API%%.so
- libcairomm-%%API%%.so.%%SOMAJOR%%
- libcairomm-%%API%%.so.%%SOVERSION%%
 lib/pkgconfig/
  cairomm-%%API%%.pc
  cairomm-ft-%%API%%.pc

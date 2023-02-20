@@ -2,6 +2,7 @@
 
 NAMEBASE=		tiff
 VERSION=		4.5.0
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	TIFF image format library and tools
@@ -14,12 +15,17 @@ DISTFILE[1]=		tiff-4.5.0.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	jbigkit:single:standard
+EXRUN[tools]=		tiff:primary:standard
+EXRUN[dev]=		zstd:dev:standard
+			xz:dev:standard
 
 USES=			cpe jpeg c++:primary zlib cmake zstd xz
 
@@ -52,11 +58,24 @@ follow the 5.0 or 6.0 TIFF spec.  There is also considerable support
 for some of the more esoteric portions of the 6.0 TIFF spec.
 
 
+[FILE:78:descriptions/desc.tools]
+This package contains tools that manipulate the
+Tag Image File Format (TIFF).
+
+
 [FILE:96:distinfo]
 c7a1d9296649233979fa3eacffef3fa024d73d05d589cb622727b5b08c423464      3880855 tiff-4.5.0.tar.gz
 
 
-[FILE:469:manifests/plist.primary]
+[FILE:109:manifests/plist.primary]
+lib/
+ libtiff.so.%%SOMAJOR%%
+ libtiff.so.%%SOVERSION%%
+ libtiffxx.so.%%SOMAJOR%%
+ libtiffxx.so.%%SOVERSION%%
+
+
+[FILE:182:manifests/plist.tools]
 bin/
  fax2ps
  fax2tiff
@@ -76,6 +95,15 @@ bin/
  tiffmedian
  tiffset
  tiffsplit
+
+
+[FILE:188:manifests/plist.dev]
+lib/cmake/tiff/
+ TiffTargets-release.cmake
+ TiffTargets.cmake
+lib/pkgconfig/libtiff-4.pc
+lib/
+ libtiffxx.so
 include/
  tiff.h
  tiffconf.h
@@ -84,15 +112,6 @@ include/
  tiffvers.h
 lib/
  libtiff.so
- libtiff.so.%%SOMAJOR%%
- libtiff.so.%%SOVERSION%%
- libtiffxx.so
- libtiffxx.so.%%SOMAJOR%%
- libtiffxx.so.%%SOVERSION%%
-lib/cmake/tiff/
- TiffTargets-release.cmake
- TiffTargets.cmake
-lib/pkgconfig/libtiff-4.pc
 
 
 [FILE:7014:manifests/plist.docs]

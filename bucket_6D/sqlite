@@ -2,6 +2,7 @@
 
 NAMEBASE=		sqlite
 VERSION=		3.40.1
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard editline
 SDESC[standard]=	SQL database engine library (GNU/readline)
@@ -15,8 +16,14 @@ SITES[main]=		https://www.sqlite.org/2022/
 			http://www3.sqlite.org/2022/
 DISTFILE[1]=		sqlite-autoconf-3400100.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
-SPKGS[editline]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
+SPKGS[editline]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	SKIP_READLINE EDITLINE
 OPTIONS_STANDARD=	none
@@ -26,7 +33,7 @@ USES=			cpe libtool ncurses
 
 DISTNAME=		sqlite-autoconf-3400100
 
-LICENSE=		PUBDOM:single
+LICENSE=		PUBDOM:primary
 LICENSE_FILE=		PUBDOM:{{WRKDIR}}/LICENSE
 LICENSE_AWK=		PUBDOM:"\*\*\*\*\*"
 LICENSE_SOURCE=		PUBDOM:{{WRKSRC}}/sqlite3.h
@@ -64,7 +71,7 @@ LDFLAGS=		-lpthread
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/include/msvc.h
 
-[FILE:352:descriptions/desc.single]
+[FILE:352:descriptions/desc.primary]
 SQLite is an SQL database engine in a C library. Programs that link the
 SQLite library can have SQL database access without running a separate
 RDBMS process. The distribution comes with a standalone command-line
@@ -76,16 +83,23 @@ and which serves as an example of how to use the SQLite library.
 2c5dea207fa508d765af1ef620b637dcb06572afa6f01f0815bd5bbf864b33d9      3098662 sqlite-autoconf-3400100.tar.gz
 
 
-[FILE:171:manifests/plist.single]
+[FILE:55:manifests/plist.primary]
 bin/sqlite3
+lib/
+ libsqlite3.so.0
+ libsqlite3.so.0.8.6
+
+
+[FILE:93:manifests/plist.dev]
+lib/pkgconfig/sqlite3.pc
 include/
  sqlite3.h
  sqlite3ext.h
 lib/
  libsqlite3.a
  libsqlite3.so
- libsqlite3.so.0
- libsqlite3.so.0.8.6
-lib/pkgconfig/sqlite3.pc
+
+
+[FILE:28:manifests/plist.man]
 share/man/man1/sqlite3.1.gz
 

@@ -2,7 +2,7 @@
 #
 # Feature:	bdb
 # Usage:	bdb[:version]
-# Valid ARGS:	none (implies 5), 5, 6, 18, static
+# Valid ARGS:	none (implies 5), 5, 6, 18, buildrun (implicit), build
 #
 # This module sets the following variables:
 # BDB_LIB_NAME     - Set to the name of the Berkeley DB library
@@ -11,11 +11,18 @@
 # BDB_LIB_DIR      - Set to the location of the BDB library directory
 # BDB_VER          - Berkeley DB version
 #
-# BUILDRUN_DEPENDS - set by ravenadm based on ARGS and "static" in not an ARG
-# BUILD_DEPENDS    - set by ravenadm based on ARGS when "static" is an ARG
-#
-# The "argument" brings in only the static version of the bdb library.
-#
+
+# -----------------------------------------------
+# Incorporated in ravenadm
+# -----------------------------------------------
+#.if ${bdb_ARGS:Mbuild}
+# BUILD_DEPENDS+=	db{X}:dev:standard
+#.else
+# BUILD_DEPENDS+=	db{X}:dev:standard
+# BUILDRUN_DEPENDS+=	db{X}:primary:standard
+#.endif
+# -----------------------------------------------
+
 
 .if !defined(_INCLUDE_USES_BDB_MK)
 _INCLUDE_USES_BDB_MK=	yes

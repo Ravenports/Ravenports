@@ -2,6 +2,7 @@
 
 NAMEBASE=		libxml2
 VERSION=		2.10.3
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	XML parser library for GNOME
@@ -13,7 +14,10 @@ SITES[main]=		GNOME/libxml2/2.10
 DISTFILE[1]=		libxml2-2.10.3.tar.xz:main
 DIST_SUBDIR=		gnome2
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -35,7 +39,7 @@ CONFIGURE_ARGS=		--with-schemas
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
-PLIST_SUB=		LIBVERSION=2.10.3
+SOVERSION=		2.10.3
 
 post-patch:
 .for d in . doc doc/devhelp doc/examples
@@ -53,7 +57,7 @@ post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-[FILE:313:descriptions/desc.single]
+[FILE:313:descriptions/desc.primary]
 Libxml2 is the XML C parser and toolkit developed for the Gnome project
 (but usable outside of the Gnome platform).  XML itself is a metalanguage
 to design markup languages, i.e. text language where semantic and
@@ -65,11 +69,17 @@ enclosed between angle brackets.
 5d2cc3d78bec3dbe212a9d7fa629ada25a7da928af432c93060ff5c17ee28a9c      2639908 gnome2/libxml2-2.10.3.tar.xz
 
 
-[FILE:833:manifests/plist.single]
+[FILE:94:manifests/plist.primary]
 bin/
  xml2-config
  xmlcatalog
  xmllint
+lib/
+ libxml2.so.%%SOMAJOR%%
+ libxml2.so.%%SOVERSION%%
+
+
+[FILE:688:manifests/plist.dev]
 include/libxml2/libxml/
  HTMLparser.h
  HTMLtree.h
@@ -120,11 +130,12 @@ include/libxml2/libxml/
 lib/
  libxml2.a
  libxml2.so
- libxml2.so.%%LIBVERSION%%
- libxml2.so.2
 lib/cmake/libxml2/libxml2-config.cmake
 lib/pkgconfig/libxml-2.0.pc
 share/aclocal/libxml.m4
+
+
+[FILE:65:manifests/plist.man]
 share/man/man1/
  xml2-config.1.gz
  xmlcatalog.1.gz

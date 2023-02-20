@@ -2,6 +2,7 @@
 
 NAMEBASE=		pcre2
 VERSION=		10.42
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Perl Compatible Regular Expressions, version 2
@@ -14,12 +15,19 @@ DISTFILE[1]=		pcre2-10.42.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
+			man
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			autoreconf cpe libtool pkgconfig readline
+BUILD_DEPENDS=		readline:primary:standard
+EXRUN[tools]=		pcre2:primary:standard
+			readline:primary:standard
+
+USES=			autoreconf cpe libtool pkgconfig readline:build
 
 LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENCE
@@ -51,40 +59,54 @@ Oniguruma syntax items, and there are options for requesting some minor
 changes that give better ECMAScript (aka JavaScript) compatibility.
 
 
+[FILE:53:descriptions/desc.tools]
+This package contains a couple of PCRE2-based tools.
+
+
 [FILE:97:distinfo]
 c33b418e3b936ee3153de2c61cc638e7e4fe3156022a5c77d0711bcbb9d64f1f      2397194 pcre2-10.42.tar.gz
 
 
-[FILE:3151:manifests/plist.primary]
+[FILE:247:manifests/plist.primary]
+lib/
+ libpcre2-16.so.%%SOMAJOR%%
+ libpcre2-16.so.%%SOVERSION%%
+ libpcre2-32.so.%%SOMAJOR%%
+ libpcre2-32.so.%%SOVERSION%%
+ libpcre2-8.so.%%SOMAJOR%%
+ libpcre2-8.so.%%SOVERSION%%
+ libpcre2-posix.so.%%POSIXMAJOR%%
+ libpcre2-posix.so.%%POSIXVERSION%%
+
+
+[FILE:27:manifests/plist.tools]
 bin/
- pcre2-config
  pcre2grep
  pcre2test
+
+
+[FILE:263:manifests/plist.dev]
+bin/pcre2-config
 include/
  pcre2.h
  pcre2posix.h
 lib/
  libpcre2-16.a
  libpcre2-16.so
- libpcre2-16.so.%%SOMAJOR%%
- libpcre2-16.so.%%SOVERSION%%
  libpcre2-32.a
  libpcre2-32.so
- libpcre2-32.so.%%SOMAJOR%%
- libpcre2-32.so.%%SOVERSION%%
  libpcre2-8.a
  libpcre2-8.so
- libpcre2-8.so.%%SOMAJOR%%
- libpcre2-8.so.%%SOVERSION%%
  libpcre2-posix.a
  libpcre2-posix.so
- libpcre2-posix.so.%%POSIXMAJOR%%
- libpcre2-posix.so.%%POSIXVERSION%%
 lib/pkgconfig/
  libpcre2-16.pc
  libpcre2-32.pc
  libpcre2-8.pc
  libpcre2-posix.pc
+
+
+[FILE:2622:manifests/plist.man]
 share/man/man1/
  pcre2-config.1.gz
  pcre2grep.1.gz

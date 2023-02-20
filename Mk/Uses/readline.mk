@@ -2,7 +2,7 @@
 #
 # Feature:	readline
 # Usage:	USES=readline
-# Valid ARGS:	none
+# Valid ARGS:	buildrun (implicit), build
 
 .if !defined(_INCLUDE_USES_READLINE_MK)
 _INCLUDE_USES_READLINE_MK=	yes
@@ -10,7 +10,12 @@ _INCLUDE_USES_READLINE_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	readline:single:standard
+#.if ${readline_ARGS:Mbuild}
+# BUILD_DEPENDS+=	readline:dev:standard
+#.else
+# BUILD_DEPENDS+=	readline:dev:standard
+# BUILDRUN_DEPENDS+=	readline:primary:standard
+#.endif
 # -----------------------------------------------
 
 .endif

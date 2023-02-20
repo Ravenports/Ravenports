@@ -2,7 +2,7 @@
 
 NAMEBASE=		vte
 VERSION=		0.70.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Virtual Terminal Emulator widget
@@ -16,6 +16,7 @@ DIST_SUBDIR=		gnome3
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			docs
 			nls
 
@@ -23,15 +24,14 @@ OPTIONS_AVAILABLE=	INTROSPECTION
 OPTIONS_STANDARD=	INTROSPECTION
 
 BUILD_DEPENDS=		bash:primary:standard
-			cmake:single:standard
+			cmake:primary:standard
 			gnutls:dev:standard
 			harfbuzz:dev:standard
 			vala:single:standard
 BUILDRUN_DEPENDS=	gnutls:primary:standard
 			icu:single:standard
-			pcre2:primary:standard
 
-USES=			meson pkgconfig
+USES=			meson pkgconfig pcre2
 GNOME_COMPONENTS=	cairo gdkpixbuf gtk3 intltool
 
 LICENSE=		LGPL21+:primary
@@ -77,16 +77,26 @@ support for the GNOME 3 desktop.
 94d0b6776d55252bc1f15995c1ade7eb44b4a2c99531487eba9b8bded1a0fe2f       502706 gnome3/vte-0.70.3.tar.bz2
 
 
-[FILE:770:manifests/plist.primary]
+[FILE:328:manifests/plist.primary]
+bin/vte-%%VERSION%%
+etc/profile.d/
+ vte.csh
+ vte.sh
+lib/
+ libvte-%%VERSION%%.so.%%SOMAJOR%%
+ libvte-%%VERSION%%.so.%%SOVERSION%%
+libexec/vte-urlencode-cwd
+share/glade/catalogs/vte-%%VERSION%%.xml
+share/glade/pixmaps/hicolor/16x16/actions/widget-vte-terminal.png
+share/glade/pixmaps/hicolor/22x22/actions/widget-vte-terminal.png
+
+
+[FILE:445:manifests/plist.dev]
 %%INTROSPECTION-ON%%lib/girepository-1.0/Vte-%%VERSION%%.typelib
 %%INTROSPECTION-ON%%share/gir-1.0/Vte-%%VERSION%%.gir
 %%INTROSPECTION-ON%%share/vala/vapi/
  vte-%%VERSION%%.deps
  vte-%%VERSION%%.vapi
-bin/vte-%%VERSION%%
-etc/profile.d/
- vte.csh
- vte.sh
 include/vte-%%VERSION%%/vte/
  vte.h
  vtedeprecated.h
@@ -99,15 +109,8 @@ include/vte-%%VERSION%%/vte/
  vtetypebuiltins-gtk3.h
  vtetypebuiltins.h
  vteversion.h
-lib/
- libvte-%%VERSION%%.so
- libvte-%%VERSION%%.so.%%SOMAJOR%%
- libvte-%%VERSION%%.so.%%SOVERSION%%
+lib/libvte-%%VERSION%%.so
 lib/pkgconfig/vte-%%VERSION%%.pc
-libexec/vte-urlencode-cwd
-share/glade/catalogs/vte-%%VERSION%%.xml
-share/glade/pixmaps/hicolor/16x16/actions/widget-vte-terminal.png
-share/glade/pixmaps/hicolor/22x22/actions/widget-vte-terminal.png
 
 
 [FILE:4669:manifests/plist.nls]

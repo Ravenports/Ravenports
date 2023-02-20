@@ -14,6 +14,8 @@ DISTFILE[1]=		librsvg-2.40.21.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
+			man
 			docs
 
 OPTIONS_AVAILABLE=	INTROSPECTION
@@ -87,10 +89,18 @@ This is the last release of the legacy C-only version.
 f7628905f1cada84e87e2b14883ed57d8094dca3281d5bcb24ece4279e9a92ba      1655860 librsvg-2.40.21.tar.xz
 
 
-[FILE:849:manifests/plist.primary]
+[FILE:509:manifests/plist.primary]
+bin/rsvg-convert
+lib/librsvg-2.so.%%SOVERSION%%
+lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/libpixbufloader-svg.so
+share/thumbnailers/librsvg.thumbnailer
+@postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
+@postunexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
+
+
+[FILE:350:manifests/plist.dev]
 %%INTROSPECTION-ON%%lib/girepository-1.0/Rsvg-2.0.typelib
 %%INTROSPECTION-ON%%share/gir-1.0/Rsvg-2.0.gir
-bin/rsvg-convert
 include/librsvg-2.0/librsvg/
  librsvg-enum-types.h
  librsvg-features.h
@@ -100,15 +110,12 @@ lib/
  librsvg-2.a
  librsvg-2.so
  librsvg-2.so.%%SOMAJOR%%
- librsvg-2.so.%%SOVERSION%%
-lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/
- libpixbufloader-svg.a
- libpixbufloader-svg.so
+lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/libpixbufloader-svg.a
 lib/pkgconfig/librsvg-2.0.pc
+
+
+[FILE:33:manifests/plist.man]
 share/man/man1/rsvg-convert.1.gz
-share/thumbnailers/librsvg.thumbnailer
-@postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
-@postunexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
 
 
 [FILE:670:manifests/plist.docs]

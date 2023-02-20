@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtksourceview5
 VERSION=		5.6.2
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	GTK3 syntax highlighting text widget
@@ -15,17 +16,17 @@ DIST_SUBDIR=		gnome3
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			nls
+			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
-BUILD_DEPENDS=		vala:single:standard
-			harfbuzz:dev:standard
+BUILD_DEPENDS=		harfbuzz:dev:standard
 BUILDRUN_DEPENDS=	gtk4:icon_cache:standard
-			pcre2:primary:standard
 
-USES=			meson pkgconfig gtk-doc
+USES=			meson pkgconfig pcre2
 GNOME_COMPONENTS=	cairo gdkpixbuf gtk4 libxml2
 
 DISTNAME=		gtksourceview-5.6.2
@@ -40,11 +41,20 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		x11-toolkits/gtksourceview4
 GTKDOC_OUTPUT_BASEDIR=	gtksourceview-5.0
 MESON_ARGS=		-Dinstall_tests=false
-			-Dvapi=true
-			-Dgtk_doc=false
-			-Dintrospection=disabled
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		0.0.0
+
+[INTROSPECTION].DESCRIPTION=		Build vala bindings with introspection
+[INTROSPECTION].BUILD_DEPENDS_ON=	vala:single:standard
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dvapi=false
+					-Dgtk_doc=false
+					-Dintrospection=disabled
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dvapi=true
+					-Dgtk_doc=true
+					-Dintrospection=enabled
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
+[INTROSPECTION].USES_ON=		gtk-doc
 
 [FILE:283:descriptions/desc.primary]
 GtkSourceView is a portable C library that extends the standard GTK+
@@ -58,70 +68,10 @@ source code editor.
 1f146c156f135a60499d979e3577c99b6e15a111445767abe6219bb34c545c77      1262272 gnome3/gtksourceview-5.6.2.tar.xz
 
 
-[FILE:5018:manifests/plist.primary]
-@comment introspection lib/girepository-1.0/GtkSource-5.typelib
-@comment introspection share/gir-1.0/GtkSource-5.gir
-@comment introspection share/vala/vapi/gtksourceview-5.deps
-@comment introspection share/vala/vapi/gtksourceview-5.vapi
-include/gtksourceview-5/gtksourceview/
- gtksource-enumtypes.h
- gtksource.h
- gtksourcebuffer.h
- gtksourcecompletion.h
- gtksourcecompletioncell.h
- gtksourcecompletioncontext.h
- gtksourcecompletionproposal.h
- gtksourcecompletionprovider.h
- gtksourceencoding.h
- gtksourcefile.h
- gtksourcefileloader.h
- gtksourcefilesaver.h
- gtksourcegutter.h
- gtksourcegutterlines.h
- gtksourcegutterrenderer.h
- gtksourcegutterrendererpixbuf.h
- gtksourcegutterrenderertext.h
- gtksourcehover.h
- gtksourcehovercontext.h
- gtksourcehoverdisplay.h
- gtksourcehoverprovider.h
- gtksourceindenter.h
- gtksourceinit.h
- gtksourcelanguage.h
- gtksourcelanguagemanager.h
- gtksourcemap.h
- gtksourcemark.h
- gtksourcemarkattributes.h
- gtksourceprintcompositor.h
- gtksourceregion.h
- gtksourcescheduler.h
- gtksourcesearchcontext.h
- gtksourcesearchsettings.h
- gtksourcesnippet.h
- gtksourcesnippetchunk.h
- gtksourcesnippetcontext.h
- gtksourcesnippetmanager.h
- gtksourcespacedrawer.h
- gtksourcestyle.h
- gtksourcestylescheme.h
- gtksourcestyleschemechooser.h
- gtksourcestyleschemechooserbutton.h
- gtksourcestyleschemechooserwidget.h
- gtksourcestyleschememanager.h
- gtksourcestyleschemepreview.h
- gtksourcetag.h
- gtksourcetypes.h
- gtksourceutils.h
- gtksourceversion.h
- gtksourceview.h
- gtksourcevimimcontext.h
-include/gtksourceview-5/gtksourceview/completion-providers/snippets/gtksourcecompletionsnippets.h
-include/gtksourceview-5/gtksourceview/completion-providers/words/gtksourcecompletionwords.h
+[FILE:3291:manifests/plist.primary]
 lib/
- libgtksourceview-5.so
- libgtksourceview-5.so.0
- libgtksourceview-5.so.0.0.0
-lib/pkgconfig/gtksourceview-5.pc
+ libgtksourceview-5.so.%%SOMAJOR%%
+ libgtksourceview-5.so.%%SOVERSION%%
 share/gtksourceview-5/fonts/BuilderBlocks.ttf
 share/gtksourceview-5/language-specs/
  R.lang
@@ -330,6 +280,70 @@ share/icons/hicolor/scalable/actions/
  lang-typedef-symbolic.svg
  lang-union-symbolic.svg
  lang-variable-symbolic.svg
+
+
+[FILE:1703:manifests/plist.dev]
+%%INTROSPECTION-ON%%lib/girepository-1.0/GtkSource-5.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/GtkSource-5.gir
+%%INTROSPECTION-ON%%share/vala/vapi/
+ gtksourceview-5.deps
+ gtksourceview-5.vapi
+include/gtksourceview-5/gtksourceview/
+ gtksource-enumtypes.h
+ gtksource.h
+ gtksourcebuffer.h
+ gtksourcecompletion.h
+ gtksourcecompletioncell.h
+ gtksourcecompletioncontext.h
+ gtksourcecompletionproposal.h
+ gtksourcecompletionprovider.h
+ gtksourceencoding.h
+ gtksourcefile.h
+ gtksourcefileloader.h
+ gtksourcefilesaver.h
+ gtksourcegutter.h
+ gtksourcegutterlines.h
+ gtksourcegutterrenderer.h
+ gtksourcegutterrendererpixbuf.h
+ gtksourcegutterrenderertext.h
+ gtksourcehover.h
+ gtksourcehovercontext.h
+ gtksourcehoverdisplay.h
+ gtksourcehoverprovider.h
+ gtksourceindenter.h
+ gtksourceinit.h
+ gtksourcelanguage.h
+ gtksourcelanguagemanager.h
+ gtksourcemap.h
+ gtksourcemark.h
+ gtksourcemarkattributes.h
+ gtksourceprintcompositor.h
+ gtksourceregion.h
+ gtksourcescheduler.h
+ gtksourcesearchcontext.h
+ gtksourcesearchsettings.h
+ gtksourcesnippet.h
+ gtksourcesnippetchunk.h
+ gtksourcesnippetcontext.h
+ gtksourcesnippetmanager.h
+ gtksourcespacedrawer.h
+ gtksourcestyle.h
+ gtksourcestylescheme.h
+ gtksourcestyleschemechooser.h
+ gtksourcestyleschemechooserbutton.h
+ gtksourcestyleschemechooserwidget.h
+ gtksourcestyleschememanager.h
+ gtksourcestyleschemepreview.h
+ gtksourcetag.h
+ gtksourcetypes.h
+ gtksourceutils.h
+ gtksourceversion.h
+ gtksourceview.h
+ gtksourcevimimcontext.h
+include/gtksourceview-5/gtksourceview/completion-providers/snippets/gtksourcecompletionsnippets.h
+include/gtksourceview-5/gtksourceview/completion-providers/words/gtksourcecompletionwords.h
+lib/libgtksourceview-5.so
+lib/pkgconfig/gtksourceview-5.pc
 
 
 [FILE:4039:manifests/plist.nls]

@@ -24,7 +24,7 @@ OPTIONS_AVAILABLE=	STATIC
 OPTIONS_STANDARD=	none
 VOPTS[static]=		STATIC=ON
 
-EXRUN[tools]=		readline:single:standard
+EXRUN[tools]=		readline:primary:standard
 
 USES=			gmake libtool:keepla solfix
 
@@ -48,7 +48,6 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		6.0.0
 
 [STATIC].DESCRIPTION=			Build static library only variant
-[STATIC].BUILD_DEPENDS_ON=		readline:single:standard
 [STATIC].CFLAGS_ON=			-fPIC
 					-DPIC
 [STATIC].CONFIGURE_ARGS_OFF=		--enable-nls
@@ -57,6 +56,7 @@ SOVERSION=		6.0.0
 					--disable-shared
 [STATIC].USES_OFF=			readline
 					gettext
+[STATIC].USES_ON=			readline:build
 
 post-patch:
 	${REINPLACE_CMD} -e "s|LIBS = @LIBS@ -lc|LIBS = @LIBS@|" \
@@ -64,6 +64,11 @@ post-patch:
 		-e "s|BINGRP = bin|BINGRP = wheel|" \
 		-e "s|libgdbm.la libgdbm_compat.la|& gdbm.info|" \
 			${WRKSRC}/Makefile.in
+
+post-patch-STATIC-ON:
+	# force static linking
+	${RM} ${LOCALBASE}/lib/libreadline.so
+	${RM} ${LOCALBASE}/lib/libhistory.so
 
 [FILE:226:descriptions/desc.primary]
 The GNU dbm is a library of database functions that use extensible hashing

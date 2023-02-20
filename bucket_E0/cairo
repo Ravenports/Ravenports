@@ -2,7 +2,7 @@
 
 NAMEBASE=		cairo
 VERSION=		1.16.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Vector graphics library with cross-device support
@@ -13,20 +13,24 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://cairographics.org/releases/
 DISTFILE[1]=		cairo-1.16.0.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libatomic_ops:single:standard
 BUILDRUN_DEPENDS=	libglvnd:single:standard
+EXRUN[dev]=		fontconfig:dev:standard
+			png:dev:standard
 
 USES=			cpe libtool fontconfig pkgconfig png
 GNOME_COMPONENTS=	glib
 XORG_COMPONENTS=	pixman x11 xext xrender xcb-render-util
 
-LICENSE=		CUSTOM1:single LGPL21:single
-LICENSE_TERMS=		single:{{WRKSRC}}/COPYING
+LICENSE=		CUSTOM1:primary LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
 LICENSE_NAME=		CUSTOM1:"Mozilla Public License (MPL) version 1.1"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/COPYING-MPL-1.1
 			LGPL21:{{WRKSRC}}/COPYING-LGPL-2.1
@@ -51,7 +55,7 @@ CONFIGURE_ENV=		cairo_cv_atomic_primitives="libatomic-ops"
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
-PLIST_SUB=		LIBVER=2.11600.0
+SOVERSION=		2.11600.0
 
 VAR_OPSYS[sunos]=	CFLAGS=-D_XOPEN_SOURCE=600
 VAR_OPSYS[netbsd]=	CONFIGURE_ENV=ac_cv_lib_dl_dlsym=false
@@ -75,7 +79,7 @@ post-patch-dragonfly:
 post-patch-freebsd:
 	${REINPLACE_CMD} -e '/LIBS/s/-lrt//' ${WRKSRC}/configure
 
-[FILE:637:descriptions/desc.single]
+[FILE:637:descriptions/desc.primary]
 Cairo is a vector graphics library with cross-device output
 support. Currently supported output targets include the X Window
 System and in-memory image buffers. PostScript and PDF file output is
@@ -93,10 +97,24 @@ images, and antialiased text rendering.
 5e7b29b3f113ef870d1e3ecf8adf21f923396401604bda16d44be45e66052331     41997432 cairo-1.16.0.tar.xz
 
 
-[FILE:975:manifests/plist.single]
+[FILE:308:manifests/plist.primary]
 bin/
  cairo-sphinx
  cairo-trace
+lib/
+ libcairo-gobject.so.%%SOMAJOR%%
+ libcairo-gobject.so.%%SOVERSION%%
+ libcairo-script-interpreter.so.%%SOMAJOR%%
+ libcairo-script-interpreter.so.%%SOVERSION%%
+ libcairo.so.%%SOMAJOR%%
+ libcairo.so.%%SOVERSION%%
+lib/cairo/
+ cairo-fdr.so
+ cairo-sphinx.so
+ libcairo-trace.so
+
+
+[FILE:722:manifests/plist.dev]
 include/cairo/
  cairo-deprecated.h
  cairo-features.h
@@ -117,23 +135,14 @@ include/cairo/
 lib/
  libcairo-gobject.a
  libcairo-gobject.so
- libcairo-gobject.so.%%LIBVER%%
- libcairo-gobject.so.2
  libcairo-script-interpreter.a
  libcairo-script-interpreter.so
- libcairo-script-interpreter.so.%%LIBVER%%
- libcairo-script-interpreter.so.2
  libcairo.a
  libcairo.so
- libcairo.so.%%LIBVER%%
- libcairo.so.2
 lib/cairo/
  cairo-fdr.a
- cairo-fdr.so
  cairo-sphinx.a
- cairo-sphinx.so
  libcairo-trace.a
- libcairo-trace.so
 lib/pkgconfig/
  cairo-egl.pc
  cairo-fc.pc

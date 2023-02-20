@@ -31,8 +31,10 @@ BUILD_DEPENDS=		docbook-sgml:single:standard
 			docbook-dsssl:single:standard
 			openjade:single:standard
 			OpenSP:single:standard
-			readline:single:standard
-BUILDRUN_DEPENDS=	libxslt:single:standard
+			readline:dev:standard
+			readline:primary:standard
+			libxslt:dev:standard
+BUILDRUN_DEPENDS=	libxslt:primary:standard
 B_DEPS[sunos]=		ossp-uuid:dev:standard
 B_DEPS[linux]=		ossp-uuid:dev:standard
 BR_DEPS[sunos]=		ossp-uuid:primary:standard
@@ -41,12 +43,12 @@ BR_DEPS[darwin]=	libuuid:single:standard
 EXRUN[pltcl]=		tcl
 EXRUN[plpython]=	python
 EXRUN[client]=		gettext:primary:standard
-			libxslt:single:standard
-			readline:single:standard
+			libxslt:primary:standard
+			readline:primary:standard
 			zlib:primary:standard
 			ssl
 EXRUN[contrib]=		postgresql13:client:standard
-			libxslt:single:standard
+			libxslt:primary:standard
 			zlib:primary:standard
 			gettext:primary:standard
 			ssl
@@ -59,6 +61,7 @@ USERGROUP_SPKG=		server
 
 USES=			bison gmake perl:build tcl:build ssl python:build
 			zlib gettext cpe
+GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		postgresql-13.9
 
@@ -116,7 +119,7 @@ VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-template=freebsd
 			CONFIGURE_ARGS=--with-uuid=bsd
 
 post-install:
-	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/periodic/daily
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/periodic/daily
 	${INSTALL_SCRIPT} ${WRKDIR}/502.pgsql \
 		${STAGEDIR}${PREFIX}/etc/periodic/daily
 	# install-world doesn't strip (and install-strip won't install enough)

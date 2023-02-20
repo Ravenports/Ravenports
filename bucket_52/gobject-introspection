@@ -2,6 +2,7 @@
 
 NAMEBASE=		gobject-introspection
 VERSION=		1.74.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Introspection data generator for GObject libraries
@@ -13,7 +14,10 @@ SITES[main]=		GNOME/gobject-introspection/1.74
 DISTFILE[1]=		gobject-introspection-1.74.0.tar.xz:main
 DIST_SUBDIR=		gnome3
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	CAIRO
 OPTIONS_STANDARD=	CAIRO
@@ -24,8 +28,8 @@ BUILDRUN_DEPENDS=	libffi:single:standard
 USES=			bison meson pkgconfig shebangfix python
 GNOME_COMPONENTS=	glib
 
-LICENSE=		GPLv2+:single LGPL21+:single
-LICENSE_TERMS=		single:{{WRKSRC}}/COPYING
+LICENSE=		GPLv2+:primary LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING.GPL
 			LGPL21+:{{WRKSRC}}/COPYING.LGPL
 LICENSE_SCHEME=		multi
@@ -37,8 +41,8 @@ MESON_ARGS=		-Dpython={{PYTHON_CMD}}
 INSTALL_TARGET=		install-strip
 
 [CAIRO].DESCRIPTION=			Include cairo for tests
-[CAIRO].BUILD_DEPENDS_ON=		cairo:single:standard
 [CAIRO].CONFIGURE_ARGS_OFF=		-Dcairo=disabled
+[CAIRO].GNOME_COMPONENTS_ON=		cairo
 
 post-install:
 	# remove artifacts from doctemplates fix
@@ -49,7 +53,7 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|%%PYTHON_CMD%%|${PYTHON_CMD}|' \
 		${WRKSRC}/tools/meson.build
 
-[FILE:364:descriptions/desc.single]
+[FILE:364:descriptions/desc.primary]
 GObject Introspection is a project for providing machine readable
 introspection data of the API of C libraries. This introspection data can
 be used in several different use cases, for example automatic code
@@ -63,7 +67,7 @@ introspection data.
 347b3a719e68ba4c69ff2d57ee2689233ea8c07fc492205e573386779e42d653      1044008 gnome3/gobject-introspection-1.74.0.tar.xz
 
 
-[FILE:3973:manifests/plist.single]
+[FILE:3358:manifests/plist.primary]
 %%ONLY-DRAGONFLY%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-FREEBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-LINUX%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%-x86_64-linux-gnu.so
@@ -75,31 +79,7 @@ bin/
  g-ir-generate
  g-ir-inspect
  g-ir-scanner
-include/gobject-introspection-1.0/
- giarginfo.h
- gibaseinfo.h
- gicallableinfo.h
- giconstantinfo.h
- gienuminfo.h
- gifieldinfo.h
- gifunctioninfo.h
- giinterfaceinfo.h
- giobjectinfo.h
- gipropertyinfo.h
- giregisteredtypeinfo.h
- girepository.h
- girffi.h
- gisignalinfo.h
- gistructinfo.h
- gitypeinfo.h
- gitypelib.h
- gitypes.h
- giunioninfo.h
- giversion.h
- giversionmacros.h
- givfuncinfo.h
 lib/
- libgirepository-1.0.so
  libgirepository-1.0.so.1
  libgirepository-1.0.so.1.0.0
 lib/girepository-1.0/
@@ -217,10 +197,6 @@ lib/gobject-introspection/giscanner/doctemplates/mallard/Python/
  record.tmpl
  signal.tmpl
  vfunc.tmpl
-lib/pkgconfig/
- gobject-introspection-1.0.pc
- gobject-introspection-no-export-1.0.pc
-share/aclocal/introspection.m4
 share/gir-1.0/
  DBus-1.0.gir
  DBusGLib-1.0.gir
@@ -262,6 +238,40 @@ share/gobject-introspection-1.0/tests/
  utility.h
  warnlib.c
  warnlib.h
+
+
+[FILE:523:manifests/plist.dev]
+include/gobject-introspection-1.0/
+ giarginfo.h
+ gibaseinfo.h
+ gicallableinfo.h
+ giconstantinfo.h
+ gienuminfo.h
+ gifieldinfo.h
+ gifunctioninfo.h
+ giinterfaceinfo.h
+ giobjectinfo.h
+ gipropertyinfo.h
+ giregisteredtypeinfo.h
+ girepository.h
+ girffi.h
+ gisignalinfo.h
+ gistructinfo.h
+ gitypeinfo.h
+ gitypelib.h
+ gitypes.h
+ giunioninfo.h
+ giversion.h
+ giversionmacros.h
+ givfuncinfo.h
+lib/libgirepository-1.0.so
+lib/pkgconfig/
+ gobject-introspection-1.0.pc
+ gobject-introspection-no-export-1.0.pc
+share/aclocal/introspection.m4
+
+
+[FILE:95:manifests/plist.man]
 share/man/man1/
  g-ir-compiler.1.gz
  g-ir-doc-tool.1.gz
