@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnatcross-sysroot-midnightbsd
 VERSION=		1
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		AMD64_R3 I386_R3
 SDESC[I386_R3]=		MidnightBSD R3 C/Ada cross-compiler sysroot I386
@@ -10,8 +11,8 @@ HOMEPAGE=		none
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		http://ravenports.elderlinux.org/distcache/
-DISTFILE[1]=		base-amd64-3.0.0-221021.txz:main
+SITES[main]=		http://ravenports.elderlinux.org/distcache/midnightbsd/
+DISTFILE[1]=		base-amd64-3.0.0-230213.txz:main
 DISTFILE[2]=		base-i386-3.0.0-221122.txz:main
 DIST_SUBDIR=		gnatcross/midnightbsd
 SPKGS[I386_R3]=		single
@@ -49,7 +50,9 @@ do-install:
 	${MV} ${WRKDIR}/gnatcross-sys*/usr/include ${STAGEDIR}${PREFIX}/sysroot/usr
 	${MV} ${WRKDIR}/gnatcross-sys*/usr/lib ${STAGEDIR}${PREFIX}/sysroot/usr
 	${ECHO_CMD} ${CTARGET} > ${STAGEDIR}${PREFIX}/sysroot/target_triplet
-	(cd ${STAGEDIR}${PREFIX}; ${FIND} sysroot -type d -empty -delete)
+	(cd ${STAGEDIR}${PREFIX}; ${FIND} sysroot -type d -empty -delete && \
+		${FIND} sysroot -name '*_p.a' -delete && \
+		${FIND} sysroot -name 'libexecinfo*' -delete)
 
 post-extract-freebsd:
 	/bin/chflags -R noschg ${WRKDIR}
@@ -65,11 +68,11 @@ is used as the basis of an Ada-capable GCC cross-compiler.
 
 
 [FILE:255:distinfo]
-0cd12ff41176e0b7af883a985019fb725d95144ebc93312153b6da712e6b215c    189909044 gnatcross/midnightbsd/base-amd64-3.0.0-221021.txz
+1b429fae5a73cbf1622955ebb505bdf836db8a6fb0b65d9c9edf0c1d6d6a5f47    189954052 gnatcross/midnightbsd/base-amd64-3.0.0-230213.txz
 b1016e4fe48e02b069d389428a9966ccb5b0f0cab85b437ff8b817685b25e42d    178981644 gnatcross/midnightbsd/base-i386-3.0.0-221122.txz
 
 
-[FILE:82867:manifests/plist.single.AMD64_R3]
+[FILE:80195:manifests/plist.single.AMD64_R3]
 sysroot/target_triplet
 sysroot/lib/
  lib80211.so.1
@@ -2612,91 +2615,64 @@ sysroot/usr/lib/
  include
  lib80211.a
  lib80211.so
- lib80211_p.a
  libBlocksRuntime.a
  libBlocksRuntime.so
  libBlocksRuntime.so.0
- libBlocksRuntime_p.a
  libalias.a
  libalias.so
  libalias_cuseeme.a
- libalias_cuseeme_p.a
  libalias_dummy.a
- libalias_dummy_p.a
  libalias_ftp.a
- libalias_ftp_p.a
  libalias_irc.a
- libalias_irc_p.a
  libalias_nbt.a
- libalias_nbt_p.a
- libalias_p.a
  libalias_pptp.a
- libalias_pptp_p.a
  libalias_skinny.a
- libalias_skinny_p.a
  libalias_smedia.a
- libalias_smedia_p.a
  libarchive.a
  libarchive.so
  libarchive.so.7
- libarchive_p.a
  libasn1.a
  libasn1.so
  libasn1.so.11
- libasn1_p.a
  libauditd.a
  libauditd.so
  libauditd.so.5
- libauditd_p.a
  libavl.a
  libavl.so
- libavl_p.a
  libbe.a
  libbe.so
- libbe_p.a
  libbegemot.a
  libbegemot.so
- libbegemot_p.a
  libblacklist.a
  libblacklist.so
  libblacklist.so.0
- libblacklist_p.a
  libbluetooth.a
  libbluetooth.so
  libbluetooth.so.4
- libbluetooth_p.a
  libbsdxml.a
  libbsdxml.so
- libbsdxml_p.a
  libbsm.a
  libbsm.so
  libbsm.so.3
- libbsm_p.a
  libbsnmp.a
  libbsnmp.so
  libbsnmp.so.6
- libbsnmp_p.a
  libbz2.a
  libbz2.so
  libbz2.so.4
- libbz2_p.a
  libc++.a
  libc++.so
  libc++.so.1
- libc++_p.a
  libc++experimental.a
  libc.a
  libc.so
  libc_nonshared.a
- libc_p.a
  libc_pic.a
  libcalendar.a
  libcalendar.so
  libcalendar.so.5
- libcalendar_p.a
  libcam.a
  libcam.so
- libcam_p.a
  libcap_dns.so
  libcap_grp.so
  libcap_pwd.so
@@ -2707,150 +2683,106 @@ sysroot/usr/lib/
  libcom_err.a
  libcom_err.so
  libcom_err.so.5
- libcom_err_p.a
  libcompat.a
- libcompat_p.a
  libcompiler_rt.a
- libcompiler_rt_p.a
  libcrypt.a
  libcrypt.so
- libcrypt_p.a
  libcrypto.a
  libcrypto.so
- libcrypto_p.a
  libctf.a
  libctf.so
- libctf_p.a
  libcurses.a
  libcurses.so
- libcurses_p.a
  libcursesw.a
  libcursesw.so
- libcursesw_p.a
  libcuse.a
  libcuse.so
  libcuse.so.1
- libcuse_p.a
  libcxgb4.a
  libcxgb4.so
  libcxgb4.so.1
  libcxxrt.a
  libcxxrt.so
- libcxxrt_p.a
  libdevctl.a
  libdevctl.so
  libdevctl.so.5
- libdevctl_p.a
  libdevinfo.a
  libdevinfo.so
  libdevinfo.so.6
- libdevinfo_p.a
  libdevstat.a
  libdevstat.so
- libdevstat_p.a
  libdialog.a
  libdialog.so
  libdialog.so.8
- libdialog_p.a
  libdl.a
  libdl.so
  libdl.so.1
- libdl_p.a
  libdns_sd.a
  libdns_sd.so
  libdns_sd.so.1
- libdns_sd_p.a
  libdpv.a
  libdpv.so
  libdpv.so.1
- libdpv_p.a
  libdtrace.a
  libdtrace.so
- libdtrace_p.a
  libdwarf.a
  libdwarf.so
  libdwarf.so.4
- libdwarf_p.a
  libedit.a
  libedit.so
- libedit_p.a
  libefivar.a
  libefivar.so
  libefivar.so.1
- libefivar_p.a
  libelf.a
  libelf.so
- libelf_p.a
- libexecinfo.a
- libexecinfo.so
- libexecinfo.so.1
- libexecinfo_p.a
  libfetch.a
  libfetch.so
  libfetch.so.6
- libfetch_p.a
  libfigpar.a
  libfigpar.so
  libfigpar.so.0
- libfigpar_p.a
  libfl.a
- libfl_p.a
  libform.a
  libform.so
- libform_p.a
  libformw.a
  libformw.so
  libformw.so.6
- libformw_p.a
  libgcc.a
  libgcc_eh.a
- libgcc_eh_p.a
- libgcc_p.a
  libgcc_s.so
  libgeom.a
  libgeom.so
- libgeom_p.a
  libgnuregex.a
  libgnuregex.so
  libgnuregex.so.5
- libgnuregex_p.a
  libgomp.so
  libgpio.a
  libgpio.so
  libgpio.so.0
- libgpio_p.a
  libgssapi.a
  libgssapi.so
  libgssapi.so.10
  libgssapi_krb5.a
  libgssapi_krb5.so
  libgssapi_krb5.so.10
- libgssapi_krb5_p.a
  libgssapi_ntlm.a
  libgssapi_ntlm.so
  libgssapi_ntlm.so.10
- libgssapi_ntlm_p.a
- libgssapi_p.a
  libgssapi_spnego.a
  libgssapi_spnego.so
  libgssapi_spnego.so.10
- libgssapi_spnego_p.a
  libhdb.a
  libhdb.so
  libhdb.so.11
- libhdb_p.a
  libheimbase.a
  libheimbase.so
  libheimbase.so.11
- libheimbase_p.a
  libheimntlm.a
  libheimntlm.so
  libheimntlm.so.11
- libheimntlm_p.a
  libhx509.a
  libhx509.so
  libhx509.so.11
- libhx509_p.a
  libibcm.a
  libibcm.so
  libibcm.so.1
@@ -2867,76 +2799,55 @@ sysroot/usr/lib/
  libibverbs.so
  libipsec.a
  libipsec.so
- libipsec_p.a
  libipt.a
  libipt.so
- libipt_p.a
  libjail.a
  libjail.so
- libjail_p.a
  libkadm5clnt.a
  libkadm5clnt.so
  libkadm5clnt.so.11
- libkadm5clnt_p.a
  libkadm5srv.a
  libkadm5srv.so
  libkadm5srv.so.11
- libkadm5srv_p.a
  libkafs5.a
  libkafs5.so
  libkafs5.so.11
- libkafs5_p.a
  libkdc.a
  libkdc.so
  libkdc.so.11
- libkdc_p.a
  libkiconv.a
  libkiconv.so
- libkiconv_p.a
  libkrb5.a
  libkrb5.so
  libkrb5.so.11
- libkrb5_p.a
  libkvm.a
  libkvm.so
- libkvm_p.a
  libl.a
- libl_p.a
  libln.a
- libln_p.a
  liblzma.a
  liblzma.so
  liblzma.so.5
- liblzma_p.a
  libm.a
  libm.so
- libm_p.a
  libmagic.a
  libmagic.so
  libmagic.so.4
- libmagic_p.a
  libmd.a
  libmd.so
- libmd_p.a
  libmemstat.a
  libmemstat.so
  libmemstat.so.3
- libmemstat_p.a
  libmenu.a
  libmenu.so
- libmenu_p.a
  libmenuw.a
  libmenuw.so
  libmenuw.so.6
- libmenuw_p.a
  libmilter.a
  libmilter.so
  libmilter.so.6
- libmilter_p.a
  libmj.a
  libmj.so
  libmj.so.2
- libmj_p.a
  libmlx4.a
  libmlx4.so
  libmlx4.so.1
@@ -2945,47 +2856,35 @@ sysroot/usr/lib/
  libmp.a
  libmp.so
  libmp.so.7
- libmp_p.a
  libmport.a
  libmport.so
  libmport.so.2
  libmsearch.a
  libmsearch.so
  libmsearch.so.1
- libmsearch_p.a
  libmt.a
  libmt.so
- libmt_p.a
  libncurses.a
  libncurses.so
- libncurses_p.a
  libncursesw.a
  libncursesw.so
- libncursesw_p.a
  libnetgraph.a
  libnetgraph.so
  libnetgraph.so.4
- libnetgraph_p.a
  libnetmap.a
  libnetmap.so
  libnetmap.so.5
- libnetmap_p.a
  libnetpgp.a
  libnetpgp.so
  libnetpgp.so.2
- libnetpgp_p.a
  libngatm.a
  libngatm.so
  libngatm.so.4
- libngatm_p.a
  libnss_mdns.a
- libnss_mdns_p.a
  libnv.a
  libnv.so
- libnv_p.a
  libnvpair.a
  libnvpair.so
- libnvpair_p.a
  libomp.so
  libopensm.a
  libopensm.so
@@ -2993,7 +2892,6 @@ sysroot/usr/lib/
  libopie.a
  libopie.so
  libopie.so.8
- libopie_p.a
  libosmcomp.a
  libosmcomp.so
  libosmcomp.so.3
@@ -3005,263 +2903,194 @@ sysroot/usr/lib/
  libpam.so.6
  libpanel.a
  libpanel.so
- libpanel_p.a
  libpanelw.a
  libpanelw.so
  libpanelw.so.6
- libpanelw_p.a
  libpathconv.a
  libpathconv.so
  libpathconv.so.1
- libpathconv_p.a
  libpcap.a
  libpcap.so
- libpcap_p.a
  libperl.so
  libpjdlog.a
  libpjdlog.so
- libpjdlog_p.a
  libpmc.a
  libpmc.so
  libpmc.so.5
- libpmc_p.a
  libprivateatf-c++.a
  libprivateatf-c++.so
  libprivateatf-c++.so.2
- libprivateatf-c++_p.a
  libprivateatf-c.a
  libprivateatf-c.so
  libprivateatf-c.so.1
- libprivateatf-c_p.a
  libprivatebsdstat.a
  libprivatebsdstat.so
  libprivatebsdstat.so.1
- libprivatebsdstat_p.a
  libprivatedevdctl.a
  libprivatedevdctl.so
  libprivatedevdctl.so.0
- libprivatedevdctl_p.a
  libprivateevent.a
  libprivateevent.so
  libprivateevent.so.1
- libprivateevent_p.a
  libprivategmock.a
  libprivategmock.so
  libprivategmock.so.0
  libprivategmock_main.a
  libprivategmock_main.so
  libprivategmock_main.so.0
- libprivategmock_main_p.a
- libprivategmock_p.a
  libprivategtest.a
  libprivategtest.so
  libprivategtest.so.0
  libprivategtest_main.a
  libprivategtest_main.so
  libprivategtest_main.so.0
- libprivategtest_main_p.a
- libprivategtest_p.a
  libprivateheimipcc.a
  libprivateheimipcc.so
  libprivateheimipcc.so.11
- libprivateheimipcc_p.a
  libprivateheimipcs.a
  libprivateheimipcs.so
  libprivateheimipcs.so.11
- libprivateheimipcs_p.a
  libprivateifconfig.a
- libprivateifconfig_p.a
  libprivateldns.a
  libprivateldns.so
  libprivateldns.so.5
- libprivateldns_p.a
  libprivatessh.a
  libprivatessh.so
  libprivatessh.so.5
- libprivatessh_p.a
  libprivateucl.a
  libprivateucl.so
  libprivateucl.so.1
- libprivateucl_p.a
  libprivateunbound.a
  libprivateunbound.so
  libprivateunbound.so.5
- libprivateunbound_p.a
  libprivatezstd.a
  libprivatezstd.so
  libprivatezstd.so.5
- libprivatezstd_p.a
  libproc.a
  libproc.so
  libproc.so.5
- libproc_p.a
  libprocstat.a
  libprocstat.so
  libprocstat.so.1
- libprocstat_p.a
  libpthread.a
  libpthread.so
- libpthread_p.a
  libradius.a
  libradius.so
  libradius.so.4
- libradius_p.a
  librdmacm.a
  librdmacm.so
  librdmacm.so.1
  libregex.a
  libregex.so
  libregex.so.1
- libregex_p.a
  libroken.a
  libroken.so
  libroken.so.11
- libroken_p.a
  librpcsec_gss.a
  librpcsec_gss.so
  librpcsec_gss.so.1
  librpcsvc.a
  librpcsvc.so
  librpcsvc.so.5
- librpcsvc_p.a
  librss.a
  librss.so
- librss_p.a
  librt.a
  librt.so
  librt.so.1
- librt_p.a
  librtld_db.a
  librtld_db.so
  librtld_db.so.2
- librtld_db_p.a
  libsbuf.a
  libsbuf.so
- libsbuf_p.a
  libsdp.a
  libsdp.so
  libsdp.so.4
- libsdp_p.a
  libsmb.a
  libsmb.so
  libsmb.so.4
- libsmb_p.a
  libsqlite3.a
  libsqlite3.so
  libsqlite3.so.1
- libsqlite3_p.a
  libssl.a
  libssl.so
  libssl.so.111
- libssl_p.a
  libssp.so
  libssp_nonshared.a
  libstdbuf.a
  libstdbuf.so
  libstdbuf.so.1
- libstdbuf_p.a
  libstdthreads.a
  libstdthreads.so
  libstdthreads.so.0
- libstdthreads_p.a
  libsysdecode.a
  libsysdecode.so
  libsysdecode.so.5
- libsysdecode_p.a
  libtacplus.a
  libtacplus.so
  libtacplus.so.5
- libtacplus_p.a
  libtermcap.a
  libtermcap.so
- libtermcap_p.a
  libtermcapw.a
  libtermcapw.so
- libtermcapw_p.a
  libtermlib.a
  libtermlib.so
- libtermlib_p.a
  libtermlibw.a
  libtermlibw.so
- libtermlibw_p.a
  libthr.a
  libthr.so
- libthr_p.a
  libthread_db.a
  libthread_db.so
  libthread_db.so.3
- libthread_db_p.a
  libtinfo.a
  libtinfo.so
- libtinfo_p.a
  libtinfow.a
  libtinfow.so
- libtinfow_p.a
  libufs.a
  libufs.so
- libufs_p.a
  libugidfw.a
  libugidfw.so
  libugidfw.so.5
- libugidfw_p.a
  libulog.a
  libulog.so
- libulog_p.a
  libumem.a
  libumem.so
- libumem_p.a
  libusb.a
  libusb.so
  libusb.so.3
- libusb_p.a
  libusbhid.a
  libusbhid.so
  libusbhid.so.4
- libusbhid_p.a
  libutempter.a
  libutempter.so
- libutempter_p.a
  libutil.a
  libutil.so
- libutil_p.a
  libuutil.a
  libuutil.so
- libuutil_p.a
  libvgl.a
  libvgl.so
  libvgl.so.6
- libvgl_p.a
  libvmmapi.a
  libvmmapi.so
  libvmmapi.so.5
- libvmmapi_p.a
  libwind.a
  libwind.so
  libwind.so.11
- libwind_p.a
  libwrap.a
  libwrap.so
  libwrap.so.6
- libwrap_p.a
  libxnet.so
  libxo.a
  libxo.so
- libxo_p.a
  liby.a
- liby_p.a
  libypclnt.a
  libypclnt.so
  libypclnt.so.4
- libypclnt_p.a
  libz.a
  libz.so
- libz_p.a
  libzfs.a
  libzfs.so
  libzfs_core.a
  libzfs_core.so
- libzfs_core_p.a
- libzfs_p.a
  libzpool.a
  libzpool.so
  nss_mdns.so
@@ -5377,7 +5206,7 @@ sysroot/usr/lib/perl5/5.36.0/version/
 sysroot/usr/lib/perl5/5.36.0/warnings/register.pm
 
 
-[FILE:82652:manifests/plist.single.I386_R3]
+[FILE:80007:manifests/plist.single.I386_R3]
 sysroot/target_triplet
 sysroot/lib/
  lib80211.so.1
@@ -7918,91 +7747,64 @@ sysroot/usr/lib/
  include
  lib80211.a
  lib80211.so
- lib80211_p.a
  libBlocksRuntime.a
  libBlocksRuntime.so
  libBlocksRuntime.so.0
- libBlocksRuntime_p.a
  libalias.a
  libalias.so
  libalias_cuseeme.a
- libalias_cuseeme_p.a
  libalias_dummy.a
- libalias_dummy_p.a
  libalias_ftp.a
- libalias_ftp_p.a
  libalias_irc.a
- libalias_irc_p.a
  libalias_nbt.a
- libalias_nbt_p.a
- libalias_p.a
  libalias_pptp.a
- libalias_pptp_p.a
  libalias_skinny.a
- libalias_skinny_p.a
  libalias_smedia.a
- libalias_smedia_p.a
  libarchive.a
  libarchive.so
  libarchive.so.7
- libarchive_p.a
  libasn1.a
  libasn1.so
  libasn1.so.11
- libasn1_p.a
  libauditd.a
  libauditd.so
  libauditd.so.5
- libauditd_p.a
  libavl.a
  libavl.so
- libavl_p.a
  libbe.a
  libbe.so
- libbe_p.a
  libbegemot.a
  libbegemot.so
- libbegemot_p.a
  libblacklist.a
  libblacklist.so
  libblacklist.so.0
- libblacklist_p.a
  libbluetooth.a
  libbluetooth.so
  libbluetooth.so.4
- libbluetooth_p.a
  libbsdxml.a
  libbsdxml.so
- libbsdxml_p.a
  libbsm.a
  libbsm.so
  libbsm.so.3
- libbsm_p.a
  libbsnmp.a
  libbsnmp.so
  libbsnmp.so.6
- libbsnmp_p.a
  libbz2.a
  libbz2.so
  libbz2.so.4
- libbz2_p.a
  libc++.a
  libc++.so
  libc++.so.1
- libc++_p.a
  libc++experimental.a
  libc.a
  libc.so
  libc_nonshared.a
- libc_p.a
  libc_pic.a
  libcalendar.a
  libcalendar.so
  libcalendar.so.5
- libcalendar_p.a
  libcam.a
  libcam.so
- libcam_p.a
  libcap_dns.so
  libcap_grp.so
  libcap_pwd.so
@@ -8013,150 +7815,106 @@ sysroot/usr/lib/
  libcom_err.a
  libcom_err.so
  libcom_err.so.5
- libcom_err_p.a
  libcompat.a
- libcompat_p.a
  libcompiler_rt.a
- libcompiler_rt_p.a
  libcrypt.a
  libcrypt.so
- libcrypt_p.a
  libcrypto.a
  libcrypto.so
- libcrypto_p.a
  libctf.a
  libctf.so
- libctf_p.a
  libcurses.a
  libcurses.so
- libcurses_p.a
  libcursesw.a
  libcursesw.so
- libcursesw_p.a
  libcuse.a
  libcuse.so
  libcuse.so.1
- libcuse_p.a
  libcxgb4.a
  libcxgb4.so
  libcxgb4.so.1
  libcxxrt.a
  libcxxrt.so
- libcxxrt_p.a
  libdevctl.a
  libdevctl.so
  libdevctl.so.5
- libdevctl_p.a
  libdevinfo.a
  libdevinfo.so
  libdevinfo.so.6
- libdevinfo_p.a
  libdevstat.a
  libdevstat.so
- libdevstat_p.a
  libdialog.a
  libdialog.so
  libdialog.so.8
- libdialog_p.a
  libdl.a
  libdl.so
  libdl.so.1
- libdl_p.a
  libdns_sd.a
  libdns_sd.so
  libdns_sd.so.1
- libdns_sd_p.a
  libdpv.a
  libdpv.so
  libdpv.so.1
- libdpv_p.a
  libdtrace.a
  libdtrace.so
- libdtrace_p.a
  libdwarf.a
  libdwarf.so
  libdwarf.so.4
- libdwarf_p.a
  libedit.a
  libedit.so
- libedit_p.a
  libefivar.a
  libefivar.so
  libefivar.so.1
- libefivar_p.a
  libelf.a
  libelf.so
- libelf_p.a
- libexecinfo.a
- libexecinfo.so
- libexecinfo.so.1
- libexecinfo_p.a
  libfetch.a
  libfetch.so
  libfetch.so.6
- libfetch_p.a
  libfigpar.a
  libfigpar.so
  libfigpar.so.0
- libfigpar_p.a
  libfl.a
- libfl_p.a
  libform.a
  libform.so
- libform_p.a
  libformw.a
  libformw.so
  libformw.so.6
- libformw_p.a
  libgcc.a
  libgcc_eh.a
- libgcc_eh_p.a
- libgcc_p.a
  libgcc_s.so
  libgeom.a
  libgeom.so
- libgeom_p.a
  libgnuregex.a
  libgnuregex.so
  libgnuregex.so.5
- libgnuregex_p.a
  libgomp.so
  libgpio.a
  libgpio.so
  libgpio.so.0
- libgpio_p.a
  libgssapi.a
  libgssapi.so
  libgssapi.so.10
  libgssapi_krb5.a
  libgssapi_krb5.so
  libgssapi_krb5.so.10
- libgssapi_krb5_p.a
  libgssapi_ntlm.a
  libgssapi_ntlm.so
  libgssapi_ntlm.so.10
- libgssapi_ntlm_p.a
- libgssapi_p.a
  libgssapi_spnego.a
  libgssapi_spnego.so
  libgssapi_spnego.so.10
- libgssapi_spnego_p.a
  libhdb.a
  libhdb.so
  libhdb.so.11
- libhdb_p.a
  libheimbase.a
  libheimbase.so
  libheimbase.so.11
- libheimbase_p.a
  libheimntlm.a
  libheimntlm.so
  libheimntlm.so.11
- libheimntlm_p.a
  libhx509.a
  libhx509.so
  libhx509.so.11
- libhx509_p.a
  libibcm.a
  libibcm.so
  libibcm.so.1
@@ -8173,73 +7931,53 @@ sysroot/usr/lib/
  libibverbs.so
  libipsec.a
  libipsec.so
- libipsec_p.a
  libjail.a
  libjail.so
- libjail_p.a
  libkadm5clnt.a
  libkadm5clnt.so
  libkadm5clnt.so.11
- libkadm5clnt_p.a
  libkadm5srv.a
  libkadm5srv.so
  libkadm5srv.so.11
- libkadm5srv_p.a
  libkafs5.a
  libkafs5.so
  libkafs5.so.11
- libkafs5_p.a
  libkdc.a
  libkdc.so
  libkdc.so.11
- libkdc_p.a
  libkiconv.a
  libkiconv.so
- libkiconv_p.a
  libkrb5.a
  libkrb5.so
  libkrb5.so.11
- libkrb5_p.a
  libkvm.a
  libkvm.so
- libkvm_p.a
  libl.a
- libl_p.a
  libln.a
- libln_p.a
  liblzma.a
  liblzma.so
  liblzma.so.5
- liblzma_p.a
  libm.a
  libm.so
- libm_p.a
  libmagic.a
  libmagic.so
  libmagic.so.4
- libmagic_p.a
  libmd.a
  libmd.so
- libmd_p.a
  libmemstat.a
  libmemstat.so
  libmemstat.so.3
- libmemstat_p.a
  libmenu.a
  libmenu.so
- libmenu_p.a
  libmenuw.a
  libmenuw.so
  libmenuw.so.6
- libmenuw_p.a
  libmilter.a
  libmilter.so
  libmilter.so.6
- libmilter_p.a
  libmj.a
  libmj.so
  libmj.so.2
- libmj_p.a
  libmlx4.a
  libmlx4.so
  libmlx4.so.1
@@ -8248,47 +7986,35 @@ sysroot/usr/lib/
  libmp.a
  libmp.so
  libmp.so.7
- libmp_p.a
  libmport.a
  libmport.so
  libmport.so.2
  libmsearch.a
  libmsearch.so
  libmsearch.so.1
- libmsearch_p.a
  libmt.a
  libmt.so
- libmt_p.a
  libncurses.a
  libncurses.so
- libncurses_p.a
  libncursesw.a
  libncursesw.so
- libncursesw_p.a
  libnetgraph.a
  libnetgraph.so
  libnetgraph.so.4
- libnetgraph_p.a
  libnetmap.a
  libnetmap.so
  libnetmap.so.5
- libnetmap_p.a
  libnetpgp.a
  libnetpgp.so
  libnetpgp.so.2
- libnetpgp_p.a
  libngatm.a
  libngatm.so
  libngatm.so.4
- libngatm_p.a
  libnss_mdns.a
- libnss_mdns_p.a
  libnv.a
  libnv.so
- libnv_p.a
  libnvpair.a
  libnvpair.so
- libnvpair_p.a
  libomp.so
  libopensm.a
  libopensm.so
@@ -8296,7 +8022,6 @@ sysroot/usr/lib/
  libopie.a
  libopie.so
  libopie.so.8
- libopie_p.a
  libosmcomp.a
  libosmcomp.so
  libosmcomp.so.3
@@ -8308,259 +8033,191 @@ sysroot/usr/lib/
  libpam.so.6
  libpanel.a
  libpanel.so
- libpanel_p.a
  libpanelw.a
  libpanelw.so
  libpanelw.so.6
- libpanelw_p.a
  libpathconv.a
  libpathconv.so
  libpathconv.so.1
- libpathconv_p.a
  libpcap.a
  libpcap.so
- libpcap_p.a
  libperl.so
  libpjdlog.a
  libpjdlog.so
- libpjdlog_p.a
  libpmc.a
  libpmc.so
  libpmc.so.5
- libpmc_p.a
  libprivateatf-c++.a
  libprivateatf-c++.so
  libprivateatf-c++.so.2
- libprivateatf-c++_p.a
  libprivateatf-c.a
  libprivateatf-c.so
  libprivateatf-c.so.1
- libprivateatf-c_p.a
  libprivatebsdstat.a
  libprivatebsdstat.so
  libprivatebsdstat.so.1
- libprivatebsdstat_p.a
  libprivatedevdctl.a
  libprivatedevdctl.so
  libprivatedevdctl.so.0
- libprivatedevdctl_p.a
  libprivateevent.a
  libprivateevent.so
  libprivateevent.so.1
- libprivateevent_p.a
  libprivategmock.a
  libprivategmock.so
  libprivategmock.so.0
  libprivategmock_main.a
  libprivategmock_main.so
  libprivategmock_main.so.0
- libprivategmock_main_p.a
- libprivategmock_p.a
  libprivategtest.a
  libprivategtest.so
  libprivategtest.so.0
  libprivategtest_main.a
  libprivategtest_main.so
  libprivategtest_main.so.0
- libprivategtest_main_p.a
- libprivategtest_p.a
  libprivateheimipcc.a
  libprivateheimipcc.so
  libprivateheimipcc.so.11
- libprivateheimipcc_p.a
  libprivateheimipcs.a
  libprivateheimipcs.so
  libprivateheimipcs.so.11
- libprivateheimipcs_p.a
  libprivateifconfig.a
- libprivateifconfig_p.a
  libprivateldns.a
  libprivateldns.so
  libprivateldns.so.5
- libprivateldns_p.a
  libprivatessh.a
  libprivatessh.so
  libprivatessh.so.5
- libprivatessh_p.a
  libprivateucl.a
  libprivateucl.so
  libprivateucl.so.1
- libprivateucl_p.a
  libprivateunbound.a
  libprivateunbound.so
  libprivateunbound.so.5
- libprivateunbound_p.a
  libprivatezstd.a
  libprivatezstd.so
  libprivatezstd.so.5
- libprivatezstd_p.a
  libproc.a
  libproc.so
  libproc.so.5
- libproc_p.a
  libprocstat.a
  libprocstat.so
  libprocstat.so.1
- libprocstat_p.a
  libpthread.a
  libpthread.so
- libpthread_p.a
  libradius.a
  libradius.so
  libradius.so.4
- libradius_p.a
  librdmacm.a
  librdmacm.so
  librdmacm.so.1
  libregex.a
  libregex.so
  libregex.so.1
- libregex_p.a
  libroken.a
  libroken.so
  libroken.so.11
- libroken_p.a
  librpcsec_gss.a
  librpcsec_gss.so
  librpcsec_gss.so.1
  librpcsvc.a
  librpcsvc.so
  librpcsvc.so.5
- librpcsvc_p.a
  librss.a
  librss.so
- librss_p.a
  librt.a
  librt.so
  librt.so.1
- librt_p.a
  librtld_db.a
  librtld_db.so
  librtld_db.so.2
- librtld_db_p.a
  libsbuf.a
  libsbuf.so
- libsbuf_p.a
  libsdp.a
  libsdp.so
  libsdp.so.4
- libsdp_p.a
  libsmb.a
  libsmb.so
  libsmb.so.4
- libsmb_p.a
  libsqlite3.a
  libsqlite3.so
  libsqlite3.so.1
- libsqlite3_p.a
  libssl.a
  libssl.so
  libssl.so.111
- libssl_p.a
  libssp.so
  libssp_nonshared.a
  libstdbuf.a
  libstdbuf.so
  libstdbuf.so.1
- libstdbuf_p.a
  libstdthreads.a
  libstdthreads.so
  libstdthreads.so.0
- libstdthreads_p.a
  libsysdecode.a
  libsysdecode.so
  libsysdecode.so.5
- libsysdecode_p.a
  libtacplus.a
  libtacplus.so
  libtacplus.so.5
- libtacplus_p.a
  libtermcap.a
  libtermcap.so
- libtermcap_p.a
  libtermcapw.a
  libtermcapw.so
- libtermcapw_p.a
  libtermlib.a
  libtermlib.so
- libtermlib_p.a
  libtermlibw.a
  libtermlibw.so
- libtermlibw_p.a
  libthr.a
  libthr.so
- libthr_p.a
  libthread_db.a
  libthread_db.so
  libthread_db.so.3
- libthread_db_p.a
  libtinfo.a
  libtinfo.so
- libtinfo_p.a
  libtinfow.a
  libtinfow.so
- libtinfow_p.a
  libufs.a
  libufs.so
- libufs_p.a
  libugidfw.a
  libugidfw.so
  libugidfw.so.5
- libugidfw_p.a
  libulog.a
  libulog.so
- libulog_p.a
  libumem.a
  libumem.so
- libumem_p.a
  libusb.a
  libusb.so
  libusb.so.3
- libusb_p.a
  libusbhid.a
  libusbhid.so
  libusbhid.so.4
- libusbhid_p.a
  libutempter.a
  libutempter.so
- libutempter_p.a
  libutil.a
  libutil.so
- libutil_p.a
  libuutil.a
  libuutil.so
- libuutil_p.a
  libvgl.a
  libvgl.so
  libvgl.so.6
- libvgl_p.a
  libwind.a
  libwind.so
  libwind.so.11
- libwind_p.a
  libwrap.a
  libwrap.so
  libwrap.so.6
- libwrap_p.a
  libxnet.so
  libxo.a
  libxo.so
- libxo_p.a
  liby.a
- liby_p.a
  libypclnt.a
  libypclnt.so
  libypclnt.so.4
- libypclnt_p.a
  libz.a
  libz.so
- libz_p.a
  libzfs.a
  libzfs.so
  libzfs_core.a
  libzfs_core.so
- libzfs_core_p.a
- libzfs_p.a
  libzpool.a
  libzpool.so
  nss_mdns.so
