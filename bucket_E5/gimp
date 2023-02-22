@@ -30,12 +30,12 @@ BUILD_DEPENDS=		iso-codes:primary:standard
 			poppler:dev:standard
 			libheif:dev:standard
 			gegl:dev:standard
+			babl:dev:standard
 BUILDRUN_DEPENDS=	libmypaint:primary:standard
 			mypaint-brushes1:single:standard
 			glib-networking:primary:standard
 			gegl:primary:standard
 			alsa-lib:single:standard
-			freetype:primary:standard
 			harfbuzz:primary:standard
 			aalib:single:standard
 			libmng:single:standard
@@ -47,8 +47,8 @@ BUILDRUN_DEPENDS=	libmypaint:primary:standard
 			poppler-data:primary:standard
 
 USES=			cpe gmake jpeg iconv libtool pkgconfig shebangfix
-			execinfo xz bz2 zlib tiff gnome-icons:primary
-			desktop-utils:primary
+			freetype execinfo xz bz2 zlib tiff
+			gnome-icons:primary desktop-utils:primary
 GNOME_COMPONENTS=	cairo gtk2 intltool librsvg
 XORG_COMPONENTS=	ice sm x11 xcursor xext xfixes xmu xpm xt
 
@@ -92,6 +92,11 @@ SOVERSION=		0.1000.32
 					--with-gudev
 [LINUX].MAKEFILE_OFF=			VAR1="-lexecinfo -lm"
 [LINUX].MAKEFILE_ON=			VAR1="-lexecinfo -lm -ldl"
+
+post-extract:
+	# workaround recent change in babl
+	${CP} ${LOCALBASE}/lib/pkgconfig/babl-0.1.pc \
+		${LOCALBASE}/lib/pkgconfig/babl.pc
 
 [FILE:637:descriptions/desc.primary]
 The GIMP is designed to provide an intuitive graphical interface to a

@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-xft
 VERSION=		2.3.7
+REVISION=		1
 KEYWORDS=		x11_fonts
 VARIANTS=		standard
 SDESC[standard]=	Client-sided font API for X applications
@@ -13,10 +14,15 @@ SITES[main]=		XORG/individual/lib
 DISTFILE[1]=		libXft-2.3.7.tar.xz:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[dev]=		fontconfig:dev:standard
 
 USES=			libtool fontconfig pkgconfig zlib:build
 XORG_COMPONENTS=	xrender
@@ -40,7 +46,7 @@ post-install:
 post-extract:
 	${CP} ${FILESDIR}/xft-config.in ${WRKSRC}/xft-config.in
 
-[FILE:396:descriptions/desc.single]
+[FILE:396:descriptions/desc.primary]
 The current version of Xft provides a client-side font API for X
 applications. It uses Fontconfig to select fonts and the X protocol for
 rendering them. When available, Xft uses the Render extension to
@@ -53,7 +59,13 @@ support of client-side fonts for all X servers.
 79f0b37c45007381c371a790c2754644ad955166dbf2a48e3625032e9bdd4f71       310372 xorg/libXft-2.3.7.tar.xz
 
 
-[FILE:1911:manifests/plist.single]
+[FILE:53:manifests/plist.primary]
+lib/
+ libXft.so.%%SOMAJOR%%
+ libXft.so.%%SOVERSION%%
+
+
+[FILE:99:manifests/plist.dev]
 bin/xft-config
 include/X11/Xft/
  Xft.h
@@ -61,9 +73,10 @@ include/X11/Xft/
 lib/
  libXft.a
  libXft.so
- libXft.so.%%SOMAJOR%%
- libXft.so.%%SOVERSION%%
 lib/pkgconfig/xft.pc
+
+
+[FILE:1764:manifests/plist.man]
 share/man/man3/
  Xft.3.gz
  XftCharExists.3.gz
