@@ -2,6 +2,7 @@
 
 NAMEBASE=		pkgconf
 VERSION=		1.9.4
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Utility to configure compiler and linker flags
@@ -13,7 +14,10 @@ SITES[main]=		https://distfiles.dereferenced.org/pkgconf/
 			http://files.etoilebsd.net/pkgconf/
 DISTFILE[1]=		pkgconf-1.9.4.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -22,7 +26,7 @@ USES=			cpe libtool
 
 DISTNAME=		pkgconf-1.9.4
 
-LICENSE=		ISCL:single
+LICENSE=		ISCL:primary
 LICENSE_FILE=		ISCL:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -46,7 +50,7 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|version_type=sunos|version_type=freebsd-elf|' \
 		${WRKSRC}/configure
 
-[FILE:239:descriptions/desc.single]
+[FILE:239:descriptions/desc.primary]
 pkgconf is a program which helps to configure compiler and linker flags for
 development frameworks. It is similar to pkg-config, but was written from
 scratch in Summer of 2011 to replace pkg-config, which now needs itself to
@@ -57,11 +61,18 @@ build itself.
 daccf1bbe5a30d149b556c7d2ffffeafd76d7b514e249271abdd501533c1d8ae       309164 pkgconf-1.9.4.tar.xz
 
 
-[FILE:370:manifests/plist.single]
+[FILE:117:manifests/plist.primary]
 bin/
  bomtool
  pkg-config
  pkgconf
+lib/
+ libpkgconf.so.%%SOMAJOR%%
+ libpkgconf.so.%%SOVERSION%%
+share/aclocal/pkg.m4
+
+
+[FILE:152:manifests/plist.dev]
 include/pkgconf/libpkgconf/
  bsdstubs.h
  iter.h
@@ -71,10 +82,10 @@ include/pkgconf/libpkgconf/
 lib/
  libpkgconf.a
  libpkgconf.so
- libpkgconf.so.%%SOMAJOR%%
- libpkgconf.so.%%SOVERSION%%
 lib/pkgconfig/libpkgconf.pc
-share/aclocal/pkg.m4
+
+
+[FILE:106:manifests/plist.man]
 share/man/man1/pkgconf.1.gz
 share/man/man5/
  pc.5.gz

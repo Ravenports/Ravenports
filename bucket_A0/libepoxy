@@ -2,7 +2,7 @@
 
 NAMEBASE=		libepoxy
 VERSION=		1.5.10
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	OpenGL function pointer management library
@@ -13,18 +13,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/anholt:libepoxy:1.5.10
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libglvnd:single:standard
 B_DEPS[sunos]=		libbsd4sol:single:standard
+EXRUN[dev]=		xorg-x11:dev:standard
 
 USES=			meson pkgconfig python:build
 XORG_COMPONENTS=	x11
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -33,7 +36,7 @@ FPC_EQUIVALENT=		graphics/libepoxy
 VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
 			LDFLAGS=-lbsd
 
-[FILE:333:descriptions/desc.single]
+[FILE:333:descriptions/desc.primary]
 Epoxy is a library for handling OpenGL function pointer management.
 
 It hides the complexity of dlopen(), dlsym(), glXGetProcAddress(),
@@ -46,7 +49,14 @@ using undecorated function names like glCompileShader().
 a7ced37f4102b745ac86d6a70a9da399cc139ff168ba6b8002b4d8d43c900c15       332078 anholt-libepoxy-1.5.10.tar.gz
 
 
-[FILE:170:manifests/plist.single]
+[FILE:39:manifests/plist.primary]
+lib/
+ libepoxy.so.0
+ libepoxy.so.0.0.0
+
+
+[FILE:134:manifests/plist.dev]
+lib/pkgconfig/epoxy.pc
 include/epoxy/
  common.h
  egl.h
@@ -55,11 +65,7 @@ include/epoxy/
  gl_generated.h
  glx.h
  glx_generated.h
-lib/
- libepoxy.so
- libepoxy.so.0
- libepoxy.so.0.0.0
-lib/pkgconfig/epoxy.pc
+lib/libepoxy.so
 
 
 [FILE:714:patches/patch-test_dlwrap.c]

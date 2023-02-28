@@ -13,13 +13,13 @@ DOWNLOAD_GROUPS=	none
 SPKGS[minimal]=		single
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	MINIMAL STANDARD VIRTUAL DMX XEPHYR NEST
-OPTIONS_STANDARD=	STANDARD VIRTUAL DMX XEPHYR NEST
+OPTIONS_AVAILABLE=	MINIMAL STANDARD VIRTUAL XEPHYR NEST
+OPTIONS_STANDARD=	STANDARD VIRTUAL XEPHYR NEST
 OPTGROUP_RADIO=		SERVER
 OPTDESCR[SERVER]=	Desired X server
-OPTGROUP[SERVER]=	STANDARD VIRTUAL DMX XEPHYR NEST
-VOPTS[minimal]=		MINIMAL=ON STANDARD=ON VIRTUAL=OFF DMX=OFF
-			XEPHYR=OFF NEST=OFF
+OPTGROUP[SERVER]=	STANDARD VIRTUAL XEPHYR NEST
+VOPTS[minimal]=		MINIMAL=ON STANDARD=ON VIRTUAL=OFF XEPHYR=OFF
+			NEST=OFF
 OPT_ON[all]=		STANDARD
 
 FPC_EQUIVALENT=		x11/xorg
@@ -29,13 +29,14 @@ SKIP_BUILD=		yes
 SKIP_INSTALL=		yes
 
 [NEST].DESCRIPTION=			Install nesting X server
-[NEST].RUN_DEPENDS_ON=			xorg-server:single:nest
+[NEST].RUN_DEPENDS_ON=			xorg-server:complete:nest
 
 [XEPHYR].DESCRIPTION=			Install kdrive X server
-[XEPHYR].RUN_DEPENDS_ON=		xorg-server:single:xephyr
+[XEPHYR].RUN_DEPENDS_ON=		xorg-server:complete:xephyr
 
 [STANDARD].DESCRIPTION=			Install standard X server
-[STANDARD].RUN_DEPENDS_ON=		xorg-server:single:standard
+[STANDARD].RUN_DEPENDS_ON=		xorg-server:primary:standard
+					xorg-server:man:standard
 
 [MINIMAL].DESCRIPTION=			Minimal distribution variant
 [MINIMAL].RUN_DEPENDS_OFF=		xorg-fonts:single:standard
@@ -43,14 +44,11 @@ SKIP_INSTALL=		yes
 					xorg-apps:single:standard
 					xcursor-themes:single:standard
 [MINIMAL].RUN_DEPENDS_ON=		xorg-drivers-minimal:single:standard
-					xorg-xauth:single:standard
+					xorg-xauth:complete:standard
 					xinit:single:standard
 
-[DMX].DESCRIPTION=			Install distributed multihead X server
-[DMX].RUN_DEPENDS_ON=			xorg-server:single:dmx
-
 [VIRTUAL].DESCRIPTION=			Install virtual framebuffer X server
-[VIRTUAL].RUN_DEPENDS_ON=		xorg-server:single:virtual
+[VIRTUAL].RUN_DEPENDS_ON=		xorg-server:complete:virtual
 
 [FILE:65:descriptions/desc.single]
 This meta-package installs most of the available X.Org packages.

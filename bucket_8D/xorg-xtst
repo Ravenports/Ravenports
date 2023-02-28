@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-xtst
 VERSION=		1.2.4
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	X Test extension
@@ -13,17 +14,23 @@ SITES[main]=		XORG/individual/lib
 DISTFILE[1]=		libXtst-1.2.4.tar.xz:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[dev]=		xorg-xext:dev:standard
+			xorg-xi:dev:standard
 
 USES=			cpe libtool
 XORG_COMPONENTS=	x11 xi xext
 
 DISTNAME=		libXtst-1.2.4
 
-LICENSE=		MIT:single
+LICENSE=		MIT:complete
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -41,7 +48,7 @@ post-patch:
 	${REINPLACE_CMD} '/^SUBDIRS/,/^$$/ \
 		s/specs//' ${WRKSRC}/Makefile.in
 
-[FILE:44:descriptions/desc.single]
+[FILE:44:descriptions/desc.primary]
 This package contains the XKB file library.
 
 
@@ -49,16 +56,23 @@ This package contains the XKB file library.
 84f5f30b9254b4ffee14b5b0940e2622153b0d3aed8286a3c5b7eeb340ca33c8       287636 xorg/libXtst-1.2.4.tar.xz
 
 
-[FILE:457:manifests/plist.single]
+[FILE:37:manifests/plist.primary]
+lib/
+ libXtst.so.6
+ libXtst.so.6.1.0
+
+
+[FILE:93:manifests/plist.dev]
 include/X11/extensions/
  XTest.h
  record.h
 lib/
  libXtst.a
  libXtst.so
- libXtst.so.6
- libXtst.so.6.1.0
 lib/pkgconfig/xtst.pc
+
+
+[FILE:332:manifests/plist.man]
 share/man/man3/
  XTestCompareCurrentCursorWithWindow.3.gz
  XTestCompareCursorWithWindow.3.gz

@@ -16,10 +16,19 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		XORG/individual/xserver
 DISTFILE[1]=		xorg-server-21.1.7.tar.xz:main
 DF_INDEX=		1
-SPKGS[xephyr]=		single
-SPKGS[virtual]=		single
-SPKGS[standard]=	single
-SPKGS[nest]=		single
+SPKGS[xephyr]=		complete
+			primary
+			man
+SPKGS[virtual]=		complete
+			primary
+			man
+SPKGS[standard]=	complete
+			primary
+			man
+			dev
+SPKGS[nest]=		complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	XORG VIRTUAL XEPHYR NEST DEVD SUID
 OPTIONS_STANDARD=	XORG DEVD SUID
@@ -33,17 +42,17 @@ OPT_ON[all]=		XORG SUID
 
 BUILD_DEPENDS=		libdrm:dev:standard
 			libgpg-error:dev:standard
-			xorg-fontutil:single:standard
-			xorg-xkbfile:single:standard
 BUILDRUN_DEPENDS=	xorg-xcvt:single:standard
-RUN_DEPENDS=		xorg-xkeyboard-config:primary:standard
 			xorg-xkbcomp:single:standard
+RUN_DEPENDS=		xorg-xkeyboard-config:primary:standard
+EXRUN[dev]=		xorg-pixman:dev:standard
+			xorg-pciaccess:dev:standard
 
 USES=			cpe perl:build ssl solaris-funcs meson zlib:build
 XORG_COMPONENTS=	xorgproto xtransproto pixman xshmfence xau xdmcp
-			xfont2
+			xfont2 xkbfile
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -67,8 +76,10 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 
 [NEST].DESCRIPTION=			Build as nesting X server
 [NEST].BUILDRUN_DEPENDS_ON=		libglvnd:single:standard
-[NEST].BUILD_DEPENDS_ON=		libepoxy:single:standard
+[NEST].BUILD_DEPENDS_ON=		libepoxy:primary:standard
+					libepoxy:dev:standard
 					mesa:drivers:standard
+					mesa:dev:standard
 					libglvnd:single:standard
 [NEST].CONFIGURE_ARGS_OFF=		-Dxnest=false
 [NEST].CONFIGURE_ARGS_ON=		-Dxnest=true
@@ -77,9 +88,11 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 
 [XEPHYR].DESCRIPTION=			Build as kdrive-base X server
 [XEPHYR].BUILDRUN_DEPENDS_ON=		libdrm:primary:standard
-					libepoxy:single:standard
+					libepoxy:primary:standard
 					libglvnd:single:standard
 [XEPHYR].BUILD_DEPENDS_ON=		mesa:drivers:standard
+					mesa:dev:standard
+					libepoxy:dev:standard
 [XEPHYR].CONFIGURE_ARGS_OFF=		-Dxephyr=false
 [XEPHYR].CONFIGURE_ARGS_ON=		-Dxephyr=true
 [XEPHYR].XORG_COMPONENTS_ON=		x11
@@ -92,18 +105,22 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 
 [VIRTUAL].DESCRIPTION=			Build as virtual framebuffer server
 [VIRTUAL].BUILDRUN_DEPENDS_ON=		libglvnd:single:standard
-[VIRTUAL].BUILD_DEPENDS_ON=		libepoxy:single:standard
+[VIRTUAL].BUILD_DEPENDS_ON=		libepoxy:primary:standard
+					libepoxy:dev:standard
 					mesa:drivers:standard
+					mesa:dev:standard
 					libglvnd:single:standard
 [VIRTUAL].CONFIGURE_ARGS_OFF=		-Dxvfb=false
 [VIRTUAL].CONFIGURE_ARGS_ON=		-Dxvfb=true
 
 [XORG].DESCRIPTION=			Build as X server (don't change setting!)
 [XORG].BUILDRUN_DEPENDS_ON=		libdrm:primary:standard
-					libepoxy:single:standard
+					libepoxy:primary:standard
 					mesa:drivers:standard
 [XORG].BUILD_DEPENDS_ON=		xmlto:single:standard
 					xorg-sgml-doctools:single:standard
+					mesa:dev:standard
+					libepoxy:dev:standard
 [XORG].CONFIGURE_ARGS_OFF=		-Ddocs=false
 					-Ddevel-docs=false
 					-Dxorg=false
@@ -127,21 +144,21 @@ post-configure-DEVD-ON:
 post-install-XORG-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-[FILE:71:descriptions/desc.single.standard]
+[FILE:71:descriptions/desc.primary.standard]
 This package contains the X.Org X server and some associated programs.
 
 
-[FILE:60:descriptions/desc.single.virtual]
+[FILE:60:descriptions/desc.primary.virtual]
 This package contains Xvfb, a virtual framebuffer X server.
 
 
-[FILE:173:descriptions/desc.single.xephyr]
+[FILE:173:descriptions/desc.primary.xephyr]
 Xephyr is a kdrive server that outputs to a window on a pre-existing
 'host' X display.  Think Xnest but with support for modern extensions
 like composite, damage and randr.
 
 
-[FILE:78:descriptions/desc.single.nest]
+[FILE:78:descriptions/desc.primary.nest]
 This package contains Xnest, a nesting X Server that displays on an X
 Server.
 
@@ -150,14 +167,46 @@ Server.
 d9c60b2dd0ec52326ca6ab20db0e490b1ff4f566f59ca742d6532e92795877bb      4933292 xorg-server-21.1.7.tar.xz
 
 
-[FILE:2542:manifests/plist.single.standard]
-%%ONLY-SUNOS%%include/xorg/solaris-amd64.il
+[FILE:371:manifests/plist.primary.standard]
 %%SUID-OFF%%bin/Xorg
 %%SUID-ON%%@(,,4555) bin/Xorg
 bin/
  X
  gtf
 etc/X11/xorg.conf.d/10-quirks.conf
+lib/xorg/protocol.txt
+lib/xorg/modules/
+ libexa.so
+ libfbdevhw.so
+ libglamoregl.so
+ libint10.so
+ libshadow.so
+ libshadowfb.so
+ libvgahw.so
+ libwfb.so
+lib/xorg/modules/drivers/modesetting_drv.so
+lib/xorg/modules/extensions/libglx.so
+lib/xorg/modules/input/inputtest_drv.so
+
+
+[FILE:178:manifests/plist.man.standard]
+share/man/man1/
+ Xorg.1.gz
+ Xserver.1.gz
+ gtf.1.gz
+share/man/man4/
+ exa.4.gz
+ fbdevhw.4.gz
+ inputtestdrv.4.gz
+ modesetting.4.gz
+share/man/man5/
+ xorg.conf.5.gz
+ xorg.conf.d.5.gz
+
+
+[FILE:1993:manifests/plist.dev.standard]
+share/aclocal/xorg-server.m4
+%%ONLY-SUNOS%%include/xorg/solaris-amd64.il
 include/xorg/
  XIstubs.h
  Xprintf.h
@@ -317,46 +366,29 @@ include/xorg/
  xvdix.h
  xvmcext.h
 lib/pkgconfig/xorg-server.pc
-lib/xorg/protocol.txt
-lib/xorg/modules/
- libexa.so
- libfbdevhw.so
- libglamoregl.so
- libint10.so
- libshadow.so
- libshadowfb.so
- libvgahw.so
- libwfb.so
-lib/xorg/modules/drivers/modesetting_drv.so
-lib/xorg/modules/extensions/libglx.so
-lib/xorg/modules/input/inputtest_drv.so
-share/aclocal/xorg-server.m4
-share/man/man1/
- Xorg.1.gz
- Xserver.1.gz
- gtf.1.gz
-share/man/man4/
- exa.4.gz
- fbdevhw.4.gz
- inputtestdrv.4.gz
- modesetting.4.gz
-share/man/man5/
- xorg.conf.5.gz
- xorg.conf.d.5.gz
 
 
-[FILE:34:manifests/plist.single.virtual]
+[FILE:9:manifests/plist.primary.virtual]
 bin/Xvfb
+
+
+[FILE:25:manifests/plist.man.virtual]
 share/man/man1/Xvfb.1.gz
 
 
-[FILE:38:manifests/plist.single.xephyr]
+[FILE:11:manifests/plist.primary.xephyr]
 bin/Xephyr
+
+
+[FILE:27:manifests/plist.man.xephyr]
 share/man/man1/Xephyr.1.gz
 
 
-[FILE:36:manifests/plist.single.nest]
+[FILE:10:manifests/plist.primary.nest]
 bin/Xnest
+
+
+[FILE:26:manifests/plist.man.nest]
 share/man/man1/Xnest.1.gz
 
 

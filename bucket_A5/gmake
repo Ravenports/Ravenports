@@ -2,9 +2,9 @@
 
 NAMEBASE=		gmake
 VERSION=		4.4
+REVISION=		1
 KEYWORDS=		devel
-VARIANTS=		standard noprefix ravensys
-SDESC[ravensys]=	GNU make without native language support
+VARIANTS=		standard noprefix
 SDESC[noprefix]=	GNU make with unprefixed program name
 SDESC[standard]=	GNU variant of 'make' utility
 HOMEPAGE=		https://www.gnu.org/software/make/
@@ -14,31 +14,33 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/make
 DISTFILE[1]=		make-4.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[ravensys]=	single
 SPKGS[noprefix]=	complete
-			single
+			primary
+			dev
 			nls
+			man
 SPKGS[standard]=	complete
-			single
+			primary
+			dev
 			nls
+			man
 
-OPTIONS_AVAILABLE=	NOPREFIX RAVENSYS
+OPTIONS_AVAILABLE=	NOPREFIX
 OPTIONS_STANDARD=	none
-VOPTS[ravensys]=	NOPREFIX=OFF RAVENSYS=ON
-VOPTS[noprefix]=	NOPREFIX=ON RAVENSYS=OFF
+VOPTS[noprefix]=	NOPREFIX=ON
 
-USES=			cpe
+USES=			cpe gettext:build iconv:build
 
 DISTNAME=		make-4.4
 
-LICENSE=		GPLv3:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^\#include"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/main.c
 LICENSE_SCHEME=		solo
 
-INFO=			single:make
+INFO=			primary:make
 CPE_PRODUCT=		make
 CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		devel/gmake
@@ -46,18 +48,14 @@ INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-guile
-
-[RAVENSYS].DESCRIPTION=			Build without Native Language Support
-[RAVENSYS].CONFIGURE_ARGS_OFF=		--enable-nls
-					--with-libintl-prefix={{LOCALBASE}}
-					{{ICONV_CONFIGURE_ARG}}
-[RAVENSYS].CONFIGURE_ARGS_ON=		--disable-nls
-[RAVENSYS].USES_OFF=			gettext
+			--enable-nls
 
 [NOPREFIX].DESCRIPTION=			Build without prefixing program with "g"
 [NOPREFIX].CONFIGURE_ARGS_OFF=		--program-prefix=g
+[NOPREFIX].PLIST_SUB_OFF=		GNUPREFIX=g
+[NOPREFIX].PLIST_SUB_ON=		GNUPREFIX=
 
-[FILE:166:descriptions/desc.single]
+[FILE:166:descriptions/desc.primary]
 GNU make is a tool that controls the generation of executables and other
 non-source files from source files.  Its purpose is the same as that
 of the utility make(1).
@@ -67,10 +65,12 @@ of the utility make(1).
 581f4d4e872da74b3941c874215898a7d35802f03732bdccee1d4a7979105d18      2307891 make-4.4.tar.gz
 
 
-[FILE:54:manifests/plist.single]
-bin/gmake
+[FILE:22:manifests/plist.primary]
+bin/%%GNUPREFIX%%make
+
+
+[FILE:18:manifests/plist.dev]
 include/gnumake.h
-share/man/man1/gmake.1.gz
 
 
 [FILE:1089:manifests/plist.nls]
@@ -106,8 +106,6 @@ share/locale/zh_CN/LC_MESSAGES/make.mo
 share/locale/zh_TW/LC_MESSAGES/make.mo
 
 
-[FILE:52:manifests/plist.single.noprefix]
-bin/make
-include/gnumake.h
-share/man/man1/make.1.gz
+[FILE:38:manifests/plist.man]
+share/man/man1/%%GNUPREFIX%%make.1.gz
 

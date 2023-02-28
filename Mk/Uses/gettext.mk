@@ -13,12 +13,10 @@ _INCLUDE_USES_GETTEXT_MK=	yes
 # -----------------------------------------------------
 # BUILD_DEPENDS+=	gettext:dev:standard
 # BUILD_DEPENDS+=	gettext:bldtools:standard
-#
-#.if ${gettext_ARGS:Mbuild}
 # BUILD_DEPENDS+=	gettext:tools:standard
-#.else
+#
+#.if ! ${gettext_ARGS:Mbuild}
 # BUILD_DEPENDS+=	gettext:solinks:standard
-# BUILDRUN_DEPENDS+=	gettext:tools:standard
 # BUILDRUN_DEPENDS+=	gettext:primary:standard
 #.  if ${gettext_ARGS:Masprintf}
 # BUILDRUN_DEPENDS+=    gettext:asprintf:standard

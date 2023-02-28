@@ -5,7 +5,7 @@
 # Usage:	USES=desktop-utils
 # Valid ARGS:	subpackage
 #
-# ravenadm add desktop-file-utils:single:standard to RUN_DEPENDS
+# ravenadm add desktop-file-utils:primary:standard to BUILDRUN_DEPENDS
 #
 
 .if !defined(_INCLUDE_USES_DESKTOP_UTILS_MK)

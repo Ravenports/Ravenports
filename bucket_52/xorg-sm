@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-sm
 VERSION=		1.2.4
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	Session Management library for X11
@@ -13,17 +14,24 @@ SITES[main]=		XORG/individual/lib
 DISTFILE[1]=		libSM-1.2.4.tar.xz:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libuuid:single:standard
+EXRUN[dev]=		xorg-ice:dev:standard
 
 USES=			libtool
 XORG_COMPONENTS=	xtransproto xorgproto ice
 
 DISTNAME=		libSM-1.2.4
+
+LICENSE=		MIT:primary
+LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11/libSM
 
@@ -36,7 +44,7 @@ INSTALL_TARGET=		install-strip
 post-patch:
 	${REINPLACE_CMD} '/^SUBDIRS/,/^$$/ s/doc//' ${WRKSRC}/Makefile.in
 
-[FILE:58:descriptions/desc.single]
+[FILE:58:descriptions/desc.primary]
 This package contains the X11 Session Management library.
 
 
@@ -44,7 +52,14 @@ This package contains the X11 Session Management library.
 fdcbe51e4d1276b1183da77a8a4e74a137ca203e0bcfb20972dd5f3347e97b84       306944 xorg/libSM-1.2.4.tar.xz
 
 
-[FILE:114:manifests/plist.single]
+[FILE:33:manifests/plist.primary]
+lib/
+ libSM.so.6
+ libSM.so.6.0.1
+
+
+[FILE:86:manifests/plist.dev]
+lib/pkgconfig/sm.pc
 include/X11/SM/
  SM.h
  SMlib.h
@@ -52,7 +67,4 @@ include/X11/SM/
 lib/
  libSM.a
  libSM.so
- libSM.so.6
- libSM.so.6.0.1
-lib/pkgconfig/sm.pc
 

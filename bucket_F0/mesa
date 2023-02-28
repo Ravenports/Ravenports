@@ -2,7 +2,7 @@
 
 NAMEBASE=		mesa
 VERSION=		22.3.5
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Mesa 3D Graphics Library
@@ -15,8 +15,9 @@ SITES[main]=		https://mesa.freedesktop.org/archive/
 DISTFILE[1]=		mesa-22.3.5.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			libs
+			primary
 			drivers
+			dev
 
 OPTIONS_AVAILABLE=	X86_DRIVERS ARM_DRIVERS LLVMPIPE WAYLAND
 OPTIONS_STANDARD=	X86_DRIVERS ARM_DRIVERS LLVMPIPE
@@ -35,16 +36,16 @@ BUILD_DEPENDS=		libdrm:dev:standard
 			libvdpau:single:standard
 			python-Mako:single:python_used
 BUILDRUN_DEPENDS=	libdrm:primary:standard
-EXRUN[drivers]=		mesa:libs:standard
+EXRUN[drivers]=		mesa:primary:standard
 			libelf:primary:standard
 
 USES=			cpe bison gettext:build gmake meson pkgconfig zstd
 			zlib expat shebangfix solaris-funcs python:build
-			c++:libs,drivers
+			c++:primary,drivers
 XORG_COMPONENTS=	x11 xdamage xext xfixes xshmfence xxf86vm xv xrandr
 			xcb
 
-LICENSE=		MIT:libs CUSTOM1:libs CUSTOM2:libs
+LICENSE=		MIT:primary CUSTOM1:primary CUSTOM2:primary
 LICENSE_NAME=		CUSTOM1:"Kronos License (MIT with modifications)"
 			CUSTOM2:"SGI Free Software License B"
 LICENSE_FILE=		MIT:{{WRKDIR}}/LICENSE_MIT
@@ -159,7 +160,7 @@ post-extract:
 	${AWK} '/Copyright/,/DEALINGS/' ${WRKSRC}/include/GL/glext.h \
 		> ${WRKDIR}/LICENSE_KHRONOS
 
-[FILE:1198:descriptions/desc.libs]
+[FILE:1198:descriptions/desc.primary]
 The Mesa project began as an open-source implementation of the OpenGL
 specification - a system for rendering interactive 3D graphics.
 
@@ -196,10 +197,9 @@ libglapi and gbm.
 3eed2ecae2bc674494566faab9fcc9beb21cd804c7ba2b59a1694f3d7236e6a9     17069488 mesa-22.3.5.tar.xz
 
 
-[FILE:566:manifests/plist.libs]
+[FILE:365:manifests/plist.primary]
 %%LLVMPIPE-ON%%etc/OpenCL/vendors/mesa.icd
 %%LLVMPIPE-ON%%lib/
- libMesaOpenCL.so
  libMesaOpenCL.so.1
  libMesaOpenCL.so.1.0.0
 %%LLVMPIPE-ON%%lib/gallium-pipe/
@@ -208,32 +208,18 @@ libglapi and gbm.
  pipe_radeonsi.so
  pipe_swrast.so
  pipe_vmwgfx.so
-include/
- gbm.h
- xa_composite.h
- xa_context.h
- xa_tracker.h
-include/GL/osmesa.h
 lib/
- libOSMesa.so
  libOSMesa.so.8
  libOSMesa.so.8.0.0
- libgbm.so
  libgbm.so.1
  libgbm.so.1.0.0
- libglapi.so
  libglapi.so.0
  libglapi.so.0.0.0
- libxatracker.so
  libxatracker.so.2
  libxatracker.so.2.5.0
-lib/pkgconfig/
- gbm.pc
- osmesa.pc
- xatracker.pc
 
 
-[FILE:674:manifests/plist.drivers]
+[FILE:559:manifests/plist.drivers]
 %%ARM_DRIVERS-ON%%lib/dri/
  kgsl_dri.so
  msm_dri.so
@@ -244,11 +230,9 @@ lib/pkgconfig/
  radeonsi_dri.so
  radeonsi_drv_video.so
 %%LLVMPIPE-ON%%lib/vdpau/
- libvdpau_r600.so
  libvdpau_r600.so.1
  libvdpau_r600.so.1.0
  libvdpau_r600.so.1.0.0
- libvdpau_radeonsi.so
  libvdpau_radeonsi.so.1
  libvdpau_radeonsi.so.1.0
  libvdpau_radeonsi.so.1.0.0
@@ -256,16 +240,38 @@ lib/pkgconfig/
  r300_dri.so
  vmwgfx_dri.so
 %%X86_DRIVERS-ON%%lib/vdpau/
- libvdpau_r300.so
  libvdpau_r300.so.1
  libvdpau_r300.so.1.0
  libvdpau_r300.so.1.0.0
-include/GL/internal/dri_interface.h
 lib/dri/
  kms_swrast_dri.so
  swrast_dri.so
-lib/pkgconfig/dri.pc
 share/drirc.d/00-mesa-defaults.conf
+
+
+[FILE:379:manifests/plist.dev]
+%%LLVMPIPE-ON%%lib/libMesaOpenCL.so
+%%LLVMPIPE-ON%%lib/vdpau/
+ libvdpau_r600.so
+ libvdpau_radeonsi.so
+%%X86_DRIVERS-ON%%lib/vdpau/libvdpau_r300.so
+include/
+ gbm.h
+ xa_composite.h
+ xa_context.h
+ xa_tracker.h
+include/GL/osmesa.h
+include/GL/internal/dri_interface.h
+lib/
+ libOSMesa.so
+ libgbm.so
+ libglapi.so
+ libxatracker.so
+lib/pkgconfig/
+ dri.pc
+ gbm.pc
+ osmesa.pc
+ xatracker.pc
 
 
 [FILE:1363:patches/patch-meson.build]

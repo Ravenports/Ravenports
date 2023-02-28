@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-x11
 VERSION=		1.8.4
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	X-Window system library
@@ -13,19 +14,23 @@ SITES[main]=		XORG/individual/lib
 DISTFILE[1]=		libX11-1.8.4.tar.xz:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 RUN_DEPENDS=		xorg-xorgproto:single:standard
+EXRUN[dev]=		xorg-xcb:dev:standard
 
 USES=			cpe perl:build libtool
 XORG_COMPONENTS=	xorgproto xtransproto xau xdmcp xcb
 
 DISTNAME=		libX11-1.8.4
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -54,7 +59,7 @@ post-install:
 	# already installed by xorgproto
 	${RM} -r ${STAGEDIR}${PREFIX}/include/X11/extensions
 
-[FILE:39:descriptions/desc.single]
+[FILE:39:descriptions/desc.primary]
 This package contains the X11 library.
 
 
@@ -62,27 +67,10 @@ This package contains the X11 library.
 c9a287a5aefa9804ce3cfafcf516fe96ed3f7e8e45c0e2ee59e84c86757df518      1835316 xorg/libX11-1.8.4.tar.xz
 
 
-[FILE:22501:manifests/plist.single]
-include/X11/
- ImUtil.h
- XKBlib.h
- Xcms.h
- Xlib-xcb.h
- Xlib.h
- XlibConf.h
- Xlibint.h
- Xlocale.h
- Xregion.h
- Xresource.h
- Xutil.h
- cursorfont.h
+[FILE:3851:manifests/plist.primary]
 lib/
- libX11-xcb.a
- libX11-xcb.so
  libX11-xcb.so.1
  libX11-xcb.so.1.0.0
- libX11.a
- libX11.so
  libX11.so.6
  libX11.so.6.4.0
 lib/X11/
@@ -340,9 +328,33 @@ lib/X11/locale/zh_TW.big5/
  Compose
  XI18N_OBJS
  XLC_LOCALE
+
+
+[FILE:232:manifests/plist.dev]
+include/X11/
+ ImUtil.h
+ XKBlib.h
+ Xcms.h
+ Xlib-xcb.h
+ Xlib.h
+ XlibConf.h
+ Xlibint.h
+ Xlocale.h
+ Xregion.h
+ Xresource.h
+ Xutil.h
+ cursorfont.h
+lib/
+ libX11-xcb.a
+ libX11-xcb.so
+ libX11.a
+ libX11.so
 lib/pkgconfig/
  x11-xcb.pc
  x11.pc
+
+
+[FILE:18423:manifests/plist.man]
 share/man/man%%FMS%%/
  Compose.%%FMS%%.gz
  XCompose.%%FMS%%.gz

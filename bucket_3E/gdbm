@@ -3,9 +3,8 @@
 NAMEBASE=		gdbm
 VERSION=		1.23
 KEYWORDS=		databases
-VARIANTS=		standard static
+VARIANTS=		standard
 SDESC[standard]=	GNU database manager
-SDESC[static]=		GNU database manager (static-only without NLS)
 HOMEPAGE=		http://www.gnu.org/software/gdbm/
 CONTACT=		nobody
 
@@ -15,18 +14,19 @@ DISTFILE[1]=		gdbm-1.23.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
-			nls
-SPKGS[static]=		complete
-			primary
+			dev
 			tools
+			nls
+			man
 
-OPTIONS_AVAILABLE=	STATIC
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-VOPTS[static]=		STATIC=ON
 
-EXRUN[tools]=		readline:primary:standard
+BUILD_DEPENDS=		readline:primary:standard
+EXRUN[tools]=		gdbm:primary:standard
+			readline:primary:standard
 
-USES=			gmake libtool:keepla solfix
+USES=			gmake libtool solfix readline:build gettext
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -35,40 +35,26 @@ LICENSE_AWK=		TERMS:"Protection for multiple"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/gdbm.h.in
 LICENSE_SCHEME=		solo
 
-INFO=			primary:gdbm
+INFO=			tools:gdbm
 FPC_EQUIVALENT=		databases/gdbm
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-libgdbm-compat
 			--enable-static
+			--enable-shared
+			--enable-nls
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		6.0.0
 
-[STATIC].DESCRIPTION=			Build static library only variant
-[STATIC].CFLAGS_ON=			-fPIC
-					-DPIC
-[STATIC].CONFIGURE_ARGS_OFF=		--enable-nls
-					--enable-shared
-[STATIC].CONFIGURE_ARGS_ON=		--disable-nls
-					--disable-shared
-[STATIC].USES_OFF=			readline
-					gettext
-[STATIC].USES_ON=			readline:build
-
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e "s|LIBS = @LIBS@ -lc|LIBS = @LIBS@|" \
 		-e "s|BINOWN = bin|BINOWN = root|" \
 		-e "s|BINGRP = bin|BINGRP = wheel|" \
 		-e "s|libgdbm.la libgdbm_compat.la|& gdbm.info|" \
 			${WRKSRC}/Makefile.in
-
-post-patch-STATIC-ON:
-	# force static linking
-	${RM} ${LOCALBASE}/lib/libreadline.so
-	${RM} ${LOCALBASE}/lib/libhistory.so
 
 [FILE:226:descriptions/desc.primary]
 The GNU dbm is a library of database functions that use extensible hashing
@@ -77,50 +63,39 @@ provided to a programmer needing to create and manipulate a hashed
 database.
 
 
-[FILE:312:descriptions/desc.primary.static]
-The GNU dbm is a library of database functions that use extensible hashing
-and works similar to the standard UNIX dbm functions.  These routines are
-provided to a programmer needing to create and manipulate a hashed
-database.
-
-This package contains a static-only version of the library without
-any binary tools.
-
-
-[FILE:78:descriptions/desc.tools.static]
-This package contains the tools of the static variant of the
-gdbm ravenports.
+[FILE:34:descriptions/desc.tools]
+This package contains gdbm tools.
 
 
 [FILE:95:distinfo]
 74b1081d21fff13ae4bd7c16e5d6e504a4c26f7cde1dca0d963a484174bbcacd      1115854 gdbm-1.23.tar.gz
 
 
-[FILE:349:manifests/plist.primary]
-bin/
- gdbm_dump
- gdbm_load
- gdbmtool
+[FILE:101:manifests/plist.primary]
+lib/
+ libgdbm.so.%%SOMAJOR%%
+ libgdbm.so.%%SOVERSION%%
+ libgdbm_compat.so.4
+ libgdbm_compat.so.4.0.0
+
+
+[FILE:97:manifests/plist.dev]
 include/
  dbm.h
  gdbm.h
  ndbm.h
 lib/
  libgdbm.a
- libgdbm.la
  libgdbm.so
- libgdbm.so.%%SOMAJOR%%
- libgdbm.so.%%SOVERSION%%
  libgdbm_compat.a
- libgdbm_compat.la
  libgdbm_compat.so
- libgdbm_compat.so.4
- libgdbm_compat.so.4.0.0
-share/man/man1/
- gdbm_dump.1.gz
- gdbm_load.1.gz
- gdbmtool.1.gz
-share/man/man3/gdbm.3.gz
+
+
+[FILE:37:manifests/plist.tools]
+bin/
+ gdbm_dump
+ gdbm_load
+ gdbmtool
 
 
 [FILE:507:manifests/plist.nls]
@@ -140,26 +115,10 @@ share/locale/uk/LC_MESSAGES/gdbm.mo
 share/locale/vi/LC_MESSAGES/gdbm.mo
 
 
-[FILE:122:manifests/plist.primary.static]
-include/
- dbm.h
- gdbm.h
- ndbm.h
-lib/
- libgdbm.a
- libgdbm.la
- libgdbm_compat.a
- libgdbm_compat.la
-share/man/man3/gdbm.3.gz
-
-
-[FILE:100:manifests/plist.tools.static]
-bin/
- gdbm_dump
- gdbm_load
- gdbmtool
+[FILE:88:manifests/plist.man]
 share/man/man1/
  gdbm_dump.1.gz
  gdbm_load.1.gz
  gdbmtool.1.gz
+share/man/man3/gdbm.3.gz
 

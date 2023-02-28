@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-xvmc
 VERSION=		1.0.13
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	X Video Extension Motion Compensation library
@@ -13,17 +14,22 @@ SITES[main]=		XORG/individual/lib
 DISTFILE[1]=		libXvMC-1.0.13.tar.xz:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[dev]=		xorg-xext:dev:standard
+			xorg-xv:dev:standard
 
 USES=			cpe libtool
 XORG_COMPONENTS=	x11 xext xv
 
 DISTNAME=		libXvMC-1.0.13
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -39,7 +45,7 @@ post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/libXvMC
 	${RM} ${STAGEDIR}${PREFIX}/include/X11/extensions/vldXvMC.h
 
-[FILE:120:descriptions/desc.single]
+[FILE:120:descriptions/desc.primary]
 This package provides an X Window System client interface to the
 XVideo-MotionCompensation extension to the X protocol.
 
@@ -48,17 +54,21 @@ XVideo-MotionCompensation extension to the X protocol.
 0a9ebe6dea7888a747e5aca1b891d53cd7d3a5f141a9645f77d9b6a12cee657c       274180 xorg/libXvMC-1.0.13.tar.xz
 
 
-[FILE:193:manifests/plist.single]
+[FILE:71:manifests/plist.primary]
+lib/
+ libXvMC.so.1
+ libXvMC.so.1.0.0
+ libXvMCW.so.1
+ libXvMCW.so.1.0.0
+
+
+[FILE:127:manifests/plist.dev]
 include/X11/extensions/XvMClib.h
 lib/
  libXvMC.a
  libXvMC.so
- libXvMC.so.1
- libXvMC.so.1.0.0
  libXvMCW.a
  libXvMCW.so
- libXvMCW.so.1
- libXvMCW.so.1.0.0
 lib/pkgconfig/
  xvmc-wrapper.pc
  xvmc.pc

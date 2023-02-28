@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-xcb-util-cursor
 VERSION=		0.1.4
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	XCB cursor library
@@ -13,12 +14,16 @@ SITES[main]=		https://xcb.freedesktop.org/dist/
 DISTFILE[1]=		xcb-util-cursor-0.1.4.tar.xz:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		gperf:primary:standard
+EXRUN[dev]=		xorg-xcb-render-util:dev:standard
+			xorg-xcb-util-image:dev:standard
 
 USES=			libtool gmake solaris-funcs
 XORG_COMPONENTS=	xorgproto xcb xcb-render-util xcb-util
@@ -26,7 +31,7 @@ XORG_COMPONENTS=	xorgproto xcb xcb-render-util xcb-util
 
 DISTNAME=		xcb-util-cursor-0.1.4
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -38,7 +43,7 @@ MUST_CONFIGURE=		gnu
 
 INSTALL_TARGET=		install-strip
 
-[FILE:514:descriptions/desc.single]
+[FILE:514:descriptions/desc.primary]
 The xcb-util module provides a number of libraries which sit on top of
 libxcb, the core X protocol library, and some of the extension
 libraries. These experimental libraries provide convenience functions
@@ -54,14 +59,18 @@ replacement for libXcursor.
 28dcfe90bcab7b3561abe0dd58eb6832aa9cc77cfe42fcdfa4ebe20d605231fb       265508 xorg/xcb-util-cursor-0.1.4.tar.xz
 
 
-[FILE:137:manifests/plist.single]
+[FILE:49:manifests/plist.primary]
+lib/
+ libxcb-cursor.so.0
+ libxcb-cursor.so.0.0.0
+
+
+[FILE:93:manifests/plist.dev]
+lib/pkgconfig/xcb-cursor.pc
 include/xcb/xcb_cursor.h
 lib/
  libxcb-cursor.a
  libxcb-cursor.so
- libxcb-cursor.so.0
- libxcb-cursor.so.0.0.0
-lib/pkgconfig/xcb-cursor.pc
 
 
 [FILE:544:patches/patch-cursor__shape_to_id.gperf]

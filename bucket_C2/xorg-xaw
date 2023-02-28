@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-xaw
 VERSION=		1.0.14
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	X Athena Widgets library
@@ -13,10 +14,19 @@ SITES[main]=		XORG/individual/lib
 DISTFILE[1]=		libXaw-1.0.14.tar.bz2:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[dev]=		xorg-xext:dev:standard
+			xorg-xmu:dev:standard
+			xorg-xpm:dev:standard
+			xorg-xt:dev:standard
+			xorg-x11:dev:standard
 
 USES=			gmake libtool
 XORG_COMPONENTS=	x11 xext xmu xpm xt
@@ -35,7 +45,7 @@ CFLAGS=			-Wno-discarded-qualifiers
 post-patch:
 	${REINPLACE_CMD} -e '/^SUBDIRS/ s| specs||' ${WRKSRC}/Makefile.in
 
-[FILE:52:descriptions/desc.single]
+[FILE:52:descriptions/desc.primary]
 This package contains the X Athena Widgets library.
 
 
@@ -43,7 +53,17 @@ This package contains the X Athena Widgets library.
 76aef98ea3df92615faec28004b5ce4e5c6855e716fa16de40c32030722a6f8e       690994 xorg/libXaw-1.0.14.tar.bz2
 
 
-[FILE:1018:manifests/plist.single]
+[FILE:95:manifests/plist.primary]
+lib/
+ libXaw.so.6
+ libXaw.so.7
+ libXaw6.so.6
+ libXaw6.so.6.0.1
+ libXaw7.so.7
+ libXaw7.so.7.0.0
+
+
+[FILE:904:manifests/plist.dev]
 include/X11/Xaw/
  AllWidgets.h
  AsciiSink.h
@@ -118,18 +138,15 @@ include/X11/Xaw/
  XawInit.h
 lib/
  libXaw.so
- libXaw.so.6
- libXaw.so.7
  libXaw6.a
  libXaw6.so
- libXaw6.so.6
- libXaw6.so.6.0.1
  libXaw7.a
  libXaw7.so
- libXaw7.so.7
- libXaw7.so.7.0.0
 lib/pkgconfig/
  xaw6.pc
  xaw7.pc
+
+
+[FILE:24:manifests/plist.man]
 share/man/man3/Xaw.3.gz
 

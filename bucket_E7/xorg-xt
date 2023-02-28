@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-xt
 VERSION=		1.2.1
+REVISION=		1
 KEYWORDS=		x11 x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	X Toolkit library
@@ -13,17 +14,23 @@ SITES[main]=		XORG/individual/lib
 DISTFILE[1]=		libXt-1.2.1.tar.bz2:main
 DIST_SUBDIR=		xorg
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[dev]=		xorg-sm:dev:standard
+			xorg-x11:dev:standard
 
 USES=			cpe libtool
 XORG_COMPONENTS=	x11 sm
 
 DISTNAME=		libXt-1.2.1
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -42,7 +49,7 @@ post-patch:
 	${REINPLACE_CMD} 's/test.*-traditional.*;/true;/' \
 		${WRKSRC}/configure
 
-[FILE:45:descriptions/desc.single]
+[FILE:45:descriptions/desc.primary]
 This package contains the X Toolkit library.
 
 
@@ -50,7 +57,13 @@ This package contains the X Toolkit library.
 679cc08f1646dbd27f5e48ffe8dd49406102937109130caab02ca32c083a3d60       784610 xorg/libXt-1.2.1.tar.bz2
 
 
-[FILE:6788:manifests/plist.single]
+[FILE:33:manifests/plist.primary]
+lib/
+ libXt.so.6
+ libXt.so.6.0.0
+
+
+[FILE:449:manifests/plist.dev]
 include/X11/
  CallbackI.h
  Composite.h
@@ -88,9 +101,10 @@ include/X11/
 lib/
  libXt.a
  libXt.so
- libXt.so.6
- libXt.so.6.0.0
 lib/pkgconfig/xt.pc
+
+
+[FILE:6311:manifests/plist.man]
 share/man/man3/
  MenuPopdown.3.gz
  MenuPopup.3.gz
