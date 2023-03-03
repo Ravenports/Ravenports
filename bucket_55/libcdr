@@ -2,6 +2,7 @@
 
 NAMEBASE=		libcdr
 VERSION=		0.1.7
+REVISION=		1
 KEYWORDS=		graphics devel
 VARIANTS=		standard
 SDESC[standard]=	CorelDraw file format importer library
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://dev-www.libreoffice.org/src/libcdr/
 DISTFILE[1]=		libcdr-0.1.7.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -22,10 +26,12 @@ BUILD_DEPENDS=		boost-libraries:single:standard
 BUILDRUN_DEPENDS=	icu:single:standard
 			librevenge:single:standard
 			lcms2:primary:standard
+EXRUN[tools]=		lcms2:primary:standard
+EXRUN[dev]=		lcms2:dev:standard
 
 USES=			libtool pkgconfig zlib
 
-LICENSE=		MPL:single
+LICENSE=		MPL:primary
 LICENSE_FILE=		MPL:{{WRKSRC}}/COPYING.MPL
 LICENSE_SCHEME=		solo
 
@@ -40,16 +46,27 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.7
 PLIST_SUB=		VER=0.1
 
-[FILE:107:descriptions/desc.single]
-Library and tools providing ability to interpret and import Corel Draw
-drawings into various applications.
+[FILE:126:descriptions/desc.primary]
+The package contains the cdr library providing ability to interpret and
+import Corel Draw drawings into various applications.
+
+
+[FILE:86:descriptions/desc.tools]
+This packages contains tools based on the cdr library to manipulate Corel
+Draw files.
 
 
 [FILE:98:distinfo]
 5666249d613466b9aa1e987ea4109c04365866e9277d80f6cd9663e86b8ecdd4       618528 libcdr-0.1.7.tar.xz
 
 
-[FILE:270:manifests/plist.single]
+[FILE:69:manifests/plist.primary]
+lib/
+ libcdr-%%VER%%.so.%%SOMAJOR%%
+ libcdr-%%VER%%.so.%%SOVERSION%%
+
+
+[FILE:65:manifests/plist.tools]
 bin/
  cdr2raw
  cdr2text
@@ -57,14 +74,14 @@ bin/
  cmx2raw
  cmx2text
  cmx2xhtml
+
+
+[FILE:139:manifests/plist.dev]
+lib/pkgconfig/libcdr-%%VER%%.pc
 include/libcdr-%%VER%%/libcdr/
  CDRDocument.h
  CMXDocument.h
  libcdr.h
  libcdr_api.h
-lib/
- libcdr-%%VER%%.so
- libcdr-%%VER%%.so.%%SOMAJOR%%
- libcdr-%%VER%%.so.%%SOVERSION%%
-lib/pkgconfig/libcdr-%%VER%%.pc
+lib/libcdr-%%VER%%.so
 
