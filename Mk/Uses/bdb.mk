@@ -2,7 +2,7 @@
 #
 # Feature:	bdb
 # Usage:	bdb[:version]
-# Valid ARGS:	none (implies 5), 5, 6, 18, buildrun (implicit), build
+# Valid ARGS:	none (implies 5), 5, 18, buildrun (implicit), build
 #
 # This module sets the following variables:
 # BDB_LIB_NAME     - Set to the name of the Berkeley DB library
@@ -27,11 +27,7 @@
 .if !defined(_INCLUDE_USES_BDB_MK)
 _INCLUDE_USES_BDB_MK=	yes
 
-.  if ${bdb_ARGS} == "6"
-BDB_VER=		6
-BDB_LIB_NAME=		db-6.2
-BDB_LIB_CXX_NAME=	db_cxx-6.2
-.  elif ${bdb_ARGS} == "18"
+.  if ${bdb_ARGS} == "18"
 BDB_VER=		18
 BDB_LIB_NAME=		db-18.1
 BDB_LIB_CXX_NAME=	db_cxx-18.1
