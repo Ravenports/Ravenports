@@ -191,7 +191,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.37
-GTK4_PORT_VERSION=		4.8.3
+GTK4_PORT_VERSION=		4.10.0
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -224,9 +224,9 @@ LIBTOOL_VERSION=		2.4.7
 FREI0R_VERSION=			1.8.0
 M17N_VERSION=			1.8.0
 GLIBC_VERSION=			2.26
-GSTREAMER1_VERSION=		1.22.0		# only even (1.16.x, 1.18.x)
+GSTREAMER1_VERSION=		1.22.1		# only even (1.16.x, 1.18.x)
 GSTREAMER1_GST=			1.0
-GSTREAMER1_SOVERSION=		0.2200.0
+GSTREAMER1_SOVERSION=		0.2201.0
 XORG_VERSION=			7.7
 LLVM_VERSION=			15.0.7
 ZLIB_VERSION=			1.2.13
@@ -234,7 +234,7 @@ GHOSTSCRIPT_VERSION=		10.00.0
 SPHINX_UNDERSCORE=		1.13.1
 ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0
-PECL_YAML=			2.2.2
+PECL_YAML=			2.2.3
 
 # ------------------------------------------------------------------------
 # Gnatcross options
