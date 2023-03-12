@@ -2,6 +2,7 @@
 
 NAMEBASE=		appstream-glib
 VERSION=		0.8.2
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Library for reading and writing AppStream metadata
@@ -15,7 +16,10 @@ DIST_SUBDIR=		gnome3
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
 			nls
+			man
 			docs
 
 OPTIONS_AVAILABLE=	none
@@ -28,6 +32,7 @@ BUILDRUN_DEPENDS=	libyaml:single:standard
 			libarchive:single:standard
 			json-glib:primary:standard
 			gcab:primary:standard
+EXRUN[tools]=		appstream-glib:primary:standard
 
 USES=			gmake libtool pkgconfig sqlite meson gtk-doc curl
 			fontconfig ssl:build
@@ -64,17 +69,41 @@ This library provides objects and helper methods to help reading and
 writing AppStream metadata.
 
 
+[FILE:39:descriptions/desc.tools]
+This package contains appstream tools.
+
+
 [FILE:113:distinfo]
 71256500add5048d6f08878904708b3d0c3875f402e0adcd358e91d47dcd8b96      2320880 gnome3/appstream-glib-0.8.2.tar.xz
 
 
-[FILE:1279:manifests/plist.primary]
-%%INTRO%%lib/girepository-1.0/AppStreamGlib-1.0.typelib
-%%INTRO%%share/gir-1.0/AppStreamGlib-1.0.gir
+[FILE:280:manifests/plist.primary]
+lib/
+ libappstream-glib.so.%%SOMAJOR%%
+ libappstream-glib.so.%%SOVERSION%%
+lib/asb-plugins-5/
+ libasb_plugin_appdata.so
+ libasb_plugin_desktop.so
+ libasb_plugin_font.so
+ libasb_plugin_gettext.so
+ libasb_plugin_hardcoded.so
+ libasb_plugin_icon.so
+ libasb_plugin_shell_extension.so
+
+
+[FILE:129:manifests/plist.tools]
 bin/
  appstream-builder
  appstream-compose
  appstream-util
+share/bash-completion/completions/
+ appstream-builder
+ appstream-util
+
+
+[FILE:788:manifests/plist.dev]
+%%INTRO%%lib/girepository-1.0/AppStreamGlib-1.0.typelib
+%%INTRO%%share/gir-1.0/AppStreamGlib-1.0.gir
 include/libappstream-glib/
  appstream-glib.h
  as-agreement-section.h
@@ -106,35 +135,17 @@ include/libappstream-glib/
  as-translation.h
  as-utils.h
  as-version.h
-lib/
- libappstream-glib.so
- libappstream-glib.so.%%SOMAJOR%%
- libappstream-glib.so.%%SOVERSION%%
-lib/asb-plugins-5/
- libasb_plugin_appdata.so
- libasb_plugin_desktop.so
- libasb_plugin_font.so
- libasb_plugin_gettext.so
- libasb_plugin_hardcoded.so
- libasb_plugin_icon.so
- libasb_plugin_shell_extension.so
+lib/libappstream-glib.so
 lib/pkgconfig/appstream-glib.pc
 share/aclocal/
  appdata-xml.m4
  appstream-xml.m4
-share/bash-completion/completions/
- appstream-builder
- appstream-util
 share/gettext/its/
  appdata.its
  appdata.loc
 share/installed-tests/appstream-glib/
  appdata-validate.test
  destdir-check.test
-share/man/man1/
- appstream-builder.1.gz
- appstream-compose.1.gz
- appstream-util.1.gz
 
 
 [FILE:1491:manifests/plist.nls]
@@ -170,6 +181,13 @@ share/locale/tr/LC_MESSAGES/appstream-glib.mo
 share/locale/uk/LC_MESSAGES/appstream-glib.mo
 share/locale/zh_CN/LC_MESSAGES/appstream-glib.mo
 share/locale/zh_TW/LC_MESSAGES/appstream-glib.mo
+
+
+[FILE:85:manifests/plist.man]
+share/man/man1/
+ appstream-builder.1.gz
+ appstream-compose.1.gz
+ appstream-util.1.gz
 
 
 [FILE:794:manifests/plist.docs]

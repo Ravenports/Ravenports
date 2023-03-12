@@ -21,7 +21,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		appstream-glib:primary:standard
+BUILD_DEPENDS=		appstream-glib:dev:standard
 			harfbuzz:dev:standard
 			libsoup-2.4:dev:standard
 			poppler:dev:standard
@@ -3890,6 +3890,227 @@ share/doc/inkscape/tutorials/
  tutorial-tracing.zh_CN.svg
  tutorial-tracing.zh_TW.svg
  tux.png
+
+
+[FILE:9034:patches/patch-bug-4123]
+From 1b428034fdd01941d95f44f6ecdd13f2249c21f2 Mon Sep 17 00:00:00 2001
+From: PBS <pbs3141@gmail.com>
+Date: Sun, 26 Feb 2023 14:57:01 +0900
+Subject: [PATCH] Gtkmmify drag_dest_set
+
+Port uses of drag_dest_set() from the C API to the C++ API, and other
+C++ification.
+
+Fixes https://gitlab.com/inkscape/inbox/-/issues/8244
+---
+ src/ui/drag-and-drop.cpp         | 85 +++++++++-----------------------
+ src/ui/widget/selected-style.cpp | 38 +++++---------
+ 2 files changed, 37 insertions(+), 86 deletions(-)
+
+--- src/ui/drag-and-drop.cpp.orig
++++ src/ui/drag-and-drop.cpp
+@@ -14,6 +14,7 @@
+ 
+ #include "drag-and-drop.h"
+ 
++#include <array>
+ #include <glibmm/i18n.h>  // Internationalization
+ 
+ #include "desktop-style.h"
+@@ -60,23 +61,18 @@ enum ui_drop_target_info {
+     APP_X_INK_PASTE
+ };
+ 
+-static GtkTargetEntry ui_drop_target_entries [] = {
+-    // clang-format off
+-    {(gchar *)"text/uri-list",                0, URI_LIST        },
+-    {(gchar *)"image/svg+xml",                0, SVG_XML_DATA    },
+-    {(gchar *)"image/svg",                    0, SVG_DATA        },
+-    {(gchar *)"image/png",                    0, PNG_DATA        },
+-    {(gchar *)"image/jpeg",                   0, JPEG_DATA       },
+-    {(gchar *)"application/x-oswb-color",     0, APP_OSWB_COLOR  },
+-    {(gchar *)"application/x-color",          0, APP_X_COLOR     },
+-    {(gchar *)"application/x-inkscape-paste", 0, APP_X_INK_PASTE }
+-    // clang-format on
++static const std::array<Gtk::TargetEntry, 8> ui_drop_target_entries = {
++    Gtk::TargetEntry("text/uri-list",                Gtk::TargetFlags(0), URI_LIST       ),
++    Gtk::TargetEntry("image/svg+xml",                Gtk::TargetFlags(0), SVG_XML_DATA   ),
++    Gtk::TargetEntry("image/svg",                    Gtk::TargetFlags(0), SVG_DATA       ),
++    Gtk::TargetEntry("image/png",                    Gtk::TargetFlags(0), PNG_DATA       ),
++    Gtk::TargetEntry("image/jpeg",                   Gtk::TargetFlags(0), JPEG_DATA      ),
++    Gtk::TargetEntry("application/x-oswb-color",     Gtk::TargetFlags(0), APP_OSWB_COLOR ),
++    Gtk::TargetEntry("application/x-color",          Gtk::TargetFlags(0), APP_X_COLOR    ),
++    Gtk::TargetEntry("application/x-inkscape-paste", Gtk::TargetFlags(0), APP_X_INK_PASTE)
+ };
+ 
+-static GtkTargetEntry *completeDropTargets = nullptr;
+-static int completeDropTargetsCount = 0;
+-
+-static guint nui_drop_target_entries = G_N_ELEMENTS(ui_drop_target_entries);
++static std::vector<Gtk::TargetEntry> completeDropTargets;
+ 
+ /** Convert screen (x, y) coordinates to desktop coordinates. */
+ inline Geom::Point world2desktop(SPDesktop *desktop, int x, int y)
+@@ -85,10 +81,8 @@ inline Geom::Point world2desktop(SPDesktop *desktop, int x, int y)
+     return (Geom::Point(x, y) + desktop->canvas->get_area_world().min()) * desktop->w2d();
+ }
+ 
+-/* Drag and Drop */
+-static
+-void
+-ink_drag_data_received(GtkWidget *widget,
++// Drag and Drop
++static void ink_drag_data_received(GtkWidget *widget,
+                          GdkDragContext *drag_context,
+                          gint x, gint y,
+                          GtkSelectionData *data,
+@@ -398,62 +392,31 @@ static void ink_drag_leave( GtkWidget */*widget*/,
+ }
+ #endif
+ 
+-void
+-ink_drag_setup(SPDesktopWidget* dtw)
++void ink_drag_setup(SPDesktopWidget *dtw)
+ {
+-    if ( completeDropTargets == nullptr || completeDropTargetsCount == 0 )
+-    {
+-        std::vector<Glib::ustring> types;
+-
+-        std::vector<Gdk::PixbufFormat> list = Gdk::Pixbuf::get_formats();
+-        for (auto one:list) {
+-            std::vector<Glib::ustring> typesXX = one.get_mime_types();
+-            for (auto i:typesXX) {
+-                types.push_back(i);
+-            }
+-        }
+-        completeDropTargetsCount = nui_drop_target_entries + types.size();
+-        completeDropTargets = new GtkTargetEntry[completeDropTargetsCount];
+-        for ( int i = 0; i < (int)nui_drop_target_entries; i++ ) {
+-            completeDropTargets[i] = ui_drop_target_entries[i];
++    if (completeDropTargets.empty()) {
++        for (auto const &entry : ui_drop_target_entries) {
++            completeDropTargets.emplace_back(entry);
+         }
+-        int pos = nui_drop_target_entries;
+-
+-        for (auto & type : types) {
+-            completeDropTargets[pos].target = g_strdup(type.c_str());
+-            completeDropTargets[pos].flags = 0;
+-            completeDropTargets[pos].info = IMAGE_DATA;
+-            pos++;
++        for (auto const &fmt : Gdk::Pixbuf::get_formats()) {
++            for (auto &type : fmt.get_mime_types()) {
++                completeDropTargets.emplace_back(std::move(type), Gtk::TargetFlags(0), IMAGE_DATA);
++            }
+         }
+     }
+ 
+     auto canvas = dtw->get_canvas();
+ 
+-    gtk_drag_dest_set(GTK_WIDGET(canvas->gobj()),
+-                      GTK_DEST_DEFAULT_ALL,
+-                      completeDropTargets,
+-                      completeDropTargetsCount,
+-                      GdkDragAction(GDK_ACTION_COPY | GDK_ACTION_MOVE));
++    canvas->drag_dest_set(completeDropTargets,
++                          Gtk::DestDefaults::DEST_DEFAULT_ALL,
++                          Gdk::DragAction::ACTION_COPY | Gdk::DragAction::ACTION_MOVE);
+ 
+     g_signal_connect(G_OBJECT(canvas->gobj()),
+                      "drag_data_received",
+                      G_CALLBACK(ink_drag_data_received),
+                      dtw);
+-
+-#if 0
+-    g_signal_connect(G_OBJECT(win->gobj()),
+-                     "drag_motion",
+-                     G_CALLBACK(ink_drag_motion),
+-                     NULL);
+-
+-    g_signal_connect(G_OBJECT(win->gobj()),
+-                     "drag_leave",
+-                     G_CALLBACK(ink_drag_leave),
+-                     NULL);
+-#endif
+ }
+ 
+-
+ /*
+   Local Variables:
+   mode:c++
+--- src/ui/widget/selected-style.cpp.orig
++++ src/ui/widget/selected-style.cpp
+@@ -100,18 +100,10 @@ enum ui_drop_target_info {
+     APP_OSWB_COLOR
+ };
+ 
+-//TODO: warning: deprecated conversion from string constant to ‘gchar*’
+-//
+-//Turn out to be warnings that we should probably leave in place. The
+-// pointers/types used need to be read-only. So until we correct the using
+-// code, those warnings are actually desired. They say "Hey! Fix this". We
+-// definitely don't want to hide/ignore them. --JonCruz
+-static const GtkTargetEntry ui_drop_target_entries [] = {
+-    {g_strdup("application/x-oswb-color"), 0, APP_OSWB_COLOR}
++static const std::vector<Gtk::TargetEntry> ui_drop_target_entries = {
++    Gtk::TargetEntry("application/x-oswb-color", Gtk::TargetFlags(0), APP_OSWB_COLOR)
+ };
+ 
+-static guint nui_drop_target_entries = G_N_ELEMENTS(ui_drop_target_entries);
+-
+ /* convenience function */
+ static Dialog::FillAndStroke *get_fill_and_stroke_panel(SPDesktop *desktop);
+ 
+@@ -906,28 +898,23 @@ SelectedStyle::update()
+             place->add(_na[i]);
+             place->set_tooltip_text(__na[i]);
+             _mode[i] = SS_NA;
+-            if ( _dropEnabled[i] ) {
+-                gtk_drag_dest_unset( GTK_WIDGET((i==SS_FILL) ? _fill_place.gobj():_stroke_place.gobj()) );
++            if (_dropEnabled[i]) {
++                auto widget = i == SS_FILL ? &_fill_place : &_stroke_place;
++                widget->drag_dest_unset();
+                 _dropEnabled[i] = false;
+             }
+             break;
+         case QUERY_STYLE_SINGLE:
+         case QUERY_STYLE_MULTIPLE_AVERAGED:
+-        case QUERY_STYLE_MULTIPLE_SAME:
+-            if ( !_dropEnabled[i] ) {
+-                gtk_drag_dest_set( GTK_WIDGET( (i==SS_FILL) ? _fill_place.gobj():_stroke_place.gobj()),
+-                                   GTK_DEST_DEFAULT_ALL,
+-                                   ui_drop_target_entries,
+-                                   nui_drop_target_entries,
+-                                   GdkDragAction(GDK_ACTION_COPY | GDK_ACTION_MOVE) );
++        case QUERY_STYLE_MULTIPLE_SAME: {
++            if (!_dropEnabled[i]) {
++                auto widget = i == SS_FILL ? &_fill_place : &_stroke_place;
++                widget->drag_dest_set(ui_drop_target_entries,
++                                      Gtk::DestDefaults::DEST_DEFAULT_ALL,
++                                      Gdk::DragAction::ACTION_COPY | Gdk::DragAction::ACTION_MOVE);
+                 _dropEnabled[i] = true;
+             }
+-            SPIPaint *paint;
+-            if (i == SS_FILL) {
+-                paint = &(query.fill);
+-            } else {
+-                paint = &(query.stroke);
+-            }
++            auto paint = i == SS_FILL ? query.fill.upcast() : query.stroke.upcast();
+             if (paint->set && paint->isPaintserver()) {
+                 SPPaintServer *server = (i == SS_FILL)? SP_STYLE_FILL_SERVER (&query) : SP_STYLE_STROKE_SERVER (&query);
+                 if ( server ) {
+@@ -999,6 +986,7 @@ SelectedStyle::update()
+                 flag_place->set_tooltip_text(__multiple[i]);
+             }
+             break;
++        }
+         case QUERY_STYLE_MULTIPLE_DIFFERENT:
+             place->add(_many[i]);
+             place->set_tooltip_text(__many[i]);
+-- 
+GitLab
+
 
 
 [FILE:234:patches/patch-src_3rdparty_autotrace_autotrace.h]

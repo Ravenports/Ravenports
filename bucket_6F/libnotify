@@ -2,6 +2,7 @@
 
 NAMEBASE=		libnotify
 VERSION=		0.8.2
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Library for desktop notifications
@@ -14,6 +15,7 @@ DISTFILE[1]=		libnotify-0.8.2.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
 			docs
 			man
 			dev
@@ -24,6 +26,8 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		cmake:primary:standard
 			docbook-xsl:primary:standard
 			python-gi-docgen:single:python_default
+EXRUN[tools]=		libnotify:primary:standard
+EXRUN[dev]=		glib:dev:standard
 
 USES=			meson pkgconfig gtk-doc
 GNOME_COMPONENTS=	glib gdkpixbuf gtk3 intltool introspection
@@ -72,16 +76,22 @@ This package contains the library as well as a small command line client.
 The daemon is packaged seperately.
 
 
+[FILE:44:descriptions/desc.tools]
+This package contains the notify-send tool.
+
+
 [FILE:101:distinfo]
 c5f4ed3d1f86e5b118c76415aacb861873ed3e6f0c6b3181b828cf584fc5c616       105912 libnotify-0.8.2.tar.xz
 
 
-[FILE:126:manifests/plist.primary]
-bin/notify-send
+[FILE:59:manifests/plist.primary]
 lib/
  libnotify.so.%%SOMAJOR%%
  libnotify.so.%%SOVERSION%%
-lib/girepository-1.0/Notify-%%NOTIFYVERS%%.typelib
+
+
+[FILE:16:manifests/plist.tools]
+bin/notify-send
 
 
 [FILE:2690:manifests/plist.docs]
@@ -185,13 +195,14 @@ share/doc/libnotify-0/
 share/man/man1/notify-send.1.gz
 
 
-[FILE:169:manifests/plist.dev]
+[FILE:220:manifests/plist.dev]
 include/libnotify/
  notification.h
  notify-enum-types.h
  notify-features.h
  notify.h
 lib/libnotify.so
+lib/girepository-1.0/Notify-%%NOTIFYVERS%%.typelib
 lib/pkgconfig/libnotify.pc
 share/gir-1.0/Notify-%%NOTIFYVERS%%.gir
 
