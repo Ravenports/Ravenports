@@ -149,6 +149,10 @@ post-patch:
 	${REINPLACE_CMD} -e 's|/etc/|${PREFIX}/etc/|g' \
 		${WRKSRC}/src/util/xmlconfig.c
 
+pre-patch-linux:
+	# qsort fixes for BSD break linux
+	${RM} ${PATCHDIR}/patch-meson.build
+
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/lib/libGL.so*
 	${RM} ${STAGEDIR}${PREFIX}/include/GL/g*.h
