@@ -52,6 +52,10 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fluent-bit
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/fluent-bit/libfluent-bit.so
 
+post-extract:
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/lib/onigmo/config.sub
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/lib/onigmo/config.guess
+
 [FILE:352:descriptions/desc.primary]
 Fluent Bit is a Fast and Lightweight Data Forwarder for Linux, OSX and BSD
 family operating systems. It has been made with a strong focus on
@@ -381,6 +385,38 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
      off_t offset = *file_offset;
      off_t len = (off_t) file_count;
  
+
+
+[FILE:937:patches/patch-lib_onigmo_configure]
+--- lib/onigmo/configure.orig	2022-03-22 22:42:32 UTC
++++ lib/onigmo/configure
+@@ -5241,7 +5241,7 @@ darwin* | rhapsody*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
+     case $host_cpu in
+     i*86 )
+@@ -9756,7 +9756,7 @@ fi
+       ;;
+ 
+     # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
+-    freebsd* | dragonfly*)
++    freebsd* | dragonfly* | midnight*)
+       archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
+       hardcode_libdir_flag_spec='-R$libdir'
+       hardcode_direct=yes
+@@ -10801,7 +10801,7 @@ dgux*)
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+   if test -x /usr/bin/objformat; then
 
 
 [FILE:319:patches/patch-lib_snappy-fef67ac_compat.h]

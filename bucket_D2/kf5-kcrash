@@ -73,20 +73,21 @@ share/qlogging-categories5/
  kcrash.renamecategories
 
 
-[FILE:233:patches/patch-metainfo.yaml]
+[FILE:258:patches/patch-metainfo.yaml]
 --- metainfo.yaml.orig	2023-01-07 00:25:32 UTC
 +++ metainfo.yaml
-@@ -5,6 +5,7 @@ type: integration
+@@ -5,6 +5,8 @@ type: integration
  platforms:
      - name: Linux
      - name: FreeBSD
 +    - name: DragonFly
++    - name: MidnightBSD
      - name: macOS
      - name: Windows
  portingAid: false
 
 
-[FILE:563:patches/patch-src_CMakeLists.txt]
+[FILE:575:patches/patch-src_CMakeLists.txt]
 --- src/CMakeLists.txt.orig	2023-01-07 00:25:32 UTC
 +++ src/CMakeLists.txt
 @@ -35,7 +35,7 @@ target_link_libraries(KF5Crash PRIVATE Q
@@ -94,7 +95,7 @@ share/qlogging-categories5/
  # libraries. We just drop the normal no-undefined flag for library building
  # here, on the assumption that Linux CI will catch any *actual* undefineds.
 -if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-+if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
++if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|MidnightBSD")
      string(REPLACE "-Wl,--no-undefined" "" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
  endif ()
  

@@ -71,6 +71,13 @@ QMAKE_LIBS_THREAD=
 QMAKE_LFLAGS_THREAD=	-pthread
 QMAKE_X11_SYS_LIBS=	-lm
 
+. elif "${OPSYS}" == "MidnightBSD"
+
+QMAKESPEC=		midnightbsd-g++
+QMAKE_LIBS_THREAD=
+QMAKE_LFLAGS_THREAD=	-pthread
+QMAKE_X11_SYS_LIBS=	-lm
+
 . elif "${OPSYS}" == "Linux"
 
 QMAKESPEC=		linux-g++

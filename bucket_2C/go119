@@ -44,12 +44,7 @@ SHEBANG_LANG=		bash
 SHEBANG_NEW_BASH=	{{SH}}
 SHEBANG_OLD_BASH=	"/usr/bin/env bash"
 
-PLIST_SUB=		opsys_ARCH={{OPSYS:tl}}_{{GOARCH}}
-
-post-patch:
-	@cd ${WRKSRC} && ${FIND} . -name '*.orig' -delete
-	${RM} ${WRKSRC}/src/*.rc ${WRKSRC}/include/plan9/mklibc.rc
-	${FIND} ${WRKSRC} -type d -name testdata | ${XARGS} ${RM} -r
+PLIST_SUB=		opsys_ARCH={{GOSYS}}_{{GOARCH}}
 
 do-build:
 	cd ${WRKSRC}/src && \
@@ -58,10 +53,15 @@ do-build:
 		GOROOT_BOOTSTRAP=${LOCALBASE}/go14 \
 		GOBIN= \
 		GOARCH=${GOARCH} \
-		GOOS=${OPSYS:tl} \
+		GOOS=${GOSYS} \
 		GO386=${GO386} \
 		CC=gcc \
 		${SH} make.bash
+
+pre-configure:
+	@cd ${WRKSRC} && ${FIND} . -name '*.orig' -delete
+	${RM} ${WRKSRC}/src/*.rc ${WRKSRC}/include/plan9/mklibc.rc
+	${FIND} ${WRKSRC} -type d -name testdata | ${XARGS} ${RM} -r
 
 do-install:
 	${CP} -a ${WRKSRC} ${STAGEDIR}${PREFIX}/go119
@@ -69,7 +69,7 @@ do-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/go119/misc/cgo/testplugin/altpath
 	${RM} -r ${STAGEDIR}${PREFIX}/go119/test
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go119/bin/*
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go119/pkg/tool/${OPSYS:tl}_${GOARCH}/*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go119/pkg/tool/${GOSYS}_${GOARCH}/*
 
 [FILE:112:descriptions/desc.single]
 Go is an open source programming language that makes it easy to build
@@ -80,9 +80,10 @@ simple, reliable, and efficient software.
 8e486e8e85a281fc5ce3f0bedc5b9d2dbf6276d7db0b25d3ec034f313da0375f     26545858 go1.19.5.src.tar.gz
 
 
-[FILE:114491:manifests/plist.single]
+[FILE:114568:manifests/plist.single]
 %%ONLY-DRAGONFLY%%go119/pkg/%%opsys_ARCH%%/vendor/golang.org/x/net/route.a
 %%ONLY-FREEBSD%%go119/pkg/%%opsys_ARCH%%/vendor/golang.org/x/net/route.a
+%%ONLY-MIDNIGHTBSD%%go119/pkg/%%opsys_ARCH%%/vendor/golang.org/x/net/route.a
 %%ONLY-NETBSD%%go119/pkg/%%opsys_ARCH%%/vendor/golang.org/x/net/route.a
 go119/
  CONTRIBUTING.md
@@ -6664,12 +6665,18 @@ go119/src/vendor/golang.org/x/text/unicode/norm/
  trie.go
 
 
-[FILE:119:files/special.mk]
+[FILE:195:files/special.mk]
 .if ${ARCH_STANDARD} == "x86_64"
 GOARCH=amd64
 .elif ${ARCH_STANDARD} == "i386"
 GOARCH=i386
 .else
 GOARCH=unknown
+.endif
+
+.if ${OPSYS} == "MidnightBSD"
+GOSYS=freebsd
+.else
+GOSYS=${OPSYS:tl}
 .endif
 

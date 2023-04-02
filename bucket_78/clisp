@@ -49,6 +49,10 @@ VAR_OPSYS[dragonfly]=	LDFLAGS=-pthread
 do-build:
 	( cd ${WRKSRC}/src && make )
 
+post-extract:
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/src/build-aux/config.guess
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/src/build-aux/config.sub
+
 [FILE:888:descriptions/desc.primary]
 Common Lisp is a high-level, general-purpose, object-oriented, dynamic, 
 functional programming language.
@@ -137,4 +141,36 @@ share/doc/clisp/
  clisp.png
  impnotes.css
  impnotes.html
+
+
+[FILE:925:patches/patch-src_configure]
+--- src/configure.orig	2018-02-18 12:07:29 UTC
++++ src/configure
+@@ -8174,7 +8174,7 @@ darwin* | rhapsody*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
+     case $host_cpu in
+     i*86 )
+@@ -12412,7 +12412,7 @@ fi
+       ;;
+ 
+     # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
+-    freebsd* | dragonfly*)
++    freebsd* | dragonfly* | midnight*)
+       archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
+       hardcode_libdir_flag_spec='-R$libdir'
+       hardcode_direct=yes
+@@ -13457,7 +13457,7 @@ dgux*)
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+   if test -x /usr/bin/objformat; then
 

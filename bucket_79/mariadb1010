@@ -1455,6 +1455,35 @@ share/doc/%%PORTNAME%%/
    {
 
 
+[FILE:270:patches/patch-storage_perfschema_pfs__global.cc]
+--- storage/perfschema/pfs_global.cc.orig	2023-02-01 17:30:49 UTC
++++ storage/perfschema/pfs_global.cc
+@@ -49,6 +49,9 @@
+ #ifdef HAVE_NETINET_IN_H
+ #include <netinet/in.h>
+ #endif
++#ifdef __MidnightBSD__
++#include <malloc_np.h>
++#endif
+ 
+ bool pfs_initialized= false;
+ 
+
+
+[FILE:486:patches/patch-storage_rocksdb_build__rocksdb.cmake]
+--- storage/rocksdb/build_rocksdb.cmake.orig	2023-02-01 17:30:49 UTC
++++ storage/rocksdb/build_rocksdb.cmake
+@@ -90,7 +90,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux"
+   add_definitions(-DOS_LINUX)
+ elseif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
+   add_definitions(-DOS_SOLARIS)
+-elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|MidnightBSD")
+   add_definitions(-DOS_FREEBSD)
+ elseif(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+   add_definitions(-DOS_NETBSD)
+
+
 [FILE:2090:patches/patch-storage_rocksdb_ha__rocksdb.cc]
 --- storage/rocksdb/ha_rocksdb.cc.orig	2023-02-01 17:30:49 UTC
 +++ storage/rocksdb/ha_rocksdb.cc
@@ -1585,6 +1614,20 @@ If timer_t is an integer type, setting it to nullptr fails.
          m_io_in_progress(false),
          m_dirs_to_check(std::move(directories)),
          m_buf(nullptr) {
+
+
+[FILE:494:patches/patch-storage_rocksdb_rocksdb_CMakeLists.txt]
+--- storage/rocksdb/rocksdb/CMakeLists.txt.orig	2023-02-01 17:30:51 UTC
++++ storage/rocksdb/rocksdb/CMakeLists.txt
+@@ -413,7 +413,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux"
+   add_definitions(-DOS_LINUX)
+ elseif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
+   add_definitions(-DOS_SOLARIS)
+-elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|MidnightBSD")
+   add_definitions(-DOS_FREEBSD)
+ elseif(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+   add_definitions(-DOS_NETBSD)
 
 
 [FILE:328:patches/patch-storage_rocksdb_rocksdb_port_jemalloc__helper.h]

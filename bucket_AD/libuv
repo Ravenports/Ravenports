@@ -60,11 +60,12 @@ Feature highlights:
 e6e2ba8b4c349a4182a33370bb9be5e23c51b32efb9b9e209d0e8556b73a48da      1309062 libuv-libuv-1.44.2.tar.gz
 
 
-[FILE:361:manifests/plist.single]
+[FILE:398:manifests/plist.single]
 %%ONLY-DARWIN%%include/uv/darwin.h
 %%ONLY-DRAGONFLY%%include/uv/bsd.h
 %%ONLY-FREEBSD%%include/uv/bsd.h
 %%ONLY-LINUX%%include/uv/linux.h
+%%ONLY-MIDNIGHTBSD%%include/uv/bsd.h
 %%ONLY-NETBSD%%include/uv/bsd.h
 %%ONLY-SUNOS%%include/uv/sunos.h
 include/uv.h
@@ -79,6 +80,42 @@ lib/
  libuv.so.%%SOMAJOR%%
  libuv.so.%%SOVERSION%%
 lib/pkgconfig/libuv.pc
+
+
+[FILE:620:patches/patch-Makefile.am]
+--- Makefile.am.orig	2022-07-12 16:16:33 UTC
++++ Makefile.am
+@@ -446,6 +446,17 @@ libuv_la_SOURCES += src/unix/bsd-ifaddrs
+ test_run_tests_LDFLAGS += -lutil
+ endif
+ 
++if MIDNIGHT 
++uvinclude_HEADERS += include/uv/bsd.h
++libuv_la_SOURCES += src/unix/bsd-ifaddrs.c \
++                    src/unix/bsd-proctitle.c \
++                    src/unix/freebsd.c \
++                    src/unix/kqueue.c \
++                    src/unix/posix-hrtime.c \
++                    src/unix/random-getrandom.c
++test_run_tests_LDFLAGS += -lutil
++endif
++
+ if HAIKU
+ uvinclude_HEADERS += include/uv/posix.h
+ libuv_la_CFLAGS += -D_BSD_SOURCE
+
+
+[FILE:710:patches/patch-configure.ac]
+--- configure.ac.orig	2022-07-12 16:16:33 UTC
++++ configure.ac
+@@ -63,6 +63,7 @@ AM_CONDITIONAL([DARWIN],   [AS_CASE([$ho
+ AM_CONDITIONAL([DRAGONFLY],[AS_CASE([$host_os],[dragonfly*],    [true], [false])])
+ AM_CONDITIONAL([FREEBSD],  [AS_CASE([$host_os],[*freebsd*],     [true], [false])])
+ AM_CONDITIONAL([KFREEBSD], [AS_CASE([$host_os],[kfreebsd*],     [true], [false])])
++AM_CONDITIONAL([MIDNIGHT], [AS_CASE([$host_os],[midnightbsd*],  [true], [false])])
+ AM_CONDITIONAL([HAIKU],    [AS_CASE([$host_os],[haiku],         [true], [false])])
+ AM_CONDITIONAL([HURD],     [AS_CASE([$host_os],[gnu*],          [true], [false])])
+ AM_CONDITIONAL([LINUX],    [AS_CASE([$host_os],[linux*],        [true], [false])])
 
 
 [FILE:1498:patches/patch-src_unix_fs.c]

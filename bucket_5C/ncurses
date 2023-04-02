@@ -2,7 +2,7 @@
 
 NAMEBASE=		ncurses
 VERSION=		6.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Terminal-independent lib for full-screen output
@@ -68,7 +68,7 @@ CONFIGURE_ARGS=		--datadir={{PREFIX}}/share
 			--without-hashed-db
 			--with-shlib-version=rel
 			--with-default-terminfo-dir={{PREFIX}}/share/site-terminfo
-			--with-terminfo-dirs="{{PREFIX}}/share/terminfo:{{LOCALBASE}}/share/site-terminfo"
+			--with-terminfo-dirs="{{PREFIX}}/share/terminfo:{{LOCALBASE}}/share/site-terminfo:/usr/share/rvn-terminfo"
 			--with-pkg-config-libdir={{PREFIX}}/lib/pkgconfig
 CONFIGURE_ENV=		gnat_exists="no"
 
@@ -3971,10 +3971,18 @@ share/doc/ncurses/
  ncurses-intro.html
 
 
-[FILE:1337:patches/patch-configure]
---- configure.orig	2021-10-17 15:12:23 UTC
+[FILE:1914:patches/patch-configure]
+--- configure.orig	2022-11-05 21:13:26 UTC
 +++ configure
-@@ -5947,7 +5947,7 @@ echo $ECHO_N "checking for an rpath opti
+@@ -6027,14 +6027,14 @@ echo $ECHO_N "checking for an rpath opti
+ 			LD_RPATH_OPT="-rpath "
+ 		fi
+ 		;;
+-	(linux*|gnu*|k*bsd*-gnu|freebsd*)
++	(linux*|gnu*|k*bsd*-gnu|freebsd*|midnight*)
+ 		LD_RPATH_OPT="-Wl,-rpath,"
+ 		;;
+ 	(openbsd[2-9].*|mirbsd*)
  		LD_RPATH_OPT="-Wl,-rpath,"
  		;;
  	(dragonfly*)
@@ -3983,7 +3991,7 @@ share/doc/ncurses/
  		;;
  	(netbsd*)
  		LD_RPATH_OPT="-Wl,-rpath,"
-@@ -5956,7 +5956,7 @@ echo $ECHO_N "checking for an rpath opti
+@@ -6043,7 +6043,7 @@ echo $ECHO_N "checking for an rpath opti
  		LD_RPATH_OPT="-rpath "
  		;;
  	(solaris2*)
@@ -3992,7 +4000,16 @@ share/doc/ncurses/
  		;;
  	(*)
  		;;
-@@ -6568,11 +6568,11 @@ CF_EOF
+@@ -6569,7 +6569,7 @@ CF_EOF
+ 		MK_SHARED_LIB='${LD} ${LDFLAGS} -Bshareable -o $@'
+ 		test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
+ 		;;
+-	(dragonfly*|freebsd*)
++	(dragonfly*|freebsd*|midnight*)
+ 		CC_SHARED_OPTS="$CC_SHARED_OPTS -DPIC"
+ 		if test "$DFT_LWR_MODEL" = "shared" && test "$cf_cv_enable_rpath" = yes ; then
+ 			LOCAL_LDFLAGS="${cf_ld_rpath_opt}\$(LOCAL_LIBDIR)"
+@@ -6655,11 +6655,11 @@ CF_EOF
  		# tested with SunOS 5.5.1 (solaris 2.5.1) and gcc 2.7.2
  		# tested with SunOS 5.10 (solaris 10) and gcc 3.4.3
  		if test "$DFT_LWR_MODEL" = "shared" ; then
@@ -4006,15 +4023,15 @@ share/doc/ncurses/
  		fi
  
  	test "$cf_cv_shlib_version" = auto && cf_cv_shlib_version=rel
-@@ -9870,7 +9870,10 @@ case "$host_os" in
+@@ -9972,7 +9972,10 @@ case "$host_os" in
  	cf_xopen_source="-D_DARWIN_C_SOURCE"
  	cf_XOPEN_SOURCE=
  	;;
 -(freebsd*|dragonfly*|midnightbsd*)
-+(freebsd*)
++(freebsd*|midnightbsd*)
 +	cf_XOPEN_SOURCE=
 +	;;
-+(dragonfly*|midnightbsd*)
++(dragonfly*)
  	# 5.x headers associate
  	#	_XOPEN_SOURCE=600 with _POSIX_C_SOURCE=200112L
  	#	_XOPEN_SOURCE=500 with _POSIX_C_SOURCE=199506L

@@ -23,7 +23,7 @@ OPT_ON[all]=		CLI CGI FPM EMBED DEBUGGER
 
 BUILD_DEPENDS=		autoconf:single:standard
 
-USES=			cpe gmake pkgconfig zlib pcre2
+USES=			cpe gmake pkgconfig zlib pcre2 mbsdfix
 C_USES[darwin]=		iconv:build
 GNOME_COMPONENTS=	libxml2
 
@@ -487,8 +487,24 @@ share/man/man1/
 @postunexec [ -s %D/include/php%%SUFFIX%%/ext/php_config.h ] || rm %D/include/php%%SUFFIX%%/ext/php_config.h
 
 
+[FILE:293:patches/patch-Zend_zend__gdb.c]
+--- Zend/zend_gdb.c.orig	2023-03-14 19:50:20 UTC
++++ Zend/zend_gdb.c
+@@ -25,7 +25,9 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ 
+-#if defined(__FreeBSD__)
++#if defined(__MidnightBSD__)
++# include <sys/user.h>
++#elif defined(__FreeBSD__)
+ # include <sys/user.h>
+ # include <libutil.h>
+ #endif
+
+
 [FILE:1188:patches/patch-build_Makefile.global]
---- build/Makefile.global.orig	2023-01-31 15:13:17 UTC
+--- build/Makefile.global.orig	2023-03-14 19:50:20 UTC
 +++ build/Makefile.global
 @@ -92,14 +92,14 @@ test: all
  	@if test ! -z "$(PHP_EXECUTABLE)" && test -x "$(PHP_EXECUTABLE)"; then \
@@ -510,7 +526,7 @@ share/man/man1/
 
 
 [FILE:1145:patches/patch-configure.ac]
---- configure.ac.orig	2023-01-31 15:13:17 UTC
+--- configure.ac.orig	2023-03-14 19:50:20 UTC
 +++ configure.ac
 @@ -55,6 +55,7 @@ AH_BOTTOM([
  
@@ -549,8 +565,26 @@ share/man/man1/
      zend_cfg.h \
 
 
+[FILE:622:patches/patch-ext_standard_proc__open.c]
+--- ext/standard/proc_open.c.orig	2023-03-14 19:50:20 UTC
++++ ext/standard/proc_open.c
+@@ -45,10 +45,10 @@
+ #if HAVE_OPENPTY
+ # if HAVE_PTY_H
+ #  include <pty.h>
+-# elif defined(__FreeBSD__)
++# elif defined(__FreeBSD__) && !defined(__MidnightBSD__)
+ /* FreeBSD defines `openpty` in <libutil.h> */
+ #  include <libutil.h>
+-# elif defined(__NetBSD__) || defined(__DragonFly__)
++# elif defined(__NetBSD__) || defined(__DragonFly__) || defined(__MidnightBSD__)
+ /* On recent NetBSD/DragonFlyBSD releases the emalloc, estrdup ... calls had been introduced in libutil */
+ #  if defined(__NetBSD__)
+ #    include <sys/termios.h>
+
+
 [FILE:428:patches/patch-sapi_apache2handler_config.m4]
---- sapi/apache2handler/config.m4.orig	2023-01-31 15:13:17 UTC
+--- sapi/apache2handler/config.m4.orig	2023-03-14 19:50:20 UTC
 +++ sapi/apache2handler/config.m4
 @@ -64,7 +64,7 @@ if test "$PHP_APXS2" != "no"; then
    fi
@@ -564,7 +598,7 @@ share/man/man1/
 
 
 [FILE:304:patches/patch-sapi_fpm_config.m4]
---- sapi/fpm/config.m4.orig	2023-01-31 15:13:17 UTC
+--- sapi/fpm/config.m4.orig	2023-03-14 19:50:20 UTC
 +++ sapi/fpm/config.m4
 @@ -315,7 +315,7 @@ AC_DEFUN([AC_FPM_LQ],
      AC_MSG_RESULT([no])
@@ -578,7 +612,7 @@ share/man/man1/
 
 
 [FILE:954:patches/patch-sapi_fpm_www.conf.in]
---- sapi/fpm/www.conf.in.orig	2023-01-31 15:13:17 UTC
+--- sapi/fpm/www.conf.in.orig	2023-03-14 19:50:20 UTC
 +++ sapi/fpm/www.conf.in
 @@ -32,10 +32,14 @@ group = @php_fpm_group@
  ; Valid syntaxes are:

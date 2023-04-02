@@ -53,6 +53,9 @@ PLIST_SUB=		MANPAGES="@comment "
 
 VAR_OPSYS[netbsd]=	CXXFLAGS=-D_NETBSD_SOURCE
 
+post-patch:
+	${CP} ${FILESDIR}/MidnightBSD.cmake ${WRKSRC}/Modules/Platform
+
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/cmake \
 		${STAGEDIR}${PREFIX}/share/emacs/site-lisp
@@ -105,7 +108,7 @@ pre-processor generation, code generation, and template instantiation.
 4256613188857e95700621f7cdaaeb954f3546a9249e942bc2f9b3c26e381365     10667656 cmake-3.26.0.tar.gz
 
 
-[FILE:28135:manifests/plist.primary]
+[FILE:28154:manifests/plist.primary]
 %%ONLY-DARWIN%%bin/cmakexbuild
 bin/
  ccmake
@@ -1095,6 +1098,7 @@ share/cmake/Modules/Platform/
  MSYS-windres.cmake
  MSYS.cmake
  Midipix.cmake
+ MidnightBSD.cmake
  MirBSD.cmake
  NetBSD.cmake
  OS2-OpenWatcom-C.cmake
@@ -3358,6 +3362,21 @@ share/doc/cmake/Help/variable/
  XCODE_VERSION.rst
 
 
+[FILE:390:patches/patch-Modules_CMakePlatformId.h.in]
+--- Modules/CMakePlatformId.h.in.orig	2023-03-14 14:04:14 UTC
++++ Modules/CMakePlatformId.h.in
+@@ -20,6 +20,9 @@
+ #elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+ # define PLATFORM_ID "Windows"
+ 
++#elif defined(__MidnightBSD__) || defined(__MidnightBSD)
++# define PLATFORM_ID "MidnightBSD"
++
+ #elif defined(__FreeBSD__) || defined(__FreeBSD)
+ # define PLATFORM_ID "FreeBSD"
+ 
+
+
 [FILE:542:patches/patch-Modules_FindSDL.cmake]
 --- Modules/FindSDL.cmake.orig	2023-03-08 15:01:06 UTC
 +++ Modules/FindSDL.cmake
@@ -3515,4 +3534,11 @@ set(LIBLZMA_LIBRARY "/usr/lib/liblzma.so" CACHE PATH
 
 # Don't even try
 set(CPACK_ENABLE_FREEBSD_PKG OFF CACHE BOOL "Enable pkg(8) generator in CPack")
+
+
+[FILE:124:files/MidnightBSD.cmake]
+# MidnightBSD was forked from FreeBSD and is still very close to it
+# http://www.midnightbsd.org
+
+include(Platform/FreeBSD)
 

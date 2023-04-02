@@ -244,6 +244,8 @@ GNATCROSS_FREEBSD_11=		11.3
 GNATCROSS_FREEBSD_12=		12.2
 GNATCROSS_MIDNIGHTBSD_3=	12.3
 GNATCROSS_NETBSD_9=		9.2
+MIDNIGHT64_CC_TARGET=		x86_64-raven-freebsd12.3
+MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 
 # ------------------------------------------------------------------------
 # Qt and Qt-based desktops

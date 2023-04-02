@@ -92,7 +92,9 @@ CARGO_CARGOTOML=	{{WRKSRC}}/Cargo.toml
 GENERATED=		yes
 
 PLIST_SUB=		VER=3.8.7
+			CPYTHON={{CPYTHON:U{{PYTHON_SUFFIX}}}}
 
+VAR_OPSYS[linux]=	MAKEFILE_LINE=CPYTHON={{PYTHON_SUFFIX}}-x86_64-linux-gnu
 CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
@@ -118,6 +120,12 @@ do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} maturin build \
 		--release \
 		--interpreter ${PYTHON_CMD})
+
+pre-install-linux:
+	# for some reason compatibility ends at -manylinux_2_23_x86_64
+	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
+	orjson-3.8.7-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_24_x86_64.whl\
+	orjson-3.8.7-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_23_x86_64.whl)
 
 do-install:
 	# Due to upstream not supplying a setup.py file or other way to install
@@ -199,12 +207,12 @@ a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0        31564 ru
 49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f        14895 rust/crates/version_check-0.9.4.tar.gz
 
 
-[FILE:401:manifests/plist.single]
+[FILE:395:manifests/plist.single]
 %%PYTHON_SITELIBDIR%%/orjson/
  __init__.py
  __init__.pyi
  liborjson.so
- orjson.cpython-%%PYTHON_SUFFIX%%.so
+ orjson.cpython-%%CPYTHON%%.so
  py.typed
 %%PYTHON_SITELIBDIR%%/orjson-%%VER%%.dist-info/
  INSTALLER

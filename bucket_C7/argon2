@@ -36,13 +36,13 @@ MAKE_ARGS=		PKGCONFIG_REL=lib
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-post-patch:
-	${REINPLACE_CMD} -e "s|PREFIX = /usr|PREFIX = ${PREFIX}|" \
-		${WRKSRC}/Makefile
-
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/argon2
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libargon2.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libargon2.so
+
+pre-configure:
+	${REINPLACE_CMD} -e "s|PREFIX = /usr|PREFIX = ${PREFIX}|" \
+		${WRKSRC}/Makefile
 
 [FILE:554:descriptions/desc.single]
 Argon2 is a password-hashing function created by by Alex Biryukov, Daniel 
@@ -70,14 +70,16 @@ lib/
 lib/pkgconfig/libargon2.pc
 
 
-[FILE:432:patches/patch-Makefile]
---- Makefile.orig	2019-07-02 16:38:45 UTC
+[FILE:549:patches/patch-Makefile]
+--- Makefile.orig	2019-05-20 09:18:00 UTC
 +++ Makefile
-@@ -77,8 +77,10 @@ ifeq ($(KERNEL_NAME), Linux)
+@@ -76,9 +76,11 @@ ifeq ($(KERNEL_NAME), Linux)
+ 	LINKED_LIB_EXT := so
  	PC_EXTRA_LIBS ?= -lrt -ldl
  endif
- ifeq ($(KERNEL_NAME), $(filter $(KERNEL_NAME),DragonFly FreeBSD NetBSD OpenBSD))
+-ifeq ($(KERNEL_NAME), $(filter $(KERNEL_NAME),DragonFly FreeBSD NetBSD OpenBSD))
 -	LIB_EXT := so
++ifeq ($(KERNEL_NAME), $(filter $(KERNEL_NAME),DragonFly FreeBSD NetBSD OpenBSD MidnightBSD))
 +	LIB_EXT := so.$(ABI_VERSION)
  	LIB_CFLAGS := -shared -fPIC
 +	SO_LDFLAGS := -Wl,-soname,lib$(LIB_NAME).$(LIB_EXT)

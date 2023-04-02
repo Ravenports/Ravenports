@@ -499,6 +499,66 @@ lib/pkgconfig/nss.pc
 +ZLIB_LIBS		= -lz
 
 
+[FILE:1315:patches/patch-coreconf_MidnightBSD]
+--- /dev/null	2023-03-11 17:03:35 UTC
++++ coreconf/MidnightBSD.mk
+@@ -0,0 +1,54 @@
++#
++# This Source Code Form is subject to the terms of the Mozilla Public
++# License, v. 2.0. If a copy of the MPL was not distributed with this
++# file, You can obtain one at http://mozilla.org/MPL/2.0/.
++
++include $(CORE_DEPTH)/coreconf/UNIX.mk
++
++DEFAULT_COMPILER	= gcc
++CC			= gcc
++CCC			= g++
++RANLIB			= ranlib
++
++CPU_ARCH		= $(OS_TEST)
++ifeq ($(CPU_ARCH),i386)
++CPU_ARCH		= x86
++endif
++ifeq ($(CPU_ARCH),amd64)
++CPU_ARCH		= x86_64
++endif
++
++ifneq (,$(filter %64, $(OS_TEST)))
++USE_64			= 1
++endif
++
++OS_CFLAGS		= $(DSO_CFLAGS) -Wall -Wno-switch -DFREEBSD -DHAVE_STRERROR -DHAVE_BSD_FLOCK
++
++DSO_CFLAGS		= -fPIC
++DSO_LDOPTS		= -shared -Wl,-soname -Wl,$(notdir $@)
++
++#
++# The default implementation strategy for FreeBSD is pthreads.
++#
++ifndef CLASSIC_NSPR
++USE_PTHREADS		= 1
++DEFINES			+= -D_THREAD_SAFE -D_REENTRANT
++OS_LIBS			+= -pthread
++DSO_LDOPTS		+= -pthread
++endif
++
++ARCH			= freebsd
++MOZ_OBJFORMAT		= elf
++DLL_SUFFIX		= so
++
++MKSHLIB			= $(CC) $(DSO_LDOPTS)
++ifdef MAPFILE
++	MKSHLIB += -Wl,--version-script,$(MAPFILE)
++endif
++PROCESS_MAP_FILE = grep -v ';-' $< | \
++        sed -e 's,;+,,' -e 's; DATA ;;' -e 's,;;,,' -e 's,;.*,;,' > $@
++
++G++INCLUDES		= -I/usr/include/c++
++
++USE_SYSTEM_ZLIB		= 1
++ZLIB_LIBS		= -lz
+
+
 [FILE:1446:patches/patch-coreconf_SunOS5.mk]
 --- coreconf/SunOS5.mk.orig	2023-03-09 18:38:30 UTC
 +++ coreconf/SunOS5.mk
@@ -570,14 +630,18 @@ lib/pkgconfig/nss.pc
  
 
 
-[FILE:373:patches/patch-coreconf_arch.mk]
+[FILE:441:patches/patch-coreconf_arch.mk]
 --- coreconf/arch.mk.orig	2023-03-09 18:38:30 UTC
 +++ coreconf/arch.mk
-@@ -97,6 +97,10 @@ ifeq ($(OS_ARCH),Linux)
+@@ -97,6 +97,14 @@ ifeq ($(OS_ARCH),Linux)
      include $(CORE_DEPTH)/coreconf/Linux.mk
  endif
  
 +ifeq ($(OS_ARCH),DragonFly)
++OS_RELEASE := @OS_RELEASE@
++endif
++
++ifeq ($(OS_ARCH),MidnightBSD)
 +OS_RELEASE := @OS_RELEASE@
 +endif
 +
@@ -600,7 +664,7 @@ lib/pkgconfig/nss.pc
  CXXSTD        = -std=c++11
 
 
-[FILE:460:patches/patch-coreconf_config.mk]
+[FILE:472:patches/patch-coreconf_config.mk]
 --- coreconf/config.mk.orig	2023-03-09 18:38:30 UTC
 +++ coreconf/config.mk
 @@ -31,7 +31,7 @@ endif
@@ -608,7 +672,7 @@ lib/pkgconfig/nss.pc
  
  TARGET_OSES = FreeBSD BSD_OS NetBSD OpenUNIX OS2 QNX Darwin OpenBSD \
 -              AIX RISCOS WINNT WIN95 Linux Android
-+              AIX RISCOS WINNT WIN95 Linux Android DragonFly
++              AIX RISCOS WINNT WIN95 Linux Android DragonFly MidnightBSD
  
  ifeq (,$(filter-out $(TARGET_OSES),$(OS_TARGET)))
  include $(CORE_DEPTH)/coreconf/$(OS_TARGET).mk
@@ -642,7 +706,7 @@ lib/pkgconfig/nss.pc
  #
 
 
-[FILE:756:patches/patch-lib_freebl_Makefile]
+[FILE:780:patches/patch-lib_freebl_Makefile]
 --- lib/freebl/Makefile.orig	2023-03-09 18:38:30 UTC
 +++ lib/freebl/Makefile
 @@ -272,7 +272,7 @@ else ifeq ($(CPU_ARCH),x86)
@@ -650,7 +714,7 @@ lib/pkgconfig/nss.pc
  endif # Darwin
  
 -ifeq ($(OS_TARGET),Linux)
-+ifeq (,$(filter-out Linux DragonFly FreeBSD, $(OS_TARGET)))
++ifeq (,$(filter-out Linux DragonFly FreeBSD MidnightBSD, $(OS_TARGET)))
  ifeq ($(CPU_ARCH),x86_64)
      # Lower case s on mpi_amd64_common due to make implicit rules.
      ASFILES  = arcfour-amd64-gas.s mpi_amd64_common.s
@@ -659,7 +723,7 @@ lib/pkgconfig/nss.pc
  # (ldvector.c) to the blapi functions defined in the freebl
  # shared libraries.
 -ifeq (,$(filter-out BSD_OS FreeBSD Linux NetBSD OpenBSD, $(OS_TARGET)))
-+ifeq (,$(filter-out BSD_OS DragonFly FreeBSD Linux NetBSD OpenBSD, $(OS_TARGET)))
++ifeq (,$(filter-out BSD_OS DragonFly FreeBSD Linux NetBSD OpenBSD MidnightBSD, $(OS_TARGET)))
      MKSHLIB += -Wl,-Bsymbolic
  endif
  

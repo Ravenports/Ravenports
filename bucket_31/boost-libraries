@@ -62,16 +62,22 @@ PLIST_SUB=		BOOSTVER=1.81.0
 			FIBER={{FIBER}}
 			WAVE={{WAVE}}
 			JSON={{JSON}}
+			EXECMON={{EXECMON}}
 
 VAR_OPSYS[freebsd]=	MAKE_ARGS=pch=off
 VAR_OPSYS[netbsd]=	MAKE_ARGS=pch=off
 			MAKEFILE_LINE=STADDR2LINE="@comment "
 			MAKE_ARGS=--without-json
 			MAKEFILE_LINE=JSON="@comment "
+VAR_OPSYS[midnightbsd]=	MAKE_ARGS=pch=off
+			MAKEFILE_LINE=EXECMON="@comment "
 
 post-patch:
 	${REINPLACE_CMD} -e 's|$$(RPATH)|${LOCALBASE}/lib|' \
 		${WRKSRC}/tools/build/src/tools/gcc.jam
+
+post-extract-midnightbsd:
+	${RM} -r ${WRKSRC}/libs/test
 
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -113,7 +119,30 @@ libraries are proposed for TR2.
 71feeed900fbccca04a3b4f2f84a7c217186f28a940ed8b7ed4725986baf99fa    118797750 boost_1_81_0.tar.bz2
 
 
-[FILE:330235:manifests/plist.single]
+[FILE:330296:manifests/plist.single]
+%%EXECMON%%lib/
+ libboost_prg_exec_monitor.a
+ libboost_prg_exec_monitor.so
+ libboost_prg_exec_monitor.so.%%SOVERSION%%
+ libboost_test_exec_monitor.a
+ libboost_unit_test_framework.a
+ libboost_unit_test_framework.so
+ libboost_unit_test_framework.so.%%SOVERSION%%
+%%EXECMON%%lib/cmake/boost_prg_exec_monitor-%%BOOSTVER%%/
+ boost_prg_exec_monitor-config-version.cmake
+ boost_prg_exec_monitor-config.cmake
+ libboost_prg_exec_monitor-variant-shared.cmake
+ libboost_prg_exec_monitor-variant-static.cmake
+%%EXECMON%%lib/cmake/boost_test_exec_monitor-%%BOOSTVER%%/
+ boost_test_exec_monitor-config-version.cmake
+ boost_test_exec_monitor-config.cmake
+ libboost_test_exec_monitor-variant-shared.cmake
+ libboost_test_exec_monitor-variant-static.cmake
+%%EXECMON%%lib/cmake/boost_unit_test_framework-%%BOOSTVER%%/
+ boost_unit_test_framework-config-version.cmake
+ boost_unit_test_framework-config.cmake
+ libboost_unit_test_framework-variant-shared.cmake
+ libboost_unit_test_framework-variant-static.cmake
 %%FIBER%%lib/
  libboost_fiber.a
  libboost_fiber.so
@@ -11653,6 +11682,7 @@ include/boost/predef/os/bsd/
  bsdi.h
  dragonfly.h
  free.h
+ midnight.h
  net.h
  open.h
 include/boost/predef/other/
@@ -16762,9 +16792,6 @@ lib/
  libboost_nowide.a
  libboost_nowide.so
  libboost_nowide.so.%%SOVERSION%%
- libboost_prg_exec_monitor.a
- libboost_prg_exec_monitor.so
- libboost_prg_exec_monitor.so.%%SOVERSION%%
  libboost_program_options.a
  libboost_program_options.so
  libboost_program_options.so.%%SOVERSION%%
@@ -16786,7 +16813,6 @@ lib/
  libboost_system.a
  libboost_system.so
  libboost_system.so.%%SOVERSION%%
- libboost_test_exec_monitor.a
  libboost_thread.a
  libboost_thread.so
  libboost_thread.so.%%SOVERSION%%
@@ -16796,9 +16822,6 @@ lib/
  libboost_type_erasure.a
  libboost_type_erasure.so
  libboost_type_erasure.so.%%SOVERSION%%
- libboost_unit_test_framework.a
- libboost_unit_test_framework.so
- libboost_unit_test_framework.so.%%SOVERSION%%
  libboost_url.a
  libboost_url.so
  libboost_url.so.%%SOVERSION%%
@@ -16914,11 +16937,6 @@ lib/cmake/boost_nowide-%%BOOSTVER%%/
  boost_nowide-config.cmake
  libboost_nowide-variant-shared.cmake
  libboost_nowide-variant-static.cmake
-lib/cmake/boost_prg_exec_monitor-%%BOOSTVER%%/
- boost_prg_exec_monitor-config-version.cmake
- boost_prg_exec_monitor-config.cmake
- libboost_prg_exec_monitor-variant-shared.cmake
- libboost_prg_exec_monitor-variant-static.cmake
 lib/cmake/boost_program_options-%%BOOSTVER%%/
  boost_program_options-config-version.cmake
  boost_program_options-config.cmake
@@ -16954,11 +16972,6 @@ lib/cmake/boost_system-%%BOOSTVER%%/
  boost_system-config.cmake
  libboost_system-variant-shared.cmake
  libboost_system-variant-static.cmake
-lib/cmake/boost_test_exec_monitor-%%BOOSTVER%%/
- boost_test_exec_monitor-config-version.cmake
- boost_test_exec_monitor-config.cmake
- libboost_test_exec_monitor-variant-shared.cmake
- libboost_test_exec_monitor-variant-static.cmake
 lib/cmake/boost_thread-%%BOOSTVER%%/
  boost_thread-config-version.cmake
  boost_thread-config.cmake
@@ -16974,11 +16987,6 @@ lib/cmake/boost_type_erasure-%%BOOSTVER%%/
  boost_type_erasure-config.cmake
  libboost_type_erasure-variant-shared.cmake
  libboost_type_erasure-variant-static.cmake
-lib/cmake/boost_unit_test_framework-%%BOOSTVER%%/
- boost_unit_test_framework-config-version.cmake
- boost_unit_test_framework-config.cmake
- libboost_unit_test_framework-variant-shared.cmake
- libboost_unit_test_framework-variant-static.cmake
 lib/cmake/boost_url-%%BOOSTVER%%/
  boost_url-config-version.cmake
  boost_url-config.cmake
@@ -17162,6 +17170,100 @@ Change it to internal linkage.
              boost::phoenix::get_<(N)-1>(boost::phoenix::placeholders::arg1);
          #include BOOST_PP_LOCAL_ITERATE()
      }
+
+
+[FILE:1181:patches/patch-boost_predef_os_bsd.h]
+--- boost/predef/os/bsd.h.orig	2023-03-16 13:57:31 UTC
++++ boost/predef/os/bsd.h
+@@ -29,6 +29,7 @@ version number macro to match:
+ 
+ * `BOOST_OS_BSD_DRAGONFLY` http://en.wikipedia.org/wiki/DragonFly_BSD[DragonFly BSD]
+ * `BOOST_OS_BSD_FREE` http://en.wikipedia.org/wiki/Freebsd[FreeBSD]
++* `BOOST_OS_BSD_MIDNIGHT` http://en.wikipedia.org/wiki/Midnightbsd[MidnightBSD]
+ * `BOOST_OS_BSD_BSDI` http://en.wikipedia.org/wiki/BSD/OS[BSDi BSD/OS]
+ * `BOOST_OS_BSD_NET` http://en.wikipedia.org/wiki/Netbsd[NetBSD]
+ * `BOOST_OS_BSD_OPEN` http://en.wikipedia.org/wiki/Openbsd[OpenBSD]
+@@ -53,6 +54,7 @@ of BSD. If the above variants is detecte
+ #include <boost/predef/os/bsd/bsdi.h>
+ #include <boost/predef/os/bsd/dragonfly.h>
+ #include <boost/predef/os/bsd/free.h>
++#include <boost/predef/os/bsd/midnight.h>
+ #include <boost/predef/os/bsd/open.h>
+ #include <boost/predef/os/bsd/net.h>
+ 
+@@ -95,6 +97,7 @@ of BSD. If the above variants is detecte
+ #include <boost/predef/os/bsd/bsdi.h>
+ #include <boost/predef/os/bsd/dragonfly.h>
+ #include <boost/predef/os/bsd/free.h>
++#include <boost/predef/os/bsd/midnight.h>
+ #include <boost/predef/os/bsd/open.h>
+ #include <boost/predef/os/bsd/net.h>
+ 
+
+
+[FILE:1678:patches/patch-boost_predef_os_bsd_midnight.h]
+--- boost/predef/os/bsd/midnight.h.orig	2023-03-16 13:57:11 UTC
++++ boost/predef/os/bsd/midnight.h
+@@ -0,0 +1,59 @@
++/*
++Copyright Rene Rivera 2012-2015
++Distributed under the Boost Software License, Version 1.0.
++(See accompanying file LICENSE_1_0.txt or copy at
++http://www.boost.org/LICENSE_1_0.txt)
++*/
++
++#ifndef BOOST_PREDEF_OS_BSD_FREE_H
++#define BOOST_PREDEF_OS_BSD_FREE_H
++
++#include <boost/predef/os/bsd.h>
++
++/* tag::reference[]
++= `BOOST_OS_BSD_MIDNIGHT`
++
++http://en.wikipedia.org/wiki/Midnightbsd[MidnightBSD] operating system.
++
++[options="header"]
++|===
++| {predef_symbol} | {predef_version}
++
++| `+__MidnightBSD__+` | {predef_detection}
++
++| `+__MidnightBSD_version+` | V.R.P
++|===
++*/ // end::reference[]
++
++#define BOOST_OS_BSD_MIDNIGHT BOOST_VERSION_NUMBER_NOT_AVAILABLE
++
++#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && ( \
++    defined(__MidnightBSD__) \
++    )
++#   ifndef BOOST_OS_BSD_AVAILABLE
++#       undef BOOST_OS_BSD
++#       define BOOST_OS_BSD BOOST_VERSION_NUMBER_AVAILABLE
++#       define BOOST_OS_BSD_AVAILABLE
++#   endif
++#   undef BOOST_OS_BSD_FREE
++#   include <sys/param.h>
++#   if defined(__MidnightBSD_version)
++#           define BOOST_OS_BSD_MIDNIGHT \
++                BOOST_PREDEF_MAKE_10_VVRRPPP(__MidnightBSD_version)
++
++#   else
++#       define BOOST_OS_BSD_MIDNIGHT BOOST_VERSION_NUMBER_AVAILABLE
++#   endif
++#endif
++
++#if BOOST_OS_BSD_MIDNIGHT
++#   define BOOST_OS_BSD_MIDNIGHT_AVAILABLE
++#   include <boost/predef/detail/os_detected.h>
++#endif
++
++#define BOOST_OS_BSD_MIDNIGHT_NAME "Midnight BSD"
++
++#endif
++
++#include <boost/predef/detail/test.h>
++BOOST_PREDEF_DECLARE_TEST(BOOST_OS_BSD_MIDNIGHT,BOOST_OS_BSD_MIDNIGHT_NAME)
 
 
 [FILE:797:patches/patch-boost_process_detail_posix_handles.hpp]

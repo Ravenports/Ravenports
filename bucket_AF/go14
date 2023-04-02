@@ -42,25 +42,25 @@ SHEBANG_OLD_BASH=	"/usr/bin/env bash"
 
 PLIST_SUB=		ARCH={{GOARCH}}
 			GOOBJ={{GOOBJ}}
-			OPSYSL={{OPSYS:tl}}
-
-post-patch:
-	@cd ${WRKSRC} && ${FIND} . -name '*.orig' -delete
-	${RM} ${WRKSRC}/src/*.rc ${WRKSRC}/include/plan9/mklibc.rc
-	${FIND} ${WRKSRC} -type d -name testdata | ${XARGS} ${RM} -r
+			OPSYSL={{GOSYS}}
 
 do-build:
 	cd ${WRKSRC}/src && \
 		CC=${CC} \
 		GOROOT=${WRKSRC} GOROOT_FINAL=${PREFIX}/go14 \
-		GOBIN= GOARCH=${GOARCH} GOOS=${OPSYS:tl} \
+		GOBIN= GOARCH=${GOARCH} GOOS=${GOSYS} \
 		CGO_ENABLED=0 \
 		${SH} make.bash
+
+pre-configure:
+	@cd ${WRKSRC} && ${FIND} . -name '*.orig' -delete
+	${RM} ${WRKSRC}/src/*.rc ${WRKSRC}/include/plan9/mklibc.rc
+	${FIND} ${WRKSRC} -type d -name testdata | ${XARGS} ${RM} -r
 
 do-install:
 	${CP} -a ${WRKSRC} ${STAGEDIR}${PREFIX}/go14
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go14/bin/*
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go14/pkg/tool/${OPSYS:tl}_${GOARCH}/*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go14/pkg/tool/${GOSYS}_${GOARCH}/*
 
 [FILE:253:descriptions/desc.single]
 Go is an open source programming environment that makes it easy to build
@@ -4512,10 +4512,10 @@ go14/test/syntax/
  	if ! echo "$x" | grep "$2" > /dev/null
 
 
-[FILE:583:patches/patch-src_make.bash]
---- src/make.bash.orig	2013-11-28 21:38:28.000000000 +0000
+[FILE:907:patches/patch-src_make.bash]
+--- src/make.bash.orig	2023-04-01 02:15:36 UTC
 +++ src/make.bash
-@@ -96,7 +96,7 @@ done
+@@ -101,7 +101,7 @@ done
  # Test for debian/kFreeBSD.
  # cmd/dist will detect kFreeBSD as freebsd/$GOARCH, but we need to
  # disable cgo manually.
@@ -4524,7 +4524,7 @@ go14/test/syntax/
          export CGO_ENABLED=0
  fi
  
-@@ -116,7 +116,7 @@ case "$GOHOSTARCH" in
+@@ -121,12 +121,12 @@ case "$GOHOSTARCH" in
  386) mflag=-m32;;
  amd64) mflag=-m64;;
  esac
@@ -4533,9 +4533,15 @@ go14/test/syntax/
  	# golang.org/issue/5261
  	mflag="$mflag -mmacosx-version-min=10.6"
  fi
+ # if gcc does not exist and $CC is not set, try clang if available.
+-if [ -z "$CC" -a -z "$(type -t gcc)" -a -n "$(type -t clang)" ]; then
++if [ -z "$CC" -a -z "$(which gcc)" -a -n "$(which clang)" ]; then
+ 	export CC=clang CXX=clang++
+ fi
+ ${CC:-gcc} $mflag -O2 -Wall -Werror -o cmd/dist/dist -Icmd/dist "$DEFGOROOT" cmd/dist/*.c
 
 
-[FILE:149:files/special.mk]
+[FILE:225:files/special.mk]
 .if ${ARCH_STANDARD} == "x86_64"
 GOARCH=amd64
 GOOBJ=6
@@ -4545,6 +4551,12 @@ GOOBJ=8
 .else
 GOARCH=unknown
 GOOBJ=unknown
+.endif
+
+.if ${OPSYS} == "MidnightBSD"
+GOSYS=freebsd
+.else
+GOSYS=${OPSYS:tl}
 .endif
 
 

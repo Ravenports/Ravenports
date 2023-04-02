@@ -30,7 +30,7 @@ BUILDRUN_DEPENDS=	libgcrypt:single:standard
 			nspr:single:standard
 			nss:primary:standard
 
-USES=			cpe gmake libtool pkgconfig ssl
+USES=			cpe gmake libtool pkgconfig ssl mbsdfix
 GNOME_COMPONENTS=	libxslt
 
 DISTNAME=		xmlsec1-1.2.37
@@ -63,7 +63,7 @@ SOVERSION=		1.2.37
 LDFLAGS=		-L{{LOCALBASE}}/lib/nss
 			-Wl,-rpath,{{LOCALBASE}}/lib/nss
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} \
 		-e 's/mozilla-nss/nss/' \
 		-e 's/mozilla-nspr/nspr/' \
@@ -183,9 +183,18 @@ share/man/man1/
  xmlsec1.1.gz
 
 
-[FILE:408:patches/patch-configure]
+[FILE:823:patches/patch-configure]
 --- configure.orig	2022-11-28 21:40:56 UTC
 +++ configure
+@@ -14548,7 +14548,7 @@ case $host in
+     *-*-osf5*)    OPENSSL_EXTRA_LIBS=;;
+     *-*-openbsd*) OPENSSL_EXTRA_LIBS=;;
+     *-*-netbsd*)  OPENSSL_EXTRA_LIBS=;;
+-    *-*-freebsd*|*-*-dragonfly*) OPENSSL_EXTRA_LIBS=;;
++    *-*-freebsd*|*-*-dragonfly*|*-*-midnight*) OPENSSL_EXTRA_LIBS=;;
+     *-*-darwin*) OPENSSL_EXTRA_LIBS=;;
+     #FIXME: check if lib "dl" is required
+     *)            OPENSSL_EXTRA_LIBS=-ldl;;
 @@ -15008,8 +15008,8 @@ NSS_PACKAGE=mozilla-nss
  NSPR_INCLUDE_MARKER="nspr/nspr.h"
  NSPR_LIB_MARKER="libnspr4$shrext"

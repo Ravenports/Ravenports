@@ -58,14 +58,11 @@ CMAKE_ARGS=		-DLLVM_BUILD_LLVM_DYLIB=ON
 			-DLLVM_ENABLE_RTTI:BOOL=ON
 			-DLLVM_ENABLE_EH:BOOL=ON
 			-DLLVM_INCLUDE_BENCHMARKS:BOOL=OFF
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 [GOLD].DESCRIPTION=			Build the LLVM Gold plugin for LTO
 [GOLD].CMAKE_ARGS_ON=			-DLLVM_BINUTILS_INCDIR={{LOCALBASE}}/toolchain/include
 					-DLLVM_USE_LINKER=gold
-
-post-patch:
-	${REINPLACE_CMD} -e "s|/usr/local|${PREFIX}|g" \
-		${WRKSRC}/CMakeLists.txt
 
 post-install-GOLD-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/LLVMgold.so
@@ -104,6 +101,9 @@ post-extract:
 	# Use PIC versions of ncurses/tinfo instead of static
 	${MV} ${LOCALBASE}/lib/libtinfo_pic.a ${LOCALBASE}/lib/libtinfo.a
 	${MV} ${LOCALBASE}/lib/libncurses_pic.a ${LOCALBASE}/lib/libncurses.a
+	# Replace config.(sub|guess)
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/cmake/config.guess
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/cmake/config.sub
 
 [FILE:834:descriptions/desc.single]
 The LLVM Project is a collection of modular and reusable compiler and
@@ -2338,10 +2338,10 @@ share/opt-viewer/
  # Make sure we don't get -rdynamic in every binary. For those that need it,
 
 
-[FILE:760:patches/patch-cmake_modules_AddLLVM.cmake]
---- cmake/modules/AddLLVM.cmake.orig	2022-10-18 06:29:45 UTC
+[FILE:1287:patches/patch-cmake_modules_AddLLVM.cmake]
+--- cmake/modules/AddLLVM.cmake.orig	2023-01-12 07:12:30 UTC
 +++ cmake/modules/AddLLVM.cmake
-@@ -225,14 +225,10 @@ if (NOT DEFINED LLVM_LINKER_DETECTED AND
+@@ -226,14 +226,10 @@ if (NOT DEFINED LLVM_LINKER_DETECTED AND
        set(LLVM_LINKER_DETECTED YES CACHE INTERNAL "")
        set(LLVM_LINKER_IS_GNULD YES CACHE INTERNAL "")
        message(STATUS "Linker detection: GNU ld")
@@ -2357,6 +2357,29 @@ share/opt-viewer/
      endif()
    endif()
  endif()
+@@ -2281,7 +2277,7 @@ function(llvm_setup_rpath name)
+     set(_install_rpath "${LLVM_LIBRARY_OUTPUT_INTDIR}" "${CMAKE_INSTALL_PREFIX}/lib${LLVM_LIBDIR_SUFFIX}" ${extra_libdir})
+   elseif(UNIX)
+     set(_install_rpath "\$ORIGIN/../lib${LLVM_LIBDIR_SUFFIX}" ${extra_libdir})
+-    if(${CMAKE_SYSTEM_NAME} MATCHES "(FreeBSD|DragonFly)")
++    if(${CMAKE_SYSTEM_NAME} MATCHES "(FreeBSD|DragonFly|MidnightBSD)")
+       set_property(TARGET ${name} APPEND_STRING PROPERTY
+                    LINK_FLAGS " -Wl,-z,origin ")
+     endif()
+
+
+[FILE:597:patches/patch-cmake_modules_HandleLLVMOptions.cmake]
+--- cmake/modules/HandleLLVMOptions.cmake.orig	2023-01-12 07:12:30 UTC
++++ cmake/modules/HandleLLVMOptions.cmake
+@@ -228,7 +228,7 @@ endif()
+ 
+ # Pass -Wl,-z,defs. This makes sure all symbols are defined. Otherwise a DSO
+ # build might work on ELF but fail on MachO/COFF.
+-if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|SunOS|OS390" OR
++if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|MidnightBSD|AIX|SunOS|OS390" OR
+         WIN32 OR CYGWIN) AND
+    NOT LLVM_USE_SANITIZER)
+   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
 
 
 [FILE:646:patches/patch-include_llvm-c_DataTypes.h]
@@ -2464,6 +2487,19 @@ Fix SunOS CS conflict not handled by include/llvm-c/DataTypes.h
  #include "llvm/Support/Endian.h"
  
  namespace llvm {
+
+
+[FILE:458:patches/patch-lib_Support_Triple.cpp]
+--- lib/Support/Triple.cpp.orig	2023-01-12 07:12:30 UTC
++++ lib/Support/Triple.cpp
+@@ -553,6 +553,7 @@ static Triple::OSType parseOS(StringRef
+     .StartsWith("darwin", Triple::Darwin)
+     .StartsWith("dragonfly", Triple::DragonFly)
+     .StartsWith("freebsd", Triple::FreeBSD)
++    .StartsWith("midnightbsd", Triple::FreeBSD)
+     .StartsWith("fuchsia", Triple::Fuchsia)
+     .StartsWith("ios", Triple::IOS)
+     .StartsWith("kfreebsd", Triple::KFreeBSD)
 
 
 [FILE:455:patches/patch-lib_Target_X86_MCTargetDesc_X86MCTargetDesc.h]

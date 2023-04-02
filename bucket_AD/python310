@@ -94,6 +94,10 @@ VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=.cpython-310{{ABIFLAGS}}
 			PLIST_SUB=SCD=
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
 			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+VAR_OPSYS[midnightbsd]=	PLIST_SUB=SOABI=.cpython-310{{ABIFLAGS}}
+			PLIST_SUB=SCD=
+			PLIST_SUB=FULLABI={{ABIFLAGS}}
+			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
 
 [DEBUG].CONFIGURE_WITH_BOTH=		pydebug
 [DEBUG].MAKEFILE_ON=			ABIFLAGS:=d{{ABIFLAGS}}
@@ -141,7 +145,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 0419e9085bf51b7a672009b3f50dbf1859acdf18ba725d0ec19aa5c8503f0ea3     19627028 Python-3.10.10.tar.xz
 
 
-[FILE:229904:manifests/plist.single]
+[FILE:229980:manifests/plist.single]
 %%DEBUG-ON%%bin/
  python%%XYDOT%%%%ABI%%
  python%%XYDOT%%%%ABI%%-config
@@ -151,6 +155,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 %%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/
  ossaudiodev%%SOABI%%.so
  spwd%%SOABI%%.so
+%%ONLY-MIDNIGHTBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
 %%ONLY-NETBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
 %%ONLY-SUNOS%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.so
 bin/
@@ -8126,7 +8131,7 @@ record file nonetheless.
  typedef int (*foreachfunc)(int, char *, int, char *, int, char *);
 
 
-[FILE:200:patches/patch-configure]
+[FILE:2078:patches/patch-configure]
 --- configure.orig	2023-02-07 12:05:45 UTC
 +++ configure
 @@ -661,6 +661,7 @@ DTRACE
@@ -8137,6 +8142,60 @@ record file nonetheless.
  PKG_CONFIG_LIBDIR
  PKG_CONFIG_PATH
  PKG_CONFIG
+@@ -5354,7 +5355,7 @@ cat >> conftest.c <<EOF
+ # else
+ #   error unknown platform triplet
+ # endif
+-#elif defined(__FreeBSD_kernel__)
++#elif defined(__FreeBSD_kernel__) || defined(__MidnightBSD_kernel__)
+ # if defined(__LP64__)
+         x86_64-kfreebsd-gnu
+ # elif defined(__i386__)
+@@ -5389,7 +5390,7 @@ $as_echo_n "checking for multiarch... "
+ case $ac_sys_system in #(
+   Darwin*) :
+     MULTIARCH="" ;; #(
+-  FreeBSD*) :
++  FreeBSD*|MidnightBSD*) :
+     MULTIARCH="" ;; #(
+   *) :
+     MULTIARCH=$($CC --print-multiarch 2>/dev/null)
+@@ -5989,7 +5990,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+ 	      PY3LIBRARY=libpython3.so
+ 	  fi
+           ;;
+-    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|VxWorks*)
++    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|MidnightBSD*|VxWorks*)
+ 	  LDLIBRARY='libpython$(LDVERSION).so'
+ 	  BLDLIBRARY='-L. -lpython$(LDVERSION)'
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+@@ -9790,7 +9791,7 @@ then
+ 	Linux*|GNU*|QNX*|VxWorks*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+-	FreeBSD*)
++	FreeBSD*|MidnightBSD*)
+ 		if [ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]
+ 		then
+ 			LDSHARED='$(CC) -shared'
+@@ -9857,7 +9858,7 @@ then
+ 		 fi;;
+ 	Linux-android*) ;;
+ 	Linux*|GNU*) CCSHARED="-fPIC";;
+-	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*) CCSHARED="-fPIC";;
++	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*|MidnightBSD*) CCSHARED="-fPIC";;
+ 	OpenUNIX*|UnixWare*)
+ 		if test "$GCC" = "yes"
+ 		then CCSHARED="-fPIC"
+@@ -9917,7 +9918,7 @@ _ACEOF
+ 	OpenUNIX*|UnixWare*) LINKFORSHARED="-Wl,-Bexport";;
+ 	SCO_SV*) LINKFORSHARED="-Wl,-Bexport";;
+ 	ReliantUNIX*) LINKFORSHARED="-W1 -Blargedynsym";;
+-	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*)
++	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*|MidnightBSD*)
+ 		if [ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]
+ 		then
+ 			LINKFORSHARED="-Wl,--export-dynamic"
 
 
 [FILE:2163:patches/patch-setup.py]
@@ -8179,7 +8238,7 @@ record file nonetheless.
  
          # Platform-specific libraries
 -        if HOST_PLATFORM.startswith(('linux', 'freebsd', 'gnukfreebsd')):
-+        if HOST_PLATFORM.startswith(('linux', 'dragonfly', 'freebsd', 'gnukfreebsd')):
++        if HOST_PLATFORM.startswith(('linux', 'dragonfly', 'freebsd', 'midnightbsd')):
              self.add(Extension('ossaudiodev', ['ossaudiodev.c']))
          elif HOST_PLATFORM.startswith(('netbsd')):
              self.add(Extension('ossaudiodev', ['ossaudiodev.c'],

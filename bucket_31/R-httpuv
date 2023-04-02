@@ -33,6 +33,10 @@ GENERATED=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+post-extract:
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/src/libuv/config.guess
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/src/libuv/config.sub
+
 [FILE:492:descriptions/desc.single]
 httpuv: HTTP and WebSocket Server Library
 
@@ -83,6 +87,20 @@ information.)
  	else \
  		echo "automake found. Running autoupdate and autogen.sh."; \
  		autoupdate; \
+
+
+[FILE:233:patches/patch-src_libuv_configure]
+--- src/libuv/configure.orig	2023-02-08 20:09:19 UTC
++++ src/libuv/configure
+@@ -14850,7 +14850,7 @@ else
+ fi
+ 
+  if case $host_os in
+-  *freebsd*) true ;;
++  *freebsd*|*midnight*) true ;;
+   *) false ;;
+ esac; then
+   FREEBSD_TRUE=
 
 
 [FILE:1481:patches/patch-src_unix_fs.c]

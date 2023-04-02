@@ -192,13 +192,14 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 +Cflags: -I${includedir}
 
 
-[FILE:2078:patches/patch-configure]
---- configure.orig	2022-05-25 21:34:56 UTC
+[FILE:2145:patches/patch-configure]
+--- configure.orig	2022-09-12 11:40:15 UTC
 +++ configure
-@@ -6563,6 +6563,21 @@ tools are selected during the Xcode/Deve
+@@ -6563,7 +6563,22 @@ tools are selected during the Xcode/Deve
      fi
      ;;
  
+-*-freebsd*)
 +*-dragonfly*)
 +    if test -z "$USE_NSPR_THREADS"; then
 +        USE_PTHREADS=1
@@ -214,9 +215,10 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 +    PR_MD_CSRCS=freebsd.c
 +    ;;
 +
- *-freebsd*)
++*-freebsd*|*-midnight*)
      if test -z "$USE_NSPR_THREADS"; then
          USE_PTHREADS=1
+     fi
 @@ -7232,7 +7247,6 @@ $as_echo "$as_me: WARNING: Unknown versi
      CPU_ARCH=`uname -p`
      MDCPUCFG_H=_solaris.cfg
@@ -238,7 +240,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
  	    ac_cv_have_dash_pthread=yes
  		case "$target_os" in
 -	    freebsd*)
-+	    freebsd*|dragonfly*)
++	    freebsd*|dragonfly*|midnight*)
  # Freebsd doesn't use -pthread for compiles, it uses them for linking
              ;;
  	    *)
@@ -247,7 +249,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
          fi
  	    ;;
 -    *-freebsd*)
-+    *-freebsd*|*-dragonfly*)
++    *-freebsd*|*-dragonfly*|*-midnight*)
  	    $as_echo "#define _REENTRANT 1" >>confdefs.h
  
  	    $as_echo "#define _THREAD_SAFE 1" >>confdefs.h
@@ -256,7 +258,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
      fi
      ;;
 -*-freebsd*)
-+*-freebsd*|*-dragonfly*)
++*-freebsd*|*-dragonfly*|*-midnight*)
      if test -n "$USE_NSPR_THREADS"; then
          $as_echo "#define _PR_LOCAL_THREADS_ONLY 1" >>confdefs.h
  
@@ -1409,7 +1411,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
 +#endif /* nspr_freebsd_defs_h___ */
 
 
-[FILE:1099:patches/patch-pr_include_md___freebsd.h]
+[FILE:1204:patches/patch-pr_include_md___freebsd.h]
 --- pr/include/md/_freebsd.h.orig	2022-05-25 21:34:56 UTC
 +++ pr/include/md/_freebsd.h
 @@ -59,7 +59,15 @@
@@ -1417,15 +1419,15 @@ Better to just keep calling it pthread_t isntead of casting to anything.
  
  #if defined(_PR_PTHREADS)
 -#if __FreeBSD_version >= 400008
-+#if defined(__DragonFly__) || __FreeBSD_version >= 602000
++#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__MidnightBSD__)
 +#define _PR_HAVE_GETPROTO_R
 +#define _PR_HAVE_5_ARG_GETPROTO_R
 +#endif
-+#if __FreeBSD_version >= 700016
++#if defined(__FreeBSD__) || defined(__MidnightBSD__)
 +#define _PR_HAVE_GETHOST_R
 +#define _PR_HAVE_GETHOST_R_INT
 +#endif
-+#if defined(__DragonFly__) || __FreeBSD_version >= 400008
++#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__MidnightBSD__)
  /*
   * libc_r before this version of FreeBSD doesn't have poll().
   * Although libc has poll(), it is not thread-safe so we can't
@@ -1434,7 +1436,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
  #endif
  #else
 -#if __FreeBSD_version >= 300000
-+#if defined(__DragonFly__) || __FreeBSD_version >= 300000
++#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__MidnightBSD__)
  #define _PR_POLL_AVAILABLE
  #define _PR_USE_POLL
  #endif
@@ -1443,7 +1445,7 @@ Better to just keep calling it pthread_t isntead of casting to anything.
  #define PR_HAVE_SYSV_NAMED_SHARED_MEMORY
  
 -#if __FreeBSD_version >= 400014
-+#if defined(__DragonFly__) || __FreeBSD_version >= 400014
++#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__MidnightBSD__)
  #define _PR_INET6
  #define _PR_HAVE_INET_NTOP
  #define _PR_HAVE_GETHOSTBYNAME2
@@ -1561,8 +1563,8 @@ Better to just keep calling it pthread_t isntead of casting to anything.
          tv.tv_usec = (PRInt32)PR_IntervalToMicroseconds(
 
 
-[FILE:836:patches/patch-pr_src_pthreads_ptsynch.c]
---- pr/src/pthreads/ptsynch.c.orig	2022-05-25 21:34:56 UTC
+[FILE:881:patches/patch-pr_src_pthreads_ptsynch.c]
+--- pr/src/pthreads/ptsynch.c.orig	2022-09-12 11:40:15 UTC
 +++ pr/src/pthreads/ptsynch.c
 @@ -25,7 +25,7 @@ static pthread_condattr_t _pt_cvar_attr;
  extern PTDebug pt_debug;  /* this is shared between several modules */
@@ -1573,10 +1575,11 @@ Better to just keep calling it pthread_t isntead of casting to anything.
  /*
   * On older versions of FreeBSD, pthread_mutex_trylock returns EDEADLK.
   * Newer versions return EBUSY.  We still need to support both.
-@@ -952,6 +952,7 @@ PR_IMPLEMENT(PRStatus) PR_DeleteSemaphor
+@@ -951,7 +951,7 @@ PR_IMPLEMENT(PRStatus) PR_DeleteSemaphor
+  * From the semctl(2) man page in glibc 2.0
   */
  #if (defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)) \
-     || (defined(FREEBSD) && __FreeBSD_version < 1200059) \
+-    || (defined(FREEBSD) && __FreeBSD_version < 1200059) \
 +    || defined(__DragonFly__) \
      || defined(OPENBSD) || defined(BSDI) \
      || defined(DARWIN)

@@ -63,7 +63,7 @@ SINGLE_JOB=		yes
 
 INSTALL_TARGET=		install-full
 
-post-patch:
+pre-configure:
 	# use libidn2 instead of libidn
 	${REINPLACE_CMD} -e 's|idna\.h|idn2.h|; s|-lidn|-lidn2|' \
 		${WRKSRC}/configure
@@ -242,6 +242,31 @@ share/locale/zh_TW/LC_MESSAGES/lynx.mo
  #endif
  
  #define HEX_ESCAPE '%'
+
+
+[FILE:591:patches/patch-configure]
+--- configure.orig	2018-07-08 15:23:52 UTC
++++ configure
+@@ -9247,7 +9247,7 @@ case $host_os in
+ 	cf_xopen_source="-D_DARWIN_C_SOURCE"
+ 	cf_XOPEN_SOURCE=
+ 	;;
+-(freebsd*|dragonfly*)
++(freebsd*|dragonfly*|midnight*)
+ 	# 5.x headers associate
+ 	#	_XOPEN_SOURCE=600 with _POSIX_C_SOURCE=200112L
+ 	#	_XOPEN_SOURCE=500 with _POSIX_C_SOURCE=199506L
+@@ -26458,8 +26458,8 @@ case $cf_cv_system_name in
+ (openbsd[2-9].*|mirbsd*)
+ 	LD_RPATH_OPT="-Wl,-rpath,"
+ 	;;
+-(dragonfly*)
+-	LD_RPATH_OPT="-rpath "
++(dragonfly*|midnight*)
++	LD_RPATH_OPT="-Wl,-rpath,"
+ 	;;
+ (netbsd*)
+ 	LD_RPATH_OPT="-Wl,-rpath,"
 
 
 [FILE:2921:patches/patch-makefile.in]

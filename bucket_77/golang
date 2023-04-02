@@ -46,7 +46,7 @@ SHEBANG_LANG=		bash
 SHEBANG_NEW_BASH=	{{SH}}
 SHEBANG_OLD_BASH=	"/usr/bin/env bash"
 
-PLIST_SUB=		opsys_ARCH={{OPSYS:tl}}_{{GOARCH}}
+PLIST_SUB=		opsys_ARCH={{GOSYS}}_{{GOARCH}}
 
 do-build:
 	cd ${WRKSRC}/src && ${SETENV} \
@@ -55,7 +55,7 @@ do-build:
 		GOROOT=${WRKSRC} \
 		GOROOT_FINAL=${PREFIX}/go \
 		GOBIN= GOARCH=${GOARCH} \
-		GOOS=${OPSYS:tl} \
+		GOOS=${GOSYS} \
 		GO386=${GO386} \
 		CC=gcc \
 		${SH} make.bash -v
@@ -76,7 +76,7 @@ do-install:
 	${LN} -sf ../go/bin/${f} ${STAGEDIR}${PREFIX}/bin/${f}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${f}
 .endfor
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go/pkg/tool/${OPSYS:tl}_${GOARCH}/*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/go/pkg/tool/${GOSYS}_${GOARCH}/*
 	# remove test
 	${RM} -r ${STAGEDIR}${PREFIX}/go/test
 
@@ -6499,12 +6499,18 @@ go/src/vendor/golang.org/x/text/unicode/norm/
  trie.go
 
 
-[FILE:119:files/special.mk]
+[FILE:195:files/special.mk]
 .if ${ARCH_STANDARD} == "x86_64"
 GOARCH=amd64
 .elif ${ARCH_STANDARD} == "i386"
 GOARCH=i386
 .else
 GOARCH=unknown
+.endif
+
+.if ${OPSYS} == "MidnightBSD"
+GOSYS=freebsd
+.else
+GOSYS=${OPSYS:tl}
 .endif
 

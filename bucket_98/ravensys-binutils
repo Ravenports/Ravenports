@@ -83,6 +83,11 @@ VAR_OPSYS[dragonfly]=	VAR1=/libexec/ld-elf.so.2
 			VAR2=/libexec/ld-elf.so.2
 			MAKEFILE_LINE=BUILD_GOLD=yes
 			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold=default
+VAR_OPSYS[midnightbsd]=	VAR1=/libexec/ld-elf.so.1
+			VAR2=/libexec/ld-elf.so.1
+			MAKEFILE_LINE=BUILD_GOLD=yes
+			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold
+			MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 post-patch:
 	${REINPLACE_CMD} \
@@ -113,6 +118,10 @@ post-install:
 	${FIND} ${STAGEDIR}${PREFIX}/${CONFIGURE_TARGET} ! -type d | \
 		${SED} -e 's,^${STAGEDIR}${PREFIX}/,,' \
 		>> ${WRKDIR}/.manifest.single.mktmp
+
+post-extract:
+	# remove ability to dynamicaly link zlib
+	${RM} ${LOCALBASE}/lib/libz.so
 
 [FILE:164:descriptions/desc.single]
 This package is part of the Ravenports Toolchain.  It mainly contains

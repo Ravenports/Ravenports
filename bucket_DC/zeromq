@@ -24,7 +24,7 @@ BUILD_DEPENDS=		asciidoc:single:standard
 BUILDRUN_DEPENDS=	libsodium:primary:standard
 			norm:single:standard
 
-USES=			cpe gmake libtool pkgconfig
+USES=			cpe gmake libtool pkgconfig mbsdfix
 
 LICENSE=		LGPL3+:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -150,39 +150,42 @@ share/man/man7/
  zmq_vmci.7.gz
 
 
-[FILE:519:patches/patch-configure]
+[FILE:563:patches/patch-configure]
 --- configure.orig	2021-01-17 13:18:46 UTC
 +++ configure
-@@ -20517,6 +20517,14 @@ $as_echo "#define ZMQ_FORCE_MUTEXES 1" >
+@@ -20533,6 +20533,14 @@ $as_echo "#define ZMQ_HAVE_FREEBSD 1" >>
+ $as_echo "#define ZMQ_HAVE_DRAGONFLY 1" >>confdefs.h
  
-         fi
          ;;
-+    *dragonfly*)
++    *midnight*)
 +        # Define on DragonFly to enable all library features
 +        CPPFLAGS="-D__BSD_VISIBLE $CPPFLAGS"
 +
 +$as_echo "#define ZMQ_HAVE_FREEBSD 1" >>confdefs.h
-+$as_echo "#define ZMQ_HAVE_DRAGONFLY 1" >>confdefs.h
++$as_echo "#define ZMQ_HAVE_MIDNIGHTBSD 1" >>confdefs.h
 +
 +        ;;
-     *freebsd*)
-         # Define on FreeBSD to enable all library features
-         CPPFLAGS="-D__BSD_VISIBLE $CPPFLAGS"
+     *darwin*)
+         # Define on Darwin to enable all library features
+         CPPFLAGS="-D_DARWIN_C_SOURCE $CPPFLAGS"
 
 
-[FILE:398:patches/patch-src_platform.hpp.in]
+[FILE:471:patches/patch-src_platform.hpp.in]
 --- src/platform.hpp.in.orig	2021-01-17 13:18:46 UTC
 +++ src/platform.hpp.in
-@@ -240,9 +240,12 @@
+@@ -240,9 +240,15 @@
  /* Whether EFD_CLOEXEC is defined and functioning. */
  #undef ZMQ_HAVE_EVENTFD_CLOEXEC
  
 -/* Have DragonFly OS */
-+/* Have FreeBSD or DragonFly OS */
++/* Have FreeBSD or DragonFly or MidnightBSD OS */
  #undef ZMQ_HAVE_FREEBSD
  
 +/* Have DragonFly OS */
 +#undef ZMQ_HAVE_DRAGONFLY
++
++/* Have MidnightBSD OS */
++#undef ZMQ_HAVE_MIDNIGHTBSD
 +
  /* Whether getrandom is supported. */
  #undef ZMQ_HAVE_GETRANDOM

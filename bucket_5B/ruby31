@@ -1631,7 +1631,7 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  remarks.markdown
 
 
-[FILE:1827:patches/patch-configure.ac]
+[FILE:2945:patches/patch-configure.ac]
 --- configure.ac.orig	2022-11-24 10:20:31 UTC
 +++ configure.ac
 @@ -121,13 +121,6 @@ dnl checks for alternative programs
@@ -1648,7 +1648,35 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  
  AC_ARG_PROGRAM
  RUBY_RM_RECURSIVE
-@@ -3067,7 +3060,7 @@ AS_IF([test "$rb_cv_dlopen" = yes], [
+@@ -1235,6 +1228,8 @@ main()
+ 		],
+ [dragonfly*], [	LIBS="-lm $LIBS"
+ 		],
++[midnight*],  [	LIBS="-lm $LIBS"
++		],
+ [aix*],[	LIBS="-lm $LIBS"
+ 		ac_cv_func_round=no
+ 		ac_cv_func___builtin_setjmp=no
+@@ -2608,6 +2603,9 @@ AS_CASE([$coroutine_type], [yes|''], [
+         [x86_64-dragonfly*], [
+             coroutine_type=amd64
+         ],
++        [x86_64-midnightbsd*], [
++            coroutine_type=amd64
++        ],
+         [*-haiku*], [
+             coroutine_type=pthread
+         ],
+@@ -2992,7 +2990,7 @@ STATIC=
+ 	[interix*], [	: ${LDSHARED='$(CC) -shared'}
+ 			XLDFLAGS="$XLDFLAGS -Wl,-E"
+ 			rb_cv_dlopen=yes],
+-	[freebsd*|dragonfly*], [
++	[freebsd*|dragonfly*|midnight*], [
+ 			: ${LDSHARED='$(CC) -shared'}
+ 			AS_IF([test "$rb_cv_binary_elf" = yes], [
+ 			    LDFLAGS="$LDFLAGS -rdynamic"
+@@ -3067,7 +3065,7 @@ AS_IF([test "$rb_cv_dlopen" = yes], [
  
              AC_MSG_CHECKING([whether $flag is accepted for bundle])
              : > conftest.c
@@ -1657,7 +1685,16 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
                  test ! -s conftest.err], [
                  AC_MSG_RESULT([yes])
                  RUBY_APPEND_OPTIONS(DLDFLAGS, [$flag])
-@@ -3452,7 +3445,7 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3438,7 +3436,7 @@ AS_CASE("$enable_shared", [yes], [
+   ])
+ 
+   AS_CASE(["$target_os"],
+-    [freebsd*|dragonfly*], [],
++    [freebsd*|dragonfly*|midnight*], [],
+     [
+      AS_IF([test "$GCC" = yes], [
+        RUBY_TRY_LDFLAGS([${linker_flag}--no-undefined], [no_undefined=yes], [no_undefined=no])
+@@ -3452,7 +3450,7 @@ AS_CASE("$enable_shared", [yes], [
      [sunos4*], [
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	],
@@ -1666,12 +1703,12 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  	RUBY_APPEND_OPTIONS(LIBRUBY_DLDFLAGS, ['-Wl,-soname,$(LIBRUBY_SONAME)' "$LDFLAGS_OPTDIR"])
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	AS_IF([test "$load_relative" = yes], [
-@@ -3461,7 +3454,7 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3461,7 +3459,7 @@ AS_CASE("$enable_shared", [yes], [
  	    LIBRUBY_RELATIVE=yes
  	])
  	],
 -    [freebsd*|dragonfly*], [
-+    [freebsd*|dragonfly*|netbsd*|linux*|solaris*], [
++    [freebsd*|dragonfly*|netbsd*|midnightbsd*|linux*|solaris*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
  	LIBRUBY_SONAME='$(LIBRUBY_SO)'
  	AS_IF([test "$rb_cv_binary_elf" != "yes" ], [

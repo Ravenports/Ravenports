@@ -21,7 +21,7 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	openpam:single:standard
 
-USES=			cpe ssl:openssl11 bison gmake zlib
+USES=			cpe ssl:openssl11 bison gmake zlib mbsdfix
 
 LICENSE=		AGPLv3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -77,6 +77,34 @@ monit supports:
 @sample etc/monitrc.sample
 bin/monit
 share/man/man1/monit.1.gz
+
+
+[FILE:346:patches/patch-configure]
+--- configure.orig	2023-02-11 10:29:07 UTC
++++ configure
+@@ -21099,7 +21099,7 @@ then :
+ fi
+ 
+    with_pam=0 # No PAM on OpenBSD (supports BSD Auth API instead of PAM)
+-elif test "$architecture" = "FreeBSD"
++elif test "$architecture" = "FreeBSD" || test "$architecture" = "MidnightBSD"
+ then
+    ARCH="FREEBSD"
+    CFLAGS="$CFLAGS -D _REENTRANT"
+
+
+[FILE:315:patches/patch-libmonit_configure]
+--- libmonit/configure.orig	2023-02-11 10:29:10 UTC
++++ libmonit/configure
+@@ -14407,7 +14407,7 @@ then
+ 
+ printf "%s\n" "#define LINUX 1" >>confdefs.h
+ 
+-elif test "$architecture" = "FreeBSD"
++elif test "$architecture" = "FreeBSD" || test "$architecture" = "MidnightBSD"
+ then
+    CFLAGS="$CFLAGS -D _REENTRANT"
+ 
 
 
 [FILE:386:patches/patch-src_net_os_dragonfly_Link.inc]

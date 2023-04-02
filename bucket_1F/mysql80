@@ -827,7 +827,7 @@ an incompatible integer type.
      Flag to indicate whether we are in poll or shutdown.
 
 
-[FILE:1037:patches/patch-libmysql_CMakeLists.txt]
+[FILE:1049:patches/patch-libmysql_CMakeLists.txt]
 --- libmysql/CMakeLists.txt.orig	2022-12-16 15:34:44 UTC
 +++ libmysql/CMakeLists.txt
 @@ -247,7 +247,7 @@ IF(WIN32)
@@ -835,7 +835,7 @@ an incompatible integer type.
    SET(HAVE_DNS_SRV 1)
    MESSAGE(STATUS "Found Win32 DNS SRV APIs")
 -ELSEIF(FREEBSD)
-+ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|NetBSD")
++ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|NetBSD|MidnightBSD")
    SET(HAVE_DNS_SRV 1)
    SET(HAVE_UNIX_DNS_SRV 1 PARENT_SCOPE)
    MESSAGE(STATUS "BSD built in DNS SRV APIs")
@@ -860,7 +860,7 @@ an incompatible integer type.
    SET(UNIX_VERSION     VERSION     "${OS_SHARED_LIB_VERSION}")
 
 
-[FILE:270:patches/patch-libmysql_dns__srv.cc]
+[FILE:297:patches/patch-libmysql_dns__srv.cc]
 --- libmysql/dns_srv.cc.orig	2022-12-16 15:34:44 UTC
 +++ libmysql/dns_srv.cc
 @@ -31,7 +31,7 @@
@@ -868,7 +868,7 @@ an incompatible integer type.
  #ifdef HAVE_UNIX_DNS_SRV
  
 -#ifdef __FreeBSD__
-+#if defined __FreeBSD__ || defined __DragonFly__ || defined __NetBSD__
++#if defined __FreeBSD__ || defined __DragonFly__ || defined __NetBSD__ || defined __MidnightBSD__
  #include <netinet/in.h>
  #endif
  #include <netdb.h>
@@ -1152,7 +1152,7 @@ NetBSD has uucred, not sockpeercred.
  
 
 
-[FILE:2912:patches/patch-scripts_CMakeLists.txt]
+[FILE:2924:patches/patch-scripts_CMakeLists.txt]
 --- scripts/CMakeLists.txt.orig	2022-12-16 15:34:44 UTC
 +++ scripts/CMakeLists.txt
 @@ -214,11 +214,7 @@ IF(MY_COMPILER_IS_GNU_OR_CLANG)
@@ -1177,7 +1177,7 @@ NetBSD has uucred, not sockpeercred.
 -    EXECUTE_PROCESS(COMMAND ps -uaxww
 -      OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE result)
 -    IF(result MATCHES 0)
-+IF(NOT FIND_PROC AND CMAKE_SYSTEM_NAME MATCHES "DragonFly|FreeBSD")
++IF(NOT FIND_PROC AND CMAKE_SYSTEM_NAME MATCHES "DragonFly|FreeBSD|MidnightBSD")
        SET( FIND_PROC
          "ps -uaxww | grep -v mysqld_safe | grep -- $MYSQLD | grep $PID > /dev/null")
 -    ENDIF()
@@ -1236,7 +1236,7 @@ NetBSD has uucred, not sockpeercred.
        CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/${file}.pl.in
 
 
-[FILE:816:patches/patch-sql_CMakeLists.txt]
+[FILE:828:patches/patch-sql_CMakeLists.txt]
 --- sql/CMakeLists.txt.orig	2022-12-16 15:34:44 UTC
 +++ sql/CMakeLists.txt
 @@ -648,6 +648,10 @@ IF(BUILD_IS_SINGLE_CONFIG)
@@ -1259,7 +1259,7 @@ NetBSD has uucred, not sockpeercred.
    LIST(APPEND SQL_SHARED_SOURCES
      resourcegroups/platform/thread_attrs_api_apple.cc)
 -ELSEIF(FREEBSD)
-+ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++ELSEIF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|MidnightBSD")
    LIST(APPEND SQL_SHARED_SOURCES
      resourcegroups/platform/thread_attrs_api_freebsd.cc)
  ELSEIF(SOLARIS)

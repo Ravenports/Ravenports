@@ -55,6 +55,11 @@ post-patch-freebsd:
 	${REINPLACE_CMD} -e "s/malloc.h/stdlib.h/g" ${WRKSRC}/src/${f}
 .endfor
 
+post-patch-midnightbsd:
+.for f in ex_angle.c ex_cut_round.c ex_raw.c extrude.c round_cap.c segment.c texgen.c
+	${REINPLACE_CMD} -e "s/malloc.h/stdlib.h/g" ${WRKSRC}/src/${f}
+.endfor
+
 [FILE:572:descriptions/desc.primary]
 The GLE Tubing and Extrusion Library is a graphics application programming 
 interface (API). The library consists of a number of "C" language 
@@ -206,6 +211,38 @@ share/doc/gle/examples/
  transport.c
  twistoid.c
  twoid.c
+
+
+[FILE:826:patches/patch-configure]
+--- configure.orig	2003-03-18 05:11:22 UTC
++++ configure
+@@ -3115,7 +3115,7 @@ darwin* | rhapsody*)
+   esac
+   ;;
+ 
+-freebsd*)
++freebsd* | dragonfly* | midnight*)
+   if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
+     case $host_cpu in
+     i*86 )
+@@ -5529,7 +5529,7 @@ else
+     ;;
+ 
+   # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
+-  freebsd*)
++  freebsd* | dragonfly* | midnight*)
+     archive_cmds='$CC -shared -o $lib $libobjs $deplibs $compiler_flags'
+     hardcode_libdir_flag_spec='-R$libdir'
+     hardcode_direct=yes
+@@ -6003,7 +6003,7 @@ freebsd*-gnu*)
+   dynamic_linker='GNU/FreeBSD ld.so'
+   ;;
+ 
+-freebsd*)
++freebsd* | dragonfly* | midnight*)
+   objformat=`test -x /usr/bin/objformat && /usr/bin/objformat || echo aout`
+   version_type=freebsd-$objformat
+   case $version_type in
 
 
 [FILE:295:patches/patch-examples-Makefile.in]

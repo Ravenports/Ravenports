@@ -2,7 +2,7 @@
 
 NAMEBASE=		unzip
 VERSION=		6.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		archivers
 VARIANTS=		standard chinese korean russian
 SDESC[russian]=		Russian extraction utility for .zip archives
@@ -29,7 +29,7 @@ VOPTS[russian]=		LANG_CN=OFF LANG_KO=OFF LANG_RU=ON ICONV=ON
 VOPTS[chinese]=		LANG_CN=ON LANG_KO=OFF LANG_RU=OFF ICONV=ON
 VOPTS[korean]=		LANG_CN=OFF LANG_KO=ON LANG_RU=OFF ICONV=ON
 
-USES=			cpe bz2:build zlib
+USES=			cpe bz2:build zlib:build
 
 DISTNAME=		unzip60
 
@@ -89,6 +89,11 @@ post-install-LANG_CN-ON:
 post-install-LANG_RU-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
+post-extract:
+	# statically link libz
+	${RM} ${LOCALBASE}/lib/libz.so
+	${MV} ${LOCALBASE}/lib/libz_pic.a ${LOCALBASE}/lib/libz.a
+
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/unzip ${STAGEDIR}${PREFIX}/bin
 	(cd ${WRKSRC} && \
@@ -98,7 +103,7 @@ do-install:
 	${INSTALL_MAN} ${WRKSRC}/man/unzip.1 ${STAGEDIR}${PREFIX}/share/man/man1
 	(cd ${WRKSRC}/man && ${INSTALL_MAN} funzip.1 unzipsfx.1 zipgrep.1 \
 		zipinfo.1 ${STAGEDIR}${PREFIX}/share/man/man1)
-	@${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	(cd ${WRKSRC} && ${INSTALL_DATA} README WHERE ${STAGEDIR}${STD_DOCDIR})
 
 post-install-LANG_KO-ON:

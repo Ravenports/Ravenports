@@ -25,6 +25,7 @@ BR_DEPS[freebsd]=	argp-standalone:single:standard
 BR_DEPS[sunos]=		argp-standalone:single:standard
 BR_DEPS[netbsd]=	argp-standalone:single:standard
 BR_DEPS[dragonfly]=	argp-standalone:single:standard
+BR_DEPS[midnightbsd]=	argp-standalone:single:standard
 
 USES=			gmake jpeg libtool pkgconfig perl:build shebangfix
 			gettext:build
@@ -63,6 +64,12 @@ post-extract:
 	${MKDIR} ${WRKSRC}/lib/include/sys
 
 post-patch-freebsd:
+	${REINPLACE_CMD} -e 's| -lrt||' \
+		${WRKSRC}/lib/libv4lconvert/Makefile.in \
+		${WRKSRC}/lib/libv4lconvert/libv4lconvert.pc.in
+	${TOUCH} ${WRKSRC}/lib/include/sys/sysmacros.h
+
+post-patch-midnightbsd:
 	${REINPLACE_CMD} -e 's| -lrt||' \
 		${WRKSRC}/lib/libv4lconvert/Makefile.in \
 		${WRKSRC}/lib/libv4lconvert/libv4lconvert.pc.in

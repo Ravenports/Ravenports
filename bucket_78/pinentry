@@ -38,9 +38,10 @@ VOPTS[gtk2]=		NCURSES=OFF QT5=OFF GTK2=ON FLTK=OFF NOTSTD=ON
 			GNOME3=OFF
 
 BUILD_DEPENDS=		libgpg-error:dev:standard
+			libassuan:dev:standard
 BUILDRUN_DEPENDS=	libgpg-error:primary:standard
 			libsecret:primary:standard
-			libassuan:single:standard
+			libassuan:primary:standard
 
 USES=			gmake pkgconfig
 GNOME_COMPONENTS=	glib
@@ -166,6 +167,38 @@ unistd.h encrypt() on FreeBSD 10.4
  
      message_ = new Fl_Box(79, 5, cx-99, 44, PROMPT);
  	message_->align(Fl_Align(FL_ALIGN_LEFT_TOP | FL_ALIGN_WRAP | FL_ALIGN_INSIDE)); // left
+
+
+[FILE:739:patches/patch-pinentry_pinentry.c]
+--- pinentry/pinentry.c.orig	2022-08-24 10:31:59 UTC
++++ pinentry/pinentry.c
+@@ -50,7 +50,7 @@
+ #include "pinentry.h"
+ #include "password-cache.h"
+ 
+-#ifdef INSIDE_EMACS
++#if 0
+ # include "pinentry-emacs.h"
+ #endif
+ #ifdef FALLBACK_CURSES
+@@ -1212,7 +1212,7 @@ option_handler (assuan_context_t ctx, co
+     }
+   else if (!strcmp (key, "allow-emacs-prompt") && !*value)
+     {
+-#ifdef INSIDE_EMACS
++#if 0
+       pinentry_enable_emacs_cmd_handler ();
+ #endif
+     }
+@@ -1887,7 +1887,7 @@ cmd_getinfo (assuan_context_t ctx, char
+   else if (!strcmp (line, "ttyinfo"))
+     {
+       char emacs_status[10];
+-#ifdef INSIDE_EMACS
++#if 0
+       snprintf (emacs_status, sizeof emacs_status,
+                 "%d", pinentry_emacs_status ());
+ #else
 
 
 [FILE:298:patches/patch-secmem_secmem.c]

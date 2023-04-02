@@ -233,6 +233,55 @@ lib/pkgconfig/sdl2.pc
 share/aclocal/sdl2.m4
 
 
+[FILE:1957:patches/patch-configure]
+--- configure.orig	2023-03-06 23:52:05 UTC
++++ configure
+@@ -28337,7 +28337,7 @@ CheckEventSignals
+ have_locale=no
+ 
+ case "$host" in
+-    *-*-linux*|*-*-uclinux*|*-*-gnu*|*-*-k*bsd*-gnu|*-*-bsdi*|*-*-freebsd*|*-*-dragonfly*|*-*-netbsd*|*-*-openbsd*|*-*-sysv5*|*-*-solaris*|*-*-hpux*|*-*-aix*|*-*-minix*|*-*-nto*)
++    *-*-linux*|*-*-uclinux*|*-*-gnu*|*-*-k*bsd*-gnu|*-*-bsdi*|*-*-freebsd*|*-*-dragonfly*|*-*-netbsd*|*-*-openbsd*|*-*-sysv5*|*-*-solaris*|*-*-hpux*|*-*-aix*|*-*-minix*|*-*-nto*|*-*-midnight*)
+         case "$host" in
+             *-*-android*)
+                 # Android
+@@ -28366,6 +28366,7 @@ printf "%s\n" "#define SDL_VIDEO_DRIVER_
+             *-*-bsdi*)          ARCH=bsdi ;;
+             *-*-freebsd*)       ARCH=freebsd ;;
+             *-*-dragonfly*)     ARCH=freebsd ;;
++            *-*-midnightbsd*)   ARCH=freebsd ;;
+             *-*-netbsd*)        ARCH=netbsd ;;
+             *-*-openbsd*)       ARCH=openbsd ;;
+             *-*-sysv5*)         ARCH=sysv5 ;;
+@@ -28422,7 +28423,7 @@ printf "%s\n" "#define SDL_VIDEO_DRIVER_
+           linux)
+               CheckInputKD
+           ;;
+-          freebsd)
++          freebsd|midnightbsd)
+               CheckInputKBIO
+           ;;
+           openbsd|netbsd)
+@@ -28513,7 +28514,7 @@ printf "%s\n" "#define SDL_JOYSTICK_LINU
+                     have_joystick=yes
+                 fi
+             ;;
+-            freebsd)
++            freebsd|midnightbsd)
+                 if test x$use_input_events = xyes -a x$ac_cv_header_linux_input_h = xyes; then
+ 
+ printf "%s\n" "#define SDL_JOYSTICK_LINUX 1" >>confdefs.h
+@@ -28536,7 +28537,7 @@ printf "%s\n" "#define SDL_JOYSTICK_ANDR
+         # Set up files for the haptic library
+         if test x$enable_haptic = xyes; then
+           case $ARCH in
+-            linux|freebsd)
++            linux|freebsd|midnightbsd)
+                 if test x$use_input_events = xyes; then
+ 
+ printf "%s\n" "#define SDL_HAPTIC_LINUX 1" >>confdefs.h
+
+
 [FILE:574:patches/patch-include_SDL__endian.h]
 --- include/SDL_endian.h.orig	2023-03-06 23:52:05 UTC
 +++ include/SDL_endian.h

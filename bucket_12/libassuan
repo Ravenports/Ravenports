@@ -2,6 +2,7 @@
 
 NAMEBASE=		libassuan
 VERSION=		2.5.5
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Assuan - an IPC library for non-persistent servers
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNUPG/libassuan
 DISTFILE[1]=		libassuan-2.5.5.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,16 +23,16 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		libgpg-error:dev:standard
 BUILDRUN_DEPENDS=	libgpg-error:primary:standard
 
-USES=			libtool
+USES=			libtool mbsdfix
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING.LIB
 LICENSE_AWK=		TERMS:"@configure_input@"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/assuan.h.in
 LICENSE_SCHEME=		solo
 
-INFO=			single:assuan
+INFO=			dev:assuan
 FPC_EQUIVALENT=		security/libassuan
 INFO_SUBDIR=		.
 
@@ -38,7 +41,7 @@ MUST_CONFIGURE=		gnu
 INSTALL_TARGET=		install-strip
 SOVERSION=		0.8.5
 
-[FILE:140:descriptions/desc.single]
+[FILE:140:descriptions/desc.primary]
 Libassuan is a small library implementing the so-called Assuan protocol.
 This protocol is used for IPC between most newer GnuPG components.
 
@@ -47,13 +50,16 @@ This protocol is used for IPC between most newer GnuPG components.
 8e8c2fcc982f9ca67dcbb1d95e2dc746b1739a4668bc20b3a3c5be632edb34e4       572263 libassuan-2.5.5.tar.bz2
 
 
-[FILE:165:manifests/plist.single]
-bin/libassuan-config
-include/assuan.h
+[FILE:59:manifests/plist.primary]
 lib/
- libassuan.so
  libassuan.so.%%SOMAJOR%%
  libassuan.so.%%SOVERSION%%
+
+
+[FILE:109:manifests/plist.dev]
+bin/libassuan-config
+include/assuan.h
+lib/libassuan.so
 lib/pkgconfig/libassuan.pc
 share/aclocal/libassuan.m4
 

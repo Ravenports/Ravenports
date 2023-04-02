@@ -94,6 +94,10 @@ VAR_OPSYS[dragonfly]=	PLIST_SUB=SOABI=.cpython-311{{ABIFLAGS}}
 			PLIST_SUB=SCD=
 			PLIST_SUB=FULLABI={{ABIFLAGS}}
 			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
+VAR_OPSYS[midnightbsd]=	PLIST_SUB=SOABI=.cpython-311{{ABIFLAGS}}
+			PLIST_SUB=SCD=
+			PLIST_SUB=FULLABI={{ABIFLAGS}}
+			PLIST_SUB=PLAT={{OPSYS:tl}}{{MAJOR:R}}
 
 [DEBUG].CONFIGURE_WITH_BOTH=		pydebug
 [DEBUG].MAKEFILE_ON=			ABIFLAGS:=d{{ABIFLAGS}}
@@ -141,7 +145,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 29e4b8f5f1658542a8c13e2dd277358c9c48f2b2f7318652ef1675e402b9d2af     19893284 Python-3.11.2.tar.xz
 
 
-[FILE:234775:manifests/plist.single]
+[FILE:234851:manifests/plist.single]
 %%DEBUG-ON%%bin/
  python%%XYDOT%%%%ABI%%
  python%%XYDOT%%%%ABI%%-config
@@ -151,6 +155,7 @@ many Unix variants, on the Mac, and on Windows 2000 and later.
 %%ONLY-LINUX%%lib/python%%XYDOT%%/lib-dynload/
  ossaudiodev%%SOABI%%.so
  spwd%%SOABI%%.so
+%%ONLY-MIDNIGHTBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
 %%ONLY-NETBSD%%lib/python%%XYDOT%%/lib-dynload/ossaudiodev%%SOABI%%.so
 %%ONLY-SUNOS%%lib/python%%XYDOT%%/lib-dynload/spwd%%SOABI%%.so
 bin/
@@ -8301,7 +8306,7 @@ record file nonetheless.
  typedef int (*foreachfunc)(int, char *, int, char *, int, char *);
 
 
-[FILE:224:patches/patch-configure]
+[FILE:2210:patches/patch-configure]
 --- configure.orig	2023-02-07 13:37:51 UTC
 +++ configure
 @@ -839,6 +839,7 @@ LIBMPDEC_INTERNAL
@@ -8312,6 +8317,69 @@ record file nonetheless.
  LIBEXPAT_INTERNAL
  LIBEXPAT_LDFLAGS
  LIBEXPAT_CFLAGS
+@@ -6204,7 +6205,7 @@ $as_echo_n "checking for multiarch... "
+ case $ac_sys_system in #(
+   Darwin*) :
+     MULTIARCH="" ;; #(
+-  FreeBSD*) :
++  FreeBSD*|MidnightBSD*) :
+     MULTIARCH="" ;; #(
+   *) :
+     MULTIARCH=$($CC --print-multiarch 2>/dev/null)
+@@ -6743,7 +6744,7 @@ $as_echo "#define Py_ENABLE_SHARED 1" >>
+ 	      PY3LIBRARY=libpython3.so
+ 	  fi
+           ;;
+-    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|VxWorks*)
++    Linux*|GNU*|NetBSD*|FreeBSD*|DragonFly*|OpenBSD*|VxWorks*|MidnightBSD*)
+ 	  LDLIBRARY='libpython$(LDVERSION).so'
+ 	  BLDLIBRARY='-L. -lpython$(LDVERSION)'
+ 	  RUNSHARED=LD_LIBRARY_PATH=`pwd`${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+@@ -10932,7 +10933,7 @@ then
+ 				   ;;
+ 				esac
+ 		fi;;
+-	NetBSD*|DragonFly*)
++	NetBSD*|DragonFly*|MidnightBSD*)
+ 		LDSHARED='$(CC) -shared'
+ 		LDCXXSHARED='$(CXX) -shared';;
+ 	OpenUNIX*|UnixWare*)
+@@ -10997,7 +10998,7 @@ then
+ 			CCSHARED="-fPIC"
+ 
+ fi;;
+-	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*) CCSHARED="-fPIC";;
++	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*|MidnightBSD*) CCSHARED="-fPIC";;
+ 	Haiku*) CCSHARED="-fPIC";;
+ 	OpenUNIX*|UnixWare*)
+ 		if test "$GCC" = "yes"
+@@ -11058,7 +11059,7 @@ _ACEOF
+ 	OpenUNIX*|UnixWare*) LINKFORSHARED="-Wl,-Bexport";;
+ 	SCO_SV*) LINKFORSHARED="-Wl,-Bexport";;
+ 	ReliantUNIX*) LINKFORSHARED="-W1 -Blargedynsym";;
+-	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*)
++	FreeBSD*|NetBSD*|OpenBSD*|DragonFly*|MidnightBSD*)
+ 		if [ "`$CC -dM -E - </dev/null | grep __ELF__`" != "" ]
+ 		then
+ 			LINKFORSHARED="-Wl,--export-dynamic"
+@@ -13508,7 +13509,7 @@ if test "x$found_tcltk" = xno; then :
+ fi
+ 
+ case $ac_sys_system in #(
+-  FreeBSD*) :
++  FreeBSD*|MidnightBSD*) :
+ 
+     if test -n "$PKG_CONFIG" && \
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"x11\""; } >&5
+@@ -23549,7 +23550,7 @@ case $ac_sys_system in #(
+     py_cv_module__scproxy=n/a
+     py_cv_module_nis=n/a
+  ;; #(
+-  FreeBSD*) :
++  FreeBSD*|MidnightBSD*) :
+ 
+ 
+     py_cv_module__scproxy=n/a
 
 
 [FILE:2122:patches/patch-setup.py]

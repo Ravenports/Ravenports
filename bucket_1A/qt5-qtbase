@@ -95,12 +95,16 @@ VAR_OPSYS[linux]=	VAR1=linux
 			CONFIGURE_ARGS=/usr/lib/x86_64-linux-gnu/
 VAR_OPSYS[netbsd]=	VAR1=netbsd
 VAR_OPSYS[dragonfly]=	VAR1=dragonfly
+VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
 
 post-patch:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
+	${MKDIR} ${WRKSRC}/mkspecs/midnightbsd-g++
 	${INSTALL_DATA} ${WRKSRC}/mkspecs/freebsd-g++/qplatformdefs.h \
 		${WRKSRC}/mkspecs/dragonfly-g++/
-.for MKS in dragonfly-g++ freebsd-g++ linux-g++ solaris-g++-64 netbsd-g++
+	${INSTALL_DATA} ${WRKSRC}/mkspecs/freebsd-g++/qplatformdefs.h \
+		${WRKSRC}/mkspecs/midnightbsd-g++/
+.for MKS in dragonfly-g++ freebsd-g++ linux-g++ solaris-g++-64 netbsd-g++ midnightbsd-g++
 	${INSTALL_DATA} ${WRKDIR}/qmake.conf ${WRKSRC}/mkspecs/${MKS}/
 .endfor
 	# Clean up files created by patching
@@ -134,7 +138,7 @@ This package contains the Qt5 qtbase submodule.
 396bc6b0d773ac6a7c691a4c3d901999f571e3e7033d7fd6f65e4ef2b6eb7340     50240276 qtbase-everywhere-opensource-src-5.15.6.tar.xz
 
 
-[FILE:73654:manifests/plist.primary]
+[FILE:74045:manifests/plist.primary]
 @comment needs mesa gbm lib/qt5/cmake/Qt5Gui/Qt5Gui_QEglFSKmsGbmIntegrationPlugin.cmake
 @comment needs mesa gbm lib/qt5/plugins/egldeviceintegrations/libqeglfs-kms-integration.so
 %%ONLY-FREEBSD%%lib/qt5/cmake/Qt5Gui/
@@ -161,6 +165,16 @@ This package contains the Qt5 qtbase submodule.
  libqconnmanbearer.so
  libqnmbearer.so
 %%ONLY-LINUX%%lib/qt5/plugins/platforms/libqlinuxfb.so
+%%ONLY-MIDNIGHTBSD%%lib/qt5/cmake/Qt5Gui/
+ Qt5Gui_QEvdevKeyboardPlugin.cmake
+ Qt5Gui_QEvdevMousePlugin.cmake
+ Qt5Gui_QEvdevTabletPlugin.cmake
+ Qt5Gui_QEvdevTouchScreenPlugin.cmake
+%%ONLY-MIDNIGHTBSD%%lib/qt5/plugins/generic/
+ libqevdevkeyboardplugin.so
+ libqevdevmouseplugin.so
+ libqevdevtabletplugin.so
+ libqevdevtouchplugin.so
 include/qt5/QtAccessibilitySupport/
  QtAccessibilitySupport
  QtAccessibilitySupportDepends
@@ -3536,6 +3550,9 @@ lib/qt5/mkspecs/macx-xcode/
  default.xcscheme
  qmake.conf
  qplatformdefs.h
+lib/qt5/mkspecs/midnightbsd-g++/
+ qmake.conf
+ qplatformdefs.h
 lib/qt5/mkspecs/modules/
  qt_lib_accessibility_support_private.pri
  qt_lib_bootstrap_private.pri
@@ -3867,6 +3884,20 @@ share/doc/qt5/global/template/style/
  theqtcompany.png
 
 
+[FILE:607:patches/patch-mkspecs_features_qt__functions.prf]
+--- mkspecs/features/qt_functions.prf.orig	2022-06-24 10:42:02 UTC
++++ mkspecs/features/qt_functions.prf
+@@ -213,7 +213,7 @@ defineTest(qtAddTargetEnv) {
+             libs = bins
+             deppath.CONFIG = always_prepend
+             deppath.name = PATH
+-        } else:contains(QMAKE_HOST.os, Linux|FreeBSD|OpenBSD|NetBSD|DragonFly|SunOS|HP-UX|QNX|GNU) {
++        } else:contains(QMAKE_HOST.os, Linux|FreeBSD|OpenBSD|NetBSD|DragonFly|MidnightBSD|SunOS|HP-UX|QNX|GNU) {
+             deppath.name = LD_LIBRARY_PATH
+         } else:contains(QMAKE_HOST.os, Haiku) {
+             deppath.name = LIBRARY_PATH
+
+
 [FILE:360:patches/patch-mkspecs_features_qt__module.prf]
 $NetBSD$
 
@@ -3991,7 +4022,7 @@ Do not create .la files.
          "librt": {
 
 
-[FILE:470:patches/patch-src_corelib_io_io.pri]
+[FILE:482:patches/patch-src_corelib_io_io.pri]
 --- src/corelib/io/io.pri.orig	2022-06-24 10:42:02 UTC
 +++ src/corelib/io/io.pri
 @@ -100,7 +100,7 @@ qtConfig(filesystemwatcher) {
@@ -3999,7 +4030,7 @@ Do not create .la files.
          HEADERS += io/qfilesystemwatcher_inotify_p.h
      } else {
 -        freebsd|darwin|openbsd|netbsd {
-+        freebsd|darwin|openbsd|netbsd|dragonfly {
++        freebsd|darwin|openbsd|netbsd|dragonfly|midnightbsd {
              SOURCES += io/qfilesystemwatcher_kqueue.cpp
              HEADERS += io/qfilesystemwatcher_kqueue_p.h
          }

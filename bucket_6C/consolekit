@@ -85,7 +85,7 @@ ConsoleKit2 is a fork of the ConsoleKit since that is no longer maintained
 7c5ca07cc7ecb2743446c4ab5a66ae02667acab6214268d76f0fdf73eaf141e8       256924 ConsoleKit2-ConsoleKit2-1.2.4.tar.gz
 
 
-[FILE:2048:manifests/plist.primary]
+[FILE:2240:manifests/plist.primary]
 %%ONLY-FREEBSD%%lib/ConsoleKit/scripts/
  ck-get-x11-display-device
  ck-get-x11-server-pid
@@ -95,6 +95,14 @@ ConsoleKit2 is a fork of the ConsoleKit since that is no longer maintained
  ck-system-stop
  ck-system-suspend
 %%ONLY-LINUX%%lib/ConsoleKit/scripts/
+ ck-system-hibernate
+ ck-system-hybridsleep
+ ck-system-restart
+ ck-system-stop
+ ck-system-suspend
+%%ONLY-MIDNIGHTBSD%%lib/ConsoleKit/scripts/
+ ck-get-x11-display-device
+ ck-get-x11-server-pid
  ck-system-hibernate
  ck-system-hybridsleep
  ck-system-restart
@@ -192,4 +200,18 @@ share/locale/es/LC_MESSAGES/ConsoleKit2.mo
 share/locale/es_419/LC_MESSAGES/ConsoleKit2.mo
 share/locale/fr/LC_MESSAGES/ConsoleKit2.mo
 share/locale/ru/LC_MESSAGES/ConsoleKit2.mo
+
+
+[FILE:423:patches/patch-configure.ac]
+--- configure.ac.orig	2021-07-04 10:36:33 UTC
++++ configure.ac
+@@ -197,7 +197,7 @@ case "$host" in
+                 KVM_LIBS="-lkvm"
+         fi
+         ;;
+-        *-*-freebsd* | *-*-kfreebsd*-gnu )
++        *-*-freebsd* | *-*-midnight* )
+         CK_BACKEND="freebsd"
+         AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
+                 AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD/DragonflyBSD]))
 

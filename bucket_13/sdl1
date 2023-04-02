@@ -11,6 +11,7 @@ CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		http://www.libsdl.org/release/
+			SF/libsdl/SDL/1.2.15
 DISTFILE[1]=		SDL-1.2.15.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
@@ -347,7 +348,7 @@ share/aclocal/sdl.m4
  
 
 
-[FILE:1047:patches/patch-configure]
+[FILE:4283:patches/patch-configure]
 --- configure.orig	2012-01-19 06:30:12 UTC
 +++ configure
 @@ -2039,12 +2039,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
@@ -363,6 +364,60 @@ share/aclocal/sdl.m4
  ac_aux_dir=
  for ac_dir in $srcdir/build-scripts; do
    if test -f "$ac_dir/install-sh"; then
+@@ -4209,7 +4203,7 @@ darwin* | rhapsody*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
+     case $host_cpu in
+     i*86 )
+@@ -8411,7 +8405,7 @@ if test -z "$aix_libpath"; then aix_libp
+       ;;
+ 
+     # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
+-    freebsd* | dragonfly*)
++    freebsd* | dragonfly* | midnight*)
+       archive_cmds='$CC -shared -o $lib $libobjs $deplibs $compiler_flags'
+       hardcode_libdir_flag_spec='-R$libdir'
+       hardcode_direct=yes
+@@ -9290,7 +9284,7 @@ freebsd1*)
+   dynamic_linker=no
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+   if test -x /usr/bin/objformat; then
+@@ -13308,7 +13302,7 @@ if test -z "$aix_libpath"; then aix_libp
+         archive_cmds_need_lc_CXX=no
+         ;;
+ 
+-      freebsd* | dragonfly*)
++      freebsd* | dragonfly* | midnight*)
+         # FreeBSD 3 and later use GNU C++ and GNU ld with standard ELF
+         # conventions
+         ld_shlibs_CXX=yes
+@@ -14258,7 +14252,7 @@ echo $ECHO_N "checking for $compiler opt
+ 	    ;;
+ 	esac
+ 	;;
+-      freebsd* | dragonfly*)
++      freebsd* | dragonfly* | midnight*)
+ 	# FreeBSD uses GNU C++
+ 	;;
+       hpux9* | hpux10* | hpux11*)
+@@ -15062,7 +15056,7 @@ freebsd1*)
+   dynamic_linker=no
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+   if test -x /usr/bin/objformat; then
 @@ -15826,7 +15820,7 @@ case "$host" in
          BASE_LDFLAGS="-mno-cygwin"
          ;;
@@ -389,7 +444,33 @@ share/aclocal/sdl.m4
  
  CheckPulseAudio()
  {
-@@ -29551,6 +29555,7 @@ _ACEOF
+@@ -26934,7 +26938,7 @@ fi
+ # causes Carbon.p complaints?
+ #            pthread_cflags="-D_REENTRANT -D_THREAD_SAFE"
+             ;;
+-        *-*-freebsd*|*-*-dragonfly*)
++        *-*-freebsd*|*-*-dragonfly*|*-*-midnight*)
+             pthread_cflags="-D_REENTRANT -D_THREAD_SAFE"
+             pthread_lib="-pthread"
+             ;;
+@@ -29518,7 +29522,7 @@ _ACEOF
+             have_timers=yes
+         fi
+         ;;
+-    *-*-linux*|*-*-uclinux*|*-*-gnu*|*-*-k*bsd*-gnu|*-*-bsdi*|*-*-freebsd*|*-*-dragonfly*|*-*-netbsd*|*-*-openbsd*|*-*-sysv5*|*-*-solaris*|*-*-hpux*|*-*-irix*|*-*-aix*|*-*-osf*)
++    *-*-linux*|*-*-uclinux*|*-*-gnu*|*-*-k*bsd*-gnu|*-*-bsdi*|*-*-freebsd*|*-*-dragonfly*|*-*-netbsd*|*-*-openbsd*|*-*-sysv5*|*-*-solaris*|*-*-hpux*|*-*-irix*|*-*-aix*|*-*-osf*|*-*-midnight*)
+         case "$host" in
+             *-*-linux*)         ARCH=linux ;;
+             *-*-uclinux*)       ARCH=linux ;;
+@@ -29529,6 +29533,7 @@ _ACEOF
+             *-*-bsdi*)          ARCH=bsdi ;;
+             *-*-freebsd*)       ARCH=freebsd ;;
+             *-*-dragonfly*)     ARCH=freebsd ;;
++            *-*-midnightbsd*)   ARCH=freebsd ;;
+             *-*-netbsd*)        ARCH=netbsd ;;
+             *-*-openbsd*)       ARCH=openbsd ;;
+             *-*-sysv5*)         ARCH=sysv5 ;;
+@@ -29551,6 +29556,7 @@ _ACEOF
          CheckALSA
          CheckARTSC
          CheckESD
@@ -397,6 +478,15 @@ share/aclocal/sdl.m4
          CheckPulseAudio
          CheckNAS
          CheckX11
+@@ -29628,7 +29634,7 @@ _ACEOF
+                 SOURCES="$SOURCES $srcdir/src/cdrom/linux/*.c"
+                 have_cdrom=yes
+             ;;
+-            *freebsd*)
++            *freebsd*|*midnight*)
+                 cat >>confdefs.h <<\_ACEOF
+ #define SDL_CDROM_FREEBSD 1
+ _ACEOF
 
 
 [FILE:474:patches/patch-sdl-config.in]

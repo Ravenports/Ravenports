@@ -41,7 +41,7 @@ QMAKE_ARGS=		PREFIX="{{PREFIX}}"
 			L_MANDIR="{{PREFIX}}/share/man"
 			CONFIG+=WITH_I18N
 
-post-patch:
+pre-configure:
 	${GREP} -rl "/usr/local" ${WRKDIR}/lumina-1.6.2 | \
 		${XARGS} ${REINPLACE_CMD} -e 's|/usr/local|${PREFIX}|g'
 	${FIND} ${WRKDIR}/lumina-1.6.2 -name "*.bak" -type f -delete
@@ -277,4 +277,22 @@ share/lumina-desktop/i18n/
  lumina-xconfig_zh_HK.qm
  lumina-xconfig_zh_TW.qm
  lumina-xconfig_zu.qm
+
+
+[FILE:443:patches/patch-src-qt5_OS-detect.pri]
+--- ../../src-qt5/OS-detect.pri.orig	2021-12-26 02:33:45 UTC
++++ ../../src-qt5/OS-detect.pri
+@@ -39,6 +39,12 @@ isEmpty(OS){
+     OS = DragonFly
+     LIBS += -L/usr/local/lib -L/usr/lib
+ 
++  }else : midnightbsd-*{
++    isEmpty(PREFIX){ PREFIX=/usr/local }
++    OS = FreeBSD
++    LIBS += -L/usr/local/lib -L/usr/lib
++     #Use the defaults for everything else
++
+   }else : freebsd-*{
+     isEmpty(PREFIX){ PREFIX=/usr/local }
+     OS = FreeBSD
 

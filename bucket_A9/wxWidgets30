@@ -59,6 +59,7 @@ PLIST_SUB=		GTKVER={{GTKVER}}
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-precomp-headers=no
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--disable-precomp-headers
+VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--disable-precomp-headers
 
 [GTK2].DESCRIPTION=			Build with GTK+2 instead of GTK+3
 [GTK2].CONFIGURE_ARGS_OFF=		--with-gtk=3
@@ -893,7 +894,7 @@ share/locale/zh_CN/LC_MESSAGES/wxstd.mo
 share/locale/zh_TW/LC_MESSAGES/wxstd.mo
 
 
-[FILE:1958:patches/patch-configure]
+[FILE:2013:patches/patch-configure]
 --- configure.orig	2020-05-02 14:03:18 UTC
 +++ configure
 @@ -4047,7 +4047,7 @@ case "${host}" in
@@ -901,7 +902,7 @@ share/locale/zh_TW/LC_MESSAGES/wxstd.mo
      DEFAULT_DEFAULT_wxUSE_MOTIF=1
    ;;
 -  *-*-freebsd*)
-+  *-*-dragonfly*|*-*-freebsd*)
++  *-*-dragonfly*|*-*-freebsd*|*-*-midnight*)
      USE_BSD=1
      USE_FREEBSD=1
      $as_echo "#define __FREEBSD__ 1" >>confdefs.h
@@ -941,19 +942,20 @@ share/locale/zh_TW/LC_MESSAGES/wxstd.mo
  
  if test "x$WXWIN_COMPATIBILITY_2_6" = "xyes"; then
      $as_echo "#define WXWIN_COMPATIBILITY_2_6 1" >>confdefs.h
-@@ -39001,6 +38999,7 @@ fi
+@@ -39001,6 +38999,8 @@ fi
        ;;
  
        powerpc-apple-macos* | \
 +      *-*-dragonfly* | \
++      *-*-midnight* | \
        *-*-freebsd* | *-*-openbsd* | *-*-netbsd* | *-*-gnu* | *-*-k*bsd*-gnu | \
        *-*-mirbsd* | \
        *-*-sunos4* | \
-@@ -39042,6 +39041,7 @@ fi
+@@ -39042,6 +39042,7 @@ fi
  
      case "${BAKEFILE_HOST}" in
        *-*-linux* | *-*-freebsd* | *-*-openbsd* | *-*-netbsd* | \
-+      *-*-dragonfly* | *-*-solaris2* | \
++      *-*-dragonfly* | *-*-midnight* | *-*-solaris2* | \
        *-*-k*bsd*-gnu | *-*-mirbsd* | *-*-gnu* )
          if test "x$SUNCXX" = "xyes"; then
              SONAME_FLAG="-h "

@@ -2,6 +2,7 @@
 
 NAMEBASE=		texinfo
 VERSION=		7.0.2
+REVISION=		1
 KEYWORDS=		print
 VARIANTS=		standard
 SDESC[standard]=	Typeset documentation system, multiple formats
@@ -20,6 +21,7 @@ DF_INDEX=		1 2 3 4
 SPKGS[standard]=	complete
 			primary
 			nls
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -39,10 +41,10 @@ LICENSE_AWK=		TERMS:"INFO_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/info/info.h
 LICENSE_SCHEME=		solo
 
-INFO=			primary:texinfo
-			primary:info-stnd
-			primary:texi2any_api
-			primary:texi2any_internals
+INFO=			man:texinfo
+			man:info-stnd
+			man:texi2any_api
+			man:texi2any_internals
 CPE_VENDOR=		gnu
 CPE_VERSION=		7.0
 FPC_EQUIVALENT=		print/texinfo
@@ -56,13 +58,19 @@ MAKE_ARGS=		TEXMF={{LOCALBASE}}/share/texmf
 
 INSTALL_TARGET=		install install-tex
 PLIST_SUB=		TEXMF=share/texmf
+			XS={{NOXS:U""}}
 
-post-patch:
-	${CHMOD} 755 ${WRKSRC}/build-aux/install-sh
-	${CP} ${DISTDIR}/${DIST_SUBDIR}/texinfo.tex-20221112 \
-		${WRKSRC}/doc/texinfo.txt
-	${INSTALL_SCRIPT} ${DISTDIR}/${DIST_SUBDIR}/texi2dvi-20221107 \
-		${WRKSRC}/util/texi2dvi
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=NOXS="@comment "
+
+pre-configure-darwin:
+	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
+
+post-install:
+	if [ -d "${STAGEDIR}${PREFIX}/lib/texinfo" ]; then \
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/texinfo/*.so ;\
+	fi
+
+pre-configure:
 	${REINPLACE_CMD} -e '/rm -f $$(DESTDIR)/ s|$$| $$(DESTDIR)$$(xsdir)/XSParagraph.*|' \
 		${WRKSRC}/tp/Texinfo/XS/Makefile.in
 	${REINPLACE_CMD} -e 's|free (.*)|Safe&|' ${WRKSRC}/tp/Texinfo/XS/misc.c
@@ -70,11 +78,12 @@ post-patch:
 		${WRKSRC}/configure \
 		${WRKSRC}/tp/Texinfo/XS/configure
 
-post-patch-darwin:
-	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/texinfo/*.so
+post-extract:
+	${CHMOD} 755 ${WRKSRC}/build-aux/install-sh
+	${CP} ${DISTDIR}/${DIST_SUBDIR}/texinfo.tex-20221112 \
+		${WRKSRC}/doc/texinfo.txt
+	${INSTALL_SCRIPT} ${DISTDIR}/${DIST_SUBDIR}/texi2dvi-20221107 \
+		${WRKSRC}/util/texi2dvi
 
 [FILE:666:descriptions/desc.primary]
 Texinfo is the official documentation format of the GNU project.
@@ -98,7 +107,11 @@ f211ec3261383e1a89e4555a93b9d017fe807b9c3992fb2dff4871dae6da54ad      4875424 te
 7d684e915bb60991adfda73433eabf299aca50a31e096380d8373209df65611e        58631 texinfo/7.0/texi2dvi-20221107
 
 
-[FILE:5320:manifests/plist.primary]
+[FILE:5137:manifests/plist.primary]
+%%XS%%lib/texinfo/
+ MiscXS.so
+ Parsetexi.so
+%%XS%%share/texinfo/Texinfo/XS/parsetexi/Parsetexi.pm
 bin/
  info
  install-info
@@ -109,22 +122,6 @@ bin/
  texi2dvi
  texi2pdf
  texindex
-lib/texinfo/
- MiscXS.so
- Parsetexi.so
-share/man/man1/
- info.1.gz
- install-info.1.gz
- makeinfo.1.gz
- pdftexi2dvi.1.gz
- pod2texi.1.gz
- texi2any.1.gz
- texi2dvi.1.gz
- texi2pdf.1.gz
- texindex.1.gz
-share/man/man5/
- info.5.gz
- texinfo.5.gz
 share/texinfo/
  htmlxref.cnf
  texindex.awk
@@ -167,7 +164,6 @@ share/texinfo/Texinfo/Convert/
  TextContent.pm
  Unicode.pm
  Utils.pm
-share/texinfo/Texinfo/XS/parsetexi/Parsetexi.pm
 share/texinfo/ext/
  epub3.pm
  latex2html.pm
@@ -618,6 +614,22 @@ share/locale/uk/LC_MESSAGES/
 share/locale/vi/LC_MESSAGES/texinfo.mo
 share/locale/zh_CN/LC_MESSAGES/texinfo.mo
 share/locale/zh_TW/LC_MESSAGES/texinfo.mo
+
+
+[FILE:195:manifests/plist.man]
+share/man/man1/
+ info.1.gz
+ install-info.1.gz
+ makeinfo.1.gz
+ pdftexi2dvi.1.gz
+ pod2texi.1.gz
+ texi2any.1.gz
+ texi2dvi.1.gz
+ texi2pdf.1.gz
+ texindex.1.gz
+share/man/man5/
+ info.5.gz
+ texinfo.5.gz
 
 
 [FILE:237:patches/patch-tp-Texinfo-XS-parsetexi-api.c]

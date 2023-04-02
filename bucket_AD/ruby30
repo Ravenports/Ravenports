@@ -73,19 +73,9 @@ VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-jit-support
 VAR_OPSYS[darwin]=	CONFIGURE_ENV=ac_cv_func_backtrace=no
 			MAKEFILE_LINE=MODULE=bundle
 
-post-patch:
-	${FIND} ${WRKSRC}/ -name "*.orig" -delete
-	# Disable all bundled gems
-	# We install these from other ports
-	cd ${BUILD_WRKSRC} && \
-		${MV} gems gems.orig && \
-		${MKDIR} gems && \
-		${TOUCH} gems/bundled_gems
-.for d in bin/bundle bin/bundler bin/gem lib/bundler ext/dbm ext/gdbm
-	${RM} -r ${BUILD_WRKSRC}/${d}
-.endfor
-	${RM} ${BUILD_WRKSRC}/man/bundle*
-	${RM} ${BUILD_WRKSRC}/man/gemfile*
+pre-configure-linux:
+	# <sys/vnode.h> does not exist on linux
+	${REINPLACE_CMD} -e '/vnode\.h/d' ${WRKSRC}/dir.c
 
 pre-install:
 	${MKDIR} ${STAGEDIR}${RUBY_DOCDIR}/readline \
@@ -94,10 +84,6 @@ pre-install:
 		${STAGEDIR}${RUBY_DOCDIR}/syslog \
 		${STAGEDIR}${RUBY_EXAMPLESDIR}/bigdecimal \
 		# RDoc generated disabled ${STAGEDIR}${RUBY_RIDIR}
-
-post-patch-linux:
-	# <sys/vnode.h> does not exist on linux
-	${REINPLACE_CMD} -e '/vnode\.h/d' ${WRKSRC}/dir.c
 
 post-install:
 	# strip ruby binaries
@@ -130,6 +116,20 @@ post-build:
 	${RB_SET_CONF_VAR} "INSTALL_PROGRAM" "ENV['RB_USER_INSTALL'] ? '${INSTALL} ${COPY} ${STRIP} -m ${BINMODE}' : '${INSTALL_PROGRAM}'"
 	${RB_SET_CONF_VAR} "INSTALL_SCRIPT" "ENV['RB_USER_INSTALL'] ? '${INSTALL} ${COPY} -m ${BINMODE}' : '${INSTALL_SCRIPT}'"
 	${RB_SET_CONF_VAR} "INSTALL_DATA" "ENV['RB_USER_INSTALL'] ? '${INSTALL} ${COPY} -m ${SHAREMODE}' : '${INSTALL_DATA}'"
+
+pre-configure:
+	${FIND} ${WRKSRC}/ -name "*.orig" -delete
+	# Disable all bundled gems
+	# We install these from other ports
+	cd ${BUILD_WRKSRC} && \
+		${MV} gems gems.orig && \
+		${MKDIR} gems && \
+		${TOUCH} gems/bundled_gems
+.for d in bin/bundle bin/bundler bin/gem lib/bundler ext/dbm ext/gdbm
+	${RM} -r ${BUILD_WRKSRC}/${d}
+.endfor
+	${RM} ${BUILD_WRKSRC}/man/bundle*
+	${RM} ${BUILD_WRKSRC}/man/gemfile*
 
 [FILE:665:descriptions/desc.primary]
 Ruby is the interpreted scripting language for quick and
@@ -1551,7 +1551,7 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  remarks.markdown
 
 
-[FILE:2736:patches/patch-configure.ac]
+[FILE:3632:patches/patch-configure.ac]
 --- configure.ac.orig	2021-11-24 11:12:15 UTC
 +++ configure.ac
 @@ -302,14 +302,6 @@ AS_CASE(["$host_os:$build_os"],
@@ -1586,7 +1586,34 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  		RUBY_APPEND_OPTIONS(CPPFLAGS, -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT)
  		AC_CACHE_CHECK([whether syscall(2) is deprecated], rb_cv_syscall_deprecated,
  		    [RUBY_WERROR_FLAG([
-@@ -3307,7 +3298,7 @@ AS_CASE("$enable_shared", [yes], [
+@@ -1137,6 +1128,8 @@ main()
+ 		],
+ [dragonfly*], [	LIBS="-lm $LIBS"
+ 		],
++[midnight*], [	LIBS="-lm $LIBS"
++		],
+ [aix*],[	LIBS="-lm $LIBS"
+ 		ac_cv_func_round=no
+ 		ac_cv_func___builtin_setjmp=no
+@@ -2821,7 +2814,7 @@ AS_IF([test "$with_dln_a_out" != yes], [
+ 			XLDFLAGS="$XLDFLAGS -Wl,-E"
+ 			LIBPATHFLAG=" -L%1\$-s"
+ 			rb_cv_dlopen=yes],
+-	[freebsd*|dragonfly*], [
++	[freebsd*|dragonfly*|midnight*], [
+ 			: ${LDSHARED='$(CC) -shared'}
+ 			AS_IF([test "$rb_cv_binary_elf" = yes], [
+ 			    LDFLAGS="$LDFLAGS -rdynamic"
+@@ -3293,7 +3286,7 @@ AS_CASE("$enable_shared", [yes], [
+   libdir_basename="${libdir_basename}"${multiarch+'/${arch}'}
+ 
+   AS_CASE(["$target_os"],
+-    [freebsd*|dragonfly*], [],
++    [freebsd*|dragonfly*|midnight*], [],
+     [
+      AS_IF([test "$GCC" = yes], [
+        RUBY_TRY_LDFLAGS([${linker_flag}--no-undefined], [no_undefined=yes], [no_undefined=no])
+@@ -3307,7 +3300,7 @@ AS_CASE("$enable_shared", [yes], [
      [sunos4*], [
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	],
@@ -1595,12 +1622,12 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  	RUBY_APPEND_OPTIONS(LIBRUBY_DLDFLAGS, ['-Wl,-soname,$(LIBRUBY_SONAME)' "$LDFLAGS_OPTDIR"])
  	LIBRUBY_ALIASES='$(LIBRUBY_SONAME) lib$(RUBY_SO_NAME).$(SOEXT)'
  	AS_IF([test "$load_relative" = yes], [
-@@ -3316,13 +3307,9 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3316,13 +3309,9 @@ AS_CASE("$enable_shared", [yes], [
  	    LIBRUBY_RELATIVE=yes
  	])
  	],
 -    [freebsd*|dragonfly*], [
-+    [freebsd*|dragonfly*|netbsd*|linux*|solaris*], [
++    [freebsd*|dragonfly*|netbsd*|linux*|solaris*|midnight*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
  	LIBRUBY_SONAME='$(LIBRUBY_SO)'
 -	AS_IF([test "$rb_cv_binary_elf" != "yes" ], [
@@ -1610,7 +1637,7 @@ share/examples/ruby%%XY%%/trick2018/05-tompng/
  	],
      [netbsd*], [
  	LIBRUBY_SONAME='lib$(RUBY_SO_NAME).$(SOEXT).$(MAJOR)$(MINOR)'
-@@ -3355,8 +3342,8 @@ AS_CASE("$enable_shared", [yes], [
+@@ -3355,8 +3344,8 @@ AS_CASE("$enable_shared", [yes], [
  	],
      [darwin*], [
  	LIBRUBY_SO='lib$(RUBY_SO_NAME).$(SOEXT)'

@@ -2,6 +2,7 @@
 
 NAMEBASE=		zsh
 VERSION=		5.9
+REVISION=		1
 KEYWORDS=		shells
 VARIANTS=		standard
 SDESC[standard]=	Interactive Z Shell
@@ -17,9 +18,13 @@ SPKGS[standard]=	complete
 			primary
 			examples
 			docs
+			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	CCLOCK
+OPTIONS_STANDARD=	CCLOCK
+OPT_ON[freebsd]=	CCLOCK
+OPT_ON[dragonfly]=	CCLOCK
+OPT_ON[midnightbsd]=	CCLOCK
 
 BUILD_DEPENDS=		gdbm:dev:standard
 			texinfo:primary:standard
@@ -65,13 +70,12 @@ CPPFLAGS=		-DBOOL_DEFINED
 VAR_OPSYS[sunos]=	CPPFLAGS=-D_XPG6
 			CPPFLAGS=-DHAVE_BOOLCODES
 			LDFLAGS=-ltinfo
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
-post-patch:
-	${FIND} ${WRKSRC} -name "*.orig" -delete
-	${REINPLACE_CMD} -i'' -e 's|__PREFIX__|${PREFIX}|' ${WRKSRC}/Functions/VCS_Info/test-repo-git-rebase*
+[CCLOCK].DESCRIPTION=			Adjust linking of clock_gettext
 
-post-patch-dragonfly:
-	# DragonFly's clock_gettime(2) is in libc, not librt
+pre-configure-CCLOCK-ON:
+	# xBSD's clock_gettime(2) is in libc, not librt
 	${REINPLACE_CMD} -e '/LIBS/s|-lrt||' ${WRKSRC}/configure
 	${REINPLACE_CMD} -i'' -e "s|/etc/|${LOCALBASE}/etc/|" \
 		${WRKSRC}/Functions/MIME/zsh-mime-setup
@@ -94,11 +98,9 @@ post-install:
 		Etc/FAQ Etc/completion-style-guide \
 		${STAGEDIR}${STD_DOCDIR})
 
-post-patch-freebsd:
-	# FreeBSD's clock_gettime(2) is in libc, not librt; see PR 167857
-	${REINPLACE_CMD} -e '/LIBS/s|-lrt||' ${WRKSRC}/configure
-	${REINPLACE_CMD} -i'' -e "s|/etc/|${LOCALBASE}/etc/|" \
-		${WRKSRC}/Functions/MIME/zsh-mime-setup
+pre-configure:
+	${FIND} ${WRKSRC} -name "*.orig" -delete
+	${REINPLACE_CMD} -i'' -e 's|__PREFIX__|${PREFIX}|' ${WRKSRC}/Functions/VCS_Info/test-repo-git-rebase*
 
 [FILE:462:descriptions/desc.primary]
 Zsh is the Swiss Army knife of shells. It combines the most popular
@@ -121,507 +123,51 @@ To fire up the zsh completion system, type the following commands:
 6f7c091249575e68c177c5e8d5c3e9705660d0d3ca1647aea365fd00a0bd3e8a      3130444 zsh-5.9-doc.tar.xz
 
 
-[FILE:25385:manifests/plist.primary]
+[FILE:16739:manifests/plist.primary]
 @shell bin/rzsh
 @shell bin/zsh
-%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/
- attr.%%SHARED_OBJECT%%
- cap.%%SHARED_OBJECT%%
- clone.%%SHARED_OBJECT%%
- compctl.%%SHARED_OBJECT%%
- complete.%%SHARED_OBJECT%%
- complist.%%SHARED_OBJECT%%
- computil.%%SHARED_OBJECT%%
- curses.%%SHARED_OBJECT%%
- datetime.%%SHARED_OBJECT%%
- deltochar.%%SHARED_OBJECT%%
- example.%%SHARED_OBJECT%%
- files.%%SHARED_OBJECT%%
- langinfo.%%SHARED_OBJECT%%
- mapfile.%%SHARED_OBJECT%%
- mathfunc.%%SHARED_OBJECT%%
- nearcolor.%%SHARED_OBJECT%%
- newuser.%%SHARED_OBJECT%%
- parameter.%%SHARED_OBJECT%%
- pcre.%%SHARED_OBJECT%%
- regex.%%SHARED_OBJECT%%
- rlimits.%%SHARED_OBJECT%%
- sched.%%SHARED_OBJECT%%
- stat.%%SHARED_OBJECT%%
- system.%%SHARED_OBJECT%%
- termcap.%%SHARED_OBJECT%%
- terminfo.%%SHARED_OBJECT%%
- zftp.%%SHARED_OBJECT%%
- zle.%%SHARED_OBJECT%%
- zleparameter.%%SHARED_OBJECT%%
- zprof.%%SHARED_OBJECT%%
- zpty.%%SHARED_OBJECT%%
- zselect.%%SHARED_OBJECT%%
- zutil.%%SHARED_OBJECT%%
-%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
-%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/net/
- socket.%%SHARED_OBJECT%%
- tcp.%%SHARED_OBJECT%%
-%%ONLY-DARWIN%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
-%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/
- Newuser.zwc
- TCP.zwc
- Zftp.zwc
-%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
-%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/TCP/
- tcp_alias
- tcp_close
- tcp_command
- tcp_expect
- tcp_fd_handler
- tcp_log
- tcp_open
- tcp_output
- tcp_point
- tcp_proxy
- tcp_read
- tcp_rename
- tcp_send
- tcp_sess
- tcp_shoot
- tcp_spam
- tcp_talk
- tcp_wait
-%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/functions/Zftp/
- zfanon
- zfautocheck
- zfcd
- zfcd_match
- zfcget
- zfclose
- zfcput
- zfdir
- zffcache
- zfgcp
- zfget
- zfget_match
- zfgoto
- zfhere
- zfinit
- zfls
- zfmark
- zfopen
- zfparams
- zfpcp
- zfput
- zfrglob
- zfrtime
- zfsession
- zfstat
- zftp_chpwd
- zftp_progress
- zftransfer
- zftype
- zfuget
- zfuput
-%%ONLY-DARWIN%%share/zsh/%%ZSH_VER%%/scripts/newuser
-%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/
- cap.%%SHARED_OBJECT%%
- clone.%%SHARED_OBJECT%%
- compctl.%%SHARED_OBJECT%%
- complete.%%SHARED_OBJECT%%
- complist.%%SHARED_OBJECT%%
- computil.%%SHARED_OBJECT%%
- curses.%%SHARED_OBJECT%%
- datetime.%%SHARED_OBJECT%%
- deltochar.%%SHARED_OBJECT%%
- example.%%SHARED_OBJECT%%
- files.%%SHARED_OBJECT%%
- langinfo.%%SHARED_OBJECT%%
- mapfile.%%SHARED_OBJECT%%
- mathfunc.%%SHARED_OBJECT%%
- nearcolor.%%SHARED_OBJECT%%
- newuser.%%SHARED_OBJECT%%
- parameter.%%SHARED_OBJECT%%
- pcre.%%SHARED_OBJECT%%
- regex.%%SHARED_OBJECT%%
- rlimits.%%SHARED_OBJECT%%
- sched.%%SHARED_OBJECT%%
- stat.%%SHARED_OBJECT%%
- system.%%SHARED_OBJECT%%
- termcap.%%SHARED_OBJECT%%
- terminfo.%%SHARED_OBJECT%%
- zftp.%%SHARED_OBJECT%%
- zle.%%SHARED_OBJECT%%
- zleparameter.%%SHARED_OBJECT%%
- zprof.%%SHARED_OBJECT%%
- zpty.%%SHARED_OBJECT%%
- zselect.%%SHARED_OBJECT%%
- zutil.%%SHARED_OBJECT%%
-%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
-%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/net/
- socket.%%SHARED_OBJECT%%
- tcp.%%SHARED_OBJECT%%
-%%ONLY-DRAGONFLY%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
-%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/
- Newuser.zwc
- TCP.zwc
- Zftp.zwc
-%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
-%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/TCP/
- tcp_alias
- tcp_close
- tcp_command
- tcp_expect
- tcp_fd_handler
- tcp_log
- tcp_open
- tcp_output
- tcp_point
- tcp_proxy
- tcp_read
- tcp_rename
- tcp_send
- tcp_sess
- tcp_shoot
- tcp_spam
- tcp_talk
- tcp_wait
-%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/functions/Zftp/
- zfanon
- zfautocheck
- zfcd
- zfcd_match
- zfcget
- zfclose
- zfcput
- zfdir
- zffcache
- zfgcp
- zfget
- zfget_match
- zfgoto
- zfhere
- zfinit
- zfls
- zfmark
- zfopen
- zfparams
- zfpcp
- zfput
- zfrglob
- zfrtime
- zfsession
- zfstat
- zftp_chpwd
- zftp_progress
- zftransfer
- zftype
- zfuget
- zfuput
-%%ONLY-DRAGONFLY%%share/zsh/%%ZSH_VER%%/scripts/newuser
-%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/
- cap.%%SHARED_OBJECT%%
- clone.%%SHARED_OBJECT%%
- compctl.%%SHARED_OBJECT%%
- complete.%%SHARED_OBJECT%%
- complist.%%SHARED_OBJECT%%
- computil.%%SHARED_OBJECT%%
- curses.%%SHARED_OBJECT%%
- datetime.%%SHARED_OBJECT%%
- deltochar.%%SHARED_OBJECT%%
- example.%%SHARED_OBJECT%%
- files.%%SHARED_OBJECT%%
- langinfo.%%SHARED_OBJECT%%
- mapfile.%%SHARED_OBJECT%%
- mathfunc.%%SHARED_OBJECT%%
- nearcolor.%%SHARED_OBJECT%%
- newuser.%%SHARED_OBJECT%%
- parameter.%%SHARED_OBJECT%%
- pcre.%%SHARED_OBJECT%%
- regex.%%SHARED_OBJECT%%
- rlimits.%%SHARED_OBJECT%%
- sched.%%SHARED_OBJECT%%
- stat.%%SHARED_OBJECT%%
- system.%%SHARED_OBJECT%%
- termcap.%%SHARED_OBJECT%%
- terminfo.%%SHARED_OBJECT%%
- zftp.%%SHARED_OBJECT%%
- zle.%%SHARED_OBJECT%%
- zleparameter.%%SHARED_OBJECT%%
- zprof.%%SHARED_OBJECT%%
- zpty.%%SHARED_OBJECT%%
- zselect.%%SHARED_OBJECT%%
- zutil.%%SHARED_OBJECT%%
-%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
-%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/net/
- socket.%%SHARED_OBJECT%%
- tcp.%%SHARED_OBJECT%%
-%%ONLY-FREEBSD%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
-%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/
- Newuser.zwc
- TCP.zwc
- Zftp.zwc
-%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
-%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/TCP/
- tcp_alias
- tcp_close
- tcp_command
- tcp_expect
- tcp_fd_handler
- tcp_log
- tcp_open
- tcp_output
- tcp_point
- tcp_proxy
- tcp_read
- tcp_rename
- tcp_send
- tcp_sess
- tcp_shoot
- tcp_spam
- tcp_talk
- tcp_wait
-%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/functions/Zftp/
- zfanon
- zfautocheck
- zfcd
- zfcd_match
- zfcget
- zfclose
- zfcput
- zfdir
- zffcache
- zfgcp
- zfget
- zfget_match
- zfgoto
- zfhere
- zfinit
- zfls
- zfmark
- zfopen
- zfparams
- zfpcp
- zfput
- zfrglob
- zfrtime
- zfsession
- zfstat
- zftp_chpwd
- zftp_progress
- zftransfer
- zftype
- zfuget
- zfuput
-%%ONLY-FREEBSD%%share/zsh/%%ZSH_VER%%/scripts/newuser
-%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/
- attr.%%SHARED_OBJECT%%
- cap.%%SHARED_OBJECT%%
- clone.%%SHARED_OBJECT%%
- compctl.%%SHARED_OBJECT%%
- complete.%%SHARED_OBJECT%%
- complist.%%SHARED_OBJECT%%
- computil.%%SHARED_OBJECT%%
- curses.%%SHARED_OBJECT%%
- datetime.%%SHARED_OBJECT%%
- deltochar.%%SHARED_OBJECT%%
- example.%%SHARED_OBJECT%%
- files.%%SHARED_OBJECT%%
- langinfo.%%SHARED_OBJECT%%
- mapfile.%%SHARED_OBJECT%%
- mathfunc.%%SHARED_OBJECT%%
- nearcolor.%%SHARED_OBJECT%%
- newuser.%%SHARED_OBJECT%%
- parameter.%%SHARED_OBJECT%%
- pcre.%%SHARED_OBJECT%%
- regex.%%SHARED_OBJECT%%
- rlimits.%%SHARED_OBJECT%%
- sched.%%SHARED_OBJECT%%
- stat.%%SHARED_OBJECT%%
- system.%%SHARED_OBJECT%%
- termcap.%%SHARED_OBJECT%%
- terminfo.%%SHARED_OBJECT%%
- zftp.%%SHARED_OBJECT%%
- zle.%%SHARED_OBJECT%%
- zleparameter.%%SHARED_OBJECT%%
- zprof.%%SHARED_OBJECT%%
- zpty.%%SHARED_OBJECT%%
- zselect.%%SHARED_OBJECT%%
- zutil.%%SHARED_OBJECT%%
-%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
-%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/net/
- socket.%%SHARED_OBJECT%%
- tcp.%%SHARED_OBJECT%%
-%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
-%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/
- Newuser.zwc
- TCP.zwc
- Zftp.zwc
-%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
-%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/TCP/
- tcp_alias
- tcp_close
- tcp_command
- tcp_expect
- tcp_fd_handler
- tcp_log
- tcp_open
- tcp_output
- tcp_point
- tcp_proxy
- tcp_read
- tcp_rename
- tcp_send
- tcp_sess
- tcp_shoot
- tcp_spam
- tcp_talk
- tcp_wait
-%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/functions/Zftp/
- zfanon
- zfautocheck
- zfcd
- zfcd_match
- zfcget
- zfclose
- zfcput
- zfdir
- zffcache
- zfgcp
- zfget
- zfget_match
- zfgoto
- zfhere
- zfinit
- zfls
- zfmark
- zfopen
- zfparams
- zfpcp
- zfput
- zfrglob
- zfrtime
- zfsession
- zfstat
- zftp_chpwd
- zftp_progress
- zftransfer
- zftype
- zfuget
- zfuput
-%%ONLY-LINUX%%share/zsh/%%ZSH_VER%%/scripts/newuser
-%%ONLY-NETBSD%%lib/zsh/%%ZSH_VER%%/zsh/
- attr.%%SHARED_OBJECT%%
- cap.%%SHARED_OBJECT%%
- clone.%%SHARED_OBJECT%%
- compctl.%%SHARED_OBJECT%%
- complete.%%SHARED_OBJECT%%
- complist.%%SHARED_OBJECT%%
- computil.%%SHARED_OBJECT%%
- curses.%%SHARED_OBJECT%%
- datetime.%%SHARED_OBJECT%%
- deltochar.%%SHARED_OBJECT%%
- example.%%SHARED_OBJECT%%
- files.%%SHARED_OBJECT%%
- langinfo.%%SHARED_OBJECT%%
- mapfile.%%SHARED_OBJECT%%
- mathfunc.%%SHARED_OBJECT%%
- nearcolor.%%SHARED_OBJECT%%
- newuser.%%SHARED_OBJECT%%
- parameter.%%SHARED_OBJECT%%
- pcre.%%SHARED_OBJECT%%
- regex.%%SHARED_OBJECT%%
- rlimits.%%SHARED_OBJECT%%
- sched.%%SHARED_OBJECT%%
- stat.%%SHARED_OBJECT%%
- system.%%SHARED_OBJECT%%
- termcap.%%SHARED_OBJECT%%
- terminfo.%%SHARED_OBJECT%%
- zftp.%%SHARED_OBJECT%%
- zle.%%SHARED_OBJECT%%
- zleparameter.%%SHARED_OBJECT%%
- zprof.%%SHARED_OBJECT%%
- zpty.%%SHARED_OBJECT%%
- zselect.%%SHARED_OBJECT%%
- zutil.%%SHARED_OBJECT%%
-%%ONLY-NETBSD%%lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.%%SHARED_OBJECT%%
-%%ONLY-NETBSD%%lib/zsh/%%ZSH_VER%%/zsh/net/
- socket.%%SHARED_OBJECT%%
- tcp.%%SHARED_OBJECT%%
-%%ONLY-NETBSD%%lib/zsh/%%ZSH_VER%%/zsh/param/private.%%SHARED_OBJECT%%
-%%ONLY-NETBSD%%share/zsh/%%ZSH_VER%%/functions/
- Newuser.zwc
- TCP.zwc
- Zftp.zwc
-%%ONLY-NETBSD%%share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
-%%ONLY-NETBSD%%share/zsh/%%ZSH_VER%%/functions/TCP/
- tcp_alias
- tcp_close
- tcp_command
- tcp_expect
- tcp_fd_handler
- tcp_log
- tcp_open
- tcp_output
- tcp_point
- tcp_proxy
- tcp_read
- tcp_rename
- tcp_send
- tcp_sess
- tcp_shoot
- tcp_spam
- tcp_talk
- tcp_wait
-%%ONLY-NETBSD%%share/zsh/%%ZSH_VER%%/functions/Zftp/
- zfanon
- zfautocheck
- zfcd
- zfcd_match
- zfcget
- zfclose
- zfcput
- zfdir
- zffcache
- zfgcp
- zfget
- zfget_match
- zfgoto
- zfhere
- zfinit
- zfls
- zfmark
- zfopen
- zfparams
- zfpcp
- zfput
- zfrglob
- zfrtime
- zfsession
- zfstat
- zftp_chpwd
- zftp_progress
- zftransfer
- zftype
- zfuget
- zfuput
-%%ONLY-NETBSD%%share/zsh/%%ZSH_VER%%/scripts/newuser
+%%ONLY-LINUX%%lib/zsh/%%ZSH_VER%%/zsh/attr.so
+%%ONLY-NETBSD%%lib/zsh/%%ZSH_VER%%/zsh/attr.so
 bin/zsh-%%ZSH_VER%%
-lib/zsh/%%ZSH_VER%%/zsh/watch.so
-share/man/man1/
- zsh.1.gz
- zshall.1.gz
- zshbuiltins.1.gz
- zshcalsys.1.gz
- zshcompctl.1.gz
- zshcompsys.1.gz
- zshcompwid.1.gz
- zshcontrib.1.gz
- zshexpn.1.gz
- zshmisc.1.gz
- zshmodules.1.gz
- zshoptions.1.gz
- zshparam.1.gz
- zshroadmap.1.gz
- zshtcpsys.1.gz
- zshzftpsys.1.gz
- zshzle.1.gz
+lib/zsh/%%ZSH_VER%%/zsh/
+ cap.so
+ clone.so
+ compctl.so
+ complete.so
+ complist.so
+ computil.so
+ curses.so
+ datetime.so
+ deltochar.so
+ example.so
+ files.so
+ langinfo.so
+ mapfile.so
+ mathfunc.so
+ nearcolor.so
+ newuser.so
+ parameter.so
+ pcre.so
+ regex.so
+ rlimits.so
+ sched.so
+ stat.so
+ system.so
+ termcap.so
+ terminfo.so
+ watch.so
+ zftp.so
+ zle.so
+ zleparameter.so
+ zprof.so
+ zpty.so
+ zselect.so
+ zutil.so
+lib/zsh/%%ZSH_VER%%/zsh/db/gdbm.so
+lib/zsh/%%ZSH_VER%%/zsh/net/
+ socket.so
+ tcp.so
+lib/zsh/%%ZSH_VER%%/zsh/param/private.so
 share/zsh/%%ZSH_VER%%/functions/
  Calendar.zwc
  Chpwd.zwc
@@ -630,8 +176,11 @@ share/zsh/%%ZSH_VER%%/functions/
  MIME.zwc
  Math.zwc
  Misc.zwc
+ Newuser.zwc
  Prompts.zwc
+ TCP.zwc
  VCS_Info.zwc
+ Zftp.zwc
  Zle.zwc
 share/zsh/%%ZSH_VER%%/functions/Calendar/
  after
@@ -1699,6 +1248,7 @@ share/zsh/%%ZSH_VER%%/functions/Misc/
  zrecompile
  zstyle+
  ztodo
+share/zsh/%%ZSH_VER%%/functions/Newuser/zsh-newuser-install
 share/zsh/%%ZSH_VER%%/functions/Prompts/
  prompt_adam1_setup
  prompt_adam2_setup
@@ -1720,6 +1270,25 @@ share/zsh/%%ZSH_VER%%/functions/Prompts/
  prompt_walters_setup
  prompt_zefram_setup
  promptinit
+share/zsh/%%ZSH_VER%%/functions/TCP/
+ tcp_alias
+ tcp_close
+ tcp_command
+ tcp_expect
+ tcp_fd_handler
+ tcp_log
+ tcp_open
+ tcp_output
+ tcp_point
+ tcp_proxy
+ tcp_read
+ tcp_rename
+ tcp_send
+ tcp_sess
+ tcp_shoot
+ tcp_spam
+ tcp_talk
+ tcp_wait
 share/zsh/%%ZSH_VER%%/functions/VCS_Info/
  Backends.zwc
  VCS_INFO_adjust
@@ -1770,6 +1339,38 @@ share/zsh/%%ZSH_VER%%/functions/VCS_Info/Backends/
  VCS_INFO_get_data_svk
  VCS_INFO_get_data_svn
  VCS_INFO_get_data_tla
+share/zsh/%%ZSH_VER%%/functions/Zftp/
+ zfanon
+ zfautocheck
+ zfcd
+ zfcd_match
+ zfcget
+ zfclose
+ zfcput
+ zfdir
+ zffcache
+ zfgcp
+ zfget
+ zfget_match
+ zfgoto
+ zfhere
+ zfinit
+ zfls
+ zfmark
+ zfopen
+ zfparams
+ zfpcp
+ zfput
+ zfrglob
+ zfrtime
+ zfsession
+ zfstat
+ zftp_chpwd
+ zftp_progress
+ zftransfer
+ zftype
+ zfuget
+ zfuput
 share/zsh/%%ZSH_VER%%/functions/Zle/
  backward-kill-word-match
  backward-word-match
@@ -1933,6 +1534,7 @@ share/zsh/%%ZSH_VER%%/help/
  zsocket
  zstyle
  ztcp
+share/zsh/%%ZSH_VER%%/scripts/newuser
 @dir share/zsh/site-functions
 
 
@@ -2160,6 +1762,27 @@ share/info/
  zsh.info-6
 
 
+[FILE:281:manifests/plist.man]
+share/man/man1/
+ zsh.1.gz
+ zshall.1.gz
+ zshbuiltins.1.gz
+ zshcalsys.1.gz
+ zshcompctl.1.gz
+ zshcompsys.1.gz
+ zshcompwid.1.gz
+ zshcontrib.1.gz
+ zshexpn.1.gz
+ zshmisc.1.gz
+ zshmodules.1.gz
+ zshoptions.1.gz
+ zshparam.1.gz
+ zshroadmap.1.gz
+ zshtcpsys.1.gz
+ zshzftpsys.1.gz
+ zshzle.1.gz
+
+
 [FILE:314:patches/patch-Functions_VCS__Info_test-repo-git-rebase-apply]
 --- Functions/VCS_Info/test-repo-git-rebase-apply.orig	2022-05-08 06:18:22 UTC
 +++ Functions/VCS_Info/test-repo-git-rebase-apply
@@ -2182,28 +1805,50 @@ share/info/
  #
 
 
-[FILE:370:dragonfly/patch-Src_Modules_watch.c]
+[FILE:525:patches/patch-Src_Modules_watch.c]
 --- Src/Modules/watch.c.orig	2022-05-08 06:18:22 UTC
 +++ Src/Modules/watch.c
-@@ -30,8 +30,11 @@
+@@ -30,9 +30,21 @@
  #include "watch.mdh"
  
  /* Headers for utmp/utmpx structures */
--#ifdef HAVE_UTMP_H
-+#if defined(HAVE_UTMP_H) && !defined(HAVE_UTMPX_H)
++
++#    if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__MidnightBSD__)
++# if defined(HAVE_UTMP_H) && !defined(HAVE_UTMPX_H)
++#  include <utmp.h>
++# else
++#  undef HAVE_STRUCT_UTMP
++#  undef HAVE_STRUCT_UTMP_UT_HOST
++# endif
++#    else
++
+ #ifdef HAVE_UTMP_H
  # include <utmp.h>
-+#else
-+# undef HAVE_STRUCT_UTMP
-+# undef HAVE_STRUCT_UTMP_UT_HOST
  #endif
++
++#    endif
  #ifdef HAVE_UTMPX_H
  # include <utmpx.h>
+ #endif
 
 
-[FILE:1124:dragonfly/patch-Src_jobs.c]
+[FILE:1518:patches/patch-Src_jobs.c]
 --- Src/jobs.c.orig	2022-05-08 06:18:22 UTC
 +++ Src/jobs.c
-@@ -753,15 +753,15 @@ printtime(struct timeval *real, child_ti
+@@ -729,6 +729,12 @@ printhhmmss(double secs)
+ 	fprintf(stderr,           "%.3f",              secs);
+ }
+ 
++#if defined(__DragonFly__) || defined(__FreeBSD__) || defined(__MidnightBSD__)
++#define ravBSD 1
++#else
++#define ravBSD 0
++#endif
++
+ static void
+ printtime(struct timeval *real, child_times_t *ti, char *desc)
+ {
+@@ -753,15 +759,20 @@ printtime(struct timeval *real, child_ti
      /* go ahead and compute these, since almost every TIMEFMT will have them */
      elapsed_time = real->tv_sec + real->tv_usec / 1000000.0;
  
@@ -2212,74 +1857,43 @@ share/info/
      user_time = ti->ru_utime.tv_sec + ti->ru_utime.tv_usec / 1000000.0;
      system_time = ti->ru_stime.tv_sec + ti->ru_stime.tv_usec / 1000000.0;
      total_time = user_time + system_time;
--    percent = 100.0 * total_time
--	/ (real->tv_sec + real->tv_usec / 1000000.0);
++# if ravBSD
 +    percent = 100.0 * total_time / elapsed_time;
 +    total_time *= (double) clktck;
++# else
+     percent = 100.0 * total_time
+ 	/ (real->tv_sec + real->tv_usec / 1000000.0);
++# endif
  #else
      {
 -	long clktck = get_clktck();
  	user_time    = ti->ut / (double) clktck;
  	system_time  = ti->st / (double) clktck;
  	percent      =  100.0 * (ti->ut + ti->st)
-@@ -891,7 +891,7 @@ printtime(struct timeval *real, child_ti
+@@ -891,7 +902,11 @@ printtime(struct timeval *real, child_ti
  #endif
  #ifdef HAVE_STRUCT_RUSAGE_RU_MAXRSS
  	    case 'M':
--		fprintf(stderr, "%ld", ti->ru_maxrss / 1024);
-+		fprintf(stderr, "%ld", ti->ru_maxrss);
++# if ravBSD
++               fprintf(stderr, "%ld", ti->ru_maxrss);
++# else
+ 		fprintf(stderr, "%ld", ti->ru_maxrss / 1024);
++# endif
  		break;
  #endif
  #ifdef HAVE_STRUCT_RUSAGE_RU_MAJFLT
 
 
-[FILE:370:freebsd/patch-Src_Modules_watch.c]
---- Src/Modules/watch.c.orig	2022-05-08 06:18:22 UTC
-+++ Src/Modules/watch.c
-@@ -30,8 +30,11 @@
- #include "watch.mdh"
- 
- /* Headers for utmp/utmpx structures */
--#ifdef HAVE_UTMP_H
-+#if defined(HAVE_UTMP_H) && !defined(HAVE_UTMPX_H)
- # include <utmp.h>
-+#else
-+# undef HAVE_STRUCT_UTMP
-+# undef HAVE_STRUCT_UTMP_UT_HOST
- #endif
- #ifdef HAVE_UTMPX_H
- # include <utmpx.h>
-
-
-[FILE:1124:freebsd/patch-Src_jobs.c]
---- Src/jobs.c.orig	2022-05-08 06:18:22 UTC
-+++ Src/jobs.c
-@@ -753,15 +753,15 @@ printtime(struct timeval *real, child_ti
-     /* go ahead and compute these, since almost every TIMEFMT will have them */
-     elapsed_time = real->tv_sec + real->tv_usec / 1000000.0;
- 
-+    long clktck = get_clktck();
- #ifdef HAVE_GETRUSAGE
-     user_time = ti->ru_utime.tv_sec + ti->ru_utime.tv_usec / 1000000.0;
-     system_time = ti->ru_stime.tv_sec + ti->ru_stime.tv_usec / 1000000.0;
-     total_time = user_time + system_time;
--    percent = 100.0 * total_time
--	/ (real->tv_sec + real->tv_usec / 1000000.0);
-+    percent = 100.0 * total_time / elapsed_time;
-+    total_time *= (double) clktck;
- #else
-     {
--	long clktck = get_clktck();
- 	user_time    = ti->ut / (double) clktck;
- 	system_time  = ti->st / (double) clktck;
- 	percent      =  100.0 * (ti->ut + ti->st)
-@@ -891,7 +891,7 @@ printtime(struct timeval *real, child_ti
- #endif
- #ifdef HAVE_STRUCT_RUSAGE_RU_MAXRSS
- 	    case 'M':
--		fprintf(stderr, "%ld", ti->ru_maxrss / 1024);
-+		fprintf(stderr, "%ld", ti->ru_maxrss);
- 		break;
- #endif
- #ifdef HAVE_STRUCT_RUSAGE_RU_MAJFLT
+[FILE:619:patches/patch-configure]
+--- configure.orig	2022-05-14 19:02:47 UTC
++++ configure
+@@ -14097,7 +14097,7 @@ printf "%s\n" "$zsh_cv_sys_elf" >&6; }
+   fi
+   case "$host_os" in
+     osf*) DLLDFLAGS="${DLLDFLAGS=-shared -expect_unresolved '*'}" ;;
+-    *freebsd*|*netbsd*|linux*|irix*|gnu*|interix*|dragonfly*) DLLDFLAGS="${DLLDFLAGS=-shared}" ;;
++    *freebsd*|*netbsd*|linux*|irix*|gnu*|interix*|*dragonfly*|*midnight*) DLLDFLAGS="${DLLDFLAGS=-shared}" ;;
+     sunos*)       DLLDFLAGS="${DLLDFLAGS=-assert nodefinitions}" ;;
+     sysv4*|esix*) DLLDFLAGS="${DLLDFLAGS=-G $ldflags}" ;;
+     aix*)         DLLDFLAGS="${DLLDFLAGS=-G -bexpall -lc}" ;;
 

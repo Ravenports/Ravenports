@@ -2,6 +2,7 @@
 
 NAMEBASE=		gpgme
 VERSION=		1.19.0
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	GnuPG Made Easy - high level crypto API
@@ -14,17 +15,22 @@ DISTFILE[1]=		gpgme-1.19.0.tar.bz2:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
 			cpp
+			dev
+			cppdev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libgpg-error:dev:standard
+			libassuan:dev:standard
 BUILDRUN_DEPENDS=	libgpg-error:primary:standard
-			libassuan:single:standard
 			gnupg:primary:standard
 EXRUN[cpp]=		gpgme:primary:standard
-			libassuan:single:standard
+EXRUN[tools]=		gpgme:primary:standard
+EXRUN[dev]=		libassuan:dev:standard
+			libgpg-error:dev:standard
 
 USES=			cpe gmake libtool shebangfix c++:cpp
 
@@ -63,35 +69,56 @@ encryption, decryption, signing, signature verification and key management.
 Currently it uses GnuPG as its backend.
 
 
+[FILE:35:descriptions/desc.tools]
+This package contains GnuPG tools.
+
+
 [FILE:50:descriptions/desc.cpp]
 C++ bindings for GnuPG Made Easy (GPGME) library.
+
+
+[FILE:97:descriptions/desc.cppdev]
+This package contains the headers for the  C++ bindings for the
+GnuPG Made Easy (GPGME) library.
 
 
 [FILE:99:distinfo]
 cb58494dc415fba9eeb12b826550ad3190dc92e265c5bb2ae1a21c92841cfd38      1821913 gpgme-1.19.0.tar.bz2
 
 
-[FILE:263:manifests/plist.primary]
+[FILE:57:manifests/plist.primary]
+lib/
+ libgpgme.so.%%SOMAJOR%%
+ libgpgme.so.%%SOVERSION%%
+
+
+[FILE:114:manifests/plist.tools]
 bin/
  gpgme-json
  gpgme-tool
-include/gpgme.h
-lib/
- libgpgme.so
- libgpgme.so.%%SOMAJOR%%
- libgpgme.so.%%SOVERSION%%
 lib/common-lisp/gpgme/
  gpgme-grovel.lisp
  gpgme-package.lisp
  gpgme.asd
  gpgme.lisp
+
+
+[FILE:69:manifests/plist.cpp]
+lib/
+ libgpgmepp.so.%%CPP_SOMAJOR%%
+ libgpgmepp.so.%%CPP_SOVERSION%%
+
+
+[FILE:95:manifests/plist.dev]
+include/gpgme.h
+lib/libgpgme.so
 lib/pkgconfig/
  gpgme-glib.pc
  gpgme.pc
 share/aclocal/gpgme.m4
 
 
-[FILE:1037:manifests/plist.cpp]
+[FILE:971:manifests/plist.cppdev]
 include/gpgme++/
  configuration.h
  context.h
@@ -136,10 +163,7 @@ include/gpgme++/interfaces/
  passphraseprovider.h
  progressprovider.h
  statusconsumer.h
-lib/
- libgpgmepp.so
- libgpgmepp.so.%%CPP_SOMAJOR%%
- libgpgmepp.so.%%CPP_SOVERSION%%
+lib/libgpgmepp.so
 lib/cmake/Gpgmepp/
  GpgmeppConfig.cmake
  GpgmeppConfigVersion.cmake

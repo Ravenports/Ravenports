@@ -110,8 +110,22 @@ share/man/man1/
  zstdless.1.gz
 
 
-[FILE:1573:patches/patch-lib_Makefile]
---- lib/Makefile.orig	2022-01-20 21:17:18 UTC
+[FILE:588:patches/patch-Makefile]
+--- Makefile.orig	2023-02-10 00:41:50 UTC
++++ Makefile
+@@ -151,7 +151,7 @@ clean:
+ #------------------------------------------------------------------------------
+ # make install is validated only for Linux, macOS, Hurd and some BSD targets
+ #------------------------------------------------------------------------------
+-ifneq (,$(filter $(shell uname),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD DragonFly NetBSD MSYS_NT Haiku AIX))
++ifneq (,$(filter $(shell uname),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD DragonFly NetBSD MidnightBSD nMSYS_NT Haiku AIX))
+ 
+ HOST_OS = POSIX
+ 
+
+
+[FILE:2073:patches/patch-lib_Makefile]
+--- lib/Makefile.orig	2023-02-10 00:41:50 UTC
 +++ lib/Makefile
 @@ -48,6 +48,8 @@ endif
  ZSTD_LOCAL_SRC := $(notdir $(ZSTD_FILES))
@@ -157,6 +171,15 @@ share/man/man1/
  
  
  # note : do not define lib-mt or lib-release as .PHONY
+@@ -249,7 +259,7 @@ clean:
+ #-----------------------------------------------------------------------------
+ # make install is validated only for below listed environments
+ #-----------------------------------------------------------------------------
+-ifneq (,$(filter $(UNAME),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS Haiku AIX))
++ifneq (,$(filter $(UNAME),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly MidnightBSD SunOS Haiku AIX))
+ 
+ lib: libzstd.pc
+ 
 @@ -323,6 +333,7 @@ install-static:
  	[ -e $(DESTDIR)$(LIBDIR) ] || $(INSTALL) -d -m 755 $(DESTDIR)$(LIBDIR)/
  	@echo Installing static library
@@ -165,4 +188,18 @@ share/man/man1/
  
  .PHONY: install-shared
  install-shared:
+
+
+[FILE:719:patches/patch-programs_Makefile]
+--- programs/Makefile.orig	2023-02-10 00:41:50 UTC
++++ programs/Makefile
+@@ -346,7 +346,7 @@ include $(wildcard $(DEPFILES))
+ #-----------------------------------------------------------------------------
+ # make install is validated only for Linux, macOS, BSD, Hurd and Solaris targets
+ #-----------------------------------------------------------------------------
+-ifneq (,$(filter $(UNAME),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly SunOS Haiku AIX))
++ifneq (,$(filter $(UNAME),Linux Darwin GNU/kFreeBSD GNU OpenBSD FreeBSD NetBSD DragonFly MidnightBSD SunOS Haiku AIX))
+ 
+ HAVE_COLORNEVER = $(shell echo a | egrep --color=never a > /dev/null 2> /dev/null && echo 1 || echo 0)
+ EGREP_OPTIONS ?=
 

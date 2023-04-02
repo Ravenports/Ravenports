@@ -38,9 +38,8 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		multimedia/x264
 SHEBANG_FILES=		configure
 
-MUST_CONFIGURE=		yes
-CONFIGURE_ARGS=		--prefix="{{PREFIX}}"
-			--host="{{CONFIGURE_TARGET}}"
+MUST_CONFIGURE=		gnu
+CONFIGURE_ARGS=		--host="{{CONFIGURE_TARGET}}"
 			--extra-cflags="{{CPPFLAGS}} {{CFLAGS}}"
 			--extra-ldflags="{{LDFLAGS}}"
 			--enable-static
@@ -139,9 +138,18 @@ lib/pkgconfig/x264.pc
      if( sysctlbyname("hw.ncpu", &ncpu, &length, NULL, 0) )
 
 
-[FILE:604:patches/patch-configure]
---- configure.orig	2021-06-13 12:43:57 UTC
+[FILE:1527:patches/patch-configure]
+--- configure.orig	2023-03-29 23:16:29 UTC
 +++ configure
+@@ -123,7 +123,7 @@ cl_ldflags() {
+ 
+         arg=${arg/pthreadGC/pthreadVC}
+         [ "$arg" = avifil32.lib ] && arg=vfw32.lib
+-        [ "$arg" = gpac_static.lib ] && arg=libgpac_static.lib
++        [ "$arg" = gpac.lib ] && arg=libgpac.lib
+         [ "$arg" = gpac.lib ] && arg=libgpac.lib
+         [ "$arg" = x264.lib ] && arg=libx264.lib
+ 
 @@ -660,6 +660,10 @@ case $host_os in
              cc_check "" -mdynamic-no-pic && CFLAGS="$CFLAGS -mdynamic-no-pic"
          fi
@@ -153,7 +161,27 @@ lib/pkgconfig/x264.pc
      freebsd*)
          SYS="FREEBSD"
          libm="-lm"
-@@ -1410,6 +1414,9 @@ if [ "$opencl" = "yes" ]; then
+@@ -669,6 +673,10 @@ case $host_os in
+         define HAVE_MALLOC_H
+         libm="-lm"
+         ;;
++    midnight*)
++        SYS="MIDNIGHTBSD"
++        LDFLAGS="$LDFLAGS -lm"
++        ;;
+     netbsd*)
+         SYS="NETBSD"
+         libm="-lm"
+@@ -1266,7 +1274,7 @@ if [ "$gpac" = "auto" -a "$lsmash" != "y
+         fi
+     fi
+     if [ -z "$GPAC_LIBS" ] ; then
+-        GPAC_LIBS="-lgpac_static"
++        GPAC_LIBS="-lgpac"
+         cc_check "" -lz && GPAC_LIBS="$GPAC_LIBS -lz"
+         cc_check "" -ldl && GPAC_LIBS="$GPAC_LIBS -ldl"
+         if [ "$SYS" = "WINDOWS" ] ; then
+@@ -1410,6 +1418,9 @@ if [ "$opencl" = "yes" ]; then
          opencl="yes"
          define HAVE_OPENCL "(BIT_DEPTH==8)"
          libdl="-ldl"

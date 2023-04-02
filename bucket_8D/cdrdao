@@ -43,6 +43,7 @@ VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--with-scglib
 			LDFLAGS=-lvolmgt
 			LDFLAGS=-lnsl
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-scglib
+VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--with-scglib
 
 post-patch:
 .for i in 45libdeflt 45libedc 45libfile 45libhfs_iso 45libparanoia 45libunls \
@@ -99,7 +100,7 @@ share/man/man1/
  toc2cue.1.gz
 
 
-[FILE:710:patches/patch-configure]
+[FILE:746:patches/patch-configure]
 --- configure.orig	2023-02-03 14:28:39 UTC
 +++ configure
 @@ -11410,7 +11410,7 @@ case "$host" in
@@ -107,7 +108,7 @@ share/man/man1/
        ;;
  
 -  *-freebsd*)
-+  *-freebsd*|*-dragonfly*)
++  *-freebsd*|*-dragonfly*|*-midnight*)
        scsilib_libs="-lcam"
        scsilib_objs="ScsiIf-freebsd-cam.o"
        ;;
@@ -116,7 +117,7 @@ share/man/man1/
  
  case "$host" in
 -  *-freebsd*)
-+  *-freebsd* | *-dragonfly*)
++  *-freebsd*|*-dragonfly*|*-midnight*)
  	      if test "$use_pthreads" = yes; then
  		LDFLAGS="-pthread $LDFLAGS"
  		thread_libs=""
@@ -125,7 +126,7 @@ share/man/man1/
  
  case "$host" in
 -  *-linux* | *-freebsd* | *-solaris*)
-+  *-linux* | *-freebsd* | *-dragonfly* | *-solaris*)
++  *-linux* | *-freebsd* | *-dragonfly* | *-solaris* | *-midnight*)
  	     sound_if_obj=SoundIF-ao.o
  	     ;;
  

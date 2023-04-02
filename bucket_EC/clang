@@ -82,6 +82,9 @@ VAR_OPSYS[netbsd]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
+VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
+			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
+			MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 post-patch:
 	${REINPLACE_CMD} -e 's,/usr/local/,${LOCALBASE}/,' \
@@ -145,6 +148,20 @@ post-extract:
 	${CP} -a ${WRKDIR}/clang-tools-extra ${WRKSRC}/tools/extra
 
 post-patch-freebsd:
+	# Remove headers that conflict with /usr/include
+	${REINPLACE_CMD} \
+		-e '/ limits.h/d' \
+		-e '/ stdalign.h/d' \
+		-e '/ stdarg.h/d' \
+		-e '/ stdatomic.h/d' \
+		-e '/ stdbool.h/d' \
+		-e '/ stddef.h/d' \
+		-e '/ stdint.h/d' \
+		-e '/ stdnoreturn.h/d' \
+		-e '/ varargs.h/d' \
+		${WRKSRC}/lib/Headers/CMakeLists.txt
+
+post-patch-midnightbsd:
 	# Remove headers that conflict with /usr/include
 	${REINPLACE_CMD} \
 		-e '/ limits.h/d' \

@@ -23,7 +23,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[netbsd]=		libthread does not build (i386 only)
+NOT_FOR_OPSYS=		midnightbsd netbsd
 
 RUN_DEPENDS=		ghostscript:primary:standard
 
@@ -65,6 +65,8 @@ do-configure:
 	${ECHO_CMD} 'FONTSRV=fontsrv' >> ${WRKSRC}/LOCAL.config
 
 pre-configure:
+	${GREP} -rl "/usr/local" ${WRKSRC} | \
+		${XARGS} ${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g'
 	${REINPLACE_CMD} -e 's|/lib/font/bit|${PREFIX}/plan9/font|' \
 		${WRKSRC}/src/cmd/acme/acme.c
 	${REINPLACE_CMD} -e 's|#!/bin/rc|#!${PREFIX}/plan9/bin/rc|' \
@@ -73,8 +75,6 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|ulong|u64int|' ${WRKSRC}/src/libmach/FreeBSD.c
 
 post-extract:
-	${GREP} -rl "/usr/local" ${WRKSRC} | \
-		${XARGS} ${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g'
 	${TAR} -C ${WRKSRC}/dict -xf ${DISTDIR}/pgw.tar.bz2
 	${TAR} -C ${WRKSRC}/dict -xf ${DISTDIR}/roget.tar.bz2
 	${TAR} -C ${WRKSRC}/sky -xf ${DISTDIR}/scat.tgz

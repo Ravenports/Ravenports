@@ -28,6 +28,10 @@ GENERATED=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+post-extract:
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/src/libuv-*/config.guess
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/src/libuv-*/config.sub
+
 [FILE:153:descriptions/desc.single]
 fs: Cross-Platform File System Operations Based on 'libuv'
 
@@ -39,10 +43,10 @@ A cross-platform interface to file system operations, built on top of the
 faf1e421a2c270c60c0a30c74e1a48faad45b339163716102d77d64d23d76732      1185417 CRAN/fs_1.6.1.tar.gz
 
 
-[FILE:1064:patches/patch-src_Makevars]
+[FILE:1105:patches/patch-src_Makevars]
 --- src/Makevars.orig	2023-02-06 09:31:27 UTC
 +++ src/Makevars
-@@ -10,6 +10,7 @@ OBJECTS = $(SOURCES:.cc=.o)
+@@ -10,13 +10,20 @@ OBJECTS = $(SOURCES:.cc=.o)
  ifeq ($(UNAME), SunOS)
  PKG_LIBS += -lkstat -lsendfile -lsocket -lxnet
  OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
@@ -50,7 +54,10 @@ faf1e421a2c270c60c0a30c74e1a48faad45b339163716102d77d64d23d76732      1185417 CR
  endif
  ifeq ($(UNAME), FreeBSD)
  PKG_LIBS += -lkvm
-@@ -17,6 +18,9 @@ endif
+ endif
++ifeq ($(UNAME), MidnightBSD)
++PKG_LIBS += -lkvm
++endif
  ifeq ($(UNAME), OpenBSD)
  PKG_LIBS += -lkvm
  endif
@@ -60,7 +67,7 @@ faf1e421a2c270c60c0a30c74e1a48faad45b339163716102d77d64d23d76732      1185417 CR
  ifneq ($(filter $(UNAME), Linux AIX OS400),)
  OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
  endif
-@@ -29,7 +33,7 @@ $(SHLIB): $(LIBUV)/.libs/libuv.a
+@@ -29,7 +36,7 @@ $(SHLIB): $(LIBUV)/.libs/libuv.a
  
  $(LIBUV)/Makefile:
  	(cd $(LIBUV) \
@@ -69,6 +76,20 @@ faf1e421a2c270c60c0a30c74e1a48faad45b339163716102d77d64d23d76732      1185417 CR
  
  $(LIBUV)/.libs/libuv.a: $(LIBUV)/Makefile
  	$(MAKE) --directory=$(LIBUV) \
+
+
+[FILE:247:patches/patch-src_libuv-1.44.2_configure]
+--- src/libuv-1.44.2/configure.orig	2023-02-06 11:56:15 UTC
++++ src/libuv-1.44.2/configure
+@@ -15005,7 +15005,7 @@ else
+ fi
+ 
+  if case $host_os in
+-  *freebsd*) true ;;
++  *freebsd*|*midnight*) true ;;
+   *) false ;;
+ esac; then
+   FREEBSD_TRUE=
 
 
 [FILE:1592:patches/patch-src_libuv-1.44.2_src_unix_fs.c]

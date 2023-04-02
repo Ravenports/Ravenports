@@ -19,8 +19,14 @@ SPKGS[standard]=	complete
 
 OPTIONS_AVAILABLE=	MULTIPLICITY THREADS BIT64INT DEBUG
 OPTIONS_STANDARD=	MULTIPLICITY THREADS BIT64INT DEBUG
-OPT_ON[all]=		MULTIPLICITY THREADS
+OPT_ON[freebsd]=	THREADS
+OPT_ON[sunos]=		THREADS
+OPT_ON[linux]=		THREADS
+OPT_ON[all]=		MULTIPLICITY
+OPT_ON[netbsd]=		THREADS
+OPT_ON[dragonfly]=	THREADS
 OPT_ON[i386]=		BIT64INT
+OPT_ON[midnightbsd]=	THREADS
 
 BUILD_DEPENDS=		gdbm:dev:standard
 BUILDRUN_DEPENDS=	gdbm:primary:standard
@@ -2743,10 +2749,20 @@ etc/man.d/perl%%BINSUFFIX%%.conf
 @rmtry %%SITEMANPREFIX%%/man/whatis
 
 
-[FILE:906:patches/patch-Configure]
+[FILE:1413:patches/patch-Configure]
 --- Configure.orig	2022-02-19 12:16:47 UTC
 +++ Configure
-@@ -3879,7 +3879,10 @@ esac
+@@ -3508,6 +3508,9 @@ EOM
+ 			esac
+ 			$test -f /system/lib/libandroid.so && osname=linux-android
+ 			;;
++		midnightbsd) osname=midnightbsd
++			osvers="$3"
++			;;
+ 		MiNT)	osname=mint
+ 			;;
+ 		minix)	osname=minix
+@@ -3879,7 +3882,10 @@ esac
  . ./posthint.sh
  
  : who configured the system
@@ -2758,7 +2774,7 @@ etc/man.d/perl%%BINSUFFIX%%.conf
  case "$cf_by" in
  "")
  	cf_by=`(logname) 2>/dev/null`
-@@ -4952,7 +4955,7 @@ esac
+@@ -4952,7 +4958,7 @@ esac
  : Now check and see which directories actually exist, avoiding duplicates
  for xxx in $dlist
  do
@@ -2767,7 +2783,16 @@ etc/man.d/perl%%BINSUFFIX%%.conf
  		case " $libpth " in
  		*" $xxx "*) ;;
  		*) libpth="$libpth $xxx";;
-@@ -9552,8 +9555,7 @@ prefixvar=siteman3dir
+@@ -8769,7 +8775,7 @@ if "$useshrplib"; then
+ 	solaris)
+ 		xxx="-R $shrpdir"
+ 		;;
+-	freebsd|minix|mirbsd|netbsd|openbsd|interix|dragonfly|bitrig)
++	freebsd|minix|mirbsd|netbsd|openbsd|interix|dragonfly|midnightbsd|bitrig)
+ 		xxx="-Wl,-R$shrpdir"
+ 		;;
+ 	bsdos|linux|irix*|dec_osf|gnu*|haiku)
+@@ -9552,8 +9558,7 @@ prefixvar=siteman3dir
  
  : determine where add-on public executable scripts go
  case "$sitescript" in
