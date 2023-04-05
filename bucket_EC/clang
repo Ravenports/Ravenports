@@ -23,7 +23,9 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	llvm:single:standard
+EXRUN[extra]=		llvm:single:standard
 EXRUN[compiler]=	clang:dynlibs:standard
+EXRUN[dynlibs]=		llvm:single:standard
 
 USES=			cmake ninja ncurses zlib execinfo shebangfix
 			python:build c++:compiler,extra
@@ -84,7 +86,8 @@ VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 			CMAKE_ARGS=-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
-			MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
+			CMAKE_ARGS=-DLLVM_DEFAULT_TARGET_TRIPLE=x86_64-raven-freebsd12.3
+			CMAKE_ARGS=-DLLVM_HOST_TRIPLE=x86_64-raven-freebsd12.3
 
 post-patch:
 	${REINPLACE_CMD} -e 's,/usr/local/,${LOCALBASE}/,' \
