@@ -60,6 +60,7 @@ PLIST_SUB=		MOZJS_MAJOR=102
 			MOZJS_MINOR=9
 
 VAR_OPSYS[linux]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-ravenadm-linux-gnu
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/js102
@@ -71,6 +72,8 @@ pre-configure:
 	${SH} ${WRKSRC}/../../build/autoconf/autoconf.sh \
 	--localdir=${WRKSRC}/../../js/src configure.in > configure)
 	${CHMOD} 755 ${WRKSRC}/configure
+	${REINPLACE_CMD} -e "s|%%MBSD64_TGT%%|x86_64-raven-freebsd12.3|" \
+	${WRKSRC}/../../build/autoconf/config.guess
 
 [FILE:126:descriptions/desc.primary]
 SpiderMonkey is Mozilla's JavaScript engine written in C and C++. It is 
@@ -445,6 +448,20 @@ include/mozjs-%%MOZJS_MAJOR%%/mozilla/intl/
 lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
 
 
+[FILE:414:patches/patch-build_autoconf_config.guess]
+--- ../../build/autoconf/config.guess.orig	2023-03-09 23:55:11 UTC
++++ ../../build/autoconf/config.guess
+@@ -284,7 +284,7 @@ case $UNAME_MACHINE:$UNAME_SYSTEM:$UNAME
+ 	GUESS=$UNAME_MACHINE_ARCH-unknown-libertybsd$UNAME_RELEASE
+ 	;;
+     *:MidnightBSD:*:*)
+-	GUESS=$UNAME_MACHINE-unknown-midnightbsd$UNAME_RELEASE
++	GUESS=%%MBSD64_TGT%%
+ 	;;
+     *:ekkoBSD:*:*)
+ 	GUESS=$UNAME_MACHINE-unknown-ekkobsd$UNAME_RELEASE
+
+
 [FILE:553:patches/patch-build_moz.configure_init.configure]
 --- ../../build/moz.configure/init.configure.orig	2023-03-09 23:59:36 UTC
 +++ ../../build/moz.configure/init.configure
@@ -459,4 +476,18 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
          endianness = "little"
      elif cpu in ("s390", "s390x"):
          canonical_cpu = cpu
+
+
+[FILE:480:patches/patch-testing_mozbase_mozinfo_mozinfo_mozinfo.py]
+--- ../../testing/mozbase/mozinfo/mozinfo/mozinfo.py.orig	2023-03-09 23:59:37 UTC
++++ ../../testing/mozbase/mozinfo/mozinfo/mozinfo.py
+@@ -133,7 +133,7 @@ elif system == "Linux":
+ 
+     info["os"] = "linux"
+     info["linux_distro"] = distribution
+-elif system in ["DragonFly", "FreeBSD", "NetBSD", "OpenBSD"]:
++elif system in ["DragonFly", "FreeBSD", "NetBSD", "OpenBSD", "MidnightBSD"]:
+     info["os"] = "bsd"
+     version = os_version = sys.platform
+ elif system == "Darwin":
 

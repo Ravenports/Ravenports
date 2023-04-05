@@ -14,6 +14,7 @@ _USES_configure+=        425:freebsd10fix
 
 freebsd10fix:
 	@${ECHO_MSG} "===>  Autofix configure and libtool scripts for FreeBSD 10+"
+	${TOUCH} "${WRKDIR}/.fbsd10fix.exec"
 	@for f in `${FIND} ${WRKDIR} -type f \( \
 		-name config.libpath -o \
 		-name config.rpath -o \
@@ -30,10 +31,15 @@ freebsd10fix:
 			-e 's|freebsd\[123\]\*)|freebsd[123].*)|g' \
 			-e 's|freebsd\[\[12\]\]\*)|freebsd[[12]].*)|g' \
 			-e 's|freebsd\[\[123\]\]\*)|freebsd[[123]].*)|g' \
-			$${f} ; \
-		${TOUCH} -mr $${f}.fbsd10bak $${f} ; \
-		cmp -s $${f}.fbsd10bak $${f} || ${ECHO_MSG} "===>       applied to $${f}"; \
-		cmp -s $${f}.fbsd10bak $${f} && ${RM} $${f}.fbsd10bak ; \
+			$${f} ;\
+		${TOUCH} -mr $${f}.fbsd10bak $${f} ;\
+		if cmp -s "$${f}.fbsd10bak" "$${f}";\
+		then \
+			${RM} "$${f}.fbsd10bak" ;\
+		else \
+			${ECHO_MSG} "===>       applied to $${f}" ;\
+			${ECHO} "$${f}" >> "${WRKDIR}/.fbsd10fix.success" ;\
+		fi ;\
 	done || ${TRUE}
 
 .endif	# _INCLUDE_USES_FBSD10FIX_MK

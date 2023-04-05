@@ -105,7 +105,11 @@ CMAKE_ARGS=		-DWITH_VTK:BOOL=OFF
 			-DOPENCV_ENABLE_NONFREE:BOOL=ON
 VAR_ARCH[x86_64]=	CMAKE_ARGS=-DCPU_BASELINE_DISABLE:STRING="FP16,POPCNT,FMA3"
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/opencv_*
+
+pre-configure:
 	${REINPLACE_CMD} -e 's|share/OpenCV/doc|${DOCSDIR_REL}|g' \
 		-e 's|share/OpenCV/samples|${EXAMPLESDIR_REL}|g' \
 		${WRKSRC}/CMakeLists.txt
@@ -114,10 +118,6 @@ post-patch:
 		${WRKSRC}/cmake/templates/opencv_run_all_tests_unix.sh.in \
 		${WRKSRC}/cmake/templates/setup_vars_linux.sh.in \
 		${WRKSRC}/cmake/templates/setup_vars_macosx.sh.in \
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/opencv_*
 
 [FILE:796:descriptions/desc.primary]
 OpenCV (Open Source Computer Vision Library) is released under a BSD
@@ -546,6 +546,20 @@ lib/
  #    define ITT_OS ITT_OS_FREEBSD
  #  else
  #    define ITT_OS ITT_OS_LINUX
+
+
+[FILE:547:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2022-12-28 14:31:52 UTC
++++ CMakeLists.txt
+@@ -676,7 +676,7 @@ if(UNIX OR MINGW)
+     CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD)
+     if(ANDROID)
+       set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} dl m log)
+-    elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|NetBSD|DragonFly|OpenBSD|Haiku")
++    elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|NetBSD|DragonFly|OpenBSD|MidnightBSD|Haiku")
+       set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} m pthread)
+     elseif(EMSCRIPTEN)
+       # no need to link to system libs with emscripten
 
 
 [FILE:622:patches/patch-modules_core_include_opencv2_core_utils_filesystem.private.hpp]

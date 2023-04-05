@@ -2,6 +2,7 @@
 
 NAMEBASE=		timidity
 VERSION=		2.15.0
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	Software synthesizer and MIDI converter / player
@@ -80,4 +81,83 @@ bin/timidity
 etc/timidity/timidity.cfg
 share/man/man1/timidity.1.gz
 share/man/man5/timidity.cfg.5.gz
+
+
+[FILE:1307:patches/patch-configure]
+--- configure.orig	2018-08-28 23:33:39 UTC
++++ configure
+@@ -3930,7 +3930,7 @@ case "$target" in
+         test -n "$SHLD" || SHLD="ld -Bshareable"
+     so="so"
+     ;;
+-  *-*-freebsd*)
++  *-*-freebsd*|*-*-dragonfly|*-*-midnight*)
+     if test "$ELFFORMAT" = yes; then
+ 	test -n "$SHLD" || SHLD="ld -Bshareable"
+     else
+@@ -12600,7 +12600,7 @@ fi;
+ 
+ if test "x$au_enable_default" = xyes; then
+   case "$target" in
+-  *-*-linux*|*-*-freebsd*)
++  *-*-linux*|*-*-freebsd*|*-*-dragonfly*|*-*-midnight*)
+     au_enable_oss=yes
+     ;;
+   *-*-bsdi2.0)
+@@ -12658,7 +12658,7 @@ if test "x$au_enable_oss" = xyes; then
+ echo "${ECHO_T}yes - <sys/soundcard.h>" >&6
+   else
+     case "$target" in
+-      *linux*|*freebsd*)
++      *linux*|*freebsd*|*dragonfly*|*midnight*)
+                 echo "$as_me:$LINENO: result: yes" >&5
+ echo "${ECHO_T}yes" >&6
+         ;;
+@@ -17518,7 +17518,7 @@ fi
+ 
+    LIBS="$LIBS $lib_curses_opt"
+     case "$target" in
+-       *-*-freebsd123*)
++       *-*-skip*)
+          EXTRALIBS="$EXTRALIBS -lmytinfo"
+          ;;
+      esac
+@@ -17529,7 +17529,7 @@ xdynamic)
+   dynamic_targets="$dynamic_targets if_ncurses.\$(so)"
+    n_so_libs="$lib_curses_opt"
+     case "$target" in
+-       *-*-freebsd123*)
++       *-*-skip*)
+          EXTRALIBS="$EXTRALIBS -lmytinfo"
+          ;;
+      esac
+
+
+[FILE:834:patches/patch-timidity_sysdep.h]
+--- timidity/sysdep.h.orig	2008-05-21 13:01:44 UTC
++++ timidity/sysdep.h
+@@ -175,20 +175,9 @@ typedef unsigned long  u_ptr_size_t;
+ #ifdef LITTLE_ENDIAN
+ # define LE_SHORT(x) (x)
+ # define LE_LONG(x) (x)
+-# ifdef __FreeBSD__
+-#  include <osreldate.h>
+-#  if __FreeBSD_version <= 500000
+-#    define BE_SHORT(x) __byte_swap_word(x)
+-#    define BE_LONG(x) __byte_swap_long(x)
+-#  else
+-#    if __FreeBSD_version <= 500028
+-#      define BE_SHORT(x) __uint8_swap_uint16(x)
+-#      define BE_LONG(x) __uint8_swap_uint32(x)
+-#    else
+-#      define BE_SHORT(x) __bswap16(x)
+-#      define BE_LONG(x) __bswap32(x)
+-#    endif
+-#  endif
++# if defined __FreeBSD__ || defined __DragonFly__
++#  define BE_SHORT(x) __bswap16(x)
++#  define BE_LONG(x) __bswap32(x)
+ # else
+ #  define BE_SHORT(x) XCHG_SHORT(x)
+ #  define BE_LONG(x) XCHG_LONG(x)
 

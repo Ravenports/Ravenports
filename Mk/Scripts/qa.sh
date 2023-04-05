@@ -456,9 +456,33 @@ doc_files() {
 	return 0
 }
 
+uses_fbsd10fix() {
+	local extension="${STAGEDIR}/../.fbsd10fix.exec"
+	local success="${STAGEDIR}/../.fbsd10fix.success"
+	if [ -f "$extension" ]; then
+		if [ ! -f "$success" ]; then
+			err "Remove USES=fbsd10fix.  It has no effect."
+			return 1
+		fi
+	fi
+	return 0
+}
+
+uses_mbsdfix() {
+	local extension="${STAGEDIR}/../.mbsdfix.exec"
+	local success="${STAGEDIR}/../.mbsdfix.success"
+	if [ -f "$extension" ]; then
+		if [ ! -f "$success" ]; then
+			err "Remove USES=mbsdfix.  It has no effect."
+			return 1
+		fi
+	fi
+	return 0
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
-checks="$checks sonames nls_files doc_files"
+checks="$checks sonames nls_files doc_files uses_fbsd10fix uses_mbsdfix"
 # don't add to this line
 checks="$checks licterms showlic"
 

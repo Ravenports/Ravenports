@@ -876,7 +876,7 @@ Support MAP_FILE if unavailable.
      if (data == MAP_FAILED) {
 
 
-[FILE:534:patches/patch-Source_WTF_wtf_MemoryPressureHandler.cpp]
+[FILE:562:patches/patch-Source_WTF_wtf_MemoryPressureHandler.cpp]
 --- Source/WTF/wtf/MemoryPressureHandler.cpp.orig	2023-02-20 09:22:13 UTC
 +++ Source/WTF/wtf/MemoryPressureHandler.cpp
 @@ -65,7 +65,7 @@ static MemoryPressureHandler* memoryPres
@@ -884,13 +884,13 @@ Support MAP_FILE if unavailable.
  
  MemoryPressureHandler::MemoryPressureHandler()
 -#if OS(LINUX) || OS(FREEBSD)
-+#if OS(LINUX) || OS(FREEBSD) || defined(__DragonFly__)
++#if OS(LINUX) || OS(FREEBSD) || defined(__DragonFly__) || defined(__MidnightBSD__)
      : m_holdOffTimer(RunLoop::main(), this, &MemoryPressureHandler::holdOffTimerFired)
  #elif OS(WINDOWS)
      : m_windowsMeasurementTimer(RunLoop::main(), this, &MemoryPressureHandler::windowsMeasurementTimerFired)
 
 
-[FILE:621:patches/patch-Source_WTF_wtf_MemoryPressureHandler.h]
+[FILE:677:patches/patch-Source_WTF_wtf_MemoryPressureHandler.h]
 --- Source/WTF/wtf/MemoryPressureHandler.h.orig	2023-02-20 09:22:13 UTC
 +++ Source/WTF/wtf/MemoryPressureHandler.h
 @@ -81,7 +81,7 @@ public:
@@ -898,7 +898,7 @@ Support MAP_FILE if unavailable.
      WTF_EXPORT_PRIVATE void setShouldUsePeriodicMemoryMonitor(bool);
  
 -#if OS(LINUX) || OS(FREEBSD)
-+#if OS(LINUX) || OS(FREEBSD) || defined(__DragonFly__)
++#if OS(LINUX) || OS(FREEBSD) || defined(__DragonFly__) || defined(__MidnightBSD__)
      WTF_EXPORT_PRIVATE void triggerMemoryPressureEvent(bool isCritical);
  #endif
  
@@ -907,7 +907,7 @@ Support MAP_FILE if unavailable.
  #endif
  
 -#if OS(LINUX) || OS(FREEBSD)
-+#if OS(LINUX) || OS(FREEBSD) || defined(__DragonFly__)
++#if OS(LINUX) || OS(FREEBSD) || defined(__DragonFly__) || defined(__MidnightBSD__)
      RunLoop::Timer m_holdOffTimer;
      void holdOffTimerFired();
  #endif
@@ -926,7 +926,7 @@ Support MAP_FILE if unavailable.
  #include <windows.h>
 
 
-[FILE:390:patches/patch-Source_WTF_wtf_PlatformGTK.cmake]
+[FILE:402:patches/patch-Source_WTF_wtf_PlatformGTK.cmake]
 --- Source/WTF/wtf/PlatformGTK.cmake.orig	2023-02-20 09:22:13 UTC
 +++ Source/WTF/wtf/PlatformGTK.cmake
 @@ -62,7 +62,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -934,7 +934,7 @@ Support MAP_FILE if unavailable.
          unix/MemoryPressureHandlerUnix.cpp
      )
 -elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-+elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
++elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|MidnightBSD")
      list(APPEND WTF_SOURCES
          generic/MemoryFootprintGeneric.cpp
  
@@ -957,14 +957,14 @@ SunOS does not have pthread_getattr_np.
      pthread_getattr_np(thread, &sattr);
 
 
-[FILE:1418:patches/patch-Source_WTF_wtf_unix_MemoryPressureHandlerUnix.cpp]
+[FILE:1502:patches/patch-Source_WTF_wtf_unix_MemoryPressureHandlerUnix.cpp]
 --- Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp.orig	2023-02-20 09:22:14 UTC
 +++ Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp
 @@ -28,7 +28,11 @@
  #include "config.h"
  #include <wtf/MemoryPressureHandler.h>
  
-+#if OS(FREEBSD) || defined(__DragonFly__)
++#if OS(FREEBSD) || defined(__DragonFly__) || defined(__MidnightBSD__)
 +#include <stdlib.h>
 +#else
  #include <malloc.h>
@@ -977,7 +977,7 @@ SunOS does not have pthread_getattr_np.
  #if OS(LINUX)
  #include <wtf/linux/CurrentProcessMemoryStatus.h>
 -#elif OS(FREEBSD)
-+#elif OS(FREEBSD) || defined(__DragonFly__)
++#elif OS(FREEBSD) || defined(__DragonFly__) || defined(__MidnightBSD__)
  #include <sys/sysctl.h>
  #include <sys/types.h>
  #include <sys/user.h>
@@ -986,7 +986,7 @@ SunOS does not have pthread_getattr_np.
      currentProcessMemoryStatus(memoryStatus);
      return (memoryStatus.resident - memoryStatus.shared);
 -#elif OS(FREEBSD)
-+#elif OS(FREEBSD) || defined(__DragonFly__)
++#elif OS(FREEBSD) || defined(__DragonFly__) || defined(__MidnightBSD__)
      static size_t pageSize = sysconf(_SC_PAGE_SIZE);
      struct kinfo_proc info;
      size_t infolen = sizeof(info);
@@ -1056,14 +1056,14 @@ SunOS does not have pthread_getattr_np.
      "strb r3, [" PIXELS_R ", #-10]" NL
 
 
-[FILE:323:patches/patch-Source_WebCore_platform_network_DNS.h]
+[FILE:350:patches/patch-Source_WebCore_platform_network_DNS.h]
 --- Source/WebCore/platform/network/DNS.h.orig	2023-02-20 09:22:19 UTC
 +++ Source/WebCore/platform/network/DNS.h
 @@ -35,6 +35,9 @@
  #include <ws2tcpip.h>
  #else
  #include <netinet/in.h>
-+# if defined __DragonFly__ || defined __FreeBSD__ || defined __sun__
++# if defined __DragonFly__ || defined __FreeBSD__ || defined __sun__ || defined __MidnightBSD__
 +#  include <sys/socket.h>
 +# endif
  #endif
@@ -1197,7 +1197,7 @@ encountering EMSGSIZE.
          if (!strcmp(sandboxEnv, "1"))
 
 
-[FILE:1432:patches/patch-Source_bmalloc_bmalloc_AvailableMemory.cpp]
+[FILE:1460:patches/patch-Source_bmalloc_bmalloc_AvailableMemory.cpp]
 --- Source/bmalloc/bmalloc/AvailableMemory.cpp.orig	2023-02-20 09:22:22 UTC
 +++ Source/bmalloc/bmalloc/AvailableMemory.cpp
 @@ -44,7 +44,7 @@
@@ -1214,7 +1214,7 @@ encountering EMSGSIZE.
      // (for example) and we have code that depends on those boundaries.
      return ((sizeAccordingToKernel + multiple - 1) / multiple) * multiple;
 -#elif BOS(FREEBSD) || BOS(LINUX)
-+#elif BOS(FREEBSD)
++#elif BOS(FREEBSD) || defined(__MidnightBSD__)
 +    long pages = sysconf(_SC_PHYS_PAGES);
 +    long pageSize = sysconf(_SC_PAGE_SIZE);
 +    if (pages == -1 || pageSize == -1)

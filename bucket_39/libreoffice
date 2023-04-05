@@ -253,6 +253,14 @@ post-extract:
 post-install-netbsd:
 	${PAXCTL} +m ${STAGEDIR}${PREFIX}/lib/libreoffice/program/soffice.bin
 
+post-patch-midnightbsd:
+	# Avoid stripping in /tmp, it takes too much space
+	# Also, ooinstall is fed wrong TMPDIR which is redefined a few times
+	# So let's just hardcode it
+	@${ECHO_CMD} "Running MidnightBSD post-patch target"
+	${REINPLACE_CMD} -e 's|$$ENV{TMPDIR};|"${WRKDIR}";|' \
+		${WRKSRC}/solenv/bin/ooinstall
+
 [FILE:444:descriptions/desc.single]
 LibreOffice is a powerful office suite -- its clean interface and
 feature-rich tools help you unleash your creativity and enhance your
@@ -4101,7 +4109,7 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
  #if defined __LP64__ || LIBCXXABI_ARM_EHABI
 
 
-[FILE:1309:patches/patch-configure]
+[FILE:3220:patches/patch-configure]
 --- configure.orig	2023-03-09 19:50:06 UTC
 +++ configure
 @@ -5873,9 +5873,6 @@ if test -z "$host" -a -z "$build" -a "`w
@@ -4114,7 +4122,31 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
              echo "$input"
          else
              # Print Unix path
-@@ -15467,7 +15464,7 @@ printf %s "checking for BUILD platform c
+@@ -6971,6 +6968,14 @@ dragonfly*)
+     _os=DragonFly
+     ;;
+ 
++midnight*)
++    using_freetype_fontconfig=yes
++    using_x11=yes
++    build_skia=yes
++    PTHREAD_LIBS="-pthread"
++    _os=FreeBSD
++    ;;
++
+ linux-android*)
+     # API exists, but seems not really usable since Android 7 AFAIK
+     usable_dlapi=no
+@@ -14694,7 +14699,7 @@ dragonfly*)
+     esac
+     ;;
+ 
+-freebsd*)
++freebsd*|midnight*)
+     COM=GCC
+     RTL_OS=FreeBSD
+     OS=FREEBSD
+@@ -15467,7 +15472,7 @@ printf %s "checking for BUILD platform c
          $with_build_platform_configure_options \
          --srcdir=$srcdir \
          2>&1 | sed -e 's/^/    /'
@@ -4123,7 +4155,34 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
          as_fn_error $? "Running the configure script for BUILD side failed, see CONF-FOR-BUILD/config.log" "$LINENO" 5
      fi
  
-@@ -42779,9 +42776,6 @@ printf "%s\n" "$qt5_libdir" >&6; }
+@@ -22741,7 +22746,7 @@ if test -n "$ENABLE_JAVA" -a -z "$JAVAIN
+         test -d "$JAVA_HOME/include/native_thread" && JAVAINC="$JAVAINC -I$JAVA_HOME/include/native_thread"
+         ;;
+ 
+-    freebsd*)
++    freebsd*|midnight*)
+         JAVAINC="-I$JAVA_HOME/include"
+         JAVAINC="$JAVAINC -I$JAVA_HOME/include/freebsd"
+         JAVAINC="$JAVAINC -I$JAVA_HOME/include/bsd"
+@@ -23715,7 +23720,7 @@ printf %s "checking for object file form
+                     ;;
+                 esac
+               ;;
+-              kfreebsd* | freebsd* | netbsd* | openbsd*)
++              kfreebsd* | freebsd* | netbsd* | openbsd*| midnight*)
+                 if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
+                   objfmt='BSD-a.out'
+                 else
+@@ -39140,7 +39145,7 @@ elif $GNUCP --version 2>/dev/null | grep
+ printf "%s\n" "yes" >&6; }
+ else
+     case "$build_os" in
+-    darwin*|netbsd*|openbsd*|freebsd*|dragonfly*|aix*)
++    darwin*|netbsd*|openbsd*|freebsd*|dragonfly*|midnight*|aix*)
+         x_GNUCP=\#
+         GNUCP=''
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no gnucp found - using the system's cp command" >&5
+@@ -42779,9 +42784,6 @@ printf "%s\n" "$qt5_libdir" >&6; }
      fi
  
      if test "$_os" = "Emscripten"; then
@@ -4133,6 +4192,35 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
          if test ! -f "${qt5_platformsdir}"/libqwasm.a -o ! -f "$QT5_PLATFORMS_SRCDIR"/wasm_shell.html; then
              as_fn_error $? "No Qt5 WASM QPA plugin found in ${qt5_platformsdir} or ${QT5_PLATFORMS_SRCDIR}" "$LINENO" 5
          fi
+@@ -46455,7 +46457,7 @@ else
+ 
+     case "$host_os" in
+ 
+-    aix*|dragonfly*|freebsd*|linux-gnu*|*netbsd*|openbsd*)
++    aix*|dragonfly*|freebsd*|linux-gnu*|*netbsd*|openbsd*|midnight*)
+         if test "$ENABLE_JAVA" != ""; then
+             pathmunge "$JAVA_HOME/bin" "after"
+         fi
+
+
+[FILE:352:patches/patch-external_skia_Library__skia.mk]
+--- external/skia/Library_skia.mk.orig	2023-03-09 19:40:54 UTC
++++ external/skia/Library_skia.mk
+@@ -105,6 +105,14 @@ $(eval $(call gb_Library_add_libs,skia,\
+ ))
+ endif
+ 
++ifeq ($(OS),FREEBSD)
++$(eval $(call gb_Library_add_libs,skia,\
++    -lm \
++    -lX11-xcb \
++    -lX11 \
++))
++endif
++
+ $(eval $(call gb_Library_use_libraries,skia,\
+     sal \
+ ))
 
 
 [FILE:371:patches/patch-external_skia_UnpackedTarball__skia.mk]
@@ -4255,6 +4343,22 @@ $NetBSD: patch-external_skia_netbsd.patch.0,v 1.4 2022/08/22 13:58:32 ryoon Exp 
        </prop>
        <prop oor:name="FontsUseWinMetrics" oor:type="oor:string-list" oor:nillable="false">
          <info>
+
+
+[FILE:247:patches/patch-sal_osl_unx_file__volume.cxx]
+--- sal/osl/unx/file_volume.cxx.orig	2023-03-09 19:40:54 UTC
++++ sal/osl/unx/file_volume.cxx
+@@ -46,6 +46,10 @@
+ #define FREEBSD 1
+ #endif
+ 
++#if defined(__MidnightBSD__)
++#define FREEBSD 1
++#endif
++
+ #if defined(__sun)
+ 
+ #include <sys/mnttab.h>
 
 
 [FILE:352:patches/patch-sal_osl_unx_thread.cxx]

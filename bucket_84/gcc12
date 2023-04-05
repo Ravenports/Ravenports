@@ -46,6 +46,7 @@ USES=			cpe gmake libtool perl:build makeinfo
 C_USES[freebsd]=	iconv:build
 C_USES[darwin]=		iconv:build
 C_USES[dragonfly]=	iconv:build
+C_USES[midnightbsd]=	iconv:build
 
 DISTNAME=		gcc-12.2.0
 
@@ -122,6 +123,12 @@ VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/toolchain/bin/ld
 			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
+VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
+			CONFIGURE_ARGS=--with-gnu-as
+			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/toolchain/bin/as
+			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/toolchain/bin/ld
+			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
+			MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 post-patch:
 	# Update LINK_SPEC to add gcc-aux lib runpath in every binary
@@ -159,6 +166,9 @@ post-patch-linux:
 		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
 
 post-install-freebsd:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/12.2.0/include-fixed
+
+post-install-midnightbsd:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/12.2.0/include-fixed
 
 post-install-dragonfly:
@@ -246,7 +256,7 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
 817fa207c609760e5e6391e851500bc3c12b2931be11acaae236a7cc95adab81         1894 gcc12_12.2.0-rev1/patch-diff-gcc-testsuite
 
 
-[FILE:29105:manifests/plist.compilers]
+[FILE:29467:manifests/plist.compilers]
 %%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbegin.o
  crtend.o
@@ -337,6 +347,17 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
  gnu-user64.h
  linux-common.h
  linux64.h
+%%ONLY-MIDNIGHTBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtendS.o
+%%ONLY-MIDNIGHTBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
+%%ONLY-MIDNIGHTBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
+ freebsd-spec.h
+ freebsd-stdint.h
+ freebsd.h
+%%ONLY-MIDNIGHTBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
+ freebsd.h
+ freebsd64.h
 %%ONLY-NETBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtbeginT.o
@@ -4491,4 +4512,17 @@ share/locale/zh_CN/LC_MESSAGES/
 share/locale/zh_TW/LC_MESSAGES/
  cpplib.mo
  gcc.mo
+
+
+[FILE:435:midnightbsd/patch-gcc_config_freebsd-spec.h]
+--- gcc/config/freebsd-spec.h.orig	2022-08-19 08:09:52 UTC
++++ gcc/config/freebsd-spec.h
+@@ -37,6 +37,7 @@ see the files COPYING3 and COPYING.RUNTI
+   do									\
+     {									\
+ 	builtin_define_with_int_value ("__FreeBSD__", FBSD_MAJOR);	\
++	builtin_define_with_int_value ("__MidnightBSD__", 3);		\
+ 	builtin_define_std ("unix");					\
+ 	builtin_define ("__KPRINTF_ATTRIBUTE__");		       	\
+ 	builtin_assert ("system=unix");					\
 

@@ -145,6 +145,7 @@ for _file in "${@}"; do
 			do-fetch|makesum)
 				${dp_ECHO_MSG} "=> Attempting to fetch ${site}${file}"
 				if env ${dp_FETCH_ENV} ${_fetch_cmd}; then
+					chmod 644 "${file}"
 					if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
 						actual_size=$(stat --printf=%s "${file}")
 					else

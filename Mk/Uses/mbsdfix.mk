@@ -13,6 +13,7 @@ _USES_configure+=        426:midnightfix
 
 midnightfix:
 	@${ECHO_MSG} "===>  Autofix configure and libtool scripts for MidnightBSD"
+	${TOUCH} "${WRKDIR}/.mbsdfix.exec"
 	@for f in `${FIND} ${WRKDIR} -type f \( \
 		-name config.libpath -o \
 		-name config.rpath -o \
@@ -29,8 +30,13 @@ midnightfix:
 			-e 's#freebsd\* | kfreebsd\*-gnu)#freebsd* | dragonfly* | midnight*)#g' \
 			$${f} ; \
 		${TOUCH} -mr $${f}.mbsdbak $${f} ; \
-		cmp -s $${f}.mbsdbak $${f} || ${ECHO_MSG} "===>       applied to $${f}"; \
-		cmp -s $${f}.mbsdbak $${f} && ${RM} $${f}.mbsdbak ; \
+		if cmp -s "$${f}.mbsdbak" "$${f}";\
+		then \
+			${RM} "$${f}.mbsdbak" ;\
+		else \
+			${ECHO_MSG} "===>       applied to $${f}" ;\
+			${ECHO} "$${f}" >> "${WRKDIR}/.mbsdfix.success" ;\
+		fi ;\
 	done || ${TRUE}
 
 .endif	# _INCLUDE_USES_MBSDFIX_MK

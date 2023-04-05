@@ -32,7 +32,7 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-ONLY_FOR_OPSYS=		dragonfly freebsd linux netbsd
+ONLY_FOR_OPSYS=		dragonfly freebsd linux netbsd midnightbsd
 
 BUILD_DEPENDS=		bash:primary:standard
 			cmake:primary:standard
@@ -94,6 +94,8 @@ VAR_OPSYS[linux]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.67.1
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.67.1
 			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.67.1
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.67.1
+			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.67.1
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.67.1
 			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.67.1
 
 pre-build:
@@ -212,10 +214,21 @@ pre-build-netbsd:
 	${LN} -s ${LOCALBASE}/toolchain/ravensys-gcc/lib/libgcc_s.so.1 \
 	${WRKDIR}/bootstrap/lib/libgcc_s.so.1
 
+pre-build-midnightbsd:
+	${LN} -s ${LOCALBASE}/toolchain/ravensys-gcc/lib/libstdc++.so \
+	${LOCALBASE}/lib/libc++.so
+
+post-extract:
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/src/llvm-project/llvm/cmake/config.guess
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/src/llvm-project/llvm/cmake/config.sub
+
 do-install:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} DESTDIR=${STAGEDIR} \
 		${PYTHON_CMD} x.py install --verbose --config ./config.toml \
 		--jobs ${MAKE_JOBS_NUMBER})
+
+post-build-midnightbsd:
+	${RM} ${LOCALBASE}/lib/libc++.so
 
 pre-build-dragonfly:
 	${LN} -s ${LOCALBASE}/toolchain/ravensys-gcc/lib/libgcc_s.so \
@@ -310,6 +323,19 @@ lib/rustlib/
  #[cfg(target_os = "haiku")]
 
 
+[FILE:416:patches/patch-src_bootstrap_bootstrap.py]
+--- src/bootstrap/bootstrap.py.orig	2023-03-06 15:58:58 UTC
++++ src/bootstrap/bootstrap.py
+@@ -239,6 +239,7 @@ def default_build_triple(verbose):
+         'Darwin': 'apple-darwin',
+         'DragonFly': 'unknown-dragonfly',
+         'FreeBSD': 'unknown-freebsd',
++        'MidnightBSD': 'unknown-freebsd',
+         'Haiku': 'unknown-haiku',
+         'NetBSD': 'unknown-netbsd',
+         'OpenBSD': 'unknown-openbsd'
+
+
 [FILE:758:patches/patch-src_bootstrap_builder.rs]
 --- src/bootstrap/builder.rs.orig	2023-03-06 15:58:58 UTC
 +++ src/bootstrap/builder.rs
@@ -329,6 +355,67 @@ lib/rustlib/
              }
          }
  
+
+
+[FILE:664:patches/patch-src_llvm-project_llvm_cmake_modules_AddLLVM.cmake]
+--- src/llvm-project/llvm/cmake/modules/AddLLVM.cmake.orig	2023-03-06 16:00:21 UTC
++++ src/llvm-project/llvm/cmake/modules/AddLLVM.cmake
+@@ -2281,7 +2281,7 @@ function(llvm_setup_rpath name)
+     set(_install_rpath "${LLVM_LIBRARY_OUTPUT_INTDIR}" "${CMAKE_INSTALL_PREFIX}/lib${LLVM_LIBDIR_SUFFIX}" ${extra_libdir})
+   elseif(UNIX)
+     set(_install_rpath "\$ORIGIN/../lib${LLVM_LIBDIR_SUFFIX}" ${extra_libdir})
+-    if(${CMAKE_SYSTEM_NAME} MATCHES "(FreeBSD|DragonFly)")
++    if(${CMAKE_SYSTEM_NAME} MATCHES "(FreeBSD|DragonFly|MidnightBSD)")
+       set_property(TARGET ${name} APPEND_STRING PROPERTY
+                    LINK_FLAGS " -Wl,-z,origin ")
+     endif()
+
+
+[FILE:641:patches/patch-src_llvm-project_llvm_cmake_modules_HandleLLVMOptions.cmake]
+--- src/llvm-project/llvm/cmake/modules/HandleLLVMOptions.cmake.orig	2023-03-06 16:00:21 UTC
++++ src/llvm-project/llvm/cmake/modules/HandleLLVMOptions.cmake
+@@ -228,7 +228,7 @@ endif()
+ 
+ # Pass -Wl,-z,defs. This makes sure all symbols are defined. Otherwise a DSO
+ # build might work on ELF but fail on MachO/COFF.
+-if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|AIX|SunOS|OS390" OR
++if(NOT (CMAKE_SYSTEM_NAME MATCHES "Darwin|FreeBSD|OpenBSD|DragonFly|MidnightBSD|AIX|SunOS|OS390" OR
+         WIN32 OR CYGWIN) AND
+    NOT LLVM_USE_SANITIZER)
+   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,defs")
+
+
+[FILE:1138:patches/patch-src_llvm-project_llvm_lib_Support_Unix_Path.inc]
+--- src/llvm-project/llvm/lib/Support/Unix/Path.inc.orig	2023-03-06 16:00:21 UTC
++++ src/llvm-project/llvm/lib/Support/Unix/Path.inc
+@@ -42,6 +42,9 @@
+ #if __has_include(<sys/clonefile.h>)
+ #include <sys/clonefile.h>
+ #endif
++#elif defined(__MidnightBSD__)
++#include <sys/auxv.h>
++#include <machine/elf.h>
+ #elif defined(__FreeBSD__)
+ #include <osreldate.h>
+ #if __FreeBSD_version >= 1300057
+@@ -206,6 +209,17 @@ std::string getMainExecutableImpl(const
+     if (realpath(exe_path, link_path))
+       return link_path;
+   }
++#elif defined(__MidnightBSD__)
++  // Right now environ symbol is not being linked in on MBSD.  It
++  // appears that elf_aux_info is implemented in MBSD 3.0, so use that.
++  char exe_path[PATH_MAX];
++  if (elf_aux_info(AT_EXECPATH, exe_path, sizeof(exe_path)) == 0) {
++    char link_path[PATH_MAX];
++    if (realpath(exe_path, link_path))
++      return link_path;
++  }
++  if (getprogpath(exe_path, argv0) != NULL)
++    return exe_path;
+ #elif defined(__FreeBSD__)
+   // On FreeBSD if the exec path specified in ELF auxiliary vectors is
+   // preferred, if available.  /proc/curproc/file and the KERN_PROC_PATHNAME
 
 
 [FILE:476:patches/patch-vendor_libc_src_unix_bsd_freebsdlike_dragonfly_errno.rs]
@@ -468,7 +555,7 @@ env MAKE=gmake \
 	--enable-threaded-resolver
 
 
-[FILE:478:files/special.mk]
+[FILE:583:files/special.mk]
 .if "${OPSYS}" == "DragonFly"
 DF_INDEX+=		2 3 4
 COMPEXT=		zst
@@ -482,6 +569,10 @@ SFX=			${ARCH_STANDARD}-unknown-linux-gnu
 .elif "${OPSYS}" == "NetBSD"
 DF_INDEX+=		11 12 13
 COMPEXT=		gz
+.elif "${OPSYS}" == "MidnightBSD"
+DF_INDEX+=		5 6 7
+COMPEXT=		gz
+SFX=			${ARCH_STANDARD}-unknown-freebsd
 .endif
 SFX?=			${ARCH_STANDARD}-unknown-${OPSYS:tl}
 SRC_RUSTC?=		rustc-${BOOTSTRAP_RUST}-${SFX}

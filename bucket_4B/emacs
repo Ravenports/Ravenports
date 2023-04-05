@@ -178,6 +178,9 @@ post-patch-X11GTK-OFF:
 post-install-freebsd:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
+post-install-midnightbsd:
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
+
 post-install-dragonfly:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
@@ -4333,9 +4336,18 @@ share/metainfo/emacs.metainfo.xml
  	      rm -f "$${dest}/refcards"/*.aux "$${dest}/refcards"/*.dvi; \
 
 
-[FILE:1700:patches/patch-configure]
+[FILE:1969:patches/patch-configure]
 --- configure.orig	2022-09-06 22:41:02 UTC
 +++ configure
+@@ -5114,7 +5114,7 @@ case "${canonical}" in
+   ;;
+ 
+   ## FreeBSD ports
+-  *-*-freebsd* )
++  *-*-freebsd* | *-*-midnight* )
+     opsys=freebsd
+   ;;
+ 
 @@ -5139,9 +5139,9 @@ case "${canonical}" in
    ;;
  
@@ -4360,7 +4372,18 @@ share/metainfo/emacs.metainfo.xml
  
    freebsd)
      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether FreeBSD is new enough to use terminfo" >&5
-@@ -18822,7 +18822,7 @@ fi
+@@ -18800,10 +18800,6 @@ else
+ int
+ main ()
+ {
+-#if __FreeBSD_version < 400000
+-fail;
+-#endif
+-
+   ;
+   return 0;
+ }
+@@ -18822,7 +18818,7 @@ fi
  $as_echo "$emacs_cv_freebsd_terminfo" >&6; }
  
      if test $emacs_cv_freebsd_terminfo = yes; then
@@ -4369,7 +4392,7 @@ share/metainfo/emacs.metainfo.xml
      else
        TERMINFO=no
        LIBS_TERMCAP="-ltermcap"
-@@ -18834,14 +18834,14 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&
+@@ -18834,14 +18830,14 @@ $as_echo "$emacs_cv_freebsd_terminfo" >&
      LIBS_TERMCAP=
      ;;
  

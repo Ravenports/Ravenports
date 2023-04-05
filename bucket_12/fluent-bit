@@ -47,6 +47,7 @@ CMAKE_ARGS=		-DFLB_DEBUG=Off
 VAR_OPSYS[freebsd]=	CMAKE_ARGS=-DFLB_WASM=Off
 VAR_OPSYS[netbsd]=	CMAKE_ARGS=-DFLB_WASM=Off
 VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DFLB_WASM=Off
+VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DFLB_WASM=Off
 
 post-install:
 	${MV} ${STAGEDIR}${ETCDIR}/fluent-bit.conf \
@@ -251,6 +252,20 @@ include/monkey/mk_core/
 lib/fluent-bit/libfluent-bit.so
 
 
+[FILE:488:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2023-03-15 19:51:42 UTC
++++ CMakeLists.txt
+@@ -71,7 +71,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "ar
+   set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -latomic")
+   set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic")
+ endif()
+-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
++if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|MidnightBSD")
+   set(FLB_SYSTEM_FREEBSD On)
+   add_definitions(-DFLB_SYSTEM_FREEBSD)
+   set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -lutil")
+
+
 [FILE:880:patches/patch-include_fluent-bit_flb__coro.h]
 NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
@@ -330,14 +345,14 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  # include <sys/byteorder.h>
 
 
-[FILE:617:patches/patch-lib_luajit-cmake_LuaJIT.cmake]
+[FILE:629:patches/patch-lib_luajit-cmake_LuaJIT.cmake]
 --- lib/luajit-cmake/LuaJIT.cmake.orig	2023-02-01 17:09:22 UTC
 +++ lib/luajit-cmake/LuaJIT.cmake
 @@ -329,6 +329,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL Hai
    set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_POSIX)
  elseif(${CMAKE_SYSTEM_NAME} MATCHES "(Open|Free|Net)BSD")
    set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_BSD)
-+elseif(${CMAKE_SYSTEM_NAME} MATCHES "DragonFly")
++elseif(${CMAKE_SYSTEM_NAME} MATCHES "DragonFly|MidnightBSD")
 +  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_BSD)
  elseif(${CMAKE_SYSTEM_NAME} STREQUAL iOS)
    set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_OSX -DTARGET_OS_IPHONE=1)

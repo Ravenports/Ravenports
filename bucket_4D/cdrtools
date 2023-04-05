@@ -49,6 +49,7 @@ post-patch:
 	(cd ${WRKSRC}/RULES && \
 	 ${LN} -sf i386-freebsd-cc.rul amd64-freebsd-cc.rul && \
 	 ${LN} -sf i386-freebsd-cc.rul x86_64-dragonfly-cc.rul && \
+	 ${LN} -sf i386-freebsd-cc.rul x86_64-midnightbsd-cc.rul && \
 	 ${LN} -sf i586-linux-cc.rul x86_64-linux-cc.rul)
 	${REINPLACE_CMD} -e 's|.(C_ARCH)|gcc|; /VOLMGT/d' \
 	 ${WRKSRC}/RULES/i86pc-sunos5-gcc.rul
@@ -64,6 +65,9 @@ post-patch:
 		${WRKSRC}/libparanoia/js_cdda_paranoia.h
 	(cd ${WRKSRC} && ${REINPLACE_CMD} -e \
 	 's|cdda_paranoia\.h|js_cdda_paranoia.h|g' ${RPTARGETS2})
+	${CP} ${WRKSRC}/DEFAULTS/Defaults.freebsd ${WRKSRC}/DEFAULTS/Defaults.midnightbsd
+	${CP} ${WRKSRC}/RULES/os-freebsd.def ${WRKSRC}/RULES/os-midnightbsd.def
+	${CP} ${WRKSRC}/RULES/os-freebsd.id ${WRKSRC}/RULES/os-midnightbsd.id
 	${REINPLACE_CMD} -e '/LDPATH=/d; /DEFOSINCDIRS=/d' \
 		${WRKSRC}/DEFAULTS/Defaults.${OPSYS:tl:S/sunos/sunos5/}
 

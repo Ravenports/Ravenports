@@ -35,6 +35,7 @@ USES=			qt6 zlib png sqlite jpeg pkgconfig execinfo iconv
 			perl:build shebangfix ssl:openssl11 cpe cmake ninja
 			zstd pcre2 freetype
 C_USES[freebsd]=	clang
+C_USES[midnightbsd]=	clang
 GNOME_COMPONENTS=	atk
 XORG_COMPONENTS=	x11 xcb xcb-util xcb-util-image xcb-util-keysyms
 			xcb-util-wm xcb-render-util x11
@@ -98,14 +99,16 @@ VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 			MAKEFILE_LINE=FEAT_INPSUPPORT="@comment "
 			MAKEFILE_LINE=FEAT_XCB="@comment "
 			MAKEFILE_LINE=FEAT_EVDEV="@comment "
+VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
 
 post-patch:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
-.for platform in dragonfly-g++ netbsd-g++
+	${MKDIR} ${WRKSRC}/mkspecs/midnightbsd-g++
+.for platform in dragonfly-g++ netbsd-g++ midnightbsd-g++
 	${INSTALL_DATA} ${WRKSRC}/mkspecs/freebsd-g++/qplatformdefs.h \
 		${WRKSRC}/mkspecs/${platform}/
 .endfor
-.for MKS in dragonfly-g++ freebsd-g++ linux-g++ solaris-g++-64 netbsd-g++
+.for MKS in dragonfly-g++ freebsd-g++ linux-g++ solaris-g++-64 netbsd-g++ midnightbsd-g++
 	${INSTALL_DATA} ${WRKDIR}/qmake.conf ${WRKSRC}/mkspecs/${MKS}/
 .endfor
 	# Clean up files created by patching
@@ -148,7 +151,7 @@ This package contains the Qt6 qtbase submodule.
 a88bc6cedbb34878a49a622baa79cace78cfbad4f95fdbd3656ddb21c705525d     47987188 qtbase-everywhere-src-6.4.2.tar.xz
 
 
-[FILE:84544:manifests/plist.primary]
+[FILE:84606:manifests/plist.primary]
 %%EVDEV%%lib/qt6/cmake/Qt6Gui/
  Qt6QEvdevKeyboardPluginAdditionalTargetInfo.cmake
  Qt6QEvdevKeyboardPluginConfig.cmake
@@ -3837,6 +3840,9 @@ lib/qt6/mkspecs/macx-xcode/
  default.xcscheme
  qmake.conf
  qplatformdefs.h
+lib/qt6/mkspecs/midnightbsd-g++/
+ qmake.conf
+ qplatformdefs.h
 lib/qt6/mkspecs/modules/
  README
  qt_lib_concurrent.pri
@@ -4164,18 +4170,55 @@ share/doc/qt6/global/template/style/
  
 
 
-[FILE:458:patches/patch-cmake_QtRpathHelpers.cmake]
+[FILE:1199:patches/patch-cmake_QtPlatformSupport.cmake]
+--- cmake/QtPlatformSupport.cmake.orig	2022-11-16 07:54:24 UTC
++++ cmake/QtPlatformSupport.cmake
+@@ -16,6 +16,8 @@ qt_set01(QNX CMAKE_SYSTEM_NAME STREQUAL
+ qt_set01(OPENBSD CMAKE_SYSTEM_NAME STREQUAL "OpenBSD") # FIXME: How to identify this?
+ qt_set01(FREEBSD CMAKE_SYSTEM_NAME STREQUAL "FreeBSD") # FIXME: How to identify this?
+ qt_set01(NETBSD CMAKE_SYSTEM_NAME STREQUAL "NetBSD") # FIXME: How to identify this?
++qt_set01(DRAGONFLY CMAKE_SYSTEM_NAME STREQUAL "DragonFly") # FIXME: How to identify this?
++qt_set01(MIDNIGHT CMAKE_SYSTEM_NAME STREQUAL "MidnightBSD") # FIXME: How to identify this?
+ qt_set01(WASM CMAKE_SYSTEM_NAME STREQUAL "Emscripten" OR EMSCRIPTEN)
+ qt_set01(SOLARIS CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+ qt_set01(HURD CMAKE_SYSTEM_NAME STREQUAL "GNU")
+@@ -24,7 +26,7 @@ qt_set01(HURD CMAKE_SYSTEM_NAME STREQUAL
+ # compile definition into its generated toolchain.cmake file
+ qt_set01(WEBOS CMAKE_CXX_FLAGS MATCHES "-D__WEBOS__")
+ 
+-qt_set01(BSD APPLE OR OPENBSD OR FREEBSD OR NETBSD)
++qt_set01(BSD APPLE OR OPENBSD OR FREEBSD OR NETBSD OR DRAGONFLY OR MIDNIGHT)
+ 
+ qt_set01(IOS APPLE AND CMAKE_SYSTEM_NAME STREQUAL "iOS")
+ qt_set01(TVOS APPLE AND CMAKE_SYSTEM_NAME STREQUAL "tvOS")
+
+
+[FILE:470:patches/patch-cmake_QtRpathHelpers.cmake]
 --- cmake/QtRpathHelpers.cmake.orig	2022-11-16 07:54:24 UTC
 +++ cmake/QtRpathHelpers.cmake
 @@ -5,6 +5,8 @@ function(qt_internal_get_relative_rpath_
          set(rpath_rel_base "@loader_path")
      elseif(LINUX OR SOLARIS OR FREEBSD OR HURD)
          set(rpath_rel_base "$ORIGIN")
-+    elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
++    elseif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly|MidnightBSD")
 +        set(rpath_rel_base "$ORIGIN")
      else()
          set(rpath_rel_base "NO_KNOWN_RPATH_REL_BASE")
      endif()
+
+
+[FILE:607:patches/patch-mkspecs_features_qt__functions.prf]
+--- mkspecs/features/qt_functions.prf.orig	2022-11-16 07:54:24 UTC
++++ mkspecs/features/qt_functions.prf
+@@ -230,7 +230,7 @@ defineTest(qtAddTargetEnv) {
+             libs = bins
+             deppath.CONFIG = always_prepend
+             deppath.name = PATH
+-        } else:contains(QMAKE_HOST.os, Linux|FreeBSD|OpenBSD|NetBSD|DragonFly|SunOS|HP-UX|QNX|GNU) {
++        } else:contains(QMAKE_HOST.os, Linux|FreeBSD|OpenBSD|NetBSD|DragonFly|SunOS|MidnightBSD|HP-UX|QNX|GNU) {
+             deppath.name = LD_LIBRARY_PATH
+         } else:contains(QMAKE_HOST.os, Haiku) {
+             deppath.name = LIBRARY_PATH
 
 
 [FILE:360:patches/patch-mkspecs_features_qt__module.prf]
@@ -4242,6 +4285,23 @@ Do not create .la files.
                                             << fixLibFlags("QMAKE_LIBS_PRIVATE").join(' ') << Qt::endl;
 
 
+[FILE:585:patches/patch-src_3rdparty_forkfd_forkfd.c]
+--- src/3rdparty/forkfd/forkfd.c.orig	2022-11-16 07:54:24 UTC
++++ src/3rdparty/forkfd/forkfd.c
+@@ -74,9 +74,11 @@
+ 
+ #if (defined(__FreeBSD__) && defined(__FreeBSD_version) && __FreeBSD_version >= 1000032) || \
+     (defined(__OpenBSD__) && OpenBSD >= 201505) || \
++    defined(__MidnightBSD__) || \
+     (defined(__NetBSD__) && __NetBSD_Version__ >= 600000000)
+ #  define HAVE_PIPE2    1
+ #endif
++
+ #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__) || \
+     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__APPLE__)
+ #  define HAVE_WAIT4    1
+
+
 [FILE:649:patches/patch-src_3rdparty_sha3_brg__endian.h]
 --- src/3rdparty/sha3/brg_endian.h.orig	2022-11-16 07:54:24 UTC
 +++ src/3rdparty/sha3/brg_endian.h
@@ -4276,6 +4336,24 @@ Do not create .la files.
      SOURCES
          io/qfilesystemwatcher_kqueue.cpp io/qfilesystemwatcher_kqueue_p.h
  )
+
+
+[FILE:477:patches/patch-src_corelib_global_qlogging.cpp]
+--- src/corelib/global/qlogging.cpp.orig	2022-11-16 07:54:24 UTC
++++ src/corelib/global/qlogging.cpp
+@@ -103,6 +103,12 @@ static int qt_gettid()
+     pthread_threadid_np(NULL, &tid);
+     return tid;
+ }
++#elif defined __MidnightBSD__
++#  include <pthread_np.h>
++static int qt_gettid()
++{
++    return pthread_getthreadid_np();
++}
+ #elif defined(Q_OS_FREEBSD_KERNEL) && defined(__FreeBSD_version) && __FreeBSD_version >= 900031
+ #  include <pthread_np.h>
+ static int qt_gettid()
 
 
 [FILE:483:patches/patch-src_corelib_io_qfilesystemwatcher.cpp]
@@ -4337,7 +4415,7 @@ Do not create .la files.
  // Support older ELFOSABI define for GNU/Linux
 
 
-[FILE:816:patches/patch-src_corelib_thread_qthread__unix.cpp]
+[FILE:991:patches/patch-src_corelib_thread_qthread__unix.cpp]
 --- src/corelib/thread/qthread_unix.cpp.orig	2022-11-16 07:54:24 UTC
 +++ src/corelib/thread/qthread_unix.cpp
 @@ -34,7 +34,7 @@
@@ -4345,19 +4423,35 @@ Do not create .la files.
  #include <errno.h>
  
 -#if defined(Q_OS_FREEBSD)
-+#if defined(Q_OS_FREEBSD) && !defined(__DragonFly__)
++#if (defined(Q_OS_FREEBSD) || defined(__MidnightBSD__)) && !defined(__DragonFly__)
  #  include <sys/cpuset.h>
  #elif defined(Q_OS_BSD4)
  #  include <sys/sysctl.h>
-@@ -411,7 +411,7 @@ int QThread::idealThreadCount() noexcept
+@@ -411,8 +411,8 @@ int QThread::idealThreadCount() noexcept
      } else {
          cores = (int)psd.psd_proc_cnt;
      }
 -#elif (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)) || defined(Q_OS_FREEBSD)
-+#elif (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)) || defined(Q_OS_FREEBSD) && !defined(__DragonFly__)
- #  if defined(Q_OS_FREEBSD) && !defined(CPU_COUNT_S)
+-#  if defined(Q_OS_FREEBSD) && !defined(CPU_COUNT_S)
++#elif defined(__MidnightBSD__) || (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)) || defined(Q_OS_FREEBSD) && !defined(__DragonFly__)
++#  if (defined(Q_OS_FREEBSD) || defined(__MidnightBSD__)) && !defined(CPU_COUNT_S)
  #    define CPU_COUNT_S(setsize, cpusetp)   ((int)BIT_COUNT(setsize, cpusetp))
      // match the Linux API for simplicity
+     using cpu_set_t = cpuset_t;
+
+
+[FILE:677:patches/patch-src_gui_configure.cmake]
+--- src/gui/configure.cmake.orig	2022-11-16 07:54:24 UTC
++++ src/gui/configure.cmake
+@@ -25,7 +25,7 @@ set_property(CACHE INPUT_libpng PROPERTY
+ 
+ 
+ #### Libraries
+-qt_set01(X11_SUPPORTED LINUX OR HPUX OR FREEBSD OR NETBSD OR OPENBSD OR SOLARIS OR HURD) # special case
++qt_set01(X11_SUPPORTED LINUX OR HPUX OR FREEBSD OR NETBSD OR OPENBSD OR SOLARIS OR HURD OR MIDNIGHT OR DRAGONFLY) # special case
+ qt_find_package(ATSPI2 PROVIDED_TARGETS PkgConfig::ATSPI2 MODULE_NAME gui QMAKE_LIB atspi)
+ qt_find_package(DirectFB PROVIDED_TARGETS PkgConfig::DirectFB MODULE_NAME gui QMAKE_LIB directfb)
+ qt_find_package(Libdrm PROVIDED_TARGETS Libdrm::Libdrm MODULE_NAME gui QMAKE_LIB drm)
 
 
 [FILE:1102:patches/patch-src_network_kernel_qnetworkinterface__unix.cpp]

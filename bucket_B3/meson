@@ -49,6 +49,19 @@ d926b730de6f518728cc7c57bc5e701667bae0c3522f9e369427b2cc7839d3c1      2104183 me
 share/polkit-1/actions/com.mesonbuild.install.policy
 
 
+[FILE:355:patches/patch-mesonbuild_cmake_toolchain.py]
+--- mesonbuild/cmake/toolchain.py.orig	2022-10-24 19:25:13 UTC
++++ mesonbuild/cmake/toolchain.py
+@@ -158,6 +158,7 @@ class CMakeToolchain:
+             'linux': 'Linux',
+             'windows': 'Windows',
+             'freebsd': 'FreeBSD',
++            'midnightbsd': 'MidnightBSD',
+             'darwin': 'Darwin',
+         }  # type: T.Dict[str, str]
+ 
+
+
 [FILE:683:patches/patch-mesonbuild_compilers_mixins_clike.py]
 --- mesonbuild/compilers/mixins/clike.py.orig	2023-02-20 12:58:43 UTC
 +++ mesonbuild/compilers/mixins/clike.py
@@ -77,6 +90,20 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
              self.base_options.add(OptionKey('b_asneeded'))
          if not self.info.is_hurd():
              self.base_options.add(OptionKey('b_sanitize'))
+
+
+[FILE:407:patches/patch-mesonbuild_envconfig.py]
+--- mesonbuild/envconfig.py.orig	2023-02-20 12:58:43 UTC
++++ mesonbuild/envconfig.py
+@@ -339,7 +339,7 @@ class MachineInfo(HoldableObject):
+ 
+     def is_freebsd(self) -> bool:
+         """Machine is FreeBSD?"""
+-        return self.system == 'freebsd'
++        return self.system == 'freebsd' or self.system == 'midnightbsd'
+ 
+     def is_sunos(self) -> bool:
+         """Machine is illumos or Solaris?"""
 
 
 [FILE:732:patches/patch-mesonbuild_linkers_linkers.py]
