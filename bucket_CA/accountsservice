@@ -189,10 +189,10 @@ GitLab
 
 
 
-[FILE:424:patches/patch-meson.build]
+[FILE:838:patches/patch-meson.build]
 --- meson.build.orig	2019-04-23 15:16:09 UTC
 +++ meson.build
-@@ -79,6 +79,8 @@ endforeach
+@@ -79,11 +79,16 @@ endforeach
  
  if cc.has_header_symbol('utmpx.h', 'WTMPX_FILENAME', prefix: '#define _GNU_SOURCE')
    config_h.set('PATH_WTMP', 'WTMPX_FILENAME')
@@ -201,12 +201,22 @@ GitLab
  elif cc.has_header_symbol('paths.h', '_PATH_WTMPX')
    config_h.set('PATH_WTMP', '_PATH_WTMPX')
  else
+-  assert(run_command('test', '-e', '/var/log/utx.log').returncode() == 0, 'Do not know which filename to watch for wtmp changes')
+-  config_h.set_quoted('PATH_WTMP', '/var/log/utx.log')
++  # Ugly hack for jails builders!
++  _system = host_machine.system().to_lower()
++  if ['freebsd','midnightbsd'].contains(_system)
++    config_h.set_quoted('PATH_WTMP', '/var/log/utx.log')
++  endif
+ endif
+ 
+ # compiler flags
 
 
-[FILE:667:patches/patch-meson__post__install.py]
---- meson_post_install.py.orig	2019-04-23 17:16:09.000000000 +0200
-+++ meson_post_install.py	2021-06-03 15:47:58.660402000 +0200
-@@ -9,8 +9,8 @@
+[FILE:660:patches/patch-meson__post__install.py]
+--- meson_post_install.py.orig	2019-04-23 15:16:09 UTC
++++ meson_post_install.py
+@@ -9,8 +9,8 @@ localstatedir = os.path.normpath(destdir
  # FIXME: meson will not track the creation of these directories
  #        https://github.com/mesonbuild/meson/blob/master/mesonbuild/scripts/uninstall.py#L39
  dst_dirs = [
@@ -219,10 +229,10 @@ GitLab
  for (dst_dir, dst_dir_mode) in dst_dirs:
 
 
-[FILE:9951:patches/patch-src_daemon.c]
---- src/daemon.c.orig	2019-04-23 17:16:09.000000000 +0200
-+++ src/daemon.c	2021-06-03 15:49:31.681945000 +0200
-@@ -81,7 +81,11 @@
+[FILE:10586:patches/patch-src_daemon.c]
+--- src/daemon.c.orig	2019-04-23 15:16:09 UTC
++++ src/daemon.c
+@@ -81,7 +81,11 @@ typedef struct {
          GHashTable *extension_ifaces;
  } DaemonPrivate;
  
@@ -234,7 +244,7 @@ GitLab
  
  typedef struct {
          Daemon *daemon;
-@@ -165,17 +169,25 @@
+@@ -165,17 +169,25 @@ remove_cache_files (const gchar *user_na
  }
  
  static struct passwd *
@@ -260,7 +270,7 @@ GitLab
  
          struct {
                  FILE *fp;
-@@ -186,6 +198,7 @@
+@@ -186,6 +198,7 @@ entry_generator_fgetpwent (Daemon
          if (*state == NULL) {
                  GHashTable *shadow_users = NULL;
                  FILE *fp;
@@ -268,7 +278,7 @@ GitLab
                  struct spwd *shadow_entry;
  
                  fp = fopen (PATH_SHADOW, "r");
-@@ -219,6 +232,7 @@
+@@ -219,6 +232,7 @@ entry_generator_fgetpwent (Daemon
                          g_clear_pointer (&shadow_users, g_hash_table_unref);
                          return NULL;
                  }
@@ -276,7 +286,7 @@ GitLab
  
                  fp = fopen (PATH_PASSWD, "r");
                  if (fp == NULL) {
-@@ -240,12 +254,17 @@
+@@ -240,12 +254,17 @@ entry_generator_fgetpwent (Daemon
          if (g_hash_table_size (users) < MAX_LOCAL_USERS) {
                  pwent = fgetpwent (generator_state->fp);
                  if (pwent != NULL) {
@@ -294,7 +304,7 @@ GitLab
                  }
          }
  
-@@ -259,10 +278,16 @@
+@@ -259,10 +278,16 @@ entry_generator_fgetpwent (Daemon
  }
  
  static struct passwd *
@@ -311,7 +321,7 @@ GitLab
  {
          struct passwd *pwent;
          g_autoptr(GError) error = NULL;
-@@ -304,7 +329,9 @@
+@@ -304,7 +329,9 @@ entry_generator_cachedir (Daemon       *
                          errno = 0;
                          pwent = getpwnam (name);
                          if (pwent != NULL) {
@@ -321,7 +331,7 @@ GitLab
  
                                  return pwent;
                          } else if (errno == 0) {
-@@ -340,10 +367,16 @@
+@@ -340,10 +367,16 @@ entry_generator_cachedir (Daemon       *
  }
  
  static struct passwd *
@@ -338,7 +348,7 @@ GitLab
  {
          DaemonPrivate *priv = daemon_get_instance_private (daemon);
          struct passwd *pwent;
-@@ -371,7 +404,9 @@
+@@ -371,7 +404,9 @@ entry_generator_requested_users (Daemon
                                  if (pwent == NULL) {
                                          g_debug ("user '%s' requested previously but not present on system", name);
                                  } else {
@@ -348,7 +358,7 @@ GitLab
  
                                          return pwent;
                                  }
-@@ -394,19 +429,29 @@
+@@ -394,19 +429,29 @@ load_entries (Daemon             *daemon
          DaemonPrivate *priv = daemon_get_instance_private (daemon);
          gpointer generator_state = NULL;
          struct passwd *pwent;
@@ -378,7 +388,7 @@ GitLab
                          g_debug ("skipping user: %s", pwent->pw_name);
                          continue;
                  }
-@@ -428,7 +473,11 @@
+@@ -428,7 +473,11 @@ load_entries (Daemon             *daemon
  
                          /* freeze & update users not already in the new list */
                          g_object_freeze_notify (G_OBJECT (user));
@@ -390,7 +400,7 @@ GitLab
  
                          g_hash_table_insert (users, g_strdup (user_get_user_name (user)), user);
                          g_debug ("loaded user: %s", user_get_user_name (user));
-@@ -843,15 +892,24 @@
+@@ -843,15 +892,24 @@ throw_error (GDBusMethodInvocation *cont
  }
  
  static User *
@@ -415,7 +425,7 @@ GitLab
          user_register (user);
  
          g_hash_table_insert (priv->users,
-@@ -880,9 +938,13 @@
+@@ -880,9 +938,13 @@ daemon_local_find_user_by_id (Daemon *da
          user = g_hash_table_lookup (priv->users, pwent->pw_name);
  
          if (user == NULL) {
@@ -429,7 +439,7 @@ GitLab
  
                  priv->explicitly_requested_users = g_list_append (priv->explicitly_requested_users,
                                                                    g_strdup (pwent->pw_name));
-@@ -908,9 +970,13 @@
+@@ -908,9 +970,13 @@ daemon_local_find_user_by_name (Daemon
          user = g_hash_table_lookup (priv->users, pwent->pw_name);
  
          if (user == NULL) {
@@ -443,7 +453,7 @@ GitLab
  
                  priv->explicitly_requested_users = g_list_append (priv->explicitly_requested_users,
                                                                    g_strdup (pwent->pw_name));
-@@ -1106,10 +1172,12 @@
+@@ -1106,10 +1172,12 @@ daemon_create_user_authorized_cb (Daemon
  
          sys_log (context, "create user '%s'", cd->user_name);
  
@@ -460,7 +470,7 @@ GitLab
          if (cd->account_type == ACCOUNT_TYPE_ADMINISTRATOR) {
                  if (EXTRA_ADMIN_GROUPS != NULL && EXTRA_ADMIN_GROUPS[0] != '\0')
                          admin_groups = g_strconcat (ADMIN_GROUP, ",",
-@@ -1117,15 +1185,11 @@
+@@ -1117,15 +1185,11 @@ daemon_create_user_authorized_cb (Daemon
                  else
                          admin_groups = g_strdup (ADMIN_GROUP);
  
@@ -478,7 +488,7 @@ GitLab
                  argv[6] = NULL;
          }
          else {
-@@ -1292,7 +1356,7 @@
+@@ -1292,7 +1356,7 @@ daemon_delete_user_authorized_cb (Daemon
          DeleteUserData *ud = data;
          g_autoptr(GError) error = NULL;
          struct passwd *pwent;
@@ -487,7 +497,7 @@ GitLab
          User *user;
  
          pwent = getpwuid (ud->uid);
-@@ -1318,19 +1382,16 @@
+@@ -1318,19 +1382,16 @@ daemon_delete_user_authorized_cb (Daemon
  
          user_set_saved (user, FALSE);
  
@@ -531,10 +541,10 @@ GitLab
  #include <glib/gi18n.h>
 
 
-[FILE:667:patches/patch-src_meson.build]
---- src/meson.build.orig	2019-04-23 17:16:09.000000000 +0200
-+++ src/meson.build	2021-06-03 15:53:08.752594000 +0200
-@@ -26,8 +26,8 @@
+[FILE:628:patches/patch-src_meson.build]
+--- src/meson.build.orig	2019-04-23 15:16:09 UTC
++++ src/meson.build
+@@ -26,8 +26,8 @@ deps = [
  cflags = [
    '-DLOCALSTATEDIR="@0@"'.format(act_localstatedir),
    '-DDATADIR="@0@"'.format(act_datadir),
@@ -547,10 +557,10 @@ GitLab
  libaccounts_generated = static_library(
 
 
-[FILE:408:patches/patch-src_user-classify.c]
---- src/user-classify.c.orig	2019-04-23 17:16:09.000000000 +0200
-+++ src/user-classify.c	2021-06-03 15:54:58.188003000 +0200
-@@ -41,6 +41,7 @@
+[FILE:440:patches/patch-src_user-classify.c]
+--- src/user-classify.c.orig	2019-04-23 15:16:09 UTC
++++ src/user-classify.c
+@@ -41,6 +41,7 @@ static const char *default_excludes[] =
          "uucp",
          "nobody",
          "postgres",
@@ -558,7 +568,7 @@ GitLab
          "pvm",
          "rpm",
          "nfsnobody",
-@@ -50,6 +51,7 @@
+@@ -50,6 +51,7 @@ static const char *default_excludes[] =
          "games",
          "man",
          "at",
@@ -568,10 +578,10 @@ GitLab
  };
 
 
-[FILE:10117:patches/patch-src_user.c]
---- src/user.c.orig	2019-04-23 17:16:09.000000000 +0200
-+++ src/user.c	2021-06-03 15:56:17.985242000 +0200
-@@ -138,9 +138,14 @@
+[FILE:10795:patches/patch-src_user.c]
+--- src/user.c.orig	2019-04-23 15:16:09 UTC
++++ src/user.c
+@@ -138,9 +138,14 @@ user_reset_icon_file (User *user)
  }
  
  void
@@ -586,7 +596,7 @@ GitLab
  {
          g_autofree gchar *real_name = NULL;
          gboolean is_system_account;
-@@ -199,8 +204,10 @@
+@@ -199,8 +204,10 @@ user_update_from_pwent (User          *u
          accounts_user_set_shell (ACCOUNTS_USER (user), pwent->pw_shell);
  
          passwd = NULL;
@@ -597,7 +607,7 @@ GitLab
  
          if (passwd && passwd[0] == '!') {
                  locked = TRUE;
-@@ -218,6 +225,7 @@
+@@ -218,6 +225,7 @@ user_update_from_pwent (User          *u
                  mode = PASSWORD_MODE_NONE;
          }
  
@@ -605,7 +615,7 @@ GitLab
          if (spent) {
                  if (spent->sp_lstchg == 0) {
                          mode = PASSWORD_MODE_SET_AT_LOGIN;
-@@ -231,6 +239,9 @@
+@@ -231,6 +239,9 @@ user_update_from_pwent (User          *u
                  user->days_after_expiration_until_lock = spent->sp_inact;
                  user->account_expiration_policy_known = TRUE;
          }
@@ -615,7 +625,7 @@ GitLab
  
          accounts_user_set_password_mode (ACCOUNTS_USER (user), mode);
          is_system_account = !user_classify_is_human (accounts_user_get_uid (ACCOUNTS_USER (user)),
-@@ -844,11 +855,11 @@
+@@ -844,11 +855,11 @@ user_change_real_name_authorized_cb (Dae
                           accounts_user_get_uid (ACCOUNTS_USER (user)),
                           name);
  
@@ -632,7 +642,7 @@ GitLab
                  argv[5] = NULL;
  
                  if (!spawn_with_login_uid (context, argv, &error)) {
-@@ -913,11 +924,11 @@
+@@ -913,11 +924,11 @@ user_change_user_name_authorized_cb (Dae
                           accounts_user_get_uid (ACCOUNTS_USER (user)),
                           name);
  
@@ -649,7 +659,7 @@ GitLab
                  argv[5] = NULL;
  
                  if (!spawn_with_login_uid (context, argv, &error)) {
-@@ -1312,7 +1323,7 @@
+@@ -1312,7 +1323,7 @@ user_change_home_dir_authorized_cb (Daem
  {
          gchar *home_dir = data;
          g_autoptr(GError) error = NULL;
@@ -658,7 +668,7 @@ GitLab
  
          if (g_strcmp0 (accounts_user_get_home_directory (ACCOUNTS_USER (user)), home_dir) != 0) {
                  sys_log (context,
-@@ -1321,13 +1332,12 @@
+@@ -1321,13 +1332,12 @@ user_change_home_dir_authorized_cb (Daem
                           accounts_user_get_uid (ACCOUNTS_USER (user)),
                           home_dir);
  
@@ -678,7 +688,7 @@ GitLab
  
                  if (!spawn_with_login_uid (context, argv, &error)) {
                          throw_error (context, ERROR_FAILED, "running '%s' failed: %s", argv[0], error->message);
-@@ -1378,11 +1388,11 @@
+@@ -1378,11 +1388,11 @@ user_change_shell_authorized_cb (Daemon
                           accounts_user_get_uid (ACCOUNTS_USER (user)),
                           shell);
  
@@ -695,7 +705,7 @@ GitLab
                  argv[5] = NULL;
  
                  if (!spawn_with_login_uid (context, argv, &error)) {
-@@ -1593,7 +1603,7 @@
+@@ -1593,7 +1603,7 @@ user_change_locked_authorized_cb (Daemon
  {
          gboolean locked = GPOINTER_TO_INT (data);
          g_autoptr(GError) error = NULL;
@@ -704,7 +714,7 @@ GitLab
  
          if (accounts_user_get_locked (ACCOUNTS_USER (user)) != locked) {
                  sys_log (context,
-@@ -1601,11 +1611,10 @@
+@@ -1601,11 +1611,10 @@ user_change_locked_authorized_cb (Daemon
                           locked ? "locking" : "unlocking",
                           accounts_user_get_user_name (ACCOUNTS_USER (user)),
                           accounts_user_get_uid (ACCOUNTS_USER (user)));
@@ -720,7 +730,7 @@ GitLab
  
                  if (!spawn_with_login_uid (context, argv, &error)) {
                          throw_error (context, ERROR_FAILED, "running '%s' failed: %s", argv[0], error->message);
-@@ -1726,11 +1735,11 @@
+@@ -1726,11 +1735,11 @@ user_change_account_type_authorized_cb (
  
                  g_free (groups);
  
@@ -737,7 +747,7 @@ GitLab
                  argv[5] = NULL;
  
                  if (!spawn_with_login_uid (context, argv, &error)) {
-@@ -1780,7 +1789,7 @@
+@@ -1780,7 +1789,7 @@ user_change_password_mode_authorized_cb
  {
          PasswordMode mode = GPOINTER_TO_INT (data);
          g_autoptr(GError) error = NULL;
@@ -746,7 +756,7 @@ GitLab
  
          if (((PasswordMode) accounts_user_get_password_mode (ACCOUNTS_USER (user))) != mode) {
                  sys_log (context,
-@@ -1795,10 +1804,8 @@
+@@ -1795,10 +1804,8 @@ user_change_password_mode_authorized_cb
                      mode == PASSWORD_MODE_NONE) {
  
                          argv[0] = "/usr/bin/passwd";
@@ -759,7 +769,7 @@ GitLab
  
                          if (!spawn_with_login_uid (context, argv, &error)) {
                                  throw_error (context, ERROR_FAILED, "running '%s' failed: %s", argv[0], error->message);
-@@ -1806,12 +1813,11 @@
+@@ -1806,12 +1813,11 @@ user_change_password_mode_authorized_cb
                          }
  
                          if (mode == PASSWORD_MODE_SET_AT_LOGIN) {
@@ -776,7 +786,7 @@ GitLab
  
                                  if (!spawn_with_login_uid (context, argv, &error)) {
                                          throw_error (context, ERROR_FAILED, "running '%s' failed: %s", argv[0], error->message);
-@@ -1827,11 +1833,10 @@
+@@ -1827,11 +1833,10 @@ user_change_password_mode_authorized_cb
                          accounts_user_set_locked (ACCOUNTS_USER (user), FALSE);
                  }
                  else if (accounts_user_get_locked (ACCOUNTS_USER (user))) {
@@ -792,7 +802,7 @@ GitLab
  
                          if (!spawn_with_login_uid (context, argv, &error)) {
                                  throw_error (context, ERROR_FAILED, "running '%s' failed: %s", argv[0], error->message);
-@@ -1896,7 +1901,7 @@
+@@ -1896,7 +1901,7 @@ user_change_password_authorized_cb (Daem
  {
          gchar **strings = data;
          g_autoptr(GError) error = NULL;
@@ -801,7 +811,7 @@ GitLab
  
          sys_log (context,
                   "set password and hint of user '%s' (%d)",
-@@ -1905,12 +1910,11 @@
+@@ -1905,12 +1910,11 @@ user_change_password_authorized_cb (Daem
  
          g_object_freeze_notify (G_OBJECT (user));
  
@@ -819,9 +829,9 @@ GitLab
                  throw_error (context, ERROR_FAILED, "running '%s' failed: %s", argv[0], error->message);
 
 
-[FILE:1008:patches/patch-src_user.h]
---- src/user.h.orig	2019-04-23 17:16:09.000000000 +0200
-+++ src/user.h	2021-06-03 16:07:13.902776000 +0200
+[FILE:989:patches/patch-src_user.h]
+--- src/user.h.orig	2019-04-23 15:16:09 UTC
++++ src/user.h
 @@ -22,7 +22,9 @@
  
  #include <sys/types.h>
@@ -832,7 +842,7 @@ GitLab
  
  #include <glib.h>
  #include <gio/gio.h>
-@@ -54,9 +56,14 @@
+@@ -54,9 +56,14 @@ GType          user_get_type
  User *         user_new                     (Daemon        *daemon,
                                               uid_t          uid);
  
@@ -876,23 +886,4 @@ GitLab
  
  const gchar *           wtmp_helper_get_path_for_monitor                (void);
  void                    wtmp_helper_update_login_frequencies            (GHashTable *users);
-
-
-[FILE:627:freebsd/patch-meson.build]
---- meson.build.orig	2019-04-23 17:16:09.000000000 +0200
-+++ meson.build	2021-06-03 15:45:38.526501000 +0200
-@@ -82,8 +82,11 @@
- elif cc.has_header_symbol('paths.h', '_PATH_WTMPX')
-   config_h.set('PATH_WTMP', '_PATH_WTMPX')
- else
--  assert(run_command('test', '-e', '/var/log/utx.log').returncode() == 0, 'Do not know which filename to watch for wtmp changes')
--  config_h.set_quoted('PATH_WTMP', '/var/log/utx.log')
-+  # Ugly hack for jails builders!
-+  _system = host_machine.system().to_lower()
-+  if _system.contains('freebsd')
-+    config_h.set_quoted('PATH_WTMP', '/var/log/utx.log')
-+  endif
- endif
- 
- # compiler flags
 

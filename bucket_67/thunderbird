@@ -115,6 +115,7 @@ QMAKE_ARGS=		--prefix="{{PREFIX}}"
 VAR_OPSYS[linux]=	QMAKE_ARGS=--disable-elf-hack
 			QMAKE_ARGS=--enable-audio-backends=sndio
 VAR_OPSYS[netbsd]=	QMAKE_ARGS=--enable-audio-backends=sndio
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
@@ -165,6 +166,8 @@ post-install:
 pre-configure:
 	(cd ${WRKSRC} && ${LOCALBASE}/bin/autoconf-2.13)
 	(cd ${WRKSRC}/js/src/ && ${LOCALBASE}/bin/autoconf-2.13)
+	${REINPLACE_CMD} -e "s|%%MBSD64_TGT%%|x86_64-raven-freebsd12.3|" \
+		${WRKSRC}/build/autoconf/config.guess
 
 post-install-netbsd:
 	${PAXCTL} +m ${STAGEDIR}${PREFIX}/lib/thunderbird/thunderbird
@@ -760,6 +763,20 @@ index 0069865..9bb1864 100644
      "--enable-geckodriver",
 
 
+[FILE:402:patches/patch-build_autoconf_config.guess]
+--- build/autoconf/config.guess.orig	2023-03-10 22:19:01 UTC
++++ build/autoconf/config.guess
+@@ -284,7 +284,7 @@ case $UNAME_MACHINE:$UNAME_SYSTEM:$UNAME
+ 	GUESS=$UNAME_MACHINE_ARCH-unknown-libertybsd$UNAME_RELEASE
+ 	;;
+     *:MidnightBSD:*:*)
+-	GUESS=$UNAME_MACHINE-unknown-midnightbsd$UNAME_RELEASE
++	GUESS=%%MBSD64_TGT%%
+ 	;;
+     *:ekkoBSD:*:*)
+ 	GUESS=$UNAME_MACHINE-unknown-ekkobsd$UNAME_RELEASE
+
+
 [FILE:416:patches/patch-comm__third_party__rnpdefs.mozbuild]
 --- comm/third_party/rnpdefs.mozbuild.orig	2021-08-11 20:13:25.176921000 +0200
 +++ comm/third_party/rnpdefs.mozbuild	2021-08-11 20:14:08.855374000 +0200
@@ -844,6 +861,20 @@ gfx/skia/skia/src/core/SkCpu.cpp:81:27: error: use of undeclared identifier 'get
  
 
 
+[FILE:468:patches/patch-testing_mozbase_mozinfo_mozinfo_mozinfo.py]
+--- testing/mozbase/mozinfo/mozinfo/mozinfo.py.orig	2023-03-10 22:19:09 UTC
++++ testing/mozbase/mozinfo/mozinfo/mozinfo.py
+@@ -133,7 +133,7 @@ elif system == "Linux":
+ 
+     info["os"] = "linux"
+     info["linux_distro"] = distribution
+-elif system in ["DragonFly", "FreeBSD", "NetBSD", "OpenBSD"]:
++elif system in ["DragonFly", "FreeBSD", "NetBSD", "OpenBSD", "MidnightBSD"]:
+     info["os"] = "bsd"
+     version = os_version = sys.platform
+ elif system == "Darwin":
+
+
 [FILE:361:patches/patch-third__party_libwebrtc_build_build__config.h]
 --- third_party/libwebrtc/build/build_config.h.orig	2022-09-12 16:44:50 UTC
 +++ third_party/libwebrtc/build/build_config.h
@@ -925,4 +956,18 @@ Terminal=false
 Type=Application
 Categories=Network;Email;News;InstantMessaging;
 MimeType=application/mbox;message/rfc822;
+
+
+[FILE:430:midnightbsd/patch-third__party_sqlite3_src_moz.build]
+--- third_party/sqlite3/src/moz.build.orig	2023-03-10 22:19:15 UTC
++++ third_party/sqlite3/src/moz.build
+@@ -92,7 +92,7 @@ DEFINES['SQLITE_TEMP_FILE_PREFIX'] = '"m
+ 
+ # Enabling sqlite math functions
+ DEFINES['SQLITE_ENABLE_MATH_FUNCTIONS'] = True
+-if CONFIG["OS_TARGET"] == "Linux" or CONFIG["OS_TARGET"] == "Android":
++if CONFIG["OS_TARGET"] == "Linux" or CONFIG["OS_TARGET"] == "FreeBSD":
+     OS_LIBS += [
+         "m"
+     ]
 

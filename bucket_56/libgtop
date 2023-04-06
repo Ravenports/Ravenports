@@ -266,15 +266,42 @@ share/gtk-doc/html/libgtop/
  
 
 
-[FILE:3134:patches/patch-configure]
+[FILE:4017:patches/patch-configure]
 --- configure.orig	2019-03-11 08:56:47 UTC
 +++ configure
+@@ -7309,7 +7309,7 @@ darwin* | rhapsody*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnightbsd*)
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
+     case $host_cpu in
+     i*86 )
+@@ -11573,7 +11573,7 @@ fi
+       ;;
+ 
+     # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
+-    freebsd* | dragonfly*)
++    freebsd* | dragonfly* | midnight*)
+       archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
+       hardcode_libdir_flag_spec='-R$libdir'
+       hardcode_direct=yes
+@@ -12618,7 +12618,7 @@ dgux*)
+   shlibpath_var=LD_LIBRARY_PATH
+   ;;
+ 
+-freebsd* | dragonfly*)
++freebsd* | dragonfly* | midnight*)
+   # DragonFly does not have aout.  When/if they implement a new
+   # versioning mechanism, adjust this.
+   if test -x /usr/bin/objformat; then
 @@ -13955,7 +13955,7 @@ $as_echo_n "checking for libgtop sysdeps
  	  libgtop_sysdeps_private_fsusage=yes
  	  libgtop_postinstall='chgrp kmem $(bindir)/libgtop_server2 && chmod 2555 $(bindir)/libgtop_server2'
  	  ;;
 -	freebsd*|kfreebsd*)
-+	freebsd*|dragonfly*|kfreebsd*)
++	freebsd*|dragonfly*|kfreebsd*|midnight*)
  	  libgtop_sysdeps_dir=freebsd
  	  libgtop_need_server=yes
  	  libgtop_sysdeps_private_mountlist=yes
@@ -368,7 +395,7 @@ share/gtk-doc/html/libgtop/
            fu_cv_sys_stat_statfs4=yes
            ;;
 -        freebsd*)
-+        freebsd*|dragonfly*)
++        freebsd*|dragonfly*|midnight*)
            fu_cv_sys_stat_statfs2_bsize=yes
            ;;
          osf*)
@@ -490,15 +517,17 @@ DFLYGC 6.2
                          } else {
 
 
-[FILE:375:patches/patch-sysdeps_freebsd_open.c]
+[FILE:458:patches/patch-sysdeps_freebsd_open.c]
 --- sysdeps/freebsd/open.c.orig	2019-02-04 20:15:22 UTC
 +++ sysdeps/freebsd/open.c
-@@ -43,6 +43,10 @@ glibtop_open_s (glibtop *server, const c
+@@ -43,6 +43,12 @@ glibtop_open_s (glibtop *server, const c
  	server->real_ncpu = ncpus - 1;
  	server->ncpu = MIN(GLIBTOP_NCPU - 1, server->real_ncpu);
  
 +#ifdef __DragonFly__
 +	server->os_version_code = __DragonFly_version;
++#elif defined(__MidnightBSD__)
++	server->os_version_code = __MidnightBSD_version;
 +#else
  	server->os_version_code = __FreeBSD_version;
 +#endif
@@ -561,7 +590,7 @@ DFLYGC 6.2
  
 
 
-[FILE:5721:patches/patch-sysdeps_freebsd_procmap.c]
+[FILE:7435:patches/patch-sysdeps_freebsd_procmap.c]
 --- sysdeps/freebsd/procmap.c.orig	2019-02-04 20:15:22 UTC
 +++ sysdeps/freebsd/procmap.c
 @@ -24,6 +24,7 @@
@@ -572,7 +601,7 @@ DFLYGC 6.2
  #include <glibtop_suid.h>
  
  #include <kvm.h>
-@@ -34,6 +35,8 @@
+@@ -34,12 +35,14 @@
  #include <vm/vm_map.h>
  #include <vm/vm.h>
  
@@ -581,7 +610,14 @@ DFLYGC 6.2
  #define _KVM_VNODE
  #include <sys/vnode.h>
  #undef _KVM_VNODE
-@@ -51,13 +54,14 @@
+ 
+ #include <sys/conf.h>
+-#if (__FreeBSD_version >= 800038) || (__FreeBSD_kernel_version >= 800038)
++#if defined(__MidnightBSD__) || (__FreeBSD_version >= 800038) || (__FreeBSD_kernel_version >= 800038)
+ #define _WANT_FILE
+ #include <sys/file.h>
+ #undef _WANT_FILE
+@@ -51,15 +54,16 @@
  #define _KERNEL
  #include <sys/mount.h>
  #include <ufs/ufs/quota.h>
@@ -589,15 +625,28 @@ DFLYGC 6.2
 +#include <ufs/ufs/extattr.h>
 +#include <ufs/ufs/ufsmount.h>
  #include <fs/devfs/devfs.h>
- #if (__FreeBSD_version >= 600006) || defined(__FreeBSD_kernel__)
+-#if (__FreeBSD_version >= 600006) || defined(__FreeBSD_kernel__)
++#if defined(__MidnightBSD__) ||  (__FreeBSD_version >= 600006) || defined(__FreeBSD_kernel__)
  #include <fs/devfs/devfs_int.h>
  #endif
  #undef _KERNEL
--
 +#include <ufs/ufs/inode.h>
  
- #if (__FreeBSD_version >= 1101001)
+-
+-#if (__FreeBSD_version >= 1101001)
++#if defined(__MidnightBSD__) || (__FreeBSD_version >= 1101001)
  #define _KERNEL
+ #include <ufs/ufs/extattr.h>
+ #include <ufs/ufs/ufsmount.h>
+@@ -79,7 +83,7 @@ static const unsigned long _glibtop_sysd
+         (1L << GLIBTOP_MAP_ENTRY_OFFSET) + (1L << GLIBTOP_MAP_ENTRY_PERM) +
+         (1L << GLIBTOP_MAP_ENTRY_INODE) + (1L << GLIBTOP_MAP_ENTRY_DEVICE);
+ 
+-#if (__FreeBSD_version >= 600006) || defined(__FreeBSD_kernel__)
++#if defined(__MidnightBSD__) || (__FreeBSD_version >= 600006) || defined(__FreeBSD_kernel__)
+ void _glibtop_sysdeps_freebsd_dev_inode (glibtop *server, struct vnode *vnode, struct vnode *vn, guint64 *inum, guint64 *dev);
+ 
+ void
 @@ -95,12 +99,14 @@ _glibtop_sysdeps_freebsd_dev_inode (glib
          struct cdev_priv priv;
  #if __FreeBSD_version < 800039
@@ -623,6 +672,24 @@ DFLYGC 6.2
   	              sizeof (inode)) != sizeof (inode))
          {
                  glibtop_warn_io_r (server, "kvm_read (inode)");
+@@ -175,7 +181,7 @@ _glibtop_sysdeps_freebsd_dev_inode (glib
+                 *inum = inode.i_number;
+ 
+ 
+-#if (__FreeBSD_version >= 1101001)
++#if defined(__MidnightBSD__) || (__FreeBSD_version >= 1101001)
+ /*
+   The ufs struct inode changed between 11.0 and 11.1.
+ 
+@@ -201,7 +207,7 @@ _glibtop_sysdeps_freebsd_dev_inode (glib
+ 		*dev = priv.cdp_inode;
+ 
+ #else /* older versions */
+-#if (__FreeBSD_version >= 800039) || (__FreeBSD_kernel_version >= 800039)
++#if defined(__MidnightBSD__) || (__FreeBSD_version >= 800039) || (__FreeBSD_kernel_version >= 800039)
+         if (kvm_read (server->machine->kd, (gulong) cdev2priv(inode.i_dev), (char *) &priv,
+ 		      sizeof (priv))
+ #else
 @@ -222,6 +228,9 @@ _glibtop_sysdeps_freebsd_dev_inode (glib
  	    } /* end-if IS_UFS */
  }
@@ -647,7 +714,7 @@ DFLYGC 6.2
 +	return (kvm_read (kd, (gulong) addr, dest, sizeof(*dest)) == sizeof(*dest));
 +}
 +
-+#if (__FreeBSD_version < 1300062) && !defined(__DragonFly__)
++#if !defined(__DragonFly__) && (defined(__MidnightBSD__) || (__FreeBSD_version < 1300062))
 +typedef int vm_map_entry_reader(void *token, vm_map_entry_t addr,
 +    vm_map_entry_t dest);
 +
@@ -791,7 +858,7 @@ DFLYGC 6.2
  
 
 
-[FILE:1869:patches/patch-sysdeps_freebsd_procopenfiles.c]
+[FILE:2009:patches/patch-sysdeps_freebsd_procopenfiles.c]
 --- sysdeps/freebsd/procopenfiles.c.orig	2019-02-04 20:15:22 UTC
 +++ sysdeps/freebsd/procopenfiles.c
 @@ -322,12 +322,21 @@ glibtop_get_proc_open_files_s (glibtop *
@@ -799,7 +866,7 @@ DFLYGC 6.2
  
  				entry.type = GLIBTOP_FILE_TYPE_LOCALSOCKET;
 +/* 64bit inodes */
-+#if __FreeBSD_version >= 1200031
++#if defined(__MidnightBSD__) || __FreeBSD_version >= 1200031
 +				sun = (struct sockaddr_un *)&kif->kf_un.kf_sock.kf_sa_local;
 +#else
  				sun = (struct sockaddr_un *)&kif->kf_sa_local;
@@ -808,7 +875,7 @@ DFLYGC 6.2
  				if (sun->sun_path[0]) {
  					char *addrstr;
  
-+#if __FreeBSD_version >= 1200031
++#if defined(__MidnightBSD__) || __FreeBSD_version >= 1200031
 +					addrstr = addr_to_string(&kif->kf_un.kf_sock.kf_sa_local);
 +#else
  					addrstr = addr_to_string(&kif->kf_sa_local);
@@ -820,7 +887,7 @@ DFLYGC 6.2
  				} else {
  					char *addrstr;
  
-+#if __FreeBSD_version >= 1200031
++#if defined(__MidnightBSD__) || __FreeBSD_version >= 1200031
 +					addrstr = addr_to_string(&kif->kf_un.kf_sock.kf_sa_peer);
 +#else
  					addrstr = addr_to_string(&kif->kf_sa_peer);
@@ -832,7 +899,7 @@ DFLYGC 6.2
  					entry.type = GLIBTOP_FILE_TYPE_INETSOCKET;
  				else
  					entry.type = GLIBTOP_FILE_TYPE_INET6SOCKET;
-+#if __FreeBSD_version >= 1200031
++#if defined(__MidnightBSD__) || __FreeBSD_version >= 1200031
 +				addrstr = addr_to_string(&kif->kf_un.kf_sock.kf_sa_peer);
 +#else
  				addrstr = addr_to_string(&kif->kf_sa_peer);
@@ -841,7 +908,7 @@ DFLYGC 6.2
  					  addrstr,
  					  sizeof(entry.info.sock.dest_host));
  				g_free(addrstr);
-+#if __FreeBSD_version >= 1200031
++#if defined(__MidnightBSD__) || __FreeBSD_version >= 1200031
 +				entry.info.sock.dest_port = addr_to_port(&kif->kf_un.kf_sock.kf_sa_peer);
 +#else
  				entry.info.sock.dest_port = addr_to_port(&kif->kf_sa_peer);

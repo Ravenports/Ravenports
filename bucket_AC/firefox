@@ -108,6 +108,7 @@ QMAKE_ARGS=		--enable-application=browser
 VAR_OPSYS[linux]=	QMAKE_ARGS=--disable-elf-hack
 			QMAKE_ARGS=--enable-audio-backends=sndio
 VAR_OPSYS[netbsd]=	QMAKE_ARGS=--enable-audio-backends=sndio
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
@@ -124,6 +125,9 @@ post-patch:
 	# disable rust checksums
 	${REINPLACE_CMD} -e 's/"files":{[^}]*}/"files":{}/' \
 		 ${WRKSRC}/third_party/rust/libc/.cargo-checksum.json
+	# Fix midnight
+	${REINPLACE_CMD} -e "s|%%MBSD64_TGT%%|x86_64-raven-freebsd12.3|" \
+		${WRKSRC}/build/autoconf/config.guess
 	# Set mozilla options
 	@${ECHO_CMD} "--=> Setting configuration <=--"
 	@for arg in ${QMAKE_ARGS}; do \
@@ -1140,6 +1144,20 @@ index 0069865..9bb1864 100644
      "--enable-geckodriver",
 
 
+[FILE:402:patches/patch-build_autoconf_config.guess]
+--- build/autoconf/config.guess.orig	2023-03-10 22:19:01 UTC
++++ build/autoconf/config.guess
+@@ -284,7 +284,7 @@ case $UNAME_MACHINE:$UNAME_SYSTEM:$UNAME
+ 	GUESS=$UNAME_MACHINE_ARCH-unknown-libertybsd$UNAME_RELEASE
+ 	;;
+     *:MidnightBSD:*:*)
+-	GUESS=$UNAME_MACHINE-unknown-midnightbsd$UNAME_RELEASE
++	GUESS=%%MBSD64_TGT%%
+ 	;;
+     *:ekkoBSD:*:*)
+ 	GUESS=$UNAME_MACHINE-unknown-ekkobsd$UNAME_RELEASE
+
+
 [FILE:704:patches/patch-dom_media_flac_FlacDecoder.cpp]
 Enable FLAC on platforms without ffvpx like powerpc*
 
@@ -1418,6 +1436,20 @@ index b932103f46e6..2c88e28421ec 100644
  
  bool
  pw_debug_is_category_enabled(const char *name);
+
+
+[FILE:468:patches/patch-testing_mozbase_mozinfo_mozinfo_mozinfo.py]
+--- testing/mozbase/mozinfo/mozinfo/mozinfo.py.orig	2023-03-10 22:19:09 UTC
++++ testing/mozbase/mozinfo/mozinfo/mozinfo.py
+@@ -133,7 +133,7 @@ elif system == "Linux":
+ 
+     info["os"] = "linux"
+     info["linux_distro"] = distribution
+-elif system in ["DragonFly", "FreeBSD", "NetBSD", "OpenBSD"]:
++elif system in ["DragonFly", "FreeBSD", "NetBSD", "OpenBSD", "MidnightBSD"]:
+     info["os"] = "bsd"
+     version = os_version = sys.platform
+ elif system == "Darwin":
 
 
 [FILE:278:patches/patch-third__party_dav1d_src_mem.h]

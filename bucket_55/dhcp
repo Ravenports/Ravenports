@@ -49,10 +49,14 @@ SINGLE_JOB=		yes
 
 RC_SUBR=		isc-dhcpd:server
 			isc-dhcrelay:relay
-SUB_FILES=		pkg-message-client-freebsd
+SUB_FILES=		pkg-message-client-netbsd
+			pkg-message-client-freebsd
 			pkg-message-client-dragonfly
+			pkg-message-client-midnightbsd
+			pkg-message-server-netbsd
 			pkg-message-server-freebsd
 			pkg-message-server-dragonfly
+			pkg-message-server-midnightbsd
 SUB_LIST=		MANPREFIX={{MANPREFIX}}
 
 CFLAGS=			-fPIC
@@ -62,6 +66,7 @@ CPPFLAGS=		-D_PATH_DHCLIENT_SCRIPT='\"{{PREFIX}}/sbin/dhclient-script\"'
 LDFLAGS=		-lssl
 VAR_OPSYS[sunos]=	CPPFLAGS=-D_XOPEN_SOURCE=600
 			CPPFLAGS=-D__EXTENSIONS__
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 [BINLEASES].DESCRIPTION=		Enable support for binary insertion of leases
 [BINLEASES].CONFIGURE_ENABLE_BOTH=	binary-leases
@@ -889,6 +894,32 @@ run_rc_command "$1"
 	    MANPATH=%%MANPREFIX%%/man man 8 dhclient
 
 
+[FILE:336:files/pkg-message-client-midnightbsd.in]
+****  To setup dhclient, you may need to edit /etc/rc.conf to replace the
+      base system dhclient as follows:
+
+	    dhclient_program="%%PREFIX%%/sbin/dhclient"
+	    dhclient_flags="-q"
+
+      See dhclient(8), using the following command, for details about other
+      possible options:
+
+	    MANPATH=%%MANPREFIX%%/man man 8 dhclient
+
+
+[FILE:336:files/pkg-message-client-netbsd.in]
+****  To setup dhclient, you may need to edit /etc/rc.conf to replace the
+      base system dhclient as follows:
+
+	    dhclient_program="%%PREFIX%%/sbin/dhclient"
+	    dhclient_flags="-q"
+
+      See dhclient(8), using the following command, for details about other
+      possible options:
+
+	    MANPATH=%%MANPREFIX%%/man man 8 dhclient
+
+
 [FILE:352:files/pkg-message-relay-dragonfly]
 ****  This port installs the dhcp relay daemon, but doesn't invoke dhcrelay by
       default. If you want to invoke dhcrelay at startup, add the following
@@ -901,6 +932,28 @@ run_rc_command "$1"
 
 
 [FILE:352:files/pkg-message-relay-freebsd]
+****  This port installs the dhcp relay daemon, but doesn't invoke dhcrelay by
+      default. If you want to invoke dhcrelay at startup, add the following
+      lines to /etc/rc.conf:
+
+	    dhcrelay_enable="YES"
+	    dhcrelay_flags=""		# command option(s)
+	    dhcrelay_servers=""		# dhcrelay server(s)
+	    dhcrelay_ifaces=""		# ethernet interface(s)
+
+
+[FILE:352:files/pkg-message-relay-midnightbsd]
+****  This port installs the dhcp relay daemon, but doesn't invoke dhcrelay by
+      default. If you want to invoke dhcrelay at startup, add the following
+      lines to /etc/rc.conf:
+
+	    dhcrelay_enable="YES"
+	    dhcrelay_flags=""		# command option(s)
+	    dhcrelay_servers=""		# dhcrelay server(s)
+	    dhcrelay_ifaces=""		# ethernet interface(s)
+
+
+[FILE:352:files/pkg-message-relay-netbsd]
 ****  This port installs the dhcp relay daemon, but doesn't invoke dhcrelay by
       default. If you want to invoke dhcrelay at startup, add the following
       lines to /etc/rc.conf:
@@ -937,6 +990,56 @@ run_rc_command "$1"
 
 
 [FILE:1042:files/pkg-message-server-freebsd.in]
+****  To setup dhcpd, please edit %%PREFIX%%/etc/dhcpd.conf.
+
+****  This port installs the dhcp daemon, but doesn't invoke dhcpd by default.
+      If you want to invoke dhcpd at startup, add these lines to /etc/rc.conf:
+
+	    dhcpd_enable="YES"			# dhcpd enabled?
+	    dhcpd_flags="-q"			# command option(s)
+	    dhcpd_conf="%%PREFIX%%/etc/dhcpd.conf"	# configuration file
+	    dhcpd_ifaces=""			# ethernet interface(s)
+	    dhcpd_withumask="022"		# file creation mask
+	    dhcpd_chuser_enable="YES"		# runs w/o privileges?
+	    dhcpd_withuser="dhcpd"		# user name to run as
+	    dhcpd_withgroup="dhcpd"		# group name to run as
+	    dhcpd_chroot_enable="YES"		# runs chrooted?
+	    dhcpd_devfs_enable="YES"		# use devfs if available?
+	    dhcpd_rootdir="/var/db/dhcpd"	# directory to run in
+	    dhcpd_includedir="<some_dir>"	# directory with config-
+						  files to include
+
+****  WARNING: never edit the chrooted or jailed dhcpd.conf file but
+      %%PREFIX%%/etc/dhcpd.conf instead which is always copied where
+      needed upon startup.
+
+
+[FILE:1042:files/pkg-message-server-midnightbsd.in]
+****  To setup dhcpd, please edit %%PREFIX%%/etc/dhcpd.conf.
+
+****  This port installs the dhcp daemon, but doesn't invoke dhcpd by default.
+      If you want to invoke dhcpd at startup, add these lines to /etc/rc.conf:
+
+	    dhcpd_enable="YES"			# dhcpd enabled?
+	    dhcpd_flags="-q"			# command option(s)
+	    dhcpd_conf="%%PREFIX%%/etc/dhcpd.conf"	# configuration file
+	    dhcpd_ifaces=""			# ethernet interface(s)
+	    dhcpd_withumask="022"		# file creation mask
+	    dhcpd_chuser_enable="YES"		# runs w/o privileges?
+	    dhcpd_withuser="dhcpd"		# user name to run as
+	    dhcpd_withgroup="dhcpd"		# group name to run as
+	    dhcpd_chroot_enable="YES"		# runs chrooted?
+	    dhcpd_devfs_enable="YES"		# use devfs if available?
+	    dhcpd_rootdir="/var/db/dhcpd"	# directory to run in
+	    dhcpd_includedir="<some_dir>"	# directory with config-
+						  files to include
+
+****  WARNING: never edit the chrooted or jailed dhcpd.conf file but
+      %%PREFIX%%/etc/dhcpd.conf instead which is always copied where
+      needed upon startup.
+
+
+[FILE:1042:files/pkg-message-server-netbsd.in]
 ****  To setup dhcpd, please edit %%PREFIX%%/etc/dhcpd.conf.
 
 ****  This port installs the dhcp daemon, but doesn't invoke dhcpd by default.

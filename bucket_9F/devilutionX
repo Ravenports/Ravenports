@@ -44,6 +44,7 @@ LICENSE_SCHEME=		solo
 
 DOS2UNIX_GLOB=		*.cpp
 			*.h
+			*.cmake
 			CMakeLists.txt
 FPC_EQUIVALENT=		games/devilutionX
 
@@ -55,7 +56,6 @@ CMAKE_ARGS=		-DBINARY_RELEASE:BOOL=ON
 			-DFETCHCONTENT_FULLY_DISCONNECTED:BOOL=ON
 			-Wno-dev
 VAR_OPSYS[linux]=	LDFLAGS=-liconv
-VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DNONET:BOOL=ON
 
 post-extract:
 	${MKDIR} ${BUILD_WRKSRC}/_deps
@@ -95,6 +95,19 @@ ee173f5edb20f162482658cbc9d4bb84b640f651041d686c0ad7b2af12baf2a1        69570 de
 bin/devilutionx
 
 
+[FILE:453:patches/patch-3rdParty_libfmt_CMakeLists.txt]
+--- 3rdParty/libfmt/CMakeLists.txt.orig	2023-04-05 20:06:24 UTC
++++ 3rdParty/libfmt/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ include(functions/FetchContent_MakeAvailableExcludeFromAll)
+ 
+-if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL FreeBSD)
++if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} MATCH "BSD|DragonFly")
+   # Enable POSIX extensions such as `readlink` and `ftruncate`.
+   add_definitions(-D_POSIX_C_SOURCE=200809L)
+ endif()
+
+
 [FILE:277:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2023-01-04 23:06:45 UTC
 +++ CMakeLists.txt
@@ -106,6 +119,34 @@ bin/devilutionx
  if(CCACHE_PROGRAM)
    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
  endif()
+
+
+[FILE:381:patches/patch-CMake_Platforms.cmake]
+--- CMake/Platforms.cmake.orig	2023-04-05 20:01:40 UTC
++++ CMake/Platforms.cmake
+@@ -6,7 +6,7 @@ if(HAIKU)
+   include(platforms/haiku)
+ endif()
+ 
+-if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|OpenBSD|DragonFly|NetBSD")
++if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|OpenBSD|DragonFly|NetBSD|MidnightBSD")
+   if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+     add_definitions(-D_NETBSD_SOURCE)
+   else()
+
+
+[FILE:536:patches/patch-CMake_functions_devilutionx__library.cmake]
+--- CMake/functions/devilutionx_library.cmake.orig	2023-04-05 20:06:24 UTC
++++ CMake/functions/devilutionx_library.cmake
+@@ -48,7 +48,7 @@ function(add_devilutionx_library NAME)
+     target_compile_options(${NAME} PUBLIC -fsigned-char)
+   endif()
+ 
+-  if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL FreeBSD)
++  if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "BSD|DragonFly")
+     # Enable POSIX extensions such as `readlink` and `ftruncate`.
+     add_definitions(-D_POSIX_C_SOURCE=200809L)
+   endif()
 
 
 [FILE:397:files/pkg-message-single.in]
