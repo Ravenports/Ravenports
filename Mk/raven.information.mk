@@ -30,31 +30,6 @@ BOOST_LIBRARIES_REVISION=	1
 # Only keep the open branches of GCC
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-# gcc9
-# ------------------------------------------------------------------------
-
-GCC9_BRANCH=			9
-GCC9_POINT=			5.0
-GCC9_VERSION=			${GCC9_BRANCH}.${GCC9_POINT}
-GCC9_SNAPSHOT=			20220527
-GCC9_BUILD_RELEASE=		yes
-GCC9_REVISION=			0
-GCC9_GNATCROSS_REVISION=	0
-GCC9_BOOTSTRAP_REVISION=	0
-
-.if ${GCC9_BUILD_RELEASE:Mno}
-GCC9_PORTVERSION=		${GCC9_BRANCH}.${GCC9_SNAPSHOT}
-GCC9_IDENTIFICATION=		gcc-${GCC9_BRANCH}-${GCC9_SNAPSHOT}
-GCC9_MS_SUBDIR=			snapshots/${GCC9_BRANCH}-${GCC9_SNAPSHOT}
-GCC9_PHASE=			snapshot
-.else
-GCC9_PORTVERSION=		${GCC9_VERSION}
-GCC9_IDENTIFICATION=		gcc-${GCC9_VERSION}
-GCC9_MS_SUBDIR=			releases/gcc-${GCC9_VERSION}
-GCC9_PHASE=			release
-.endif
-
-# ------------------------------------------------------------------------
 # gcc10
 # ------------------------------------------------------------------------
 
