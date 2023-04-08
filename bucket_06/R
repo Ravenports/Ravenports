@@ -94,19 +94,19 @@ SOVERSION=		4.2
 
 LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/R/lib
 
-post-patch:
+post-install:
+	${REINPLACE_CMD} -i'' -e "s| -lR| -lR -lRblas|" \
+		${STAGEDIR}${PREFIX}/lib/pkgconfig/libR.pc
+	${RM} ${STAGEDIR}${STD_DOCDIR}/COPY*
+	${RM} ${STAGEDIR}${PREFIX}/lib/R/COPY*
+
+pre-configure:
 	${REINPLACE_CMD} -e "s|/usr/local|${LOCALBASE}|g" \
 		${WRKSRC}/configure
 	${REINPLACE_CMD} "s|%%LIBVER%%|4.2|" \
 		${WRKSRC}/src/main/Makefile.in \
 		${WRKSRC}/src/extra/blas/Makefile.in \
 		${WRKSRC}/src/modules/lapack/Makefile.in
-
-post-install:
-	${REINPLACE_CMD} -i'' -e "s| -lR| -lR -lRblas|" \
-		${STAGEDIR}${PREFIX}/lib/pkgconfig/libR.pc
-	${RM} ${STAGEDIR}${STD_DOCDIR}/COPY*
-	${RM} ${STAGEDIR}${PREFIX}/lib/R/COPY*
 
 [FILE:1028:descriptions/desc.primary]
 R is a system for statistical computation and graphics. It consists of a
@@ -2068,8 +2068,8 @@ share/doc/R/manual/images/
  ice.png
 
 
-[FILE:238:patches/patch-configure]
---- configure.orig	2022-10-23 22:16:12 UTC
+[FILE:474:patches/patch-configure]
+--- configure.orig	2023-03-07 23:16:14 UTC
 +++ configure
 @@ -8529,6 +8529,7 @@ if test $ac_compiler_gnu = yes; then
  else
@@ -2079,6 +2079,15 @@ share/doc/R/manual/images/
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
  ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+@@ -47606,7 +47607,7 @@ int main(int argc, const char * argv[])
+ {
+ #ifdef LIBCURL_VERSION_MAJOR
+ #if LIBCURL_VERSION_MAJOR > 7
+-  exit(1);
++  exit(0);
+ #elif LIBCURL_VERSION_MAJOR == 7 && LIBCURL_VERSION_MINOR >= 28
+   exit(0);
+ #else
 
 
 [FILE:221:patches/patch-m4_R.m4]
