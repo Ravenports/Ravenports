@@ -1198,3 +1198,34 @@ e4ca5e22593eb4212382d60d26350065bf2a02c34b85bc850474a74b589a3de9         8746 ru
  const HOST_OS_NAME: &str = "Darwin";
  #[cfg(target_os = "fuchsia")]
 
+
+[FILE:1216:patches/patch-src_python__interpreter_get__interpreter__metadata.py]
+--- src/python_interpreter/get_interpreter_metadata.py.orig	2023-04-06 09:38:20 UTC
++++ src/python_interpreter/get_interpreter_metadata.py
+@@ -19,6 +19,13 @@ if platform.python_implementation() == "
+ else:
+     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
+ 
++if platform.system() == "MidnightBSD":
++    myplatform = "freebsd-12.3-RELEASE-amd64"
++    mysystem = "freebsd"
++else:
++    myplatform = sysconfig.get_platform()
++    mysystem = platform.system().lower()
++
+ metadata = {
+     # sys.implementation.name can differ from platform.python_implementation(), for example
+     # Pyston has sys.implementation.name == "pyston" while platform.python_implementation() == cpython
+@@ -31,9 +38,9 @@ metadata = {
+     "ext_suffix": ext_suffix,
+     "soabi": sysconfig.get_config_var("SOABI") or None,
+     "abi_tag": (sysconfig.get_config_var("SOABI") or "-").split("-")[1] or None,
+-    "platform": sysconfig.get_platform(),
++    "platform": myplatform,
+     # This one isn't technically necessary, but still very useful for sanity checks
+-    "system": platform.system().lower(),
++    "system": mysystem,
+     # This one is for generating a config file for pyo3
+     "pointer_width": struct.calcsize("P") * 8,
+ }
+

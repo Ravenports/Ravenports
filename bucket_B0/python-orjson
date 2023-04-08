@@ -147,6 +147,13 @@ do-install:
 	${CHMOD} +x ${STAGEDIR}${PYTHON_SITELIBDIR}/orjson/liborjson.so
 	${STRIP_CMD} ${STAGEDIR}${PYTHON_SITELIBDIR}/orjson/orjson.*.so
 
+pre-install-midnightbsd:
+	# Due to rust limitations, maturin must set target OS as freebsd, but
+	# pip doesn't recognize that as a legal combination.  Rename to complete build.
+	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
+	orjson-3.8.9-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-freebsd_*.whl\
+	orjson-3.8.9-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-midnightbsd_3_0_0_amd64.whl)
+
 [FILE:1392:descriptions/desc.single]
 orjson is a fast, correct JSON library for Python. It benchmarks as the
 fastest Python library for JSON and is more correct than the standard
