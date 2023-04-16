@@ -2,17 +2,20 @@
 
 NAMEBASE=		xorg-pciaccess
 VERSION=		0.17
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	Generic PCI access library
 HOMEPAGE=		https://www.x.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main patch
 SITES[main]=		XORG/individual/lib
+SITES[patch]=		https://gitlab.freedesktop.org/xorg/lib/libpciaccess/-/commit/
 DISTFILE[1]=		libpciaccess-0.17.tar.xz:main
-DIST_SUBDIR=		xorg
+DISTFILE[2]=		7f7d12445c3c.patch:patch
+DISTFILE[3]=		4ee437c98c2d.patch:patch
+DIST_SUBDIR=		xorg/pciaccess
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
@@ -35,6 +38,9 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/libpciaccess
 
+PATCHFILES=		2 3
+PATCHFILES_STRIP=	-p1
+
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-pciids-path={{LOCALBASE}}/share/pciids
 
@@ -44,8 +50,10 @@ INSTALL_TARGET=		install-strip
 This package contains the pciaccess library.
 
 
-[FILE:108:distinfo]
-74283ba3c974913029e7a547496a29145b07ec51732bbb5b5c58d5025ad95b73       331768 xorg/libpciaccess-0.17.tar.xz
+[FILE:342:distinfo]
+74283ba3c974913029e7a547496a29145b07ec51732bbb5b5c58d5025ad95b73       331768 xorg/pciaccess/libpciaccess-0.17.tar.xz
+372a5615b3643b7d67b22f542033c9a2a5ba70e570eeda3cfdb2331c3927d431         1002 xorg/pciaccess/7f7d12445c3c.patch
+10065f02a32c00b2e234cd89c973f4346cd633c1c812463eb02dc805b326cc39         7331 xorg/pciaccess/4ee437c98c2d.patch
 
 
 [FILE:48:manifests/plist.primary]
@@ -74,43 +82,4 @@ lib/
  		freebsd=yes
  		;;
  	*linux*)
-
-
-[FILE:1115:patches/patch-src_freebsd__pci.c]
---- src/freebsd_pci.c.orig	2019-07-17 16:25:27 UTC
-+++ src/freebsd_pci.c
-@@ -421,24 +421,6 @@ pci_system_freebsd_destroy( void )
-     freebsd_pci_sys = NULL;
- }
- 
--static int
--pci_device_freebsd_has_kernel_driver( struct pci_device *dev )
--{
--    struct pci_io io;
--
--    io.pi_sel.pc_domain = dev->domain;
--    io.pi_sel.pc_bus = dev->bus;
--    io.pi_sel.pc_dev = dev->dev;
--    io.pi_sel.pc_func = dev->func;
--    
--    if ( ioctl( freebsd_pci_sys->pcidev, PCIOCATTACHED, &io ) < 0 ) {
--	return 0;
--    }
--
--    /* if io.pi_data is 0, no driver is attached */
--    return io.pi_data == 0 ? 0 : 1;
--}
--
- static struct pci_io_handle *
- pci_device_freebsd_open_legacy_io( struct pci_io_handle *ret,
- 				   struct pci_device *dev, pciaddr_t base,
-@@ -614,7 +596,7 @@ static const struct pci_system_methods f
-     .fill_capabilities = pci_fill_capabilities_generic,
-     .enable = NULL,
-     .boot_vga = NULL,
--    .has_kernel_driver = pci_device_freebsd_has_kernel_driver,
-+    .has_kernel_driver = NULL,
- 
-     .open_device_io = pci_device_freebsd_open_io,
-     .open_legacy_io = pci_device_freebsd_open_legacy_io,
 

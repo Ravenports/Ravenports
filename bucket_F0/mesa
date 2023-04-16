@@ -2,6 +2,7 @@
 
 NAMEBASE=		mesa
 VERSION=		22.3.7
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Mesa 3D Graphics Library
@@ -26,6 +27,7 @@ OPT_ON[linux]=		LLVMPIPE//i386|x86_64
 OPT_ON[x86_64]=		X86_DRIVERS
 OPT_ON[dragonfly]=	LLVMPIPE//i386|x86_64
 OPT_ON[i386]=		X86_DRIVERS
+OPT_ON[midnightbsd]=	LLVMPIPE//i386|x86_64
 
 BUILD_DEPENDS=		libdrm:dev:standard
 			libelf:dev:standard
@@ -40,7 +42,7 @@ EXRUN[drivers]=		mesa:primary:standard
 
 USES=			cpe bison gettext:build gmake meson pkgconfig zstd
 			zlib expat shebangfix solaris-funcs python:build
-			c++:primary,drivers
+			c++:primary,drivers clang
 XORG_COMPONENTS=	x11 xdamage xext xfixes xshmfence xxf86vm xv xrandr
 			xcb
 
@@ -126,6 +128,7 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 [WAYLAND].BUILDRUN_DEPENDS_ON=		wayland:primary:standard
 [WAYLAND].BUILD_DEPENDS_ON=		wayland-protocols:single:standard
 					python-Mako:single:python_default
+					wayland:dev:standard
 [WAYLAND].MAKEFILE_ON=			WAYPLAT=,wayland
 					VULKAN_DRIVERS+=INTEL
 					VULKAN_DRIVERS_X86+=RADEON
@@ -145,10 +148,6 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 [LLVMPIPE].RUN_DEPENDS_ON=		clang:dynlibs:standard
 [LLVMPIPE].USES_ON=			clang:keepcc
 
-post-patch:
-	${REINPLACE_CMD} -e 's|/etc/|${PREFIX}/etc/|g' \
-		${WRKSRC}/src/util/xmlconfig.c
-
 pre-patch-linux:
 	# qsort fixes for BSD break linux
 	${RM} ${PATCHDIR}/patch-meson.build
@@ -158,6 +157,14 @@ post-install:
 	${RM} ${STAGEDIR}${PREFIX}/include/GL/g*.h
 	${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/gl.pc
 	${RM} -r ${STAGEDIR}${PREFIX}/include/KHR
+	${INSTALL_DATA} ${FILESDIR}/01-freebsd.conf \
+		${STAGEDIR}${PREFIX}/share/drirc.d
+
+pre-configure:
+	${REINPLACE_CMD} \
+		-e '/SYSCONFDIR/ s|/etc|${PREFIX}/etc|g' \
+		-e '/DATADIR/ s|/usr/share|${PREFIX}/share|g' \
+		${WRKSRC}/src/util/xmlconfig.c
 
 post-extract:
 	${AWK} '/Copyright/,/DEALINGS/' ${WRKSRC}/include/GL/glext.h \
@@ -222,7 +229,7 @@ lib/
  libxatracker.so.2.5.0
 
 
-[FILE:559:manifests/plist.drivers]
+[FILE:578:manifests/plist.drivers]
 %%ARM_DRIVERS-ON%%lib/dri/
  kgsl_dri.so
  msm_dri.so
@@ -249,7 +256,9 @@ lib/
 lib/dri/
  kms_swrast_dri.so
  swrast_dri.so
-share/drirc.d/00-mesa-defaults.conf
+share/drirc.d/
+ 00-mesa-defaults.conf
+ 01-freebsd.conf
 
 
 [FILE:379:manifests/plist.dev]
@@ -275,6 +284,207 @@ lib/pkgconfig/
  gbm.pc
  osmesa.pc
  xatracker.pc
+
+
+[FILE:7844:patches/patch-include_drm-uapi_dma-buf.h]
+--- /dev/null	2023-04-09 22:41:42 UTC
++++ include/drm-uapi/dma-buf.h
+@@ -0,0 +1,195 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++/*
++ * Framework for buffer objects that can be shared across devices/subsystems.
++ *
++ * Copyright(C) 2015 Intel Ltd
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef _DMA_BUF_UAPI_H_
++#define _DMA_BUF_UAPI_H_
++
++#ifdef __linux__
++#include <linux/types.h>
++#else
++#include <sys/types.h>
++
++typedef int8_t   __s8;
++typedef uint8_t  __u8;
++typedef int16_t  __s16;
++typedef uint16_t __u16;
++typedef int32_t  __s32;
++typedef uint32_t __u32;
++typedef int64_t  __s64;
++typedef uint64_t __u64;
++#endif
++
++/**
++ * struct dma_buf_sync - Synchronize with CPU access.
++ *
++ * When a DMA buffer is accessed from the CPU via mmap, it is not always
++ * possible to guarantee coherency between the CPU-visible map and underlying
++ * memory.  To manage coherency, DMA_BUF_IOCTL_SYNC must be used to bracket
++ * any CPU access to give the kernel the chance to shuffle memory around if
++ * needed.
++ *
++ * Prior to accessing the map, the client must call DMA_BUF_IOCTL_SYNC
++ * with DMA_BUF_SYNC_START and the appropriate read/write flags.  Once the
++ * access is complete, the client should call DMA_BUF_IOCTL_SYNC with
++ * DMA_BUF_SYNC_END and the same read/write flags.
++ *
++ * The synchronization provided via DMA_BUF_IOCTL_SYNC only provides cache
++ * coherency.  It does not prevent other processes or devices from
++ * accessing the memory at the same time.  If synchronization with a GPU or
++ * other device driver is required, it is the client's responsibility to
++ * wait for buffer to be ready for reading or writing before calling this
++ * ioctl with DMA_BUF_SYNC_START.  Likewise, the client must ensure that
++ * follow-up work is not submitted to GPU or other device driver until
++ * after this ioctl has been called with DMA_BUF_SYNC_END?
++ *
++ * If the driver or API with which the client is interacting uses implicit
++ * synchronization, waiting for prior work to complete can be done via
++ * poll() on the DMA buffer file descriptor.  If the driver or API requires
++ * explicit synchronization, the client may have to wait on a sync_file or
++ * other synchronization primitive outside the scope of the DMA buffer API.
++ */
++struct dma_buf_sync {
++	/**
++	 * @flags: Set of access flags
++	 *
++	 * DMA_BUF_SYNC_START:
++	 *     Indicates the start of a map access session.
++	 *
++	 * DMA_BUF_SYNC_END:
++	 *     Indicates the end of a map access session.
++	 *
++	 * DMA_BUF_SYNC_READ:
++	 *     Indicates that the mapped DMA buffer will be read by the
++	 *     client via the CPU map.
++	 *
++	 * DMA_BUF_SYNC_WRITE:
++	 *     Indicates that the mapped DMA buffer will be written by the
++	 *     client via the CPU map.
++	 *
++	 * DMA_BUF_SYNC_RW:
++	 *     An alias for DMA_BUF_SYNC_READ | DMA_BUF_SYNC_WRITE.
++	 */
++	__u64 flags;
++};
++
++#define DMA_BUF_SYNC_READ      (1 << 0)
++#define DMA_BUF_SYNC_WRITE     (2 << 0)
++#define DMA_BUF_SYNC_RW        (DMA_BUF_SYNC_READ | DMA_BUF_SYNC_WRITE)
++#define DMA_BUF_SYNC_START     (0 << 2)
++#define DMA_BUF_SYNC_END       (1 << 2)
++#define DMA_BUF_SYNC_VALID_FLAGS_MASK \
++	(DMA_BUF_SYNC_RW | DMA_BUF_SYNC_END)
++
++#define DMA_BUF_NAME_LEN	32
++
++/**
++ * struct dma_buf_export_sync_file - Get a sync_file from a dma-buf
++ *
++ * Userspace can perform a DMA_BUF_IOCTL_EXPORT_SYNC_FILE to retrieve the
++ * current set of fences on a dma-buf file descriptor as a sync_file.  CPU
++ * waits via poll() or other driver-specific mechanisms typically wait on
++ * whatever fences are on the dma-buf at the time the wait begins.  This
++ * is similar except that it takes a snapshot of the current fences on the
++ * dma-buf for waiting later instead of waiting immediately.  This is
++ * useful for modern graphics APIs such as Vulkan which assume an explicit
++ * synchronization model but still need to inter-operate with dma-buf.
++ *
++ * The intended usage pattern is the following:
++ *
++ *  1. Export a sync_file with flags corresponding to the expected GPU usage
++ *     via DMA_BUF_IOCTL_EXPORT_SYNC_FILE.
++ *
++ *  2. Submit rendering work which uses the dma-buf.  The work should wait on
++ *     the exported sync file before rendering and produce another sync_file
++ *     when complete.
++ *
++ *  3. Import the rendering-complete sync_file into the dma-buf with flags
++ *     corresponding to the GPU usage via DMA_BUF_IOCTL_IMPORT_SYNC_FILE.
++ *
++ * Unlike doing implicit synchronization via a GPU kernel driver's exec ioctl,
++ * the above is not a single atomic operation.  If userspace wants to ensure
++ * ordering via these fences, it is the respnosibility of userspace to use
++ * locks or other mechanisms to ensure that no other context adds fences or
++ * submits work between steps 1 and 3 above.
++ */
++struct dma_buf_export_sync_file {
++	/**
++	 * @flags: Read/write flags
++	 *
++	 * Must be DMA_BUF_SYNC_READ, DMA_BUF_SYNC_WRITE, or both.
++	 *
++	 * If DMA_BUF_SYNC_READ is set and DMA_BUF_SYNC_WRITE is not set,
++	 * the returned sync file waits on any writers of the dma-buf to
++	 * complete.  Waiting on the returned sync file is equivalent to
++	 * poll() with POLLIN.
++	 *
++	 * If DMA_BUF_SYNC_WRITE is set, the returned sync file waits on
++	 * any users of the dma-buf (read or write) to complete.  Waiting
++	 * on the returned sync file is equivalent to poll() with POLLOUT.
++	 * If both DMA_BUF_SYNC_WRITE and DMA_BUF_SYNC_READ are set, this
++	 * is equivalent to just DMA_BUF_SYNC_WRITE.
++	 */
++	__u32 flags;
++	/** @fd: Returned sync file descriptor */
++	__s32 fd;
++};
++
++/**
++ * struct dma_buf_import_sync_file - Insert a sync_file into a dma-buf
++ *
++ * Userspace can perform a DMA_BUF_IOCTL_IMPORT_SYNC_FILE to insert a
++ * sync_file into a dma-buf for the purposes of implicit synchronization
++ * with other dma-buf consumers.  This allows clients using explicitly
++ * synchronized APIs such as Vulkan to inter-op with dma-buf consumers
++ * which expect implicit synchronization such as OpenGL or most media
++ * drivers/video.
++ */
++struct dma_buf_import_sync_file {
++	/**
++	 * @flags: Read/write flags
++	 *
++	 * Must be DMA_BUF_SYNC_READ, DMA_BUF_SYNC_WRITE, or both.
++	 *
++	 * If DMA_BUF_SYNC_READ is set and DMA_BUF_SYNC_WRITE is not set,
++	 * this inserts the sync_file as a read-only fence.  Any subsequent
++	 * implicitly synchronized writes to this dma-buf will wait on this
++	 * fence but reads will not.
++	 *
++	 * If DMA_BUF_SYNC_WRITE is set, this inserts the sync_file as a
++	 * write fence.  All subsequent implicitly synchronized access to
++	 * this dma-buf will wait on this fence.
++	 */
++	__u32 flags;
++	/** @fd: Sync file descriptor */
++	__s32 fd;
++};
++
++#define DMA_BUF_BASE		'b'
++#define DMA_BUF_IOCTL_SYNC	_IOW(DMA_BUF_BASE, 0, struct dma_buf_sync)
++
++/* 32/64bitness of this uapi was botched in android, there's no difference
++ * between them in actual uapi, they're just different numbers.
++ */
++#define DMA_BUF_SET_NAME	_IOW(DMA_BUF_BASE, 1, const char *)
++#define DMA_BUF_SET_NAME_A	_IOW(DMA_BUF_BASE, 1, u32)
++#define DMA_BUF_SET_NAME_B	_IOW(DMA_BUF_BASE, 1, u64)
++#define DMA_BUF_IOCTL_EXPORT_SYNC_FILE	_IOWR(DMA_BUF_BASE, 2, struct dma_buf_export_sync_file)
++#define DMA_BUF_IOCTL_IMPORT_SYNC_FILE	_IOW(DMA_BUF_BASE, 3, struct dma_buf_import_sync_file)
++
++#endif
 
 
 [FILE:1934:patches/patch-meson.build]
@@ -411,7 +621,7 @@ lib/pkgconfig/
  
 
 
-[FILE:796:patches/patch-src_egl_drivers_dri2_platform__wayland.c]
+[FILE:1315:patches/patch-src_egl_drivers_dri2_platform__wayland.c]
 --- src/egl/drivers/dri2/platform_wayland.c.orig	2023-03-08 18:37:09 UTC
 +++ src/egl/drivers/dri2/platform_wayland.c
 @@ -1942,12 +1942,14 @@ registry_handle_global_drm(void *data, s
@@ -429,6 +639,19 @@ lib/pkgconfig/
     }
  }
  
+@@ -2789,10 +2791,10 @@ dri2_teardown_wayland(struct dri2_egl_di
+       wl_shm_destroy(dri2_dpy->wl_shm);
+    if (dri2_dpy->wl_registry)
+       wl_registry_destroy(dri2_dpy->wl_registry);
+-   if (dri2_dpy->wl_queue)
+-      wl_event_queue_destroy(dri2_dpy->wl_queue);
+    if (dri2_dpy->wl_dpy_wrapper)
+       wl_proxy_wrapper_destroy(dri2_dpy->wl_dpy_wrapper);
++   if (dri2_dpy->wl_queue)
++      wl_event_queue_destroy(dri2_dpy->wl_queue);
+ 
+    if (dri2_dpy->own_device)
+       wl_display_disconnect(dri2_dpy->wl_dpy);
 
 
 [FILE:281:patches/patch-src_egl_main_eglglobals.c]
@@ -599,6 +822,20 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  
  #include "util/u_hash_table.h"
  #include "util/u_memory.h"
+
+
+[FILE:411:patches/patch-src_gallium_include_pipe_p__compiler.h]
+--- src/gallium/include/pipe/p_compiler.h.orig	2023-03-08 18:37:09 UTC
++++ src/gallium/include/pipe/p_compiler.h
+@@ -125,7 +125,7 @@ typedef unsigned char boolean;
+  *       aligned, but we only want to align the field.
+  */
+ #define EXCLUSIVE_CACHELINE(decl) \
+-   union { char __cl_space[CACHE_LINE_SIZE]; \
++   union { char __cl_space[MESA_CACHE_LINE_SIZE]; \
+            decl; }
+ 
+ #if defined(__cplusplus)
 
 
 [FILE:271:patches/patch-src_gallium_winsys_amdgpu_drm_amdgpu__cs.c]
@@ -840,6 +1077,20 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  #endif
 
 
+[FILE:290:patches/patch-src_util_macros.h]
+--- src/util/macros.h.orig	2023-03-08 18:37:09 UTC
++++ src/util/macros.h
+@@ -451,7 +451,7 @@ typedef int lock_cap_t;
+ #endif
+ 
+ /* TODO: this could be different on non-x86 architectures. */
+-#define CACHE_LINE_SIZE 64
++#define MESA_CACHE_LINE_SIZE 64
+ 
+ #define DO_PRAGMA(X) _Pragma (#X)
+ 
+
+
 [FILE:230:patches/patch-src_util_os__file.c]
 --- src/util/os_file.c.orig	2023-03-08 18:37:09 UTC
 +++ src/util/os_file.c
@@ -953,18 +1204,134 @@ Reviewed-by: Francisco Jerez <currojerez@riseup.net>
  #define M_SQRT2 1.41421356237309504880
 
 
-[FILE:442:patches/patch-src_util_u__thread.h]
---- src/util/u_thread.h.orig	2023-03-08 18:37:09 UTC
-+++ src/util/u_thread.h
-@@ -50,7 +50,7 @@
-  * but not with __thread
-  */
- #define __THREAD_INITIAL_EXEC __thread
--#elif defined(__GLIBC__)
-+#elif defined(__GLIBC__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__MidnightBSD__)
- #define __THREAD_INITIAL_EXEC thread_local __attribute__((tls_model("initial-exec")))
- #define REALLY_INITIAL_EXEC
- #else
+[FILE:649:patches/patch-src_util_u__memory.h]
+--- src/util/u_memory.h.orig	2023-03-08 18:37:09 UTC
++++ src/util/u_memory.h
+@@ -91,8 +91,8 @@ mem_dup(const void *src, size_t size)
+ 
+ 
+ /* Allocate a structure aligned to a cache line. (used to make atomic ops faster) */
+-#define MALLOC_STRUCT_CL(T) (struct T *)align_malloc(sizeof(struct T), CACHE_LINE_SIZE)
+-#define CALLOC_STRUCT_CL(T) (struct T *)align_calloc(sizeof(struct T), CACHE_LINE_SIZE)
++#define MALLOC_STRUCT_CL(T) (struct T *)align_malloc(sizeof(struct T), MESA_CACHE_LINE_SIZE)
++#define CALLOC_STRUCT_CL(T) (struct T *)align_calloc(sizeof(struct T), MESA_CACHE_LINE_SIZE)
+ #define FREE_CL(ptr) align_free(ptr)
+ 
+ #ifdef __cplusplus
+
+
+[FILE:2320:patches/patch-src_vulkan_wsi_wsi__common__drm.c]
+--- src/vulkan/wsi/wsi_common_drm.c.orig	2023-03-08 18:37:09 UTC
++++ src/vulkan/wsi/wsi_common_drm.c
+@@ -29,17 +29,24 @@
+ #include "vk_device.h"
+ #include "vk_physical_device.h"
+ #include "vk_util.h"
++#if defined(__linux__)
+ #include "drm-uapi/drm_fourcc.h"
+ 
+ #include <errno.h>
+ #include <linux/dma-buf.h>
+ #include <linux/sync_file.h>
++#else
++#include "drm-uapi/dma-buf.h
++
++#include <errno.h>
++#endif
+ #include <time.h>
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <xf86drm.h>
+ 
++#if defined(__linux__)
+ struct dma_buf_export_sync_file_wsi {
+    __u32 flags;
+    __s32 fd;
+@@ -52,6 +59,7 @@ struct dma_buf_import_sync_file_wsi {
+ 
+ #define DMA_BUF_IOCTL_EXPORT_SYNC_FILE_WSI   _IOWR(DMA_BUF_BASE, 2, struct dma_buf_export_sync_file_wsi)
+ #define DMA_BUF_IOCTL_IMPORT_SYNC_FILE_WSI   _IOW(DMA_BUF_BASE, 3, struct dma_buf_import_sync_file_wsi)
++#endif
+ 
+ static VkResult
+ wsi_dma_buf_export_sync_file(int dma_buf_fd, int *sync_file_fd)
+@@ -61,11 +69,19 @@ wsi_dma_buf_export_sync_file(int dma_buf
+    if (no_dma_buf_sync_file)
+       return VK_ERROR_FEATURE_NOT_PRESENT;
+ 
++#if defined(__linux__)
+    struct dma_buf_export_sync_file_wsi export = {
+       .flags = DMA_BUF_SYNC_RW,
+       .fd = -1,
+    };
+    int ret = drmIoctl(dma_buf_fd, DMA_BUF_IOCTL_EXPORT_SYNC_FILE_WSI, &export);
++#else
++   struct dma_buf_export_sync_file export = {
++      .flags = DMA_BUF_SYNC_RW,
++      .fd = -1,
++   };
++   int ret = drmIoctl(dma_buf_fd, DMA_BUF_IOCTL_EXPORT_SYNC_FILE, &export);
++#endif
+    if (ret) {
+       if (errno == ENOTTY || errno == EBADF || errno == ENOSYS) {
+          no_dma_buf_sync_file = true;
+@@ -88,11 +104,19 @@ wsi_dma_buf_import_sync_file(int dma_buf
+    if (no_dma_buf_sync_file)
+       return VK_ERROR_FEATURE_NOT_PRESENT;
+ 
++#if defined(__linux__)
+    struct dma_buf_import_sync_file_wsi import = {
+       .flags = DMA_BUF_SYNC_RW,
+       .fd = sync_file_fd,
+    };
+    int ret = drmIoctl(dma_buf_fd, DMA_BUF_IOCTL_IMPORT_SYNC_FILE_WSI, &import);
++#else
++   struct dma_buf_import_sync_file import = {
++      .flags = DMA_BUF_SYNC_RW,
++      .fd = sync_file_fd,
++   };
++   int ret = drmIoctl(dma_buf_fd, DMA_BUF_IOCTL_IMPORT_SYNC_FILE, &import);
++#endif
+    if (ret) {
+       if (errno == ENOTTY || errno == EBADF || errno == ENOSYS) {
+          no_dma_buf_sync_file = true;
+
+
+[FILE:815:patches/patch-src_vulkan_wsi_wsi__common__wayland.c]
+wayland 1.22
+
+https://gitlab.freedesktop.org/mesa/mesa/-/commit/ee5d2250fd15
+https://gitlab.freedesktop.org/mesa/mesa/-/commit/689ce66a4332
+
+--- src/vulkan/wsi/wsi_common_wayland.c.orig	2023-03-08 18:37:09 UTC
++++ src/vulkan/wsi/wsi_common_wayland.c
+@@ -1156,12 +1156,6 @@ wsi_wl_surface_destroy(VkIcdSurfaceBase
+    struct wsi_wl_surface *wsi_wl_surface =
+       wl_container_of((VkIcdSurfaceWayland *)icd_surface, wsi_wl_surface, base);
+ 
+-   if (wsi_wl_surface->surface)
+-      wl_proxy_wrapper_destroy(wsi_wl_surface->surface);
+-
+-   if (wsi_wl_surface->display)
+-      wsi_wl_display_destroy(wsi_wl_surface->display);
+-
+    if (wsi_wl_surface->wl_dmabuf_feedback) {
+       zwp_linux_dmabuf_feedback_v1_destroy(wsi_wl_surface->wl_dmabuf_feedback);
+       dmabuf_feedback_fini(&wsi_wl_surface->dmabuf_feedback);
+
+
+[FILE:458:files/01-freebsd.conf]
+<driconf>
+    <device driver="iris">
+        <application name="kwin_x11" executable="kwin_x11">
+            <!-- https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=251836 -->
+            <option name="glx_extension_override" value="-GLX_EXT_buffer_age" />
+            <!-- https://gitlab.freedesktop.org/mesa/mesa/-/commit/580fbbb59a60 -->
+            <option name="glx_disable_ext_buffer_age" value="true" />
+        </application>
+    </device>
+</driconf>
 
 
 [FILE:25:files/special.mk]

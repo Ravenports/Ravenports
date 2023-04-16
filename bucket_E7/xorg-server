@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-server
 VERSION=		21.1.8
+REVISION=		2
 KEYWORDS=		x11_servers
 VARIANTS=		standard virtual xephyr nest
 SDESC[xephyr]=		X server from X.Org based on kdrive
@@ -29,20 +30,16 @@ SPKGS[nest]=		complete
 			primary
 			man
 
-OPTIONS_AVAILABLE=	XORG VIRTUAL XEPHYR NEST DEVD SUID
-OPTIONS_STANDARD=	XORG DEVD SUID
+OPTIONS_AVAILABLE=	XORG VIRTUAL XEPHYR NEST DEVD
+OPTIONS_STANDARD=	XORG DEVD
 VOPTS[xephyr]=		XORG=OFF VIRTUAL=OFF XEPHYR=ON NEST=OFF DEVD=OFF
-			SUID=OFF
 VOPTS[virtual]=		XORG=OFF VIRTUAL=ON XEPHYR=OFF NEST=OFF DEVD=OFF
-			SUID=OFF
 VOPTS[nest]=		XORG=OFF VIRTUAL=OFF XEPHYR=OFF NEST=ON DEVD=OFF
-			SUID=OFF
-OPT_ON[all]=		XORG SUID
+OPT_ON[all]=		XORG
 
 BUILD_DEPENDS=		libdrm:dev:standard
 			libgpg-error:dev:standard
-BUILDRUN_DEPENDS=	xorg-xcvt:single:standard
-			xorg-xkbcomp:single:standard
+BUILDRUN_DEPENDS=	xorg-xkbcomp:single:standard
 RUN_DEPENDS=		xorg-xkeyboard-config:primary:standard
 EXRUN[dev]=		xorg-pixman:dev:standard
 			xorg-pciaccess:dev:standard
@@ -58,13 +55,19 @@ LICENSE_SCHEME=		solo
 CPE_VENDOR=		x.org
 FPC_EQUIVALENT=		x11-servers/xorg-server
 MESON_ARGS=		-Dxkb_dir="{{LOCALBASE}}/share/X11/xkb"
-			-Ddefault_font_path="{{LOCALBASE}}/share/fonts"
-			-Dglamor=true
+			-Ddefault_font_path="{{fontlist:ts,}}"
+			-Dglamor=false
 			-Dxcsecurity=true
 			-Ddtrace=false
 			-Dhal=false
-			-Dudev=false
 			-Dudev_kms=false
+			-Dxwin=false
+			-Dxquartz=false
+			-Dsystemd_logind=false
+			-Dxselinux=false
+			-Dfallback_input_driver=libinput
+			-Dxkb_dir={{LOCALBASE}}/share/X11/xkb
+			-Dxkb_output_dir=/var/lib/xkb
 SOL_FUNCTIONS=		strnlen:xkb/XKBGAlloc.c
 
 VAR_OPSYS[sunos]=	CFLAGS=-DO_CLOEXEC=0
@@ -72,6 +75,9 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 			CONFIGURE_ARGS=-Dsecure-rpc=false
 
 [DEVD].DESCRIPTION=			Use devd for autoconfiguration of input devices
+[DEVD].BUILDRUN_DEPENDS_ON=		libudev-devd:single:standard
+[DEVD].CONFIGURE_ARGS_OFF=		-Dudev=false
+[DEVD].CONFIGURE_ARGS_ON=		-Dudev=true
 
 [NEST].DESCRIPTION=			Build as nesting X server
 [NEST].BUILDRUN_DEPENDS_ON=		libglvnd:single:standard
@@ -116,6 +122,7 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 [XORG].BUILDRUN_DEPENDS_ON=		libdrm:primary:standard
 					libepoxy:primary:standard
 					mesa:drivers:standard
+					xorg-xcvt:single:standard
 [XORG].BUILD_DEPENDS_ON=		xmlto:single:standard
 					xorg-sgml-doctools:single:standard
 					mesa:dev:standard
@@ -127,21 +134,23 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 					-Ddevel-docs=true
 					-Dxorg=true
 					-Dlog_dir=/var/log
+					-Dsuid_wrapper=true
 [XORG].XORG_COMPONENTS_ON=		pciaccess
 					xfont2
-
-[SUID].DESCRIPTION=			Install the Xorg server with setuid bit set
 
 post-install-XORG-OFF:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/xorg
 	${RM} ${STAGEDIR}${PREFIX}/share/man/man1/Xserver.1
-
-post-configure-DEVD-ON:
-	${REINPLACE_CMD} -e 's|^/\* #undef CONFIG_UDEV \*/|#define CONFIG_DEVD 1|' \
-		${WRKSRC}/include/dix-config.h
+	${MKDIR} ${STAGEDIR}/var/lib/xkb
 
 post-install-XORG-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/X11/xorg.conf.d
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/X11/xorg.conf.d
+	${MKDIR} ${STAGEDIR}${fontpathd}
+	${MKDIR} ${STAGEDIR}/var/lib/xkb
+	${INSTALL_DATA} ${FILESDIR}/20-evdev-kbd.conf \
+		${STAGEDIR}${PREFIX}/share/X11/xorg.conf.d
 
 [FILE:71:descriptions/desc.primary.standard]
 This package contains the X.Org X server and some associated programs.
@@ -166,18 +175,16 @@ Server.
 38aadb735650c8024ee25211c190bf8aad844c5f59632761ab1ef4c4d5aeb152      4980208 xorg-server-21.1.8.tar.xz
 
 
-[FILE:371:manifests/plist.primary.standard]
-%%SUID-OFF%%bin/Xorg
-%%SUID-ON%%@(,,4555) bin/Xorg
+[FILE:432:manifests/plist.primary.standard]
 bin/
  X
+ Xorg
  gtf
 etc/X11/xorg.conf.d/10-quirks.conf
 lib/xorg/protocol.txt
 lib/xorg/modules/
  libexa.so
  libfbdevhw.so
- libglamoregl.so
  libint10.so
  libshadow.so
  libshadowfb.so
@@ -186,11 +193,17 @@ lib/xorg/modules/
 lib/xorg/modules/drivers/modesetting_drv.so
 lib/xorg/modules/extensions/libglx.so
 lib/xorg/modules/input/inputtest_drv.so
+libexec/Xorg
+@(,,4555) libexec/Xorg.wrap
+share/X11/xorg.conf.d/20-evdev-kbd.conf
+@dir etc/X11/fontpath.d
+@dir /var/lib/xkb
 
 
-[FILE:178:manifests/plist.man.standard]
+[FILE:216:manifests/plist.man.standard]
 share/man/man1/
  Xorg.1.gz
+ Xorg.wrap.1.gz
  Xserver.1.gz
  gtf.1.gz
 share/man/man4/
@@ -199,12 +212,12 @@ share/man/man4/
  inputtestdrv.4.gz
  modesetting.4.gz
 share/man/man5/
+ Xwrapper.config.5.gz
  xorg.conf.5.gz
  xorg.conf.d.5.gz
 
 
-[FILE:1993:manifests/plist.dev.standard]
-share/aclocal/xorg-server.m4
+[FILE:1983:manifests/plist.dev.standard]
 %%ONLY-SUNOS%%include/xorg/solaris-amd64.il
 include/xorg/
  XIstubs.h
@@ -252,7 +265,6 @@ include/xorg/
  gcstruct.h
  geext.h
  geint.h
- glamor.h
  globals.h
  glx_extinit.h
  glxvndabi.h
@@ -365,26 +377,30 @@ include/xorg/
  xvdix.h
  xvmcext.h
 lib/pkgconfig/xorg-server.pc
+share/aclocal/xorg-server.m4
 
 
-[FILE:9:manifests/plist.primary.virtual]
+[FILE:27:manifests/plist.primary.virtual]
 bin/Xvfb
+@dir /var/lib/xkb
 
 
 [FILE:25:manifests/plist.man.virtual]
 share/man/man1/Xvfb.1.gz
 
 
-[FILE:11:manifests/plist.primary.xephyr]
+[FILE:29:manifests/plist.primary.xephyr]
 bin/Xephyr
+@dir /var/lib/xkb
 
 
 [FILE:27:manifests/plist.man.xephyr]
 share/man/man1/Xephyr.1.gz
 
 
-[FILE:10:manifests/plist.primary.nest]
+[FILE:28:manifests/plist.primary.nest]
 bin/Xnest
+@dir /var/lib/xkb
 
 
 [FILE:26:manifests/plist.man.nest]
@@ -430,7 +446,7 @@ share/man/man1/Xnest.1.gz
 
 
 [FILE:12171:patches/patch-config_devd.c]
---- /dev/null	2023-04-06 11:15:48 UTC
+--- /dev/null	2023-04-14 15:53:34 UTC
 +++ config/devd.c
 @@ -0,0 +1,532 @@
 +/*
@@ -981,6 +997,107 @@ share/man/man1/Xnest.1.gz
  libxserver_config = static_library('libxserver_config',
 
 
+[FILE:3104:patches/patch-config_udev.c]
+--- config/udev.c.orig	2023-03-29 12:55:03 UTC
++++ config/udev.c
+@@ -29,6 +29,7 @@
+ 
+ #include <libudev.h>
+ #include <ctype.h>
++#include <fcntl.h>
+ #include <unistd.h>
+ 
+ #include "input.h"
+@@ -67,6 +68,45 @@ config_udev_odev_setup_attribs(struct ud
+ 
+ static char itoa_buf[16];
+ 
++#if defined(__DragonFly__)
++// Taken from FreeBSD's lib/libc/gen/feature_present.c
++
++#include <sys/cdefs.h>
++#include <sys/types.h>
++#include <sys/sysctl.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++
++int      feature_present(const char *);
++/*
++ * Returns true if the named feature is present in the currently
++ * running kernel.  A feature's presence is indicated by an integer
++ * sysctl node called kern.feature.<feature> that is non-zero.
++ */
++int
++feature_present(const char *feature)
++{
++	char *mib;
++	size_t len;
++	int i;
++
++	if (asprintf(&mib, "kern.features.%s", feature) < 0)
++		return (0);
++	len = sizeof(i);
++	if (sysctlbyname(mib, &i, &len, NULL, 0) < 0) {
++		free(mib);
++		return (0);
++	}
++	free(mib);
++	if (len != sizeof(i))
++		return (0);
++	return (i != 0);
++}
++
++// end of FreeBSD's lib/libc/gen/feature_present.c
++#endif
++
+ static const char *itoa(int i)
+ {
+     snprintf(itoa_buf, sizeof(itoa_buf), "%d", i);
+@@ -198,7 +238,21 @@ device_added(struct udev_device *udev_de
+         attrs.product = strdup(name);
+     input_options = input_option_new(input_options, "name", name);
+     input_options = input_option_new(input_options, "path", path);
+-    input_options = input_option_new(input_options, "device", path);
++    if(strstr(path, "kbdmux") != NULL) {
++        /*
++         * Don't pass "device" option if the keyboard is already attached
++         * to the console (ie. open() fails). This would activate a special
++         * logic in xf86-input-keyboard. Prevent any other attached to console
++         * keyboards being processed. There can be only one such device.
++         */
++        int fd = open(path, O_RDONLY);
++        if (fd > -1) {
++            close(fd);
++            input_options = input_option_new(input_options, "device", path);
++        }
++    }
++    else
++        input_options = input_option_new(input_options, "device", path);
+     input_options = input_option_new(input_options, "major", itoa(major(devnum)));
+     input_options = input_option_new(input_options, "minor", itoa(minor(devnum)));
+     if (path)
+@@ -280,6 +334,18 @@ device_added(struct udev_device *udev_de
+         }
+     }
+ 
++    if (attrs.flags & (ATTR_KEY | ATTR_KEYBOARD)) {
++        if (!feature_present("evdev_support"))
++            input_options = input_option_new(input_options, "driver", "kbd");
++    } else if (attrs.flags & ATTR_POINTER) {
++        if (strstr(path, "vbox"))
++            input_options = input_option_new(input_options, "driver", "vboxmouse");
++        else {
++            if (!feature_present("evdev_support"))
++                input_options = input_option_new(input_options, "driver", "mouse");
++        }
++    }
++
+     input_options = input_option_new(input_options, "config_info", config_info);
+ 
+     /* Default setting needed for non-seat0 seats */
+
+
 [FILE:1216:patches/patch-configure]
 --- configure.orig	2023-03-29 12:55:14 UTC
 +++ configure
@@ -1044,7 +1161,7 @@ share/man/man1/Xnest.1.gz
  #include <sys/shm.h>
 
 
-[FILE:765:patches/patch-hw_xfree86_common_xf86AutoConfig.c]
+[FILE:791:patches/patch-hw_xfree86_common_xf86AutoConfig.c]
 --- hw/xfree86/common/xf86AutoConfig.c.orig	2023-03-29 12:55:03 UTC
 +++ hw/xfree86/common/xf86AutoConfig.c
 @@ -294,7 +294,7 @@ listPossibleVideoDrivers(XF86MatchedDriv
@@ -1063,7 +1180,7 @@ share/man/man1/Xnest.1.gz
 -#else
 +#elif defined(__linux__)
      xf86AddMatchedDriver(md, "fbdev");
-+#elif defined(__FreeBSD__)
++#elif defined(__FreeBSD__) || defined(__DragonFly__)
 +    xf86AddMatchedDriver(md, "scfb");
  #endif
  #endif                          /* !__sun */
@@ -1120,10 +1237,64 @@ share/man/man1/Xnest.1.gz
              if (!xf86Info.autoAddDevices) {
 
 
-[FILE:450:patches/patch-hw_xfree86_os-support_bsd_bsd__init.c]
+[FILE:343:patches/patch-hw_xfree86_common_xf86str.h]
+--- hw/xfree86/common/xf86str.h.orig	2023-03-29 12:55:03 UTC
++++ hw/xfree86/common/xf86str.h
+@@ -249,7 +249,7 @@ typedef struct _DriverRec {
+  */
+ 
+ /* Tolerate prior #include <linux/input.h> */
+-#if defined(__linux__)
++#if defined(__linux__) || defined(__FreeBSD__) || defined(__DragonFly__)
+ #undef BUS_NONE
+ #undef BUS_PCI
+ #undef BUS_SBUS
+
+
+[FILE:596:patches/patch-hw_xfree86_drivers_modesetting_driver.c]
+--- hw/xfree86/drivers/modesetting/driver.c.orig	2023-03-29 12:55:03 UTC
++++ hw/xfree86/drivers/modesetting/driver.c
+@@ -925,8 +925,12 @@ try_enable_glamor(ScrnInfoPtr pScrn)
+     modesettingPtr ms = modesettingPTR(pScrn);
+     const char *accel_method_str = xf86GetOptValString(ms->drmmode.Options,
+                                                        OPTION_ACCEL_METHOD);
++#if defined(__DragonFly__)
++    Bool do_glamor = FALSE;
++#else
+     Bool do_glamor = (!accel_method_str ||
+                       strcmp(accel_method_str, "glamor") == 0);
++#endif
+ 
+     ms->drmmode.glamor = FALSE;
+ 
+
+
+[FILE:359:patches/patch-hw_xfree86_meson.build]
+--- hw/xfree86/meson.build.orig	2023-03-29 12:55:03 UTC
++++ hw/xfree86/meson.build
+@@ -152,7 +152,6 @@ if get_option('suid_wrapper')
+         c_args: xorg_c_args,
+         install: true,
+         install_dir: get_option('libexecdir'),
+-        install_mode: ['r-sr-xr-x', 0, 0],
+     )
+ 
+     # meson gets confused when there are two targets of the same name
+
+
+[FILE:2566:patches/patch-hw_xfree86_os-support_bsd_bsd__init.c]
 --- hw/xfree86/os-support/bsd/bsd_init.c.orig	2023-03-29 12:55:03 UTC
 +++ hw/xfree86/os-support/bsd/bsd_init.c
-@@ -230,6 +230,9 @@ xf86OpenConsole()
+@@ -48,6 +48,8 @@ static int devConsoleFd = -1;
+ #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
+ static int VTnum = -1;
+ static int initialVT = -1;
++static struct termios tty_attr;	/* tty state to restore */
++static int tty_mode;		/* kbd mode to restore */
+ #endif
+ 
+ #ifdef PCCONS_SUPPORT
+@@ -230,6 +232,9 @@ xf86OpenConsole()
               * Add cases for other *BSD that behave the same.
               */
  #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
@@ -1133,6 +1304,50 @@ share/man/man1/Xnest.1.gz
              uname(&uts);
              i = atof(uts.release) * 100;
              if (i >= 310)
+@@ -253,6 +258,7 @@ xf86OpenConsole()
+ #endif
+  acquire_vt:
+             if (!xf86Info.ShareVTs) {
++                struct termios nTty;
+                 /*
+                  * now get the VT
+                  */
+@@ -287,6 +293,26 @@ xf86OpenConsole()
+                 if (ioctl(xf86Info.consoleFd, KDSETMODE, KD_GRAPHICS) < 0) {
+                     FatalError("xf86OpenConsole: KDSETMODE KD_GRAPHICS failed");
+                 }
++
++                tcgetattr(xf86Info.consoleFd, &tty_attr);
++                ioctl(xf86Info.consoleFd, KDGKBMODE, &tty_mode);
++
++                /* disable special keys */
++                if (ioctl(xf86Info.consoleFd, KDSKBMODE, K_RAW) < 0) {
++                    FatalError("xf86OpenConsole: KDSKBMODE K_RAW failed (%s)",
++                               strerror(errno));
++                }
++
++                nTty = tty_attr;
++                nTty.c_iflag = IGNPAR | IGNBRK;
++                nTty.c_oflag = 0;
++                nTty.c_cflag = CREAD | CS8;
++                nTty.c_lflag = 0;
++                nTty.c_cc[VTIME] = 0;
++                nTty.c_cc[VMIN] = 1;
++                cfsetispeed(&nTty, 9600);
++                cfsetospeed(&nTty, 9600);
++                tcsetattr(xf86Info.consoleFd, TCSANOW, &nTty);
+             }
+             else {              /* xf86Info.ShareVTs */
+                 close(xf86Info.consoleFd);
+@@ -594,6 +620,8 @@ xf86CloseConsole()
+     case SYSCONS:
+     case PCVT:
+         ioctl(xf86Info.consoleFd, KDSETMODE, KD_TEXT);  /* Back to text mode */
++        ioctl(xf86Info.consoleFd, KDSKBMODE, tty_mode);
++        tcsetattr(xf86Info.consoleFd, TCSANOW, &tty_attr);
+         if (ioctl(xf86Info.consoleFd, VT_GETMODE, &VT) != -1) {
+             VT.mode = VT_AUTO;
+             ioctl(xf86Info.consoleFd, VT_SETMODE, &VT); /* dflt vt handling */
 
 
 [FILE:519:patches/patch-hw_xfree86_os-support_bsd_i386__video.c]
@@ -1175,6 +1390,42 @@ share/man/man1/Xnest.1.gz
  }
 
 
+[FILE:1280:patches/patch-hw_xfree86_os-support_meson.build]
+--- hw/xfree86/os-support/meson.build.orig	2023-03-29 12:55:03 UTC
++++ hw/xfree86/os-support/meson.build
+@@ -91,11 +91,12 @@ elif host_machine.system() == 'sunos'
+         error('Unknown CPU family for Solaris build')
+     endif
+ 
+-elif host_machine.system().endswith('bsd')
++elif host_machine.system().endswith('bsd') or host_machine.system() == 'dragonfly'
+     srcs_xorg_os_support += [
+         'bsd/bsd_VTsw.c',
+         'bsd/bsd_bell.c',
+         'bsd/bsd_init.c',
++	'misc/SlowBcopy.c',
+ 	'shared/pm_noop.c'
+     ]
+ 
+@@ -120,14 +121,14 @@ elif host_machine.system().endswith('bsd
+         srcs_xorg_os_support += 'shared/ioperm_noop.c'
+     elif host_machine.cpu_family() == 'alpha'
+         srcs_xorg_os_support += 'bsd/alpha_video.c'
+-        if host_machine.system() == 'freebsd'
++        if host_machine.system() == 'freebsd' or host_machine.system() == 'midnightbsd'
+             os_dep += cc.find_library('io')
+         elif host_machine.system() == 'netbsd'
+             os_c_args += '-DUSE_ALPHA_PIO'
+         endif
+     endif
+ 
+-    if host_machine.system() == 'freebsd'
++    if ['freebsd', 'dragonfly', 'midnightbsd'].contains(host_machine.system())
+         srcs_xorg_os_support += 'bsd/bsd_kmod.c'
+     else
+         srcs_xorg_os_support += 'shared/kmod_noop.c'
+
+
 [FILE:714:patches/patch-hw_xfree86_os-support_solaris_sun__init.c]
 --- hw/xfree86/os-support/solaris/sun_init.c.orig	2023-03-29 12:55:03 UTC
 +++ hw/xfree86/os-support/solaris/sun_init.c
@@ -1215,6 +1466,50 @@ share/man/man1/Xnest.1.gz
  #include <sys/consio.h>
  #include <sys/kbio.h>
  #else
+
+
+[FILE:1390:patches/patch-hw_xfree86_xorg-wrapper.c]
+* Skip the detection of root rights requirement, the assumption that presence
+* of KMS drivers removes the root requirement is only valid for Linux
+
+--- hw/xfree86/xorg-wrapper.c.orig	2023-03-29 12:55:03 UTC
++++ hw/xfree86/xorg-wrapper.c
+@@ -39,7 +39,7 @@
+ #include <sys/sysmacros.h>
+ #endif
+ #include <sys/types.h>
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+ #include <sys/consio.h>
+ #endif
+ #include <unistd.h>
+@@ -170,7 +170,7 @@ static int on_console(int fd)
+     r = fstat(fd, &st);
+     if (r == 0 && S_ISCHR(st.st_mode) && major(st.st_rdev) == 4)
+       return 1;
+-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+     int idx;
+ 
+     if (ioctl(fd, VT_GETINDEX, &idx) != -1)
+@@ -191,7 +191,7 @@ static int on_console(int fd)
+ 
+ int main(int argc, char *argv[])
+ {
+-#ifdef WITH_LIBDRM
++#if defined(WITH_LIBDRM) && defined(__linux__)
+     struct drm_mode_card_res res;
+ #endif
+     char buf[PATH_MAX];
+@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
+         }
+     }
+ 
+-#ifdef WITH_LIBDRM
++#if defined(WITH_LIBDRM) && defined(__linux__)
+     /* Detect if we need root rights, except when overridden by the config */
+     if (needs_root_rights == -1) {
+         for (i = 0; i < 16; i++) {
 
 
 [FILE:1214:patches/patch-include_meson.build]
@@ -1311,4 +1606,90 @@ share/man/man1/Xnest.1.gz
  static void
  kill_server(int server_pid)
  {
+
+
+[FILE:1933:patches/patch-xephyr_Dont_check_for_SeatId_anymore.patch]
+From 4c03b67d334b05b814239420776f2fdd4c4a98ac Mon Sep 17 00:00:00 2001
+From: nerdopolis <bluescreen_avenger@verizon.net>
+Date: Tue, 11 Jan 2022 18:41:42 -0500
+Subject: [PATCH] xephyr: Don't check for SeatId anymore
+
+After a change for the xserver to automatically determine the seat
+based on the XDG_SEAT variable, xephyr stopped working. This was
+because of an old feature where xephyr used to handle evdev
+directly. This was dropped some time ago, and now this check is
+not needed
+---
+ hw/kdrive/ephyr/ephyrinit.c | 34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
+
+--- hw/kdrive/ephyr/ephyrinit.c.orig
++++ hw/kdrive/ephyr/ephyrinit.c
+@@ -70,25 +70,23 @@ InitInput(int argc, char **argv)
+     KdKeyboardInfo *ki;
+     KdPointerInfo *pi;
+ 
+-    if (!SeatId) {
+-        KdAddKeyboardDriver(&EphyrKeyboardDriver);
+-        KdAddPointerDriver(&EphyrMouseDriver);
+-
+-        if (!kdHasKbd) {
+-            ki = KdNewKeyboard();
+-            if (!ki)
+-                FatalError("Couldn't create Xephyr keyboard\n");
+-            ki->driver = &EphyrKeyboardDriver;
+-            KdAddKeyboard(ki);
+-        }
++    KdAddKeyboardDriver(&EphyrKeyboardDriver);
++    KdAddPointerDriver(&EphyrMouseDriver);
++
++    if (!kdHasKbd) {
++        ki = KdNewKeyboard();
++        if (!ki)
++            FatalError("Couldn't create Xephyr keyboard\n");
++        ki->driver = &EphyrKeyboardDriver;
++        KdAddKeyboard(ki);
++    }
+ 
+-        if (!kdHasPointer) {
+-            pi = KdNewPointer();
+-            if (!pi)
+-                FatalError("Couldn't create Xephyr pointer\n");
+-            pi->driver = &EphyrMouseDriver;
+-            KdAddPointer(pi);
+-        }
++    if (!kdHasPointer) {
++        pi = KdNewPointer();
++        if (!pi)
++            FatalError("Couldn't create Xephyr pointer\n");
++        pi->driver = &EphyrMouseDriver;
++        KdAddPointer(pi);
+     }
+ 
+     KdInitInput();
+-- 
+GitLab
+
+
+
+[FILE:152:files/20-evdev-kbd.conf]
+Section "InputClass"
+	Identifier		"Evdev keyboard"
+	MatchDevicePath		"/dev/input/event*"
+	MatchIsKeyboard		"on"
+	Option			"XkbRules" "evdev"
+EndSection
+
+
+[FILE:251:files/special.mk]
+sharefonts=	${LOCALBASE}/share/fonts
+fontpathd=	${PREFIX}/etc/X11/fontpath.d
+
+fontlist=	${sharefonts}/misc \
+		${sharefonts}/TTF \
+		${sharefonts}/OTF \
+		${sharefonts}/Type1 \
+		${sharefonts}/100dpi \
+		${sharefonts}/75dpi \
+		catalogue:${fontpathd}
 

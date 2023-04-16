@@ -2,6 +2,7 @@
 
 NAMEBASE=		libdrm
 VERSION=		2.4.115
+REVISION=		1
 KEYWORDS=		graphics x11
 VARIANTS=		standard
 SDESC[standard]=	Direct Rendering Module services kernel interface
@@ -17,9 +18,10 @@ SPKGS[standard]=	complete
 			man
 			dev
 
-OPTIONS_AVAILABLE=	ARM X86
-OPTIONS_STANDARD=	ARM X86
+OPTIONS_AVAILABLE=	ARM X86 NOUVEAU
+OPTIONS_STANDARD=	ARM X86 NOUVEAU
 OPT_ON[aarch64]=	ARM
+OPT_ON[linux]=		NOUVEAU
 OPT_ON[x86_64]=		X86
 OPT_ON[i386]=		X86
 
@@ -43,7 +45,6 @@ MESON_ARGS=		-Dman-pages=enabled
 			-Dcairo-tests=disabled
 			-Dradeon=enabled
 			-Damdgpu=enabled
-			-Dnouveau=enabled
 SOL_FUNCTIONS=		getline:amdgpu/amdgpu_asic_id.c
 			asprintf:xf86drm.c
 			asprintf:tests/modetest/modetest.c
@@ -65,6 +66,7 @@ VAR_OPSYS[netbsd]=	LDFLAGS=-lpci
 [ARM].CONFIGURE_ARGS_OFF=		-Detnaviv=disabled
 					-Dexynos=disabled
 					-Dfreedreno=disabled
+					-Dfreedreno-kgsl=false
 					-Domap=disabled
 					-Dtegra=disabled
 					-Dvc4=disabled
@@ -75,6 +77,10 @@ VAR_OPSYS[netbsd]=	LDFLAGS=-lpci
 					-Dtegra=enabled
 					-Dvc4=enabled
 
+[NOUVEAU].DESCRIPTION=			Build x86 Nouveau driver
+[NOUVEAU].CONFIGURE_ARGS_OFF=		-Dnouveau=disabled
+[NOUVEAU].CONFIGURE_ARGS_ON=		-Dnouveau=enabled
+
 [FILE:70:descriptions/desc.primary]
 Userspace interface to kernel DRM (Direct Rendering Module) services.
 
@@ -83,18 +89,19 @@ Userspace interface to kernel DRM (Direct Rendering Module) services.
 554cfbfe0542bddb391b4e3e05bfbbfc3e282b955bd56218d21c0616481f65eb       469952 libdrm-2.4.115.tar.xz
 
 
-[FILE:409:manifests/plist.primary]
+[FILE:438:manifests/plist.primary]
 %%ARM-ON%%lib/
  libdrm_freedreno.so.1
  libdrm_freedreno.so.1.0.0
+%%X86-ON%%%%NOUVEAU-ON%%lib/
+ libdrm_nouveau.so.2
+ libdrm_nouveau.so.2.0.0
 %%X86-ON%%bin/amdgpu_stress
 %%X86-ON%%lib/
  libdrm_amdgpu.so.1
  libdrm_amdgpu.so.1.0.0
  libdrm_intel.so.1
  libdrm_intel.so.1.0.0
- libdrm_nouveau.so.2
- libdrm_nouveau.so.2.0.0
  libdrm_radeon.so.1
  libdrm_radeon.so.1.0.1
 %%X86-ON%%share/libdrm/amdgpu.ids
@@ -120,7 +127,7 @@ share/man/man7/
  drm.7.gz
 
 
-[FILE:1117:manifests/plist.dev]
+[FILE:1209:manifests/plist.dev]
 %%ARM-ON%%include/freedreno/
  freedreno_drmif.h
  freedreno_ringbuffer.h
@@ -131,6 +138,17 @@ share/man/man7/
 %%ARM-ON%%lib/pkgconfig/
  libdrm_freedreno.pc
  libdrm_vc4.pc
+%%X86-ON%%%%NOUVEAU-ON%%include/libdrm/nouveau/nouveau.h
+%%X86-ON%%%%NOUVEAU-ON%%include/libdrm/nouveau/nvif/
+ cl0080.h
+ cl9097.h
+ class.h
+ if0002.h
+ if0003.h
+ ioctl.h
+ unpack.h
+%%X86-ON%%%%NOUVEAU-ON%%lib/libdrm_nouveau.so
+%%X86-ON%%%%NOUVEAU-ON%%lib/pkgconfig/libdrm_nouveau.pc
 %%X86-ON%%include/libdrm/
  amdgpu.h
  amdgpu_drm.h
@@ -145,24 +163,13 @@ share/man/man7/
  radeon_cs_gem.h
  radeon_cs_int.h
  radeon_surface.h
-%%X86-ON%%include/libdrm/nouveau/nouveau.h
-%%X86-ON%%include/libdrm/nouveau/nvif/
- cl0080.h
- cl9097.h
- class.h
- if0002.h
- if0003.h
- ioctl.h
- unpack.h
 %%X86-ON%%lib/
  libdrm_amdgpu.so
  libdrm_intel.so
- libdrm_nouveau.so
  libdrm_radeon.so
 %%X86-ON%%lib/pkgconfig/
  libdrm_amdgpu.pc
  libdrm_intel.pc
- libdrm_nouveau.pc
  libdrm_radeon.pc
 include/
  libsync.h

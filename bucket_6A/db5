@@ -2,7 +2,7 @@
 
 NAMEBASE=		db5
 VERSION=		5.3.28
-REVISION=		4
+REVISION=		5
 KEYWORDS=		databases java
 VARIANTS=		standard
 SDESC[standard]=	Oracle Berkeley DB, revision 5
@@ -16,6 +16,7 @@ DIST_SUBDIR=		bdb
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			cxx
 			dev
 			tools
 			docs
@@ -26,7 +27,7 @@ OPT_ON[all]=		CRYPTO
 
 EXRUN[tools]=		db5:primary:standard
 
-USES=			cpe gmake libtool c++:primary fbsd10fix
+USES=			cpe gmake libtool c++:cxx fbsd10fix
 
 DISTNAME=		db-5.3.28
 
@@ -39,18 +40,16 @@ CPE_PRODUCT=		berkeley_db
 CPE_VENDOR=		oracle
 FPC_EQUIVALENT=		databases/db5
 
-MUST_CONFIGURE=		gnu
+MUST_CONFIGURE=		yes
 CONFIGURE_OUTSOURCE=	yes
 CONFIGURE_WRKSRC=	{{WRKSRC}}/build_unix
 CONFIGURE_SCRIPT=	dist/configure
-CONFIGURE_ARGS=		--enable-dbm
+CONFIGURE_ARGS=		--prefix={{PREFIX}}/db5
+			--enable-dbm
 			--enable-cxx
 			--enable-sql
 			--enable-sql_codegen
-			--disable-stl
-			--includedir={{PREFIX}}/include/db5
-			--libdir={{PREFIX}}/lib/db5
-			--bindir={{PREFIX}}/bin/db5
+			--enable-stl
 
 MAKE_ARGS=		docdir={{STD_DOCDIR}}
 
@@ -67,6 +66,7 @@ VAR_ARCH[i386]=		CONFIGURE_ARGS=--with-mutex=x86/gcc-assembly
 
 [TCL].CONFIGURE_ARGS_OFF=		--disable-tcl
 [TCL].CONFIGURE_ARGS_ON=		--with-tcl={{TCL_LIBDIR}}
+[TCL].USES_ON=				tcl
 
 [CRYPTO].DESCRIPTION=			Cryptography support
 [CRYPTO].CONFIGURE_WITH_BOTH=		cryptography=yes
@@ -86,61 +86,22 @@ post-patch:
 		${WRKSRC}/src/mutex/mut_*
 
 post-install-TCL-ON:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/db5/libdb_tcl-5.3.${LIBEXT}
-.if "${OPSYS}" == "Darwin"
-	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.0.dylib
-	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.dylib
-	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.dylib
-	${LN} -s -f db5/libdb_tcl-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.0.dylib
-.else
-	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.so.0
-	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.so
-	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.so
-	${LN} -s -f db5/libdb_tcl-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.so.0
-.endif
-	${LN} -s -f libdb_tcl-5.3.a \
-		${STAGEDIR}${PREFIX}/lib/db5/libdb_tcl.a
+	${LN} -s db5/libdb_tcl-5.3.so ${STAGEDIR}${PREFIX}/lib/libdb_tcl-5.3.so
 	echo "package ifneeded Db_tcl 5.3 \
 	      [list load [file join $$dir libdb_tcl-5.3.so]] \
-	     " > ${STAGEDIR}${PREFIX}/lib/db5/pkgIndex.tcl
+	     " > ${STAGEDIR}${PREFIX}/db5/lib/pkgIndex.tcl
 
 post-install:
-.for i in libdb libdb_cxx libdb_sql
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/db5/${i}-5.3.${LIBEXT}
-.if "${.MAKE.OS.NAME}" == "Darwin"
-	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.3.0.dylib
-	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.3.dylib
-	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.0.dylib
-	${LN} -s -f db5/${i}-5.3.0.0.0.dylib \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.dylib
-.else
-	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.3.so.0
-	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.3.so
-	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.so.0
-	${LN} -s -f db5/${i}-5.3.so.0.0.0 \
-		${STAGEDIR}${PREFIX}/lib/${i}-5.so
-.endif
-	${RM} ${STAGEDIR}${PREFIX}/lib/db5/${i}.a
-	${LN} -s ${i}-5.3.a ${STAGEDIR}${PREFIX}/lib/db5/${i}.a
-	${LN} -s ${i}-5.3.a ${STAGEDIR}${PREFIX}/lib/db5/${i}-5.a
-.endfor
-	cd ${STAGEDIR}${PREFIX}/bin/db5; \
-	for i in *; do ${LN} -s -f db5/$$i ../$$i-5.3 ; \
-		       ${LN} -s -f db5/$$i ../$$i-5 ; done
+	# remove duplicate static libraries
+	${RM} ${STAGEDIR}${PREFIX}/db5/lib/lib*-5.3.a
+	# strip libraries
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/db5/lib/lib*.so
+	# Avoid need for a specific rpath
+	${LN} -s ../db5/lib/libdb-5.3.so.0 ${STAGEDIR}${PREFIX}/lib/libdb-5.3.so.0
+	${LN} -s ../db5/lib/libdb_cxx-5.3.so.0 ${STAGEDIR}${PREFIX}/lib/libdb_cxx-5.3.so.0
+	${LN} -s ../db5/lib/libdb_sql-5.3.so.0 ${STAGEDIR}${PREFIX}/lib/libdb_sql-5.3.so.0
+	${LN} -s ../db5/lib/libdb_stl-5.3.so.0 ${STAGEDIR}${PREFIX}/lib/libdb_stl-5.3.so.0
+	# remove java
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/java
 .for i in gsg gsg_db_rep gsg_txn
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/${i}/JAVA
@@ -157,6 +118,10 @@ fast, scalable, transactional database engine with industrial grade
 reliability and availability.
 
 
+[FILE:57:descriptions/desc.cxx]
+This package contains the c++ libraries of Berkeley DB5.
+
+
 [FILE:68:descriptions/desc.tools]
 This package contains tools that manipulate Berkeley DB5 databases.
 
@@ -165,91 +130,77 @@ This package contains tools that manipulate Berkeley DB5 databases.
 e0a992d740709892e81f9d93f06daf305cf73fb81b545afe72478043172c3628     35090431 bdb/db-5.3.28.tar.gz
 
 
-[FILE:334:manifests/plist.primary]
-lib/
- libdb-%%BDBMAJ%%.so.0
- libdb-%%BDBVER%%.so.0
- libdb_cxx-%%BDBMAJ%%.so.0
- libdb_cxx-%%BDBVER%%.so.0
- libdb_sql-%%BDBMAJ%%.so.0
- libdb_sql-%%BDBVER%%.so.0
-lib/db5/
+[FILE:293:manifests/plist.primary]
+%%TCL-ON%%db5/lib/
+ libdb_tcl-%%BDBVER%%.so.0
+ libdb_tcl-%%BDBVER%%.so.0.0.0
+%%TCL-ON%%lib/libdb_tcl-%%BDBVER%%.so.0.0.0
+db5/lib/
  libdb-%%BDBVER%%.so.0
  libdb-%%BDBVER%%.so.0.0.0
- libdb_cxx-%%BDBVER%%.so.0
- libdb_cxx-%%BDBVER%%.so.0.0.0
  libdb_sql-%%BDBVER%%.so.0
  libdb_sql-%%BDBVER%%.so.0.0.0
+lib/
+ libdb-%%BDBVER%%.so.0
+ libdb_sql-%%BDBVER%%.so.0
 
 
-[FILE:545:manifests/plist.dev]
-include/db5/
+[FILE:184:manifests/plist.cxx]
+db5/lib/
+ libdb_cxx-%%BDBVER%%.so.0
+ libdb_cxx-%%BDBVER%%.so.0.0.0
+ libdb_stl-%%BDBVER%%.so.0
+ libdb_stl-%%BDBVER%%.so.0.0.0
+lib/
+ libdb_cxx-%%BDBVER%%.so.0
+ libdb_stl-%%BDBVER%%.so.0
+
+
+[FILE:681:manifests/plist.dev]
+%%TCL-ON%%db5/lib/
+ libdb_tcl-%%BDBMAJ%%.so
+ libdb_tcl-%%BDBVER%%.so
+ libdb_tcl.a
+ libdb_tcl.so
+ pkgIndex.tcl
+db5/include/
  db.h
  db_cxx.h
  dbsql.h
-lib/
+ dbstl_base_iterator.h
+ dbstl_common.h
+ dbstl_container.h
+ dbstl_dbc.h
+ dbstl_dbt.h
+ dbstl_element_ref.h
+ dbstl_exception.h
+ dbstl_inner_utility.h
+ dbstl_map.h
+ dbstl_resource_manager.h
+ dbstl_set.h
+ dbstl_utility.h
+ dbstl_vector.h
+db5/lib/
  libdb-%%BDBMAJ%%.so
- libdb-%%BDBVER%%.so
- libdb_cxx-%%BDBMAJ%%.so
- libdb_cxx-%%BDBVER%%.so
- libdb_sql-%%BDBMAJ%%.so
- libdb_sql-%%BDBVER%%.so
-lib/db5/
- libdb-%%BDBMAJ%%.a
- libdb-%%BDBMAJ%%.so
- libdb-%%BDBVER%%.a
  libdb-%%BDBVER%%.so
  libdb.a
  libdb.so
- libdb_cxx-%%BDBMAJ%%.a
  libdb_cxx-%%BDBMAJ%%.so
- libdb_cxx-%%BDBVER%%.a
  libdb_cxx-%%BDBVER%%.so
  libdb_cxx.a
  libdb_cxx.so
- libdb_sql-%%BDBMAJ%%.a
  libdb_sql-%%BDBMAJ%%.so
- libdb_sql-%%BDBVER%%.a
  libdb_sql-%%BDBVER%%.so
  libdb_sql.a
  libdb_sql.so
+ libdb_stl-%%BDBMAJ%%.so
+ libdb_stl-%%BDBVER%%.so
+ libdb_stl.a
+ libdb_stl.so
 
 
-[FILE:939:manifests/plist.tools]
-bin/
- db_archive-%%BDBMAJ%%
- db_archive-%%BDBVER%%
- db_checkpoint-%%BDBMAJ%%
- db_checkpoint-%%BDBVER%%
- db_deadlock-%%BDBMAJ%%
- db_deadlock-%%BDBVER%%
- db_dump-%%BDBMAJ%%
- db_dump-%%BDBVER%%
- db_hotbackup-%%BDBMAJ%%
- db_hotbackup-%%BDBVER%%
- db_load-%%BDBMAJ%%
- db_load-%%BDBVER%%
- db_log_verify-%%BDBMAJ%%
- db_log_verify-%%BDBVER%%
- db_printlog-%%BDBMAJ%%
- db_printlog-%%BDBVER%%
- db_recover-%%BDBMAJ%%
- db_recover-%%BDBVER%%
- db_replicate-%%BDBMAJ%%
- db_replicate-%%BDBVER%%
- db_sql_codegen-%%BDBMAJ%%
- db_sql_codegen-%%BDBVER%%
- db_stat-%%BDBMAJ%%
- db_stat-%%BDBVER%%
- db_tuner-%%BDBMAJ%%
- db_tuner-%%BDBVER%%
- db_upgrade-%%BDBMAJ%%
- db_upgrade-%%BDBVER%%
- db_verify-%%BDBMAJ%%
- db_verify-%%BDBVER%%
- dbsql-%%BDBMAJ%%
- dbsql-%%BDBVER%%
-bin/db5/
+[FILE:200:manifests/plist.tools]
+db5/bin/
  db_archive
  db_checkpoint
  db_deadlock
@@ -268,7 +219,47 @@ bin/db5/
  dbsql
 
 
-[FILE:48809:manifests/plist.docs]
+[FILE:49471:manifests/plist.docs]
+%%TCL-ON%%share/doc/db5/api_reference/TCL/
+ BDB-TCL_APIReference.pdf
+ apiReference.css
+ db_close.html
+ db_count.html
+ db_cursor.html
+ db_del.html
+ db_get.html
+ db_get_join.html
+ db_get_type.html
+ db_is_byteswapped.html
+ db_join.html
+ db_open.html
+ db_put.html
+ db_remove.html
+ db_rename.html
+ db_stat.html
+ db_sync.html
+ db_truncate.html
+ dbc_close.html
+ dbc_cmp.html
+ dbc_del.html
+ dbc_dup.html
+ dbc_get.html
+ dbc_put.html
+ env_close.html
+ env_dbremove.html
+ env_dbrename.html
+ env_open.html
+ env_remove.html
+ frame_index.html
+ frame_main.html
+ index.html
+ preface.html
+ tclapi.html
+ txn.html
+ txn_abort.html
+ txn_checkpoint.html
+ txn_commit.html
+ version.html
 share/doc/db5/index.html
 share/doc/db5/api_reference/C/
  BDB-C_APIReference.pdf

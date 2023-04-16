@@ -29,15 +29,15 @@ _INCLUDE_USES_BDB_MK=	yes
 
 .  if ${bdb_ARGS} == "18"
 BDB_VER=		18
-BDB_LIB_NAME=		db-18.1
-BDB_LIB_CXX_NAME=	db_cxx-18.1
+BDB_LIB_NAME=		db
+BDB_LIB_CXX_NAME=	db_cxx
 .  else
 BDB_VER=		5
-BDB_LIB_NAME=		db-5.3
-BDB_LIB_CXX_NAME=	db_cxx-5.3
+BDB_LIB_NAME=		db
+BDB_LIB_CXX_NAME=	db_cxx
 .  endif
-BDB_LIB_DIR=		${LOCALBASE}/lib/db${BDB_VER}
-BDB_INCLUDE_DIR=	${LOCALBASE}/include/db${BDB_VER}
+BDB_LIB_DIR=		${LOCALBASE}/db${BDB_VER}/lib
+BDB_INCLUDE_DIR=	${LOCALBASE}/db${BDB_VER}/include
 
 LDFLAGS+=		-L${BDB_LIB_DIR} -lpthread
 CPPFLAGS+=		-I${BDB_INCLUDE_DIR}

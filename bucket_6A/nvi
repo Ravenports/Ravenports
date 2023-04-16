@@ -2,7 +2,7 @@
 
 NAMEBASE=		nvi
 VERSION=		1.81.6
-REVISION=		1
+REVISION=		2
 KEYWORDS=		editors
 VARIANTS=		standard
 SDESC[standard]=	Berkeley nvi with additional features
@@ -18,8 +18,9 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			bdb:build iconv:build libtool ncurses:build
-			pkgconfig
+BUILD_DEPENDS=		db4:dev:standard
+
+USES=			iconv:build libtool ncurses:build pkgconfig
 
 FPC_EQUIVALENT=		editors/nvi2
 
@@ -30,6 +31,8 @@ CONFIGURE_SCRIPT=	dist/configure
 CONFIGURE_ARGS=		--program-prefix=n
 			--enable-widechar
 			--enable-shared=no
+			--with-db=system
+			--with-db-prefix={{LOCALBASE}}/db4
 			--with-curses={{NCURSESBASE}}
 
 CPPFLAGS=		-I{{NCURSESINC}}
@@ -48,7 +51,7 @@ post-extract:
 	${RM} ${LOCALBASE}/lib/libiconv.so
 	${RM} ${LOCALBASE}/lib/libncurses.so
 	${RM} ${LOCALBASE}/lib/libtinfo.so
-	${RM} ${LOCALBASE}/lib/db5/libdb.so
+	${RM} ${LOCALBASE}/db4/lib/libdb.so
 
 [FILE:258:descriptions/desc.single]
 Nvi is an implementation of the ex/vi text editor originally distributed
@@ -133,10 +136,10 @@ share/vi/tcl/
  
 
 
-[FILE:1721:patches/patch-dist_configure]
+[FILE:1738:patches/patch-dist_configure]
 --- dist/configure.orig	2007-11-18 16:43:54 UTC
 +++ dist/configure
-@@ -21142,7 +21142,7 @@
+@@ -21142,7 +21142,7 @@ fi
  echo "${ECHO_T}$vi_cv_runpath" >&6; }
  
  if test "X$vi_cv_runpath" = "Xyes"; then
@@ -145,25 +148,25 @@ share/vi/tcl/
  else
  	LRscript='s/^\(.*\)/-L\1 /'
  fi
-@@ -23510,7 +23510,7 @@
+@@ -23510,7 +23510,7 @@ fi
  	CPPFLAGS="$CURSCPPFLAGS $CPPFLAGS"
  
  	if test "$vi_cv_widechar" = "yes"; then
 -	    for vi_cv_curses in ncurses ncursesw curses; do
-+	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow" curses; do
++	    for vi_cv_curses in "ncurses -ltinfo" curses; do
  		as_ac_Lib=`echo "ac_cv_lib_$vi_cv_curses''_waddnwstr" | $as_tr_sh`
  { echo "$as_me:$LINENO: checking for waddnwstr in -l$vi_cv_curses" >&5
  echo $ECHO_N "checking for waddnwstr in -l$vi_cv_curses... $ECHO_C" >&6; }
-@@ -23581,7 +23581,7 @@
+@@ -23581,7 +23581,7 @@ fi
  		vi_cv_curses=unknown
  	    done
  	else
 -	    for vi_cv_curses in ncurses ncursesw curses; do
-+	    for vi_cv_curses in "ncurses -ltinfo" "ncursesw -ltinfow" curses; do
++	    for vi_cv_curses in "ncurses -ltinfo" curses; do
  		as_ac_Lib=`echo "ac_cv_lib_$vi_cv_curses''_initscr" | $as_tr_sh`
  { echo "$as_me:$LINENO: checking for initscr in -l$vi_cv_curses" >&5
  echo $ECHO_N "checking for initscr in -l$vi_cv_curses... $ECHO_C" >&6; }
-@@ -27631,6 +27631,8 @@
+@@ -27631,6 +27631,8 @@ _ACEOF
  cat confdefs.h >>conftest.$ac_ext
  cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */
@@ -172,7 +175,7 @@ share/vi/tcl/
  main(){char buf[20]; exit(sprintf(buf, "XXX") != 3);}
  _ACEOF
  rm -f conftest$ac_exeext
-@@ -28624,7 +28626,7 @@
+@@ -28624,7 +28626,7 @@ cat confdefs.h >>conftest.$ac_ext
  cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */
  #include <stdio.h>
@@ -181,7 +184,7 @@ share/vi/tcl/
  
  int
  main ()
-@@ -28767,6 +28769,7 @@
+@@ -28767,6 +28769,7 @@ _ACEOF
  cat confdefs.h >>conftest.$ac_ext
  cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */

@@ -48,3 +48,21 @@ This package contains the X.Org xf86-video-vesa driver.
 lib/xorg/modules/drivers/vesa_drv.so
 share/man/man4/vesa.4.gz
 
+
+[FILE:419:patches/patch-src_vesa.c]
+--- src/vesa.c.orig	2022-12-09 20:27:18 UTC
++++ src/vesa.c
+@@ -491,10 +491,12 @@ VESAPciProbe(DriverPtr drv, int entity_n
+     if (pScrn != NULL) {
+ 	VESAPtr pVesa;
+ 
++#if !(defined(__FreeBSD__) || defined(__DragonFly__))
+ 	if (pci_device_has_kernel_driver(dev)) {
+ 	    ErrorF("vesa: Ignoring device with a bound kernel driver\n");
+ 	    return FALSE;
+ 	}
++#endif
+ 
+ 	pVesa = VESAGetRec(pScrn);
+ 	VESAInitScrn(pScrn);
+
