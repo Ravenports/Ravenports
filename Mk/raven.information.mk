@@ -186,7 +186,7 @@ ASPELL_INSTALL_VERSION=		${ASPELL_CORE_VERSION:R}
 # apr1 and other apache projects
 # ------------------------------------------------------------------------
 
-APR1_VERSION=			1.7.3
+APR1_VERSION=			1.7.4
 APR1_UTIL_VERSION=		1.6.3
 SUBVERSION_VERSION=		1.14.2
 
