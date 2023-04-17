@@ -107,6 +107,17 @@ post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}/${i}/JAVA
 .endfor
 
+post-extract:
+	# This port actually has a gnu autotools
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/dist/config.guess
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/lang/sql/jdbc/config.guess
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/lang/sql/sqlite/config.guess
+	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/lang/sql/odbc/config.guess
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/dist/config.sub
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/lang/sql/jdbc/config.sub
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/lang/sql/sqlite/config.sub
+	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/lang/sql/odbc/config.sub
+
 post-patch-sunos:
 	${REINPLACE_CMD} -e '/_XOPEN_SOURCE/ s/500/600/' \
 		${WRKSRC}/util/db_sql_codegen/sqlite/sqliteInt.h
