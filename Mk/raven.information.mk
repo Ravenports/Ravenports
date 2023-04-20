@@ -22,9 +22,9 @@ APQ_ODBC_REVISION=		1
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.81.0
+BOOST_VERSION=			1.82.0
 BOOST_JAM_REVISION=		0
-BOOST_LIBRARIES_REVISION=	1
+BOOST_LIBRARIES_REVISION=	0
 
 # ------------------------------------------------------------------------
 # Only keep the open branches of GCC
