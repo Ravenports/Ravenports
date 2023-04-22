@@ -2,6 +2,7 @@
 
 NAMEBASE=		libuuid
 VERSION=		2.38.1
+REVISION=		1
 KEYWORDS=		misc devel
 VARIANTS=		standard
 SDESC[standard]=	Tool/Lib for generating Universally Unique IDs
@@ -12,25 +13,31 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v2.38/
 DISTFILE[1]=		util-linux-2.38.1.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
+			man
 
 OPTIONS_AVAILABLE=	NOSETPROC
 OPTIONS_STANDARD=	NOSETPROC
 OPT_ON[freebsd]=	NOSETPROC
 OPT_ON[sunos]=		NOSETPROC
 OPT_ON[dragonfly]=	NOSETPROC
+OPT_ON[midnightbsd]=	NOSETPROC
 
 BUILD_DEPENDS=		bison:primary:standard
 			libtool:single:standard
 			ruby-asciidoctor:single:ruby_default
 B_DEPS[sunos]=		libbsd4sol:single:standard
+EXRUN[tools]=		libuuid:primary:standard
 
 USES=			autoreconf:build cpe libtool pkgconfig gettext:build
 C_USES[sunos]=		perl:build
 
 DISTNAME=		util-linux-2.38.1
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKDIR}}/BSD3
 LICENSE_AWK=		BSD3CLAUSE:"^$$"
 LICENSE_SOURCE=		BSD3CLAUSE:{{WRKSRC}}/libuuid/src/uuid.h
@@ -74,7 +81,7 @@ post-patch-sunos:
 	${GREP} -rl '_(".*")' ${WRKSRC} | ${XARGS} \
 		${PERL} -p -i.pbak -e 's|[_][(]["](.*?)["][)]|"\1"|g'
 
-[FILE:568:descriptions/desc.single]
+[FILE:568:descriptions/desc.primary]
 The UUID library is used to generate unique identifiers for objects
 that may be accessible beyond the local system.  This library
 generates UUIDs compatible with those created by the Open Software
@@ -88,19 +95,33 @@ web servers without communication between the servers, and without fear
 of a name clash.
 
 
+[FILE:40:descriptions/desc.tools]
+This package contains the uuidgen tool.
+
+
 [FILE:103:distinfo]
 60492a19b44e6cf9a3ddff68325b333b8b52b6c59ce3ebd6a0ecaa4c5117e84f      7495904 util-linux-2.38.1.tar.xz
 
 
-[FILE:450:manifests/plist.single]
+[FILE:55:manifests/plist.primary]
+lib/
+ libuuid.so.%%SOMAJOR%%
+ libuuid.so.%%SOVERSION%%
+
+
+[FILE:12:manifests/plist.tools]
 bin/uuidgen
+
+
+[FILE:70:manifests/plist.dev]
+lib/pkgconfig/uuid.pc
 include/uuid/uuid.h
 lib/
  libuuid.a
  libuuid.so
- libuuid.so.%%SOMAJOR%%
- libuuid.so.%%SOVERSION%%
-lib/pkgconfig/uuid.pc
+
+
+[FILE:318:manifests/plist.man]
 share/man/man1/uuidgen.1.gz
 share/man/man3/
  uuid.3.gz

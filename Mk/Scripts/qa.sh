@@ -480,11 +480,23 @@ uses_mbsdfix() {
 	return 0
 }
 
+missing_license() {
+	local error_file="${STAGEDIR}/../.license_fail"
+	local line
+	if [ -f "$error_file" ]; then
+		while read -r line; do
+			err "$line"
+		done < "$error_file"
+		return 1
+	fi
+	return 0
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
 checks="$checks sonames nls_files doc_files uses_fbsd10fix uses_mbsdfix"
 # don't add to this line
-checks="$checks licterms showlic"
+checks="$checks missing_license licterms showlic"
 
 ret=0
 cd "${STAGEDIR}" || exit 1

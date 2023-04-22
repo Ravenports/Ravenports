@@ -2,6 +2,7 @@
 
 NAMEBASE=		libuv
 VERSION=		1.44.2
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Multi-platform support for asynchronous I/O
@@ -12,14 +13,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/libuv:libuv:v1.44.2
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			autoreconf libtool pkgconfig solaris-funcs cpe
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -39,7 +42,7 @@ pre-configure:
 	${ECHO_CMD} "m4_define([UV_EXTRA_AUTOMAKE_FLAGS], [ serial-tests])" \
 		> ${WRKSRC}/m4/libuv-extra-automake-flags.m4
 
-[FILE:463:descriptions/desc.single]
+[FILE:463:descriptions/desc.primary]
 libuv is a multi-platform support library with a focus on asynchronous I/O.
 
 Feature highlights:
@@ -60,7 +63,13 @@ Feature highlights:
 e6e2ba8b4c349a4182a33370bb9be5e23c51b32efb9b9e209d0e8556b73a48da      1309062 libuv-libuv-1.44.2.tar.gz
 
 
-[FILE:398:manifests/plist.single]
+[FILE:51:manifests/plist.primary]
+lib/
+ libuv.so.%%SOMAJOR%%
+ libuv.so.%%SOVERSION%%
+
+
+[FILE:352:manifests/plist.dev]
 %%ONLY-DARWIN%%include/uv/darwin.h
 %%ONLY-DRAGONFLY%%include/uv/bsd.h
 %%ONLY-FREEBSD%%include/uv/bsd.h
@@ -77,8 +86,6 @@ include/uv/
 lib/
  libuv.a
  libuv.so
- libuv.so.%%SOMAJOR%%
- libuv.so.%%SOVERSION%%
 lib/pkgconfig/libuv.pc
 
 

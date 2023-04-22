@@ -159,9 +159,10 @@ php-error:
 # Incorporated in ravenadm
 # -----------------------------------------------------
 # If args contain "build" or "phpize" or "ext" or "zend"
-# BUILDRUN_DEPENDS+= php${PHP_SUFFIX}:single:standard
+# BUILDRUN_DEPENDS+= php${PHP_SUFFIX}:primary:standard
+# BUILD_DEPENDS+=    php${PHP_SUFFIX}:dev:standard
 # else
-# RUN_DEPENDS+=      php${PHP_SUFFIX}:single:standard
+# RUN_DEPENDS+=      php${PHP_SUFFIX}:primary:standard
 # endif
 # if args contain "phpize" or "ext" or "zend"
 # BUILD_DEPENDS+=    autconf:single:standard

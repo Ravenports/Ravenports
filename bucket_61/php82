@@ -2,6 +2,7 @@
 
 NAMEBASE=		php82
 VERSION=		8.2.5
+REVISION=		1
 KEYWORDS=		lang www php
 VARIANTS=		standard
 SDESC[standard]=	PHP Hypertext Preprocessor version 8.2
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		PHP/distributions
 DISTFILE[1]=		php-8.2.5.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	CLI CGI FPM EMBED DEBUGGER
 OPTIONS_STANDARD=	CLI CGI FPM EMBED DEBUGGER
@@ -29,7 +33,7 @@ GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		php-8.2.5
 
-LICENSE=		CUSTOM1:single
+LICENSE=		CUSTOM1:primary
 LICENSE_NAME=		CUSTOM1:"PHP License v3.01"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
@@ -56,7 +60,7 @@ DESTDIRNAME=		INSTALL_ROOT
 
 PLIST_SUB=		SUFFIX=82
 			SOMAJOR=8
-RC_SUBR=		php82-fpm:single
+RC_SUBR=		php82-fpm:primary
 SUB_LIST=		SUFFIX=82
 
 [CLI].DESCRIPTION=			Enable Command Line Interface SAPI
@@ -137,7 +141,7 @@ post-install-CGI-ON:
 post-install-FPM-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/sbin/php-fpm82
 
-[FILE:679:descriptions/desc.single]
+[FILE:679:descriptions/desc.primary]
 PHP is a widely-used open source general-purpose scripting language
 that is especially suited for web development and can be embedded
 into HTML. It is modular, and object-oriented. Much of its syntax
@@ -161,28 +165,27 @@ version 7.2.x include:
 800738c359b7f1e67e40c22713d2d90276bc85ba1c21b43d99edd43c254c5f76     12001192 php-8.2.5.tar.xz
 
 
-[FILE:6471:manifests/plist.single]
+[FILE:473:manifests/plist.primary]
 %%CGI-ON%%bin/php-cgi%%SUFFIX%%
-%%CGI-ON%%share/man/man1/php-cgi%%SUFFIX%%.1.gz
 %%CLI-ON%%bin/php%%SUFFIX%%
-%%CLI-ON%%include/php%%SUFFIX%%/sapi/cli/cli.h
-%%CLI-ON%%share/man/man1/php%%SUFFIX%%.1.gz
 %%DEBUGGER-ON%%bin/phpdbg%%SUFFIX%%
-%%DEBUGGER-ON%%share/man/man1/phpdbg%%SUFFIX%%.1.gz
-%%EMBED-ON%%include/php%%SUFFIX%%/sapi/embed/php_embed.h
-%%EMBED-ON%%lib/php%%SUFFIX%%/libphp.%%SHARED_OBJECT%%
+%%EMBED-ON%%lib/php%%SUFFIX%%/libphp.so
 %%FPM-ON%%@sample etc/php%%SUFFIX%%/php-fpm.conf.default etc/php%%SUFFIX%%/php-fpm.conf
 %%FPM-ON%%@sample etc/php%%SUFFIX%%/php-fpm.d/www.conf.default etc/php%%SUFFIX%%/php-fpm.d/www.conf
 %%FPM-ON%%sbin/php-fpm%%SUFFIX%%
-%%FPM-ON%%share/man/man8/php-fpm%%SUFFIX%%.8.gz
 %%FPM-ON%%share/php%%SUFFIX%%/fpm/status.html
-bin/
- php-config%%SUFFIX%%
- phpize%%SUFFIX%%
 etc/php%%SUFFIX%%/
  php.conf
  php.ini-development
  php.ini-production
+
+
+[FILE:5725:manifests/plist.dev]
+%%CLI-ON%%include/php%%SUFFIX%%/sapi/cli/cli.h
+%%EMBED-ON%%include/php%%SUFFIX%%/sapi/embed/php_embed.h
+bin/
+ php-config%%SUFFIX%%
+ phpize%%SUFFIX%%
 include/php%%SUFFIX%%/TSRM/
  TSRM.h
  tsrm_win32.h
@@ -487,11 +490,18 @@ lib/php%%SUFFIX%%/build/
  pkg.m4
  run-tests.php
  shtool
+@postexec touch %D/include/php%%SUFFIX%%/ext/php_config.h
+@postunexec [ -s %D/include/php%%SUFFIX%%/ext/php_config.h ] || rm %D/include/php%%SUFFIX%%/ext/php_config.h
+
+
+[FILE:258:manifests/plist.man]
+%%CGI-ON%%share/man/man1/php-cgi%%SUFFIX%%.1.gz
+%%CLI-ON%%share/man/man1/php%%SUFFIX%%.1.gz
+%%DEBUGGER-ON%%share/man/man1/phpdbg%%SUFFIX%%.1.gz
+%%FPM-ON%%share/man/man8/php-fpm%%SUFFIX%%.8.gz
 share/man/man1/
  php-config%%SUFFIX%%.1.gz
  phpize%%SUFFIX%%.1.gz
-@postexec touch %D/include/php%%SUFFIX%%/ext/php_config.h
-@postunexec [ -s %D/include/php%%SUFFIX%%/ext/php_config.h ] || rm %D/include/php%%SUFFIX%%/ext/php_config.h
 
 
 [FILE:293:patches/patch-Zend_zend__gdb.c]

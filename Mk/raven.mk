@@ -912,6 +912,7 @@ install-license:
 		echo " * ${lic} (${LICENSE_NAME_${lic}})" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT};\
 	else \
 		echo "====> Failed to locate stock ${lic} license";\
+		echo "Failed to locate stock ${lic} license." >> ${WRKDIR}/.license_fail;\
 	fi
 .            else
 	@if [ -e "${LICENSE_FILE_${lic}}" ]; then \
@@ -920,6 +921,7 @@ install-license:
 		echo " * ${lic} (${LICENSE_NAME_${lic}})" >> ${STAGEDIR}${PREFIX}/${_LICENSE_DIR}/summary.${sp}.${VARIANT};\
 	else \
 		echo "====> Failed to locate ${lic} license (${LICENSE_FILE_${lic}})";\
+		echo "Failed to locate ${lic} license (${LICENSE_FILE_${lic}})." >> ${WRKDIR}/.license_fail;\
 	fi
 .            endif
 .          endif
