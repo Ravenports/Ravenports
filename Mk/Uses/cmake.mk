@@ -22,6 +22,8 @@
 #			Debug otherwise
 # CMAKE_SOURCE_PATH   - Path to the source directory
 #			Default: ${WRKSRC}
+#
+# BELOW IS NOT SUPPORTED (But maybe it should be)
 # CMAKE_MORE_MODULES  - Add non-standard paths to search for modules
 #			This is how to update CMAKE_MODULE_PATH
 
@@ -75,11 +77,6 @@ BUILD_WRKSRC?=		${CONFIGURE_WRKSRC}
 INSTALL_WRKSRC?=	${CONFIGURE_WRKSRC}
 TEST_WRKSRC?=		${CONFIGURE_WRKSRC}
 .  endif
-
-# CMAKE_MPATH=		${PREFIX}/lib/cmake \
-#			${PREFIX}/lib/qt5/cmake/Qt5Widgets \
-#			${CMAKE_MORE_MODULES:N${PREFIX}/lib/cmake}
-# CMAKE_ARGS+=		-DCMAKE_MODULE_PATH:PATH="${CMAKE_MPATH:ts:}"
 
 .  if !target(do-configure)
 do-configure:

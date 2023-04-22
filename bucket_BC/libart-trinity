@@ -8,23 +8,26 @@ SDESC[standard]=	Library for high-performance 2D graphics
 HOMEPAGE=		https://www.trinitydesktop.org/
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main cmodules
 SITES[main]=		https://mirror.ppa.trinitydesktop.org/trinity/releases/R14.0.13/main/dependencies/
+SITES[cmodules]=	https://mirror.ppa.trinitydesktop.org/trinity/releases/R14.0.13/main/common/
 DISTFILE[1]=		libart-lgpl-trinity-14.0.13.tar.xz:main
-DF_INDEX=		1
-SPKGS[standard]=	single
+DISTFILE[2]=		cmake-trinity-14.0.13.tar.xz:cmodules
+DF_INDEX=		1 2
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-BUILD_DEPENDS=		cmake-trinity:single:standard
 
 USES=			cmake libtool
 
 DISTNAME=		libart-lgpl-trinity-14.0.13
 
-LICENSE=		LGPL20+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL20+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL20+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/art_misc.h
@@ -32,7 +35,10 @@ LICENSE_SCHEME=		solo
 
 SOVERSION=		2.3.21
 
-[FILE:477:descriptions/desc.single]
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libart_lgpl_2.so
+
+[FILE:477:descriptions/desc.primary]
 Libart is a library of functions for 2D graphics supporting a superset of 
 the PostScript imaging model, designed to be integrated with graphics, 
 artwork, and illustration programs. It is written in optimized C and is 
@@ -42,11 +48,19 @@ a fork by the Trinity Desktop Environment project which is maintained
 while the original has long died.
 
 
-[FILE:113:distinfo]
+[FILE:220:distinfo]
 8fd94607405569f556e1c521fd76dd3818aa277b2f533fa01d9de0755ae5a148        94180 libart-lgpl-trinity-14.0.13.tar.xz
+4afff8be0f6da566cbf8594dee759cbddaa7f835c704853ac14c18ef388b963c        36448 cmake-trinity-14.0.13.tar.xz
 
 
-[FILE:944:manifests/plist.single]
+[FILE:67:manifests/plist.primary]
+lib/
+ libart_lgpl_2.so.%%SOMAJOR%%
+ libart_lgpl_2.so.%%SOVERSION%%
+
+
+[FILE:847:manifests/plist.dev]
+lib/pkgconfig/libart-2.0.pc
 bin/libart2-config
 include/libart-2.0/libart_lgpl/
  art_affine.h
@@ -96,8 +110,12 @@ include/libart-2.0/libart_lgpl/
 lib/
  libart_lgpl_2.a
  libart_lgpl_2.so
- libart_lgpl_2.so.%%SOMAJOR%%
- libart_lgpl_2.so.%%SOVERSION%%
-lib/pkgconfig/libart-2.0.pc
+
+
+[FILE:35:manifests/plist.man]
 share/man/man1/libart2-config.1.gz
+
+
+[FILE:83:files/special.mk]
+CMAKE_ARGS+=	-DCMAKE_MODULE_PATH:PATH="${WRKDIR}/cmake-trinity-${VERSION}/modules"
 
