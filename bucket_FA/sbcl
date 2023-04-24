@@ -42,6 +42,7 @@ BUILD_DEPENDS=		gmp:static:standard
 BUILDRUN_DEPENDS=	gmp:shared:standard
 			mpfr:shared:standard
 RUN_DEPENDS=		asdf:primary:standard
+B_DEPS[midnightbsd]=	clisp:primary:standard
 
 USES=			gmake makeinfo zlib zstd
 
@@ -69,12 +70,13 @@ CMAKE_ARGS=		--prefix="{{PREFIX}}"
 			--without-sb-safepoint
 			--without-sb-thruption
 			--without-sb-wtimer
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CMAKE_ARGS:={{CMAKE_ARGS:N--xc-host=*}}
+			MAKEFILE_LINE=CMAKE_ARGS+=--xc-host=clisp
 
 [NETBSD].DESCRIPTION=			build for NetBSD
 [NETBSD].DF_INDEX_ON=			5
 
 [MIDNIGHT].DESCRIPTION=			build for MidnightBSD
-[MIDNIGHT].BROKEN_ON=			FreeBSD bootstrap segfaults - another is needed
 [MIDNIGHT].DF_INDEX_ON=			3
 
 [SIMD].DESCRIPTION=			Enable SB-SIMD (requires AVX2 CPU)
@@ -124,7 +126,9 @@ post-install-SIMD-ON:
 		${STAGEDIR}${PREFIX}/lib/sbcl/sb-simd/
 
 post-extract:
-	${MV} ${WRKDIR}/sbcl-1.2.7-* ${WRKDIR}/bootstrap
+	if [ ! -f "${LOCALBASE}/bin/clisp" ]; then \
+		${MV} ${WRKDIR}/sbcl-1.2.7-* ${WRKDIR}/bootstrap ;\
+	fi
 	# Extract licenses into separate files
 	${AWK} '/^;;;; Portions of LOOP/,/;;;; specification/' \
 		${WRKSRC}/COPYING > ${WRKDIR}/LICENSE_PUBDOM
@@ -389,11 +393,20 @@ lib/sbcl/sb-sprof/
 share/man/man1/sbcl.1.gz
 
 
-[FILE:316:patches/patch-make-config.sh]
+[FILE:538:patches/patch-make-config.sh]
 Linux LARGEFILE option does not seem to build.
 
---- make-config.sh.orig	2022-10-30 19:42:45 UTC
+--- make-config.sh.orig	2023-03-28 19:42:52 UTC
 +++ make-config.sh
+@@ -286,7 +286,7 @@ case `uname` in
+         ;;
+     *BSD)
+         case `uname` in
+-            FreeBSD)
++            FreeBSD|MidnightBSD)
+                 sbcl_os="freebsd"
+                 ;;
+             GNU/kFreeBSD)
 @@ -523,7 +523,6 @@ case "$sbcl_os" in
          # src/runtime/Config.foo-linux too.
          case "$sbcl_arch" in
