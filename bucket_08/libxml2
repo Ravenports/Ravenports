@@ -40,11 +40,13 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		2.11.1
 
+VAR_OPSYS[freebsd]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
+VAR_OPSYS[sunos]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
+VAR_OPSYS[netbsd]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
+VAR_OPSYS[dragonfly]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
+VAR_OPSYS[midnightbsd]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
+
 post-patch:
-.for d in . doc doc/devhelp doc/examples
-	${REINPLACE_CMD} -e '/^install-data-am:/ s|install-data-local||' \
-		${WRKSRC}/${d}/Makefile.in
-.endfor
 .for f in catalog.c xmlcatalog.c xmllint.c doc/xmllint.1
 	${REINPLACE_CMD} -e \
 		's|/etc/xml/catalog|${LOCALBASE}/share/xml/catalog|g; \
@@ -68,9 +70,8 @@ enclosed between angle brackets.
 3d39b294b856bfe3bafd5fb126e1f8487004261e78eabb8df9513e927915a995      2627948 gnome2/libxml2-2.11.1.tar.xz
 
 
-[FILE:94:manifests/plist.primary]
+[FILE:81:manifests/plist.primary]
 bin/
- xml2-config
  xmlcatalog
  xmllint
 lib/
@@ -78,7 +79,8 @@ lib/
  libxml2.so.%%SOVERSION%%
 
 
-[FILE:688:manifests/plist.dev]
+[FILE:704:manifests/plist.dev]
+bin/xml2-config
 include/libxml2/libxml/
  HTMLparser.h
  HTMLtree.h
