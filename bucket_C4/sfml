@@ -2,7 +2,7 @@
 
 NAMEBASE=		sfml
 VERSION=		2.5.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel multimedia
 VARIANTS=		standard
 SDESC[standard]=	Simple Fast Multimedia Library
@@ -13,22 +13,28 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/SFML:SFML:2.5.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		openal:dev:standard
+			libvorbis:dev:standard
+			flac:dev:standard
 BUILDRUN_DEPENDS=	flac:primary:standard
-			libogg:primary:standard
 			libvorbis:primary:standard
 			libglvnd:single:standard
 			openal:primary:standard
+EXRUN[dev]=		flac:dev:standard
+			openal:dev:standard
+			libvorbis:dev:standard
 
 USES=			cmake jpeg freetype
 XORG_COMPONENTS=	x11 xrandr
 
-LICENSE=		ZLIB:single
+LICENSE=		ZLIB:primary
 LICENSE_FILE=		ZLIB:{{WRKSRC}}/license.md
 LICENSE_SCHEME=		solo
 
@@ -73,7 +79,7 @@ post-patch-midnightbsd:
 		${WRKSRC}/include/SFML/Window/WindowHandle.hpp \
 		${WRKSRC}/include/SFML/Config.hpp
 
-[FILE:357:descriptions/desc.single]
+[FILE:357:descriptions/desc.primary]
 SFML is a portable and easy to use multimedia API written in C++.
 You can see it as a modern, object-oriented alternative to SDL.
 
@@ -87,7 +93,21 @@ or interactive programs.
 438c91a917cc8aa19e82c6f59f8714da353c488584a007d401efac8368e1c785     22868556 SFML-SFML-2.5.1.tar.gz
 
 
-[FILE:2423:manifests/plist.single]
+[FILE:389:manifests/plist.primary]
+lib/
+ libsfml-audio.so.%%SOMAJOR%%.%%SOMINOR%%
+ libsfml-audio.so.%%SOVERSION%%
+ libsfml-graphics.so.%%SOMAJOR%%.%%SOMINOR%%
+ libsfml-graphics.so.%%SOVERSION%%
+ libsfml-network.so.%%SOMAJOR%%.%%SOMINOR%%
+ libsfml-network.so.%%SOVERSION%%
+ libsfml-system.so.%%SOMAJOR%%.%%SOMINOR%%
+ libsfml-system.so.%%SOVERSION%%
+ libsfml-window.so.%%SOMAJOR%%.%%SOMINOR%%
+ libsfml-window.so.%%SOVERSION%%
+
+
+[FILE:2039:manifests/plist.dev]
 include/SFML/
  Audio.hpp
  Config.hpp
@@ -203,20 +223,10 @@ include/SFML/Window/
  WindowStyle.hpp
 lib/
  libsfml-audio.so
- libsfml-audio.so.%%SOMAJOR%%.%%SOMINOR%%
- libsfml-audio.so.%%SOVERSION%%
  libsfml-graphics.so
- libsfml-graphics.so.%%SOMAJOR%%.%%SOMINOR%%
- libsfml-graphics.so.%%SOVERSION%%
  libsfml-network.so
- libsfml-network.so.%%SOMAJOR%%.%%SOMINOR%%
- libsfml-network.so.%%SOVERSION%%
  libsfml-system.so
- libsfml-system.so.%%SOMAJOR%%.%%SOMINOR%%
- libsfml-system.so.%%SOVERSION%%
  libsfml-window.so
- libsfml-window.so.%%SOMAJOR%%.%%SOMINOR%%
- libsfml-window.so.%%SOVERSION%%
 lib/cmake/SFML/
  SFMLConfig.cmake
  SFMLConfigDependencies.cmake

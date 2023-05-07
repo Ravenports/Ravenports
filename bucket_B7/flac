@@ -2,6 +2,7 @@
 
 NAMEBASE=		flac
 VERSION=		1.4.2
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	Free Lossless Audio Codec
@@ -14,15 +15,22 @@ DISTFILE[1]=		flac-1.4.2.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			cxx
+			tools
+			dev
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		doxygen:single:standard
+			libogg:dev:standard
 BUILDRUN_DEPENDS=	libogg:primary:standard
+EXRUN[cxx]=		flac:primary:standard
+EXRUN[tools]=		flac:primary:standard
+EXRUN[dev]=		libogg:dev:standard
 
-USES=			cpe iconv libtool pkgconfig mbsdfix c++:primary
+USES=			cpe iconv libtool pkgconfig mbsdfix c++:cxx
 
 LICENSE=		CUSTOM1:primary GPLv2:primary LGPL21:primary
 			GFDL:primary
@@ -66,14 +74,46 @@ FLAC is comprised of
  * user and API documentation
 
 
+[FILE:45:descriptions/desc.cxx]
+This package contains the libFLAC++ library.
+
+
+[FILE:34:descriptions/desc.tools]
+This package contains FLAC tools.
+
+
 [FILE:96:distinfo]
 e322d58a1f48d23d9dd38f432672865f6f79e73a6f9cc5a5f57fcaa83eb5a8e4      1013700 flac-1.4.2.tar.xz
 
 
-[FILE:414:manifests/plist.primary]
+[FILE:39:manifests/plist.primary]
+lib/
+ libFLAC.so.12
+ libFLAC.so.12.0.0
+
+
+[FILE:43:manifests/plist.cxx]
+lib/
+ libFLAC++.so.10
+ libFLAC++.so.10.0.0
+
+
+[FILE:21:manifests/plist.tools]
 bin/
  flac
  metaflac
+
+
+[FILE:326:manifests/plist.dev]
+lib/pkgconfig/
+ flac++.pc
+ flac.pc
+share/aclocal/
+ libFLAC++.m4
+ libFLAC.m4
+lib/
+ libFLAC.a
+ libFLAC.so
 include/FLAC/
  all.h
  assert.h
@@ -93,18 +133,6 @@ include/FLAC++/
 lib/
  libFLAC++.a
  libFLAC++.so
- libFLAC++.so.10
- libFLAC++.so.10.0.0
- libFLAC.a
- libFLAC.so
- libFLAC.so.12
- libFLAC.so.12.0.0
-lib/pkgconfig/
- flac++.pc
- flac.pc
-share/aclocal/
- libFLAC++.m4
- libFLAC.m4
 
 
 [FILE:8211:manifests/plist.docs]

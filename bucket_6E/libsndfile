@@ -2,6 +2,7 @@
 
 NAMEBASE=		libsndfile
 VERSION=		1.2.0
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	Library for reading and writing sound files
@@ -14,16 +15,24 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
+			man
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		opus:dev:standard
+			libvorbis:dev:standard
+			flac:dev:standard
 BUILDRUN_DEPENDS=	flac:primary:standard
 			libvorbis:primary:standard
 			opus:primary:standard
 			speex:primary:standard
+EXRUN[tools]=		libsndfile:primary:standard
+EXRUN[dev]=		opus:dev:standard
+			flac:dev:standard
 
 USES=			cmake cpe gmake pkgconfig python:build
 
@@ -42,11 +51,21 @@ sound (such as MS Windows WAV and the Apple/SGI AIFF format) through one
 standard library interface.
 
 
+[FILE:54:descriptions/desc.tools]
+This package contains tools based on sndfile library.
+
+
 [FILE:108:distinfo]
 62dc4e2bcd45f6f0e89cbc3522cc90eb174dca0eef0a0d19ead289833b390cd7       684253 erikd-libsndfile-1.2.0.tar.gz
 
 
-[FILE:678:manifests/plist.primary]
+[FILE:61:manifests/plist.primary]
+lib/
+ libsndfile.so.%%SOMAJOR%%
+ libsndfile.so.%%SOVERSION%%
+
+
+[FILE:182:manifests/plist.tools]
 bin/
  sndfile-cmp
  sndfile-concat
@@ -58,19 +77,22 @@ bin/
  sndfile-metadata-set
  sndfile-play
  sndfile-salvage
-include/
- sndfile.h
- sndfile.hh
-lib/
- libsndfile.so
- libsndfile.so.%%SOMAJOR%%
- libsndfile.so.%%SOVERSION%%
+
+
+[FILE:195:manifests/plist.dev]
 lib/cmake/SndFile/
  SndFileConfig.cmake
  SndFileConfigVersion.cmake
  SndFileTargets-release.cmake
  SndFileTargets.cmake
 lib/pkgconfig/sndfile.pc
+include/
+ sndfile.h
+ sndfile.hh
+lib/libsndfile.so
+
+
+[FILE:243:manifests/plist.man]
 share/man/man1/
  sndfile-cmp.1.gz
  sndfile-concat.1.gz

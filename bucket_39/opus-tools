@@ -2,35 +2,41 @@
 
 NAMEBASE=		opus-tools
 VERSION=		0.2
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	Encode, inspect, and decode Opus files
 HOMEPAGE=		https://www.opus-codec.org/
-CONTACT=		Leonid_Bobrov[goleo@disroot.org]
+CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		MOZILLA/opus
 			https://downloads.xiph.org/releases/opus/
 DISTFILE[1]=		opus-tools-0.2.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		opusfile:dev:standard
+			flac:dev:standard
 BUILDRUN_DEPENDS=	flac:primary:standard
-			libogg:primary:standard
 			libopusenc:primary:standard
 			opusfile:primary:standard
 
 USES=			pkgconfig
 
-LICENSE=		BSD2CLAUSE:single GPLv2:single
-LICENSE_TERMS=		single:{{WRKSRC}}/TERMS
-LICENSE_FILE=		BSD2CLAUSE:{{WRKDIR}}/LICENSE
-			GPLv2:{{WRKDIR}}/LICENSE
+LICENSE=		BSD2CLAUSE:primary GPLv2:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		BSD2CLAUSE:{{WRKDIR}}/BSD-LICENSE
+			GPLv2:stock
 LICENSE_AWK=		TERMS:"^\#ifdef"
+			BSD2CLAUSE:"^Opusinfo"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/opusinfo.c
+			BSD2CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		multi
 
 FPC_EQUIVALENT=		audio/opus-tools
@@ -41,7 +47,7 @@ VAR_OPSYS[netbsd]=	CONFIGURE_ENV=ac_cv_header_soundcard_h=no
 			CONFIGURE_ENV=ac_cv_header_sys_soundcard_h=no
 			CONFIGURE_ENV=ac_cv_header_machine_soundcard_h=no
 
-[FILE:87:descriptions/desc.single]
+[FILE:87:descriptions/desc.primary]
 Opus-tools provides command-line utilities to encode, inspect, and
 decode .opus files.
 
@@ -50,11 +56,14 @@ decode .opus files.
 b4e56cb00d3e509acfba9a9b627ffd8273b876b4e2408642259f6da28fa0ff86       457680 opus-tools-0.2.tar.gz
 
 
-[FILE:92:manifests/plist.single]
+[FILE:33:manifests/plist.primary]
 bin/
  opusdec
  opusenc
  opusinfo
+
+
+[FILE:59:manifests/plist.man]
 share/man/man1/
  opusdec.1.gz
  opusenc.1.gz

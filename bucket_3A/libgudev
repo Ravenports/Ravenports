@@ -2,6 +2,7 @@
 
 NAMEBASE=		libgudev
 VERSION=		237
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	GObject bindings for libudev
@@ -12,27 +13,24 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNOME/libgudev/237
 DISTFILE[1]=		libgudev-237.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 ONLY_FOR_OPSYS=		dragonfly freebsd netbsd linux midnightbsd
 
-B_DEPS[freebsd]=	libudev-devd:dev:standard
-B_DEPS[netbsd]=		libudev-devd:dev:standard
-B_DEPS[dragonfly]=	libudev-devd:dev:standard
-B_DEPS[midnightbsd]=	libudev-devd:dev:standard
-BR_DEPS[freebsd]=	libudev-devd:primary:standard
-BR_DEPS[netbsd]=	libudev-devd:primary:standard
-BR_DEPS[dragonfly]=	libudev-devd:primary:standard
-BR_DEPS[midnightbsd]=	libudev-devd:primary:standard
+BUILD_DEPENDS=		libudev-devd:dev:standard
+BUILDRUN_DEPENDS=	libudev-devd:primary:standard
+EXRUN[dev]=		libudev-devd:dev:standard
 
 USES=			pkgconfig gmake meson
 GNOME_COMPONENTS=	glib introspection
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/gudev/gudev.h
@@ -43,7 +41,7 @@ MESON_ARGS=		-Dgtk_doc=false
 INSTALL_TARGET=		install-strip
 SOVERSION=		0.3.0
 
-[FILE:147:descriptions/desc.single]
+[FILE:147:descriptions/desc.primary]
 This library provides GObject bindings for libudev.
 It was originally part of udev-extras, then udev, then systemd.
 It's now a project on its own.
@@ -53,7 +51,13 @@ It's now a project on its own.
 0d06b21170d20c93e4f0534dbb9b0a8b4f1119ffb00b4031aaeb5b9148b686aa        29060 libgudev-237.tar.xz
 
 
-[FILE:305:manifests/plist.single]
+[FILE:65:manifests/plist.primary]
+lib/
+ libgudev-1.0.so.%%SOMAJOR%%
+ libgudev-1.0.so.%%SOVERSION%%
+
+
+[FILE:243:manifests/plist.dev]
 include/gudev-1.0/gudev/
  gudev.h
  gudevclient.h
@@ -62,10 +66,7 @@ include/gudev-1.0/gudev/
  gudevenums.h
  gudevenumtypes.h
  gudevtypes.h
-lib/
- libgudev-1.0.so
- libgudev-1.0.so.%%SOMAJOR%%
- libgudev-1.0.so.%%SOVERSION%%
+lib/libgudev-1.0.so
 lib/girepository-1.0/GUdev-1.0.typelib
 lib/pkgconfig/gudev-1.0.pc
 share/gir-1.0/GUdev-1.0.gir
