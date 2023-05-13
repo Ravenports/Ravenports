@@ -97,15 +97,14 @@ PGSQL_15_VERSION=	15.2
 # Possible values: oracle-(5.7,8.0), mariadb-(10.[3456789], 10.1[01]),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #
-# MariaDB releases:   (After 20 May 23, remove 10.3, 10.8, 10.9, 10.10)
-#   MariaDB 10.3   EOL 25 May 2023 (STABLE)
+# MariaDB releases:
 #   MariaDB 10.4   EOL 18 JUN 2024 (STABLE)
 #   MariaDB 10.5   EOL 24 JUN 2025 (STABLE)
 #   MariaDB 10.6   EOL 06 JUL 2026 (STABLE-LTS)
 #   MariaDB 10.7   EOL 14 Feb 2023 (REMOVED)
-#   MariaDB 10.8   EOL 20 May 2023 (SHORT TERM)
-#   MariaDB 10.9   EOL 22 Aug 2023 (SHORT TERM)
-#   MariaDB 10.10  EOL 17 Nov 2023 (SHORT TERM)
+#   MariaDB 10.8   EOL 20 May 2023 (REMOVED)
+#   MariaDB 10.9   EOL 22 Aug 2023 (REMOVED)
+#   MariaDB 10.10  EOL 17 Nov 2023 (REMOVED)
 #   MariaDB 10.11  EOL 16 Feb 2028 (STABLE-LTS)
 #
 #-------------------------------------------------------------------------
@@ -145,8 +144,8 @@ FIREBIRD_4.0_VERSION=	4.0.2
 PHP_DEFAULT?=		8.1
 
 PHP_8.0_VERSION=	8.0.28
-PHP_8.1_VERSION=	8.1.18
-PHP_8.2_VERSION=	8.2.5
+PHP_8.1_VERSION=	8.1.19
+PHP_8.2_VERSION=	8.2.6
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform

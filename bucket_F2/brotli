@@ -2,7 +2,7 @@
 
 NAMEBASE=		brotli
 VERSION=		1.0.9
-REVISION=		1
+REVISION=		2
 KEYWORDS=		archivers devel
 VARIANTS=		standard
 SDESC[standard]=	Generic-purpose lossless compression algorithm
@@ -13,16 +13,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/google:brotli:v1.0.9
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		bc:single:standard
+EXRUN[tools]=		brotli:primary:standard
 
 USES=			cpe autoreconf:build libtool:build gmake pkgconfig
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -44,7 +48,7 @@ post-install:
 pre-configure:
 	(cd ${WRKSRC} && /bin/sh ./bootstrap)
 
-[FILE:430:descriptions/desc.single]
+[FILE:430:descriptions/desc.primary]
 Brotli is a generic-purpose lossless compression algorithm that compresses
 data using a combination of a modern variant of the LZ77 algorithm, Huffman
 coding  and 2nd order context modeling, with a compression ratio comparable
@@ -54,12 +58,35 @@ similar in speed  with deflate but offers more dense compression.
 The Brotli Compressed Data Format is specified in RFC 7932.
 
 
+[FILE:51:descriptions/desc.tools]
+This package contains the brotli compression tool.
+
+
 [FILE:105:distinfo]
 f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46       486984 google-brotli-1.0.9.tar.gz
 
 
-[FILE:429:manifests/plist.single]
+[FILE:202:manifests/plist.primary]
 bin/brotli
+lib/
+ libbrotlicommon.so.%%SOMAJOR%%
+ libbrotlicommon.so.%%SOVERSION%%
+ libbrotlidec.so.%%SOMAJOR%%
+ libbrotlidec.so.%%SOVERSION%%
+ libbrotlienc.so.%%SOMAJOR%%
+ libbrotlienc.so.%%SOVERSION%%
+
+
+[FILE:237:manifests/plist.dev]
+lib/pkgconfig/
+ libbrotlicommon.pc
+ libbrotlidec.pc
+ libbrotlienc.pc
+lib/
+ libbrotlidec.a
+ libbrotlidec.so
+ libbrotlienc.a
+ libbrotlienc.so
 include/brotli/
  decode.h
  encode.h
@@ -68,18 +95,4 @@ include/brotli/
 lib/
  libbrotlicommon.a
  libbrotlicommon.so
- libbrotlicommon.so.%%SOMAJOR%%
- libbrotlicommon.so.%%SOVERSION%%
- libbrotlidec.a
- libbrotlidec.so
- libbrotlidec.so.%%SOMAJOR%%
- libbrotlidec.so.%%SOVERSION%%
- libbrotlienc.a
- libbrotlienc.so
- libbrotlienc.so.%%SOMAJOR%%
- libbrotlienc.so.%%SOVERSION%%
-lib/pkgconfig/
- libbrotlicommon.pc
- libbrotlidec.pc
- libbrotlienc.pc
 
