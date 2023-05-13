@@ -86,15 +86,15 @@ TCL_8.6_VERSION=	8.6.13
 
 PGSQL_DEFAULT?=		14
 
-PGSQL_11_VERSION=	11.19
-PGSQL_12_VERSION=	12.14
-PGSQL_13_VERSION=	13.10
-PGSQL_14_VERSION=	14.7
-PGSQL_15_VERSION=	15.2
+PGSQL_11_VERSION=	11.20
+PGSQL_12_VERSION=	12.15
+PGSQL_13_VERSION=	13.11
+PGSQL_14_VERSION=	14.8
+PGSQL_15_VERSION=	15.3
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.7,8.0), mariadb-(10.[3456789], 10.1[01]),
+# Possible values: oracle-(5.7,8.0), mariadb-(10.[456], 10.1[1]),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #
 # MariaDB releases:
