@@ -129,7 +129,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.11.2
+LIBXML2_VERSION=		2.11.3
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -137,8 +137,8 @@ LIBXML2_PYTHON_REVISION=	0
 # libxslt
 # ------------------------------------------------------------------------
 
-LIBXSLT_VERSION=		1.1.37
-LIBXSLT_REVISION=		1
+LIBXSLT_VERSION=		1.1.38
+LIBXSLT_REVISION=		0
 LIBXSLT_PYTHON_REVISION=	0
 
 # ------------------------------------------------------------------------
@@ -197,7 +197,7 @@ SUBVERSION_VERSION=		1.14.2
 LIBFM_VERSION=			1.3.2
 LIBTOOL_VERSION=		2.4.7
 FREI0R_VERSION=			1.8.0
-M17N_VERSION=			1.8.1
+M17N_VERSION=			1.8.2
 GLIBC_VERSION=			2.26
 GSTREAMER1_VERSION=		1.22.2		# only even (1.16.x, 1.18.x)
 GSTREAMER1_GST=			1.0
