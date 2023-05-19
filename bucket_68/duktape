@@ -2,7 +2,7 @@
 
 NAMEBASE=		duktape
 VERSION=		2.7.0
-REVISION=		1
+REVISION=		3
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Embeddable Javascript engine w. compact footprint
@@ -15,10 +15,13 @@ DISTFILE[1]=		duktape-2.7.0.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
-			library
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[tools]=		duktape:primary:standard
 
 USES=			cpe gmake
 
@@ -30,51 +33,52 @@ CPE_PRODUCT=		duktape
 CPE_VENDOR=		duktape_project
 FPC_EQUIVALENT=		lang/duktape
 
+MAKEFILE=		Makefile.sharedlibrary
+MAKE_ARGS=		INSTALL_PREFIX={{PREFIX}}
+
 SOVERSION=		207.20700
 
-do-build:
-	(cd ${WRKSRC} && \
-		gmake -f Makefile.cmdline duk && \
-		gmake -f Makefile.sharedlibrary )
-
-do-install:
+post-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/duk ${STAGEDIR}${PREFIX}/bin
-	${INSTALL_DATA} ${WRKSRC}/src/duktape.h ${STAGEDIR}${PREFIX}/include
-	${INSTALL_DATA} ${WRKSRC}/src/duk_config.h ${STAGEDIR}${PREFIX}/include
-.for l in libduktape.so libduktaped.so
-	${INSTALL_LIB} ${WRKSRC}/${l}.207.20700 ${STAGEDIR}${PREFIX}/lib/
-	${LN} -s ${l}.207.20700 ${STAGEDIR}${PREFIX}/lib/${l}
-	${LN} -s ${l}.207.20700 ${STAGEDIR}${PREFIX}/lib/${l}.207
-.endfor
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 
-[FILE:161:descriptions/desc.primary]
+post-build:
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_CMD} ${MAKE_FLAGS} \
+		Makefile.cmdline duk)
+
+[FILE:45:descriptions/desc.primary]
+This package contains the duktape libraries.
+
+
+[FILE:161:descriptions/desc.tools]
 Duktape is an embeddable Javascript engine, with a focus on portability 
 and compact footprint.
 
 This subpackage contains the standalone interpreter executable.
 
 
-[FILE:45:descriptions/desc.library]
-This subpackage contains the shared library.
-
-
 [FILE:99:distinfo]
 90f8d2fa8b5567c6899830ddef2c03f3c27960b11aca222fa17aa7ac613c2890      1026524 duktape-2.7.0.tar.xz
 
 
-[FILE:8:manifests/plist.primary]
-bin/duk
+[FILE:119:manifests/plist.primary]
+lib/
+ libduktaped.so.%%SOMAJOR%%
+ libduktaped.so.%%SOVERSION%%
+ libduktape.so.%%SOMAJOR%%
+ libduktape.so.%%SOVERSION%%
 
 
-[FILE:184:manifests/plist.library]
+[FILE:95:manifests/plist.dev]
+lib/pkgconfig/duktape.pc
 include/
  duk_config.h
  duktape.h
 lib/
  libduktape.so
- libduktape.so.%%SOMAJOR%%
- libduktape.so.%%SOVERSION%%
  libduktaped.so
- libduktaped.so.%%SOMAJOR%%
- libduktaped.so.%%SOVERSION%%
+
+
+[FILE:8:manifests/plist.tools]
+bin/duk
 
