@@ -21,12 +21,13 @@ OPTIONS_STANDARD=	none
 VOPTS[py310]=		PY310=ON PY311=OFF
 VOPTS[v11]=		PY310=OFF PY311=ON
 
-USES=			cpe
+USES=			cpe shebangfix
 
 DISTNAME=		bleach-6.0.0.dist-info
 
 CPE_PRODUCT=		bleach
 CPE_VENDOR=		mozilla
+SHEBANG_FILES=		stage{{PYTHON_SITELIBDIR}}/bleach/_vendor/vendor_install.sh
 GENERATED=		yes
 
 [PY310].RUN_DEPENDS_ON=			python-six:single:py310
@@ -36,10 +37,6 @@ GENERATED=		yes
 [PY311].RUN_DEPENDS_ON=			python-six:single:v11
 					python-webencodings:single:v11
 [PY311].USES_ON=			python:v11,wheel
-
-post-install:
-	${SED} -i'' -e 's|/bin/bash|${PREFIX}/bin/bash|' \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/bleach/_vendor/vendor_install.sh
 
 [FILE:2695:descriptions/desc.single]
 ======

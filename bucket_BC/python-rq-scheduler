@@ -21,8 +21,11 @@ OPTIONS_STANDARD=	none
 VOPTS[py310]=		PY310=ON PY311=OFF
 VOPTS[v11]=		PY310=OFF PY311=ON
 
+USES=			shebangfix
+
 DISTNAME=		rq_scheduler-0.13.1.dist-info
 
+SHEBANG_FILES=		stage{{PYTHON_SITELIBDIR}}/rq_scheduler/scripts/rqscheduler.py
 GENERATED=		yes
 
 [PY310].RUN_DEPENDS_ON=			python-crontab:single:py310
@@ -36,10 +39,6 @@ GENERATED=		yes
 					python-python-dateutil:single:v11
 					python-freezegun:single:v11
 [PY311].USES_ON=			python:v11,wheel
-
-post-install:
-	${SED} -i'' -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
-	${STAGEDIR}${PYTHON_SITELIBDIR}/rq_scheduler/scripts/rqscheduler.py
 
 [FILE:2840:descriptions/desc.single]
 ============

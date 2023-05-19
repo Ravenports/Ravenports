@@ -7,7 +7,7 @@
 # Usage:	USES=shebangfix
 #
 #   SHEBANG_REGEX	a regular expression to match files that needs to be converted
-#   SHEBANG_FILES	list of files or glob pattern relative to ${WRKSRC}
+#   SHEBANG_FILES	list of files or glob pattern relative to ${WRKSRC} (or ${WRKDIR})
 #   SHEBANG_GLOB	list of glob pattern find(1) will match with
 #   SHEBANG_ADD_SH	list of files or glob pattern to prefix found files
 #                       with "#!/bin/sh"\n\n"
@@ -78,31 +78,37 @@ _SHEBANG_REINPLACE_ARGS+= -e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}$$|\#!${SHEBA
 .    endfor
 .  endfor
 
+.if "${DL_SITES_main:H:H:H}" == "PYPIWHL"
+_USES_stage+=	710:fix-shebang
+BASESRC=${WRKDIR}
+.else
 _USES_patch+=	210:fix-shebang
+BASESRC=${WRKSRC}
+.endif
 
 fix-shebang:
 	@${ECHO_MSG} "====> Invoking shebangfix"
 .  if defined(SHEBANG_REGEX)
-	@cd ${WRKSRC}; \
+	@cd ${BASESRC}; \
 		${FIND} . -type f -iregex '${SHEBANG_REGEX}' \
 		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
 .  endif
 .  if defined(SHEBANG_GLOB)
 .    for f in ${SHEBANG_GLOB}
-	@cd ${WRKSRC}; \
+	@cd ${BASESRC}; \
 		${FIND} . -type f -name '${f}' \
 		-exec ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS} {} +
 .    endfor
 .  endif
 .  if defined(SHEBANG_FILES)
-	@(cd ${WRKSRC} && \
+	@(cd ${BASESRC} && \
 		${ECHO_CMD} ${SHEBANG_FILES} | \
 		${XARGS} ${SED} -i'' ${_SHEBANG_REINPLACE_ARGS})
 .  endif
 .  if defined(SHEBANG_ADD_SH)
 .    for f in ${SHEBANG_ADD_SH}
 	@${ECHO_MSG} "      Add shebang to $f"
-	@cd ${WRKSRC} && ${SED} -i'' '1s|^|#!/bin/sh\n\n|' '${f}'
+	@cd ${BASESRC} && ${SED} -i'' '1s|^|#!/bin/sh\n\n|' '${f}'
 .    endfor
 .  endif
 

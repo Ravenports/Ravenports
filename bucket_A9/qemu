@@ -2,6 +2,7 @@
 
 NAMEBASE=		qemu
 VERSION=		8.0.0
+REVISION=		1
 KEYWORDS=		emulators
 VARIANTS=		standard
 SDESC[standard]=	Fast CPU emulator and virtualizer for x86 platform
@@ -23,11 +24,12 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		gnutls:dev:standard
 			harfbuzz:dev:standard
+			libepoxy:dev:standard
+			nettle:dev:standard
 			python-Sphinx:single:python_used
 			python-sphinx-rtd-theme:single:python_used
-			texi2html:primary:standard
-			libepoxy:dev:standard
 			snappy:dev:standard
+			texi2html:primary:standard
 BUILDRUN_DEPENDS=	cyrus-sasl:primary:standard
 			gnutls:primary:standard
 			libepoxy:primary:standard
@@ -956,6 +958,31 @@ share/man/man8/
  #define HAVE_KINFO_GETVMMAP
  #define sigqueue sigqueue_freebsd  /* avoid redefinition */
  #include <sys/proc.h>
+
+
+[FILE:831:patches/patch-bsd-user_freebsd_os-sys.c]
+--- bsd-user/freebsd/os-sys.c.orig	2023-04-19 16:31:47 UTC
++++ bsd-user/freebsd/os-sys.c
+@@ -426,7 +426,9 @@ static abi_long do_freebsd_sysctl_oid(CP
+             switch (snamep[1]) {
+             case CTL_SYSCTL_NEXT:
+             case CTL_SYSCTL_NAME2OID:
++#ifdef CTL_SYSCTL_NEXTNOSKIP
+             case CTL_SYSCTL_NEXTNOSKIP:
++#endif
+                 /*
+                  * All of these return an OID array, so we need to convert to
+                  * target.
+@@ -439,7 +441,9 @@ static abi_long do_freebsd_sysctl_oid(CP
+                 sysctl_oidfmt(holdp);
+                 break;
+             case CTL_SYSCTL_OIDDESCR:
++#ifdef CTL_SYSCTL_OIDLABEL
+             case CTL_SYSCTL_OIDLABEL:
++#endif
+             default:
+                 /* Handle it based on the type */
+                 h2g_old_sysctl(holdp, &holdlen, kind);
 
 
 [FILE:546:patches/patch-configure]
