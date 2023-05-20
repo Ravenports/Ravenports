@@ -2,6 +2,7 @@
 
 NAMEBASE=		bind
 VERSION=		9.18.15
+REVISION=		1
 KEYWORDS=		dns net
 VARIANTS=		standard
 SDESC[standard]=	Berkeley Internet Name Domain (Domain Name Server)
@@ -136,7 +137,7 @@ This package contains the BIND tools.
 28ae8db14862801bc2bd4fd820db00667d3f1ff9ae9cc2d06a0ef7810fed7a4e      5476876 bind-9.18.15.tar.xz
 
 
-[FILE:598:manifests/plist.server]
+[FILE:618:manifests/plist.server]
 @sample %%ETCDIR%%/named.conf.sample
 %%ETCDIR%%/
  bind.keys
@@ -145,6 +146,7 @@ This package contains the BIND tools.
  empty.db
  localhost-forward.db
  localhost-reverse.db
+bin/named-checkconf
 lib/
  libbind9-%%LIBVER%%.so
  libbind9.so
@@ -174,7 +176,7 @@ sbin/
 @dir(bind,bind,) %%ETCDIR%%/working
 
 
-[FILE:321:manifests/plist.tools]
+[FILE:304:manifests/plist.tools]
 bin/
  arpaname
  delv
@@ -190,7 +192,6 @@ bin/
  dnssec-verify
  host
  mdig
- named-checkconf
  named-checkzone
  named-compilezone
  named-journalprint
@@ -891,7 +892,7 @@ zone "1.168.192.in-addr.arpa" {
 */
 
 
-[FILE:11623:files/named.in]
+[FILE:11622:files/named.in]
 #!/bin/sh
 #
 
@@ -1204,7 +1205,7 @@ named_prestart()
 
 	local checkconf
 
-	checkconf="${_named_program_root}/sbin/named-checkconf"
+	checkconf="${_named_program_root}/bin/named-checkconf"
 	if ! checkyesno named_chroot_autoupdate && [ -n "${named_chrootdir}" ]; then
 		checkconf="${checkconf} -t ${named_chrootdir}"
 	fi
