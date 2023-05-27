@@ -84,9 +84,9 @@ GCC11_PHASE=			release
 # ------------------------------------------------------------------------
 
 GCC12_BRANCH=			12
-GCC12_POINT=			2.0
+GCC12_POINT=			3.0
 GCC12_VERSION=			${GCC12_BRANCH}.${GCC12_POINT}
-GCC12_SNAPSHOT=			20220819
+GCC12_SNAPSHOT=			20230508
 GCC12_BUILD_RELEASE=		yes
 GCC12_REVISION=			0
 GCC12_GNATCROSS_REVISION=	0
@@ -130,7 +130,7 @@ ICU_LX_REVISION=		0
 # ------------------------------------------------------------------------
 
 LIBXML2_VERSION=		2.11.4
-LIBXML2_REVISION=		0
+LIBXML2_REVISION=		1
 LIBXML2_PYTHON_REVISION=	0
 
 # ------------------------------------------------------------------------

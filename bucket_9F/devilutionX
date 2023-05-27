@@ -2,16 +2,17 @@
 
 NAMEBASE=		devilutionX
 VERSION=		1.4.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		games
 VARIANTS=		standard
 SDESC[standard]=	Reverse-engineered Diablo 1 engine made portable
 HOMEPAGE=		https://github.com/diasurgical/devilutionX
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
-DOWNLOAD_GROUPS=	main audiolib libmpq simpleini smack
+DOWNLOAD_GROUPS=	main audiolib libfmt libmpq simpleini smack
 SITES[main]=		GITHUB/diasurgical:devilutionX:1.4.1
 SITES[audiolib]=	GITHUB/realnc:SDL_audiolib:1a69135313c79817b38a3a99826d4ac28d627fdf
+SITES[libfmt]=		GITHUB/fmtlib:fmt:22d31b31f0e9b4e4654ba67ee881f3564c2cc297
 SITES[libmpq]=		GITHUB/diasurgical:libmpq:0f10bd1600f406b13932bf5351ba713361262184
 SITES[simpleini]=	GITHUB/brofield:simpleini:9b3ed7ec815997bc8c5b9edf140d6bde653e1458
 SITES[smack]=		GITHUB/diasurgical:libsmackerdec:2997ee0e41e91bb723003bc09234be553b190e38
@@ -20,8 +21,9 @@ DISTFILE[2]=		generated:smack
 DISTFILE[3]=		generated:audiolib
 DISTFILE[4]=		generated:simpleini
 DISTFILE[5]=		generated:libmpq
+DISTFILE[6]=		generated:libfmt
 DIST_SUBDIR=		devilutionX
-DF_INDEX=		1 2 3 4 5
+DF_INDEX=		1 2 3 4 5 6
 SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
@@ -29,10 +31,8 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		asio:single:standard
 			gtest:single:standard
-			fmt:dev:standard
 			libsodium:dev:standard
 BUILDRUN_DEPENDS=	libsodium:primary:standard
-			fmt:primary:standard
 
 USES=			cmake pkgconfig gettext:build png dos2unix zlib
 			bz2:build
@@ -62,6 +62,7 @@ post-extract:
 	${MKDIR} ${BUILD_WRKSRC}/_deps
 	(cd ${BUILD_WRKSRC}/_deps \
 	&& ${MV} ${WRKDIR}/libsmackerdec-2997ee0e41e91bb723003bc09234be553b190e38 libsmackerdec-src \
+	&& ${MV} ${WRKDIR}/fmt-22d31b31f0e9b4e4654ba67ee881f3564c2cc297 libfmt-src \
 	&& ${MV} ${WRKDIR}/libmpq-0f10bd1600f406b13932bf5351ba713361262184 libmpq-src \
 	&& ${MV} ${WRKDIR}/simpleini-9b3ed7ec815997bc8c5b9edf140d6bde653e1458 simpleini-src \
 	&& ${MV} ${WRKDIR}/SDL_audiolib-1a69135313c79817b38a3a99826d4ac28d627fdf sdl_audiolib-src)
@@ -84,26 +85,27 @@ game data is provided. You will need the original resource container
 The Hellfire expansion is also supported since version 1.2.0.
 
 
-[FILE:763:distinfo]
+[FILE:912:distinfo]
 54b9fd496eba5b82d7e64891ab4de808f539c60b3b94bfa49639e0d9580fb7b8      7578111 devilutionX/diasurgical-devilutionX-1.4.1.tar.gz
 40c0dc21943de22e153d56a7992c621a42a0c56c7cd833f8b84f90e48da753ea        18556 devilutionX/diasurgical-libsmackerdec-2997ee0e41e91bb723003bc09234be553b190e38.tar.gz
 8e013245bf8e676d4e2c61661d7cee6cb9de74f97a475c9e6b35a25d5e7a7715       304183 devilutionX/realnc-SDL_audiolib-1a69135313c79817b38a3a99826d4ac28d627fdf.tar.gz
 f7792eca9f3f7b0ee8916ffa4e124cb4b319b11d5849e15c5eef58eb910b0451        62870 devilutionX/brofield-simpleini-9b3ed7ec815997bc8c5b9edf140d6bde653e1458.tar.gz
 ee173f5edb20f162482658cbc9d4bb84b640f651041d686c0ad7b2af12baf2a1        69570 devilutionX/diasurgical-libmpq-0f10bd1600f406b13932bf5351ba713361262184.tar.gz
+89b9b2f984a4d7a57e000c5e86c95268856037f516b657449a333cc8cff027e1       828330 devilutionX/fmtlib-fmt-22d31b31f0e9b4e4654ba67ee881f3564c2cc297.tar.gz
 
 
 [FILE:16:manifests/plist.single]
 bin/devilutionx
 
 
-[FILE:453:patches/patch-3rdParty_libfmt_CMakeLists.txt]
+[FILE:455:patches/patch-3rdParty_libfmt_CMakeLists.txt]
 --- 3rdParty/libfmt/CMakeLists.txt.orig	2023-04-05 20:06:24 UTC
 +++ 3rdParty/libfmt/CMakeLists.txt
 @@ -1,6 +1,6 @@
  include(functions/FetchContent_MakeAvailableExcludeFromAll)
  
 -if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL FreeBSD)
-+if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} MATCH "BSD|DragonFly")
++if(NOT WIN32 AND NOT APPLE AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "BSD|DragonFly")
    # Enable POSIX extensions such as `readlink` and `ftruncate`.
    add_definitions(-D_POSIX_C_SOURCE=200809L)
  endif()

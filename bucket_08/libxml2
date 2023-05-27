@@ -2,6 +2,7 @@
 
 NAMEBASE=		libxml2
 VERSION=		2.11.4
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	XML parser library for GNOME
@@ -21,7 +22,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe gmake iconv libtool pkgconfig shebangfix mbsdfix
+USES=			cpe gmake libtool pkgconfig shebangfix mbsdfix
 
 CPE_VENDOR=		xmlsoft
 FPC_EQUIVALENT=		textproc/libxml2
@@ -30,7 +31,6 @@ SHEBANG_GLOB=		*.py
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-schemas
 			--with-threads
-			--with-iconv={{ICONV_PREFIX}}
 			--without-icu
 			--with-lzma=/usr
 			--without-python
@@ -39,12 +39,6 @@ CONFIGURE_ARGS=		--with-schemas
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		2.11.4
-
-VAR_OPSYS[freebsd]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
-VAR_OPSYS[sunos]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
-VAR_OPSYS[netbsd]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
-VAR_OPSYS[dragonfly]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
-VAR_OPSYS[midnightbsd]=	CONFIGURE_ENV=ac_cv_search_iconv=-liconv
 
 post-patch:
 .for f in catalog.c xmlcatalog.c xmllint.c doc/xmllint.1
@@ -141,29 +135,6 @@ share/man/man1/
  xml2-config.1.gz
  xmlcatalog.1.gz
  xmllint.1.gz
-
-
-[FILE:1003:patches/patch-Makefile.in]
---- Makefile.in.orig	2023-05-18 19:37:39 UTC
-+++ Makefile.in
-@@ -1128,7 +1128,7 @@ am--depfiles: $(am__depfiles_remade)
- @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
- 
- .c.lo:
--@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -fPIC -DPIC -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
- @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
- @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
- @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@@ -1913,7 +1913,7 @@ check-am: all-am
- 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
- 	$(MAKE) $(AM_MAKEFLAGS) check-local
- check: check-recursive
--all-am: Makefile $(PROGRAMS) $(LTLIBRARIES) $(SCRIPTS) $(DATA) \
-+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(DATA) \
- 		config.h
- install-binPROGRAMS: install-libLTLIBRARIES
- 
 
 
 [FILE:303:patches/patch-python_Makefile.in]
