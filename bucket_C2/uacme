@@ -2,6 +2,7 @@
 
 NAMEBASE=		uacme
 VERSION=		1.7.4
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Plain C ACMEv2 client with minimal dependencies
@@ -28,7 +29,7 @@ BUILD_DEPENDS=		asciidoc:single:standard
 BUILDRUN_DEPENDS=	curl:primary:standard
 			libev:primary:standard
 
-USES=			gmake pkgconfig ssl:openssl30
+USES=			gmake pkgconfig ssl
 
 DISTNAME=		uacme-upstream-1.7.4
 
@@ -42,12 +43,19 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		security/uacme
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--datadir={{STD_EXAMPLESDIR}}
+CONFIGURE_ARGS=		--datadir={{STD_EXAMPLESDIR}}/../
 			--disable-maintainer-mode
 			--enable-docs
 			--sysconfdir={{PREFIX}}/etc
 			--with-openssl={{OPENSSLBASE}}
-			--with-ualpn
+			--without-ualpn
+
+SUB_FILES=		pkg-message-primary
+SUB_LIST=		STD_EXAMPLESDIR={{STD_EXAMPLESDIR}}
+
+post-install:
+	mkdir -p ${STAGEDIR}${PREFIX}/etc/ssl/uacme
+	mkdir -p ${STAGEDIR}${PREFIX}/libexec
 
 [FILE:732:descriptions/desc.primary]
 uacme is a light-weight client for the RFC8555 ACMEv2 protocol, written in 
@@ -68,27 +76,38 @@ scripts to use them.
 a638fe0878dba8fdda62f89e7a284243edbcd31b92c11b5cfdc7d3efd9547bca       330866 uacme/1.7.4.tar.gz
 
 
-[FILE:19:manifests/plist.primary]
-bin/
- uacme
- ualpn
+[FILE:42:manifests/plist.primary]
+bin/uacme
+@dir etc/ssl/uacme
+@dir libexec
 
 
-[FILE:41:manifests/plist.docs]
-share/doc/uacme/
- uacme.html
- ualpn.html
+[FILE:27:manifests/plist.docs]
+share/doc/uacme/uacme.html
 
 
-[FILE:40:manifests/plist.man]
-share/man/man1/
- uacme.1.gz
- ualpn.1.gz
+[FILE:26:manifests/plist.man]
+share/man/man1/uacme.1.gz
 
 
-[FILE:61:manifests/plist.examples]
-share/examples/uacme/uacme/
+[FILE:45:manifests/plist.examples]
+share/examples/uacme/
  nsupdate.sh
  uacme.sh
- ualpn.sh
+
+
+[FILE:858:files/pkg-message-primary.in]
+It's highly recommended to read the documentation, but in case you want to give uacme a quick test, do the following:
+
+1. Create a new account with Let's Encrypt (using the STAGING ENV):
+# uacme -v -s -c %%PREFIX%%/etc/ssl/uacme/test new
+
+2. Copy the example script 'uacme.sh' from %%STD_EXAMPLESDIR%% to %%PREFIX%%/libexec if you plan on using the http-01 challenge. For the dns-01 copy 'nsupdate.sh' instead.
+
+3. Edit the script at its new location to make changes if necessary (e.g. pointing it to the TSIG key if required for nsupdate).
+
+4. Request an cert e.g. like this for the dns-01 challenge (also using the STAGING ENV):
+# uacme -v -s -h %%PREFIX%%/libexec/nsupdate.sh -c %%PREFIX%%/etc/ssl/uacme/test issue www.example.org
+
+5. If everything worked, do 1 and 2 again with out the -s flag to obtain a proper TLS certificate. Then automate via cron.
 
