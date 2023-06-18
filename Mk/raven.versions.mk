@@ -106,6 +106,7 @@ PGSQL_15_VERSION=	15.3
 #   MariaDB 10.9   EOL 22 Aug 2023 (REMOVED)
 #   MariaDB 10.10  EOL 17 Nov 2023 (REMOVED)
 #   MariaDB 10.11  EOL 16 Feb 2028 (STABLE-LTS)
+#   MariaDB 11.0   EOL 30 Jun 2024 (SHORT-TERM)
 #
 #-------------------------------------------------------------------------
 
@@ -113,10 +114,11 @@ MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.33
 MYSQL_oracle-5.7_VERSION=	5.7.42
-MYSQL_mariadb-10.4_VERSION=	10.4.29
-MYSQL_mariadb-10.5_VERSION=	10.5.20
-MYSQL_mariadb-10.6_VERSION=	10.6.13
-MYSQL_mariadb-10.11_VERSION=	10.11.3
+MYSQL_mariadb-10.4_VERSION=	10.4.30
+MYSQL_mariadb-10.5_VERSION=	10.5.21
+MYSQL_mariadb-10.6_VERSION=	10.6.14
+MYSQL_mariadb-10.11_VERSION=	10.11.4
+MYSQL_mariadb-11_VERSION=	11.0.2
 MYSQL_percona-5.7_VERSION=	5.7.17
 MYSQL_percona-5.6_VERSION=	5.6.35
 MYSQL_percona-5.5_VERSION=	5.5.54
