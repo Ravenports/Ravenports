@@ -121,7 +121,7 @@ GCCBASE_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			73.1
+ICU_VERSION=			73.2
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
