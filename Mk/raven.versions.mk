@@ -49,7 +49,7 @@ RUBY_3.2_VERSION=	3.2.2
 PYTHON3_DEFAULT?=	3.10
 
 PYTHON_3.10_VERSION=	3.10.11
-PYTHON_3.11_VERSION=	3.11.3
+PYTHON_3.11_VERSION=	3.11.4
 
 #-------------------------------------------------------------------------
 # SSL
@@ -94,7 +94,7 @@ PGSQL_15_VERSION=	15.3
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.7,8.0), mariadb-(10.[456], 10.1[1]),
+# Possible values: oracle-(5.7,8.0), mariadb-(10.[456], 10.1[1], 11),
 #                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
 #
 # MariaDB releases:
