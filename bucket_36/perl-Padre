@@ -158,10 +158,10 @@ Perl Application Development and Refactoring Environment
 e7fc64539810858750c60d7b24870585f8d481a7490549880b816786d4f63983      1983477 Padre-1.02.tar.gz
 
 
-[FILE:659:patches/patch-Makefile.PL]
---- Makefile.PL.orig	2013-11-09 03:10:25 UTC
+[FILE:658:patches/patch-Makefile.PL]
+--- Makefile.PL.orig	2021-02-12 15:04:07 UTC
 +++ Makefile.PL
-@@ -46,20 +46,6 @@ configure_requires 'ExtUtils::Embed' => 
+@@ -54,20 +54,6 @@ configure_requires 'ExtUtils::Embed' =>
  #	exit 0;
  #}
  
@@ -184,29 +184,8 @@ e7fc64539810858750c60d7b24870585f8d481a7490549880b816786d4f63983      1983477 Pa
  
 
 
-[FILE:568:patches/patch-lib_Padre_Locker.pm]
---- lib/Padre/Locker.pm.orig	2013-11-09 03:43:41 UTC
-+++ lib/Padre/Locker.pm
-@@ -102,7 +102,6 @@ sub shutdown {
- sub db_increment {
- 	my $self = shift;
- 	unless ( $self->{db_depth}++ ) {
--		Padre::DB->begin;
- 
- 		# Database operations we lock on are the most likely to
- 		# involve writes. So opportunistically prevent blocking
-@@ -111,6 +110,7 @@ sub db_increment {
- 		# corruption if (and only if) there is a power outage,
- 		# operating system crash, or catastrophic hardware failure.
- 		Padre::DB->pragma( synchronous => 0 );
-+		Padre::DB->begin;
- 	}
- 	return;
- }
-
-
 [FILE:299:patches/patch-lib_Padre_Wx.pm]
---- lib/Padre/Wx.pm.orig	2013-11-09 03:43:41 UTC
+--- lib/Padre/Wx.pm.orig	2023-06-14 06:59:47 UTC
 +++ lib/Padre/Wx.pm
 @@ -158,6 +158,7 @@ sub aui_pane_info {
  
@@ -216,18 +195,4 @@ e7fc64539810858750c60d7b24870585f8d481a7490549880b816786d4f63983      1983477 Pa
  	Padre::Task::LaunchDefaultBrowser->new(
  		url => $_[0],
  	)->schedule;
-
-
-[FILE:291:patches/patch-lib_Padre_Wx_Main.pm]
---- lib/Padre/Wx/Main.pm.orig	2013-11-09 03:43:41 UTC
-+++ lib/Padre/Wx/Main.pm
-@@ -5561,7 +5561,7 @@ sub on_prev_pane {
- 
-     $main->on_join_lines;
- 
--Join current line with next one (à la B<vi> with C<Ctrl+J>). No return value.
-+Join current line with next one. No return value.
- 
- =cut
- 
 
