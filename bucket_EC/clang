@@ -96,21 +96,7 @@ VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DLLVM_USE_LINKER=gold
 			CMAKE_ARGS=-DLLVM_HOST_TRIPLE=x86_64-raven-freebsd12.3
 			MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
-post-patch:
-	${REINPLACE_CMD} -e 's,/usr/local/,${LOCALBASE}/,' \
-		${WRKSRC}/lib/Driver/ToolChains/CommonArgs.cpp
-	${REINPLACE_CMD} \
-		-e 's|@LOCALBASE@|${LOCALBASE}|' \
-		-e 's|@RAVEN_GCC@|${LOCALBASE}/toolchain/ravensys-gcc/${ASLIB}|' \
-		-e 's|@RAVEN_GCC_TARGET@|${LOCALBASE}/toolchain/ravensys-gcc/${ASLIB}/gcc/${CONFIGURE_TARGET}/11.2.0|' \
-		-e 's|@RAVEN_GXX_HEADERS_DIR@|${LOCALBASE}/toolchain/ravensys-gcc/include/c++/11.2.0|' \
-		${WRKSRC}/lib/Driver/ToolChains/DragonFly.cpp \
-		${WRKSRC}/lib/Driver/ToolChains/FreeBSD.cpp \
-		${WRKSRC}/lib/Driver/ToolChains/NetBSD.cpp \
-		${WRKSRC}/lib/Driver/ToolChains/Gnu.cpp \
-		${WRKSRC}/lib/Lex/InitHeaderSearch.cpp
-
-post-patch-netbsd:
+pre-configure-netbsd:
 	# Remove headers that conflict with /usr/include
 	${REINPLACE_CMD} \
 		-e '/ limits.h/d' \
@@ -122,16 +108,18 @@ post-patch-netbsd:
 		-e '/ stdnoreturn.h/d' \
 		${WRKSRC}/lib/Headers/CMakeLists.txt
 
-post-patch-dragonfly:
+pre-configure-midnightbsd:
 	# Remove headers that conflict with /usr/include
 	${REINPLACE_CMD} \
 		-e '/ limits.h/d' \
 		-e '/ stdalign.h/d' \
 		-e '/ stdarg.h/d' \
+		-e '/ stdatomic.h/d' \
 		-e '/ stdbool.h/d' \
 		-e '/ stddef.h/d' \
 		-e '/ stdint.h/d' \
 		-e '/ stdnoreturn.h/d' \
+		-e '/ varargs.h/d' \
 		${WRKSRC}/lib/Headers/CMakeLists.txt
 
 post-install:
@@ -151,27 +139,40 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libclang.${LIBEXT}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libclang-cpp.${LIBEXT}
 
+pre-configure:
+	${REINPLACE_CMD} -e 's,/usr/local/,${LOCALBASE}/,' \
+		${WRKSRC}/lib/Driver/ToolChains/CommonArgs.cpp
+	${REINPLACE_CMD} \
+		-e 's|@LOCALBASE@|${LOCALBASE}|' \
+		-e 's|@RAVEN_GCC@|${LOCALBASE}/toolchain/ravensys-gcc/${ASLIB}|' \
+		-e 's|@RAVEN_GCC_TARGET@|${LOCALBASE}/toolchain/ravensys-gcc/${ASLIB}/gcc/${CONFIGURE_TARGET}/11.2.0|' \
+		-e 's|@RAVEN_GXX_HEADERS_DIR@|${LOCALBASE}/toolchain/ravensys-gcc/include/c++/11.2.0|' \
+		-e 's|@RAVEN_TRIPLE@|${CONFIGURE_TARGET}|' \
+		${WRKSRC}/lib/Driver/ToolChains/DragonFly.cpp \
+		${WRKSRC}/lib/Driver/ToolChains/FreeBSD.cpp \
+		${WRKSRC}/lib/Driver/ToolChains/NetBSD.cpp \
+		${WRKSRC}/lib/Driver/ToolChains/Gnu.cpp \
+		${WRKSRC}/lib/Lex/InitHeaderSearch.cpp
+
+pre-configure-dragonfly:
+	# Remove headers that conflict with /usr/include
+	${REINPLACE_CMD} \
+		-e '/ limits.h/d' \
+		-e '/ stdalign.h/d' \
+		-e '/ stdarg.h/d' \
+		-e '/ stdbool.h/d' \
+		-e '/ stddef.h/d' \
+		-e '/ stdint.h/d' \
+		-e '/ stdnoreturn.h/d' \
+		${WRKSRC}/lib/Headers/CMakeLists.txt
+
 post-extract:
 	${MV} ${WRKDIR}/clang-tools-extra-16.0.6.src \
 		${WRKDIR}/clang-tools-extra
 	# hack around clang 12.0.0 bug
 	${CP} -a ${WRKDIR}/clang-tools-extra ${WRKSRC}/tools/extra
 
-post-patch-freebsd:
-	# Remove headers that conflict with /usr/include
-	${REINPLACE_CMD} \
-		-e '/ limits.h/d' \
-		-e '/ stdalign.h/d' \
-		-e '/ stdarg.h/d' \
-		-e '/ stdatomic.h/d' \
-		-e '/ stdbool.h/d' \
-		-e '/ stddef.h/d' \
-		-e '/ stdint.h/d' \
-		-e '/ stdnoreturn.h/d' \
-		-e '/ varargs.h/d' \
-		${WRKSRC}/lib/Headers/CMakeLists.txt
-
-post-patch-midnightbsd:
+pre-configure-freebsd:
 	# Remove headers that conflict with /usr/include
 	${REINPLACE_CMD} \
 		-e '/ limits.h/d' \
@@ -1897,7 +1898,7 @@ lib/
  
 
 
-[FILE:1161:patches/patch-lib_Driver_ToolChains_FreeBSD.cpp]
+[FILE:2565:patches/patch-lib_Driver_ToolChains_FreeBSD.cpp]
 --- lib/Driver/ToolChains/FreeBSD.cpp.orig	2023-06-10 22:58:16 UTC
 +++ lib/Driver/ToolChains/FreeBSD.cpp
 @@ -286,6 +286,16 @@ void freebsd::Linker::ConstructJob(Compi
@@ -1926,6 +1927,58 @@ lib/
  }
  
  unsigned FreeBSD::GetDefaultDwarfVersion() const {
+@@ -426,22 +438,19 @@ void FreeBSD::AddClangSystemIncludeArgs(
+                           concat(D.SysRoot, "/usr/include"));
+ }
+ 
++void FreeBSD::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
++                                    llvm::opt::ArgStringList &CC1Args) const {
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/backward");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/@RAVEN_TRIPLE@");
++}
++
+ void FreeBSD::addLibCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
+                                     llvm::opt::ArgStringList &CC1Args) const {
+   addSystemInclude(DriverArgs, CC1Args,
+                    concat(getDriver().SysRoot, "/usr/include/c++/v1"));
+ }
+ 
+-void FreeBSD::AddCXXStdlibLibArgs(const ArgList &Args,
+-                                  ArgStringList &CmdArgs) const {
+-  unsigned Major = getTriple().getOSMajorVersion();
+-  bool Profiling = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14;
+-
+-  CmdArgs.push_back(Profiling ? "-lc++_p" : "-lc++");
+-  if (Args.hasArg(options::OPT_fexperimental_library))
+-    CmdArgs.push_back("-lc++experimental");
+-}
+-
+ void FreeBSD::AddCudaIncludeArgs(const ArgList &DriverArgs,
+                                  ArgStringList &CC1Args) const {
+   CudaInstallation.AddCudaIncludeArgs(DriverArgs, CC1Args);
+
+
+[FILE:960:patches/patch-lib_Driver_ToolChains_FreeBSD.h]
+--- lib/Driver/ToolChains/FreeBSD.h.orig	2023-06-10 22:58:16 UTC
++++ lib/Driver/ToolChains/FreeBSD.h
+@@ -66,13 +66,13 @@ public:
+     return ToolChain::RLT_CompilerRT;
+   }
+   CXXStdlibType GetDefaultCXXStdlibType() const override {
+-    return ToolChain::CST_Libcxx;
++    return ToolChain::CST_Libstdcxx;
+   }
+ 
++  void addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
++                             llvm::opt::ArgStringList &CC1Args) const override;
+   void addLibCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
+                              llvm::opt::ArgStringList &CC1Args) const override;
+-  void AddCXXStdlibLibArgs(const llvm::opt::ArgList &Args,
+-                           llvm::opt::ArgStringList &CmdArgs) const override;
+   void AddCudaIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                           llvm::opt::ArgStringList &CC1Args) const override;
+   void AddHIPIncludeArgs(const llvm::opt::ArgList &DriverArgs,
 
 
 [FILE:697:patches/patch-lib_Driver_ToolChains_Gnu.cpp]
@@ -2062,18 +2115,13 @@ lib/
                  CI.getFrontendOpts().ProgramAction);
 
 
-[FILE:1092:patches/patch-lib_Lex_InitHeaderSearch.cpp]
+[FILE:841:patches/patch-lib_Lex_InitHeaderSearch.cpp]
 --- lib/Lex/InitHeaderSearch.cpp.orig	2023-06-10 22:58:16 UTC
 +++ lib/Lex/InitHeaderSearch.cpp
-@@ -392,8 +392,20 @@ void InitHeaderSearch::AddDefaultCPlusPl
+@@ -392,8 +392,15 @@ void InitHeaderSearch::AddDefaultCPlusPl
        break;
      }
      break;
-+  case llvm::Triple::FreeBSD:
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@", CXXSystem, false);
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@/backward", CXXSystem, false);
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@/" + triple.getTriple(), CXXSystem, false);
-+    break;
 +  case llvm::Triple::NetBSD:
 +    AddPath("@RAVEN_GXX_HEADERS_DIR@", CXXSystem, false);
 +    AddPath("@RAVEN_GXX_HEADERS_DIR@/backward", CXXSystem, false);

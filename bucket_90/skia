@@ -15,12 +15,12 @@ SITES[dng]=		GITHUB/QtSkia:dng_sdk:c8d0c9b:third_party/externals/dng_sdk
 SITES[piex]=		GITHUB/google:piex:f1e15dd:third_party/externals/piex
 SITES[sfn]=		GITHUB/googlefonts:sfntly:b55ff30:third_party/externals/sfntly
 SITES[wuffs]=		GITHUB/google:wuffs-mirror-release-c:a0041ac:third_party/externals/wuffs
-SITES[zlib]=		https://chromium.googlesource.com/chromium/src/third_party/zlib/+archive/
+SITES[zlib]=		https://leaf.dragonflybsd.org/~marino/raven-distfiles/
 DISTFILE[1]=		generated:main
 DISTFILE[2]=		generated:sfn
 DISTFILE[3]=		generated:dng
 DISTFILE[4]=		generated:piex
-DISTFILE[5]=		c876c8f87101c5a75f6014b0f832499afeb65b73.tar.gz:zlib
+DISTFILE[5]=		skia-zlib-c876c8f.tar.gz:zlib
 DISTFILE[6]=		generated:wuffs
 DIST_SUBDIR=		skia-src
 DF_INDEX=		1 2 3 4 5 6
@@ -30,6 +30,8 @@ SPKGS[standard]=	complete
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+ONLY_FOR_OPSYS=		linux
 
 BUILD_DEPENDS=		gn:single:standard
 			harfbuzz:dev:standard
@@ -78,11 +80,6 @@ pre-configure:
 		${WRKSRC}/third_party/harfbuzz/BUILD.gn
 	${REINPLACE_CMD} -e 's|/usr/include/freetype2|${LOCALBASE}/include/freetype2|'\
 		${WRKSRC}/third_party/freetype2/BUILD.gn
-	# Delete reference to gn function "set_sources_assignment_filter"
-	# https://gn.googlesource.com/gn/+/55e535a6716e57320fdd3901f0347a5c30562199
-	${REINPLACE_CMD} -e '/set_sources_assignment_filter/d' \
-		-e '/visibility/d' \
-		${WRKSRC}/BUILD.gn
 
 post-extract:
 	${MV} ${WRKDIR}/skia_5 ${WRKSRC}/third_party/externals/zlib
@@ -104,12 +101,12 @@ graphics engine for Google Chrome and Chrome OS, Android, Mozilla Firefox
 and Firefox OS, and many other products.
 
 
-[FILE:733:distinfo]
+[FILE:710:distinfo]
 c15c41e69b3e86c3e653c980a810a8cc1af23f590f0bb483b462c9c065f49829     59906409 skia-src/google-skia-9bfb45d.tar.gz
 471fdcebf662f3b731e602b41461aa7a6cdcda9d78d8ec5196edf08f504fe53f     39295928 skia-src/googlefonts-sfntly-b55ff30.tar.gz
 a523111f2911a68efc3f1488dc60c8bd4d41746731ce28014ae273767a28311e       421656 skia-src/QtSkia-dng_sdk-c8d0c9b.tar.gz
 fc3e75fe261db3740d3d1b2d16e8130b39218b5a1af5d412da9eb42b24c49ee0        41606 skia-src/google-piex-f1e15dd.tar.gz
-cac36317b07faebee81401d7abc90606abc7be8edc1746d545155bb5d906cf0b       314249 skia-src/c876c8f87101c5a75f6014b0f832499afeb65b73.tar.gz
+0f74635d1108ba69389385f6b13839cab1faab81e976a0ef0c524935a06f6782       314258 skia-src/skia-zlib-c876c8f.tar.gz
 772dd0b61d08ff475b8b18cc4bbf82ed93a4afbc3a26f5322eeeaaafac0891dd       325343 skia-src/google-wuffs-mirror-release-c-a0041ac.tar.gz
 
 
@@ -521,14 +518,14 @@ include/skia/include/utils/mac/
  SkCGUtils.h
 
 
-[FILE:811:patches/patch-src_base_SkContainers.cpp]
+[FILE:859:patches/patch-src_base_SkContainers.cpp]
 --- src/base/SkContainers.cpp.orig	2023-03-17 16:04:02 UTC
 +++ src/base/SkContainers.cpp
 @@ -14,6 +14,8 @@
  
  #if defined(SK_BUILD_FOR_MAC) || defined(SK_BUILD_FOR_IOS)
  #include <malloc/malloc.h>
-+#elif defined(__DragonFly__) || defined(__OpenBSD__)
++#elif defined(__DragonFly__) || defined(__OpenBSD__) || defined(__FreeBSD__)
 +// do-nothing
  #elif defined(SK_BUILD_FOR_ANDROID) || defined(SK_BUILD_FOR_UNIX)
  #include <malloc.h>
@@ -537,7 +534,7 @@ include/skia/include/utils/mac/
      #elif defined(SK_BUILD_FOR_ANDROID) && __ANDROID_API__ >= 17
          completeSize = malloc_usable_size(ptr);
          SkASSERT(completeSize >= size);
-+    #elif defined(__DragonFly__) || defined(__OpenBSD__)
++    #elif defined(__DragonFly__) || defined(__OpenBSD__) || defined(__FreeBSD__)
 +        // do-nothing
      #elif defined(SK_BUILD_FOR_UNIX)
          completeSize = malloc_usable_size(ptr);
