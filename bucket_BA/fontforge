@@ -45,6 +45,15 @@ FPC_EQUIVALENT=		print/fontforge
 CMAKE_ARGS=		-DENABLE_DOCS:BOOL=OFF
 			-DBUILD_SHARED_LIBS:BOOL=ON
 
+post-patch:
+	# https://github.com/fontforge/fontforge/issues/5251
+	${REINPLACE_CMD} -e 's/\(%[^%[:space:]]*\)hs/\1s/g' \
+		${WRKSRC}/fontforgeexe/searchview.c
+.for lang in  de ca hr it pl uk en_GB fr vi ko ja
+	${REINPLACE_CMD} -e 's/\(%[^%[:space:]]*\)hs/\1s/g' \
+		${WRKSRC}/po/${lang}.po
+.endfor
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fontforge
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfontforge.so

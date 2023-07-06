@@ -2,6 +2,7 @@
 
 NAMEBASE=		gcr3
 VERSION=		3.41.1
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Library for bits of crypto UI and parsing
@@ -14,6 +15,8 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
 			nls
 			docs
 
@@ -32,6 +35,8 @@ BUILDRUN_DEPENDS=	dbus:primary:standard
 			libtasn1:primary:standard
 			p11-kit:primary:standard
 			openssh:primary:standard
+EXRUN[tools]=		gcr3:primary:standard
+EXRUN[dev]=		p11-kit:dev:standard
 
 USES=			gmake pkgconfig meson python:build schemas:primary
 			desktop-utils:primary mime-info:primary
@@ -92,11 +97,15 @@ G(object)-oriented way and provides the viewer for crypto files on the
 GNOME desktop. It was splitt off from gnome-keyring.
 
 
+[FILE:54:descriptions/desc.tools]
+This package contains tools based on the GCR library.
+
+
 [FILE:102:distinfo]
 f25de5063ffe6359c79f86d70a53c2d398db4e256e2de58c2a3bd2e8111b8f11      2226803 GNOME-gcr-3.41.1.tar.gz
 
 
-[FILE:2942:manifests/plist.primary]
+[FILE:488:manifests/plist.primary]
 %%INTROSPECTION-ON%%lib/girepository-1.0/
  Gck-1.typelib
  Gcr-3.typelib
@@ -113,7 +122,69 @@ f25de5063ffe6359c79f86d70a53c2d398db4e256e2de58c2a3bd2e8111b8f11      2226803 GN
  gcr-ui-3.deps
  gcr-ui-3.vapi
  pkcs11.vapi
+lib/
+ libgck-1.so.%%GCK_SOMAJOR%%
+ libgck-1.so.%%GCK_SOVER%%
+ libgcr-base-3.so.%%GCRBASE_SOMAJOR%%
+ libgcr-base-3.so.%%GCRBASE_SOVER%%
+ libgcr-ui-3.so.%%GCRUI_SOMAJOR%%
+ libgcr-ui-3.so.%%GCRUI_SOVER%%
+
+
+[FILE:1112:manifests/plist.tools]
 bin/gcr-viewer
+libexec/
+ gcr-prompter
+ gcr-ssh-agent
+ gcr-ssh-askpass
+share/GConf/gsettings/
+ org.gnome.crypto.pgp.convert
+ org.gnome.crypto.pgp_keyservers.convert
+share/applications/
+ gcr-prompter.desktop
+ gcr-viewer.desktop
+share/dbus-1/services/
+ org.gnome.keyring.PrivatePrompter.service
+ org.gnome.keyring.SystemPrompter.service
+share/icons/hicolor/16x16/apps/
+ gcr-gnupg.png
+ gcr-key-pair.png
+ gcr-key.png
+ gcr-password.png
+ gcr-smart-card.png
+share/icons/hicolor/22x22/apps/
+ gcr-gnupg.png
+ gcr-key-pair.png
+ gcr-key.png
+ gcr-password.png
+ gcr-smart-card.png
+share/icons/hicolor/24x24/apps/
+ gcr-gnupg.png
+ gcr-key-pair.png
+ gcr-key.png
+ gcr-password.png
+ gcr-smart-card.png
+share/icons/hicolor/256x256/apps/
+ gcr-gnupg.png
+ gcr-password.png
+ gcr-smart-card.png
+share/icons/hicolor/32x32/apps/
+ gcr-gnupg.png
+ gcr-key-pair.png
+ gcr-key.png
+ gcr-password.png
+ gcr-smart-card.png
+share/icons/hicolor/48x48/apps/
+ gcr-gnupg.png
+ gcr-key-pair.png
+ gcr-key.png
+ gcr-password.png
+ gcr-smart-card.png
+share/mime/packages/gcr-crypto-types.xml
+@glib-schemas share/glib-2.0/schemas/org.gnome.crypto.pgp.gschema.xml
+
+
+[FILE:1347:manifests/plist.dev]
 include/gck-1/gck/
  gck-deprecated.h
  gck-enum-types.h
@@ -179,68 +250,13 @@ include/gcr-3/ui/
  gcr-viewer.h
 lib/
  libgck-1.so
- libgck-1.so.%%GCK_SOMAJOR%%
- libgck-1.so.%%GCK_SOVER%%
  libgcr-base-3.so
- libgcr-base-3.so.%%GCRBASE_SOMAJOR%%
- libgcr-base-3.so.%%GCRBASE_SOVER%%
  libgcr-ui-3.so
- libgcr-ui-3.so.%%GCRUI_SOMAJOR%%
- libgcr-ui-3.so.%%GCRUI_SOVER%%
 lib/pkgconfig/
  gck-1.pc
  gcr-3.pc
  gcr-base-3.pc
  gcr-ui-3.pc
-libexec/
- gcr-prompter
- gcr-ssh-agent
- gcr-ssh-askpass
-share/GConf/gsettings/
- org.gnome.crypto.pgp.convert
- org.gnome.crypto.pgp_keyservers.convert
-share/applications/
- gcr-prompter.desktop
- gcr-viewer.desktop
-share/dbus-1/services/
- org.gnome.keyring.PrivatePrompter.service
- org.gnome.keyring.SystemPrompter.service
-share/icons/hicolor/16x16/apps/
- gcr-gnupg.png
- gcr-key-pair.png
- gcr-key.png
- gcr-password.png
- gcr-smart-card.png
-share/icons/hicolor/22x22/apps/
- gcr-gnupg.png
- gcr-key-pair.png
- gcr-key.png
- gcr-password.png
- gcr-smart-card.png
-share/icons/hicolor/24x24/apps/
- gcr-gnupg.png
- gcr-key-pair.png
- gcr-key.png
- gcr-password.png
- gcr-smart-card.png
-share/icons/hicolor/256x256/apps/
- gcr-gnupg.png
- gcr-password.png
- gcr-smart-card.png
-share/icons/hicolor/32x32/apps/
- gcr-gnupg.png
- gcr-key-pair.png
- gcr-key.png
- gcr-password.png
- gcr-smart-card.png
-share/icons/hicolor/48x48/apps/
- gcr-gnupg.png
- gcr-key-pair.png
- gcr-key.png
- gcr-password.png
- gcr-smart-card.png
-share/mime/packages/gcr-crypto-types.xml
-@glib-schemas share/glib-2.0/schemas/org.gnome.crypto.pgp.gschema.xml
 
 
 [FILE:3061:manifests/plist.nls]
