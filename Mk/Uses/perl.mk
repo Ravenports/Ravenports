@@ -8,6 +8,7 @@
 #              build (do not use with configure or run)
 #              run   (do not use with configure or build)
 #              none  (just sets BUILDRUN_DEPENDS)
+#              538   (specify perl-538 for build/run)
 #              536   (specify perl-536 for build/run)
 #              534   (specify perl-534 for build/run)
 #
@@ -44,6 +45,8 @@ _INCLUDE_USES_PERL_MK=	yes
 PERL_VERSION=	${PERL_5.34_VERSION}
 .  elif ${perl_ARGS:M536}
 PERL_VERSION=	${PERL_5.36_VERSION}
+.  elif ${perl_ARGS:M538}
+PERL_VERSION=	${PERL_5.38_VERSION}
 .  else
 PERL_VERSION=	${PERL_${PERL5_DEFAULT}_VERSION}
 .  endif
