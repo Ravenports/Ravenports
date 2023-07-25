@@ -176,18 +176,25 @@ share/man/man8/mosquitto.8.gz
  			#
 
 
-[FILE:385:patches/patch-config.h]
+[FILE:557:patches/patch-config.h]
 --- config.h.orig	2022-08-16 13:34:02 UTC
 +++ config.h
-@@ -6,7 +6,7 @@
+@@ -6,10 +6,14 @@
  
  #ifdef __APPLE__
  #  define __DARWIN_C_SOURCE
 -#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__SYMBIAN32__)
-+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__SYMBIAN32__) || defined(__DragonFly__)
++#elif defined(__FreeBSD__) || defined(__SYMBIAN32__) || defined(__DragonFly__)
  #  define _XOPEN_SOURCE 700
  #  define __BSD_VISIBLE 1
  #  define HAVE_NETINET_IN_H
++#elif defined(__NetBSD__)
++#  define _XOPEN_SOURCE 700
++#  define _NETBSD_SOURCE 1
++#  define HAVE_NETINET_IN_H
+ #elif defined(__QNX__)
+ #  define _XOPEN_SOURCE 600
+ #  define __BSD_VISIBLE 1
 
 
 [FILE:332:patches/patch-lib_socks__mosq.c]
@@ -201,6 +208,26 @@ share/man/man8/mosquitto.8.gz
 +#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
  #  include <sys/socket.h>
  #  include <netinet/in.h>
+ #endif
+
+
+[FILE:386:patches/patch-lib_strings__mosq.c]
+$NetBSD: patch-lib_strings__mosq.c,v 1.2 2022/08/16 23:08:39 gdt Exp $
+
+Suppress warning by including missing header.
+
+--- lib/strings_mosq.c.orig	2022-08-16 13:34:02.000000000 +0000
++++ lib/strings_mosq.c
+@@ -21,6 +21,10 @@ Contributors:
+ #include <errno.h>
+ #include <string.h>
+ 
++#if defined(__NetBSD__)
++#include <strings.h>
++#endif
++
+ #ifndef WIN32
+ #  include <strings.h>
  #endif
 
 

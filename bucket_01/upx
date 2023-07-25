@@ -65,16 +65,41 @@ share/doc/upx/
  upx-doc.txt
 
 
-[FILE:632:patches/patch-src_miniacc.h]
---- src/miniacc.h.orig	2023-01-30 10:18:06 UTC
-+++ src/miniacc.h
-@@ -2563,7 +2563,7 @@ ACC_COMPILE_TIME_ASSERT_HEADER(ACC_SIZEO
- #  define ACC_ABI_LITTLE_ENDIAN     1
- #elif (ACC_ARCH_ALPHA) && (ACC_ARCH_CRAY_MPP)
- #  define ACC_ABI_BIG_ENDIAN        1
--#elif (ACC_ARCH_IA64) && (ACC_OS_POSIX_LINUX || ACC_OS_WIN64)
-+#elif (ACC_ARCH_IA64) && (ACC_OS_POSIX_LINUX || ACC_OS_POSIX_FREEBSD || ACC_OS_WIN64)
- #  define ACC_ABI_LITTLE_ENDIAN     1
- #elif (ACC_ARCH_ALPHA || ACC_ARCH_AMD64 || ACC_ARCH_BLACKFIN || ACC_ARCH_CRIS || ACC_ARCH_I086 || ACC_ARCH_I386 || ACC_ARCH_MSP430 || ACC_ARCH_RISCV)
- #  define ACC_ABI_LITTLE_ENDIAN     1
+[FILE:889:patches/patch-src-bele.h]
+--- src/bele.h.orig	2023-01-30 10:18:06 UTC
++++ src/bele.h
+@@ -84,19 +84,6 @@ static forceinline unsigned bswap16(unsi
+ static forceinline unsigned bswap32(unsigned v) { return (unsigned) _byteswap_ulong(v); }
+ static forceinline upx_uint64_t bswap64(upx_uint64_t v) { return _byteswap_uint64(v); }
+ 
+-#else
+-
+-static forceinline constexpr unsigned bswap16(unsigned v) {
+-    // return __builtin_bswap16((upx_uint16_t) (v & 0xffff));
+-    // return (unsigned) __builtin_bswap64((upx_uint64_t) v << 48);
+-    return __builtin_bswap32(v << 16);
+-}
+-static forceinline constexpr unsigned bswap32(unsigned v) {
+-    // return (unsigned) __builtin_bswap64((upx_uint64_t) v << 32);
+-    return __builtin_bswap32(v);
+-}
+-static forceinline constexpr upx_uint64_t bswap64(upx_uint64_t v) { return __builtin_bswap64(v); }
+-
+ #endif
+ 
+ static forceinline constexpr unsigned no_bswap16(unsigned v) {
+
+
+[FILE:401:patches/patch-src-packer.h]
+--- src/packer.h.orig	2023-01-30 10:18:06 UTC
++++ src/packer.h
+@@ -225,7 +225,7 @@ protected:
+     void addLoader(C, C, C, C, C, C, C, C, C);
+     void addLoader(C, C, C, C, C, C, C, C, C, C);
+ #undef C
+-#if (ACC_CC_CLANG || ACC_CC_GNUC)
++#if 0 && (ACC_CC_CLANG || ACC_CC_GNUC)
+     void addLoaderVA(const char *s, ...) __attribute__((__sentinel__));
+ #else
+     void addLoaderVA(const char *s, ...);
 

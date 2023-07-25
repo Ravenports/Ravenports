@@ -357,6 +357,22 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  # include <sys/byteorder.h>
 
 
+[FILE:369:patches/patch-lib_librdkafka-2.1.0_src_rd.h]
+--- lib/librdkafka-2.1.0/src/rd.h.orig	2023-07-12 22:47:35 UTC
++++ lib/librdkafka-2.1.0/src/rd.h
+@@ -39,6 +39,10 @@
+ #define _DARWIN_C_SOURCE /* for strlcpy, pthread_setname_np, etc */
+ #endif
+ 
++#if defined(__NetBSD__)
++#define _XOPEN_SOURCE 600
++#endif
++
+ #define __need_IOV_MAX
+ #ifndef _POSIX_C_SOURCE
+ #define _POSIX_C_SOURCE 200809L /* for timespec on solaris */
+
+
 [FILE:374:patches/patch-lib_librdkafka-2.1.0_src_rdaddr.h]
 --- lib/librdkafka-2.1.0/src/rdaddr.h.orig	2023-07-12 22:47:35 UTC
 +++ lib/librdkafka-2.1.0/src/rdaddr.h
@@ -371,7 +387,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  
 
 
-[FILE:293:patches/patch-lib_librdkafka-2.1.0_src_rdendian.h]
+[FILE:316:patches/patch-lib_librdkafka-2.1.0_src_rdendian.h]
 --- lib/librdkafka-2.1.0/src/rdendian.h.orig	2023-07-12 22:47:35 UTC
 +++ lib/librdkafka-2.1.0/src/rdendian.h
 @@ -40,7 +40,7 @@
@@ -379,13 +395,13 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
   */
  
 -#ifdef __FreeBSD__
-+#if defined(__FreeBSD__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  #include <sys/endian.h>
  #elif defined __GLIBC__
  #include <endian.h>
 
 
-[FILE:351:patches/patch-lib_librdkafka-2.1.0_src_rdposix.h]
+[FILE:375:patches/patch-lib_librdkafka-2.1.0_src_rdposix.h]
 --- lib/librdkafka-2.1.0/src/rdposix.h.orig	2023-07-12 22:47:35 UTC
 +++ lib/librdkafka-2.1.0/src/rdposix.h
 @@ -65,7 +65,7 @@
@@ -393,7 +409,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
   * Allocation
   */
 -#if !defined(__FreeBSD__) && !defined(__OpenBSD__)
-+#if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__DragonFly__)
++#if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__DragonFly__) && !defined(__NetBSD__)
  /* alloca(3) is in stdlib on FreeBSD */
  #include <alloca.h>
  #endif
@@ -529,14 +545,14 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  
 
 
-[FILE:319:patches/patch-lib_snappy-fef67ac_compat.h]
+[FILE:341:patches/patch-lib_snappy-fef67ac_compat.h]
 --- lib/snappy-fef67ac/compat.h.orig	2023-07-12 22:47:35 UTC
 +++ lib/snappy-fef67ac/compat.h
 @@ -4,6 +4,8 @@
  
  #ifdef __FreeBSD__
  #  include <sys/endian.h>
-+#elif defined __DragonFly__
++#elif defined __DragonFly__ || defined __NetBSD__
 +#  include <sys/endian.h>
  #elif defined(__APPLE_CC_) || defined(__MACH__)  /* MacOS/X support */
  #  include <machine/endian.h>

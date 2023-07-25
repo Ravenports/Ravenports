@@ -2005,7 +2005,7 @@ lib/
  
 
 
-[FILE:2780:patches/patch-lib_Driver_ToolChains_NetBSD.cpp]
+[FILE:3633:patches/patch-lib_Driver_ToolChains_NetBSD.cpp]
 --- lib/Driver/ToolChains/NetBSD.cpp.orig	2023-06-10 22:58:16 UTC
 +++ lib/Driver/ToolChains/NetBSD.cpp
 @@ -266,10 +266,15 @@ void netbsd::Linker::ConstructJob(Compil
@@ -2063,21 +2063,43 @@ lib/
        }
      }
    }
-@@ -428,7 +431,7 @@ ToolChain::CXXStdlibType NetBSD::GetDefa
-     case llvm::Triple::sparcv9:
-     case llvm::Triple::x86:
-     case llvm::Triple::x86_64:
+@@ -412,27 +415,6 @@ Tool *NetBSD::buildAssembler() const {
+ Tool *NetBSD::buildLinker() const { return new tools::netbsd::Linker(*this); }
+ 
+ ToolChain::CXXStdlibType NetBSD::GetDefaultCXXStdlibType() const {
+-  VersionTuple OsVersion = getTriple().getOSVersion();
+-  if (OsVersion >= VersionTuple(7) || OsVersion.getMajor() == 0) {
+-    switch (getArch()) {
+-    case llvm::Triple::aarch64:
+-    case llvm::Triple::aarch64_be:
+-    case llvm::Triple::arm:
+-    case llvm::Triple::armeb:
+-    case llvm::Triple::thumb:
+-    case llvm::Triple::thumbeb:
+-    case llvm::Triple::ppc:
+-    case llvm::Triple::ppc64:
+-    case llvm::Triple::ppc64le:
+-    case llvm::Triple::sparc:
+-    case llvm::Triple::sparcv9:
+-    case llvm::Triple::x86:
+-    case llvm::Triple::x86_64:
 -      return ToolChain::CST_Libcxx;
-+      return ToolChain::CST_Libstdcxx;
-     default:
-       break;
-     }
-@@ -493,8 +496,6 @@ void NetBSD::addLibCxxIncludePaths(const
+-    default:
+-      break;
+-    }
+-  }
+   return ToolChain::CST_Libstdcxx;
+ }
+ 
+@@ -493,8 +475,9 @@ void NetBSD::addLibCxxIncludePaths(const
  
  void NetBSD::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
                                        llvm::opt::ArgStringList &CC1Args) const {
 -  addLibStdCXXIncludePaths(getDriver().SysRoot + "/usr/include/g++", "", "",
 -                           DriverArgs, CC1Args);
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/backward");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/@RAVEN_TRIPLE@");
  }
  
  llvm::ExceptionHandling NetBSD::GetExceptionModel(const ArgList &Args) const {
@@ -2115,18 +2137,13 @@ lib/
                  CI.getFrontendOpts().ProgramAction);
 
 
-[FILE:841:patches/patch-lib_Lex_InitHeaderSearch.cpp]
+[FILE:591:patches/patch-lib_Lex_InitHeaderSearch.cpp]
 --- lib/Lex/InitHeaderSearch.cpp.orig	2023-06-10 22:58:16 UTC
 +++ lib/Lex/InitHeaderSearch.cpp
-@@ -392,8 +392,15 @@ void InitHeaderSearch::AddDefaultCPlusPl
+@@ -392,8 +392,10 @@ void InitHeaderSearch::AddDefaultCPlusPl
        break;
      }
      break;
-+  case llvm::Triple::NetBSD:
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@", CXXSystem, false);
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@/backward", CXXSystem, false);
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@/" + triple.getTriple(), CXXSystem, false);
-+    break;
    case llvm::Triple::DragonFly:
 -    AddPath("/usr/include/c++/5.0", CXXSystem, false);
 +    AddPath("@RAVEN_GXX_HEADERS_DIR@", CXXSystem, false);

@@ -36,6 +36,7 @@ CFLAGS=			-I{{OPENSSLINC}}
 LDFLAGS=		-D{{OPENSSLLIB}}
 CMAKE_ARGS=		-DLWS_BUILD_HASH:STRING="{{CONFIGURE_TARGET}}"
 			-DCMAKE_DISABLE_FIND_PACKAGE_Git:BOOL=ON
+			-DDISABLE_WERROR:BOOL=ON
 			-DLWS_WITH_DISKCACHE:BOOL=ON
 			-DLWS_WITH_FTS:BOOL=ON
 			-DLWS_IPV6:BOOL=ON
@@ -226,6 +227,20 @@ lib/pkgconfig/
  		   (${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD") OR
  		   (${CMAKE_SYSTEM_NAME} MATCHES "QNX")))
  		   if (LWS_WITH_SHARED)
+
+
+[FILE:392:patches/patch-lib_core-net_client_connect2.c]
+--- lib/core-net/client/connect2.c.orig	1970-01-01 00:00:00 UTC
++++ lib/core-net/client/connect2.c
+@@ -49,7 +49,7 @@ lws_getaddrinfo46(struct lws *wsi, const
+ 
+ #if !defined(__ANDROID__)
+ 		hints.ai_family = AF_UNSPEC;
+-#if !defined(__OpenBSD__) && !defined(__OPENBSD)
++#if !defined(__OpenBSD__) && !defined(__OPENBSD) && !defined(__NetBSD__)
+ 		hints.ai_flags = AI_V4MAPPED;
+ #endif
+ #endif
 
 
 [FILE:327:patches/patch-lib_plat_unix_private-lib-plat-unix.h]

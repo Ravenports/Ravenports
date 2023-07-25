@@ -1099,10 +1099,10 @@ share/man/man1/Xnest.1.gz
      /* Default setting needed for non-seat0 seats */
 
 
-[FILE:1216:patches/patch-configure]
+[FILE:1646:patches/patch-configure]
 --- configure.orig	2023-03-29 12:55:14 UTC
 +++ configure
-@@ -24645,7 +24645,7 @@ printf "%s\n" "#define USE_ALPHA_PIO 1"
+@@ -24645,14 +24645,14 @@ printf "%s\n" "#define USE_ALPHA_PIO 1"
    x86_64*|amd64*)
  	I386_VIDEO=yes
  	case $host_os in
@@ -1111,6 +1111,14 @@ share/man/man1/Xnest.1.gz
  printf "%s\n" "#define USE_DEV_IO 1" >>confdefs.h
   ;;
  		*dragonfly*)
+ printf "%s\n" "#define USE_DEV_IO 1" >>confdefs.h
+  ;;
+ 		*netbsd*)
+-printf "%s\n" "#define USE_I386_IOPL 1" >>confdefs.h
++printf "%s\n" "#define USE_AMD64_IOPL 1" >>confdefs.h
+ 
+ 				SYS_LIBS=-lx86_64
+ 				;;
 @@ -24716,7 +24716,7 @@ fi
  
  DRI=no
@@ -1120,7 +1128,17 @@ share/man/man1/Xnest.1.gz
  	case $host_os in
  		kfreebsd*-gnu) ;;
  		*)
-@@ -28035,7 +28035,7 @@ fi
+@@ -26526,7 +26526,8 @@ case ${host_os} in
+ 	netbsd*)
+ 	# use libc stubs, don't link against libpthread, to allow
+ 	# dynamic loading
+-	ax_pthread_flags=""
++	ax_pthread_flags="none"
++	ax_pthread_ok="yes"
+ 	;;
+ esac
+ 
+@@ -28035,7 +28036,7 @@ fi
  case "x$XTRANS_SEND_FDS" in
  xauto)
  	case "$host_os" in
@@ -1129,7 +1147,7 @@ share/man/man1/Xnest.1.gz
  		XTRANS_SEND_FDS=yes
  		;;
  	*)
-@@ -30651,7 +30651,7 @@ printf "%s\n" "#define PCI_TXT_IDS_PATH
+@@ -30651,7 +30652,7 @@ printf "%s\n" "#define PCI_TXT_IDS_PATH
    test "$exec_prefix_NONE" && exec_prefix=NONE
  
  		case $host_os in
@@ -1138,7 +1156,7 @@ share/man/man1/Xnest.1.gz
  			xorg_bus_bsdpci="yes"
  			;;
  		esac
-@@ -30701,7 +30701,7 @@ fi
+@@ -30701,7 +30702,7 @@ fi
  
  done
  		;;
@@ -1469,7 +1487,7 @@ share/man/man1/Xnest.1.gz
  #else
 
 
-[FILE:1390:patches/patch-hw_xfree86_xorg-wrapper.c]
+[FILE:1986:patches/patch-hw_xfree86_xorg-wrapper.c]
 * Skip the detection of root rights requirement, the assumption that presence
 * of KMS drivers removes the root requirement is only valid for Linux
 
@@ -1511,6 +1529,23 @@ share/man/man1/Xnest.1.gz
      /* Detect if we need root rights, except when overridden by the config */
      if (needs_root_rights == -1) {
          for (i = 0; i < 16; i++) {
+@@ -256,6 +256,8 @@ int main(int argc, char *argv[])
+         gid_t realgid = getgid();
+         uid_t realuid = getuid();
+ 
++#if !defined(__NetBSD__)
++	/* setresgid and setresuid are not implemented on NetBSD */
+         if (setresgid(-1, realgid, realgid) != 0) {
+             fprintf(stderr, "%s: Could not drop setgid privileges: %s\n",
+                 progname, strerror(errno));
+@@ -266,6 +268,7 @@ int main(int argc, char *argv[])
+                 progname, strerror(errno));
+             exit(1);
+         }
++#endif
+     }
+ 
+     snprintf(buf, sizeof(buf), "%s/Xorg", SUID_WRAPPER_DIR);
 
 
 [FILE:1214:patches/patch-include_meson.build]

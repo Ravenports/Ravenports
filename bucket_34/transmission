@@ -455,51 +455,6 @@ share/transmission/web/src/
          FILES
 
 
-[FILE:322:patches/patch-cli_CMakeLists.txt]
---- cli/CMakeLists.txt.orig	2023-04-14 02:22:25 UTC
-+++ cli/CMakeLists.txt
-@@ -4,6 +4,9 @@ target_sources(${TR_NAME}-cli
-     PRIVATE
-         cli.cc)
- 
-+if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-+   target_link_libraries(${TR_NAME}-cli quota)
-+endif()
- target_link_libraries(${TR_NAME}-cli
-     PRIVATE
-         ${TR_NAME}
-
-
-[FILE:391:patches/patch-daemon_CMakeLists.txt]
---- daemon/CMakeLists.txt.orig	2023-04-14 02:22:25 UTC
-+++ daemon/CMakeLists.txt
-@@ -30,6 +30,9 @@ target_include_directories(${TR_NAME}-da
-     PRIVATE
-         $<$<BOOL:${WITH_SYSTEMD}>:${SYSTEMD_INCLUDE_DIRS}>)
- 
-+if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-+   target_link_libraries(${TR_NAME}-daemon quota)
-+endif()
- target_link_libraries(${TR_NAME}-daemon
-     PRIVATE
-         ${TR_NAME}
-
-
-[FILE:391:patches/patch-gtk_CMakeLists.txt]
---- gtk/CMakeLists.txt.orig	2023-04-14 02:22:25 UTC
-+++ gtk/CMakeLists.txt
-@@ -189,6 +189,9 @@ target_include_directories(${TR_NAME}-gt
-     PRIVATE
-         $<$<BOOL:${WITH_APPINDICATOR}>:${APPINDICATOR_INCLUDE_DIRS}>)
- 
-+if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-+   target_link_libraries(${TR_NAME}-gtk quota)
-+endif()
- target_link_libraries(${TR_NAME}-gtk
-     PRIVATE
-         ${TR_NAME}
-
-
 [FILE:237:patches/patch-gtk_DetailsDialog.cc]
 --- gtk/DetailsDialog.cc.orig	2023-04-14 02:22:25 UTC
 +++ gtk/DetailsDialog.cc
@@ -538,36 +493,6 @@ share/transmission/web/src/
  #include "FaviconCache.h"
  #include "Typedefs.h"
  #include "Utils.h" // std::hash<QString>
-
-
-[FILE:354:patches/patch-qt_CMakeLists.txt]
---- qt/CMakeLists.txt.orig	2023-04-14 02:22:25 UTC
-+++ qt/CMakeLists.txt
-@@ -204,6 +204,9 @@ target_include_directories(${TR_NAME}-qt
-     PRIVATE
-         ${CMAKE_CURRENT_SOURCE_DIR})
- 
-+if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-+   target_link_libraries(${TR_NAME}-qt quota)
-+endif()
- target_link_libraries(${TR_NAME}-qt
-     PRIVATE
-         ${TR_NAME}
-
-
-[FILE:366:patches/patch-utils_CMakeLists.txt]
---- utils/CMakeLists.txt.orig	2023-04-14 02:22:25 UTC
-+++ utils/CMakeLists.txt
-@@ -5,6 +5,9 @@ foreach(P create edit remote show)
-         PRIVATE
-             ${P}.cc)
- 
-+    if (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-+       target_link_libraries(${TR_NAME}-${P} quota)
-+    endif()
-     target_link_libraries(${TR_NAME}-${P}
-         PRIVATE
-             ${TR_NAME}
 
 
 [FILE:129:files/special.mk]

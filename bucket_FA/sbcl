@@ -15,8 +15,7 @@ DISTFILE[1]=		sbcl-2.3.6-source.tar.bz2:main
 DISTFILE[2]=		sbcl-1.2.7-x86-64-dragonfly-binary.tar.bz2:boot
 DISTFILE[3]=		sbcl-1.2.7-x86-64-freebsd-binary.tar.bz2:boot
 DISTFILE[4]=		sbcl-1.2.7-x86-64-linux-binary.tar.bz2:boot
-DISTFILE[5]=		sbcl-1.2.7-x86-64-netbsd-binary.tar.bz2:boot
-DISTFILE[6]=		sbcl-1.2.7-x86-solaris-binary.tar.bz2:boot
+DISTFILE[5]=		sbcl-1.2.7-x86-solaris-binary.tar.bz2:boot
 DF_INDEX=		1
 SPKGS[standard]=	single
 
@@ -42,6 +41,7 @@ BUILD_DEPENDS=		gmp:static:standard
 BUILDRUN_DEPENDS=	gmp:shared:standard
 			mpfr:shared:standard
 RUN_DEPENDS=		asdf:primary:standard
+B_DEPS[netbsd]=		clisp:primary:standard
 B_DEPS[midnightbsd]=	clisp:primary:standard
 
 USES=			gmake makeinfo zlib zstd
@@ -70,14 +70,15 @@ CMAKE_ARGS=		--prefix="{{PREFIX}}"
 			--without-sb-safepoint
 			--without-sb-thruption
 			--without-sb-wtimer
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=CMAKE_ARGS:={{CMAKE_ARGS:N--xc-host=*}}
+			MAKEFILE_LINE=CMAKE_ARGS+=--xc-host=clisp
+			MAKE_ENV=SBCL_PAXCTL="{{PAXCTL}} +m"
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CMAKE_ARGS:={{CMAKE_ARGS:N--xc-host=*}}
 			MAKEFILE_LINE=CMAKE_ARGS+=--xc-host=clisp
 
 [NETBSD].DESCRIPTION=			build for NetBSD
-[NETBSD].DF_INDEX_ON=			5
 
 [MIDNIGHT].DESCRIPTION=			build for MidnightBSD
-[MIDNIGHT].DF_INDEX_ON=			3
 
 [SIMD].DESCRIPTION=			Enable SB-SIMD (requires AVX2 CPU)
 [SIMD].CMAKE_ARGS_OFF=			--without-sb-simd
@@ -92,7 +93,7 @@ VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CMAKE_ARGS:={{CMAKE_ARGS:N--xc-host=*}}
 [FREEBSD].DF_INDEX_ON=			3
 
 [SUNOS].DESCRIPTION=			build for Solaris
-[SUNOS].DF_INDEX_ON=			6
+[SUNOS].DF_INDEX_ON=			5
 
 [CONCURRENCY].DESCRIPTION=		Enable thread support
 [CONCURRENCY].CMAKE_ARGS_OFF=		--without-sb-thread
@@ -119,6 +120,10 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/sbcl
 	${RM} ${STAGEDIR}${PREFIX}/${INFO_PATH}/dir
 	${RM} -rf ${STAGEDIR}${STD_DOCDIR}
+
+pre-build-netbsd:
+	# increase datasize limits on NetBSD
+	ulimit -d 2097152 && ulimit -a
 
 post-install-SIMD-ON:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/sbcl/sb-simd

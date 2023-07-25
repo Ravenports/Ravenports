@@ -102,6 +102,23 @@ share/man/man1/
  7zr.1.gz
 
 
+[FILE:577:patches/patch-CPP_7zip_Archive_Zip_ZipItem.cpp]
+--- CPP/7zip/Archive/Zip/ZipItem.cpp.orig	2023-03-03 12:16:28 UTC
++++ CPP/7zip/Archive/Zip/ZipItem.cpp
+@@ -425,7 +425,11 @@ void CItem::GetUnicodeString(UString &re
+       size_t dlen = slen * 4;
+       const char* dest = s_utf8.GetBuf_SetEnd(dlen + 1); // (source length * 4) + null termination
+ 
++#if defined(__NetBSD__) || defined(__sun)
++      size_t done = iconv(cd, (const char**)&src, &slen, (char**)&dest, &dlen);
++#else
+       size_t done = iconv(cd, (char**)&src, &slen, (char**)&dest, &dlen);
++#endif
+       bzero((size_t*)dest + done, 1);
+ 
+       iconv_close(cd);
+
+
 [FILE:386:patches/patch-CPP_Windows_System.cpp]
 --- CPP/Windows/System.cpp.orig	2023-03-03 12:16:28 UTC
 +++ CPP/Windows/System.cpp
@@ -114,6 +131,23 @@ share/man/man1/
  			size_t len = sizeof(value);
  			if (sysctlbyname("hw.ncpu", &value, &len, NULL, 0) == 0)
  				nbcpu = value;
+
+
+[FILE:277:patches/patch-C_hashes_hash.h]
+--- C/hashes/hash.h.orig	2023-03-03 12:16:28 UTC
++++ C/hashes/hash.h
+@@ -42,6 +42,11 @@
+ 
+ #include "../7zTypes.h"
+ 
++#ifdef __NetBSD__
++#include <stdint.h>
++#define _UINT64_T_DECLARED
++#endif
++
+ #ifndef _UINT32_T_DECLARED
+ typedef UInt32 uint32_t;
+ #define _UINT32_T_DECLARED
 
 
 [FILE:351:patches/patch-makefile.machine]

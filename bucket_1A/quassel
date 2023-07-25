@@ -79,6 +79,10 @@ post-stage:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/quassel
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/quasselclient
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/quasselcore
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
+
+post-patch-netbsd:
+	${REINPLACE_CMD} -e '/no-undefined/d' ${WRKSRC}/cmake/QuasselCompileSettings.cmake
 
 do-install:
 	cd ${WRKDIR}/.build && make DESTDIR="${STAGEDIR}" install
