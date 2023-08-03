@@ -2,7 +2,7 @@
 
 NAMEBASE=		qt6-qtbase
 VERSION=		6.5.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_toolkits devel
 VARIANTS=		standard
 SDESC[standard]=	Qt6 - QtBase component
@@ -26,6 +26,7 @@ BUILD_DEPENDS=		evdev-proto:single:standard
 			elftoolchain:libraries:standard
 			harfbuzz:dev:standard
 			icu:dev:standard
+			fontconfig:dev:standard
 BUILDRUN_DEPENDS=	harfbuzz:icu:standard
 			icu:primary:standard
 			libxkbcommon:single:standard
@@ -80,6 +81,7 @@ CMAKE_ARGS=		-DFEATURE_system_zlib=ON
 			-DFEATURE_icu=ON
 			-DFEATURE_sql_sqlite=ON
 			-DFEATURE_accessibility=ON
+			-DFEATURE_fontconfig=ON
 			-DINPUT_dbus=runtime
 			-DINPUT_openssl=linked
 			-DBUILD_SHARED_LIBS=ON
@@ -239,7 +241,7 @@ libexec/qt6/
  uic
 
 
-[FILE:79575:manifests/plist.dev]
+[FILE:79830:manifests/plist.dev]
 %%EVDEV%%lib/qt6/cmake/Qt6Gui/
  Qt6QEvdevKeyboardPluginAdditionalTargetInfo.cmake
  Qt6QEvdevKeyboardPluginConfig.cmake
@@ -266,7 +268,7 @@ libexec/qt6/
  Qt6QEvdevTouchScreenPluginTargets-release.cmake
  Qt6QEvdevTouchScreenPluginTargets.cmake
 %%EVDEV-OFF%%include/qt6/QtDeviceDiscoverySupport/%%QTVER%%/QtDeviceDiscoverySupport/private/qdevicediscovery_dummy_p.h
-%%INPSUPPORT%%%%EVDEV%%include/qt6/QtDeviceDiscoverySupport/%%QTVER%%/QtDeviceDiscoverySupport/private/qdevicediscovery_static_p.h
+%%INPSUPPORT%%%%EVDEV%%include/qt6/QtDeviceDiscoverySupport/%%QTVER%%/QtDeviceDiscoverySupport/private/qdevicediscovery_%%DSSTYPE%%_p.h
 %%INPSUPPORT%%%%EVDEV%%include/qt6/QtInputSupport/%%QTVER%%/QtInputSupport/private/
  devicehandlerlist_p.h
  qevdevkeyboard_defaultmap_p.h
@@ -312,6 +314,11 @@ libexec/qt6/
  Qt6InputSupportPrivateTargets.cmake
  Qt6InputSupportPrivateVersionlessTargets.cmake
 %%INPSUPPORT%%lib/qt6/metatypes/qt6inputsupportprivate_release_metatypes.json
+%%ONLY-LINUX%%include/qt6/QtCore/%%QTVER%%/QtCore/private/minimum-linux_p.h
+%%ONLY-LINUX%%include/qt6/QtTest/%%QTVER%%/QtTest/private/
+ callgrind_p.h
+ qbenchmarkvalgrind_p.h
+ valgrind_p.h
 %%ONLY-LINUX%%lib/qt6/cmake/Qt6Gui/
  Qt6QLinuxFbIntegrationPluginAdditionalTargetInfo.cmake
  Qt6QLinuxFbIntegrationPluginConfig.cmake
@@ -1042,7 +1049,7 @@ include/qt6/QtCore/%%QTVER%%/QtCore/private/
  qfilesystementry_p.h
  qfilesystemiterator_p.h
  qfilesystemmetadata_p.h
- qfilesystemwatcher_kqueue_p.h
+ qfilesystemwatcher_%%FSWTYPE%%_p.h
  qfilesystemwatcher_p.h
  qfilesystemwatcher_polling_p.h
  qflatmap_p.h
@@ -1642,10 +1649,12 @@ include/qt6/QtGui/%%QTVER%%/QtGui/private/
  qfilesystemmodel_p.h
  qfixed_p.h
  qfont_p.h
+ qfontconfigdatabase_p.h
  qfontdatabase_p.h
  qfontengine_ft_p.h
  qfontengine_p.h
  qfontengineglyphcache_p.h
+ qfontenginemultifontconfig_p.h
  qfontsubset_p.h
  qfragmentmap_p.h
  qfreetypefontdatabase_p.h
@@ -4592,10 +4601,18 @@ QMAKE_CXX.COMPILER_MACROS	=
 load(qt_config)
 
 
-[FILE:90:files/special.mk]
+[FILE:229:files/special.mk]
 .if empty(FEAT_EVDEV)
 PLIST_SUB+=EVDEV-OFF="@comment "
 .else
 PLIST_SUB+=EVDEV-OFF=
+.endif
+
+.if ${OPSYS} == Linux
+PLIST_SUB+=FSWTYPE=inotify
+PLIST_SUB+=DSSTYPE=udev
+.else
+PLIST_SUB+=FSWTYPE=kqueue
+PLIST_SUB+=DSSTYPE=static
 .endif
 

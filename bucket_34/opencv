@@ -21,11 +21,7 @@ SPKGS[standard]=	complete
 
 OPTIONS_AVAILABLE=	VIDEOIO
 OPTIONS_STANDARD=	VIDEOIO
-OPT_ON[freebsd]=	VIDEOIO
-OPT_ON[sunos]=		VIDEOIO
-OPT_ON[linux]=		VIDEOIO
-OPT_ON[dragonfly]=	VIDEOIO
-OPT_ON[midnightbsd]=	VIDEOIO
+OPT_ON[all]=		VIDEOIO
 
 BUILD_DEPENDS=		eigen:single:standard
 			ffmpeg:dev:standard
@@ -104,7 +100,6 @@ CMAKE_ARGS=		-DWITH_VTK:BOOL=OFF
 			-DENABLE_FAST_MATH:BOOL=OFF
 			-DENABLE_PRECOMPILED_HEADERS:BOOL=OFF
 			-DEOPENCV_WARNINGS_ARE_ERRORS:BOOL=OFF
-			-DANDROID_EXAMPLES_WITH_LIBS:BOOL=ON
 			-DDOWNLOAD_EXTERNAL_TEST_DATA:BOOL=OFF
 			-DBUILD_opencv_apps:BOOL=ON
 			-DBUILD_opencv_cnn_3dobj:BOOL=OFF
@@ -620,6 +615,19 @@ lib/
        set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} m pthread)
      elseif(EMSCRIPTEN)
        # no need to link to system libs with emscripten
+
+
+[FILE:602:patches/patch-cmake_OpenCVCompilerOptions.cmake]
+--- cmake/OpenCVCompilerOptions.cmake.orig	2023-06-28 11:53:33 UTC
++++ cmake/OpenCVCompilerOptions.cmake
+@@ -374,7 +374,6 @@ endif()
+ # Apply "-Wl,--no-undefined" linker flags: https://github.com/opencv/opencv/pull/21347
+ if(NOT OPENCV_SKIP_LINK_NO_UNDEFINED)
+   if(UNIX AND (NOT APPLE OR NOT CMAKE_VERSION VERSION_LESS "3.2"))
+-    set(_option "-Wl,--no-undefined")
+     set(_saved_CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${_option}")  # requires CMake 3.2+ and CMP0056
+     ocv_check_compiler_flag(CXX "" HAVE_LINK_NO_UNDEFINED)
 
 
 [FILE:644:patches/patch-modules_core_include_opencv2_core_utils_filesystem.private.hpp]

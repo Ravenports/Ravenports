@@ -2,6 +2,7 @@
 
 NAMEBASE=		gdal
 VERSION=		3.7.1
+REVISION=		1
 KEYWORDS=		graphics geography
 VARIANTS=		standard
 SDESC[standard]=	Geospatial Data Abstraction Library
@@ -23,6 +24,7 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		geos:dev:standard
 			Imath:dev:standard
+			libarchive:dev:standard
 			libheif:dev:standard
 			openexr:dev:standard
 			proj:dev:standard
@@ -37,7 +39,7 @@ BUILDRUN_DEPENDS=	libgeotiff:single:standard
 			geos:primary:standard
 			openexr:primary:standard
 			proj:primary:standard
-			libarchive:single:standard
+			libarchive:primary:standard
 EXRUN[tools]=		gdal:primary:standard
 
 USES=			cpe cmake png jpeg gif tiff iconv sqlite pkgconfig
@@ -518,7 +520,7 @@ share/man/man1/
  sozip.1.gz
 
 
-[FILE:672:patches/patch-gdal.cmake]
+[FILE:682:patches/patch-gdal.cmake]
 --- gdal.cmake.orig	2023-07-06 11:14:14 UTC
 +++ gdal.cmake
 @@ -280,7 +280,7 @@ endif ()
@@ -526,7 +528,7 @@ share/man/man1/
    include(CheckLinkerFlag)
    check_linker_flag(C "-Wl,--no-undefined" HAS_NO_UNDEFINED)
 -  if (HAS_NO_UNDEFINED AND (NOT "${CMAKE_CXX_FLAGS}" MATCHES "-fsanitize") AND NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
-+  if (HAS_NO_UNDEFINED AND (NOT "${CMAKE_CXX_FLAGS}" MATCHES "-fsanitize") AND NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD|MidnightBSD|FreeBSD")
++  if (HAS_NO_UNDEFINED AND (NOT "${CMAKE_CXX_FLAGS}" MATCHES "-fsanitize") AND NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD|MidnightBSD|FreeBSD|DragonFly")
      string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
      string(APPEND CMAKE_MODULE_LINKER_FLAGS " -Wl,--no-undefined")
    endif ()

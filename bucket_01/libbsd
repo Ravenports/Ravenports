@@ -2,6 +2,7 @@
 
 NAMEBASE=		libbsd
 VERSION=		0.11.7
+REVISION=		1
 KEYWORDS=		devel raven
 VARIANTS=		standard
 SDESC[standard]=	Utility functions from BSD systems
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://libbsd.freedesktop.org/releases/
 DISTFILE[1]=		libbsd-0.11.7.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,10 +25,11 @@ ONLY_FOR_OPSYS=		linux
 
 BUILD_DEPENDS=		libmd:dev:standard
 BUILDRUN_DEPENDS=	libmd:primary:standard
+EXRUN[dev]=		libmd:dev:standard
 
 USES=			cpe gmake libtool
 
-LICENSE=		BSDGROUP:single
+LICENSE=		BSDGROUP:primary
 LICENSE_FILE=		BSDGROUP:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -36,7 +41,7 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.11.7
 
-[FILE:342:descriptions/desc.single]
+[FILE:342:descriptions/desc.primary]
 libbsd - Utility functions from BSD systems
 
 This library provides useful functions commonly found on BSD systems,
@@ -51,7 +56,13 @@ This library is intended for GNU/Linux usage.
 9baa186059ebbf25c06308e9f991fda31f7183c0f24931826d83aa6abd8a0261       418508 libbsd-0.11.7.tar.xz
 
 
-[FILE:5616:manifests/plist.single]
+[FILE:53:manifests/plist.primary]
+lib/
+ libbsd.so.%%SOMAJOR%%
+ libbsd.so.%%SOVERSION%%
+
+
+[FILE:425:manifests/plist.dev]
 include/bsd/
  bitstring.h
  bsd.h
@@ -86,12 +97,13 @@ lib/
  libbsd-ctor.a
  libbsd.a
  libbsd.so
- libbsd.so.%%SOMAJOR%%
- libbsd.so.%%SOVERSION%%
 lib/pkgconfig/
  libbsd-ctor.pc
  libbsd-overlay.pc
  libbsd.pc
+
+
+[FILE:5143:manifests/plist.man]
 share/man/man3/
  LIST_CLASS_ENTRY.3bsd.gz
  LIST_CLASS_HEAD.3bsd.gz

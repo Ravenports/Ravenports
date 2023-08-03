@@ -2,6 +2,7 @@
 
 NAMEBASE=		libao
 VERSION=		1.2.2
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	Portable audio output library
@@ -14,7 +15,9 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			docs
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -57,27 +60,30 @@ currently supports:
 df8a6d0e238feeccb26a783e778716fb41a801536fe7b6fce068e313c0e2bf4d        96134 xiph-libao-1.2.2.tar.gz
 
 
-[FILE:560:manifests/plist.primary]
-%%ONLY-DRAGONFLY%%lib/ao/plugins-4/
- liboss.a
+[FILE:350:manifests/plist.primary]
+%%ONLY-DRAGONFLY%%lib/ao/plugins-4/liboss.so
+%%ONLY-FREEBSD%%lib/ao/plugins-4/liboss.so
+%%ONLY-LINUX%%lib/ao/plugins-4/liboss.so
+%%ONLY-MIDNIGHTBSD%%lib/ao/plugins-4/liboss.so
+%%ONLY-NETBSD%%lib/ao/plugins-4/
  liboss.so
-%%ONLY-FREEBSD%%lib/ao/plugins-4/
- liboss.a
- liboss.so
-%%ONLY-LINUX%%lib/ao/plugins-4/
- liboss.a
- liboss.so
-%%ONLY-MIDNIGHTBSD%%lib/ao/plugins-4/
- liboss.a
- liboss.so
+ libsun.so
+%%ONLY-SUNOS%%lib/ao/plugins-4/libsun.so
+lib/
+ libao.so.%%SOMAJOR%%
+ libao.so.%%SOVERSION%%
+lib/ckport/db/libao.ckport
+
+
+[FILE:369:manifests/plist.dev]
+%%ONLY-DRAGONFLY%%lib/ao/plugins-4/liboss.a
+%%ONLY-FREEBSD%%lib/ao/plugins-4/liboss.a
+%%ONLY-LINUX%%lib/ao/plugins-4/liboss.a
+%%ONLY-MIDNIGHTBSD%%lib/ao/plugins-4/liboss.a
 %%ONLY-NETBSD%%lib/ao/plugins-4/
  liboss.a
- liboss.so
  libsun.a
- libsun.so
-%%ONLY-SUNOS%%lib/ao/plugins-4/
- libsun.a
- libsun.so
+%%ONLY-SUNOS%%lib/ao/plugins-4/libsun.a
 include/ao/
  ao.h
  os_types.h
@@ -85,12 +91,8 @@ include/ao/
 lib/
  libao.a
  libao.so
- libao.so.%%SOMAJOR%%
- libao.so.%%SOVERSION%%
-lib/ckport/db/libao.ckport
 lib/pkgconfig/ao.pc
 share/aclocal/ao.m4
-share/man/man5/libao.conf.5.gz
 
 
 [FILE:738:manifests/plist.docs]
@@ -131,6 +133,10 @@ share/doc/libao/
  plugin-api.html
  plugin-overview.html
  style.css
+
+
+[FILE:31:manifests/plist.man]
+share/man/man5/libao.conf.5.gz
 
 
 [FILE:361:patches/patch-doc_Makefile.am]

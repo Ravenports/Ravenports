@@ -108,7 +108,9 @@ CARGO_CARGOTOML=	{{WRKSRC}}/Cargo.toml
 GENERATED=		yes
 
 PLIST_SUB=		VER=0.9.2
+			CPYTHON={{CPYTHON:U{{PYTHON_SUFFIX}}}}
 
+VAR_OPSYS[linux]=	MAKEFILE_LINE=CPYTHON={{PYTHON_SUFFIX}}-x86_64-linux-gnu
 CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
@@ -133,6 +135,12 @@ do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} maturin build \
 		--release \
 		--interpreter ${PYTHON_CMD})
+
+pre-install-linux:
+	# for some reason compatibility ends at -manylinux_2_23_x86_64
+	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
+	rpds_py-0.9.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_24_x86_64.whl\
+	rpds_py-0.9.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_23_x86_64.whl)
 
 do-install:
 	# Due to upstream not supplying a setup.py file or other way to install
@@ -256,13 +264,13 @@ ca2b8a661f7628cbd23440e50b05d705db3686f894fc9580820623656af974b1       703595 ru
 1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a       671422 rust/crates/windows_x86_64_msvc-0.48.0.tar.gz
 
 
-[FILE:373:manifests/plist.single]
+[FILE:367:manifests/plist.single]
 %%PYTHON_SITELIBDIR%%/rpds/
  __init__.py
  __init__.pyi
  librpds.so
  py.typed
- rpds.cpython-%%PYTHON_SUFFIX%%.so
+ rpds.cpython-%%CPYTHON%%.so
 %%PYTHON_SITELIBDIR%%/rpds/__pycache__/__init__.cpython-%%PYTHON_SUFFIX%%.pyc
 %%PYTHON_SITELIBDIR%%/rpds_py-%%VER%%.dist-info/
  INSTALLER
