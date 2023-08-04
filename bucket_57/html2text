@@ -28,9 +28,8 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		textproc/html2text
 
-MUST_CONFIGURE=		yes
-CONFIGURE_ARGS=		PREFIX={{PREFIX}}
-			MANDIR={{MANPREFIX}}/man
+MUST_CONFIGURE=		gnu
+CONFIGURE_ARGS=		MANDIR={{MANPREFIX}}/man
 
 CXXFLAGS=		-Wno-write-strings
 			-Wno-deprecated-declarations
@@ -38,6 +37,10 @@ CXXFLAGS=		-Wno-write-strings
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/html2text
+
+post-extract:
+	${TOUCH} ${WRKSRC}/config.guess
+	${TOUCH} ${WRKSRC}/config.sub
 
 [FILE:674:descriptions/desc.single]
 html2text is a command line utility, written in C++, that converts
