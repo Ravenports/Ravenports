@@ -25,9 +25,8 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 # Possible values: 5.34 and 5.36
 #-------------------------------------------------------------------------
 
-PERL5_DEFAULT?=		5.34
+PERL5_DEFAULT?=		5.36
 
-PERL_5.34_VERSION=	5.34.1
 PERL_5.36_VERSION=	5.36.1
 PERL_5.38_VERSION=	5.38.0
 
@@ -95,8 +94,7 @@ PGSQL_15_VERSION=	15.3
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.7,8.0), mariadb-(10.[456], 10.1[1], 11),
-#                  percona-(5.5,5.6,5.7), galera-(5.5,5.6,5.7)
+# Possible values: oracle-(5.7,8.0,8.1), mariadb-(10.[456], 10.1[1], 11)
 #
 # MariaDB releases:
 #   MariaDB 10.4   EOL 18 JUN 2024 (STABLE)
@@ -113,16 +111,14 @@ PGSQL_15_VERSION=	15.3
 
 MYSQL_DEFAULT=			oracle-8.0
 
-MYSQL_oracle-8.0_VERSION=	8.0.34
 MYSQL_oracle-5.7_VERSION=	5.7.43
+MYSQL_oracle-8.0_VERSION=	8.0.34
+MYSQL_oracle-8.1_VERSION=	8.1.0
 MYSQL_mariadb-10.4_VERSION=	10.4.30
 MYSQL_mariadb-10.5_VERSION=	10.5.21
 MYSQL_mariadb-10.6_VERSION=	10.6.14
 MYSQL_mariadb-10.11_VERSION=	10.11.4
 MYSQL_mariadb-11_VERSION=	11.0.2
-MYSQL_percona-5.7_VERSION=	5.7.17
-MYSQL_percona-5.6_VERSION=	5.6.35
-MYSQL_percona-5.5_VERSION=	5.5.54
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
