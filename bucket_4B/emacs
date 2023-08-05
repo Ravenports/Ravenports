@@ -193,6 +193,12 @@ post-install-midnightbsd:
 post-install-dragonfly:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
+post-install:
+	# Hash constantly changes, so add this file dynamically
+	(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} libexec -type f -name "emacs*[.]pdmp" \
+		>> ${WRKDIR}/.manifest.primary.mktmp)
+
 post-install-darwin:
 	${RM} -r ${STAGEDIR}${PREFIX}/lib/systemd
 
@@ -221,10 +227,9 @@ within Emacs windows (Shell), running a Lisp read-eval-print loop
 d2f881a5cc231e2f5a03e86f4584b0438f83edd7598a09d24a21bd8d003e2e01     52081008 emacs-29.1.tar.xz
 
 
-[FILE:64832:manifests/plist.primary]
+[FILE:64661:manifests/plist.primary]
+@comment hash-changes;autoplist libexec/emacs/%%VERSION%%/%%GNU_HOST%%/emacs-???.pdmp
 %%ONLY-LINUX%%lib/systemd/user/emacs.service
-%%X11GTK-OFF%%libexec/emacs/%%VERSION%%/%%GNU_HOST%%/emacs-7b0cffe0b53c4f7322851e5e3d4dc9cff05b5f865b391c94787eec74af6ae2f3.pdmp
-%%X11GTK-ON%%libexec/emacs/%%VERSION%%/%%GNU_HOST%%/emacs-e306145563c48fc130cc85b6b15dc8d2c72615871bdf38991c63f2e0241f15e5.pdmp
 @(games,games,0664) /var/games/emacs/snake-scores
 @(games,games,0664) /var/games/emacs/tetris-scores
 bin/

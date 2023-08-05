@@ -24,6 +24,7 @@ BUILD_DEPENDS=		zip:single:standard
 			icu:dev:standard
 			llvm:tools:standard
 BUILDRUN_DEPENDS=	icu:primary:standard
+			icu:data:standard
 			nspr:single:standard
 
 USES=			gmake perl pkgconfig python:build zlib readline
@@ -76,6 +77,9 @@ pre-configure:
 	${CHMOD} 755 ${WRKSRC}/configure
 	${REINPLACE_CMD} -e "s|%%MBSD64_TGT%%|x86_64-raven-freebsd12.3|" \
 	${WRKSRC}/../../build/autoconf/config.guess
+	# don't allow linking with ssp
+	${REINPLACE_CMD} '/protector-strong/d' \
+	${WRKSRC}/../../build/moz.configure/toolchain.configure
 
 [FILE:126:descriptions/desc.primary]
 SpiderMonkey is Mozilla's JavaScript engine written in C and C++. It is 

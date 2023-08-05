@@ -264,7 +264,7 @@ suidfiles() {
 		fi
 		(cd "${STAGEDIR}" && find * -type f \
 			\( -perm -u+x -or -perm -g+x -or -perm -o+x \) \
-			\( -perm -u+s -or -perm -g+s \) -print0 | xargs -0 ls "$listargs")
+			\( -perm -u+s -or -perm -g+s \) -print0 | xargs -0 ls ${listargs})
 	fi
 	return 0
 }
