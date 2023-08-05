@@ -252,7 +252,7 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.15.6
-QT6_VERSION=			6.5.1
+QT6_VERSION=			6.5.2
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
 KDE_FRAMEWORKS_VERSION=		5.108.0

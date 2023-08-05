@@ -88,6 +88,7 @@ QMAKESPEC=	unsupported-Ravenports-OS
 CMAKE_ARGS+=		${BASE_CMAKE_ARGS}
 . elif ${NAMEBASE:Mqt6-qt*}
 CMAKE_ARGS+=		-DCMAKE_PREFIX_PATH="${PREFIX}/lib/qt6/cmake"
+CMAKE_ARGS+=		-DQT_QMAKE_TARGET_MKSPEC="${QMAKESPEC}"
 _USES_install+=		730:strip-qt6
 . else
 # stage support

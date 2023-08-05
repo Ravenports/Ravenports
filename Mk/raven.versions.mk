@@ -11,7 +11,7 @@
 .if !defined(_INCLUDE_BSD_DEFAULT_VERSIONS_MK)
 _INCLUDE_BSD_DEFAULT_VERSIONS_MK=	yes
 
-.  for base in FIREBIRD LUA MYSQL PERL5 PHP PGSQL PYTHON3 RUBY SSL TCL
+.  for base in LUA MYSQL PERL5 PHP PGSQL PYTHON3 RUBY SSL TCL
 .undef ${base}_DEFAULT
 .  endfor
 
@@ -123,17 +123,6 @@ MYSQL_mariadb-11_VERSION=	11.0.2
 MYSQL_percona-5.7_VERSION=	5.7.17
 MYSQL_percona-5.6_VERSION=	5.6.35
 MYSQL_percona-5.5_VERSION=	5.5.54
-
-#-------------------------------------------------------------------------
-# Firebird database server
-# Possible values: 2.5, 3.0 (later 4.0)
-#-------------------------------------------------------------------------
-
-FIREBIRD_DEFAULT?=	2.5
-
-FIREBIRD_2.5_VERSION=	2.5.9
-FIREBIRD_3.0_VERSION=	3.0.7
-FIREBIRD_4.0_VERSION=	4.0.2
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
