@@ -25,6 +25,7 @@ OPTGROUP[DBASE]=	MYSQL PGSQL
 OPT_ON[all]=		MYSQL PGSQL OPENGL SOUND PCRE L10N
 
 BROKEN[aarch64]=	fails to compile: gnat1: error: unknown value aarch64 for -march
+BROKEN[all]=		GNAT BUG DETECTED gnat_to_gnu_entity, parser_pen.adb
 
 BUILD_DEPENDS=		libGLU:dev:standard
 
@@ -97,7 +98,19 @@ VAR_ARCH[i386]=		MAKEFILE_LINE=CPU_SDL=spar_os-sdl-32bit
 [CGI].MAKEFILE_OFF=			SFARG+=-DGCGI=false
 [CGI].MAKEFILE_ON=			SFARG+=-DGCGI=true
 
-post-patch:
+post-patch-linux:
+	${REINPLACE_CMD} -e "s| -lintl||" ${WRKSRC}/new_configure
+
+post-install:
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/spar
+	(cd ${WRKSRC}/doc && ${COPYTREE_SHARE} \* ${STAGEDIR}${STD_DOCDIR})
+	${MV} ${WRKSRC}/examples/incomplete ${WRKDIR}/
+	(cd ${WRKSRC}/examples && \
+		${COPYTREE_SHARE} \* ${STAGEDIR}${STD_EXAMPLESDIR})
+
+pre-configure:
 	# move new 4 lines from post-extract to allow patching
 	${CP} ${WRKSRC}/src/scanner-calendar-latest.ads ${WRKSRC}/src/scanner-calendar.ads
 	${CP} ${WRKSRC}/src/scanner-calendar-latest.adb ${WRKSRC}/src/scanner-calendar.adb
@@ -132,18 +145,6 @@ post-patch:
 		-e "s| -fstack-protector||" \
 		-e "s| -Werror||" \
 		${WRKSRC}/src/GNUmakefile.orig
-
-post-patch-linux:
-	${REINPLACE_CMD} -e "s| -lintl||" ${WRKSRC}/new_configure
-
-post-install:
-	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
-	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/spar
-	(cd ${WRKSRC}/doc && ${COPYTREE_SHARE} \* ${STAGEDIR}${STD_DOCDIR})
-	${MV} ${WRKSRC}/examples/incomplete ${WRKDIR}/
-	(cd ${WRKSRC}/examples && \
-		${COPYTREE_SHARE} \* ${STAGEDIR}${STD_EXAMPLESDIR})
 
 post-configure:
 	for f in ${PREPFILES}; do \
@@ -486,6 +487,20 @@ share/examples/sparforte/
  yorn.sp
  yuletide.html
  yuletide.sp
+
+
+[FILE:766:patches/patch-src_GNUmakefile.template]
+--- src/GNUmakefile.orig.orig	2023-05-06 21:39:55 UTC
++++ src/GNUmakefile.orig
+@@ -112,7 +112,7 @@ endif
+ 	@echo "---------------------------------------------------------------"
+ 	@echo
+ 	# $(GNATMAKE) -j4 -c -i -O1 $(CPU_FLAG)=$(CPU) -we -gnat12 -gnatfaoN -gnatVaep -gnatw.eDHM.Y -gnateEeEeF -gnatybdh -fstack-protector -c $(INCLUDE) spar
+-	$(GNATMAKE) -j$(GMAKEJOBS) -c -i -O1 $(CPU_FLAG)=$(CPU) -we -gnat12 -gnatfaoN -gnatVaep -gnateEeEeF -fstack-protector -c $(INCLUDE) spar
++	$(GNATMAKE) -j$(GMAKEJOBS) -c -i -O1 $(CPU_FLAG)=$(CPU) -we -gnat12 -gnatd.E -gnatfaoN -gnatVaep -gnateEeEeF -fstack-protector -c $(INCLUDE) spar
+ 	gnatbind -x $(INCLUDE_BIND) spar.ali
+ 	gnatlink spar.ali $(GSTREAMERLIBS) $(GSTREAMEROBJ) $(PCREOBJ) c_os.o c_scanner.o $(LIBS)
+ 	@echo
 
 
 [FILE:6328:patches/patch-src_c__l10n.c]

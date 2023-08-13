@@ -32,7 +32,7 @@ MAKE_ENV=		SMP_MFLAGS=-j{{MAKE_JOBS_NUMBER}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		20.0
-PLIST_SUB=		LIBSUFFIX=11.2
+PLIST_SUB=		LIBSUFFIX=13.2
 
 [SQLITE].CONFIGURE_ENABLE_BOTH=		sqlite3
 [SQLITE].USES_ON=			sqlite
@@ -6385,6 +6385,52 @@ share/matreshka/cldr/common/collation/
  zu.xml
 share/matreshka/cldr/common/dtd/ldml.dtd
 share/matreshka/cldr/common/uca/allkeys_CLDR.txt
+
+
+[FILE:1929:patches/patch-fix-simd-detection]
+From bfd7effc865dcf0660120a1cb9f2228c65286864 Mon Sep 17 00:00:00 2001
+From: Vadim Godunko <vgodunko@gmail.com>
+Date: Tue, 7 Mar 2023 13:39:11 +0400
+Subject: [PATCH] Change type to meet expected types of the arguments.
+
+Refs #1
+---
+ config.tests/sse_builtins/main.adb | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+--- config.tests/sse_builtins/main.adb.orig
++++ config.tests/sse_builtins/main.adb
+@@ -8,7 +8,7 @@
+ --                                                                          --
+ ------------------------------------------------------------------------------
+ --                                                                          --
+--- Copyright © 2011, Vadim Godunko <vgodunko@gmail.com>                     --
++-- Copyright © 2011-2023, Vadim Godunko <vgodunko@gmail.com>                --
+ -- All rights reserved.                                                     --
+ --                                                                          --
+ -- Redistribution and use in source and binary forms, with or without       --
+@@ -39,18 +39,17 @@
+ -- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.             --
+ --                                                                          --
+ ------------------------------------------------------------------------------
+---  $Revision$ $Date$
+-------------------------------------------------------------------------------
++
+ --  This procedure uses SSE builtins of GCC compiler, and used to check whether
+ --  current compiler supports them.
+-------------------------------------------------------------------------------
++
+ with Interfaces;
+ 
+ procedure Main is
+ 
+    use Interfaces;
+ 
+-   type v2di is array (1 .. 2) of Unsigned_64;
++   type v2di is array (1 .. 2) of Integer_64;
+    for v2di'Alignment use 16;
+    pragma Machine_Attribute (v2di, "vector_type");
+    pragma Machine_Attribute (v2di, "may_alias");
 
 
 [FILE:472:patches/patch-tools_configure_configure-tests-mysql.adb]

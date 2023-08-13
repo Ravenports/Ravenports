@@ -2,6 +2,7 @@
 
 NAMEBASE=		gcc13
 VERSION=		13.2.0
+REVISION=		1
 KEYWORDS=		lang raven
 VARIANTS=		standard
 SDESC[standard]=	GNU Compiler collection (GCC), Series 13
@@ -44,7 +45,7 @@ EXRUN[ada_run]=		gcc13:libs:standard
 
 USES=			cpe gmake libtool perl:build makeinfo
 C_USES[freebsd]=	iconv:build
-C_USES[darwin]=		iconv:build
+C_USES[netbsd]=		iconv:build
 C_USES[dragonfly]=	iconv:build
 C_USES[midnightbsd]=	iconv:build
 
@@ -96,7 +97,6 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 			--disable-libvtv
 			--disable-libmpx
 			--disable-libcilkrts
-			--disable-libssp
 			--with-pkgversion="Ravenports"
 
 INSTALL_TARGET=		install-strip
@@ -104,21 +104,25 @@ PLIST_SUB=		GCCVER=13.2.0
 			TARGET={{CONFIGURE_TARGET}}
 			BRANCH=13
 			VSTDCXX=6.0.32
+			SSP={{SSP}}
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
 			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
-VAR_OPSYS[darwin]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
-			CONFIGURE_ARGS=--with-ld=/usr/bin/ld
-			CONFIGURE_ARGS=--with-as=/usr/bin/as
-			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
+VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-gnu-as
+			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
+			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
+			CONFIGURE_ARGS=--disable-libssp
+			MAKEFILE_LINE=SSP="@comment "
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
 			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
+			CONFIGURE_ARGS=--disable-libssp
+			MAKEFILE_LINE=SSP="@comment "
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
@@ -256,36 +260,28 @@ e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da     87858592 gc
 5ef230fb68273e7bf72cd4be8da7bde172fcece09f5aa87f5ebfda9580596ce0         1612 gcc13_13.2.0-base/patch-diff-gcc-testsuite
 
 
-[FILE:29560:manifests/plist.compilers]
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/
- crt3.o
- crtfastmath.o
- crtprec32.o
- crtprec64.o
- crtprec80.o
- crttme.o
- crttms.o
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- AvailabilityInternal.h
- README
- math.h
- stdint.h
- stdio.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/os/trace.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
- libcc1plugin.0.%%SHARED_OBJECT%%
- libcp1plugin.0.%%SHARED_OBJECT%%
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
- darwin-protos.h
- darwin-sections.def
- darwin.h
- darwin10.h
- darwin12.h
- darwin9.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
- darwin.h
- darwin64.h
+[FILE:29374:manifests/plist.compilers]
+%%ASLIB%%/
+ libatomic.a
+ libatomic.so
+ libcc1.so
+ libgcc_s.so
+ libgfortran.a
+ libgfortran.so
+ libgfortran.spec
+ libgomp.a
+ libgomp.so
+ libgomp.spec
+ libitm.a
+ libitm.so
+ libitm.spec
+ libquadmath.a
+ libquadmath.so
+ libstdc++.a
+ libstdc++.so
+ libstdc++exp.a
+ libstdc++fs.a
+ libsupc++.a
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtendS.o
@@ -392,6 +388,15 @@ e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da     87858592 gc
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  sol2.h
  sysv4.h
+%%SSP%%%%ASLIB%%/
+ libssp.a
+ libssp.so
+ libssp_nonshared.a
+%%SSP%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/ssp/
+ ssp.h
+ stdio.h
+ string.h
+ unistd.h
 bin/
  %%TARGET%%-c++
  %%TARGET%%-g++
@@ -1923,25 +1928,14 @@ libexec/gcc/%%TARGET%%/%%GCCVER%%/install-tools/
  mkheaders
  mkinstalldirs
 libexec/gcc/%%TARGET%%/%%GCCVER%%/plugin/gengtype
+share/gcc-%%GCCVER%%/python/libstdcxx/__init__.py
+share/gcc-%%GCCVER%%/python/libstdcxx/v6/
+ __init__.py
+ printers.py
+ xmethods.py
 
 
-[FILE:35196:manifests/plist.ada_run]
-%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
- s-mmauni.ads
- s-mmosin.adb
- s-mmosin.ads
-%%EXCLUDE-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
- s-dwalin.ali
- s-mmap.ali
- s-mmauni.ali
- s-mmosin.ali
- s-objrea.ali
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/a-exetim.adb
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/a-exetim.ali
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnarl-%%BRANCH%%.dylib.dSYM/Contents/Info.plist
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnarl-%%BRANCH%%.dylib.dSYM/Contents/Resources/DWARF/libgnarl-%%BRANCH%%.dylib
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnat-%%BRANCH%%.dylib.dSYM/Contents/Info.plist
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/libgnat-%%BRANCH%%.dylib.dSYM/Contents/Resources/DWARF/libgnat-%%BRANCH%%.dylib
+[FILE:34475:manifests/plist.ada_run]
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  a-exetim.adb
  s-linux.ads
@@ -3021,6 +3015,9 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adainclude/
  s-memory.ads
  s-mmap.adb
  s-mmap.ads
+ s-mmauni.ads
+ s-mmosin.adb
+ s-mmosin.ads
  s-mudido.adb
  s-mudido.ads
  s-multip.adb
@@ -4037,6 +4034,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-dmotpr.ali
  s-dourea.ali
  s-dsaser.ali
+ s-dwalin.ali
  s-elaall.ali
  s-excdeb.ali
  s-except.ali
@@ -4131,8 +4129,12 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  s-mastop.ali
  s-memcop.ali
  s-memory.ali
+ s-mmap.ali
+ s-mmauni.ali
+ s-mmosin.ali
  s-mudido.ali
  s-multip.ali
+ s-objrea.ali
  s-os_lib.ali
  s-oscons.ali
  s-osinte.ali
@@ -4391,67 +4393,35 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  unchdeal.ali
 
 
-[FILE:361:manifests/plist.cxx_run]
+[FILE:86:manifests/plist.cxx_run]
 %%ASLIB%%/
- libstdc++.a
- libstdc++.so
- libstdc++.so.6
- libstdc++exp.a
- libstdc++fs.a
- libsupc++.a
-%%EXCLUDE-DARWIN%%%%ASLIB%%/
  libstdc++.so.%%VSTDCXX%%
  libstdc++.so.%%VSTDCXX%%-gdb.py
-%%ONLY-DARWIN%%%%ASLIB%%/libstdc++.a-gdb.py
-share/gcc-%%GCCVER%%/python/libstdcxx/__init__.py
-share/gcc-%%GCCVER%%/python/libstdcxx/v6/
- __init__.py
- printers.py
- xmethods.py
+ libstdc++.so.6
 
 
-[FILE:269:manifests/plist.fortran_run]
+[FILE:123:manifests/plist.fortran_run]
 %%ASLIB%%/
- libgfortran.a
- libgfortran.so
  libgfortran.so.5
- libgfortran.spec
- libgomp.a
- libgomp.so
- libgomp.so.1
- libgomp.spec
- libquadmath.a
- libquadmath.so
- libquadmath.so.0
-%%EXCLUDE-DARWIN%%%%ASLIB%%/
  libgfortran.so.5.0.0
+ libgomp.so.1
  libgomp.so.1.0.0
+ libquadmath.so.0
  libquadmath.so.0.0.0
 
 
-[FILE:415:manifests/plist.libs]
+[FILE:170:manifests/plist.libs]
 %%ASLIB%%/
- libatomic.a
- libatomic.so
  libatomic.so.1
- libcc1.%%SHARED_OBJECT%%
- libgcc_s.so.1
- libitm.a
- libitm.so
- libitm.so.1
- libitm.spec
-%%EXCLUDE-DARWIN%%%%ASLIB%%/
  libatomic.so.1.2.0
- libcc1.%%SHARED_OBJECT%%.0
+ libcc1.so.0
  libcc1.so.0.0.0
- libgcc_s.so
+ libgcc_s.so.1
+ libitm.so.1
  libitm.so.1.0.0
-%%ONLY-DARWIN%%%%ASLIB%%/
- libcc1.0.%%SHARED_OBJECT%%
- libgcc_ext.10.4.dylib
- libgcc_ext.10.5.dylib
- libgcc_s_ppc64.1.dylib
- libgcc_s_x86_64.1.dylib
+%%SSP%%%%ASLIB%%/
+ libssp.so.0
+ libssp.so.0.0.0
 
 
 [FILE:119:manifests/plist.infopages]
@@ -4527,6 +4497,19 @@ share/locale/zh_CN/LC_MESSAGES/
 share/locale/zh_TW/LC_MESSAGES/
  cpplib.mo
  gcc.mo
+
+
+[FILE:238:patches/patch-libstdc++-v3_include_bits_c++config]
+--- libstdc++-v3/include/bits/c++config.intermediate	2023-08-09 12:13:31 UTC
++++ libstdc++-v3/include/bits/c++config
+@@ -32,6 +32,7 @@
+ 
+ #ifdef __clang__
+ #define _GTHROW
++#define _GLIBCXX_NOTHROW
+ #else
+ #define _GTHROW throw()
+ #endif
 
 
 [FILE:435:midnightbsd/patch-gcc_config_freebsd-spec.h]

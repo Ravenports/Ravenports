@@ -136,8 +136,8 @@ PHP_8.2_VERSION=	8.2.9
 # Format: ID=opsys/arch/stdarch/os-version/os-release/os-major
 #-------------------------------------------------------------------------
 
-PLATFORM_FreeBSD_x86-64=	FreeBSD/amd64/x86_64/1202000/12.2/12
-PLATFORM_DragonFly_x86-64=	DragonFly/x86_64/x86_64/600200/6.2/6.2
+PLATFORM_FreeBSD_x86-64=	FreeBSD/amd64/x86_64/1302001/13.2/13
+PLATFORM_DragonFly_x86-64=	DragonFly/x86_64/x86_64/600400/6.4/6.4
 PLATFORM_Linux_x86-64=		Linux/x86_64/x86_64/440053/4.4.0/4.4
 PLATFORM_SunOS_x86-64=		SunOS/i86pc/x86_64/510200910/5.10/5.10
 PLATFORM_MacOS_x86-64=		Darwin/x86_64/x86_64/170700/17.7.0/17

@@ -299,6 +299,80 @@ https://github.com/mozilla/addons-frontend/issues/4610
              if (platform.abi === abi) {
 
 
+[FILE:2080:patches/patch-assy-with-bu241]
+From effadce6c756247ea8bae32dc13bb3e6f464f0eb Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?R=C3=A9mi=20Denis-Courmont?= <remi@remlab.net>
+Date: Sun, 16 Jul 2023 18:18:02 +0300
+Subject: [PATCH] avcodec/x86/mathops: clip constants used with shift
+ instructions within inline assembly
+
+Fixes assembling with binutil as >= 2.41
+
+Signed-off-by: James Almer <jamrial@gmail.com>
+---
+ libavcodec/x86/mathops.h | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
+
+--- media/ffvpx/libavcodec/x86/mathops.h.orig	2020-04-27 21:48:15 UTC
++++ media/ffvpx/libavcodec/x86/mathops.h
+@@ -35,12 +35,20 @@
+ static av_always_inline av_const int MULL(int a, int b, unsigned shift)
+ {
+     int rt, dummy;
++    if (__builtin_constant_p(shift))
+     __asm__ (
+         "imull %3               \n\t"
+         "shrdl %4, %%edx, %%eax \n\t"
+         :"=a"(rt), "=d"(dummy)
+-        :"a"(a), "rm"(b), "ci"((uint8_t)shift)
++        :"a"(a), "rm"(b), "i"(shift & 0x1F)
+     );
++    else
++        __asm__ (
++            "imull %3               \n\t"
++            "shrdl %4, %%edx, %%eax \n\t"
++            :"=a"(rt), "=d"(dummy)
++            :"a"(a), "rm"(b), "c"((uint8_t)shift)
++        );
+     return rt;
+ }
+ 
+@@ -113,19 +121,31 @@ __asm__ volatile(\
+ // avoid +32 for shift optimization (gcc should do that ...)
+ #define NEG_SSR32 NEG_SSR32
+ static inline  int32_t NEG_SSR32( int32_t a, int8_t s){
++    if (__builtin_constant_p(s))
+     __asm__ ("sarl %1, %0\n\t"
+          : "+r" (a)
+-         : "ic" ((uint8_t)(-s))
++         : "i" (-s & 0x1F)
+     );
++    else
++        __asm__ ("sarl %1, %0\n\t"
++               : "+r" (a)
++               : "c" ((uint8_t)(-s))
++        );
+     return a;
+ }
+ 
+ #define NEG_USR32 NEG_USR32
+ static inline uint32_t NEG_USR32(uint32_t a, int8_t s){
++    if (__builtin_constant_p(s))
+     __asm__ ("shrl %1, %0\n\t"
+          : "+r" (a)
+-         : "ic" ((uint8_t)(-s))
++         : "i" (-s & 0x1F)
+     );
++    else
++        __asm__ ("shrl %1, %0\n\t"
++               : "+r" (a)
++               : "c" ((uint8_t)(-s))
++        );
+     return a;
+ }
+ 
+
+
 [FILE:445:patches/patch-browser-app-nsBrowserApp.cpp]
 --- browser/app/nsBrowserApp.cpp.orig	2016-09-19 16:19:28 UTC
 +++ browser/app/nsBrowserApp.cpp
@@ -838,6 +912,19 @@ index 0069865..9bb1864 100644
  
 
 
+[FILE:176:patches/patch-gfx_2d_Rect.h]
+--- gfx/2d/Rect.h.orig	2023-07-07 14:39:05 UTC
++++ gfx/2d/Rect.h
+@@ -15,6 +15,7 @@
+ #include "mozilla/Maybe.h"
+ 
+ #include <cmath>
++#include <cstdint>
+ 
+ namespace mozilla {
+ 
+
+
 [FILE:890:patches/patch-gfx_skia_skia_src_core_SkCpu.cpp]
 Regressed by https://svnweb.freebsd.org/changeset/base/324815
 
@@ -913,18 +1000,32 @@ gfx/skia/skia/src/core/SkCpu.cpp:81:27: error: use of undeclared identifier 'get
      ]
 
 
-[FILE:1490:patches/patch-tools_profiler_core_patform.cpp]
+[FILE:327:patches/patch-toolkit_components_telemetry_pingsender_pingsender.cpp]
+--- toolkit/components/telemetry/pingsender/pingsender.cpp.orig	2023-07-07 14:39:18 UTC
++++ toolkit/components/telemetry/pingsender/pingsender.cpp
+@@ -4,6 +4,7 @@
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+ #include <cstdlib>
++#include <cstdint>
+ #include <cstring>
+ #include <ctime>
+ #include <fstream>
+
+
+[FILE:4762:patches/patch-tools_profiler_core_platform.cpp]
 commit 45a7951cb6a9b1735b9b6cec89db69b5933715c7
 Author: Christoph Moench-Tegeder <cmt@FreeBSD.org>
 Date:   Mon Mar 28 21:54:35 2022 +0200
 
     FreeBSD can use sched_getcpu() from 1400046/1300524 on
 
-diff --git tools/profiler/core/platform.cpp tools/profiler/core/platform.cpp
-index 92bcc1100687..2f17a88942a8 100644
---- tools/profiler/core/platform.cpp
+File gcc13-fix.patch of Package MozillaThunderbird
+https://build.opensuse.org/package/view_file/openSUSE:Factory/MozillaThunderbird/gcc13-fix.patch?expand=1
+
+--- tools/profiler/core/platform.cpp.orig	2023-07-07 14:39:18 UTC
 +++ tools/profiler/core/platform.cpp
-@@ -111,6 +111,20 @@
+@@ -115,6 +115,20 @@
  #  include <cpuid.h>
  #endif
  
@@ -945,7 +1046,61 @@ index 92bcc1100687..2f17a88942a8 100644
  #if defined(GP_OS_windows)
  #  include <processthreadsapi.h>
  
-@@ -6368,6 +6382,19 @@ void profiler_mark_thread_awake() {
+@@ -1106,7 +1120,7 @@ class ActivePS {
+         continue;
+       }
+       ThreadRegistry::OffThreadRef::RWFromAnyThreadWithLock lockedThreadData =
+-          offThreadRef.LockedRWFromAnyThread();
++          offThreadRef.GetLockedRWFromAnyThread();
+       MOZ_RELEASE_ASSERT(array.append(ProfiledThreadListElement{
+           profiledThreadData->Info().RegisterTime(),
+           lockedThreadData->GetJSContext(), profiledThreadData}));
+@@ -4050,7 +4064,7 @@ void SamplerThread::Run() {
+ 
+             if (threadStackSampling) {
+               ThreadRegistry::OffThreadRef::RWFromAnyThreadWithLock
+-                  lockedThreadData = offThreadRef.LockedRWFromAnyThread();
++                  lockedThreadData = offThreadRef.GetLockedRWFromAnyThread();
+               // Suspend the thread and collect its stack data in the local
+               // buffer.
+               mSampler.SuspendAndSampleAndResumeThread(
+@@ -4764,7 +4778,7 @@ static ProfilingStack* locked_register_t
+             aLock, aOffThreadRef.UnlockedConstReaderCRef().Info());
+     if (threadProfilingFeatures != ThreadProfilingFeatures::NotProfiled) {
+       ThreadRegistry::OffThreadRef::RWFromAnyThreadWithLock
+-          lockedRWFromAnyThread = aOffThreadRef.LockedRWFromAnyThread();
++          lockedRWFromAnyThread = aOffThreadRef.GetLockedRWFromAnyThread();
+ 
+       ProfiledThreadData* profiledThreadData = ActivePS::AddLiveProfiledThread(
+           aLock, MakeUnique<ProfiledThreadData>(
+@@ -5629,7 +5643,7 @@ static void locked_profiler_start(PSLock
+         ActivePS::ProfilingFeaturesForThread(aLock, info);
+     if (threadProfilingFeatures != ThreadProfilingFeatures::NotProfiled) {
+       ThreadRegistry::OffThreadRef::RWFromAnyThreadWithLock lockedThreadData =
+-          offThreadRef.LockedRWFromAnyThread();
++          offThreadRef.GetLockedRWFromAnyThread();
+       ProfiledThreadData* profiledThreadData = ActivePS::AddLiveProfiledThread(
+           aLock, MakeUnique<ProfiledThreadData>(info));
+       lockedThreadData->SetProfilingFeaturesAndData(threadProfilingFeatures,
+@@ -5853,7 +5867,7 @@ void profiler_ensure_started(PowerOfTwo3
+     }
+ 
+     ThreadRegistry::OffThreadRef::RWFromAnyThreadWithLock lockedThreadData =
+-        offThreadRef.LockedRWFromAnyThread();
++        offThreadRef.GetLockedRWFromAnyThread();
+ 
+     lockedThreadData->ClearProfilingFeaturesAndData(aLock);
+ 
+@@ -6196,7 +6210,7 @@ static void locked_unregister_thread(
+   // thread that is in the process of disappearing.
+ 
+   ThreadRegistration::OnThreadRef::RWOnThreadWithLock lockedThreadData =
+-      aOnThreadRef.LockedRWOnThread();
++      aOnThreadRef.GetLockedRWOnThread();
+ 
+   ProfiledThreadData* profiledThreadData =
+       lockedThreadData->GetProfiledThreadData(lock);
+@@ -6520,6 +6534,19 @@ void profiler_mark_thread_awake() {
      cpuId = ebx >> 24;
    }
  #  endif
@@ -965,6 +1120,91 @@ index 92bcc1100687..2f17a88942a8 100644
  #else
    cpuId = sched_getcpu();
  #endif
+@@ -6717,7 +6744,7 @@ void profiler_clear_js_context() {
+         // The profiler mutex must be locked before the ThreadRegistration's.
+         PSAutoLock lock;
+         ThreadRegistration::OnThreadRef::RWOnThreadWithLock lockedThreadData =
+-            aOnThreadRef.LockedRWOnThread();
++            aOnThreadRef.GetLockedRWOnThread();
+ 
+         if (ProfiledThreadData* profiledThreadData =
+                 lockedThreadData->GetProfiledThreadData(lock);
+
+
+[FILE:738:patches/patch-tools_profiler_public_ProfilerThreadRegistration.h]
+--- tools/profiler/public/ProfilerThreadRegistration.h.orig	2023-07-07 14:39:17 UTC
++++ tools/profiler/public/ProfilerThreadRegistration.h
+@@ -214,14 +214,14 @@ class ThreadRegistration {
+       DataLock mDataLock;
+     };
+ 
+-    [[nodiscard]] RWOnThreadWithLock LockedRWOnThread() {
++    [[nodiscard]] RWOnThreadWithLock GetLockedRWOnThread() {
+       return RWOnThreadWithLock{mThreadRegistration->mData,
+                                 mThreadRegistration->mDataMutex};
+     }
+ 
+     template <typename F>
+     auto WithLockedRWOnThread(F&& aF) {
+-      RWOnThreadWithLock lockedData = LockedRWOnThread();
++      RWOnThreadWithLock lockedData = GetLockedRWOnThread();
+       return std::forward<F>(aF)(lockedData.DataRef());
+     }
+ 
+
+
+[FILE:801:patches/patch-tools_profiler_public_ProfilerThreadRegistry.h]
+--- tools/profiler/public/ProfilerThreadRegistry.h.orig	2023-07-07 14:39:18 UTC
++++ tools/profiler/public/ProfilerThreadRegistry.h
+@@ -177,14 +177,14 @@ class ThreadRegistry {
+       ThreadRegistration::DataLock mDataLock;
+     };
+ 
+-    [[nodiscard]] RWFromAnyThreadWithLock LockedRWFromAnyThread() {
++    [[nodiscard]] RWFromAnyThreadWithLock GetLockedRWFromAnyThread() {
+       return RWFromAnyThreadWithLock{mThreadRegistration->mData,
+                                      mThreadRegistration->mDataMutex};
+     }
+ 
+     template <typename F>
+     auto WithLockedRWFromAnyThread(F&& aF) {
+-      RWFromAnyThreadWithLock lockedData = LockedRWFromAnyThread();
++      RWFromAnyThreadWithLock lockedData = GetLockedRWFromAnyThread();
+       return std::forward<F>(aF)(lockedData.DataRef());
+     }
+ 
+
+
+[FILE:1542:patches/patch-tools_profiler_tests_gtest_GeckoProfiler.cpp]
+--- tools/profiler/tests/gtest/GeckoProfiler.cpp.orig	2023-07-07 14:39:18 UTC
++++ tools/profiler/tests/gtest/GeckoProfiler.cpp
+@@ -621,7 +621,7 @@ TEST(GeckoProfiler, ThreadRegistration_D
+       EXPECT_FALSE(TR::IsDataMutexLockedOnCurrentThread());
+       {
+         TR::OnThreadRef::RWOnThreadWithLock rwOnThreadWithLock =
+-            aOnThreadRef.LockedRWOnThread();
++            aOnThreadRef.GetLockedRWOnThread();
+         EXPECT_TRUE(TR::IsDataMutexLockedOnCurrentThread());
+         TestConstLockedRWOnThread(rwOnThreadWithLock.DataCRef(),
+                                   beforeRegistration, afterRegistration,
+@@ -1020,7 +1020,7 @@ TEST(GeckoProfiler, ThreadRegistry_DataA
+         EXPECT_FALSE(TR::IsDataMutexLockedOnCurrentThread());
+         {
+           TRy::OffThreadRef::RWFromAnyThreadWithLock rwFromAnyThreadWithLock =
+-              aOffThreadRef.LockedRWFromAnyThread();
++              aOffThreadRef.GetLockedRWFromAnyThread();
+           if (profiler_current_thread_id() == testThreadId) {
+             EXPECT_TRUE(TR::IsDataMutexLockedOnCurrentThread());
+           }
+@@ -1157,7 +1157,7 @@ TEST(GeckoProfiler, ThreadRegistration_R
+             PR_Sleep(PR_MillisecondsToInterval(1));
+           }
+           TRy::OffThreadRef::RWFromAnyThreadWithLock rwFromAnyThreadWithLock =
+-              aOffThreadRef.LockedRWFromAnyThread();
++              aOffThreadRef.GetLockedRWFromAnyThread();
+           ++otherThreadReads;
+           if (otherThreadReads % 1000 == 0) {
+             PR_Sleep(PR_MillisecondsToInterval(1));
 
 
 [FILE:290:files/thunderbird.desktop]

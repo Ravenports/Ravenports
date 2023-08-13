@@ -36,7 +36,7 @@ MAKE_ENV=		SPARKARCH={{ARCH_STANDARD:S/i386/i686/}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-post-patch:
+pre-configure:
 	#ports passed unwanted ARCH definition to Makefile
 	${REINPLACE_CMD} -e 's|ARCH|SPARKARCH|g' ${WRKSRC}/Makefile
 
@@ -264,6 +264,20 @@ share/gpr/libsparkcrypto.gpr
  
  install_local: DESTDIR = $(OUTPUT_DIR)/libsparkcrypto
  install_local: install
+
+
+[FILE:479:patches/patch-build_build__libsparkcrypto.gpr]
+--- build/build_libsparkcrypto.gpr.orig	2019-09-24 19:43:33 UTC
++++ build/build_libsparkcrypto.gpr
+@@ -98,7 +98,7 @@ is
+ 
+    package Compiler is
+       for Default_Switches ("Ada") use  Style_Switches & Compiler_Switches &
+-         ("-O" & Optimization, "-ffunction-sections", "-fdata-sections", "-gnatwa", "-gnatwe");
++         ("-O" & Optimization, "-ffunction-sections", "-fdata-sections", "-gnatwa");
+       for Local_Configuration_Pragmas use Pragmas;
+    end Compiler;
+ 
 
 
 [FILE:584:patches/patch-build_libsparkcrypto.gpr]

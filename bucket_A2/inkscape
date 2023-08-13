@@ -4189,3 +4189,172 @@ share/doc/inkscape/tutorials/
  # Link the inkscape_base library against all external dependencies
  target_link_libraries(inkscape_base
 
+
+[FILE:399:patches/patch-src_attributes.cpp]
+--- src/attributes.cpp.orig	2023-07-16 14:32:51 UTC
++++ src/attributes.cpp
+@@ -142,7 +142,7 @@ static SPStyleProp const props[] = {
+     /* SPPage */
+     {SPAttr::PAGE_MARGIN, "margin"},
+     {SPAttr::PAGE_BLEED, "bleed"},
+-    {SPAttr::PAGE_SIZE, "page-size"},
++    {SPAttr::INKSCAPE_PAGE_SIZE, "page-size"},
+     /* SPGrid */
+     {SPAttr::ORIGINX, "originx"},
+     {SPAttr::ORIGINY, "originy"},
+
+
+[FILE:251:patches/patch-src_attributes.h]
+--- src/attributes.h.orig	2023-07-16 14:32:51 UTC
++++ src/attributes.h
+@@ -141,7 +141,7 @@ enum class SPAttr {
+     /* SPPage */
+     PAGE_MARGIN,
+     PAGE_BLEED,
+-    PAGE_SIZE,
++    INKSCAPE_PAGE_SIZE,
+     /* SPGrid */
+     ORIGINX,
+     ORIGINY,
+
+
+[FILE:3351:patches/patch-src_display_drawing-pattern.cpp]
+--- src/display/drawing-pattern.cpp.orig	2023-07-16 14:32:51 UTC
++++ src/display/drawing-pattern.cpp
+@@ -87,7 +87,7 @@ cairo_pattern_t *DrawingPattern::renderP
+             if (rect.dimensions()[i] >= _pattern_resolution[i]) {
+                 rect[i] = {0, _pattern_resolution[i]};
+             } else {
+-                rect[i] -= Util::rounddown(rect[i].min(), _pattern_resolution[i]);
++                rect[i] -= Util::inkscape_rounddown(rect[i].min(), _pattern_resolution[i]);
+             }
+         }
+         return rect;
+@@ -99,7 +99,7 @@ cairo_pattern_t *DrawingPattern::renderP
+             int const period = _pattern_resolution[i];
+             if (a[i].extent() >= period) return true;
+             if (b[i].extent() > a[i].extent()) return false;
+-            return Util::rounddown(b[i].min() - a[i].min(), period) >= b[i].max() - a[i].max();
++            return Util::inkscape_rounddown(b[i].min() - a[i].min(), period) >= b[i].max() - a[i].max();
+         };
+         return check(0) && check(1);
+     };
+@@ -110,7 +110,7 @@ cairo_pattern_t *DrawingPattern::renderP
+             int const period = _pattern_resolution[i];
+             if (a[i].extent() >= period) return true;
+             if (b[i].extent() >= period) return true;
+-            return Util::rounddown(b[i].max() - a[i].min(), period) >= b[i].min() - a[i].max();
++            return Util::inkscape_rounddown(b[i].max() - a[i].min(), period) >= b[i].min() - a[i].max();
+         };
+         return check(0) && check(1);
+     };
+@@ -119,8 +119,8 @@ cairo_pattern_t *DrawingPattern::renderP
+     auto overlapping_translates = [&, this] (Geom::IntRect const &a, Geom::IntRect const &b) {
+         Geom::IntPoint min, max;
+         for (int i = 0; i < 2; i++) {
+-            min[i] = Util::roundup  (b[i].min() - a[i].max() + 1, _pattern_resolution[i]);
+-            max[i] = Util::rounddown(b[i].max() - a[i].min() - 1, _pattern_resolution[i]);
++            min[i] = Util::inkscape_roundup  (b[i].min() - a[i].max() + 1, _pattern_resolution[i]);
++            max[i] = Util::inkscape_rounddown(b[i].max() - a[i].min() - 1, _pattern_resolution[i]);
+         }
+         return std::make_pair(min, max);
+     };
+@@ -163,7 +163,7 @@ cairo_pattern_t *DrawingPattern::renderP
+ 
+             for (auto it = surfaces.begin(); it != surfaces.end(); ) {
+                 if (wrapped_touches(expanded, it->rect)) {
+-                    expanded.unionWith(it->rect + rounddown(expanded.max() - it->rect.min(), _pattern_resolution));
++                    expanded.unionWith(it->rect + inkscape_rounddown(expanded.max() - it->rect.min(), _pattern_resolution));
+                     merged.emplace_back(std::move(*it));
+                     *it = std::move(surfaces.back());
+                     surfaces.pop_back();
+@@ -254,7 +254,7 @@ cairo_pattern_t *DrawingPattern::renderP
+ 
+     // Create and return pattern.
+     auto cp = cairo_pattern_create_for_surface(surface->surface->cobj());
+-    auto const shift = surface->rect.min() + rounddown(area_orig.min() - surface->rect.min(), _pattern_resolution);
++    auto const shift = surface->rect.min() + inkscape_rounddown(area_orig.min() - surface->rect.min(), _pattern_resolution);
+     ink_cairo_pattern_set_matrix(cp, pattern_to_tile * Geom::Translate(-shift));
+     cairo_pattern_set_extend(cp, CAIRO_EXTEND_REPEAT);
+     return cp;
+
+
+[FILE:676:patches/patch-src_helper_geom.h]
+--- src/helper/geom.h.orig	2023-07-16 14:33:04 UTC
++++ src/helper/geom.h
+@@ -55,10 +55,10 @@ inline Geom::Coord triangle_area(Geom::P
+     return p1[X] * p2[Y] + p1[Y] * p3[X] + p2[X] * p3[Y] - p2[Y] * p3[X] - p1[Y] * p2[X] - p1[X] * p3[Y];
+ }
+ 
+-inline auto rounddown(Geom::IntPoint const &a, Geom::IntPoint const &b)
++inline auto inkscape_rounddown(Geom::IntPoint const &a, Geom::IntPoint const &b)
+ {
+     using namespace Inkscape::Util;
+-    return Geom::IntPoint(rounddown(a.x(), b.x()), rounddown(a.y(), b.y()));
++    return Geom::IntPoint(inkscape_rounddown(a.x(), b.x()), inkscape_rounddown(a.y(), b.y()));
+ }
+ 
+ inline auto expandedBy(Geom::IntRect rect, int amount)
+
+
+[FILE:762:patches/patch-src_helper_mathfns.h]
+--- src/helper/mathfns.h.orig	2022-10-04 18:03:23 UTC
++++ src/helper/mathfns.h
+@@ -79,16 +79,16 @@ T constexpr safemod(T a, T b)
+ 
+ /// Returns \a a rounded down to the nearest multiple of \a b, assuming b >= 1.
+ template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+-T constexpr rounddown(T a, T b)
++T constexpr inkscape_rounddown(T a, T b)
+ {
+     return a - safemod(a, b);
+ }
+ 
+ /// Returns \a a rounded up to the nearest multiple of \a b, assuming b >= 1.
+ template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+-T constexpr roundup(T a, T b)
++T constexpr inkscape_roundup(T a, T b)
+ {
+-    return rounddown(a - 1, b) + b;
++    return inkscape_rounddown(a - 1, b) + b;
+ }
+ 
+ /**
+
+
+[FILE:753:patches/patch-src_object_sp-page.cpp]
+--- src/object/sp-page.cpp.orig	2023-07-14 12:25:09 UTC
++++ src/object/sp-page.cpp
+@@ -42,7 +42,7 @@ void SPPage::build(SPDocument *document,
+     SPObject::build(document, repr);
+ 
+     this->readAttr(SPAttr::INKSCAPE_LABEL);
+-    this->readAttr(SPAttr::PAGE_SIZE);
++    this->readAttr(SPAttr::INKSCAPE_PAGE_SIZE);
+     this->readAttr(SPAttr::X);
+     this->readAttr(SPAttr::Y);
+     this->readAttr(SPAttr::WIDTH);
+@@ -85,7 +85,7 @@ void SPPage::set(SPAttr key, const gchar
+         case SPAttr::PAGE_BLEED:
+             this->bleed.readOrUnset(value);
+             break;
+-        case SPAttr::PAGE_SIZE:
++        case SPAttr::INKSCAPE_PAGE_SIZE:
+             this->_size_label = value ? std::string(value) : "";
+             break;
+         default:
+
+
+[FILE:553:patches/patch-src_ui_widget_canvas_pixelstreamer.cpp]
+--- src/ui/widget/canvas/pixelstreamer.cpp.orig	2023-03-26 17:06:46 UTC
++++ src/ui/widget/canvas/pixelstreamer.cpp
+@@ -99,7 +99,7 @@ public:
+         // Calculate image properties required by cairo.
+         int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, dimensions.x());
+         int size = stride * dimensions.y();
+-        int sizeup = Util::roundup(size, 64);
++        int sizeup = Util::inkscape_roundup(size, 64);
+         assert(sizeup < bufsize);
+ 
+         // Attempt to advance buffers in states 3 or 4 towards 5, if allowed.
+

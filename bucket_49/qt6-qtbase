@@ -35,9 +35,7 @@ BUILDRUN_DEPENDS=	harfbuzz:icu:standard
 
 USES=			qt6 zlib png sqlite jpeg pkgconfig execinfo iconv
 			perl:build shebangfix ssl:openssl11 cpe cmake ninja
-			zstd pcre2 freetype
-C_USES[freebsd]=	clang
-C_USES[midnightbsd]=	clang
+			zstd pcre2 freetype clang
 GNOME_COMPONENTS=	atk
 XORG_COMPONENTS=	x11 xcb xcb-util xcb-util-image xcb-util-keysyms
 			xcb-util-wm xcb-render-util x11
@@ -59,9 +57,7 @@ PLIST_SUB=		QTVER=6.5.2
 			XCB={{FEAT_XCB}}
 			EVDEV={{FEAT_EVDEV}}
 SUB_FILES=		qmake.conf
-SUB_LIST=		CC={{CC:Q}}
-			CXX={{CXX:Q}}
-			LDFLAGS={{LDFLAGS:Q}}
+SUB_LIST=		LDFLAGS={{LDFLAGS:Q}}
 			CFLAGS={{CFLAGS:Q}}
 			CXXFLAGS={{CXXFLAGS:Q}}
 			AR={{AR:Q}}
@@ -70,7 +66,6 @@ SUB_LIST=		CC={{CC:Q}}
 			SYS_LIBS={{QMAKE_X11_SYS_LIBS:Q}}
 			PLATFORM={{VAR1}}
 
-LDFLAGS=		-Wl,-rpath,{{OPENSSLLIB}}
 CMAKE_ARGS=		-DFEATURE_system_zlib=ON
 			-DFEATURE_system_pcre2=ON
 			-DFEATURE_system_harfbuzz=ON
@@ -82,15 +77,18 @@ CMAKE_ARGS=		-DFEATURE_system_zlib=ON
 			-DFEATURE_sql_sqlite=ON
 			-DFEATURE_accessibility=ON
 			-DFEATURE_fontconfig=ON
-			-DINPUT_dbus=runtime
-			-DINPUT_openssl=linked
+			-DFEATURE_openssl_linked=ON
+			-DFEATURE_opensslv11=ON
+			-DFEATURE_dbus_linked=OFF
 			-DBUILD_SHARED_LIBS=ON
 			-DQT_BUILD_TESTS=OFF
 			-DQT_BUILD_EXAMPLES=OFF
 			-DQT_EXTRA_LIBDIRS="{{LOCALBASE}}/lib{{VAR2}}"
 			-DQT_EXTRA_INCLUDEPATHS={{LOCALBASE}}/include
 			-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/lib/qt6"
+			-DOPENSSL_ROOT_DIR:STRING="{{OPENSSLBASE}}"
 VAR_OPSYS[freebsd]=	VAR1=freebsd
+			CMAKE_ARGS=-DBUILD_WITH_PCH=OFF
 VAR_OPSYS[sunos]=	VAR1=solaris
 			VAR2=" /lib/64"
 VAR_OPSYS[linux]=	VAR1=linux
@@ -100,6 +98,7 @@ VAR_OPSYS[netbsd]=	VAR1=netbsd
 VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 			MAKEFILE_LINE=FEAT_EVDEV="@comment "
 VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
+			CMAKE_ARGS=-DBUILD_WITH_PCH=OFF
 
 post-patch:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
@@ -4527,7 +4526,7 @@ share/doc/qt6/global/template/style/
  
 
 
-[FILE:2056:files/qmake.conf.in]
+[FILE:2044:files/qmake.conf.in]
 #
 # qmake configuration for Ravenports
 #
@@ -4541,10 +4540,10 @@ include(../common/gcc-base-unix.conf)
 include(../common/g++-unix.conf)
 include(../common/unix.conf)
 
-QMAKE_COMPILER		= %%CC%%
+QMAKE_COMPILER		= cc
 
-QMAKE_CC		= %%CC%%
-QMAKE_CXX		= %%CXX%%
+QMAKE_CC		= cc
+QMAKE_CXX		= c++
 QMAKE_CFLAGS		= %%CFLAGS%%
 QMAKE_CXXFLAGS		= %%CXXFLAGS%%
 QMAKE_LEX		= /usr/bin/flex

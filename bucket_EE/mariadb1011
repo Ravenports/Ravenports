@@ -19,8 +19,8 @@ SPKGS[standard]=	complete
 			man
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	ROCKSDB
+OPTIONS_STANDARD=	ROCKSDB
 
 BUILD_DEPENDS=		bison:primary:standard
 			fmt:dev:standard
@@ -99,6 +99,10 @@ VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
 			MAKEFILE_LINE=PAM=
 
+[ROCKSDB].DESCRIPTION=			Build RocksDB LSM Engine
+[ROCKSDB].CMAKE_ARGS_OFF=		-DPLUGIN_ROCKSDB=NO
+[ROCKSDB].CMAKE_ARGS_ON=		-DPLUGIN_ROCKSDB=DYNAMIC
+
 post-install:
 	${RM} ${STAGEDIR}${STD_DOCDIR}/COPYING
 	${MV} ${STAGEDIR}${PREFIX}/lib/mysql/pkgconfig/mariadb.pc \
@@ -173,13 +177,19 @@ This package contains the client and related files.
 ce8dac125568cc5f40da74c17212767c92d8faed81066580b526a485a591127d     96770117 mariadb-10.11.4.tar.gz
 
 
-[FILE:4141:manifests/plist.server]
+[FILE:4190:manifests/plist.server]
 %%PAM%%@sample etc/mariadb/user_map.conf.sample
 %%PAM%%lib/mysql/plugin/
  auth_pam.so
  auth_pam_v1.so
 %%PAM%%lib/mysql/plugin/auth_pam_tool_dir/auth_pam_tool
 %%PAM%%lib/mysql/security/pam_user_map.so
+%%ROCKSDB-ON%%bin/
+ mariadb-ldb
+ myrocks_hotbackup
+ mysql_ldb
+ sst_dump
+%%ROCKSDB-ON%%lib/mysql/plugin/ha_rocksdb.so
 bin/
  aria_chk
  aria_dump_log
@@ -198,7 +208,6 @@ bin/
  mariadb-embedded
  mariadb-fix-extensions
  mariadb-install-db
- mariadb-ldb
  mariadb-secure-installation
  mariadb-test
  mariadb-test-embedded
@@ -215,13 +224,11 @@ bin/
  myisamchk
  myisamlog
  myisampack
- myrocks_hotbackup
  mysql_client_test
  mysql_client_test_embedded
  mysql_embedded
  mysql_fix_extensions
  mysql_install_db
- mysql_ldb
  mysql_plugin
  mysql_secure_installation
  mysql_tzinfo_to_sql
@@ -237,7 +244,6 @@ bin/
  perror
  resolve_stack_dump
  resolveip
- sst_dump
  test-connect-t
  wsrep_sst_backup
  wsrep_sst_common
@@ -269,7 +275,6 @@ lib/mysql/plugin/
  ha_federatedx.so
  ha_mroonga.so
  ha_oqgraph.so
- ha_rocksdb.so
  ha_s3.so
  ha_sphinx.so
  ha_spider.so

@@ -44,8 +44,6 @@ BUILDRUN_DEPENDS=	libmatroska:single:standard
 USES=			zlib pkgconfig gettext pcre2 iconv:build
 			solaris-funcs mime-info:primary
 			desktop-utils:primary
-C_USES[freebsd]=	clang
-C_USES[midnightbsd]=	clang
 
 FPC_EQUIVALENT=		multimedia/mkvtoolnix
 SOL_FUNCTIONS=		timegm:src/common/date_time.cpp
@@ -64,7 +62,9 @@ BUILD_TARGET=		#skip
 MAKEFILE=		Rakefile
 MAKE_ENV=		V=1
 
+VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-precompiled-headers=no
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--enable-precompiled-headers=no
 
 post-patch:
 	${FIND} ${WRKSRC} -type f -name "windows\.cpp" -delete

@@ -30,31 +30,6 @@ BOOST_LIBRARIES_REVISION=	0
 # Only keep the open branches of GCC
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-# gcc10
-# ------------------------------------------------------------------------
-
-GCC10_BRANCH=			10
-GCC10_POINT=			5.0
-GCC10_VERSION=			${GCC10_BRANCH}.${GCC10_POINT}
-GCC10_SNAPSHOT=			20230707
-GCC10_BUILD_RELEASE=		yes
-GCC10_REVISION=			0
-GCC10_GNATCROSS_REVISION=	0
-GCC10_BOOTSTRAP_REVISION=	0
-
-.if ${GCC10_BUILD_RELEASE:Mno}
-GCC10_PORTVERSION=		${GCC10_BRANCH}.${GCC10_SNAPSHOT}
-GCC10_IDENTIFICATION=		gcc-${GCC10_BRANCH}-${GCC10_SNAPSHOT}
-GCC10_MS_SUBDIR=		snapshots/${GCC10_BRANCH}-${GCC10_SNAPSHOT}
-GCC10_PHASE=			snapshot
-.else
-GCC10_PORTVERSION=		${GCC10_VERSION}
-GCC10_IDENTIFICATION=		gcc-${GCC10_VERSION}
-GCC10_MS_SUBDIR=		releases/gcc-${GCC10_VERSION}
-GCC10_PHASE=			release
-.endif
-
-# ------------------------------------------------------------------------
 # gcc11
 # ------------------------------------------------------------------------
 
@@ -113,7 +88,7 @@ GCC13_POINT=			2.0
 GCC13_VERSION=			${GCC13_BRANCH}.${GCC13_POINT}
 GCC13_SNAPSHOT=			20230727
 GCC13_BUILD_RELEASE=		yes
-GCC13_REVISION=			0
+GCC13_REVISION=			1
 GCC13_GNATCROSS_REVISION=	0
 GCC13_BOOTSTRAP_REVISION=	0
 
@@ -133,7 +108,7 @@ GCC13_PHASE=			release
 # Ravenports base compiler
 # ------------------------------------------------------------------------
 
-GCCBASE_BRANCH=			11
+GCCBASE_BRANCH=			13
 GCCBASE_POINT=			2.0
 GCCBASE_VERSION=		${GCCBASE_BRANCH}.${GCCBASE_POINT}
 GCCBASE_REVISION=		0
@@ -198,7 +173,7 @@ GTK4_PORT_VERSION=		4.10.4
 # ------------------------------------------------------------------------
 
 BINUTILS_VERSION=		2.41
-RPBASE_BINUTILS=		2.37
+RPBASE_BINUTILS=		2.41
 
 # ------------------------------------------------------------------------
 # aspell

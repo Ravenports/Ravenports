@@ -8,18 +8,23 @@ SDESC[standard]=	Go programming language compiler
 HOMEPAGE=		https://golang.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main ravdist
 SITES[main]=		http://golang.org/dl/
+SITES[ravdist]=		https://leaf.dragonflybsd.org/~marino/raven-distfiles/
 DISTFILE[1]=		go1.20.7.src.tar.gz:main
+DISTFILE[2]=		freebsd-x86-64-go119.tar.zst:ravdist
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	BOOT_RP FREEBSD
+OPTIONS_STANDARD=	BOOT_RP FREEBSD
+OPT_ON[freebsd]=	FREEBSD
+OPT_ON[linux]=		BOOT_RP
+OPT_ON[netbsd]=		BOOT_RP
+OPT_ON[dragonfly]=	BOOT_RP
+OPT_ON[midnightbsd]=	BOOT_RP
 
 NOT_FOR_ARCH=		aarch64
-
-BUILD_DEPENDS=		go119:single:standard
 
 USES=			cpe shebangfix
 
@@ -47,6 +52,12 @@ SHEBANG_NEW_BASH=	{{SH}}
 SHEBANG_OLD_BASH=	"/usr/bin/env bash"
 
 PLIST_SUB=		opsys_ARCH={{GOSYS}}_{{GOARCH}}
+
+[BOOT_RP].DESCRIPTION=			Bootstrap is Ravenports go119 package
+[BOOT_RP].BUILD_DEPENDS_ON=		go119:single:standard
+
+[FREEBSD].DESCRIPTION=			Bootstrap is externally packaged go119
+[FREEBSD].DF_INDEX_ON=			2
 
 do-build:
 	cd ${WRKSRC}/src && ${SETENV} \
@@ -80,13 +91,17 @@ do-install:
 	# remove test
 	${RM} -r ${STAGEDIR}${PREFIX}/go/test
 
+post-extract-FREEBSD-ON:
+	(cd ${LOCALBASE} && ${LN} -s ${WRKDIR}/go119 go119)
+
 [FILE:112:descriptions/desc.single]
 Go is an open source programming language that makes it easy to build
 simple, reliable, and efficient software.
 
 
-[FILE:98:distinfo]
+[FILE:205:distinfo]
 2c5ee9c9ec1e733b0dbbc2bdfed3f62306e51d8172bf38f4f4e542b27520f597     26192928 go1.20.7.src.tar.gz
+3fecf269beec4b16b4c8c36e8e30d52d20a8d902ebbe2a71ae3aa4c9bcdad93b    113534114 freebsd-x86-64-go119.tar.zst
 
 
 [FILE:109939:manifests/plist.single]
