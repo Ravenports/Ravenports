@@ -8,10 +8,12 @@ SDESC[standard]=	Fast SQL database server, derived from MySQL
 HOMEPAGE=		https://mariadb.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main fmtsrc
 SITES[main]=		https://mirrors.gigenet.com/mariadb/mariadb-10.11.4/source/
+SITES[fmtsrc]=		GITHUB/fmtlib:fmt:8.0.1
 DISTFILE[1]=		mariadb-10.11.4.tar.gz:main
-DF_INDEX=		1
+DISTFILE[2]=		generated:fmtsrc
+DF_INDEX=		1 2
 SPKGS[standard]=	complete
 			server
 			client
@@ -23,7 +25,6 @@ OPTIONS_AVAILABLE=	ROCKSDB
 OPTIONS_STANDARD=	ROCKSDB
 
 BUILD_DEPENDS=		bison:primary:standard
-			fmt:dev:standard
 			msgpack:dev:standard
 			snappy:dev:standard
 			boost-libraries:dev:standard
@@ -94,6 +95,7 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DWITH_SSL="{{OPENSSLBASE}}"
 			-DWITH_ZLIB=system
 			-DWITH_PCRE=system
+			-DWITH_LIBFMT=bundle
 			-Wno-dev
 VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
@@ -173,8 +175,9 @@ source. Notable users include Wikipedia, WordPress.com and Google.
 This package contains the client and related files.
 
 
-[FILE:101:distinfo]
+[FILE:203:distinfo]
 ce8dac125568cc5f40da74c17212767c92d8faed81066580b526a485a591127d     96770117 mariadb-10.11.4.tar.gz
+b06ca3130158c625848f3fb7418f235155a4d389b2abc3a6245fb01cb0eb1e01       805616 fmtlib-fmt-8.0.1.tar.gz
 
 
 [FILE:4190:manifests/plist.server]
@@ -1211,6 +1214,22 @@ share/doc/%%PORTNAME%%/
  #
  # RPM layout
  #
+
+
+[FILE:471:patches/patch-cmake_libfmt.cmake]
+--- cmake/libfmt.cmake.orig	2023-06-05 17:14:07 UTC
++++ cmake/libfmt.cmake
+@@ -15,8 +15,8 @@ MACRO(BUNDLE_LIBFMT)
+   ExternalProject_Add(
+     libfmt
+     PREFIX   "${dir}"
+-    URL      "https://github.com/fmtlib/fmt/archive/refs/tags/8.0.1.zip"
+-    URL_MD5  e77873199e897ca9f780479ad68e25b1
++    URL      "file:///distfiles/fmtlib-fmt-8.0.1.tar.gz"
++    URL_MD5  7d5af964c6633ef90cd6a47be3afe6a0
+     INSTALL_COMMAND ""
+     CONFIGURE_COMMAND ""
+     BUILD_COMMAND ""
 
 
 [FILE:1968:patches/patch-cmake_readline.cmake]
