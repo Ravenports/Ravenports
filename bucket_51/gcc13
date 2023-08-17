@@ -105,6 +105,8 @@ PLIST_SUB=		GCCVER=13.2.0
 			BRANCH=13
 			VSTDCXX=6.0.32
 			SSP={{SSP}}
+			CC1_SHARED={{CC1_SHARED}}
+			CC1_STATIC={{CC1_STATIC:U"@comment "}}
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-gnu-as
@@ -123,6 +125,8 @@ VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
 			CONFIGURE_ARGS=--disable-libssp
 			MAKEFILE_LINE=SSP="@comment "
+			MAKEFILE_LINE=CC1_SHARED="@comment "
+			MAKEFILE_LINE=CC1_STATIC=
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
@@ -260,11 +264,10 @@ e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da     87858592 gc
 5ef230fb68273e7bf72cd4be8da7bde172fcece09f5aa87f5ebfda9580596ce0         1612 gcc13_13.2.0-base/patch-diff-gcc-testsuite
 
 
-[FILE:29374:manifests/plist.compilers]
+[FILE:29534:manifests/plist.compilers]
 %%ASLIB%%/
  libatomic.a
  libatomic.so
- libcc1.so
  libgcc_s.so
  libgfortran.a
  libgfortran.so
@@ -282,6 +285,18 @@ e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da     87858592 gc
  libstdc++exp.a
  libstdc++fs.a
  libsupc++.a
+%%CC1_SHARED%%%%ASLIB%%/libcc1.so
+%%CC1_SHARED%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
+ libcc1plugin.so
+ libcc1plugin.so.0
+ libcc1plugin.so.0.0.0
+ libcp1plugin.so
+ libcp1plugin.so.0
+ libcp1plugin.so.0.0.0
+%%CC1_STATIC%%%%ASLIB%%/libcc1.a
+%%CC1_STATIC%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
+ libcc1plugin.a
+ libcp1plugin.a
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtendS.o
@@ -1437,14 +1452,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/install-tools/
 lib/gcc/%%TARGET%%/%%GCCVER%%/install-tools/include/
  README
  limits.h
-lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
- gtype.state
- libcc1plugin.%%SHARED_OBJECT%%
- libcc1plugin.so.0
- libcc1plugin.so.0.0.0
- libcp1plugin.%%SHARED_OBJECT%%
- libcp1plugin.so.0
- libcp1plugin.so.0.0.0
+lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/gtype.state
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/
  addresses.h
  alias.h
@@ -4410,15 +4418,16 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  libquadmath.so.0.0.0
 
 
-[FILE:170:manifests/plist.libs]
+[FILE:195:manifests/plist.libs]
 %%ASLIB%%/
  libatomic.so.1
  libatomic.so.1.2.0
- libcc1.so.0
- libcc1.so.0.0.0
  libgcc_s.so.1
  libitm.so.1
  libitm.so.1.0.0
+%%CC1_SHARED%%%%ASLIB%%/
+ libcc1.so.0
+ libcc1.so.0.0.0
 %%SSP%%%%ASLIB%%/
  libssp.so.0
  libssp.so.0.0.0
@@ -4497,6 +4506,20 @@ share/locale/zh_CN/LC_MESSAGES/
 share/locale/zh_TW/LC_MESSAGES/
  cpplib.mo
  gcc.mo
+
+
+[FILE:537:patches/patch-libcc1_configure]
+--- libcc1/configure.orig	2023-07-27 08:13:07 UTC
++++ libcc1/configure
+@@ -9193,7 +9193,7 @@ rm -f core conftest.err conftest.$ac_obj
+       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
+ 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
+       else
+-	archive_cmds='$LD -shared -o $lib $libobjs $deplibs $linker_flags'      # ELF
++	archive_cmds='$CC -shared -o $lib $libobjs $deplibs $linker_flags'      # ELF
+       fi
+       hardcode_libdir_flag_spec='-R$libdir'
+       hardcode_direct=yes
 
 
 [FILE:238:patches/patch-libstdc++-v3_include_bits_c++config]
