@@ -2,6 +2,7 @@
 
 NAMEBASE=		libtcod
 VERSION=		1.24.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Roguelike game development library
@@ -15,7 +16,6 @@ DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			dev
-			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -49,16 +49,11 @@ PLIST_SUB=		JQUERY=3.6.0
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/libtcod
-	${MV} ${WRKSRC}/../../docs/_build/html ${STAGEDIR}${STD_DOCDIR}
-	${RM} -r ${STAGEDIR}${STD_DOCDIR}/_sources
 	(cd ${WRKSRC}/../../ && \
 		${COPYTREE_SHARE} data ${STAGEDIR}${PREFIX}/share/libtcod/)
 	${INSTALL_DATA} ${WRKSRC}/../../terminal.png \
 		${STAGEDIR}${PREFIX}/share/libtcod/
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtcod.so
-
-post-build:
-	(cd ${WRKSRC}/../../docs && gmake html)
 
 [FILE:198:descriptions/desc.primary]
 Libtcod is a free, fast, portable and uncomplicated API for roguelike game 

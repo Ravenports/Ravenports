@@ -79,23 +79,17 @@ share/doc/upx/
      void addLoaderVA(const char *s, ...);
 
 
-[FILE:628:patches/patch-src_bele.h]
+[FILE:298:patches/patch-src_bele.h]
 --- src/bele.h.orig	2023-08-08 08:38:12 UTC
 +++ src/bele.h
-@@ -95,6 +95,7 @@ static forceinline unsigned bswap32(unsi
- static forceinline upx_uint64_t bswap64(upx_uint64_t v) noexcept { return _byteswap_uint64(v); }
- 
- #else
-+# if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
- 
- static forceinline constexpr unsigned bswap16(unsigned v) noexcept {
-     // return __builtin_bswap16((upx_uint16_t) (v & 0xffff));
-@@ -109,6 +110,7 @@ static forceinline constexpr upx_uint64_
-     return __builtin_bswap64(v);
- }
- 
-+# endif
+@@ -37,9 +37,6 @@
+ #undef bswap16
+ #undef bswap32
+ #undef bswap64
+-#define bswap16 upx_bswap16
+-#define bswap32 upx_bswap32
+-#define bswap64 upx_bswap64
  #endif
  
- static forceinline constexpr unsigned no_bswap16(unsigned v) noexcept {
+ /*************************************************************************
 

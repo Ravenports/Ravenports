@@ -1,0 +1,170 @@
+# Create identical sysroot regardless of host system
+
+all: sysroot
+
+.include "system_specifics.mk"
+
+CPA=			-RpP
+
+# pulled in from other packges:
+# ----------------------------------------
+# /bin/cat        (archivers/libarchive)
+# /bin/md5        (ravensys-utils)
+# /bin/sha256     (ravensys-utils)
+# /usr/bin/awk    (lang/nawk)
+# /usr/bin/cpio	  (archivers/libarchive)
+# /usr/bin/bzip2* (archivers/bzip2)
+# /usr/bin/cmp    (textproc/diffutils)
+# /usr/bin/diff*  (textproc/diffutils)
+# /usr/bin/grep*  (textproc/gnugrep)
+# /usr/bin/fetch  (ftp/fetch)
+# /usr/bin/file   (sysutils/file)
+# /usr/bin/find   (misc/findutils)
+# /usr/bin/flex*  (textproc/flex)
+# /usr/bin/gzip*  (archivers/gzip)
+# /usr/bin/uname  (ravensys-utils)
+# /usr/bin/unzip  (archivers/unzip)
+# /usr/bin/xz*    (archivers/xz)
+# /usr/bin/m4     (devel/m4)
+# /usr/bin/make   (devel/bmake)
+# /usr/bin/sed    (textproc/gsed)
+# /usr/bin/tar    (archivers/libarchive)
+# /usr/bin/xargs  (misc/findutils)
+# /usr/bin/yacc   (devel/byacc)
+# /usr/bin/less*  (sysutils/less)
+# /usr/bin/mtree  (ravensys-utils)
+# /usr/bin/rpcgen (ravensys-utils)
+# /usr/bin/sort   (sysutils/coreutils)
+# /usr/bin/objdump-sysroot (devel/binutils)
+
+
+sysroot:
+	@echo "building not required"
+
+common-skeleton:
+	@echo "==================================="
+	@echo "===  Create common directories  ==="
+	@echo "==================================="
+	${MKDIR} \
+		${DESTDIR}${BASE}/bin \
+		${DESTDIR}${BASE}/usr/bin \
+		${DESTDIR}${BASE}/usr/include \
+		${DESTDIR}${BASE}/usr/lib/pkgconfig \
+		${DESTDIR}${BASE}/usr/libexec \
+		${DESTDIR}${BASE}/usr/share/file \
+		${DESTDIR}${BASE}/usr/share/rvn-terminfo/d \
+		${DESTDIR}${BASE}/usr/share/rvn-terminfo/v \
+		${DESTDIR}${BASE}/usr/share/rvn-terminfo/x \
+		${DESTDIR}${BASE}/usr/local \
+		${DESTDIR}${BASE}/usr/include/arpa \
+		${DESTDIR}${BASE}/usr/include/net \
+		${DESTDIR}${BASE}/usr/include/netinet \
+		${DESTDIR}${BASE}/usr/include/rpc \
+		${DESTDIR}${BASE}/usr/include/rpcsvc \
+		${DESTDIR}${BASE}/usr/sbin \
+		# end
+
+
+skeleton: platform-skeleton
+
+install-common: skeleton
+	@echo "=================================="
+	@echo "===  Common file installation  ==="
+	@echo "=================================="
+.if "${OPSYS}" == "Darwin" || "${OPSYS}" == "SunOS"
+	# do nothing
+.else
+.  for item in ${Bin_${OPSYS}}
+	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/bin/
+.  endfor
+.  for item in ${Usr_Bin_${OPSYS}}
+	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/bin/
+.  endfor
+.  for item in ${Usr_Sbin_${OPSYS}}
+	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/sbin/
+.  endfor
+.  for item in ${Libexec_${OPSYS}}
+	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/libexec/
+.  endfor
+.  for item in ${dynamic_lib_${OPSYS}}
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/lib/
+.  endfor
+.  for item in ${static_lib_${OPSYS}}
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}${item} ${DESTDIR}${BASE}/usr/lib/
+.  endfor
+.endif
+
+	# for convenience from listing hundreds of files, copy all from specific directories
+.  for hdr in ${headers_${OPSYS}_dirs}
+	cp ${CPA} ../${OPSYS:tl}/usr/include/${hdr} ${DESTDIR}${BASE}/usr/include/
+.  endfor
+.for item in ${pcfiles_${OPSYS}}
+.  if ${OPSYS} == Linux
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/lib/x86_64-linux-gnu/pkgconfig/${item} \
+		${DESTDIR}${BASE}/usr/lib/pkgconfig/
+.  else
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/libdata/pkgconfig/${item} \
+		${DESTDIR}${BASE}/usr/lib/pkgconfig/
+.  endif
+.endfor
+
+.for item in md5 sha256 cat
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/bin/
+.endfor
+	# use cp -r because they are links, scripts, compiled all mixed
+.for item in m4 bzip2 bunzip2 bzcat bzgrep bzegrep bzfgrep lockf \
+	grep file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
+	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
+	unlzma unxz xzcat xzcmp xzdiff xzegrep xzfgrep xzgrep yacc \
+	unzip less mtree bsdcat dupe genpatch portfix patch fetch \
+	rpcgen sed find xargs cmp diff diff3 sdiff \
+	install wc sort od mknod seq
+	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/
+.endfor
+.for item in ${headers_${OPSYS}}
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/include/${item} ${DESTDIR}${BASE}/usr/include/${item}
+.endfor
+
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/toolchain/bin/objdump ${DESTDIR}${BASE}/usr/bin/objdump-sysroot
+.for item in nawk/awk less/more bmake/make xz-static/xz \
+	bsdcpio/cpio bsdtar/tar ravensys-uname/uname nvi/vi
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/${item:H} ${DESTDIR}${BASE}/usr/bin/${item:T}
+.endfor
+	ln -s m4 ${DESTDIR}${BASE}/usr/bin/gm4
+	${BSD_INSTALL_DATA} ${LOCALBASE}/share/terminfo/d/dumb ${DESTDIR}${BASE}/usr/share/rvn-terminfo/d/
+	${BSD_INSTALL_DATA} ${LOCALBASE}/share/terminfo/v/vt100 ${DESTDIR}${BASE}/usr/share/rvn-terminfo/v/
+	${BSD_INSTALL_DATA} ${LOCALBASE}/share/terminfo/x/xterm ${DESTDIR}${BASE}/usr/share/rvn-terminfo/x/
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/sbin/ravensw ${DESTDIR}${BASE}/usr/bin/
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/sbin/makewhatis ${DESTDIR}${BASE}/usr/bin/
+	${BSD_INSTALL_DATA} ${LOCALBASE}/share/file/magic.mgc ${DESTDIR}${BASE}/usr/share/file/
+	sed -e "s|${LOCALBASE}|/usr|g" ${LOCALBASE}/bin/egrep \
+		> ${DESTDIR}${BASE}/usr/bin/egrep
+	sed -e "s|${LOCALBASE}|/usr|g" ${LOCALBASE}/bin/fgrep \
+		> ${DESTDIR}${BASE}/usr/bin/fgrep
+	chmod 755 ${DESTDIR}${BASE}/usr/bin/egrep \
+		${DESTDIR}${BASE}/usr/bin/fgrep
+
+	# install ccache
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/bin/ccache ${DESTDIR}${BASE}/usr/libexec/
+	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/cc
+	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/gcc
+	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/c++
+	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/g++
+	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/clang
+	ln -s ccache ${DESTDIR}${BASE}/usr/libexec/clang++
+	# move os-specific files from specification to makefile
+	cd ${DESTDIR}${BASE}/usr/share \
+		&& ${ECHO} ${OPSYS}     > OPSYS \
+		&& ${ECHO} ${ARCH}      > ARCH \
+		&& ${ECHO} ${ARCHSTD}   > STDARCH \
+		&& ${ECHO} ${OSVERSION} > OSVERSION \
+		&& ${ECHO} ${OSREL}     > OSRELEASE \
+		&& ${ECHO} ${OSMAJOR}   > OSMAJOR
+
+
+
+# on platform makefiles create the following:
+# 1) platform-skeleton: common-skeleton
+# 2) install-platform: install-common
+
+install: install-platform

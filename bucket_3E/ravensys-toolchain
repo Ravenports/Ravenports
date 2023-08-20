@@ -40,11 +40,14 @@ PLIST_SUB=		COMPVER=13.2.0
 			GNARL=13
 			CTF={{SKIP_CTF:U}}
 			SSP={{SSP}}
+			GPROF={{GPROF}}
+			SFRAME={{SFRAME}}
 			CC1_SHARED={{CC1_SHARED}}
 			CC1_STATIC={{CC1_STATIC:U"@comment "}}
 
 INFRASTRUCTURE=		yes
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SSP="@comment "
+			MAKEFILE_LINE=SFRAME="@comment "
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SSP="@comment "
 			MAKEFILE_LINE=CC1_SHARED="@comment "
 			MAKEFILE_LINE=CC1_STATIC=
@@ -69,7 +72,7 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:66463:manifests/plist.single]
+[FILE:66670:manifests/plist.single]
 %%CC1_SHARED%%ravensys-gcc/%%ASLIB%%/
  libcc1.so
  libcc1.so.0
@@ -121,10 +124,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
 %%ONLY-LINUX%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/adalib/
  a-exetim.ali
  s-linux.ali
-%%ONLY-LINUX%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- README
- limits.h
- syslimits.h
+%%ONLY-LINUX%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/README
 %%ONLY-LINUX%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
 %%ONLY-LINUX%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  glibc-stdint.h
@@ -222,6 +222,17 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  stdio.h
  string.h
  unistd.h
+%%ONLY-LINUX%%%%GPROF%%include/
+ libfcollector.h
+ libcollector.h
+ collectorAPI.h
+%%ONLY-LINUX%%%%GPROF%%bin/
+ gprofng
+ gp-display-text
+ gp-display-src
+ gp-display-html
+ gp-collect-app
+ gp-archive
 bin/
  addr2line
  ar
@@ -247,8 +258,10 @@ include/
  diagnostics.h
  dis-asm.h
  plugin-api.h
+%%SFRAME%%include/
  sframe-api.h
  sframe.h
+include/
  symcat.h
 ravensys-gcc/%%ASLIB%%/
  libatomic.a
@@ -1168,7 +1181,8 @@ ravensys-gcc/include/c++/%%GCCVER%%/tr2/
  dynamic_bitset.tcc
  ratio
  type_traits
-ravensys-gcc/lib/libstdc++exp.a
+ravensys-gcc/%%ASLIB%%/
+ libstdc++exp.a
 ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/
  ada_target_properties
  crtbegin.o

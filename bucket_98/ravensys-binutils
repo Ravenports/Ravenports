@@ -55,6 +55,7 @@ PLIST_SUB=		PLUGINAPI={{PLUGINAPI}}
 			GPROF={{GPROF}}
 			TARGET={{CONFIGURE_TARGET}}
 			CTF={{SKIP_CTF:U}}
+			SFRAME={{SFRAME}}
 
 INFRASTRUCTURE=		yes
 LDFLAGS=		-Wl,--disable-new-dtags
@@ -70,6 +71,7 @@ VAR_OPSYS[linux]=	VAR1=/lib/ld64.so.1
 			VAR2=/lib/ldx32.so.1
 			MAKEFILE_LINE=BUILD_GOLD=yes
 			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold
+			MAKEFILE_LINE=SFRAME="@comment "
 VAR_OPSYS[darwin]=	VAR1=/libexec/ld-elf.so.1
 			VAR2=/libexec/ld-elf.so.1
 			MAKEFILE_LINE=LINKER="@comment "
@@ -139,7 +141,7 @@ which are used by the Ravenports compiler.
 ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450     26765692 binutils-2.41.tar.xz
 
 
-[FILE:767:manifests/plist.single]
+[FILE:1129:manifests/plist.single]
 %%ASSEMBLER%%bin/as
 %%ASSEMBLER%%share/man/man1/as.1.gz
 %%CTF%%include/
@@ -157,7 +159,25 @@ ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450     26765692 bi
  ld
  ld.bfd
 %%LINKER%%share/man/man1/ld.1.gz
+%%ONLY-LINUX%%%%GPROF%%bin/
+ gp-archive
+ gp-collect-app
+ gp-display-html
+ gp-display-src
+ gp-display-text
+ gprofng
+%%ONLY-LINUX%%%%GPROF%%etc/gprofng.rc
+%%ONLY-LINUX%%%%GPROF%%include/
+ collectorAPI.h
+ libcollector.h
+ libfcollector.h
+%%ONLY-LINUX%%%%GPROF%%lib/libgprofng.a
+%%ONLY-LINUX%%%%GPROF%%lib/gprofng/libgp-collectorAPI.a
 %%PLUGINAPI%%include/plugin-api.h
+%%SFRAME%%include/
+ sframe-api.h
+ sframe.h
+%%SFRAME%%lib/libsframe.a
 bin/
  addr2line
  ar
@@ -176,13 +196,10 @@ include/
  bfdlink.h
  diagnostics.h
  dis-asm.h
- sframe-api.h
- sframe.h
  symcat.h
 lib/
  libbfd.a
  libopcodes.a
- libsframe.a
 lib/bfd-plugins/libdep.a
 share/man/man1/
  addr2line.1.gz
