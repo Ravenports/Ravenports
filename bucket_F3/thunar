@@ -2,6 +2,7 @@
 
 NAMEBASE=		thunar
 VERSION=		4.18.6
+REVISION=		1
 KEYWORDS=		x11_fm
 VARIANTS=		standard
 SDESC[standard]=	File manager for Xfce
@@ -18,13 +19,17 @@ SPKGS[standard]=	complete
 			docs
 			nls
 
-OPTIONS_AVAILABLE=	GUDEV
-OPTIONS_STANDARD=	GUDEV
-OPT_ON[freebsd]=	GUDEV
+OPTIONS_AVAILABLE=	GUDEV GUDEV-DEVD NO-GUDEV
+OPTIONS_STANDARD=	GUDEV GUDEV-DEVD NO-GUDEV
+OPTGROUP_RADIO=		GUDEVS
+OPTDESCR[GUDEVS]=	Flavors of libudev gobject bindings
+OPTGROUP[GUDEVS]=	NO-GUDEV GUDEV GUDEV-DEVD
+OPT_ON[freebsd]=	GUDEV-DEVD
+OPT_ON[sunos]=		NO-GUDEV
 OPT_ON[linux]=		GUDEV
-OPT_ON[netbsd]=		GUDEV
-OPT_ON[dragonfly]=	GUDEV
-OPT_ON[midnightbsd]=	GUDEV
+OPT_ON[netbsd]=		GUDEV-DEVD
+OPT_ON[dragonfly]=	GUDEV-DEVD
+OPT_ON[midnightbsd]=	GUDEV-DEVD
 
 BUILD_DEPENDS=		harfbuzz:dev:standard
 			libnotify:dev:standard
@@ -76,6 +81,12 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.0.0
 PLIST_SUB=		INTRO="@comment "
+
+[GUDEV-DEVD].DESCRIPTION=		Build with gudev-devd library (BSD)
+[GUDEV-DEVD].BUILDRUN_DEPENDS_ON=	libgudev-devd:primary:standard
+[GUDEV-DEVD].BUILD_DEPENDS_ON=		libgudev-devd:dev:standard
+
+[NO-GUDEV].DESCRIPTION=			Build without gudev support
 
 [GUDEV].DESCRIPTION=			Build with gudev library
 [GUDEV].BUILDRUN_DEPENDS_ON=		libgudev:primary:standard
