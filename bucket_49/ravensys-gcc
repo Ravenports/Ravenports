@@ -167,15 +167,6 @@ post-patch-linux:
 	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
 		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
 
-post-install-freebsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/13.2.0/include-fixed
-
-post-install-midnightbsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/13.2.0/include-fixed
-
-post-install-dragonfly:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/13.2.0/include-fixed
-
 post-install:
 	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
@@ -185,6 +176,8 @@ post-install:
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libitm.info
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libgomp.info
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libquadmath.info
+	# do this for all platforms
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/13.2.0/include-fixed
 
 post-extract:
 	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS
@@ -198,9 +191,6 @@ post-extract:
 	${INSTALL_DATA} ${LOCALBASE}/lib/libiconv_pic.a \
 		${WRKDIR}/fake/lib/libiconv.a ;\
 	fi
-
-post-install-netbsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/13.2.0/include-fixed
 
 [FILE:320:descriptions/desc.compilers]
 This is the Ravenports ports compiler (GCC).
@@ -252,7 +242,7 @@ e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da     87858592 ra
 5ef230fb68273e7bf72cd4be8da7bde172fcece09f5aa87f5ebfda9580596ce0         1612 ravensys-gcc_13.2.0-base/patch-diff-gcc-testsuite
 
 
-[FILE:29534:manifests/plist.compilers]
+[FILE:28743:manifests/plist.compilers]
 %%ASLIB%%/
  libatomic.a
  libatomic.so
@@ -312,8 +302,6 @@ e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da     87858592 ra
  crtprec32.o
  crtprec64.o
  crtprec80.o
-%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/README
-%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  glibc-stdint.h
  gnu-user.h
@@ -357,33 +345,6 @@ e275e76442a6067341a27f04c5c6b83d8613144004c0413528863dc6b5c743da     87858592 ra
  crtprec80.o
  gmon.o
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- README
- complex.h
- pthread.h
- spawn.h
- stdio.h
- wchar.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/dat/dat_platform_specific.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/iso/
- math_c99.h
- math_iso.h
- setjmp_iso.h
- stdio_iso.h
- stdlib_iso.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/mps/secport.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/netinet/
- ip_compat.h
- ip_fil.h
- ip_lookup.h
- ip_nat.h
- ip_pool.h
- ip_proxy.h
- ip_state.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/sys/
- feature_tests.h
- int_const.h
- varargs.h
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  sol2-protos.h
  sol2.h

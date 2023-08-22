@@ -30,7 +30,7 @@ BUILDRUN_DEPENDS=	dbus-glib:primary:standard
 B_DEPS[linux]=		libgudev:dev:standard
 BR_DEPS[linux]=		libgudev:primary:standard libusb:single:standard
 
-USES=			meson pkgconfig gtk-doc
+USES=			meson pkgconfig gtk-doc shebangfix
 GNOME_COMPONENTS=	glib intltool introspection
 
 DISTNAME=		upower-v1.90.2
@@ -49,6 +49,7 @@ MESON_ARGS=		-Dman=true
 			-Dintrospection=enabled
 			-Dsystemdsystemunitdir=no
 			-Didevice=disabled
+SHEBANG_FILES=		src/linux/integration-test.py
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		3.1.0
@@ -103,11 +104,23 @@ mail to the DeviceKit mailing list for discussion.
 5c4e736648f0c89d2368fbbe1e6fc0598a1565c4b435bade1d65e890259fb759       180731 upower-v1.90.2.tar.gz
 
 
-[FILE:851:manifests/plist.primary]
+[FILE:1210:manifests/plist.primary]
 %%ONLY-LINUX%%/etc/udev/hwdb.d/95-upower-hid.hwdb
 %%ONLY-LINUX%%/etc/udev/rules.d/
  95-upower-hid.rules
  95-upower-wup.rules
+%%ONLY-LINUX%%libexec/upower/
+ integration-test.py
+ output_checker.py
+%%ONLY-LINUX%%libexec/upower/tests/
+ logitech-g903.device
+ steelseries-headset.device
+ usb-headset.device
+ wacom-bluetooth-active.device
+ wacom-dongle-active.device
+ wacom-dongle-waiting.device
+ wacom-pen-digitiser.device
+%%ONLY-LINUX%%share/installed-tests/upower/upower-integration.test
 bin/upower
 etc/UPower/UPower.conf
 include/libupower-glib/

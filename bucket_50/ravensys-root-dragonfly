@@ -35,7 +35,6 @@ BUILD_DEPENDS=		nawk:single:standard
 			xz:tools:standard
 			unzip:primary:standard
 			m4:primary:noprefix
-			bmake:single:standard
 			sed:primary:ravensys
 			byacc:primary:standard
 			less:single:standard
@@ -48,7 +47,6 @@ BUILD_DEPENDS=		nawk:single:standard
 			genpatch:single:standard
 			lockf:single:standard
 			fetch:single:standard
-			ravensys-utils:single:standard
 			ccache:primary:standard
 			bzip2:tools:standard
 
@@ -73,16 +71,16 @@ PLIST_SUB=		BASE={{SYSPATH}}
 INFRASTRUCTURE=		yes
 
 [NOTSTD].DESCRIPTION=			Earlier system root of DragonFly
+[NOTSTD].BUILD_DEPENDS_OFF=		bmake:single:standard
+					ravensys-utils:single:standard
 [NOTSTD].DF_INDEX_OFF=			2
 [NOTSTD].MAKEFILE_OFF=			SYSTEM=DragonFly/x86_64/x86_64/600400/6.4/6.4
 
 [R62].DESCRIPTION=			DragonFly Release 6.2.2 system root
+[R62].BUILD_DEPENDS_ON=			bmake:single:prevdbsd
+					ravensys-utils:single:prevdbsd
 [R62].DF_INDEX_ON=			3
 [R62].MAKEFILE_ON=			SYSTEM=DragonFly/x86_64/x86_64/600200/6.2/6.2
-
-pre-fetch-NOTSTD-OFF:
-	${SH} ${MK_SCRIPTS}/ravensys-root-validate_pkgs.sh ${PREFIX} \
-		${OPSYS} ${ARCH} ${ARCH_STANDARD} ${OSVERSION} ${OSREL} ${MAJOR}
 
 post-extract-R62-ON:
 	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/dragonfly
@@ -94,6 +92,10 @@ post-extract:
 	${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/dragonfly.mk ${WRKSRC}/system_specifics.mk
 	${INSTALL_DATA} ${MK_SCRIPTS}/ravensys-root-Makefile ${WRKSRC}/Makefile
+
+pre-fetch:
+	${SH} ${MK_SCRIPTS}/ravensys-root-validate_pkgs.sh ${PREFIX} \
+		${OPSYS} ${ARCH} ${ARCH_STANDARD} ${OSVERSION} ${OSREL} ${MAJOR}
 
 [FILE:140:descriptions/desc.single.standard]
 Ravenports system root

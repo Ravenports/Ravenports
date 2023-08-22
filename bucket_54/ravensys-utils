@@ -4,8 +4,11 @@ NAMEBASE=		ravensys-utils
 VERSION=		1.5.1
 REVISION=		1
 KEYWORDS=		raven sysutils
-VARIANTS=		standard
+VARIANTS=		standard prevdbsd prevfbsd prevlinux
+SDESC[prevdbsd]=	System root tools for previous DragonFly
+SDESC[prevlinux]=	System root tools for previous Linux
 SDESC[standard]=	Consistent tools for Ravenports system root
+SDESC[prevfbsd]=	System root tools for previous FreeBSD
 HOMEPAGE=		https://github.com/ravenports/ravensys-utils
 CONTACT=		John_Marino[draco@marino.st]
 
@@ -13,10 +16,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/ravenports:ravensys-utils:v1.5.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
+SPKGS[prevdbsd]=	single
+SPKGS[prevlinux]=	single
 SPKGS[standard]=	single
+SPKGS[prevfbsd]=	single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	PREV_DBSD PREV_FBSD PREV_LINUX
 OPTIONS_STANDARD=	none
+VOPTS[prevdbsd]=	PREV_DBSD=ON PREV_FBSD=OFF PREV_LINUX=OFF
+VOPTS[prevlinux]=	PREV_DBSD=OFF PREV_FBSD=OFF PREV_LINUX=ON
+VOPTS[prevfbsd]=	PREV_DBSD=OFF PREV_FBSD=ON PREV_LINUX=OFF
 
 B_DEPS[sunos]=		libbsd4sol:single:standard musl-fts:single:standard
 B_DEPS[linux]=		libbsd:dev:standard libbsd:primary:standard
@@ -37,11 +46,23 @@ CMAKE_ARGS=		-DRAVENOPSYS:STRING="{{SYSTEM:H:H:H:H:H}}"
 			-DRAVDEST:STRING="{{STAGEDIR}}"
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1302001/13.2/13
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/i86pc/x86_64/510200910/5.10/5.10
-VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/610000/6.1.0/6.1
 VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SYSTEM=NetBSD/x86_64/x86_64/902000000/9.2/9
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600400/6.4/6.4
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=SYSTEM=MidnightBSD/amd64/x86_64/300005/3.0.0/3
+
+[PREV_DBSD].DESCRIPTION=		Hardcode uname values to older DragonFly release
+[PREV_DBSD].MAKEFILE_ON=		SYSTEM=DragonFly/x86_64/x86_64/600200/6.2/6.2
+[PREV_DBSD].ONLY_FOR_OPSYS_ON=		dragonfly
+
+[PREV_FBSD].DESCRIPTION=		Hardcode uname values to older FreeBSD release
+[PREV_FBSD].MAKEFILE_ON=		SYSTEM=FreeBSD/amd64/x86_64/1202000/12.2/12
+[PREV_FBSD].ONLY_FOR_OPSYS_ON=		freebsd
+
+[PREV_LINUX].DESCRIPTION=		Hardcode uname values to older Linux release
+[PREV_LINUX].MAKEFILE_ON=		SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
+[PREV_LINUX].ONLY_FOR_OPSYS_ON=		linux
 
 post-install:
 .for prog in md5 mtree patch ravensys-uname which rpcgen

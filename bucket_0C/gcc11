@@ -142,18 +142,11 @@ post-patch:
 	${REINPLACE_CMD} -e 's|static:crtbeginT.o%s;||' \
 		${WRKSRC}/gcc/config/freebsd-spec.h
 
-post-install-freebsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/11.4.0/include-fixed
-
-post-install-midnightbsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/11.4.0/include-fixed
-
-post-install-dragonfly:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/11.4.0/include-fixed
-
 post-install:
 	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
+	# do this for all platforms now
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/11.4.0/include-fixed
 
 post-extract:
 	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS
@@ -167,9 +160,6 @@ post-extract:
 	${INSTALL_DATA} ${LOCALBASE}/lib/libiconv_pic.a \
 		${WRKDIR}/fake/lib/libiconv.a ;\
 	fi
-
-post-install-netbsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/11.4.0/include-fixed
 
 [FILE:237:descriptions/desc.compilers]
 This is series 11 of the GNU Compiler Collection (GCC)
@@ -220,7 +210,7 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
 04abbbbbc1dda4b96774c1707675362ebee52f3653bb981eacbaec8edd357e8b         1894 gcc11_11.3.0-rev1/patch-diff-gcc-testsuite
 
 
-[FILE:28118:manifests/plist.compilers]
+[FILE:27279:manifests/plist.compilers]
 %%ASLIB%%/
  libatomic.a
  libatomic.so
@@ -265,11 +255,6 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
  crtprec32.o
  crtprec64.o
  crtprec80.o
-%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- README
- limits.h
- syslimits.h
-%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  glibc-stdint.h
  gnu-user.h
@@ -313,35 +298,6 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
  crtprec80.o
  gmon.o
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- README
- complex.h
- limits.h
- pthread.h
- spawn.h
- stdio.h
- syslimits.h
- wchar.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/dat/dat_platform_specific.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/iso/
- math_c99.h
- math_iso.h
- setjmp_iso.h
- stdio_iso.h
- stdlib_iso.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/mps/secport.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/netinet/
- ip_compat.h
- ip_fil.h
- ip_lookup.h
- ip_nat.h
- ip_pool.h
- ip_proxy.h
- ip_state.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/sys/
- feature_tests.h
- int_const.h
- varargs.h
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  sol2-protos.h
  sol2.h

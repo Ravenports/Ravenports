@@ -3,8 +3,11 @@
 NAMEBASE=		bmake
 VERSION=		20230723
 KEYWORDS=		devel
-VARIANTS=		standard
+VARIANTS=		standard prevdbsd prevfbsd prevlinux
+SDESC[prevdbsd]=	BSD Make encoded for previous DragonFly sysroot
+SDESC[prevlinux]=	BSD Make encoded for previous Linux sysroot
 SDESC[standard]=	Portable version of NetBSD 'make' utility
+SDESC[prevfbsd]=	BSD Make encoded for previous FreeBSD sysroot
 HOMEPAGE=		http://www.crufty.net/help/sjg/bmake.html
 CONTACT=		nobody
 
@@ -13,10 +16,16 @@ SITES[main]=		https://cdn.netbsd.org/pub/NetBSD/misc/sjg/
 			ftp://ftp.netbsd.org/pub/NetBSD/misc/sjg/
 DISTFILE[1]=		bmake-20230723.tar.gz:main
 DF_INDEX=		1
+SPKGS[prevdbsd]=	single
+SPKGS[prevlinux]=	single
 SPKGS[standard]=	single
+SPKGS[prevfbsd]=	single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	PREV_DBSD PREV_FBSD PREV_LINUX
 OPTIONS_STANDARD=	none
+VOPTS[prevdbsd]=	PREV_DBSD=ON PREV_FBSD=OFF PREV_LINUX=OFF
+VOPTS[prevlinux]=	PREV_DBSD=OFF PREV_FBSD=OFF PREV_LINUX=ON
+VOPTS[prevfbsd]=	PREV_DBSD=OFF PREV_FBSD=ON PREV_LINUX=OFF
 
 DISTNAME=		bmake
 
@@ -35,11 +44,23 @@ CONFIGURE_ARGS=		--with-default-sys-path="/xports/Mk:{{PREFIX}}/share/mk"
 
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1302001/13.2/13
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/i86pc/x86_64/510200910/5.10/5.10
-VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/610000/6.1.0/6.1
 VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SYSTEM=NetBSD/x86_64/x86_64/902000000/9.2/9
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600400/6.4/6.4
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=SYSTEM=MidnightBSD/amd64/x86_64/300005/3.0.0/3
+
+[PREV_DBSD].DESCRIPTION=		Hardcode OS values to older DragonFly release
+[PREV_DBSD].MAKEFILE_ON=		SYSTEM=DragonFly/x86_64/x86_64/600200/6.2/6.2
+[PREV_DBSD].ONLY_FOR_OPSYS_ON=		dragonfly
+
+[PREV_FBSD].DESCRIPTION=		Hardcode OS values to older FreeBSD release
+[PREV_FBSD].MAKEFILE_ON=		SYSTEM=FreeBSD/amd64/x86_64/1202000/12.2/12
+[PREV_FBSD].ONLY_FOR_OPSYS_ON=		freebsd
+
+[PREV_LINUX].DESCRIPTION=		Hardcode OS values to older Linux release
+[PREV_LINUX].MAKEFILE_ON=		SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
+[PREV_LINUX].ONLY_FOR_OPSYS_ON=		linux
 
 post-patch:
 	${REINPLACE_CMD} -e 's|@CFLAGS@|\

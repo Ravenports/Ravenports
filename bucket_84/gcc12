@@ -166,15 +166,6 @@ post-patch-linux:
 	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
 		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
 
-post-install-freebsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/12.3.0/include-fixed
-
-post-install-midnightbsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/12.3.0/include-fixed
-
-post-install-dragonfly:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/12.3.0/include-fixed
-
 post-install:
 	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
 	${RM} ${STAGEDIR}${MANPREFIX}/man/man7/*
@@ -184,6 +175,8 @@ post-install:
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libitm.info
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libgomp.info
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libquadmath.info
+	# do this for all platforms now
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/12.3.0/include-fixed
 
 post-extract:
 	${HEAD} -n 19 ${WRKSRC}/gcc/gcc.h > ${WRKDIR}/TERMS
@@ -197,9 +190,6 @@ post-extract:
 	${INSTALL_DATA} ${LOCALBASE}/lib/libiconv_pic.a \
 		${WRKDIR}/fake/lib/libiconv.a ;\
 	fi
-
-post-install-netbsd:
-	${RM} -r ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/12.3.0/include-fixed
 
 [FILE:330:descriptions/desc.compilers]
 This is series 12 of the GNU Compiler Collection (GCC)
@@ -257,38 +247,7 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
 817fa207c609760e5e6391e851500bc3c12b2931be11acaae236a7cc95adab81         1894 gcc12_12.2.0-rev1/patch-diff-gcc-testsuite
 
 
-[FILE:29182:manifests/plist.compilers]
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/
- crt3.o
- crtfastmath.o
- crtprec32.o
- crtprec64.o
- crtprec80.o
- crttme.o
- crttms.o
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- AvailabilityInternal.h
- README
- limits.h
- math.h
- stdint.h
- stdio.h
- syslimits.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/os/trace.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
- libcc1plugin.0.%%SHARED_OBJECT%%
- libcp1plugin.0.%%SHARED_OBJECT%%
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
- darwin-protos.h
- darwin-sections.def
- darwin.h
- darwin10.h
- darwin12.h
- darwin9.h
-%%ONLY-DARWIN%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
- darwin.h
- darwin64.h
+[FILE:27574:manifests/plist.compilers]
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtendS.o
@@ -316,11 +275,6 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
  crtprec32.o
  crtprec64.o
  crtprec80.o
-%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- README
- limits.h
- syslimits.h
-%%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/linux/a.out.h
 %%ONLY-LINUX%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  glibc-stdint.h
  gnu-user.h
@@ -364,35 +318,6 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
  crtprec80.o
  gmon.o
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/
- README
- complex.h
- limits.h
- pthread.h
- spawn.h
- stdio.h
- syslimits.h
- wchar.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/dat/dat_platform_specific.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/iso/
- math_c99.h
- math_iso.h
- setjmp_iso.h
- stdio_iso.h
- stdlib_iso.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/mps/secport.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/netinet/
- ip_compat.h
- ip_fil.h
- ip_lookup.h
- ip_nat.h
- ip_pool.h
- ip_proxy.h
- ip_state.h
-%%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/include-fixed/sys/
- feature_tests.h
- int_const.h
- varargs.h
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
  sol2-protos.h
  sol2.h
