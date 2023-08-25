@@ -26,13 +26,22 @@ BUILDRUN_DEPENDS=	lapack:lapack:standard
 			python-pybind11:single:python_used
 			python-pythran:single:python_used
 			python-pip:single:python_used
+			python-numpy:single:python_used
 
-USES=			shebangfix c++:single
+USES=			shebangfix c++:single meson pkgconfig
 
 DISTNAME=		scipy-1.11.2
 
+MESON_ARGS=		-Duse-pythran=true
+			-Dblas=blas
+			-Dlapack=lapack
+			-Duse-g77-abi=false
 SHEBANG_GLOB=		test_gcrotmk.py
 GENERATED=		yes
+
+CONFIGURE_ENV=		AUTOPYTHON={{PYTHON_VER}}
+
+MAKE_ENV=		AUTOPYTHON={{PYTHON_VER}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
@@ -41,7 +50,13 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [PY311].USES_ON=			python:v11,sutools
 
 post-install:
-	${RMDIR} ${STAGEDIR}${PYTHON_SITELIBDIR}/scipy/linalg/src/lapack_deprecations
+	@(cd ${STAGEDIR}${PREFIX} && \
+	${FIND} lib bin share/man share/doc share/examples \
+	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+	>> ${WRKDIR}/.manifest.single.mktmp
+
+pre-configure:
+	${REINPLACE_CMD} -e 's/%%PYTHONCMD%%/python${PYTHON_VER}/' ${WRKSRC}/meson.build
 
 [FILE:2461:descriptions/desc.single]
   :width: 110
@@ -112,6 +127,20 @@ and how to get involved.
 
 [FILE:98:distinfo]
 b29318a5e39bd200ca4381d80b065cdf3076c7d7281c5e36569e99273867f61d     56045065 scipy-1.11.2.tar.gz
+
+
+[FILE:374:patches/patch-meson.build]
+--- meson.build.orig	1970-01-01 00:00:00 UTC
++++ meson.build
+@@ -20,7 +20,7 @@ project(
+ 
+ # https://mesonbuild.com/Python-module.html
+ py_mod = import('python')
+-py3 = py_mod.find_installation(pure: false)
++py3 = py_mod.find_installation('%%PYTHONCMD%%', pure: false)
+ py3_dep = py3.dependency()
+ 
+ # Emit a warning for 32-bit Python installs on Windows; users are getting
 
 
 [FILE:818:patches/patch-scipy_special___logit.h]
