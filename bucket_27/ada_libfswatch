@@ -37,6 +37,20 @@ post-patch:
 	# fix makefile
 	${REINPLACE_CMD} -e 's|(DESTDIR)|&$$(PREFIX)|' ${WRKSRC}/Makefile
 
+post-install:
+	# auto-plist include/ada_libfswatch and lib/ada_libfswatch
+	# The number for file pairs vary based on the specific headers of the
+	# system building it, so every platform would need its own manifest section
+	# and in the case of multiple system roots on a single OS, the manifest can't
+	# satisfy both (e.g. differs between the old and new linux sysroots, but both
+	# are simultaneously supported).
+	${FIND} ${STAGEDIR}${PREFIX}/include/ada_libfswatch ! -type d | \
+		${SED} -e 's,^${STAGEDIR}${PREFIX}/,,' \
+		>> ${WRKDIR}/.manifest.single.mktmp
+	${FIND} ${STAGEDIR}${PREFIX}/lib/ada_libfswatch ! -type d | \
+		${SED} -e 's,^${STAGEDIR}${PREFIX}/,,' \
+		>> ${WRKDIR}/.manifest.single.mktmp
+
 post-extract:
 	${MKDIR} ${WRKSRC}/libfswatch/include/libfswatch/c ${WRKSRC}/libfswatch/lib
 	${CP} ${LOCALBASE}/lib/libfswatch.a ${WRKSRC}/libfswatch/lib/
@@ -53,130 +67,9 @@ project.
 97c99bb480ea3039b7d6724570d36109e5e14bf4c0bad9082d359271ffbddc05        20445 AdaCore-ada_libfswatch-94c0a5f.tar.gz
 
 
-[FILE:3105:manifests/plist.single]
-%%ONLY-DRAGONFLY%%include/ada_libfswatch/
- machine_stdint_h.ads
- sys_timespec_h.ads
- sys_utimespec_h.ads
- xlocale_utime_h.ads
-%%ONLY-DRAGONFLY%%lib/ada_libfswatch/
- machine_stdint_h.ali
- machine_stdint_h.o
- sys_timespec_h.ali
- sys_timespec_h.o
- sys_utimespec_h.ali
- sys_utimespec_h.o
- xlocale_utime_h.ali
- xlocale_utime_h.o
-%%ONLY-FREEBSD%%include/ada_libfswatch/
- sys_timespec_h.ads
- sys_utimespec_h.ads
- sys_utypes_h.ads
- x86_utypes_h.ads
- xlocale_utime_h.ads
-%%ONLY-FREEBSD%%lib/ada_libfswatch/
- sys_timespec_h.ali
- sys_timespec_h.o
- sys_utimespec_h.ali
- sys_utimespec_h.o
- sys_utypes_h.ali
- sys_utypes_h.o
- x86_utypes_h.ali
- x86_utypes_h.o
- xlocale_utime_h.ali
- xlocale_utime_h.o
-%%ONLY-LINUX%%include/ada_libfswatch/
- stddef_h.ads
- x86_64_linux_gnu_bits_types_h.ads
- xlocale_h.ads
-%%ONLY-LINUX%%lib/ada_libfswatch/
- stddef_h.ali
- stddef_h.o
- x86_64_linux_gnu_bits_types_h.ali
- x86_64_linux_gnu_bits_types_h.o
- xlocale_h.ali
- xlocale_h.o
-%%ONLY-MIDNIGHTBSD%%include/ada_libfswatch/
- sys_timespec_h.ads
- sys_utimespec_h.ads
- sys_utypes_h.ads
- x86_utypes_h.ads
- xlocale_utime_h.ads
-%%ONLY-MIDNIGHTBSD%%lib/ada_libfswatch/
- sys_timespec_h.ali
- sys_timespec_h.o
- sys_utimespec_h.ali
- sys_utimespec_h.o
- sys_utypes_h.ali
- sys_utypes_h.o
- x86_utypes_h.ali
- x86_utypes_h.o
- xlocale_utime_h.ali
- xlocale_utime_h.o
-%%ONLY-NETBSD%%include/ada_libfswatch/
- amd64_byte_swap_h.ads
- amd64_types_h.ads
- pthread_types_h.ads
- sys_ansi_h.ads
- sys_bswap_h.ads
- sys_cdefs_h.ads
- sys_common_int_mwgwtypes_h.ads
- sys_common_int_types_h.ads
- sys_endian_h.ads
- sys_fd_set_h.ads
- sys_idtype_h.ads
- sys_select_h.ads
- sys_sigtypes_h.ads
- sys_stdint_h.ads
- sys_time_h.ads
- sys_timespec_h.ads
- sys_types_h.ads
-%%ONLY-NETBSD%%lib/ada_libfswatch/
- amd64_byte_swap_h.ali
- amd64_byte_swap_h.o
- amd64_types_h.ali
- amd64_types_h.o
- pthread_types_h.ali
- pthread_types_h.o
- sys_ansi_h.ali
- sys_ansi_h.o
- sys_bswap_h.ali
- sys_bswap_h.o
- sys_cdefs_h.ali
- sys_cdefs_h.o
- sys_common_int_mwgwtypes_h.ali
- sys_common_int_mwgwtypes_h.o
- sys_common_int_types_h.ali
- sys_common_int_types_h.o
- sys_endian_h.ali
- sys_endian_h.o
- sys_fd_set_h.ali
- sys_fd_set_h.o
- sys_idtype_h.ali
- sys_idtype_h.o
- sys_select_h.ali
- sys_select_h.o
- sys_sigtypes_h.ali
- sys_sigtypes_h.o
- sys_stdint_h.ali
- sys_stdint_h.o
- sys_time_h.ali
- sys_time_h.o
- sys_timespec_h.ali
- sys_timespec_h.o
- sys_types_h.ali
- sys_types_h.o
-include/ada_libfswatch/
- cevent_h.ads
- cfilter_h.ads
- cmonitor_h.ads
- libfswatch-conversions.adb
- libfswatch-conversions.ads
- libfswatch.adb
- libfswatch.ads
- libfswatch_h.ads
- libfswatch_types_h.ads
- time_h.ads
+[FILE:374:manifests/plist.single]
+@comment auto-plist include/ada_libfswatch and lib/ada_libfswatch
+@comment The files are generated from system-specific headers
 include/c_libfswatch/
  cevent.h
  cfilter.h
@@ -185,23 +78,6 @@ include/c_libfswatch/
  libfswatch.h
  libfswatch_log.h
  libfswatch_types.h
-lib/ada_libfswatch/
- cevent_h.ali
- cevent_h.o
- cfilter_h.ali
- cfilter_h.o
- cmonitor_h.ali
- cmonitor_h.o
- libfswatch-conversions.ali
- libfswatch-conversions.o
- libfswatch.ali
- libfswatch.o
- libfswatch_h.ali
- libfswatch_h.o
- libfswatch_types_h.ali
- libfswatch_types_h.o
- time_h.ali
- time_h.o
 lib/c_libfswatch/libfswatch.a
 share/gpr/
  ada_libfswatch.gpr

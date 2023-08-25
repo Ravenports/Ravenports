@@ -137,10 +137,13 @@ do-build:
 		--interpreter ${PYTHON_CMD})
 
 pre-install-linux:
-	# for some reason compatibility ends at -manylinux_2_23_x86_64
-	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
-	rpds_py-0.9.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_24_x86_64.whl\
-	rpds_py-0.9.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_23_x86_64.whl)
+	# for some reason compatibility ends at -manylinux_2_23_x86_64 on
+	# ubuntu 16.04 sysroot
+	if [ -f "${INSTALL_WRKSRC}/target/wheels/rpds_py-0.9.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_24_x86_64.whl" ];\
+	then ${MV}\
+	  ${INSTALL_WRKSRC}/target/wheels/rpds_py-0.9.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_24_x86_64.whl\
+	  ${INSTALL_WRKSRC}/target/wheels/rpds_py-0.9.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_23_x86_64.whl;\
+	fi
 
 do-install:
 	# Due to upstream not supplying a setup.py file or other way to install
