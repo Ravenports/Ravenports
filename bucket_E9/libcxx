@@ -23,15 +23,13 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[all]=		error on segmented_iterator.h
-
 BUILD_DEPENDS=		python-Sphinx:single:python_default
 			llvm:dev:standard
 			llvm:tools:standard
 			llvm-libunwind:dev:standard
 BUILDRUN_DEPENDS=	llvm-libunwind:primary:standard
 
-USES=			cpe cmake cclibs:primary python:build
+USES=			cpe cmake cclibs:primary python:build clang
 
 DISTNAME=		llvm
 
@@ -46,23 +44,16 @@ CMAKE_BUILD_TYPE=	Release
 CPE_PRODUCT=		llvm
 CPE_VENDOR=		llvm
 
-CXXFLAGS=		-Wno-attributes
-			-Wno-deprecated-declarations
-			-Wno-empty-body
-			-Wno-shadow
+LDFLAGS=		-L{{LOCALBASE}}/lib
+			-Wl,-rpath,{{LOCALBASE}}/lib
 CMAKE_ARGS=		-DLLVM_HOST_TRIPLE:STRING="{{CONFIGURE_TARGET}}"
 			-DLLVM_ENABLE_SPHINX=ON
-			-DLIBCXX_CXX_ABI_LIBRARY_PATH={{WRKDIR}}/.build/lib
 			-DLIBCXX_INCLUDE_BENCHMARKS:BOOL=OFF
 			-DPython3_EXECUTABLE={{PYTHON_CMD}}
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libc++.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libc++abi.so
-
-pre-configure:
-	# ${REINPLACE_CMD} -e '/add_dependencies(cxx_static unwind)/d' \
-		${WRKSRC}/projects/libcxx/src/CMakeLists.txt
 
 post-extract:
 	${MKDIR} ${WRKSRC}/projects
@@ -120,35 +111,28 @@ lib/
  libc++abi.so.1.0
 
 
-[FILE:8525:manifests/plist.dev]
-lib/
- libc++abi.a
- libc++abi.so
+[FILE:14982:manifests/plist.dev]
 include/c++/v1/
+ __assert
  __availability
  __bit_reference
- __bits
  __bsd_locale_defaults.h
  __bsd_locale_fallbacks.h
  __config
  __config_site
  __debug
  __errc
- __functional_base
  __hash_table
- __libcpp_version
  __locale
  __mbstate_t.h
  __mutex_base
  __node_handle
- __nullptr
  __split_buffer
  __std_stream
- __string
  __threading_support
  __tree
- __tuple
  __undef_macros
+ __verbose_abort
  algorithm
  any
  array
@@ -188,12 +172,14 @@ include/c++/v1/
  ctgmath
  ctime
  ctype.h
+ cuchar
  cwchar
  cwctype
  deque
  errno.h
  exception
  execution
+ expected
  fenv.h
  filesystem
  float.h
@@ -211,6 +197,7 @@ include/c++/v1/
  istream
  iterator
  latch
+ libcxx.imp
  limits
  limits.h
  list
@@ -219,6 +206,7 @@ include/c++/v1/
  map
  math.h
  memory
+ memory_resource
  module.modulemap
  mutex
  new
@@ -236,9 +224,11 @@ include/c++/v1/
  set
  setjmp.h
  shared_mutex
+ source_location
  span
  sstream
  stack
+ stdatomic.h
  stdbool.h
  stddef.h
  stdexcept
@@ -257,6 +247,7 @@ include/c++/v1/
  type_traits
  typeindex
  typeinfo
+ uchar.h
  unordered_map
  unordered_set
  utility
@@ -277,6 +268,7 @@ include/c++/v1/__algorithm/
  copy.h
  copy_backward.h
  copy_if.h
+ copy_move_common.h
  copy_n.h
  count.h
  count_if.h
@@ -294,8 +286,11 @@ include/c++/v1/__algorithm/
  generate.h
  generate_n.h
  half_positive.h
+ in_found_result.h
+ in_fun_result.h
  in_in_out_result.h
  in_in_result.h
+ in_out_out_result.h
  in_out_result.h
  includes.h
  inplace_merge.h
@@ -306,14 +301,17 @@ include/c++/v1/__algorithm/
  is_sorted.h
  is_sorted_until.h
  iter_swap.h
+ iterator_operations.h
  lexicographical_compare.h
  lower_bound.h
  make_heap.h
+ make_projected.h
  max.h
  max_element.h
  merge.h
  min.h
  min_element.h
+ min_max_result.h
  minmax.h
  minmax_element.h
  mismatch.h
@@ -330,6 +328,92 @@ include/c++/v1/__algorithm/
  pop_heap.h
  prev_permutation.h
  push_heap.h
+ ranges_adjacent_find.h
+ ranges_all_of.h
+ ranges_any_of.h
+ ranges_binary_search.h
+ ranges_clamp.h
+ ranges_copy.h
+ ranges_copy_backward.h
+ ranges_copy_if.h
+ ranges_copy_n.h
+ ranges_count.h
+ ranges_count_if.h
+ ranges_equal.h
+ ranges_equal_range.h
+ ranges_fill.h
+ ranges_fill_n.h
+ ranges_find.h
+ ranges_find_end.h
+ ranges_find_first_of.h
+ ranges_find_if.h
+ ranges_find_if_not.h
+ ranges_for_each.h
+ ranges_for_each_n.h
+ ranges_generate.h
+ ranges_generate_n.h
+ ranges_includes.h
+ ranges_inplace_merge.h
+ ranges_is_heap.h
+ ranges_is_heap_until.h
+ ranges_is_partitioned.h
+ ranges_is_permutation.h
+ ranges_is_sorted.h
+ ranges_is_sorted_until.h
+ ranges_iterator_concept.h
+ ranges_lexicographical_compare.h
+ ranges_lower_bound.h
+ ranges_make_heap.h
+ ranges_max.h
+ ranges_max_element.h
+ ranges_merge.h
+ ranges_min.h
+ ranges_min_element.h
+ ranges_minmax.h
+ ranges_minmax_element.h
+ ranges_mismatch.h
+ ranges_move.h
+ ranges_move_backward.h
+ ranges_next_permutation.h
+ ranges_none_of.h
+ ranges_nth_element.h
+ ranges_partial_sort.h
+ ranges_partial_sort_copy.h
+ ranges_partition.h
+ ranges_partition_copy.h
+ ranges_partition_point.h
+ ranges_pop_heap.h
+ ranges_prev_permutation.h
+ ranges_push_heap.h
+ ranges_remove.h
+ ranges_remove_copy.h
+ ranges_remove_copy_if.h
+ ranges_remove_if.h
+ ranges_replace.h
+ ranges_replace_copy.h
+ ranges_replace_copy_if.h
+ ranges_replace_if.h
+ ranges_reverse.h
+ ranges_reverse_copy.h
+ ranges_rotate.h
+ ranges_rotate_copy.h
+ ranges_sample.h
+ ranges_search.h
+ ranges_search_n.h
+ ranges_set_difference.h
+ ranges_set_intersection.h
+ ranges_set_symmetric_difference.h
+ ranges_set_union.h
+ ranges_shuffle.h
+ ranges_sort.h
+ ranges_sort_heap.h
+ ranges_stable_partition.h
+ ranges_stable_sort.h
+ ranges_swap_ranges.h
+ ranges_transform.h
+ ranges_unique.h
+ ranges_unique_copy.h
+ ranges_upper_bound.h
  remove.h
  remove_copy.h
  remove_copy_if.h
@@ -359,26 +443,57 @@ include/c++/v1/__algorithm/
  stable_sort.h
  swap_ranges.h
  transform.h
+ uniform_random_bit_generator_adaptor.h
  unique.h
  unique_copy.h
  unwrap_iter.h
+ unwrap_range.h
  upper_bound.h
 include/c++/v1/__bit/
  bit_cast.h
+ bit_ceil.h
+ bit_floor.h
+ bit_log2.h
+ bit_width.h
+ blsr.h
  byteswap.h
+ countl.h
+ countr.h
+ endian.h
+ has_single_bit.h
+ popcount.h
+ rotate.h
 include/c++/v1/__charconv/
  chars_format.h
  from_chars_result.h
+ tables.h
+ to_chars_base_10.h
  to_chars_result.h
 include/c++/v1/__chrono/
  calendar.h
  convert_to_timespec.h
+ convert_to_tm.h
+ day.h
  duration.h
  file_clock.h
+ formatter.h
+ hh_mm_ss.h
  high_resolution_clock.h
+ literals.h
+ month.h
+ month_weekday.h
+ monthday.h
+ ostream.h
+ parser_std_format_spec.h
+ statically_widen.h
  steady_clock.h
  system_clock.h
  time_point.h
+ weekday.h
+ year.h
+ year_month.h
+ year_month_day.h
+ year_month_weekday.h
 include/c++/v1/__compare/
  common_comparison_category.h
  compare_partial_order_fallback.h
@@ -421,6 +536,12 @@ include/c++/v1/__coroutine/
  coroutine_traits.h
  noop_coroutine_handle.h
  trivial_awaitables.h
+include/c++/v1/__debug_utils/randomize_range.h
+include/c++/v1/__expected/
+ bad_expected_access.h
+ expected.h
+ unexpect.h
+ unexpected.h
 include/c++/v1/__filesystem/
  copy_options.h
  directory_entry.h
@@ -439,10 +560,18 @@ include/c++/v1/__filesystem/
  space_info.h
  u8path.h
 include/c++/v1/__format/
+ buffer.h
+ concepts.h
+ container_adaptor.h
+ enable_insertable.h
+ escaped_output_table.h
+ extended_grapheme_cluster_table.h
  format_arg.h
+ format_arg_store.h
  format_args.h
  format_context.h
  format_error.h
+ format_functions.h
  format_fwd.h
  format_parse_context.h
  format_string.h
@@ -453,9 +582,14 @@ include/c++/v1/__format/
  formatter_floating_point.h
  formatter_integer.h
  formatter_integral.h
+ formatter_output.h
  formatter_pointer.h
  formatter_string.h
+ formatter_tuple.h
  parser_std_format_spec.h
+ range_default_formatter.h
+ range_formatter.h
+ unicode.h
 include/c++/v1/__functional/
  binary_function.h
  binary_negate.h
@@ -464,6 +598,7 @@ include/c++/v1/__functional/
  bind_front.h
  binder1st.h
  binder2nd.h
+ boyer_moore_searcher.h
  compose.h
  default_searcher.h
  function.h
@@ -484,10 +619,23 @@ include/c++/v1/__functional/
  unary_negate.h
  unwrap_ref.h
  weak_result_type.h
+include/c++/v1/__fwd/
+ array.h
+ get.h
+ hash.h
+ memory_resource.h
+ pair.h
+ span.h
+ string.h
+ string_view.h
+ subrange.h
+ tuple.h
+include/c++/v1/__ios/fpos.h
 include/c++/v1/__iterator/
  access.h
  advance.h
  back_insert_iterator.h
+ bounded_iter.h
  common_iterator.h
  concepts.h
  counted_iterator.h
@@ -506,38 +654,60 @@ include/c++/v1/__iterator/
  iter_swap.h
  iterator.h
  iterator_traits.h
+ iterator_with_data.h
+ mergeable.h
  move_iterator.h
+ move_sentinel.h
  next.h
  ostream_iterator.h
  ostreambuf_iterator.h
+ permutable.h
  prev.h
  projected.h
  readable_traits.h
  reverse_access.h
  reverse_iterator.h
+ segmented_iterator.h
  size.h
+ sortable.h
  unreachable_sentinel.h
  wrap_iter.h
 include/c++/v1/__memory/
  addressof.h
+ align.h
+ allocate_at_least.h
  allocation_guard.h
  allocator.h
  allocator_arg_t.h
+ allocator_destructor.h
  allocator_traits.h
+ assume_aligned.h
  auto_ptr.h
+ builtin_new_allocator.h
  compressed_pair.h
  concepts.h
  construct_at.h
+ destruct_n.h
  pointer_traits.h
  ranges_construct_at.h
  ranges_uninitialized_algorithms.h
  raw_storage_iterator.h
  shared_ptr.h
+ swap_allocator.h
+ temp_value.h
  temporary_buffer.h
  uninitialized_algorithms.h
  unique_ptr.h
  uses_allocator.h
+ uses_allocator_construction.h
  voidify.h
+include/c++/v1/__memory_resource/
+ memory_resource.h
+ monotonic_buffer_resource.h
+ polymorphic_allocator.h
+ pool_options.h
+ synchronized_pool_resource.h
+ unsynchronized_pool_resource.h
 include/c++/v1/__numeric/
  accumulate.h
  adjacent_difference.h
@@ -569,6 +739,7 @@ include/c++/v1/__random/
  geometric_distribution.h
  independent_bits_engine.h
  is_seed_sequence.h
+ is_valid.h
  knuth_b.h
  linear_congruential_engine.h
  log2.h
@@ -592,6 +763,7 @@ include/c++/v1/__random/
 include/c++/v1/__ranges/
  access.h
  all.h
+ as_rvalue_view.h
  common_view.h
  concepts.h
  copyable_box.h
@@ -599,32 +771,43 @@ include/c++/v1/__ranges/
  dangling.h
  data.h
  drop_view.h
+ drop_while_view.h
+ elements_view.h
  empty.h
  empty_view.h
  enable_borrowed_range.h
  enable_view.h
+ filter_view.h
  iota_view.h
+ istream_view.h
  join_view.h
+ lazy_split_view.h
  non_propagating_cache.h
  owning_view.h
  range_adaptor.h
+ rbegin.h
  ref_view.h
+ rend.h
  reverse_view.h
  single_view.h
  size.h
+ split_view.h
  subrange.h
  take_view.h
+ take_while_view.h
  transform_view.h
  view_interface.h
  views.h
+ zip_view.h
+include/c++/v1/__string/
+ char_traits.h
+ extern_template_lists.h
 include/c++/v1/__support/android/locale_bionic.h
 include/c++/v1/__support/fuchsia/xlocale.h
 include/c++/v1/__support/ibm/
  gettod_zos.h
- limits.h
  locale_mgmt_zos.h
  nanosleep.h
- support.h
  xlocale.h
 include/c++/v1/__support/musl/xlocale.h
 include/c++/v1/__support/newlib/xlocale.h
@@ -633,9 +816,7 @@ include/c++/v1/__support/solaris/
  floatingpoint.h
  wchar.h
  xlocale.h
-include/c++/v1/__support/win32/
- limits_msvc_win32.h
- locale_win32.h
+include/c++/v1/__support/win32/locale_win32.h
 include/c++/v1/__support/xlocale/
  __nop_locale_mgmt.h
  __posix_l_fallback.h
@@ -643,13 +824,158 @@ include/c++/v1/__support/xlocale/
 include/c++/v1/__thread/
  poll_with_backoff.h
  timed_backoff_policy.h
+include/c++/v1/__tuple_dir/
+ apply_cv.h
+ make_tuple_types.h
+ pair_like.h
+ sfinae_helpers.h
+ tuple_element.h
+ tuple_indices.h
+ tuple_like.h
+ tuple_like_ext.h
+ tuple_size.h
+ tuple_types.h
+include/c++/v1/__type_traits/
+ add_const.h
+ add_cv.h
+ add_lvalue_reference.h
+ add_pointer.h
+ add_rvalue_reference.h
+ add_volatile.h
+ aligned_storage.h
+ aligned_union.h
+ alignment_of.h
+ apply_cv.h
+ can_extract_key.h
+ common_reference.h
+ common_type.h
+ conditional.h
+ conjunction.h
+ copy_cv.h
+ copy_cvref.h
+ decay.h
+ dependent_type.h
+ disjunction.h
+ enable_if.h
+ extent.h
+ has_unique_object_representation.h
+ has_virtual_destructor.h
+ integral_constant.h
+ is_abstract.h
+ is_aggregate.h
+ is_allocator.h
+ is_always_bitcastable.h
+ is_arithmetic.h
+ is_array.h
+ is_assignable.h
+ is_base_of.h
+ is_bounded_array.h
+ is_callable.h
+ is_char_like_type.h
+ is_class.h
+ is_compound.h
+ is_const.h
+ is_constant_evaluated.h
+ is_constructible.h
+ is_convertible.h
+ is_copy_assignable.h
+ is_copy_constructible.h
+ is_core_convertible.h
+ is_default_constructible.h
+ is_destructible.h
+ is_empty.h
+ is_enum.h
+ is_final.h
+ is_floating_point.h
+ is_function.h
+ is_fundamental.h
+ is_implicitly_default_constructible.h
+ is_integral.h
+ is_literal_type.h
+ is_member_function_pointer.h
+ is_member_object_pointer.h
+ is_member_pointer.h
+ is_move_assignable.h
+ is_move_constructible.h
+ is_nothrow_assignable.h
+ is_nothrow_constructible.h
+ is_nothrow_convertible.h
+ is_nothrow_copy_assignable.h
+ is_nothrow_copy_constructible.h
+ is_nothrow_default_constructible.h
+ is_nothrow_destructible.h
+ is_nothrow_move_assignable.h
+ is_nothrow_move_constructible.h
+ is_null_pointer.h
+ is_object.h
+ is_pod.h
+ is_pointer.h
+ is_polymorphic.h
+ is_primary_template.h
+ is_reference.h
+ is_reference_wrapper.h
+ is_referenceable.h
+ is_same.h
+ is_scalar.h
+ is_scoped_enum.h
+ is_signed.h
+ is_signed_integer.h
+ is_specialization.h
+ is_standard_layout.h
+ is_swappable.h
+ is_trivial.h
+ is_trivially_assignable.h
+ is_trivially_constructible.h
+ is_trivially_copy_assignable.h
+ is_trivially_copy_constructible.h
+ is_trivially_copyable.h
+ is_trivially_default_constructible.h
+ is_trivially_destructible.h
+ is_trivially_move_assignable.h
+ is_trivially_move_constructible.h
+ is_unbounded_array.h
+ is_union.h
+ is_unsigned.h
+ is_unsigned_integer.h
+ is_valid_expansion.h
+ is_void.h
+ is_volatile.h
+ lazy.h
+ make_32_64_or_128_bit.h
+ make_const_lvalue_ref.h
+ make_signed.h
+ make_unsigned.h
+ maybe_const.h
+ nat.h
+ negation.h
+ noexcept_move_assign_container.h
+ promote.h
+ rank.h
+ remove_all_extents.h
+ remove_const.h
+ remove_const_ref.h
+ remove_cv.h
+ remove_cvref.h
+ remove_extent.h
+ remove_pointer.h
+ remove_reference.h
+ remove_volatile.h
+ result_of.h
+ strip_signature.h
+ type_identity.h
+ type_list.h
+ underlying_type.h
+ void_t.h
 include/c++/v1/__utility/
  as_const.h
  auto_cast.h
  cmp.h
+ convert_to_integral.h
  declval.h
+ exception_guard.h
  exchange.h
  forward.h
+ forward_like.h
  in_place.h
  integer_sequence.h
  move.h
@@ -659,7 +985,7 @@ include/c++/v1/__utility/
  rel_ops.h
  swap.h
  to_underlying.h
- transaction.h
+ unreachable.h
 include/c++/v1/__variant/monostate.h
 include/c++/v1/ext/
  __hash
@@ -668,6 +994,8 @@ include/c++/v1/ext/
 lib/
  libc++.a
  libc++.so
+ libc++abi.a
+ libc++abi.so
 
 
 [FILE:45:manifests/plist.abi]
@@ -676,14 +1004,13 @@ include/c++/v1/
  cxxabi.h
 
 
-[FILE:282:manifests/plist.experimental]
+[FILE:270:manifests/plist.experimental]
 include/c++/v1/experimental/
  __config
  __memory
  algorithm
  coroutine
  deque
- filesystem
  forward_list
  functional
  iterator
@@ -863,6 +1190,6 @@ set(LIBCXXABI_LIBCXX_PATH "${PRJDIR}/libcxx")
 set(LIBCXX_CXX_ABI_INCLUDE_PATHS "${PRJDIR}/libcxxabi/include")
 set(LIBCXXABI_USE_LLVM_UNWINDER TRUE)
 
-add_subdirectory(projects/libcxx)
 add_subdirectory(projects/libcxxabi)
+add_subdirectory(projects/libcxx)
 

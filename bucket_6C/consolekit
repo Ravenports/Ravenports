@@ -2,6 +2,7 @@
 
 NAMEBASE=		consolekit
 VERSION=		1.2.6
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	Framework for defining and tracking users
@@ -9,18 +10,18 @@ HOMEPAGE=		https://github.com/ConsoleKit2/ConsoleKit2
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		GITHUB/ConsoleKit2:ConsoleKit2:1.2.6
+SITES[main]=		GITHUB/arrowd:ConsoleKit2:3ead222
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
 			dev
-			docs
 			man
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	X11
+OPTIONS_STANDARD=	X11
+OPT_ON[all]=		X11
 
 BUILD_DEPENDS=		dbus:dev:standard
 			libdrm:dev:standard
@@ -30,12 +31,8 @@ BUILDRUN_DEPENDS=	dbus:primary:standard
 			openpam:single:standard
 			polkit:primary:standard
 
-USES=			autoreconf:build gmake libtool pkgconfig zlib
-			gtk-doc
+USES=			autoreconf gmake libtool pkgconfig zlib
 GNOME_COMPONENTS=	glib libxslt introspection
-XORG_COMPONENTS=	x11
-
-DISTNAME=		ConsoleKit2-1.2.6
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -45,7 +42,6 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/ck-session.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		sysutils/consolekit2
-GTKDOC_OUTPUT_BASEDIR=	libconsolekit-1.0
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-pid-file=/var/run/consolekit.pid
@@ -54,7 +50,7 @@ CONFIGURE_ARGS=		--with-pid-file=/var/run/consolekit.pid
 			--localstatedir=/var
 			--enable-polkit
 			--enable-introspection
-			--enable-gtk-doc
+			--enable-libdrm
 			--disable-udev-acl
 			--disable-libcgmanager
 			--disable-libevdev
@@ -62,14 +58,26 @@ CONFIGURE_ARGS=		--with-pid-file=/var/run/consolekit.pid
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
+PLIST_SUB=		X11_SCRIPTS={{X11_SCRIPTS:U"@comment "}}
 
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=X11_SCRIPTS=
 VAR_OPSYS[sunos]=	CPPFLAGS=-DO_CLOEXEC=0
 			LDFLAGS=-lintl
+VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=X11_SCRIPTS=
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=X11_SCRIPTS=
+
+[X11].CONFIGURE_WITH_BOTH=		x
+[X11].XORG_COMPONENTS_ON=		x11
+
+post-install:
+.for script in hibernate hybridsleep restart stop suspend
+	(cd ${STAGEDIR}${PREFIX}/lib/ConsoleKit/scripts && \
+		${MV} ck-system-${script} ck-system-${script}.sample)
+.endfor
 
 pre-configure:
 	${REINPLACE_CMD} -e "s|http://www.oasis-open.org/docbook/xml/|file://${LOCALBASE}/share/xml/docbook/|" \
 		${WRKSRC}/doc/libconsolekit/libconsolekit-docs.xml
-	cd ${WRKSRC} && ${SETENV} NOCONFIGURE=1 ${SH} ./autogen.sh
 
 [FILE:438:descriptions/desc.primary]
 ConsoleKit is a framework for defining and tracking users, login sessions, 
@@ -82,45 +90,21 @@ ConsoleKit2 is a fork of the ConsoleKit since that is no longer maintained
 (freedesktop chose to use logind instead).
 
 
-[FILE:115:distinfo]
-d41224129c5a689469ebd8fe87e34c4a76afdb7b2f6201eb246320262ea5a942       258252 ConsoleKit2-ConsoleKit2-1.2.6.tar.gz
+[FILE:112:distinfo]
+82e33069d903157b693f372d0f773c2345ecceccafa72131846cf15f42d4a401       260393 arrowd-ConsoleKit2-3ead222.tar.gz
 
 
-[FILE:1844:manifests/plist.primary]
-%%ONLY-FREEBSD%%lib/ConsoleKit/scripts/
+[FILE:1454:manifests/plist.primary]
+@sample lib/ConsoleKit/scripts/ck-system-hibernate.sample
+@sample lib/ConsoleKit/scripts/ck-system-hybridsleep.sample
+@sample lib/ConsoleKit/scripts/ck-system-restart.sample
+@sample lib/ConsoleKit/scripts/ck-system-stop.sample
+@sample lib/ConsoleKit/scripts/ck-system-suspend.sample
+%%X11-ON%%@(,,4755) libexec/ck-get-x11-display-device
+%%X11-ON%%libexec/ck-get-x11-server-pid
+%%X11_SCRIPTS%%lib/ConsoleKit/scripts/
  ck-get-x11-display-device
  ck-get-x11-server-pid
- ck-system-hibernate
- ck-system-hybridsleep
- ck-system-restart
- ck-system-stop
- ck-system-suspend
-%%ONLY-LINUX%%lib/ConsoleKit/scripts/
- ck-system-hibernate
- ck-system-hybridsleep
- ck-system-restart
- ck-system-stop
- ck-system-suspend
-%%ONLY-MIDNIGHTBSD%%lib/ConsoleKit/scripts/
- ck-get-x11-display-device
- ck-get-x11-server-pid
- ck-system-hibernate
- ck-system-hybridsleep
- ck-system-restart
- ck-system-stop
- ck-system-suspend
-%%ONLY-NETBSD%%lib/ConsoleKit/scripts/
- ck-system-hibernate
- ck-system-hybridsleep
- ck-system-restart
- ck-system-stop
- ck-system-suspend
-%%ONLY-SUNOS%%lib/ConsoleKit/scripts/
- ck-system-hibernate
- ck-system-hybridsleep
- ck-system-restart
- ck-system-stop
- ck-system-suspend
 bin/
  ck-history
  ck-launch-session
@@ -137,8 +121,6 @@ lib/
  pam_ck_connector.so
 libexec/
  ck-collect-session-info
-@(,,4755) libexec/ck-get-x11-display-device
- ck-get-x11-server-pid
  ck-remove-directory
 sbin/
  ck-log-system-restart
@@ -176,26 +158,6 @@ lib/pkgconfig/
 share/gir-1.0/libconsolekit-1.0.gir
 
 
-[FILE:308:manifests/plist.docs]
-share/doc/consolekit/
- annotation-glossary.html
- api-index-1.0.html
- api-index-1.2.html
- api-index-deprecated.html
- api-index-full.html
- ch01.html
- home.png
- index.html
- left-insensitive.png
- left.png
- libconsolekit-libconsolekit.html
- right-insensitive.png
- right.png
- style.css
- up-insensitive.png
- up.png
-
-
 [FILE:143:manifests/plist.man]
 share/man/man1/
  ck-history.1.gz
@@ -214,9 +176,9 @@ share/locale/ru/LC_MESSAGES/ConsoleKit2.mo
 
 
 [FILE:423:patches/patch-configure.ac]
---- configure.ac.orig	2023-08-08 16:55:45 UTC
+--- configure.ac.orig	2023-08-11 16:26:44 UTC
 +++ configure.ac
-@@ -197,7 +197,7 @@ case "$host" in
+@@ -201,7 +201,7 @@ case "$host" in
                  KVM_LIBS="-lkvm"
          fi
          ;;
@@ -225,4 +187,80 @@ share/locale/ru/LC_MESSAGES/ConsoleKit2.mo
          CK_BACKEND="freebsd"
          AC_CHECK_LIB(kvm, kvm_openfiles, have_kvm=yes,
                  AC_MSG_ERROR([Unable to find libkvm which is needed on FreeBSD/DragonflyBSD]))
+
+
+[FILE:191:patches/patch-doc_Makefile.am]
+--- doc/Makefile.am.orig	2023-08-11 16:26:44 UTC
++++ doc/Makefile.am
+@@ -1,4 +1,4 @@
+-SUBDIRS = dbus libconsolekit
++SUBDIRS = dbus
+ 
+ manpagedir = $(mandir)/man1
+ manpage_DATA =            \
+
+
+[FILE:863:patches/patch-hibernate]
+From 961c1de02ebcdc7279f2a8d95d87598189978bdf Mon Sep 17 00:00:00 2001
+From: Gleb Popov <6yearold@gmail.com>
+Date: Tue, 4 Jul 2023 09:49:18 +0300
+Subject: [PATCH] Allow calls to CanSuspendThenHibernate
+
+---
+ data/ConsoleKit.conf | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- data/ConsoleKit.conf.orig	2023-08-11 16:26:44 UTC
++++ data/ConsoleKit.conf
+@@ -56,6 +56,9 @@
+            send_member="CanSuspend"/>
+     <allow send_destination="org.freedesktop.ConsoleKit"
+            send_interface="org.freedesktop.ConsoleKit.Manager"
++           send_member="CanSuspendThenHibernate"/>
++    <allow send_destination="org.freedesktop.ConsoleKit"
++           send_interface="org.freedesktop.ConsoleKit.Manager"
+            send_member="Hibernate"/>
+     <allow send_destination="org.freedesktop.ConsoleKit"
+            send_interface="org.freedesktop.ConsoleKit.Manager"
+
+
+[FILE:233:patches/patch-libconsolekit_sd-compat.c]
+--- libconsolekit/sd-compat.c.orig	2023-08-11 16:26:44 UTC
++++ libconsolekit/sd-compat.c
+@@ -38,6 +38,7 @@
+ #include <sys/event.h>
+ #endif
+ 
++#include <stdint.h>
+ #include <glib.h>
+ #include <glib-object.h>
+ #include <glib/gstdio.h>
+
+
+[FILE:182:patches/patch-libconsolekit_sd-login.h]
+--- libconsolekit/sd-login.h.orig	2023-08-11 16:26:44 UTC
++++ libconsolekit/sd-login.h
+@@ -1,5 +1,6 @@
+ #pragma once
+ 
++#include <stdint.h>
+ #include <sys/types.h>
+ 
+ typedef struct
+
+
+[FILE:245:patches/patch-tools_Makefile.am]
+--- tools/Makefile.am.orig	2023-08-11 16:26:44 UTC
++++ tools/Makefile.am
+@@ -14,6 +14,10 @@ if CK_COMPILE_FREEBSD
+ SUBDIRS += freebsd
+ endif
+ 
++if CK_COMPILE_DRAGONFLY
++SUBDIRS += freebsd
++endif
++
+ if CK_COMPILE_NETBSD
+ SUBDIRS += netbsd
+ endif
 
