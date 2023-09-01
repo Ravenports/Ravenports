@@ -48,8 +48,8 @@ RUBY_3.2_VERSION=	3.2.2
 
 PYTHON3_DEFAULT?=	3.10
 
-PYTHON_3.10_VERSION=	3.10.12
-PYTHON_3.11_VERSION=	3.11.4
+PYTHON_3.10_VERSION=	3.10.13
+PYTHON_3.11_VERSION=	3.11.5
 
 #-------------------------------------------------------------------------
 # SSL
@@ -128,8 +128,8 @@ MYSQL_mariadb-11_VERSION=	11.1.2
 PHP_DEFAULT?=		8.1
 
 PHP_8.0_VERSION=	8.0.30
-PHP_8.1_VERSION=	8.1.22
-PHP_8.2_VERSION=	8.2.9
+PHP_8.1_VERSION=	8.1.23
+PHP_8.2_VERSION=	8.2.10
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
