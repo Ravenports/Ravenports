@@ -2,6 +2,7 @@
 
 NAMEBASE=		nodejs
 VERSION=		20.5.1
+REVISION=		1
 KEYWORDS=		www lang
 VARIANTS=		standard
 SDESC[standard]=	Evented I/O for V8 JavaScript
@@ -18,16 +19,18 @@ SPKGS[standard]=	complete
 			man
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SYSTEM SMALL_EMBED NO_SUPPORT
+OPTIONS_STANDARD=	SYSTEM SMALL_EMBED NO_SUPPORT
+OPTGROUP_RADIO=		ICU_OPTIONS
+OPTDESCR[ICU_OPTIONS]=	Support for Unicode
+OPTGROUP[ICU_OPTIONS]=	SYSTEM SMALL_EMBED NO_SUPPORT
+OPT_ON[all]=		SMALL_EMBED
 
 BROKEN[sunos]=		The ld.sun linker does not support required options
 
 BUILD_DEPENDS=		libnghttp2:dev:standard
-			icu:dev:standard
 			libuv:dev:standard
-BUILDRUN_DEPENDS=	icu:primary:standard
-			libuv:primary:standard
+BUILDRUN_DEPENDS=	libuv:primary:standard
 			libnghttp2:primary:standard
 
 USES=			execinfo gmake python:build pkgconfig shebangfix cpe
@@ -51,7 +54,6 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}
 			--shared-libuv
 			--shared-zlib
 			--shared-nghttp2
-			--with-intl=system-icu
 
 MAKE_ENV=		CC.host={{CC}}
 			CXX.host={{CXX}}
@@ -63,6 +65,18 @@ INSTALL_REQ_TOOLCHAIN=	yes
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--dest-os=netbsd
 			CONFIGURE_ARGS=--experimental-enable-pointer-compression
 VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--dest-os=freebsd
+
+[SYSTEM].DESCRIPTION=			Link with installed ICU library
+[SYSTEM].BUILDRUN_DEPENDS_ON=		icu:primary:standard
+[SYSTEM].BUILD_DEPENDS_ON=		icu:dev:standard
+[SYSTEM].CONFIGURE_ARGS_ON=		--with-intl=system-icu
+
+[NO_SUPPORT].DESCRIPTION=		Build node without ICU support
+[NO_SUPPORT].CONFIGURE_ARGS_ON=		--with-intl=none
+
+[SMALL_EMBED].DESCRIPTION=		Embed a limited set of ICU data
+[SMALL_EMBED].CONFIGURE_ARGS_ON=	--with-intl=small-icu
+[SMALL_EMBED].USES_ON=			c++:primary
 
 post-configure-netbsd:
 	# Fixes "Fatal process OOM in Failed to reserve virtual memory for CodeRange" error

@@ -64,6 +64,8 @@ PLIST_SUB=		PMICONSOLE_SOVERSION=2.3.6
 			PMIDETECT_SOVERSION=0.0.1
 			PMIDETECT_SOMAJOR=0
 
+VAR_OPSYS[freebsd]=	CFLAGS=-D_WANT_SEMUN
+
 post-install:
 	${MKDIR} -m 0700 -p \
 		${STAGEDIR}/var/db/freeipmi/ipmimonitoringsdrcache \
@@ -533,14 +535,16 @@ share/man/man8/
  
 
 
-[FILE:232:patches/patch-ipmi-oem-ipmi-oem.h]
+[FILE:265:patches/patch-ipmi-oem-ipmi-oem.h]
 --- ipmi-oem/ipmi-oem.h.orig	2023-06-05 22:58:26 UTC
 +++ ipmi-oem/ipmi-oem.h
-@@ -20,6 +20,7 @@
+@@ -20,6 +20,9 @@
  #define IPMI_OEM_H
  
  #include <freeipmi/freeipmi.h>
++#if !defined(__linux__)
 +#include <sys/limits.h>
++#endif
  
  #include "tool-cmdline-common.h"
  #include "pstdout.h"
