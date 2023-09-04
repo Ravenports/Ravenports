@@ -2,6 +2,7 @@
 
 NAMEBASE=		libusb
 VERSION=		1.0.26
+REVISION=		1
 KEYWORDS=		sysutils devel
 VARIANTS=		standard
 SDESC[standard]=	Cross-platform user library to access USB devices
@@ -12,14 +13,23 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/libusb:libusb:v1.0.26
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 ONLY_FOR_OPSYS=		linux netbsd openbsd darwin
 
-USES=			autoreconf libtool pkgconfig cclibs:single
+USES=			autoreconf libtool pkgconfig cclibs:primary
+
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"LIBUSB_H"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/libusb/libusb.h
+LICENSE_SCHEME=		solo
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-udev=no
@@ -27,7 +37,7 @@ CONFIGURE_ARGS=		--enable-udev=no
 INSTALL_TARGET=		install-strip
 SOVERSION=		0.3.0
 
-[FILE:624:descriptions/desc.single]
+[FILE:624:descriptions/desc.primary]
 libusb is a C library that provides generic access to USB devices. It is
 intended to be used by developers to facilitate the production of
 applications that communicate with USB hardware.
@@ -49,12 +59,16 @@ Linux, OS X, Windows, Windows CE, Android, OpenBSD/NetBSD, Haiku.
 a09bff99c74e03e582aa30759cada218ea8fa03580517e52d463c59c0b25e240       383856 libusb-libusb-1.0.26.tar.gz
 
 
-[FILE:146:manifests/plist.single]
+[FILE:61:manifests/plist.primary]
+lib/
+ libusb-1.0.so.%%SOMAJOR%%
+ libusb-1.0.so.%%SOVERSION%%
+
+
+[FILE:90:manifests/plist.dev]
 include/libusb-1.0/libusb.h
 lib/
  libusb-1.0.a
  libusb-1.0.so
- libusb-1.0.so.%%SOMAJOR%%
- libusb-1.0.so.%%SOVERSION%%
 lib/pkgconfig/libusb-1.0.pc
 
