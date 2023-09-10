@@ -44,8 +44,8 @@ MAKE_ARGS=		STRIP="{{STRIP_CMD}}"
 
 VAR_OPSYS[sunos]=	CPPFLAGS=-D_XOPEN_SOURCE=600
 
-post-patch:
-	${REINPLACE_CMD} -e 's/-Os //; /=.*-fexcess-precision/d' \
+pre-configure:
+	${REINPLACE_CMD} -e 's/-Os //' \
 		-e '/sed/{s/-i/& ""/; s/i \\/&\\"$$'"'\\\n'"'"/; s/%"/&$$'"'\\\012'"'/;}' \
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e '/SHARED/,/^$$/ { /STRIP/s/-x //; }' \
@@ -87,8 +87,8 @@ bin/
  timelineeditor
 
 
-[FILE:221:patches/patch-configure]
---- configure.orig	2023-07-30 19:24:45 UTC
+[FILE:561:patches/patch-configure]
+--- configure.orig	2023-04-06 19:10:47 UTC
 +++ configure
 @@ -282,7 +282,7 @@ if test -n "$DEBUG"; then
      CFLAGS="$CFLAGS -g3 -O0"
@@ -99,4 +99,14 @@ bin/
  fi
  
  
+@@ -290,9 +290,6 @@ if ! cc_check "$CFLAGS" "$LDFLAGS"; then
+     error_exit "invalid CFLAGS/LDFLAGS"
+ fi
+ 
+-if cc_check "$CFLAGS -fexcess-precision=fast" "$LDFLAGS"; then
+-    CFLAGS="$CFLAGS -fexcess-precision=fast"
+-fi
+ 
+ if cc_check "$CFLAGS" "$LDFLAGS -Wl,--large-address-aware"; then
+     LDFLAGS="$LDFLAGS -Wl,--large-address-aware"
 

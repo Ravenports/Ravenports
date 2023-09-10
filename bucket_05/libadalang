@@ -2,7 +2,7 @@
 
 NAMEBASE=		libadalang
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		lang devel
 VARIANTS=		standard
@@ -11,7 +11,7 @@ HOMEPAGE=		https://github.com/AdaCore/libadalang
 CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		GITHUB/AdaCore:libadalang:v23.0.0
+SITES[main]=		GITHUB/AdaCore:libadalang:a7a7369
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
@@ -20,13 +20,14 @@ OPTIONS_AVAILABLE=	DEBUG
 OPTIONS_STANDARD=	DEBUG
 
 BUILDRUN_DEPENDS=	langkit:single:standard
+			libgpr2:single:standard
 			gnatcoll-bindings:gmp:standard
 
 USES=			gprbuild iconv:build python:build ada:single
 
 LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
-LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
+LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/extensions/src/libadalang-auto_provider.ads
 LICENSE_SCHEME=		solo
@@ -43,6 +44,7 @@ SET_DEBUGGING_ON=	yes
 OPTIMIZER_LEVEL=	0
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
+VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -62,7 +64,7 @@ do-install:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} manage.py install\
 		${MAKE_ARGS:NDESTDIR=*} ${STAGEDIR}${PREFIX})
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/[gn]*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/[n]*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_parse
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libadalang.relocatable/libadalang.so
 	${SED} -i'' -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
@@ -70,8 +72,7 @@ do-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 	${RM} -r ${STAGEDIR}${PREFIX}/share/examples/libadalang
 	${RM} ${STAGEDIR}${PREFIX}/python/setup.py
-	# override generated gpr with our own
-	${INSTALL_DATA} ${FILESDIR}/libadalang.gpr ${STAGEDIR}${PREFIX}/share/gpr
+	${RMDIR} ${STAGEDIR}${PREFIX}/lib/windows
 
 [FILE:853:descriptions/desc.single]
 Libadalang is a project to build a high performance semantic engine for
@@ -90,19 +91,18 @@ code, such as IDEs. Its goals encompass, but are not limited to:
 * Incremental processing of source files.
 
 
-[FILE:111:distinfo]
-0655d2eb755b9789ebf2b1ecfe5189bd64a5a80471d008a2e7ad0e58b9b35350      2604724 AdaCore-libadalang-23.0.0.tar.gz
+[FILE:112:distinfo]
+c70c6fef65dedda4112be3918cadaacdd588b5cd538192e8f0e3023bbf65f582      2751479 AdaCore-libadalang-a7a7369.tar.gz
 
 
-[FILE:5834:manifests/plist.single]
+[FILE:5890:manifests/plist.single]
 bin/
- gnat_compare
+ lal_dda
  lal_parse
  lal_playground
  lal_prep
  nameres
  navigate
-include/libadalang.h
 include/libadalang/
  libadalang-analysis.adb
  libadalang-analysis.ads
@@ -116,6 +116,8 @@ include/libadalang/
  libadalang-config_pragmas.ads
  libadalang-config_pragmas_impl.adb
  libadalang-config_pragmas_impl.ads
+ libadalang-data_decomposition.adb
+ libadalang-data_decomposition.ads
  libadalang-debug.adb
  libadalang-debug.ads
  libadalang-doc_utils.adb
@@ -127,6 +129,8 @@ include/libadalang/
  libadalang-generic_api-introspection.ads
  libadalang-generic_api.adb
  libadalang-generic_api.ads
+ libadalang-gpr_utils.adb
+ libadalang-gpr_utils.ads
  libadalang-helpers.adb
  libadalang-helpers.ads
  libadalang-implementation-c-extensions.adb
@@ -139,10 +143,6 @@ include/libadalang/
  libadalang-implementation.ads
  libadalang-internal_default_provider.adb
  libadalang-internal_default_provider.ads
- libadalang-introspection.adb
- libadalang-introspection.ads
- libadalang-introspection_implementation.adb
- libadalang-introspection_implementation.ads
  libadalang-iterators-extensions.adb
  libadalang-iterators-extensions.ads
  libadalang-iterators.adb
@@ -161,6 +161,7 @@ include/libadalang/
  libadalang-pp_lexer.ads
  libadalang-preprocessing.adb
  libadalang-preprocessing.ads
+ libadalang-private_converters.adb
  libadalang-private_converters.ads
  libadalang-project_provider.adb
  libadalang-project_provider.ads
@@ -175,6 +176,12 @@ include/libadalang/
  libadalang-unparsing.adb
  libadalang-unparsing.ads
  libadalang.ads
+ libadalang.h
+java/
+ Makefile
+ pom.xml
+java/jni/jni_impl.c
+java/src/main/java/com/adacore/libadalang/Libadalang.java
 lib/libadalang.so
 lib/libadalang.relocatable/
  libadalang-analysis.ali
@@ -183,20 +190,20 @@ lib/libadalang.relocatable/
  libadalang-common.ali
  libadalang-config_pragmas.ali
  libadalang-config_pragmas_impl.ali
+ libadalang-data_decomposition.ali
  libadalang-debug.ali
  libadalang-doc_utils.ali
  libadalang-env_hooks.ali
  libadalang-expr_eval.ali
  libadalang-generic_api-introspection.ali
  libadalang-generic_api.ali
+ libadalang-gpr_utils.ali
  libadalang-helpers.ali
  libadalang-implementation-c-extensions.ali
  libadalang-implementation-c.ali
  libadalang-implementation-extensions.ali
  libadalang-implementation.ali
  libadalang-internal_default_provider.ali
- libadalang-introspection.ali
- libadalang-introspection_implementation.ali
  libadalang-iterators-extensions.ali
  libadalang-iterators.ali
  libadalang-lexer.ali
@@ -222,20 +229,20 @@ lib/libadalang.static/
  libadalang-common.ali
  libadalang-config_pragmas.ali
  libadalang-config_pragmas_impl.ali
+ libadalang-data_decomposition.ali
  libadalang-debug.ali
  libadalang-doc_utils.ali
  libadalang-env_hooks.ali
  libadalang-expr_eval.ali
  libadalang-generic_api-introspection.ali
  libadalang-generic_api.ali
+ libadalang-gpr_utils.ali
  libadalang-helpers.ali
  libadalang-implementation-c-extensions.ali
  libadalang-implementation-c.ali
  libadalang-implementation-extensions.ali
  libadalang-implementation.ali
  libadalang-internal_default_provider.ali
- libadalang-introspection.ali
- libadalang-introspection_implementation.ali
  libadalang-iterators-extensions.ali
  libadalang-iterators.ali
  libadalang-lexer.ali
@@ -261,20 +268,20 @@ lib/libadalang.static-pic/
  libadalang-common.ali
  libadalang-config_pragmas.ali
  libadalang-config_pragmas_impl.ali
+ libadalang-data_decomposition.ali
  libadalang-debug.ali
  libadalang-doc_utils.ali
  libadalang-env_hooks.ali
  libadalang-expr_eval.ali
  libadalang-generic_api-introspection.ali
  libadalang-generic_api.ali
+ libadalang-gpr_utils.ali
  libadalang-helpers.ali
  libadalang-implementation-c-extensions.ali
  libadalang-implementation-c.ali
  libadalang-implementation-extensions.ali
  libadalang-implementation.ali
  libadalang-internal_default_provider.ali
- libadalang-introspection.ali
- libadalang-introspection_implementation.ali
  libadalang-iterators-extensions.ali
  libadalang-iterators.ali
  libadalang-lexer.ali
@@ -303,67 +310,6 @@ python/libadalang/
  __init__.py
  py.typed
 share/gpr/libadalang.gpr
-
-
-[FILE:1615:files/libadalang.gpr]
-with "langkit_support";
-with "gnatcoll_iconv";
-with "gnatcoll_gmp";
-with "gpr";
-with "xmlada_schema";
-with "xmlada_dom";
-with "xmlada_sax";
-with "xmlada_input_sources";
-with "xmlada_unicode";
-with "gnatcoll";
-
-library project Libadalang is
-   type BUILD_KIND is ("static", "static-pic", "relocatable");
-   BUILD : BUILD_KIND := external("LIBADALANG_LIBRARY_TYPE", external("LIBRARY_TYPE", "static-pic"));
-
-   for Languages use ("Ada", "C");
-
-   case BUILD is		 
-      when "static" =>
-         for Source_Dirs use ("../../include/libadalang");
-         for Library_Dir use "../../lib/libadalang.static";
-         for Library_Kind use "static";
-      when "static-pic" =>
-         for Source_Dirs use ("../../include/libadalang");
-         for Library_Dir use "../../lib/libadalang.static-pic";
-         for Library_Kind use "static-pic";
-      when "relocatable" =>
-         for Source_Dirs use ("../../include/libadalang");
-         for Library_Dir use "../../lib/libadalang.relocatable";
-         for Library_Kind use "relocatable";
-   end case;
-
-   for Library_Name use "adalang";
-
-   package Naming is
-      for dot_replacement use "-";
-      for casing use "lowercase";
-      for body_suffix ("c") use ".c";
-      for body_suffix ("ada") use ".adb";
-      for spec_suffix ("c") use ".h";
-      for spec_suffix ("ada") use ".ads";
-   end Naming;
-
-   package Linker is
-      null;
-   end Linker;
-
-   package Install is
-      for Active use "False";
-   end Install;
-
-   for Externally_Built use "True";
-
-   type Build_Mode_Type is
-     ("dev", "prod");
-
-   build_mode : build_mode_type := "prod";
-end Libadalang;
 
 
 [FILE:329:files/pc-patch-build_mains.gpr]

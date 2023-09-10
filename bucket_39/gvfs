@@ -2,6 +2,7 @@
 
 NAMEBASE=		gvfs
 VERSION=		1.50.6
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	GNOME virtual file system
@@ -17,8 +18,17 @@ SPKGS[standard]=	complete
 			dev
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	GUDEV GUDEV-DEVD NO-GUDEV
+OPTIONS_STANDARD=	GUDEV GUDEV-DEVD NO-GUDEV
+OPTGROUP_RADIO=		GUDEVS
+OPTDESCR[GUDEVS]=	Flavors of libudev gobject bindings
+OPTGROUP[GUDEVS]=	NO-GUDEV GUDEV GUDEV-DEVD
+OPT_ON[freebsd]=	GUDEV-DEVD
+OPT_ON[sunos]=		NO-GUDEV
+OPT_ON[linux]=		GUDEV
+OPT_ON[netbsd]=		GUDEV-DEVD
+OPT_ON[dragonfly]=	GUDEV-DEVD
+OPT_ON[midnightbsd]=	GUDEV-DEVD
 
 BUILD_DEPENDS=		libgpg-error:dev:standard
 			dbus:dev:standard
@@ -49,13 +59,11 @@ MESON_ARGS=		-Dsystemduserunitdir="no"
 			-Dadmin=false
 			-Dafc=false
 			-Dbluray=false
-			-Dcdda=false
 			-Ddnssd=false
 			-Dfuse=false
 			-Dgoa=false
 			-Dgoogle=false
 			-Dgphoto2=false
-			-Dgudev=false
 			-Dlibusb=false
 			-Dlogind=false
 			-Dmtp=false
@@ -67,6 +75,26 @@ SHEBANG_FILES=		meson_post_install.py
 
 LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/gvfs
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+
+[GUDEV-DEVD].DESCRIPTION=		Build with gudev-devd library (BSD)
+[GUDEV-DEVD].BUILDRUN_DEPENDS_ON=	libcdio-paranoia:single:standard
+					libgudev-devd:primary:standard
+[GUDEV-DEVD].BUILD_DEPENDS_ON=		libgudev-devd:dev:standard
+[GUDEV-DEVD].CONFIGURE_ARGS_ON=		-Dgudev=true
+					-Dcdda=true
+[GUDEV-DEVD].USES_ON=			iconv
+
+[NO-GUDEV].DESCRIPTION=			Build without gudev support
+[NO-GUDEV].CONFIGURE_ARGS_ON=		-Dgudev=false
+					-Dcdda=false
+
+[GUDEV].DESCRIPTION=			Build with gudev library
+[GUDEV].BUILDRUN_DEPENDS_ON=		libcdio-paranoia:single:standard
+					libgudev:primary:standard
+[GUDEV].BUILD_DEPENDS_ON=		libgudev:dev:standard
+[GUDEV].CONFIGURE_ARGS_ON=		-Dgudev=true
+					-Dcdda=true
+[GUDEV].USES_ON=			iconv
 
 [FILE:595:descriptions/desc.primary]
 GVfs is a userspace virtual filesystem implementation for GIO (a library 
@@ -85,7 +113,11 @@ required libraries are getting ported.
 c4f6e11fc4eaa9933f4db8c7a34475e0668cead2bffed96867d061be3d39dda5      1229872 gvfs-1.50.6.tar.xz
 
 
-[FILE:653:manifests/plist.primary]
+[FILE:807:manifests/plist.primary]
+%%GUDEV-DEVD-ON%%libexec/gvfsd-cdda
+%%GUDEV-DEVD-ON%%share/gvfs/mounts/cdda.mount
+%%GUDEV-ON%%libexec/gvfsd-cdda
+%%GUDEV-ON%%share/gvfs/mounts/cdda.mount
 lib/gio/modules/
  libgioremote-volume-monitor.so
  libgvfsdbus.so

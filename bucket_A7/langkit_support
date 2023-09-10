@@ -2,6 +2,7 @@
 
 NAMEBASE=		langkit_support
 VERSION=		23.0.0
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		ada devel
 VARIANTS=		standard
@@ -10,7 +11,7 @@ HOMEPAGE=		https://github.com/AdaCore/langkit
 CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		GITHUB/AdaCore:langkit:v23.0.0
+SITES[main]=		GITHUB/AdaCore:langkit:53353ed
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
@@ -18,49 +19,43 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		python311:single:standard
+			python-e3-core:single:v11
 BUILDRUN_DEPENDS=	gnatcoll-core:primary:standard
 			gnatcoll-bindings:iconv:standard
 			gnatcoll-bindings:gmp:standard
 			xmlada:primary:standard
+			AdaSAT:single:standard
 
 USES=			gprbuild iconv:build
 
-DISTNAME=		langkit-23.0.0/langkit/support
+DISTNAME=		langkit-53353ed
 
 LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
-LICENSE_FILE=		APACHE20:{{WRKDIR}}/langkit-23.0.0/LICENSE
+LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_AWK=		TERMS:"^$$"
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/langkit_support.ads
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/langkit/support/langkit_support.ads
 LICENSE_SCHEME=		solo
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
 do-build:
-.for LT in static-pic relocatable static
-	@${ECHO_CMD} Building ${LT} library ...
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		gprbuild -p -P langkit_support.gpr\
-		-XLIBRARY_TYPE="${LT}"\
-		-XBUILD_MODE="prod")
-.endfor
+		python manage.py build-langkit-support \
+		--library-types=static,static-pic,relocatable \
+		--build-mode=prod)
 
 do-install:
-.for LT in static-pic relocatable static
-	@${ECHO_CMD} Installing ${LT} library ...
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		gprinstall -p -P langkit_support.gpr\
-		--prefix=${STAGEDIR}${PREFIX}\
-		--lib-subdir=lib/langkit_support.${LT}\
-		-XLIBRARY_TYPE="${LT}"\
-		-XBUILD_MODE="prod")
-.endfor
+		python manage.py install-langkit-support \
+		--library-types=static,static-pic,relocatable \
+		--build-mode=prod \
+		${STAGEDIR}${PREFIX})
 	# strip
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/langkit_support.relocatable/liblangkit_support.so
+	# Remove redundant manifest file
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
-	# replace gpr file
-	${INSTALL_DATA} ${FILESDIR}/langkit_support.gpr \
-		${STAGEDIR}${PREFIX}/share/gpr
 
 [FILE:116:descriptions/desc.single]
 Support files for Ada Langkit.
@@ -68,8 +63,8 @@ These used to be part of langkit, but they have been split out to their
 own project.
 
 
-[FILE:108:distinfo]
-50cb8b08fc180eab939a5747c52f68c073c7b77e6c12ef5c5aa488845d5c934c      1178557 AdaCore-langkit-23.0.0.tar.gz
+[FILE:109:distinfo]
+6daf5eb9060e339f88bac5f6b1f77a1345857f49318c1f4fe5c28ce91e702855      1273280 AdaCore-langkit-53353ed.tar.gz
 
 
 [FILE:7364:manifests/plist.single]
@@ -287,85 +282,4 @@ lib/langkit_support.static-pic/
  langkit_support.ali
  liblangkit_support.a
 share/gpr/langkit_support.gpr
-
-
-[FILE:723:patches/patch-langkit__support.gpr]
---- langkit_support.gpr.orig	2022-09-01 10:45:19 UTC
-+++ langkit_support.gpr
-@@ -14,7 +14,7 @@ library project Langkit_Support is
- 
-    for Languages use ("Ada");
-    for Source_Dirs use (".");
--   for Object_Dir use "obj/" & Build_Mode;
-+   for Object_Dir use "obj/" & Library_Kind_Param;
- 
-    for Library_Name use "langkit_support";
-    for Library_Kind use Library_Kind_Param;
-@@ -63,7 +63,7 @@ library project Langkit_Support is
-       "Langkit_Support.Tree_Traversal_Iterator",
-       "Langkit_Support.Vectors");
- 
--   for Library_Dir use "lib/" & Library_Kind_Param & "/" & Build_Mode;
-+   for Library_Dir use "lib/langkit_support." & Library_Kind_Param;
- 
-    Common_Ada_Cargs := ("-gnatwa", "-gnatyg", "-fPIC");
- 
-
-
-[FILE:1597:files/langkit_support.gpr]
-with "gnatcoll_iconv";
-with "gpr";
-with "xmlada_schema";
-with "xmlada_dom";
-with "xmlada_sax";
-with "xmlada_input_sources";
-with "xmlada_unicode";
-with "gnatcoll";
-
-library project Langkit_Support is
-   type BUILD_KIND is ("static", "static-pic", "relocatable");
-   BUILD : BUILD_KIND := external("LANGKIT_SUPPORT_BUILD",external("LIBRARY_TYPE", "static-pic"));
-
-   for Languages use ("Ada");
-
-   case BUILD is
-      when "static" =>
-         for Source_Dirs use ("../../include/langkit_support");
-         for Library_Dir use "../../lib/langkit_support.static";
-         for Library_Kind use "static";
-      when "static-pic" =>
-         for Source_Dirs use ("../../include/langkit_support");
-         for Library_Dir use "../../lib/langkit_support.static-pic";
-         for Library_Kind use "static-pic";
-      when "relocatable" =>
-         for Source_Dirs use ("../../include/langkit_support");
-         for Library_Dir use "../../lib/langkit_support.relocatable";
-         for Library_Kind use "relocatable";
-   end case;
-
-   for Library_Name use "langkit_support";
-
-   package Naming is
-      for dot_replacement use "-";
-      for casing use "lowercase";
-      for body_suffix ("ada") use ".adb";
-      for spec_suffix ("ada") use ".ads";
-   end Naming;
-
-   package Linker is
-      null;
-   end Linker;
-
-   package Install is
-      for Active use "False";
-   end Install;
-
-   for Externally_Built use "True";
-
-   type Build_Mode_Type is
-     ("dev", "prod");
-
-   common_ada_cargs   := ("-gnatwa", "-gnatyg", "-fPIC");
-   build_mode         : build_mode_type := "prod";
-end Langkit_Support;
 

@@ -2,7 +2,7 @@
 
 NAMEBASE=		ada_spawn
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Simple API to spawn communicating processes
@@ -10,7 +10,7 @@ HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		GITHUB/AdaCore:spawn:v23.0.0
+SITES[main]=		GITHUB/AdaCore:spawn:2642bd6
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
@@ -28,7 +28,7 @@ GNOME_COMPONENTS=	gtk3
 
 LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
-LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
+LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/source/spawn/spawn.ads
 LICENSE_SCHEME=		solo
@@ -40,7 +40,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 do-build:
 .for LT in relocatable static-pic static
 . for GPR in spawn.gpr spawn_glib.gpr
-	${SETENV} ${MAKE_ENV} gprbuild -p -j0 -XLIBRARY_TYPE=${LT} -P ${WRKSRC}/gnat/${GPR}
+	${SETENV} ${MAKE_ENV} gprbuild -p -j0 -XSPAWN_LIBRARY_TYP=${LT} -P ${WRKSRC}/gnat/${GPR}
 . endfor
 .endfor
 
@@ -58,13 +58,6 @@ do-install:
 . endfor
 .endfor
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
-	# override generated gpr with our own
-	${INSTALL_DATA} ${FILESDIR}/*.gpr ${STAGEDIR}${PREFIX}/share/gpr
-	# I don't know where these lines are coming from
-	${SED} -i'' -e '/spawn-processes__posix.adb/d' \
-		${STAGEDIR}${PREFIX}/share/gpr/spawn.gpr
-	${SED} -i'' -e '/spawn-processes__glib.adb/d' \
-		${STAGEDIR}${PREFIX}/share/gpr/spawn_glib.gpr
 
 [FILE:208:descriptions/desc.single]
 Ada Process API (spawn)
@@ -75,30 +68,37 @@ them. Two implementations of the same API are provided:
  * Independent
 
 
-[FILE:106:distinfo]
-1487fef86433d1d06c5c3af3c012aac9eae8d2f4b7f8c1d2fdbe2be0b1770fa8        43449 AdaCore-spawn-23.0.0.tar.gz
+[FILE:107:distinfo]
+d4b8acc316ed8bc21431ab5051ca48321179872d25a6893f2ff2087ddc812ded        66736 AdaCore-spawn-2642bd6.tar.gz
 
 
-[FILE:2797:manifests/plist.single]
+[FILE:3774:manifests/plist.single]
 include/spawn/
  posix_const.c
  ptsname_r.c
+ spawn-channels__posix.adb
+ spawn-channels__posix.ads
+ spawn-common.adb
+ spawn-common.ads
  spawn-environments-initialize_default__posix.adb
  spawn-environments-internal__posix.adb
  spawn-environments-internal__posix.ads
  spawn-environments-search_in_path__posix.adb
  spawn-environments.adb
  spawn-environments.ads
+ spawn-internal-monitor-osx_initialize.adb
+ spawn-internal-monitor-unix_initialize.adb
+ spawn-internal-monitor.ads
+ spawn-internal-monitor__posix.adb
  spawn-internal__posix.adb
  spawn-internal__posix.ads
+ spawn-polls-posix_polls.adb
+ spawn-polls-posix_polls.ads
+ spawn-polls.ads
  spawn-posix.ads
- spawn-processes-monitor-osx_initialize.adb
- spawn-processes-monitor-unix_initialize.adb
- spawn-processes-monitor.ads
- spawn-processes-monitor__posix.adb
+ spawn-process_listeners.ads
  spawn-processes-monitor_loop.adb
  spawn-processes-monitor_loop.ads
- spawn-processes-platform__posix.adb
  spawn-processes.adb
  spawn-processes.ads
  spawn-string_vectors.ads
@@ -107,84 +107,116 @@ include/spawn_glib/
  pipe2.c
  posix_const.c
  ptsname_r.c
- spawn-channels.adb
- spawn-channels.ads
+ spawn-channels__glib_posix.adb
+ spawn-channels__glib_posix.ads
+ spawn-common.adb
+ spawn-common.ads
  spawn-environments-initialize_default__glib.adb
  spawn-environments-internal__glib.adb
  spawn-environments-internal__glib.ads
  spawn-environments-search_in_path__posix.adb
  spawn-environments.adb
  spawn-environments.ads
- spawn-internal__glib.ads
- spawn-internal__posix.adb
+ spawn-internal-monitor-osx_initialize.adb
+ spawn-internal-monitor-unix_initialize.adb
+ spawn-internal__glib_posix.adb
+ spawn-internal__glib_posix.ads
+ spawn-polls-posix_polls.adb
+ spawn-polls-posix_polls.ads
+ spawn-polls.ads
  spawn-posix.ads
- spawn-processes-monitor-osx_initialize.adb
- spawn-processes-monitor-unix_initialize.adb
- spawn-processes-platform__glib.adb
+ spawn-process_listeners.ads
  spawn-processes.adb
  spawn-processes.ads
  spawn-string_vectors.ads
  spawn.ads
 lib/spawn.relocatable/
  libspawn.a
+ spawn-channels__posix.ali
+ spawn-common.ali
  spawn-environments-internal__posix.ali
  spawn-environments.ali
+ spawn-internal-monitor__posix.ali
  spawn-internal__posix.ali
+ spawn-polls-posix_polls.ali
+ spawn-polls.ali
  spawn-posix.ali
- spawn-processes-monitor__posix.ali
+ spawn-process_listeners.ali
  spawn-processes-monitor_loop.ali
  spawn-processes.ali
  spawn-string_vectors.ali
  spawn.ali
 lib/spawn.static/
  libspawn.a
+ spawn-channels__posix.ali
+ spawn-common.ali
  spawn-environments-internal__posix.ali
  spawn-environments.ali
+ spawn-internal-monitor__posix.ali
  spawn-internal__posix.ali
+ spawn-polls-posix_polls.ali
+ spawn-polls.ali
  spawn-posix.ali
- spawn-processes-monitor__posix.ali
+ spawn-process_listeners.ali
  spawn-processes-monitor_loop.ali
  spawn-processes.ali
  spawn-string_vectors.ali
  spawn.ali
 lib/spawn.static-pic/
  libspawn.a
+ spawn-channels__posix.ali
+ spawn-common.ali
  spawn-environments-internal__posix.ali
  spawn-environments.ali
+ spawn-internal-monitor__posix.ali
  spawn-internal__posix.ali
+ spawn-polls-posix_polls.ali
+ spawn-polls.ali
  spawn-posix.ali
- spawn-processes-monitor__posix.ali
+ spawn-process_listeners.ali
  spawn-processes-monitor_loop.ali
  spawn-processes.ali
  spawn-string_vectors.ali
  spawn.ali
 lib/spawn_glib.relocatable/
  libspawn_glib.a
- spawn-channels.ali
+ spawn-channels__glib_posix.ali
+ spawn-common.ali
  spawn-environments-internal__glib.ali
  spawn-environments.ali
- spawn-internal__posix.ali
+ spawn-internal__glib_posix.ali
+ spawn-polls-posix_polls.ali
+ spawn-polls.ali
  spawn-posix.ali
+ spawn-process_listeners.ali
  spawn-processes.ali
  spawn-string_vectors.ali
  spawn.ali
 lib/spawn_glib.static/
  libspawn_glib.a
- spawn-channels.ali
+ spawn-channels__glib_posix.ali
+ spawn-common.ali
  spawn-environments-internal__glib.ali
  spawn-environments.ali
- spawn-internal__posix.ali
+ spawn-internal__glib_posix.ali
+ spawn-polls-posix_polls.ali
+ spawn-polls.ali
  spawn-posix.ali
+ spawn-process_listeners.ali
  spawn-processes.ali
  spawn-string_vectors.ali
  spawn.ali
 lib/spawn_glib.static-pic/
  libspawn_glib.a
- spawn-channels.ali
+ spawn-channels__glib_posix.ali
+ spawn-common.ali
  spawn-environments-internal__glib.ali
  spawn-environments.ali
- spawn-internal__posix.ali
+ spawn-internal__glib_posix.ali
+ spawn-polls-posix_polls.ali
+ spawn-polls.ali
  spawn-posix.ali
+ spawn-process_listeners.ali
  spawn-processes.ali
  spawn-string_vectors.ali
  spawn.ali
@@ -193,32 +225,10 @@ share/gpr/
  spawn_glib.gpr
 
 
-[FILE:529:patches/patch-Makefile]
---- Makefile.orig	2022-09-26 13:44:48 UTC
-+++ Makefile
-@@ -19,7 +19,7 @@ endif
- 
- all:
- 	gprbuild $(GPRBUILD_FLAGS) -P gnat/spawn.gpr
--	gprbuild $(GPRBUILD_FLAGS) -P gnat/spawn_tests.gpr
-+	gprbuild $(GPRBUILD_FLAGS) -P gnat/spawn_glib.gpr
- check:
- 	export LD_LIBRARY_PATH=.libs/spawn/relocatable; \
- 	for TEST in ${SPAWN_TESTS}; do \
-@@ -28,6 +28,7 @@ check:
- 
- install:
- 	gprinstall $(GPRINSTALL_FLAGS) -p -P gnat/spawn.gpr
-+	gprinstall $(GPRINSTALL_FLAGS) -f -p -P gnat/spawn_glib.gpr
- clean:
- 	gprclean -q -P gnat/spawn.gpr
- 
-
-
 [FILE:521:patches/patch-source_spawn_spawn-posix.ads]
---- source/spawn/spawn-posix.ads.orig	2022-09-26 13:44:48 UTC
+--- source/spawn/spawn-posix.ads.orig	2023-05-18 09:24:48 UTC
 +++ source/spawn/spawn-posix.ads
-@@ -154,7 +154,7 @@ package Spawn.Posix is
+@@ -156,7 +156,7 @@ package Spawn.Posix is
       (fd     : Interfaces.C.int;
        buf    : out Interfaces.C.char_array;
        buflen : Interfaces.C.size_t) return Interfaces.C.int
@@ -294,143 +304,4 @@ __ptsname_r (int fd, char *buf, size_t buflen)
 }
 
 #endif
-
-
-[FILE:2515:files/spawn.gpr]
-library project Spawn is
-   type BUILD_KIND is ("static", "static-pic", "relocatable");
-   BUILD : BUILD_KIND := external("SPAWN_BUILD", external("LIBRARY_TYPE", "static-pic"));
-
-   for Languages use ("Ada", "c");
-
-   case BUILD is
-      when "static" =>
-         for Source_Dirs use ("../../include/spawn/");
-         for Library_Dir use "../../lib/spawn.static/";
-         for Library_Kind use "static";
-      when "static-pic" =>
-         for Source_Dirs use ("../../include/spawn");
-         for Library_Dir use "../../lib/spawn.static-pic";
-         for Library_Kind use "static-pic";
-      when "relocatable" =>
-         for Source_Dirs use ("../../include/spawn");
-         for Library_Dir use "../../lib/spawn.relocatable";
-         for Library_Kind use "relocatable";
-   end case;
-
-   for Library_Name use "spawn";
-
-   package Naming is
-      for dot_replacement use "-";
-      for casing use "lowercase";
-      for spec_suffix ("c") use ".h";
-      for spec_suffix ("ada") use ".ads";
-      for body_suffix ("c") use ".c";
-      for body_suffix ("ada") use ".adb";      
-      for body ("spawn.processes.monitor.initialize") use "spawn-processes-monitor-unix_initialize.adb";
-      for body ("spawn.processes.monitor") use "spawn-processes-monitor__posix.adb";
-      for body ("spawn.environments.search_in_path") use "spawn-environments-search_in_path__posix.adb";
-      for body ("spawn.processes") use "spawn-processes__posix.adb";
-      for body ("spawn.environments.internal") use "spawn-environments-internal__posix.adb";
-      for body ("spawn.environments.initialize_default") use "spawn-environments-initialize_default__posix.adb";
-      for body ("spawn.internal") use "spawn-internal__posix.adb";
-      for spec ("spawn.environments.internal") use "spawn-environments-internal__posix.ads";
-      for spec ("spawn.internal") use "spawn-internal__posix.ads";
-   end Naming;
-
-   package Linker is
-      null;
-   end Linker;
-
-   package Install is
-      for Active use "False";
-   end Install;
-
-   for Externally_Built use "True";
-
-   type Os_Api_Kind is
-     ("unix", "osx", "Windows_NT");
-
-   type Spawn_Build_Kind is
-     ("dev", "prod", "coverage");
-
-   type Any_Boolean is
-     ("false", "true");
-
-   linker_options     := ();
-   ada_switches       := ("-gnatwe", "-O2", "-g");
-   common_excluded    := ();
-   warnings_as_errors : any_boolean := "true";
-   superproject       := "";
-   build_mode         : spawn_build_kind := "prod";
-   os_api             : os_api_kind := "unix";
-end Spawn;
-
-
-[FILE:2381:files/spawn_glib.gpr]
-with "gtkada";
-
-library project Spawn_Glib is
-   type BUILD_KIND is ("static", "static-pic", "relocatable");
-   BUILD : BUILD_KIND := external("SPAWN_GLIB_BUILD", external("LIBRARY_TYPE", "static-pic"));
-
-   for Languages use ("Ada");
-
-   case BUILD is
-      when "static" =>
-         for Source_Dirs use ("../../include/spawn_glib/");
-         for Library_Dir use "../../lib/spawn_glib.static/";
-         for Library_Kind use "static";
-      when "static-pic" =>
-         for Source_Dirs use ("../../include/spawn_glib");
-         for Library_Dir use "../../lib/spawn_glib.static-pic";
-         for Library_Kind use "static-pic";
-      when "relocatable" =>
-         for Source_Dirs use ("../../include/spawn_glib");
-         for Library_Dir use "../../lib/spawn_glib.relocatable";
-         for Library_Kind use "relocatable";
-   end case;
-
-   for Library_Name use "spawn_glib";
-
-   package Naming is
-      for dot_replacement use "-";
-      for casing use "lowercase";
-      for spec_suffix ("ada") use ".ads";
-      for body_suffix ("ada") use ".adb";
-      for body ("spawn.processes") use "spawn-processes__glib.adb";
-      for body ("spawn.environments.search_in_path") use "spawn-environments-search_in_path__posix.adb";
-      for body ("spawn.environments.internal") use "spawn-environments-internal__glib.adb";
-      for body ("spawn.environments.initialize_default") use "spawn-environments-initialize_default__glib.adb";
-      for body ("spawn.internal") use "spawn-internal__posix.adb";
-      for spec ("spawn.environments.internal") use "spawn-environments-internal__glib.ads";
-      for spec ("spawn.internal") use "spawn-internal__glib.ads";
-   end Naming;
-
-   package Linker is
-      null;
-   end Linker;
-
-   package Install is
-      for Active use "False";
-   end Install;
-
-   for Externally_Built use "True";
-
-   type Os_Api_Kind is
-     ("unix", "osx", "Windows_NT");
-
-   type Spawn_Glib_Build_Kind is
-     ("dev", "prod", "coverage");
-
-   type Any_Boolean is
-     ("false", "true");
-
-   linker_options     := ();
-   ada_switches       := ("-gnatwe", "-O2", "-g");
-   common_excluded    := ("spawn-processes-monitor.ads", "spawn-processes-monitor_loop.ads", "spawn-processes-monitor_loop.adb");
-   warnings_as_errors : any_boolean := "true";
-   build_mode         : spawn_glib_build_kind := "prod";
-   os_api             : os_api_kind := "unix";
-end Spawn_Glib;
 

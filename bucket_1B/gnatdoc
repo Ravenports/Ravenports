@@ -2,7 +2,7 @@
 
 NAMEBASE=		gnatdoc
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc ada
 VARIANTS=		standard
 SDESC[standard]=	GNAT Documentation Generation Tool
@@ -10,7 +10,7 @@ HOMEPAGE=		https://github.com/AdaCore/gnatdoc
 CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		GITHUB/AdaCore:gnatdoc:v23.0.0
+SITES[main]=		GITHUB/AdaCore:gnatdoc:12b5610
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	single
@@ -21,7 +21,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		libadalang:single:standard
 			xmlada:primary:standard
 			libvss:single:standard
-			gpr:single:standard
+			libgpr2:single:standard
 			ada-markdown:single:standard
 			gpr-unit-provider:single:standard
 BUILDRUN_DEPENDS=	gmp:shared:standard
@@ -61,23 +61,37 @@ cross-reference engine gives GNATdoc all the flexibility needed to generate
 accurate documentation, and report errors in case of wrong documentation.
 
 
-[FILE:108:distinfo]
-123c8e3517512f6f4f7e92d62f2d0e1b35c8d59c87acc5ba504eeeb0988b20d5        39607 AdaCore-gnatdoc-23.0.0.tar.gz
+[FILE:109:distinfo]
+099f3e8d1b3607492b818951ee1d5ec8a7a5069a4330bef0a8b395e5272de19b        93557 AdaCore-gnatdoc-12b5610.tar.gz
 
 
-[FILE:1840:manifests/plist.single]
+[FILE:2860:manifests/plist.single]
 bin/gnatdoc4
 include/gnatdoc/
  gnatdoc-backend-html.adb
  gnatdoc-backend-html.ads
  gnatdoc-backend-html_markup.adb
  gnatdoc-backend-html_markup.ads
+ gnatdoc-backend-rst-pt.adb
+ gnatdoc-backend-rst-pt.ads
+ gnatdoc-backend-rst.adb
+ gnatdoc-backend-rst.ads
  gnatdoc-backend.adb
  gnatdoc-backend.ads
  gnatdoc-command_line.adb
  gnatdoc-command_line.ads
  gnatdoc-comments-proxies.adb
  gnatdoc-comments-proxies.ads
+ gnatdoc-comments-rst_helpers.adb
+ gnatdoc-comments-rst_helpers.ads
+ gnatdoc-comments-undocumented_checker.adb
+ gnatdoc-comments-undocumented_checker.ads
+ gnatdoc-configuration-command_line.adb
+ gnatdoc-configuration-command_line.ads
+ gnatdoc-configuration-project.adb
+ gnatdoc-configuration-project.ads
+ gnatdoc-configuration.adb
+ gnatdoc-configuration.ads
  gnatdoc-driver.adb
  gnatdoc-entities.adb
  gnatdoc-entities.ads
@@ -94,6 +108,10 @@ include/libgnatdoc/
  gnatdoc-comments-builders-enumerations.ads
  gnatdoc-comments-builders-generics.adb
  gnatdoc-comments-builders-generics.ads
+ gnatdoc-comments-builders-private_types.adb
+ gnatdoc-comments-builders-private_types.ads
+ gnatdoc-comments-builders-protecteds.adb
+ gnatdoc-comments-builders-protecteds.ads
  gnatdoc-comments-builders-records.adb
  gnatdoc-comments-builders-records.ads
  gnatdoc-comments-builders-subprograms.adb
@@ -105,14 +123,22 @@ include/libgnatdoc/
  gnatdoc-comments-helpers.adb
  gnatdoc-comments-helpers.ads
  gnatdoc-comments-options.ads
+ gnatdoc-comments-utilities.adb
+ gnatdoc-comments-utilities.ads
  gnatdoc-comments.adb
  gnatdoc-comments.ads
+ gnatdoc-messages.adb
+ gnatdoc-messages.ads
  gnatdoc.ads
 lib/libgnatdoc/
  gnatdoc-comments-builders-enumerations.ali
  gnatdoc-comments-builders-enumerations.o
  gnatdoc-comments-builders-generics.ali
  gnatdoc-comments-builders-generics.o
+ gnatdoc-comments-builders-private_types.ali
+ gnatdoc-comments-builders-private_types.o
+ gnatdoc-comments-builders-protecteds.ali
+ gnatdoc-comments-builders-protecteds.o
  gnatdoc-comments-builders-records.ali
  gnatdoc-comments-builders-records.o
  gnatdoc-comments-builders-subprograms.ali
@@ -125,8 +151,12 @@ lib/libgnatdoc/
  gnatdoc-comments-helpers.o
  gnatdoc-comments-options.ali
  gnatdoc-comments-options.o
+ gnatdoc-comments-utilities.ali
+ gnatdoc-comments-utilities.o
  gnatdoc-comments.ali
  gnatdoc-comments.o
+ gnatdoc-messages.ali
+ gnatdoc-messages.o
  gnatdoc.ali
  gnatdoc.o
 share/gpr/
@@ -134,27 +164,28 @@ share/gpr/
  libgnatdoc.gpr
 
 
-[FILE:828:patches/patch-Makefile]
---- Makefile.orig	2022-09-20 14:18:23 UTC
+[FILE:709:patches/patch-Makefile]
+--- Makefile.orig	2023-06-28 00:55:11 UTC
 +++ Makefile
-@@ -1,7 +1,11 @@
+@@ -2,8 +2,12 @@
+ SCENARIO_VARIABLES=-XGPR_UNIT_PROVIDER_LIBRARY_TYPE=static -XGPR_UNIT_PROVIDER_BUILD=debug -XVSS_LIBRARY_TYPE=static -XMARKDOWN_LIBRARY_TYPE=static
  
  all:
--	gprbuild -j0 -p -P gnat/libgnatdoc.gpr -XSUPERPROJECT=
--	gprbuild -j0 -p -P gnat/gnatdoc.gpr -XGPR_UNIT_PROVIDER_LIBRARY_TYPE=static -XSUPERPROJECT= -XGPR_UNIT_PROVIDER_BUILD=debug
-+	gprbuild -j0 -p -P gnat/libgnatdoc.gpr -XLIBRARY_TYPE=static-pic -XSUPERPROJECT=
-+	gprbuild -j0 -p -P gnat/gnatdoc.gpr -XLIBRARY_TYPE=static-pic -XGPR_UNIT_PROVIDER_LIBRARY_TYPE=static -XSUPERPROJECT= -XGPR_UNIT_PROVIDER_BUILD=debug
+-	gprbuild -j0 -p -P gnat/libgnatdoc.gpr
+-	gprbuild -j0 -p -P gnat/gnatdoc.gpr ${SCENARIO_VARIABLES}
++	gprbuild -j0 -p -P gnat/libgnatdoc.gpr -XLIBRARY_TYPE=static-pic
++	gprbuild -j0 -p -P gnat/gnatdoc.gpr -XLIBRARY_TYPE=static-pic ${SCENARIO_VARIABLES}
 +
 +install:
-+	gprinstall -p -P gnat/libgnatdoc.gpr -XLIBRARY_TYPE=static-pic -XSUPERPROJECT= --prefix=${DESTDIR}${PREFIX}
-+	gprinstall -p -P gnat/gnatdoc.gpr -XLIBRARY_TYPE=static-pic -XGPR_UNIT_PROVIDER_LIBRARY_TYPE=static -XSUPERPROJECT= -XGPR_UNIT_PROVIDER_BUILD=debug --prefix=${DESTDIR}${PREFIX}
++	gprinstall -p -P gnat/libgnatdoc.gpr -XLIBRARY_TYPE=static-pic --prefix=${DESTDIR}${PREFIX}
++	gprinstall -p -P gnat/gnatdoc.gpr -XLIBRARY_TYPE=static-pic --prefix=${DESTDIR}${PREFIX}
  
  clean:
  	rm -rf .objs bin
 
 
 [FILE:284:patches/patch-gnat_gnatdoc.gpr]
---- gnat/gnatdoc.gpr.orig	2022-09-20 14:18:23 UTC
+--- gnat/gnatdoc.gpr.orig	2023-06-28 00:55:11 UTC
 +++ gnat/gnatdoc.gpr
 @@ -40,4 +40,8 @@ project GNATdoc is
        for Executable ("gnatdoc-driver.adb") use "gnatdoc4";

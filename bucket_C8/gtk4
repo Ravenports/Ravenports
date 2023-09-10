@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtk4
 VERSION=		4.12.1
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Gimp Toolkit for X11 GUI
@@ -20,8 +21,8 @@ SPKGS[standard]=	complete
 			nls
 			icon_cache
 
-OPTIONS_AVAILABLE=	CUPS BROADWAY FFMPEG
-OPTIONS_STANDARD=	CUPS BROADWAY FFMPEG
+OPTIONS_AVAILABLE=	CUPS BROADWAY FFMPEG INTROSPECTION
+OPTIONS_STANDARD=	CUPS BROADWAY FFMPEG INTROSPECTION
 OPT_ON[all]=		CUPS BROADWAY FFMPEG
 
 BUILD_DEPENDS=		sassc:single:standard
@@ -58,7 +59,6 @@ MESON_ARGS=		-Dx11-backend=true
 			-Dmedia-gstreamer=disabled
 			-Dvulkan=disabled
 			-Dman-pages=true
-			-Dintrospection=disabled
 			-Dgtk_doc=false
 
 INSTALL_TARGET=		install-strip
@@ -68,6 +68,11 @@ PLIST_SUB=		GTK_VERSION=4.0.0
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 			LDFLAGS=-lintl
 			CPPFLAGS=-DO_CLOEXEC=0
+
+[INTROSPECTION].DESCRIPTION=		Build with introspection files
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dintrospection=disabled
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dintrospection=enabled
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [FFMPEG].DESCRIPTION=			Build the ffmpeg media backend
 [FFMPEG].BUILDRUN_DEPENDS_ON=		ffmpeg5:primary:standard
@@ -155,15 +160,7 @@ share/gtk-4.0/valgrind/gtk.supp
 @dir lib/gtk-4.0/modules
 
 
-[FILE:7501:manifests/plist.dev]
-@comment lib/girepository-1.0/Gdk-4.0.typelib
-@comment lib/girepository-1.0/GdkX11-4.0.typelib
-@comment lib/girepository-1.0/Gsk-4.0.typelib
-@comment lib/girepository-1.0/Gtk-4.0.typelib
-@comment share/gir-1.0/Gdk-4.0.gir
-@comment share/gir-1.0/GdkX11-4.0.gir
-@comment share/gir-1.0/Gsk-4.0.gir
-@comment share/gir-1.0/Gtk-4.0.gir
+[FILE:7374:manifests/plist.dev]
 %%BROADWAY-ON%%include/gtk-4.0/gdk/broadway/
  gdkbroadway.h
  gdkbroadwaycursor.h
@@ -172,6 +169,16 @@ share/gtk-4.0/valgrind/gtk.supp
  gdkbroadwaysurface.h
 %%BROADWAY-ON%%include/gtk-4.0/gsk/broadway/gskbroadwayrenderer.h
 %%BROADWAY-ON%%lib/pkgconfig/gtk4-broadway.pc
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Gdk-4.0.typelib
+ GdkX11-4.0.typelib
+ Gsk-4.0.typelib
+ Gtk-4.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Gdk-4.0.gir
+ GdkX11-4.0.gir
+ Gsk-4.0.gir
+ Gtk-4.0.gir
 include/gtk-4.0/gdk/
  gdk.h
  gdkapplaunchcontext.h
@@ -540,12 +547,12 @@ include/gtk-4.0/gtk/print/
  gtkprintoperation.h
  gtkprintoperationpreview.h
  gtkprintsettings.h
+include/gtk-4.0/unix-print/gtk/gtkunixprint.h
 include/gtk-4.0/unix-print/gtk/print/
  gtkpagesetupunixdialog.h
  gtkprinter.h
  gtkprintjob.h
  gtkprintunixdialog.h
-include/gtk-4.0/unix-print/gtk/gtkunixprint.h
 lib/libgtk-4.so
 lib/pkgconfig/
  gtk4-unix-print.pc

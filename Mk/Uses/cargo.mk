@@ -96,6 +96,23 @@ CARGO_ENV+=	LIBGIT2_SYS_USE_PKG_CONFIG=1 \
 		LIBSSH2_SYS_USE_PKG_CONFIG=1 \
 		RUSTONIG_SYSTEM_LIBONIG=1
 
+# Support sccache if present.
+# The primary program to use is /usr/bin/sccache, which will be in place if the
+# platforms system root includes it.  The backup location is $LOCALBASE/bin/sccache
+SCCACHE1=/usr/bin/sccache
+SCCACHE2=/raven/bin/sccache
+.if defined(BUILD_WITH_CCACHE)
+. if exists(${SCCACHE1}) || exists(${SCCACHE2})
+.  if exists(${SCCACHE1})
+CARGO_ENV+=	RUSTC_WRAPPER=${SCCACHE1}
+.  else
+CARGO_ENV+=	RUSTC_WRAPPER=${SCCACHE2}
+.  endif
+CARGO_ENV+=	SCCACHE_DIR=${CCACHE_DIR}/sccache
+. endif
+.endif
+
+
 .if !target(do-configure) && ${CARGO_SKIP_CONFIGURE:tl} == "no"
 # configure hook.  Place a config file for overriding crates-io index
 # by local source directory.

@@ -2,6 +2,7 @@
 
 NAMEBASE=		ravensys-toolchain
 VERSION=		5.0
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		standard
 SDESC[standard]=	Compiler and binutils toolchain for Ravenports
@@ -72,7 +73,7 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:65738:manifests/plist.single]
+[FILE:65722:manifests/plist.single]
 %%CC1_SHARED%%ravensys-gcc/%%ASLIB%%/
  libcc1.so
  libcc1.so.0
@@ -110,6 +111,17 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
 %%ONLY-FREEBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  freebsd.h
  freebsd64.h
+%%ONLY-LINUX%%%%GPROF%%bin/
+ gp-archive
+ gp-collect-app
+ gp-display-html
+ gp-display-src
+ gp-display-text
+ gprofng
+%%ONLY-LINUX%%%%GPROF%%include/
+ collectorAPI.h
+ libcollector.h
+ libfcollector.h
 %%ONLY-LINUX%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtbeginT.o
@@ -179,6 +191,9 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
 %%ONLY-SUNOS%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/
  sol2.h
  sysv4.h
+%%SFRAME%%include/
+ sframe-api.h
+ sframe.h
 %%SSP%%ravensys-gcc/%%ASLIB%%/
  libssp.a
  libssp.so
@@ -190,17 +205,6 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  stdio.h
  string.h
  unistd.h
-%%ONLY-LINUX%%%%GPROF%%include/
- libfcollector.h
- libcollector.h
- collectorAPI.h
-%%ONLY-LINUX%%%%GPROF%%bin/
- gprofng
- gp-display-text
- gp-display-src
- gp-display-html
- gp-collect-app
- gp-archive
 bin/
  addr2line
  ar
@@ -212,6 +216,8 @@ bin/
  ld
  ld.bfd
  ld.gold
+ ld.lld
+ ld.mold
  nm
  objcopy
  objdump
@@ -226,10 +232,6 @@ include/
  diagnostics.h
  dis-asm.h
  plugin-api.h
-%%SFRAME%%include/
- sframe-api.h
- sframe.h
-include/
  symcat.h
 ravensys-gcc/%%ASLIB%%/
  libatomic.a
@@ -262,6 +264,7 @@ ravensys-gcc/%%ASLIB%%/
  libstdc++.so.6
  libstdc++.so.6.0.32
  libstdc++.so.6.0.32-gdb.py
+ libstdc++exp.a
  libstdc++fs.a
  libsupc++.a
 ravensys-gcc/bin/
@@ -1149,8 +1152,6 @@ ravensys-gcc/include/c++/%%GCCVER%%/tr2/
  dynamic_bitset.tcc
  ratio
  type_traits
-ravensys-gcc/%%ASLIB%%/
- libstdc++exp.a
 ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/
  ada_target_properties
  crtbegin.o
@@ -4255,7 +4256,7 @@ share/
  ravensys-gcc-libs-standard-%%COMPVER%%.tzst
 
 
-[FILE:1649:files/Makefile]
+[FILE:1806:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -4291,6 +4292,9 @@ install:
 	cp -a ${LOCALBASE:T}/toolchain/include      ${DESTDIR}${PREFIX}/
 	cp -a ${LOCALBASE:T}/toolchain/ravensys-gcc ${DESTDIR}${PREFIX}/
 	rm -rf ${DESTDIR}${PREFIX}/ravensys-gcc/share/licenses
+	# create dangling symlinks to ld.mold and ld.lld
+	ln -s ../../bin/mold ${DESTDIR}${PREFIX}/bin/ld.mold
+	ln -s ../../bin/lld  ${DESTDIR}${PREFIX}/bin/ld.lld
 
 .if "${OPSYS}" == "SunOS"
 	rm ${DESTDIR}${PREFIX}/bin/ld

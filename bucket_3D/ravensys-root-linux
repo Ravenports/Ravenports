@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-linux
 VERSION=		3.2.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		raven
 VARIANTS=		standard ABI26
 SDESC[ABI26]=		Linux 2.6.32 builder system root
@@ -10,7 +10,7 @@ SDESC[standard]=	Linux 3.2.0 builder system root
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main debian1 debian10 debian11 debian12 debian13 debian14 debian15 debian16 debian17 debian18 debian19 debian2 debian20 debian21 debian22 debian23 debian24 debian25 debian3 debian4 debian5 debian6 debian7 debian8 debian9 leaf sting ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
+DOWNLOAD_GROUPS=	main debian1 debian10 debian11 debian12 debian13 debian14 debian15 debian16 debian17 debian18 debian19 debian2 debian20 debian21 debian22 debian23 debian24 debian25 debian26 debian27 debian28 debian3 debian4 debian5 debian6 debian7 debian8 debian9 leaf sting ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[debian1]=		DEBIAN/pool/main/g/glibc
 SITES[debian10]=	DEBIAN/pool/main/libx/libxcrypt
@@ -30,6 +30,9 @@ SITES[debian22]=	DEBIAN/pool/main/libn/libnl3
 SITES[debian23]=	DEBIAN/pool/main/s/systemd
 SITES[debian24]=	DEBIAN/pool/main/libz/libzstd
 SITES[debian25]=	DEBIAN/pool/main/l/lz4
+SITES[debian26]=	DEBIAN/pool/main/x/xz-utils
+SITES[debian27]=	DEBIAN/pool/main/libg/libgcrypt20
+SITES[debian28]=	DEBIAN/pool/main/libg/libgpg-error
 SITES[debian3]=		DEBIAN/pool/main/a/acl
 SITES[debian4]=		DEBIAN/pool/main/s/systemd
 SITES[debian5]=		http://security.debian.org/debian-security/pool/updates/main/l/linux/
@@ -114,6 +117,9 @@ DISTFILE[61]=		libsystemd-dev_252.12-1~deb12u1_amd64.deb:debian23
 DISTFILE[62]=		libsystemd0_247.3-7+deb11u2_amd64.deb:debian23
 DISTFILE[63]=		libzstd1_1.5.4+dfsg2-5_amd64.deb:debian24
 DISTFILE[64]=		liblz4-1_1.9.4-1_amd64.deb:debian25
+DISTFILE[65]=		liblzma5_5.4.1-0.2_amd64.deb:debian26
+DISTFILE[66]=		libgcrypt20_1.10.1-3_amd64.deb:debian27
+DISTFILE[67]=		libgpg-error0_1.46-1_amd64.deb:debian28
 DIST_SUBDIR=		linux-sysroot
 SPKGS[ABI26]=		single
 SPKGS[standard]=	single
@@ -155,11 +161,11 @@ BUILD_DEPENDS=		nawk:single:standard
 EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
 			22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38
 			39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57
-			58 59 60 61 62 63 64 47 48
+			58 59 60 61 62 63 64 65 66 67 47 48
 EXTRACT_DEB_PACKAGE=	2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
 			22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38
 			39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57
-			58 59 60 61 62 63 64
+			58 59 60 61 62 63 64 65 66 67
 
 INVALID_RPATH=		yes
 
@@ -224,6 +230,9 @@ INFRASTRUCTURE=		yes
 					62
 					63
 					64
+					65
+					66
+					67
 					47
 					48
 [NOTSTD].MAKEFILE_OFF=			SYSTEM=Linux/x86_64/x86_64/610000/6.1.0/6.1
@@ -269,7 +278,7 @@ post-extract-ABI26-ON:
 
 post-extract-NOTSTD-OFF:
 	${INSTALL_DATA} ${FILESDIR}/linux61.mk ${WRKSRC}/system_specifics.mk
-.for NDX in 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64
+.for NDX in 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67
 	@echo "copy ${NAMEBASE}_${NDX} files over"
 	@cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	@${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
@@ -303,7 +312,7 @@ This is the full build environment for GNU/Linux 2.6.32, excluding the
 toolchain.  This basis of this environment is Mint 2016.
 
 
-[FILE:7895:distinfo]
+[FILE:8262:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 linux-sysroot/dummy-tarball.tar.gz
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 linux-sysroot/locales_2.23-0ubuntu10_all.deb
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 linux-sysroot/libc6_2.23-0ubuntu9_amd64.deb
@@ -368,9 +377,12 @@ e507cf63aeb8c68719c915028151f42ee7158a172097d47e7f9e421cf7510aca       352236 li
 265ae619f953b04c0575cb4a84b0c9f92f5bfe4402d929c5e56f4194235846c2       375996 linux-sysroot/libsystemd0_247.3-7+deb11u2_amd64.deb
 6315b5ac38b724a710fb96bf1042019398cb656718b1522279a5185ed39318fa       290036 linux-sysroot/libzstd1_1.5.4+dfsg2-5_amd64.deb
 64cde86cef1deaf828bd60297839b59710b5cd8dc50efd4f12643caaee9389d3        62884 linux-sysroot/liblz4-1_1.9.4-1_amd64.deb
+d4b7736e58512a2b047f9cb91b71db5a3cf9d3451192fc6da044c77bf51fe869       205312 linux-sysroot/liblzma5_5.4.1-0.2_amd64.deb
+bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 linux-sysroot/libgcrypt20_1.10.1-3_amd64.deb
+89944ee11d7370ce6ef46fc52f094c4a6512eff8943ec4c6ebefeae6360ceada        76888 linux-sysroot/libgpg-error0_1.46-1_amd64.deb
 
 
-[FILE:36353:manifests/plist.single.standard]
+[FILE:36466:manifests/plist.single.standard]
 %%BASE%%/bin/
  [
  bash
@@ -411,8 +423,12 @@ e507cf63aeb8c68719c915028151f42ee7158a172097d47e7f9e421cf7510aca       352236 li
  libcrypt.so.1.1.0
  libdl.so.2
  libgcc_s.so.1
+ libgpg-error.so.0
+ libgpg-error.so.0.33.1
  libkeyutils.so.1
  libkeyutils.so.1.10
+ liblzma.so.5
+ liblzma.so.5.4.1
  libm.so.6
  libmemusage.so
  libmvec.so.1
@@ -2381,6 +2397,8 @@ e507cf63aeb8c68719c915028151f42ee7158a172097d47e7f9e421cf7510aca       352236 li
  libfreeblpriv3.chk
  libfreeblpriv3.so
  libg.a
+ libgcrypt.so.20
+ libgcrypt.so.20.4.1
  libgssapi_krb5.so.2
  libgssapi_krb5.so.2.2
  libk5crypto.so.3

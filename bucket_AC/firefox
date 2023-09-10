@@ -14,8 +14,9 @@ DISTFILE[1]=		firefox-117.0.source.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	MOLD
+OPTIONS_STANDARD=	MOLD
+OPT_ON[linux]=		MOLD
 
 BUILD_DEPENDS=		autoconf213:single:standard
 			cbindgen:single:standard
@@ -38,6 +39,7 @@ BUILD_DEPENDS=		autoconf213:single:standard
 			libevent:dev:standard
 			clang15:complete:standard
 			llvm15:tools:standard
+			sccache:primary:standard
 BUILDRUN_DEPENDS=	dbus-glib:primary:standard
 			ffmpeg:primary:standard
 			harfbuzz:primary:standard
@@ -113,6 +115,10 @@ VAR_OPSYS[linux]=	QMAKE_ARGS=--disable-elf-hack
 			QMAKE_ARGS=--enable-audio-backends=sndio
 VAR_OPSYS[netbsd]=	QMAKE_ARGS=--enable-audio-backends=sndio
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
+
+[MOLD].DESCRIPTION=			Link Firefox with MOLD rather than ports linker
+[MOLD].BUILD_DEPENDS_ON=		mold:primary:standard
+[MOLD].QMAKE_ARGS_ON=			--enable-linker=mold
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
@@ -1754,4 +1760,12 @@ index 92bcc1100687..2f17a88942a8 100644
   environment.
 
 ==========================================================================
+
+
+[FILE:187:files/special.mk]
+.if defined(BUILD_WITH_CCACHE)
+# QMAKE_ARGS+=	--with-ccache=${LOCALBASE}/bin/sccache
+MAKE_ENV+=	SCCACHE_DIR=${CCACHE_DIR}/sccache
+MAKE_ENV+=	RUSTC_WRAPPER=${LOCALBASE}/bin/sccache
+.endif
 
