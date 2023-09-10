@@ -2,6 +2,7 @@
 
 NAMEBASE=		libtomcrypt
 VERSION=		1.18.2
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Comprehensive, portable cryptographic toolkit
@@ -12,16 +13,19 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/libtom/libtomcrypt/releases/download/v1.18.2/
 DISTFILE[1]=		crypt-1.18.2.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	libtommath:single:standard
+BUILD_DEPENDS=		libtommath:dev:standard
+BUILDRUN_DEPENDS=	libtommath:primary:standard
 
 USES=			cpe gmake libtool:build
 
-LICENSE=		PUBDOM:single
+LICENSE=		PUBDOM:primary
 LICENSE_FILE=		PUBDOM:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -46,7 +50,7 @@ post-patch:
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtomcrypt.so
 
-[FILE:220:descriptions/desc.single]
+[FILE:220:descriptions/desc.primary]
 LibTomCrypt is a portable ANSI C cryptographic library that supports
 symmetric ciphers, one-way hashes, pseudo-random number generators,
 public key cryptography (via RSA,DH or ECC/DH) and a plethora of support
@@ -57,7 +61,13 @@ routines.
 96ad4c3b8336050993c5bc2cf6c057484f2b0f9f763448151567fbab5e767b84      2638064 crypt-1.18.2.tar.xz
 
 
-[FILE:352:manifests/plist.single]
+[FILE:63:manifests/plist.primary]
+lib/
+ libtomcrypt.so.%%SOMAJOR%%
+ libtomcrypt.so.%%SOVERSION%%
+
+
+[FILE:294:manifests/plist.dev]
 include/
  tomcrypt.h
  tomcrypt_argchk.h
@@ -75,7 +85,5 @@ include/
 lib/
  libtomcrypt.a
  libtomcrypt.so
- libtomcrypt.so.%%SOMAJOR%%
- libtomcrypt.so.%%SOVERSION%%
 lib/pkgconfig/libtomcrypt.pc
 
