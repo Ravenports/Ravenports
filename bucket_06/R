@@ -2,15 +2,18 @@
 
 NAMEBASE=		R
 VERSION=		4.3.1
+REVISION=		1
 KEYWORDS=		math lang
 VARIANTS=		standard
 SDESC[standard]=	Statistical computing and graphics environment
 HOMEPAGE=		https://www.r-project.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main contrib
 SITES[main]=		CRAN/src/base/R-4
+SITES[contrib]=		CRAN/src/contrib
 DISTFILE[1]=		R-4.3.1.tar.gz:main
+DISTFILE[2]=		Matrix_1.6-1.tar.gz:contrib
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
@@ -112,6 +115,14 @@ pre-configure:
 		${WRKSRC}/src/extra/blas/Makefile.in \
 		${WRKSRC}/src/modules/lapack/Makefile.in
 
+post-extract:
+	# The provided Matrix isn't new enough to build everything.
+	# Replace version 1.5-4 with version 1.6.1
+	(cd ${WRKSRC}/src/library/Recommended && \
+		${RM} Matrix* &&\
+		${CP} ${DISTDIR}${DIST_SUBDIR}/Matrix_1.6-1.tar.gz . &&\
+		${LN} -s Matrix_1.6-1.tar.gz Matrix.tgz)
+
 [FILE:1028:descriptions/desc.primary]
 R is a system for statistical computation and graphics. It consists of a
 language plus a run-time environment with graphics, a debugger, access to
@@ -131,11 +142,12 @@ creating various kinds of data presentations. Additional modules ("add-on
 packages") are available for a variety of specific purposes.
 
 
-[FILE:93:distinfo]
+[FILE:191:distinfo]
 8dd0bf24f1023c6f618c3b317383d291b4a494f40d73b983ac22ffea99e4ba99     34899964 R-4.3.1.tar.gz
+e5c60b601f665c98a6799781a0eeb2ec6f4effee2049020b54a3bae0c9ce0c07      2064299 Matrix_1.6-1.tar.gz
 
 
-[FILE:25562:manifests/plist.primary]
+[FILE:25510:manifests/plist.primary]
 bin/
  R
  Rscript
@@ -297,9 +309,7 @@ lib/R/library/MASS/scripts/
  ch15.R
  ch16.R
 lib/R/library/Matrix/
- Copyrights
  DESCRIPTION
- Doxyfile
  INDEX
  LICENCE
  NAMESPACE
@@ -327,7 +337,6 @@ lib/R/library/Matrix/data/
  datalist
  wrld_1deg.R
 lib/R/library/Matrix/doc/
- Announce.txt
  Comparisons.R
  Comparisons.Rnw
  Comparisons.pdf
@@ -350,7 +359,6 @@ lib/R/library/Matrix/doc/SuiteSparse/
  COLAMD.txt
  SPQR.txt
  SuiteSparse_config.txt
- UserGuides.txt
 lib/R/library/Matrix/external/
  CAex_slots.rda
  KNex_slots.rda

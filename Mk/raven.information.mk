@@ -226,7 +226,7 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # Qt and Qt-based desktops
 # ------------------------------------------------------------------------
 
-QT5_VERSION=			5.15.6
+QT5_VERSION=			5.15.9
 QT6_VERSION=			6.5.2
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2

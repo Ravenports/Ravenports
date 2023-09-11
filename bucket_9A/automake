@@ -2,6 +2,7 @@
 
 NAMEBASE=		automake
 VERSION=		1.16.5
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	GNU Standards-compliant Makefile generator
@@ -18,24 +19,24 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	autoconf:single:standard
-RUN_DEPENDS=		autotools-wrappers:automake:standard
 
 USES=			cpe makeinfo perl
 
 INFO=			single:automake
+			single:automake-history
 CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		devel/automake
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--program-suffix=-1.16
 
 MAKE_ENV=		MAKEINFOFLAGS=--no-split
 
 PLIST_SUB=		AMVER=1.16
 
 post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/aclocal
+	# delete share/doc/automake/amhello-1.0.tar.gz
+	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 [FILE:683:descriptions/desc.single]
 Automake is a tool for automatically generating Makefiles compliant with
@@ -54,10 +55,13 @@ mechanism for augmenting autoconf.
 f01d58cd6d9d77fbdca9eb4bbd5ead1988228fdb73d6f7a201f5f8d6b118b469      1601740 automake-1.16.5.tar.xz
 
 
-[FILE:1622:manifests/plist.single]
+[FILE:1603:manifests/plist.single]
 bin/
+ aclocal
  aclocal-%%AMVER%%
+ automake
  automake-%%AMVER%%
+share/aclocal/README
 share/aclocal-%%AMVER%%/
  amversion.m4
  ar-lib.m4
@@ -172,61 +176,26 @@ share/automake-%%AMVER%%/am/
  vala.am
  yacc.am
 share/man/man1/
- aclocal-%%AMVER%%-%%AMVER%%.1.gz
  aclocal-%%AMVER%%.1.gz
- automake-%%AMVER%%-%%AMVER%%.1.gz
+ aclocal.1.gz
  automake-%%AMVER%%.1.gz
-@dir share/aclocal
+ automake.1.gz
 
 
-[FILE:1613:patches/patch-Makefile.in]
+[FILE:502:patches/patch-Makefile.in]
 --- Makefile.in.orig	2021-10-04 03:07:25 UTC
 +++ Makefile.in
-@@ -202,8 +202,7 @@ am__v_texidevnull_ = $(am__v_texidevnull
- am__v_texidevnull_0 = > /dev/null
- am__v_texidevnull_1 = 
- am__dirstamp = $(am__leading_dot)dirstamp
--INFO_DEPS = $(srcdir)/doc/automake.info \
--	$(srcdir)/doc/automake-history.info
-+INFO_DEPS = $(srcdir)/doc/automake.info
- TEXINFO_TEX = $(top_srcdir)/lib/texinfo.tex
- am__TEXINFO_TEX_DIR = $(top_srcdir)/lib
- DVIS = doc/automake.dvi doc/automake-history.dvi
-@@ -691,7 +690,7 @@ aclocal_in = $(srcdir)/bin/aclocal.in
- automake_script = bin/automake
- aclocal_script = bin/aclocal
- AUTOMAKESOURCES = $(automake_in) $(aclocal_in)
--info_TEXINFOS = doc/automake.texi doc/automake-history.texi
-+info_TEXINFOS = doc/automake.texi
- doc_automake_TEXINFOS = doc/fdl.texi
- doc_automake_history_TEXINFOS = doc/fdl.texi
- man1_MANS = \
-@@ -748,7 +747,7 @@ amhello_configury = \
-   missing \
-   src/Makefile.in
+@@ -3739,8 +3739,10 @@ doc/aclocal.1 doc/automake.1:
  
--dist_doc_DATA = $(srcdir)/doc/amhello-1.0.tar.gz
-+dist_doc_DATA = 
- setup_autotools_paths = { \
-   ACLOCAL=aclocal-$(APIVERSION) && export ACLOCAL \
-     && AUTOMAKE=automake-$(APIVERSION) && export AUTOMAKE \
-@@ -883,7 +882,7 @@ dist_automake_ac_DATA = \
-   m4/upc.m4 \
-   m4/vala.m4
- 
--dist_system_ac_DATA = m4/acdir/README
-+dist_system_ac_DATA = 
- automake_internal_acdir = $(automake_acdir)/internal
- dist_automake_internal_ac_DATA = m4/internal/ac-config-macro-dirs.m4
- 
-@@ -3504,7 +3503,6 @@ install-dvi-am: $(DVIS)
- 	done
- install-exec-am: install-binSCRIPTS
- 	@$(NORMAL_INSTALL)
--	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
- install-html: install-html-am
- 
- install-html-am: $(HTMLS)
+ doc/aclocal-$(APIVERSION).1: $(aclocal_script) lib/Automake/Config.pm
+ 	$(update_mans) aclocal-$(APIVERSION)
++	$(update_mans) $(aclocal_script)
+ doc/automake-$(APIVERSION).1: $(automake_script) lib/Automake/Config.pm
+ 	$(update_mans) automake-$(APIVERSION)
++	$(update_mans) $(automake_script)
+ .PHONY: checklinkx
+ checklinkx:
+ 	$(checklinkx) $(chlx_args) $(chlx_excludes) $(chlx_file)
 
 
 [FILE:659:patches/patch-doc__automake.texi]
