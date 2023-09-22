@@ -2,7 +2,7 @@
 
 NAMEBASE=		libadalang
 VERSION=		23.0.0
-REVISION=		2
+REVISION=		3
 EPOCH=			1
 KEYWORDS=		lang devel
 VARIANTS=		standard
@@ -14,19 +14,30 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:libadalang:a7a7369
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	DEBUG
 OPTIONS_STANDARD=	DEBUG
 
+BUILD_DEPENDS=		langkit_support:dev:standard
+			libgpr2:dev:standard
+			gnatcoll-core:dev:standard
+			gnatcoll-bindings:dev:standard
 BUILDRUN_DEPENDS=	langkit:single:standard
-			libgpr2:single:standard
+			libgpr2:primary:standard
 			gnatcoll-bindings:gmp:standard
+EXRUN[tools]=		primary
+EXRUN[dev]=		libgpr2:dev:standard
+			langkit_support:dev:standard
+			gnatcoll-core:dev:standard
 
-USES=			gprbuild iconv:build python:build ada:single
+USES=			gprbuild iconv:build python:build ada:primary
 
-LICENSE=		APACHE20:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/extensions/src/libadalang-auto_provider.ads
@@ -39,9 +50,8 @@ MAKE_ARGS=		--build-mode
 			--library-types=static,static-pic,relocatable
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
-SET_DEBUGGING_ON=	yes
-OPTIMIZER_LEVEL=	0
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
@@ -59,12 +69,19 @@ do-configure:
 		< ${FILESDIR}/pc-patch-build_mains.gpr
 	${REINPLACE_CMD} -e 's|@LIBS@|"-lgnarl","-Wl,-rpath,${PREFIX}/lib"${XTRALIB}|' \
 		${WRKSRC}/build/mains.gpr
+	# support soname libraries
+	${PATCH} -d ${PATCH_WRKSRC} --backup --forward -E -p0 --batch \
+		< ${FILESDIR}/pc-patch-build_libadalang.gpr
+	${REINPLACE_CMD} -e 's|@SOVERSION@|23.0.0|' \
+		${WRKSRC}/build/libadalang.gpr
 
 do-install:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} manage.py install\
 		${MAKE_ARGS:NDESTDIR=*} ${STAGEDIR}${PREFIX})
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/[n]*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_dda
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_prep
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_parse
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libadalang.relocatable/libadalang.so
 	${SED} -i'' -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
@@ -74,7 +91,7 @@ do-install:
 	${RM} ${STAGEDIR}${PREFIX}/python/setup.py
 	${RMDIR} ${STAGEDIR}${PREFIX}/lib/windows
 
-[FILE:853:descriptions/desc.single]
+[FILE:853:descriptions/desc.primary]
 Libadalang is a project to build a high performance semantic engine for
 the Ada programming language. It is meant to provide a basis to write Ada
 tooling, including tools working on potentially changing and incorrect
@@ -91,18 +108,20 @@ code, such as IDEs. Its goals encompass, but are not limited to:
 * Incremental processing of source files.
 
 
+[FILE:63:descriptions/desc.tools]
+This package contains tools based on the Ada language library.
+
+
 [FILE:112:distinfo]
 c70c6fef65dedda4112be3918cadaacdd588b5cd538192e8f0e3023bbf65f582      2751479 AdaCore-libadalang-a7a7369.tar.gz
 
 
-[FILE:5890:manifests/plist.single]
-bin/
- lal_dda
- lal_parse
- lal_playground
- lal_prep
- nameres
- navigate
+[FILE:87:manifests/plist.primary]
+lib/libadalang.relocatable/libadalang.so.%%SOVERSION%%
+lib/libadalang.so.%%SOVERSION%%
+
+
+[FILE:5820:manifests/plist.dev]
 include/libadalang/
  libadalang-analysis.adb
  libadalang-analysis.ads
@@ -312,13 +331,36 @@ python/libadalang/
 share/gpr/libadalang.gpr
 
 
-[FILE:329:files/pc-patch-build_mains.gpr]
-post-configure patch to generated mains.gpr
-(BSD only, maybe MacOS too)
+[FILE:70:manifests/plist.tools]
+bin/
+ lal_dda
+ lal_parse
+ lal_playground
+ lal_prep
+ nameres
+ navigate
 
---- build/mains.gpr.orig	2021-06-20 17:42:33 UTC
+
+[FILE:385:files/pc-patch-build_libadalang.gpr]
+--- build/libadalang.gpr.orig	2023-09-12 06:28:45 UTC
++++ build/libadalang.gpr
+@@ -61,6 +61,7 @@ library project Libadalang is
+ 
+ 
+    for Library_Name use "adalang";
++   for Library_Version use "libadalang.so.@SOVERSION@";
+    for Library_Kind use Library_Kind_Param;
+    for Library_Dir use "lib/" & Library_Kind_Param & "/" & Build_Mode;
+    for Object_Dir use "obj/" & Build_Mode;
+
+
+[FILE:312:files/pc-patch-build_mains.gpr]
+post-configure patch to generated mains.gpr
+(BSD only)
+
+--- build/mains.gpr.orig	2023-09-12 06:28:39 UTC
 +++ build/mains.gpr
-@@ -44,4 +44,8 @@ project Mains is
+@@ -50,4 +50,8 @@ project Mains is
        for Switches ("ada") use ("-E");
     end Binder;
  

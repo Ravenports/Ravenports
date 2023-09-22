@@ -2,7 +2,7 @@
 
 NAMEBASE=		gnatcoll-bindings
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		3
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		standard
@@ -21,6 +21,7 @@ SPKGS[standard]=	complete
 			readline
 			syslog
 			examples
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -31,12 +32,16 @@ BUILD_DEPENDS=		gmp:static:standard
 			readline:dev:standard
 			readline:primary:standard
 			python310:single:standard
-BUILDRUN_DEPENDS=	gnatcoll-core:primary:standard
-			xmlada:primary:standard
+			gnatcoll-core:dev:standard
+			gnatcoll-core:primary:standard
 EXRUN[readline]=	readline:primary:standard
+			gnatcoll-core:primary:standard
 EXRUN[iconv]=		libiconv:primary:standard
+			gnatcoll-core:primary:standard
 EXRUN[python3]=		python310:single:standard
+			gnatcoll-core:primary:standard
 EXRUN[gmp]=		gmp:shared:standard
+			gnatcoll-core:primary:standard
 
 USES=			gprbuild gmake iconv:build python:build
 
@@ -138,7 +143,52 @@ This subpackage contains syslog bindings.
 bdc1eb01ba2740672d3dd9e5f364790299f4d182975e84e61a74ce5b447ec6a9       253304 AdaCore-gnatcoll-bindings-411d4c6.tar.gz
 
 
-[FILE:1981:manifests/plist.gmp]
+[FILE:167:manifests/plist.gmp]
+lib/
+ libgnatcoll_gmp.so.%%SOMAJOR%%
+ libgnatcoll_gmp.so.%%SOVERSION%%
+lib/gnatcoll_gmp.relocatable/
+ libgnatcoll_gmp.so.%%SOMAJOR%%
+ libgnatcoll_gmp.so.%%SOVERSION%%
+
+
+[FILE:177:manifests/plist.iconv]
+lib/
+ libgnatcoll_iconv.so.%%SOMAJOR%%
+ libgnatcoll_iconv.so.%%SOVERSION%%
+lib/gnatcoll_iconv.relocatable/
+ libgnatcoll_iconv.so.%%SOMAJOR%%
+ libgnatcoll_iconv.so.%%SOVERSION%%
+
+
+[FILE:186:manifests/plist.python3]
+lib/
+ libgnatcoll_python3.so.%%SOMAJOR%%
+ libgnatcoll_python3.so.%%SOVERSION%%
+lib/gnatcoll_python.relocatable/
+ libgnatcoll_python3.so.%%SOMAJOR%%
+ libgnatcoll_python3.so.%%SOVERSION%%
+
+
+[FILE:192:manifests/plist.readline]
+lib/
+ libgnatcoll_readline.so.%%SOMAJOR%%
+ libgnatcoll_readline.so.%%SOVERSION%%
+lib/gnatcoll_readline.relocatable/
+ libgnatcoll_readline.so.%%SOMAJOR%%
+ libgnatcoll_readline.so.%%SOVERSION%%
+
+
+[FILE:182:manifests/plist.syslog]
+lib/
+ libgnatcoll_syslog.so.%%SOMAJOR%%
+ libgnatcoll_syslog.so.%%SOVERSION%%
+lib/gnatcoll_syslog.relocatable/
+ libgnatcoll_syslog.so.%%SOMAJOR%%
+ libgnatcoll_syslog.so.%%SOVERSION%%
+
+
+[FILE:4639:manifests/plist.dev]
 include/gnatcoll_gmp/
  gmp_support.c
  gnatcoll-gmp-integers-io.adb
@@ -162,10 +212,43 @@ include/gnatcoll_gmp/
  gnatcoll-gmp-rational_numbers.adb
  gnatcoll-gmp-rational_numbers.ads
  gnatcoll-gmp.ads
+include/gnatcoll_iconv/
+ gnatcoll-iconv.adb
+ gnatcoll-iconv.ads
+ iconv_support.c
+include/gnatcoll_python/
+ gnatcoll-any_types-python.adb
+ gnatcoll-any_types-python.ads
+ gnatcoll-python-capsule.adb
+ gnatcoll-python-capsule.ads
+ gnatcoll-python-ctypes.ads
+ gnatcoll-python-errors.ads
+ gnatcoll-python-eval.ads
+ gnatcoll-python-exceptions.ads
+ gnatcoll-python-fileutils.adb
+ gnatcoll-python-fileutils.ads
+ gnatcoll-python-lifecycle.adb
+ gnatcoll-python-lifecycle.ads
+ gnatcoll-python-state.adb
+ gnatcoll-python-state.ads
+ gnatcoll-python.adb
+ gnatcoll-python.ads
+ gnatcoll-scripts-python.adb
+ gnatcoll-scripts-python.ads
+ python_support.c
+include/gnatcoll_readline/
+ gnatcoll-readline.adb
+ gnatcoll-readline.ads
+include/gnatcoll_syslog/
+ gnatcoll-traces-syslog.adb
+ gnatcoll-traces-syslog.ads
+ syslog_support.c
 lib/
  libgnatcoll_gmp.so
- libgnatcoll_gmp.so.%%SOMAJOR%%
- libgnatcoll_gmp.so.%%SOVERSION%%
+ libgnatcoll_iconv.so
+ libgnatcoll_python3.so
+ libgnatcoll_readline.so
+ libgnatcoll_syslog.so
 lib/gnatcoll_gmp.relocatable/
  gnatcoll-gmp-integers-io.ali
  gnatcoll-gmp-integers-misc.ali
@@ -178,8 +261,6 @@ lib/gnatcoll_gmp.relocatable/
  gnatcoll-gmp-rational_numbers.ali
  gnatcoll-gmp.ali
  libgnatcoll_gmp.so
- libgnatcoll_gmp.so.%%SOMAJOR%%
- libgnatcoll_gmp.so.%%SOVERSION%%
 lib/gnatcoll_gmp.static/
  gnatcoll-gmp-integers-io.ali
  gnatcoll-gmp-integers-misc.ali
@@ -204,57 +285,15 @@ lib/gnatcoll_gmp.static-pic/
  gnatcoll-gmp-rational_numbers.ali
  gnatcoll-gmp.ali
  libgnatcoll_gmp.a
-share/gpr/gnatcoll_gmp.gpr
-
-
-[FILE:491:manifests/plist.iconv]
-include/gnatcoll_iconv/
- gnatcoll-iconv.adb
- gnatcoll-iconv.ads
- iconv_support.c
-lib/
- libgnatcoll_iconv.so
- libgnatcoll_iconv.so.%%SOMAJOR%%
- libgnatcoll_iconv.so.%%SOVERSION%%
 lib/gnatcoll_iconv.relocatable/
  gnatcoll-iconv.ali
  libgnatcoll_iconv.so
- libgnatcoll_iconv.so.%%SOMAJOR%%
- libgnatcoll_iconv.so.%%SOVERSION%%
 lib/gnatcoll_iconv.static/
  gnatcoll-iconv.ali
  libgnatcoll_iconv.a
 lib/gnatcoll_iconv.static-pic/
  gnatcoll-iconv.ali
  libgnatcoll_iconv.a
-share/gpr/gnatcoll_iconv.gpr
-
-
-[FILE:1864:manifests/plist.python3]
-include/gnatcoll_python/
- gnatcoll-any_types-python.adb
- gnatcoll-any_types-python.ads
- gnatcoll-python-capsule.adb
- gnatcoll-python-capsule.ads
- gnatcoll-python-ctypes.ads
- gnatcoll-python-errors.ads
- gnatcoll-python-eval.ads
- gnatcoll-python-exceptions.ads
- gnatcoll-python-fileutils.adb
- gnatcoll-python-fileutils.ads
- gnatcoll-python-lifecycle.adb
- gnatcoll-python-lifecycle.ads
- gnatcoll-python-state.adb
- gnatcoll-python-state.ads
- gnatcoll-python.adb
- gnatcoll-python.ads
- gnatcoll-scripts-python.adb
- gnatcoll-scripts-python.ads
- python_support.c
-lib/
- libgnatcoll_python3.so
- libgnatcoll_python3.so.%%SOMAJOR%%
- libgnatcoll_python3.so.%%SOVERSION%%
 lib/gnatcoll_python.relocatable/
  gnatcoll-any_types-python.ali
  gnatcoll-python-capsule.ali
@@ -268,8 +307,6 @@ lib/gnatcoll_python.relocatable/
  gnatcoll-python.ali
  gnatcoll-scripts-python.ali
  libgnatcoll_python3.so
- libgnatcoll_python3.so.%%SOMAJOR%%
- libgnatcoll_python3.so.%%SOVERSION%%
 lib/gnatcoll_python.static/
  gnatcoll-any_types-python.ali
  gnatcoll-python-capsule.ali
@@ -296,52 +333,30 @@ lib/gnatcoll_python.static-pic/
  gnatcoll-python.ali
  gnatcoll-scripts-python.ali
  libgnatcoll_python3.a
-share/gpr/gnatcoll_python.gpr
-
-
-[FILE:528:manifests/plist.readline]
-include/gnatcoll_readline/
- gnatcoll-readline.adb
- gnatcoll-readline.ads
-lib/
- libgnatcoll_readline.so
- libgnatcoll_readline.so.%%SOMAJOR%%
- libgnatcoll_readline.so.%%SOVERSION%%
 lib/gnatcoll_readline.relocatable/
  gnatcoll-readline.ali
  libgnatcoll_readline.so
- libgnatcoll_readline.so.%%SOMAJOR%%
- libgnatcoll_readline.so.%%SOVERSION%%
 lib/gnatcoll_readline.static/
  gnatcoll-readline.ali
  libgnatcoll_readline.a
 lib/gnatcoll_readline.static-pic/
  gnatcoll-readline.ali
  libgnatcoll_readline.a
-share/gpr/gnatcoll_readline.gpr
-
-
-[FILE:545:manifests/plist.syslog]
-include/gnatcoll_syslog/
- gnatcoll-traces-syslog.adb
- gnatcoll-traces-syslog.ads
- syslog_support.c
-lib/
- libgnatcoll_syslog.so
- libgnatcoll_syslog.so.%%SOMAJOR%%
- libgnatcoll_syslog.so.%%SOVERSION%%
 lib/gnatcoll_syslog.relocatable/
  gnatcoll-traces-syslog.ali
  libgnatcoll_syslog.so
- libgnatcoll_syslog.so.%%SOMAJOR%%
- libgnatcoll_syslog.so.%%SOVERSION%%
 lib/gnatcoll_syslog.static/
  gnatcoll-traces-syslog.ali
  libgnatcoll_syslog.a
 lib/gnatcoll_syslog.static-pic/
  gnatcoll-traces-syslog.ali
  libgnatcoll_syslog.a
-share/gpr/gnatcoll_syslog.gpr
+share/gpr/
+ gnatcoll_gmp.gpr
+ gnatcoll_iconv.gpr
+ gnatcoll_python.gpr
+ gnatcoll_readline.gpr
+ gnatcoll_syslog.gpr
 
 
 [FILE:2217:files/gen_gpr.sh]

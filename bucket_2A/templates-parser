@@ -2,6 +2,7 @@
 
 NAMEBASE=		templates-parser
 VERSION=		23.0.0
+REVISION=		1
 KEYWORDS=		www ada
 VARIANTS=		standard
 SDESC[standard]=	Templated text stream library
@@ -12,15 +13,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:templates-parser:v23.0.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			gmake gprbuild ada:single
+USES=			gmake gprbuild ada:primary
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/templates_parser.ads
@@ -29,6 +33,7 @@ LICENSE_SCHEME=		solo
 BUILD_TARGET=		build
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		22.0
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
@@ -42,20 +47,29 @@ do-configure:
 		ENABLE_SHARED=true \
 		prefix=${PREFIX} setup)
 
-[FILE:175:descriptions/desc.single]
-This package contains the Templates_Parser library and the associated
-templates2ada program. These are tools to create templated text streams,
-such as dynamic HTML documents.
+[FILE:52:descriptions/desc.primary]
+This package contains the Templates_Parser library.
+
+
+[FILE:130:descriptions/desc.tools]
+This package contains the templates2ada program.  This is a tool to create
+templated text streams such as dynamic HTML documents.
 
 
 [FILE:117:distinfo]
 0fb0094fba45bd28bf2093394207e9f312d99a9d27a741b7ffd1b1a21c2c0285       225459 AdaCore-templates-parser-23.0.0.tar.gz
 
 
-[FILE:3197:manifests/plist.single]
-bin/
- templates2ada
- templatespp
+[FILE:187:manifests/plist.primary]
+lib/
+ libtemplates_parser.so.%%SOMAJOR%%
+ libtemplates_parser.so.%%SOVERSION%%
+lib/templates_parser.relocatable/
+ libtemplates_parser.so.%%SOMAJOR%%
+ libtemplates_parser.so.%%SOVERSION%%
+
+
+[FILE:3104:manifests/plist.dev]
 include/templates_parser.relocatable/
  templates_parser-cached_files.adb
  templates_parser-configuration__standalone.ads
@@ -125,11 +139,8 @@ include/templates_parser.static-pic/
  templates_parser.ads
  templates_parser_tasking.ads
  templates_parser_tasking__standard_tasking.adb
-lib/
- libtemplates_parser-22.0.so
- libtemplates_parser.so
+lib/libtemplates_parser.so
 lib/templates_parser.relocatable/
- libtemplates_parser-22.0.so
  libtemplates_parser.so
  templates_parser-configuration__standalone.ali
  templates_parser-debug.ali
@@ -157,4 +168,24 @@ lib/templates_parser.static-pic/
  templates_parser.ali
  templates_parser_tasking__standard_tasking.ali
 share/gpr/templates_parser.gpr
+
+
+[FILE:33:manifests/plist.tools]
+bin/
+ templates2ada
+ templatespp
+
+
+[FILE:450:patches/patch-templates__parser.gpr]
+--- templates_parser.gpr.orig	2022-06-29 16:15:15 UTC
++++ templates_parser.gpr
+@@ -28,7 +28,7 @@ library project Templates_Parser is
+ 
+    for Library_Name use "templates_parser";
+    for Library_Kind use TP_Shared.Library_Type;
+-   for Library_Version use "libtemplates_parser-" & TP_Shared.Version & ".so";
++   for Library_Version use "libtemplates_parser.so." & TP_Shared.Version;
+ 
+    case TP_Shared.Library_Type is
+       when "relocatable" =>
 

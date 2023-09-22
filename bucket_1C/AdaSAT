@@ -2,6 +2,7 @@
 
 NAMEBASE=		AdaSAT
 VERSION=		23.0.0
+REVISION=		1
 KEYWORDS=		math ada
 VARIANTS=		standard
 SDESC[standard]=	Implementation of a DPLL-based SAT solver in Ada
@@ -12,15 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:AdaSAT:f948e22
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			gprbuild gmake ada:single
+USES=			gprbuild gmake ada:primary
 
-LICENSE=		APACHE20:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/adasat.ads
@@ -32,6 +35,7 @@ MAKE_ARGS=		BUILD_MODE=dev
 			INSTALL_DIR={{STAGEDIR}}{{PREFIX}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
 post-install:
 	# remove manifests
@@ -39,7 +43,10 @@ post-install:
 	# strip binaries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/adasat.relocatable/libadasat.so
 
-[FILE:197:descriptions/desc.single]
+pre-configure:
+	${REINPLACE_CMD} -e 's|%%SOVERSION%%|23.0.0|' ${WRKSRC}/adasat.gpr
+
+[FILE:197:descriptions/desc.primary]
 Implementation of a DPLL-based SAT solver in Ada. Main features:
 
 - Conflict analysis and backjumping
@@ -52,7 +59,12 @@ Implementation of a DPLL-based SAT solver in Ada. Main features:
 053c36a2f7c47646fde2c29c90979ecfd74ffc452416e3ed5ed966f47fbeec07        29217 AdaCore-AdaSAT-f948e22.tar.gz
 
 
-[FILE:1665:manifests/plist.single]
+[FILE:81:manifests/plist.primary]
+lib/adasat.relocatable/libadasat.so.%%SOVERSION%%
+lib/libadasat.so.%%SOVERSION%%
+
+
+[FILE:1665:manifests/plist.dev]
 include/adasat.relocatable/
  adasat-builders.adb
  adasat-builders.ads
@@ -139,4 +151,17 @@ lib/adasat.static-pic/
  adasat.ali
  libadasat.a
 share/gpr/adasat.gpr
+
+
+[FILE:443:patches/patch-adasat.gpr]
+--- adasat.gpr.orig	2023-01-20 13:54:21 UTC
++++ adasat.gpr
+@@ -12,6 +12,7 @@ library project AdaSAT is
+    for Library_Dir use "lib/" & Library_Kind_Param & "/" & Build_Mode;
+    for Object_Dir use "obj/" & Library_Kind_Param & "/" & Build_Mode;
+    for Library_Name use "adasat";
++   for Library_Version use "libadasat.so.%%SOVERSION%%";
+    for Library_Kind use Library_Kind_Param;
+ 
+    Common_Ada_Cargs := ("-gnatwa", "-gnatyg", "-fPIC");
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		lal-refactor
 VERSION=		23.0.0
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Collection of Ada source code refactoring tools
@@ -12,17 +13,26 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:lal-refactor:441bfae
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	libadalang-tools:single:standard
+BUILD_DEPENDS=		libadalang-tools:dev:standard
+			libvss:dev:standard
+			libgpr2:dev:standard
+			libadalang:dev:standard
+			gnatcoll-core:dev:standard
+			gnatcoll-bindings:dev:standard
+			langkit_support:dev:standard
+BUILDRUN_DEPENDS=	libadalang-tools:primary:standard
 
-USES=			gmake gprbuild iconv ada:single
+USES=			gmake gprbuild iconv ada:primary
 
-LICENSE=		APACHE20:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/lal_refactor.ads
@@ -33,11 +43,17 @@ MAKE_ARGS=		PROCESSORS={{MAKE_JOBS_NUMBER}}
 			BUILD_MODE=prod
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lal_refactor.relocatable/liblal-refactor.so
 
-[FILE:405:descriptions/desc.single]
+pre-configure:
+	# support soname libraries
+	${REINPLACE_CMD} -e 's|@SOVERSION@|23.0.0|' \
+		${WRKSRC}/gnat/lal_refactor.gpr
+
+[FILE:405:descriptions/desc.primary]
 LAL Refactor
 This repository provides a collection of source code refactoring tools for
 the Ada programming language, leveraging the power of Libadalang. These
@@ -52,7 +68,12 @@ Currently, the main user of these tools is the Ada Language Server.
 7421df90946db19c34cbbd1d1806dd57ccf25b03dea125027d928cfa1534b0b8       209933 AdaCore-lal-refactor-441bfae.tar.gz
 
 
-[FILE:4658:manifests/plist.single]
+[FILE:99:manifests/plist.primary]
+lib/liblal-refactor.so.%%SOVERSION%%
+lib/lal_refactor.relocatable/liblal-refactor.so.%%SOVERSION%%
+
+
+[FILE:4658:manifests/plist.dev]
 include/lal-refactor/
  lal_refactor-command_line.ads
  lal_refactor-extract_subprogram.adb
@@ -201,4 +222,17 @@ share/gpr/lal_refactor.gpr
  		-P $(BIN_PROJECT) \
  		-p \
  		-f ;
+
+
+[FILE:358:patches/patch-gnat_lal__refactor.gpr]
+--- gnat/lal_refactor.gpr.orig	2023-07-13 00:56:25 UTC
++++ gnat/lal_refactor.gpr
+@@ -20,6 +20,7 @@ library project LAL_Refactor is
+    for Library_Kind use Library_Type;
+    for Library_Dir use "../lib/" & Library_Type;
+    for Library_Name use "lal-refactor";
++   for Library_Version use "liblal-refactor.so.@SOVERSION@";
+ 
+    for Languages use ("Ada");
+ 
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		ada_language_server
 VERSION=		23.0.21
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		ada textproc
 VARIANTS=		standard
@@ -13,24 +14,33 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:ada_language_server:23.0.21
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		ada_libfswatch:single:standard
-			libvss:single:standard
+			libvss:dev:standard
+			gtkada:dev:standard
 			gnatdoc:single:standard
-BUILDRUN_DEPENDS=	libadalang:single:standard
-			libadalang-tools:single:standard
 			ada_spawn:single:standard
-			libgpr2:single:standard
-			lal-refactor:single:standard
+			lal-refactor:dev:standard
+			libadalang:dev:standard
+			libadalang-tools:dev:standard
+			libgpr2:dev:standard
+			gnatcoll-core:dev:standard
+			gnatcoll-bindings:dev:standard
+			langkit_support:dev:standard
+BUILDRUN_DEPENDS=	libadalang-tools:primary:standard
+			lal-refactor:primary:standard
+			libgpr2:primary:standard
 
 USES=			gmake gprbuild iconv:build
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/LICENSE
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/source/server/lsp-servers.ads
@@ -45,7 +55,7 @@ post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
 
-[FILE:451:descriptions/desc.single]
+[FILE:451:descriptions/desc.primary]
 Ada_Language_Server an implementation of the Microsoft Language Server
 Protocol for Ada/SPARK.
 
@@ -63,11 +73,14 @@ Current features:
 5789c8b3ffaa4b135fa7280a2f28184ee6bb3ea957f88d330bcf922e78394fe7      1598879 AdaCore-ada_language_server-23.0.21.tar.gz
 
 
-[FILE:4567:manifests/plist.single]
+[FILE:50:manifests/plist.primary]
 bin/
  ada_language_server
  codec_test
  tester-run
+
+
+[FILE:4517:manifests/plist.dev]
 include/codec_test/codec_test.adb
 include/lsp/
  lsp-client_message_receivers.ads

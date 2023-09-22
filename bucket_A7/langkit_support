@@ -2,7 +2,7 @@
 
 NAMEBASE=		langkit_support
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		ada devel
 VARIANTS=		standard
@@ -14,37 +14,49 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:langkit:53353ed
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		python311:single:standard
 			python-e3-core:single:v11
+			AdaSAT:dev:standard
+			gnatcoll-bindings:dev:standard
+			gnatcoll-core:dev:standard
 BUILDRUN_DEPENDS=	gnatcoll-core:primary:standard
 			gnatcoll-bindings:iconv:standard
 			gnatcoll-bindings:gmp:standard
-			xmlada:primary:standard
-			AdaSAT:single:standard
+			AdaSAT:primary:standard
+EXRUN[dev]=		xmlada:dev:standard
+			AdaSAT:dev:standard
+			gprbuild:dev:standard
 
 USES=			gprbuild iconv:build
 
 DISTNAME=		langkit-53353ed
 
-LICENSE=		APACHE20:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/langkit/support/langkit_support.ads
 LICENSE_SCHEME=		solo
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		python manage.py build-langkit-support \
 		--library-types=static,static-pic,relocatable \
 		--build-mode=prod)
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|%%SOVERSION%%|23.0.0|' \
+		${WRKSRC}/langkit/support/langkit_support.gpr
 
 do-install:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -57,7 +69,7 @@ do-install:
 	# Remove redundant manifest file
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 
-[FILE:116:descriptions/desc.single]
+[FILE:116:descriptions/desc.primary]
 Support files for Ada Langkit.
 These used to be part of langkit, but they have been split out to their
 own project.
@@ -67,7 +79,12 @@ own project.
 6daf5eb9060e339f88bac5f6b1f77a1345857f49318c1f4fe5c28ce91e702855      1273280 AdaCore-langkit-53353ed.tar.gz
 
 
-[FILE:7364:manifests/plist.single]
+[FILE:108:manifests/plist.primary]
+lib/langkit_support.relocatable/liblangkit_support.so.%%SOVERSION%%
+lib/liblangkit_support.so.%%SOVERSION%%
+
+
+[FILE:7364:manifests/plist.dev]
 include/langkit_support/
  langkit_support-adalog-debug.adb
  langkit_support-adalog-debug.ads
@@ -282,4 +299,17 @@ lib/langkit_support.static-pic/
  langkit_support.ali
  liblangkit_support.a
 share/gpr/langkit_support.gpr
+
+
+[FILE:408:patches/patch-langkit_support_langkit__support.gpr]
+--- langkit/support/langkit_support.gpr.orig	2023-07-06 13:16:36 UTC
++++ langkit/support/langkit_support.gpr
+@@ -75,6 +75,7 @@ library project Langkit_Support is
+    end case;
+ 
+    for Library_Name use "langkit_support";
++   for Library_Version use "liblangkit_support.so.%%SOVERSION%%";
+    for Library_Kind use Library_Kind_Param;
+    for Library_Dir use "lib/" & Library_Kind_Param & "/" & Build_Mode;
+ 
 

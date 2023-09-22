@@ -2,7 +2,7 @@
 
 NAMEBASE=		libadalang-tools
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		python lang devel
 VARIANTS=		standard
@@ -14,21 +14,36 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:libadalang-tools:ececaf1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		gmp:static:standard
-BUILDRUN_DEPENDS=	libadalang:single:standard
-			libvss:single:standard
-			templates-parser:single:standard
+			libvss:dev:standard
+			AdaSAT:dev:standard
+			libgpr2:dev:standard
+			libadalang:dev:standard
+			gnatcoll-core:dev:standard
+			gnatcoll-bindings:dev:standard
+			langkit_support:dev:standard
+			templates-parser:dev:standard
+BUILDRUN_DEPENDS=	libvss:primary:standard
+			AdaSAT:primary:standard
+			libgpr2:primary:standard
+			libadalang:primary:standard
+			templates-parser:primary:standard
 			gmp:shared:standard
+EXRUN[tools]=		primary
+EXRUN[dev]=		templates-parser:dev:standard
 
 USES=			gprbuild iconv
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/LICENSE
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/pp.ads
@@ -40,12 +55,22 @@ MAKE_ARGS=		BUILD_MODE=prod
 
 INSTALL_TARGET=		install-bin-strip install-lib
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lal_tools.relocatable/liblal_tools.so
 
-[FILE:309:descriptions/desc.single]
+pre-configure:
+	# support soname libraries
+	${REINPLACE_CMD} -e 's|@SOVERSION@|23.0.0|' \
+		${WRKSRC}/src/lal_tools.gpr
+
+[FILE:43:descriptions/desc.primary]
+This package contains the adalang library.
+
+
+[FILE:309:descriptions/desc.tools]
 This package contains several Libadalang-based development tools:
 
  - gnatpp       a pretty-printer to reformat source code.
@@ -58,13 +83,12 @@ This package contains several Libadalang-based development tools:
 d1be88e1de0a2ed1e07b03ed17f53c22bef85c3a49487d2a5558c7abf8b26179      1077919 AdaCore-libadalang-tools-ececaf1.tar.gz
 
 
-[FILE:11764:manifests/plist.single]
-bin/
- gnatmetric
- gnatpp
- gnatstub
- gnattest
- utils-var_length_ints-test
+[FILE:90:manifests/plist.primary]
+lib/liblal_tools.so.%%SOVERSION%%
+lib/lal_tools.relocatable/liblal_tools.so.%%SOVERSION%%
+
+
+[FILE:11691:manifests/plist.dev]
 include/lal_tools/
  anonymous_typ_init.tmplt
  anonymous_typ_spec.tmplt
@@ -584,6 +608,15 @@ lib/lal_tools.static-pic/
 share/gpr/lal_tools.gpr
 
 
+[FILE:73:manifests/plist.tools]
+bin/
+ gnatmetric
+ gnatpp
+ gnatstub
+ gnattest
+ utils-var_length_ints-test
+
+
 [FILE:858:patches/patch-Makefile]
 --- Makefile.orig	2023-07-19 08:54:01 UTC
 +++ Makefile
@@ -613,6 +646,19 @@ share/gpr/lal_tools.gpr
  
  .PHONY: install-tgen
  install-tgen:
+
+
+[FILE:374:patches/patch-src_lal__tools.gpr]
+--- src/lal_tools.gpr.orig	2023-07-19 08:54:01 UTC
++++ src/lal_tools.gpr
+@@ -19,6 +19,7 @@ library project LAL_Tools is
+    for Library_Kind use Library_Type;
+    for Library_Dir use "../lib/" & Library_Type;
+    for Library_Name use "lal_tools";
++   for Library_Version use "liblal_tools.so.@SOVERSION@";
+ 
+    for Languages use ("Ada", "Templates");
+    package Naming is
 
 
 [FILE:334:patches/patch-src_test-main.adb]

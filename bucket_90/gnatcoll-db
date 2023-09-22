@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnatcoll-db
 VERSION=		23.0.0
+REVISION=		3
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		standard
@@ -19,15 +20,21 @@ SPKGS[standard]=	complete
 			postgres
 			sql
 			xref
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		gnatcoll-bindings:iconv:standard
-BUILDRUN_DEPENDS=	gnatcoll-core:primary:standard
-			xmlada:primary:standard
+BUILD_DEPENDS=		gnatcoll-bindings:dev:standard
+			gnatcoll-bindings:iconv:standard
+			gnatcoll-core:dev:standard
+			gnatcoll-core:primary:standard
+EXRUN[sql]=		gnatcoll-core:primary:standard
 EXRUN[postgres]=	pgsql
+			gnatcoll-core:primary:standard
 EXRUN[xref]=		gnatcoll-bindings:iconv:standard
+			gnatcoll-core:primary:standard
+EXRUN[sqlite]=		gnatcoll-core:primary:standard
 
 USES=			gprbuild gmake python:build shebangfix iconv:build
 			pgsql:client,build
@@ -118,41 +125,43 @@ bin/
 share/gnatcoll/dborm.py
 
 
-[FILE:813:manifests/plist.sqlite]
-include/gnatcoll_sqlite/
- gnatcoll-sql-sqlite-builder.adb
- gnatcoll-sql-sqlite-builder.ads
- gnatcoll-sql-sqlite-gnade.adb
- gnatcoll-sql-sqlite-gnade.ads
- gnatcoll-sql-sqlite.adb
- gnatcoll-sql-sqlite.ads
- shell.c
- sqlite3.c
- sqlite3.h
- sqlite3ext.h
+[FILE:182:manifests/plist.sqlite]
 lib/
- libgnatcoll_sqlite.so
  libgnatcoll_sqlite.so.%%SOMAJOR%%
  libgnatcoll_sqlite.so.%%SOVERSION%%
 lib/gnatcoll_sqlite.relocatable/
- gnatcoll-sql-sqlite.ali
- libgnatcoll_sqlite.so
  libgnatcoll_sqlite.so.%%SOMAJOR%%
  libgnatcoll_sqlite.so.%%SOVERSION%%
-lib/gnatcoll_sqlite.static/
- gnatcoll-sql-sqlite-builder.ali
- gnatcoll-sql-sqlite-gnade.ali
- gnatcoll-sql-sqlite.ali
- libgnatcoll_sqlite.a
-lib/gnatcoll_sqlite.static-pic/
- gnatcoll-sql-sqlite-builder.ali
- gnatcoll-sql-sqlite-gnade.ali
- gnatcoll-sql-sqlite.ali
- libgnatcoll_sqlite.a
-share/gpr/gnatcoll_sqlite.gpr
 
 
-[FILE:965:manifests/plist.postgres]
+[FILE:192:manifests/plist.postgres]
+lib/
+ libgnatcoll_postgres.so.%%SOMAJOR%%
+ libgnatcoll_postgres.so.%%SOVERSION%%
+lib/gnatcoll_postgres.relocatable/
+ libgnatcoll_postgres.so.%%SOMAJOR%%
+ libgnatcoll_postgres.so.%%SOVERSION%%
+
+
+[FILE:167:manifests/plist.sql]
+lib/
+ libgnatcoll_sql.so.%%SOMAJOR%%
+ libgnatcoll_sql.so.%%SOVERSION%%
+lib/gnatcoll_sql.relocatable/
+ libgnatcoll_sql.so.%%SOMAJOR%%
+ libgnatcoll_sql.so.%%SOVERSION%%
+
+
+[FILE:172:manifests/plist.xref]
+lib/
+ libgnatcoll_xref.so.%%SOMAJOR%%
+ libgnatcoll_xref.so.%%SOVERSION%%
+lib/gnatcoll_xref.relocatable/
+ libgnatcoll_xref.so.%%SOMAJOR%%
+ libgnatcoll_xref.so.%%SOVERSION%%
+
+
+[FILE:3519:manifests/plist.dev]
 include/gnatcoll_postgres/
  gnatcoll-sql-postgres-builder.adb
  gnatcoll-sql-postgres-builder.ads
@@ -163,32 +172,6 @@ include/gnatcoll_postgres/
  gnatcoll-sql-ranges.adb
  gnatcoll-sql-ranges.ads
  postgres_support.c
-lib/
- libgnatcoll_postgres.so
- libgnatcoll_postgres.so.%%SOMAJOR%%
- libgnatcoll_postgres.so.%%SOVERSION%%
-lib/gnatcoll_postgres.relocatable/
- gnatcoll-sql-postgres.ali
- gnatcoll-sql-ranges.ali
- libgnatcoll_postgres.so
- libgnatcoll_postgres.so.%%SOMAJOR%%
- libgnatcoll_postgres.so.%%SOVERSION%%
-lib/gnatcoll_postgres.static/
- gnatcoll-sql-postgres-builder.ali
- gnatcoll-sql-postgres-gnade.ali
- gnatcoll-sql-postgres.ali
- gnatcoll-sql-ranges.ali
- libgnatcoll_postgres.a
-lib/gnatcoll_postgres.static-pic/
- gnatcoll-sql-postgres-builder.ali
- gnatcoll-sql-postgres-gnade.ali
- gnatcoll-sql-postgres.ali
- gnatcoll-sql-ranges.ali
- libgnatcoll_postgres.a
-share/gpr/gnatcoll_postgres.gpr
-
-
-[FILE:1613:manifests/plist.sql]
 include/gnatcoll_sql/
  gnatcoll-sql-exec-tasking.adb
  gnatcoll-sql-exec-tasking.ads
@@ -210,10 +193,44 @@ include/gnatcoll_sql/
  gnatcoll-sql_fields.ads
  gnatcoll-sql_impl.adb
  gnatcoll-sql_impl.ads
+include/gnatcoll_sqlite/
+ gnatcoll-sql-sqlite-builder.adb
+ gnatcoll-sql-sqlite-builder.ads
+ gnatcoll-sql-sqlite-gnade.adb
+ gnatcoll-sql-sqlite-gnade.ads
+ gnatcoll-sql-sqlite.adb
+ gnatcoll-sql-sqlite.ads
+ shell.c
+ sqlite3.c
+ sqlite3.h
+ sqlite3ext.h
+include/gnatcoll_xref/
+ gnatcoll-xref-database.adb
+ gnatcoll-xref-database.ads
+ gnatcoll-xref-database_names.ads
+ gnatcoll-xref.adb
+ gnatcoll-xref.ads
 lib/
+ libgnatcoll_postgres.so
  libgnatcoll_sql.so
- libgnatcoll_sql.so.%%SOMAJOR%%
- libgnatcoll_sql.so.%%SOVERSION%%
+ libgnatcoll_sqlite.so
+ libgnatcoll_xref.so
+lib/gnatcoll_postgres.relocatable/
+ gnatcoll-sql-postgres.ali
+ gnatcoll-sql-ranges.ali
+ libgnatcoll_postgres.so
+lib/gnatcoll_postgres.static/
+ gnatcoll-sql-postgres-builder.ali
+ gnatcoll-sql-postgres-gnade.ali
+ gnatcoll-sql-postgres.ali
+ gnatcoll-sql-ranges.ali
+ libgnatcoll_postgres.a
+lib/gnatcoll_postgres.static-pic/
+ gnatcoll-sql-postgres-builder.ali
+ gnatcoll-sql-postgres-gnade.ali
+ gnatcoll-sql-postgres.ali
+ gnatcoll-sql-ranges.ali
+ libgnatcoll_postgres.a
 lib/gnatcoll_sql.relocatable/
  gnatcoll-sql-exec-tasking.ali
  gnatcoll-sql-exec.ali
@@ -226,8 +243,6 @@ lib/gnatcoll_sql.relocatable/
  gnatcoll-sql_fields.ali
  gnatcoll-sql_impl.ali
  libgnatcoll_sql.so
- libgnatcoll_sql.so.%%SOMAJOR%%
- libgnatcoll_sql.so.%%SOVERSION%%
 lib/gnatcoll_sql.static/
  gnatcoll-sql-exec-tasking.ali
  gnatcoll-sql-exec.ali
@@ -252,27 +267,24 @@ lib/gnatcoll_sql.static-pic/
  gnatcoll-sql_fields.ali
  gnatcoll-sql_impl.ali
  libgnatcoll_sql.a
-share/gpr/gnatcoll_sql.gpr
-
-
-[FILE:732:manifests/plist.xref]
-include/gnatcoll_xref/
- gnatcoll-xref-database.adb
- gnatcoll-xref-database.ads
- gnatcoll-xref-database_names.ads
- gnatcoll-xref.adb
- gnatcoll-xref.ads
-lib/
- libgnatcoll_xref.so
- libgnatcoll_xref.so.%%SOMAJOR%%
- libgnatcoll_xref.so.%%SOVERSION%%
+lib/gnatcoll_sqlite.relocatable/
+ gnatcoll-sql-sqlite.ali
+ libgnatcoll_sqlite.so
+lib/gnatcoll_sqlite.static/
+ gnatcoll-sql-sqlite-builder.ali
+ gnatcoll-sql-sqlite-gnade.ali
+ gnatcoll-sql-sqlite.ali
+ libgnatcoll_sqlite.a
+lib/gnatcoll_sqlite.static-pic/
+ gnatcoll-sql-sqlite-builder.ali
+ gnatcoll-sql-sqlite-gnade.ali
+ gnatcoll-sql-sqlite.ali
+ libgnatcoll_sqlite.a
 lib/gnatcoll_xref.relocatable/
  gnatcoll-xref-database.ali
  gnatcoll-xref-database_names.ali
  gnatcoll-xref.ali
  libgnatcoll_xref.so
- libgnatcoll_xref.so.%%SOMAJOR%%
- libgnatcoll_xref.so.%%SOVERSION%%
 lib/gnatcoll_xref.static/
  gnatcoll-xref-database.ali
  gnatcoll-xref-database_names.ali
@@ -283,7 +295,11 @@ lib/gnatcoll_xref.static-pic/
  gnatcoll-xref-database_names.ali
  gnatcoll-xref.ali
  libgnatcoll_xref.a
-share/gpr/gnatcoll_xref.gpr
+share/gpr/
+ gnatcoll_postgres.gpr
+ gnatcoll_sql.gpr
+ gnatcoll_sqlite.gpr
+ gnatcoll_xref.gpr
 
 
 [FILE:248:patches/patch-gnatinspect_Makefile]

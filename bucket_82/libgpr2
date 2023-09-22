@@ -2,6 +2,7 @@
 
 NAMEBASE=		libgpr2
 VERSION=		23.0.0
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Parser for GPR Project files
@@ -12,17 +13,25 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:gpr:4c2aacd
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	langkit:single:standard
+BUILD_DEPENDS=		langkit:single:standard
+			langkit_support:dev:standard
+			xmlada:dev:standard
+			gprbuild:dev:standard
+			gnatcoll-core:dev:standard
+			gnatcoll-bindings:dev:standard
+BUILDRUN_DEPENDS=	langkit_support:primary:standard
 
 USES=			gmake gprbuild python:build iconv:build
 
-LICENSE=		APACHE20:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/lib/gpr2.ads
@@ -37,6 +46,7 @@ MAKE_ARGS=		prefix="{{STAGEDIR}}{{PREFIX}}"
 
 INSTALL_TARGET=		install-libs
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
 post-install:
 	# remove manifests
@@ -44,7 +54,10 @@ post-install:
 	# strip binaries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libgpr2.so
 
-[FILE:1339:descriptions/desc.single]
+pre-configure:
+	${REINPLACE_CMD} -e 's|%%SOVERSION%%|23.0.0|' ${WRKSRC}/gpr2.gpr
+
+[FILE:1339:descriptions/desc.primary]
 LibGPR2 - Parser for GPR Project files
 
 The GPR2 library provides an extensive interface to access project files
@@ -79,7 +92,12 @@ Units dependencies are also handled.
 ee4b913c3385af3ad5d3ba46fea281461fc4781fe29a642bec1163948177a0d2      1550582 AdaCore-gpr-4c2aacd.tar.gz
 
 
-[FILE:43568:manifests/plist.single]
+[FILE:75:manifests/plist.primary]
+lib/gpr2.relocatable/libgpr2.so.%%SOVERSION%%
+lib/libgpr2.so.%%SOVERSION%%
+
+
+[FILE:43568:manifests/plist.dev]
 include/gpr2.relocatable/
  config.S
  gpr2-build-compilation_input-sets.adb
@@ -1495,6 +1513,19 @@ share/gpr/gpr2.gpr
  
  prefix	      := $(dir $(shell which gnatls))..
  GPR2_BUILD     = release
+
+
+[FILE:450:patches/patch-gpr2.gpr]
+--- gpr2.gpr.orig	2023-07-05 20:02:36 UTC
++++ gpr2.gpr
+@@ -27,6 +27,7 @@ library project GPR2 extends "shared.gpr
+                         KB_Build,
+                         "langkit/" & Langkit_Src & "/src");
+    for Library_Name use "gpr2";
++   for Library_Version use "libgpr2.so.%%SOVERSION%%";
+ 
+    for Object_Dir use Build_Root & "/" & Build & "/obj-" & Library_Type;
+    for Library_Dir use Build_Root & "/" & Build & "/lib-" & Library_Type;
 
 
 [FILE:311:patches/patch-src_kb_config.S]
