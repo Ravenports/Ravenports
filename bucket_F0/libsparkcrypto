@@ -2,7 +2,7 @@
 
 NAMEBASE=		libsparkcrypto
 VERSION=		0.1.1
-REVISION=		4
+REVISION=		5
 KEYWORDS=		security ada
 VARIANTS=		standard
 SDESC[standard]=	Cryptographic library implemented in SPARK
@@ -209,7 +209,7 @@ lib/libsparkcrypto/
 share/gpr/libsparkcrypto.gpr
 
 
-[FILE:3372:patches/patch-Makefile]
+[FILE:3531:patches/patch-Makefile]
 --- Makefile.orig	2019-09-24 19:43:33 UTC
 +++ Makefile
 @@ -4,7 +4,6 @@ UNAME_M   := $(shell uname -m)
@@ -229,6 +229,15 @@ share/gpr/libsparkcrypto.gpr
  INSTALL_DEPS   = install_files \
  
  # Feature: ARCH
+@@ -47,7 +46,7 @@ ifneq ($(SHARED),)
+    LIBTYPE = dynamic
+    LIBPREFIX = .so
+ else
+-   LIBTYPE = static
++   LIBTYPE = static-pic
+    LIBPREFIX = .a
+ endif
+ 
 @@ -124,22 +123,22 @@ $(OUTPUT_DIR)/proof/gnatprove.log:
  install: $(INSTALL_DEPS)
  
@@ -266,9 +275,18 @@ share/gpr/libsparkcrypto.gpr
  install_local: install
 
 
-[FILE:479:patches/patch-build_build__libsparkcrypto.gpr]
+[FILE:885:patches/patch-build_build__libsparkcrypto.gpr]
 --- build/build_libsparkcrypto.gpr.orig	2019-09-24 19:43:33 UTC
 +++ build/build_libsparkcrypto.gpr
+@@ -1,7 +1,7 @@
+ project Build_Libsparkcrypto
+ is
+    type Mode_Type      		is ("debug", "release", "stack");
+-   type Lib_Type      	   is ("static", "dynamic");
++   type Lib_Type      	   is ("static", "dynamic", "static-pic");
+    type Arch_Type      		is ("x86_64", "i686", "generic_be");
+    type Endianess_Type 		is ("little_endian", "big_endian");
+    type IO_Type        		is ("textio", "nullio");
 @@ -98,7 +98,7 @@ is
  
     package Compiler is
@@ -280,9 +298,18 @@ share/gpr/libsparkcrypto.gpr
  
 
 
-[FILE:584:patches/patch-build_libsparkcrypto.gpr]
+[FILE:949:patches/patch-build_libsparkcrypto.gpr]
 --- build/libsparkcrypto.gpr.orig	2019-09-24 19:43:33 UTC
 +++ build/libsparkcrypto.gpr
+@@ -2,7 +2,7 @@ project Libsparkcrypto
+ is
+    type IO_Type        		is ("textio", "nullio");
+    type Runtime_Type   		is ("native", "zfp");
+-   type Lib_Type      	   is ("static", "dynamic");
++   type Lib_Type      	   is ("static", "dynamic", "static-pic");
+ 
+    IO        	 : IO_Type := "textio";
+    Runtime   	 : Runtime_Type := external ("RTS", "native");
 @@ -17,8 +17,10 @@ is
  
     end case;
