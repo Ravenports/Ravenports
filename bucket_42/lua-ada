@@ -2,9 +2,9 @@
 
 NAMEBASE=		lua-ada
 VERSION=		0.1.0
-REVISION=		2
+REVISION=		3
 EPOCH=			1
-KEYWORDS=		lang devel
+KEYWORDS=		lang devel ada
 VARIANTS=		standard
 SDESC[standard]=	Ada binding for Lua
 HOMEPAGE=		https://github.com/Nikokrock/ada-lua
@@ -29,23 +29,19 @@ LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/lua-ada_limited_types.ads
 LICENSE_SCHEME=		multi
 
-MAKEFILE=		USE_64=1
-
-SUB_FILES=		lua.gpr
-SUB_LIST=		LUA_VER={{LUA_VER}}
+INSTALL_REQ_TOOLCHAIN=	yes
 
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		gprbuild -Pada_lua --create-missing-dirs)
+		gprbuild -p -Pada_lua -XLIBRARY_TYPE=static-pic)
 
 do-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/lib/lua-ada \
-		${STAGEDIR}${PREFIX}/share/gpr \
-		${STAGEDIR}${PREFIX}/include/lua-ada
-	${INSTALL_DATA} ${WRKSRC}/lib/* ${STAGEDIR}${PREFIX}/lib/lua-ada
-	${INSTALL_DATA} ${WRKDIR}/lua.gpr ${STAGEDIR}${PREFIX}/share/gpr
-	${INSTALL_DATA} ${WRKSRC}/src/*.ad[bs] \
-		${STAGEDIR}${PREFIX}/include/lua-ada
+	${SETENV} ${MAKE_ENV} gprinstall\
+		--no-manifests \
+		--prefix=${STAGEDIR}${PREFIX} \
+		--lib-subdir=lib/lua-ada \
+		--sources-subdir=include/lua-ada \
+		-p -P ${WRKSRC}/ada_lua.gpr
 
 [FILE:288:descriptions/desc.single]
 These are bindings to a Lua library for Ada.  The gpr file is written for
@@ -60,7 +56,7 @@ built and installed for illustration.
 592b8672c6cb954386ac58a46e39847b406a88a26e0a9b49027fea02aaf9df04        27114 Nikokrock-ada-lua-0.1.0.tar.gz
 
 
-[FILE:272:manifests/plist.single]
+[FILE:276:manifests/plist.single]
 include/lua-ada/
  lua-ada_limited_types.adb
  lua-ada_limited_types.ads
@@ -76,38 +72,5 @@ lib/lua-ada/
  lua-ada_types.ali
  lua-utils.ali
  lua.ali
-share/gpr/lua.gpr
-
-
-[FILE:274:patches/patch-ada__lua.gpr]
---- ada_lua.gpr.orig	2021-01-07 17:06:58 UTC
-+++ ada_lua.gpr
-@@ -83,4 +83,8 @@ project Ada_Lua is
-       for Switches ("Ada") use ("-Es"); --  Symbolic traceback
-    end Binder;
- 
-+   package Linker is
-+      for Linker_Options use ("-ldl");
-+   end Linker;
-+
- end Ada_Lua;
-
-
-[FILE:427:files/lua.gpr.in]
-library project Lua is
-
-   for Languages use ("Ada");
-
-   for Source_Dirs use ("../../include/lua-ada");
-   for Library_Dir use "../../lib/lua-ada";
-   for Library_Name use "adalua";
-   for Library_Kind use "static";
-   for Externally_Built use "True";
-
-   package Linker is
-      for Linker_Options use ("-L%%PREFIX%%/lib", "-Wl,-R,%%PREFIX%%/lib",
-                              "-llua-%%LUA_VER%%");
-   end Linker;
-
-end Lua;
+share/gpr/ada_lua.gpr
 

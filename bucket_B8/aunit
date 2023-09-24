@@ -33,12 +33,9 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		JQUERY=3.6.0
 			UNDERSCORE=1.13.1
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e 's|LIBDIR|MYLIBDIR|' \
 		${WRKSRC}/lib/gnat/aunit_shared.gpr
-
-post-install:
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 
 [FILE:483:descriptions/desc.primary.standard]
 AUnit is a set of Ada packages based on the xUnit family of unit test
@@ -255,8 +252,8 @@ share/examples/aunit/test_fixture/tests/
  test_math.adb
 
 
-[FILE:331:patches/patch-Makefile]
---- Makefile.orig	2021-05-19 05:25:22 UTC
+[FILE:508:patches/patch-Makefile]
+--- Makefile.orig	2022-09-08 12:44:16 UTC
 +++ Makefile
 @@ -4,7 +4,7 @@ GPRBUILD  = gprbuild
  GPRCLEAN = gprclean
@@ -267,4 +264,12 @@ share/examples/aunit/test_fixture/tests/
  
  ifeq ($(RTS),)
     RTS=full
+@@ -63,6 +63,7 @@ endif
+ 
+ install: install-clean
+ 	$(GPRINSTALL) $(GPROPTS) -p -f --prefix=$(INSTALL) \
++		--no-manifests \
+ 		--no-build-var lib/gnat/aunit.gpr
+ 
+ .PHONY: doc
 

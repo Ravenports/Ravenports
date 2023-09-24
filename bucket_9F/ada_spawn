@@ -2,7 +2,7 @@
 
 NAMEBASE=		ada_spawn
 VERSION=		23.0.0
-REVISION=		3
+REVISION=		4
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Simple API to spawn communicating processes
@@ -13,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:spawn:2642bd6
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -27,8 +29,8 @@ BUILDRUN_DEPENDS=	gtkada:primary:standard
 USES=			gmake gprbuild fontconfig zlib:build gettext:build
 GNOME_COMPONENTS=	gtk3
 
-LICENSE=		APACHE20:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/source/spawn/spawn.ads
@@ -37,11 +39,15 @@ LICENSE_SCHEME=		solo
 MAKE_ENV=		BUILD_MODE=prod
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
+
+post-patch:
+	${REINPLACE_CMD} -e 's/@SOVERSION@/23.0.0/' ${WRKSRC}/gnat/spawn*.gpr
 
 do-build:
 .for LT in relocatable static-pic static
 . for GPR in spawn.gpr spawn_glib.gpr
-	${SETENV} ${MAKE_ENV} gprbuild -p -j0 -XSPAWN_LIBRARY_TYP=${LT} -P ${WRKSRC}/gnat/${GPR}
+	${SETENV} ${MAKE_ENV} gprbuild -p -j0 -XSPAWN_LIBRARY_TYPE=${LT} -P ${WRKSRC}/gnat/${GPR}
 . endfor
 .endfor
 
@@ -52,15 +58,20 @@ do-install:
 .for LT in relocatable static-pic static
 . for GPR in spawn spawn_glib
 	${SETENV} ${MAKE_ENV} gprinstall\
+		--build-var=SPAWN_LIBRARY_TYPE\
+		--build-name=${LT}\
 		--prefix=${STAGEDIR}${PREFIX}\
 		--lib-subdir=lib/${GPR}.${LT}\
 		--sources-subdir=include/${GPR}\
+		--link-lib-subdir=lib \
+		--no-manifests\
+		-XSPAWN_LIBRARY_TYPE=${LT}\
 		-p -P ${WRKSRC}/gnat/${GPR}.gpr
 . endfor
 .endfor
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libspawn.so
 
-[FILE:208:descriptions/desc.single]
+[FILE:208:descriptions/desc.primary]
 Ada Process API (spawn)
 
 This library provides simple API to spawn processes and communicate with
@@ -73,7 +84,16 @@ them. Two implementations of the same API are provided:
 d4b8acc316ed8bc21431ab5051ca48321179872d25a6893f2ff2087ddc812ded        66736 AdaCore-spawn-2642bd6.tar.gz
 
 
-[FILE:3774:manifests/plist.single]
+[FILE:108:manifests/plist.primary]
+lib/
+ libspawn.so
+ libspawn.so.%%SOVERSION%%
+lib/spawn.relocatable/
+ libspawn.so
+ libspawn.so.%%SOVERSION%%
+
+
+[FILE:3762:manifests/plist.dev]
 include/spawn/
  posix_const.c
  ptsname_r.c
@@ -132,7 +152,6 @@ include/spawn_glib/
  spawn-string_vectors.ads
  spawn.ads
 lib/spawn.relocatable/
- libspawn.a
  spawn-channels__posix.ali
  spawn-common.ali
  spawn-environments-internal__posix.ali
@@ -224,6 +243,32 @@ lib/spawn_glib.static-pic/
 share/gpr/
  spawn.gpr
  spawn_glib.gpr
+
+
+[FILE:441:patches/patch-gnat_spawn.gpr]
+--- gnat/spawn.gpr.orig	2023-05-18 09:24:48 UTC
++++ gnat/spawn.gpr
+@@ -25,6 +25,7 @@ library project Spawn is
+    for Object_Dir   use "../.obj/" & Superproject & "/spawn/" & Library_Type;
+    for Library_Dir  use "../.libs/" & Superproject & "/spawn/" & Library_Type;
+    for Library_Name use "spawn";
++   for Library_Version use "libspawn.so.@SOVERSION@";
+    for Source_Dirs use ("../source/spawn");
+    for Languages use ("Ada", "c");
+ 
+
+
+[FILE:431:patches/patch-gnat_spawn__glib.gpr]
+--- gnat/spawn_glib.gpr.orig	2023-05-18 09:24:48 UTC
++++ gnat/spawn_glib.gpr
+@@ -24,6 +24,7 @@ library project Spawn_Glib is
+    for Object_Dir   use "../.obj/spawn_glib/" & Library_Type;
+    for Library_Dir  use "../.libs/spawn_glib/" & Library_Type;
+    for Library_Name use "spawn_glib";
++   for Library_Version use "spawn_glib.so.@SOVERSION@";
+    for Source_Dirs use ("../source/spawn");
+    for Languages use ("Ada", "c");
+ 
 
 
 [FILE:521:patches/patch-source_spawn_spawn-posix.ads]

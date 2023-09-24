@@ -2,7 +2,7 @@
 
 NAMEBASE=		gpr-unit-provider
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Unit provider for Libadalang
@@ -13,18 +13,22 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:gpr-unit-provider:v23.0.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		libgpr2:single:standard
-			libadalang:tools:standard
+BUILD_DEPENDS=		libgpr2:dev:standard
+			libadalang:dev:standard
+BUILDRUN_DEPENDS=	libadalang:primary:standard
+EXRUN[dev]=		libadalang:dev:standard
 
-USES=			gmake gprbuild
+USES=			gmake gprbuild iconv
 
-LICENSE=		GPLv3+:single GPLv3RLE:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary GPLv3RLE:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING3
 			GPLv3RLE:{{WRKSRC}}/COPYING.RUNTIME
 LICENSE_AWK=		TERMS:"^$$"
@@ -32,14 +36,20 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/libadalang-gpr2_provider.ads
 LICENSE_SCHEME=		multi
 
 MAKE_ARGS=		prefix="{{STAGEDIR}}{{PREFIX}}"
-			LIB_TYPES=static
+			ENABLE_SHARED=yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libgprunitprovider.so
 
-[FILE:92:descriptions/desc.single]
+pre-configure:
+	${REINPLACE_CMD} -e 's|@SOVERSION@|23.0.0|' \
+		${WRKSRC}/gpr_unit_provider.gpr
+
+[FILE:92:descriptions/desc.primary]
 This library provides a unit provider for Libadalang based on GPR
 project analysis library.
 
@@ -48,14 +58,49 @@ project analysis library.
 08c8194812042134730b4bb4cb5ac8761cb7798f57dfbee2dbf41913b5f8b382        29171 AdaCore-gpr-unit-provider-23.0.0.tar.gz
 
 
-[FILE:260:manifests/plist.single]
+[FILE:110:manifests/plist.primary]
+lib/gpr_unit_provider.relocatable/libgprunitprovider.so.%%SOVERSION%%
+lib/libgprunitprovider.so.%%SOVERSION%%
+
+
+[FILE:761:manifests/plist.dev]
+include/gpr_unit_provider.relocatable/
+ libadalang-gpr2_lock.ads
+ libadalang-gpr2_provider.adb
+ libadalang-gpr2_provider.ads
 include/gpr_unit_provider.static/
  libadalang-gpr2_lock.ads
  libadalang-gpr2_provider.adb
  libadalang-gpr2_provider.ads
+include/gpr_unit_provider.static-pic/
+ libadalang-gpr2_lock.ads
+ libadalang-gpr2_provider.adb
+ libadalang-gpr2_provider.ads
+lib/libgprunitprovider.so
+lib/gpr_unit_provider.relocatable/
+ libadalang-gpr2_lock.ali
+ libadalang-gpr2_provider.ali
+ libgprunitprovider.so
 lib/gpr_unit_provider.static/
  libadalang-gpr2_lock.ali
  libadalang-gpr2_provider.ali
  libgprunitprovider.a
+lib/gpr_unit_provider.static-pic/
+ libadalang-gpr2_lock.ali
+ libadalang-gpr2_provider.ali
+ libgprunitprovider.a
 share/gpr/gpr_unit_provider.gpr
+
+
+[FILE:438:patches/patch-gpr__unit__provider.gpr]
+--- gpr_unit_provider.gpr.orig	2022-09-09 16:48:47 UTC
++++ gpr_unit_provider.gpr
+@@ -40,6 +40,7 @@ project gpr_unit_provider is
+    for Languages use ("Ada");
+    for Source_Dirs use ("src");
+    for Library_Name use "gprunitprovider";
++   for Library_Version use "libgprunitprovider.so.@SOVERSION@";
+ 
+    for Object_Dir use ".build/" & Build & "/obj-" & Library_Type;
+    for Library_Dir use ".build/" & Build & "/lib-" & Library_Type;
 

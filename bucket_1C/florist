@@ -2,7 +2,7 @@
 
 NAMEBASE=		florist
 VERSION=		2017
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	POSIX Ada binding, IEEE Standards 1003.5(b,c)
@@ -32,8 +32,9 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/libsrc/posix.adb
 LICENSE_SCHEME=		solo
 
 MUST_CONFIGURE=		gnu
+CONFIGURE_ARGS=		--enable-shared
 
-SUB_FILES=		florist.gpr
+INSTALL_REQ_TOOLCHAIN=	yes
 
 post-extract:
 	if [ "${OPSYS}" != "FreeBSD" ]; then \
@@ -58,10 +59,12 @@ the POSIX Ada Bindings.
 086dd9c027ce4e8630967c99c45e3e280bebbb98d122a04f8e5232808d7d4295       291583 florist-gpl-2017-src.tar.gz
 
 
-[FILE:5174:manifests/plist.single]
+[FILE:5235:manifests/plist.single]
 include/florist/
  ada_streams.ads
  ada_task_identification.ads
+ config.h
+ pconfig.h
  posix-asynchronous_io.adb
  posix-asynchronous_io.ads
  posix-c.adb
@@ -93,6 +96,8 @@ include/florist/
  posix-io.adb
  posix-io.ads
  posix-limits.ads
+ posix-macros-sockets.c
+ posix-macros.c
  posix-memory_locking.adb
  posix-memory_locking.ads
  posix-memory_mapping.adb
@@ -260,24 +265,21 @@ lib/florist/
 share/gpr/florist.gpr
 
 
-[FILE:892:patches/patch-Makefile.in]
---- Makefile.in.orig	2016-05-16 09:26:01 UTC
+[FILE:605:patches/patch-Makefile.in]
+--- Makefile.in.orig	2017-05-16 10:40:58 UTC
 +++ Makefile.in
-@@ -171,7 +171,14 @@ distclean: clean
+@@ -171,7 +171,11 @@ distclean: clean
  # install floristlib
  # make all files read-only to prevent recompilation
  install:
 -	gprinstall -Pflorist $(PROJECT_FLAGS) -a -p -f --prefix=$(PREFIX) --sources-subdir=floristlib --lib-subdir=floristlib --link-lib-subdir=floristlib
 -	chmod a-w $(PREFIX)/floristlib/*
-+	mkdir -p $(DESTDIR)$(PREFIX)/share/gpr \
-+		 $(DESTDIR)$(PREFIX)/lib/florist \
-+		 $(DESTDIR)$(PREFIX)/include/florist
-+	$(BSD_INSTALL_DATA) gensrc/*.ad[bs] gensrc/threads/*.ad[bs] \
-+		libsrc/*.ad[bs] libsrc/threads/*.ad[bs] \
-+		$(DESTDIR)$(PREFIX)/include/florist
-+	$(BSD_INSTALL_DATA) lib/*.ali $(DESTDIR)$(PREFIX)/lib/florist
-+	$(BSD_INSTALL_DATA) lib/*.a $(DESTDIR)$(PREFIX)/lib/florist
-+	$(BSD_INSTALL_DATA) ../florist.gpr $(DESTDIR)$(PREFIX)/share/gpr
++	gprinstall -p -Pflorist $(PROJECT_FLAGS) -a -f \
++		--no-manifests \
++		--prefix=$(DESTDIR)$(PREFIX) \
++		--sources-subdir=include/florist \
++		--lib-subdir=lib/florist \
++
  
  .PHONY: all install clean distclean regen floristlib force
 
@@ -368,9 +370,18 @@ share/gpr/florist.gpr
      printf("c-posix: WARNING: signal range estimate probably too small\n");
 
 
-[FILE:927:patches/patch-configure]
+[FILE:1237:patches/patch-configure]
 --- configure.orig	2014-12-12 09:05:56 UTC
 +++ configure
+@@ -2712,7 +2712,7 @@ if test "${enable_shared+set}" = set; th
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enableval" >&5
+ $as_echo "$enableval" >&6; }
+ if test "$enableval" = "yes"; then
+-  LIBRARY_TYPE_OPTION="-XLIBRARY_TYPE=relocatable"
++  LIBRARY_TYPE_OPTION="-XLIBRARY_TYPE=static-pic"
+ fi
+ 
+ else
 @@ -2849,10 +2849,22 @@ case ${UNAME_SYSTEM} in
      echo "Using Configuration for" ${UNAME_SYSTEM} ${UNAME_RELEASE};
      cp ./configs/pconfig.LynxOS ./pconfig.h.in;
@@ -396,9 +407,18 @@ share/gpr/florist.gpr
      cp ./configs/pconfig.Darwin ./pconfig.h.in;
 
 
-[FILE:388:patches/patch-florist.gpr]
+[FILE:757:patches/patch-florist.gpr]
 --- florist.gpr.orig	2017-05-16 10:40:58 UTC
 +++ florist.gpr
+@@ -21,7 +21,7 @@ library project Florist is
+    Version := "1";
+    for Library_version use "libflorist.so." & Version;
+ 
+-   type Library_Type_Type is ("relocatable", "static");
++   type Library_Type_Type is ("relocatable", "static", "static-pic");
+    Library_Type : Library_Type_Type := external ("LIBRARY_TYPE", "static");
+    for Library_Kind use Library_Type;
+ 
 @@ -29,7 +29,7 @@ library project Florist is
     Build : Build_Type := External ("Build", "Production");
  
@@ -461,22 +481,4 @@ share/gpr/florist.gpr
       POSIX.C,
       POSIX.Process_Identification,
       System,
-
-
-[FILE:385:files/florist.gpr.in]
-library project Florist is
-
-   for Languages use ("Ada");
-
-   for Source_Dirs use ("../../include/florist");
-   for Library_Dir use "../../lib/florist";
-   for Library_Name use "florist";
-   for Library_Kind use "static";
-   for Externally_Built use "True";
-
-   package Linker is
-      for Linker_Options use ("-L%%PREFIX%%/lib", "-Wl,-R,%%PREFIX%%/lib");
-   end Linker;
-
-end Florist;
 

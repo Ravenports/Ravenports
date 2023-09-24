@@ -2,39 +2,44 @@
 
 NAMEBASE=		ironsides
 VERSION=		20150415
+REVISION=		1
 KEYWORDS=		dns ada
 VARIANTS=		standard
 SDESC[standard]=	Authoritative DNS server verified by SPARK/Ada
 HOMEPAGE=		http://ironsides.martincarlisle.com
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main draco
 SITES[main]=		http://ironsides.martincarlisle.com/
+SITES[draco]=		http://downloads.dragonlace.net/src/
 DISTFILE[1]=		ironsides_authoritative-2015_04_15.zip:main
-DF_INDEX=		1
-SPKGS[standard]=	single
+DISTFILE[2]=		libspark2012-2012.tar.bz2:main
+DF_INDEX=		1 2
+SPKGS[standard]=	complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-BUILD_DEPENDS=		libspark2012:single:standard
 
 USES=			dos2unix gprbuild
 
 DISTNAME=		ironsides_authoritative-2015_04_15
 
-LICENSE=		CUSTOM1:single
+LICENSE=		CUSTOM1:primary
 LICENSE_NAME=		CUSTOM1:"IRONSIDES - Free software, unlimited redistribution"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/COPYRIGHT.txt
 LICENSE_SCHEME=		solo
 
 DOS2UNIX_FILES=		dfcs.usafa.edu.zonefile
+			COPYRIGHT.txt
 			ironsides.1
 
 post-extract:
 	${CP} ${FILESDIR}/ironsides.gpr ${FILESDIR}/Makefile ${WRKSRC}/
+	${CP} ${FILESDIR}/spark2012.gpr ${WRKSRC}/
 
-[FILE:755:descriptions/desc.single]
+[FILE:755:descriptions/desc.primary]
 IRONSIDES is an authoritative DNS server that is provably invulnerable to
 many of the problems that plague other servers. It achieves this property
 through the use of formal methods in its design, in particular the language
@@ -49,13 +54,17 @@ a sufficient number of DNS records to be useful as an authoritative DNS
 server for an enterprise.
 
 
-[FILE:117:distinfo]
+[FILE:221:distinfo]
 de865b0da6a3e1cc73249e90a6e13fcc33785a9a38b704efb9cfb04ff57fc3c4       199862 ironsides_authoritative-2015_04_15.zip
+862e6b23ff44aea02ab10a4dcc2c00a9893231286d51a6bc587230366c936db2        23773 libspark2012-2012.tar.bz2
 
 
-[FILE:85:manifests/plist.single]
+[FILE:55:manifests/plist.primary]
 sbin/ironsides
 share/ironsides/dfcs.usafa.edu.zonefile
+
+
+[FILE:30:manifests/plist.man]
 share/man/man1/ironsides.1.gz
 
 
@@ -143,4 +152,12 @@ project Ironsides is
    end Compiler;
 
 end Ironsides;
+
+
+[FILE:91:files/spark2012.gpr]
+project SPARK2012 is
+
+   for Source_Dirs use ("../libspark2012-2012/src");
+
+end SPARK2012;
 

@@ -2,7 +2,7 @@
 
 NAMEBASE=		aws
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		www ada
 VARIANTS=		standard
@@ -18,6 +18,8 @@ DISTFILE[2]=		generated:tparser
 DF_INDEX=		1 2
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
 			examples
 			docs
 
@@ -28,9 +30,10 @@ OPT_ON[all]=		SHARED
 BUILD_DEPENDS=		python-Sphinx:single:python_default
 			gnatcoll-core:dev:standard
 BUILDRUN_DEPENDS=	gnatcoll-core:primary:standard
+EXRUN[tools]=		ssl
 
-USES=			ada:primary gmake gprbuild python:py27,build
-			shebangfix ssl
+USES=			gmake gprbuild python:py27,build shebangfix ssl
+			ada:primary,tools
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -55,6 +58,7 @@ CONFIGURE_ARGS=		prefix={{PREFIX}}
 			CFLAGS=-I{{OPENSSLINC}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		23.0.0
 
 [DEBUG].CONFIGURE_ARGS_OFF=		DEBUG=false
 [DEBUG].CONFIGURE_ARGS_ON=		DEBUG=true
@@ -70,15 +74,6 @@ INSTALL_REQ_TOOLCHAIN=	yes
 [SHARED].DESCRIPTION=			Build shared libraries in addition to static ones
 [SHARED].CONFIGURE_ARGS_OFF=		ENABLE_SHARED=false
 [SHARED].CONFIGURE_ARGS_ON=		ENABLE_SHARED=true
-
-post-patch:
-	${REINPLACE_CMD} \
-		-e 's|@ADDITIONAL_RPATH@|${LOCALBASE}/lib:${OPENSSLLIB}|' \
-		${WRKSRC}/aws.gpr \
-		${WRKSRC}/src/src.gpr \
-		${WRKSRC}/include/include.gpr
-	${REINPLACE_CMD} -e 's|latexpdf||' ${WRKSRC}/Makefile
-	${REINPLACE_CMD} -e 's|GPROPTS = |GPROPTS = -v |' ${WRKSRC}/Makefile
 
 do-build:
 	# We cannot use a redefined BUILD_TARGET because MAKE_JOBS_SAFE is set
@@ -103,6 +98,16 @@ post-install:
 do-configure:
 	(cd ${WRKSRC} && ${SETENV} ${CONFIGURE_ENV} \
 		${MAKE_CMD} setup ${CONFIGURE_ARGS})
+
+pre-configure:
+	${REINPLACE_CMD} \
+		-e 's|@ADDITIONAL_RPATH@|${LOCALBASE}/lib:${OPENSSLLIB}|' \
+		-e 's|@SOVERSION@|23.0.0|' \
+		${WRKSRC}/aws.gpr \
+		${WRKSRC}/src/src.gpr \
+		${WRKSRC}/include/include.gpr
+	${REINPLACE_CMD} -e 's|latexpdf||' ${WRKSRC}/Makefile
+	${REINPLACE_CMD} -e 's|GPROPTS = |GPROPTS = -v |' ${WRKSRC}/Makefile
 
 do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -133,12 +138,32 @@ The framework includes:
   * Jabber support
 
 
+[FILE:54:descriptions/desc.tools]
+This package contains tools based on the aws library.
+
+
 [FILE:222:distinfo]
 c63cec91ddf6ac55382f27e31ccd2dc17aabd7c713a70e39e2dab257a77d832c      2390842 adacore-aws-23.0.0.tar.gz
 33e9fd2b08d1bd80cbc3ca146cc969ce5953a8992acf99ede2e3ddae4761b912       224466 adacore-templates-parser-7b0d0f5.tar.gz
 
 
-[FILE:29113:manifests/plist.primary]
+[FILE:72:manifests/plist.primary]
+lib/libaws.so.%%SOVERSION%%
+lib/aws.relocatable/libaws.so.%%SOVERSION%%
+
+
+[FILE:83:manifests/plist.tools]
+bin/
+ aws_password
+ awsascb
+ awsres
+ templates2ada
+ templatespp
+ webxref
+ wsdl2aws
+
+
+[FILE:29030:manifests/plist.dev]
 %%IPV6-OFF%%%%SHARED-ON%%include/aws.relocatable/aws-net-std__ipv4.adb
 %%IPV6-OFF%%%%SHARED-ON%%lib/aws.relocatable/aws-net-std__ipv4.ali
 %%IPV6-OFF%%include/aws.static/aws-net-std__ipv4.adb
@@ -698,14 +723,6 @@ c63cec91ddf6ac55382f27e31ccd2dc17aabd7c713a70e39e2dab257a77d832c      2390842 ad
  zlib-streams.ali
  zlib-thin.ali
  zlib.ali
-bin/
- aws_password
- awsascb
- awsres
- templates2ada
- templatespp
- webxref
- wsdl2aws
 include/aws.static/
  aws-attachments.adb
  aws-attachments.ads
@@ -1265,10 +1282,18 @@ share/gps/plug-ins/
  wsdl2aws.xml
 
 
-[FILE:382:patches/patch-aws.gpr]
+[FILE:635:patches/patch-aws.gpr]
 --- aws.gpr.orig	2022-09-20 17:13:06 UTC
 +++ aws.gpr
-@@ -44,7 +44,7 @@ aggregate library project AWS is
+@@ -32,6 +32,7 @@ aggregate library project AWS is
+    end case;
+ 
+    for Library_Name use "aws";
++   for Library_Version use "libaws.so.@SOVERSION@";
+    for Library_Kind use Shared.Library_Type;
+    for Library_Dir use Shared'Library_Dir & "/aws";
+ 
+@@ -44,7 +45,7 @@ aggregate library project AWS is
              when "Windows_NT" =>
                 for Library_Options use ("-lwsock32", "-lws2_32");
              when others =>

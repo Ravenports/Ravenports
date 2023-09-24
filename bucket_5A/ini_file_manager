@@ -35,18 +35,25 @@ INSTALL_REQ_TOOLCHAIN=	yes
 post-patch:
 	# Done here because it comes with DOS endings
 	${AWK} '/^--  Change log/ {exit}; {print}' ${WRKSRC}/config.ads > ${WRKDIR}/LICENSE
-	# install our gpr build
-	${CP} ${FILESDIR}/construct.gpr ${WRKSRC}/ini_file_manager.gpr
 
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -v -p -Pini_file_manager)
 
-do-install:
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		gprinstall -v -p -Pini_file_manager --no-manifest \
-		--prefix=${STAGEDIR}${PREFIX})
+post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_DATA} ${WRKSRC}/README.md ${STAGEDIR}${STD_DOCDIR}/
+
+pre-configure:
+	# install our gpr build
+	${CP} ${FILESDIR}/construct.gpr ${WRKSRC}/ini_file_manager.gpr
+
+do-install:
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprinstall \
+		--prefix=${STAGEDIR}${PREFIX}\
+		--sources-subdir=include/ini_file_manager \
+		--lib-subdir=lib/ini_file_manager \
+		--no-manifest \
+		-p -Pini_file_manager)
 
 [FILE:492:descriptions/desc.primary]
 The Ini file manager consists of a package, Config, which can read or write
@@ -83,19 +90,16 @@ share/gpr/ini_file_manager.gpr
 share/doc/ini_file_manager/README.md
 
 
-[FILE:377:files/construct.gpr]
+[FILE:277:files/construct.gpr]
 project Ini_File_Manager is
 
    for Languages use ("ada");
-   for Source_Files use ("config.ads", "config.adb");
-   for Object_Dir use "obj";
+   for Object_Dir use "../objs";
+   for Library_Dir use "../lib";
    for Library_Name use "inifiles";
-   for Library_Dir use "lib";
    for Library_Kind use "static-pic";
 
-   package Builder is
-      for Default_Switches ("ada") use ("-gnatf", "-gnatws", "-O2");
-   end Builder;
+   for Source_Files use ("config.ads", "config.adb");
 
 end Ini_File_Manager;
 

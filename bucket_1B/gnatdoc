@@ -2,7 +2,7 @@
 
 NAMEBASE=		gnatdoc
 VERSION=		23.0.0
-REVISION=		2
+REVISION=		3
 KEYWORDS=		textproc ada
 VARIANTS=		standard
 SDESC[standard]=	GNAT Documentation Generation Tool
@@ -13,23 +13,23 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AdaCore:gnatdoc:12b5610
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		libadalang:tools:standard
-			xmlada:dev:standard
-			libvss:dev:standard
-			libgpr2:single:standard
+BUILD_DEPENDS=		libvss:dev:standard
 			ada-markdown:single:standard
-			gpr-unit-provider:single:standard
+			gpr-unit-provider:dev:standard
+			gpr-unit-provider:primary:standard
 BUILDRUN_DEPENDS=	gmp:shared:standard
 
 USES=			gmake gprbuild iconv
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:stock
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/source/gnatdoc.ads
@@ -49,7 +49,7 @@ post-install:
 pre-configure:
 	${REINPLACE_CMD} -e 's|@LIBS@|${XTRALIB}|' ${WRKSRC}/gnat/gnatdoc.gpr
 
-[FILE:655:descriptions/desc.single]
+[FILE:655:descriptions/desc.primary]
 GNATdoc is a documentation tool for Ada which processes source files,
 extracts documentation directly from the sources, and generates
 annotated HTML files. It is based on the source cross-reference information
@@ -65,8 +65,11 @@ accurate documentation, and report errors in case of wrong documentation.
 099f3e8d1b3607492b818951ee1d5ec8a7a5069a4330bef0a8b395e5272de19b        93557 AdaCore-gnatdoc-12b5610.tar.gz
 
 
-[FILE:2860:manifests/plist.single]
+[FILE:13:manifests/plist.primary]
 bin/gnatdoc4
+
+
+[FILE:2847:manifests/plist.dev]
 include/gnatdoc/
  gnatdoc-backend-html.adb
  gnatdoc-backend-html.ads

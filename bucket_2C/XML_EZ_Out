@@ -2,7 +2,7 @@
 
 NAMEBASE=		XML_EZ_Out
 VERSION=		1.06
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc ada
 VARIANTS=		standard
 SDESC[standard]=	Library for emitting XML from Ada programs
@@ -32,29 +32,33 @@ LICENSE_AWK=		TERMS:"^package"
 LICENSE_SOURCE=		TERMS:{{BUILD_WRKSRC}}/mckae-xml.ads
 LICENSE_SCHEME=		solo
 
+INSTALL_REQ_TOOLCHAIN=	yes
+
 do-build:
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -p -Pxezo_bld)
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -p -Pxml_ez_out)
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gprbuild -p -Ptmezrf)
+
+post-install:
+	${INSTALL_DATA} ${BUILD_WRKSRC}/README ${STAGEDIR}${STD_DOCDIR}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/tmeztf
 
 post-extract:
-	${CP} ${FILESDIR}/xezo_bld.gpr ${WRKSRC}
-	${SED} -e "s,@PREFIX@,${LOCALBASE},g" ${FILESDIR}/runme.sh.in \
-		> ${WRKSRC}/runme.sh
+	# Effectively rename xml_ez_out.gpr and replace it
+	${CP} ${FILESDIR}/tmezrf.gpr ${WRKSRC}/
+	${CP} ${FILESDIR}/xml_ez_out.gpr ${WRKSRC}/
 
 do-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/gpr \
-		${STAGEDIR}${PREFIX}/lib/xml_ez_out \
-		${STAGEDIR}${PREFIX}/include/xml_ez_out \
-		${STAGEDIR}${STD_EXAMPLESDIR} \
-		${STAGEDIR}${STD_DOCDIR}
-	${INSTALL_DATA} ${FILESDIR}/xml_ez_out.gpr \
-		${STAGEDIR}${PREFIX}/share/gpr
-	${INSTALL_DATA} ${BUILD_WRKSRC}/mckae* \
-		${STAGEDIR}${PREFIX}/include/xml_ez_out
-	${INSTALL_DATA} ${WRKSRC}/lib/* ${STAGEDIR}${PREFIX}/lib/xml_ez_out
-	${INSTALL_DATA} ${BUILD_WRKSRC}/README ${STAGEDIR}${STD_DOCDIR}
-	${INSTALL_SCRIPT} ${WRKSRC}/runme.sh ${STAGEDIR}${STD_EXAMPLESDIR}
-	${INSTALL_DATA} ${BUILD_WRKSRC}/tmeztf.adb \
-		${FILESDIR}/example.gpr ${STAGEDIR}${STD_EXAMPLESDIR}
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${SETENV} ${MAKE_ENV} gprinstall\
+		--no-manifests \
+		--prefix=${STAGEDIR}${PREFIX} \
+		--lib-subdir=lib/xml_ez_out \
+		--sources-subdir=include/xml_ez_out \
+		-p -P ${WRKSRC}/xml_ez_out
+	${SETENV} ${MAKE_ENV} gprinstall\
+		--no-manifests \
+		--prefix=${STAGEDIR}${PREFIX} \
+		-p -P ${WRKSRC}/tmezrf
 
 [FILE:493:descriptions/desc.primary]
 XML EZ Out is a small set of packages intended to aid the creation of
@@ -72,7 +76,7 @@ meaningful "Put" (for writing a string) and "New_Line" procedure.
 8a1612982d612c2be6ad6f6e07c01db2eca40b4d334d132be14b9a86abc94bc2        12408 alire-project-xmlezout-alr-1.6.tar.gz
 
 
-[FILE:469:manifests/plist.primary]
+[FILE:459:manifests/plist.primary]
 include/xml_ez_out/
  mckae-xml-ez_out-generic_medium.adb
  mckae-xml-ez_out-generic_medium.ads
@@ -83,14 +87,13 @@ include/xml_ez_out/
  mckae-xml.ads
  mckae.ads
 lib/xml_ez_out/
- libxml_ez_out.a
+ libxmlezout_pic.a
  mckae-xml-ez_out-generic_medium.ali
  mckae-xml-ez_out-string_stream.ali
  mckae-xml-ez_out-text_file.ali
  mckae-xml-ez_out.ali
  mckae-xml.ali
  mckae.ali
- tmeztf.ali
 share/gpr/xml_ez_out.gpr
 
 
@@ -98,71 +101,43 @@ share/gpr/xml_ez_out.gpr
 share/doc/XML_EZ_Out/README
 
 
-[FILE:62:manifests/plist.examples]
-share/examples/XML_EZ_Out/
- example.gpr
- runme.sh
+[FILE:286:manifests/plist.examples]
+bin/tmeztf
+include/tmeztf/
  tmeztf.adb
+ mckae.ads
+ mckae-xml.ads
+ mckae-xml-ez_out.ads
+ mckae-xml-ez_out-text_file.ads
+ mckae-xml-ez_out-string_stream.ads
+ mckae-xml-ez_out-string_stream.adb
+ mckae-xml-ez_out-generic_medium.ads
+ mckae-xml-ez_out-generic_medium.adb
+share/gpr/tmezrf.gpr
 
 
-[FILE:232:files/example.gpr]
-with "xml_ez_out";
-project Example is
+[FILE:153:files/tmezrf.gpr]
+project Tmeztf is
 
-   for Exec_Dir use "/tmp";
-   for Object_Dir use "/tmp";
    for Main use ("tmeztf.adb");
 
    package Compiler is
       for Default_Switches ("ada") use ("-O2");
    end Compiler;
 
-end Example;
+end Tmeztf;
 
 
-[FILE:453:files/runme.sh.in]
-#!/bin/sh
-
-# This script will:
-# 1) Build the example executable in /tmp
-# 2) Tell the user how to execute it
-
-GNATMAKE=@PREFIX@/gcc-aux/bin/gnatmake
-ADA_PROJECT_PATH=@PREFIX@/lib/gnat
-export ADA_PROJECT_PATH
-
-${GNATMAKE} -P example
-
-echo
-echo "The source for the example is tmeztf.adb"
-echo "The executable example is located in /tmp/tmeztf"
-echo "It requires no optons; just run it"
-echo 'You may want to execute "rm /tmp/tmeztf*" when you are done.'
-
-
-[FILE:335:files/xezo_bld.gpr]
-project XEZO_Bld is
-
-   for Languages use ("ada");
-   for Source_Dirs use (".");
-   for Object_Dir use "obj";
-   for Library_Name use "xml_ez_out";
-   for Library_Dir use "lib";
-   for Library_Kind use "static";
-
-   package Builder is
-      for Default_Switches ("ada") use ("-gnatf", "-gnatws", "-O2");
-   end Builder;
-
-end XEZO_Bld;
-
-
-[FILE:243:files/xml_ez_out.gpr]
+[FILE:264:files/xml_ez_out.gpr]
 project XML_EZ_Out is
+
    for Languages use ("ada");
-   for Source_Dirs use ("../../include/xml_ez_out");
-   for Library_Name use "xml_ez_out";
-   for Library_Dir use  "../../lib/xml_ez_out";
-   for Externally_Built use "true";
+   for Library_Kind use "static-pic";
+   for Object_Dir use "../objs";
+   for Library_Dir use "../lib";
+   for Library_Name use "xmlezout_pic";
+
+   for Excluded_Source_Files use ("tmeztf.adb");
+
 end XML_EZ_Out;
 
