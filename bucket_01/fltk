@@ -2,6 +2,7 @@
 
 NAMEBASE=		fltk
 VERSION=		1.3.8
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Light-weight cross-platform C++ GUI toolkit
@@ -14,12 +15,15 @@ DISTFILE[1]=		fltk-1.3.8-source.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
 			examples
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libGLU:dev:standard
+			libglvnd:dev:standard
 BUILDRUN_DEPENDS=	libGLU:primary:standard
 
 USES=			gmake jpeg libtool pkgconfig png zlib
@@ -37,6 +41,8 @@ FPC_EQUIVALENT=		x11-toolkits/fltk
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-shared
 			--docdir={{STD_EXAMPLESDIR}}
+
+SOVERSION=		1.3
 
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
@@ -63,10 +69,25 @@ simple yet powerful UI builder. 1.3.x is the current stable branch.
 f3c1102b07eb0e7a50538f9fc9037c18387165bc70d4b626e94ab725b9d4d1bf      5335306 fltk-1.3.8-source.tar.gz
 
 
-[FILE:2595:manifests/plist.primary]
+[FILE:150:manifests/plist.primary]
 bin/
  fltk-config
  fluid
+lib/
+ libfltk.so.%%SOVERSION%%
+ libfltk_forms.so.%%SOVERSION%%
+ libfltk_gl.so.%%SOVERSION%%
+ libfltk_images.so.%%SOVERSION%%
+
+
+[FILE:2424:manifests/plist.dev]
+lib/
+ libfltk_images.a
+ libfltk_images.so
+ libfltk_gl.a
+ libfltk_gl.so
+ libfltk_forms.a
+ libfltk_forms.so
 include/FL/
  Enumerations.H
  Fl.H
@@ -216,20 +237,6 @@ include/FL/
 lib/
  libfltk.a
  libfltk.so
- libfltk.so.1.3
- libfltk_forms.a
- libfltk_forms.so
- libfltk_forms.so.1.3
- libfltk_gl.a
- libfltk_gl.so
- libfltk_gl.so.1.3
- libfltk_images.a
- libfltk_images.so
- libfltk_images.so.1.3
-share/man/man1/
- fltk-config.1.gz
- fluid.1.gz
-share/man/man3/fltk.3.gz
 
 
 [FILE:2294:manifests/plist.examples]
@@ -395,6 +402,13 @@ share/examples/fltk/pixmaps/
  whiteking_4.xbm
  yellow.xpm
  yellow_bomb.xpm
+
+
+[FILE:71:manifests/plist.man]
+share/man/man1/
+ fltk-config.1.gz
+ fluid.1.gz
+share/man/man3/fltk.3.gz
 
 
 [FILE:1268:patches/patch-configure]
