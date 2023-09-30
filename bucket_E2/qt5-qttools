@@ -12,12 +12,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://qt.mirror.constant.com/official_releases/qt/5.15/5.15.9/submodules/
 DISTFILE[1]=		qttools-everywhere-opensource-src-5.15.9.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	qt5-qtdeclarative:single:standard
+BUILD_DEPENDS=		qt5-qtdeclarative:dev:standard
+			qt5-qtbase:dev:standard
+BUILDRUN_DEPENDS=	qt5-qtdeclarative:primary:standard
+EXRUN[dev]=		qt5-qtbase:dev:standard
 
 USES=			qt5 pkgconfig perl:build cpe
 
@@ -30,7 +35,7 @@ SOVERSION=		5.15.9
 PLIST_SUB=		QTVER=5.15.9
 			SOMAJORMIN=5.15
 
-[FILE:268:descriptions/desc.single]
+[FILE:268:descriptions/desc.primary]
 Qt is a complete cross-platform software framework with ready-made UI
 elements, C++ libraries, and a complete integrated development environment
 with tools for everything one needs to develop software for any project.
@@ -42,7 +47,21 @@ This package contains the Qt5 qttools submodule.
 40dce7845bc156dce7878b304e05b19f1ce7dedd4221c67af3bdf0138196006d      8898188 qttools-everywhere-opensource-src-5.15.9.tar.xz
 
 
-[FILE:7798:manifests/plist.single]
+[FILE:365:manifests/plist.primary]
+lib/qt5/
+ libQt5Designer.so.%%SOMAJOR%%
+ libQt5Designer.so.%%SOMAJORMIN%%
+ libQt5Designer.so.%%SOVERSION%%
+ libQt5DesignerComponents.so.%%SOMAJOR%%
+ libQt5DesignerComponents.so.%%SOMAJORMIN%%
+ libQt5DesignerComponents.so.%%SOVERSION%%
+ libQt5Help.so.%%SOMAJOR%%
+ libQt5Help.so.%%SOMAJORMIN%%
+ libQt5Help.so.%%SOVERSION%%
+lib/qt5/plugins/designer/libqquickwidget.so
+
+
+[FILE:7442:manifests/plist.dev]
 include/qt5/QtDesigner/
  QAbstractExtensionFactory
  QAbstractExtensionManager
@@ -290,19 +309,10 @@ include/qt5/QtUiTools/%%QTVER%%/QtUiTools/private/quiloader_p.h
 lib/qt5/
  libQt5Designer.prl
  libQt5Designer.so
- libQt5Designer.so.%%SOMAJOR%%
- libQt5Designer.so.%%SOMAJORMIN%%
- libQt5Designer.so.%%SOVERSION%%
  libQt5DesignerComponents.prl
  libQt5DesignerComponents.so
- libQt5DesignerComponents.so.%%SOMAJOR%%
- libQt5DesignerComponents.so.%%SOMAJORMIN%%
- libQt5DesignerComponents.so.%%SOVERSION%%
  libQt5Help.prl
  libQt5Help.so
- libQt5Help.so.%%SOMAJOR%%
- libQt5Help.so.%%SOMAJORMIN%%
- libQt5Help.so.%%SOVERSION%%
  libQt5UiPlugin.prl
  libQt5UiTools.a
  libQt5UiTools.prl
@@ -364,7 +374,6 @@ lib/qt5/pkgconfig/
  Qt5Help.pc
  Qt5UiPlugin.pc
  Qt5UiTools.pc
-lib/qt5/plugins/designer/libqquickwidget.so
 share/qt5/phrasebooks/
  danish.qph
  dutch.qph

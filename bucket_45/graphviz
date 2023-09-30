@@ -523,6 +523,40 @@ share/doc/graphviz/pdf/
  #define T_X     1
 
 
+[FILE:452:patches/patch-lib_gvpr_actions.c]
+--- lib/gvpr/actions.c.orig	2023-09-11 18:27:30 UTC
++++ lib/gvpr/actions.c
+@@ -33,7 +33,11 @@
+ #define KINDS(p) ((AGTYPE(p) == AGRAPH) ? "graph" : (AGTYPE(p) == AGNODE) ? "node" : "edge")
+ 
+ static int iofread(void *chan, char *buf, int bufsize) {
++#if defined(__FreeBSD__)
++  return (int)read(fileno((FILE *)chan), buf, bufsize);
++#else
+   return (int)read(fileno(chan), buf, bufsize);
++#endif
+ }
+ 
+ static int ioputstr(void *chan, const char *str) {
+
+
+[FILE:398:patches/patch-lib_gvpr_compile.c]
+--- lib/gvpr/compile.c.orig	2023-09-11 18:27:30 UTC
++++ lib/gvpr/compile.c
+@@ -56,7 +56,11 @@ static Sflong_t ptr2int(const void *p) {
+ 
+ static int iofread(void *chan, char *buf, int bufsize)
+ {
++#if defined(__FreeBSD__)
++  return (int)read(fileno((FILE *)chan), buf, bufsize);
++#else
+   return (int)read(fileno(chan), buf, bufsize);
++#endif
+ }
+ 
+ static int ioputstr(void *chan, const char *str)
+
+
 [FILE:703:patches/patch-plugin_xlib_vimdot.sh]
 --- plugin/xlib/vimdot.sh.orig	2023-09-11 18:27:30 UTC
 +++ plugin/xlib/vimdot.sh

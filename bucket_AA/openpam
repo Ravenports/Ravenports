@@ -2,18 +2,21 @@
 
 NAMEBASE=		openpam
 VERSION=		20190224
-REVISION=		2
+REVISION=		3
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Open-source Pluggable Authentication Module
 HOMEPAGE=		https://www.openpam.org/
-CONTACT=		nobody
+CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/openpam/openpam/Tabebuia
 DISTFILE[1]=		openpam-20190224.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -22,12 +25,17 @@ B_DEPS[sunos]=		libbsd4sol:single:standard
 
 USES=			libtool pkgconfig mbsdfix
 
+LICENSE=		BSD3CLAUSE:primary
+LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
+
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-pam-unix
 			--with-modules-dir={{PREFIX}}/lib/openpam
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
+SOVERSION=		2.0.0
 
 SET_DEBUGGING_ON=	yes
 OPTIMIZER_LEVEL=	0
@@ -45,7 +53,7 @@ post-patch:
 		-e 's|@SYSTEM_MODULES@|${VAR1}|' \
 		${WRKSRC}/lib/libpam/openpam_constants.c
 
-[FILE:365:descriptions/desc.single]
+[FILE:365:descriptions/desc.primary]
 OpenPAM is an open source PAM library that focuses on simplicity,
 correctness, and cleanliness. Its aim is to gather the best features of
 Solaris PAM, XSSO and Linux-PAM, plus some innovations of its own. In
@@ -58,7 +66,22 @@ compatibility.
 31f871f16b6868aef9c849f39aff6c52227977e09eee22b00fb8b7435ddf7105       507353 openpam-20190224.tar.gz
 
 
-[FILE:1457:manifests/plist.single]
+[FILE:282:manifests/plist.primary]
+lib/
+ libpam.so.%%SOMAJOR%%
+ libpam.so.%%SOVERSION%%
+lib/openpam/
+ pam_deny.so.%%SOMAJOR%%
+ pam_deny.so.%%SOVERSION%%
+ pam_permit.so.%%SOMAJOR%%
+ pam_permit.so.%%SOVERSION%%
+ pam_return.so.%%SOMAJOR%%
+ pam_return.so.%%SOVERSION%%
+ pam_unix.so.%%SOMAJOR%%
+ pam_unix.so.%%SOVERSION%%
+
+
+[FILE:204:manifests/plist.dev]
 include/security/
  openpam.h
  openpam_attr.h
@@ -67,23 +90,15 @@ include/security/
  pam_constants.h
  pam_modules.h
  pam_types.h
-lib/
- libpam.so
- libpam.so.2
- libpam.so.2.0.0
+lib/libpam.so
 lib/openpam/
  pam_deny.so
- pam_deny.so.2
- pam_deny.so.2.0.0
  pam_permit.so
- pam_permit.so.2
- pam_permit.so.2.0.0
  pam_return.so
- pam_return.so.2
- pam_return.so.2.0.0
  pam_unix.so
- pam_unix.so.2
- pam_unix.so.2.0.0
+
+
+[FILE:1077:manifests/plist.man]
 share/man/man3/
  openpam.3.gz
  openpam_borrow_cred.3.gz

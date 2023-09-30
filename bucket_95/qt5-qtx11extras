@@ -12,12 +12,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://qt.mirror.constant.com/official_releases/qt/5.15/5.15.9/submodules/
 DISTFILE[1]=		qtx11extras-everywhere-opensource-src-5.15.9.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	qt5-qtxmlpatterns:single:standard
+BUILD_DEPENDS=		qt5-qtxmlpatterns:dev:standard
+			qt5-qtbase:dev:standard
+BUILDRUN_DEPENDS=	qt5-qtxmlpatterns:primary:standard
 
 USES=			qt5 pkgconfig perl:build cpe
 XORG_COMPONENTS=	xcb
@@ -32,7 +36,7 @@ SOVERSION=		5.15.9
 PLIST_SUB=		QTVER=5.15.9
 			SOMAJORMIN=5.15
 
-[FILE:270:descriptions/desc.single]
+[FILE:270:descriptions/desc.primary]
 Qt is a complete cross-platform software framework with ready-made UI
 elements, C++ libraries, and a complete integrated development environment
 with tools for everything one needs to develop software for any project.
@@ -44,7 +48,15 @@ This package contains the Qt5 x11extras submodule.
 7ba3123de7b4ff87d02f513ffa1e4c4284e8f882563d114f29cb98d4c00fcbdb       146036 qtx11extras-everywhere-opensource-src-5.15.9.tar.xz
 
 
-[FILE:496:manifests/plist.single]
+[FILE:130:manifests/plist.primary]
+lib/qt5/
+ libQt5X11Extras.so.%%SOMAJOR%%
+ libQt5X11Extras.so.%%SOMAJORMIN%%
+ libQt5X11Extras.so.%%SOVERSION%%
+ libQt5X11Extras.so
+
+
+[FILE:373:manifests/plist.dev]
 include/qt5/QtX11Extras/
  QX11Info
  QtX11Extras
@@ -53,12 +65,7 @@ include/qt5/QtX11Extras/
  qtx11extrasglobal.h
  qtx11extrasversion.h
  qx11info_x11.h
-lib/qt5/
- libQt5X11Extras.prl
- libQt5X11Extras.so
- libQt5X11Extras.so.%%SOMAJOR%%
- libQt5X11Extras.so.%%SOMAJORMIN%%
- libQt5X11Extras.so.%%SOVERSION%%
+lib/qt5/libQt5X11Extras.prl
 lib/qt5/cmake/Qt5X11Extras/
  Qt5X11ExtrasConfig.cmake
  Qt5X11ExtrasConfigVersion.cmake

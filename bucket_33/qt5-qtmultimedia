@@ -12,13 +12,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://qt.mirror.constant.com/official_releases/qt/5.15/5.15.9/submodules/
 DISTFILE[1]=		qtmultimedia-everywhere-opensource-src-5.15.9.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		qt5-qttools:single:standard
-BUILDRUN_DEPENDS=	qt5-qtdeclarative:single:standard
+BUILD_DEPENDS=		qt5-qttools:complete:standard
+			qt5-qtdeclarative:dev:standard
+BUILDRUN_DEPENDS=	qt5-qtdeclarative:primary:standard
 
 USES=			qt5 pkgconfig perl:build mesa cpe
 XORG_COMPONENTS=	x11 xext xv
@@ -38,7 +41,7 @@ SOVERSION=		5.15.9
 PLIST_SUB=		QTVER=5.15.9
 			SOMAJORMIN=5.15
 
-[FILE:271:descriptions/desc.single]
+[FILE:271:descriptions/desc.primary]
 Qt is a complete cross-platform software framework with ready-made UI
 elements, C++ libraries, and a complete integrated development environment
 with tools for everything one needs to develop software for any project.
@@ -50,7 +53,23 @@ This package contains the Qt5 multimedia submodule.
 453e30affb938ea0427b82509c955cbe2d0846ef27e58aa3a53a99c27cf7c772      3831184 qtmultimedia-everywhere-opensource-src-5.15.9.tar.xz
 
 
-[FILE:7339:manifests/plist.single]
+[FILE:521:manifests/plist.primary]
+lib/qt5/
+ libQt5Multimedia.so.%%SOMAJOR%%
+ libQt5Multimedia.so.%%SOMAJORMIN%%
+ libQt5Multimedia.so.%%SOVERSION%%
+ libQt5MultimediaQuick.so.%%SOMAJOR%%
+ libQt5MultimediaQuick.so.%%SOMAJORMIN%%
+ libQt5MultimediaQuick.so.%%SOVERSION%%
+ libQt5MultimediaWidgets.so.%%SOMAJOR%%
+ libQt5MultimediaWidgets.so.%%SOMAJORMIN%%
+ libQt5MultimediaWidgets.so.%%SOVERSION%%
+lib/qt5/plugins/mediaservice/libqtmedia_audioengine.so
+lib/qt5/plugins/playlistformats/libqtmultimedia_m3u.so
+lib/qt5/qml/QtMultimedia/libdeclarative_multimedia.so
+
+
+[FILE:6851:manifests/plist.dev]
 include/qt5/QtMultimedia/
  QAbstractAudioDeviceInfo
  QAbstractAudioInput
@@ -311,19 +330,10 @@ include/qt5/QtMultimediaWidgets/%%QTVER%%/QtMultimediaWidgets/private/
 lib/qt5/
  libQt5Multimedia.prl
  libQt5Multimedia.so
- libQt5Multimedia.so.%%SOMAJOR%%
- libQt5Multimedia.so.%%SOMAJORMIN%%
- libQt5Multimedia.so.%%SOVERSION%%
  libQt5MultimediaQuick.prl
  libQt5MultimediaQuick.so
- libQt5MultimediaQuick.so.%%SOMAJOR%%
- libQt5MultimediaQuick.so.%%SOMAJORMIN%%
- libQt5MultimediaQuick.so.%%SOVERSION%%
  libQt5MultimediaWidgets.prl
  libQt5MultimediaWidgets.so
- libQt5MultimediaWidgets.so.%%SOMAJOR%%
- libQt5MultimediaWidgets.so.%%SOMAJORMIN%%
- libQt5MultimediaWidgets.so.%%SOVERSION%%
 lib/qt5/cmake/Qt5Multimedia/
  Qt5MultimediaConfig.cmake
  Qt5MultimediaConfigVersion.cmake
@@ -344,11 +354,8 @@ lib/qt5/mkspecs/modules/
 lib/qt5/pkgconfig/
  Qt5Multimedia.pc
  Qt5MultimediaWidgets.pc
-lib/qt5/plugins/mediaservice/libqtmedia_audioengine.so
-lib/qt5/plugins/playlistformats/libqtmultimedia_m3u.so
 lib/qt5/qml/QtMultimedia/
  Video.qml
- libdeclarative_multimedia.so
  plugins.qmltypes
  qmldir
 

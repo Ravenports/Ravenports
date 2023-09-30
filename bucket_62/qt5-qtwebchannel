@@ -12,12 +12,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://qt.mirror.constant.com/official_releases/qt/5.15/5.15.9/submodules/
 DISTFILE[1]=		qtwebchannel-everywhere-opensource-src-5.15.9.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	qt5-qtdeclarative:single:standard
+BUILD_DEPENDS=		qt5-qtdeclarative:dev:standard
+			qt5-qtbase:dev:standard
+BUILDRUN_DEPENDS=	qt5-qtdeclarative:primary:standard
 
 USES=			qt5 pkgconfig perl:build python:build cpe
 
@@ -31,7 +35,7 @@ SOVERSION=		5.15.9
 PLIST_SUB=		QTVER=5.15.9
 			SOMAJORMIN=5.15
 
-[FILE:273:descriptions/desc.single]
+[FILE:273:descriptions/desc.primary]
 Qt is a complete cross-platform software framework with ready-made UI
 elements, C++ libraries, and a complete integrated development environment
 with tools for everything one needs to develop software for any project.
@@ -43,7 +47,16 @@ This package contains the Qt5 qtwebchannel submodule.
 594a350bd92665df33a5839cf66ac1e43911e7653f4fc796b4a30aa85b428789       211032 qtwebchannel-everywhere-opensource-src-5.15.9.tar.xz
 
 
-[FILE:860:manifests/plist.single]
+[FILE:188:manifests/plist.primary]
+lib/qt5/
+ libQt5WebChannel.so
+ libQt5WebChannel.so.%%SOMAJOR%%
+ libQt5WebChannel.so.%%SOMAJORMIN%%
+ libQt5WebChannel.so.%%SOVERSION%%
+lib/qt5/qml/QtWebChannel/libdeclarative_webchannel.so
+
+
+[FILE:703:manifests/plist.dev]
 include/qt5/QtWebChannel/
  QQmlWebChannel
  QWebChannel
@@ -62,12 +75,7 @@ include/qt5/QtWebChannel/%%QTVER%%/QtWebChannel/private/
  qwebchannel_p.h
  signalhandler_p.h
  variantargument_p.h
-lib/qt5/
- libQt5WebChannel.prl
- libQt5WebChannel.so
- libQt5WebChannel.so.%%SOMAJOR%%
- libQt5WebChannel.so.%%SOMAJORMIN%%
- libQt5WebChannel.so.%%SOVERSION%%
+lib/qt5/libQt5WebChannel.prl
 lib/qt5/cmake/Qt5WebChannel/
  Qt5WebChannelConfig.cmake
  Qt5WebChannelConfigVersion.cmake
@@ -76,7 +84,6 @@ lib/qt5/mkspecs/modules/
  qt_lib_webchannel_private.pri
 lib/qt5/pkgconfig/Qt5WebChannel.pc
 lib/qt5/qml/QtWebChannel/
- libdeclarative_webchannel.so
  plugins.qmltypes
  qmldir
 

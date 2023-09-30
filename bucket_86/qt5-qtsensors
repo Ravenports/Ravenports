@@ -12,12 +12,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://qt.mirror.constant.com/official_releases/qt/5.15/5.15.9/submodules/
 DISTFILE[1]=		qtsensors-everywhere-opensource-src-5.15.9.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	qt5-qtdeclarative:single:standard
+BUILD_DEPENDS=		qt5-qtdeclarative:dev:standard
+			qt5-qtbase:dev:standard
+BUILDRUN_DEPENDS=	qt5-qtdeclarative:primary:standard
 
 USES=			qt5 perl:build cpe
 
@@ -31,7 +35,7 @@ SOVERSION=		5.15.9
 PLIST_SUB=		QTVER=5.15.9
 			SOMAJORMIN=5.15
 
-[FILE:270:descriptions/desc.single]
+[FILE:270:descriptions/desc.primary]
 Qt is a complete cross-platform software framework with ready-made UI
 elements, C++ libraries, and a complete integrated development environment
 with tools for everything one needs to develop software for any project.
@@ -43,7 +47,19 @@ This package contains the Qt5 qtsensors submodule.
 7f8790b40302b8178c404a9a23a43724871996882ff249d08642651f6ac6018c      2058448 qtsensors-everywhere-opensource-src-5.15.9.tar.xz
 
 
-[FILE:3135:manifests/plist.single]
+[FILE:299:manifests/plist.primary]
+lib/qt5/
+ libQt5Sensors.so.%%SOMAJOR%%
+ libQt5Sensors.so.%%SOMAJORMIN%%
+ libQt5Sensors.so.%%SOVERSION%%
+lib/qt5/plugins/sensorgestures/
+ libqtsensorgestures_plugin.so
+ libqtsensorgestures_shakeplugin.so
+lib/qt5/plugins/sensors/libqtsensors_generic.so
+lib/qt5/qml/QtSensors/libdeclarative_sensors.so
+
+
+[FILE:2866:manifests/plist.dev]
 include/qt5/QtSensors/
  QAccelerometer
  QAccelerometerFilter
@@ -177,9 +193,6 @@ include/qt5/QtSensors/%%QTVER%%/QtSensors/private/
 lib/qt5/
  libQt5Sensors.prl
  libQt5Sensors.so
- libQt5Sensors.so.%%SOMAJOR%%
- libQt5Sensors.so.%%SOMAJORMIN%%
- libQt5Sensors.so.%%SOVERSION%%
 lib/qt5/cmake/Qt5Sensors/
  Qt5SensorsConfig.cmake
  Qt5SensorsConfigVersion.cmake
@@ -190,12 +203,7 @@ lib/qt5/mkspecs/modules/
  qt_lib_sensors.pri
  qt_lib_sensors_private.pri
 lib/qt5/pkgconfig/Qt5Sensors.pc
-lib/qt5/plugins/sensorgestures/
- libqtsensorgestures_plugin.so
- libqtsensorgestures_shakeplugin.so
-lib/qt5/plugins/sensors/libqtsensors_generic.so
 lib/qt5/qml/QtSensors/
- libdeclarative_sensors.so
  plugins.qmltypes
  qmldir
 

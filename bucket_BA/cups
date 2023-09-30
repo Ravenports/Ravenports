@@ -2,6 +2,7 @@
 
 NAMEBASE=		cups
 VERSION=		2.4.7
+REVISION=		1
 KEYWORDS=		print
 VARIANTS=		standard
 SDESC[standard]=	Common UNIX Printing System
@@ -14,6 +15,9 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
+			tools
+			man
 			docs
 			examples
 
@@ -23,9 +27,13 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		dbus:dev:standard
 			gnutls:dev:standard
 			libpaper:dev:standard
-BUILDRUN_DEPENDS=	dbus:primary:standard
-			gnutls:primary:standard
 			libpaper:primary:standard
+			dbus:primary:standard
+BUILDRUN_DEPENDS=	gnutls:primary:standard
+EXRUN[tools]=		primary
+			libpaper:primary:standard
+			dbus:primary:standard
+EXRUN[dev]=		gnutls:dev:standard
 
 USERS=			cups
 GROUPS=			cups
@@ -122,11 +130,44 @@ the Internet Printing Protocol (IPP) to support printing to local and
 network printers.
 
 
+[FILE:41:descriptions/desc.tools]
+This package contains the cups programs.
+
+
 [FILE:109:distinfo]
 9b9a126018462f7326baa828bdf861939e37e00bc63884e03129b3f3360c44fe      8185752 OpenPrinting-cups-2.4.7.tar.gz
 
 
-[FILE:15031:manifests/plist.primary]
+[FILE:38:manifests/plist.primary]
+lib/
+ libcups.so.2
+ libcupsimage.so.2
+
+
+[FILE:219:manifests/plist.dev]
+include/cups/
+ adminutil.h
+ array.h
+ backend.h
+ cups.h
+ dir.h
+ file.h
+ http.h
+ ipp.h
+ language.h
+ ppd.h
+ pwg.h
+ raster.h
+ sidechannel.h
+ transcode.h
+ versioning.h
+lib/
+ libcups.so
+ libcupsimage.so
+lib/pkgconfig/cups.pc
+
+
+[FILE:13906:manifests/plist.tools]
 @sample etc/cups/cups-files.conf.sample
 @sample etc/cups/cupsd.conf.sample
 @sample etc/cups/snmp.conf.sample
@@ -160,28 +201,6 @@ bin/
  ppdpo
 etc/dbus-1/system.d/cups.conf
 etc/pam.d/cups
-include/cups/
- adminutil.h
- array.h
- backend.h
- cups.h
- dir.h
- file.h
- http.h
- ipp.h
- language.h
- ppd.h
- pwg.h
- raster.h
- sidechannel.h
- transcode.h
- versioning.h
-lib/
- libcups.so
- libcups.so.2
- libcupsimage.so
- libcupsimage.so.2
-lib/pkgconfig/cups.pc
 libexec/cups/backend/
  http
  https
@@ -855,6 +874,23 @@ share/locale/ja/cups_ja.po
 share/locale/pt_BR/cups_pt_BR.po
 share/locale/ru/cups_ru.po
 share/locale/zh_CN/cups_zh_CN.po
+@dir /var/log/cups
+@dir /var/run/cups
+@dir libexec/cups/driver
+@dir share/cups/banners
+@dir share/cups/data
+@dir share/cups/model
+@dir share/cups/profiles
+@dir(,cups,) etc/cups/ppd
+@dir(,cups,1770) /var/spool/cups/tmp
+@dir(,cups,700) etc/cups/ssl
+@dir(,cups,775) /var/cache/cups/rss
+@dir(cups,,511) /var/run/cups/certs
+@postexec chmod 710 /var/spool/cups && chgrp cups /var/spool/cups
+@postexec chmod 770 /var/cache/cups && chgrp cups /var/cache/cups
+
+
+[FILE:873:manifests/plist.man]
 share/man/man1/
  cancel.1.gz
  cups-config.1.gz
@@ -911,20 +947,6 @@ share/man/man8/
  lpc.8.gz
  lpinfo.8.gz
  lpmove.8.gz
-@dir /var/log/cups
-@dir /var/run/cups
-@dir libexec/cups/driver
-@dir share/cups/banners
-@dir share/cups/data
-@dir share/cups/model
-@dir share/cups/profiles
-@dir(,cups,) etc/cups/ppd
-@dir(,cups,1770) /var/spool/cups/tmp
-@dir(,cups,700) etc/cups/ssl
-@dir(,cups,775) /var/cache/cups/rss
-@dir(cups,,511) /var/run/cups/certs
-@postexec chmod 710 /var/spool/cups && chgrp cups /var/spool/cups
-@postexec chmod 770 /var/cache/cups && chgrp cups /var/cache/cups
 
 
 [FILE:1792:manifests/plist.docs]
