@@ -43,12 +43,11 @@ RUBY_3.2_VERSION=	3.2.2
 
 #-------------------------------------------------------------------------
 # PYTHON
-# Possible values: 3.10, 3.11
+# Possible values: 3.11, 3.12
 #-------------------------------------------------------------------------
 
-PYTHON3_DEFAULT?=	3.10
+PYTHON3_DEFAULT?=	3.12
 
-PYTHON_3.10_VERSION=	3.10.13
 PYTHON_3.11_VERSION=	3.11.5
 PYTHON_3.12_VERSION=	3.12.0
 
@@ -82,12 +81,11 @@ TCL_8.6_VERSION=	8.6.13
 
 #-------------------------------------------------------------------------
 # PGSQL
-# Possible values: 11, 12, 13, 14, 15, 16
+# Possible values: 12, 13, 14, 15, 16
 #-------------------------------------------------------------------------
 
-PGSQL_DEFAULT?=		14
+PGSQL_DEFAULT?=		15
 
-PGSQL_11_VERSION=	11.21	# EOL 9 NOV 2023
 PGSQL_12_VERSION=	12.16
 PGSQL_13_VERSION=	13.12
 PGSQL_14_VERSION=	14.9
