@@ -2,6 +2,7 @@
 
 NAMEBASE=		gdk-pixbuf
 VERSION=		2.42.10
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Graphic library for GIMP toolkit
@@ -15,6 +16,8 @@ DIST_SUBDIR=		gnome2
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			dev
+			man
 			docs
 			nls
 
@@ -24,6 +27,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		python-docutils:single:python_used
 			xmlto:single:standard
 			zstd:dev:standard
+EXRUN[dev]=		shared-mime-info:dev:standard
 
 USES=			cpe gmake jpeg png tiff pkgconfig libtool meson
 			shebangfix mime-info:primary python:build perl:build
@@ -58,6 +62,9 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		GTK_VERSION=2.10.0
 			SOVER=4200.10
 			INTRO=
+SUB_FILES=		pkg-install-primary
+			pkg-deinstall-primary
+SUB_LIST=		GTK2_VERSION=2.10.0
 
 VAR_OPSYS[sunos]=	CFLAGS=-D_XPG6
 			LDFLAGS=-lintl
@@ -79,7 +86,7 @@ documentation contains both the programmer's guide and the API reference.
 ee9b6c75d13ba096907a2e3c6b27b61bcd17f5c7ebeab5a5b439d2f2e39fe44b      6519776 gnome2/gdk-pixbuf-2.42.10.tar.xz
 
 
-[FILE:1342:manifests/plist.primary]
+[FILE:635:manifests/plist.primary]
 %%INTRO%%lib/girepository-1.0/
  GdkPixbuf-2.0.typelib
  GdkPixdata-2.0.typelib
@@ -90,22 +97,7 @@ bin/
  gdk-pixbuf-csource
  gdk-pixbuf-pixdata
  gdk-pixbuf-query-loaders
-include/gdk-pixbuf-2.0/gdk-pixbuf/
- gdk-pixbuf-animation.h
- gdk-pixbuf-autocleanups.h
- gdk-pixbuf-core.h
- gdk-pixbuf-enum-types.h
- gdk-pixbuf-features.h
- gdk-pixbuf-io.h
- gdk-pixbuf-loader.h
- gdk-pixbuf-macros.h
- gdk-pixbuf-marshal.h
- gdk-pixbuf-simple-anim.h
- gdk-pixbuf-transform.h
- gdk-pixbuf.h
- gdk-pixdata.h
 lib/
- libgdk_pixbuf-2.0.so
  libgdk_pixbuf-2.0.so.0
  libgdk_pixbuf-2.0.so.0.%%SOVER%%
 lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/
@@ -122,12 +114,31 @@ lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders/
  libpixbufloader-tiff.so
  libpixbufloader-xbm.so
  libpixbufloader-xpm.so
+
+
+[FILE:370:manifests/plist.dev]
+include/gdk-pixbuf-2.0/gdk-pixbuf/
+ gdk-pixbuf-animation.h
+ gdk-pixbuf-autocleanups.h
+ gdk-pixbuf-core.h
+ gdk-pixbuf-enum-types.h
+ gdk-pixbuf-features.h
+ gdk-pixbuf-io.h
+ gdk-pixbuf-loader.h
+ gdk-pixbuf-macros.h
+ gdk-pixbuf-marshal.h
+ gdk-pixbuf-simple-anim.h
+ gdk-pixbuf-transform.h
+ gdk-pixbuf.h
+ gdk-pixdata.h
+lib/libgdk_pixbuf-2.0.so
 lib/pkgconfig/gdk-pixbuf-2.0.pc
+
+
+[FILE:72:manifests/plist.man]
 share/man/man1/
  gdk-pixbuf-csource.1.gz
  gdk-pixbuf-query-loaders.1.gz
-@postexec %D/bin/gdk-pixbuf-query-loaders > /dev/null 2>&1 && %D/bin/gdk-pixbuf-query-loaders > %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>/dev/null || /usr/bin/true
-@postunexec rm %D/lib/gdk-pixbuf-2.0/%%GTK_VERSION%%/loaders.cache 2>&1 >/dev/null || true
 
 
 [FILE:4562:manifests/plist.nls]
@@ -253,4 +264,30 @@ share/locale/zh_TW/LC_MESSAGES/gdk-pixbuf.mo
  #include "gdk-pixbuf/gdk-pixbuf.h"
  #include "glib.h"
  #include <stdio.h>
+
+
+[FILE:186:files/pkg-deinstall-primary.in]
+#!/bin/sh
+
+case "$2" in
+DEINSTALL)
+    echo "[gdk_pixbuf] Removing gdk-pixbuf cache directory"
+    rm -f %%PREFIX%%/lib/gdk-pixbuf-2.0/%%GTK2_VERSION%%/loaders.cache
+    ;;
+esac
+
+exit 0
+
+
+[FILE:177:files/pkg-install-primary.in]
+#!/bin/sh
+
+case "$2" in
+POST-INSTALL)
+    echo "[gdk_pixbuf] Generating gdk-pixbuf modules cache"
+    %%PREFIX%%/bin/gdk-pixbuf-query-loaders --update-cache
+    ;;
+esac
+
+exit 0
 

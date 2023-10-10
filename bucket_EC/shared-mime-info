@@ -2,6 +2,7 @@
 
 NAMEBASE=		shared-mime-info
 VERSION=		2.3
+REVISION=		1
 KEYWORDS=		misc
 VARIANTS=		standard
 SDESC[standard]=	MIME types database from freedesktop.org project
@@ -35,11 +36,12 @@ FPC_EQUIVALENT=		misc/shared-mime-info
 MESON_ARGS=		-Dupdate-mimedb=false
 			-Dxdgmime-path="{{WRKSRC}}/src/xdgmime"
 
-SUB_FILES=		pkg-install-single
-SUB_LIST=		MIMEDIRS="{{CLEAN_MIMEDIRS}}"
+SUB_FILES=		pkg-install-primary
+			pkg-deinstall-primary
 
 post-install:
-.for DIR in XMLnamespaces aliases generic-icons globs globs2 icons magic mime.cache subclasses treemagic types version
+.for DIR in application audio image inode message model multipart packages text video x-epoc x-content font
+	# XMLnamespaces aliases generic-icons globs globs2 icons magic mime.cache subclasses treemagic types version
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/mime/${DIR}
 .endfor
 
@@ -65,28 +67,28 @@ merging them together.
 78eb7d0d6874e2116649067100d72e0d363eb6a51227797140dad3bd5643e6a9      7282692 shared-mime-info-2.3.tar.gz
 
 
-[FILE:364:manifests/plist.primary]
+[FILE:407:manifests/plist.primary]
 bin/update-mime-database
-share/mime/packages/freedesktop.org.xml
-@dir share/mime/XMLnamespaces
-@dir share/mime/aliases
-@dir share/mime/generic-icons
-@dir share/mime/globs
-@dir share/mime/globs2
-@dir share/mime/icons
-@dir share/mime/magic
-@dir share/mime/mime.cache
-@dir share/mime/subclasses
-@dir share/mime/treemagic
-@dir share/mime/types
-@dir share/mime/version
-
-
-[FILE:97:manifests/plist.dev]
-lib/pkgconfig/shared-mime-info.pc
 share/gettext/its/
  shared-mime-info.its
  shared-mime-info.loc
+share/mime/packages/freedesktop.org.xml
+@dir share/mime/x-epoc
+@dir share/mime/x-content
+@dir share/mime/video
+@dir share/mime/text
+@dir share/mime/multipart
+@dir share/mime/model
+@dir share/mime/message
+@dir share/mime/inode
+@dir share/mime/image
+@dir share/mime/font
+@dir share/mime/audio
+@dir share/mime/application
+
+
+[FILE:34:manifests/plist.dev]
+lib/pkgconfig/shared-mime-info.pc
 
 
 [FILE:3737:manifests/plist.nls]
@@ -214,24 +216,42 @@ share/man/man1/update-mime-database.1.gz
  	for (n = 0; dirs[n]; n++)
 
 
-[FILE:172:files/pkg-install-single.in]
+[FILE:698:files/pkg-deinstall-primary.in]
+#!/bin/sh
+
+case $2 in
+POST-DEINSTALL)
+	echo "[shared-mime-info] Cleaning up the MIME database cache after package removal"
+	mimedir=%%PREFIX%%/share/mime
+	files="XMLnamespaces aliases generic-icons globs globs2 icons mime.cache subclasses treemagic types version"
+
+	for f in ${files}; do
+	   ff="${mimedir}${f}"
+	   rm -f "${ff}"
+	done
+	if [ -d "${mimedir}" ]; then
+	   # gnu find doesn't handled -depth the same as BSD find
+	   entries=$(find "${mimedir}" -mindepth 1 -maxdepth 1 -type d ! -name "packages" -print0)
+	   if [ -n "${entries}" ]; then
+	      find "${mimedir}" -mindepth 1 -maxdepth 1 -type d ! -name "packages" -print0 |\
+	      xargs -0 -I{} rm -rf {}/*
+	   fi
+	fi
+	;;
+esac
+
+exit 0
+
+
+[FILE:184:files/pkg-install-primary.in]
 #!/bin/sh
 
 case $2 in
 POST-INSTALL)
-	for mdir in %%MIMEDIRS%%; do
-	    if [ -d ${mdir} ]; then
-		%%PREFIX%%/bin/update-mime-database ${mdir}
-	    fi
-	done
-	exit 0
+	echo "[shared-mime-info] Building the Shared MIME-Info database cache"
+	%%PREFIX%%/bin/update-mime-database %%PREFIX%%/share/mime
 	;;
 esac
 
-
-[FILE:92:files/special.mk]
-MIMEDIRS=	${LOCALBASE}/share/mime \
-		${PREFIX}/share/mime
-
-CLEAN_MIMEDIRS=	${MIMEDIRS:O:u}
+exit 0
 

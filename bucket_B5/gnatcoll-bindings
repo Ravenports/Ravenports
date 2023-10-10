@@ -2,7 +2,7 @@
 
 NAMEBASE=		gnatcoll-bindings
 VERSION=		23.0.0
-REVISION=		3
+REVISION=		4
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		standard
@@ -32,19 +32,19 @@ BUILD_DEPENDS=		gmp:static:standard
 			gprbuild:gprlib:standard
 			readline:dev:standard
 			readline:primary:standard
-			python310:single:standard
+			python312:dev:standard
 			gnatcoll-core:dev:standard
 			gnatcoll-core:primary:standard
 EXRUN[readline]=	readline:primary:standard
 			gnatcoll-core:primary:standard
 EXRUN[iconv]=		libiconv:primary:standard
 			gnatcoll-core:primary:standard
-EXRUN[python3]=		python310:single:standard
+EXRUN[python3]=		python312:primary:standard
 			gnatcoll-core:primary:standard
 EXRUN[gmp]=		gmp:shared:standard
 			gnatcoll-core:primary:standard
 
-USES=			gprbuild gmake iconv:build python:build
+USES=			gprbuild gmake iconv:build
 
 LICENSE=		GPLv3+:iconv
 LICENSE_TERMS=		iconv:{{WRKDIR}}/TERMS
@@ -68,8 +68,8 @@ do-build:
 .  endfor
 	# handle python components separately
 .  for libtype in static static-pic relocatable
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} AUTOPYTHON=3.10 \
-		GNATCOLL_PYTHON_CFLAGS="-I${LOCALBASE}/include/python3.10" \
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} AUTOPYTHON=3.12 \
+		GNATCOLL_PYTHON_CFLAGS="-I${LOCALBASE}/include/python3.12" \
 		gprbuild -p -XLIBRARY_TYPE=${libtype} \
 		-P python/gnatcoll_python.gpr)
 .  endfor
@@ -110,9 +110,9 @@ do-install:
 	${SH} ${FILESDIR}/gen_gpr.sh \
 		"${component}" \
 		"${STAGEDIR}${PREFIX}" \
-		"-I${LOCALBASE}/include/python3.10" \
+		"-I${LOCALBASE}/include/python3.12" \
 		"0.0" \
-		"-lpython3.10"
+		"-lpython3.12"
 .endfor
 
 [FILE:102:descriptions/desc.gmp]
@@ -358,6 +358,31 @@ share/gpr/
  gnatcoll_python.gpr
  gnatcoll_readline.gpr
  gnatcoll_syslog.gpr
+
+
+[FILE:495:patches/patch-python_python__support.c]
+https://github.com/AdaCore/gnatcoll-bindings/issues/18
+
+Fixes build with python 3.11+
+
+--- python/python_support.c.orig	2023-01-04 08:36:46 UTC
++++ python/python_support.c
+@@ -813,13 +813,13 @@ PyAPI_FUNC(PyObject *) PyFile_FromString
+ PyCodeObject*
+ ada_pyframe_get_code (PyFrameObject* obj)
+ {
+-   return obj->f_code;
++   return PyFrame_GetCode (obj);
+ }
+ 
+ PyFrameObject*
+ ada_pyframe_get_back (PyFrameObject* obj)
+ {
+-   return obj->f_back;
++   return PyFrame_GetBack (obj);
+ }
+ 
+ PyObject*
 
 
 [FILE:2217:files/gen_gpr.sh]

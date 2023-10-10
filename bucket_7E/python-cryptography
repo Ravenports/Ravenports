@@ -3,9 +3,9 @@
 NAMEBASE=		python-cryptography
 VERSION=		41.0.4
 KEYWORDS=		python rust
-VARIANTS=		py310 v11
-SDESC[py310]=		Cryptographic recipes and primitives (3.10)
+VARIANTS=		v12 v11
 SDESC[v11]=		Cryptographic recipes and primitives (3.11)
+SDESC[v12]=		Cryptographic recipes and primitives (3.12)
 HOMEPAGE=		https://github.com/pyca/cryptography
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -122,13 +122,13 @@ DIST_SUBDIR=		rust/crates
 DF_INDEX=		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 			21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37
 			38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54
-SPKGS[py310]=		single
 SPKGS[v11]=		single
+SPKGS[v12]=		single
 
-OPTIONS_AVAILABLE=	PY311 PY310
+OPTIONS_AVAILABLE=	PY311 PY312
 OPTIONS_STANDARD=	none
-VOPTS[py310]=		PY310=ON PY311=OFF
-VOPTS[v11]=		PY310=OFF PY311=ON
+VOPTS[v11]=		PY312=OFF PY311=ON
+VOPTS[v12]=		PY312=ON PY311=OFF
 
 USES=			cpe cargo ssl pkgconfig cclibs:single
 
@@ -147,13 +147,13 @@ CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
 
-[PY310].BUILDRUN_DEPENDS_ON=		python-cffi:single:py310
-					python-setuptools-rust:single:py310
-[PY310].USES_ON=			python:py310,sutools
-
 [PY311].BUILDRUN_DEPENDS_ON=		python-cffi:single:v11
 					python-setuptools-rust:single:v11
 [PY311].USES_ON=			python:v11,sutools
+
+[PY312].BUILDRUN_DEPENDS_ON=		python-cffi:single:v12
+					python-setuptools-rust:single:v12
+[PY312].USES_ON=			python:v12,sutools
 
 post-patch:
 	${MKDIR} ${WRKSRC}/.cargo

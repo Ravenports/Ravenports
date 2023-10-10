@@ -2,78 +2,44 @@
 
 NAMEBASE=		python-setuptools
 VERSION=		68.2.2
-KEYWORDS=		python devel sysutils
-VARIANTS=		v11 py310
-SDESC[py310]=		Python package development process library (3.10)
+KEYWORDS=		python
+VARIANTS=		v11 v12
 SDESC[v11]=		Python package development process library (3.11)
+SDESC[v12]=		Python package development process library (3.12)
 HOMEPAGE=		https://github.com/pypa/setuptools
-CONTACT=		nobody
+CONTACT=		Python_Automaton[python@ironwolf.systems]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		PYPI/s/setuptools
-DISTFILE[1]=		setuptools-68.2.2.tar.gz:main
+SITES[main]=		PYPIWHL/bb/26/7945080113158354380a12ce26873dd6c1ebd88d47f5bc24e2c5bb38c16a
+DISTFILE[1]=		setuptools-68.2.2-py3-none-any.whl:main
 DF_INDEX=		1
-SPKGS[py310]=		single
 SPKGS[v11]=		single
+SPKGS[v12]=		single
 
-OPTIONS_AVAILABLE=	PY311 PY310
+OPTIONS_AVAILABLE=	PY311 PY312
 OPTIONS_STANDARD=	none
-VOPTS[py310]=		PY311=OFF PY310=ON
-VOPTS[v11]=		PY311=ON PY310=OFF
+VOPTS[v11]=		PY311=ON PY312=OFF
+VOPTS[v12]=		PY311=OFF PY312=ON
 
-USES=			cpe
+DISTNAME=		setuptools-68.2.2.dist-info
 
-DISTNAME=		setuptools-68.2.2
+GENERATED=		yes
 
-LICENSE=		MIT:single
-LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
-LICENSE_SCHEME=		solo
+[PY311].USES_ON=			python:v11,wheel
 
-CPE_PRODUCT=		setuptools
-CPE_VENDOR=		python
-FPC_EQUIVALENT=		devel/py-setuptools
+[PY312].USES_ON=			python:v12,wheel
 
-MAKE_ENV=		LDSHARED="{{CC}} -shared"
-			PYTHONDONTWRITEBYTECODE=
-			PYTHONOPTIMIZE=
+[FILE:302:descriptions/desc.single]
+Setuptools is a fully-featured, actively-maintained, and stable library
+designed to facilitate packaging Python projects.
 
-PLIST_SUB=		STVER=68.2.2
-
-[PY310].BUILDRUN_DEPENDS_ON=		python310:single:standard
-[PY310].MAKEFILE_ON=			PYTHON_CMD={{LOCALBASE}}/bin/python3.10
-[PY310].PLIST_SUB_ON=			PYVER=3.10
-					SITEPKG=lib/python3.10/site-packages
-
-[PY311].BUILDRUN_DEPENDS_ON=		python311:single:standard
-[PY311].MAKEFILE_ON=			PYTHON_CMD={{LOCALBASE}}/bin/python3.11
-[PY311].PLIST_SUB_ON=			PYVER=3.9
-					SITEPKG=lib/python3.9/site-packages
-
-do-build:
-	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		${PYTHON_CMD} ${PYDISTUTILS_SETUP} build)
-
-do-configure:
-	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		${PYTHON_CMD} ${PYDISTUTILS_SETUP} config)
-
-do-install:
-	(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		${PYTHON_CMD} ${PYDISTUTILS_SETUP} install \
-		--record ${WRKDIR}/.PLIST.pymodtmp -c -O1 \
-		--prefix=${PREFIX} --single-version-externally-managed \
-		--root=${STAGEDIR})
-	${RM} ${STAGEDIR}${PREFIX}/bin/easy_install
-
-[FILE:232:descriptions/desc.single]
-``Setuptools`` is a collection of enhancements to the Python ``distutils``
-(for Python 2.6 and up) that allow developers to more easily build and
-distribute Python packages, especially ones that have dependencies on other
-packages.
+It helps developers to easily share reusable code (in library form) and
+programs (e.g., CLI/GUI tools implemented in Python), that can be installed
+with pip and uploaded to PyPI.
 
 
-[FILE:103:distinfo]
-4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87      2203338 setuptools-68.2.2.tar.gz
+[FILE:113:distinfo]
+b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a       807864 setuptools-68.2.2-py3-none-any.whl
 
 
 [FILE:388:files/special.mk]

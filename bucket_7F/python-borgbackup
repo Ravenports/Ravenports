@@ -3,9 +3,9 @@
 NAMEBASE=		python-borgbackup
 VERSION=		1.2.6
 KEYWORDS=		python
-VARIANTS=		v11 py310
-SDESC[py310]=		Deduplicated, encrypted, compressed backups (3.10)
+VARIANTS=		v11 v12
 SDESC[v11]=		Deduplicated, encrypted, compressed backups (3.11)
+SDESC[v12]=		Deduplicated, encrypted, compressed backups (3.12)
 HOMEPAGE=		https://borgbackup.readthedocs.io/
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -13,13 +13,13 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPI/b/borgbackup
 DISTFILE[1]=		borgbackup-1.2.6.tar.gz:main
 DF_INDEX=		1
-SPKGS[py310]=		single
 SPKGS[v11]=		single
+SPKGS[v12]=		single
 
-OPTIONS_AVAILABLE=	PY311 PY310
+OPTIONS_AVAILABLE=	PY311 PY312
 OPTIONS_STANDARD=	none
-VOPTS[py310]=		PY311=OFF PY310=ON
-VOPTS[v11]=		PY311=ON PY310=OFF
+VOPTS[v11]=		PY311=ON PY312=OFF
+VOPTS[v12]=		PY311=OFF PY312=ON
 
 BUILD_DEPENDS=		xxhash:dev:standard
 BUILDRUN_DEPENDS=	xxhash:primary:standard
@@ -34,17 +34,17 @@ GENERATED=		yes
 
 MAKE_ENV=		BORG_OPENSSL_PREFIX={{OPENSSLBASE}}
 
-[PY310].BUILDRUN_DEPENDS_ON=		python-msgpack:single:py310
-					python-packaging:single:py310
-					python-setuptools-scm:single:py310
-[PY310].BUILD_DEPENDS_ON=		python-pkgconfig:single:py310
-[PY310].USES_ON=			python:py310,sutools
-
 [PY311].BUILDRUN_DEPENDS_ON=		python-msgpack:single:v11
 					python-packaging:single:v11
 					python-setuptools-scm:single:v11
 [PY311].BUILD_DEPENDS_ON=		python-pkgconfig:single:v11
 [PY311].USES_ON=			python:v11,sutools
+
+[PY312].BUILDRUN_DEPENDS_ON=		python-msgpack:single:v12
+					python-packaging:single:v12
+					python-setuptools-scm:single:v12
+[PY312].BUILD_DEPENDS_ON=		python-pkgconfig:single:v12
+[PY312].USES_ON=			python:v12,sutools
 
 post-patch:
 	${SED} -i'' -e 's|msgpack-python|msgpack|' \
