@@ -36,6 +36,7 @@ BUILDRUN_DEPENDS=	harfbuzz:icu:standard
 			libb2:single:standard
 			cups:primary:standard
 EXRUN[dev]=		libglvnd:dev:standard
+			libxkbcommon:dev:standard
 
 USES=			qt6 zlib png sqlite jpeg pkgconfig execinfo iconv
 			perl:build shebangfix ssl:openssl11 cpe cmake ninja
@@ -4344,6 +4345,26 @@ share/doc/qt6/global/template/style/
  qt_find_package(ATSPI2 PROVIDED_TARGETS PkgConfig::ATSPI2 MODULE_NAME gui QMAKE_LIB atspi)
  qt_find_package(DirectFB PROVIDED_TARGETS PkgConfig::DirectFB MODULE_NAME gui QMAKE_LIB directfb)
  qt_find_package(Libdrm PROVIDED_TARGETS Libdrm::Libdrm MODULE_NAME gui QMAKE_LIB drm)
+
+
+[FILE:1023:patches/patch-src_gui_platform_unix_qxkbcommon.cpp]
+--- src/gui/platform/unix/qxkbcommon.cpp.orig	2023-07-06 10:02:03 UTC
++++ src/gui/platform/unix/qxkbcommon.cpp
+@@ -239,10 +239,14 @@ static constexpr const auto KeyTbl = qMa
+         Xkb2Qt<XKB_KEY_dead_small_schwa,        Qt::Key_Dead_Small_Schwa>,
+         Xkb2Qt<XKB_KEY_dead_capital_schwa,      Qt::Key_Dead_Capital_Schwa>,
+         Xkb2Qt<XKB_KEY_dead_greek,              Qt::Key_Dead_Greek>,
++/* The following four XKB_KEY_dead keys got removed in libxkbcommon 1.6.0
++   The define check is kind of version check here. */
++#ifdef XKB_KEY_dead_lowline
+         Xkb2Qt<XKB_KEY_dead_lowline,            Qt::Key_Dead_Lowline>,
+         Xkb2Qt<XKB_KEY_dead_aboveverticalline,  Qt::Key_Dead_Aboveverticalline>,
+         Xkb2Qt<XKB_KEY_dead_belowverticalline,  Qt::Key_Dead_Belowverticalline>,
+         Xkb2Qt<XKB_KEY_dead_longsolidusoverlay, Qt::Key_Dead_Longsolidusoverlay>,
++#endif
+ 
+         // Special keys from X.org - This include multimedia keys,
+         // wireless/bluetooth/uwb keys, special launcher keys, etc.
 
 
 [FILE:1102:patches/patch-src_network_kernel_qnetworkinterface__unix.cpp]

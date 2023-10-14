@@ -2,6 +2,7 @@
 
 NAMEBASE=		libobjc2
 VERSION=		2.1
+REVISION=		2
 KEYWORDS=		lang devel
 VARIANTS=		standard
 SDESC[standard]=	Replacement Obj-C runtime for modern lang features
@@ -13,7 +14,7 @@ SITES[main]=		GITHUB/gnustep:libobjc2:v2.1
 SITES[tessil]=		GITHUB/Tessil:robin-map:757de82
 DISTFILE[1]=		generated:main
 DISTFILE[2]=		generated:tessil
-DIST_SUBDIR=		libobjc2
+DIST_SUBDIR=		gnustep
 DF_INDEX=		1 2
 SPKGS[standard]=	complete
 			primary
@@ -22,7 +23,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		gnustep-make:primary:standard
+BUILD_DEPENDS=		gnustep-make-bootstrap:primary:standard
 
 USES=			c++:primary clang cmake ninja
 
@@ -43,7 +44,6 @@ CMAKE_ARGS=		-DLIB_INSTALL_PATH=lib
 			-DTESTS=OFF
 			-G
 			Ninja
-			-DENABLE_OBJCXX=OFF
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libobjc.so
@@ -81,9 +81,9 @@ OS X 10.7
 
 
 
-[FILE:234:distinfo]
-78fc3711db14bf863040ae98f7bdca08f41623ebeaf7efaea7dd49a38b5f054c       200290 libobjc2/gnustep-libobjc2-2.1.tar.gz
-b365d847a23ce48a4e5c76c4a8194693f18323bf7cacdc0f57ada92ee275bd45        63288 libobjc2/Tessil-robin-map-757de82.tar.gz
+[FILE:232:distinfo]
+78fc3711db14bf863040ae98f7bdca08f41623ebeaf7efaea7dd49a38b5f054c       200290 gnustep/gnustep-libobjc2-2.1.tar.gz
+b365d847a23ce48a4e5c76c4a8194693f18323bf7cacdc0f57ada92ee275bd45        63288 gnustep/Tessil-robin-map-757de82.tar.gz
 
 
 [FILE:29:manifests/plist.primary]
@@ -119,10 +119,10 @@ lib/libobjc.so
 lib/pkgconfig/libobjc.pc
 
 
-[FILE:783:patches/patch-CMakeLists.txt]
+[FILE:812:patches/patch-CMakeLists.txt]
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index e2746e9..80b7dfe 100644
---- CMakeLists.txt
+--- CMakeLists.txt.orig	2020-08-23 15:10:20 UTC
 +++ CMakeLists.txt
 @@ -317,7 +317,7 @@ if (ENABLE_OBJCXX)
  			endif()
@@ -133,4 +133,18 @@ index e2746e9..80b7dfe 100644
  			MAIN_DEPENDENCY eh_trampoline.cc)
  		list(APPEND libobjc_ASM_SRCS eh_trampoline.s)
  		list(APPEND libobjc_CXX_SRCS objcxx_eh.cc)
+
+
+[FILE:382:patches/patch-objcxx_eh.cc]
+--- objcxx_eh.cc	2020-08-23 08:10:20.000000000 -0700
++++ objcxx_eh.cc.new	2023-10-13 22:07:26.543624000 -0700
+@@ -16,8 +16,6 @@
+ 
+ uint64_t cxx_exception_class;
+ 
+-extern "C" void *__cxa_allocate_exception(size_t) noexcept;
+-
+ /**
+  * Our own definitions of C++ ABI functions and types.  These are provided
+  * because this file must not include cxxabi.h.  We need to handle subtly
 
