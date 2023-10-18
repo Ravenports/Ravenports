@@ -22,7 +22,7 @@ OPTIONS_STANDARD=	none
 
 EXRUN[tools]=		libbluray:primary:standard
 
-USES=			cpe fontconfig freetype libtool pkgconfig
+USES=			cpe fontconfig freetype libtool pkgconfig mbsdfix
 GNOME_COMPONENTS=	libxml2
 
 LICENSE=		LGPL21+:primary
@@ -85,4 +85,28 @@ lib/
  libbluray.a
  libbluray.so
 lib/pkgconfig/libbluray.pc
+
+
+[FILE:660:patches/patch-configure]
+--- configure.orig	2022-11-26 13:45:36 UTC
++++ configure
+@@ -3635,6 +3635,10 @@ printf "%s\n" "#define _WIN32_IE 0x0501"
+     SYS=freebsd
+     CFLAGS="${CFLAGS} -D__BSD_VISIBLE=1 -D__XSI_VISIBLE=1"
+     ;;
++  midnightbsd*)
++    SYS=freebsd
++    CFLAGS="${CFLAGS} -D__BSD_VISIBLE=1 -D__XSI_VISIBLE=1"
++    ;;
+   solaris*)
+     SYS=solaris
+     CFLAGS="${CFLAGS} -D__EXTENSIONS__"
+@@ -15562,6 +15566,7 @@ case $host_os in
+      win*)     java_os=win32 ;;
+      mingw*)   java_os=win32 ;;
+      freebsd*) java_os=freebsd ;;
++     midnight*) java_os=freebsd ;;
+      solaris*) java_os=solaris ;;
+      darwin*)  java_os=darwin ;;
+      netbsd*)  java_os=netbsd ;;
 
