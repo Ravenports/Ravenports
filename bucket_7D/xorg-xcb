@@ -2,7 +2,7 @@
 
 NAMEBASE=		xorg-xcb
 VERSION=		1.16
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	X protocol C-language Binding (XCB) library
@@ -52,7 +52,7 @@ CONFIGURE_ARGS=		--disable-build-docs
 			XDMCP_CFLAGS="-I{{LOCALBASE}}/include"
 			XDMCP_LIBS="-L{{LOCALBASE}}/lib -lXdmcp"
 			NEEDED_CFLAGS="-I{{LOCALBASE}}/include"
-			NEEDED_LIBS="-L{{LOCALBASE}}/lib -lXau `pkg-config --libs pthread-stubs`"
+			NEEDED_LIBS="-L{{LOCALBASE}}/lib -lXau"
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -2547,6 +2547,22 @@ share/man/man3/
  xcb_xvmc_query_version.3.gz
  xcb_xvmc_query_version_reply.3.gz
  xcb_xvmc_query_version_unchecked.3.gz
+
+
+[FILE:344:patches/patch-configure]
+--- configure.orig	2023-08-16 20:18:36 UTC
++++ configure
+@@ -20825,10 +20825,6 @@ printf "%s\n" "yes" >&6; }
+ 
+ fi
+ NEEDED="xau >= 0.99.2"
+-case $host_os in
+-linux*|darwin*|solaris*|dragonfly*|freebsd*) ;;
+-     *) NEEDED="$NEEDED pthread-stubs" ;;
+-esac
+ 
+ pkg_failed=no
+ { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for NEEDED" >&5
 
 
 [FILE:634:patches/patch-tests-check_public.c]
