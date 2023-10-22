@@ -17,8 +17,14 @@ SPKGS[standard]=	complete
 			dev
 			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	BSD
+OPTIONS_STANDARD=	BSD
+OPT_ON[freebsd]=	BSD
+OPT_ON[netbsd]=		BSD
+OPT_ON[dragonfly]=	BSD
+OPT_ON[midnightbsd]=	BSD
+
+BROKEN[netbsd]=		Does not build on NetBSD
 
 BUILD_DEPENDS=		glib:dev:standard
 			harfbuzz:dev:standard
@@ -27,19 +33,6 @@ BUILD_DEPENDS=		glib:dev:standard
 BUILDRUN_DEPENDS=	libevdev:primary:standard
 			libwacom:primary:standard
 			mtdev:single:standard
-B_DEPS[freebsd]=	libepoll-shim:dev:standard
-			libgudev-devd:dev:standard libudev-devd:dev:standard
-B_DEPS[linux]=		libgudev:dev:standard
-B_DEPS[dragonfly]=	libepoll-shim:dev:standard
-			libgudev-devd:dev:standard libudev-devd:dev:standard
-B_DEPS[midnightbsd]=	libepoll-shim:dev:standard
-			libgudev-devd:dev:standard libudev-devd:dev:standard
-BR_DEPS[freebsd]=	libepoll-shim:primary:standard
-			libudev-devd:primary:standard
-BR_DEPS[dragonfly]=	libepoll-shim:primary:standard
-			libudev-devd:primary:standard
-BR_DEPS[midnightbsd]=	libepoll-shim:primary:standard
-			libudev-devd:primary:standard
 
 USES=			meson pkgconfig
 GNOME_COMPONENTS=	gtk3
@@ -52,6 +45,14 @@ FPC_EQUIVALENT=		x11/libinput
 MESON_ARGS=		-Dtests=false
 
 SOVERSION=		10.13.0
+
+[BSD].DESCRIPTION=			Support BSD platform
+[BSD].BUILDRUN_DEPENDS_ON=		libepoll-shim:primary:standard
+					libudev-devd:primary:standard
+[BSD].BUILD_DEPENDS_OFF=		libgudev:dev:standard
+[BSD].BUILD_DEPENDS_ON=			libepoll-shim:dev:standard
+					libgudev-devd:dev:standard
+					libudev-devd:dev:standard
 
 [FILE:334:descriptions/desc.primary]
 libinput is a library to handle input devices in Wayland compositors and 

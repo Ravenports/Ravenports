@@ -506,6 +506,22 @@ share/man/man8/
  #include <netdb.h>              /* MAXHOSTNAMELEN Solaris */
 
 
+[FILE:368:patches/patch-common_portability_freeipmi-portability.h]
+--- common/portability/freeipmi-portability.h.orig	2023-06-05 22:58:25 UTC
++++ common/portability/freeipmi-portability.h
+@@ -75,6 +75,10 @@
+ #define O_SYNC  O_FSYNC
+ #endif
+ 
++#if !defined(AI_V4MAPPED)
++#define AI_V4MAPPED	0
++#endif
++
+ /* FreeBSD don't have log2(), exp10() and exp2() */
+ #ifndef HAVE_LOG2
+ /* Cygwin has a log2 macro to already handle portability */
+
+
 [FILE:943:patches/patch-configure]
 --- configure.orig	2023-06-07 23:23:58 UTC
 +++ configure
@@ -536,14 +552,14 @@ share/man/man8/
  
 
 
-[FILE:265:patches/patch-ipmi-oem-ipmi-oem.h]
+[FILE:292:patches/patch-ipmi-oem-ipmi-oem.h]
 --- ipmi-oem/ipmi-oem.h.orig	2023-06-05 22:58:26 UTC
 +++ ipmi-oem/ipmi-oem.h
 @@ -20,6 +20,9 @@
  #define IPMI_OEM_H
  
  #include <freeipmi/freeipmi.h>
-+#if !defined(__linux__)
++#if defined(__FreeBSD__) || defined(__DragonFly__)
 +#include <sys/limits.h>
 +#endif
  
@@ -591,7 +607,7 @@ share/man/man8/
          {
 
 
-[FILE:1897:patches/patch-libfreeipmi_driver_ipmi-kcs-driver.c]
+[FILE:1874:patches/patch-libfreeipmi_driver_ipmi-kcs-driver.c]
 --- libfreeipmi/driver/ipmi-kcs-driver.c.orig	2023-06-05 22:58:26 UTC
 +++ libfreeipmi/driver/ipmi-kcs-driver.c
 @@ -145,7 +145,7 @@
@@ -608,7 +624,7 @@ share/man/man8/
  #endif
  
 -#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
  # define _INB(port)  inb (port)
  # define _OUTB(data, port)  outb (port, data)
  #elif defined(HAVE_INB) && defined(HAVE_OUTB)

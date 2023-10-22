@@ -23,17 +23,17 @@ SPKGS[standard]=	complete
 			man
 			examples
 
-OPTIONS_AVAILABLE=	FREEBSD DRAGONFLY NETBSD LINUX UNSUPPORTED
-OPTIONS_STANDARD=	FREEBSD DRAGONFLY NETBSD LINUX UNSUPPORTED
+OPTIONS_AVAILABLE=	FREEBSD DRAGONFLY NETBSD LINUX MIDNIGHT UNSUPPORTED
+OPTIONS_STANDARD=	FREEBSD DRAGONFLY NETBSD LINUX MIDNIGHT UNSUPPORTED
 OPTGROUP_RADIO=		SYSTEM
 OPTDESCR[SYSTEM]=	System and architecture selection
-OPTGROUP[SYSTEM]=	FREEBSD DRAGONFLY NETBSD LINUX UNSUPPORTED
+OPTGROUP[SYSTEM]=	FREEBSD DRAGONFLY NETBSD LINUX MIDNIGHT UNSUPPORTED
 OPT_ON[freebsd]=	FREEBSD
 OPT_ON[sunos]=		UNSUPPORTED
 OPT_ON[linux]=		LINUX
 OPT_ON[netbsd]=		NETBSD
 OPT_ON[dragonfly]=	DRAGONFLY
-OPT_ON[midnightbsd]=	FREEBSD
+OPT_ON[midnightbsd]=	MIDNIGHT
 
 BUILD_DEPENDS=		alsa-lib:dev:standard
 			fontconfig:dev:standard
@@ -119,6 +119,17 @@ LDFLAGS=		-Wl,-rpath,{{LOCALBASE}}/openjdk/lib/server
 					SCTP="@comment "
 					HOTSPOT_AGENT="@comment "
 [NETBSD].USES_ON=			iconv
+
+[MIDNIGHT].DESCRIPTION=			Build on MidnightBSD/AMD64
+[MIDNIGHT].BROKEN_ON=			SIGBUS fatal error, problem frame java.util.HashMap.computeIfAbsent
+[MIDNIGHT].CONFIGURE_ARGS_ON=		--with-boot-jdk={{WRKDIR}}/openjdk20
+					--disable-precompiled-headers
+					--build=x86_64-raven-freebsd12.3
+[MIDNIGHT].DF_INDEX_ON=			2
+[MIDNIGHT].MAKEFILE_ON=			JDK_OSARCH=bsd-x86_64
+					JDK_BUILDDIR={{WRKSRC}}/build/{{JDK_OSARCH}}-server-release
+					CONFIGURE_TARGET=x86_64-raven-freebsd12.3
+[MIDNIGHT].USES_ON=			iconv
 
 [UNSUPPORTED].DESCRIPTION=		Unsupported operating system / architecture
 [UNSUPPORTED].BROKEN_ON=		This operating system and/or architecture is not supported
@@ -220,7 +231,7 @@ aa108977931af2a803ef4437e6a70288eaae746cea6ff55c03617962acce44c5    109717306 jr
 2f22f59966c4992712061cd2b72479ecada7d0580049d8661d2c667dcb95df49    168612907 bootstrap-openjdk-20.0.2-NetBSD-amd64.tzst
 
 
-[FILE:3920:manifests/plist.primary]
+[FILE:4058:manifests/plist.primary]
 %%BASE%%/release
 %%BASE%%/bin/
  jar
@@ -427,6 +438,12 @@ aa108977931af2a803ef4437e6a70288eaae746cea6ff55c03617962acce44c5    109717306 jr
 %%ONLY-LINUX%%%%BASE%%/lib/
  jexec
  libjsvml.so
+%%ONLY-MIDNIGHT%%%%BASE%%/include/freebsd/
+ jawt_md.h
+ jni_md.h
+%%ONLY-MIDNIGHT%%%%BASE%%/lib/
+ fontconfig.bfc
+ fontconfig.properties.src
 %%ONLY-NETBSD%%%%BASE%%/include/netbsd/
  jawt_md.h
  jni_md.h

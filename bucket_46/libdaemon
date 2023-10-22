@@ -2,7 +2,7 @@
 
 NAMEBASE=		libdaemon
 VERSION=		0.14
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Library for writing UNIX daemons
@@ -13,15 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://0pointer.de/lennart/projects/libdaemon/
 DISTFILE[1]=		libdaemon-0.14.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			fbsd10fix libtool mbsdfix
 
-LICENSE=		LGPL21:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21:{{WRKSRC}}/LICENSE
 LICENSE_AWK=		TERMS:"\*\*\*\/"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/libdaemon/daemon.h
@@ -37,10 +39,9 @@ SOVERSION=		0.5.0
 post-install:
 	# not worth a docs package
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
-	# strip
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libdaemon.so
 
-[FILE:558:descriptions/desc.single]
+[FILE:558:descriptions/desc.primary]
 libdaemon is a lightweight C library that eases the writing of UNIX
 daemons.  It consists of the following parts:
  - A wrapper around fork() which does the correct daemonization
@@ -60,7 +61,13 @@ APIs like these are used in most daemon software available.
 fd23eb5f6f986dcc7e708307355ba3289abe03cc381fc47a80bca4a50aa6b834       340474 libdaemon-0.14.tar.gz
 
 
-[FILE:200:manifests/plist.single]
+[FILE:59:manifests/plist.primary]
+lib/
+ libdaemon.so.%%SOMAJOR%%
+ libdaemon.so.%%SOVERSION%%
+
+
+[FILE:146:manifests/plist.dev]
 include/libdaemon/
  daemon.h
  dexec.h
@@ -72,7 +79,5 @@ include/libdaemon/
 lib/
  libdaemon.a
  libdaemon.so
- libdaemon.so.%%SOMAJOR%%
- libdaemon.so.%%SOVERSION%%
 lib/pkgconfig/libdaemon.pc
 

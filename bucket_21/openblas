@@ -28,9 +28,14 @@ USES=			cpe gmake pkgconfig perl:build fortran:primary
 
 EXTRACT_ONLY=		1
 
+LICENSE=		BSD3CLAUSE:primary
+LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
+
 CPE_VENDOR=		openblas_project
 FPC_EQUIVALENT=		math/openblas
 
+INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.3.24
 
 [BIT64].DESCRIPTION=			Build for 64-bit architecture rather than 32-bit
@@ -104,4 +109,69 @@ lib/cmake/openblas/
  OpenBLASConfig.cmake
  OpenBLASConfigVersion.cmake
 lib/pkgconfig/openblas.pc
+
+
+[FILE:612:patches/patch-Makefile]
+--- Makefile.orig	2023-09-03 20:58:32 UTC
++++ Makefile
+@@ -128,12 +128,12 @@ endif
+ 
+ shared : libs netlib $(RELA)
+ ifneq ($(NO_SHARED), 1)
+-ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku FreeBSD DragonFly))
++ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku FreeBSD NetBSD DragonFly))
+ 	@$(MAKE) -C exports so
+ 	@ln -fs $(LIBSONAME) $(LIBPREFIX).so
+ 	@ln -fs $(LIBSONAME) $(LIBPREFIX).so.$(MAJOR_VERSION)
+ endif
+-ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD NetBSD))
++ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD))
+ 	@$(MAKE) -C exports so
+ 	@ln -fs $(LIBSONAME) $(LIBPREFIX).so
+ endif
+
+
+[FILE:853:patches/patch-Makefile.install]
+--- Makefile.install.orig	2023-09-03 20:58:32 UTC
++++ Makefile.install
+@@ -96,14 +96,14 @@ endif
+ #for install shared library
+ ifneq ($(NO_SHARED),1)
+ 	@echo Copying the shared library to $(DESTDIR)$(OPENBLAS_LIBRARY_DIR)
+-ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku FreeBSD DragonFly))
++ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku FreeBSD NetBSD DragonFly))
+ 	@install -m755 $(LIBSONAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
+ 	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
+ 	ln -fs $(LIBSONAME) $(LIBPREFIX).so ; \
+ 	ln -fs $(LIBSONAME) $(LIBPREFIX).so.$(MAJOR_VERSION)
+ endif
+ 
+-ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD NetBSD))
++ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD))
+ 	@cp $(LIBSONAME) "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)"
+ 	@cd "$(DESTDIR)$(OPENBLAS_LIBRARY_DIR)" ; \
+ 	ln -fs $(LIBSONAME) $(LIBPREFIX).so
+
+
+[FILE:597:patches/patch-exports_Makefile]
+--- exports/Makefile.orig	2023-09-03 20:58:32 UTC
++++ exports/Makefile
+@@ -160,7 +160,7 @@ endif
+ dllinit.$(SUFFIX) : dllinit.c
+ 	$(CC) $(CFLAGS) -c -o $(@F) -s $<
+ 
+-ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku FreeBSD DragonFly))
++ifeq ($(OSNAME), $(filter $(OSNAME),Linux SunOS Android Haiku NetBSD FreeBSD DragonFly))
+ 
+ so : ../$(LIBSONAME)
+ 
+@@ -209,7 +209,7 @@ endif
+ endif
+ 
+ #http://stackoverflow.com/questions/7656425/makefile-ifeq-logical-or
+-ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD NetBSD))
++ifeq ($(OSNAME), $(filter $(OSNAME),OpenBSD))
+ 
+ so : ../$(LIBSONAME)
+ 
 
