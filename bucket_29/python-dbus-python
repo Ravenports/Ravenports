@@ -13,15 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPI/d/dbus-python
 DISTFILE[1]=		dbus-python-1.3.2.tar.gz:main
 DF_INDEX=		1
-SPKGS[v11]=		single
-SPKGS[v12]=		single
+SPKGS[v11]=		complete
+			primary
+			dev
+SPKGS[v12]=		complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	PY311 PY312
 OPTIONS_STANDARD=	none
 VOPTS[v11]=		PY311=ON PY312=OFF
 VOPTS[v12]=		PY311=OFF PY312=ON
-
-BROKEN[all]=		WIP (may have to fall back to autotools)
 
 BUILD_DEPENDS=		dbus:dev:standard
 BUILDRUN_DEPENDS=	dbus:primary:standard
@@ -31,16 +33,19 @@ GNOME_COMPONENTS=	glib
 
 DISTNAME=		dbus-python-1.3.2
 
-GENERATED=		yes
-
 [PY311].BUILDRUN_DEPENDS_ON=		python-meson-python:single:v11
 [PY311].BUILD_DEPENDS_ON=		python-wheel:single:v11
 
 [PY312].BUILDRUN_DEPENDS_ON=		python-meson-python:single:v12
 [PY312].BUILD_DEPENDS_ON=		python-wheel:single:v12
-					python-setuptools:single:v12
 
-[FILE:1335:descriptions/desc.single]
+do-build:
+	(cd ${BUILD_WRKSRC} && meson compile)
+
+do-install:
+	(cd ${BUILD_WRKSRC} && meson install --destdir "${STAGEDIR}")
+
+[FILE:1335:descriptions/desc.primary]
 =======================================
 dbus-python_: Python bindings for D-Bus
 =======================================
@@ -82,4 +87,17 @@ model)
 
 [FILE:103:distinfo]
 ad67819308618b5069537be237f8e68ca1c7fcc95ee4a121fe6845b1418248f8       605495 dbus-python-1.3.2.tar.gz
+
+
+[FILE:65:manifests/plist.dev]
+include/dbus-1.0/dbus/dbus-python.h
+lib/pkgconfig/dbus-python.pc
+
+
+[FILE:238:files/special.mk]
+setuptools-autolist:
+	# Tailored autolist (avoids catching pc file, supports primary subpackage)
+	@(cd ${STAGEDIR}${PREFIX} && \
+	${FIND} lib/python* \( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+	>> ${WRKDIR}/.manifest.primary.mktmp
 
