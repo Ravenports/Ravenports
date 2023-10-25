@@ -2,6 +2,7 @@
 
 NAMEBASE=		libcdio-paranoia
 VERSION=		10.2_2.0.1
+REVISION=		1
 KEYWORDS=		devel audio
 VARIANTS=		standard
 SDESC[standard]=	Accurately read audio from Compact Discs
@@ -12,19 +13,26 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/rocky:libcdio-paranoia:release-10.2+2.0.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			reader
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		libcdio:dev:standard
 BUILDRUN_DEPENDS=	libcdio:primary:standard
+EXRUN[reader]=		primary
+EXRUN[dev]=		libcdio:dev:standard
 
 USES=			autoreconf gmake iconv libtool pkgconfig
 
 DISTNAME=		libcdio-paranoia-release-10.2-2.0.1
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"file"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/cdio/paranoia/paranoia.h
@@ -36,7 +44,7 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		2.0.0
 
-[FILE:275:descriptions/desc.single]
+[FILE:275:descriptions/desc.primary]
 Libcdio-paranoia is a port of Xiph.org's CDDA Paranoia that uses libcdio 
 for CD-ROM access. The major benefit is better portability.
 
@@ -44,12 +52,33 @@ Paranoia is an Audio CD reader that aims for the highest accuracy
 possible. Audio is read directly as data with no analog step in between.
 
 
+[FILE:46:descriptions/desc.reader]
+This package contains the paranoia CD reader.
+
+
 [FILE:127:distinfo]
 7a4e257c85f3f84129cca55cd097c397364c7a6f79b9701bbc593b13bd59eb95      2095713 rocky-libcdio-paranoia-release-10.2-2.0.1.tar.gz
 
 
-[FILE:393:manifests/plist.single]
+[FILE:133:manifests/plist.primary]
+lib/
+ libcdio_cdda.so.%%SOMAJOR%%
+ libcdio_cdda.so.%%SOVERSION%%
+ libcdio_paranoia.so.%%SOMAJOR%%
+ libcdio_paranoia.so.%%SOVERSION%%
+
+
+[FILE:16:manifests/plist.reader]
 bin/cd-paranoia
+
+
+[FILE:187:manifests/plist.dev]
+lib/pkgconfig/
+ libcdio_cdda.pc
+ libcdio_paranoia.pc
+lib/
+ libcdio_paranoia.a
+ libcdio_paranoia.so
 include/cdio/paranoia/
  cdda.h
  paranoia.h
@@ -57,15 +86,9 @@ include/cdio/paranoia/
 lib/
  libcdio_cdda.a
  libcdio_cdda.so
- libcdio_cdda.so.%%SOMAJOR%%
- libcdio_cdda.so.%%SOVERSION%%
- libcdio_paranoia.a
- libcdio_paranoia.so
- libcdio_paranoia.so.%%SOMAJOR%%
- libcdio_paranoia.so.%%SOVERSION%%
-lib/pkgconfig/
- libcdio_cdda.pc
- libcdio_paranoia.pc
+
+
+[FILE:67:manifests/plist.man]
 share/man/jp/man1/cd-paranoia.1.gz
 share/man/man1/cd-paranoia.1.gz
 

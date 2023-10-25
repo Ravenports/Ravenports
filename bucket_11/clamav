@@ -86,7 +86,8 @@ CMAKE_ARGS=		-DCLAMAV_USER:STRING="clamav"
 			-DENABLE_EXAMPLES:BOOL=TRUE
 			-DENABLE_JSON_SHARED:BOOL=FALSE
 			-DENABLE_UNRAR:BOOL=TRUE
-			-DENABLE_SYSTEMD:BOOL=TRUE
+VAR_OPSYS[linux]=	CMAKE_ARGS=-DENABLE_SYSTEMD:BOOL=FALSE
+			CMAKE_ARGS=-DSYSTEMD_UNIT_DIR:PATH="/etc/systemd/system"
 
 post-patch:
 	${REINPLACE_CMD} -E -e \
@@ -131,9 +132,10 @@ clamav with sendmail.
 97a192dffe141480b56cabf1063d79a9fc55cd59203241fa41bfc7a98a548020     41360851 clamav-1.2.0.tar.gz
 
 
-[FILE:666:manifests/plist.primary]
+[FILE:695:manifests/plist.primary]
 @sample etc/clamd.conf.sample
 @sample etc/freshclam.conf.sample
+%%ONLY-LINUX%%sbin/clamonacc
 bin/
  clamav-config
  clambc
@@ -177,7 +179,8 @@ lib/
 lib/pkgconfig/libclamav.pc
 
 
-[FILE:264:manifests/plist.man]
+[FILE:308:manifests/plist.man]
+%%ONLY-LINUX%%share/man/man8/clamonacc.8.gz
 share/man/man1/
  clambc.1.gz
  clamconf.1.gz

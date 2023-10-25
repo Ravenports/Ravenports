@@ -2,6 +2,7 @@
 
 NAMEBASE=		bind
 VERSION=		9.18.19
+REVISION=		1
 KEYWORDS=		dns net
 VARIANTS=		standard
 SDESC[standard]=	Berkeley Internet Name Domain (Domain Name Server)
@@ -87,6 +88,9 @@ post-install:
 	${MKDIR} ${STAGEDIR}${ETCDIR} ${STAGEDIR}${STD_DOCDIR}/arm
 .  for i in dynamic master slave working
 	${MKDIR} ${STAGEDIR}${ETCDIR}/$i
+.  endfor
+.  for l in bind/filter-a bind/filter-aaaa libbind9 libdns libirs libisc libisccc libisccfg libns
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/${l}.so
 .  endfor
 	${INSTALL_DATA} ${WRKDIR}/named.conf \
 		${STAGEDIR}${ETCDIR}/named.conf.sample

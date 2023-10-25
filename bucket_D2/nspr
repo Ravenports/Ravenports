@@ -2,6 +2,7 @@
 
 NAMEBASE=		nspr
 VERSION=		4.35
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Platform-neutral API for system-like functions
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		MOZILLA/nspr/releases/v4.35/src
 DISTFILE[1]=		nspr-4.35.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,6 +23,13 @@ OPTIONS_STANDARD=	none
 USES=			cpe gmake
 
 DISTNAME=		nspr-4.35/nspr
+
+LICENSE=		MPL:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		MPL:{{WRKSRC}}/LICENSE
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/pr/include/nspr.h
+LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		netscape_portable_runtime
 CPE_VENDOR=		mozilla
@@ -36,7 +46,7 @@ post-patch:
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.${LIBEXT}
 
-[FILE:207:descriptions/desc.single]
+[FILE:207:descriptions/desc.primary]
 Netscape Portable Runtime (NSPR) provides a platform-neutral API for
 system level and libc like functions. The API is used in the Mozilla
 client, many of Netscape/AOL/iPlanet's and other software offerings.
@@ -46,7 +56,13 @@ client, many of Netscape/AOL/iPlanet's and other software offerings.
 7ea3297ea5969b5d25a5dd8d47f2443cda88e9ee746301f6e1e1426f8a6abc8f      1096974 nspr-4.35.tar.gz
 
 
-[FILE:1124:manifests/plist.single]
+[FILE:74:manifests/plist.primary]
+@(,,444) lib/libnspr4.so
+@(,,444) lib/libplc4.so
+@(,,444) lib/libplds4.so
+
+
+[FILE:1050:manifests/plist.dev]
 bin/nspr-config
 include/nspr/
  nspr.h
@@ -129,11 +145,8 @@ include/nspr/private/
  pprthred.h
  prpriv.h
 @(,,444) lib/libnspr4.a
-@(,,444) lib/libnspr4.so
 @(,,444) lib/libplc4.a
-@(,,444) lib/libplc4.so
 @(,,444) lib/libplds4.a
-@(,,444) lib/libplds4.so
 lib/pkgconfig/nspr.pc
 share/aclocal/nspr.m4
 

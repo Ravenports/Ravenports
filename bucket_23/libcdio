@@ -2,7 +2,7 @@
 
 NAMEBASE=		libcdio
 VERSION=		2.1.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel audio
 VARIANTS=		standard
 SDESC[standard]=	Compact Disk input and control library
@@ -15,13 +15,17 @@ DISTFILE[1]=		libcdio-2.1.0.tar.bz2:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			player
 			utils
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	libcddb:single:standard
-EXRUN[utils]=		libcdio:primary:standard
+EXRUN[utils]=		primary
+EXRUN[player]=		primary
 
 USES=			c++:utils cpe iconv gmake libtool pkgconfig ncurses
 			mbsdfix
@@ -63,6 +67,10 @@ A generic interface for issuing MMC (multimedia commands) is also part of
 the libcdio library.
 
 
+[FILE:39:descriptions/desc.player]
+This package contains the cdda player.
+
+
 [FILE:75:descriptions/desc.utils]
 This package contains additional console utilities to work with audio CDs.
 
@@ -71,8 +79,35 @@ This package contains additional console utilities to work with audio CDs.
 8550e9589dbd594bfac93b81ecf129b1dc9d0d51e90f9696f1b2f9b2af32712b      1759040 libcdio-2.1.0.tar.bz2
 
 
-[FILE:998:manifests/plist.primary]
+[FILE:203:manifests/plist.primary]
+lib/
+ libcdio++.so.1
+ libcdio++.so.1.0.0
+ libcdio.so.%%SOMAJOR%%
+ libcdio.so.%%SOVERSION%%
+ libiso9660++.so.0
+ libiso9660++.so.0.0.0
+ libiso9660.so.11
+ libiso9660.so.11.0.0
+ libudf.so.0
+ libudf.so.0.0.0
+
+
+[FILE:16:manifests/plist.player]
 bin/cdda-player
+
+
+[FILE:63:manifests/plist.utils]
+bin/
+ cd-drive
+ cd-info
+ cd-read
+ iso-info
+ iso-read
+ mmc-tool
+
+
+[FILE:695:manifests/plist.dev]
 include/cdio/
  audio.h
  bytesex.h
@@ -121,30 +156,23 @@ include/cdio++/
 lib/
  libcdio++.a
  libcdio++.so
- libcdio++.so.1
- libcdio++.so.1.0.0
  libcdio.a
  libcdio.so
- libcdio.so.%%SOMAJOR%%
- libcdio.so.%%SOVERSION%%
  libiso9660++.a
  libiso9660++.so
- libiso9660++.so.0
- libiso9660++.so.0.0.0
  libiso9660.a
  libiso9660.so
- libiso9660.so.11
- libiso9660.so.11.0.0
  libudf.a
  libudf.so
- libudf.so.0
- libudf.so.0.0.0
 lib/pkgconfig/
  libcdio++.pc
  libcdio.pc
  libiso9660++.pc
  libiso9660.pc
  libudf.pc
+
+
+[FILE:89:manifests/plist.man]
 share/man/man1/
  cd-drive.1.gz
  cd-info.1.gz
@@ -153,17 +181,7 @@ share/man/man1/
  iso-read.1.gz
 
 
-[FILE:63:manifests/plist.utils]
-bin/
- cd-drive
- cd-info
- cd-read
- iso-info
- iso-read
- mmc-tool
-
-
-[FILE:368:patches/patch-configure]
+[FILE:618:patches/patch-configure]
 $NetBSD: patch-configure,v 1.2 2019/04/30 14:31:14 gdt Exp $
 
 cdda-player works fine on NetBSD.
@@ -179,5 +197,14 @@ https://savannah.gnu.org/bugs/?56240
 -	enable_cdda_player="no"
  	;;
       os2*)
+ 
+@@ -19009,7 +19008,7 @@ fi
+   fi
+   if test "X$ltrpathdirs" != "X"; then
+             for found_dir in $ltrpathdirs; do
+-      LTLIBICONV="${LTLIBICONV}${LTLIBICONV:+ }-R$found_dir"
++      LTLIBICONV="${LTLIBICONV}${LTLIBICONV:+ }"
+     done
+   fi
  
 
