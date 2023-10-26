@@ -2,6 +2,7 @@
 
 NAMEBASE=		mesa
 VERSION=		23.1.9
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Mesa 3D Graphics Library
@@ -41,7 +42,7 @@ EXRUN[drivers]=		mesa:primary:standard
 
 USES=			cpe bison gettext:build gmake meson pkgconfig zstd
 			zlib expat shebangfix solaris-funcs python:build
-			c++:primary,drivers clang
+			c++:primary,drivers
 XORG_COMPONENTS=	x11 xdamage xext xfixes xshmfence xxf86vm xv xrandr
 			xcb
 
@@ -132,12 +133,13 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 					VULKAN_DRIVERS_X86+=RADEON
 
 [LLVMPIPE].DESCRIPTION=			Build LLVM-based drivers and libraries
-[LLVMPIPE].BUILDRUN_DEPENDS_ON=		llvm:primary:standard
+[LLVMPIPE].BUILDRUN_DEPENDS_ON=		llvm16:primary:standard
 					ocl-icd:primary:standard
 [LLVMPIPE].BUILD_DEPENDS_ON=		libclc:single:standard
 					opencl-headers:single:standard
-					llvm:tools:standard
-					llvm:dev:standard
+					llvm16:tools:standard
+					llvm16:dev:standard
+					clang16:complete:standard
 [LLVMPIPE].MAKEFILE_OFF=		MESON_ARGS+=-Dgallium-opencl=disabled
 [LLVMPIPE].MAKEFILE_ON=			GALLIUM_LLVM_DRIVERS+=R600
 					GALLIUM_LLVM_DRIVERS+=RADEONSI
@@ -146,8 +148,7 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 					MESON_ARGS+=-Dgallium-va=enabled
 					MESON_ARGS+=-Dgallium-opencl=icd
 					MESON_ARGS+=-Dgallium-vdpau=enabled
-[LLVMPIPE].RUN_DEPENDS_ON=		clang:dynlibs:standard
-[LLVMPIPE].USES_ON=			clang:keepcc
+[LLVMPIPE].RUN_DEPENDS_ON=		clang16:dynlibs:standard
 
 pre-patch-linux:
 	# qsort fixes for BSD break linux
