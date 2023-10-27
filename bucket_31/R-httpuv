@@ -53,20 +53,20 @@ information.)
 b1d972b1c240702c38cb844a1040670d62876abf462256764b49c120a52f5e74      1879118 CRAN/httpuv_1.6.12.tar.gz
 
 
-[FILE:1183:patches/patch-src_Makevars]
---- src/Makevars.orig	2022-09-08 16:53:08 UTC
-+++ src/Makevars
-@@ -17,6 +17,9 @@ endif
- ifeq ($(UNAME), FreeBSD)
+[FILE:730:patches/patch-src_Makevars.in]
+--- src/Makevars.in.orig	2023-10-23 16:48:26 UTC
++++ src/Makevars.in
+@@ -15,6 +15,9 @@ endif
+ ifeq ($(UNAME), OpenBSD)
  PKG_LIBS += -lkvm
  endif
 +ifeq ($(UNAME), NetBSD)
 +PKG_LIBS += -lkvm
 +endif
- ifeq ($(UNAME), OpenBSD)
- PKG_LIBS += -lkvm
- endif
-@@ -35,7 +38,7 @@ CONFIGURE_FLAGS="--quiet"
+ 
+ PKG_CFLAGS = $(C_VISIBILITY) -DSTRICT_R_HEADERS
+ PKG_CXXFLAGS = $(CXX_VISIBILITY) -DSTRICT_R_HEADERS
+@@ -30,7 +33,7 @@ CONFIGURE_FLAGS="--quiet"
  
  #### Other flags ####
  # Uncomment to suppress lots of warnings on Fedora 28
@@ -75,22 +75,10 @@ b1d972b1c240702c38cb844a1040670d62876abf462256764b49c120a52f5e74      1879118 CR
  # Fedora 28 defines _GLIBCXX_ASSERTIONS, so we better define it everywhere
  # to catch issues earlier.
  # jcheng 2018-06-18: Disabling _GLIBCXX_ASSERTIONS for now, as it causes
-@@ -74,8 +77,9 @@ libuv/Makefile: libuv/m4/lt~obsolete.m4
- 	cd libuv; \
- 	if ! command -v automake >/dev/null 2>&1 ; then \
- 		echo "automake not found. Touching files so configure will not try to run automake."; \
--		touch aclocal.m4; \
--		touch -r aclocal.m4 configure Makefile.in; \
-+		touch configure.ac; \
-+		touch -r configure.ac Makefile.am aclocal.m4 *.in m4/*; \
-+		touch -r aclocal.m4 configure.ac configure; \
- 	else \
- 		echo "automake found. Running autoupdate and autogen.sh."; \
- 		autoupdate; \
 
 
 [FILE:233:patches/patch-src_libuv_configure]
---- src/libuv/configure.orig	2023-02-08 20:09:19 UTC
+--- src/libuv/configure.orig	2023-10-23 17:02:22 UTC
 +++ src/libuv/configure
 @@ -14850,7 +14850,7 @@ else
  fi
@@ -104,7 +92,7 @@ b1d972b1c240702c38cb844a1040670d62876abf462256764b49c120a52f5e74      1879118 CR
 
 
 [FILE:1481:patches/patch-src_unix_fs.c]
---- src/libuv/src/unix/fs.c.orig	2022-03-31 20:36:47 UTC
+--- src/libuv/src/unix/fs.c.orig	2023-10-23 16:48:26 UTC
 +++ src/libuv/src/unix/fs.c
 @@ -1127,13 +1127,13 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {
