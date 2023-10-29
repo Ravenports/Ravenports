@@ -26,6 +26,7 @@ SPKGS[standard]=	complete
 
 OPTIONS_AVAILABLE=	INTROSPECTION
 OPTIONS_STANDARD=	INTROSPECTION
+OPT_ON[all]=		INTROSPECTION
 
 BUILD_DEPENDS=		cairo:dev:standard
 			cairo:primary:standard
@@ -35,11 +36,11 @@ BUILD_DEPENDS=		cairo:dev:standard
 			gettext:solinks:standard
 			poppler-data:dev:standard
 			lcms2:dev:standard
+			openjpeg:dev:standard
+			openjpeg:tools:standard
 BUILDRUN_DEPENDS=	lcms2:primary:standard
-			openjpeg:single:standard
+			openjpeg:primary:standard
 			poppler-data:primary:standard
-B_DEPS[linux]=		nspr:dev:standard
-BR_DEPS[linux]=		nspr:primary:standard
 EXRUN[cpp]=		poppler:primary:standard
 EXRUN[qt5]=		poppler:primary:standard
 			qt5-qtbase:primary:standard
@@ -52,6 +53,7 @@ EXRUN[glib]=		poppler:primary:standard
 USES=			cmake:insource cpe png jpeg tiff libtool pkgconfig
 			fontconfig zlib python:build gettext:build curl
 			solaris-funcs
+GNOME_COMPONENTS=	gtk3 gdkpixbuf pango
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -71,6 +73,7 @@ PLIST_SUB=		CPP_SOVERSION=0.11.0
 			QT5_SOMAJOR=1
 			GLIB_SOVERSION=8.26.0
 			GLIB_SOMAJOR=8
+			NSS3={{NSS:U"@comment "}}
 
 CMAKE_ARGS=		-DENABLE_GLIB=ON
 			-DENABLE_UTILS=ON
@@ -84,7 +87,6 @@ CMAKE_ARGS=		-DENABLE_GLIB=ON
 			-DENABLE_UNSTABLE_API_ABI_HEADERS=ON
 			-DENABLE_GPGME:BOOL=FALSE
 			-DENABLE_NSS3:BOOL={{NSS3:UFALSE}}
-VAR_OPSYS[linux]=	MAKEFILE_LINE=NSS3=TRUE
 
 [INTROSPECTION].DESCRIPTION=		Build with introspection
 [INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
@@ -172,8 +174,8 @@ lib/
  libpoppler-qt5.so.%%QT5_SOVERSION%%
 
 
-[FILE:158:manifests/plist.utils]
-%%ONLY-LINUX%%bin/pdfsig
+[FILE:152:manifests/plist.utils]
+%%NSS3%%bin/pdfsig
 bin/
  pdfattach
  pdfdetach
@@ -189,8 +191,8 @@ bin/
  pdfunite
 
 
-[FILE:245:manifests/plist.man]
-%%ONLY-LINUX%%share/man/man1/pdfsig.1.gz
+[FILE:239:manifests/plist.man]
+%%NSS3%%share/man/man1/pdfsig.1.gz
 share/man/man1/
  pdfattach.1.gz
  pdfdetach.1.gz

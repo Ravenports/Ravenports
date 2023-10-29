@@ -2,6 +2,7 @@
 
 NAMEBASE=		openjpeg
 VERSION=		2.5.0
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Open-source implementation of JPEG2000 image codec
@@ -12,17 +13,24 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/uclouvain:openjpeg:v2.5.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		lcms2:dev:standard
+			tiff:dev:standard
+			tiff:primary:standard
 BUILDRUN_DEPENDS=	lcms2:primary:standard
+EXRUN[tools]=		primary
+			tiff:primary:standard
 
-USES=			cpe png tiff cmake pkgconfig
+USES=			cpe cmake pkgconfig
 
-LICENSE=		BSD2CLAUSE:single
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -40,7 +48,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/opj_*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libopenjp2.${LIBEXT}
 
-[FILE:619:descriptions/desc.single]
+[FILE:619:descriptions/desc.primary]
 The OpenJPEG library is an open-source JPEG 2000 library developed in order
 to promote the use of JPEG 2000.
 
@@ -56,15 +64,33 @@ Besides this main codec, OpenJPEG integrates several other modules:
  - OPJViewer, a GUI viewer for J2K, JP2, JPWL and MJ2 files
 
 
+[FILE:42:descriptions/desc.tools]
+This package contains the openjpeg tools.
+
+
 [FILE:110:distinfo]
 0333806d6adecc6f7a91243b2b839ff4d2053823634d4f6ed7a59bc87409122a      1867111 uclouvain-openjpeg-2.5.0.tar.gz
 
 
-[FILE:330:manifests/plist.single]
+[FILE:51:manifests/plist.primary]
+lib/
+ libopenjp2.so.%%SOVERSION%%
+ libopenjp2.so.7
+
+
+[FILE:45:manifests/plist.tools]
 bin/
  opj_compress
  opj_decompress
  opj_dump
+
+
+[FILE:239:manifests/plist.dev]
+lib/openjpeg-%%VER%%/
+ OpenJPEGConfig.cmake
+ OpenJPEGTargets-%%CMAKE_BUILD_TYPE%%.cmake
+ OpenJPEGTargets.cmake
+lib/pkgconfig/libopenjp2.pc
 include/openjpeg-%%VER%%/
  openjpeg.h
  opj_config.h
@@ -72,11 +98,4 @@ include/openjpeg-%%VER%%/
 lib/
  libopenjp2.a
  libopenjp2.so
- libopenjp2.so.%%SOVERSION%%
- libopenjp2.so.7
-lib/openjpeg-%%VER%%/
- OpenJPEGConfig.cmake
- OpenJPEGTargets-%%CMAKE_BUILD_TYPE%%.cmake
- OpenJPEGTargets.cmake
-lib/pkgconfig/libopenjp2.pc
 

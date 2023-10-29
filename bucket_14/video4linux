@@ -16,16 +16,16 @@ SPKGS[standard]=	complete
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	ARGP
+OPTIONS_STANDARD=	ARGP
+OPT_ON[freebsd]=	ARGP
+OPT_ON[sunos]=		ARGP
+OPT_ON[netbsd]=		ARGP
+OPT_ON[dragonfly]=	ARGP
+OPT_ON[midnightbsd]=	ARGP
 
 BUILD_DEPENDS=		evdev-proto:single:standard
 			gettext:solinks:standard
-BR_DEPS[freebsd]=	argp-standalone:single:standard
-BR_DEPS[sunos]=		argp-standalone:single:standard
-BR_DEPS[netbsd]=	argp-standalone:single:standard
-BR_DEPS[dragonfly]=	argp-standalone:single:standard
-BR_DEPS[midnightbsd]=	argp-standalone:single:standard
 
 USES=			gmake jpeg libtool pkgconfig perl:build shebangfix
 			gettext:build
@@ -48,6 +48,10 @@ CONFIGURE_ARGS=		--disable-doxygen-doc
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
+
+[ARGP].DESCRIPTION=			Build with standalone version of argp from glibc
+[ARGP].BUILDRUN_DEPENDS_ON=		argp-standalone:primary:standard
+[ARGP].BUILD_DEPENDS_ON=		argp-standalone:dev:standard
 
 post-install-linux:
 	${MV} ${STAGEDIR}/lib/* ${STAGEDIR}${PREFIX}/lib

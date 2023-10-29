@@ -2,6 +2,7 @@
 
 NAMEBASE=		x264
 VERSION=		0.164.3095
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	H.264/MPEG-4 AVC Video Encoder
@@ -13,8 +14,10 @@ SITES[main]=		https://code.videolan.org/videolan/x264/-/archive/baee400/
 DISTFILE[1]=		baee400.tar.bz2:main
 DIST_SUBDIR=		x264
 DF_INDEX=		1
-SPKGS[standard]=	program
-			library
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	H10P ASM
 OPTIONS_STANDARD=	H10P ASM
@@ -29,8 +32,8 @@ USES=			pkgconfig gmake shebangfix
 
 DISTNAME=		x264-baee400-baee400fa9ced6f5481a728138fed6e867b0ff7f
 
-LICENSE=		GPLv2+:library
-LICENSE_TERMS=		library:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/x264.h
@@ -76,15 +79,7 @@ post-patch:
 		s|VERSION=""|VERSION=" r3095 baee400"|' \
 		${WRKSRC}/version.sh
 
-[FILE:210:descriptions/desc.program]
-x264 is a free software library and application for encoding video streams
-into the H.264/MPEG-4 AVC compression format, and is released under the
-terms of the GNU GPL.
-
-This package contains the x264 program.
-
-
-[FILE:807:descriptions/desc.library]
+[FILE:807:descriptions/desc.primary]
 x264 is a free software library and application for encoding video streams
 into the H.264/MPEG-4 AVC compression format, and is released under the
 terms of the GNU GPL.
@@ -105,24 +100,31 @@ Features Overview
 This package contains the x264 library.
 
 
+[FILE:40:descriptions/desc.tools]
+This package contains the x264 program.
+
+
 [FILE:99:distinfo]
 f93460d2a0035d60815c61c7844f793ea0db8c66cfb0468a4ac9a6ef8c738958       777362 x264/baee400.tar.bz2
 
 
-[FILE:57:manifests/plist.program]
-@comment share/bash-completion/completions/x264
-bin/x264
+[FILE:30:manifests/plist.primary]
+lib/libx264.so.%%X264_BUILD%%
 
 
-[FILE:109:manifests/plist.library]
+[FILE:82:manifests/plist.dev]
 include/
  x264.h
  x264_config.h
 lib/
  libx264.a
  libx264.so
- libx264.so.%%X264_BUILD%%
 lib/pkgconfig/x264.pc
+
+
+[FILE:57:manifests/plist.tools]
+@comment share/bash-completion/completions/x264
+bin/x264
 
 
 [FILE:375:patches/patch-common_cpu.c]

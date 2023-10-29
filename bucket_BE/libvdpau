@@ -2,6 +2,7 @@
 
 NAMEBASE=		libvdpau
 VERSION=		1.5
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	VDPAU wrapper and tracing library
@@ -12,15 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://gitlab.freedesktop.org/vdpau/libvdpau/-/archive/1.5/
 DISTFILE[1]=		libvdpau-1.5.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe meson c++:single
+USES=			cpe meson c++:primary
 XORG_COMPONENTS=	xorgproto xext x11
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -31,7 +34,7 @@ post-install:
 	${MV} ${STAGEDIR}${PREFIX}/etc/vdpau_wrapper.cfg \
 		${STAGEDIR}${PREFIX}/etc/vdpau_wrapper.cfg.sample
 
-[FILE:161:descriptions/desc.single]
+[FILE:161:descriptions/desc.primary]
 VDPAU is the Video Decode and Presentation API for UNIX. It provides
 an interface to video decode acceleration and presentation hardware
 present in modern GPUs.
@@ -41,18 +44,21 @@ present in modern GPUs.
 a5d50a42b8c288febc07151ab643ac8de06a18446965c7241f89b4e810821913       143279 libvdpau-1.5.tar.bz2
 
 
-[FILE:225:manifests/plist.single]
+[FILE:133:manifests/plist.primary]
 @sample etc/vdpau_wrapper.cfg.sample
+lib/
+ libvdpau.so.1
+ libvdpau.so.1.0.0
+lib/vdpau/
+ libvdpau_trace.so.1
+ libvdpau_trace.so.1.0.0
+
+
+[FILE:104:manifests/plist.dev]
 include/vdpau/
  vdpau.h
  vdpau_x11.h
-lib/
- libvdpau.so
- libvdpau.so.1
- libvdpau.so.1.0.0
+lib/libvdpau.so
 lib/pkgconfig/vdpau.pc
-lib/vdpau/
- libvdpau_trace.so
- libvdpau_trace.so.1
- libvdpau_trace.so.1.0.0
+lib/vdpau/libvdpau_trace.so
 

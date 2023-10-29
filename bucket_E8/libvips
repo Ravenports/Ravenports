@@ -76,8 +76,14 @@ SOVERSION=		42.16.5
 [LOADED].GNOME_COMPONENTS_ON=		pango
 [LOADED].USES_ON=			fontconfig
 
+pre-configure-midnightbsd:
+	${REINPLACE_CMD} -e 's|<malloc.h>|<sys/malloc.h>|' ${WRKSRC}/libvips/conversion/composite.cpp
+
 post-extract:
 	awk '/free software/,/USA/' ${WRKSRC}/libvips/include/vips/vips.h > ${WRKDIR}/TERMS
+
+pre-configure-freebsd:
+	${REINPLACE_CMD} -e 's|<malloc.h>|<sys/malloc.h>|' ${WRKSRC}/libvips/conversion/composite.cpp
 
 [FILE:844:descriptions/desc.primary]
 libvips is a demand-driven, horizontally threaded image processing 
@@ -217,18 +223,4 @@ lib/vips-modules-8.14/
  vips-magick.so
  vips-poppler.so
 share/gir-1.0/Vips-8.0.gir
-
-
-[FILE:331:freebsd/patch-libvips_conversion_composite.cpp]
---- libvips/conversion/composite.cpp.orig	2023-10-22 17:44:51.970733000 +0200
-+++ libvips/conversion/composite.cpp	2023-10-22 17:45:27.043783000 +0200
-@@ -63,7 +63,7 @@
- #include <math.h>
- 
- #if defined(HAVE__ALIGNED_MALLOC) || defined(HAVE_MEMALIGN)
--#include <malloc.h>
-+#include <sys/malloc.h>
- #endif
- 
- #include <vips/vips.h>
 

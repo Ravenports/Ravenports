@@ -2,6 +2,7 @@
 
 NAMEBASE=		fribidi
 VERSION=		1.0.13
+REVISION=		1
 KEYWORDS=		converters
 VARIANTS=		standard
 SDESC[standard]=	Free Implementation of the Unicode BiDi Algorithm
@@ -12,15 +13,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/fribidi/fribidi/releases/download/v1.0.13/
 DISTFILE[1]=		fribidi-1.0.13.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+EXRUN[tools]=		primary
+
 USES=			cpe gmake libtool
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/lib/fribidi.h
@@ -45,7 +52,7 @@ post-install:
 	${INSTALL_SCRIPT} ${WRKDIR}/fribidi-config \
 		${STAGEDIR}${PREFIX}/bin
 
-[FILE:992:descriptions/desc.single]
+[FILE:992:descriptions/desc.primary]
 A Free Implementation of the Unicode Bidirectional Algorithm.
 
 The library implements all of the algorithm as described in the "Unicode
@@ -67,14 +74,27 @@ characters, which also works for all the characters listed as mirrorable
 in the Unicode specification.
 
 
+[FILE:43:descriptions/desc.tools]
+This package contains the fribidi program.
+
+
 [FILE:100:distinfo]
 7fa16c80c81bd622f7b198d31356da139cc318a63fc7761217af4130903f54a2      1170100 fribidi-1.0.13.tar.xz
 
 
-[FILE:1570:manifests/plist.single]
-bin/
- fribidi
- fribidi-config
+[FILE:61:manifests/plist.primary]
+lib/
+ libfribidi.so.%%SOMAJOR%%
+ libfribidi.so.%%SOVERSION%%
+
+
+[FILE:12:manifests/plist.tools]
+bin/fribidi
+
+
+[FILE:548:manifests/plist.dev]
+lib/pkgconfig/fribidi.pc
+bin/fribidi-config
 include/fribidi/
  fribidi-arabic.h
  fribidi-begindecls.h
@@ -101,9 +121,9 @@ include/fribidi/
 lib/
  libfribidi.a
  libfribidi.so
- libfribidi.so.%%SOMAJOR%%
- libfribidi.so.%%SOVERSION%%
-lib/pkgconfig/fribidi.pc
+
+
+[FILE:955:manifests/plist.man]
 share/man/man3/
  fribidi_charset_to_unicode.3.gz
  fribidi_debug_status.3.gz

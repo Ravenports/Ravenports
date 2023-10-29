@@ -2,6 +2,7 @@
 
 NAMEBASE=		rtmpdump
 VERSION=		2.4
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		multimedia
 VARIANTS=		standard
@@ -14,20 +15,23 @@ SITES[main]=		http://www.ravenports.com/cache-distfiles/
 DISTFILE[1]=		rtmpdump-2.4.20151223.tar.gz:main
 DISTFILE[2]=		rtmpdump-KSV-20151215.patch.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	library
-			program
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-EXRUN[program]=		rtmpdump:library:standard
+EXRUN[tools]=		primary
 
 USES=			cpe pkgconfig ssl:openssl10 zlib
 
 DISTNAME=		rtmpdump-2.4.20151223
 
-LICENSE=		GPLv2+:library
-LICENSE_TERMS=		library:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/rtmpdump.c
@@ -45,18 +49,15 @@ LDFLAGS=		-L{{OPENSSLLIB}}
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 			LDFLAGS=-lnsl
 
-[FILE:183:descriptions/desc.library]
+[FILE:183:descriptions/desc.primary]
 rtmpdump is a toolkit for RTMP streams. All forms of RTMP are supported,
 including rtmp://, rtmpt://, rtmpe://, rtmpte://, and rtmps://.
 
 This package contains the library component.
 
 
-[FILE:209:descriptions/desc.program]
-rtmpdump is a toolkit for RTMP streams. All forms of RTMP are supported,
-including rtmp://, rtmpt://, rtmpe://, rtmpte://, and rtmps://.
-
-This package contains the program, which pulls in the library package.
+[FILE:38:descriptions/desc.tools]
+This package contains the rtmp tools.
 
 
 [FILE:216:distinfo]
@@ -64,7 +65,19 @@ This package contains the program, which pulls in the library package.
 4829669f83adb1070a09f4cc3f8f212ffd5903c5a23836dc0997a5f218716c82        31715 rtmpdump-KSV-20151215.patch.gz
 
 
-[FILE:142:manifests/plist.library]
+[FILE:17:manifests/plist.primary]
+lib/librtmp.so.1
+
+
+[FILE:46:manifests/plist.tools]
+bin/rtmpdump
+sbin/
+ rtmpgw
+ rtmpsrv
+ rtmpsuck
+
+
+[FILE:100:manifests/plist.dev]
 include/librtmp/
  amf.h
  http.h
@@ -73,18 +86,12 @@ include/librtmp/
 lib/
  librtmp.a
  librtmp.so
- librtmp.so.1
 lib/pkgconfig/librtmp.pc
-share/man/man3/librtmp.3.gz
 
 
-[FILE:102:manifests/plist.program]
-bin/rtmpdump
-sbin/
- rtmpgw
- rtmpsrv
- rtmpsuck
+[FILE:84:manifests/plist.man]
 share/man/man1/rtmpdump.1.gz
+share/man/man3/librtmp.3.gz
 share/man/man8/rtmpgw.8.gz
 
 

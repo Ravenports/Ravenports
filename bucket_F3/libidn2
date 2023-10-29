@@ -2,6 +2,7 @@
 
 NAMEBASE=		libidn2
 VERSION=		2.3.4
+REVISION=		1
 KEYWORDS=		dns
 VARIANTS=		standard
 SDESC[standard]=	IDNA2008 internationalized domain names library
@@ -14,13 +15,18 @@ DISTFILE[1]=		libidn2-2.3.4.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
+			man
 			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		help2man:single:standard
+			libunistring:dev:standard
 BUILDRUN_DEPENDS=	libunistring:primary:standard
+EXRUN[tools]=		primary
 
 USES=			cpe charsetfix gmake iconv libtool mbsdfix pkgconfig
 			gtk-doc gettext:build makeinfo
@@ -63,19 +69,33 @@ it contains an extensive test-suite, and is included in the continuous
 fuzzing project OSS-Fuzz.
 
 
+[FILE:37:descriptions/desc.tools]
+This package contains the idn2 tool.
+
+
 [FILE:99:distinfo]
 93caba72b4e051d1f8d4f5a076ab63c99b77faee019b72b9783b267986dbb45f      2083823 libidn2-2.3.4.tar.gz
 
 
-[FILE:640:manifests/plist.primary]
-%%EXCLUDE-DARWIN%%lib/libidn2.so.%%SOVERSION%%
+[FILE:55:manifests/plist.primary]
+lib/
+ libidn2.so.%%SOMAJOR%%
+ libidn2.so.%%SOVERSION%%
+
+
+[FILE:9:manifests/plist.tools]
 bin/idn2
+
+
+[FILE:68:manifests/plist.dev]
 include/idn2.h
 lib/
  libidn2.a
  libidn2.so
- libidn2.so.%%SOMAJOR%%
 lib/pkgconfig/libidn2.pc
+
+
+[FILE:492:manifests/plist.man]
 share/man/man1/idn2.1.gz
 share/man/man3/
  idn2_check_version.3.gz

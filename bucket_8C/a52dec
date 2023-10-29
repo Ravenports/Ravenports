@@ -2,6 +2,7 @@
 
 NAMEBASE=		a52dec
 VERSION=		0.8.0
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		standard
 SDESC[standard]=	ATSC A/52 stream decoder and library
@@ -12,12 +13,23 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://distfiles.adelielinux.org/source/a52dec/
 DISTFILE[1]=		a52dec-0.8.0.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			gmake libtool mbsdfix
+
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/a52dec.c
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		audio/liba52
 
@@ -38,7 +50,7 @@ pre-configure:
 		-e '/-prefer-non-pic/d' \
 		 ${WRKSRC}/configure
 
-[FILE:410:descriptions/desc.single]
+[FILE:410:descriptions/desc.primary]
 liba52 is a free library for decoding ATSC A/52 streams. The A/52 standard
 is used in a variety of applications, including digital television and DVD.
 It is also known as AC-3.
@@ -50,14 +62,27 @@ This package also contains a52dec, which decodes ATSC A/52 streams, and
 also includes a demultiplexer for mpeg-1 and mpeg-2 program streams.
 
 
+[FILE:40:descriptions/desc.tools]
+This package contains the a52dec tools.
+
+
 [FILE:98:distinfo]
 03c181ce9c3fe0d2f5130de18dab9bd8bc63c354071515aa56983c74a9cffcc9       456192 a52dec-0.8.0.tar.gz
 
 
-[FILE:231:manifests/plist.single]
+[FILE:35:manifests/plist.primary]
+lib/
+ liba52.so.0
+ liba52.so.0.0.0
+
+
+[FILE:26:manifests/plist.tools]
 bin/
  a52dec
  extract_a52
+
+
+[FILE:128:manifests/plist.dev]
 include/a52dec/
  a52.h
  a52_internal.h
@@ -67,9 +92,10 @@ include/a52dec/
 lib/
  liba52.a
  liba52.so
- liba52.so.0
- liba52.so.0.0.0
 lib/pkgconfig/liba52.pc
+
+
+[FILE:47:manifests/plist.man]
 share/man/man1/
  a52dec.1.gz
  extract_a52.1.gz

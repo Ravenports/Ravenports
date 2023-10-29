@@ -2,6 +2,7 @@
 
 NAMEBASE=		libdvdread
 VERSION=		6.1.3
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	Library to read DVD images
@@ -13,17 +14,20 @@ SITES[main]=		http://download.videolan.org/pub/videolan/libdvdread/6.1.3/
 			http://dvdnav.mplayerhq.hu/releases/
 DISTFILE[1]=		libdvdread-6.1.3.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	libdvdcss:single:standard
+BUILD_DEPENDS=		libdvdcss:dev:standard
+BUILDRUN_DEPENDS=	libdvdcss:primary:standard
 
 USES=			gmake libtool pkgconfig mbsdfix
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/dvdread/dvd_reader.h
@@ -39,7 +43,7 @@ SOVERSION=		8.0.0
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-[FILE:274:descriptions/desc.single]
+[FILE:274:descriptions/desc.primary]
 libdvdread provides a simple foundation for reading DVD video disks.
 It provides the functionality that is required to access many DVDs.
 It parses IFO files, reads NAV-blocks, and performs CSS authentication
@@ -50,7 +54,14 @@ and descrambling (if an external libdvdcss library is installed).
 ce35454997a208cbe50e91232f0e73fb1ac3471965813a13b8730a8f18a15369       395439 libdvdread-6.1.3.tar.bz2
 
 
-[FILE:257:manifests/plist.single]
+[FILE:61:manifests/plist.primary]
+lib/
+ libdvdread.so.%%SOMAJOR%%
+ libdvdread.so.%%SOVERSION%%
+
+
+[FILE:201:manifests/plist.dev]
+lib/pkgconfig/dvdread.pc
 include/dvdread/
  bitreader.h
  dvd_reader.h
@@ -65,7 +76,4 @@ include/dvdread/
 lib/
  libdvdread.a
  libdvdread.so
- libdvdread.so.%%SOMAJOR%%
- libdvdread.so.%%SOVERSION%%
-lib/pkgconfig/dvdread.pc
 

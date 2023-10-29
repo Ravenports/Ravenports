@@ -12,19 +12,27 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/rockdaboot:libpsl:0.21.2
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		publicsuffix-list:single:standard
+			libunistring:dev:standard
+			libidn2:dev:standard
 BUILDRUN_DEPENDS=	libidn2:primary:standard
 			libunistring:primary:standard
+EXRUN[tools]=		primary
+EXRUN[dev]=		libidn2:dev:standard
 
 USES=			pkgconfig shebangfix iconv meson gettext
 GNOME_COMPONENTS=	libxslt
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -51,7 +59,7 @@ post-install:
 		${WRKSRC}/_build/tools/psl \
 		${STAGEDIR}${PREFIX}/bin/
 
-[FILE:758:descriptions/desc.single]
+[FILE:758:descriptions/desc.primary]
 A "public suffix" is a domain name under which Internet users can directly
 register own names.
 
@@ -73,20 +81,33 @@ Libpsl...
 - handles IDNA2008 UTS#46 (libicu is used by psl2c if installed)
 
 
+[FILE:45:descriptions/desc.tools]
+This package contains tools based on libpsl.
+
+
 [FILE:110:distinfo]
 9a17e5f3f1808050f08f08495ee71ab060467e03ca2a9cf1f5b2c07bda07dd52      6997492 rockdaboot-libpsl-0.21.2.tar.gz
 
 
-[FILE:178:manifests/plist.single]
+[FILE:53:manifests/plist.primary]
+lib/
+ libpsl.so.%%SOMAJOR%%
+ libpsl.so.%%SOVERSION%%
+
+
+[FILE:26:manifests/plist.tools]
 bin/
  psl
  psl-make-dafsa
-include/libpsl.h
-lib/
- libpsl.so
- libpsl.so.%%SOMAJOR%%
- libpsl.so.%%SOVERSION%%
+
+
+[FILE:55:manifests/plist.dev]
 lib/pkgconfig/libpsl.pc
+include/libpsl.h
+lib/libpsl.so
+
+
+[FILE:47:manifests/plist.man]
 share/man/man1/
  psl-make-dafsa.1.gz
  psl.1.gz

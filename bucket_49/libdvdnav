@@ -2,6 +2,7 @@
 
 NAMEBASE=		libdvdnav
 VERSION=		6.1.1
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		standard
 SDESC[standard]=	DVD navigation library
@@ -13,17 +14,21 @@ SITES[main]=		http://download.videolan.org/pub/videolan/libdvdnav/6.1.1/
 			http://dvdnav.mplayerhq.hu/releases/
 DISTFILE[1]=		libdvdnav-6.1.1.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	libdvdread:single:standard
+BUILD_DEPENDS=		libdvdread:dev:standard
+BUILDRUN_DEPENDS=	libdvdread:primary:standard
+EXRUN[dev]=		libdvdread:dev:standard
 
 USES=			gmake libtool pkgconfig mbsdfix
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/dvdnav/dvdnav.h
@@ -39,7 +44,7 @@ SOVERSION=		4.3.0
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-[FILE:640:descriptions/desc.single]
+[FILE:640:descriptions/desc.primary]
 libdvdnav is a library for developers of multimedia applications. It
 allows easy use of sophisticated DVD navigation features such as DVD
 menus, multiangle playback and even interactive DVD games. All this
@@ -56,7 +61,13 @@ encapsulated.
 c191a7475947d323ff7680cf92c0fb1be8237701885f37656c64d04e98d18d48       367606 libdvdnav-6.1.1.tar.bz2
 
 
-[FILE:177:manifests/plist.single]
+[FILE:59:manifests/plist.primary]
+lib/
+ libdvdnav.so.%%SOMAJOR%%
+ libdvdnav.so.%%SOVERSION%%
+
+
+[FILE:123:manifests/plist.dev]
 include/dvdnav/
  dvd_types.h
  dvdnav.h
@@ -65,7 +76,5 @@ include/dvdnav/
 lib/
  libdvdnav.a
  libdvdnav.so
- libdvdnav.so.%%SOMAJOR%%
- libdvdnav.so.%%SOVERSION%%
 lib/pkgconfig/dvdnav.pc
 

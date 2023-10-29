@@ -2,6 +2,7 @@
 
 NAMEBASE=		freeipmi
 VERSION=		1.6.11
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	IPMI remote console and system management software
@@ -19,16 +20,16 @@ SPKGS[standard]=	complete
 			man
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	ARGP
+OPTIONS_STANDARD=	ARGP
+OPT_ON[freebsd]=	ARGP
+OPT_ON[sunos]=		ARGP
+OPT_ON[netbsd]=		ARGP
+OPT_ON[dragonfly]=	ARGP
+OPT_ON[midnightbsd]=	ARGP
 
 BUILD_DEPENDS=		libgcrypt:dev:standard
 BUILDRUN_DEPENDS=	libgcrypt:primary:standard
-BR_DEPS[freebsd]=	argp-standalone:single:standard
-BR_DEPS[sunos]=		argp-standalone:single:standard
-BR_DEPS[netbsd]=	argp-standalone:single:standard
-BR_DEPS[dragonfly]=	argp-standalone:single:standard
-BR_DEPS[midnightbsd]=	argp-standalone:single:standard
 EXRUN[tools]=		primary
 
 USES=			gmake libtool makeinfo shebangfix mbsdfix
@@ -66,6 +67,10 @@ PLIST_SUB=		PMICONSOLE_SOVERSION=2.3.6
 
 VAR_OPSYS[freebsd]=	CFLAGS=-D_WANT_SEMUN
 VAR_OPSYS[midnightbsd]=	CFLAGS=-D_WANT_SEMUN
+
+[ARGP].DESCRIPTION=			Build with standalone version of argp from glibc
+[ARGP].BUILDRUN_DEPENDS_ON=		argp-standalone:primary:standard
+[ARGP].BUILD_DEPENDS_ON=		argp-standalone:dev:standard
 
 post-install:
 	${MKDIR} -m 0700 -p \

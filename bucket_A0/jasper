@@ -2,6 +2,7 @@
 
 NAMEBASE=		jasper
 VERSION=		4.0.0
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Implementation JPEG-2000 standard codec
@@ -14,6 +15,9 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
+			man
 			docs
 
 OPTIONS_AVAILABLE=	none
@@ -22,10 +26,16 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		freeglut:dev:standard
 			libglvnd:dev:standard
 BUILDRUN_DEPENDS=	freeglut:primary:standard
+EXRUN[tools]=		primary
 
 USES=			cpe jpeg cmake
 
 DISTNAME=		jasper-version-4.0.0
+
+LICENSE=		CUSTOM1:primary
+LICENSE_NAME=		CUSTOM1:"JasPer License Version 2.0"
+LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/LICENSE.txt
+LICENSE_SCHEME=		solo
 
 CPE_VENDOR=		jasper_project
 FPC_EQUIVALENT=		graphics/jasper
@@ -62,16 +72,30 @@ The JasPer software has been included in the JPEG-2000 Part-5 standard
 JPEG-2000 Part-1 codec.
 
 
+[FILE:40:descriptions/desc.tools]
+This package contains the jasper tools.
+
+
 [FILE:113:distinfo]
 977c4c2e4210f4e37313cd2232d99e73d57ab561917b3c060bcdd5e83a0a13f1      1975127 mdadams-jasper-ersion-4.0.0.tar.gz
 
 
-[FILE:509:manifests/plist.primary]
+[FILE:59:manifests/plist.primary]
+lib/
+ libjasper.so.%%SOMAJOR%%
+ libjasper.so.%%SOVERSION%%
+
+
+[FILE:35:manifests/plist.tools]
 bin/
  imgcmp
  imginfo
  jasper
  jiv
+
+
+[FILE:352:manifests/plist.dev]
+lib/pkgconfig/jasper.pc
 include/jasper/
  jas_cm.h
  jas_compiler.h
@@ -96,11 +120,10 @@ include/jasper/
  jas_types.h
  jas_version.h
  jasper.h
-lib/
- libjasper.so
- libjasper.so.%%SOMAJOR%%
- libjasper.so.%%SOVERSION%%
-lib/pkgconfig/jasper.pc
+lib/libjasper.so
+
+
+[FILE:66:manifests/plist.man]
 share/man/man1/
  imgcmp.1.gz
  imginfo.1.gz
