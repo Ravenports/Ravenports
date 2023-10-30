@@ -492,11 +492,30 @@ missing_license() {
 	return 0
 }
 
+py_conflicts() {
+	local extension="${STAGEDIR}/../.python.exec"
+	local single="${STAGEDIR}/../.manifest.single.mktmp"
+	local entries
+	if [ -f "$extension" ]; then
+		if [ -f "${single}" ]; then
+			entries=$(awk '/^include/;/^lib\/pkgconfig/' "${single}")
+		fi
+		if [ -n "${entries}" ]; then
+			err "Python single manifest has conflicting headers or pc files"
+			for xf in ${entries}; do
+				writeln "  ${xf}"
+			done
+			return 1
+		fi
+	fi
+	return 0
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
 checks="$checks sonames nls_files doc_files uses_fbsd10fix uses_mbsdfix"
 # don't add to this line
-checks="$checks missing_license licterms showlic"
+checks="$checks missing_license licterms showlic py_conflicts"
 
 ret=0
 cd "${STAGEDIR}" || exit 1

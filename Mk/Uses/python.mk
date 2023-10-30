@@ -108,6 +108,11 @@ PYTHON_LIBDIR=		${LOCALBASE}/lib/python${PYTHON_VER}
 PYTHON_SITELIBDIR=	${PYTHON_LIBDIR}/site-packages
 PYTHON_PYOEXTENSION=	opt-1.pyc
 
+_USES_configure+=	428:mark_python
+
+mark_python:
+	${TOUCH} "${WRKDIR}/.python.exec"
+
 # --------------------------------------
 # distutils support
 # --------------------------------------
@@ -157,10 +162,19 @@ CMAKE_ARGS+=	-DPython_ADDITIONAL_VERSIONS=${PYTHON_VER}
 
 .  if !target(setuptools-autolist)
 setuptools-autolist:
-	@(cd ${STAGEDIR}${PREFIX} && \
-	${FIND} lib bin share/man share/doc share/examples \
-	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
-	>> ${WRKDIR}/.manifest.single.mktmp
+	@if [ "${SUBPACKAGES}" = "single" ]; then \
+		(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} lib/pyth* bin share/man share/doc share/examples \
+		\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+		>> ${WRKDIR}/.manifest.single.mktmp; \
+	else \
+		(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} include lib/pkgconfig -type f 2>/dev/null | ${SORT}) \
+		>> ${WRKDIR}/.manifest.dev.mktmp; \
+		(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} lib/pyth* \( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+		>> ${WRKDIR}/.manifest.primary.mktmp; \
+	fi
 .  endif
 
 .  if defined(USE_PIP_FOR_WHEEL)

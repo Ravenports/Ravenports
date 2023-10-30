@@ -13,15 +13,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPI/P/PyGObject
 DISTFILE[1]=		PyGObject-3.46.0.tar.gz:main
 DF_INDEX=		1
-SPKGS[v11]=		single
-SPKGS[v12]=		single
+SPKGS[v11]=		complete
+			primary
+			dev
+SPKGS[v12]=		complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	PY311 PY312
 OPTIONS_STANDARD=	none
 VOPTS[v11]=		PY311=ON PY312=OFF
 VOPTS[v12]=		PY311=OFF PY312=ON
 
-BUILDRUN_DEPENDS=	python-pycairo:single:python_used
 RUN_DEPENDS=		gobject-introspection:primary:standard
 
 USES=			gmake pkgconfig zlib
@@ -29,8 +32,8 @@ GNOME_COMPONENTS=	introspection cairo
 
 DISTNAME=		PyGObject-3.46.0
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -40,17 +43,19 @@ GENERATED=		yes
 VAR_OPSYS[sunos]=	MAKE_ENV=PYGOBJECT_WITHOUT_PYCAIRO=1
 VAR_OPSYS[netbsd]=	MAKE_ENV=PYGOBJECT_WITHOUT_PYCAIRO=1
 
-[PY311].BUILDRUN_DEPENDS_ON=		python-pycairo:single:v11
+[PY311].BUILDRUN_DEPENDS_ON=		python-pycairo:primary:v11
+[PY311].BUILD_DEPENDS_ON=		python-pycairo:dev:v11
 [PY311].USES_ON=			python:v11,sutools
 
-[PY312].BUILDRUN_DEPENDS_ON=		python-pycairo:single:v12
+[PY312].BUILDRUN_DEPENDS_ON=		python-pycairo:primary:v12
+[PY312].BUILD_DEPENDS_ON=		python-pycairo:dev:v12
 [PY312].USES_ON=			python:v12,sutools
 
 pre-patch:
 	${AWK} '/^$$/ {exit}; {print}' ${WRKSRC}/gi/importer.py \
 	> ${WRKDIR}/TERMS
 
-[FILE:523:descriptions/desc.single]
+[FILE:523:descriptions/desc.primary]
 .. image:: https://pygobject.readthedocs.io/en/latest/_images/pygobject.svg
    :align: center
    :width: 400px
@@ -76,8 +81,4 @@ For more information visit https://pygobject.readthedocs.io
 
 [FILE:102:distinfo]
 481437b05af0a66b7c366ea052710eb3aacbb979d22d30b797f7ec29347ab1e6       723367 PyGObject-3.46.0.tar.gz
-
-
-[FILE:34:manifests/plist.single]
-include/pygobject-3.0/pygobject.h
 
