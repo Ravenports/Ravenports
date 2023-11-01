@@ -17,8 +17,8 @@ SPKGS[standard]=	complete
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	DEBUG
+OPTIONS_STANDARD=	DEBUG
 
 BUILD_DEPENDS=		python-Sphinx:single:python_default
 			harfbuzz:dev:standard
@@ -34,10 +34,8 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/gtkada.ads
 LICENSE_SCHEME=		solo
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-GL=no
-			--enable-shared
+CONFIGURE_ARGS=		--enable-shared
 			--enable-static
-			--enable-build=Production
 
 BUILD_TARGET=		tools static relocatable
 MAKE_ARGS=		PROCESSORS={{MAKE_JOBS_NUMBER}}
@@ -45,6 +43,10 @@ MAKE_ARGS=		PROCESSORS={{MAKE_JOBS_NUMBER}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		18.0w
+
+[DEBUG].CONFIGURE_ARGS_OFF=		--enable-build=Production
+[DEBUG].CONFIGURE_ARGS_ON=		--enable-build=Debug
+[DEBUG].MAKEFILE_ON=			WITH_DEBUG=yes
 
 do-build:
 	# This target is recreated because -j cannot be set, but

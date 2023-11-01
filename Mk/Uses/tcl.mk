@@ -2,11 +2,40 @@
 #
 # Feature:	tcl
 # Usage:	USES=tcl
-# Valid ARGS:	[version],[build,run,buildrun],tea,tk
+# Valid ARGS:	[version],[build,run],tea,tk
 #               (version 8.6 implicit), (buildrun implicit)
 
 .if !defined(_INCLUDE_USES_TCL_MK)
 _INCLUDE_USES_TCL_MK=	yes
+
+# -----------------------------------------------
+# Incorporated in ravenadm
+# -----------------------------------------------
+#.if {tcl_ARGS:Mbuild}
+#  .if {tcl_ARGS:Mtk}
+#     BUILD_DEPENDS+=    tk:dev:standard   (pulls in tcl:dev)
+#     BUILD_DEPENDS+=    tk:tools:standard (pulls in tcl:tools)
+#  .else
+#     BUILD_DEPENDS+=    tcl:dev:standard
+#     BUILD_DEPENDS+=    tcl:tools:standard
+#  .endif
+#.elsif {tcl_ARGS:Mrun}
+#  .if {tcl_ARGS:Mtk}
+#     RUN_DEPENDS+=      tk:tools (pulls in tcl:tools)
+#  .else
+#     RUN_DEPENDS+=      tcl:tools
+#  .endif
+#.else
+#  .if {tcl_ARGS:Mtk}
+#     BUILD_DEPENDS+=    tk:dev:standard   (pulls in tcl:dev)
+#     BUILDRUN_DEPENDS+= tk:tools:standard (pulls in tcl:tools)
+#  .else
+#     BUILD_DEPENDS+=    tcl:dev:standard
+#     BUILDRUN_DEPENDS+= tcl:tools:standard
+#  .endif
+#.endif
+# -----------------------------------------------
+
 
 .  if ${tcl_ARGS:M8.6}
 TCL_VER=	8.6

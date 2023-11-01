@@ -2,6 +2,7 @@
 
 NAMEBASE=		tk85
 VERSION=		8.5.19
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	GUI toolkit for the Tcl 8.5 scripting language
@@ -14,13 +15,19 @@ DISTFILE[1]=		tk8.5.19-src.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
+			tools
+			dev
+			man
 			demos
-			manpages
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			tcl:8.5,tea
+EXRUN[tools]=		tcl85:tools:standard
+			primary
+EXRUN[dev]=		tcl85:dev:standard
+
+USES=			tcl:8.5,build,tea
 XORG_COMPONENTS=	x11 xft xscrnsaver
 
 DISTNAME=		tk8.5.19/unix
@@ -82,61 +89,22 @@ can produce rich, native applications that run unchanged across Windows,
 Mac OS X, Linux and more.
 
 
+[FILE:41:descriptions/desc.tools]
+This package contains Tk's wish program.
+
+
 [FILE:60:descriptions/desc.demos]
 This package contains the demo programs for Tk version 8.6.
-
-
-[FILE:56:descriptions/desc.manpages]
-This package contains the man pages for Tk version 8.6.
 
 
 [FILE:98:distinfo]
 407af1de167477d598bd6166d84459a3bdccc2fb349360706154e646a9620ffa      4116241 tk8.5.19-src.tar.gz
 
 
-[FILE:1747:manifests/plist.primary]
-bin/wish%%TK_VER%%
-include/tk%%TK_VER%%/
- tk.h
- tkDecls.h
- tkInt.h
- tkIntDecls.h
- tkIntXlibDecls.h
-include/tk%%TK_VER%%/generic/
- default.h
- ks_names.h
- tk.h
- tk3d.h
- tkButton.h
- tkCanvas.h
- tkColor.h
- tkDecls.h
- tkEntry.h
- tkFileFilter.h
- tkFont.h
- tkInt.h
- tkIntDecls.h
- tkIntPlatDecls.h
- tkIntXlibDecls.h
- tkMenu.h
- tkMenubutton.h
- tkPlatDecls.h
- tkPort.h
- tkScale.h
- tkScrollbar.h
- tkSelect.h
- tkText.h
- tkUndo.h
-include/tk%%TK_VER%%/unix/
- tkUnixDefault.h
- tkUnixInt.h
- tkUnixPort.h
+[FILE:1178:manifests/plist.primary]
 lib/
- libtk%%SHORT_TK_VER%%.a
- libtk%%SHORT_TK_VER%%.so
  libtk%%SHORT_TK_VER%%.so.1
  libtkstub%%SHORT_TK_VER%%.a
-lib/pkgconfig/%%NAMEBASE%%.pc
 lib/tk%%TK_VER%%/
  bgerror.tcl
  button.tcl
@@ -227,94 +195,53 @@ lib/tk%%TK_VER%%/ttk/
  xpTheme.tcl
 
 
-[FILE:1009:manifests/plist.demos]
-lib/tk%%TK_VER%%/demos/
- README
- anilabel.tcl
- aniwave.tcl
- arrow.tcl
- bind.tcl
- bitmap.tcl
- browse
- button.tcl
- check.tcl
- clrpick.tcl
- colors.tcl
- combo.tcl
- cscroll.tcl
- ctext.tcl
- dialog1.tcl
- dialog2.tcl
- en.msg
- entry1.tcl
- entry2.tcl
- entry3.tcl
- filebox.tcl
- floor.tcl
- form.tcl
- goldberg.tcl
- hello
- hscale.tcl
- icon.tcl
- image1.tcl
- image2.tcl
- items.tcl
- ixset
- knightstour.tcl
- label.tcl
- labelframe.tcl
- license.terms
- mclist.tcl
- menu.tcl
- menubu.tcl
- msgbox.tcl
- nl.msg
- paned1.tcl
- paned2.tcl
- pendulum.tcl
- plot.tcl
- puzzle.tcl
- radio.tcl
- rmt
- rolodex
- ruler.tcl
- sayings.tcl
- search.tcl
- spin.tcl
- states.tcl
- style.tcl
- tclIndex
- tcolor
- text.tcl
- textpeer.tcl
- timer
- toolbar.tcl
- tree.tcl
- ttkbut.tcl
- ttkmenu.tcl
- ttknote.tcl
- ttkpane.tcl
- ttkprogress.tcl
- ttkscale.tcl
- twind.tcl
- unicodeout.tcl
- vscale.tcl
- widget
-lib/tk%%TK_VER%%/demos/images/
- earth.gif
- earthris.gif
- face.xbm
- flagdown.xbm
- flagup.xbm
- gray25.xbm
- letters.xbm
- noletter.xbm
- pattern.xbm
- tcllogo.gif
- teapot.ppm
+[FILE:19:manifests/plist.tools]
+bin/wish%%TK_VER%%
 
 
-[FILE:12799:manifests/plist.manpages]
+[FILE:555:manifests/plist.dev]
+include/tk%%TK_VER%%/
+ tk.h
+ tkDecls.h
+ tkInt.h
+ tkIntDecls.h
+ tkIntXlibDecls.h
+include/tk%%TK_VER%%/generic/
+ default.h
+ ks_names.h
+ tk.h
+ tk3d.h
+ tkButton.h
+ tkCanvas.h
+ tkColor.h
+ tkDecls.h
+ tkEntry.h
+ tkFileFilter.h
+ tkFont.h
+ tkInt.h
+ tkIntDecls.h
+ tkIntPlatDecls.h
+ tkIntXlibDecls.h
+ tkMenu.h
+ tkMenubutton.h
+ tkPlatDecls.h
+ tkPort.h
+ tkScale.h
+ tkScrollbar.h
+ tkSelect.h
+ tkText.h
+ tkUndo.h
+include/tk%%TK_VER%%/unix/
+ tkUnixDefault.h
+ tkUnixInt.h
+ tkUnixPort.h
+lib/
+ libtk%%SHORT_TK_VER%%.a
+ libtk%%SHORT_TK_VER%%.so
+lib/pkgconfig/%%NAMEBASE%%.pc
+
+
+[FILE:12799:manifests/plist.man]
 share/man/man1/wish.%%NAMEBASE%%.1.gz
 share/man/man3/
  Tk_3DBorderColor.%%NAMEBASE%%.3.gz
@@ -690,6 +617,93 @@ share/man/mann/
  ttk_vsapi.%%NAMEBASE%%.n.gz
  winfo.%%NAMEBASE%%.n.gz
  wm.%%NAMEBASE%%.n.gz
+
+
+[FILE:1009:manifests/plist.demos]
+lib/tk%%TK_VER%%/demos/
+ README
+ anilabel.tcl
+ aniwave.tcl
+ arrow.tcl
+ bind.tcl
+ bitmap.tcl
+ browse
+ button.tcl
+ check.tcl
+ clrpick.tcl
+ colors.tcl
+ combo.tcl
+ cscroll.tcl
+ ctext.tcl
+ dialog1.tcl
+ dialog2.tcl
+ en.msg
+ entry1.tcl
+ entry2.tcl
+ entry3.tcl
+ filebox.tcl
+ floor.tcl
+ form.tcl
+ goldberg.tcl
+ hello
+ hscale.tcl
+ icon.tcl
+ image1.tcl
+ image2.tcl
+ items.tcl
+ ixset
+ knightstour.tcl
+ label.tcl
+ labelframe.tcl
+ license.terms
+ mclist.tcl
+ menu.tcl
+ menubu.tcl
+ msgbox.tcl
+ nl.msg
+ paned1.tcl
+ paned2.tcl
+ pendulum.tcl
+ plot.tcl
+ puzzle.tcl
+ radio.tcl
+ rmt
+ rolodex
+ ruler.tcl
+ sayings.tcl
+ search.tcl
+ spin.tcl
+ states.tcl
+ style.tcl
+ tclIndex
+ tcolor
+ text.tcl
+ textpeer.tcl
+ timer
+ toolbar.tcl
+ tree.tcl
+ ttkbut.tcl
+ ttkmenu.tcl
+ ttknote.tcl
+ ttkpane.tcl
+ ttkprogress.tcl
+ ttkscale.tcl
+ twind.tcl
+ unicodeout.tcl
+ vscale.tcl
+ widget
+lib/tk%%TK_VER%%/demos/images/
+ earth.gif
+ earthris.gif
+ face.xbm
+ flagdown.xbm
+ flagup.xbm
+ gray25.xbm
+ letters.xbm
+ noletter.xbm
+ pattern.xbm
+ tcllogo.gif
+ teapot.ppm
 
 
 [FILE:6594:patches/patch-Makefile.in]
