@@ -2,6 +2,7 @@
 
 NAMEBASE=		libwpd
 VERSION=		0.10.3
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	Import filter and tools for WordPerfect Documents
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/libwpd/libwpd/libwpd-0.10.3
 DISTFILE[1]=		libwpd-0.10.3.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,12 +24,13 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		boost-libraries:dev:standard
 			librevenge:dev:standard
 BUILDRUN_DEPENDS=	librevenge:primary:standard
+EXRUN[tools]=		primary
 
 USES=			cpe libtool pkgconfig mbsdfix
 GNOME_COMPONENTS=	libgsf
 
-LICENSE=		MPL:single LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		MPL:primary LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		MPL:{{WRKSRC}}/COPYING.MPL
 			LGPL21+:{{WRKSRC}}/COPYING.LGPL
 LICENSE_AWK=		TERMS:"^$$"
@@ -43,7 +48,7 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		10.0.3
 PLIST_SUB=		VER=0.10
 
-[FILE:148:descriptions/desc.single]
+[FILE:148:descriptions/desc.primary]
 libwpd is a library for reading and writing WordPerfect(tm)
 documents.
 
@@ -51,23 +56,33 @@ This package also includes utilities for converting to HTML
 and plain text.
 
 
+[FILE:45:descriptions/desc.tools]
+This package contains tools based on libwpd.
+
+
 [FILE:100:distinfo]
 2369a584d19991145f717cc9dc0e0bed4ca12f678dc671023623674ebd70fc54       669503 libwpd-0.10.3.tar.bz2
 
 
-[FILE:209:manifests/plist.single]
+[FILE:69:manifests/plist.primary]
+lib/
+ libwpd-%%VER%%.so.%%SOMAJOR%%
+ libwpd-%%VER%%.so.%%SOVERSION%%
+
+
+[FILE:34:manifests/plist.tools]
 bin/
  wpd2html
  wpd2raw
  wpd2text
+
+
+[FILE:109:manifests/plist.dev]
+lib/pkgconfig/libwpd-%%VER%%.pc
 include/libwpd-%%VER%%/libwpd/
  WPDocument.h
  libwpd.h
-lib/
- libwpd-%%VER%%.so
- libwpd-%%VER%%.so.%%SOMAJOR%%
- libwpd-%%VER%%.so.%%SOVERSION%%
-lib/pkgconfig/libwpd-%%VER%%.pc
+lib/libwpd-%%VER%%.so
 
 
 [FILE:200:patches/patch-src_lib_WPXTable.h]

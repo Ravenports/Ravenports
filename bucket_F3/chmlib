@@ -2,6 +2,7 @@
 
 NAMEBASE=		chmlib
 VERSION=		0.40
+REVISION=		1
 KEYWORDS=		misc
 VARIANTS=		standard
 SDESC[standard]=	Library for reading Microsoft ITSS/CHM formats
@@ -12,15 +13,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://www.jedrea.com/chmlib/
 DISTFILE[1]=		chmlib-0.40.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			gmake libtool fbsd10fix mbsdfix
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"INCLUDED_CHMLIB_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/chm_lib.h
@@ -37,7 +41,7 @@ CONFIGURE_ARGS=		--disable-io64
 INSTALL_TARGET=		install-strip
 SOVERSION=		0.0.0
 
-[FILE:357:descriptions/desc.single]
+[FILE:357:descriptions/desc.primary]
 CHMLIB is a library for dealing with Microsoft ITSS/CHM format files.
 Right now, it is a very simple library, but sufficient for dealing with all
 of the .chm files I've come across. Due to the fairly well-designed
@@ -45,24 +49,34 @@ indexing built into this particular file format, even a small library is
 able to gain reasonably good performance indexing into ITSS archives.
 
 
+[FILE:54:descriptions/desc.tools]
+This package contains tools based on the CHM library.
+
+
 [FILE:98:distinfo]
 3449d64b0cf71578b2c7e3ddc048d4af3661f44a83941ea074a7813f3a59ffa3       252036 chmlib-0.40.tar.bz2
 
 
-[FILE:164:manifests/plist.single]
+[FILE:53:manifests/plist.primary]
+lib/
+ libchm.so.%%SOMAJOR%%
+ libchm.so.%%SOVERSION%%
+
+
+[FILE:41:manifests/plist.dev]
+include/
+ chm_lib.h
+ lzx.h
+lib/libchm.so
+
+
+[FILE:73:manifests/plist.tools]
 bin/
  chm_http
  enum_chmLib
  enumdir_chmLib
  extract_chmLib
  test_chmLib
-include/
- chm_lib.h
- lzx.h
-lib/
- libchm.so
- libchm.so.%%SOMAJOR%%
- libchm.so.%%SOVERSION%%
 
 
 [FILE:661:patches/patch-chm_lib.c]

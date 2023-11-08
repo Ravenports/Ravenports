@@ -2,6 +2,7 @@
 
 NAMEBASE=		libwpg
 VERSION=		0.3.4
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Import filter and tools for WordPerfect graphics
@@ -12,21 +13,26 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/libwpg/libwpg/libwpg-0.3.4
 DISTFILE[1]=		libwpg-0.3.4.tar.bz2:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		boost-libraries:dev:standard
 			librevenge:dev:standard
+			libwpd:dev:standard
 BUILDRUN_DEPENDS=	boost-libraries:primary:standard
 			librevenge:primary:standard
-			libwpd:single:standard
+			libwpd:primary:standard
+EXRUN[tools]=		primary
 
 USES=			libtool pkgconfig shebangfix perl:build
 
-LICENSE=		MPL:single LGPL21:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		MPL:primary LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		MPL:{{WRKSRC}}/COPYING.MPL
 			LGPL21:{{WRKSRC}}/COPYING.LGPL
 LICENSE_AWK=		TERMS:"^$$"
@@ -44,25 +50,35 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		3.0.4
 PLIST_SUB=		VER=0.3
 
-[FILE:69:descriptions/desc.single]
+[FILE:69:descriptions/desc.primary]
 Library for importing and converting Corel WordPerfect(tm) graphics.
+
+
+[FILE:45:descriptions/desc.tools]
+This package contains tools based on libwpg.
 
 
 [FILE:99:distinfo]
 282ecf09ea0f60e1ac89992e26d813bfdc4c1cbc12d535037baf663c102b3349       411695 libwpg-0.3.4.tar.bz2
 
 
-[FILE:215:manifests/plist.single]
+[FILE:69:manifests/plist.primary]
+lib/
+ libwpg-%%VER%%.so.%%SOMAJOR%%
+ libwpg-%%VER%%.so.%%SOVERSION%%
+
+
+[FILE:40:manifests/plist.tools]
 bin/
  wpg2raw
  wpg2svg
  wpg2svgbatch.pl
+
+
+[FILE:109:manifests/plist.dev]
 include/libwpg-%%VER%%/libwpg/
  WPGraphics.h
  libwpg.h
-lib/
- libwpg-%%VER%%.so
- libwpg-%%VER%%.so.%%SOMAJOR%%
- libwpg-%%VER%%.so.%%SOVERSION%%
+lib/libwpg-%%VER%%.so
 lib/pkgconfig/libwpg-%%VER%%.pc
 
