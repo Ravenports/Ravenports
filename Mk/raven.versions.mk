@@ -114,11 +114,11 @@ MYSQL_DEFAULT=			oracle-8.0
 MYSQL_oracle-5.7_VERSION=	5.7.44
 MYSQL_oracle-8.0_VERSION=	8.0.35
 MYSQL_oracle-8.1_VERSION=	8.2.0
-MYSQL_mariadb-10.4_VERSION=	10.4.31
-MYSQL_mariadb-10.5_VERSION=	10.5.22
-MYSQL_mariadb-10.6_VERSION=	10.6.15
-MYSQL_mariadb-10.11_VERSION=	10.11.5
-MYSQL_mariadb-11_VERSION=	11.1.2
+MYSQL_mariadb-10.4_VERSION=	10.4.32
+MYSQL_mariadb-10.5_VERSION=	10.5.23
+MYSQL_mariadb-10.6_VERSION=	10.6.16
+MYSQL_mariadb-10.11_VERSION=	10.11.6
+MYSQL_mariadb-11_VERSION=	11.1.3
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
