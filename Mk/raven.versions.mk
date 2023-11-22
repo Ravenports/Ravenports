@@ -118,7 +118,7 @@ MYSQL_mariadb-10.4_VERSION=	10.4.32
 MYSQL_mariadb-10.5_VERSION=	10.5.23
 MYSQL_mariadb-10.6_VERSION=	10.6.16
 MYSQL_mariadb-10.11_VERSION=	10.11.6
-MYSQL_mariadb-11_VERSION=	11.1.3
+MYSQL_mariadb-11_VERSION=	11.2.2
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
@@ -128,8 +128,8 @@ MYSQL_mariadb-11_VERSION=	11.1.3
 PHP_DEFAULT?=		8.1
 
 PHP_8.0_VERSION=	8.0.30
-PHP_8.1_VERSION=	8.1.25
-PHP_8.2_VERSION=	8.2.12
+PHP_8.1_VERSION=	8.1.26
+PHP_8.2_VERSION=	8.2.13
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
