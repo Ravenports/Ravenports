@@ -2,6 +2,7 @@
 
 NAMEBASE=		libblake3
 VERSION=		1.5.0
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	C implementation of BLAKE3 is a cryptographic hash
@@ -42,6 +43,12 @@ post-install:
 pre-configure:
 	# Install makefile
 	${INSTALL_DATA} ${WRKDIR}/CMakeLists.txt ${WRKSRC}/
+	# Enable .note.GNU-stack for all platforms, not just Linux
+	${REINPLACE_CMD} -e '/__linux__/ s|__ELF__) && defined(__linux__)|__ELF__)|' \
+		${WRKSRC}/blake3_avx2_x86-64_unix.S \
+		${WRKSRC}/blake3_avx512_x86-64_unix.S \
+		${WRKSRC}/blake3_sse2_x86-64_unix.S \
+		${WRKSRC}/blake3_sse41_x86-64_unix.S
 
 [FILE:338:descriptions/desc.single]
 This is the official C implementation of BLAKE3.
