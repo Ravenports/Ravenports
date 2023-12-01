@@ -438,6 +438,86 @@ diff -u configure.orig configure
  # Version of CyberSafe with two libraries
 
 
+[FILE:1744:patches/patch-fix-libxml2-2.12]
+From 37ceb82f0641b03d25d9a158423abbb270fe3867 Mon Sep 17 00:00:00 2001
+From: David King <amigadave@amigadave.com>
+Date: Mon, 27 Nov 2023 10:34:40 +0000
+Subject: [PATCH] Add libxml/parser.h include
+
+This is required for libxml2 2.12.0 and above.
+---
+ imap/ctl_zoneinfo.c     | 1 +
+ imap/http_dav.c         | 1 +
+ imap/http_dav_sharing.c | 2 ++
+ imap/http_ischedule.c   | 2 ++
+ imap/vcard_support.c    | 1 +
+ imap/xcal.c             | 1 +
+ 6 files changed, 8 insertions(+)
+
+--- imap/ctl_zoneinfo.c
++++ imap/ctl_zoneinfo.c
+@@ -57,6 +57,7 @@
+ #include <sys/types.h>
+ 
+ #include <libical/ical.h>
++#include <libxml/parser.h>
+ #include <libxml/tree.h>
+ 
+ #include "annotate.h" /* for strlist functionality */
+--- imap/http_dav.c
++++ imap/http_dav.c
+@@ -93,6 +93,7 @@
+ #include "imap/imap_err.h"
+ 
+ #include <errno.h>
++#include <libxml/parser.h>
+ #include <libxml/uri.h>
+ 
+ static const struct dav_namespace_t {
+--- imap/http_dav_sharing.c
++++ imap/http_dav_sharing.c
+@@ -59,6 +59,8 @@
+ #include "imap/http_err.h"
+ #include "imap/imap_err.h"
+ 
++#include <libxml/parser.h>
++
+ #define DAVNOTIFICATION_CONTENT_TYPE \
+     "application/davnotification+xml; charset=utf-8"
+ 
+--- imap/http_ischedule.c
++++ imap/http_ischedule.c
+@@ -52,6 +52,8 @@
+ 
+ #include <libical/ical.h>
+ 
++#include <libxml/parser.h>
++
+ #include "global.h"
+ #include "httpd.h"
+ #include "http_caldav_sched.h"
+--- imap/vcard_support.c
++++ imap/vcard_support.c
+@@ -42,6 +42,7 @@
+  */
+ 
+ #include <config.h>
++#include <libxml/parser.h>
+ #include <libxml/tree.h>
+ 
+ #include "vcard_support.h"
+--- imap/xcal.c
++++ imap/xcal.c
+@@ -47,6 +47,7 @@
+ #include <stddef.h> /* for offsetof() macro */
+ #include <syslog.h>
+ 
++#include <libxml/parser.h>
+ #include <libxml/tree.h>
+ 
+ #include "global.h"
+
+
 [FILE:505:patches/patch-imap__http_client.h]
 --- imap/http_client.h.orig	2023-08-30 01:28:01 UTC
 +++ imap/http_client.h

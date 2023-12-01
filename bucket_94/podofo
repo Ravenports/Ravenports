@@ -51,6 +51,9 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/pod*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libpodofo.so
 
+pre-configure:
+	${FIND} ${WRKSRC} -name "*.orig" -delete
+
 [FILE:689:descriptions/desc.primary]
 PoDoFo is a library to work with the PDF file format. The name comes from the
 first letter of PDF (Portable Document Format). A few tools to work with PDF
@@ -290,4 +293,46 @@ share/man/man1/
  # Enable packaging
  set(CPACK_PACKAGE_DESCRIPTION "A C++ PDF manipulation library")
  set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/podofo/podofo")
+
+
+[FILE:1125:patches/patch-fix-libxml2-2.12]
+From d470a0a2ad423042c29db08ba13170f42d8806cf Mon Sep 17 00:00:00 2001
+From: WebFreak001 <gh@webfreak.org>
+Date: Fri, 24 Nov 2023 07:54:03 +0100
+Subject: [PATCH] fix compilation with libxml 2.12.0
+
+---
+ src/podofo/main/PdfXMPPacket.cpp | 1 +
+ src/podofo/private/XmlUtils.h    | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+--- src/podofo/main/PdfXMPPacket.cpp
++++ src/podofo/main/PdfXMPPacket.cpp
+@@ -8,6 +8,7 @@
+ #include "PdfXMPPacket.h"
+ #include <podofo/private/XmlUtils.h>
+ #include <libxml/xmlsave.h>
++#include <libxml/parser.h>
+ #include <podofo/private/XMPUtils.h>
+ 
+ using namespace std;
+--- src/podofo/private/XmlUtils.h
++++ src/podofo/private/XmlUtils.h
+@@ -8,6 +8,7 @@
+ 
+ #include <string>
+ #include <libxml/tree.h>
++#include <libxml/xmlerror.h>
+ #include <podofo/auxiliary/nullable.h>
+ 
+ // Cast macro that keep or enforce const to use
+@@ -16,7 +17,7 @@
+ 
+ #define THROW_LIBXML_EXCEPTION(msg)\
+ {\
+-    xmlErrorPtr error_ = xmlGetLastError();\
++    const xmlError* error_ = xmlGetLastError();\
+     if (error_ == nullptr)\
+         PODOFO_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadata, msg);\
+     else\
 

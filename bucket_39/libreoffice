@@ -246,6 +246,12 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|/usr/include/gpgme++|${PREFIX}/include/gpgme++|' \
 		-e 's|{CCACHE/\*sccache\*/}|{CCACHE}|g' \
 		${WRKSRC}/configure
+	# more libxml2 2.12 fixes
+	${REINPLACE_CMD} -e 's|xmlErrorPtr|const _xmlError *|' \
+		${WRKSRC}/filter/source/xsltfilter/LibXSLTTransformer.cxx \
+		${WRKSRC}/helpcompiler/source/HelpLinker.cxx \
+		${WRKSRC}/sax/source/fastparser/fastparser.cxx \
+		${WRKSRC}/unoxml/source/xpath/xpathapi.cxx
 
 pre-build-netbsd:
 	cd ${BUILD_WRKSRC} &&\
@@ -4244,6 +4250,48 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
  #endif
 
 
+[FILE:309:patches/patch-drawinglayer_source_tools_primitive2dxmldump.cxx]
+--- drawinglayer/source/tools/primitive2dxmldump.cxx.orig	2023-09-22 19:07:01 UTC
++++ drawinglayer/source/tools/primitive2dxmldump.cxx
+@@ -12,6 +12,7 @@
+ #include <rtl/string.hxx>
+ #include <tools/stream.hxx>
+ #include <tools/XmlWriter.hxx>
++#include <libxml/parser.h>
+ 
+ #include <math.h>
+ #include <memory>
+
+
+[FILE:425:patches/patch-external_libcmis_UnpackedTarball__libcmis.mk]
+--- external/libcmis/UnpackedTarball_libcmis.mk.orig	2023-09-22 19:07:01 UTC
++++ external/libcmis/UnpackedTarball_libcmis.mk
+@@ -20,6 +20,7 @@ $(eval $(call gb_UnpackedTarball_add_pat
+ 	external/libcmis/libcmis_oauth_pw_as_refreshtoken.patch.1 \
+ 	external/libcmis/libcmis_gdrive.patch.1 \
+ 	external/libcmis/libcmis-boost-string.patch \
++	external/libcmis/patch-lib_libcmis_xml-utils.hxx \
+ ))
+ 
+ # vim: set noet sw=4 ts=4:
+
+
+[FILE:415:patches/patch-external_libcmis_patch_1]
+--- /dev/null	2023-12-01 03:08:19 UTC
++++ external/libcmis/patch-lib_libcmis_xml-utils.hxx
+@@ -0,0 +1,10 @@
++--- libcmis/inc/libcmis/xml-utils.hxx.orig	2018-12-22 15:26:20 UTC
+++++ libcmis/inc/libcmis/xml-utils.hxx
++@@ -34,6 +34,7 @@
++ #include <string>
++ 
++ #include <boost/date_time.hpp>
+++#include <libxml/parser.h>
++ #include <libxml/tree.h>
++ #include <libxml/xpathInternals.h>
++ #include <libxml/xmlwriter.h>
+
+
 [FILE:381:patches/patch-external_skia_Library__skia.mk]
 --- external/skia/Library_skia.mk.orig	2023-09-22 19:07:01 UTC
 +++ external/skia/Library_skia.mk
@@ -4265,7 +4313,7 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
 
 
 [FILE:1023:patches/patch-external_skia_SkContainers.cpp.patch.0]
---- /dev/null	2023-10-05 00:59:27 UTC
+--- /dev/null	2023-12-01 03:08:19 UTC
 +++ external/skia/SkContainers.cpp.patch.0
 @@ -0,0 +1,20 @@
 +--- src/base/SkContainers.cpp.orig	2023-03-17 16:04:02 UTC
@@ -4306,7 +4354,7 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
 
 
 [FILE:1115:patches/patch-external_skia_gfx-skia-skia-src-core-SkCpu.cpp.patch.0]
---- /dev/null	2023-10-05 00:59:27 UTC
+--- /dev/null	2023-12-01 03:08:19 UTC
 +++ external/skia/gfx-skia-skia-src-core-SkCpu.cpp.patch.0
 @@ -0,0 +1,32 @@
 +Regressed by https://svnweb.freebsd.org/changeset/base/324815
@@ -4344,7 +4392,7 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
 
 
 [FILE:512:patches/patch-external_skia_netbsd.patch.0]
---- /dev/null	2023-10-05 00:59:27 UTC
+--- /dev/null	2023-12-01 03:08:19 UTC
 +++ external/skia/netbsd.patch.0
 @@ -0,0 +1,11 @@
 +--- src/gpu/ganesh/GrAutoLocaleSetter.h.orig	2023-01-27 08:09:20 UTC
@@ -4360,6 +4408,25 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
 + #define HAVE_LOCALE_T 1
 
 
+[FILE:424:patches/patch-i18npool_source_breakiterator_data_line_txt]
+Work around https://github.com/unicode-org/icu/commit/84e47620692b
+via https://github.com/openbsd/ports/commit/e5c313ed3356
+until https://gerrit.libreoffice.org/c/core/+/158749
+
+--- i18npool/source/breakiterator/data/line.txt.orig	2023-09-22 19:07:01 UTC
++++ i18npool/source/breakiterator/data/line.txt
+@@ -14,7 +14,8 @@
+ #
+ 
+ !!chain;
+-!!LBCMNoChain;
++# DEPRECATED since ICU 74
++# !!LBCMNoChain;
+ 
+ 
+ !!lookAheadHardBreak;
+
+
 [FILE:384:patches/patch-include_LibreOfficeKit_LibreOfficeKitInit.h]
 --- include/LibreOfficeKit/LibreOfficeKitInit.h.orig	2023-09-22 19:07:01 UTC
 +++ include/LibreOfficeKit/LibreOfficeKitInit.h
@@ -4371,6 +4438,19 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
      defined(_WIN32) || defined(__APPLE__) || defined (__NetBSD__) ||\
      defined (__sun) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__)
  
+
+
+[FILE:289:patches/patch-include_xmloff_xmltoken.hxx]
+--- include/xmloff/xmltoken.hxx.orig	2023-09-22 19:07:01 UTC
++++ include/xmloff/xmltoken.hxx
+@@ -24,6 +24,7 @@
+ #include <xmloff/dllapi.h>
+ #include <rtl/ustring.hxx>
+ #include <sax/fastattribs.hxx>
++#undef XML_EMPTY	/* Collision with xmlversion.h */
+ 
+ /**
+  * Handling of tokens in XML:
 
 
 [FILE:247:patches/patch-sal_osl_unx_file__volume.cxx]
@@ -4431,6 +4511,19 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
  #ifdef ENONET
          case ENONET:
              return "ENONET";
+
+
+[FILE:306:patches/patch-sc_source_core_tool_interpr7.cxx]
+--- sc/source/core/tool/interpr7.cxx.orig	2023-09-22 19:07:01 UTC
++++ sc/source/core/tool/interpr7.cxx
+@@ -19,6 +19,7 @@
+ #include <tools/urlobj.hxx>
+ 
+ #include <officecfg/Office/Common.hxx>
++#include <libxml/parser.h>
+ #include <libxml/xpath.h>
+ #include <datastreamgettime.hxx>
+ #include <dpobject.hxx>
 
 
 [FILE:1464:patches/patch-sc_source_core_tool_math.cxx]
@@ -4612,6 +4705,81 @@ For NetBSD at least.
  mkdir -p "${DESTDIR}/${PREFIXDIR}/share/metainfo"
 
 
+[FILE:286:patches/patch-unoxml_source_dom_attr.cxx]
+--- unoxml/source/dom/attr.cxx.orig	2023-09-22 19:07:01 UTC
++++ unoxml/source/dom/attr.cxx
+@@ -29,6 +29,7 @@
+ #include <com/sun/star/xml/dom/events/XMutationEvent.hpp>
+ 
+ #include "document.hxx"
++#include <libxml/entities.h>
+ 
+ using namespace css::uno;
+ using namespace css::xml::dom;
+
+
+[FILE:280:patches/patch-unoxml_source_dom_document.cxx]
+--- unoxml/source/dom/document.cxx.orig	2023-09-22 19:07:01 UTC
++++ unoxml/source/dom/document.cxx
+@@ -33,6 +33,7 @@
+ #include "domimplementation.hxx"
+ #include "entity.hxx"
+ #include "notation.hxx"
++#include <libxml/xmlIO.h>
+ 
+ #include <event.hxx>
+ #include <mutationevent.hxx>
+
+
+[FILE:235:patches/patch-unoxml_source_dom_documentbuilder.cxx]
+--- unoxml/source/dom/documentbuilder.cxx.orig	2023-09-22 19:07:01 UTC
++++ unoxml/source/dom/documentbuilder.cxx
+@@ -21,6 +21,7 @@
+ 
+ #include <string.h>
+ 
++#include <libxml/parser.h>
+ #include <libxml/xmlerror.h>
+ 
+ #include <memory>
+
+
+[FILE:213:patches/patch-unoxml_source_dom_entity.hxx]
+--- unoxml/source/dom/entity.hxx.orig	2023-09-22 19:07:01 UTC
++++ unoxml/source/dom/entity.hxx
+@@ -19,6 +19,7 @@
+ 
+ #pragma once
+ 
++#include <libxml/entities.h>
+ #include <libxml/tree.h>
+ 
+ #include <sal/types.h>
+
+
+[FILE:743:patches/patch-unoxml_source_xpath_xpathapi.cxx]
+--- unoxml/source/xpath/xpathapi.cxx.orig	2023-09-22 19:07:01 UTC
++++ unoxml/source/xpath/xpathapi.cxx
+@@ -217,7 +217,7 @@ namespace XPath
+         return selectSingleNode(contextNode, expr);
+     }
+ 
+-    static OUString make_error_message(xmlErrorPtr pError)
++    static OUString make_error_message(const _xmlError * pError)
+     {
+         OUStringBuffer buf;
+         if (pError) {
+@@ -259,7 +259,7 @@ namespace XPath
+             SAL_WARN("unoxml", "libxml2 error: " << str);
+         }
+ 
+-        static void structured_error_func(void *, xmlErrorPtr error)
++        static void structured_error_func(void *, const _xmlError * error)
+         {
+             SAL_WARN("unoxml", "libxml2 error: " << make_error_message(error));
+         }
+
+
 [FILE:543:patches/patch-vcl_source_app_svapp.cxx]
 --- vcl/source/app/svapp.cxx.orig	2023-09-22 19:07:01 UTC
 +++ vcl/source/app/svapp.cxx
@@ -4677,6 +4845,32 @@ Tweaked by Yasushi Oshima, PR pkg/56048.
  #elif defined(EMSCRIPTEN)
  #define str(s) #s
  #define xstr(s) str(s)
+
+
+[FILE:241:patches/patch-xmlsecurity_inc_xmlsec_saxhelper.hxx]
+--- xmlsecurity/inc/xmlsec/saxhelper.hxx.orig	2023-09-22 19:07:01 UTC
++++ xmlsecurity/inc/xmlsec/saxhelper.hxx
+@@ -23,6 +23,7 @@
+ 
+ #include <string_view>
+ 
++#include <libxml/parser.h>
+ #include <libxml/tree.h>
+ 
+ #include <rtl/ustring.hxx>
+
+
+[FILE:354:patches/patch-xmlsecurity_source_xmlsec_xmldocumentwrapper_xmlsecimpl.cxx]
+--- xmlsecurity/source/xmlsec/xmldocumentwrapper_xmlsecimpl.cxx.orig	2023-09-22 19:07:01 UTC
++++ xmlsecurity/source/xmlsec/xmldocumentwrapper_xmlsecimpl.cxx
+@@ -27,6 +27,7 @@
+ #include "xmlelementwrapper_xmlsecimpl.hxx"
+ #include <comphelper/attributelist.hxx>
+ #include <rtl/ref.hxx>
++#include <libxml/valid.h>
+ 
+ #ifdef UNX
+ #define stricmp strcasecmp
 
 
 [FILE:1529:files/special.mk]
