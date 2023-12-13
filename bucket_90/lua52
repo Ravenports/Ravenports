@@ -2,6 +2,7 @@
 
 NAMEBASE=		lua52
 VERSION=		5.2.4
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Light, powerful language for app. extension
@@ -12,16 +13,22 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://www.lua.org/ftp/
 DISTFILE[1]=		lua-5.2.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			tools
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe readline
+EXRUN[tools]=		readline:primary:standard
+
+USES=			cpe readline:build
 
 DISTNAME=		lua-5.2.4
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKDIR}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -37,9 +44,8 @@ MAKE_ARGS=		MYCFLAGS="{{CFLAGS}} {{CPPFLAGS}}"
 			LUA_T=lua52
 			LUAC_T=luac52
 			LUA_A=liblua-5.2.a
-			LUALIB=liblua-5.2
-			LUA_SO=liblua-5.2.{{LIBEXT}}
-			LUA_SONAME=liblua-5.2.{{LIBEXT}}
+			LUA_SO=liblua-5.2.so
+			LUA_SONAME=liblua-5.2.so.1
 			TO_BIN="lua52 luac52"
 			TO_LIB="liblua-5.2.a liblua-5.2.{{LIBEXT}}"
 			INSTALL_TOP={{STAGEDIR}}{{PREFIX}}
@@ -47,13 +53,14 @@ MAKE_ARGS=		MYCFLAGS="{{CFLAGS}} {{CPPFLAGS}}"
 			INSTALL_EXEC="{{INSTALL_PROGRAM}}"
 SINGLE_JOB=		yes
 
+SOVERSION=		1.0.0
 PLIST_SUB=		LUA_VER=5.2
 			SUFFIX=52
 SUB_FILES=		lua-5.2.pc
 SUB_LIST=		version=5.2.4
 			includedir={{PREFIX}}/include/lua52
 			libdir={{PREFIX}}/lib
-			soname=lua-5.2
+			library=lua-5.2
 
 CFLAGS=			-fPIC
 LDFLAGS=		-lm
@@ -67,12 +74,6 @@ VAR_OPSYS[openbsd]=	MAKEFILE_LINE=BUILD_TARGET=bsd
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=BUILD_TARGET=bsd
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=BUILD_TARGET=bsd
 
-post-patch:
-	${REINPLACE_CMD} -e 's,rand *(,random(,g' ${WRKSRC}/src/lmathlib.c
-	${REINPLACE_CMD} -e "/LUA_ROOT/s|/usr/local|${PREFIX}|" \
-		${WRKSRC}/src/luaconf.h ${WRKSRC}/src/lua.c
-	${REINPLACE_CMD} -e 's|man/man1|share/man/man1|' ${WRKSRC}/Makefile
-
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/liblua-5.2.${LIBEXT}
 	${MV} ${STAGEDIR}${MANPREFIX}/man/man1/lua.1 \
@@ -81,12 +82,22 @@ post-install:
 		${STAGEDIR}${MANPREFIX}/man/man1/luac52.1
 	${INSTALL_DATA} ${WRKDIR}/lua-5.2.pc \
 		${STAGEDIR}${PREFIX}/lib/pkgconfig
+	(cd ${STAGEDIR}${PREFIX}/lib &&\
+		${MV} liblua-5.2.so liblua-5.2.so.1 &&\
+		${LN} -s liblua-5.2.so.1 liblua-5.2.so &&\
+		${LN} -s liblua-5.2.a liblua-5.2_pic.a)
+
+pre-configure:
+	${REINPLACE_CMD} -e 's,rand *(,random(,g' ${WRKSRC}/src/lmathlib.c
+	${REINPLACE_CMD} -e "/LUA_ROOT/s|/usr/local|${PREFIX}|" \
+		${WRKSRC}/src/luaconf.h ${WRKSRC}/src/lua.c
+	${REINPLACE_CMD} -e 's|man/man1|share/man/man1|' ${WRKSRC}/Makefile
 
 post-extract:
 	${AWK} '/\/\*\*/ {start=1} /^$$/{start=0} {if (start) print}' \
 		${WRKSRC}/src/lua.h > ${WRKDIR}/LICENSE
 
-[FILE:1209:descriptions/desc.single]
+[FILE:1209:descriptions/desc.primary]
 Lua is a programming language originally designed for extending
 applications, but also frequently used as a general-purpose, stand-alone
 language. Lua combines simple procedural syntax (similar to Pascal) with
@@ -109,14 +120,27 @@ and compiles unmodified in all known platforms. The implementation goals
 are simplicity, efficiency, portability, and low embedding cost.
 
 
+[FILE:64:descriptions/desc.tools]
+This package contains the Lua interpreter and the Lua compiler.
+
+
 [FILE:95:distinfo]
 b9e2e4aad6789b3b63a056d442f7b39f0ecfca3ae0f1fc0ae4e9614401b69f4b       252651 lua-5.2.4.tar.gz
 
 
-[FILE:299:manifests/plist.single]
+[FILE:38:manifests/plist.primary]
+lib/liblua-%%LUA_VER%%.so.%%SOMAJOR%%
+
+
+[FILE:88:manifests/plist.tools]
 bin/
  lua%%SUFFIX%%
  luac%%SUFFIX%%
+@dir lib/lua/%%LUA_VER%%
+@dir share/lua/%%LUA_VER%%
+
+
+[FILE:180:manifests/plist.dev]
 include/lua%%SUFFIX%%/
  lauxlib.h
  lua.h
@@ -126,15 +150,17 @@ include/lua%%SUFFIX%%/
 lib/
  liblua-%%LUA_VER%%.a
  liblua-%%LUA_VER%%.so
+ liblua-%%LUA_VER%%_pic.a
 lib/pkgconfig/lua-%%LUA_VER%%.pc
+
+
+[FILE:57:manifests/plist.man]
 share/man/man1/
  lua%%SUFFIX%%.1.gz
  luac%%SUFFIX%%.1.gz
-@dir lib/lua/%%LUA_VER%%
-@dir share/lua/%%LUA_VER%%
 
 
-[FILE:1203:patches/patch-src_Makefile]
+[FILE:1033:patches/patch-src_Makefile]
 --- src/Makefile.orig	2013-11-11 11:45:49 UTC
 +++ src/Makefile
 @@ -6,12 +6,13 @@
@@ -174,15 +200,12 @@ share/man/man1/
  ALL_A= $(LUA_A)
  
  # Targets start here.
-@@ -55,8 +56,14 @@ o:	$(ALL_O)
+@@ -55,8 +56,11 @@ o:	$(ALL_O)
  
  a:	$(ALL_A)
  
-+$(LUALIB).so: $(CORE_O) $(LIB_O)
++$(LUA_SO): $(CORE_O) $(LIB_O)
 +	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(MYLDFLAGS) -shared -Wl,-soname=$(LUA_SONAME) $?
-+
-+$(LUALIB).dylib: $(CORE_O) $(LIB_O)
-+	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(MYLDFLAGS) -dynamiclib -current_version 1.0 -install_name '$(PREFIX)/lib/$(LUA_SONAME)' $?
 +
  $(LUA_A): $(BASE_O)
 -	$(AR) $@ $(BASE_O)
@@ -205,15 +228,15 @@ share/man/man1/
  #define LUA_LIB
 
 
-[FILE:217:files/lua-5.2.pc.in]
+[FILE:220:files/lua-5.2.pc.in]
 version=%%version%%
 libdir=%%libdir%%
 includedir=%%includedir%%
-soname=%%soname%%
+library=%%library%%
 
 Name: Lua
 Description: An Extensible Extension Language
 Version: ${version}
-Libs: -L${libdir} -l${soname} -lm
+Libs: -L${libdir} -l${library} -lm
 Cflags: -I${includedir}
 

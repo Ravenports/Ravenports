@@ -2,12 +2,16 @@
 #
 # Feature:	lua
 # Usage:	USES=lua
-# Valid ARGS:	[version],[build,run,buildrun] (version 5.3 implicit), (buildrun implicit)
+# Valid ARGS:	[version],[build,run,buildrun],[tools] (version 5.4 implicit), (build implicit)
 
 # ------------------------------------------------------
 # Incorporated in ravenadm
 # ------------------------------------------------------
-# BUILD/RUN_DEPENDS+=	luaXX:single:standard
+# BUILD_DEPENDS=        luaXX:dev:standard
+# RUN_DEPENDS=          luaXX:primary:standard
+# BUILDRUN_DEPENDS=	luaXX:dev:standard + luaXX:primary:standard
+# If tools set:
+# BUILD_DEPENDS=	luaXX:tools:standard
 # ------------------------------------------------------
 
 .if !defined(_INCLUDE_USES_LUA_MK)

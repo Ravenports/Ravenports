@@ -3,7 +3,7 @@
 # Feature:	php
 # Usage:	USES=php or USES=php:ARGS
 # Valid ARGS:	phpize, ext, zend, build, cli, (cgi|mod), web, embed,
-#               (80|81|82)
+#               (81|82|83)
 #
 #  phpize   : Use to build a PHP extension.
 #  ext      : Use to build, install and register a PHP extension.
@@ -48,15 +48,15 @@
 .if !defined(_INCLUDE_USES_PHP_MK)
 _INCLUDE_USES_PHP_MK=	yes
 
-.  if ${php_ARGS:M82}
+.  if ${php_ARGS:M83}
+PHP_SUFFIX=	83
+PHP_DOTVER=	8.3
+.  elif ${php_ARGS:M82}
 PHP_SUFFIX=	82
 PHP_DOTVER=	8.2
 .  elif ${php_ARGS:M81}
 PHP_SUFFIX=	81
 PHP_DOTVER=	8.1
-.  elif ${php_ARGS:M80}
-PHP_SUFFIX=	80
-PHP_DOTVER=	8.0
 .  else
 PHP_SUFFIX=	${PHP_DEFAULT:S/.//}
 PHP_DOTVER=	${PHP_DEFAULT}
@@ -78,14 +78,14 @@ PHP_EXT_DIR!=	${LOCALBASE}/bin/php-config --extension-dir | \
 PHP_VER=	${PHP_SUFFIX}
 PHP_VERSION=	${PHP_${PHP_DOTVER}_VERSION}
 PHP_SAPI=	# assume none
-.      if ${PHP_SUFFIX} == 82
+.      if ${PHP_SUFFIX} == 83
+PHP_EXT_DIR=	20230831
+PHP_EXT_INC=	hash json pcre spl
+.    elif ${PHP_SUFFIX} == 82
 PHP_EXT_DIR=	20220829
 PHP_EXT_INC=	hash json pcre spl
 .    elif ${PHP_SUFFIX} == 81
 PHP_EXT_DIR=	20210902
-PHP_EXT_INC=	hash json pcre spl
-.    elif ${PHP_SUFFIX} == 80
-PHP_EXT_DIR=	20200930
 PHP_EXT_INC=	hash json pcre spl
 .    endif
 .  endif
