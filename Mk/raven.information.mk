@@ -22,7 +22,7 @@ APQ_ODBC_REVISION=		1
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.83.0
+BOOST_VERSION=			1.84.0
 BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
@@ -121,8 +121,8 @@ GCCBASE_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			74.1
-ICU_REVISION=			1
+ICU_VERSION=			74.2
+ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
 # ------------------------------------------------------------------------
@@ -165,7 +165,7 @@ GTK2_VERSION=			2.10.0
 GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
-GTK3_PORT_VERSION=		3.24.38
+GTK3_PORT_VERSION=		3.24.39
 GTK4_PORT_VERSION=		4.12.4
 
 # ------------------------------------------------------------------------
