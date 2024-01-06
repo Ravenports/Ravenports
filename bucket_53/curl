@@ -2,8 +2,10 @@
 
 NAMEBASE=		curl
 VERSION=		8.5.0
+REVISION=		1
 KEYWORDS=		ftp net www
-VARIANTS=		standard
+VARIANTS=		standard embed
+SDESC[embed]=		Tiny curl PIC, http/s, file, scp protocol only
 SDESC[standard]=	Tool and library for transferring data with URLs
 HOMEPAGE=		https://curl.haxx.se/
 CONTACT=		nobody
@@ -12,6 +14,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://curl.haxx.se/download/
 DISTFILE[1]=		curl-8.5.0.tar.xz:main
 DF_INDEX=		1
+SPKGS[embed]=		complete
+			primary
+			dev
 SPKGS[standard]=	complete
 			primary
 			dev
@@ -19,15 +24,14 @@ SPKGS[standard]=	complete
 			examples
 			docs
 
-OPTIONS_AVAILABLE=	IDN LDAP LDAPS SSH2
-OPTIONS_STANDARD=	IDN LDAP LDAPS SSH2
+OPTIONS_AVAILABLE=	EMBED
+OPTIONS_STANDARD=	EMBED
+VOPTS[embed]=		EMBED=ON
 
-BUILD_DEPENDS=		libnghttp2:dev:standard
-BUILDRUN_DEPENDS=	libnghttp2:primary:standard
-RUN_DEPENDS=		nss:caroot:standard
+BUILDRUN_DEPENDS=	nss:caroot:standard
 
 USES=			cpe gmake libtool perl:build pkgconfig shebangfix
-			ssl
+			zlib:build
 
 LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
@@ -40,41 +44,41 @@ SHEBANG_FILES=		*/*.pl
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-werror
-			--enable-imap
-			--enable-pop3
-			--enable-rtsp
-			--enable-smtp
-			--with-zsh-functions-dir={{LOCALBASE}}/share/zsh/site-functions
-			--without-axtls
 			--with-ca-bundle={{LOCALBASE}}/share/certs/ca-root-nss.crt
-			--enable-cookies
-			--with-nghttp2
-			--with-ipv6
-			--with-ssl={{OPENSSLBASE}}
-			--enable-pthreads
-			--enable-threaded-resolver
 CONFIGURE_ENV=		LOCALBASE={{LOCALBASE}}
-			ac_cv_func_SSLv2_client_method=no
 
 SOVERSION=		4.8.0
 
-CPPFLAGS=		-I{{OPENSSLINC}}
-LDFLAGS=		-L{{OPENSSLLIB}}
 TEST_TARGET=		test
 
-[SSH2].DESCRIPTION=			SCP/SFTP support via libssh2
+[EMBED].DESCRIPTION=			Tiny build - http/s, file, scp via libssh2
+[EMBED].BUILDRUN_DEPENDS_OFF=		libnghttp2:primary:standard
+[EMBED].BUILD_DEPENDS_OFF=		libnghttp2:dev:standard
+					groff:primary:standard
+[EMBED].BUILD_DEPENDS_ON=		libssh2:dev:embed
+					mbedtls:dev:standard
+[EMBED].CONFIGURE_ARGS_OFF=		--with-ssl={{OPENSSLBASE}}
+					--with-mbedtls=no
+[EMBED].CONFIGURE_ARGS_ON=		--with-mbedtls={{LOCALBASE}}
+[EMBED].CPPFLAGS_OFF=			-I{{OPENSSLINC}}
+[EMBED].LDFLAGS_OFF=			-L{{OPENSSLLIB}}
+[EMBED].USES_OFF=			ssl
+
+pre-configure-EMBED-ON:
+	# don't install the man pages
+	${REINPLACE_CMD} -e '/cd docs\/libcurl/d' ${WRKSRC}/Makefile.in
+	# copy pic library build script
+	${CP} ${FILESDIR}/build_curl_pic.sh ${WRKSRC}/
+
+post-build-EMBED-ON:
+	(cd ${WRKSRC} && ${SH} ./build_curl_pic.sh)
 
 post-install:
-	${MKDIR} ${STAGEDIR}${STD_DOCDIR}/libcurl \
-		${STAGEDIR}${STD_EXAMPLESDIR}
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libcurl.${LIBEXT}
-	(cd ${WRKSRC}/docs/ && \
-		${INSTALL_DATA} FAQ INSTALL KNOWN_BUGS MAIL-ETIQUETTE THANKS TODO options-in-versions *.md ${STAGEDIR}${STD_DOCDIR}/)
-	(cd ${WRKSRC}/docs/libcurl/ && ${INSTALL_DATA} \
-		*.m4 ${STAGEDIR}${STD_DOCDIR}/libcurl/)
-	(cd ${WRKSRC}/docs/examples/ && ${INSTALL_DATA} \
-		README.md Makefile.example *.c *.cpp \
-		${STAGEDIR}${STD_EXAMPLESDIR}/)
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libcurl.so
+
+post-install-EMBED-ON:
+	${RM} ${STAGEDIR}${MANPREFIX}/man/man1/*
+	${INSTALL_DATA} ${WRKSRC}/libcurl_pic.a ${STAGEDIR}${PREFIX}/lib/
 
 pre-configure:
 	${REINPLACE_CMD} -e '/^SUBDIRS = / s|$$| docs scripts|; /^DIST_SUBDIRS = / s| docs scripts||; /cd docs &&/d' \
@@ -83,11 +87,24 @@ pre-configure:
 		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's|include <gssapi.h>|include <gssapi/gssapi.h>|' \
 		${WRKSRC}/lib/curl_gssapi.h ${WRKSRC}/lib/urldata.h
+
+post-install-EMBED-OFF:
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}/libcurl \
+		${STAGEDIR}${STD_EXAMPLESDIR}
+	(cd ${WRKSRC}/docs/ && \
+		${INSTALL_DATA} FAQ INSTALL KNOWN_BUGS MAIL-ETIQUETTE THANKS TODO options-in-versions *.md ${STAGEDIR}${STD_DOCDIR}/)
+	(cd ${WRKSRC}/docs/libcurl/ && ${INSTALL_DATA} \
+		*.m4 ${STAGEDIR}${STD_DOCDIR}/libcurl/)
+	(cd ${WRKSRC}/docs/examples/ && ${INSTALL_DATA} \
+		README.md Makefile.example *.c *.cpp \
+		${STAGEDIR}${STD_EXAMPLESDIR}/)
+
+pre-configure-EMBED-OFF:
 	# fix libcurl.pc
 	${REINPLACE_CMD} -e '/^Libs.private:/ s|:|: -L${OPENSSLLIB}|' \
 		${WRKSRC}/libcurl.pc.in
 
-[FILE:779:descriptions/desc.primary]
+[FILE:845:descriptions/desc.primary]
 Command line tool and library for transferring data with URLs.
 
 curl is used in command lines or scripts to transfer data. It is also
@@ -97,8 +114,11 @@ backbone for thousands of software applications affecting billions of
 humans daily.
 
 Protocols:
-DICT, FILE, FTP, FTPS, Gopher, HTTP, HTTPS, IMAP, IMAPS, LDAP, LDAPS, POP3,
-POP3S, RTMP, RTSP, SCP, SFTP, SMB, SMTP, SMTPS, Telnet and TFTP.
+DICT, FILE, FTP, FTPS, GOPHER, GOPHERS, HTTP, HTTPS, IMAP, IMAPS,
+MQTT, POP3, POP3S, RTSP, SMB, SMBS, SMTP, SMTPS, TELNET and TFTP
+
+Not currently supported:
+LDAP, LDAPS, RTMP, SCP & SFTP (see embed variant)
 
 curl supports SSL certificates, HTTP POST, HTTP PUT, FTP uploading, HTTP
 form based upload, proxies, HTTP/2, cookies, user+password authentication
@@ -106,26 +126,31 @@ form based upload, proxies, HTTP/2, cookies, user+password authentication
 file transfer resume, proxy tunneling and more.
 
 
-[FILE:45:descriptions/desc.man]
-This package contains the man pages of cURL.
+[FILE:116:descriptions/desc.primary.embed]
+Minimal Command line tool and library for transferring data with URLs.
+
+Protocols:        
+FILE HTTP HTTPS SCP SFTP
 
 
 [FILE:96:distinfo]
 42ab8db9e20d8290a3b633e7fbb3cec15db34df65fd1015ef8ac1e4723750eeb      2658520 curl-8.5.0.tar.xz
 
 
-[FILE:152:manifests/plist.primary]
+[FILE:143:manifests/plist.primary]
 bin/
  curl
  curl-config
 lib/
  libcurl.so.%%SOMAJOR%%
  libcurl.so.%%SOVERSION%%
-share/fish/vendor_completions.d/curl.fish
+share/fish/completions/curl.fish
 share/zsh/site-functions/_curl
 
 
-[FILE:226:manifests/plist.dev]
+[FILE:269:manifests/plist.dev]
+%%EMBED-ON%%lib/libcurl_pic.a
+%%EMBED-OFF%%share/aclocal/libcurl.m4
 include/curl/
  curl.h
  curlver.h
@@ -143,7 +168,6 @@ lib/
  libcurl.a
  libcurl.so
 lib/pkgconfig/libcurl.pc
-share/aclocal/libcurl.m4
 
 
 [FILE:13518:manifests/plist.man]
@@ -646,7 +670,7 @@ share/man/man3/
  libcurl.3.gz
 
 
-[FILE:3629:patches/patch-configure]
+[FILE:5345:patches/patch-configure]
 --- configure.orig	2023-12-05 14:57:46 UTC
 +++ configure
 @@ -4190,9 +4190,10 @@ printf "%s\n" "$as_me: LIBS note: LIBS s
@@ -704,6 +728,69 @@ share/man/man3/
  
        if test "$want_optimize" = "yes"; then
          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if compiler accepts optimizer enabling options" >&5
+@@ -24038,7 +24046,7 @@ then :
+   printf %s "(cached) " >&6
+ else $as_nop
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lz  $LIBS"
++LIBS="-lz_pic  $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -24069,7 +24077,7 @@ printf "%s\n" "$ac_cv_lib_z_inflateEnd"
+ if test "x$ac_cv_lib_z_inflateEnd" = xyes
+ then :
+                      HAVE_LIBZ="1"
+-                    ZLIB_LIBS="-lz"
++                    ZLIB_LIBS="-lz_pic"
+                     LIBS="$ZLIB_LIBS $LIBS"
+ else $as_nop
+                      OPT_ZLIB="/usr/local"
+@@ -24096,7 +24104,7 @@ then :
+   printf %s "(cached) " >&6
+ else $as_nop
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lz  $LIBS"
++LIBS="-lz_pic  $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -24128,7 +24136,7 @@ if test "x$ac_cv_lib_z_gzread" = xyes
+ then :
+ 
+                                       HAVE_LIBZ="1"
+-                   ZLIB_LIBS="-lz"
++                   ZLIB_LIBS="-lz_pic"
+                    LIBS="$ZLIB_LIBS $LIBS"
+ 
+ else $as_nop
+@@ -29365,7 +29373,7 @@ printf "%s\n" "found" >&6; }
+   esac
+ 
+     if test -n "$PREFIX_SSH2"; then
+-    LIB_SSH2="-lssh2"
++    LIB_SSH2="-lssh2_pic"
+     LD_SSH2=-L${PREFIX_SSH2}/lib$libsuff
+     CPP_SSH2=-I${PREFIX_SSH2}/include
+     DIR_SSH2=${PREFIX_SSH2}/lib$libsuff
+@@ -29382,7 +29390,7 @@ then :
+   printf %s "(cached) " >&6
+ else $as_nop
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lssh2  $LIBS"
++LIBS="-lssh2_pic  $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+@@ -29414,7 +29422,7 @@ if test "x$ac_cv_lib_ssh2_libssh2_sessio
+ then :
+   printf "%s\n" "#define HAVE_LIBSSH2 1" >>confdefs.h
+ 
+-  LIBS="-lssh2 $LIBS"
++  LIBS="-lssh2_pic $LIBS"
+ 
+ fi
+ 
 @@ -29945,31 +29953,31 @@ printf "%s\n" "found" >&6; }
      ;;
    off)
@@ -821,3 +908,145 @@ share/man/man3/
            }
            else {
 
+
+[FILE:499:files/build_curl_pic.sh]
+#!/bin/sh
+# copy this to $WRKSRC before running
+# 50+ of these objects files are empty so check before archiving.
+
+FILE_LIST="/tmp/object_files"
+
+noreloc="
+There are no relocations in this file."
+
+entries=$(find lib/.libs/ lib/*/.libs -type f -regextype posix-extended -regex  ".*/*[.]o")
+
+for xf in $entries; do
+    output=$(readelf --relocs $xf)
+    if [ "$output" != "$noreloc" ]; then
+       echo "$xf" >> "$FILE_LIST"
+    fi
+done
+
+ar -crsv libcurl_pic.a `cat "$FILE_LIST"`
+ranlib libcurl_pic.a
+
+
+[FILE:4812:files/special.mk]
+ZQ+=	--with-schannel=no		# enable Windows native SSL/TLS
+ZQ+=	--with-secure-transport=no	# enable Apple OS native SSL/TLS
+ZQ+=	--with-amissl=no		# enable Amiga native SSL/TLS (AmiSSL)
+ZQ+=	--with-gnutls=no		# where to look for GnuTLS
+ZQ+=	--with-wolfssl=no		# where to look for WolfSSL
+ZQ+=	--with-bearssl=no		# where to look for BearSSL
+ZQ+=	--with-rustls=no		# where to look for rustls
+ZQ+=	--with-test-caddy=no		# where to find caddy for testing
+ZQ+=	--with-hyper=no			# Enable hyper usage
+ZQ+=	--with-zlib=${LOCALBASE}	# Enable use of zlib
+ZQ+=	--with-brotli=no		# Enable use of BROTLI
+ZQ+=	--with-zstd=no			# Enable use of zstd
+ZQ+=	--with-libpsl=no		# Support for libpsl cookie checking
+ZQ+=	--with-libgsasl=no		# libgsasl support for SCRAM
+ZQ+=	--with-libssh=no		# Enable libssh
+ZQ+=	--with-wolfssh=no		# Enable wolfssh
+ZQ+=	--with-librtmp=no		# Enable librtmp
+ZQ+=	--with-winidn=no		# Enable Windows native IDN
+ZQ+=	--with-libidn2=no		# Enable libidn2 usage
+ZQ+=	--with-ngtcp2=no		# Enable ngtcp2 usage
+ZQ+=	--with-nghttp3=no		# Enable nghttp3 usage
+ZQ+=	--with-quiche=no		# Enable quiche usage
+ZQ+=	--with-msh3=no			# Enable msh3 usage
+ZQ+=	--enable-http=yes		# Enable HTTP support
+ZQ+=	--enable-file=yes		# Enable FILE support
+ZQ+=	--enable-ldap=no		# Enable LDAP support
+ZQ+=	--enable-ldaps=no		# Enable LDAPS support
+ZQ+=	--enable-libgcc=no		# Use libgcc when linking
+ZQ+=	--enable-proxy=yes		# Enable proxy support
+ZQ+=	--enable-ipv6=yes		# Enable IPv6 (with IPv4) support
+ZQ+=	--enable-pthreads		# Enable POSIX threads (default for threaded resolver)
+ZQ+=	--enable-verbose		# Enable verbose strings
+ZQ+=	--enable-versioned-symbols=no	# Enable versioned symbols in shared library
+ZQ+=	--enable-dnsshuffle=no		# Enable DNS shuffling
+ZQ+=	--enable-sspi=no		# Enable SSPI (Windows native builds only)
+ZQ+=	--enable-http-auth		# Enable HTTP authentication support
+ZQ+=	--enable-basic-auth		# Enable basic authentication
+ZQ+=	--enable-unix-sockets		# Enable Unix domain sockets
+ZQ+=	--enable-socketpair		# Enable socketpair support
+ZQ+=	--enable-bindlocal		# Enable local binding support
+ZQ+=	--enable-netrc			# Enable netrc parsing
+ZQ+=	--enable-progress-meter		# Enable progress-meter
+ZQ+=	--enable-get-easy-options	# Enable curl_easy_options
+ZQ+=	--enable-alt-svc		# Enable alt-svc support
+ZQ+=	--enable-mime=yes		# Enable mime API support
+ZQ+=	--enable-headers-api		# Enable headers-api support
+ZQ+=	--enable-websockets=no		# Enable WebSockets support
+
+ZQ+=	--with-zsh-functions-dir=${LOCALBASE}/share/zsh/site-functions
+ZQ+=	--with-fish-functions-dir=${LOCALBASE}/share/fish/completions
+
+
+.if "${VARIANT}" == "embed"
+ZQ+=	--with-test-nghttpx=no		# where to find nghttpx for testing
+ZQ+=	--with-nghttp2=no		# Enable nghttp2 usage
+ZQ+=	--with-libssh2			# Enable libssh2
+ZQ+=	--enable-ftp=no			# Enable FTP support
+ZQ+=	--enable-rtsp=no		# Enable RTSP support
+ZQ+=	--enable-dict=no		# Enable DICT support
+ZQ+=	--enable-telnet=no		# Enable TELNET support
+ZQ+=	--enable-tftp=no		# Enable TFTP support
+ZQ+=	--enable-pop3=no		# Enable POP3 support
+ZQ+=	--enable-imap=no		# Enable IMAP support
+ZQ+=	--enable-smb=no			# Enable SMB/CIFS support
+ZQ+=	--enable-smtp=no		# Enable SMTP support
+ZQ+=	--enable-gopher=no		# Enable Gopher support
+ZQ+=	--enable-mqtt=no		# Enable MQTT support
+ZQ+=	--enable-manual=no		# Enable built-in manual
+ZQ+=	--enable-libcurl-option=no	# Enable --libcurl C code generation support
+ZQ+=	--enable-bearer-auth=no		# Enable bearer authentication
+ZQ+=	--enable-digest-auth=no		# Enable digest authentication
+ZQ+=	--enable-kerberos-auth=no	# Enable kerberos authentication
+ZQ+=	--enable-negotiate-auth=no	# Enable negotiate authentication
+ZQ+=	--enable-aws=no			# Enable AWS sig support
+ZQ+=	--enable-ntlm=no		# Enable NTLM support
+ZQ+=	--enable-tls-srp=no		# Enable TLS-SRP authentication
+ZQ+=	--enable-cookies=no		# Enable cookies support
+ZQ+=	--enable-doh=no			# Enable DoH support
+ZQ+=	--enable-form-api=no		# Enable form API support
+ZQ+=	--enable-dateparse=no		# Enable date parsing
+ZQ+=	--enable-hsts=no		# Enable HSTS support
+
+.else
+
+ZQ+=	--with-test-nghttpx=nghttpx
+ZQ+=	--with-nghttp2
+ZQ+=	--with-libssh2=no
+ZQ+=	--enable-ftp=yes
+ZQ+=	--enable-rtsp=yes
+ZQ+=	--enable-dict=yes
+ZQ+=	--enable-telnet=yes
+ZQ+=	--enable-tftp=yes
+ZQ+=	--enable-pop3=yes
+ZQ+=	--enable-imap=yes
+ZQ+=	--enable-smb=yes
+ZQ+=	--enable-smtp=yes
+ZQ+=	--enable-gopher=yes
+ZQ+=	--enable-mqtt=yes
+ZQ+=	--enable-manual=yes
+ZQ+=	--enable-libcurl-option=yes
+ZQ+=	--enable-bearer-auth=yes
+ZQ+=	--enable-digest-auth=yes
+ZQ+=	--enable-kerberos-auth=yes
+ZQ+=	--enable-negotiate-auth=yes
+ZQ+=	--enable-aws=yes
+ZQ+=	--enable-ntlm=yes
+ZQ+=	--enable-tls-srp=yes
+ZQ+=	--enable-cookies=yes
+ZQ+=	--enable-doh=yes
+ZQ+=	--enable-form-api=yes
+ZQ+=	--enable-dateparse=yes
+ZQ+=	--enable-hsts=yes
+
+.endif
+
+CONFIGURE_ARGS+=	${ZQ}
+ 

@@ -2,9 +2,11 @@
 
 NAMEBASE=		libssh2
 VERSION=		1.11.0
+REVISION=		2
 KEYWORDS=		security devel
-VARIANTS=		standard
-SDESC[standard]=	SSH2 protocol library
+VARIANTS=		standard embed
+SDESC[embed]=		SSH2 protocol library with MBedTLS backend
+SDESC[standard]=	SSH2 protocol library with OpenSSL backend
 HOMEPAGE=		https://www.libssh2.org/
 CONTACT=		nobody
 
@@ -12,15 +14,22 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.libssh2.org/download/
 DISTFILE[1]=		libssh2-1.11.0.tar.gz:main
 DF_INDEX=		1
+SPKGS[embed]=		complete
+			primary
+			dev
+			man
+			docs
 SPKGS[standard]=	complete
 			primary
 			dev
 			man
+			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	EMBED
+OPTIONS_STANDARD=	EMBED
+VOPTS[embed]=		EMBED=ON
 
-USES=			cpe libtool ssl zlib mbsdfix
+USES=			cpe cmake zlib:build
 
 LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/COPYING
@@ -28,15 +37,30 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		security/libssh2
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-libz
-
-INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.1
 
-post-patch:
-	${REINPLACE_CMD} -e '/Libs:/s/@LIBS@//' \
-		${WRKSRC}/libssh2.pc.in
+CMAKE_ARGS=		-DZLIB_USE_STATIC_LIBS:BOOL=ON
+
+[EMBED].DESCRIPTION=			Select MBedTLS for cryptography backend
+[EMBED].BUILD_DEPENDS_ON=		mbedtls:dev:standard
+[EMBED].CMAKE_ARGS_OFF=			-DOPENSSL_ROOT_DIR="{{OPENSSLBASE}}"
+[EMBED].USES_OFF=			ssl
+
+pre-configure-EMBED-ON:
+	${REINPLACE_CMD} -e 's/lssh2/lssh2_pic/' ${WRKSRC}/libssh2.pc.in
+
+post-build-EMBED-ON:
+	# assemble PIC library
+	cd ${BUILD_WRKSRC} &&\
+		${AR} -crsv libssh2_pic.a \
+		src/CMakeFiles/libssh2_shared.dir/*.c.o \
+		&& ranlib libssh2_pic.a
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libssh2.so
+
+post-install-EMBED-ON:
+	${INSTALL_DATA} ${BUILD_WRKSRC}/libssh2_pic.a ${STAGEDIR}${PREFIX}/lib/
 
 [FILE:198:descriptions/desc.primary]
 libssh2 is a client-side C library implementing the SSH2 protocol. It
@@ -54,7 +78,8 @@ lib/
  libssh2.so.%%SOVERSION%%
 
 
-[FILE:110:manifests/plist.dev]
+[FILE:237:manifests/plist.dev]
+%%EMBED-ON%%lib/libssh2_pic.a
 include/
  libssh2.h
  libssh2_publickey.h
@@ -62,6 +87,10 @@ include/
 lib/
  libssh2.a
  libssh2.so
+lib/cmake/libssh2/
+ Libssh2Config-release.cmake
+ Libssh2Config.cmake
+ Libssh2ConfigVersion.cmake
 lib/pkgconfig/libssh2.pc
 
 
@@ -250,4 +279,15 @@ share/man/man3/
  libssh2_userauth_publickey_frommemory.3.gz
  libssh2_userauth_publickey_sk.3.gz
  libssh2_version.3.gz
+
+
+[FILE:91:manifests/plist.docs]
+share/doc/libssh2/
+ AUTHORS
+ BINDINGS.md
+ COPYING
+ HACKING.md
+ NEWS
+ README
+ RELEASE-NOTES
 
