@@ -18,7 +18,7 @@ _INCLUDE_USES_CCLIBS_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# EXRUN[subpackage]=	gcc6:libs:standard
+# EXRUN[subpackage]=	ravensys-gcc:libs:standard
 # -----------------------------------------------
 
 .endif

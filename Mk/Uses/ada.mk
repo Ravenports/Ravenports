@@ -11,7 +11,7 @@ _INCLUDE_USES_ADA_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# EXRUN[subpackage]=	gcc6:ada_run:standard
+# EXRUN[subpackage]=	ravensys-gcc:ada_run:standard
 # -----------------------------------------------
 
 .endif
