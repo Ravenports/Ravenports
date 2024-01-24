@@ -2,6 +2,7 @@
 
 NAMEBASE=		libepoll-shim
 VERSION=		0.0.20230411
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Small epoll implementation using kqueue
@@ -32,6 +33,10 @@ FPC_EQUIVALENT=		devel/libepoll-shim
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
 
+post-extract:
+	${REINPLACE_CMD} 's|libdata/pkgconfig|lib/pkgconfig|' \
+		${WRKSRC}/CMakeLists.txt
+
 [FILE:287:descriptions/desc.primary]
 This is a small library that implements epoll on top of kqueue. It has 
 been successfully used to port libinput, libevdev, Wayland and more 
@@ -57,7 +62,7 @@ lib/
  libepoll-shim.so.0
 
 
-[FILE:408:manifests/plist.dev]
+[FILE:404:manifests/plist.dev]
 %%ONLY-MIDNIGHTBSD%%include/libepoll-shim/sys/eventfd.h
 include/libepoll-shim/epoll-shim/detail/
  common.h
@@ -75,7 +80,7 @@ lib/cmake/epoll-shim/
  epoll-shim-config.cmake
  epoll-shim-targets-release.cmake
  epoll-shim-targets.cmake
-libdata/pkgconfig/
+lib/pkgconfig/
  epoll-shim-interpose.pc
  epoll-shim.pc
 

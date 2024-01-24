@@ -2,6 +2,7 @@
 
 NAMEBASE=		wayland
 VERSION=		1.22.0
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	Wayland Display Protocol implementation
@@ -17,10 +18,11 @@ SPKGS[standard]=	complete
 			dev
 			tools
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	EPOLLSHIM
+OPTIONS_STANDARD=	EPOLLSHIM
+OPT_ON[freebsd]=	EPOLLSHIM
 
-ONLY_FOR_OPSYS=		dragonfly
+ONLY_FOR_OPSYS=		dragonfly freebsd linux
 
 BUILD_DEPENDS=		libxslt:primary:standard
 			libffi:dev:standard
@@ -42,6 +44,10 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.22.0
 PLIST_SUB=		EGLSOVERSION=1.22.0
 			EGLSOMAJOR=1
+
+[EPOLLSHIM].DESCRIPTION=		Platform depends on libepoll-shim
+[EPOLLSHIM].BUILDRUN_DEPENDS_ON=	libepoll-shim:primary:standard
+[EPOLLSHIM].BUILD_DEPENDS_ON=		libepoll-shim:dev:standard
 
 [FILE:131:descriptions/desc.primary]
 Wayland is intended as a simpler replacement for X, easier to develop
@@ -105,7 +111,7 @@ share/wayland/
  wayland.xml
 
 
-[FILE:1565:patches/patch-meson.build]
+[FILE:1565:dragonfly/patch-meson.build]
 --- meson.build.orig	2023-04-04 07:58:31 UTC
 +++ meson.build
 @@ -16,7 +16,7 @@ config_h.set_quoted('PACKAGE', meson.pro
@@ -150,7 +156,7 @@ share/wayland/
  
 
 
-[FILE:1347:patches/patch-src_connection.c]
+[FILE:1347:dragonfly/patch-src_connection.c]
 --- src/connection.c.orig	2023-04-04 07:58:31 UTC
 +++ src/connection.c
 @@ -38,6 +38,7 @@
@@ -205,7 +211,7 @@ share/wayland/
  	if (ring_buffer_put(&connection->out, data, count) < 0)
 
 
-[FILE:17660:patches/patch-src_event-loop.c]
+[FILE:17660:dragonfly/patch-src_event-loop.c]
 --- src/event-loop.c.orig	2023-04-04 07:58:31 UTC
 +++ src/event-loop.c
 @@ -34,10 +34,9 @@
@@ -828,7 +834,7 @@ share/wayland/
  /** Register a destroy listener for an event loop context
 
 
-[FILE:1426:patches/patch-src_wayland-os.c]
+[FILE:1426:dragonfly/patch-src_wayland-os.c]
 --- src/wayland-os.c.orig	2023-04-04 07:58:31 UTC
 +++ src/wayland-os.c
 @@ -33,7 +33,7 @@
@@ -894,7 +900,7 @@ share/wayland/
  
 
 
-[FILE:327:patches/patch-src_wayland-os.h]
+[FILE:327:dragonfly/patch-src_wayland-os.h]
 --- src/wayland-os.h.orig	2023-04-04 07:58:31 UTC
 +++ src/wayland-os.h
 @@ -42,7 +42,7 @@ ssize_t
@@ -908,7 +914,7 @@ share/wayland/
  wl_os_accept_cloexec(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
 
-[FILE:758:patches/patch-src_wayland-server.c]
+[FILE:758:dragonfly/patch-src_wayland-server.c]
 --- src/wayland-server.c.orig	2023-04-04 07:58:31 UTC
 +++ src/wayland-server.c
 @@ -40,7 +40,6 @@
@@ -943,7 +949,7 @@ share/wayland/
  static void
 
 
-[FILE:989:patches/patch-tests_os-wrappers-test.c]
+[FILE:989:dragonfly/patch-tests_os-wrappers-test.c]
 --- tests/os-wrappers-test.c.orig	2023-04-04 07:58:31 UTC
 +++ tests/os-wrappers-test.c
 @@ -39,7 +39,6 @@
@@ -988,7 +994,7 @@ share/wayland/
  /* FIXME: add tests for wl_os_accept_cloexec() */
 
 
-[FILE:2916:patches/patch-tests_test-runner.c]
+[FILE:2916:dragonfly/patch-tests_test-runner.c]
 --- tests/test-runner.c.orig	2023-04-04 07:58:31 UTC
 +++ tests/test-runner.c
 @@ -29,6 +29,7 @@
