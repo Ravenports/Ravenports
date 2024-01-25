@@ -78,7 +78,7 @@ _USES_POST+=	autoreconf
 # BUILD_DEPENDS+=	libtool:single:standard
 # -----------------------------------------------
 
-_AUTORECONF?=	2.71
+_AUTORECONF?=	2.72
 AUTORECONF?=	${LOCALBASE}/bin/autoreconf
 AUTORECONF_WRKSRC?=	${WRKSRC}
 
