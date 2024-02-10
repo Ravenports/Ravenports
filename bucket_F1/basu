@@ -62,3 +62,35 @@ include/basu/
 lib/libbasu.so
 lib/pkgconfig/basu.pc
 
+
+[FILE:1473:patches/patch-meson.build]
+--- meson.build.orig	2024-02-08 21:04:32.952976000 +0100
++++ meson.build	2024-02-08 21:05:21.399633000 +0100
+@@ -193,26 +193,6 @@
+ 
+ nobody_user = get_option('nobody-user')
+ 
+-if not meson.is_cross_build()
+-        getent_result = run_command('getent', 'passwd', '65534')
+-        if getent_result.returncode() == 0
+-                name = getent_result.stdout().split(':')[0]
+-                if name != nobody_user
+-                        warning('\n' +
+-                                'The local user with the UID 65534 does not match the configured user name "@0@" of the nobody user (its name is @1@).\n'.format(nobody_user, name) +
+-                                'Your build will result in an user table setup that is incompatible with the local system.')
+-                endif
+-        endif
+-        id_result = run_command('id', '-u', nobody_user)
+-        if id_result.returncode() == 0
+-                id = id_result.stdout().to_int()
+-                if id != 65534
+-                        warning('\n' +
+-                                'The local user with the configured user name "@0@" of the nobody user does not have UID 65534 (it has @1@).\n'.format(nobody_user, id) +
+-                                'Your build will result in an user table setup that is incompatible with the local system.')
+-                endif
+-        endif
+-endif
+ conf.set_quoted('NOBODY_USER_NAME', nobody_user)
+ 
+ system_bus_address = get_option('system-bus-address')
+

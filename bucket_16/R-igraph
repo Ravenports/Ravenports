@@ -19,14 +19,18 @@ SPKGS[standard]=	single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		glpk:dev:standard
+			gmp:shared:standard
+			gmp:static:standard
 BUILDRUN_DEPENDS=	R-cli:single:standard
 			R-lifecycle:single:standard
 			R-magrittr:single:standard
 			R-pkgconfig:single:standard
 			R-rlang:single:standard
 			R-cpp11:single:standard
+			glpk:primary:standard
 
-USES=			cran gmake iconv
+USES=			cran gmake iconv zlib
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		igraph
@@ -47,12 +51,12 @@ graph visualization, centrality methods and much more.
 1bb6c40a44a7aeba352c4d8bf8231e6948dfa8b9925ab99f96feba53e9f48866      4956775 CRAN/igraph_2.0.1.1.tar.gz
 
 
-[FILE:720:patches/patch-src_plfit_hzeta.c]
+[FILE:750:patches/patch-src_plfit_hzeta.c]
 NetBSD does not support log1pl
 
---- src/vendor/plfit/hzeta.c.orig	2022-04-19 16:23:25 UTC
-+++ src/vendor/plfit/hzeta.c
-@@ -393,7 +393,7 @@ double hsl_sf_hzeta_deriv2(const double
+--- src/vendor/cigraph/vendor/plfit/hzeta.c.orig	2024-01-21 22:35:55 UTC
++++ src/vendor/cigraph/vendor/plfit/hzeta.c
+@@ -401,7 +401,7 @@ double hsl_sf_hzeta_deriv2(const double
  
  static inline
  double hsl_sf_hZeta0_zed(const double s, const double q) {
@@ -61,7 +65,7 @@ NetBSD does not support log1pl
  	const long double ld_q=(long double)(q);
  	const long double ld_s=(long double)(s);
  	const long double ld_log1prq=log1pl(1.0L/ld_q);
-@@ -468,7 +468,7 @@ int hsl_sf_hZeta0(const double s, const
+@@ -477,7 +477,7 @@ int hsl_sf_hZeta0(const double s, const
  
  static inline
  double hsl_sf_hZeta1_zed(const double s, const double q) {

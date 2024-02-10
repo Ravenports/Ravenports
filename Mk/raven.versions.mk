@@ -48,8 +48,8 @@ RUBY_3.2_VERSION=	3.2.2
 
 PYTHON3_DEFAULT?=	3.12
 
-PYTHON_3.11_VERSION=	3.11.7
-PYTHON_3.12_VERSION=	3.12.1
+PYTHON_3.11_VERSION=	3.11.8
+PYTHON_3.12_VERSION=	3.12.2
 
 #-------------------------------------------------------------------------
 # SSL
@@ -90,7 +90,7 @@ PGSQL_12_VERSION=	12.17
 PGSQL_13_VERSION=	13.13
 PGSQL_14_VERSION=	14.10
 PGSQL_15_VERSION=	15.5
-PGSQL_16_VERSION=	16.1
+PGSQL_16_VERSION=	16.2
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
