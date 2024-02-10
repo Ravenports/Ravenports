@@ -4,9 +4,9 @@ NAMEBASE=		ruby-http_parser.rb
 VERSION=		0.8.0
 KEYWORDS=		ruby
 VARIANTS=		v30 v31 v32
-SDESC[v30]=		Simple callback-based HTTP request/response (v30)
-SDESC[v31]=		Simple callback-based HTTP request/response (v31)
-SDESC[v32]=		Simple callback-based HTTP request/response (v32)
+SDESC[v30]=		Http-parser bindings (v30)
+SDESC[v31]=		Http-parser bindings (v31)
+SDESC[v32]=		Http-parser bindings (v32)
 HOMEPAGE=		https://github.com/tmm1/http_parser.rb
 CONTACT=		Ruby_Automaton[ruby@ironwolf.systems]
 
