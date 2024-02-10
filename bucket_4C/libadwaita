@@ -20,8 +20,8 @@ SPKGS[standard]=	complete
 			docs
 			demo
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	INTROSPECTION
+OPTIONS_STANDARD=	INTROSPECTION
 
 BUILD_DEPENDS=		appstream:dev:standard
 			gdk-pixbuf:dev:standard
@@ -29,9 +29,10 @@ BUILD_DEPENDS=		appstream:dev:standard
 			sassc:single:standard
 			vala:single:standard
 BUILDRUN_DEPENDS=	appstream:primary:standard
+EXRUN[demo]=		primary
 
 USES=			meson pkgconfig
-GNOME_COMPONENTS=	glib gtk4 introspection
+GNOME_COMPONENTS=	glib gtk4
 
 LICENSE=		LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -41,7 +42,13 @@ LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/adwaita.h
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		x11-toolkits/libadwaita
-MESON_ARGS=		-Dgtk_doc=true
+
+[INTROSPECTION].DESCRIPTION=		Build with introspection
+[INTROSPECTION].CONFIGURE_ARGS_OFF=	-Dgtk_doc=false
+					-Dintrospection=disabled
+[INTROSPECTION].CONFIGURE_ARGS_ON=	-Dgtk_doc=true
+					-Dintrospection=enabled
+[INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [FILE:144:descriptions/desc.primary]
 Adwaita offers application developers many widgets and objects to build 
@@ -56,13 +63,13 @@ This package contains the libadwaita demo application.
 ae9622222b0eb18e23675655ad2ba01741db4d8655a796f4cf077b093e2f5841      3955960 gnome4/libadwaita-1.4.3.tar.xz
 
 
-[FILE:136:manifests/plist.primary]
-lib/libadwaita-1.so.0
-lib/girepository-1.0/Adw-1.typelib
-share/gir-1.0/Adw-1.gir
-share/vala/vapi/
+[FILE:196:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/Adw-1.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/Adw-1.gir
+%%INTROSPECTION-ON%%share/vala/vapi/
  libadwaita-1.deps
  libadwaita-1.vapi
+lib/libadwaita-1.so.0
 
 
 [FILE:1406:manifests/plist.dev]
@@ -187,8 +194,8 @@ share/locale/zh_CN/LC_MESSAGES/libadwaita.mo
 share/locale/zh_TW/LC_MESSAGES/libadwaita.mo
 
 
-[FILE:59682:manifests/plist.docs]
-share/doc/libadwaita-1/
+[FILE:59702:manifests/plist.docs]
+%%INTROSPECTION-ON%%share/doc/libadwaita-1/
  RedHatDisplay-Black.woff
  RedHatDisplay-Black.woff2
  RedHatDisplay-BlackItalic.woff
