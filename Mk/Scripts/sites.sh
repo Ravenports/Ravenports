@@ -568,7 +568,6 @@ expand_GIMP()
     # pattern [element]/%SUBDIR%/
     local SUBDIR=${1##GIMP/}
     local cluster="\
-    http://gimp.mirrors.hoobly.com/pub \
     https://download.gimp.org/pub"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
