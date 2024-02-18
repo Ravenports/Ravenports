@@ -130,6 +130,10 @@ post-install-SIMD-ON:
 	${INSTALL_DATA} ${WRKSRC}/contrib/sb-simd/code/*.[la]* \
 		${STAGEDIR}${PREFIX}/lib/sbcl/sb-simd/
 
+pre-build-midnightbsd:
+	# MidnightBSD 3.0 code originates from FreeBSD before the addition of ASLR
+	${REINPLACE_CMD} '/PAXCTL/d' ${WRKSRC}/src/runtime/Config.x86-64-freebsd
+
 post-extract:
 	if [ ! -f "${LOCALBASE}/bin/clisp" ]; then \
 		${MV} ${WRKDIR}/sbcl-1.2.7-* ${WRKDIR}/bootstrap ;\
