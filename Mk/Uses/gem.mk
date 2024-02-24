@@ -3,9 +3,9 @@
 # Feature:	gem
 # Usage:	USES=gem
 # Valid ARGS:	skiplist (Don't generate package list automatically)
-#               v30      (requires Ruby 3.0)
 #               v31      (requires Ruby 3.1) (implicit)
 #               v32      (requires Ruby 3.2)
+#               v33      (requires Ruby 3.3)
 
 .if !defined(_INCLUDE_USES_GEM_MK)
 _INCLUDE_USES_GEM_MK=	yes
@@ -13,21 +13,21 @@ _INCLUDE_USES_GEM_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v(30,31,32)
+# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v(31,32,33)
 # -----------------------------------------------
 
-.  if ${gem_ARGS} == "v32"
-GEMS_BASE_DIR=	lib/ruby/gems/3.2
-RUBYGEMBIN=	${LOCALBASE}/bin/gem32
-USING_RUBY=	3.2
-.  elif ${gem_ARGS} == "v30"
-GEMS_BASE_DIR=	lib/ruby/gems/3.0
-RUBYGEMBIN=	${LOCALBASE}/bin/gem30
-USING_RUBY=	3.0
-.  else
+.  if ${gem_ARGS} == "v33"
+GEMS_BASE_DIR=	lib/ruby/gems/3.3
+RUBYGEMBIN=	${LOCALBASE}/bin/gem33
+USING_RUBY=	3.3
+.  elif ${gem_ARGS} == "v31"
 GEMS_BASE_DIR=	lib/ruby/gems/3.1
 RUBYGEMBIN=	${LOCALBASE}/bin/gem31
 USING_RUBY=	3.1
+.  else
+GEMS_BASE_DIR=	lib/ruby/gems/3.2
+RUBYGEMBIN=	${LOCALBASE}/bin/gem32
+USING_RUBY=	3.2
 .  endif
 
 INSTALL_REQ_TOOLCHAIN=	yes

@@ -32,14 +32,14 @@ PERL_5.38_VERSION=	5.38.2
 
 #-------------------------------------------------------------------------
 # RUBY
-# Possible values: 3.0, 3.1, 3.2
+# Possible values: 3.1, 3.2, 3.3
 #-------------------------------------------------------------------------
 
-RUBY_DEFAULT?=		3.1
+RUBY_DEFAULT?=		3.2
 
-RUBY_3.0_VERSION=	3.0.6
 RUBY_3.1_VERSION=	3.1.4
 RUBY_3.2_VERSION=	3.2.2
+RUBY_3.3_VERSION=	3.3.0
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -105,7 +105,7 @@ PGSQL_16_VERSION=	16.2
 #   MariaDB 10.9   EOL 22 Aug 2023 (REMOVED)
 #   MariaDB 10.10  EOL 17 Nov 2023 (REMOVED)
 #   MariaDB 10.11  EOL 16 Feb 2028 (STABLE-LTS)
-#   MariaDB 11.1   EOL 20 Aug 2025 (SHORT-TERM)
+#   MariaDB 11.3   EOL 16 Feb 2025 (SHORT-TERM)
 #
 #-------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ MYSQL_mariadb-10.4_VERSION=	10.4.33
 MYSQL_mariadb-10.5_VERSION=	10.5.24
 MYSQL_mariadb-10.6_VERSION=	10.6.17
 MYSQL_mariadb-10.11_VERSION=	10.11.7
-MYSQL_mariadb-11_VERSION=	11.2.3
+MYSQL_mariadb-11_VERSION=	11.3.2
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
