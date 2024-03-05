@@ -410,7 +410,7 @@ https://gitlab.com/mbunkus/mkvtoolnix/issues/2450
  #elif defined(SYS_APPLE)
  # include "mkvtoolnix-gui/util/sleep_inhibitor/macos.h"
 -#elif defined(HAVE_QTDBUS)
-+#elif defined(SYS_LINUX)
++#elif defined(__linux__)
  # include "mkvtoolnix-gui/util/sleep_inhibitor/linux_logind.h"
  #endif
  
@@ -419,10 +419,23 @@ https://gitlab.com/mbunkus/mkvtoolnix/issues/2450
  #elif defined(SYS_APPLE)
    inhibitor->addInhibitor(std::make_shared<MacOSSleepInhibitor>());
 -#elif defined(HAVE_QTDBUS)
-+#elif defined(SYS_LINUX)
++#elif defined(__linux__)
    inhibitor->addInhibitor(std::make_shared<LogindSleepInhibitor>());
  #endif
  
+
+
+[FILE:308:patches/patch-src_mkvtoolnix-gui_util_sleep__inhibitor_linux__logind.cpp]
+--- src/mkvtoolnix-gui/util/sleep_inhibitor/linux_logind.cpp.orig	2024-01-02 13:40:55 UTC
++++ src/mkvtoolnix-gui/util/sleep_inhibitor/linux_logind.cpp
+@@ -1,6 +1,6 @@
+ #include "common/common_pch.h"
+ 
+-#if defined(HAVE_QTDBUS)
++#if defined(__linux__)
+ 
+ #include <QDBusConnection>
+ #include <QDBusInterface>
 
 
 [FILE:18:files/special.mk]
