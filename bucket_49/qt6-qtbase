@@ -2,7 +2,7 @@
 
 NAMEBASE=		qt6-qtbase
 VERSION=		6.5.2
-REVISION=		3
+REVISION=		4
 KEYWORDS=		x11_toolkits devel
 VARIANTS=		standard
 SDESC[standard]=	Qt6 - QtBase component
@@ -19,8 +19,9 @@ SPKGS[standard]=	complete
 			dev
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	X11
+OPTIONS_STANDARD=	X11
+OPT_ON[all]=		X11
 
 BUILD_DEPENDS=		evdev-proto:single:standard
 			elftoolchain:libraries:standard
@@ -43,7 +44,7 @@ USES=			qt6 zlib png sqlite jpeg pkgconfig execinfo iconv
 			zstd pcre2 freetype clang
 GNOME_COMPONENTS=	atk
 XORG_COMPONENTS=	x11 xcb xcb-util xcb-util-image xcb-util-keysyms
-			xcb-util-wm xcb-render-util x11
+			xcb-util-wm xcb-render-util x11 xcb-util-cursor sm
 
 DISTNAME=		qtbase-everywhere-src-6.5.2
 
@@ -105,6 +106,10 @@ VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
 			CMAKE_ARGS=-DBUILD_WITH_PCH=OFF
 
+[X11].DESCRIPTION=			Build with X11 support
+[X11].CMAKE_ARGS_OFF=			-DFEATURE_xcb=OFF
+					-DFEATURE_xlib=OFF
+
 post-patch:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
 	${MKDIR} ${WRKSRC}/mkspecs/midnightbsd-g++
@@ -155,7 +160,7 @@ This package contains the Qt6 qtbase submodule.
 3db4c729b4d80a9d8fda8dd77128406353baff4755ca619177eda4cddae71269     48410716 qtbase-everywhere-src-6.5.2.tar.xz
 
 
-[FILE:1851:manifests/plist.primary]
+[FILE:2294:manifests/plist.primary]
 %%EVDEV%%lib/qt6/plugins/generic/
  libqevdevkeyboardplugin.so
  libqevdevmouseplugin.so
@@ -166,7 +171,19 @@ This package contains the Qt6 qtbase submodule.
  libibusplatforminputcontextplugin.so
 %%ONLY-LINUX%%lib/qt6/plugins/networkinformation/libqnetworkmanager.so
 %%ONLY-LINUX%%lib/qt6/plugins/platforms/libqlinuxfb.so
-%%XCB%%lib/qt6/plugins/egldeviceintegrations/libqeglfs-x11-integration.so
+%%X11-ON%%lib/qt6/
+ libQt6XcbQpa.prl
+ libQt6XcbQpa.so
+ libQt6XcbQpa.so.%%SOMAJOR%%
+ libQt6XcbQpa.so.%%SOVERSION%%
+%%X11-ON%%lib/qt6/metatypes/qt6xcbqpaprivate_release_metatypes.json
+%%X11-ON%%lib/qt6/mkspecs/modules/qt_lib_xcb_qpa_lib_private.pri
+%%X11-ON%%lib/qt6/modules/XcbQpaPrivate.json
+%%X11-ON%%lib/qt6/plugins/egldeviceintegrations/libqeglfs-x11-integration.so
+%%X11-ON%%lib/qt6/plugins/platforms/libqxcb.so
+%%X11-ON%%lib/qt6/plugins/xcbglintegrations/
+ libqxcb-egl-integration.so
+ libqxcb-glx-integration.so
 lib/qt6/
  libQt6Concurrent.so.%%SOMAJOR%%
  libQt6Concurrent.so.%%SOVERSION%%
@@ -215,7 +232,7 @@ lib/qt6/plugins/tls/
  libqopensslbackend.so
 
 
-[FILE:80289:manifests/plist.dev]
+[FILE:81834:manifests/plist.dev]
 %%EVDEV%%lib/qt6/cmake/Qt6Gui/
  Qt6QEvdevKeyboardPluginAdditionalTargetInfo.cmake
  Qt6QEvdevKeyboardPluginConfig.cmake
@@ -307,13 +324,55 @@ lib/qt6/plugins/tls/
  Qt6QNetworkManagerNetworkInformationPluginConfigVersionImpl.cmake
  Qt6QNetworkManagerNetworkInformationPluginTargets-release.cmake
  Qt6QNetworkManagerNetworkInformationPluginTargets.cmake
-%%XCB%%lib/qt6/cmake/Qt6Gui/
+%%X11-ON%%include/qt6/QtGui/
+ bus_interface.h
+ cache_adaptor.h
+ deviceeventcontroller_adaptor.h
+ socket_interface.h
+%%X11-ON%%include/qt6/QtGui/%%QTVER%%/QtGui/private/
+ atspiadaptor_p.h
+ dbusconnection_p.h
+ qglxconvenience_p.h
+ qspi_constant_mappings_p.h
+ qspi_struct_marshallers_p.h
+ qspiaccessiblebridge_p.h
+ qspiapplicationadaptor_p.h
+ qspidbuscache_p.h
+ qtx11extras_p.h
+%%X11-ON%%lib/qt6/cmake/Qt6Gui/
  Qt6QEglFSX11IntegrationPluginAdditionalTargetInfo.cmake
  Qt6QEglFSX11IntegrationPluginConfig.cmake
  Qt6QEglFSX11IntegrationPluginConfigVersion.cmake
  Qt6QEglFSX11IntegrationPluginConfigVersionImpl.cmake
  Qt6QEglFSX11IntegrationPluginTargets-release.cmake
  Qt6QEglFSX11IntegrationPluginTargets.cmake
+ Qt6QXcbEglIntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QXcbEglIntegrationPluginConfig.cmake
+ Qt6QXcbEglIntegrationPluginConfigVersion.cmake
+ Qt6QXcbEglIntegrationPluginConfigVersionImpl.cmake
+ Qt6QXcbEglIntegrationPluginTargets-release.cmake
+ Qt6QXcbEglIntegrationPluginTargets.cmake
+ Qt6QXcbGlxIntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QXcbGlxIntegrationPluginConfig.cmake
+ Qt6QXcbGlxIntegrationPluginConfigVersion.cmake
+ Qt6QXcbGlxIntegrationPluginConfigVersionImpl.cmake
+ Qt6QXcbGlxIntegrationPluginTargets-release.cmake
+ Qt6QXcbGlxIntegrationPluginTargets.cmake
+ Qt6QXcbIntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QXcbIntegrationPluginConfig.cmake
+ Qt6QXcbIntegrationPluginConfigVersion.cmake
+ Qt6QXcbIntegrationPluginConfigVersionImpl.cmake
+ Qt6QXcbIntegrationPluginTargets-release.cmake
+ Qt6QXcbIntegrationPluginTargets.cmake
+%%X11-ON%%lib/qt6/cmake/Qt6XcbQpaPrivate/
+ Qt6XcbQpaPrivateAdditionalTargetInfo.cmake
+ Qt6XcbQpaPrivateConfig.cmake
+ Qt6XcbQpaPrivateConfigVersion.cmake
+ Qt6XcbQpaPrivateConfigVersionImpl.cmake
+ Qt6XcbQpaPrivateDependencies.cmake
+ Qt6XcbQpaPrivateTargets-release.cmake
+ Qt6XcbQpaPrivateTargets.cmake
+ Qt6XcbQpaPrivateVersionlessTargets.cmake
 include/qt6/QtConcurrent/
  QtConcurrent
  QtConcurrentDepends
@@ -1636,7 +1695,6 @@ include/qt6/QtGui/%%QTVER%%/QtGui/private/
  qgenericunixfontdatabase_p.h
  qgenericunixservices_p.h
  qgenericunixthemes_p.h
- qglxconvenience_p.h
  qglyphrun_p.h
  qgrayraster_p.h
  qgridlayoutengine_p.h
