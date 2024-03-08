@@ -88,7 +88,7 @@ independent and has platform-specific implementations is also provided.
 1906caa53b7d58fc0c4d78a3c8d99f25aa056fc6d09c5fc121ed5e1f80396a94      2393276 kde6/kwindowsystem-6.0.0.tar.xz
 
 
-[FILE:409:manifests/plist.primary]
+[FILE:372:manifests/plist.primary]
 lib/
  libKF6WindowSystem.so.%%SOMAJOR%%
  libKF6WindowSystem.so.%%SOVERSION%%
@@ -100,13 +100,12 @@ lib/qt6/qml/org/kde/kwindowsystem/
  kde-qmlmodule.version
  libKWindowSystem.so
  qmldir
-libdata/pkgconfig/KF6WindowSystem.pc
 share/qlogging-categories6/
  kwindowsystem.categories
  kwindowsystem.renamecategories
 
 
-[FILE:850:manifests/plist.dev]
+[FILE:883:manifests/plist.dev]
 include/KF6/KWindowSystem/
  KKeyServer
  KSelectionOwner
@@ -151,6 +150,7 @@ lib/cmake/KF6WindowSystem/
  KF6WindowSystemConfigVersion.cmake
  KF6WindowSystemTargets-release.cmake
  KF6WindowSystemTargets.cmake
+lib/pkgconfig/KF6WindowSystem.pc
 
 
 [FILE:5078:manifests/plist.nls]
@@ -256,4 +256,36 @@ share/locale/xh/LC_MESSAGES/kwindowsystem6_qt.qm
 share/locale/zh_CN/LC_MESSAGES/kwindowsystem6_qt.qm
 share/locale/zh_HK/LC_MESSAGES/kwindowsystem6_qt.qm
 share/locale/zh_TW/LC_MESSAGES/kwindowsystem6_qt.qm
+
+
+[FILE:349:patches/patch-metainfo.yaml]
+--- metainfo.yaml.orig	2024-02-21 11:27:59 UTC
++++ metainfo.yaml
+@@ -7,6 +7,9 @@ platforms:
+       note: Only platform X11 is supported
+     - name: FreeBSD
+       note: Only platform X11 is supported
++    - name: DragonFly
++    - name: NetBSD
++    - name: MidnightBSD
+     - name: macOS
+       note: Not all features supported
+     - name: Windows
+
+
+[FILE:607:patches/patch-src_platforms_wayland_shm.cpp]
+--- src/platforms/wayland/shm.cpp.orig	2024-02-21 11:27:59 UTC
++++ src/platforms/wayland/shm.cpp
+@@ -77,9 +77,10 @@ std::unique_ptr<ShmBuffer> Shm::createBu
+     auto format = toWaylandFormat(image.format());
+     const int stride = image.bytesPerLine();
+     const int32_t byteCount = image.size().height() * stride;
++    int fd;
+ 
+ #if defined HAVE_MEMFD
+-    int fd = memfd_create("kwayland-shared", MFD_CLOEXEC | MFD_ALLOW_SEALING);
++    fd = memfd_create("kwayland-shared", MFD_CLOEXEC | MFD_ALLOW_SEALING);
+     if (fd >= 0) {
+         fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK | F_SEAL_SEAL);
+     } else
 
