@@ -2,9 +2,11 @@
 
 NAMEBASE=		qca
 VERSION=		2.3.8
+REVISION=		1
 KEYWORDS=		devel
-VARIANTS=		standard
-SDESC[standard]=	Cross-platform crypto API for Qt
+VARIANTS=		qt5 qt6
+SDESC[qt5]=		Cross-platform crypto API for Qt 5
+SDESC[qt6]=		Cross-platform crypto API for Qt 6
 HOMEPAGE=		https://userbase.kde.org/QCA
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
@@ -12,22 +14,29 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://download.kde.org/stable/qca/2.3.8/
 DISTFILE[1]=		qca-2.3.8.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[qt5]=		complete
+			primary
+			dev
+			man
+SPKGS[qt6]=		complete
+			primary
+			dev
+			man
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	QT5 QT6
 OPTIONS_STANDARD=	none
+VOPTS[qt5]=		QT5=ON QT6=OFF
+VOPTS[qt6]=		QT5=OFF QT6=ON
 
 BUILD_DEPENDS=		botan:dev:standard
 			doxygen:single:standard
 			libgcrypt:dev:standard
-			qt5-qtbase:dev:standard
 			nss:dev:standard
 BUILDRUN_DEPENDS=	botan:primary:standard
 			cyrus-sasl:primary:standard
 			gnupg:primary:standard
 			nss:primary:standard
 			nss:caroot:standard
-			qt5-qtbase:primary:standard
 
 USES=			cmake pkgconfig qt5
 
@@ -49,22 +58,46 @@ CMAKE_ARGS=		-DBUILD_PLUGINS=none
 			-DWITH_ossl_PLUGIN=no
 			-DWITH_pkcs11_PLUGIN=no
 			-DWITH_softstore_PLUGIN=yes
-			-DCMAKE_PREFIX_PATH={{PREFIX}}/lib/qt5/cmake
-			-DQCA_FEATURE_INSTALL_DIR={{PREFIX}}/lib/qt5/mkspecs/features
 			-DQCA_MAN_INSTALL_DIR={{PREFIX}}/share/man
 
-post-stage:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/mozcerts-qt5
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/qcatool-qt5
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libqca-qt5.so.2.3.8
-.for PLUGIN in cyrus-sasl gcrypt gnupg logger nss softstore
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qca-qt5/crypto/libqca-${PLUGIN}.so
+[QT5].DESCRIPTION=			Built Qt5 variant
+[QT5].BUILDRUN_DEPENDS_ON=		qt5-qtbase:primary:standard
+[QT5].BUILD_DEPENDS_ON=			qt5-qtbase:dev:standard
+[QT5].CMAKE_ARGS_ON=			-DQT5=ON
+					-DQT6=OFF
+					-DCMAKE_PREFIX_PATH={{PREFIX}}/lib/qt5/cmake
+					-DQCA_FEATURE_INSTALL_DIR={{PREFIX}}/lib/qt5/mkspecs/features
+
+[QT6].DESCRIPTION=			Built Qt6 variant
+[QT6].BUILDRUN_DEPENDS_ON=		qt6-qt5compat:primary:standard
+					qt6-qtbase:primary:standard
+[QT6].BUILD_DEPENDS_ON=			qt6-qt5compat:dev:standard
+					qt6-qtbase:dev:standard
+[QT6].CMAKE_ARGS_ON=			-DQT5=OFF
+					-DQT6=ON
+					-DCMAKE_PREFIX_PATH={{PREFIX}}/lib/qt6/cmake
+					-DQCA_FEATURE_INSTALL_DIR={{PREFIX}}/lib/qt6/mkspecs/features
+
+post-install-QT6-ON:
+	(cd ${STAGEDIR}${PREFIX} && ${STRIP_CMD} bin/mozcerts-qt6 \
+		bin/qcatool-qt6 \
+		lib/libqca-qt6.so.2.3.8)
+.for PLUGIN in botan cyrus-sasl gcrypt gnupg logger nss softstore
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qca-qt6/crypto/libqca-${PLUGIN}.so
 .endfor
 
 do-install:
 	cd ${WRKDIR}/.build && make DESTDIR="${STAGEDIR}" install
 
-[FILE:587:descriptions/desc.single]
+post-install-QT5-ON:
+	(cd ${STAGEDIR}${PREFIX} && ${STRIP_CMD} bin/mozcerts-qt5 \
+		bin/qcatool-qt5 \
+		lib/libqca-qt5.so.2.3.8)
+.for PLUGIN in botan cyrus-sasl gcrypt gnupg logger nss softstore
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qca-qt5/crypto/libqca-${PLUGIN}.so
+.endfor
+
+[FILE:587:descriptions/desc.primary]
 Taking a hint from the similarly-named Java Cryptography Architecture, QCA 
 aims to provide a straightforward and cross-platform crypto API, using Qt 
 datatypes and conventions. QCA separates the API from the implementation, 
@@ -79,10 +112,25 @@ should work everywhere Qt does, including Windows/Unix/MacOSX.
 48759ca86a0202461d908ba66134380cc3bb7d20fed3c031b9fc0289796a8264       761340 qca-2.3.8.tar.xz
 
 
-[FILE:739:manifests/plist.single]
+[FILE:277:manifests/plist.primary]
 bin/
  mozcerts-qt5
  qcatool-qt5
+lib/
+ libqca-qt5.so.%%SOMAJOR%%
+ libqca-qt5.so.%%SOVERSION%%
+lib/qca-qt5/crypto/
+ libqca-botan.so
+ libqca-cyrus-sasl.so
+ libqca-gcrypt.so
+ libqca-gnupg.so
+ libqca-logger.so
+ libqca-nss.so
+ libqca-softstore.so
+lib/qt5/mkspecs/features/crypto.prf
+
+
+[FILE:433:manifests/plist.dev]
 include/Qca-qt5/QtCrypto/
  QtCrypto
  qca.h
@@ -101,17 +149,27 @@ include/Qca-qt5/QtCrypto/
  qca_version.h
  qcaprovider.h
  qpipe.h
-lib/
- libqca-qt5.so
- libqca-qt5.so.%%SOMAJOR%%
- libqca-qt5.so.%%SOVERSION%%
+lib/libqca-qt5.so
 lib/cmake/Qca-qt5/
  Qca-qt5Config.cmake
  Qca-qt5ConfigVersion.cmake
  Qca-qt5Targets-release.cmake
  Qca-qt5Targets.cmake
 lib/pkgconfig/qca2-qt5.pc
-lib/qca-qt5/crypto/
+
+
+[FILE:32:manifests/plist.man]
+share/man/man1/qcatool-qt5.1.gz
+
+
+[FILE:241:manifests/plist.primary.qt6]
+bin/
+ mozcerts-qt6
+ qcatool-qt6
+lib/
+ libqca-qt6.so.%%SOMAJOR%%
+ libqca-qt6.so.%%SOVERSION%%
+lib/qca-qt6/crypto/
  libqca-botan.so
  libqca-cyrus-sasl.so
  libqca-gcrypt.so
@@ -119,6 +177,35 @@ lib/qca-qt5/crypto/
  libqca-logger.so
  libqca-nss.so
  libqca-softstore.so
-lib/qt5/mkspecs/features/crypto.prf
-share/man/man1/qcatool-qt5.1.gz
+
+
+[FILE:407:manifests/plist.dev.qt6]
+include/Qca-qt6/QtCrypto/
+ QtCrypto
+ qca.h
+ qca_basic.h
+ qca_cert.h
+ qca_core.h
+ qca_export.h
+ qca_keystore.h
+ qca_publickey.h
+ qca_safetimer.h
+ qca_securelayer.h
+ qca_securemessage.h
+ qca_support.h
+ qca_textfilter.h
+ qca_tools.h
+ qca_version.h
+ qcaprovider.h
+ qpipe.h
+lib/libqca-qt6.so
+lib/cmake/Qca-qt6/
+ Qca-qt6Config.cmake
+ Qca-qt6ConfigVersion.cmake
+ Qca-qt6Targets-release.cmake
+ Qca-qt6Targets.cmake
+
+
+[FILE:32:manifests/plist.man.qt6]
+share/man/man1/qcatool-qt6.1.gz
 
