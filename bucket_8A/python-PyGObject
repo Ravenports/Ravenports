@@ -25,9 +25,11 @@ OPTIONS_STANDARD=	none
 VOPTS[v11]=		PY311=ON PY312=OFF
 VOPTS[v12]=		PY311=OFF PY312=ON
 
+BUILD_DEPENDS=		python-pycairo:dev:python_used
+BUILDRUN_DEPENDS=	python-pycairo:primary:python_used
 RUN_DEPENDS=		gobject-introspection:primary:standard
 
-USES=			gmake pkgconfig zlib
+USES=			meson pkgconfig zlib
 GNOME_COMPONENTS=	introspection cairo
 
 DISTNAME=		pygobject-3.48.1
@@ -40,8 +42,7 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		devel/py-gobject3
 GENERATED=		yes
 
-VAR_OPSYS[sunos]=	MAKE_ENV=PYGOBJECT_WITHOUT_PYCAIRO=1
-VAR_OPSYS[netbsd]=	MAKE_ENV=PYGOBJECT_WITHOUT_PYCAIRO=1
+VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=-Dpycairo=disabled
 
 [PY311].USES_ON=			python:v11,sutools
 
@@ -51,6 +52,11 @@ pre-patch:
 	${AWK} '/^$$/ {exit}; {print}' ${WRKSRC}/gi/importer.py \
 	> ${WRKDIR}/TERMS
 
+post-install:
+	(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} lib/pyth* \( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+		>> ${WRKDIR}/.manifest.primary.mktmp
+
 [FILE:142:descriptions/desc.primary]
 PyGObject is a Python package which provides bindings for GObject based
 libraries such as GTK, GStreamer, WebKitGTK, GLib, GIO and many more.
@@ -58,4 +64,9 @@ libraries such as GTK, GStreamer, WebKitGTK, GLib, GIO and many more.
 
 [FILE:102:distinfo]
 2c4cd7c805ee9e727904172423a7519338017fd7e122b62218ac211627436875       714475 pygobject-3.48.1.tar.gz
+
+
+[FILE:65:manifests/plist.dev]
+include/pygobject-3.0/pygobject.h
+lib/pkgconfig/pygobject-3.0.pc
 
