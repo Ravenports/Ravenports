@@ -36,6 +36,7 @@ LICENSE_SCHEME=		multi
 FPC_EQUIVALENT=		devel/gobject-introspection
 MESON_ARGS=		-Dpython={{PYTHON_CMD}}
 			-Ddoctool=disabled
+			-Dbuild_introspection_data=true
 
 INSTALL_TARGET=		install-strip
 
@@ -47,6 +48,12 @@ post-install:
 	# remove artifacts from doctemplates fix
 	${FIND} ${STAGEDIR}${PREFIX}/lib/gobject-introspection/giscanner/doctemplates \
 		-type f -name "meson.build*" -delete
+.for base in GLib GModule GObject Gio
+	${INSTALL_DATA} ${WRKSRC}/${MESON_BUILD_DIR}/gir/${base}-2.0.typelib \
+		${STAGEDIR}${PREFIX}/lib/girepository-1.0/
+	${INSTALL_DATA} ${WRKSRC}/${MESON_BUILD_DIR}/gir/${base}-2.0.gir \
+		${STAGEDIR}${PREFIX}/share/gir-1.0/
+.endfor
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|%%PYTHON_CMD%%|${PYTHON_CMD}|' \
@@ -66,7 +73,7 @@ introspection data.
 54a90b4a3cb82fd6a3e8b8a7775178ebc954af3c2bc726ed5961e6503ce62636      1039112 gnome3/gobject-introspection-1.80.0.tar.xz
 
 
-[FILE:3333:manifests/plist.primary]
+[FILE:3471:manifests/plist.primary]
 %%ONLY-DRAGONFLY%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-FREEBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-LINUX%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%-x86_64-linux-gnu.so
@@ -87,6 +94,10 @@ lib/girepository-1.0/
  DBusGLib-1.0.typelib
  GIRepository-2.0.typelib
  GL-1.0.typelib
+ GLib-2.0.typelib
+ GModule-2.0.typelib
+ GObject-2.0.typelib
+ Gio-2.0.typelib
  Vulkan-1.0.typelib
  cairo-1.0.typelib
  fontconfig-2.0.typelib
@@ -198,6 +209,10 @@ share/gir-1.0/
  DBusGLib-1.0.gir
  GIRepository-2.0.gir
  GL-1.0.gir
+ GLib-2.0.gir
+ GModule-2.0.gir
+ GObject-2.0.gir
+ Gio-2.0.gir
  Vulkan-1.0.gir
  cairo-1.0.gir
  fontconfig-2.0.gir
