@@ -48,7 +48,7 @@ RUBY_3.3_VERSION=	3.3.0
 
 PYTHON3_DEFAULT?=	3.12
 
-PYTHON_3.11_VERSION=	3.11.8
+PYTHON_3.11_VERSION=	3.11.9
 PYTHON_3.12_VERSION=	3.12.2
 
 #-------------------------------------------------------------------------
@@ -77,7 +77,7 @@ LUA_5.4_VERSION=	5.4.6
 TCL_DEFAULT?=		8.6
 
 TCL_8.5_VERSION=	8.5.19
-TCL_8.6_VERSION=	8.6.13
+TCL_8.6_VERSION=	8.6.14
 
 #-------------------------------------------------------------------------
 # PGSQL
@@ -128,8 +128,8 @@ MYSQL_mariadb-11_VERSION=	11.3.2
 PHP_DEFAULT?=		8.2
 
 PHP_8.1_VERSION=	8.1.27
-PHP_8.2_VERSION=	8.2.16
-PHP_8.3_VERSION=	8.3.3
+PHP_8.2_VERSION=	8.2.17
+PHP_8.3_VERSION=	8.3.4
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
