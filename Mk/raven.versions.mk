@@ -129,7 +129,7 @@ PHP_DEFAULT?=		8.2
 
 PHP_8.1_VERSION=	8.1.28
 PHP_8.2_VERSION=	8.2.18
-PHP_8.3_VERSION=	8.3.5
+PHP_8.3_VERSION=	8.3.6
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
