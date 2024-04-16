@@ -2,6 +2,7 @@
 
 NAMEBASE=		rpm
 VERSION=		4.19.1.1
+REVISION=		1
 KEYWORDS=		archivers
 VARIANTS=		standard
 SDESC[standard]=	RPM Package Manager
@@ -14,7 +15,7 @@ DISTFILE[1]=		rpm-4.19.1.1.tar.bz2:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
 			primary
-			library
+			tools
 			python
 			dev
 			man
@@ -42,10 +43,10 @@ BUILDRUN_DEPENDS=	bzip2:primary:standard
 			readline:primary:standard
 			xz:primary:standard
 			zstd:primary:standard
-EXRUN[primary]=		library
-EXRUN[python]=		library
+EXRUN[tools]=		primary
+EXRUN[python]=		primary
 
-USES=			cmake fortran:library gettext lua:5.4 pkgconfig
+USES=			cmake fortran:primary gettext lua:5.4 pkgconfig
 			python shebangfix sqlite ssl zlib
 
 LICENSE=		GPLv2:primary
@@ -94,17 +95,17 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/rpm/rpmdeps
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/rpm/rpmuncompress
 
-[FILE:277:descriptions/desc.primary]
+[FILE:45:descriptions/desc.primary]
+This subpackage contains the librpm library.
+
+
+[FILE:277:descriptions/desc.tools]
 Initially developed by Red Hat, RPM is the native package manager for 
 several Linux distributions.
 
 This package contains version 4.x, the official and maintained version of 
 RPM. It should not be confused with RPM 5, a separate project that did not 
 see widespread adoption.
-
-
-[FILE:45:descriptions/desc.library]
-This subpackage contains the librpm library.
 
 
 [FILE:57:descriptions/desc.python]
@@ -115,26 +116,7 @@ This subpackage contains the Python bindings for librpm.
 874091b80efe66f9de8e3242ae2337162e2d7131e3aa4ac99ac22155e9c521e5      5849649 rpm-4.19.1.1.tar.bz2
 
 
-[FILE:169:manifests/plist.primary]
-bin/
- gendiff
- rpm
- rpm2archive
- rpm2cpio
- rpmbuild
- rpmdb
- rpmgraph
- rpmkeys
- rpmlua
- rpmquery
- rpmsign
- rpmsort
- rpmspec
- rpmverify
-share/dbus-1/system.d/org.rpm.conf
-
-
-[FILE:1063:manifests/plist.library]
+[FILE:1063:manifests/plist.primary]
 lib/
  librpm.so.%%SOMAJOR%%
  librpm.so.%%SOVERSION%%
@@ -202,6 +184,25 @@ lib/rpm/fileattrs/
  usergroup.attr
 @dir lib/rpm/lua
 @dir lib/rpm/macros.d
+
+
+[FILE:169:manifests/plist.tools]
+bin/
+ gendiff
+ rpm
+ rpm2archive
+ rpm2cpio
+ rpmbuild
+ rpmdb
+ rpmgraph
+ rpmkeys
+ rpmlua
+ rpmquery
+ rpmsign
+ rpmsort
+ rpmspec
+ rpmverify
+share/dbus-1/system.d/org.rpm.conf
 
 
 [FILE:167:manifests/plist.python]
@@ -998,15 +999,15 @@ share/doc/rpm/examples/
  srpmspec.py
 
 
-[FILE:1234:patches/patch-misc_fts.c]
---- misc/fts.c.orig	2024-04-07 15:01:05.748411000 +0200
-+++ misc/fts.c	2024-04-08 12:52:45.000296000 +0200
-@@ -37,12 +37,14 @@
+[FILE:1545:patches/patch-misc_fts.c]
+--- misc/fts.c.orig	2024-02-07 13:36:51 UTC
++++ misc/fts.c
+@@ -37,12 +37,14 @@ static char sccsid[] = "@(#)fts.c	8.6 (B
  #endif
  
  /* Conditional to set up proper fstat64 implementation */
 -#if defined(hpux) || defined(sun) || (defined(__APPLE__) && defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE))
-+#if defined(hpux) || defined(sun) || defined(__FreeBSD__) || (defined(__APPLE__) && defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE))
++#if defined(hpux) || defined(sun) || defined(__FreeBSD__) || defined(__DragonFly__) || (defined(__APPLE__) && defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE))
  #   define FTS_FSTAT64(_fd, _sbp)   fstat((_fd), (_sbp))
  #else
  #   define FTS_FSTAT64(_fd, _sbp)   fstat64((_fd), (_sbp))
@@ -1017,7 +1018,7 @@ share/doc/rpm/examples/
  #if defined(_LIBC)
  #include <sys/param.h>
  #include <include/sys/stat.h>
-@@ -56,7 +58,7 @@
+@@ -56,12 +58,16 @@ static char sccsid[] = "@(#)fts.c	8.6 (B
  #else
  
  /* Conditionals for working around non-GNU environments */
@@ -1026,7 +1027,16 @@ share/doc/rpm/examples/
  #   define        _INCLUDE_POSIX_SOURCE
  #   define __errno_location() 	(&errno)
  #   define dirfd(dirp)		-1
-@@ -73,13 +75,11 @@
+ #   define stat64		stat
+ #endif
++#if defined(__DragonFly__)
++#   define dirfd(dirp)		-1
++#   define stat64		stat
++#endif
+ #if defined(sun)
+ #   define __errno_location()	(&errno)
+ #   define dirfd(dirp)		-1
+@@ -73,13 +79,11 @@ static char sccsid[] = "@(#)fts.c	8.6 (B
  #endif
  #endif
  
