@@ -21,23 +21,48 @@ OPTIONS_STANDARD=	none
 VOPTS[v11]=		PY311=ON PY312=OFF
 VOPTS[v12]=		PY311=OFF PY312=ON
 
-BUILD_DEPENDS=		python-packaging:single:python_used
-			zeromq:dev:standard
+BUILD_DEPENDS=		zeromq:dev:standard
+			python-wheel:single:python_used
+			python-pip:single:python_used
+			python-Cython:single:python_used
+			python-packaging:single:python_used
+			python-scikit-build-core:single:python_used
+			python-pyproject-metadata:single:python_used
+			python-pathspec:single:python_used
+			cmake:primary:standard
 BUILDRUN_DEPENDS=	zeromq:primary:standard
 
 DISTNAME=		pyzmq-26.0.0
 
-PYD_CONFIGUREARGS=	--zmq={{LOCALBASE}}
-GENERATED=		yes
+LICENSE=		BSD3CLAUSE:single
+LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE.md
+LICENSE_SCHEME=		solo
 
-INSTALL_REQ_TOOLCHAIN=	yes
+PLIST_SUB=		SOEXTENSION={{SOEXTENSION}}
 
-[PY311].USES_ON=			python:v11,sutools
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SOEXTENSION=-x86_64-linux-gnu
 
-[PY312].USES_ON=			python:v12,sutools
+[PY311].USES_ON=			python:v11
 
-post-patch:
-	${ECHO_CMD} "Replace with dummy ASCII" > ${WRKSRC}/README.md
+[PY312].USES_ON=			python:v12
+
+do-build:
+	(cd ${WRKSRC} && ${SETENV} ZQM_PREFIX=${LOCALBASE}\
+		pip install --no-build-isolation --verbose .)
+
+do-install:
+	whl=$$(find /root/.cache/pip/wheels -name "*.whl");\
+	pip install \
+		--verbose \
+		--no-index \
+		--no-compile \
+		--force-reinstall \
+		--progress-bar off \
+		--root=${STAGEDIR} \
+		--root-user-action=ignore \
+		--disable-pip-version-check \
+		--no-deps $$whl
+	${FIND} ${STAGEDIR}${PREFIX}/lib -name "*.so" | xargs ${STRIP_CMD}
 
 [FILE:2661:descriptions/desc.single]
 # PyZMQ: Python bindings for ØMQ
@@ -136,4 +161,154 @@ PyZMQ itself.
 
 [FILE:98:distinfo]
 10ff405db5cee3bbd7aa143d78b25d90356097aed7864e50f0ae644e08759fe9       266619 pyzmq-26.0.0.tar.gz
+
+
+[FILE:2432:manifests/plist.single]
+%%PYTHON_SITELIBDIR%%/pyzmq-26.0.0.dist-info/
+ INSTALLER
+ METADATA
+ RECORD
+ REQUESTED
+ WHEEL
+ direct_url.json
+ entry_points.txt
+%%PYTHON_SITELIBDIR%%/pyzmq-26.0.0.dist-info/licenses/LICENSE.md
+%%PYTHON_SITELIBDIR%%/zmq/
+ __init__.pxd
+ __init__.py
+ __init__.pyi
+ _future.py
+ _typing.py
+ asyncio.py
+ constants.py
+ decorators.py
+ error.py
+ py.typed
+%%PYTHON_SITELIBDIR%%/zmq/auth/
+ __init__.py
+ asyncio.py
+ base.py
+ certs.py
+ ioloop.py
+ thread.py
+%%PYTHON_SITELIBDIR%%/zmq/backend/
+ __init__.py
+ __init__.pyi
+ select.py
+%%PYTHON_SITELIBDIR%%/zmq/backend/cffi/
+ README.md
+ __init__.py
+ _cdefs.h
+ _cffi_src.c
+ _poll.py
+ context.py
+ devices.py
+ error.py
+ message.py
+ socket.py
+ utils.py
+%%PYTHON_SITELIBDIR%%/zmq/backend/cython/
+ __init__.pxd
+ __init__.py
+ _externs.pxd
+ _zmq.cpython-%%PYTHON_SUFFIX%%%%SOEXTENSION%%.so
+ _zmq.pxd
+ _zmq.py
+ constant_enums.pxi
+ libzmq.pxd
+%%PYTHON_SITELIBDIR%%/zmq/devices/
+ __init__.py
+ basedevice.py
+ monitoredqueue.py
+ monitoredqueuedevice.py
+ proxydevice.py
+ proxysteerabledevice.py
+%%PYTHON_SITELIBDIR%%/zmq/eventloop/
+ __init__.py
+ _deprecated.py
+ future.py
+ ioloop.py
+ zmqstream.py
+%%PYTHON_SITELIBDIR%%/zmq/green/
+ __init__.py
+ core.py
+ device.py
+ poll.py
+%%PYTHON_SITELIBDIR%%/zmq/green/eventloop/
+ __init__.py
+ ioloop.py
+ zmqstream.py
+%%PYTHON_SITELIBDIR%%/zmq/log/
+ __init__.py
+ __main__.py
+ handlers.py
+%%PYTHON_SITELIBDIR%%/zmq/ssh/
+ __init__.py
+ forward.py
+ tunnel.py
+%%PYTHON_SITELIBDIR%%/zmq/sugar/
+ __init__.py
+ __init__.pyi
+ attrsettr.py
+ context.py
+ frame.py
+ poll.py
+ socket.py
+ stopwatch.py
+ tracker.py
+ version.py
+%%PYTHON_SITELIBDIR%%/zmq/tests/
+ __init__.py
+ conftest.py
+ cython_ext.pyx
+ test_asyncio.py
+ test_auth.py
+ test_cffi_backend.py
+ test_constants.py
+ test_context.py
+ test_cython.py
+ test_decorators.py
+ test_device.py
+ test_draft.py
+ test_error.py
+ test_etc.py
+ test_ext.py
+ test_future.py
+ test_imports.py
+ test_includes.py
+ test_ioloop.py
+ test_log.py
+ test_message.py
+ test_monitor.py
+ test_monqueue.py
+ test_multipart.py
+ test_mypy.py
+ test_pair.py
+ test_poll.py
+ test_proxy_steerable.py
+ test_pubsub.py
+ test_reqrep.py
+ test_retry_eintr.py
+ test_security.py
+ test_socket.py
+ test_ssh.py
+ test_version.py
+ test_win32_shim.py
+ test_z85.py
+ test_zmqstream.py
+%%PYTHON_SITELIBDIR%%/zmq/utils/
+ __init__.py
+ buffers.pxd
+ garbage.py
+ getpid_compat.h
+ interop.py
+ ipcmaxlen.h
+ jsonapi.py
+ monitor.py
+ mutex.h
+ pyversion_compat.h
+ strtypes.py
+ win32.py
+ z85.py
+ zmq_compat.h
 
