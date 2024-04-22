@@ -1908,7 +1908,7 @@ lib/
      Builder.defineMacro("__KPRINTF_ATTRIBUTE__");
 
 
-[FILE:3004:patches/patch-lib_Driver_ToolChains_DragonFly.cpp]
+[FILE:3650:patches/patch-lib_Driver_ToolChains_DragonFly.cpp]
 --- lib/Driver/ToolChains/DragonFly.cpp.orig	2024-04-17 00:21:15 UTC
 +++ lib/Driver/ToolChains/DragonFly.cpp
 @@ -76,7 +76,7 @@ void dragonfly::Linker::ConstructJob(Com
@@ -1983,7 +1983,19 @@ lib/
  }
  
  void DragonFly::AddClangSystemIncludeArgs(
-@@ -250,3 +254,5 @@ Tool *DragonFly::buildAssembler() const
+@@ -239,8 +243,9 @@ void DragonFly::AddClangSystemIncludeArg
+ 
+ void DragonFly::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
+                                          llvm::opt::ArgStringList &CC1Args) const {
+-  addLibStdCXXIncludePaths(concat(getDriver().SysRoot, "/usr/include/c++/8.0"), "", "",
+-                           DriverArgs, CC1Args);
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/backward");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/@RAVEN_TRIPLE@");
+ }
+ 
+ Tool *DragonFly::buildAssembler() const {
+@@ -250,3 +255,5 @@ Tool *DragonFly::buildAssembler() const
  Tool *DragonFly::buildLinker() const {
    return new tools::dragonfly::Linker(*this);
  }
@@ -1991,7 +2003,7 @@ lib/
 +bool DragonFly::HasNativeLLVMSupport() const { return true; }
 
 
-[FILE:389:patches/patch-lib_Driver_ToolChains_DragonFly.h]
+[FILE:719:patches/patch-lib_Driver_ToolChains_DragonFly.h]
 --- lib/Driver/ToolChains/DragonFly.h.orig	2024-04-17 00:21:15 UTC
 +++ lib/Driver/ToolChains/DragonFly.h
 @@ -53,6 +53,7 @@ class LLVM_LIBRARY_VISIBILITY DragonFly
@@ -2002,6 +2014,17 @@ lib/
  
    bool IsMathErrnoDefault() const override { return false; }
  
+@@ -63,6 +64,10 @@ public:
+       const llvm::opt::ArgList &DriverArgs,
+       llvm::opt::ArgStringList &CC1Args) const override;
+ 
++  CXXStdlibType GetDefaultCXXStdlibType() const override {
++    return ToolChain::CST_Libstdcxx;
++  }
++
+ protected:
+   Tool *buildAssembler() const override;
+   Tool *buildLinker() const override;
 
 
 [FILE:2556:patches/patch-lib_Driver_ToolChains_FreeBSD.cpp]
@@ -2239,21 +2262,4 @@ lib/
                  "Driver initialization failed. "
                  "Incremental mode for action %d is not supported",
                  CI.getFrontendOpts().ProgramAction);
-
-
-[FILE:472:patches/patch-lib_Lex_InitHeaderSearch.cpp]
---- lib/Lex/InitHeaderSearch.cpp.orig	2024-04-17 00:21:15 UTC
-+++ lib/Lex/InitHeaderSearch.cpp
-@@ -280,6 +280,11 @@ void InitHeaderSearch::AddDefaultCPlusPl
-       break;
-     }
-     break;
-+  case llvm::Triple::DragonFly:
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@", CXXSystem, false);
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@/backward", CXXSystem, false);
-+    AddPath("@RAVEN_GXX_HEADERS_DIR@/" + triple.getTriple(), CXXSystem, false);
-+    break;
-   default:
-     break;
-   }
 

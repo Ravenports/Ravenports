@@ -121,8 +121,8 @@ GCCBASE_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			75.1
-ICU_REVISION=			1
+ICU_VERSION=			74.2
+ICU_REVISION=			2
 ICU_LX_REVISION=		0
 
 # ------------------------------------------------------------------------
@@ -163,7 +163,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.41
-GTK4_PORT_VERSION=		4.14.2
+GTK4_PORT_VERSION=		4.14.3
 
 # ------------------------------------------------------------------------
 # Ravenports binutils

@@ -2,6 +2,7 @@
 
 NAMEBASE=		argon2
 VERSION=		20190702
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	Reference C implementation of the Argon2 hash
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/P-H-C/phc-winner-argon2/archive/
 DISTFILE[1]=		20190702.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,8 +25,8 @@ USES=			gmake
 
 DISTNAME=		phc-winner-argon2-20190702
 
-LICENSE=		CC0_10:single APACHE20:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		CC0_10:primary APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		CC0_10:stock
 			APACHE20:stock
 LICENSE_AWK=		TERMS:"^$$"
@@ -44,7 +48,7 @@ pre-configure:
 	${REINPLACE_CMD} -e "s|PREFIX = /usr|PREFIX = ${PREFIX}|" \
 		${WRKSRC}/Makefile
 
-[FILE:554:descriptions/desc.single]
+[FILE:554:descriptions/desc.primary]
 Argon2 is a password-hashing function created by by Alex Biryukov, Daniel 
 Dinu, and Dmitry Khovratovich. It was declared the winner of the Password 
 Hashing Competition (PHC) in 2015. The PHC recommends using it rather than 
@@ -56,18 +60,28 @@ attacks. Argon2id is a hybrid that should generally be used unless special
 reasons exist to prefer one of the other versions.
 
 
+[FILE:39:descriptions/desc.tools]
+This package contains the argon2 tool.
+
+
 [FILE:94:distinfo]
 daf972a89577f8772602bf2eb38b6a3dd3d922bf5724d45e7f9589b5e830442c      1505307 20190702.tar.gz
 
 
-[FILE:103:manifests/plist.single]
-bin/argon2
+[FILE:19:manifests/plist.primary]
+lib/libargon2.so.1
+
+
+[FILE:76:manifests/plist.dev]
+lib/pkgconfig/libargon2.pc
 include/argon2.h
 lib/
  libargon2.a
  libargon2.so
- libargon2.so.1
-lib/pkgconfig/libargon2.pc
+
+
+[FILE:11:manifests/plist.tools]
+bin/argon2
 
 
 [FILE:549:patches/patch-Makefile]

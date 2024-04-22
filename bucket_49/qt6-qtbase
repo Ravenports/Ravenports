@@ -2,7 +2,7 @@
 
 NAMEBASE=		qt6-qtbase
 VERSION=		6.7.0
-REVISION=		4
+REVISION=		5
 KEYWORDS=		x11_toolkits devel
 VARIANTS=		standard
 SDESC[standard]=	Qt6 - QtBase component
@@ -35,6 +35,7 @@ BUILD_DEPENDS=		evdev-proto:single:standard
 			libglvnd:dev:standard
 			cups:dev:standard
 			libxkbcommon:dev:standard
+			clang17:compiler:standard
 BUILDRUN_DEPENDS=	harfbuzz:icu:standard
 			icu:primary:standard
 			libxkbcommon:primary:standard
@@ -45,7 +46,7 @@ EXRUN[dev]=		libglvnd:dev:standard
 
 USES=			qt6 zlib png sqlite jpeg pkgconfig execinfo iconv
 			perl:build shebangfix ssl:openssl11 cpe cmake ninja
-			zstd pcre2 freetype clang
+			zstd pcre2 freetype
 GNOME_COMPONENTS=	atk
 XORG_COMPONENTS=	x11 xcb xcb-util xcb-util-image xcb-util-keysyms
 			xcb-util-wm xcb-render-util x11 xcb-util-cursor sm
@@ -4728,7 +4729,7 @@ QMAKE_CXX.COMPILER_MACROS	=
 load(qt_config)
 
 
-[FILE:229:files/special.mk]
+[FILE:253:files/special.mk]
 .if empty(FEAT_EVDEV)
 PLIST_SUB+=EVDEV-OFF="@comment "
 .else
@@ -4742,4 +4743,7 @@ PLIST_SUB+=DSSTYPE=udev
 PLIST_SUB+=FSWTYPE=kqueue
 PLIST_SUB+=DSSTYPE=static
 .endif
+
+CC=	clang
+CXX=	clang++
 
