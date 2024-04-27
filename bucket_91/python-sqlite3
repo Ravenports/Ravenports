@@ -38,7 +38,7 @@ FPC_EQUIVALENT=		databases/py-sqlite3
 
 post-extract-PY311-ON:
 	${MV} ${WRKDIR}/Python-3.11.9  ${WRKDIR}/Python
-	${CP} ${FILESDIR}/setup3.py ${WRKSRC}/setup.py
+	${CP} ${FILESDIR}/setup.py ${WRKSRC}/
 
 post-stage:
 	${MKDIR} ${STAGEDIR}${PYTHON_LIBDIR}/lib-dynload
@@ -49,7 +49,7 @@ post-stage:
 
 post-extract-PY312-ON:
 	${MV} ${WRKDIR}/Python-3.12.3  ${WRKDIR}/Python
-	${CP} ${FILESDIR}/setup3.py ${WRKSRC}/setup.py
+	${CP} ${FILESDIR}/setup.py ${WRKSRC}/
 
 [FILE:472:descriptions/desc.single]
 SQLite is a library that provides a SQL-language database that
@@ -67,60 +67,7 @@ relatively easy.
 9b1e896523fc510691126c864406d9360a3d1e986acbda59cda57b5abda45b87     20175816 Python-3.11.9.tar.xz
 
 
-[FILE:1462:files/setup.py]
-#!/usr/bin/env python
-# To use:
-#       python setup.py install
-#
-
-__version__ = "$FreeBSD: head/databases/py-sqlite3/files/setup.py 417946 2016-07-03 00:17:29Z wen $"
-
-try:
-    import distutils
-    from distutils import sysconfig
-    from distutils.command.install import install
-    from distutils.core import setup, Extension
-except:
-    raise SystemExit, "Distutils problem"
-
-install.sub_commands = filter(lambda (cmd, avl): 'egg' not in cmd,
-                              install.sub_commands)
-
-prefix = sysconfig.PREFIX
-inc_dirs = [prefix + "/include", "Modules/_sqlite"]
-lib_dirs = [prefix + "/lib"]
-libs = ["sqlite3"]
-macros = [('MODULE_NAME', '"sqlite3"')]
-sqlite_srcs = [
-'_sqlite/cache.c',
-'_sqlite/connection.c',
-'_sqlite/cursor.c',
-'_sqlite/microprotocols.c',
-'_sqlite/module.c',
-'_sqlite/prepare_protocol.c',
-'_sqlite/row.c',
-'_sqlite/statement.c',
-'_sqlite/util.c']
-
-try:
-    import ctypes
-    ctypes.CDLL('libsqlite3.so').sqlite3_load_extension
-except AttributeError:
-    macros.append(('SQLITE_OMIT_LOAD_EXTENSION', '1'))
-
-setup(name = "sqlite3",
-      description = "SQLite 3 extension to Python",
-
-      ext_modules = [Extension('_sqlite3', sqlite_srcs,
-                               include_dirs = inc_dirs,
-                               libraries = libs,
-                               library_dirs = lib_dirs,
-                               runtime_library_dirs = lib_dirs,
-                               define_macros = macros)]
-      )
-
-
-[FILE:1526:files/setup3.py]
+[FILE:1526:files/setup.py]
 #!/usr/bin/env python
 # To use:
 #       python setup.py install
