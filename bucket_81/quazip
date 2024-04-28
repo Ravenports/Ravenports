@@ -2,6 +2,7 @@
 
 NAMEBASE=		quazip
 VERSION=		1.4
+REVISION=		1
 KEYWORDS=		archivers
 VARIANTS=		standard
 SDESC[standard]=	Qt/C++ wrapper for Minizip
@@ -12,18 +13,22 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/stachenov:quazip:v1.4
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		qt5-qtbase:dev:standard
-BUILDRUN_DEPENDS=	qt5-qtbase:primary:standard
+BUILD_DEPENDS=		qt6-qtbase:dev:standard
+			qt6-qt5compat:dev:standard
+BUILDRUN_DEPENDS=	qt6-qtbase:primary:standard
+			qt6-qt5compat:primary:standard
 
-USES=			cmake qt5 zlib
+USES=			cmake qt6 zlib bz2
 
-LICENSE=		CUSTOM1:single ZLIB:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		CUSTOM1:primary ZLIB:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_NAME=		CUSTOM1:"LGPLv21 with static linking exception"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/COPYING
 			ZLIB:{{WRKDIR}}/ZLIB-LICENSE
@@ -37,17 +42,17 @@ FPC_EQUIVALENT=		archivers/quazip
 
 SOVERSION=		1.4.0
 PLIST_SUB=		API=1.4
+			QTMAJOR=6
 
-CMAKE_ARGS=		-DBUILD_WITH_QT4:BOOL=OFF
-			-DCMAKE_INSTALL_PREFIX={{STAGEDIR}}{{PREFIX}}
-			-DQt5Core_DIR={{PREFIX}}/lib/qt5/cmake/Qt5Core
-			-DCMAKE_PREFIX_PATH={{PREFIX}}/lib/qt5/cmake
+CMAKE_ARGS=		-DCMAKE_INSTALL_PREFIX={{STAGEDIR}}{{PREFIX}}
+			-DCMAKE_PREFIX_PATH={{PREFIX}}/lib/qt6/cmake
+			-DQUAZIP_QT_MAJOR_VERSION=6
 
 do-install:
 	(cd ${BUILD_WRKSRC} && make DESTDIR=${STAGEDIR} install)
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libquazip1-qt5.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libquazip1-qt?.so
 
-[FILE:150:descriptions/desc.single]
+[FILE:150:descriptions/desc.primary]
 QuaZIP is a C++ wrapper around Minizip. It provides users of the Qt 
 toolkit with a native way of writing to or reading from files in a ZIP 
 archive.
@@ -57,8 +62,14 @@ archive.
 79633fd3a18e2d11a7d5c40c4c79c1786ba0c74b59ad752e8429746fe1781dd6       157819 stachenov-quazip-1.4.tar.gz
 
 
-[FILE:544:manifests/plist.single]
-include/QuaZip-Qt5-%%API%%/quazip/
+[FILE:85:manifests/plist.primary]
+lib/
+ libquazip1-qt%%QTMAJOR%%.so.%%API%%
+ libquazip1-qt%%QTMAJOR%%.so.%%SOVERSION%%
+
+
+[FILE:562:manifests/plist.dev]
+include/QuaZip-Qt%%QTMAJOR%%-%%API%%/quazip/
  JlCompress.h
  ioapi.h
  minizip_crypt.h
@@ -76,14 +87,11 @@ include/QuaZip-Qt5-%%API%%/quazip/
  quazipnewinfo.h
  unzip.h
  zip.h
-lib/
- libquazip1-qt5.so
- libquazip1-qt5.so.%%API%%
- libquazip1-qt5.so.%%SOVERSION%%
-lib/cmake/QuaZip-Qt5-%%API%%/
- QuaZip-Qt5Config.cmake
- QuaZip-Qt5ConfigVersion.cmake
- QuaZip-Qt5_SharedTargets-release.cmake
- QuaZip-Qt5_SharedTargets.cmake
-lib/pkgconfig/quazip1-qt5.pc
+lib/libquazip1-qt%%QTMAJOR%%.so
+lib/cmake/QuaZip-Qt%%QTMAJOR%%-%%API%%/
+ QuaZip-Qt%%QTMAJOR%%Config.cmake
+ QuaZip-Qt%%QTMAJOR%%ConfigVersion.cmake
+ QuaZip-Qt%%QTMAJOR%%_SharedTargets-release.cmake
+ QuaZip-Qt%%QTMAJOR%%_SharedTargets.cmake
+lib/pkgconfig/quazip1-qt%%QTMAJOR%%.pc
 

@@ -2,7 +2,7 @@
 
 NAMEBASE=		aalib
 VERSION=		1.4rc5
-REVISION=		2
+REVISION=		3
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	ASCII art library
@@ -171,10 +171,10 @@ share/man/man3/
      *-*-solaris*)
 
 
-[FILE:1070:patches/patch-doc_aalib.texinfo]
---- doc/aalib.texinfo.orig	2014-02-11 19:55:03.000000000 +0100
-+++ doc/aalib.texinfo	2014-02-11 19:56:56.000000000 +0100
-@@ -29,11 +29,11 @@
+[FILE:1139:patches/patch-doc_aalib.texinfo]
+--- doc/aalib.texinfo.orig	2001-04-26 14:37:31 UTC
++++ doc/aalib.texinfo
+@@ -29,11 +29,11 @@ this permission notice are preserved on
  
  @titlepage
  
@@ -190,7 +190,7 @@ share/man/man3/
  @tex
  Dukelsk\'ych bojovn\'\i ku 1944 
  @end tex
-@@ -61,7 +61,8 @@
+@@ -61,7 +61,8 @@ Email: @code{hubicka@@freesoft.cz}
  @end tex
  @vskip 0pt plus 1filll
  
@@ -200,7 +200,7 @@ share/man/man3/
  @end tex
  
  Permission is granted to make and distribute verbatim
-@@ -1318,7 +1319,7 @@
+@@ -1318,7 +1319,7 @@ To write new driver is quite easy. You n
  functions (like initialization, drawing to screen etc...) and register it in
  the driver registry. There is separate drivers for screen, mouse and keyboard.
  
@@ -208,11 +208,11 @@ share/man/man3/
 +@section Display driver
  Display driver is the most significant driver (of course) so it is recomended
  to implement it first. Its structure is as follows:
+ 
 
 
-
-[FILE:597:patches/patch-ltconfig]
---- ltconfig.intermediate	2001-04-26 14:37:31 UTC
+[FILE:589:patches/patch-ltconfig]
+--- ltconfig.orig	2001-04-26 14:37:31 UTC
 +++ ltconfig
 @@ -1360,7 +1360,7 @@ else
      ;;
@@ -249,10 +249,27 @@ share/man/man3/
  
 
 
-[FILE:290:patches/patch-src_aaprintf.c]
---- src/aaprintf.c.orig	Thu Apr 26 23:37:31 2001
-+++ src/aaprintf.c	Sat Mar  2 22:54:56 2002
-@@ -7,7 +7,7 @@
+[FILE:457:patches/patch-src_aacurses.c]
+Supports ncurses 6.5 changes
+
+--- src/aacurses.c.orig	2001-04-26 14:37:31 UTC
++++ src/aacurses.c
+@@ -71,8 +71,7 @@ static void curses_getsize(aa_context *
+ {
+     if (__resized_curses)
+ 	curses_uninit(c), curses_init(&c->params, NULL,&c->driverparams, NULL), __resized_curses = 0;
+-    *width = stdscr->_maxx + 1;
+-    *height = stdscr->_maxy + 1;
++    getmaxyx(stdscr, *width, *height);
+ #ifdef GPM_MOUSEDRIVER
+     gpm_mx = *width;
+     gpm_my = *height;
+
+
+[FILE:304:patches/patch-src_aaprintf.c]
+--- src/aaprintf.c.orig	2001-04-26 14:37:31 UTC
++++ src/aaprintf.c
+@@ -7,7 +7,7 @@ int aa_printf(aa_context *c, int x, int
    char buf[1025];
    int i;
    va_start(args,fmt);
@@ -263,10 +280,10 @@ share/man/man3/
    return i;
 
 
-[FILE:1146:dragonfly/patch-src_aafire.c]
---- src/aafire.c.orig	Fri Apr 27 00:30:03 2001
-+++ src/aafire.c	Sat Mar  2 22:51:46 2002
-@@ -48,6 +48,7 @@
+[FILE:1148:dragonfly/patch-src_aafire.c]
+--- src/aafire.c.orig	2001-04-26 15:30:03 UTC
++++ src/aafire.c
+@@ -48,6 +48,7 @@ static void
  initialize (void)
  {
    int i;
@@ -274,7 +291,7 @@ share/man/man3/
    context = aa_autoinit (&aa_defparams);
    if (context == NULL)
      {
-@@ -114,20 +115,20 @@
+@@ -114,20 +115,20 @@ drawfire (void)
    height++;
    loop--;
    if (loop < 0)
@@ -303,10 +320,10 @@ share/man/man3/
    firemain ();
 
 
-[FILE:859:dragonfly/patch-src_aarender.c]
---- src/aarender.c.orig	Thu Apr 26 23:37:31 2001
-+++ src/aarender.c	Sat Mar  2 23:02:04 2002
-@@ -27,11 +27,11 @@
+[FILE:915:dragonfly/patch-src_aarender.c]
+--- src/aarender.c.orig	2001-04-26 14:37:31 UTC
++++ src/aarender.c
+@@ -27,11 +27,11 @@ aa_renderparams *aa_getrenderparams(void
      return (p);
  }
  #define MYLONG_MAX 0xffffffffU     /*this is enought for me. */
@@ -320,7 +337,7 @@ share/man/man3/
      int x, y;
      int val;
      int wi = c->imgwidth;
-@@ -47,6 +47,11 @@
+@@ -47,6 +47,11 @@ void aa_renderpalette(aa_context * c, __
      int randomval = p->randomval;
      int dither = p->dither;
      aa_palette table;
@@ -334,10 +351,10 @@ share/man/man3/
      if (x2 >= aa_scrwidth(c))
 
 
-[FILE:1146:freebsd/patch-src_aafire.c]
---- src/aafire.c.orig	Fri Apr 27 00:30:03 2001
-+++ src/aafire.c	Sat Mar  2 22:51:46 2002
-@@ -48,6 +48,7 @@
+[FILE:1148:freebsd/patch-src_aafire.c]
+--- src/aafire.c.orig	2001-04-26 15:30:03 UTC
++++ src/aafire.c
+@@ -48,6 +48,7 @@ static void
  initialize (void)
  {
    int i;
@@ -345,7 +362,7 @@ share/man/man3/
    context = aa_autoinit (&aa_defparams);
    if (context == NULL)
      {
-@@ -114,20 +115,20 @@
+@@ -114,20 +115,20 @@ drawfire (void)
    height++;
    loop--;
    if (loop < 0)
@@ -374,10 +391,10 @@ share/man/man3/
    firemain ();
 
 
-[FILE:859:freebsd/patch-src_aarender.c]
---- src/aarender.c.orig	Thu Apr 26 23:37:31 2001
-+++ src/aarender.c	Sat Mar  2 23:02:04 2002
-@@ -27,11 +27,11 @@
+[FILE:915:freebsd/patch-src_aarender.c]
+--- src/aarender.c.orig	2001-04-26 14:37:31 UTC
++++ src/aarender.c
+@@ -27,11 +27,11 @@ aa_renderparams *aa_getrenderparams(void
      return (p);
  }
  #define MYLONG_MAX 0xffffffffU     /*this is enought for me. */
@@ -391,7 +408,7 @@ share/man/man3/
      int x, y;
      int val;
      int wi = c->imgwidth;
-@@ -47,6 +47,11 @@
+@@ -47,6 +47,11 @@ void aa_renderpalette(aa_context * c, __
      int randomval = p->randomval;
      int dither = p->dither;
      aa_palette table;
@@ -405,10 +422,10 @@ share/man/man3/
      if (x2 >= aa_scrwidth(c))
 
 
-[FILE:1146:midnightbsd/patch-src_aafire.c]
---- src/aafire.c.orig	Fri Apr 27 00:30:03 2001
-+++ src/aafire.c	Sat Mar  2 22:51:46 2002
-@@ -48,6 +48,7 @@
+[FILE:1148:midnightbsd/patch-src_aafire.c]
+--- src/aafire.c.orig	2001-04-26 15:30:03 UTC
++++ src/aafire.c
+@@ -48,6 +48,7 @@ static void
  initialize (void)
  {
    int i;
@@ -416,7 +433,7 @@ share/man/man3/
    context = aa_autoinit (&aa_defparams);
    if (context == NULL)
      {
-@@ -114,20 +115,20 @@
+@@ -114,20 +115,20 @@ drawfire (void)
    height++;
    loop--;
    if (loop < 0)
@@ -445,10 +462,10 @@ share/man/man3/
    firemain ();
 
 
-[FILE:859:midnightbsd/patch-src_aarender.c]
---- src/aarender.c.orig	Thu Apr 26 23:37:31 2001
-+++ src/aarender.c	Sat Mar  2 23:02:04 2002
-@@ -27,11 +27,11 @@
+[FILE:915:midnightbsd/patch-src_aarender.c]
+--- src/aarender.c.orig	2001-04-26 14:37:31 UTC
++++ src/aarender.c
+@@ -27,11 +27,11 @@ aa_renderparams *aa_getrenderparams(void
      return (p);
  }
  #define MYLONG_MAX 0xffffffffU     /*this is enought for me. */
@@ -462,7 +479,7 @@ share/man/man3/
      int x, y;
      int val;
      int wi = c->imgwidth;
-@@ -47,6 +47,11 @@
+@@ -47,6 +47,11 @@ void aa_renderpalette(aa_context * c, __
      int randomval = p->randomval;
      int dither = p->dither;
      aa_palette table;
