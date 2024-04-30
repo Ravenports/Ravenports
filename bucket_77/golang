@@ -2,20 +2,35 @@
 
 NAMEBASE=		golang
 VERSION=		1.22.2
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Go programming language compiler
 HOMEPAGE=		https://golang.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main ravdist
 SITES[main]=		http://golang.org/dl/
+SITES[ravdist]=		https://leaf.dragonflybsd.org/~marino/raven-distfiles/golang
 DISTFILE[1]=		go1.22.2.src.tar.gz:main
+DISTFILE[2]=		bootstrap-golang-1.22.2-dragonfly-x86_64.tzst:ravdist
 DF_INDEX=		1
 SPKGS[standard]=	single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD MIDNIGHT
+			PORTBOOT
+OPTIONS_STANDARD=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD MIDNIGHT
+			PORTBOOT
+OPTGROUP_RADIO=		SYSTEM
+OPTDESCR[SYSTEM]=	Operating System
+OPTGROUP[SYSTEM]=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD MIDNIGHT
+OPT_ON[freebsd]=	FREEBSD PORTBOOT
+OPT_ON[sunos]=		SUNOS PORTBOOT
+OPT_ON[linux]=		LINUX PORTBOOT
+OPT_ON[darwin]=		MACOS PORTBOOT
+OPT_ON[netbsd]=		NETBSD PORTBOOT
+OPT_ON[dragonfly]=	DRAGONFLY
+OPT_ON[midnightbsd]=	MIDNIGHT PORTBOOT
 
 NOT_FOR_ARCH=		aarch64
 
@@ -50,10 +65,31 @@ SHEBANG_OLD_BASH=	"/usr/bin/env bash"
 
 PLIST_SUB=		opsys_ARCH={{GOSYS}}_{{GOARCH}}
 
+[NETBSD].DESCRIPTION=			build for NetBSD
+
+[MIDNIGHT].DESCRIPTION=			build for MidnightBSD
+
+[MACOS].DESCRIPTION=			build for MacOS
+
+[DRAGONFLY].DESCRIPTION=		Build for DragonFly BSD
+[DRAGONFLY].DF_INDEX_ON=		2
+
+[FREEBSD].DESCRIPTION=			Build for FreeBSD
+
+[SUNOS].DESCRIPTION=			build for Solaris
+
+[PORTBOOT].DESCRIPTION=			Bootstrap with older golang in Ravenports
+[PORTBOOT].MAKEFILE_OFF=		BOOTSTRAP_DIR={{WRKDIR}}/bootstrap/go
+					PREPEND_PATH={{WRKDIR}}/bootstrap/go/bin
+[PORTBOOT].MAKEFILE_ON=			BOOTSTRAP_DIR={{LOCALBASE}}/go121
+					PREPEND_PATH={{LOCALBASE}}/go121/bin
+
+[LINUX].DESCRIPTION=			build for Linux
+
 do-build:
 	cd ${WRKSRC}/src && ${SETENV} ${MAKE_ENV} \
 		XDG_CACHE_HOME=${WRKDIR} \
-		GOROOT_BOOTSTRAP=${LOCALBASE}/go121 \
+		GOROOT_BOOTSTRAP=${BOOTSTRAP_DIR} \
 		GOROOT=${WRKSRC} \
 		GOROOT_FINAL=${PREFIX}/go \
 		GOBIN= GOARCH=${GOARCH} \
@@ -91,9 +127,9 @@ Go is an open source programming language that makes it easy to build
 simple, reliable, and efficient software.
 
 
-[FILE:205:distinfo]
+[FILE:222:distinfo]
 374ea82b289ec738e968267cac59c7d5ff180f9492250254784b2044e90df5a9     27551470 go1.22.2.src.tar.gz
-3fecf269beec4b16b4c8c36e8e30d52d20a8d902ebbe2a71ae3aa4c9bcdad93b    113534114 freebsd-x86-64-go119.tar.zst
+ad41bb3819f246ba77107751e9c38087bbff69a0769108f5f032bd859998c422     53459817 bootstrap-golang-1.22.2-dragonfly-x86_64.tzst
 
 
 [FILE:118915:manifests/plist.single]
@@ -7044,7 +7080,7 @@ go/src/vendor/golang.org/x/text/unicode/norm/
  func init() {
 
 
-[FILE:233:files/special.mk]
+[FILE:195:files/special.mk]
 .if ${ARCH_STANDARD} == "x86_64"
 GOARCH=amd64
 .elif ${ARCH_STANDARD} == "i386"
@@ -7058,8 +7094,6 @@ GOSYS=freebsd
 .else
 GOSYS=${OPSYS:tl}
 .endif
-
-PREPEND_PATH=	${LOCALBASE}/go119/bin
 
 
 [FILE:719:netbsd/patch-src_cmd_link_internal_ld_target.go]

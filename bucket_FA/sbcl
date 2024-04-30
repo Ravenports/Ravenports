@@ -2,46 +2,50 @@
 
 NAMEBASE=		sbcl
 VERSION=		2.4.4
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		standard
 SDESC[standard]=	Steel Bank Common Lisp
 HOMEPAGE=		http://www.sbcl.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main boot
+DOWNLOAD_GROUPS=	main boot ravdist
 SITES[main]=		SF/sbcl/sbcl/2.4.4
+SITES[ravdist]=		https://leaf.dragonflybsd.org/~marino/raven-distfiles/sbcl
 DISTFILE[1]=		sbcl-2.4.4-source.tar.bz2:main
+DISTFILE[2]=		bootstrap-sbcl-2.4.4-dragonfly-x86_64.tzst:ravdist
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD LINUX SUNOS NETBSD MIDNIGHT MACOS
-			CONCURRENCY SIMD
+			CONCURRENCY SIMD CLISP
 OPTIONS_STANDARD=	DRAGONFLY FREEBSD LINUX SUNOS NETBSD MIDNIGHT MACOS
-			CONCURRENCY SIMD
+			CONCURRENCY SIMD CLISP
 OPTGROUP_RADIO=		SYSTEM
 OPTDESCR[SYSTEM]=	Operating System
 OPTGROUP[SYSTEM]=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD MIDNIGHT
-OPT_ON[freebsd]=	FREEBSD CONCURRENCY
-OPT_ON[sunos]=		SUNOS
-OPT_ON[linux]=		LINUX CONCURRENCY
-OPT_ON[darwin]=		MACOS
-OPT_ON[netbsd]=		NETBSD
+OPT_ON[freebsd]=	FREEBSD CONCURRENCY CLISP
+OPT_ON[sunos]=		SUNOS CLISP
+OPT_ON[linux]=		LINUX CONCURRENCY CLISP
+OPT_ON[darwin]=		MACOS CLISP
+OPT_ON[netbsd]=		NETBSD CLISP
 OPT_ON[dragonfly]=	DRAGONFLY
-OPT_ON[midnightbsd]=	MIDNIGHT CONCURRENCY
+OPT_ON[midnightbsd]=	MIDNIGHT CONCURRENCY CLISP
 
 NOT_FOR_OPSYS=		darwin
 
 BUILD_DEPENDS=		gmp:static:standard
 			mpfr:static:standard
-			clisp:primary:standard
 BUILDRUN_DEPENDS=	gmp:shared:standard
 			mpfr:shared:standard
 RUN_DEPENDS=		asdf:primary:standard
 
 USES=			gmake makeinfo zlib zstd
 
-LICENSE=		PUBDOM:single BSD3CLAUSE:single MIT:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		PUBDOM:primary BSD3CLAUSE:primary MIT:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		PUBDOM:{{WRKDIR}}/LICENSE_PUBDOM
 			BSD3CLAUSE:{{WRKDIR}}/LICENSE_BSD
 			MIT:{{FILESDIR}}/city.cc.license
@@ -54,7 +58,6 @@ FPC_EQUIVALENT=		lang/sbcl
 SUB_FILES=		sbclrc
 
 CMAKE_ARGS=		--prefix="{{PREFIX}}"
-			--xc-host=clisp
 			--without-sb-thread
 			--with-sb-unicode
 			--with-sb-core-compression
@@ -73,6 +76,7 @@ VAR_OPSYS[netbsd]=	MAKE_ENV=SBCL_PAXCTL="{{PAXCTL}} +m"
 [MACOS].DESCRIPTION=			build for MacOS
 
 [DRAGONFLY].DESCRIPTION=		Build for DragonFly BSD
+[DRAGONFLY].DF_INDEX_ON=		2
 
 [FREEBSD].DESCRIPTION=			Build for FreeBSD
 
@@ -81,6 +85,11 @@ VAR_OPSYS[netbsd]=	MAKE_ENV=SBCL_PAXCTL="{{PAXCTL}} +m"
 [CONCURRENCY].DESCRIPTION=		Enable thread support
 [CONCURRENCY].CMAKE_ARGS_OFF=		--without-sb-thread
 [CONCURRENCY].CMAKE_ARGS_ON=		--with-sb-thread
+
+[CLISP].DESCRIPTION=			Bootstrap SBCL with Clisp
+[CLISP].BUILD_DEPENDS_ON=		clisp:primary:standard
+[CLISP].CMAKE_ARGS_OFF=			--xc-host={{WRKDIR}}/bootstrap/bin/sbcl
+[CLISP].CMAKE_ARGS_ON=			--xc-host=clisp
 
 [LINUX].DESCRIPTION=			build for Linux
 
@@ -140,7 +149,7 @@ do-install:
 	# build documentation
 	${DO_MAKE_BUILD} -C ${WRKSRC}/doc/manual info html
 
-[FILE:343:descriptions/desc.single]
+[FILE:343:descriptions/desc.primary]
 Steel Bank Common Lisp (SBCL) is a high performance Common Lisp compiler. 
 It is open source / free software, with a permissive license. In addition 
 to the compiler and runtime system for ANSI Common Lisp, it provides an 
@@ -148,11 +157,12 @@ interactive environment including a debugger, a statistical profiler, a
 code coverage tool, and many other extensions.
 
 
-[FILE:104:distinfo]
+[FILE:225:distinfo]
 8a932627b3f1d8e9618f1cdc225edcb002456804697e2c87d140683764a106d5      8065883 sbcl-2.4.4-source.tar.bz2
+2078b590523a39aa6162ce9d28e2aa641de91176a42d34a804f9b1d48841435d      9889963 bootstrap-sbcl-2.4.4-dragonfly-x86_64.tzst
 
 
-[FILE:3693:manifests/plist.single]
+[FILE:3668:manifests/plist.primary]
 @sample etc/sbclrc.sample
 %%SIMD-ON%%lib/sbcl/contrib/
  sb-simd.asd
@@ -371,6 +381,9 @@ lib/sbcl/sb-sprof/
  report.lisp
  sb-sprof.asd
  test.lisp
+
+
+[FILE:25:manifests/plist.man]
 share/man/man1/sbcl.1.gz
 
 
