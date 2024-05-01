@@ -17365,6 +17365,22 @@ lib/cmake/boost_wserialization-%%BOOSTVER%%/
  libboost_wserialization-variant-static.cmake
 
 
+[FILE:626:patches/patch-boost_charconv_detail_config.hpp]
+$NetBSD: patch-boost_charconv_detail_config.hpp,v 1.1 2024/04/18 14:16:30 ryoon Exp $
+
+--- boost/charconv/detail/config.hpp.orig	2024-04-11 18:48:00 UTC
++++ boost/charconv/detail/config.hpp
+@@ -27,7 +27,7 @@
+ #  define BOOST_CHARCONV_UINT128_MAX (2 * static_cast<boost::uint128_type>(BOOST_CHARCONV_INT128_MAX) + 1)
+ #endif
+ 
+-#if defined(BOOST_HAS_FLOAT128) && !defined(__STRICT_ANSI__) && !defined(BOOST_CHARCONV_NO_QUADMATH)
++#if defined(BOOST_HAS_FLOAT128) && !defined(__STRICT_ANSI__) && !defined(BOOST_CHARCONV_NO_QUADMATH) && !defined(__NetBSD__)
+ #  define BOOST_CHARCONV_HAS_FLOAT128
+ #  include <quadmath.h>
+ #endif
+
+
 [FILE:482:patches/patch-boost_config_detail_suffix.hpp]
 $NetBSD: patch-boost_config_detail_suffix.hpp,v 1.1 2017/08/24 19:31:32 adam Exp $
 
@@ -17534,7 +17550,7 @@ long double math functions are not present. Allows py-scipy to build.
 
 
 [FILE:1652:patches/patch-boost_predef_os_bsd_midnight.h]
---- /dev/null	2024-04-28 04:15:13 UTC
+--- /dev/null	2024-05-01 11:56:23 UTC
 +++ boost/predef/os/bsd/midnight.h
 @@ -0,0 +1,59 @@
 +/*
@@ -17632,6 +17648,24 @@ internal _W_INT macro uses (void*) which is not allowed in constexprs.
  #include <pthread.h>
  #include <unistd.h>
  
+
+
+[FILE:658:patches/patch-libs_filesystem_src_directory.cpp]
+$NetBSD: patch-libs_filesystem_src_directory.cpp,v 1.1 2024/04/17 16:14:02 adam Exp $
+
+Fix "error: expected id-expression before '(' token" (dirfd() is defined as a macro on NetBSD).
+
+--- libs/filesystem/src/directory.cpp.orig	2024-04-11 18:48:01 UTC
++++ libs/filesystem/src/directory.cpp
+@@ -279,7 +279,7 @@ inline system::error_code dir_itr_close(
+ // Obtains a file descriptor from the directory iterator
+ inline int dir_itr_fd(dir_itr_imp const& imp, system::error_code& ec)
+ {
+-    int fd = ::dirfd(static_cast< DIR* >(imp.handle));
++    int fd = dirfd(static_cast< DIR* >(imp.handle));
+     if (BOOST_UNLIKELY(fd < 0))
+     {
+         int err = errno;
 
 
 [FILE:551:patches/patch-tools_build_src_tools_gcc.jam]

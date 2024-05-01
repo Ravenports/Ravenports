@@ -4416,6 +4416,24 @@ share/doc/qt6/global/template/style/
  #elif defined(Q_OS_QNX)
 
 
+[FILE:498:patches/patch-src_corelib_io_qstorageinfo_unix.cpp]
+$NetBSD: patch-src_corelib_io_qstorageinfo_unix.cpp,v 1.2 2024/04/27 11:49:40 adam Exp $
+
+Fix build on SunOS.
+
+--- src/corelib/io/qstorageinfo_unix.cpp.orig	2024-03-19 15:46:43 UTC
++++ src/corelib/io/qstorageinfo_unix.cpp
+@@ -51,7 +51,7 @@
+ #  if !defined(_STATFS_F_FLAGS) && !defined(Q_OS_NETBSD)
+ #    define _STATFS_F_FLAGS 1
+ #  endif
+-#elif defined(Q_OS_HAIKU)
++#elif defined(Q_OS_HAIKU) || defined(Q_OS_SOLARIS)
+ #  define QT_STATFSBUF struct statvfs
+ #  define QT_STATFS    ::statvfs
+ #else
+
+
 [FILE:475:patches/patch-src_corelib_plugin_qelfparser__p.cpp]
 --- src/corelib/plugin/qelfparser_p.cpp.orig	2024-03-19 15:46:43 UTC
 +++ src/corelib/plugin/qelfparser_p.cpp
@@ -4500,6 +4518,29 @@ share/doc/qt6/global/template/style/
      qt_find_package(Wayland PROVIDED_TARGETS Wayland::Server MODULE_NAME gui QMAKE_LIB wayland_server)
      qt_find_package(Wayland PROVIDED_TARGETS Wayland::Client MODULE_NAME gui QMAKE_LIB wayland_client)
  endif()
+
+
+[FILE:703:patches/patch-src_network_kernel_qnetworkinterface__unix.cpp]
+$NetBSD: patch-src_network_kernel_qnetworkinterface__unix.cpp,v 1.1 2024/04/27 11:49:40 adam Exp $
+
+On NetBSD, ifr_ifindex is aliased to ifr_index, so avoid redundant definition.
+
+--- src/network/kernel/qnetworkinterface_unix.cpp.orig	2024-03-19 15:46:43 UTC
++++ src/network/kernel/qnetworkinterface_unix.cpp
+@@ -60,11 +60,13 @@ static auto &ifreq_index(Req &req, std::
+     return req.ifr_index;
+ }
+ 
++#if !defined(__NetBSD__)
+ template <typename Req> [[maybe_unused]]
+ static auto &ifreq_index(Req &req, std::enable_if_t<sizeof(std::declval<Req>().ifr_ifindex) != 0, int> = 0)
+ {
+     return req.ifr_ifindex;
+ }
++#endif
+ 
+ uint QNetworkInterfaceManager::interfaceIndexFromName(const QString &name)
+ {
 
 
 [FILE:452:patches/patch-src_platformsupport_devicediscovery_qdevicediscovery__static.cpp]
