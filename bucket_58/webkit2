@@ -827,6 +827,22 @@ Add support for NetBSD.
      if (posix_memalign(&ptr, alignment, size))
 
 
+[FILE:528:patches/patch-Source_ThirdParty_ANGLE_src_common_system__utils__linux.cpp]
+--- Source/ThirdParty/ANGLE/src/common/system_utils_linux.cpp.orig	2024-03-16 06:45:47 UTC
++++ Source/ThirdParty/ANGLE/src/common/system_utils_linux.cpp
+@@ -56,6 +56,10 @@ void SetCurrentThreadName(const char *na
+ {
+     // There's a 15-character (16 including '\0') limit.  If the name is too big (and ERANGE is
+     // returned), just ignore the name.
++#if defined(__NetBSD__)
++    pthread_setname_np(pthread_self(), "%s", (void *)name);
++#else
+     pthread_setname_np(pthread_self(), name);
++#endif
+ }
+ }  // namespace angle
+
+
 [FILE:561:patches/patch-Source_WTF_wtf_Assertions.h]
 $NetBSD: patch-Source_WTF_wtf_Assertions.h,v 1.1 2021/01/12 15:21:31 jperkin Exp $
 

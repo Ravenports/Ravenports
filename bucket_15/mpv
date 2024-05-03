@@ -124,6 +124,79 @@ share/doc/mpv/
 share/man/man1/mpv.1.gz
 
 
+[FILE:2524:patches/patch-meson.build]
+
+- Instruct about NetBSD pthread_setname_np(3).
+  Maybe pthread_setname_np(3) should be checked in order to distinguish
+  based on the argument supported instead of special-casing based on the
+  platform... workaround that for the moment in the simplest way.
+- Enable support for DRM on NetBSD.
+- Install configuration files to examples, per pkgsrc conventions.
+
+--- meson.build.orig	2024-04-17 19:18:44 UTC
++++ meson.build
+@@ -303,6 +303,7 @@ if cc.get_id() == 'clang'
+ endif
+ 
+ darwin = host_machine.system() == 'darwin'
++netbsd = host_machine.system() == 'netbsd'
+ win32 = host_machine.system() == 'cygwin' or host_machine.system() == 'windows'
+ posix = not win32
+ 
+@@ -527,17 +528,22 @@ features += {'vt.h': cc.has_header_symbo
+ 
+ features += {'consio.h': not features['vt.h'] and cc.has_header_symbol('sys/consio.h', 'VT_GETMODE')}
+ 
++features += {'wsdisplay_usl_io.h': not features['vt.h'] and not features['consio.h'] and cc.has_header_symbol('dev/wscons/wsdisplay_usl_io.h', 'VT_GETMODE')}
++
+ # macOS's pthread_setname_np is a special snowflake and differs from literally every other platform.
+ features += {'mac-thread-name': darwin}
+ 
++# NetBSD pthread_setname_np differs from macOS and Linux
++features += {'netbsd-thread-name': netbsd}
++
+ features += {'glibc-thread-name': false}
+-if not features['mac-thread-name']
++if not features['mac-thread-name'] and not features['netbsd-thread-name']
+     features += {'glibc-thread-name': posix and cc.has_function('pthread_setname_np', args: '-D_GNU_SOURCE',
+                                                                 dependencies: pthreads, prefix: '#include <pthread.h>')}
+ endif
+ 
+ features += {'bsd-thread-name': false}
+-if not features['mac-thread-name'] and not features['glibc-thread-name']
++if not features['mac-thread-name'] and not features['glibc-thread-name'] and not features['netbsd-thread-name']
+     features += {'bsd-thread-name': posix and cc.has_function('pthread_set_name_np', dependencies: pthreads,
+                                                               prefix: '#include <pthread.h>\n#include <pthread_np.h>')}
+ endif
+@@ -922,7 +928,7 @@ if features['direct3d']
+ endif
+ 
+ drm = dependency('libdrm', version: '>= 2.4.105', required: get_option('drm'))
+-features += {'drm': drm.found() and (features['vt.h'] or features['consio.h'])}
++features += {'drm': drm.found() and (features['vt.h'] or features['consio.h'] or features['wsdisplay_usl_io.h'])}
+ if features['drm']
+     dependencies += drm
+     sources += files('video/drmprime.c',
+
+
+[FILE:458:patches/patch-osdep_threads-posix.h]
+$NetBSD: patch-osdep_threads-posix.h,v 1.1 2024/01/01 15:50:14 leot Exp $
+
+Add support for NetBSD.
+
+--- osdep/threads-posix.h.orig	2023-12-31 11:13:03.078250654 +0000
++++ osdep/threads-posix.h
+@@ -232,6 +232,8 @@ static inline void mp_thread_set_name(co
+     pthread_set_name_np(pthread_self(), name);
+ #elif HAVE_OSX_THREAD_NAME
+     pthread_setname_np(name);
++#elif HAVE_NETBSD_THREAD_NAME
++    pthread_setname_np(pthread_self(), "%s", name);
+ #endif
+ }
+ 
+
+
 [FILE:573:patches/patch-stream_stream__libarchive.c]
 $NetBSD: patch-stream_stream__libarchive.c,v 1.1 2022/05/17 13:12:13 ryoon Exp $
 

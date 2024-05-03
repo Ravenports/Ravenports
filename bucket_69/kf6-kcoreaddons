@@ -331,6 +331,24 @@ share/locale/zh_TW/LC_MESSAGES/kcoreaddons6_qt.qm
  
 
 
+[FILE:603:patches/patch-src_lib_caching_ksdclock.cpp]
+NetBSD does not support _POSIX_TIMEOUTS but kcoreaddons has a bug in this
+configuration.  This patch should be pushed upstream.
+
+--- src/lib/caching/ksdclock.cpp.orig	2024-04-05 10:55:37 UTC
++++ src/lib/caching/ksdclock.cpp
+@@ -57,7 +57,9 @@ SharedLockId findBestSharedLock()
+         sem_t tempSemaphore;
+         std::unique_ptr<KSDCLock> tempLock;
+         if (timeoutsSupported) {
++#ifdef KSDC_TIMEOUTS_SUPPORTED
+             tempLock = std::make_unique<semaphoreTimedLock>(tempSemaphore);
++#endif
+         } else {
+             tempLock = std::make_unique<semaphoreLock>(tempSemaphore);
+         }
+
+
 [FILE:480:patches/patch-src_lib_util_kprocesslist__unix.cpp]
 --- src/lib/util/kprocesslist_unix.cpp.orig	2024-02-21 11:24:15 UTC
 +++ src/lib/util/kprocesslist_unix.cpp
