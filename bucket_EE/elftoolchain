@@ -2,6 +2,7 @@
 
 NAMEBASE=		elftoolchain
 VERSION=		0.7.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Compilation tools and libraries for ELF
@@ -13,17 +14,19 @@ SITES[main]=		SF/elftoolchain/Sources/elftoolchain-0.7.1
 DISTFILE[1]=		elftoolchain-0.7.1.tar.bz2:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			libraries
+			primary
+			dev
 			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-EXRUN[tools]=		elftoolchain:libraries:standard
+EXRUN[tools]=		primary
 
 USES=			cmake
 
-LICENSE=		BSD2CLAUSE:libraries
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKDIR}}/LICENSE
 LICENSE_AWK=		BSD2CLAUSE:"^$$"
 LICENSE_SOURCE=		BSD2CLAUSE:{{WRKSRC}}/libelf/libelf.h
@@ -67,7 +70,7 @@ post-patch-sunos:
 		${WRKSRC}/${prog}/${prog}.c
 .endfor
 
-[FILE:369:descriptions/desc.libraries]
+[FILE:369:descriptions/desc.primary]
 A BSD-licensed implementation of compilation tools (nm, ar, as, ld,
 etc.) for the ELF object format.
 
@@ -93,7 +96,19 @@ development utilities.
 44f14591fcf21294387215dd7562f3fb4bec2f42f476cf32420a6bbabb2bd2b5      5361427 elftoolchain-0.7.1.tar.bz2
 
 
-[FILE:8716:manifests/plist.libraries]
+[FILE:123:manifests/plist.primary]
+lib/
+ libdwarf.so.3
+ libdwarf.so.3.0
+ libelf.so.1
+ libelf.so.1.0
+ libelftc.so.1
+ libelftc.so.1.0
+ libpe.so.1
+ libpe.so.1.0
+
+
+[FILE:247:manifests/plist.dev]
 include/
  dwarf.h
  elfdefinitions.h
@@ -106,24 +121,55 @@ include/
 lib/
  libdwarf.a
  libdwarf.so
- libdwarf.so.3
- libdwarf.so.3.0
  libdwarf_pic.a
  libelf.a
  libelf.so
- libelf.so.1
- libelf.so.1.0
  libelf_pic.a
  libelftc.a
  libelftc.so
- libelftc.so.1
- libelftc.so.1.0
  libelftc_pic.a
  libpe.a
  libpe.so
- libpe.so.1
- libpe.so.1.0
  libpe_pic.a
+
+
+[FILE:194:manifests/plist.tools]
+@comment bin/ar
+@comment bin/elfcopy
+@comment bin/ld
+@comment bin/mcs
+@comment bin/ranlib
+@comment bin/strip
+bin/
+ addr2line
+ brandelf
+ c++filt
+ elfdump
+ findtextrel
+ nm
+ readelf
+ size
+ strings
+
+
+[FILE:8729:manifests/plist.man]
+@comment share/man/man1/ar.1.gz
+@comment share/man/man1/elfcopy.1.gz
+@comment share/man/man1/ld.1.gz
+@comment share/man/man1/mcs.1.gz
+@comment share/man/man1/ranlib.1.gz
+@comment share/man/man1/strip.1.gz
+@comment share/man/man5/ar.5.gz
+share/man/man1/
+ addr2line.1.gz
+ brandelf.1.gz
+ c++filt.1.gz
+ elfdump.1.gz
+ findtextrel.1.gz
+ nm.1.gz
+ readelf.1.gz
+ size.1.gz
+ strings.1.gz
 share/man/man3/
  dwarf.3.gz
  dwarf_add_AT_comp_dir.3.gz
@@ -463,42 +509,6 @@ share/man/man3/
  gelf_update_symshndx.3.gz
  gelf_xlatetof.3.gz
  gelf_xlatetom.3.gz
-
-
-[FILE:572:manifests/plist.tools]
-@comment bin/ar
-@comment bin/elfcopy
-@comment bin/ld
-@comment bin/mcs
-@comment bin/ranlib
-@comment bin/strip
-@comment share/man/man1/ar.1.gz
-@comment share/man/man1/elfcopy.1.gz
-@comment share/man/man1/ld.1.gz
-@comment share/man/man1/mcs.1.gz
-@comment share/man/man1/ranlib.1.gz
-@comment share/man/man1/strip.1.gz
-@comment share/man/man5/ar.5.gz
-bin/
- addr2line
- brandelf
- c++filt
- elfdump
- findtextrel
- nm
- readelf
- size
- strings
-share/man/man1/
- addr2line.1.gz
- brandelf.1.gz
- c++filt.1.gz
- elfdump.1.gz
- findtextrel.1.gz
- nm.1.gz
- readelf.1.gz
- size.1.gz
- strings.1.gz
 
 
 [FILE:1086:patches/patch-common___elftc.h]

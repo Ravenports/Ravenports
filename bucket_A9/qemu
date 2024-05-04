@@ -39,6 +39,7 @@ BUILDRUN_DEPENDS=	cyrus-sasl:primary:standard
 			nettle:primary:standard
 			snappy:primary:standard
 			vde2:single:standard
+B_DEPS[freebsd]=	elftoolchain:dev:standard
 
 USES=			cpe gmake pkgconfig bison perl:build python:build
 			jpeg png ncurses makeinfo ninja curl fontconfig zstd
@@ -1069,7 +1070,7 @@ share/man/man8/
                  h2g_old_sysctl(holdp, &holdlen, kind);
 
 
-[FILE:2433:patches/patch-meson.build]
+[FILE:2906:patches/patch-meson.build]
 --- meson.build.orig	2024-04-23 20:23:45 UTC
 +++ meson.build
 @@ -43,8 +43,8 @@ qemu_icondir = get_option('datadir') / '
@@ -1083,6 +1084,15 @@ share/man/man8/
  supported_cpus = ['ppc', 'ppc64', 's390x', 'riscv32', 'riscv64', 'x86', 'x86_64',
    'arm', 'aarch64', 'loongarch64', 'mips', 'mips64', 'sparc64']
  
+@@ -187,7 +187,7 @@ have_tools = get_option('tools') \
+   .allowed()
+ have_ga = get_option('guest_agent') \
+   .disable_auto_if(not have_system and not have_tools) \
+-  .require(host_os in ['sunos', 'linux', 'windows', 'freebsd', 'netbsd', 'openbsd'],
++  .require(host_os in ['sunos', 'linux', 'windows', 'freebsd', 'netbsd', 'openbsd', 'dragonfly'],
+            error_message: 'unsupported OS for QEMU guest agent') \
+   .allowed()
+ have_block = have_system or have_tools
 @@ -737,7 +737,7 @@ if get_option('hvf').allowed()
  endif
  

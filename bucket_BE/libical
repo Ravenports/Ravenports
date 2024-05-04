@@ -2,6 +2,7 @@
 
 NAMEBASE=		libical
 VERSION=		3.0.18
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Reference implementation of the iCalendar format
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/libical/libical/releases/download/v3.0.18/
 DISTFILE[1]=		libical-3.0.18.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -24,8 +27,8 @@ BUILDRUN_DEPENDS=	icu:primary:standard
 USES=			cpe cmake perl:build pkgconfig
 GNOME_COMPONENTS=	introspection glib libxml2
 
-LICENSE=		MPL:single LGPL21:single
-LICENSE_TERMS=		single:{{WRKSRC}}/COPYING
+LICENSE=		MPL:primary LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
 LICENSE_FILE=		MPL:stock
 			LGPL21:stock
 LICENSE_SCHEME=		dual
@@ -44,8 +47,9 @@ CMAKE_ARGS=		-DGOBJECT_INTROSPECTION=true
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/libical/ical-glib-src-generator
 
-[FILE:252:descriptions/desc.single]
+[FILE:252:descriptions/desc.primary]
 Libical is an Open Source implementation of the IETF's iCalendar
 Calendaring and Scheduling protocols. (RFC 2445, 2446, and 2447). It
 parses iCal components and provides a C API for manipulating the component
@@ -56,7 +60,31 @@ properties, parameters, and subcomponents.
 72b7dc1a5937533aee5a2baefc990983b66b141dd80d43b51f80aced4aae219c       908948 libical-3.0.18.tar.gz
 
 
-[FILE:2407:manifests/plist.single]
+[FILE:530:manifests/plist.primary]
+lib/
+ libical-glib.so.%%SOMAJOR%%
+ libical-glib.so.%%SOVERSION%%
+ libical.so.%%SOMAJOR%%
+ libical.so.%%SOVERSION%%
+ libical_cxx.so.%%SOMAJOR%%
+ libical_cxx.so.%%SOVERSION%%
+ libicalss.so.%%SOMAJOR%%
+ libicalss.so.%%SOVERSION%%
+ libicalss_cxx.so.%%SOMAJOR%%
+ libicalss_cxx.so.%%SOVERSION%%
+ libicalvcal.so.%%SOMAJOR%%
+ libicalvcal.so.%%SOVERSION%%
+lib/girepository-1.0/
+ ICal-3.0.typelib
+ ICalGLib-3.0.typelib
+libexec/libical/ical-glib-src-generator
+share/gir-1.0/
+ ICal-3.0.gir
+ ICalGLib-3.0.gir
+share/vala/vapi/libical-glib.vapi
+
+
+[FILE:1882:manifests/plist.dev]
 include/libical/
  ical.h
  icalarray.h
@@ -147,28 +175,16 @@ include/libical-glib/
 lib/
  libical-glib.a
  libical-glib.so
- libical-glib.so.%%SOMAJOR%%
- libical-glib.so.%%SOVERSION%%
  libical.a
  libical.so
- libical.so.%%SOMAJOR%%
- libical.so.%%SOVERSION%%
  libical_cxx.a
  libical_cxx.so
- libical_cxx.so.%%SOMAJOR%%
- libical_cxx.so.%%SOVERSION%%
  libicalss.a
  libicalss.so
- libicalss.so.%%SOMAJOR%%
- libicalss.so.%%SOVERSION%%
  libicalss_cxx.a
  libicalss_cxx.so
- libicalss_cxx.so.%%SOMAJOR%%
- libicalss_cxx.so.%%SOVERSION%%
  libicalvcal.a
  libicalvcal.so
- libicalvcal.so.%%SOMAJOR%%
- libicalvcal.so.%%SOVERSION%%
 lib/cmake/LibIcal/
  IcalGlibSrcGenerator-release.cmake
  IcalGlibSrcGenerator.cmake
@@ -176,17 +192,9 @@ lib/cmake/LibIcal/
  LibIcalConfigVersion.cmake
  LibIcalTargets-%%CMAKE_BUILD_TYPE%%.cmake
  LibIcalTargets.cmake
-lib/girepository-1.0/
- ICal-3.0.typelib
- ICalGLib-3.0.typelib
 lib/pkgconfig/
  libical-glib.pc
  libical.pc
-libexec/libical/ical-glib-src-generator
-share/gir-1.0/
- ICal-3.0.gir
- ICalGLib-3.0.gir
-share/vala/vapi/libical-glib.vapi
 
 
 [FILE:457:patches/patch-src_libical_icaltz-util.c]
