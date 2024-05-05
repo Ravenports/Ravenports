@@ -238,6 +238,13 @@ do-install:
 		${STAGEDIR}${PYTHON_SITELIBDIR}/pydantic_core
 	${CHMOD} +x ${STAGEDIR}${PYTHON_SITELIBDIR}/pydantic_core/lib_pydantic_core.so
 
+pre-install-midnightbsd:
+	# Due to rust limitations, maturin must set target OS as freebsd, but
+	# pip doesn't recognize that as a legal combination.  Rename to complete build.
+	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
+	pydantic_core-2.18.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-freebsd_*.whl\
+	pydantic_core-2.18.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-midnightbsd_3_0_0_amd64.whl)
+
 [FILE:2567:descriptions/desc.single]
 # pydantic-core
 

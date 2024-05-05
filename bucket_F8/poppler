@@ -2,6 +2,7 @@
 
 NAMEBASE=		poppler
 VERSION=		24.04.0
+REVISION=		1
 KEYWORDS=		graphics print
 VARIANTS=		standard
 SDESC[standard]=	PDF rendering library
@@ -17,12 +18,14 @@ SPKGS[standard]=	complete
 			cpp
 			glib
 			qt5
+			qt6
 			utils
 			man
 			dev
 			cppdev
 			glibdev
 			qt5dev
+			qt6dev
 
 OPTIONS_AVAILABLE=	INTROSPECTION
 OPTIONS_STANDARD=	INTROSPECTION
@@ -31,6 +34,7 @@ OPT_ON[all]=		INTROSPECTION
 BUILD_DEPENDS=		cairo:dev:standard
 			cairo:primary:standard
 			qt5-qttools:complete:standard
+			qt6-qttools:complete:standard
 			boost-libraries:dev:standard
 			glib:dev:standard
 			gettext:solinks:standard
@@ -44,6 +48,8 @@ BUILDRUN_DEPENDS=	lcms2:primary:standard
 EXRUN[cpp]=		poppler:primary:standard
 EXRUN[qt5]=		poppler:primary:standard
 			qt5-qtbase:primary:standard
+EXRUN[qt6]=		poppler:primary:standard
+			qt6-qtbase:primary:standard
 EXRUN[utils]=		poppler:primary:standard
 			cairo:primary:standard
 			lcms2:primary:standard
@@ -66,11 +72,15 @@ CPE_VENDOR=		freedesktop
 FPC_EQUIVALENT=		graphics/poppler
 SOL_FUNCTIONS=		strndup:poppler/GlobalParams.cc
 
+CONFIGURE_ENV=		CMAKE_PREFIX_PATH={{PREFIX}}/lib/qt6/cmake
+
 SOVERSION=		136.0.0
 PLIST_SUB=		CPP_SOVERSION=0.11.0
 			CPP_SOMAJOR=0
 			QT5_SOVERSION=1.33.0
 			QT5_SOMAJOR=1
+			QT6_SOVERSION=3.4.0
+			QT6_SOMAJOR=3
 			GLIB_SOVERSION=8.26.0
 			GLIB_SOMAJOR=8
 			NSS3={{NSS:U"@comment "}}
@@ -78,12 +88,12 @@ PLIST_SUB=		CPP_SOVERSION=0.11.0
 CMAKE_ARGS=		-DENABLE_GLIB=ON
 			-DENABLE_UTILS=ON
 			-DENABLE_QT5=ON
-			-DENABLE_QT6=OFF
+			-DENABLE_QT6=ON
 			-DENABLE_LIBCURL=ON
 			-DBUILD_GTK_TESTS=OFF
 			-DENABLE_GTK_DOC=OFF
 			-DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
-			-DCMAKE_PREFIX_PATH:PATH="{{PREFIX}}/lib/qt5/cmake/"
+			-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt5/cmake
 			-DENABLE_UNSTABLE_API_ABI_HEADERS=ON
 			-DENABLE_GPGME:BOOL=FALSE
 			-DENABLE_NSS3:BOOL={{NSS3:UFALSE}}
@@ -116,6 +126,10 @@ These are the gnome bindings for poppler, a PDF rendering library.
 These are the Qt5 bindings for poppler, a PDF rendering library.
 
 
+[FILE:65:descriptions/desc.qt6]
+These are the Qt6 bindings for poppler, a PDF rendering library.
+
+
 [FILE:565:descriptions/desc.utils]
 This provides PDF (Portable Document Format) utilities from the
 poppler project. Some of these are based on the versions from xpdf.
@@ -146,6 +160,11 @@ These are the headers for the Qt5 bindings for poppler, a PDF rendering
 library.
 
 
+[FILE:81:descriptions/desc.qt6dev]
+These are the headers for the Qt6 bindings for poppler, a PDF rendering
+library.
+
+
 [FILE:101:distinfo]
 1e804ec565acf7126eb2e9bb3b56422ab2039f7e05863a5dfabdd1ffd1bb77a7      1904936 poppler-24.04.0.tar.xz
 
@@ -172,6 +191,12 @@ lib/
 lib/
  libpoppler-qt5.so.%%QT5_SOMAJOR%%
  libpoppler-qt5.so.%%QT5_SOVERSION%%
+
+
+[FILE:77:manifests/plist.qt6]
+lib/
+ libpoppler-qt6.so.%%QT6_SOMAJOR%%
+ libpoppler-qt6.so.%%QT6_SOVERSION%%
 
 
 [FILE:152:manifests/plist.utils]
@@ -394,4 +419,19 @@ include/poppler/qt5/
  poppler-version.h
 lib/libpoppler-qt5.so
 lib/pkgconfig/poppler-qt5.pc
+
+
+[FILE:244:manifests/plist.qt6dev]
+include/poppler/qt6/
+ poppler-annotation.h
+ poppler-export.h
+ poppler-form.h
+ poppler-link.h
+ poppler-media.h
+ poppler-optcontent.h
+ poppler-page-transition.h
+ poppler-qt6.h
+ poppler-version.h
+lib/libpoppler-qt6.so
+lib/pkgconfig/poppler-qt6.pc
 

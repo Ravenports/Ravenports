@@ -17,10 +17,12 @@ SPKGS[standard]=	complete
 			dev
 			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
-
-BROKEN[dragonfly]=	locks up during build (same as dports)
+OPTIONS_AVAILABLE=	THREADS
+OPTIONS_STANDARD=	THREADS
+OPT_ON[freebsd]=	THREADS
+OPT_ON[linux]=		THREADS
+OPT_ON[netbsd]=		THREADS
+OPT_ON[midnightbsd]=	THREADS
 
 BUILD_DEPENDS=		libatomic_ops:dev:standard
 			libffi:dev:standard
@@ -45,7 +47,6 @@ INFO_SUBDIR=		.
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-boehm=system
 			--enable-libatomic=system
-			--enable-threads=yes
 			--with-gmp-prefix={{LOCALBASE}}
 			--with-system-gmp
 			--with-asdf=yes
@@ -56,6 +57,9 @@ CONFIGURE_ARGS=		--enable-boehm=system
 SOVERSION=		23.9.9
 PLIST_SUB=		VERSION=23.9.9
 			SOMAJMIN=23.9
+
+[THREADS].CONFIGURE_ARGS_OFF=		--enable-threads=no
+[THREADS].CONFIGURE_ARGS_ON=		--enable-threads=yes
 
 post-install:
 	# remove duplicate license info
@@ -318,6 +322,20 @@ lib/libecl.so
 share/man/man1/
  ecl-config.1.gz
  ecl.1.gz
+
+
+[FILE:426:patches/patch-src_aclocal.m4]
+--- src/aclocal.m4.orig	2023-09-08 16:55:48 UTC
++++ src/aclocal.m4
+@@ -335,7 +335,7 @@ case "${host_os}" in
+                 SONAME="${SHAREDPREFIX}ecl.${SHAREDEXT}.SOVERSION"
+                 SONAME_LDFLAGS="-Wl,-soname,SONAME"
+                 ;;
+-        freebsd*)
++        freebsd*|midnight*)
+                 thehost='freebsd'
+                 THREAD_LIBS='-lpthread'
+                 SHARED_LDFLAGS="-shared ${LDFLAGS}"
 
 
 [FILE:33:files/special.mk]

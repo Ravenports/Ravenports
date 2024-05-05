@@ -31,7 +31,6 @@ LICENSE_SCHEME=		solo
 MUST_CONFIGURE=		gnu
 
 CFLAGS=			-I{{PREFIX}}/include/ncurses
-VAR_OPSYS[midnightbsd]=	CONFIGURE_ENV=ac_cv_lib_util_ohash_init=no
 
 [FILE:229:descriptions/desc.primary]
 Telescope is an Emacs/w3m-inspired browser for the "small internet" that 
@@ -61,4 +60,22 @@ bin/
 share/man/man1/
  telescope-identity.1.gz
  telescope.1.gz
+
+
+[FILE:305:midnightbsd/patch-configure.ac]
+On MBSD, ohash is in libutil, but it's not usable.
+
+--- configure.ac.orig	2024-02-23 17:48:20 UTC
++++ configure.ac
+@@ -145,10 +145,8 @@ AC_SEARCH_LIBS([imsg_init], [util], [
+ 	]
+ )
+ 
+-AC_SEARCH_LIBS([ohash_init], [util], [], [
+ 	AC_LIBOBJ(ohash)
+ 	AC_LIBOBJ(fmt_scaled)
+-])
+ 
+ AC_CHECK_FUNCS([asr_run])
+ 
 
