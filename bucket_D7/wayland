@@ -21,8 +21,9 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	EPOLLSHIM
 OPTIONS_STANDARD=	EPOLLSHIM
 OPT_ON[freebsd]=	EPOLLSHIM
+OPT_ON[midnightbsd]=	EPOLLSHIM
 
-ONLY_FOR_OPSYS=		dragonfly freebsd linux
+ONLY_FOR_OPSYS=		dragonfly freebsd linux midnightbsd
 
 BUILD_DEPENDS=		libxslt:primary:standard
 			libffi:dev:standard
@@ -110,6 +111,29 @@ share/wayland/
  wayland-scanner.mk
  wayland.dtd
  wayland.xml
+
+
+[FILE:779:patches/patch-meson.build]
+--- meson.build.orig	2023-04-04 07:58:31 UTC
++++ meson.build
+@@ -16,7 +16,7 @@ config_h.set_quoted('PACKAGE', meson.pro
+ config_h.set_quoted('PACKAGE_VERSION', meson.project_version())
+ 
+ cc_args = []
+-if host_machine.system() != 'freebsd'
++if not ['freebsd', 'midnightbsd'].contains(host_machine.system())
+ 	cc_args += ['-D_POSIX_C_SOURCE=200809L']
+ endif
+ add_project_arguments(cc_args, language: 'c')
+@@ -69,7 +69,7 @@ endif
+ config_h.set10('HAVE_BROKEN_MSG_CMSG_CLOEXEC', have_broken_msg_cmsg_cloexec)
+ 
+ if get_option('libraries')
+-	if host_machine.system() == 'freebsd'
++	if ['freebsd', 'midnightbsd'].contains(host_machine.system())
+ 		# When building for FreeBSD, epoll(7) is provided by a userspace
+ 		# wrapper around kqueue(2).
+ 		epoll_dep = dependency('epoll-shim')
 
 
 [FILE:1565:dragonfly/patch-meson.build]
@@ -1115,4 +1139,29 @@ share/wayland/
  
  		if (success) {
  			pass++;
+
+
+[FILE:478:midnightbsd/patch-src_wayland-os.c]
+--- src/wayland-os.c.orig	2023-04-04 07:58:31 UTC
++++ src/wayland-os.c
+@@ -42,6 +42,10 @@
+ 
+ #include "wayland-os.h"
+ 
++#if !defined(SOL_LOCAL)
++#define SOL_LOCAL 0
++#endif
++
+ static int
+ set_cloexec_or_close(int fd)
+ {
+@@ -79,7 +83,7 @@ wl_os_socket_cloexec(int domain, int typ
+ 	return set_cloexec_or_close(fd);
+ }
+ 
+-#if defined(__FreeBSD__)
++#if defined(__FreeBSD__) || defined(__MidnightBSD__)
+ int
+ wl_os_socket_peercred(int sockfd, uid_t *uid, gid_t *gid, pid_t *pid)
+ {
 
