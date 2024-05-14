@@ -20,9 +20,10 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		libsigsegv:static:standard
-BUILDRUN_DEPENDS=	libsigsegv:shared:standard
-			libffcall:single:standard
+BUILD_DEPENDS=		libsigsegv:dev:standard
+			libffcall:dev:standard
+BUILDRUN_DEPENDS=	libsigsegv:primary:standard
+			libffcall:primary:standard
 
 USES=			readline ncurses:build
 
@@ -47,6 +48,9 @@ VAR_OPSYS[dragonfly]=	LDFLAGS=-pthread
 
 do-build:
 	( cd ${WRKSRC}/src && make )
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/clisp
 
 post-extract:
 	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/src/build-aux/config.guess

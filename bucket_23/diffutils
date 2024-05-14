@@ -31,7 +31,7 @@ OPTIONS_STANDARD=	none
 VOPTS[ravensys]=	NOTSTD=ON RAVENSYS=ON
 VOPTS[noprefix]=	NOTSTD=ON RAVENSYS=OFF
 
-BUILD_DEPENDS=		libsigsegv:static:standard
+BUILD_DEPENDS=		libsigsegv:dev:standard
 
 USES=			charsetfix gmake iconv:build
 
@@ -61,6 +61,10 @@ MUST_CONFIGURE=		gnu
 post-patch:
 	${REINPLACE_CMD} -e '/^mkdir/s:@mkdir_p@:${MKDIR}:' \
 		${WRKSRC}/po/Makefile.in.in
+
+post-extract:
+	# ensure static linkage
+	${RM} ${LOCALBASE}/lib/libsigsegv.so
 
 [FILE:410:descriptions/desc.primary]
 The Free Software Foundation's "diff" utilities, including "diff",

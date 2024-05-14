@@ -25,7 +25,7 @@ OPTIONS_AVAILABLE=	NOPREFIX
 OPTIONS_STANDARD=	none
 VOPTS[noprefix]=	NOPREFIX=ON
 
-BUILD_DEPENDS=		libsigsegv:static:standard
+BUILD_DEPENDS=		libsigsegv:dev:standard
 
 USES=			cpe
 
@@ -54,6 +54,8 @@ CONFIGURE_ARGS=		--with-libsigsegv-prefix={{LOCALBASE}}
 post-patch:
 	${REINPLACE_CMD} -e '/^install-exec-am: / s| .*||' \
 		${WRKSRC}/lib/Makefile.in
+	# force static build
+	${RM} ${LOCALBASE}/lib/libsigsegv.so
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/examples/m4

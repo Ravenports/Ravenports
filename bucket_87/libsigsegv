@@ -2,6 +2,7 @@
 
 NAMEBASE=		libsigsegv
 VERSION=		2.14
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Handling page faults in user mode
@@ -13,16 +14,16 @@ SITES[main]=		GNU/libsigsegv
 DISTFILE[1]=		libsigsegv-2.14.tar.gz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			libtool
 
-LICENSE=		GPLv2+:static
-LICENSE_TERMS=		static:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"_SIGSEGV_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/sigsegv.h.in
@@ -41,7 +42,7 @@ do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
 		${MAKEFILE} ${MAKE_ARGS} check)
 
-[FILE:455:descriptions/desc.static]
+[FILE:401:descriptions/desc.primary]
 A library for handling page faults in user mode. A page fault occurs
 when a program tries to access to a region of memory that is currently
 not available. Catching and handling a page fault is a useful
@@ -52,39 +53,23 @@ technique for implementing:
  * generational garbage collectors,
  * stack overflow handlers,
  * distributed shared memory
-
-This package contains the static library and header.
-
-
-[FILE:444:descriptions/desc.shared]
-A library for handling page faults in user mode. A page fault occurs
-when a program tries to access to a region of memory that is currently
-not available. Catching and handling a page fault is a useful
-technique for implementing:
-
- * pageable virtual memory,
- * memory-mapped access to persistent databases,
- * generational garbage collectors,
- * stack overflow handlers,
- * distributed shared memory
-
-This package contains the shared library.
 
 
 [FILE:101:distinfo]
 cdac3941803364cf81a908499beb79c200ead60b6b5b40cad124fd1e06caa295       464658 libsigsegv-2.14.tar.gz
 
 
-[FILE:35:manifests/plist.static]
-include/sigsegv.h
-lib/libsigsegv.a
-
-
-[FILE:76:manifests/plist.shared]
+[FILE:61:manifests/plist.primary]
 lib/
- libsigsegv.so
  libsigsegv.so.%%SOMAJOR%%
  libsigsegv.so.%%SOVERSION%%
+
+
+[FILE:52:manifests/plist.dev]
+lib/
+ libsigsegv.so
+include/sigsegv.h
+ libsigsegv.a
 
 
 [FILE:103:files/pkg-message-static]

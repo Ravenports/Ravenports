@@ -2,6 +2,7 @@
 
 NAMEBASE=		libffcall
 VERSION=		2.4
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Foreign funct call ifaces for embed interpreters
@@ -12,15 +13,19 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://ftp.gnu.org/gnu/libffcall/
 DISTFILE[1]=		libffcall-2.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			gmake libtool
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/ffcall-abi.h
@@ -47,8 +52,12 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libcallback.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libffcall.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtrampoline.so
+	# relocate docs
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${MV} ${STAGEDIR}${PREFIX}/share/html/* ${STAGEDIR}${STD_DOCDIR}/
+	${RMDIR} ${STAGEDIR}${PREFIX}/share/html
 
-[FILE:114:descriptions/desc.single]
+[FILE:114:descriptions/desc.primary]
 GNU libffcall is a library which can be used to build foreign function 
 call interfaces in embedded interpreters.
 
@@ -57,7 +66,27 @@ call interfaces in embedded interpreters.
 8ef69921dbdc06bc5bb90513622637a7b83a71f31f5ba377be9d8fd8f57912c2      1253767 libffcall-2.4.tar.gz
 
 
-[FILE:606:manifests/plist.single]
+[FILE:230:manifests/plist.primary]
+lib/
+ libavcall.so.%%AVCALL%%
+ libavcall.so.%%AVMAJOR%%
+ libcallback.so.%%CALLBACK%%
+ libcallback.so.%%CAMAJOR%%
+ libffcall.so.%%SOMAJOR%%
+ libffcall.so.%%SOVERSION%%
+ libtrampoline.so.%%TRAMPOLINE%%
+ libtrampoline.so.%%TRMAJOR%%
+
+
+[FILE:242:manifests/plist.dev]
+lib/
+ libvacall.a
+ libtrampoline.a
+ libtrampoline.so
+ libffcall.a
+ libffcall.so
+ libcallback.a
+ libcallback.so
 include/
  avcall.h
  callback.h
@@ -69,29 +98,20 @@ include/
 lib/
  libavcall.a
  libavcall.so
- libavcall.so.%%AVCALL%%
- libavcall.so.%%AVMAJOR%%
- libcallback.a
- libcallback.so
- libcallback.so.%%CALLBACK%%
- libcallback.so.%%CAMAJOR%%
- libffcall.a
- libffcall.so
- libffcall.so.%%SOMAJOR%%
- libffcall.so.%%SOVERSION%%
- libtrampoline.a
- libtrampoline.so
- libtrampoline.so.%%TRAMPOLINE%%
- libtrampoline.so.%%TRMAJOR%%
- libvacall.a
-share/html/
- avcall.html
- callback.html
- trampoline.html
- vacall.html
+
+
+[FILE:74:manifests/plist.man]
 share/man/man3/
  avcall.3.gz
  callback.3.gz
  trampoline.3.gz
  vacall.3.gz
+
+
+[FILE:79:manifests/plist.docs]
+share/doc/libffcall/
+ avcall.html
+ callback.html
+ trampoline.html
+ vacall.html
 

@@ -113,7 +113,7 @@ share/wayland/
  wayland.xml
 
 
-[FILE:779:patches/patch-meson.build]
+[FILE:792:patches/patch-meson.build]
 --- meson.build.orig	2023-04-04 07:58:31 UTC
 +++ meson.build
 @@ -16,7 +16,7 @@ config_h.set_quoted('PACKAGE', meson.pro
@@ -121,7 +121,7 @@ share/wayland/
  
  cc_args = []
 -if host_machine.system() != 'freebsd'
-+if not ['freebsd', 'midnightbsd'].contains(host_machine.system())
++if not ['freebsd', 'midnightbsd', 'dragonfly'].contains(host_machine.system())
  	cc_args += ['-D_POSIX_C_SOURCE=200809L']
  endif
  add_project_arguments(cc_args, language: 'c')
@@ -136,18 +136,9 @@ share/wayland/
  		epoll_dep = dependency('epoll-shim')
 
 
-[FILE:1565:dragonfly/patch-meson.build]
---- meson.build.orig	2023-04-04 07:58:31 UTC
+[FILE:1248:dragonfly/patch-meson.build]
+--- meson.build.orig	2024-05-14 20:49:33 UTC
 +++ meson.build
-@@ -16,7 +16,7 @@ config_h.set_quoted('PACKAGE', meson.pro
- config_h.set_quoted('PACKAGE_VERSION', meson.project_version())
- 
- cc_args = []
--if host_machine.system() != 'freebsd'
-+if host_machine.system() != 'dragonfly'
- 	cc_args += ['-D_POSIX_C_SOURCE=200809L']
- endif
- add_project_arguments(cc_args, language: 'c')
 @@ -43,7 +43,6 @@ have_funcs = [
  	'mkostemp',
  	'posix_fallocate',
