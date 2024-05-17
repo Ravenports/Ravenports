@@ -2,7 +2,7 @@
 
 NAMEBASE=		gnustep-make
 VERSION=		2.9.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	GNUstep Makefile package
@@ -226,4 +226,58 @@ share/man/man1/
 share/man/man7/
  GNUstep.7.gz
  library-combo.7.gz
+
+
+[FILE:1874:patches/patch-target.make]
+--- target.make.orig	2022-12-28 10:18:03 UTC
++++ target.make
+@@ -652,15 +652,31 @@ endif
+ #
+ ifeq ($(findstring dragonfly, $(GNUSTEP_TARGET_OS)), dragonfly)
+ HAVE_SHARED_LIBS    = yes
+-SHARED_LD_POSTFLAGS = -Wl,-R/usr/pkg/lib -L/usr/pkg/lib
+ SHARED_LIB_LINK_CMD = \
+-	$(LD) -shared -Wl,-soname,$(LIB_LINK_VERSION_FILE) \
++	$(LD) -shared -Wl,-soname,$(LIB_LINK_SONAME_FILE) \
+               $(ALL_LDFLAGS) -o $(LIB_LINK_OBJ_DIR)/$(LIB_LINK_VERSION_FILE) \
+                  $^ $(INTERNAL_LIBRARIES_DEPEND_UPON) \
+                  $(SHARED_LD_POSTFLAGS) \
+ 	&& (cd $(LIB_LINK_OBJ_DIR); \
+ 	  $(RM_LN_S) $(LIB_LINK_FILE); \
+-	  $(LN_S) $(LIB_LINK_VERSION_FILE) $(LIB_LINK_FILE))
++	  if [ "$(LIB_LINK_SONAME_FILE)" != "$(LIB_LINK_VERSION_FILE)" ]; then\
++	    $(RM_LN_S) $(LIB_LINK_SONAME_FILE);\
++	    $(LN_S) $(LIB_LINK_VERSION_FILE) $(LIB_LINK_SONAME_FILE); \
++	  fi; \
++	  $(LN_S) $(LIB_LINK_SONAME_FILE) $(LIB_LINK_FILE))
++AFTER_INSTALL_SHARED_LIB_CMD = \
++	(cd $(LIB_LINK_INSTALL_DIR); \
++	  $(RM_LN_S) $(LIB_LINK_FILE); \
++	  if [ "$(LIB_LINK_SONAME_FILE)" != "$(LIB_LINK_VERSION_FILE)" ]; then\
++	    $(RM_LN_S) $(LIB_LINK_SONAME_FILE);\
++	    $(LN_S) $(LIB_LINK_VERSION_FILE) $(LIB_LINK_SONAME_FILE); \
++	  fi; \
++	  $(LN_S) $(LIB_LINK_SONAME_FILE) $(LIB_LINK_FILE); \
++	)
++AFTER_INSTALL_SHARED_LIB_CHOWN = \
++	(cd $(LIB_LINK_INSTALL_DIR); \
++	chown $(CHOWN_TO) $(LIB_LINK_SONAME_FILE); \
++	chown $(CHOWN_TO) $(LIB_LINK_FILE))
+ OBJ_MERGE_CMD		= \
+ 	$(LD) -nostdlib $(OBJ_MERGE_CMD_FLAG) $(CORE_LDFLAGS) -o $(GNUSTEP_OBJ_DIR)/$(SUBPROJECT_PRODUCT) $^ ;
+ 
+@@ -670,9 +686,7 @@ SHARED_LIBEXT	= .so
+ HAVE_BUNDLES	= yes
+ BUNDLE_LD	= $(LD)
+ BUNDLE_LDFLAGS	+= -shared
+-ADDITIONAL_LDFLAGS += -Wl,-R/usr/pkg/lib -L/usr/pkg/lib -Wl,-R/usr/X11R6/lib -L/usr/X11R6/lib
+ FINAL_LDFLAGS   = -rdynamic
+-ADDITIONAL_INCLUDE_DIRS += -I/usr/pkg/include
+ STATIC_LDFLAGS += -static
+ endif
+ #
+
+
+[FILE:15:files/special.mk]
+CPP=	clang-cpp
 
