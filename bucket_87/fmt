@@ -2,6 +2,7 @@
 
 NAMEBASE=		fmt
 VERSION=		10.2.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Open-source formatting library for C++
@@ -12,16 +13,14 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/fmtlib/fmt/releases/download/10.2.1/
 DISTFILE[1]=		fmt-10.2.1.zip:main
 DF_INDEX=		1
-SPKGS[standard]=	complete
-			primary
-			dev
+SPKGS[standard]=	single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe cmake ninja c++:primary
+USES=			cpe cmake ninja
 
-LICENSE=		MIT:primary
+LICENSE=		MIT:single
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -29,14 +28,11 @@ FPC_EQUIVALENT=		devel/libfmt
 
 SOVERSION=		10.2.1
 
-CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
+CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=OFF
 			-DFMT_DOC:BOOL=OFF
 			-DFMT_TEST:BOOL=OFF
 
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfmt.so
-
-[FILE:1476:descriptions/desc.primary]
+[FILE:1476:descriptions/desc.single]
 {fmt} is an open-source formatting library providing a fast and safe
 alternative to C stdio and C++ iostreams.
 
@@ -71,13 +67,7 @@ Features
 312151a2d13c8327f5c9c586ac6cf7cddc1658e8f53edae0ec56509c8fa516c9      1289946 fmt-10.2.1.zip
 
 
-[FILE:53:manifests/plist.primary]
-lib/
- libfmt.so.%%SOMAJOR%%
- libfmt.so.%%SOVERSION%%
-
-
-[FILE:289:manifests/plist.dev]
+[FILE:288:manifests/plist.single]
 include/fmt/
  args.h
  chrono.h
@@ -92,7 +82,7 @@ include/fmt/
  ranges.h
  std.h
  xchar.h
-lib/libfmt.so
+lib/libfmt.a
 lib/cmake/fmt/
  fmt-config-version.cmake
  fmt-config.cmake
