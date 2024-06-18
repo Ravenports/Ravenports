@@ -129,7 +129,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.12.7
+LIBXML2_VERSION=		2.13.0
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -137,7 +137,7 @@ LIBXML2_PYTHON_REVISION=	0
 # libxslt
 # ------------------------------------------------------------------------
 
-LIBXSLT_VERSION=		1.1.39
+LIBXSLT_VERSION=		1.1.40
 LIBXSLT_REVISION=		0
 LIBXSLT_PYTHON_REVISION=	0
 
@@ -226,7 +226,7 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.15.9
-QT6_VERSION=			6.7.0
+QT6_VERSION=			6.7.1
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
 KDE5_FRAMEWORKS_VERSION=	5.115.0
