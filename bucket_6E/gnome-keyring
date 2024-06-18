@@ -58,8 +58,9 @@ CONFIGURE_ARGS=		--with-pam-dir={{PREFIX}}/lib
 
 INSTALL_TARGET=		install-strip
 
-post-patch:
-	${REINPLACE_CMD} -e 's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' ${WRKSRC}/docs/Makefile.am
+pre-configure:
+	${REINPLACE_CMD} -e 's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' \
+		${WRKSRC}/docs/Makefile.am
 
 [FILE:455:descriptions/desc.primary]
 GNOME Keyring is a collection of components in GNOME that store secrets, 
@@ -202,8 +203,22 @@ share/man/man1/
  gnome-keyring.1.gz
 
 
-[FILE:285:patches/patch-docs_Makefile.am]
---- docs/Makefile.am.orig	2020-06-01 11:37:11 UTC
+[FILE:499:patches/patch-Makefile.in]
+--- Makefile.in.orig	2024-02-13 13:49:25 UTC
++++ Makefile.in
+@@ -3151,7 +3151,7 @@ gnome_keyring_@GKR_MAJOR@_LDADD = \
+ @ENABLE_DOC_TRUE@	--stringparam man.copyright.section.enabled 0
+ 
+ @ENABLE_DOC_TRUE@XSLTPROC_XSL = \
+-@ENABLE_DOC_TRUE@	http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl
++@ENABLE_DOC_TRUE@	http://cdn.docbook.org/release/xsl/current/manpages/docbook.xsl
+ 
+ @WITH_PAM_TRUE@pamlibdir = $(PAM_DEST_DIR)
+ @WITH_PAM_TRUE@pamlib_LTLIBRARIES = pam_gnome_keyring.la
+
+
+[FILE:603:patches/patch-docs_Makefile.am]
+--- docs/Makefile.am.orig	2024-02-13 13:47:50 UTC
 +++ docs/Makefile.am
 @@ -19,6 +19,7 @@ CLEANFILES += \
  
@@ -213,6 +228,15 @@ share/man/man1/
  	--stringparam man.output.quietly 1 \
  	--stringparam funcsynopsis.style ansi \
  	--stringparam man.th.extra1.suppress 1 \
+@@ -26,7 +27,7 @@ XSLTPROC_FLAGS = \
+ 	--stringparam man.copyright.section.enabled 0
+ 
+ XSLTPROC_XSL = \
+-	http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl
++	http://cdn.docbook.org/release/xsl/current/manpages/docbook.xsl
+ 
+ .xml.1:
+ 	$(AM_V_GEN) $(XSLTPROC) $(XSLTPROC_MAN) $(XSLTPROC_FLAGS) \
 
 
 [FILE:941:patches/patch-egg_egg-unix-credentials.c]

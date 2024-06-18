@@ -44,14 +44,14 @@ SOL_FUNCTIONS=		strndup:bin/dconf.c
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.0.0
 
-post-patch:
-	${REINPLACE_CMD} -e \
-		's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' \
-		${WRKSRC}/docs/meson.build
-
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/dconf/db
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/dconf/profile
+
+pre-configure:
+	${REINPLACE_CMD} -e \
+		's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' \
+		${WRKSRC}/docs/meson.build
 
 [FILE:339:descriptions/desc.primary]
 Dconf is a simple key-based low-level configuration system. Its main 
@@ -122,10 +122,10 @@ share/doc/dconf/
  up.png
 
 
-[FILE:353:patches/patch-docs_meson.build]
+[FILE:648:patches/patch-docs_meson.build]
 --- docs/meson.build.orig	2021-03-13 01:05:23 UTC
 +++ docs/meson.build
-@@ -22,6 +22,7 @@ if get_option('man')
+@@ -22,12 +22,13 @@ if get_option('man')
      xsltproc,
      '--output', '@OUTPUT@',
      '--nonet',
@@ -133,6 +133,13 @@ share/doc/dconf/
      '--stringparam', 'man.output.quietly', '1',
      '--stringparam', 'funcsynopsis.style', 'ansi',
      '--stringparam', 'man.th.extra1.suppress', '1',
+     '--stringparam', 'man.authors.section.enabled', '0',
+     '--stringparam', 'man.copyright.section.enabled', '0',
+-    'http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl',
++    'http://cdn.docbook.org/release/xsl/current/manpages/docbook.xsl',
+     '@INPUT@',
+   ]
+ 
 
 
 [FILE:1364:patches/patch-tests_meson.build]
