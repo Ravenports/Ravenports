@@ -2,7 +2,7 @@
 
 NAMEBASE=		automake
 VERSION=		1.16.5
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	GNU Standards-compliant Makefile generator
@@ -20,23 +20,20 @@ OPTIONS_STANDARD=	none
 
 BUILDRUN_DEPENDS=	autoconf:single:standard
 
-USES=			cpe makeinfo perl
+USES=			cpe perl
 
-INFO=			single:automake
-			single:automake-history
 CPE_VENDOR=		gnu
 FPC_EQUIVALENT=		devel/automake
-INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-
-MAKE_ENV=		MAKEINFOFLAGS=--no-split
 
 PLIST_SUB=		AMVER=1.16
 
 post-install:
 	# delete share/doc/automake/amhello-1.0.tar.gz
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	# delete info pages
+	${RM} -r ${STAGEDIR}${PREFIX}/share/info
 
 [FILE:683:descriptions/desc.single]
 Automake is a tool for automatically generating Makefiles compliant with
@@ -196,28 +193,4 @@ share/man/man1/
  .PHONY: checklinkx
  checklinkx:
  	$(checklinkx) $(chlx_args) $(chlx_excludes) $(chlx_file)
-
-
-[FILE:659:patches/patch-doc__automake.texi]
---- doc/automake.texi.orig	2021-10-01 19:30:59 UTC
-+++ doc/automake.texi
-@@ -38,17 +38,11 @@ section entitled ``GNU Free Documentatio
- @end quotation
- @end copying
- 
--@dircategory Software development
-+@dircategory Programming & development toolS
- @direntry
- * Automake: (automake).         Making GNU standards-compliant Makefiles.
- @end direntry
- 
--@dircategory Individual utilities
--@direntry
--* aclocal-invocation: (automake)aclocal Invocation.   Generating aclocal.m4.
--* automake-invocation: (automake)automake Invocation. Generating Makefile.in.
--@end direntry
--
- @titlepage
- @title GNU Automake
- @subtitle For version @value{VERSION}, @value{UPDATED}
 

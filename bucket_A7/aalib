@@ -2,7 +2,7 @@
 
 NAMEBASE=		aalib
 VERSION=		1.4rc5
-REVISION=		3
+REVISION=		4
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	ASCII art library
@@ -13,23 +13,30 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/aa-project/aa-lib/1.4rc5
 DISTFILE[1]=		aalib-1.4rc5.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
+			man
+			info
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[tools]=		primary
 
 USES=			libtool ncurses makeinfo fbsd10fix
 
 DISTNAME=		aalib-1.4.0
 
-LICENSE=		GPLv2:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^\#ifndef"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/aalib.h
 LICENSE_SCHEME=		solo
 
-INFO=			single:aalib
+INFO=			info:aalib
 FPC_EQUIVALENT=		graphics/aalib
 INFO_SUBDIR=		.
 
@@ -62,7 +69,7 @@ pre-configure:
 post-extract:
 	${RM} ${WRKSRC}/doc/aalib.info*
 
-[FILE:406:descriptions/desc.single]
+[FILE:406:descriptions/desc.primary]
 AA-lib is a low-level graphics library similar to many other libraries
 except for the fact that AA-lib does not require a graphics device!  In
 fact, no "graphical" output is possible.  AA-lib uses a modern, high-tech
@@ -72,24 +79,38 @@ The AA-lib API is designed to be similar to that of other graphics
 libraries so learning its API should be simple.
 
 
+[FILE:49:descriptions/desc.tools]
+This package contains tools based on AA library.
+
+
 [FILE:98:distinfo]
 fbddda9230cf6ee2a4f5706b4b11e2190ae45f5eda1f0409dc4f99b35e0a70ee       391028 aalib-1.4rc5.tar.gz
 
 
-[FILE:1408:manifests/plist.single]
+[FILE:33:manifests/plist.primary]
+lib/
+ libaa.so.1
+ libaa.so.1.0.4
+
+
+[FILE:63:manifests/plist.dev]
+share/aclocal/aalib.m4
+include/aalib.h
+lib/
+ libaa.a
+ libaa.so
+
+
+[FILE:55:manifests/plist.tools]
 bin/
  aafire
  aainfo
  aalib-config
  aasavefont
  aatest
-include/aalib.h
-lib/
- libaa.a
- libaa.so
- libaa.so.1
- libaa.so.1.0.4
-share/aclocal/aalib.m4
+
+
+[FILE:1262:manifests/plist.man]
 share/man/man1/aafire.1.gz
 share/man/man3/
  aa_attrs.3.gz

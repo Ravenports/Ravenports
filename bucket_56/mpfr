@@ -2,6 +2,7 @@
 
 NAMEBASE=		mpfr
 VERSION=		4.2.1
+REVISION=		1
 KEYWORDS=		math devel
 VARIANTS=		standard
 SDESC[standard]=	Multiple-precision floating-point number library
@@ -14,28 +15,29 @@ DISTFILE[1]=		mpfr-4.2.1.tar.xz:main
 DIST_SUBDIR=		mpfr-4.2.1
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
 			docs
+			info
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		gmp:complete:standard
-EXRUN[shared]=		gmp:shared:standard
+BUILD_DEPENDS=		gmp:dev:standard
+BUILDRUN_DEPENDS=	gmp:primary:standard
 
 USES=			libtool
 
 DISTNAME=		mpfr-4.2.1
 
-LICENSE=		LGPL3+:static
-LICENSE_TERMS=		static:{{WRKDIR}}/TERMS
+LICENSE=		LGPL3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL3+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"__MPFR_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/mpfr.h
 LICENSE_SCHEME=		solo
 
-INFO=			static:mpfr
+INFO=			info:mpfr
 FPC_EQUIVALENT=		math/mpfr
 INFO_SUBDIR=		.
 
@@ -50,7 +52,7 @@ TEST_TARGET=		check
 do-test:
 	 (cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE} check)
 
-[FILE:521:descriptions/desc.static]
+[FILE:466:descriptions/desc.primary]
 The MPFR library is a C library for multiple-precision floating-point
 computations with exact rounding (also called correct rounding).  It
 is based on the GMP multiple-precision library.
@@ -60,33 +62,24 @@ floating-point computation which is both efficient and has a well-defined
 semantics.  It copies the good ideas from the ANSI/IEEE-754 standard for
 double-precision floating-point arithmetic (53-bit mantissa).
 
-This package contains the headers and static library.
-
-
-[FILE:230:descriptions/desc.shared]
-The MPFR library is a C library for multiple-precision floating-point
-computations with exact rounding (also called correct rounding).  It
-is based on the GMP multiple-precision library.
-
-This package contains the shared library.
-
 
 [FILE:107:distinfo]
 277807353a6726978996945af13e52829e3abd7a9a5b7fb2793894e18f1fcbb2      1493608 mpfr-4.2.1/mpfr-4.2.1.tar.xz
 
 
-[FILE:43:manifests/plist.static]
+[FILE:55:manifests/plist.primary]
+lib/
+ libmpfr.so.%%SOMAJOR%%
+ libmpfr.so.%%SOVERSION%%
+
+
+[FILE:79:manifests/plist.dev]
 include/
  mpf2mpfr.h
  mpfr.h
-lib/libmpfr.a
-
-
-[FILE:89:manifests/plist.shared]
 lib/
+ libmpfr.a
  libmpfr.so
- libmpfr.so.%%SOMAJOR%%
- libmpfr.so.%%SOVERSION%%
 lib/pkgconfig/mpfr.pc
 
 

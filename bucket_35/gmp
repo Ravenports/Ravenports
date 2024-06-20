@@ -2,6 +2,7 @@
 
 NAMEBASE=		gmp
 VERSION=		6.3.0
+REVISION=		1
 KEYWORDS=		math devel
 VARIANTS=		standard
 SDESC[standard]=	Free library for arbitrary precision arithmetic
@@ -13,23 +14,24 @@ SITES[main]=		GNU/gmp
 DISTFILE[1]=		gmp-6.3.0.tar.xz:main
 DF_INDEX=		1
 SPKGS[standard]=	complete
-			static
-			shared
+			primary
+			dev
+			info
 
 OPTIONS_AVAILABLE=	ASM
 OPTIONS_STANDARD=	ASM
 
-USES=			cpe libtool mbsdfix c++:shared
+USES=			cpe libtool mbsdfix c++:primary
 
-LICENSE=		LGPL3+:static GPLv2+:static
-LICENSE_TERMS=		static:{{WRKDIR}}/TERMS
+LICENSE=		LGPL3+:primary GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL3+:{{WRKSRC}}/COPYING.LESSERv3
 			GPLv2+:{{WRKSRC}}/COPYINGv2
 LICENSE_AWK=		TERMS:"__GMP_H__"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/gmp-h.in
 LICENSE_SCHEME=		dual
 
-INFO=			static:gmp
+INFO=			info:gmp
 CPE_VENDOR=		gmplib
 FPC_EQUIVALENT=		math/gmp
 INFO_SUBDIR=		.
@@ -59,7 +61,7 @@ pre-configure:
 do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE} check)
 
-[FILE:932:descriptions/desc.static]
+[FILE:875:descriptions/desc.primary]
 GMP is a free library for arbitrary precision arithmetic, operating
 on signed integers, rational numbers, and floating point numbers.
 There is no limit to the precision except the ones implied by the
@@ -78,41 +80,29 @@ advantage for GMP increases with the operand sizes for certain
 operations, since GMP in many cases has asymptotically faster
 algorithms.
 
-This package contains the headers and static libraries.
-
-
-[FILE:367:descriptions/desc.shared]
-GMP is a free library for arbitrary precision arithmetic, operating
-on signed integers, rational numbers, and floating point numbers.
-There is no limit to the precision except the ones implied by the
-available memory in the machine GMP runs on. GMP has a rich set of
-functions, and the functions have a regular interface.
-
-This package contains the shared libraries.
-
 
 [FILE:95:distinfo]
 a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898      2094196 gmp-6.3.0.tar.xz
 
 
-[FILE:85:manifests/plist.static]
+[FILE:117:manifests/plist.primary]
+lib/
+ libgmp.so.%%LIBGMP_MAJ%%
+ libgmp.so.%%LIBGMP_VER%%
+ libgmpxx.so.%%LIBGMPXX_MAJ%%
+ libgmpxx.so.%%LIBGMPXX_VER%%
+
+
+[FILE:109:manifests/plist.dev]
 include/
  gmp.h
  gmpxx.h
 lib/
  libgmp.a
+ libgmp.so
  libgmpxx.a
+ libgmpxx.so
 lib/pkgconfig/
  gmp.pc
  gmpxx.pc
-
-
-[FILE:141:manifests/plist.shared]
-lib/
- libgmp.so
- libgmp.so.%%LIBGMP_MAJ%%
- libgmp.so.%%LIBGMP_VER%%
- libgmpxx.so
- libgmpxx.so.%%LIBGMPXX_MAJ%%
- libgmpxx.so.%%LIBGMPXX_VER%%
 
