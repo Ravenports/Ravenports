@@ -22,13 +22,14 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 
 #-------------------------------------------------------------------------
 # PERL5
-# Possible values: 5.34 and 5.36
+# Possible values: 5.38 and 5.40
 #-------------------------------------------------------------------------
 
-PERL5_DEFAULT?=		5.36
+PERL5_DEFAULT?=		5.38
 
 PERL_5.36_VERSION=	5.36.1
 PERL_5.38_VERSION=	5.38.2
+PERL_5.40_VERSION=	5.40.0
 
 #-------------------------------------------------------------------------
 # RUBY
@@ -94,7 +95,7 @@ PGSQL_16_VERSION=	16.3
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(5.7,8.0,8.1), mariadb-(10.[456], 10.1[1], 11)
+# Possible values: oracle-(5.7,8.0,8.4), mariadb-(10.[456], 10.1[1], 11)
 #
 # MariaDB releases:
 #   MariaDB 10.4   EOL 18 JUN 2024 (STABLE)
@@ -113,7 +114,7 @@ MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-5.7_VERSION=	5.7.44
 MYSQL_oracle-8.0_VERSION=	8.0.37
-MYSQL_oracle-8.1_VERSION=	8.3.0
+MYSQL_oracle-8.4_VERSION=	8.4.0
 MYSQL_mariadb-10.4_VERSION=	10.4.34
 MYSQL_mariadb-10.5_VERSION=	10.5.25
 MYSQL_mariadb-10.6_VERSION=	10.6.18

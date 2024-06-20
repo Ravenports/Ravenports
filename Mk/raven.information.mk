@@ -137,7 +137,7 @@ LIBXML2_PYTHON_REVISION=	0
 # libxslt
 # ------------------------------------------------------------------------
 
-LIBXSLT_VERSION=		1.1.40
+LIBXSLT_VERSION=		1.1.41
 LIBXSLT_REVISION=		0
 LIBXSLT_PYTHON_REVISION=	0
 
