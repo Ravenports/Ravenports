@@ -6,10 +6,12 @@ Universal package builder system
 To develop the next generation software collection builder and packager
 that is also truly cross-platform.  Think FreeBSD ports with several new
 cutting edge features and enhancements, but with equal support to Linux,
-Solaris(like), MacOS, and all BSD platforms.
+Solaris(like), and all BSD platforms.  MacOS was previously supported, but
+it proved difficult to maintain due to the different file format (Mach-o vs 
+ELF) and extrememly large system root.
 
 It is not a reinvention of pkgsrc.  The approach is new and not based
-on make.
+on the 'make' program.
 
 ## Ravenports Triad
 
@@ -22,14 +24,21 @@ the ports tree seen in FreeBSD and pkgsrc, but only at the individual
 port directory level.  It is not arranged in categories.  The contents
 of each port directory is used to generate a port buildsheet.
 
+Custom overlays are supported, known as **unkindness** directories.
+These overlays either lock in standard parts (should the locations match
+the source ports, or add custom ports.  The two typical uses for this
+directory is related port development and the ability to add proprietary
+software to a custom repository.
+
   2. **Conspiracy:**
 The conspiracy repository contains all the buildsheets, separated into
 256 bucket directories.  These single files are the complete recipe for
 building the software for which they were created.  These buildsheets
 are not meant to be viewed directly, as their information can be queried
 by the ravenadm tool.  The conspiracy buildsheets are "compiled" from
-ravensource and getting the latest ports is accomplished by updating the
-repository.  This README is contained within the Conspiracy repository.
+ravensource and possible an unkindness directory and getting the latest
+versions is accomplished by updating the repository.
+This README is contained within the Conspiracy repository.
 
   3. **Raven administration tool:**
 The administration tool for Ravenports is "ravenadm".  It can query the
@@ -71,7 +80,7 @@ conditions defined by the Internet Systems Consortium (ISC) license:
 ---
 
 ```
-Copyright (c) 2017-2023, The Ravenports Project.
+Copyright (c) 2017-2024, The Ravenports Project.
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -86,18 +95,32 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ```
 
-## SHA256 digests for Ravenports bootstrap files
+## Ravenports fingerprint
 
-Currently the repositories are only available via HTTP.  The SHA256 digests
-are listed before for confidence the bootstrap ravensw(8) binaries are the ones
-we generated.
+All Ravenports repositories are signed by the following fingerprint:
 
 ```
-e28fde00276880da2183439eb1e45c962147f90aca5482b9ac2df1a28dfd011a raven-darwin-bootstrap.tar.gz
-957b12522aa1e73173c98dca0e5fab9fba7961da149a02b63925bcaf7310de85 ravensw-dragonfly-58-bootstrap.tar.gz
-6ace12f1b1e2ceebb4bb0efcf1016a22f72cd24ca35c248234a71ef05dfa5b3d ravensw-freebsd64-bootstrap.tar.gz
-3c7090bc98eb8def52328b94096581ec9c7bea78c8e8676fb532dc0695041a00 ravensw-linux-bootstrap.tar.gz
-3b37a88000b2156d137a44d684abfcdc646f1f34fa87410af3167c8614e3b41d ravensw-sunos-bootstrap.tar.gz
+function: "blake3"
+fingerprint: "adcb0aeb115a8ca66e4cce5ad1d500ad235cc2eab0a14fdb8bb74f786b896c97"
+```
+
+The file containing is defined by the repository configuration.  The downloader
+script creates it here:
+
+    /raven/etc/rvn/fingerprints/ravenports/trusted/Alpha-fingerprint
+
+The repository configuration created by the downloader script is this:
+
+   /raven/etc/rvn/repos/raven.conf
+```
+Raven: {
+    url            : http://www.ravenports.com/repository/${ABI},
+    enabled        : true
+    master         : true
+    signature_type : fingerprints
+    fingerprints   : ${LOCAL_FPRINTDIR}
+    priority       : 10
+}
 ```
 
 ## Ravenports public key
@@ -116,17 +139,59 @@ UwIDAQAB
 -----END PUBLIC KEY-----
 ```
 
+The downloader skip no longer installs this file, but it still works.
 An example of use is to save the contents to
-/raven/etc/ravensw/keys/ravenports.key.  The ravensw repository
+/raven/etc/rvn/keys/ravenports.key.  The ravensw repository
 configuration file might look like this:
 
 ```
-> cat /raven/etc/ravensw/repos/01_raven.conf
+> cat /raven/etc/rvn/repos/raven.conf
 Raven: {
     url            : http://www.ravenports.com/repository/${ABI},
-    pubkey         : /raven/etc/ravensw/keys/ravenports.key,
+    pubkey         : /raven/etc/rvn/keys/ravenports.key,
     signature_type : PUBKEY,
-    priority       : 0,
     enabled        : yes
 }
 ```
+
+## Bootstrapping Ravenports
+
+These are operating system-specific examples on how to install Ravenports on a new system using basic commands.
+
+```
+============
+FreeBSD
+DragonFly
+MidnightBSD
+============
+```
+
+   root> fetch http://www.ravenports.com/repository/ravenports-downloader.sh -o - | /bin/sh
+
+```
+============
+NetBSD
+============
+```
+
+   root> ftp -o - http://www.ravenports.com/repository/ravenports-downloader.sh | /bin/sh
+
+```
+============
+Solaris 10
+============
+```
+
+   root> /usr/sfw/bin/wget http://www.ravenports.com/repository/ravenports-downloader.sh -O - | /usr/bin/bash
+
+```
+============
+Linux
+============
+```
+
+    user> curl http://www.ravenports.com/repository/ravenports-downloader.sh --silent | sudo /bin/bash
+
+- or -
+
+    user> wget http://www.ravenports.com/repository/ravenports-downloader.sh --quiet -O - | sudo /bin/bash
