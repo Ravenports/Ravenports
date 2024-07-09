@@ -65,7 +65,7 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		REQUIRE="LOGIN"
 RC_SUBR=		dovecot:primary
-SUB_FILES=		pkg-message-primary
+SUB_FILES=		messages-primary.ucl
 
 CPPFLAGS=		-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
@@ -102,7 +102,7 @@ THREAD and IDLE.
 05b11093a71c237c2ef309ad587510721cc93bbee6828251549fc1586c36502d      7837242 dovecot-2.3.21.tar.gz
 
 
-[FILE:3206:manifests/plist.primary]
+[FILE:3076:manifests/plist.primary]
 bin/
  doveadm
  doveconf
@@ -260,7 +260,6 @@ share/dovecot/stopwords/
  stopwords_ru.txt
  stopwords_sv.txt
  stopwords_tr.txt
-@postunexec echo "If you are removing dovecot2 permanently, you should 'rm -rf /var/db/dovecot' to clear out any remaining data."
 
 
 [FILE:12307:manifests/plist.dev]
@@ -1404,9 +1403,10 @@ for config in ${dovecot_config}; do
 done
 
 
-[FILE:1353:files/pkg-message-primary.in]
----------------------------------------------------------------------
-
+[FILE:1384:files/messages-primary.ucl.in]
+primary-in: {
+  type: "install"
+  message: <<EOM
  You must create the configuration files yourself. Copy them over
  to %%ETCDIR%% and edit them as desired:
 
@@ -1442,6 +1442,10 @@ done
    * Read https://wiki2.dovecot.org/Upgrading/2.3
    * Merge the configuration file changes from
      %%ETCDIR%%/examples-config/
-
----------------------------------------------------------------------
+EOM
+}
+primary-out: {
+  type: "remove"
+  message: "To clear out remaining data manually, execute 'rm -rf /var/db/dovecot'"
+}
 

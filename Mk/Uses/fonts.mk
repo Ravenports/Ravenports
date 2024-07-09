@@ -1,22 +1,14 @@
 # handle fonts
 # Feature:	fonts
 # Usage:	USES=fonts
-# Valid ARGS:	fc, fontsdir, fcfontsdir (implicit)
+# Valid ARGS:	fc, fontsdir (implicit)
 
 #  fc		Add @fc ${FONTSDIR} to primary|single subpackage manifest
 #  fontsdir	Add @fontsdir ${FONTSDIR} to primary|single subpackage manifest
-#  fcfontsdir	Add @fcfontsdir ${FONTSDIR} to primary|single subpackage manifest
 
 # Ports should use USES=fonts with an argument only when necessary.
-# By default, @fcfontsdir ${FONTSDIR} is added and it updates font
-# information cache file of fontconfig library, and XLFD entries
-# in fonts.dir and fonts.scale file, which are directly used by
-# X server and xfs font server.
 #
-# Xorg supports TrueType and OpenType via either of the two font
-# subsystems.  @fcfontsdir is designed to update configuration files for
-# both of them to register a font file.  Specifically, fc-cache and
-# mkfontdir utilities are used, respectively.
+# Xorg supports TrueType and OpenType via either of the two font subsystems.
 #
 # Ports to install fonts with which mkfontdir or fc-cache do not work well
 # should use :fc and/or :fontsdir argument.  fc-cache and mkfontdir
@@ -32,15 +24,15 @@
 #
 # Note that ports which do not want mkfontdir need to use
 # a separate FONTSDIR, not shared ones such as misc or TTF.
-# This is because other ports using @fcfontsdir or @fontsdir
-# update fonts.dir in these font directories upon installation
-# and deinstallation.  mkfontdir will overwrite manually-added entries.
+# This is because other ports using @fontsdir update fonts.dir in these
+# font directories upon installation and deinstallation.  mkfontdir will
+# overwrite manually-added entries.
 
 .if !defined(_INCLUDE_USES_FONTS_MK)
 _INCLUDE_USES_FONTS_MK=	yes
 
 .  if empty(fonts_ARGS)
-fonts_ARGS=	fcfontsdir
+fonts_ARGS=	fontsdir
 .  endif
 
 # -----------------------------------------------
@@ -50,13 +42,10 @@ fonts_ARGS=	fcfontsdir
 # BUILD_DEPENDS+=	fontconfig:dev:standard
 # BUILDRUN_DEPENDS+=	fontconfig:primary:standard
 # -----------------------------------------------
-# if argument = fcfontsdir:
+# if argument = fontsdir:
 # BUILD_DEPENDS+=	fontconfig:dev:standard
 # BUILDRUN_DEPENDS+=	fontconfig:primary:standard
-# RUN_DEPENDS+=		xorg-mkfontscale:single:standard
-# -----------------------------------------------
-# if argument = fontsdir:
-# RUN_DEPENDS+=		xorg-mkfontscale:single:standard
+# BUILDRUN_DEPENDS+=	xorg-mkfontscale:primary:standard
 # -----------------------------------------------
 # Unrecognized arguments are removed from buildsheet
 # If multiple recognized arguments are provided, all after
@@ -81,7 +70,9 @@ _USES_stage+=	933:add-plist-fonts
 
 .  if !target(add-plist-fonts)
 add-plist-fonts:
+.    if !empty(fonts_ARGS:Mfontsdir)
 	@echo "@${fonts_ARGS} ${FONTSDIR}" >> ${SPKGMANIFEST}
+.    endif
 .  endif
 
 .endif	# _INCLUDE_USES_FONTS_MK

@@ -22,6 +22,7 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	FILTER
 OPTIONS_STANDARD=	FILTER
 
+BUILD_DEPENDS=		polkit:dev:standard
 BUILDRUN_DEPENDS=	polkit:primary:standard
 B_DEPS[sunos]=		libusb:dev:standard
 B_DEPS[linux]=		libusb:dev:standard
@@ -44,7 +45,7 @@ MESON_ARGS=		-Dlibsystemd=false
 SHEBANG_FILES=		src/spy/pcsc-spy
 
 RC_SUBR=		pcscd:primary
-SUB_FILES=		pkg-message-primary
+SUB_FILES=		messages-primary.ucl
 
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=-Dusb=false
 
@@ -128,6 +129,35 @@ share/man/man8/pcscd.8.gz
 share/doc/pcsc-lite/setup_spy.sh
 
 
+[FILE:599:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
+PC/SC-Lite has been installed.
+You need to install a driver for your smartcard reader e.g.
+devel/libccid
+security/ifd-slb_rf60
+
+For cardreaders connected to the serial port: After installing the driver,
+please update the pcscd configuration file
+%%PREFIX%%/etc/reader.conf
+
+For USB cardreaders add the following lines to /etc/devd.conf to enable
+hotplugging.
+
+attach 100 {
+        device-name "ugen[0-9]+";
+        action "%%PREFIX%%/sbin/pcscd -H";
+};
+
+detach 100 {
+        device-name "ugen[0-9]+";
+        action "%%PREFIX%%/sbin/pcscd -H";
+};
+EOM
+}
+
+
 [FILE:310:files/pcscd.in]
 #!/bin/sh
 #
@@ -150,31 +180,4 @@ load_rc_config "$name"
 : ${pcscd_enable="NO"}
 
 run_rc_command "$1"
-
-
-[FILE:694:files/pkg-message-primary.in]
-------------------------------------------------------------------------
-
-PC/SC-Lite has been installed.
-You need to install a driver for your smartcard reader e.g.
-devel/libccid
-security/ifd-slb_rf60
-
-For cardreaders connected to the serial port: After installing the driver,
-please update the pcscd configuration file
-%%PREFIX%%/etc/reader.conf
-
-For USB cardreaders add the following lines to /etc/devd.conf to enable
-hotplugging.
-
-attach 100 {
-        device-name "ugen[0-9]+";
-        action "%%PREFIX%%/sbin/pcscd -H";
-};
-
-detach 100 {
-        device-name "ugen[0-9]+";
-        action "%%PREFIX%%/sbin/pcscd -H";
-};
-------------------------------------------------------------------------
 

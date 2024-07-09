@@ -12,10 +12,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/maxmind:geoip-api-c:v1.6.12
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[tools]=		primary
 
 USES=			autoreconf libtool
 
@@ -23,50 +29,45 @@ MUST_CONFIGURE=		gnu
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.6.12
-SUB_FILES=		pkg-message-single
+SUB_FILES=		messages-tools.ucl
 			geoipupdate.sh
 
 post-install:
-	@${MKDIR} ${STAGEDIR}${PREFIX}/share/GeoIP
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/GeoIP
 	${INSTALL_SCRIPT} ${WRKDIR}/geoipupdate.sh ${STAGEDIR}${PREFIX}/bin
-
-[FILE:659:descriptions/desc.single]
-GeoIP is a C library that enables the user to find the country that any
-IP address or hostname originates from.  It uses a file based database
-that is accurate as of March 2002.  This database simply contains IP blocks
-as keys, and countries as values.  This database should be more complete and
-accurate than using reverse DNS lookups.
-
-This module can be used to automatically select the geographically closest
-mirror, to analyze your web server logs to determine the countries of your
-visitors, for credit card fraud detection, and for software export controls.
-
-This port includes a helper script, geoipupdate.sh, to help you keep the
-library up-to-date.
-
 
 [FILE:112:distinfo]
 99b119f8e21e94f1dfd6d49fbeed29a70df1544896e76cd456f25e397b07d476       160826 maxmind-geoip-api-c-1.6.12.tar.gz
 
 
-[FILE:254:manifests/plist.single]
-bin/
- geoiplookup
- geoiplookup6
- geoipupdate.sh
+[FILE:57:manifests/plist.primary]
+lib/
+ libGeoIP.so.%%SOMAJOR%%
+ libGeoIP.so.%%SOVERSION%%
+
+
+[FILE:84:manifests/plist.dev]
 include/
  GeoIP.h
  GeoIPCity.h
 lib/
  libGeoIP.a
  libGeoIP.so
- libGeoIP.so.%%SOMAJOR%%
- libGeoIP.so.%%SOVERSION%%
 lib/pkgconfig/geoip.pc
+
+
+[FILE:65:manifests/plist.tools]
+bin/
+ geoiplookup
+ geoiplookup6
+ geoipupdate.sh
+@dir share/GeoIP
+
+
+[FILE:53:manifests/plist.man]
 share/man/man1/
  geoiplookup.1.gz
  geoiplookup6.1.gz
-@dir share/GeoIP
 
 
 [FILE:593:patches/patch-man__Makefile.am]
@@ -142,8 +143,13 @@ if [ -n "$GEOIP_FETCH_ASN" ]; then
 fi
 
 
-[FILE:125:files/pkg-message-single.in]
+[FILE:175:files/messages-tools.ucl.in]
+tools: {
+  type: "install"
+  message: <<EOM
 GeoIP does not ship with the actual data files. You must download
 them yourself! Please run:
 # %%PREFIX%%/bin/geoipupdate.sh
+EOM
+}
 

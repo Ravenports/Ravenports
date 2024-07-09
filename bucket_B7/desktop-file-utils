@@ -2,6 +2,7 @@
 
 NAMEBASE=		desktop-file-utils
 VERSION=		0.27
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard
 SDESC[standard]=	Utilities for manipulating .desktop files
@@ -26,8 +27,10 @@ FPC_EQUIVALENT=		devel/desktop-file-utils
 
 CONFIGURE_ENV=		EMACS="no"
 
-SUB_FILES=		pkg-deinstall-single
-SUB_LIST=		MIMEDIRS="{{LOCALBASE}}/share/applications"
+SUB_FILES=		triggers-primary.ucl
+			scripts-primary.ucl
+SUB_LIST=		MIMEDIRS="share/applications"
+			MDPARENT="share"
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 
@@ -75,34 +78,45 @@ share/man/man1/
  update-desktop-database.1.gz
 
 
-[FILE:228:files/pkg-deinstall-single.in]
-#!/bin/sh
-#
-# Remove leftover mimeinfo.cache files.
-
-if [ "$2" != "POST-DEINSTALL" ]; then
-    exit 0
-fi
-
-for mdir in %%MIMEDIRS%%; do
-    if [ -f ${mdir}/mimeinfo.cache ]; then
-	rm -f ${mdir}/mimeinfo.cache
-    fi
-done
-
-exit 0
+[FILE:171:files/scripts-primary.ucl.in]
+post-install-lua: [{
+    args: ""
+    code: <<EOS
+pkg.print_msg("Building cache database of MIME types")
+pkg.exec({"%%PREFIX%%/bin/update-desktop-database", "-q"})
+EOS
+}]
 
 
-[FILE:170:files/pkg-install-single]
-#!/bin/sh
-#
-# Initialize the desktop directories and MIME cache.
+[FILE:659:files/triggers-primary.ucl.in]
+mimeinfo-cache: {
+    dir_path: ["%%PREFIX%%/%%MIMEDIRS%%"]
 
-if [ "$2" != "POST-INSTALL" ]; then
-    exit 0
-fi
+    cleanup: <<EOS
+local mimedir = "%%PREFIX%%/%%MIMEDIRS%%/"
+local mdparent = "%%PREFIX%%/%%MDPARENT%%"
+local cache = mimedir .. "mimeinfo.cache"
+local st = pkg.stat(cache)
+if st then
+	os.remove(cache)
+end
+local res = pkg.readdir(mimedir)
+if #res == 0 then
+	os.remove(mimedir)
+	res = pkg.readdir(mdparent)
+	if #res == 0 then
+		os.remove(mdparent)
+		res = pkg.readdir("%%PREFIX%%")
+		if #res == 0 then
+			os.remove("%%PREFIX%%")
+		end
+	end
+end
+EOS
 
-${PKG_PREFIX}/bin/update-desktop-database -q
-
-exit 0
+    trigger: <<EOS
+pkg.print_msg("Triggered: Building cache database of MIME types")
+pkg.exec({"%%PREFIX%%/bin/update-desktop-database","-q"})
+EOS
+}
 

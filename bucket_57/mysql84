@@ -76,6 +76,7 @@ PLIST_SUB=		MY_DBDIR=/var/db/mysql
 			RPCGEN=
 RC_SUBR=		mysql-server:server
 SUB_FILES=		my.cnf.sample
+			messages-server.ucl
 SUB_LIST=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
@@ -1403,6 +1404,24 @@ return 0;
 }
 
 
+[FILE:469:files/messages-server.ucl.in]
+server: {
+  type: "install"
+  message: <<EOM
+Remember to run mysql_upgrade the first time you start the MySQL server
+after an upgrade from an earlier version.
+
+Initial password for first time use of MySQL is saved in $HOME/.mysql_secret
+ie. when you want to use "mysql -u root -p" first you should see password
+in /root/.mysql_secret
+
+MySQL57 has a default %%ETCDIR%%/my.cnf,
+remember to replace it wit your own
+or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
+EOM
+}
+
+
 [FILE:2182:files/my.cnf.sample.in]
 [client]
 port                            = 3306
@@ -1556,23 +1575,6 @@ mysql_poststart()
 }
 
 run_rc_command "$1"
-
-
-[FILE:576:files/pkg-message-server.in]
-*****************************************************************************
-
-Remember to run mysql_upgrade the first time you start the MySQL server
-after an upgrade from an earlier version.
-
-Initial password for first time use of MySQL is saved in $HOME/.mysql_secret
-ie. when you want to use "mysql -u root -p" first you should see password
-in /root/.mysql_secret
-
-MySQL57 has a default %%ETCDIR%%/my.cnf,
-remember to replace it wit your own
-or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
-
-*****************************************************************************
 
 
 [FILE:28:files/special.mk]

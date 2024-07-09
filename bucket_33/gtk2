@@ -2,7 +2,7 @@
 
 NAMEBASE=		gtk2
 VERSION=		2.24.33
-REVISION=		3
+REVISION=		4
 KEYWORDS=		x11_toolkits
 VARIANTS=		standard
 SDESC[standard]=	Gimp Toolkit for X11 GUI
@@ -84,7 +84,7 @@ application suites.
 ac2ac757f5942d318a311a54b0c80b5ef295f299c2a73c632f6bfb1ff49cc6da     12661828 gnome2/gtk+-2.24.33.tar.xz
 
 
-[FILE:2020:manifests/plist.primary]
+[FILE:1879:manifests/plist.primary]
 %%CUPS-ON%%lib/gtk-2.0/%%GTK_VERSION%%/printbackends/libprintbackend-cups.so
 %%INTROSPECTION-ON%%lib/girepository-1.0/
  Gdk-2.0.typelib
@@ -184,8 +184,6 @@ share/themes/Emacs/gtk-2.0-key/gtkrc
 share/themes/Raleigh/gtk-2.0/gtkrc
 @dir lib/gtk-2.0/%%GTK_VERSION%%/loaders
 @dir lib/gtk-2.0/%%GTK_VERSION%%/modules
-@postexec %D/bin/gtk-query-immodules-2.0 --update-cache > /dev/null 2>&1 || /usr/bin/true
-@rmtry lib/gtk-2.0/%%GTK_VERSION%%/immodules.cache
 
 
 [FILE:4458:manifests/plist.dev]
@@ -952,4 +950,43 @@ Don't define _XOPEN_SOURCE on SunOS when using >= C99.
        exit (1);
      }
  
+
+
+[FILE:709:files/scripts-primary.ucl.in]
+post-install-lua: [{
+     args: ""
+     code: <<EOS
+gqi = pkg.prefixed_path("bin/gtk-query-immodules-2.0")
+pkg.exec({gqi, "--update-cache"})
+EOS
+}]
+post-deinstall-lua: [{
+     args: ""
+     code: <<EOS
+function rmtry (mydir)
+  local res = pkg.readdir(mydir)
+  if res ~= nil then
+    if #res == 0 then
+      os.remove(mydir)
+      return true
+    end
+    return false
+  end
+end
+
+name = pkg.prefixed_path("lib/gtk-2.0/%%GTK_VERSION%%/immodules.cache")
+dir2 = pkg.prefixed_path("lib/gtk-2.0/%%GTK_VERSION%%")
+dir3 = pkg.prefixed_path("lib/gtk-2.0")
+dir4 = pkg.prefixed_path("lib")
+
+os.remove(name)
+if rmtry (dir2) then
+   if rmtry (dir3) then
+      if rmtry (dir4) then
+        a = 0
+      end
+   end
+end
+EOS
+}]
 

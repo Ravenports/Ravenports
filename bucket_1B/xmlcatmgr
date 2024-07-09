@@ -2,7 +2,7 @@
 
 NAMEBASE=		xmlcatmgr
 VERSION=		2.2
-REVISION=		3
+REVISION=		5
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	SGML and XML catalog manager
@@ -13,12 +13,14 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/xmlcatmgr/xmlcatmgr/2.2
 DISTFILE[1]=		xmlcatmgr-2.2.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -29,9 +31,8 @@ CONFIGURE_ARGS=		--disable-docs
 			DEFAULT_CATALOG_SGML={{PREFIX}}/share/sgml/catalog.ports
 			DEFAULT_CATALOG_XML={{PREFIX}}/share/xml/catalog.ports
 
-SUB_FILES=		pkg-install-single
-			pkg-deinstall-single
-			pkg-message-single
+SUB_FILES=		scripts-primary.ucl
+			messages-primary.ucl
 			refresh_xmlcatmgr_catalogs
 SUB_LIST=		CATALOG_MASTER_SGML={{PREFIX}}/share/sgml/catalog
 			CATALOG_MASTER_XML={{PREFIX}}/share/xml/catalog
@@ -40,12 +41,10 @@ SUB_LIST=		CATALOG_MASTER_SGML={{PREFIX}}/share/sgml/catalog
 			XMLCATMGR={{PREFIX}}/bin/xmlcatmgr
 
 post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/sgml
-	${MKDIR} ${STAGEDIR}${PREFIX}/share/xml
 	${INSTALL_SCRIPT} ${WRKDIR}/refresh_xmlcatmgr_catalogs \
 		${STAGEDIR}${PREFIX}/bin/
 
-[FILE:578:descriptions/desc.single]
+[FILE:578:descriptions/desc.primary]
 XML Catalog Manager (xmlcatmgr in its short form) is a small utility
 used to manipulate SGML and XML catalogs.  It is extremely small and
 lightweight, specially designed to be run from packaging systems.
@@ -62,133 +61,43 @@ for entities without having to modify the original document source.
 ea1142b6aef40fbd624fc3e2130cf10cf081b5fa88e5229c92b8f515779d6fdc        97265 xmlcatmgr-2.2.tar.gz
 
 
-[FILE:105:manifests/plist.single]
+[FILE:44:manifests/plist.primary]
 bin/
  refresh_xmlcatmgr_catalogs
  xmlcatmgr
+
+
+[FILE:30:manifests/plist.man]
 share/man/man1/xmlcatmgr.1.gz
-@dir share/sgml
-@dir share/xml
 
 
-[FILE:1055:files/pkg-deinstall-single.in]
-#!/bin/sh
-
-PATH=/bin:/usr/bin:%%LOCALBASE%%/bin
-
-export PATH
-XMLCATMGR=%%XMLCATMGR%%
-CATALOG_MASTER_SGML=%%CATALOG_MASTER_SGML%%
-CATALOG_MASTER_XML=%%CATALOG_MASTER_XML%%
-CATALOG_PORTS_SGML=%%CATALOG_PORTS_SGML%%
-CATALOG_PORTS_XML=%%CATALOG_PORTS_XML%%
-
-case $2 in
-DEINSTALL)
-
-T=/tmp/catalog.$$
-
-${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} remove CATALOG catalog.ports
-${XMLCATMGR} -sc ${T} create
-if cmp -s ${T} ${CATALOG_MASTER_SGML}
-then
-	echo " + Removing ${CATALOG_MASTER_SGML}.  It is empty."
-	rm -f ${CATALOG_MASTER_SGML}
-fi
-if cmp -s ${T} ${CATALOG_PORTS_SGML}
-then
-	echo " + Removing ${CATALOG_PORTS_SGML}.  It is empty."
-	rm -f ${CATALOG_PORTS_SGML}
-fi
-rm -f ${T}
-
-${XMLCATMGR} -c ${CATALOG_MASTER_XML} remove nextCatalog ${CATALOG_PORTS_XML}
-${XMLCATMGR} -c ${T} create
-if cmp -s ${T} ${CATALOG_MASTER_XML}
-then
-	echo " + Removing ${CATALOG_MASTER_XML}.  It is empty."
-	rm -f ${CATALOG_MASTER_XML}
-fi
-if cmp -s ${T} ${CATALOG_PORTS_XML}
-then
-	echo " + Removing ${CATALOG_PORTS_XML}.  It is empty."
-	rm -f ${CATALOG_PORTS_XML}
-fi
-rm -f ${T}
-;;
-esac
-
-
-[FILE:1259:files/pkg-install-single.in]
-#!/bin/sh
-
-PATH=/bin:/usr/bin:%%LOCALBASE%%/bin
-
-export PATH
-XMLCATMGR=%%XMLCATMGR%%
-CATALOG_MASTER_SGML=%%CATALOG_MASTER_SGML%%
-CATALOG_MASTER_XML=%%CATALOG_MASTER_XML%%
-CATALOG_PORTS_SGML=%%CATALOG_PORTS_SGML%%
-CATALOG_PORTS_XML=%%CATALOG_PORTS_XML%%
-
-case $2 in
-POST-INSTALL)
-
-if [ ! -r ${CATALOG_MASTER_SGML} ]; then
-	echo " + Creating ${CATALOG_MASTER_SGML}"
-	${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} create
-fi
-
-if ! ${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} lookup catalog.ports > /dev/null 2>&1; then
-	echo " + Registering CATALOG catalog.ports (SGML)"
-	${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} add CATALOG catalog.ports
-fi
-
-if [ ! -r ${CATALOG_PORTS_SGML} ]; then
-	echo " + Creating ${CATALOG_PORTS_SGML}"
-	${XMLCATMGR} -sc ${CATALOG_PORTS_SGML} create
-fi
-
-if [ ! -r ${CATALOG_MASTER_XML} ]; then
-	echo " + Creating ${CATALOG_MASTER_XML}"
-	${XMLCATMGR} -c ${CATALOG_MASTER_XML} create
-fi
-
-if ! ${XMLCATMGR} -c ${CATALOG_MASTER_XML} lookup ${CATALOG_PORTS_XML} > /dev/null 2>&1 ; then
-	echo " + Registering nextCatalog catalog.ports (XML)"
-	${XMLCATMGR} -c ${CATALOG_MASTER_XML} add nextCatalog ${CATALOG_PORTS_XML}
-fi
-
-if [ ! -r ${CATALOG_PORTS_XML} ]; then
-	echo " + Creating ${CATALOG_PORTS_XML}"
-	${XMLCATMGR} -c ${CATALOG_PORTS_XML} create
-fi
-;;
-esac
-
-
-[FILE:651:files/pkg-message-single.in]
+[FILE:689:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
 The following catalogs are installed:
 
  1) %%PREFIX%%/share/sgml/catalog
 
    The top level catalog for SGML stuff.  It is not changed
-   by any ports/packages except textproc/xmlcatmgr.
+   by any packages other than xmlcatmgr.
 
  2) %%PREFIX%%/share/sgml/catalog.ports
 
    This catalog is for handling SGML stuff installed under
-   %%PREFIX%%/share/sgml.  It is changed by ports/packages.
+   %%PREFIX%%/share/sgml.  It may be altered by other packages.
 
  3) %%PREFIX%%/share/xml/catalog
 
    The top level catalog for XML stuff.  It is not changed
-   by any ports/packages except textproc/xmlcatmgr.
+   by any packages other than xmlcatmgr.
 
  4) %%PREFIX%%/share/xml/catalog.ports
 
    This catalog is for handling XML stuff installed under
-   %%PREFIX%%/share/xml.  It is changed by ports/packages.
+   %%PREFIX%%/share/xml.  It may be altered by other packages.
+EOM
+}
 
 
 [FILE:1414:files/refresh_xmlcatmgr_catalogs.in]
@@ -233,4 +142,132 @@ if ! ${XMLCATMGR} -c ${CATALOG_MASTER_XML} lookup ${CATALOG_PORTS_XML} > /dev/nu
 fi
 
 echo "complete"
+
+
+[FILE:3378:files/scripts-primary.ucl.in]
+post-install: [{
+     args: ""
+     code: <<EOS
+PATH=/bin:/usr/bin:%%LOCALBASE%%/bin
+
+export PATH
+XMLCATMGR="%%XMLCATMGR%%"
+CATALOG_MASTER_SGML="%%CATALOG_MASTER_SGML%%"
+CATALOG_MASTER_XML="%%CATALOG_MASTER_XML%%"
+CATALOG_PORTS_SGML="%%CATALOG_PORTS_SGML%%"
+CATALOG_PORTS_XML="%%CATALOG_PORTS_XML%%"
+
+SGML_DIR=$(dirname "${CATALOG_MASTER_SGML}")
+XML_DIR=$(dirname "${CATALOG_MASTER_XML}")
+
+if [ ! -d "${SGML_DIR}" ]; then
+   echo " + Creating ${SGML_DIR} directory"
+   mkdir -p "${SGML_DIR}"
+fi
+
+if [ ! -r ${CATALOG_MASTER_SGML} ]; then
+	echo " + Creating ${CATALOG_MASTER_SGML}"
+	${XMLCATMGR} -sc "${CATALOG_MASTER_SGML}" create
+fi
+
+if ! ${XMLCATMGR} -sc ${CATALOG_MASTER_SGML} lookup catalog.ports > /dev/null 2>&1; then
+	echo " + Registering CATALOG catalog.ports (SGML)"
+	${XMLCATMGR} -sc "${CATALOG_MASTER_SGML}" add CATALOG catalog.ports
+fi
+
+if [ ! -r ${CATALOG_PORTS_SGML} ]; then
+	echo " + Creating ${CATALOG_PORTS_SGML}"
+	${XMLCATMGR} -sc "${CATALOG_PORTS_SGML}" create
+fi
+
+if [ ! -d "${XML_DIR}" ]; then
+   echo " + Creating ${XML_DIR} directory"
+   mkdir -p "${XML_DIR}"
+fi
+
+if [ ! -r ${CATALOG_MASTER_XML} ]; then
+	echo " + Creating ${CATALOG_MASTER_XML}"
+	${XMLCATMGR} -c "${CATALOG_MASTER_XML}" create
+fi
+
+if ! ${XMLCATMGR} -c ${CATALOG_MASTER_XML} lookup ${CATALOG_PORTS_XML} > /dev/null 2>&1 ; then
+	echo " + Registering nextCatalog catalog.ports (XML)"
+	${XMLCATMGR} -c "${CATALOG_MASTER_XML}" add nextCatalog "${CATALOG_PORTS_XML}"
+fi
+
+if [ ! -r ${CATALOG_PORTS_XML} ]; then
+	echo " + Creating ${CATALOG_PORTS_XML}"
+	${XMLCATMGR} -c "${CATALOG_PORTS_XML}" create
+fi
+EOS
+}]
+pre-deinstall-lua: [{
+     args: ""
+     code: <<EOS
+function dirname(str)
+	strx = str:match("(.*".. "/" ..")")
+	return strx:sub(1, #strx - 1)
+end
+
+XMLCATMGR = "%%XMLCATMGR%%"
+CATALOG_MASTER_SGML = "%%CATALOG_MASTER_SGML%%"
+CATALOG_MASTER_XML = "%%CATALOG_MASTER_XML%%"
+CATALOG_PORTS_SGML = "%%CATALOG_PORTS_SGML%%"
+CATALOG_PORTS_XML = "%%CATALOG_PORTS_XML%%"
+
+T = "/tmp/catalog." .. math.random (100000, 999999)
+
+------------
+--  SGML  --
+------------
+
+pkg.exec({XMLCATMGR, "-sc", CATALOG_MASTER_SGML, "remove", "CATALOG", "catalog.ports"})
+pkg.exec({XMLCATMGR, "-sc", T, "create"})
+
+if pkg.filecmp(CATALOG_MASTER_SGML, T) == 0 then
+   pkg.print_msg(" + Removing " .. CATALOG_MASTER_SGML .. ".  (empty)")
+   os.remove(CATALOG_MASTER_SGML)
+end
+
+if pkg.filecmp(CATALOG_PORTS_SGML, T) == 0 then
+   pkg.print_msg(" + Removing " .. CATALOG_PORTS_SGML .. ".  (empty)")
+   os.remove(CATALOG_PORTS_SGML)
+end
+os.remove(T)
+
+sgml_dir = dirname (CATALOG_MASTER_SGML)
+local sres = pkg.readdir(sgml_dir)
+if #sres == 0 then
+        pkg.print_msg(" + Removing " .. sgml_dir .. " directory")
+	os.remove(sgml_dir)
+end
+
+
+-----------
+--  XML  --
+-----------
+
+pkg.exec({XMLCATMGR, "-c", CATALOG_MASTER_XML, "remove", "nextCatalog", CATALOG_PORTS_XML})
+pkg.exec({XMLCATMGR, "-c", T, "create"})
+
+if pkg.filecmp(CATALOG_MASTER_XML, T) == 0 then
+   pkg.print_msg(" + Removing " .. CATALOG_MASTER_XML .. ".  (empty)")
+   os.remove(CATALOG_MASTER_XML)
+end
+
+if pkg.filecmp(CATALOG_PORTS_XML, T) == 0 then
+   pkg.print_msg(" + Removing " .. CATALOG_PORTS_XML .. ".  (empty)")
+   os.remove(CATALOG_PORTS_XML)
+end
+os.remove(T)
+
+xml_dir = dirname (CATALOG_MASTER_XML)
+local xres = pkg.readdir(xml_dir)
+if #xres == 0 then
+        pkg.print_msg(" + Removing " .. xml_dir .. " directory")
+	os.remove(xml_dir)
+end
+
+EOS
+}]
 

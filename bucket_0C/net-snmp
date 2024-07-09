@@ -52,7 +52,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		40.2.1
 RC_SUBR=		snmpd:primary
 			snmptrapd:primary
-SUB_FILES=		pkg-message-primary
+SUB_FILES=		messages-primary.ucl
 
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=OPSYS_MODS=,mibII/tcpTable,mibII/ipv6
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=OPSYS_MODS=,mibII/kernel_netbsd
@@ -913,17 +913,23 @@ int netsnmp_cpu_arch_load( netsnmp_cache *cache, void *magic ) {
 }
 
 
-[FILE:366:files/pkg-message-primary.in]
+[FILE:419:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
 This port installs snmpd, header files and libraries but does not
-     start snmpd by default.
-     If you want to auto-start snmpd and snmptrapd:, add the following to
-     /etc/rc.conf:
+start snmpd by default.
 
-	snmpd_enable="YES"
-	snmpd_flags="-a"
-	snmpd_conffile="%%PREFIX%%/share/snmp/snmpd.conf /etc/snmpd.conf"
-	snmptrapd_enable="YES"
-	snmptrapd_flags="-a -p /var/run/snmptrapd.pid"
+If you want to auto-start snmpd and snmptrapd:, add the following to
+/etc/rc.conf:
+
+    snmpd_enable="YES"
+    snmpd_flags="-a"
+    snmpd_conffile="%%PREFIX%%/share/snmp/snmpd.conf /etc/snmpd.conf"
+    snmptrapd_enable="YES"
+    snmptrapd_flags="-a -p /var/run/snmptrapd.pid"
+EOM
+}
 
 
 [FILE:1361:files/snmpd.in]

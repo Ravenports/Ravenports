@@ -6,13 +6,15 @@ KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	X.Org display manager (a.k.a. login manager)
 HOMEPAGE=		https://www.x.org/wiki/
-CONTACT=		Leonid_Bobrov[goleo@disroot.org]
+CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.x.org/releases/individual/app/
 DISTFILE[1]=		xdm-1.1.16.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -23,6 +25,13 @@ RUN_DEPENDS=		xorg-sessreg:single:standard
 
 USES=			cpe libtool pkgconfig
 XORG_COMPONENTS=	x11 xau xaw xmu xorgproto xdmcp xext xinerama xpm xt
+
+LICENSE=		CUSTOM1:primary
+LICENSE_NAME=		CUSTOM1:"The Open Group License"
+LICENSE_FILE=		CUSTOM1:{{WRKDIR}}/LICENSE_TOG
+LICENSE_AWK=		CUSTOM1:"xdm - display manager daemon"
+LICENSE_SOURCE=		CUSTOM1:{{WRKSRC}}/include/dm.h
+LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		x_display_manager
 CPE_VENDOR=		x
@@ -44,20 +53,15 @@ post-install:
 		${STAGEDIR}${PREFIX}/etc/X11/xdm/${f}.sample
 .endfor
 
-[FILE:420:descriptions/desc.single]
-Xdm manages a collection of X displays, which may be on the local host or 
-remote servers. The design of xdm was guided by the needs of X terminals 
-as well as The Open Group standard XDMCP, the X Display Manager Control 
-Protocol. Xdm provides services similar to those provided by init, getty 
-and login on character terminals: prompting for login name and password, 
-authenticating the user, and running a "session."
-
-
 [FILE:96:distinfo]
 bcf2209881e95708363777b282fedb1c1055790f38046fa46beff2f1d087679c       420072 xdm-1.1.16.tar.xz
 
 
-[FILE:612:manifests/plist.single]
+[FILE:535:manifests/plist.primary]
+share/pixmaps/
+ xorg-bw.xpm
+ xorg.xpm
+@dir /var/db/xdm
 @sample etc/X11/xdm/GiveConsole.sample
 @sample etc/X11/xdm/TakeConsole.sample
 @sample etc/X11/xdm/Xaccess.sample
@@ -74,12 +78,10 @@ lib/X11/xdm/
  chooser
  libXdmGreet.so
 share/X11/app-defaults/Chooser
+
+
+[FILE:24:manifests/plist.man]
 share/man/man8/xdm.8.gz
-share/pixmaps/
- xorg-bw.xpm
- xorg.xpm
-@dir /var/db/xdm
-@postunexec rm -rf /var/db/xdm/* 2>/dev/null || true
 
 
 [FILE:418:patches/patch-config_Xresources.in]
@@ -153,4 +155,13 @@ share/pixmaps/
  	    endpwent();
  	} else {
  	    LogError ("getpwnam for \"%s\" failed: %s\n",
+
+
+[FILE:96:files/scripts-primary.ucl]
+post-install: [{
+     args: ""
+     code: <<EOS
+rm -rf /var/db/xdm/* 2>/dev/null || true
+EOS
+}]
 

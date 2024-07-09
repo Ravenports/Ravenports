@@ -2,6 +2,7 @@
 
 NAMEBASE=		glib
 VERSION=		2.80.3
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Some useful routines of C programming
@@ -59,6 +60,7 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		LIBVERSION=0.8000.3
 			RESETPREFIX={{PREFIX}}
+SUB_FILES=		triggers-primary.ucl
 
 SET_DEBUGGING_ON=	yes
 OPTIMIZER_LEVEL=	0
@@ -78,6 +80,9 @@ post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/GConf/gsettings
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gio/modules
 	${RM} -r ${STAGEDIR}${PREFIX}/libexec
+	# set python cache files
+	(cd ${STAGEDIR}${PREFIX}/share/glib-2.0/codegen && ${PYTHON_CMD} -m compileall -d / . ||:)
+	(cd ${STAGEDIR}${PREFIX}/share/glib-2.0/gdb && ${PYTHON_CMD} -m compileall -d / . ||:)
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g ; \
@@ -101,7 +106,7 @@ more.  It is a foundation for writing portable applications.
 3947a0eaddd0f3613d0230bb246d0c69e46142c19022f5c4b1b2e3cba236d417      5542940 gnome2/glib-2.80.3.tar.xz
 
 
-[FILE:1718:manifests/plist.primary]
+[FILE:1851:manifests/plist.primary]
 @comment share/glib-2.0/codegen auto-generated
 %%ONLY-LINUX%%share/bash-completion/completions/
  gapplication
@@ -165,18 +170,29 @@ share/glib-2.0/codegen/
  dbustypes.py
  parser.py
  utils.py
+share/glib-2.0/codegen/__pycache__/
+ __init__.cpython-312.pyc
+ codegen.cpython-312.pyc
+ codegen_docbook.cpython-312.pyc
+ codegen_main.cpython-312.pyc
+ codegen_md.cpython-312.pyc
+ codegen_rst.cpython-312.pyc
+ config.cpython-312.pyc
+ dbustypes.cpython-312.pyc
+ parser.cpython-312.pyc
+ utils.cpython-312.pyc
 share/glib-2.0/dtds/gresource.dtd
 share/glib-2.0/gdb/
  glib_gdb.py
  gobject_gdb.py
+share/glib-2.0/gdb/__pycache__/
+ glib_gdb.cpython-312.pyc
+ gobject_gdb.cpython-312.pyc
 share/glib-2.0/gettext/po/Makefile.in.in
 share/glib-2.0/schemas/gschema.dtd
 share/glib-2.0/valgrind/glib.supp
 @dir lib/gio/modules
 @dir share/GConf/gsettings
-@postexec %D/bin/gio-querymodules %D/lib/gio/modules 2>/dev/null || /usr/bin/true
-@postexec %D/bin/glib-compile-schemas %D/share/glib-2.0/schemas 2>/dev/null || /usr/bin/true
-@postunexec /bin/rm -f %D/share/glib-2.0/schemas/gschemas.compiled || /usr/bin/true
 
 
 [FILE:5408:manifests/plist.dev]
@@ -1037,4 +1053,27 @@ my-autolist:
 	(cd ${STAGEDIR}${PREFIX} && ${FIND} share/glib-2.0/codegen \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
 	>> ${WRKDIR}/.manifest.single.mktmp
+
+
+[FILE:598:files/triggers-primary.ucl.in]
+giomodules: {
+  dir_path: ["%%PREFIX%%/lib/gio/modules"]
+  cleanup: <<EOS
+os.remove("%%PREFIX%%/lib/gio/modules/giomodule.cache")
+EOS
+  trigger: <<EOS
+pkg.print_msg("Triggered: Generating GIO modules cache")
+pkg.exec({"%%PREFIX%%/bin/gio-querymodules", "%%PREFIX%%/lib/gio/modules"})
+EOS
+}
+schemas: {
+  dir_path: ["%%PREFIX%%/share/glib-2.0/schemas"]
+  cleanup: <<EOS
+os.remove("%%PREFIX%%/share/glib-2.0/schemas/gschemas.compiled")
+EOS
+  trigger: <<EOS
+pkg.print_msg("Triggered: Compiling glib schemas")
+pkg.exec({"%%PREFIX%%/bin/glib-compile-schemas", "%%PREFIX%%/share/glib-2.0/schemas"})
+EOS
+}
 

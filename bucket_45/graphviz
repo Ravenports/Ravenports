@@ -234,7 +234,7 @@ share/graphviz/graphs/undirected/
  process.gv
 
 
-[FILE:369:manifests/plist.tools]
+[FILE:303:manifests/plist.tools]
 bin/
  acyclic
  bcomps
@@ -273,8 +273,6 @@ bin/
  twopi
  unflatten
  vimdot
-@postexec %D/bin/dot -c
-@postunexec rm -f %D/lib/graphviz/config6
 
 
 [FILE:738:manifests/plist.dev]
@@ -520,4 +518,21 @@ share/doc/graphviz/pdf/
  
  	{vim dot} -> vimdot
  }
+
+
+[FILE:257:files/scripts-tools.ucl]
+post-install-lua: [{
+     args: ""
+     code: <<EOS
+dotprog = pkg.prefixed_path ("bin/dot")
+pkg.exec({dotprog, "-c"})
+EOS
+}]
+pre-deinstall-lua: [{
+     args: ""
+     code: <<EOS
+config6 = pkg.prefixed_path ("lib/graphviz/config6")
+os.remove(config6)
+EOS
+}]
 

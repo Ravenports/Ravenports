@@ -1,29 +1,17 @@
 actions: [dir]
-post-install: <<EOD
-  case "%@" in
-  /*) fontsdir="%@" ;;
-  *) fontsdir="%D/%@" ;;
-  esac
-  %LOCALBASE%/bin/mkfontscale ${fontsdir} 2>/dev/null || true
-  %LOCALBASE%/bin/mkfontdir ${fontsdir} 2>/dev/null || true
+post-install-lua: <<EOD
+  fontdir = pkg.prefixed_path("%@")
+  pkg.exec({"mkfontscale", fontdir})
+  pkg.exec({"mkfontdir", fontdir})
 EOD
-post-deinstall: <<EOD
-  case "%@" in
-  /*) fontsdir="%@" ;;
-  *) fontsdir="%D/%@" ;;
-  esac
-  %LOCALBASE%/bin/mkfontscale ${fontsdir} 2>/dev/null || true
-  if [ -e ${fontsdir}/fonts.scale ]; then
-    fsize=$(wc -c < ${fontsdir}/fonts.scale)
-    if [ ${fsize} -eq 2 ]; then
-       /bin/rm ${fontsdir}/fonts.scale
-    fi
-  fi
-  %LOCALBASE%/bin/mkfontdir ${fontsdir} 2>/dev/null || true
-  if [ -e ${fontsdir}/fonts.dir ]; then
-    fsize=$(wc -c < ${fontsdir}/fonts.dir)
-    if [ ${fsize} -eq 2 ]; then
-      /bin/rm ${fontsdir}/fonts.dir
-    fi
-  fi
+post-deinstall-lua: <<EOD
+  fontdir = pkg.prefixed_path("%@")
+  pkg.exec({"mkfontscale", fontdir})
+  pkg.exec({"mkfontdir", fontdir})
+  for _, v in pairs {"/fonts.scale", "/fonts.dir" } do
+    local st = pkg.stat(fontdir .. v)
+    if st and st.type == "reg" and st.size == 2 then
+      os.remove(fontdir .. v)
+    end
+  end
 EOD

@@ -59,8 +59,6 @@ BUILD_WRKSRC=		{{WRKSRC}}/wpa_supplicant
 MAKE_ENV=		V=1
 
 INSTALL_WRKSRC=		{{WRKSRC}}/src
-SUB_FILES=		pkg-message-single-dragonfly
-			pkg-message-single-freebsd
 
 CFLAGS=			-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
@@ -147,6 +145,7 @@ VAR_OPSYS[dragonfly]=	LDFLAGS=-lutil
 [GTC].DESCRIPTION=			Generic Token Card
 
 [BSD].DESCRIPTION=			BSD net80211 interface
+[BSD].SUB_FILES_ON=			messages-single.ucl
 
 [AKA_PRIME].DESCRIPTION=		AKA Prime variant (RFC 5448)
 [AKA_PRIME].BUILDRUN_DEPENDS_ON=	pcsc-lite:primary:standard
@@ -935,6 +934,19 @@ extern void PacketCloseAdapter(void *);
 #endif /* _PACKET32_H_ */
 
 
+[FILE:195:files/messages-single.ucl.in]
+bsd: {
+  type: "install"
+  message: <<EOM
+To use the ports version of WPA Supplicant instead of the base, add:
+
+    wpa_supplicant_program="%%PREFIX%%/sbin/wpa_supplicant"
+
+to /etc/rc.conf
+EOM
+}
+
+
 [FILE:622:files/ntddndis.h]
 #ifndef _NTDDNDIS_H_
 #define _NTDDNDIS_H_
@@ -964,24 +976,6 @@ typedef char * PCHAR;
 #define OID_802_3_MULTICAST_LIST                0x01010103
 
 #endif /* _NTDDNDIS_H_ */
-
-
-[FILE:148:files/pkg-message-single-dragonfly.in]
-To use the ports version of WPA Supplicant instead of the base, add:
-
-    wpa_supplicant_program="%%PREFIX%%/sbin/wpa_supplicant"
-
-to /etc/rc.conf
-
-
-
-[FILE:148:files/pkg-message-single-freebsd.in]
-To use the ports version of WPA Supplicant instead of the base, add:
-
-    wpa_supplicant_program="%%PREFIX%%/sbin/wpa_supplicant"
-
-to /etc/rc.conf
-
 
 
 [FILE:481:dragonfly/patch-wpa__supplicant_Makefile]

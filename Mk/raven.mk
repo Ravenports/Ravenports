@@ -370,32 +370,40 @@ extract-fixup-modes:
 
 
 .if !target(compile-package-desc)
-_PKGMESSAGE=		${.CURDIR}/files/pkg-message-xxx
-_PKGMESSAGEOPSYS=	${.CURDIR}/files/pkg-message-xxx-opsys
-_PKGMESSAGEOPSYSARCH=	${.CURDIR}/files/pkg-message-xxx-opsys-arch
-_PKGMESSAGEARCH=	${.CURDIR}/files/pkg-message-xxx-arch
-_PKGINSTALL=		${.CURDIR}/files/pkg-zzzinstall-xxx
-_PKGUPGRADE=		${.CURDIR}/files/pkg-zzzupgrade-xxx
-_PKGDEINSTALL=		${.CURDIR}/files/pkg-zzzdeinstall-xxx
-_IN_PKGMESSAGE=		${WRKDIR}/pkg-message-xxx
-_IN_PKGMESSAGEOPSYS=	${WRKDIR}/pkg-message-xxx-opsys
-_IN_PKGMESSAGEOPSYSARCH=${WRKDIR}/pkg-message-xxx-opsys-arch
-_IN_PKGMESSAGEARCH=	${WRKDIR}/pkg-message-xxx-arch
-_IN_PKGINSTALL=		${WRKDIR}/pkg-zzzinstall-xxx
-_IN_PKGUPGRADE=		${WRKDIR}/pkg-zzzupgrade-xxx
-_IN_PKGDEINSTALL=	${WRKDIR}/pkg-zzzdeinstall-xxx
+_PKGMESSAGE=		${.CURDIR}/files/messages-xxx.ucl
+_PKGMESSAGEOPSYS=	${.CURDIR}/files/messages-xxx-opsys.ucl
+_PKGMESSAGEOPSYSARCH=	${.CURDIR}/files/messages-xxx-opsys-arch.ucl
+_PKGMESSAGEARCH=	${.CURDIR}/files/messages-xxx-arch.ucl
+_PKGSCRIPT=		${.CURDIR}/files/scripts-xxx.ucl
+_PKGSCRIPTOPSYS=	${.CURDIR}/files/scripts-xxx-opsys.ucl
+_PKGSCRIPTOPSYSARCH=	${.CURDIR}/files/scripts-xxx-opsys-arch.ucl
+_PKGSCRIPTARCH=		${.CURDIR}/files/scripts-xxx-arch.ucl
+_PKGTRIGGER=		${.CURDIR}/files/triggers-xxx.ucl
+_IN_PKGMESSAGE=		${WRKDIR}/messages-xxx.ucl
+_IN_PKGMESSAGEOPSYS=	${WRKDIR}/messages-xxx-opsys
+_IN_PKGMESSAGEOPSYSARCH=${WRKDIR}/messages-xxx-opsys-arch
+_IN_PKGMESSAGEARCH=	${WRKDIR}/messages-xxx-arch
+_IN_PKGSCRIPT=		${WRKDIR}/scripts-xxx.ucl
+_IN_PKGSCRIPTOPSYS=	${WRKDIR}/scripts-xxx-opsys.ucl
+_IN_PKGSCRIPTOPSYSARCH=	${WRKDIR}/scripts-xxx-opsys-arch.ucl
+_IN_PKGSCRIPTARCH=	${WRKDIR}/scripts-xxx-arch.ucl
+_IN_PKGTRIGGER=		${WRKDIR}/triggers-xxx.ucl
 
-_MESSAGE_FILE=		${WRKDIR}/.PKG_DISPLAY
+_MESSAGE_FILE=		${WRKDIR}/.PKG_MESSAGES
+_TRIGGER_FILE=		${WRKDIR}/.PKG_TRIGGERS
+_SCRIPT_FILE=		${WRKDIR}/.PKG_SCRIPTS
 _DESC_FILE=		${WRKDIR}/.PKG_DESC
 
 _CPDLIST=		AGE AGEOPSYS AGEOPSYSARCH AGEARCH
-_MSGLIST=		install upgrade deinstall
+_SCRLIST=		IPT IPTOPSYS IPTOPSYSARCH IPTARCH
 
 compile-package-desc:
 .  for sp in ${SUBPACKAGES}
 	@${RM} ${_MESSAGE_FILE}.${sp}
+	@${RM} ${_SCRIPT_FILE}.${sp}
 	@${RM} ${_DESC_FILE}.${sp}
-	@${ECHO_MSG} "===>  Creating package metadata (${sp})"
+	@${RM} ${_TRIGGER_FILE}.${sp}
+	@${ECHO_MSG} "===>  Assembling package metadata files (${sp})"
 .    for suffix in ${_CPDLIST}
 	@if [ -f "${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/}" ]; then \
 	   ${CAT} ${_IN_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
@@ -403,15 +411,18 @@ compile-package-desc:
 	   ${CAT} ${_PKGMESS${suffix}:S/-xxx/-${sp}/} >> ${_MESSAGE_FILE}.${sp}; \
 	fi
 .    endfor
-.    for suffix in ${_MSGLIST}
-.      for psp in pre- x post-
-	@if [ -f "${_IN_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/}" ]; then \
-	   ${CP} ${_IN_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
-	elif [ -f "${_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/}" ]; then \
-	   ${CP} ${_PKG${suffix:tu}:S/-zzz/-${psp:Nx}/:S/-xxx/-${sp}/} ${WRKDIR}/pkg-${psp:Nx}${suffix}.${sp}; \
+.    for suffix in ${_SCRLIST}
+	@if [ -f "${_IN_PKGSCR${suffix}:S/-xxx/-${sp}/}" ]; then \
+	   ${CAT} ${_IN_PKGSCR${suffix}:S/-xxx/-${sp}/} >> ${_SCRIPT_FILE}.${sp}; \
+	elif [ -f "${_PKGSCR${suffix}:S/-xxx/-${sp}/}" ]; then \
+	   ${CAT} ${_PKGSCR${suffix}:S/-xxx/-${sp}/} >> ${_SCRIPT_FILE}.${sp}; \
 	fi
-.      endfor
 .    endfor
+	@if [ -f "${_IN_PKGTRIGGER:S/-xxx/-${sp}/}" ]; then \
+	   ${CAT} ${_IN_PKGTRIGGER:S/-xxx/-${sp}/} >> ${_TRIGGER_FILE}.${sp}; \
+	elif [ -f "${_PKGTRIGGER:S/-xxx/-${sp}/}" ]; then \
+	   ${CAT} ${_PKGTRIGGER:S/-xxx/-${sp}/} >> ${_TRIGGER_FILE}.${sp}; \
+	fi
 .    if exists(${.CURDIR}/descriptions/desc.${sp}.${VARIANT})
 	@${CP} ${.CURDIR}/descriptions/desc.${sp}.${VARIANT} ${_DESC_FILE}.${sp}
 .    elif exists(${.CURDIR}/descriptions/desc.${sp})
@@ -1344,12 +1355,14 @@ SUB_FILES+= 		${RC_SUBR_${sp}}
 # transform files like pkg-message-primary-freebsd.in to
 # pkg-message-primary-opsys.in
 
-SUB_FILES:=	${SUB_FILES:S/-${OPSYS:tl}/-opsys/}
+SUB_FILES:=	${SUB_FILES:S/-${OPSYS:tl}/-opsys/:S/${ARCH}/-arch/}
 
 apply-slist:
 .  for file in ${SUB_FILES}
 .    if exists(${FILESDIR}/${file}.in)
-	@${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file}
+	@if ! ${SED} ${_SUB_LIST_TEMP} -e '/^@comment /d' ${FILESDIR}/${file}.in > ${WRKDIR}/${file} 2>/dev/null; then \
+	${ECHO_MSG} "** FAILED SUB_FILE REPLACEMENT OF ${file}"; \
+	${ECHO_MSG} "** SED ARGS: ${_SUB_LIST_TEMP}"; exit 1; fi
 .    else
 	@${ECHO_MSG} "** Checked ${FILESDIR}:"
 	@${ECHO_MSG} "** Missing ${file}.in for ${TWO_PART_ID}."

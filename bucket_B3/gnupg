@@ -76,7 +76,7 @@ line tool with features for easy integration with other applications.
 f68f7d75d06cb1635c336d34d844af97436c3f64ea14bcb7c869782f96f44277      7889060 gnupg-2.4.5.tar.bz2
 
 
-[FILE:451:manifests/plist.primary]
+[FILE:347:manifests/plist.primary]
 bin/
  gpg-agent
  gpg-card
@@ -105,8 +105,6 @@ sbin/
  addgnupghome
  applygnupgdefaults
 share/gnupg/distsigkey.gpg
-@postexec [ -e %D/bin/gpg ] || ln -sf gpg2 %D/bin/gpg
-@postunexec [ -e %D/bin/gpg ] || rm -f %D/bin/gpg
 
 
 [FILE:399:manifests/plist.man]
@@ -212,4 +210,28 @@ share/locale/tr/LC_MESSAGES/gnupg2.mo
 share/locale/uk/LC_MESSAGES/gnupg2.mo
 share/locale/zh_CN/LC_MESSAGES/gnupg2.mo
 share/locale/zh_TW/LC_MESSAGES/gnupg2.mo
+
+
+[FILE:322:files/scripts-primary.ucl]
+post-install-lua: [{
+    args: ""
+    code: <<EOS
+gpg = pkg.prefixed_path("bin/gpg")
+st = pkg.stat(gpg)
+if st == nil then
+  pkg.exec({"/bin/ln", "-sf", "gpg2", gpg})
+end
+EOS
+}]
+pre-deinstall-lua: [{
+    args: ""
+    code: <<EOS
+gpg = pkg.prefixed_path("bin/gpg")
+st = pkg.stat(gpg)
+if st then
+  os.remove(gpg)
+end
+
+EOS
+}]
 

@@ -40,6 +40,7 @@ BUILD_DEPENDS=		bash:primary:standard
 			nss:caroot:standard
 RUN_DEPENDS=		libexecinfo:dev:standard
 EXRUN[single]=		ravensys-gcc:compilers:standard
+			ravensys-binutils:single:standard
 
 USES=			cpe gmake zlib:build python:build shebangfix
 			execinfo c++:single dos2unix ssl:build
@@ -128,6 +129,11 @@ post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/rust*
 	# Remove cargo-fmt.old, rustfmt.old, cargo-clippy.old, clippy-driver.old
 	${RM} ${STAGEDIR}${PREFIX}/bin/*.old
+	# relocate bash completion scripts
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/bash_completion.d
+	${MV} ${STAGEDIR}/etc/bash_completion.d/cargo \
+		${STAGEDIR}${PREFIX}/etc/bash_completion.d/cargo
+	${RM} -r ${STAGEDIR}/etc
 	# Taken from FreeBSD Ports
 	# In post-install, we use the manifests generated during Rust install
 	# to in turn generate the PLIST. We do that because several libraries
@@ -146,6 +152,7 @@ post-install:
 	for f in ${STAGEDIR}${PREFIX}/lib/rustlib/manifest-*; do \
 	    ${SED} -i'' -E \
 		-e '/share\/doc\/rust/d' \
+		-e '/bash_completion/d' \
 	        -e 's|:${STAGEDIR}|:|' \
 	        -e 's|(man/man[1-9]/.*\.[0-9])|\1.gz|' \
 	        $$f; \
@@ -279,8 +286,9 @@ f4449ad4b4c8508e367722da70a7db357f3349ea5be4b21e92443456203d54b6     13195498 ca
 ee5f1a1955b0ed413435ef79db28b834ea5f0fb7c8cfb1ce47175cc3bee08fff      2547932 curl-7.87.0.tar.xz
 
 
-[FILE:96:manifests/plist.single]
+[FILE:124:manifests/plist.single]
 @comment generated from lib/rustlib/manifest-*
+etc/bash_completion.d/cargo
 lib/rustlib/
  components
  rust-installer-version

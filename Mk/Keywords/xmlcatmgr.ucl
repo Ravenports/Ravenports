@@ -1,31 +1,29 @@
 actions: [file]
-post-install: <<EOD
-  case "%@" in
-  /*) cat="%@" ;;
-  *) cat="%D/%@" ;;
-  esac
-  case "%@" in
-  *.xml)
-    xmlcatmgr_cmd="%LOCALBASE%/bin/xmlcatmgr -c ${PKG_ROOTDIR}%D/share/xml/catalog.ports add nextCatalog"
-  ;;
-  *)
-    xmlcatmgr_cmd="%LOCALBASE%/bin/xmlcatmgr -sc ${PKG_ROOTDIR}%D/share/sgml/catalog.ports add CATALOG"
-  ;;
-  esac
-  ${xmlcatmgr_cmd} ${cat}
+post-install-lua: <<EOD
+  local function ends_with(str, ending)
+   return ending == "" or str:sub(-#ending) == ending
+  end
+
+  cat=pkg.prefixed_path(arg[1])
+  if ends_with(cat, ".xml") then
+  pkg.exec({pkg_prefix .. "/bin/xmlcatmgr", "-c", pkg_rootdir .. pkg_prefix ..
+            "/share/xml/catalog.ports", "add", "nextCatalog", cat})
+  else
+  pkg.exec({pkg_prefix .. "/bin/xmlcatmgr", "-sc", pkg_rootdir .. pkg_prefix ..
+            "/share/sgml/catalog.ports", "add", "CATALOG", cat})
+  end
 EOD
-post-deinstall: <<EOD
-  case "%@" in
-  /*) cat="%@" ;;
-  *) cat="%D/%@" ;;
-  esac
-  case "%@" in
-  *.xml)
-    xmlcatmgr_cmd="%LOCALBASE%/bin/xmlcatmgr -c ${PKG_ROOTDIR}%D/share/xml/catalog.ports remove nextCatalog"
-  ;;
-  *)
-    xmlcatmgr_cmd="%LOCALBASE%/bin/xmlcatmgr -sc ${PKG_ROOTDIR}%D/share/sgml/catalog.ports remove CATALOG"
-  ;;
-  esac
-  ${xmlcatmgr_cmd} ${cat}
+post-deinstall-lua: <<EOD
+  local function ends_with(str, ending)
+   return ending == "" or str:sub(-#ending) == ending
+  end
+
+  cat=pkg.prefixed_path(arg[1])
+  if ends_with(cat, ".xml") then
+  pkg.exec({pkg_prefix .. "/bin/xmlcatmgr", "-c", pkg_rootdir .. pkg_prefix ..
+            "/share/xml/catalog.ports", "remove", "nextCatalog", cat})
+  else
+  pkg.exec({pkg_prefix .. "/bin/xmlcatmgr", "-sc", pkg_rootdir .. pkg_prefix ..
+            "/share/sgml/catalog.ports", "remove", "CATALOG", cat})
+  end
 EOD

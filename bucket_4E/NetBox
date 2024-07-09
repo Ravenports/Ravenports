@@ -77,7 +77,7 @@ SKIP_BUILD=		yes
 SUB_FILES=		850.netbox-housekeeping.sample
 			netbox_rq.sample
 			netboxrc.sample
-			pkg-message-primary
+			messages-primary.ucl
 SUB_LIST=		PYTHON_CMD={{PYTHON_CMD}}
 			PYTHON_VER={{PYTHON_VER}}
 
@@ -2014,6 +2014,45 @@ esac
 exit $rc
 
 
+[FILE:1204:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
+Please note that NetBox requires a PostgreSQL database server, which uses its
+built-in network address datatypes. Thus NetBox won't work with other RDBMS's,
+e.g. MySQL, MariaDB, etc.
+
+For installation instructions please refer to the related wiki page:
+
+- https://wiki.freebsd.org/Ports/net-mgmt/netbox
+
+************
+* Upgrades *
+************
+
+As always it is strongly encouraged to make a backup of the database before the
+database migrations will be executed.
+
+The following steps are required to finish the upgrade: 
+
+1. Run database migrations, trace any missing cable paths, build the embedded
+   documentation, collect static files, remove stale content files, delete any
+   expired user sessions and clear the cache.
+
+# cd %%PREXIX%%/share/netbox
+# python%%PYTHON_VER%% manage.py migrate
+# python%%PYTHON_VER%% manage.py trace_paths --no-input
+# mkdocs build
+# python%%PYTHON_VER%% manage.py collectstatic --no-input
+# python%%PYTHON_VER%% manage.py remove_stale_contenttypes --no-input
+# python%%PYTHON_VER%% manage.py clearsessions
+# python%%PYTHON_VER%% manage.py clearcache
+
+2. Restart WSGI/httpd environment (supervisord/apache/nginx/etc.)
+EOM
+}
+
+
 [FILE:934:files/netbox_rq.sample.in]
 #!/bin/sh
 
@@ -2171,38 +2210,4 @@ netbox_upgrade()
 }
 
 run_rc_command "$1"
-
-
-[FILE:1152:files/pkg-message-primary.in]
-Please note that NetBox requires a PostgreSQL database server, which uses its
-built-in network address datatypes. Thus NetBox won't work with other RDBMS's,
-e.g. MySQL, MariaDB, etc.
-
-For installation instructions please refer to the related wiki page:
-
-- https://wiki.freebsd.org/Ports/net-mgmt/netbox
-
-************
-* Upgrades *
-************
-
-As always it is strongly encouraged to make a backup of the database before the
-database migrations will be executed.
-
-The following steps are required to finish the upgrade: 
-
-1. Run database migrations, trace any missing cable paths, build the embedded
-   documentation, collect static files, remove stale content files, delete any
-   expired user sessions and clear the cache.
-
-# cd %%PREXIX%%/share/netbox
-# python%%PYTHON_VER%% manage.py migrate
-# python%%PYTHON_VER%% manage.py trace_paths --no-input
-# mkdocs build
-# python%%PYTHON_VER%% manage.py collectstatic --no-input
-# python%%PYTHON_VER%% manage.py remove_stale_contenttypes --no-input
-# python%%PYTHON_VER%% manage.py clearsessions
-# python%%PYTHON_VER%% manage.py clearcache
-
-2. Restart WSGI/httpd environment (supervisord/apache/nginx/etc.)
 

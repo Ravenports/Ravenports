@@ -30,8 +30,6 @@ _INCLUDE_USES_SCHEMAS_MK=	yes
 
 .  if defined(GLIB_SCHEMAS)
 
-# we put the @unexec behind the plist schema entry, because it compiles files 
-# in the directory. So we should remove the port file first before recompiling.
 _USES_install+=	780:gnome-post-glib-schemas
 
 .    if !target(gnome-post-glib-schemas)
@@ -42,7 +40,6 @@ gnome-post-glib-schemas:
 	  for i in ${GLIB_SCHEMAS}; do \
 	    echo "share/glib-2.0/schemas/$${i}" >> $${splist}; \
 	  done; \
-	  echo "@glib-schemas" >> $${splist}; \
 	fi
 .    endif
 .  endif	# GLIB_SCHEMAS
@@ -60,11 +57,13 @@ gnome-post-gconf-schemas:
 	if [ -f "$${splist}" ]; then \
           echo "... install gnome configuration schemas"; \
 	  for i in ${GCONF_SCHEMAS}; do \
-		echo "@postunexec env GCONF_CONFIG_SOURCE=xml:${GCONF_CONFIG_OPTIONS}:%D/${GCONF_CONFIG_DIRECTORY} HOME=${WRKDIR} gconftool-2 --makefile-uninstall-rule %D/etc/gconf/schemas/$${i} > /dev/null || true" >> $${splist}; \
+		${SH} ${MK_SCRIPTS}/schema_heredoc.sh schema \
+		  "${_SCRIPT_FILE}.${schemas_ARGS}" "${GCONF_CONFIG_OPTIONS}" \
+		  "${GCONF_CONFIG_DIRECTORY}" "${WRKSRC}" $$i ;\
 		echo "etc/gconf/schemas/$${i}" >> $${splist}; \
-		echo "@postexec env GCONF_CONFIG_SOURCE=xml:${GCONF_CONFIG_OPTIONS}:%D/${GCONF_CONFIG_DIRECTORY} HOME=${WRKDIR} gconftool-2 --makefile-install-rule %D/etc/gconf/schemas/$${i} > /dev/null || true" >> $${splist}; \
-	  done \
-        fi	
+	  done; \
+	  ${SH} ${MK_SCRIPTS}/schema_heredoc.sh finalize "${_SCRIPT_FILE}.${schemas_ARGS}";\
+        fi
 .    endif
 .  endif	# GCONF_SCHEMAS
 

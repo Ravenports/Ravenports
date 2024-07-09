@@ -27,6 +27,7 @@ BUILD_DEPENDS=		dbus:dev:standard
 			libdrm:dev:standard
 			libtool:single:standard
 			openpam:dev:standard
+			polkit:dev:standard
 BUILDRUN_DEPENDS=	dbus:primary:standard
 			libdrm:primary:standard
 			openpam:primary:standard
@@ -75,6 +76,8 @@ post-install:
 	(cd ${STAGEDIR}${PREFIX}/lib/ConsoleKit/scripts && \
 		${MV} ck-system-${script} ck-system-${script}.sample)
 .endfor
+	# created by script file instead
+	${RM} -r ${STAGEDIR}/var/log
 
 pre-configure:
 	${REINPLACE_CMD} -e "s|http://www.oasis-open.org/docbook/xml/|file://${LOCALBASE}/share/xml/docbook/|" \
@@ -95,7 +98,7 @@ ConsoleKit2 is a fork of the ConsoleKit since that is no longer maintained
 82e33069d903157b693f372d0f773c2345ecceccafa72131846cf15f42d4a401       260393 arrowd-ConsoleKit2-3ead222.tar.gz
 
 
-[FILE:1537:manifests/plist.primary]
+[FILE:1424:manifests/plist.primary]
 @sample lib/ConsoleKit/scripts/ck-system-hibernate.sample
 @sample lib/ConsoleKit/scripts/ck-system-hybridsleep.sample
 @sample lib/ConsoleKit/scripts/ck-system-restart.sample
@@ -136,14 +139,11 @@ share/dbus-1/interfaces/
 share/dbus-1/system-services/org.freedesktop.ConsoleKit.service
 share/gir-1.0/libconsolekit-1.0.gir
 share/polkit-1/actions/org.freedesktop.consolekit.policy
-@dir /var/log/ConsoleKit
 @dir /var/run/ConsoleKit
 @dir etc/ConsoleKit/run-seat.d
 @dir etc/ConsoleKit/run-session.d
 @dir lib/ConsoleKit/run-seat.d
 @dir lib/ConsoleKit/run-session.d
-@postexec /usr/bin/touch /var/log/ConsoleKit/history
-@rmtry /var/log/ConsoleKit/history
 
 
 [FILE:189:manifests/plist.dev]
@@ -264,4 +264,21 @@ Subject: [PATCH] Allow calls to CanSuspendThenHibernate
  if CK_COMPILE_NETBSD
  SUBDIRS += netbsd
  endif
+
+
+[FILE:283:files/scripts-primary.ucl]
+post-install: [{
+    args: ""
+    code: <<EOS
+/bin/mkdir -p /var/log/ConsoleKit
+/usr/bin/touch /var/log/ConsoleKit/history 
+EOS
+}]
+pre-deinstall: [{
+    args: ""
+    code: <<EOS
+/bin/rm -f /var/log/ConsoleKit/history
+/usr/bin/find "/var/log/ConsoleKit" -type d -empty -delete
+EOS
+}]
 

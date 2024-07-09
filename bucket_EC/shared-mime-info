@@ -2,6 +2,7 @@
 
 NAMEBASE=		shared-mime-info
 VERSION=		2.4
+REVISION=		1
 KEYWORDS=		misc
 VARIANTS=		standard
 SDESC[standard]=	MIME types database from freedesktop.org project
@@ -35,8 +36,7 @@ FPC_EQUIVALENT=		misc/shared-mime-info
 MESON_ARGS=		-Dupdate-mimedb=false
 			-Dxdgmime-path="{{WRKSRC}}/src/xdgmime"
 
-SUB_FILES=		pkg-install-primary
-			pkg-deinstall-primary
+SUB_FILES=		triggers-primary.ucl
 
 post-install:
 .for DIR in application audio image inode message model multipart packages text video x-epoc x-content font
@@ -215,42 +215,43 @@ share/man/man1/update-mime-database.1.gz
  	for (n = 0; dirs[n]; n++)
 
 
-[FILE:698:files/pkg-deinstall-primary.in]
-#!/bin/sh
+[FILE:1011:files/triggers-primary.ucl.in]
+mimeinfo: {
+    dir_path: ["%%PREFIX%%/share/mime/packages"]
+    cleanup: <<EOS
+local mimedir = "%%PREFIX%%/share/mime/"
+local files = { "XMLnamespaces", "aliases", "generic-icons", "globs", "globs2", "icons", "mime.cache", "subclasses", "treemagic", "types", "version"}
+for _,filename in ipairs(files) do
+	local fpath = mimedir .. filename
+	local st = pkg.stat(fpath)
+	if st then
+		os.remove(fpath)
+	end
+end
+local res = pkg.readdir(mimedir)
+if res == nil then goto cleanmime end
 
-case $2 in
-POST-DEINSTALL)
-	echo "[shared-mime-info] Cleaning up the MIME database cache after package removal"
-	mimedir=%%PREFIX%%/share/mime
-	files="XMLnamespaces aliases generic-icons globs globs2 icons mime.cache subclasses treemagic types version"
+for _,dir in ipairs(res) do
+	if  dir == "packages" then goto continue end
 
-	for f in ${files}; do
-	   ff="${mimedir}${f}"
-	   rm -f "${ff}"
-	done
-	if [ -d "${mimedir}" ]; then
-	   # gnu find doesn't handled -depth the same as BSD find
-	   entries=$(find "${mimedir}" -mindepth 1 -maxdepth 1 -type d ! -name "packages" -print0)
-	   if [ -n "${entries}" ]; then
-	      find "${mimedir}" -mindepth 1 -maxdepth 1 -type d ! -name "packages" -print0 |\
-	      xargs -0 -I{} rm -rf {}/*
-	   fi
-	fi
-	;;
-esac
+	local directory = mimedir .. "/" .. dir
+	local r = pkg.readdir(directory)
+	if r == nil then goto cleandir end
+	for _,file in ipairs(r) do
+		os.remove(directory .. "/" .. file)
+	end
+	::cleandir::
+	os.remove(directory)
 
-exit 0
+	::continue::
+end
+::cleanmime::
+os.remove(mimedir)
+EOS
 
-
-[FILE:184:files/pkg-install-primary.in]
-#!/bin/sh
-
-case $2 in
-POST-INSTALL)
-	echo "[shared-mime-info] Building the Shared MIME-Info database cache"
-	%%PREFIX%%/bin/update-mime-database %%PREFIX%%/share/mime
-	;;
-esac
-
-exit 0
+    trigger: <<EOS
+pkg.print_msg("Triggered: Building the shared MIME information database cache")
+pkg.exec({"%%PREFIX%%/bin/update-mime-database", "%%PREFIX%%/share/mime"})
+EOS
+}
 

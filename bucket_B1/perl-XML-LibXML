@@ -35,8 +35,7 @@ CONFIGURE_ENV=		XMLPREFIX={{LOCALBASE}}
 
 SINGLE_JOB=		yes
 
-SUB_FILES=		pkg-install-single
-			pkg-deinstall-single
+SUB_FILES=		scripts-single.ucl
 SUB_LIST=		PERL5={{PERL5}}
 
 CFLAGS=			-I{{LOCALBASE}}/include/libxml2
@@ -65,24 +64,19 @@ Interface to Gnome libxml2 xml parsing and DOM library
 a29bf3f00ab9c9ee04218154e0afc8f799bf23674eb99c1a9ed4de1f4059a48d       466316 XML-LibXML-2.0210.tar.gz
 
 
-[FILE:239:files/pkg-deinstall-single.in]
-#!/bin/sh
-
-case $2 in
-DEINSTALL)
-	%%PERL5%% -MXML::SAX -e "XML::SAX->remove_parser('XML::LibXML::SAX'.\$_)->save_parsers()"
-	%%PERL5%% -MXML::SAX -e "XML::SAX->remove_parser('XML::LibXML::SAX::Parser'.\$_)->save_parsers()"
-        ;;
-esac
-
-
-[FILE:236:files/pkg-install-single.in]
-#!/bin/sh
-
-case $2 in
-POST-INSTALL)
-	%%PERL5%% -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX'.\$_)->save_parsers()"
-	%%PERL5%% -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser'.\$_)->save_parsers()"
-        ;;
-esac
+[FILE:481:files/scripts-single.ucl.in]
+post-install: [{
+     args: ""
+     code: <<EOS
+%%PERL5%% -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX'.\$_)->save_parsers()"
+%%PERL5%% -MXML::SAX -e "XML::SAX->add_parser('XML::LibXML::SAX::Parser'.\$_)->save_parsers()"
+EOS
+}]
+pre-deinstall: [{
+     args: ""
+     code: <<EOS
+%%PERL5%% -MXML::SAX -e "XML::SAX->remove_parser('XML::LibXML::SAX'.\$_)->save_parsers()"
+%%PERL5%% -MXML::SAX -e "XML::SAX->remove_parser('XML::LibXML::SAX::Parser'.\$_)->save_parsers()"
+EOS
+}]
 

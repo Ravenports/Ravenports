@@ -2,6 +2,7 @@
 
 NAMEBASE=		findutils
 VERSION=		4.10.0
+REVISION=		1
 KEYWORDS=		misc
 VARIANTS=		standard noprefix ravensys
 SDESC[ravensys]=	GNU find utilities for raven sysroot (no nls)
@@ -19,10 +20,12 @@ SPKGS[noprefix]=	complete
 			primary
 			nls
 			info
+			man
 SPKGS[standard]=	complete
 			primary
 			nls
 			info
+			man
 
 OPTIONS_AVAILABLE=	NOTSTD RAVENSYS
 OPTIONS_STANDARD=	none
@@ -60,6 +63,10 @@ MAKE_ARGS=		INSTALL_SCRIPT="{{INSTALL_SCRIPT}}"
 post-patch-darwin:
 	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
 
+post-install-RAVENSYS-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/share/man
+	${RM} -r ${STAGEDIR}${PREFIX}/share/info
+
 post-install:
 	${RM} -r ${STAGEDIR}/var
 
@@ -79,19 +86,13 @@ these utilities without the `g' prefix.
 1387e0b67ff247d2abde998f90dfbf70c1491391a59ddfecb8ae698789f0a4f5      2240712 findutils-4.10.0.tar.xz
 
 
-[FILE:157:manifests/plist.primary.standard]
+[FILE:56:manifests/plist.primary.standard]
 bin/
  gfind
  glocate
  gupdatedb
  gxargs
 libexec/gfrcode
-share/man/man1/
- gfind.1.gz
- glocate.1.gz
- gupdatedb.1.gz
- gxargs.1.gz
-share/man/man5/glocatedb.5.gz
 
 
 [FILE:1649:manifests/plist.nls]
@@ -137,13 +138,25 @@ share/locale/zh_CN/LC_MESSAGES/findutils.mo
 share/locale/zh_TW/LC_MESSAGES/findutils.mo
 
 
-[FILE:147:manifests/plist.primary]
+[FILE:101:manifests/plist.man.standard]
+share/man/man1/
+ gfind.1.gz
+ glocate.1.gz
+ gupdatedb.1.gz
+ gxargs.1.gz
+share/man/man5/glocatedb.5.gz
+
+
+[FILE:51:manifests/plist.primary]
 bin/
  find
  locate
  updatedb
  xargs
 libexec/frcode
+
+
+[FILE:96:manifests/plist.man]
 share/man/man1/
  find.1.gz
  locate.1.gz

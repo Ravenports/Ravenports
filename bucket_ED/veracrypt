@@ -22,9 +22,10 @@ OPTIONS_STANDARD=	none
 ONLY_FOR_OPSYS=		freebsd linux sunos
 
 BUILD_DEPENDS=		wxWidgets:dev:standard
-			yasm:single:standard
+			yasm:primary:standard
 			pcsc-lite:dev:standard
-BUILDRUN_DEPENDS=	fuse2:single:standard
+			fuse2:dev:standard
+BUILDRUN_DEPENDS=	fuse2:primary:standard
 			wxWidgets:primary:standard
 RUN_DEPENDS=		sudo:primary:standard
 
@@ -50,7 +51,7 @@ BUILD_WRKSRC=		{{WRKSRC}}/src
 BUILD_TARGET=		#
 MAKE_ENV=		WX_CONFIG="{{LOCALBASE}}/bin/wx-config"
 
-SUB_FILES=		pkg-message-primary-freebsd
+SUB_FILES=		messages-primary-freebsd.ucl
 
 CXXFLAGS=		-std=c++14
 
@@ -117,7 +118,10 @@ share/pixmaps/
  VeraCrypt-48x48.xpm
 
 
-[FILE:500:files/pkg-message-primary-freebsd.in]
+[FILE:552:files/messages-primary-freebsd.ucl.in]
+freebsd: {
+  type: "install"
+  message: <<EOM
 ############################### FreeBSD message ###############################
 
 1) Veracrypt needs security/sudo port to mount disk volumes. You must modify 
@@ -132,4 +136,6 @@ If you want load fuse.ko on boot time, please add the following to
 fuse_load="YES"
 
 ###############################################################################
+EOM
+}
 

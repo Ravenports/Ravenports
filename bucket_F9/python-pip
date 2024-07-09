@@ -2,6 +2,7 @@
 
 NAMEBASE=		python-pip
 VERSION=		23.2.1
+REVISION=		1
 KEYWORDS=		python
 VARIANTS=		v11 v12
 SDESC[v11]=		Tool for installing python packages (3.11)
@@ -30,16 +31,35 @@ GENERATED=		yes
 [PY312].MAKEFILE_ON=			POST_PLIST_TARGET+=setuptools-autolist
 [PY312].USES_ON=			python:v12
 
+post-patch:
+	# Exclude all __pycache__ changes from corruption detection
+	# (snapshots from pre-configure to post-build)
+	# obviously the pyc files should not be getting compiled.  (see issue #322)
+	# shifted this to ravenadm until the issue is resolved
+	# echo ".${LOCALBASE}/lib/python*/__pycache__"     >> /etc/mtree.preconfig.exclude
+	# echo ".${LOCALBASE}/lib/python*/*/__pycache__"   >> /etc/mtree.preconfig.exclude
+	# echo ".${LOCALBASE}/lib/python*/*/*/__pycache__" >> /etc/mtree.preconfig.exclude
+
 do-build:
-	# We can't use --root STAGEDIR because the paths are hardcoded
-	# So we install it in the proper place and relocate to the stagedir
-	# for packaging
-	${PYTHON_CMD} -m ensurepip
+	# By using --user, the pyc files are hardcoded with the wrong paths.
+	# those will have to be regenerated
+	${PYTHON_CMD} -m ensurepip --user
+
+post-install:
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
 
 do-install:
-	${MKDIR} ${STAGEDIR}${PYTHON_SITELIBDIR}/
-	${MV} ${PYTHON_SITELIBDIR}/pip ${STAGEDIR}${PYTHON_SITELIBDIR}/
-	${MV} ${LOCALBASE}/bin/pip${PYTHON_VER} ${STAGEDIR}${PREFIX}/bin/
+	${RM} -r ${STAGEDIR}
+	${MKDIR} ${STAGEDIR}
+	${FIND} /root/.local/ -type d --name __pycache__ | xargs rm -rf
+	${RM} /root/.local/bin/pip3
+	${MV} /root/.local ${STAGEDIR}${PREFIX}
+	# version 11 installs setuptools.  Remove this line when 11 is dropped
+	${RM} -r ${STAGEDIR}${PYTHON_SITELIBDIR}/setuptools \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/pkg_resources \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/setuptools-* \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/_distutils_hack \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/distutils-precedence.pth
 
 [FILE:239:descriptions/desc.single]
 Pip is a package manager for Python that allows you to install additional

@@ -58,7 +58,7 @@ PLIST_SUB=		CLAMAVGROUP=clamav
 			FRESH_SOVERSION=3.0.1
 RC_SUBR=		clamav-clamd:primary
 			clamav-freshclam:primary
-SUB_FILES=		pkg-deinstall-primary
+SUB_FILES=		messages-primary.ucl
 SUB_LIST=		CHMOD={{CHMOD}}
 			CHOWN={{CHOWN}}
 			CLAMAV_CLAMD_PIDFILE=/var/run/clamav/clamd.pid
@@ -472,30 +472,17 @@ clamav_freshclam_precmd()
 run_rc_command "$1"
 
 
-[FILE:513:files/pkg-deinstall-primary.in]
-#!/bin/sh
+[FILE:226:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
+If you want remove clamav permanently from you system
+execute following commands:
 
-if [ "$2" != "POST-DEINSTALL" ]; then
-	exit 0
-fi
-
-CLAMAVUSER=%%CLAMAVUSER%%
-
-echo
-echo "===================================================="
-echo
-echo "If you want remove clamav permanently from you system"
-echo "execute following commands:"
-echo
-echo " # rm -rf %%LOGDIR%%"
-echo " # rm -rf %%RUNDIR%%"
-echo " # rm -rf %%DBDIR%%"
-if pw usershow "${CLAMAVUSER}" 2>/dev/null 1>&2; then
-	echo " # pw userdel ${CLAMAVUSER}"
-fi
-echo
-echo "===================================================="
-echo
-
-exit 0
+ # rm -rf %%LOGDIR%%
+ # rm -rf %%RUNDIR%%
+ # rm -rf %%DBDIR%%
+ # pw userdel %%CLAMAVUSER%%
+EOM
+}
 

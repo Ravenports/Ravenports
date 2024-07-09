@@ -2,6 +2,7 @@
 
 NAMEBASE=		sed
 VERSION=		4.9
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard ravensys
 SDESC[ravensys]=	GNU stream editor for sysroot (no nls)
@@ -13,11 +14,14 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNU/sed
 DISTFILE[1]=		sed-4.9.tar.xz:main
 DF_INDEX=		1
-SPKGS[ravensys]=	primary
+SPKGS[ravensys]=	complete
+			primary
+			man
 SPKGS[standard]=	complete
 			primary
 			nls
 			info
+			man
 
 OPTIONS_AVAILABLE=	RAVENSYS
 OPTIONS_STANDARD=	none
@@ -48,6 +52,9 @@ MUST_CONFIGURE=		gnu
 post-patch-darwin:
 	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
 
+post-install-RAVENSYS-ON:
+	${RM} -r ${STAGEDIR}${PREFIX}/share/info
+
 do-test:
 	(cd ${WRKSRC}/testsuite && ${MAKE} check)
 
@@ -66,9 +73,8 @@ utilities without the `g' prefix.
 6e226b732e1cd739464ad6862bd1a1aba42d7982922da7a53519631d24975181      1397092 sed-4.9.tar.xz
 
 
-[FILE:34:manifests/plist.primary.standard]
+[FILE:9:manifests/plist.primary.standard]
 bin/gsed
-share/man/man1/gsed.1.gz
 
 
 [FILE:1410:manifests/plist.nls]
@@ -114,7 +120,14 @@ share/locale/zh_CN/LC_MESSAGES/sed.mo
 share/locale/zh_TW/LC_MESSAGES/sed.mo
 
 
-[FILE:32:manifests/plist.primary.ravensys]
+[FILE:25:manifests/plist.man.standard]
+share/man/man1/gsed.1.gz
+
+
+[FILE:8:manifests/plist.primary.ravensys]
 bin/sed
+
+
+[FILE:24:manifests/plist.man.ravensys]
 share/man/man1/sed.1.gz
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		fontconfig
 VERSION=		2.15.0
+REVISION=		1
 KEYWORDS=		x11_fonts
 VARIANTS=		standard
 SDESC[standard]=	XML-based font configuration API for X Windows
@@ -59,7 +60,7 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.12.1
 PLIST_SUB=		PREFERRED_HINTING={{PREFERRED_HINTING}}
-SUB_FILES=		pkg-install-primary
+SUB_FILES=		triggers-primary.ucl
 
 [HINTING_MEDIUM].DESCRIPTION=		Medium hinting
 [HINTING_MEDIUM].MAKEFILE_ON=		PREFERRED_HINTING=medium
@@ -390,15 +391,12 @@ https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=183536
      if (territory)
 
 
-[FILE:202:files/pkg-install-primary.in]
-#!/bin/sh
-
-PATH=/bin:/usr/bin:/sbin:/usr/sbin:%%PREFIX%%/bin
-export PATH
-
-if [ "$2" = "POST-INSTALL" ]; then
-    echo "Running fc-cache to build fontconfig cache..."
-    fc-cache -f -s -v
-    exit 0
-fi
+[FILE:219:files/triggers-primary.ucl.in]
+fc_cache: {
+    dir_path: ["%%PREFIX%%/share/fonts", "%%PREFIX%%/etc/fonts/conf.d" ]
+    trigger: <<EOS
+print("Triggered: Running fc-cache to build fontconfig cache.")
+pkg.exec({"%%PREFIX%%/bin/fc-cache", "-s" })
+EOS
+}
 

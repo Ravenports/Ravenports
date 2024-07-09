@@ -17,8 +17,12 @@ SPKGS[standard]=	complete
 			man
 			examples
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	BSD
+OPTIONS_STANDARD=	BSD
+OPT_ON[freebsd]=	BSD
+OPT_ON[netbsd]=		BSD
+OPT_ON[dragonfly]=	BSD
+OPT_ON[midnightbsd]=	BSD
 
 BUILDRUN_DEPENDS=	ruby-facter:single:v32
 			ruby-semantic_puppet:single:v32
@@ -46,9 +50,10 @@ FPC_EQUIVALENT=		sysutils/puppet7
 
 RC_SUBR=		puppet:primary
 			puppetmaster:primary
-SUB_FILES=		pkg-message-primary-freebsd
-			pkg-message-primary-dragonfly
 SUB_LIST=		RUBY={{RUBY}}
+
+[BSD].DESCRIPTION=			Build for *BSD
+[BSD].SUB_FILES_ON=			messages-primary.ucl
 
 post-patch:
 	${REINPLACE_CMD} -e "s|/etc/puppetlabs/puppet|${PREFIX}/etc/puppet|" \
@@ -1348,8 +1353,10 @@ Daemontools program locations
            break
 
 
-[FILE:362:files/pkg-message-primary-dragonfly.in]
-
+[FILE:408:files/messages-primary.ucl.in]
+bsd: {
+  type: "install"
+  message: <<EOM
 To enable the puppet agent, add the following to /etc/rc.conf:
 
 	puppet_enable="YES"
@@ -1362,24 +1369,8 @@ Individual config files such as %%PREFIX%%/etc/puppetmasterd.conf are
 deprecated. Use a single file, %%PREFIX%%/etc/puppet/puppet.conf.
 
 The default PID directory is /var/run/puppet
-
-
-
-[FILE:362:files/pkg-message-primary-freebsd.in]
-
-To enable the puppet agent, add the following to /etc/rc.conf:
-
-	puppet_enable="YES"
-
-To enable the puppetmaster, add the following to /etc/rc.conf:
-
-	puppetmaster_enable="YES"
-
-Individual config files such as %%PREFIX%%/etc/puppetmasterd.conf are
-deprecated. Use a single file, %%PREFIX%%/etc/puppet/puppet.conf.
-
-The default PID directory is /var/run/puppet
-
+EOM
+}
 
 
 [FILE:775:files/puppet.in]

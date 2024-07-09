@@ -13,44 +13,47 @@
 #  etc/pkgtools.conf.sample
 #  @exec [ -f %B/pkgtools.conf ] || cp %B/%f %B/pkgtools.conf
 
-actions: [file(1)]
-arguments: true
-post-install: <<EOD
-  case "%1" in
-  /*) sample_file="%1" ;;
-  *) sample_file="%D/%1" ;;
-  esac
-  target_file="${sample_file%.sample}"
-  set -- %@
-  if [ $# -eq 2 ]; then
-      target_file=${2}
-  fi
-  case "${target_file}" in
-  /*) target_file="${target_file}" ;;
-  *) target_file="%D/${target_file}" ;;
-  esac
-  if ! [ -f "${target_file}" ]; then
-    /bin/cp -p "${sample_file}" "${target_file}"
-  fi
-EOD
-pre-deinstall: <<EOD
-  case "%1" in
-  /*) sample_file="%1" ;;
-  *) sample_file="%D/%1" ;;
-  esac
-  target_file="${sample_file%.sample}"
-  set -- %@
-  if [ $# -eq 2 ]; then
-      set -- %@
-      target_file=${2}
-  fi
-  case "${target_file}" in
-  /*) target_file="${target_file}" ;;
-  *) target_file="%D/${target_file}" ;;
-  esac
-  if /usr/bin/cmp -s "${target_file}" "${sample_file}"; then
-    /bin/rm -f "${target_file}"
+actions: [file]
+prepackaging: <<EOS
+  if #arg == 1 then
+    if string.find(arg[1], "%.sample$") == nil then
+      pkg.print_msg("@sample error: 1 single argument requires the '.sample' extension")
+      return(1)
+    end
+  elseif #arg == 2 then
+    if arg[1] == arg[2] then
+      pkg.print_msg("@sample error: both arguments are identical")
+      return(1)
+    end
   else
-    echo "You may need to manually remove ${target_file} if it is no longer needed."
-  fi
-EOD
+    pkg.print_msg("@sample error: 1 or 2 arguments expected, but got " .. #arg)
+    return(1)
+  end
+EOS
+post-install-lua: <<EOS
+  sample_file = pkg.prefixed_path(arg[1])
+  if arg[2] == nil then
+    target_file = string.gsub(sample_file,'%.sample$', "")
+  else
+    target_file = pkg.prefixed_path(arg[2])
+  end
+  if not pkg.stat(target_file) then
+    pkg.copy(sample_file, target_file)
+  end
+EOS
+
+pre-deinstall-lua: <<EOS
+  sample_file = pkg.prefixed_path(arg[1])
+  if arg[2] == nil then
+    target_file = string.gsub(sample_file,'%.sample$', "")
+  else
+    target_file = pkg.prefixed_path(arg[2])
+  end
+  if pkg.filecmp(sample_file, target_file) == 0 then
+    os.remove(target_file)
+  else
+    if not pkg.pkg_upgrade then
+      pkg.print_msg("You may need to manually remove " .. target_file .. " if it is no longer needed.")
+    end
+  end
+EOS

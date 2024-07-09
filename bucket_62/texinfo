@@ -62,9 +62,6 @@ PLIST_SUB=		TEXMF=share/texmf
 
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=NOXS="@comment "
 
-pre-configure-darwin:
-	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
-
 post-install:
 	if [ -d "${STAGEDIR}${PREFIX}/lib/texinfo" ]; then \
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/texinfo/*.so ;\
@@ -800,52 +797,32 @@ share/man/man5/
                  additional_includedir="$basedir/include"
 
 
-[FILE:315:files/pkg-deinstall-single]
-#!/bin/sh
-
-[ $# != 2 ] && exit 1
+[FILE:448:files/scripts-primary.ucl]
+post-install: [{
+     args: ""
+     code: <<EOS
 PKGNAME=$1
-ACTION=$2
 PATH="${PKG_PREFIX}/bin:${LOCALBASE}/bin:/usr/bin:${PATH}"
 SETENV=env
 TEXHASH=texhash
 TRUE=true
 
-case "$ACTION" in
-POST-INSTALL|DEINSTALL)
-	${SETENV} PATH="${PATH}" ${TEXHASH} 2>/dev/null || ${TRUE}
-	;;
-PRE-INSTALL|POST-DEINSTALL)
-	;;
-*)
-	exit 1
-	;;
-esac
+${SETENV} PATH="${PATH}" ${TEXHASH} 2>/dev/null || ${TRUE}
 
-exit
+EOS
+}]
 
-
-[FILE:315:files/pkg-install-single]
-#!/bin/sh
-
-[ $# != 2 ] && exit 1
+pre-deinstall: [{
+     args: ""
+     code: <<EOS
 PKGNAME=$1
-ACTION=$2
 PATH="${PKG_PREFIX}/bin:${LOCALBASE}/bin:/usr/bin:${PATH}"
 SETENV=env
 TEXHASH=texhash
 TRUE=true
 
-case "$ACTION" in
-POST-INSTALL|DEINSTALL)
-	${SETENV} PATH="${PATH}" ${TEXHASH} 2>/dev/null || ${TRUE}
-	;;
-PRE-INSTALL|POST-DEINSTALL)
-	;;
-*)
-	exit 1
-	;;
-esac
+${SETENV} PATH="${PATH}" ${TEXHASH} 2>/dev/null || ${TRUE}
 
-exit
+EOS
+}]
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		cups
 VERSION=		2.4.10
+REVISION=		2
 KEYWORDS=		print
 VARIANTS=		standard
 SDESC[standard]=	Common UNIX Printing System
@@ -36,7 +37,7 @@ EXRUN[dev]=		gnutls:dev:standard
 
 USERS=			cups
 GROUPS=			cups
-USERGROUP_SPKG=		primary
+USERGROUP_SPKG=		tools
 
 USES=			cpe gmake iconv pkgconfig
 
@@ -72,7 +73,7 @@ CONFIGURE_ENV=		ac_cv_path_JAVA=
 
 DESTDIRNAME=		DSTROOT
 
-RC_SUBR=		cupsd:primary
+RC_SUBR=		cupsd:tools
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-system-groups=wheel
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=LSB_BUILD=y
@@ -98,7 +99,7 @@ post-patch:
 
 post-install:
 	${LN} -sf lpr ${STAGEDIR}${PREFIX}/bin/lpr-cups
-	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/pam.d \
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/pam.d \
 		${STAGEDIR}${PREFIX}/etc/devd \
 		${STAGEDIR}${STD_EXAMPLESDIR}
 	${INSTALL_DATA} ${FILESDIR}/cups.conf.sample \
@@ -108,6 +109,7 @@ post-install:
 		${STAGEDIR}${STD_EXAMPLESDIR}
 	${RMDIR} ${STAGEDIR}${PREFIX}/share/cups/examples
 	${RM} ${STAGEDIR}${PREFIX}/etc/cups/*.conf
+	${MKDIR} /var/spool/cups /var/cache/cups
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e '/-o .. ippeveprinter.o/ s/$$/ -lsocket/' \
@@ -166,7 +168,7 @@ lib/
 lib/pkgconfig/cups.pc
 
 
-[FILE:13906:manifests/plist.tools]
+[FILE:13774:manifests/plist.tools]
 @sample etc/cups/cups-files.conf.sample
 @sample etc/cups/cupsd.conf.sample
 @sample etc/cups/snmp.conf.sample
@@ -885,8 +887,6 @@ share/locale/zh_CN/cups_zh_CN.po
 @dir(,cups,700) etc/cups/ssl
 @dir(,cups,775) /var/cache/cups/rss
 @dir(cups,,511) /var/run/cups/certs
-@postexec chmod 710 /var/spool/cups && chgrp cups /var/spool/cups
-@postexec chmod 770 /var/cache/cups && chgrp cups /var/cache/cups
 
 
 [FILE:873:manifests/plist.man]
@@ -1396,4 +1396,14 @@ load_rc_config ${name}
 : ${cupsd_enable=NO}
 
 run_rc_command "$1"
+
+
+[FILE:223:files/scripts-tools.ucl]
+post-install: [{
+     args: ""
+     code: <<EOS
+[ -d "/var/spool/cups" ] && chmod 710 /var/spool/cups && chgrp cups /var/spool/cups
+[ -d "/var/cache/cups" ] && chmod 770 /var/cache/cups && chgrp cups /var/cache/cups
+EOS
+}]
 

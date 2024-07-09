@@ -2,6 +2,7 @@
 
 NAMEBASE=		gobject-introspection
 VERSION=		1.80.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Introspection data generator for GObject libraries
@@ -54,6 +55,8 @@ post-install:
 	${INSTALL_DATA} ${WRKSRC}/${MESON_BUILD_DIR}/gir/${base}-2.0.gir \
 		${STAGEDIR}${PREFIX}/share/gir-1.0/
 .endfor
+	# generate python cache to avoid leftover files
+	(cd ${STAGEDIR}${PREFIX}/lib/gobject-introspection/giscanner && python -m compileall -d / . ||:)
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|%%PYTHON_CMD%%|${PYTHON_CMD}|' \
@@ -73,7 +76,7 @@ introspection data.
 a1df7c424e15bda1ab639c00e9051b9adf5cea1a9e512f8a603b53cd199bc6d8      1040228 gnome3/gobject-introspection-1.80.1.tar.xz
 
 
-[FILE:3471:manifests/plist.primary]
+[FILE:4694:manifests/plist.primary]
 %%ONLY-DRAGONFLY%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-FREEBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-LINUX%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%-x86_64-linux-gnu.so
@@ -137,6 +140,35 @@ lib/gobject-introspection/giscanner/
  transformer.py
  utils.py
  xmlwriter.py
+lib/gobject-introspection/giscanner/__pycache__/
+ __init__.cpython-%%PYTHON_SUFFIX%%.pyc
+ _version.cpython-%%PYTHON_SUFFIX%%.pyc
+ annotationmain.cpython-%%PYTHON_SUFFIX%%.pyc
+ annotationparser.cpython-%%PYTHON_SUFFIX%%.pyc
+ ast.cpython-%%PYTHON_SUFFIX%%.pyc
+ cachestore.cpython-%%PYTHON_SUFFIX%%.pyc
+ ccompiler.cpython-%%PYTHON_SUFFIX%%.pyc
+ codegen.cpython-%%PYTHON_SUFFIX%%.pyc
+ docmain.cpython-%%PYTHON_SUFFIX%%.pyc
+ docwriter.cpython-%%PYTHON_SUFFIX%%.pyc
+ dumper.cpython-%%PYTHON_SUFFIX%%.pyc
+ gdumpparser.cpython-%%PYTHON_SUFFIX%%.pyc
+ girparser.cpython-%%PYTHON_SUFFIX%%.pyc
+ girwriter.cpython-%%PYTHON_SUFFIX%%.pyc
+ introspectablepass.cpython-%%PYTHON_SUFFIX%%.pyc
+ maintransformer.cpython-%%PYTHON_SUFFIX%%.pyc
+ mdextensions.cpython-%%PYTHON_SUFFIX%%.pyc
+ message.cpython-%%PYTHON_SUFFIX%%.pyc
+ msvccompiler.cpython-%%PYTHON_SUFFIX%%.pyc
+ pkgconfig.cpython-%%PYTHON_SUFFIX%%.pyc
+ scannermain.cpython-%%PYTHON_SUFFIX%%.pyc
+ sectionparser.cpython-%%PYTHON_SUFFIX%%.pyc
+ shlibs.cpython-%%PYTHON_SUFFIX%%.pyc
+ sourcescanner.cpython-%%PYTHON_SUFFIX%%.pyc
+ testcodegen.cpython-%%PYTHON_SUFFIX%%.pyc
+ transformer.cpython-%%PYTHON_SUFFIX%%.pyc
+ utils.cpython-%%PYTHON_SUFFIX%%.pyc
+ xmlwriter.cpython-%%PYTHON_SUFFIX%%.pyc
 lib/gobject-introspection/giscanner/doctemplates/devdocs/Gjs/
  _doc.tmpl
  _index.tmpl

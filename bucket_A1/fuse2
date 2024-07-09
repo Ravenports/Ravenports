@@ -12,17 +12,23 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/libfuse:libfuse:fuse-2.9.9
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 NOT_FOR_OPSYS=		dragonfly sunos
 
+EXRUN[tools]=		primary
+
 USES=			cpe iconv libtool autoreconf gettext:build
 
-LICENSE=		LGPL21:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21:{{WRKSRC}}/COPYING.LIB
 LICENSE_AWK=		TERMS:"\*\/"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/fuse.h
@@ -51,43 +57,23 @@ post-install:
 pre-configure:
 	${CP} ${LOCALBASE}/share/gettext/config.rpath ${WRKSRC}
 
-[FILE:1174:descriptions/desc.single]
-FUSE (Filesystem in Userspace) is an interface for userspace programs to 
-export a filesystem to the kernel. The FUSE project consists of two
-components: the fuse kernel module (maintained by supported operating
-system) and the libfuse userspace library (the contents of this package).
-libfuse provides the reference implementation for communicating with the
-FUSE kernel module.
-
-A FUSE file system is typically implemented as a standalone application 
-that links with libfuse. libfuse provides functions to mount the file 
-system, unmount it, read requests from the kernel, and send responses 
-back. libfuse offers two APIs: a "high-level", synchronous API, and a 
-"low-level" asynchronous API. In both cases, incoming requests from the 
-kernel are passed to the main program using callbacks. When using the 
-high-level API, the callbacks may work with file names and paths instead 
-of inodes, and processing of a request finishes when the callback function 
-returns. When using the low-level API, the callbacks must work with inodes 
-and responses must be sent explicitly using a separate set of API 
-functions.
-
-This package contains FUSE version 2, the legacy version.
-
-
-
 [FILE:112:distinfo]
 e57a24721177c3b3dd71cb9239ca46b4dee283db9388d48f7ccd256184982194       212017 libfuse-libfuse-fuse-2.9.9.tar.gz
 
 
-[FILE:675:manifests/plist.single]
-%%ONLY-LINUX%%/etc/init.d/fuse
-%%ONLY-LINUX%%/etc/udev/rules.d/99-fuse.rules
-%%ONLY-LINUX%%@postunexec rm -f /dev/fuse
-%%ONLY-LINUX%%@preexec mknod -m 0666 /dev/fuse c 10 229 || true
-%%ONLY-LINUX%%bin/
- fusermount
- ulockmgr_server
-%%ONLY-LINUX%%sbin/mount.fuse
+[FILE:95:manifests/plist.primary]
+lib/
+ libfuse.so.%%SOMAJOR%%
+ libfuse.so.%%SOVERSION%%
+ libulockmgr.so.1
+ libulockmgr.so.1.0.1
+
+
+[FILE:274:manifests/plist.dev]
+lib/pkgconfig/fuse.pc
+lib/
+ libulockmgr.a
+ libulockmgr.so
 include/
  fuse.h
  ulockmgr.h
@@ -104,13 +90,18 @@ include/fuse/
 lib/
  libfuse.a
  libfuse.so
- libfuse.so.%%SOMAJOR%%
- libfuse.so.%%SOVERSION%%
- libulockmgr.a
- libulockmgr.so
- libulockmgr.so.1
- libulockmgr.so.1.0.1
-lib/pkgconfig/fuse.pc
+
+
+[FILE:155:manifests/plist.tools]
+%%ONLY-LINUX%%/etc/init.d/fuse
+%%ONLY-LINUX%%/etc/udev/rules.d/99-fuse.rules
+%%ONLY-LINUX%%bin/
+ fusermount
+ ulockmgr_server
+%%ONLY-LINUX%%sbin/mount.fuse
+
+
+[FILE:55:manifests/plist.man]
 share/man/man1/
  fusermount.1.gz
  ulockmgr_server.1.gz
@@ -175,10 +166,30 @@ Signed-off-by: Sam James <sam@gentoo.org>
  {
 
 
-[FILE:150:files/pkg-message-single-freebsd]
+[FILE:202:files/messages-primary-freebsd.ucl]
+primary: {
+  type: "install"
+  message: <<EOM
 ================ FreeBSD Message ================ 
 Install the fuse kernel module to use this port.
 =================================================
+EOM
+}
+
+
+[FILE:164:files/scripts-tools-linux.ucl]
+pre-install: [{
+    args: ""
+    code: <<EOS
+mknod -m 0666 /dev/fuse c 10 229 || true
+EOS
+}]
+post-deinstall: [{
+    args: ""
+    code: <<EOS
+rm -f /dev/fuse
+EOS
+}]
 
 
 [FILE:2065:freebsd/patch-lib_helper.c]

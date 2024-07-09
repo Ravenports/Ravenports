@@ -95,9 +95,8 @@ INSTALL_REQ_TOOLCHAIN=	yes
 MANDIRS=		{{PREFIX}}/cyrus/man
 SOVERSION=		0.0.0
 RC_SUBR=		imapd:primary
-SUB_FILES=		pkg-message-primary
-			pkg-install-primary
-			pkg-deinstall-primary
+SUB_FILES=		messages-primary.ucl
+			scripts-primary.ucl
 			cyrus-imapd-man.conf
 SUB_LIST=		CYRUS_USER=cyrus
 			CYRUS_GROUP=cyrus
@@ -1189,14 +1188,57 @@ load_rc_config $name
 run_rc_command "$1"
 
 
-[FILE:744:files/pkg-deinstall-primary.in]
-#!/bin/sh
+[FILE:244:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
+To setup mail spool, modify %%PREFIX%%/etc/imapd.conf appropriately,
+then run %%PREFIX%%/cyrus/sbin/mkimap.
+To run Cyrus IMAPd from startup, add cyrus_imapd_enable="YES" in your
+/etc/rc.conf.
+EOM
+}
+
+
+[FILE:1249:files/scripts-primary.ucl.in]
+post-install: [{
+     args: ""
+     code: <<EOS
+PKG_BATCH=${BATCH:=NO}
+PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
+CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
+
 #
-# $FreeBSD: head/mail/cyrus-imapd32/files/pkg-deinstall.in 411341 2016-03-18 11:39:18Z ume $
-# Created by: hetzels@westbend.net
+# Modify the 'cyrus' user created from the cyrus-sasl port
+#
 
-#set -vx
+modify_cyrus_user() {
+	USER=${CYRUS_USER}
+	PW=/usr/sbin/pw
+	shell=/bin/csh
+	uhome=${PKG_PREFIX}/cyrus
 
+	if ! ${PW} mod user ${USER} -d "${uhome}" -s "${shell}"; then
+		echo "*** Failed to update user \`${USER}'."
+	else
+		echo "*** Updated user \`${USER}'."
+	fi
+}
+
+modify_cyrus_user
+if grep 'sieve' /etc/services; then
+	echo
+else
+	echo
+	echo "** Please add an entry for the sieve protocol (4190/tcp)"
+	echo "   to /etc/services"
+	echo
+fi
+EOS
+}]
+pre-deinstall: [{
+     args: ""
+     code: <<EOS
 PKG_BATCH=${BATCH:=NO}
 CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
 
@@ -1223,65 +1265,7 @@ modify_cyrus_user() {
 	fi
 }
 
-case $2 in
-	DEINSTALL)
-		;;
-	POST-DEINSTALL)
-		modify_cyrus_user
-		;;
-
-esac
-
-
-[FILE:791:files/pkg-install-primary.in]
-#!/bin/sh
-#
-# $FreeBSD: head/mail/cyrus-imapd32/files/pkg-install.in 411341 2016-03-18 11:39:18Z ume $
-
-#set -vx
-
-PKG_BATCH=${BATCH:=NO}
-PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
-CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
-
-#
-# Modify the 'cyrus' user created from the cyrus-sasl port
-#
-
-modify_cyrus_user() {
-	USER=${CYRUS_USER}
-	PW=/usr/sbin/pw
-	shell=/bin/csh
-	uhome=${PKG_PREFIX}/cyrus
-
-	if ! ${PW} mod user ${USER} -d "${uhome}" -s "${shell}"; then
-		echo "*** Failed to update user \`${USER}'."
-	else
-		echo "*** Updated user \`${USER}'."
-	fi
-}
-
-case $2 in
-	PRE-INSTALL)
-		;;
-
-	POST-INSTALL)
-		modify_cyrus_user
-		if grep 'sieve' /etc/services; then
-			echo
-		else
-			echo
-			echo "** Please add an entry for the sieve protocol (4190/tcp)"
-			echo "   to /etc/services"
-			echo
-		fi
-		;;
-esac
-
-
-[FILE:192:files/pkg-message-primary.in]
-To setup mail spool, modify %%PREFIX%%/etc/imapd.conf appropriately,
-then run %%PREFIX%%/cyrus/sbin/mkimap.
-To run Cyrus IMAPd from startup, add cyrus_imapd_enable="YES" in your
-/etc/rc.conf.
+modify_cyrus_user
+EOS
+}]
 

@@ -69,9 +69,9 @@ PLIST_SUB=		OPENLDAP_MAJOR=2.6
 			LDAP_RUN_DIR=/var/run/openldap
 			DATABASEDIR=/var/db/openldap-data
 RC_SUBR=		slapd:server
-SUB_FILES=		pkg-message-client
-			pkg-message-server
-			pkg-deinstall-server
+SUB_FILES=		messages-client.ucl
+			messages-server.ucl
+			scripts-server.ucl
 SUB_LIST=		LDAP_USER=ldap
 			LDAP_GROUP=ldap
 			LDAP_RUN_DIR=/var/run/openldap
@@ -726,44 +726,10 @@ Fix build with LibreSSL.
  #define BIO_clear_flags(b, x)	b->flags &= ~(x)
 
 
-[FILE:973:files/pkg-deinstall-server.in]
-#!/bin/sh
-
-ECHO_CMD=echo
-
-if [ -f "%%PREFIX%%/etc/openldap/slapd.conf" ]; then
-  DBDIR=`awk '$1 == "directory" {print $2}' "%%PREFIX%%/etc/openldap/slapd.conf"`
-fi
-
-case $2 in
-POST-DEINSTALL)
-  ${ECHO_CMD}
-  ${ECHO_CMD} "The OpenLDAP server package has been deleted."
-  ${ECHO_CMD} "If you're *not* upgrading and won't be using"
-  ${ECHO_CMD} "it any longer, you may want to issue the"
-  ${ECHO_CMD} "following commands:"
-  ${ECHO_CMD}
-  if ([ "${DBDIR}" ] && [ -d "${DBDIR}" ]) || ([ ! "${DBDIR}" ] && [ -d %%DATABASEDIR%% ]); then
-    ${ECHO_CMD} "- to delete the OpenLDAP database permanently (losing all data):"
-    if [ "${DBDIR}" ] && [ -d "${DBDIR}" ]; then
-      ${ECHO_CMD} "  rm -Rf ${DBDIR}"
-    else
-      ${ECHO_CMD} "  rm -Rf %%DATABASEDIR%%"
-    fi
-    ${ECHO_CMD}
-  fi
-  ${ECHO_CMD} "- to remove the OpenLDAP user:"
-  ${ECHO_CMD} "  pw userdel ldap"
-  ${ECHO_CMD}
-  ${ECHO_CMD} "If you are upgrading, don't forget to restart slapd."
-  ${ECHO_CMD}
-  ;;
-esac
-
-
-[FILE:398:files/pkg-message-client.in]
-************************************************************
-
+[FILE:326:files/messages-client.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
 The OpenLDAP client package has been successfully installed.
 
 Edit
@@ -773,13 +739,14 @@ to change the system-wide client defaults.
 Try `man ldap.conf' and visit the OpenLDAP FAQ-O-Matic at
   http://www.OpenLDAP.org/faq/index.cgi?file=3
 for more information.
+EOM
+}
 
-************************************************************
 
-
-[FILE:762:files/pkg-message-server.in]
-************************************************************
-
+[FILE:690:files/messages-server.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
 The OpenLDAP server package has been successfully installed.
 
 In order to run the LDAP server, you need to edit
@@ -799,8 +766,42 @@ for more information.
 
 slapd runs under a non-privileged user id (by default `ldap'),
 see %%PREFIX%%/etc/rc.d/slapd for more information.
+EOM
+}
 
-************************************************************
+
+[FILE:942:files/scripts-server.ucl.in]
+post-deinstall: [{
+     args: ""
+     code: <<EOS
+ECHO_CMD=echo
+
+if [ -f "%%PREFIX%%/etc/openldap/slapd.conf" ]; then
+  DBDIR=`awk '$1 == "directory" {print $2}' "%%PREFIX%%/etc/openldap/slapd.conf"`
+fi
+
+${ECHO_CMD}
+${ECHO_CMD} "The OpenLDAP server package has been deleted."
+${ECHO_CMD} "If you're *not* upgrading and won't be using"
+${ECHO_CMD} "it any longer, you may want to issue the"
+${ECHO_CMD} "following commands:"
+${ECHO_CMD}
+if ([ "${DBDIR}" ] && [ -d "${DBDIR}" ]) || ([ ! "${DBDIR}" ] && [ -d %%DATABASEDIR%% ]); then
+  ${ECHO_CMD} "- to delete the OpenLDAP database permanently (losing all data):"
+  if [ "${DBDIR}" ] && [ -d "${DBDIR}" ]; then
+    ${ECHO_CMD} "  rm -Rf ${DBDIR}"
+  else
+    ${ECHO_CMD} "  rm -Rf %%DATABASEDIR%%"
+  fi
+  ${ECHO_CMD}
+fi
+${ECHO_CMD} "- to remove the OpenLDAP user:"
+${ECHO_CMD} "  pw userdel ldap"
+${ECHO_CMD}
+${ECHO_CMD} "If you are upgrading, don't forget to restart slapd."
+${ECHO_CMD}
+EOS
+}]
 
 
 [FILE:3528:files/slapd.in]

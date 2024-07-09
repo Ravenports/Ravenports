@@ -49,7 +49,7 @@ CONFIGURE_ARGS=		--datadir={{STD_EXAMPLESDIR}}/../
 			--with-openssl={{OPENSSLBASE}}
 			--without-ualpn
 
-SUB_FILES=		pkg-message-primary
+SUB_FILES=		messages-primary.ucl
 SUB_LIST=		STD_EXAMPLESDIR={{STD_EXAMPLESDIR}}
 
 post-install:
@@ -95,18 +95,30 @@ share/examples/uacme/
  uacme.sh
 
 
-[FILE:858:files/pkg-message-primary.in]
-It's highly recommended to read the documentation, but in case you want to give uacme a quick test, do the following:
+[FILE:938:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
+It's highly recommended to read the documentation, but in case you want to
+give uacme a quick test, do the following:
 
 1. Create a new account with Let's Encrypt (using the STAGING ENV):
-# uacme -v -s -c %%PREFIX%%/etc/ssl/uacme/test new
+   $ uacme -v -s -c %%PREFIX%%/etc/ssl/uacme/test new
 
-2. Copy the example script 'uacme.sh' from %%STD_EXAMPLESDIR%% to %%PREFIX%%/libexec if you plan on using the http-01 challenge. For the dns-01 copy 'nsupdate.sh' instead.
+2. Copy the example script 'uacme.sh' from %%STD_EXAMPLESDIR%% to
+   %%PREFIX%%/libexec if you plan on using the http-01 challenge.
+   For the dns-01 copy 'nsupdate.sh' instead.
 
-3. Edit the script at its new location to make changes if necessary (e.g. pointing it to the TSIG key if required for nsupdate).
+3. Edit the script at its new location to make changes if necessary
+   (e.g. pointing it to the TSIG key if required for nsupdate).
 
-4. Request an cert e.g. like this for the dns-01 challenge (also using the STAGING ENV):
-# uacme -v -s -h %%PREFIX%%/libexec/nsupdate.sh -c %%PREFIX%%/etc/ssl/uacme/test issue www.example.org
+4. Request an cert e.g. like this for the dns-01 challenge (also using
+   the STAGING ENV):
+   $ uacme -v -s -h %%PREFIX%%/libexec/nsupdate.sh -c \
+     %%PREFIX%%/etc/ssl/uacme/test issue www.example.org
 
-5. If everything worked, do 1 and 2 again with out the -s flag to obtain a proper TLS certificate. Then automate via cron.
+5. If everything worked, do 1 and 2 again with out the -s flag to obtain a
+   proper TLS certificate. Then automate via cron.
+EOM
+}
 

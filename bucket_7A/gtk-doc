@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtk-doc
 VERSION=		1.34.0
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		standard
 SDESC[standard]=	GTK+ DocBook Documentation Generator
@@ -35,6 +36,9 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		textproc/gtk-doc
 MESON_ARGS=		-Dtests=false
 
+post-install:
+	(cd ${STAGEDIR}${PREFIX}/share/gtk-doc/python && python -m compileall -d / . ||:)
+
 pre-configure:
 	${REINPLACE_CMD} -e "s|%%LOCALBASE%%|${LOCALBASE}|g" ${WRKSRC}/gtk-doc.xsl
 	${GREP} -rl "http://docbook.sourceforge.net" ${WRKSRC} | \
@@ -50,7 +54,7 @@ Gnome, and converts the DocBook documentation into HTML.
 b20b72b32a80bc18c7f975c9d4c16460c2276566a0b50f87d6852dff3aa7861c       494116 gtk-doc-1.34.0.tar.xz
 
 
-[FILE:1970:manifests/plist.single]
+[FILE:2628:manifests/plist.single]
 bin/
  gtkdoc-check
  gtkdoc-depscan
@@ -104,6 +108,23 @@ share/gtk-doc/python/gtkdoc/
  rebase.py
  scan.py
  scangobj.py
+share/gtk-doc/python/gtkdoc/__pycache__/
+ __init__.cpython-%%PYTHON_SUFFIX%%.pyc
+ check.cpython-%%PYTHON_SUFFIX%%.pyc
+ common.cpython-%%PYTHON_SUFFIX%%.pyc
+ config.cpython-%%PYTHON_SUFFIX%%.pyc
+ config_data.cpython-%%PYTHON_SUFFIX%%.pyc
+ fixxref.cpython-%%PYTHON_SUFFIX%%.pyc
+ highlight.cpython-%%PYTHON_SUFFIX%%.pyc
+ md_to_db.cpython-%%PYTHON_SUFFIX%%.pyc
+ mkdb.cpython-%%PYTHON_SUFFIX%%.pyc
+ mkhtml.cpython-%%PYTHON_SUFFIX%%.pyc
+ mkhtml2.cpython-%%PYTHON_SUFFIX%%.pyc
+ mkman.cpython-%%PYTHON_SUFFIX%%.pyc
+ mkpdf.cpython-%%PYTHON_SUFFIX%%.pyc
+ rebase.cpython-%%PYTHON_SUFFIX%%.pyc
+ scan.cpython-%%PYTHON_SUFFIX%%.pyc
+ scangobj.cpython-%%PYTHON_SUFFIX%%.pyc
 share/help/C/gtk-doc-manual/
  fdl-appendix.xml
  index.docbook

@@ -50,8 +50,7 @@ RC_SUBR=		cbsdd:single
 			cbsd-statsd-bhyve:single
 			cbsd-statsd-hoster:single
 			cbsd-statsd-jail:single
-SUB_FILES=		pkg-message-single
-			pkg-deinstall-single
+SUB_FILES=		messages-single.ucl
 
 post-install:
 	# Add symbolic link
@@ -2393,42 +2392,39 @@ load_rc_config "$name"
 run_rc_command "$1"
 
 
-[FILE:691:files/pkg-deinstall-single.in]
-#!/bin/sh
-case $2 in
-POST-DEINSTALL)
-    echo
-    echo "The cbsd package has been deleted."
-    echo
-    echo "If you are *not* upgrading this package, you may want to"
-    echo "remove the following to complete the deinstallation process:"
-    echo
-    echo "1) Records in /etc/rc.conf"
-    echo
-    echo "  cbsdrsyncd_enable=\"YES\""
-    echo "  cbsdrsyncd_flags=\"--config=\$workdir/etc/rsyncd.conf\""
-    echo "  cbsdd_enable=\"YES\""
-    echo "  devfs_load_rulesets=\"YES\""
-    echo "  cbsd_workdir=\"\$workdir\""
-    echo "  rcshutdown_timeout=\"900\""
-    echo "  sshd_flags=\"-oPort=22222\""
-    echo
-    echo "2) Remove %%LOCALBASE%%/etc/sudoers.d/cbsd_sudoers"
-    echo
-  ;;
-esac
-
-
-[FILE:274:files/pkg-message-single.in]
+[FILE:817:files/messages-single.ucl.in]
+single: {
+  type: "install"
+  message: <<EOM
 cbsd is now installed, but requires additional setup steps:
-
 Upon initial installation, run:
 
   env workdir="/path" %%PREFIX%%/cbsd/sudoexec/initenv
 
 Where /path is the path to the cbsd workdir, e.g.: /usr/jails
-
 For upgrading an existing installation, run:
 
   cbsd initenv
+EOM
+}
+final: {
+  type: "remove"
+  message: <<EOM
+The cbsd package has been deleted.
+
+If you are *not* upgrading this package, you may want to
+remove the following to complete the deinstallation process:
+
+1) Records in /etc/rc.conf
+  cbsdrsyncd_enable="YES"
+  cbsdrsyncd_flags="--config=$workdir/etc/rsyncd.conf"
+  cbsdd_enable="YES"
+  devfs_load_rulesets="YES"
+  cbsd_workdir="$workdir"
+  rcshutdown_timeout="900"
+  sshd_flags="-oPort=22222"
+
+2) Remove %%LOCALBASE%%/etc/sudoers.d/cbsd_sudoers
+EOM
+}
 

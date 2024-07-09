@@ -2,6 +2,7 @@
 
 NAMEBASE=		redis
 VERSION=		7.2.5
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		standard
 SDESC[standard]=	Persistent key-value database with net interface
@@ -34,7 +35,7 @@ MAKE_ENV=		V=yo
 
 RC_SUBR=		redis:single
 			sentinel:single
-SUB_FILES=		pkg-message-single
+SUB_FILES=		messages-single.ucl
 
 CFLAGS=			-Wno-implicit-fallthrough
 LDFLAGS=		-lm
@@ -77,8 +78,9 @@ and so forth.
 5981179706f8391f03be91d951acafaeda91af7fac56beffb2701963103e423d      3386454 redis-7.2.5.tar.gz
 
 
-[FILE:275:manifests/plist.single]
+[FILE:261:manifests/plist.single]
 @sample etc/redis.conf.sample
+@sample etc/sentinel.conf.sample
 bin/
  redis-benchmark
  redis-check-aof
@@ -89,7 +91,6 @@ bin/
 @dir(redis,redis,) /var/db/redis
 @dir(redis,redis,) /var/log/redis
 @dir(redis,redis,) /var/run/redis
-@sample(redis,redis,) etc/sentinel.conf.sample
 
 
 [FILE:294:patches/patch-deps-linenoise-Makefile]
@@ -264,16 +265,18 @@ bin/
  #ifndef _GNU_SOURCE
 
 
-[FILE:209:files/pkg-message-single.in]
+[FILE:228:files/messages-single.ucl.in]
+single: {
+  type: "install"
+  message: <<EOM
+CONFIGURATION NOTE:
 
-===>  CONFIGURATION NOTE:
+To setup "redis" you need to edit the configuration file:
+%%PREFIX%%/etc/redis.conf
 
-      To setup "redis" you need to edit the configuration file:
-      %%PREFIX%%/etc/redis.conf
-
-      To run redis from startup, add redis_enable="YES"
-      in your /etc/rc.conf.
-
+To run redis from startup, add redis_enable="YES" in your /etc/rc.conf.
+EOM
+}
 
 [FILE:1528:files/redis.in]
 #!/bin/sh

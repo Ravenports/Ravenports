@@ -40,7 +40,7 @@ CONFIGURE_ENV=		ax_cv_check_cflags___fstack_protector_all=no
 
 INSTALL_REQ_TOOLCHAIN=	yes
 RC_SUBR=		monit:primary
-SUB_FILES=		pkg-message-primary
+SUB_FILES=		messages-primary.ucl
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/monitrc \
@@ -137,6 +137,21 @@ share/man/man1/monit.1.gz
                  return 0;
 
 
+[FILE:268:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
+USAGE:
+
+To enable monit you need to add monit_enable="YES" to rc.conf file.
+Before running monit you have to configure monitrc file. There is
+example configuration file monitrc.sample.
+
+%%PREFIX%%/etc/monitrc.sample
+EOM
+}
+
+
 [FILE:864:files/monit.in]
 #!/bin/sh
 #
@@ -177,18 +192,4 @@ monit_checkconfig()
 }
 
 run_rc_command "$1"
-
-
-[FILE:368:files/pkg-message-primary.in]
-**************************************************************************
-
-USAGE:
-
-To enable monit you need to add monit_enable="YES" to rc.conf file.
-Before running monit you have to configure monitrc file. There is
-example configuration file monitrc.sample.
-
-%%PREFIX%%/etc/monitrc.sample
-
-**************************************************************************
 

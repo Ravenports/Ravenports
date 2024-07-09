@@ -61,8 +61,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		GTK_VERSION=2.10.0
 			SOVER=4200.12
 			INTRO=
-SUB_FILES=		pkg-install-primary
-			pkg-deinstall-primary
+SUB_FILES=		triggers-primary.ucl
 SUB_LIST=		GTK2_VERSION=2.10.0
 
 VAR_OPSYS[sunos]=	CFLAGS=-D_XPG6
@@ -256,28 +255,18 @@ share/locale/zh_TW/LC_MESSAGES/gdk-pixbuf.mo
  #include <stdio.h>
 
 
-[FILE:186:files/pkg-deinstall-primary.in]
-#!/bin/sh
+[FILE:407:files/triggers-primary.ucl.in]
+pixbuf: {
+    dir_path: ["%%PREFIX%%/lib/gdk-pixbuf-2.0/%%GTK2_VERSION%%/loaders"]
 
-case "$2" in
-DEINSTALL)
-    echo "[gdk_pixbuf] Removing gdk-pixbuf cache directory"
-    rm -f %%PREFIX%%/lib/gdk-pixbuf-2.0/%%GTK2_VERSION%%/loaders.cache
-    ;;
-esac
+    cleanup: <<EOS
+pkg.print_msg("Triggered: Removing gdk-pixbuf cache directory")
+os.remove("%%PREFIX%%/lib/gdk-pixbuf-2.0/%%GTK2_VERSION%%/loaders.cache")
+EOS
 
-exit 0
-
-
-[FILE:177:files/pkg-install-primary.in]
-#!/bin/sh
-
-case "$2" in
-POST-INSTALL)
-    echo "[gdk_pixbuf] Generating gdk-pixbuf modules cache"
-    %%PREFIX%%/bin/gdk-pixbuf-query-loaders --update-cache
-    ;;
-esac
-
-exit 0
+    trigger: <<EOS
+pkg.print_msg("Triggered: Generating gdk-pixbuf modules cache")
+pkg.exec({"%%PREFIX%%/bin/gdk-pixbuf-query-loaders", "--update-cache"})
+EOS
+}
 

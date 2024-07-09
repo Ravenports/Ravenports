@@ -69,8 +69,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		3.0.0
 PLIST_SUB=		UNDERSCORE=1.13.1
 			JQUERY=3.5.1
-SUB_FILES=		pkg-install-primary
-			pkg-deinstall-primary
+SUB_FILES=		scripts-primary.ucl
 SUB_LIST=		SASLDB_NAME=sasldb2
 			CYRUS_USER=cyrus
 
@@ -559,44 +558,10 @@ How to enable SMTP AUTH with FreeBSD default Sendmail
    SASLv2 support of Sendmail is starting with 8.12.4.
 
 
-[FILE:704:files/pkg-deinstall-primary.in]
-#!/bin/sh
-#
-
-PKG_BATCH=${BATCH:=NO}
-PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
-SASLDB_NAME=%%SASLDB_NAME%%
-SASLDB_NAME=${SASLDB_NAME:+${PKG_PREFIX}/etc/%%SASLDB_NAME%%}
-CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
-
-# delete sasldb database
-delete_sasldb() {
-	if [ -f ${SASLDB_NAME} ] ; then
-		if [ `${PKG_PREFIX}/sbin/sasldblistusers2 | wc -l` -eq 0 ]; then
-			echo "Removing ${SASLDB_NAME} as part of cyrus-sasl deinstallation."
-			rm ${SASLDB_NAME}
-			if [ -f ${SASLDB_NAME}-lock ] ; then
-				rm ${SASLDB_NAME}-lock
-			fi
-		else
-			echo "WARNING: Users SASL passwords are in ${SASLDB_NAME}, keeping this file"
-		fi
-	fi
-}
-
-case $2 in
-	DEINSTALL)
-		if [ -n "${SASLDB_NAME}" ]; then
-			delete_sasldb
-		fi
-		;;
-esac
-
-
-[FILE:1140:files/pkg-install-primary.in]
-#!/bin/sh
-#
-
+[FILE:1836:files/scripts-primary.ucl.in]
+post-install: [{
+     args: ""
+     code: <<EOS
 PKG_BATCH=${BATCH:=NO}
 PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
 SASLDB_NAME=%%SASLDB_NAME%%
@@ -620,17 +585,44 @@ create_sasldb() {
 	fi
 }
 
-case $2 in
-	POST-INSTALL)
-		if [ "${PKG_BATCH}" = "NO" ]; then
-			if [ -n "${SASLDB_NAME}" ]; then
-				create_sasldb
+if [ "${PKG_BATCH}" = "NO" ]; then
+	if [ -n "${SASLDB_NAME}" ]; then
+		create_sasldb
+	fi
+elif [ -n "${SASLDB_NAME}" -a ! -f ${SASLDB_NAME} ]; then
+	echo "*** We do not create ${SASLDB_NAME} automatically in"
+	echo "*** BATCH mode.  Please create it by yourself.  It should be"
+	echo "*** owner: ${CYRUS_USER}, group: mail, mode: 0640."
+fi
+EOS
+}]
+pre-deinstall: [{
+     args: ""
+     code: <<EOS
+PKG_BATCH=${BATCH:=NO}
+PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
+SASLDB_NAME=%%SASLDB_NAME%%
+SASLDB_NAME=${SASLDB_NAME:+${PKG_PREFIX}/etc/%%SASLDB_NAME%%}
+CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
+
+# delete sasldb database
+delete_sasldb() {
+	if [ -f ${SASLDB_NAME} ] ; then
+		if [ `${PKG_PREFIX}/sbin/sasldblistusers2 | wc -l` -eq 0 ]; then
+			echo "Removing ${SASLDB_NAME} as part of cyrus-sasl deinstallation."
+			rm ${SASLDB_NAME}
+			if [ -f ${SASLDB_NAME}-lock ] ; then
+				rm ${SASLDB_NAME}-lock
 			fi
-		elif [ -n "${SASLDB_NAME}" -a ! -f ${SASLDB_NAME} ]; then
-			echo "*** We do not create ${SASLDB_NAME} automatically in"
-			echo "*** BATCH mode.  Please create it by yourself.  It should be"
-			echo "*** owner: ${CYRUS_USER}, group: mail, mode: 0640."
+		else
+			echo "WARNING: Users SASL passwords are in ${SASLDB_NAME}, keeping this file"
 		fi
-		;;
-esac
+	fi
+}
+
+if [ -n "${SASLDB_NAME}" ]; then
+	delete_sasldb
+fi
+EOS
+}]
 

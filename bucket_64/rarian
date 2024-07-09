@@ -93,7 +93,7 @@ lib/
 lib/pkgconfig/rarian.pc
 
 
-[FILE:973:manifests/plist.tools]
+[FILE:868:manifests/plist.tools]
 bin/
  rarian-example
  rarian-sk-config
@@ -131,8 +131,6 @@ share/librarian/manual/
  rar-mdf.xhtml
  rar-skcompat.xhtml
 @dir /var/db/rarian
-@postexec %%PREFIX%%/bin/rarian-sk-update || true
-@postunexec rmdir /var/db/rarian/* 2>/dev/null || true
 
 
 [FILE:327:patches/patch-librarian_rarian-main.c]
@@ -161,4 +159,20 @@ share/librarian/manual/
  		;;
  	--prefix )
  		echo $prefix
+
+
+[FILE:262:files/scripts-tools.ucl]
+post-install-lua: [{
+    args: ""
+    code: <<EOS
+prog = pkg.prefixed_path("bin/rarian-sk-update")
+pkg.exec({prog})
+EOS
+}]
+pre-deinstall-lua: [{
+    args: ""
+    code: <<EOS
+pkg.exec({"/usr/bin/find", "/var/db/rarian", "-type", "d", "-empty", "-delete"})
+EOS
+}]
 

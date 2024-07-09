@@ -60,6 +60,7 @@ DESTDIRNAME=		INSTALL_ROOT
 PLIST_SUB=		SUFFIX=82
 			SOMAJOR=8
 RC_SUBR=		php82-fpm:primary
+SUB_FILES=		scripts-dev.ucl
 SUB_LIST=		SUFFIX=82
 
 [CLI].DESCRIPTION=			Enable Command Line Interface SAPI
@@ -179,7 +180,7 @@ etc/php%%SUFFIX%%/
  php.ini-production
 
 
-[FILE:5725:manifests/plist.dev]
+[FILE:5558:manifests/plist.dev]
 %%CLI-ON%%include/php%%SUFFIX%%/sapi/cli/cli.h
 %%EMBED-ON%%include/php%%SUFFIX%%/sapi/embed/php_embed.h
 bin/
@@ -489,8 +490,6 @@ lib/php%%SUFFIX%%/build/
  pkg.m4
  run-tests.php
  shtool
-@postexec touch %D/include/php%%SUFFIX%%/ext/php_config.h
-@postunexec [ -s %D/include/php%%SUFFIX%%/ext/php_config.h ] || rm %D/include/php%%SUFFIX%%/ext/php_config.h
 
 
 [FILE:258:manifests/plist.man]
@@ -729,4 +728,27 @@ php%%SUFFIX%%_fpm_prestart()
 }
 
 run_rc_command "$1"
+
+
+[FILE:380:files/scripts-dev.ucl.in]
+post-install-lua: [{
+     args: ""
+     code: <<EOS
+cfg = pkg.prefixed_path("include/php%%SUFFIX%%/ext/php_config.h")
+file=io.open(cfg, "w")
+file:close()
+EOS
+}]
+pre-deinstall-lua: [{
+     args: ""
+     code: <<EOS
+cfg = pkg.prefixed_path("include/php%%SUFFIX%%/ext/php_config.h")
+st = pkg.stat(cfg)
+if st ~= nil then
+   if st.size == 0 then
+      os.remove(cfg)
+   end
+end
+EOS
+}]
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		lal-refactor
 VERSION=		23.0.1
+REVISION=		1
 KEYWORDS=		devel ada
 VARIANTS=		standard
 SDESC[standard]=	Collection of Ada source code refactoring tools
@@ -67,12 +68,13 @@ Currently, the main user of these tools is the Ada Language Server.
 de5f5c84c88410cc94759b78c00ecdfa42fbdfc3a35059f20cc8d7cf708b61a0       212173 AdaCore-lal-refactor-0dbcc3d.tar.gz
 
 
-[FILE:99:manifests/plist.primary]
+[FILE:115:manifests/plist.primary]
+bin/lalrefactor
 lib/liblal-refactor.so.%%SOVERSION%%
 lib/lal_refactor.relocatable/liblal-refactor.so.%%SOVERSION%%
 
 
-[FILE:4658:manifests/plist.dev]
+[FILE:4735:manifests/plist.dev]
 include/lal-refactor/
  lal_refactor-command_line.ads
  lal_refactor-extract_subprogram.adb
@@ -119,6 +121,7 @@ include/lal-refactor/
  lal_refactor-utils.ads
  lal_refactor.adb
  lal_refactor.ads
+include/lal_refactor_driver/lal_refactor-main.adb
 lib/liblal-refactor.so
 lib/lal_refactor.relocatable/
  lal_refactor-command_line.ali
@@ -195,7 +198,9 @@ lib/lal_refactor.static-pic/
  lal_refactor-utils.ali
  lal_refactor.ali
  liblal-refactor.a
-share/gpr/lal_refactor.gpr
+share/gpr/
+ lal_refactor.gpr
+ lal_refactor_driver.gpr
 
 
 [FILE:678:patches/patch-Makefile]
@@ -217,7 +222,7 @@ share/gpr/lal_refactor.gpr
  		-XBUILD_MODE=$(BUILD_MODE) \
 -		--prefix="$(PREFIX)" \
 +		--no-manifest \
-+		--prefix="$(DISTDIR)$(PREFIX)" \
++		--prefix="$(DESTDIR)$(PREFIX)" \
  		-P $(BIN_PROJECT) \
  		-p \
  		-f ;

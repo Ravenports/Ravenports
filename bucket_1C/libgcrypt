@@ -2,6 +2,7 @@
 
 NAMEBASE=		libgcrypt
 VERSION=		1.11.0
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		standard
 SDESC[standard]=	General purpose crypto library based on GnuPG
@@ -53,6 +54,10 @@ TEST_TARGET=		check
 post-patch:
 	${RM} ${WRKSRC}/doc/gcrypt.info*
 
+post-install:
+	# not sure why this stopped being installed
+	${INSTALL_SCRIPT} ${WRKSRC}/src/libgcrypt-config ${STAGEDIR}${PREFIX}/bin/
+
 [FILE:968:descriptions/desc.primary]
 Libgcrypt is a general purpose cryptographic library originally based on
 code from GnuPG. It provides functions for all cryptograhic building blocks:
@@ -92,7 +97,8 @@ bin/
  mpicalc
 
 
-[FILE:103:manifests/plist.dev]
+[FILE:124:manifests/plist.dev]
+bin/libgcrypt-config
 include/gcrypt.h
 lib/
  libgcrypt.a

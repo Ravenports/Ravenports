@@ -1,15 +1,24 @@
 actions: [file]
-post-install: <<EOD
-  case "%@" in
-  /*) file="%@" ;;
-   *) file="%D/%@" ;;
-  esac
-  %LOCALBASE%/bin/indexinfo ${PKG_ROOTDIR}${file%/*}
+post-install-lua: <<EOD
+  file=pkg.prefixed_path(arg[1])
+  parentdir=file:match("(.*[/])")
+  pkg.exec({pkg_prefix .. "/bin/indexinfo", pkg_rootdir .. parentdir})
 EOD
-post-deinstall: <<EOD
-  case "%@" in
-  /*) file="%@" ;;
-   *) file="%D/%@" ;;
-  esac
-  %LOCALBASE%/bin/indexinfo ${PKG_ROOTDIR}${file%/*}
+post-deinstall-lua: <<EOD
+  file=pkg.prefixed_path(arg[1])
+  parentdir = file:match("(.*[/])")
+  sinfo = pkg_prefix .. "/share/info"
+  if pkg_rootdir ~= "/" then
+     parentdir = pkg_rootdir .. file:match("(.*[/])")
+     sinfo = pkg_rootdir .. pkg_prefix .. "/share/info"
+  end
+  st = pkg.stat(parentdir)
+  if st ~= nil and st.type == "dir" then
+    pkg.exec({pkg_prefix .. "/bin/indexinfo", parentdir})
+  end
+
+  info = pkg.stat(sinfo)
+  if info ~= nil and info.type == "dir" then
+    pkg.exec({"/usr/bin/find", sinfo, "-type", "d", "-empty", "-delete"})
+  end
 EOD

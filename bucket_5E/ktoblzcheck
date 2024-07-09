@@ -43,8 +43,8 @@ FPC_EQUIVALENT=		finance/ktoblzcheck
 
 SOVERSION=		1.5.26
 PLIST_SUB=		BANKDATE=20240108
-SUB_FILES=		pkg-deinstall-primary
-			pkg-message-primary
+SUB_FILES=		messages-primary.ucl
+			scripts-primary.ucl
 SUB_LIST=		DATADIR={{PREFIX}}/share/ktoblzcheck
 
 CMAKE_ARGS=		-DENABLE_BANKDATA_DOWNLOAD:BOOL=OFF
@@ -178,25 +178,10 @@ needed, but I am not currently aware of anything that uses them.
  add_custom_command(
 
 
-[FILE:418:files/pkg-deinstall-primary.in]
-#!/bin/sh
-
-if [ "${2}" = "POST-DEINSTALL" ]; then
-	if [ -d %%DATADIR%% ]; then
-		echo ""
-		echo "--------------------------------------------------------------------"
-		echo "To completely remove the port, you may need to remove"
-		echo "the following directories and the content manually:"
-		echo ""
-		echo "	%%DATADIR%%"
-		echo "--------------------------------------------------------------------"
-		echo ""
-	fi
-fi
-
-
-[FILE:574:files/pkg-message-primary.in]
---------------------------------------------------------------------
+[FILE:488:files/messages-primary.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
 The bankdata included with the ktoblzcheck distribution is outdated.
 You should update this bankdata upon installation and periodically
 afterwards. New bankdata is typically available every three months.
@@ -208,5 +193,20 @@ To update the bankdata, run (as root):
 The script is interactive and will present you with the bankdata
 available for download. Follow the prompts and it will write the
 new bankdata to %%DATADIR%%.
---------------------------------------------------------------------
+EOM
+}
+
+
+[FILE:251:files/scripts-primary.ucl.in]
+post-deinstall: [{
+     args: ""
+     code: <<EOS
+if [ -d %%DATADIR%% ]; then
+   echo "To completely remove the port, you may need to remove"
+   echo "the following directories and the content manually:"
+   echo ""
+   echo "    %%DATADIR%%"
+fi
+EOS
+}]
 

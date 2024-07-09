@@ -65,6 +65,7 @@ PLIST_SUB=		MY_DBDIR=/var/db/mysql
 			MY_TMPDIR=/var/db/mysql_tmpdir
 RC_SUBR=		mysql-server:server
 SUB_FILES=		my.cnf.sample
+			messages-server.ucl
 SUB_LIST=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
@@ -185,7 +186,8 @@ This package contains the MySQL client.
 b8fe262c4679cb7bbc379a3f1addc723844db168628ce2acf78d33906849e491     53298645 mysql-boost-5.7.44.tar.gz
 
 
-[FILE:3061:manifests/plist.server]
+[FILE:3044:manifests/plist.server]
+@sample etc/mysql/my.cnf.sample
 %%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
 bin/
  innochecksum
@@ -330,7 +332,6 @@ share/mysql/ukrainian/errmsg.sys
 @dir(mysql,mysql,0750) %%MY_SECDIR%%
 @dir(mysql,mysql,0750) %%MY_TMPDIR%%
 @dir(mysql,mysql,0750) etc/mysql/keyring
-@sample(root,wheel,0644) etc/mysql/my.cnf.sample
 
 
 [FILE:212:manifests/plist.client]
@@ -1220,6 +1221,24 @@ Workaround netbsd prototype of xdrproc_t being 2 arguments.
    {
 
 
+[FILE:469:files/messages-server.ucl.in]
+server: {
+  type: "install"
+  message: <<EOM
+Remember to run mysql_upgrade the first time you start the MySQL server
+after an upgrade from an earlier version.
+
+Initial password for first time use of MySQL is saved in $HOME/.mysql_secret
+ie. when you want to use "mysql -u root -p" first you should see password
+in /root/.mysql_secret
+
+MySQL57 has a default %%ETCDIR%%/my.cnf,
+remember to replace it wit your own
+or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
+EOM
+}
+
+
 [FILE:2182:files/my.cnf.sample.in]
 [client]
 port                            = 3306
@@ -1375,21 +1394,21 @@ mysql_poststart()
 run_rc_command "$1"
 
 
-[FILE:576:files/pkg-message-server.in]
-*****************************************************************************
+[FILE:216:files/scripts-server.ucl]
+post-deinstall-lua: [{
+    args: ""
+    code: <<EOS
+dbdir = "/var/db/mysql"
+if pkg_rootdir ~= "/" then
+   dbdir = pkg_rootdir .. dbdir
+end
 
-Remember to run mysql_upgrade the first time you start the MySQL server
-after an upgrade from an earlier version.
-
-Initial password for first time use of MySQL is saved in $HOME/.mysql_secret
-ie. when you want to use "mysql -u root -p" first you should see password
-in /root/.mysql_secret
-
-MySQL57 has a default %%ETCDIR%%/my.cnf,
-remember to replace it wit your own
-or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
-
-*****************************************************************************
+xres = pkg.readdir(dbdir)
+if #xres == 0 then
+   os.remove(dbdir)
+end
+EOS
+}]
 
 
 [FILE:28:files/special.mk]

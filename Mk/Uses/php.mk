@@ -207,6 +207,12 @@ PHP_MOD_PRIORITY=	20
 .    endif
 PHP_EXT_INI_FILE=	etc/${PHPXX}/ext-${PHP_MOD_PRIORITY}-${PHP_MODNAME}.ini
 
+.    if ${php_ARGS:Mzend}
+TYPEXT="zend_extension=${PHP_MODNAME}.so"
+.    else
+TYPEXT="extension=${PHP_MODNAME}.so"
+.    endif
+
 do-install:
 	@${MKDIR} ${STAGEDIR}${PREFIX}/lib/${PHPXX}/${PHP_EXT_DIR}
 	@${INSTALL_LIB} ${WRKSRC}/modules/${PHP_MODNAME}.so \
@@ -233,30 +239,15 @@ add-plist-phpext:
 	@${FIND} -P ${STAGEDIR}${PREFIX}/include/${PHPXX}/ext/${PHP_MODNAME} ! -type d 2>/dev/null | \
 		${SED} -ne 's,^${STAGEDIR}${PREFIX}/,,p' \
 		>> ${WRKDIR}/.manifest.single.mktmp
-	@${ECHO_CMD} "@postexec echo \#include \\\"ext/${PHP_MODNAME}/config.h\\\" >> %D/include/${PHPXX}/ext/php_config.h" \
-		>> ${WRKDIR}/.manifest.single.mktmp
-	@${ECHO_CMD} "@postunexec cp %D/include/${PHPXX}/ext/php_config.h %D/include/${PHPXX}/ext/php_config.h.orig" \
-		>> ${WRKDIR}/.manifest.single.mktmp
-	@${ECHO_CMD} "@postunexec grep -v ext/${PHP_MODNAME}/config.h %D/include/${PHPXX}/ext/php_config.h.orig > %D/include/${PHPXX}/ext/php_config.h || true" \
-		>> ${WRKDIR}/.manifest.single.mktmp
-	@${ECHO_CMD} "@postunexec ${RM} %D/include/${PHPXX}/ext/php_config.h.orig" \
-		>> ${WRKDIR}/.manifest.single.mktmp
 	@${ECHO_CMD} "${PHP_EXT_INI_FILE}" \
 		>> ${WRKDIR}/.manifest.single.mktmp
+	# old postexec/postunexec commands
+	@${SH} ${MK_SCRIPTS}/php_heredoc.sh script "${_SCRIPT_FILE}.single" \
+		"${PHP_MODNAME}" "${PHPXX}"
 
 	# message file located at ${WRKDIR}/.PKG_DISPLAY.single
-	@${ECHO_CMD} "****************************************************************************" >> ${_MESSAGE_FILE}.single
-	@${ECHO_CMD} ""                                                                             >> ${_MESSAGE_FILE}.single
-	@${ECHO_CMD} "The following contents of the installed ${PREFIX}/${PHP_EXT_INI_FILE}"        >> ${_MESSAGE_FILE}.single
-	@${ECHO_CMD} "configuration file automatically loads the ${PHP_MODNAME} extension:"         >> ${_MESSAGE_FILE}.single
-	@${ECHO_CMD} ""                                                                             >> ${_MESSAGE_FILE}.single
-.    if ${php_ARGS:Mzend}
-	@${ECHO_CMD} "zend_extension=${PHP_MODNAME}.so"                                             >> ${_MESSAGE_FILE}.single
-.    else
-	@${ECHO_CMD} "extension=${PHP_MODNAME}.so"                                                  >> ${_MESSAGE_FILE}.single
-.    endif
-	@${ECHO_CMD} ""                                                                             >> ${_MESSAGE_FILE}.single
-	@${ECHO_CMD} "****************************************************************************" >> ${_MESSAGE_FILE}.single
+	@${SH} ${MK_SCRIPTS}/php_heredoc.sh message "${_MESSAGE_FILE}.single" \
+		"${PHP_MODNAME}" "${TYPEXT}" "${PREFIX}/${PHP_EXT_INI_FILE}"
 
 add-desc-phpext:
 .    if !exists(${_DESC_FILE}.single)

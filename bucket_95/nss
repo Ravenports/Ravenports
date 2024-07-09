@@ -49,7 +49,7 @@ SINGLE_JOB=		yes
 PLIST_SUB=		CERTDIR=share/certs
 SUB_FILES=		nss-config
 			nss.pc
-			pkg-message-caroot
+			messages-caroot.ucl
 			MAca-bundle.pl
 SUB_LIST=		VERSION_NSS=3.101
 
@@ -1047,6 +1047,39 @@ print STDERR	"##  Number of certificates: $certcount\n";
 print "##  End of file.\n";
 
 
+[FILE:999:files/messages-caroot.ucl.in]
+caroot: {
+  type: "install"
+  message: <<EOM
+********************************* WARNING *********************************
+
+Ravenports do not, and can not warrant that the certification authorities
+whose certificates are included in this package have in any way been
+audited for trustworthiness or RFC 3647 compliance.
+
+Assessment and verification of trust is the complete responsibility of the
+system administrator.
+
+*********************************** NOTE **********************************
+
+This package installs symlinks to support root certificates discovery by
+default for software that uses OpenSSL.
+
+This enables SSL Certificate Verification by client software without manual
+intervention.
+
+If you prefer to do this manually, replace the following symlinks with
+either an empty file or your site-local certificate bundle.
+
+  * /etc/ssl/cert.pem
+  * %%PREFIX%%/etc/ssl/cert.pem
+  * %%PREFIX%%/openssl/cert.pem
+
+***************************************************************************
+EOM
+}
+
+
 [FILE:2352:files/nss-config.in]
 #!/bin/sh
 
@@ -1207,32 +1240,4 @@ Version: %%VERSION_NSS%%
 Requires: nspr
 Libs: -Wl,-R${libdir} -L${libdir} -lnss3 -lsmime3 -lssl3 -lnssutil3
 Cflags: -I${includedir}/nss -I${includedir}/nss/nss
-
-
-[FILE:948:files/pkg-message-caroot.in]
-********************************* WARNING *********************************
-
-Ravenports do not, and can not warrant that the certification authorities
-whose certificates are included in this package have in any way been
-audited for trustworthiness or RFC 3647 compliance.
-
-Assessment and verification of trust is the complete responsibility of the
-system administrator.
-
-*********************************** NOTE **********************************
-
-This package installs symlinks to support root certificates discovery by
-default for software that uses OpenSSL.
-
-This enables SSL Certificate Verification by client software without manual
-intervention.
-
-If you prefer to do this manually, replace the following symlinks with
-either an empty file or your site-local certificate bundle.
-
-  * /etc/ssl/cert.pem
-  * %%PREFIX%%/etc/ssl/cert.pem
-  * %%PREFIX%%/openssl/cert.pem
-
-***************************************************************************
 
