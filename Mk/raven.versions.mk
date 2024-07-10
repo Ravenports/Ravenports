@@ -40,7 +40,7 @@ RUBY_DEFAULT?=		3.2
 
 RUBY_3.1_VERSION=	3.1.4
 RUBY_3.2_VERSION=	3.2.2
-RUBY_3.3_VERSION=	3.3.3
+RUBY_3.3_VERSION=	3.3.4
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -112,7 +112,7 @@ PGSQL_16_VERSION=	16.3
 MYSQL_DEFAULT=			oracle-8.0
 
 MYSQL_oracle-8.0_VERSION=	8.0.38
-MYSQL_oracle-8.4_VERSION=	8.4.0
+MYSQL_oracle-8.4_VERSION=	8.4.1
 MYSQL_innovation_VERSION=	9.0.0
 MYSQL_mariadb-10.4_VERSION=	10.4.34
 MYSQL_mariadb-10.5_VERSION=	10.5.25

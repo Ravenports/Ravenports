@@ -134,8 +134,8 @@ and how to get involved.
 b5923f48cb840380f9854339176ef21763118a7300a88203ccd0bdd26e58527b     58618870 scipy-1.14.0.tar.gz
 
 
-[FILE:331:patches/patch-meson.build]
---- meson.build.orig	2024-04-02 18:31:54 UTC
+[FILE:322:patches/patch-meson.build]
+--- meson.build.orig	2024-06-24 18:58:56 UTC
 +++ meson.build
 @@ -18,7 +18,7 @@ project(
    ],
@@ -145,40 +145,5 @@ b5923f48cb840380f9854339176ef21763118a7300a88203ccd0bdd26e58527b     58618870 sc
 +py3 = import('python').find_installation('%%PYTHONCMD%%', pure: false)
  py3_dep = py3.dependency()
  
- # Emit a warning for 32-bit Python installs on Windows; users are getting
-
-
-[FILE:818:patches/patch-scipy_special___logit.h]
-$NetBSD: patch-scipy_special___logit.h,v 1.2 2022/05/13 09:49:31 tnn Exp $
-
-py-scipy: work around undefined PLT symbol "log1pl" on NetBSD
-
---- scipy/special/_logit.h.orig	1970-01-01 00:00:00 UTC
-+++ scipy/special/_logit.h
-@@ -31,6 +31,17 @@ inline T _expit(T x) {
- // obtain accurate results (compared to the naive implementation
- // log(expit(x))).
- //
-+#if defined(__NetBSD__)
-+template <typename T>
-+inline T _log_expit(T x) {
-+    if (x < 0.0) {
-+        return x - std::log(std::exp(x) + 1.0);
-+    }
-+    else {
-+        return -std::log(std::exp(-x) + 1.0);
-+    }
-+};
-+#else
- template <typename T>
- inline T _log_expit(T x) {
-     if (x < 0.0) {
-@@ -40,6 +51,7 @@ inline T _log_expit(T x) {
-         return -std::log1p(std::exp(-x));
-     }
- };
-+#endif
- 
- 
- npy_float logitf(npy_float x)  {return _logit(x);};
+ min_numpy_version = '1.23.5'  # keep in sync with pyproject.toml
 
