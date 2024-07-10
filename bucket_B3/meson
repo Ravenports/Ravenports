@@ -2,6 +2,7 @@
 
 NAMEBASE=		meson
 VERSION=		1.4.1
+REVISION=		1
 KEYWORDS=		devel python
 VARIANTS=		standard
 SDESC[standard]=	High performance build system
@@ -107,10 +108,19 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
          """Machine is illumos or Solaris?"""
 
 
-[FILE:732:patches/patch-mesonbuild_linkers_linkers.py]
---- mesonbuild/linkers/linkers.py.orig	2024-03-03 20:02:45 UTC
+[FILE:1048:patches/patch-mesonbuild_linkers_linkers.py]
+--- mesonbuild/linkers/linkers.py.orig	2024-05-30 16:09:51 UTC
 +++ mesonbuild/linkers/linkers.py
-@@ -1369,7 +1369,12 @@ class SolarisDynamicLinker(PosixDynamicL
+@@ -643,7 +643,7 @@ class GnuLikeDynamicLinkerMixin(DynamicL
+         return ['-pthread']
+ 
+     def no_undefined_args(self) -> T.List[str]:
+-        return self._apply_prefix('--no-undefined')
++        return []
+ 
+     def fatal_warnings(self) -> T.List[str]:
+         return self._apply_prefix('--fatal-warnings')
+@@ -1375,7 +1375,12 @@ class SolarisDynamicLinker(PosixDynamicL
      def get_link_whole_for(self, args: T.List[str]) -> T.List[str]:
          if not args:
              return args

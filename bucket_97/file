@@ -2,6 +2,7 @@
 
 NAMEBASE=		file
 VERSION=		5.45
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		standard ravensys
 SDESC[ravensys]=	Static file type utility based at /usr
@@ -13,8 +14,14 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://ftp.astron.com/pub/file/
 DISTFILE[1]=		file-5.45.tar.gz:main
 DF_INDEX=		1
-SPKGS[ravensys]=	single
-SPKGS[standard]=	single
+SPKGS[ravensys]=	complete
+			primary
+			dev
+			man
+SPKGS[standard]=	complete
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	RAVENSYS
 OPTIONS_STANDARD=	none
@@ -22,7 +29,7 @@ VOPTS[ravensys]=	RAVENSYS=ON
 
 USES=			cpe libtool mbsdfix
 
-LICENSE=		BSD2CLAUSE:single
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -56,7 +63,7 @@ post-install-RAVENSYS-ON:
 do-test:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} check)
 
-[FILE:250:descriptions/desc.single]
+[FILE:250:descriptions/desc.primary]
 File tests each argument in an attempt to classify it. There are three sets
 of tests, performed in the following order:
 
@@ -71,16 +78,22 @@ The first test that succeeds causes the file type to be printed.
 fc97f51029bb0e2c9f4e3bffefdaf678f0e039ee872b9de5c002a6d09c784d82      1246503 file-5.45.tar.gz
 
 
-[FILE:235:manifests/plist.single]
+[FILE:85:manifests/plist.primary]
 %%RAVENSYS-OFF%%lib/
- libmagic.so
  libmagic.so.1
  libmagic.so.1.0.0
 bin/file
+share/file/magic.mgc
+
+
+[FILE:89:manifests/plist.dev]
+%%RAVENSYS-OFF%%lib/libmagic.so
 include/magic.h
 lib/libmagic.a
 lib/pkgconfig/libmagic.pc
-share/file/magic.mgc
+
+
+[FILE:80:manifests/plist.man]
 share/man/man1/file.1.gz
 share/man/man3/libmagic.3.gz
 share/man/man5/magic.5.gz
