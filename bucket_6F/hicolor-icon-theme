@@ -2,6 +2,7 @@
 
 NAMEBASE=		hicolor-icon-theme
 VERSION=		0.18
+REVISION=		1
 KEYWORDS=		misc
 VARIANTS=		standard
 SDESC[standard]=	High-color icon theme shell from FreeDesktop
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://icon-theme.freedesktop.org/releases/
 DISTFILE[1]=		hicolor-icon-theme-0.18.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,7 +24,11 @@ USES=			meson
 
 FPC_EQUIVALENT=		misc/hicolor-icon-theme
 
-[FILE:125:descriptions/desc.single]
+post-install:
+	# install the PC file in the standard location
+	${MV} ${STAGEDIR}${PREFIX}/share/pkgconfig ${STAGEDIR}${PREFIX}/lib
+
+[FILE:125:descriptions/desc.primary]
 The freedesktop.org project provides a shared high-color desktop icon
 theme shell for use under both KDE and GNOME desktops.
 
@@ -30,9 +37,8 @@ theme shell for use under both KDE and GNOME desktops.
 db0e50a80aa3bf64bb45cbca5cf9f75efd9348cf2ac690b907435238c3cf81d7        29624 hicolor-icon-theme-0.18.tar.xz
 
 
-[FILE:27757:manifests/plist.single]
+[FILE:27719:manifests/plist.primary]
 share/icons/hicolor/index.theme
-share/pkgconfig/default-icon-theme.pc
 @dir share/icons/hicolor/128x128/actions
 @dir share/icons/hicolor/128x128/animations
 @dir share/icons/hicolor/128x128/apps
@@ -682,4 +688,8 @@ share/pkgconfig/default-icon-theme.pc
 @dir share/icons/hicolor/scalable/stock/table
 @dir share/icons/hicolor/scalable/stock/text
 @dir share/icons/hicolor/symbolic/apps
+
+
+[FILE:36:manifests/plist.dev]
+lib/pkgconfig/default-icon-theme.pc
 

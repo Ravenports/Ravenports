@@ -2,6 +2,7 @@
 
 NAMEBASE=		gimp
 VERSION=		2.10.38
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		standard
 SDESC[standard]=	GNU Image Manipulation Program
@@ -43,6 +44,7 @@ BUILD_DEPENDS=		iso-codes:primary:standard
 			openjpeg:dev:standard
 			aalib:dev:standard
 			json-glib:dev:standard
+			libjxl:dev:standard
 BUILDRUN_DEPENDS=	libmypaint:primary:standard
 			mypaint-brushes1:single:standard
 			glib-networking:primary:standard
@@ -63,10 +65,11 @@ BUILDRUN_DEPENDS=	libmypaint:primary:standard
 			WebP:primary:standard
 			openjpeg:primary:standard
 			json-glib:primary:standard
+			libjxl:primary:standard
 
 USES=			cpe gmake jpeg iconv libtool pkgconfig shebangfix
 			freetype execinfo xz bz2 zlib tiff mbsdfix
-			gnome-icons:primary desktop-utils:primary
+			gnome-icons:primary desktop-utils:primary gold
 GNOME_COMPONENTS=	cairo gtk2 intltool librsvg
 XORG_COMPONENTS=	ice sm x11 xcursor xext xfixes xmu xpm xt
 
@@ -133,7 +136,7 @@ major features:
 50a845eec11c8831fe8661707950f5b8446e35f30edfb9acf98f85c1133f856e     31698453 gimp-2.10.38.tar.bz2
 
 
-[FILE:106537:manifests/plist.primary]
+[FILE:106587:manifests/plist.primary]
 %%LINUX-ON%%libexec/gimp/2.2/modules/libcontroller-linux-input.so
 bin/
  gimp
@@ -484,6 +487,7 @@ libexec/gimp/2.2/plug-ins/file-html-table/file-html-table
 libexec/gimp/2.2/plug-ins/file-ico/file-ico
 libexec/gimp/2.2/plug-ins/file-jp2-load/file-jp2-load
 libexec/gimp/2.2/plug-ins/file-jpeg/file-jpeg
+libexec/gimp/2.2/plug-ins/file-jpegxl/file-jpegxl
 libexec/gimp/2.2/plug-ins/file-mng/file-mng
 libexec/gimp/2.2/plug-ins/file-pat/file-pat
 libexec/gimp/2.2/plug-ins/file-pcx/file-pcx
@@ -5716,9 +5720,27 @@ share/locale/zh_TW/LC_MESSAGES/
  gimp20.mo
 
 
-[FILE:358:patches/patch-configure]
+[FILE:1059:patches/patch-configure]
 --- configure.orig	2024-05-03 00:36:33 UTC
 +++ configure
+@@ -30417,13 +30417,13 @@ can_export_heic=no
+ can_import_avif=no
+ can_export_avif=no
+ if test "x$have_libheif" = xyes; then
+-  can_import_heic=`$PKG_CONFIG --variable=builtin_h265_decoder libheif`
+-  can_export_heic=`$PKG_CONFIG --variable=builtin_h265_encoder libheif`
++  can_import_heic=yes
++  can_export_heic=yes
+   if test "x$can_import_heic" = xyes; then
+     MIME_TYPES="$MIME_TYPES;image/heif;image/heic"
+   fi
+-  can_import_avif=`$PKG_CONFIG --variable=builtin_avif_decoder libheif`
+-  can_export_avif=`$PKG_CONFIG --variable=builtin_avif_encoder libheif`
++  can_import_avif=yes
++  can_export_avif=yes
+   if test "x$can_import_avif" = xyes; then
+     MIME_TYPES="$MIME_TYPES;image/avif"
+   fi
 @@ -34797,9 +34797,9 @@ case "$gimpdir" in
      ;;
  esac
