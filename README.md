@@ -156,42 +156,26 @@ Raven: {
 
 ## Bootstrapping Ravenports
 
-These are operating system-specific examples on how to install Ravenports on a new system using basic commands.
+These are operating system-specific examples on how to install Ravenports on a new
+system using basic commands.
 
-```
-============
-FreeBSD
-DragonFly
-MidnightBSD
-============
-```
+### FreeBSD / DragonFly / MidnightBSD
 
-   root> fetch http://www.ravenports.com/repository/ravenports-downloader.sh -o - | /bin/sh
+    root> fetch http://www.ravenports.com/repository/ravenports-downloader.sh -o - | /bin/sh
 
-```
-============
-NetBSD
-============
-```
+### NetBSD
 
-   root> ftp -o - http://www.ravenports.com/repository/ravenports-downloader.sh | /bin/sh
+    root> ftp -o - http://www.ravenports.com/repository/ravenports-downloader.sh | /bin/sh
 
-```
-============
-Solaris 10
-============
-```
+### Solaris 10
 
-   root> /usr/sfw/bin/wget http://www.ravenports.com/repository/ravenports-downloader.sh -O - | /usr/bin/bash
+    root> /usr/sfw/bin/wget http://www.ravenports.com/repository/ravenports-downloader.sh -O - | /usr/bin/bash
 
-```
-============
-Linux
-============
-```
+### Linux
 
     user> curl http://www.ravenports.com/repository/ravenports-downloader.sh --silent | sudo /bin/bash
 
-- or -
+==  or  ==
 
     user> wget http://www.ravenports.com/repository/ravenports-downloader.sh --quiet -O - | sudo /bin/bash
+
