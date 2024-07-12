@@ -80,6 +80,16 @@ post-patch:
 pre-configure:
 	(cd ${WRKSRC} && ./autogen.sh --sequential --with-csl)
 
+post-configure:
+	# prevent installation of libedit and libffi man pages
+	${REINPLACE_CMD} -e '/^SUBDIRS/ s/ doc//' \
+		${WRKSRC}/cslbuild/*/libedit/Makefile
+	${REINPLACE_CMD} -e '/^SUBDIRS/ s/ man//' \
+		${WRKSRC}/cslbuild/*/libffi/Makefile
+	# prevent installation of reswrap.1
+	${REINPLACE_CMD} -e '/^man_MANS/ s/reswrap.1//' \
+		${WRKSRC}/cslbuild/*/fox/utils/Makefile
+
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/reduce ${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_DATA} ${WRKSRC}/cslbuild/${CONFIGURE_TARGET}/csl/reduce.img \
