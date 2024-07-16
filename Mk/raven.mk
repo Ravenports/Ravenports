@@ -982,9 +982,6 @@ QA_ENV+=	USESLIBTOOL=yes
 .    if !empty(USES:Mmime-info\:*)
 QA_ENV+=	USESMIMEINFO=yes
 .    endif
-.    if !empty(USES:Mterminfo\:*)
-QA_ENV+=	USESTERMINFO=yes
-.    endif
 
 stage-qa:
 	@${ECHO_MSG} "====> Running Q/A tests (stage-qa)"

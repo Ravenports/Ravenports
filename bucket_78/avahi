@@ -96,8 +96,6 @@ VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--with-distro=freebsd
 [LINUX].DESCRIPTION=			Build with Linux characteristics
 
 pre-configure-BSD-ON:
-	${REINPLACE_CMD} -e 's|avahi_runtime_dir="/run"|avahi_runtime_dir="/var/run"|' \
-		${WRKSRC}/configure
 	${REINPLACE_CMD} -e 's|-ldl||g ; s|netdev|network|g' \
 		${WRKSRC}/configure \
 		${WRKSRC}/avahi-client/Makefile.in \
@@ -121,6 +119,8 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|%%GNOME_SUBR%%|${LOCALBASE}/etc/gnome.subr|' \
 		${WRKSRC}/initscript/freebsd/avahi-dnsconfd.sh.in \
 		${WRKSRC}/initscript/freebsd/avahi-daemon.sh.in
+	${REINPLACE_CMD} -e 's|avahi_runtime_dir="/run"|avahi_runtime_dir="/var/run"|' \
+		${WRKSRC}/configure
 
 [FILE:363:descriptions/desc.primary]
 Service discovery on a local network -- this means that you can plug your

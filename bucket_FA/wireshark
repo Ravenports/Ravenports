@@ -2,6 +2,7 @@
 
 NAMEBASE=		wireshark
 VERSION=		4.2.6
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		standard
 SDESC[standard]=	Network traffic analyzer
@@ -60,11 +61,12 @@ USES=			cpe gmake cmake ssl:openssl11 zlib lz4 qt6 zstd
 			mime-info:primary desktop-utils:primary
 GNOME_COMPONENTS=	glib libxml2
 
-LICENSE=		GPLv2+:primary BSD3CLAUSE:primary
+LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
-LICENSE_FILE=		GPLv2+:{{WRKDIR}}/GPL2
-			BSD3CLAUSE:{{WRKDIR}}/BSD_LICENSE
-LICENSE_SCHEME=		dual
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/wireshark.h
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		net/wireshark
 
@@ -113,14 +115,6 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|libssh/libssh.h|libssh/libssh_version.h|' \
 		${WRKSRC}/cmake/modules/FindLIBSSH.cmake
 
-post-extract:
-	${AWK} '/^Part I:$$/,/^The full text of the GNU GPL/' \
-		${WRKSRC}/COPYING > ${WRKDIR}/TERMS
-	${AWK} '/^Part II:$$/,/^Public License instead of this License./' \
-		${WRKSRC}/COPYING > ${WRKDIR}/GPL2
-	${AWK} '/^Part III:$$/,/^---------------/' \
-		${WRKSRC}/COPYING > ${WRKDIR}/BSD_LICENSE
-
 [FILE:1811:descriptions/desc.primary]
 Wireshark is the world's foremost and widely-used network protocol
 analyzer. It lets you see what???s happening on your network at a
@@ -159,7 +153,8 @@ Wireshark has a rich feature set which includes the following:
 5ec6028df29068d889c98489bf194a884b00831106fea1e921fea3c65f2003f5     45015272 wireshark-4.2.6.tar.xz
 
 
-[FILE:7189:manifests/plist.primary]
+[FILE:7229:manifests/plist.primary]
+%%ONLY-LINUX%%lib/wireshark/extcap/sdjournal
 bin/
  capinfos
  captype
@@ -176,10 +171,13 @@ bin/
  tshark
  wireshark
 lib/
+ libwireshark.so
  libwireshark.so.%%SOMAJOR%%
  libwireshark.so.%%SOVERSION%%
+ libwiretap.so
  libwiretap.so.%%MAJ_WIRETAP%%
  libwiretap.so.%%SO_WIRETAP%%
+ libwsutil.so
  libwsutil.so.%%MAJ_WSUTIL%%
  libwsutil.so.%%SO_WSUTIL%%
 lib/wireshark/extcap/
@@ -207,10 +205,6 @@ lib/wireshark/plugins/%%PLUGIN_VER%%/epan/
  wimaxasncp.so
  wimaxmacphy.so
 lib/wireshark/plugins/%%PLUGIN_VER%%/wiretap/usbdump.so
-lib/
- libwireshark.so
- libwiretap.so
- libwsutil.so
 share/applications/org.wireshark.Wireshark.desktop
 share/icons/hicolor/128x128/apps/org.wireshark.Wireshark.png
 share/icons/hicolor/128x128/mimetypes/org.wireshark.Wireshark-mimetype.png
@@ -502,7 +496,8 @@ share/wireshark/wimaxasncp/
  dictionary.xml
 
 
-[FILE:446:manifests/plist.docs]
+[FILE:495:manifests/plist.docs]
+%%ONLY-LINUX%%share/doc/wireshark/sdjournal.html
 share/doc/wireshark/
  COPYING
  README.xml-output
@@ -534,7 +529,8 @@ share/doc/wireshark/
  ws.css
 
 
-[FILE:374:manifests/plist.man]
+[FILE:418:manifests/plist.man]
+%%ONLY-LINUX%%share/man/man1/sdjournal.1.gz
 share/man/man1/
  androiddump.1.gz
  capinfos.1.gz

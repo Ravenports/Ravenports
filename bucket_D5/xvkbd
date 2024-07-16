@@ -2,6 +2,7 @@
 
 NAMEBASE=		xvkbd
 VERSION=		4.1
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		standard
 SDESC[standard]=	Virtual (on-screen) keyboard for X
@@ -12,17 +13,19 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://t-sato.in.coocan.jp/xvkbd/
 DISTFILE[1]=		xvkbd-4.1.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[standard]=	complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		imake:single:standard
+BUILD_DEPENDS=		imake:primary:standard
 
 XORG_COMPONENTS=	x11 ice sm xaw xext xmu xpm xt xtst
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^\#include"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/xvkbd.c
@@ -41,6 +44,12 @@ post-patch:
 pre-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/xvkbd
 
+post-install-linux:
+	# Can't figure out how to prevent link on xorg-cf-files, so just move it for now
+	${RM} ${STAGEDIR}${PREFIX}/lib/X11/app-defaults
+	${MV} ${STAGEDIR}/etc/X11/app-defaults ${STAGEDIR}${PREFIX}/lib/X11/app-defaults
+	${RM} -r ${STAGEDIR}/etc
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/xvkbd
 	${INSTALL_MAN} ${WRKSRC}/xvkbd.man \
@@ -50,7 +59,7 @@ do-configure:
 	(cd ${CONFIGURE_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${LOCALBASE}/bin/xmkmf -a)
 
-[FILE:401:descriptions/desc.single]
+[FILE:401:descriptions/desc.primary]
 xvkbd is a virtual (graphical) keyboard program for X Window System which
 provides facility to enter characters onto other clients (software) by
 clicking on a keyboard displayed on the screen. This may be used for
@@ -63,7 +72,7 @@ the command line option to another client.
 952d07df0fe1e45286520b7c98b4fd00fd60dbf3e3e8ff61e12c259f76a3bef4       408704 xvkbd-4.1.tar.gz
 
 
-[FILE:491:manifests/plist.single]
+[FILE:465:manifests/plist.primary]
 bin/xvkbd
 lib/X11/app-defaults/
  XVkbd
@@ -94,8 +103,11 @@ lib/X11/app-defaults/
  XVkbd-turkish
  XVkbd-turkishF
  XVkbd-uk
-share/man/man1/xvkbd.1.gz
 share/xvkbd/words.english
+
+
+[FILE:26:manifests/plist.man]
+share/man/man1/xvkbd.1.gz
 
 
 [FILE:457:patches/patch-Imakefile]

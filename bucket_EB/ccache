@@ -2,6 +2,7 @@
 
 NAMEBASE=		ccache
 VERSION=		4.10.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		standard
 SDESC[standard]=	Fast C/C++ compiler cache tool
@@ -10,7 +11,6 @@ CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main fmt xxhash
 SITES[main]=		https://github.com/ccache/ccache/releases/download/v4.10.1/
-SITES[fmt]=		https://github.com/fmtlib/fmt/releases/download/10.2.1/
 SITES[xxhash]=		https://github.com/Cyan4973/xxhash/archive/refs/tags/
 DISTFILE[1]=		ccache-4.10.1.tar.xz:main
 DISTFILE[2]=		v0.8.2.tar.gz:xxhash
@@ -24,7 +24,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		ruby-asciidoctor:single:ruby_default
-			fmt:single:standard
+			libblake3:dev:standard
 
 USES=			cmake perl:build c++:primary zstd:build
 
@@ -45,6 +45,7 @@ PLIST_SUB=		CCLINKDIR="libexec/ccache"
 
 CMAKE_ARGS=		-DENABLE_TESTING:BOOL=OFF
 			-DREDIS_STORAGE_BACKEND:BOOL=OFF
+			-DDEP_FMT:STRING=BUNDLED
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/libexec/ccache
@@ -81,6 +82,20 @@ share/man/man1/ccache.1.gz
 
 [FILE:29:manifests/plist.docs]
 share/doc/ccache/MANUAL.html
+
+
+[FILE:511:patches/patch-cmake_FindBlake3.cmake]
+--- cmake/FindBlake3.cmake.orig	2024-06-30 18:46:01 UTC
++++ cmake/FindBlake3.cmake
+@@ -5,7 +5,7 @@ if(DEP_BLAKE3 STREQUAL "BUNDLED")
+   message(STATUS "Using bundled Blake3 as requested")
+ else()
+   find_path(BLAKE3_INCLUDE_DIR blake3.h)
+-  find_library(BLAKE3_LIBRARY blake3)
++  find_library(BLAKE3_LIBRARY blake3_pic)
+   if(BLAKE3_INCLUDE_DIR)
+     file(READ "${BLAKE3_INCLUDE_DIR}/blake3.h" _blake3_h)
+     string(REGEX MATCH "#define BLAKE3_VERSION_STRING \"([0-9]+).([0-9]+).*([0-9]+)\"" _ "${_blake3_h}")
 
 
 [FILE:445:patches/patch-cmake_FindXxhash.cmake]

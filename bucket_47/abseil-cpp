@@ -34,7 +34,6 @@ FPC_EQUIVALENT=		devel/abseil
 SOVERSION=		2401.0.0
 
 CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
-			-DCMAKE_CXX_STANDARD=17
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
@@ -146,7 +145,7 @@ lib/
  libabsl_vlog_config_internal.so.%%SOVERSION%%
 
 
-[FILE:14781:manifests/plist.dev]
+[FILE:14757:manifests/plist.dev]
 include/absl/algorithm/
  algorithm.h
  container.h
@@ -822,7 +821,6 @@ lib/pkgconfig/
  absl_strings_internal.pc
  absl_symbolize.pc
  absl_synchronization.pc
- absl_test_allocator.pc
  absl_throw_delegate.pc
  absl_time.pc
  absl_time_zone.pc
@@ -904,6 +902,19 @@ lib/pkgconfig/
  #elif defined(__native_client__)
  
  pid_t GetTID() {
+
+
+[FILE:210:patches/patch-absl_container_CMakeLists.txt]
+--- absl/container/CMakeLists.txt.orig	2024-04-08 20:32:39 UTC
++++ absl/container/CMakeLists.txt
+@@ -213,6 +213,7 @@ absl_cc_library(
+   DEPS
+     absl::config
+     GTest::gmock
++  TESTONLY
+ )
+ 
+ absl_cc_test(
 
 
 [FILE:387:patches/patch-absl_debugging_internal_vdso__support.cc]

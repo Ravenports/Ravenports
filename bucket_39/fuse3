@@ -68,10 +68,8 @@ functions.
 1bc306be1a1f4f6c8965fbdd79c9ccca021fdc4b277d501483a711cbd7dbcd6c       817044 libfuse-libfuse-fuse-3.16.2.tar.gz
 
 
-[FILE:299:manifests/plist.primary]
+[FILE:193:manifests/plist.primary]
 %%ONLY-LINUX%%/etc/init.d/fuse3
-%%ONLY-LINUX%%@postunexec rm -f /dev/fuse
-%%ONLY-LINUX%%@preexec mknod -m 0666 /dev/fuse c 10 229 || true
 %%ONLY-LINUX%%@sample etc/fuse.conf.sample
 %%ONLY-LINUX%%bin/fusermount3
 %%ONLY-LINUX%%sbin/mount.fuse3
@@ -159,7 +157,7 @@ lib/pkgconfig/fuse3.pc
  
 
 
-[FILE:202:files/messages-single-freebsd.ucl]
+[FILE:202:files/messages-primary-freebsd.ucl]
 freebsd: {
   type: "install"
   message: <<EOM
@@ -168,4 +166,19 @@ Install the fuse kernel module to use this port.
 =================================================
 EOM
 }
+
+
+[FILE:178:files/scripts-primary.ucl.in]
+pre-install: [{
+     args: ""
+     code: <<EOS
+EOS
+/bin/mknod -m 0666 /dev/fuse c 10 229 || true
+}]
+post-deinstall: [{
+     args: ""
+     code: <<EOS
+/bin/rm -f /dev/fuse
+EOS
+}]
 

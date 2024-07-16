@@ -17,8 +17,9 @@ SPKGS[standard]=	complete
 			dev
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	LINUX
+OPTIONS_STANDARD=	LINUX
+OPT_ON[linux]=		LINUX
 
 BUILD_DEPENDS=		libgcrypt:dev:standard
 			gstreamer1:dev:standard
@@ -205,6 +206,9 @@ MESON_ARGS=		-Daccurip=enabled
 SOVERSION=		0.2405.0
 PLIST_SUB=		GSTVER=1.0
 
+[LINUX].DESCRIPTION=			Additional components for Linux
+[LINUX].USES_ON=			c++:primary
+
 post-patch:
 	# even though sctp is disabled, libsctp is being built
 	${REINPLACE_CMD} -e '/subdir..sctp../d' \
@@ -219,7 +223,10 @@ for GStreamer (1).
 3029bfd7265314d609dc8eab503675a344ea46e8274fd73ab34566c8442dc847      7061664 gst-plugins-bad-1.24.5.tar.xz
 
 
-[FILE:3178:manifests/plist.primary]
+[FILE:3273:manifests/plist.primary]
+%%LINUX-ON%%lib/
+ libgstcuda-%%GSTVER%%.so.%%SOMAJOR%%
+ libgstcuda-%%GSTVER%%.so.%%SOVERSION%%
 bin/gst-transcoder-%%GSTVER%%
 lib/
  libgstadaptivedemux-%%GSTVER%%.so.%%SOMAJOR%%
@@ -342,7 +349,20 @@ share/gstreamer-%%GSTVER%%/encoding-profiles/online-services/youtube.gep
 share/gstreamer-%%GSTVER%%/presets/GstFreeverb.prs
 
 
-[FILE:3416:manifests/plist.dev]
+[FILE:3724:manifests/plist.dev]
+%%LINUX-ON%%include/gstreamer-%%GSTVER%%/gst/cuda/
+ cuda-gst.h
+ cuda-prelude.h
+ gstcuda.h
+ gstcudabufferpool.h
+ gstcudacontext.h
+ gstcudaloader.h
+ gstcudamemory.h
+ gstcudanvrtc.h
+ gstcudastream.h
+ gstcudautils.h
+%%LINUX-ON%%lib/libgstcuda-%%GSTVER%%.so
+%%LINUX-ON%%lib/pkgconfig/gstreamer-cuda-%%GSTVER%%.pc
 include/gstreamer-%%GSTVER%%/gst/analytics/
  analytics-meta-prelude.h
  analytics.h
