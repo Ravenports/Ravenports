@@ -2,7 +2,7 @@
 
 NAMEBASE=		inkscape
 VERSION=		1.3.2
-REVISION=		2
+REVISION=		3
 KEYWORDS=		graphics editors
 VARIANTS=		standard
 SDESC[standard]=	Scalable Vector Graphics (SVG) editor
@@ -4256,6 +4256,136 @@ Fixes https://gitlab.com/inkscape/inkscape/-/issues/4787
 -- 
 GitLab
 
+
+
+[FILE:1586:patches/patch-poppler-2405-support]
+--- src/extension/internal/pdfinput/poppler-transition-api.h.orig
++++ src/extension/internal/pdfinput/poppler-transition-api.h
+@@ -13,6 +13,15 @@
+ #define SEEN_POPPLER_TRANSITION_API_H
+ 
+ #include <glib/poppler-features.h>
++#include <poppler/UTF.h>
++
++#if POPPLER_CHECK_VERSION(24, 5, 0)
++#define _POPPLER_HAS_UNICODE_BOM(value) (hasUnicodeByteOrderMark(value->toStr()))
++#define _POPPLER_HAS_UNICODE_BOMLE(value) (hasUnicodeByteOrderMarkLE(value->toStr()))
++#else
++#define _POPPLER_HAS_UNICODE_BOM(value) (value->hasUnicodeMarker())
++#define _POPPLER_HAS_UNICODE_BOMLE(value) (value->hasUnicodeMarkerLE())
++#endif
+ 
+ #if POPPLER_CHECK_VERSION(22, 4, 0)
+ #define _POPPLER_FONTPTR_TO_GFX8(font_ptr) ((Gfx8BitFont *)font_ptr.get())
+--- src/extension/internal/pdfinput/poppler-utils.cpp.orig
++++ src/extension/internal/pdfinput/poppler-utils.cpp
+@@ -12,6 +12,8 @@
+ 
+ #include "poppler-utils.h"
+ 
++#include <poppler/UTF.h>
++
+ #include "2geom/affine.h"
+ #include "GfxFont.h"
+ #include "GfxState.h"
+@@ -563,10 +565,10 @@ std::string getDictString(Dict *dict, co
+  */
+ std::string getString(const GooString *value)
+ {
+-    if (value->hasUnicodeMarker()) {
++    if (_POPPLER_HAS_UNICODE_BOM(value)) {
+         return g_convert(value->getCString () + 2, value->getLength () - 2,
+                          "UTF-8", "UTF-16BE", NULL, NULL, NULL);
+-    } else if (value->hasUnicodeMarkerLE()) {
++    } else if (_POPPLER_HAS_UNICODE_BOMLE(value)) {
+         return g_convert(value->getCString () + 2, value->getLength () - 2,
+                          "UTF-8", "UTF-16LE", NULL, NULL, NULL);
+     }
+
+
+[FILE:2846:patches/patch-poppler-cxx20]
+--- CMakeLists.txt.orig
++++ CMakeLists.txt
+@@ -18,9 +18,9 @@ message("Binary Dir: ${CMAKE_CURRENT_BIN
+ # -----------------------------------------------------------------------------
+ # CMake Configuration
+ # -----------------------------------------------------------------------------
+-set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD 20)
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+-# set(CMAKE_CXX_EXTENSIONS OFF) # enforces -std=c++17 instead of -std=gnu++17
++# set(CMAKE_CXX_EXTENSIONS OFF) # enforces -std=c++20 instead of -std=gnu++20
+                                 # TODO: build currently fails with it as we actually depend on GNU compiler extensions...
+ 
+ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeScripts/Modules")
+--- _clang-format.orig
++++ _clang-format
+@@ -103,7 +103,7 @@ SpacesInContainerLiterals: false
+ SpacesInCStyleCastParentheses: false
+ SpacesInParentheses: false
+ SpacesInSquareBrackets: false
+-Standard:        c++17
++Standard:        c++20
+ StatementMacros: []
+ TypenameMacros: []
+ TabWidth: 4
+--- src/ui/knot/knot-holder-entity.cpp.orig
++++ src/ui/knot/knot-holder-entity.cpp
+@@ -329,7 +329,7 @@ PatternKnotHolderEntityScale::knot_set(G
+     double scale_x = std::clamp(new_extent[X] / _cached_diagonal[X], _cached_min_scale, 1e9);
+     double scale_y = std::clamp(new_extent[Y] / _cached_diagonal[Y], _cached_min_scale, 1e9);
+ 
+-    Affine new_transform = (state & GDK_CONTROL_MASK) ? Scale(lerp(0.5, scale_x, scale_y))
++    Affine new_transform = (state & GDK_CONTROL_MASK) ? Scale((scale_x + scale_y) * 0.5)
+                                                       : Scale(scale_x, scale_y);
+ 
+     // 2. Calculate offset to keep pattern origin aligned
+--- src/ui/tools/pencil-tool.cpp.orig
++++ src/ui/tools/pencil-tool.cpp
+@@ -17,7 +17,11 @@
+  * Released under GNU GPL v2+, read the file 'COPYING' for more information.
+  */
+ 
+-#include <numeric> // For std::accumulate
++#include "pencil-tool.h"
++
++#include <cmath>   // std::lerp
++#include <numeric> // std::accumulate
++
+ #include <gdk/gdkkeysyms.h>
+ #include <glibmm/i18n.h>
+ 
+@@ -26,7 +30,6 @@
+ #include <2geom/sbasis-to-bezier.h>
+ #include <2geom/svg-path-parser.h>
+ 
+-#include "pencil-tool.h"
+ 
+ #include "context-fns.h"
+ #include "desktop.h"
+@@ -814,7 +817,7 @@ void PencilTool::_addFreehandPoint(Geom:
+             min = max;
+         }
+         double dezoomify_factor = 0.05 * 1000 / _desktop->current_zoom();
+-        double const pressure_shrunk = pressure * (max - min) + min; // C++20 -> use std::lerp()
++        double const pressure_shrunk = std::lerp(min, max, pressure);
+         double pressure_computed = std::abs(pressure_shrunk * dezoomify_factor);
+         double pressure_computed_scaled = std::abs(pressure_computed * _desktop->getDocument()->getDocumentScale().inverse()[Geom::X]);
+         if (p != this->p[this->_npoints - 1]) {
+
+
+[FILE:556:patches/patch-poppler-cxx20-2]
+--- src/ui/dialog/filter-effects-dialog.cpp.orig
++++ src/ui/dialog/filter-effects-dialog.cpp
+@@ -202,7 +202,7 @@ public:
+ template< typename T> class ComboWithTooltip : public Gtk::EventBox
+ {
+ public:
+-    ComboWithTooltip<T>(T default_value, const Util::EnumDataConverter<T>& c, const SPAttr a = SPAttr::INVALID, char* tip_text = nullptr)
++    ComboWithTooltip(T const default_value, Util::EnumDataConverter<T> const &c, SPAttr const a = SPAttr::INVALID, char* tip_text = nullptr)
+     {
+         if (tip_text) {
+             set_tooltip_text(tip_text);
 
 
 [FILE:414:patches/patch-src_CMakeLists.txt]
