@@ -77,7 +77,7 @@ if [ -n "${SYSGROUPS}" ]; then
 			   [ "${dp_OPSYS}" = "NetBSD" ];
 			then
 				cat >> "${dp_UG_INSTALL}" <<-eot2
-if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
+if awk -F':' -vname="${group}" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Using existing group '$group'."
 else
   echo "Creating group '$group' with gid '$gid'."
@@ -229,7 +229,7 @@ if [ -n "${SYSGROUPS}" ]; then
 					if [ -n "${user}" ] && [ "${user}" = "${login}" ]; then
 						if [ "${dp_OPSYS}" = "Linux" ]; then
 							cat >> "${dp_UG_INSTALL}" <<-eot2
-if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
+if awk -F':' -vname="${group}" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Adding user '${login}' to group '${group}'."
   usermod -a -G ${group} ${login}
 fi
@@ -238,7 +238,7 @@ eot2
 						     [ "${dp_OPSYS}" = "NetBSD" ];
 						then
 							cat >> "${dp_UG_INSTALL}" <<-eot2
-if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
+if awk -F':' -vname="${group}" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "Adding user '${login}' to group '${group}'."
   group_list=$(id -a "${login}" | awk -F'=' -vnewgroup="${group}" "${SUNOS_GROUPLIST_PROG}")
   usermod -G ${group_list} ${login}
@@ -248,7 +248,7 @@ eot2
 							cat >> "${dp_UG_INSTALL}" <<-eot2
 if [ -z "\${RAVENADM}" ]; then
   if dscl . read /Groups/$group RecordName >/dev/null 2>&1; then
-    if dscl . -list /Groups/$group GroupMembership | tr ' ' '\n' | awk -v name=\"$group\" ${GROUP_SEARCH_PROGRAM} >/dev/null 2>&1; then
+    if dscl . -list /Groups/$group GroupMembership | tr ' ' '\n' | awk -v name="$group" ${GROUP_SEARCH_PROGRAM} >/dev/null 2>&1; then
       echo "User '$login' is already a member of group '$group', doing nothing."
     else
       echo "Adding user '$login' as a member of group '$group'."
@@ -295,7 +295,7 @@ if [ -n "${SYSGROUPS}" ]; then
 		if ! echo "${GROUP_BLACKLIST}" | grep -qw "${group}"; then
 			if [ "${dp_OPSYS}" = "Linux" ] || [ "${dp_OPSYS}" = "SunOS" ]; then
 				cat >> "${dp_UG_DEINSTALL}" <<-eot
-if awk -F':' -vname=\"${group}\" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
+if awk -F':' -vname="${group}" ${GROUP_SEARCH_PROG} /etc/group >/dev/null 2>&1; then
   echo "==> You should manually remove the \"${group}\" group "
 fi
 eot

@@ -32,7 +32,6 @@ CPA=			-RpP
 # /usr/bin/xargs  (misc/findutils)
 # /usr/bin/yacc   (devel/byacc)
 # /usr/bin/less*  (sysutils/less)
-# /usr/bin/mtree  (ravensys-utils)
 # /usr/bin/rpcgen (ravensys-utils)
 # /usr/bin/sort   (sysutils/coreutils)
 # /usr/bin/objdump-sysroot (devel/binutils)
@@ -116,7 +115,7 @@ install-common: skeleton
 	grep file flex flex++ gzip gunzip zcat zcmp zdiff zegrep \
 	zfgrep zgrep lzcat lzcmp lzdiff lzegrep lzfgrep lzgrep lzma \
 	unlzma unxz xzcat xzcmp xzdiff xzegrep xzfgrep xzgrep yacc \
-	unzip less mtree bsdcat dupe genpatch portfix patch fetch \
+	unzip less bsdcat dupe genpatch portfix patch fetch \
 	rpcgen sed find xargs cmp diff diff3 sdiff \
 	install wc sort od mknod seq
 	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/

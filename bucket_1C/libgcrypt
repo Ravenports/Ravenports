@@ -54,6 +54,10 @@ TEST_TARGET=		check
 post-patch:
 	${RM} ${WRKSRC}/doc/gcrypt.info*
 
+pre-configure-netbsd:
+	# avoid name pollution
+	${REINPLACE_CMD} -e 's/ bswap32/ local_bswap32/g' ${WRKSRC}/cipher/aria.c
+
 post-install:
 	# not sure why this stopped being installed
 	${INSTALL_SCRIPT} ${WRKSRC}/src/libgcrypt-config ${STAGEDIR}${PREFIX}/bin/

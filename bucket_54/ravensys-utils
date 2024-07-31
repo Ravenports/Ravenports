@@ -2,6 +2,7 @@
 
 NAMEBASE=		ravensys-utils
 VERSION=		1.5.2
+REVISION=		1
 KEYWORDS=		raven sysutils
 VARIANTS=		standard prevdbsd prevfbsd prevlinux
 SDESC[prevdbsd]=	System root tools for previous DragonFly
@@ -15,10 +16,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/ravenports:ravensys-utils:v1.5.2
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[prevdbsd]=	single
-SPKGS[prevlinux]=	single
-SPKGS[standard]=	single
-SPKGS[prevfbsd]=	single
+SPKGS[prevdbsd]=	complete
+			primary
+			man
+SPKGS[prevlinux]=	complete
+			primary
+			man
+SPKGS[standard]=	complete
+			primary
+			man
+SPKGS[prevfbsd]=	complete
+			primary
+			man
 
 OPTIONS_AVAILABLE=	PREV_DBSD PREV_FBSD PREV_LINUX
 OPTIONS_STANDARD=	none
@@ -31,7 +40,7 @@ B_DEPS[linux]=		libbsd:dev:standard libbsd:primary:standard
 
 USES=			cmake ssl:build
 
-LICENSE=		CUSTOM1:single
+LICENSE=		CUSTOM1:primary
 LICENSE_NAME=		CUSTOM1:"ravensys-utils: all tools feature BSD-like license"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/LICENSES.aggregated
 LICENSE_SCHEME=		solo
@@ -47,7 +56,7 @@ VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1302001/13.2/13
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/i86pc/x86_64/510200910/5.10/5.10
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/610000/6.1.0/6.1
 VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
-VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SYSTEM=NetBSD/x86_64/x86_64/902000000/9.2/9
+VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SYSTEM=NetBSD/x86_64/x86_64/902000000/10.0/10
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600400/6.4/6.4
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=SYSTEM=MidnightBSD/amd64/x86_64/300005/3.0.0/3
 
@@ -69,7 +78,7 @@ post-install:
 .endfor
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/ld
 
-[FILE:214:descriptions/desc.single]
+[FILE:214:descriptions/desc.primary]
 Consistent utilities for the Ravenports system root
 
 This package provides the following programs:
@@ -88,9 +97,8 @@ It also provides a dummy dl library.
 9edd05b948cdff615ea8ee6c18a8da3a4dbf760f07a509ed5195686a86f265b3       115995 ravenports-ravensys-utils-1.5.2.tar.gz
 
 
-[FILE:219:manifests/plist.single]
+[FILE:118:manifests/plist.primary]
 %%ONLY-NETBSD%%bin/bsd_realpath
-%%ONLY-NETBSD%%share/man/man1/bsd_realpath.1.gz
 bin/
  md5
  mtree
@@ -101,6 +109,10 @@ bin/
  which
 lib/libdl.a
 libexec/ld
+
+
+[FILE:101:manifests/plist.man]
+%%ONLY-NETBSD%%share/man/man1/bsd_realpath.1.gz
 share/man/man1/
  patch.1.gz
  rpcgen.1.gz
