@@ -17,8 +17,12 @@ SPKGS[standard]=	complete
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	EMBREE
+OPTIONS_STANDARD=	EMBREE
+OPT_ON[freebsd]=	EMBREE
+OPT_ON[linux]=		EMBREE
+OPT_ON[dragonfly]=	EMBREE
+OPT_ON[midnightbsd]=	EMBREE
 
 BUILD_DEPENDS=		qt6-qtbase:dev:standard
 			qt6-qtshadertools:dev:standard
@@ -37,6 +41,8 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		6.7.2
 PLIST_SUB=		QTVER=6.7.2
 			SOMAJORMIN=6.7
+
+[EMBREE].DESCRIPTION=			Embree support is installed
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt6/bin/*
@@ -639,7 +645,17 @@ lib/qt6/qml/QtQuick3D/designer/source/
  view3D_template.qml
 
 
-[FILE:18807:manifests/plist.dev]
+[FILE:18868:manifests/plist.dev]
+%%EMBREE-ON%%lib/qt6/libQt6BundledEmbree.a
+%%EMBREE-ON%%lib/qt6/cmake/Qt6/FindWrapBundledEmbreeConfigExtra.cmake
+%%EMBREE-ON%%lib/qt6/cmake/Qt6BundledEmbree/
+ Qt6BundledEmbreeAdditionalTargetInfo.cmake
+ Qt6BundledEmbreeConfig.cmake
+ Qt6BundledEmbreeConfigVersion.cmake
+ Qt6BundledEmbreeConfigVersionImpl.cmake
+ Qt6BundledEmbreeTargets-release.cmake
+ Qt6BundledEmbreeTargets.cmake
+ Qt6BundledEmbreeVersionlessTargets.cmake
 include/qt6/QtQuick3D/
  QQuick3D
  QQuick3DGeometry
@@ -943,7 +959,6 @@ include/qt6/QtQuick3DUtils/%%QTVER%%/QtQuick3DUtils/private/
  qtquick3dutilsglobal_p.h
 include/qt6/QtQuick3DUtils/%%QTVER%%/QtQuick3DUtils/ssg/qssgrenderbasetypes.h
 lib/qt6/
- libQt6BundledEmbree.a
  libQt6Quick3D.prl
  libQt6Quick3D.so
  libQt6Quick3DAssetImport.prl
@@ -968,18 +983,8 @@ lib/qt6/
  libQt6Quick3DRuntimeRender.so
  libQt6Quick3DUtils.prl
  libQt6Quick3DUtils.so
-lib/qt6/cmake/Qt6/
- FindWrapBundledEmbreeConfigExtra.cmake
- FindWrapQuick3DAssimp.cmake
+lib/qt6/cmake/Qt6/FindWrapQuick3DAssimp.cmake
 lib/qt6/cmake/Qt6BuildInternals/StandaloneTests/QtQuick3DTestsConfig.cmake
-lib/qt6/cmake/Qt6BundledEmbree/
- Qt6BundledEmbreeAdditionalTargetInfo.cmake
- Qt6BundledEmbreeConfig.cmake
- Qt6BundledEmbreeConfigVersion.cmake
- Qt6BundledEmbreeConfigVersionImpl.cmake
- Qt6BundledEmbreeTargets-release.cmake
- Qt6BundledEmbreeTargets.cmake
- Qt6BundledEmbreeVersionlessTargets.cmake
 lib/qt6/cmake/Qt6Qml/
  Qt6QQuick3DProfilerAdapterFactoryPluginAdditionalTargetInfo.cmake
  Qt6QQuick3DProfilerAdapterFactoryPluginConfig.cmake

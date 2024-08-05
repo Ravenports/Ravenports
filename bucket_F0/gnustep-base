@@ -19,8 +19,9 @@ SPKGS[standard]=	complete
 			dev
 			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	ONELINK
+OPTIONS_STANDARD=	ONELINK
+OPT_ON[netbsd]=		ONELINK
 
 BUILD_DEPENDS=		avahi:dev:standard
 			curl:dev:standard
@@ -68,6 +69,8 @@ MAKEFILE=		GNUmakefile
 SOVERSION=		1.30.0
 PLIST_SUB=		VERSION=1.30
 
+[ONELINK].DESCRIPTION=			Only one libgnustep-base.so symlink used
+
 post-install:
 	${INSTALL_DATA} ${FILESDIR}/gdomap_if ${STAGEDIR}${PREFIX}/etc/gdomap_if
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
@@ -96,10 +99,9 @@ This package contails the gnustep-base tools.
 00b5bc4179045b581f9f9dc3751b800c07a5d204682e3e0eddd8b5e5dee51faa      3730872 gnustep/gnustep-base-1.30.0.tar.gz
 
 
-[FILE:71:manifests/plist.primary]
-lib/
- libgnustep-base.so.%%SOVERSION%%
- libgnustep-base.so.%%VERSION%%
+[FILE:87:manifests/plist.primary]
+%%ONELINK-OFF%%lib/libgnustep-base.so.%%VERSION%%
+lib/libgnustep-base.so.%%SOVERSION%%
 
 
 [FILE:175:manifests/plist.tools]

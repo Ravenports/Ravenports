@@ -21,11 +21,11 @@ OPTIONS_STANDARD=	none
 VOPTS[540]=		PERL_538=OFF PERL_540=ON
 VOPTS[538]=		PERL_538=ON PERL_540=OFF
 
-BROKEN[all]=		"Unsupported GSL version!!! : 2.8 at ./Build.PL line 85."
-
 BUILD_DEPENDS=		gsl:dev:standard
 			gsl:tools:standard
 BUILDRUN_DEPENDS=	gsl:primary:standard
+			perl-Role-Tiny:single:perl_used
+			perl-Alien-Role-Dino:single:perl_used
 
 USES=			cclibs:single
 
@@ -72,7 +72,7 @@ Interface to the GNU Scientific Library using SWIG
 
 
 [FILE:1090:patches/patch-inc_GSLBuilder.pm]
---- inc/GSLBuilder.pm.orig	2018-12-10 17:11:25 UTC
+--- inc/GSLBuilder.pm.orig	2024-07-29 11:34:50 UTC
 +++ inc/GSLBuilder.pm
 @@ -31,6 +31,8 @@ sub process_swig_files {
      my $swig_flags      = $self->{properties}->{swig_flags};
@@ -83,7 +83,7 @@ Interface to the GNU Scientific Library using SWIG
      if ($binding_ver ne $current_version) {
          print "VERSION MISMATCH: Let's hope for the best.\n";
      }
-@@ -262,7 +264,7 @@ sub link_c {
+@@ -286,7 +288,7 @@ sub link_c {
        }
      }
  
@@ -92,7 +92,7 @@ Interface to the GNU Scientific Library using SWIG
      my @shrp      = $self->split_like_shell($cf->{shrpenv});
      my @ld        = $self->split_like_shell($cf->{ld} || $Config{cc});
  
-@@ -294,7 +296,7 @@ sub compile_c {
+@@ -318,7 +320,7 @@ sub compile_c {
  
    $cf->{installarchlib} = $Config{archlib};
  

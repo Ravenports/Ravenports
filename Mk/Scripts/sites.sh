@@ -330,13 +330,8 @@ expand_MYSQL()
     # pattern [element]/%SUBDIR%/
     local SUBDIR=${1##MYSQL/}
     local cluster="\
-    https://cdn.mysql.com/Downloads/ \
-    http://mysql.mirrors.hoobly.com/Downloads \
-    http://www.mirrorservice.org/sites/ftp.mysql.com/Downloads \
-    http://mysql.mirrors.ovh.net/ftp.mysql.com/Downloads \
-    http://ftp.jaist.ac.jp/pub/mysql/Downloads \
-    http://mirrors.ukfast.co.uk/sites/ftp.mysql.com/Downloads \
-    http://ftp.ntua.gr/pub/databases/mysql/Downloads"
+    https://cdn.mysql.com/Downloads \
+    https://cdn.mysql.com/archives"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
     done

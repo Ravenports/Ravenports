@@ -20,10 +20,11 @@ SPKGS[standard]=	complete
 OPTIONS_AVAILABLE=	EPOLLSHIM
 OPTIONS_STANDARD=	EPOLLSHIM
 OPT_ON[freebsd]=	EPOLLSHIM
+OPT_ON[netbsd]=		EPOLLSHIM
 OPT_ON[dragonfly]=	EPOLLSHIM
 OPT_ON[midnightbsd]=	EPOLLSHIM
 
-ONLY_FOR_OPSYS=		dragonfly freebsd linux midnightbsd
+ONLY_FOR_OPSYS=		dragonfly freebsd linux midnightbsd netbsd
 
 BUILD_DEPENDS=		libxslt:primary:standard
 			libffi:dev:standard
@@ -113,7 +114,7 @@ share/wayland/
  wayland.xml
 
 
-[FILE:1288:patches/patch-meson.build]
+[FILE:1306:patches/patch-meson.build]
 --- meson.build.orig	2024-05-30 18:59:51 UTC
 +++ meson.build
 @@ -16,7 +16,7 @@ config_h.set_quoted('PACKAGE', meson.pro
@@ -121,7 +122,7 @@ share/wayland/
  
  cc_args = []
 -if host_machine.system() not in ['freebsd', 'openbsd']
-+if host_machine.system() not in ['freebsd', 'openbsd', 'dragonfly', 'midnightbsd']
++if host_machine.system() not in ['freebsd', 'openbsd', 'dragonfly', 'midnightbsd','netbsd']
  	cc_args += ['-D_POSIX_C_SOURCE=200809L']
  endif
  add_project_arguments(cc_args, language: 'c')
@@ -139,13 +140,13 @@ share/wayland/
  
  if get_option('libraries')
 -	if host_machine.system() in ['freebsd', 'openbsd']
-+	if host_machine.system() in ['freebsd', 'openbsd', 'dragonfly', 'midnightbsd']
++	if host_machine.system() in ['freebsd', 'openbsd', 'dragonfly', 'midnightbsd','netbsd']
  		# When building for FreeBSD, epoll(7) is provided by a userspace
  		# wrapper around kqueue(2).
  		epoll_dep = dependency('epoll-shim')
 
 
-[FILE:568:patches/patch-src_wayland-os.c]
+[FILE:1084:patches/patch-src_wayland-os.c]
 --- src/wayland-os.c.orig	2024-05-30 18:59:51 UTC
 +++ src/wayland-os.c
 @@ -42,6 +42,10 @@
@@ -168,4 +169,26 @@ share/wayland/
  int
  wl_os_socket_peercred(int sockfd, uid_t *uid, gid_t *gid, pid_t *pid)
  {
+@@ -106,6 +110,21 @@ wl_os_socket_peercred(int sockfd, uid_t
+ #endif
+ 	return 0;
+ }
++#elif defined(__NetBSD__)
++int
++wl_os_socket_peercred(int sockfd, uid_t *uid, gid_t *gid, pid_t *pid)
++{
++	socklen_t len;
++	struct sockcred ucred;
++
++	len = sizeof(ucred);
++	if (getsockopt(sockfd, SOL_LOCAL, LOCAL_CREDS, &ucred, &len) < 0)
++		return -1;
++	*uid = ucred.sc_uid;
++	*gid = ucred.sc_gid;
++	*pid = 0;
++	return 0;
++}
+ #elif defined(SO_PEERCRED)
+ int
+ wl_os_socket_peercred(int sockfd, uid_t *uid, gid_t *gid, pid_t *pid)
 

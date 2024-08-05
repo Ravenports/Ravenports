@@ -2,7 +2,7 @@
 
 NAMEBASE=		qt6-qtbase
 VERSION=		6.7.2
-REVISION=		5
+REVISION=		6
 KEYWORDS=		x11_toolkits devel
 VARIANTS=		standard
 SDESC[standard]=	Qt6 - QtBase component
@@ -19,13 +19,14 @@ SPKGS[standard]=	complete
 			dev
 			docs
 
-OPTIONS_AVAILABLE=	X11 WAYLAND
-OPTIONS_STANDARD=	X11 WAYLAND
-OPT_ON[freebsd]=	WAYLAND
+OPTIONS_AVAILABLE=	X11 WAYLAND EPOLLSHIM
+OPTIONS_STANDARD=	X11 WAYLAND EPOLLSHIM
+OPT_ON[freebsd]=	WAYLAND EPOLLSHIM
 OPT_ON[linux]=		WAYLAND
 OPT_ON[all]=		X11
-OPT_ON[dragonfly]=	WAYLAND
-OPT_ON[midnightbsd]=	WAYLAND
+OPT_ON[netbsd]=		WAYLAND EPOLLSHIM
+OPT_ON[dragonfly]=	WAYLAND EPOLLSHIM
+OPT_ON[midnightbsd]=	WAYLAND EPOLLSHIM
 
 BUILD_DEPENDS=		evdev-proto:single:standard
 			elftoolchain:dev:standard
@@ -108,9 +109,13 @@ VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
 			CMAKE_ARGS=-DBUILD_WITH_PCH=OFF
 
+[EPOLLSHIM].DESCRIPTION=		Platform depends on libepoll-shim
+[EPOLLSHIM].BUILD_DEPENDS_ON=		libepoll-shim:dev:standard
+
 [WAYLAND].DESCRIPTION=			Build with wayland support
 [WAYLAND].BUILDRUN_DEPENDS_ON=		wayland:primary:standard
 [WAYLAND].BUILD_DEPENDS_ON=		wayland:dev:standard
+[WAYLAND].CMAKE_ARGS_ON=		-DFEATURE_wayland=ON
 
 [X11].DESCRIPTION=			Build with X11 support
 [X11].CMAKE_ARGS_OFF=			-DFEATURE_xcb=OFF
@@ -4501,7 +4506,7 @@ Fix build on SunOS.
      using cpu_set_t = cpuset_t;
 
 
-[FILE:1202:patches/patch-src_gui_configure.cmake]
+[FILE:1212:patches/patch-src_gui_configure.cmake]
 --- src/gui/configure.cmake.orig	2024-03-19 15:46:43 UTC
 +++ src/gui/configure.cmake
 @@ -29,7 +29,7 @@ set_property(CACHE INPUT_libpng PROPERTY
@@ -4518,7 +4523,7 @@ Fix build on SunOS.
  qt_find_package(WrapVulkanHeaders PROVIDED_TARGETS WrapVulkanHeaders::WrapVulkanHeaders
      MODULE_NAME gui QMAKE_LIB vulkan MARK_OPTIONAL)
 -if((LINUX) OR QT_FIND_ALL_PACKAGES_ALWAYS)
-+if((LINUX OR FREEBSD OR DRAGONFLY OR MIDNIGHT) OR QT_FIND_ALL_PACKAGES_ALWAYS)
++if((LINUX OR FREEBSD OR DRAGONFLY OR MIDNIGHT OR NETBSD) OR QT_FIND_ALL_PACKAGES_ALWAYS)
      qt_find_package(Wayland PROVIDED_TARGETS Wayland::Server MODULE_NAME gui QMAKE_LIB wayland_server)
      qt_find_package(Wayland PROVIDED_TARGETS Wayland::Client MODULE_NAME gui QMAKE_LIB wayland_client)
  endif()

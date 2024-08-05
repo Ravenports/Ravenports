@@ -110,7 +110,22 @@ lib/cmake/norm/
          
 
 
-[FILE:365:patches/patch-protolib_src_common_protoEvent.cpp]
+[FILE:409:patches/patch-protolib_src_common_protoDispatcher.cpp]
+--- protolib/src/common/protoDispatcher.cpp.orig	2024-08-03 04:37:54 UTC
++++ protolib/src/common/protoDispatcher.cpp
+@@ -60,6 +60,9 @@ const ProtoDispatcher::Descriptor ProtoD
+ const ProtoDispatcher::Descriptor ProtoDispatcher::INVALID_DESCRIPTOR = -1;
+ #endif  // if/else WIN32/UNIX
+ 
++#ifdef USE_TIMERFD
++#include <sys/timerfd.h>
++#endif
+ 
+ ProtoDispatcher::Stream::Stream(Type theType)
+  :  type(theType) 
+
+
+[FILE:388:patches/patch-protolib_src_common_protoEvent.cpp]
 --- protolib/src/common/protoEvent.cpp.orig	2023-08-10 11:36:42 UTC
 +++ protolib/src/common/protoEvent.cpp
 @@ -8,7 +8,7 @@
@@ -118,7 +133,7 @@ lib/cmake/norm/
  #include <unistd.h>
  #include <fcntl.h>
 -#ifdef LINUX
-+#if defined LINUX || (defined(__FreeBSD__) && !defined(__MidnightBSD__))
++#if defined LINUX || (defined(__FreeBSD__) && !defined(__MidnightBSD__)) || defined(__NetBSD__)
  #include <sys/eventfd.h>
  #endif // LINUX
  #endif  // if/else WIN32/UNIX
