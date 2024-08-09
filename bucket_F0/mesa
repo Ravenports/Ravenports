@@ -3,8 +3,8 @@
 NAMEBASE=		mesa
 VERSION=		24.1.5
 KEYWORDS=		graphics
-VARIANTS=		standard
-SDESC[standard]=	Mesa 3D Graphics Library
+VARIANTS=		std
+SDESC[std]=		Mesa 3D Graphics Library
 HOMEPAGE=		https://www.mesa3d.org/
 CONTACT=		nobody
 
@@ -13,7 +13,7 @@ SITES[main]=		https://mesa.freedesktop.org/archive/
 			ftp://ftp.freedesktop.org/pub/mesa/
 DISTFILE[1]=		mesa-24.1.5.tar.xz:main
 DF_INDEX=		1
-SPKGS[standard]=	complete
+SPKGS[std]=		set
 			primary
 			drivers
 			dev
@@ -29,15 +29,15 @@ OPT_ON[dragonfly]=	LLVMPIPE//i386|x86_64
 OPT_ON[i386]=		X86_DRIVERS
 OPT_ON[midnightbsd]=	LLVMPIPE//i386|x86_64
 
-BUILD_DEPENDS=		libdrm:dev:standard
-			libelf:dev:standard
-			libelf:primary:standard
-			libva:dev:standard
-			libvdpau:dev:standard
+BUILD_DEPENDS=		libdrm:dev:std
+			libelf:dev:std
+			libelf:primary:std
+			libva:dev:std
+			libvdpau:dev:std
 			python-Mako:single:python_used
-BUILDRUN_DEPENDS=	libdrm:primary:standard
-EXRUN[drivers]=		mesa:primary:standard
-			libelf:primary:standard
+BUILDRUN_DEPENDS=	libdrm:primary:std
+EXRUN[drivers]=		mesa:primary:std
+			libelf:primary:std
 
 USES=			cpe bison gettext:build gmake meson pkgconfig zstd
 			zlib expat shebangfix solaris-funcs python:build
@@ -123,23 +123,23 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 					VULKAN_DRIVERS+={{VULKAN_DRIVERS_X86}}
 
 [WAYLAND].DESCRIPTION=			Build Vulkan drivers for Wayland platform
-[WAYLAND].BUILDRUN_DEPENDS_ON=		wayland:primary:standard
-[WAYLAND].BUILD_DEPENDS_ON=		wayland-protocols:single:standard
+[WAYLAND].BUILDRUN_DEPENDS_ON=		wayland:primary:std
+[WAYLAND].BUILD_DEPENDS_ON=		wayland-protocols:single:std
 					python-Mako:single:python_default
-					wayland:dev:standard
+					wayland:dev:std
 [WAYLAND].MAKEFILE_ON=			WAYPLAT=,wayland
 					VULKAN_DRIVERS+=INTEL
 					VULKAN_DRIVERS_X86+=RADEON
 
 [LLVMPIPE].DESCRIPTION=			Build LLVM-based drivers and libraries
-[LLVMPIPE].BUILDRUN_DEPENDS_ON=		llvm17:primary:standard
-					ocl-icd:primary:standard
-[LLVMPIPE].BUILD_DEPENDS_ON=		libclc:single:standard
-					opencl-headers:single:standard
-					ocl-icd:dev:standard
-					llvm17:tools:standard
-					llvm17:dev:standard
-					clang17:complete:standard
+[LLVMPIPE].BUILDRUN_DEPENDS_ON=		llvm17:primary:std
+					ocl-icd:primary:std
+[LLVMPIPE].BUILD_DEPENDS_ON=		libclc:single:std
+					opencl-headers:single:std
+					ocl-icd:dev:std
+					llvm17:tools:std
+					llvm17:dev:std
+					clang17:set:std
 [LLVMPIPE].MAKEFILE_OFF=		MESON_ARGS+=-Dgallium-opencl=disabled
 [LLVMPIPE].MAKEFILE_ON=			GALLIUM_LLVM_DRIVERS+=R600
 					GALLIUM_LLVM_DRIVERS+=RADEONSI
@@ -148,7 +148,7 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 					MESON_ARGS+=-Dgallium-va=enabled
 					MESON_ARGS+=-Dgallium-opencl=icd
 					MESON_ARGS+=-Dgallium-vdpau=enabled
-[LLVMPIPE].RUN_DEPENDS_ON=		clang17:dynlibs:standard
+[LLVMPIPE].RUN_DEPENDS_ON=		clang17:dynlibs:std
 
 pre-patch-linux:
 	# qsort fixes for BSD break linux

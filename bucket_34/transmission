@@ -4,10 +4,10 @@ NAMEBASE=		transmission
 VERSION=		4.0.6
 REVISION=		1
 KEYWORDS=		net_p2p
-VARIANTS=		standard daemon gtk qt web
+VARIANTS=		std daemon gtk qt web
+SDESC[std]=		Lightweight BitTorrent client (CLI client)
 SDESC[web]=		Lightweight BitTorrent client (web client)
 SDESC[qt]=		Lightweight BitTorrent client (Qt GUI)
-SDESC[standard]=	Lightweight BitTorrent client (CLI client)
 SDESC[gtk]=		Lightweight BitTorrent client (GTK+ GUI)
 SDESC[daemon]=		Lightweight BitTorrent client (daemon)
 HOMEPAGE=		https://transmissionbt.com/
@@ -17,19 +17,19 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/transmission/transmission/releases/download/4.0.6/
 DISTFILE[1]=		transmission-4.0.6.tar.xz:main
 DF_INDEX=		1
+SPKGS[std]=		set
+			primary
+			man
 SPKGS[web]=		single
-SPKGS[qt]=		complete
+SPKGS[qt]=		set
 			primary
 			man
 			nls
-SPKGS[standard]=	complete
-			primary
-			man
-SPKGS[gtk]=		complete
+SPKGS[gtk]=		set
 			primary
 			man
 			nls
-SPKGS[daemon]=		complete
+SPKGS[daemon]=		set
 			primary
 			man
 
@@ -67,18 +67,18 @@ CMAKE_ARGS=		-DENABLE_NLS:BOOL=ON
 					-DENABLE_UTILS:BOOL=OFF
 
 [WEB].DESCRIPTION=			Build transmission web interface
-[WEB].BUILDRUN_DEPENDS_OFF=		libevent:primary:standard
-					dht:single:standard
-					libb64:primary:standard
-					libnatpmp:primary:standard
-					miniupnpc:primary:standard
-					libpsl:primary:standard
-[WEB].BUILD_DEPENDS_OFF=		libutp:dev:standard
-					libevent:dev:standard
-					miniupnpc:dev:standard
-					libnatpmp:dev:standard
-					libb64:dev:standard
-					libpsl:dev:standard
+[WEB].BUILDRUN_DEPENDS_OFF=		libevent:primary:std
+					dht:single:std
+					libb64:primary:std
+					libnatpmp:primary:std
+					miniupnpc:primary:std
+					libpsl:primary:std
+[WEB].BUILD_DEPENDS_OFF=		libutp:dev:std
+					libevent:dev:std
+					miniupnpc:dev:std
+					libnatpmp:dev:std
+					libb64:dev:std
+					libpsl:dev:std
 [WEB].USES_OFF=				cpe
 					cmake
 					iconv
@@ -95,13 +95,13 @@ CMAKE_ARGS=		-DENABLE_NLS:BOOL=ON
 [DAEMON].CMAKE_ARGS_ON=			-DENABLE_DAEMON:BOOL=ON
 
 [QT].DESCRIPTION=			Build Qt6 version of transmission
-[QT].BUILDRUN_DEPENDS_ON=		qt6-qtsvg:primary:standard
-					libdeflate:primary:standard
-[QT].BUILD_DEPENDS_ON=			qt6-qtbase:dev:standard
-					qt6-qtsvg:dev:standard
-					qt6-qttools:dev:standard
-					qt6-qttools:primary:standard
-					libdeflate:dev:standard
+[QT].BUILDRUN_DEPENDS_ON=		qt6-qtsvg:primary:std
+					libdeflate:primary:std
+[QT].BUILD_DEPENDS_ON=			qt6-qtbase:dev:std
+					qt6-qtsvg:dev:std
+					qt6-qttools:dev:std
+					qt6-qttools:primary:std
+					libdeflate:dev:std
 [QT].CMAKE_ARGS_OFF=			-DENABLE_QT:BOOL=OFF
 [QT].CMAKE_ARGS_ON=			-DENABLE_QT:BOOL=ON
 					-DUSE_QT_VERSION=6
@@ -110,11 +110,11 @@ CMAKE_ARGS=		-DENABLE_NLS:BOOL=ON
 [QT].USES_ON=				qt6
 
 [GTK].DESCRIPTION=			Build GTK+ version of transmission
-[GTK].BUILDRUN_DEPENDS_ON=		dbus-glib:primary:standard
-					libnotify:primary:standard
-[GTK].BUILD_DEPENDS_ON=			appstream-glib:dev:standard
-					libnotify:dev:standard
-					harfbuzz:dev:standard
+[GTK].BUILDRUN_DEPENDS_ON=		dbus-glib:primary:std
+					libnotify:primary:std
+[GTK].BUILD_DEPENDS_ON=			appstream-glib:dev:std
+					libnotify:dev:std
+					harfbuzz:dev:std
 [GTK].CMAKE_ARGS_OFF=			-DENABLE_GTK:BOOL=OFF
 [GTK].CMAKE_ARGS_ON=			-DENABLE_GTK:BOOL=ON
 [GTK].GNOME_COMPONENTS_ON=		cairo
@@ -124,7 +124,7 @@ CMAKE_ARGS=		-DENABLE_NLS:BOOL=ON
 					intltool
 					gtkmm30
 					glibmm
-[GTK].RUN_DEPENDS_ON=			xdg-utils:single:standard
+[GTK].RUN_DEPENDS_ON=			xdg-utils:single:std
 [GTK].USES_ON=				desktop-utils:single
 
 post-install-DAEMON-ON:
@@ -147,7 +147,7 @@ post-install-WEB-OFF:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
 
-[FILE:168:descriptions/desc.primary.standard]
+[FILE:168:descriptions/desc.primary.std]
 Transmission is a cross-platform BitTorrent client that is opensource,
 easy, lean, native and powerful.
 
@@ -200,7 +200,7 @@ etc.
 2a38fe6d8a23991680b691c277a335f8875bdeca2b97c6b26b598bc9c7b0c45f     11908296 transmission-4.0.6.tar.xz
 
 
-[FILE:103:manifests/plist.primary.standard]
+[FILE:103:manifests/plist.primary.std]
 bin/
  transmission-cli
  transmission-create
@@ -209,7 +209,7 @@ bin/
  transmission-show
 
 
-[FILE:139:manifests/plist.man.standard]
+[FILE:139:manifests/plist.man.std]
 share/man/man1/
  transmission-cli.1.gz
  transmission-create.1.gz

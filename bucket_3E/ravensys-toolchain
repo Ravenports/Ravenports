@@ -2,9 +2,10 @@
 
 NAMEBASE=		ravensys-toolchain
 VERSION=		6.0
+REVISION=		1
 KEYWORDS=		raven
-VARIANTS=		standard
-SDESC[standard]=	Compiler and binutils toolchain for Ravenports
+VARIANTS=		std
+SDESC[std]=		Compiler and binutils toolchain for Ravenports
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
@@ -12,14 +13,14 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/lld/
 DISTFILE[1]=		lld-single-standard-7.0.1.sunos.tar.zst:main
 DF_INDEX=		1
-SPKGS[standard]=	single
+SPKGS[std]=		single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		ravensys-binutils:single:standard
-			rvn:primary:standard
-B_DEPS[sunos]=		ravensys-utils:primary:standard
+BUILD_DEPENDS=		ravensys-binutils:single:std
+			rvn:primary:std
+B_DEPS[sunos]=		ravensys-utils:primary:std
 
 EXTRACT_DIRTY=		1
 
@@ -72,7 +73,7 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:65714:manifests/plist.single]
+[FILE:65669:manifests/plist.single]
 %%CC1_SHARED%%ravensys-gcc/%%ASLIB%%/
  libcc1.so
  libcc1.so.0
@@ -4245,17 +4246,17 @@ ravensys-gcc/share/gcc-%%GCCVER%%/python/libstdcxx/v6/
  printers.py
  xmethods.py
 share/
- ravensys-binutils-single-standard-%%BUVER%%.rvn
- ravensys-gcc-ada_run-standard-%%COMPVER%%.rvn
- ravensys-gcc-compilers-standard-%%COMPVER%%.rvn
- ravensys-gcc-complete-standard-%%COMPVER%%.rvn
- ravensys-gcc-cxx_run-standard-%%COMPVER%%.rvn
- ravensys-gcc-fortran_run-standard-%%COMPVER%%.rvn
- ravensys-gcc-infopages-standard-%%COMPVER%%.rvn
- ravensys-gcc-libs-standard-%%COMPVER%%.rvn
+ ravensys-binutils~single~std~%%BUVER%%.rvn
+ ravensys-gcc~ada_run~std~%%COMPVER%%.rvn
+ ravensys-gcc~compilers~std~%%COMPVER%%.rvn
+ ravensys-gcc~set~std~%%COMPVER%%.rvn
+ ravensys-gcc~cxx_run~std~%%COMPVER%%.rvn
+ ravensys-gcc~fortran_run~std~%%COMPVER%%.rvn
+ ravensys-gcc~infopages~std~%%COMPVER%%.rvn
+ ravensys-gcc~libs~std~%%COMPVER%%.rvn
 
 
-[FILE:1254:files/Makefile]
+[FILE:1244:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -4264,16 +4265,16 @@ toolchain:
 	@echo "building not required"
 
 ALPHA=	ravensys-gcc
-ATAIL=	standard-${COMPVER}
-BRAVO=	ravensys-binutils-single-standard-${BUVER}
+ATAIL=	std~${COMPVER}
+BRAVO=	ravensys-binutils~single~std~${BUVER}
 
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/share
-	cp /repo/files/${ALPHA}-*-${COMPVER}.rvn ${DESTDIR}${PREFIX}/share/
+	cp /repo/files/${ALPHA}~*~${COMPVER}.rvn ${DESTDIR}${PREFIX}/share/
 	cp /repo/files/${BRAVO}.rvn ${DESTDIR}${PREFIX}/share/
 
 .for spkg in compilers ada_run cxx_run fortran_run libs
-	xrvn -x -o /tmp /repo/files/${ALPHA}-${spkg}-${ATAIL}.rvn
+	xrvn -x -o /tmp /repo/files/${ALPHA}~${spkg}~${ATAIL}.rvn
 .endfor
 	xrvn -x -o /tmp /repo/files/${BRAVO}.rvn
 

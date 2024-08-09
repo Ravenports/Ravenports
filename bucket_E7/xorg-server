@@ -3,10 +3,10 @@
 NAMEBASE=		xorg-server
 VERSION=		21.1.13
 KEYWORDS=		x11_servers
-VARIANTS=		standard virtual xephyr nest
+VARIANTS=		std virtual xephyr nest
 SDESC[xephyr]=		X server from X.Org based on kdrive
+SDESC[std]=		X.Org X server and related programs
 SDESC[virtual]=		X virtual framebuffer server from X.Org
-SDESC[standard]=	X.Org X server and related programs
 SDESC[nest]=		Nesting X server from X.Org
 HOMEPAGE=		https://www.x.org/
 CONTACT=		nobody
@@ -15,17 +15,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		XORG/individual/xserver
 DISTFILE[1]=		xorg-server-21.1.13.tar.xz:main
 DF_INDEX=		1
-SPKGS[xephyr]=		complete
+SPKGS[xephyr]=		set
 			primary
 			man
-SPKGS[virtual]=		complete
-			primary
-			man
-SPKGS[standard]=	complete
+SPKGS[std]=		set
 			primary
 			man
 			dev
-SPKGS[nest]=		complete
+SPKGS[virtual]=		set
+			primary
+			man
+SPKGS[nest]=		set
 			primary
 			man
 
@@ -37,14 +37,15 @@ VOPTS[nest]=		XORG=OFF VIRTUAL=OFF XEPHYR=OFF NEST=ON UDEV=OFF
 OPT_ON[freebsd]=	UDEV
 OPT_ON[linux]=		UDEV
 OPT_ON[all]=		XORG
+OPT_ON[dragonfly]=	UDEV
 OPT_ON[midnightbsd]=	UDEV
 
-BUILD_DEPENDS=		libdrm:dev:standard
-			libgpg-error:dev:standard
-BUILDRUN_DEPENDS=	xorg-xkbcomp:single:standard
-RUN_DEPENDS=		xorg-xkeyboard-config:primary:standard
-EXRUN[dev]=		xorg-pixman:dev:standard
-			xorg-pciaccess:dev:standard
+BUILD_DEPENDS=		libdrm:dev:std
+			libgpg-error:dev:std
+BUILDRUN_DEPENDS=	xorg-xkbcomp:single:std
+RUN_DEPENDS=		xorg-xkeyboard-config:primary:std
+EXRUN[dev]=		xorg-pixman:dev:std
+			xorg-pciaccess:dev:std
 
 USES=			cpe perl:build ssl solaris-funcs meson zlib:build
 XORG_COMPONENTS=	xorgproto xtransproto pixman xshmfence xau xdmcp
@@ -77,31 +78,31 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 			CONFIGURE_ARGS=-Dsecure-rpc=false
 
 [NEST].DESCRIPTION=			Build as nesting X server
-[NEST].BUILDRUN_DEPENDS_ON=		libglvnd:primary:standard
-[NEST].BUILD_DEPENDS_ON=		libepoxy:primary:standard
-					libepoxy:dev:standard
-					mesa:drivers:standard
-					mesa:dev:standard
-					libglvnd:dev:standard
+[NEST].BUILDRUN_DEPENDS_ON=		libglvnd:primary:std
+[NEST].BUILD_DEPENDS_ON=		libepoxy:primary:std
+					libepoxy:dev:std
+					mesa:drivers:std
+					mesa:dev:std
+					libglvnd:dev:std
 [NEST].CONFIGURE_ARGS_OFF=		-Dxnest=false
 [NEST].CONFIGURE_ARGS_ON=		-Dxnest=true
 [NEST].XORG_COMPONENTS_ON=		x11
 					xext
 
 [UDEV].DESCRIPTION=			Use udev for autoconfiguration of input devices
-[UDEV].BUILDRUN_DEPENDS_ON=		libudev-devd:primary:standard
-[UDEV].BUILD_DEPENDS_ON=		libudev-devd:dev:standard
+[UDEV].BUILDRUN_DEPENDS_ON=		libudev-devd:primary:std
+[UDEV].BUILD_DEPENDS_ON=		libudev-devd:dev:std
 [UDEV].CONFIGURE_ARGS_OFF=		-Dudev=false
 [UDEV].CONFIGURE_ARGS_ON=		-Dudev=true
 
 [XEPHYR].DESCRIPTION=			Build as kdrive-base X server
-[XEPHYR].BUILDRUN_DEPENDS_ON=		libdrm:primary:standard
-					libepoxy:primary:standard
-					libglvnd:primary:standard
-[XEPHYR].BUILD_DEPENDS_ON=		mesa:drivers:standard
-					mesa:dev:standard
-					libepoxy:dev:standard
-					libglvnd:dev:standard
+[XEPHYR].BUILDRUN_DEPENDS_ON=		libdrm:primary:std
+					libepoxy:primary:std
+					libglvnd:primary:std
+[XEPHYR].BUILD_DEPENDS_ON=		mesa:drivers:std
+					mesa:dev:std
+					libepoxy:dev:std
+					libglvnd:dev:std
 [XEPHYR].CONFIGURE_ARGS_OFF=		-Dxephyr=false
 [XEPHYR].CONFIGURE_ARGS_ON=		-Dxephyr=true
 [XEPHYR].XORG_COMPONENTS_ON=		x11
@@ -113,25 +114,25 @@ VAR_OPSYS[netbsd]=	CPPFLAGS=-D_OPENBSD_SOURCE
 					xcb-render-util
 
 [VIRTUAL].DESCRIPTION=			Build as virtual framebuffer server
-[VIRTUAL].BUILDRUN_DEPENDS_ON=		libglvnd:primary:standard
-[VIRTUAL].BUILD_DEPENDS_ON=		libepoxy:primary:standard
-					libepoxy:dev:standard
-					mesa:drivers:standard
-					mesa:dev:standard
-					libglvnd:dev:standard
+[VIRTUAL].BUILDRUN_DEPENDS_ON=		libglvnd:primary:std
+[VIRTUAL].BUILD_DEPENDS_ON=		libepoxy:primary:std
+					libepoxy:dev:std
+					mesa:drivers:std
+					mesa:dev:std
+					libglvnd:dev:std
 [VIRTUAL].CONFIGURE_ARGS_OFF=		-Dxvfb=false
 [VIRTUAL].CONFIGURE_ARGS_ON=		-Dxvfb=true
 
 [XORG].DESCRIPTION=			Build as X server (don't change setting!)
-[XORG].BUILDRUN_DEPENDS_ON=		libdrm:primary:standard
-					libepoxy:primary:standard
-					mesa:drivers:standard
-					xorg-xcvt:primary:standard
-[XORG].BUILD_DEPENDS_ON=		xmlto:single:standard
-					xorg-sgml-doctools:single:standard
-					mesa:dev:standard
-					libepoxy:dev:standard
-					xorg-xcvt:dev:standard
+[XORG].BUILDRUN_DEPENDS_ON=		libdrm:primary:std
+					libepoxy:primary:std
+					mesa:drivers:std
+					xorg-xcvt:primary:std
+[XORG].BUILD_DEPENDS_ON=		xmlto:single:std
+					xorg-sgml-doctools:single:std
+					mesa:dev:std
+					libepoxy:dev:std
+					xorg-xcvt:dev:std
 [XORG].CONFIGURE_ARGS_OFF=		-Ddocs=false
 					-Ddevel-docs=false
 					-Dxorg=false
@@ -157,7 +158,7 @@ post-install-XORG-ON:
 	${INSTALL_DATA} ${FILESDIR}/20-evdev-kbd.conf \
 		${STAGEDIR}${PREFIX}/share/X11/xorg.conf.d
 
-[FILE:71:descriptions/desc.primary.standard]
+[FILE:71:descriptions/desc.primary.std]
 This package contains the X.Org X server and some associated programs.
 
 
@@ -180,7 +181,7 @@ Server.
 b45a02d5943f72236a360d3cc97e75134aa4f63039ff88c04686b508a3dc740c      4963952 xorg-server-21.1.13.tar.xz
 
 
-[FILE:432:manifests/plist.primary.standard]
+[FILE:432:manifests/plist.primary.std]
 bin/
  X
  Xorg
@@ -205,7 +206,7 @@ share/X11/xorg.conf.d/20-evdev-kbd.conf
 @dir etc/X11/fontpath.d
 
 
-[FILE:216:manifests/plist.man.standard]
+[FILE:216:manifests/plist.man.std]
 share/man/man1/
  Xorg.1.gz
  Xorg.wrap.1.gz
@@ -222,7 +223,7 @@ share/man/man5/
  xorg.conf.d.5.gz
 
 
-[FILE:1983:manifests/plist.dev.standard]
+[FILE:1983:manifests/plist.dev.std]
 %%ONLY-SUNOS%%include/xorg/solaris-amd64.il
 include/xorg/
  XIstubs.h

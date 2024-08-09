@@ -3,8 +3,8 @@
 NAMEBASE=		libarchive
 VERSION=		3.7.4
 KEYWORDS=		archivers
-VARIANTS=		standard static extended ravensw
-SDESC[standard]=	Library to handle many streaming archive formats
+VARIANTS=		std static extended ravensw
+SDESC[std]=		Library to handle many streaming archive formats
 SDESC[extended]=	Extended libarchive with lzo and lz4 capability
 SDESC[static]=		Static build of libarchive
 SDESC[ravensw]=		Zstd-only libarchive for ravensw
@@ -16,17 +16,17 @@ SITES[main]=		http://libarchive.org/downloads/
 			https://www.libarchive.de/downloads/
 DISTFILE[1]=		libarchive-3.7.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[standard]=	complete
+SPKGS[std]=		set
 			primary
 			tools
 			dev
 			man
-SPKGS[extended]=	complete
+SPKGS[extended]=	set
 			primary
 			tools
 			dev
 			man
-SPKGS[static]=		complete
+SPKGS[static]=		set
 			primary
 			dev
 			man
@@ -65,7 +65,7 @@ LDFLAGS=		-lpthread
 			-L{{LOCALBASE}}/libressl/lib
 
 [STATIC].DESCRIPTION=			Build version for raven sysroots
-[STATIC].BUILD_DEPENDS_ON=		libressl:dev:standard
+[STATIC].BUILD_DEPENDS_ON=		libressl:dev:std
 [STATIC].CONFIGURE_ARGS_ON=		--enable-shared=no
 					--enable-static=yes
 [STATIC].LDFLAGS_OFF=			-Wl,-rpath,{{LOCALBASE}}/libressl/lib
@@ -76,7 +76,7 @@ LDFLAGS=		-lpthread
 					xz:build
 
 [RAVENSW].DESCRIPTION=			Build zstd-only version for ravensw
-[RAVENSW].BUILD_DEPENDS_ON=		libressl:dev:standard
+[RAVENSW].BUILD_DEPENDS_ON=		libressl:dev:std
 [RAVENSW].CONFIGURE_ARGS_ON=		--enable-shared=yes
 					--enable-static=yes
 					--without-zlib
@@ -93,8 +93,8 @@ LDFLAGS=		-lpthread
 					expat
 
 [EXTENDED].DESCRIPTION=			Build loaded version (common + lzo + lz4)
-[EXTENDED].BUILDRUN_DEPENDS_ON=		libressl:primary:standard
-[EXTENDED].BUILD_DEPENDS_ON=		libressl:dev:standard
+[EXTENDED].BUILDRUN_DEPENDS_ON=		libressl:primary:std
+[EXTENDED].BUILD_DEPENDS_ON=		libressl:dev:std
 [EXTENDED].CONFIGURE_ARGS_ON=		--enable-shared=yes
 					--with-lzo2
 					--with-lz4
@@ -107,8 +107,8 @@ LDFLAGS=		-lpthread
 					xz
 
 [NOT_STD].DESCRIPTION=			Don't build common user version
-[NOT_STD].BUILDRUN_DEPENDS_OFF=		libressl:primary:standard
-[NOT_STD].BUILD_DEPENDS_OFF=		libressl:dev:standard
+[NOT_STD].BUILDRUN_DEPENDS_OFF=		libressl:primary:std
+[NOT_STD].BUILD_DEPENDS_OFF=		libressl:dev:std
 [NOT_STD].CONFIGURE_ARGS_OFF=		--enable-shared=yes
 [NOT_STD].USES_OFF=			zstd
 					expat

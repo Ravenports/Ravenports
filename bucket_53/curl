@@ -3,9 +3,9 @@
 NAMEBASE=		curl
 VERSION=		8.9.1
 KEYWORDS=		ftp net www
-VARIANTS=		standard embed
+VARIANTS=		std embed
+SDESC[std]=		Tool and library for transferring data with URLs
 SDESC[embed]=		Tiny curl PIC, http/s, file, scp protocol only
-SDESC[standard]=	Tool and library for transferring data with URLs
 HOMEPAGE=		https://curl.haxx.se/
 CONTACT=		nobody
 
@@ -13,24 +13,24 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://curl.haxx.se/download/
 DISTFILE[1]=		curl-8.9.1.tar.xz:main
 DF_INDEX=		1
-SPKGS[embed]=		complete
-			primary
-			dev
-SPKGS[standard]=	complete
+SPKGS[std]=		set
 			primary
 			dev
 			man
 			examples
 			docs
+SPKGS[embed]=		set
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	EMBED
 OPTIONS_STANDARD=	EMBED
 VOPTS[embed]=		EMBED=ON
 
-BUILDRUN_DEPENDS=	nss:caroot:standard
-EXRUN[dev]=		libnghttp2:dev:standard
-			libressl:dev:standard
-			zlib:dev:standard
+BUILDRUN_DEPENDS=	nss:caroot:std
+EXRUN[dev]=		libnghttp2:dev:std
+			libressl:dev:std
+			zlib:dev:std
 
 USES=			cpe gmake libtool perl:build pkgconfig shebangfix
 			zlib:build
@@ -54,11 +54,11 @@ SOVERSION=		4.8.0
 TEST_TARGET=		test
 
 [EMBED].DESCRIPTION=			Tiny build - http/s, file, scp via libssh2
-[EMBED].BUILDRUN_DEPENDS_OFF=		libnghttp2:primary:standard
-[EMBED].BUILD_DEPENDS_OFF=		libnghttp2:dev:standard
-					groff:primary:standard
+[EMBED].BUILDRUN_DEPENDS_OFF=		libnghttp2:primary:std
+[EMBED].BUILD_DEPENDS_OFF=		libnghttp2:dev:std
+					groff:primary:std
 [EMBED].BUILD_DEPENDS_ON=		libssh2:dev:embed
-					mbedtls:dev:standard
+					mbedtls:dev:std
 [EMBED].CONFIGURE_ARGS_OFF=		--with-ssl={{OPENSSLBASE}}
 					--with-mbedtls=no
 [EMBED].CONFIGURE_ARGS_ON=		--with-mbedtls={{LOCALBASE}}
