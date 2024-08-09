@@ -12,10 +12,10 @@ _INCLUDE_USES_ZSTD_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${curl_ARGS:Mbuild}
-# BUILD_DEPENDS+=	curl:dev:standard
+# BUILD_DEPENDS+=	curl:dev:std
 #.else
-# BUILD_DEPENDS+=	curl:dev:standard
-# BUILDRUN_DEPENDS+=	curl:primary:standard
+# BUILD_DEPENDS+=	curl:dev:std
+# BUILDRUN_DEPENDS+=	curl:primary:std
 #.endif
 # -----------------------------------------------
 

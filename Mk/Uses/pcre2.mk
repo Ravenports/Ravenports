@@ -12,10 +12,10 @@ _INCLUDE_USES_ZSTD_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${pcre2_ARGS:Mbuild}
-# BUILD_DEPENDS+=	pcre2:dev:standard
+# BUILD_DEPENDS+=	pcre2:dev:std
 #.else
-# BUILD_DEPENDS+=	pcre2:dev:standard
-# BUILDRUN_DEPENDS+=	pcre2:primary:standard
+# BUILD_DEPENDS+=	pcre2:dev:std
+# BUILDRUN_DEPENDS+=	pcre2:primary:std
 #.endif
 # -----------------------------------------------
 

@@ -159,13 +159,13 @@ php-error:
 # Incorporated in ravenadm
 # -----------------------------------------------------
 # If args contain "build" or "phpize" or "ext" or "zend"
-# BUILDRUN_DEPENDS+= php${PHP_SUFFIX}:primary:standard
-# BUILD_DEPENDS+=    php${PHP_SUFFIX}:dev:standard
+# BUILDRUN_DEPENDS+= php${PHP_SUFFIX}:primary:std
+# BUILD_DEPENDS+=    php${PHP_SUFFIX}:dev:std
 # else
-# RUN_DEPENDS+=      php${PHP_SUFFIX}:primary:standard
+# RUN_DEPENDS+=      php${PHP_SUFFIX}:primary:std
 # endif
 # if args contain "phpize" or "ext" or "zend"
-# BUILD_DEPENDS+=    autconf:single:standard
+# BUILD_DEPENDS+=    autconf:single:std
 # endif
 # Each extension may have individual port dependencies,
 # which are listed on the individual makefile.

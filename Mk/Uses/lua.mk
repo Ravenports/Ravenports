@@ -7,11 +7,11 @@
 # ------------------------------------------------------
 # Incorporated in ravenadm
 # ------------------------------------------------------
-# BUILD_DEPENDS=        luaXX:dev:standard
-# RUN_DEPENDS=          luaXX:primary:standard
-# BUILDRUN_DEPENDS=	luaXX:dev:standard + luaXX:primary:standard
+# BUILD_DEPENDS=        luaXX:dev:std
+# RUN_DEPENDS=          luaXX:primary:std
+# BUILDRUN_DEPENDS=	luaXX:dev:std + luaXX:primary:std
 # If tools set:
-# BUILD_DEPENDS=	luaXX:tools:standard
+# BUILD_DEPENDS=	luaXX:tools:std
 # ------------------------------------------------------
 
 .if !defined(_INCLUDE_USES_LUA_MK)

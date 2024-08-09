@@ -71,7 +71,7 @@ _INCLUDE_USES_PYTHON_MK=	yes
 # ------------------------------------------------------
 # Incorporated in ravenadm
 # ------------------------------------------------------
-# BUILDRUN_DEPENDS+=	pythonXX:single:standard
+# BUILDRUN_DEPENDS+=	pythonXX:single:std
 # BUILD_DEPENDS+=	python-setuptools:single:pyXX or
 #                       python-pip:single:pyXX (if "wheel")
 # ------------------------------------------------------

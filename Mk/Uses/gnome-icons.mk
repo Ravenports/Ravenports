@@ -20,7 +20,7 @@ _INCLUDE_USES_GNOMEICONS_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${gnome-icons_ARGS:Mbuild}
-# RUN_DEPENDS+=	gtk3:gnome-icons:standard
+# RUN_DEPENDS+=	gtk3:gnome-icons:std
 #.endif
 # -----------------------------------------------
 

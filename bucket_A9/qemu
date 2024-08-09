@@ -20,8 +20,9 @@ SPKGS[standard]=	complete
 			nls
 			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	NO_GA
+OPTIONS_STANDARD=	NO_GA
+OPT_ON[midnightbsd]=	NO_GA
 
 BUILD_DEPENDS=		gnutls:dev:standard
 			harfbuzz:dev:standard
@@ -95,6 +96,8 @@ VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--enable-netmap
 			CONFIGURE_ARGS=--disable-linux-aio
 			CONFIGURE_ARGS=--extra-ldflags=-lutil
 
+[NO_GA].DESCRIPTION=			This platform does not build ga executable
+
 post-patch:
 	# silence some include warnings
 	${MKDIR} ${WRKSRC}/bsd-user/dragonfly
@@ -143,9 +146,10 @@ Many live cd isos also work.
 a8c3f596aece96da3b00cafb74baafa0d14515eafb8ed1ee3f7f5c2d0ebf02b6    132387528 qemu-9.0.2.tar.xz
 
 
-[FILE:2928:manifests/plist.primary]
+[FILE:2944:manifests/plist.primary]
 @sample etc/qemu-ifdown.sample
 @sample etc/qemu-ifup.sample
+%%NO_GA-OFF%%bin/qemu-ga
 %%ONLY-FREEBSD%%bin/
  qemu-arm
  qemu-i386
@@ -158,7 +162,6 @@ a8c3f596aece96da3b00cafb74baafa0d14515eafb8ed1ee3f7f5c2d0ebf02b6    132387528 qe
  qemu-x86_64
 bin/
  qemu-edid
- qemu-ga
  qemu-img
  qemu-io
  qemu-keymap
@@ -1006,7 +1009,9 @@ share/locale/uk/LC_MESSAGES/qemu.mo
 share/locale/zh_CN/LC_MESSAGES/qemu.mo
 
 
-[FILE:268:manifests/plist.man]
+[FILE:322:manifests/plist.man]
+%%NO_GA-OFF%%share/man/man7/qemu-ga-ref.7.gz
+%%NO_GA-OFF%%share/man/man8/qemu-ga.8.gz
 share/man/man1/
  qemu-img.1.gz
  qemu-storage-daemon.1.gz
@@ -1014,11 +1019,9 @@ share/man/man1/
 share/man/man7/
  qemu-block-drivers.7.gz
  qemu-cpu-models.7.gz
- qemu-ga-ref.7.gz
  qemu-qmp-ref.7.gz
  qemu-storage-daemon-qmp-ref.7.gz
 share/man/man8/
- qemu-ga.8.gz
  qemu-nbd.8.gz
  qemu-pr-helper.8.gz
 

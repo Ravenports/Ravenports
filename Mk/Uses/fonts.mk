@@ -39,13 +39,13 @@ fonts_ARGS=	fontsdir
 # Incorporated in ravenadm
 # -----------------------------------------------
 # if argument = fc:
-# BUILD_DEPENDS+=	fontconfig:dev:standard
-# BUILDRUN_DEPENDS+=	fontconfig:primary:standard
+# BUILD_DEPENDS+=	fontconfig:dev:std
+# BUILDRUN_DEPENDS+=	fontconfig:primary:std
 # -----------------------------------------------
 # if argument = fontsdir:
-# BUILD_DEPENDS+=	fontconfig:dev:standard
-# BUILDRUN_DEPENDS+=	fontconfig:primary:standard
-# BUILDRUN_DEPENDS+=	xorg-mkfontscale:primary:standard
+# BUILD_DEPENDS+=	fontconfig:dev:std
+# BUILDRUN_DEPENDS+=	fontconfig:primary:std
+# BUILDRUN_DEPENDS+=	xorg-mkfontscale:primary:std
 # -----------------------------------------------
 # Unrecognized arguments are removed from buildsheet
 # If multiple recognized arguments are provided, all after

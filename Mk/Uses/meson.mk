@@ -3,8 +3,8 @@
 # Feature:		meson
 # Usage:		USES=meson
 #
-# Ravenadm sets meson:single:standard and
-#               ninja:single:standard
+# Ravenadm sets meson:single:std and
+#               ninja:single:std
 #
 # The following files are bundled in source tar files.
 # meson.build		Instructions for meson like autoconf configure,

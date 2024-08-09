@@ -21,10 +21,10 @@ ICONV_LIBRARY=		${LOCALBASE}/lib/libiconv.so
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {iconv_ARGS:Mbuild}
-# BUILD_DEPENDS+=	libiconv:dev:standard
+# BUILD_DEPENDS+=	libiconv:dev:std
 #.else
-# BUILD_DEPENDS+=	libiconv:dev:standard
-# BUILDRUN_DEPENDS+=	libiconv:primary:standard
+# BUILD_DEPENDS+=	libiconv:dev:std
+# BUILDRUN_DEPENDS+=	libiconv:primary:std
 #.endif
 # -----------------------------------------------
 

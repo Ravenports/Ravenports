@@ -12,9 +12,9 @@ display_ARGS=	install
 
 # Ravenadm will set these BUILD_DEPENDS:
 #   xorg-server:single:virtual
-#   xorg-misc-bitmap-fonts:single:standard
-#   xorg-font-alias:single:standard
-#   daemonize:single:standard
+#   xorg-misc-bitmap-fonts:single:std
+#   xorg-font-alias:single:std
+#   daemonize:single:std
 
 .  if !defined(DISPLAY)
 

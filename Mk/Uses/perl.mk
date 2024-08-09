@@ -267,19 +267,19 @@ perl-autolist:
 # --------------------------------------------------------------------------
 
 # if perl_ARGS contain ("buildmod" or "buildmodtiny"), but not "run":
-# BUILD_DEPENDS+=	perl-5.XX:primary:standard
+# BUILD_DEPENDS+=	perl-5.XX:primary:std
 #
 # if perl_ARGS contain "run" and "buildmod" or "buildmodtiny"):
-# BUILDRUN_DEPENDS+=	perl-5.XX:primary:standard
+# BUILDRUN_DEPENDS+=	perl-5.XX:primary:std
 #
 # if perl ARGS contain only "configure" or are empty.
-# BUILDRUN_DEPENDS+=	perl-5.XX:primary:standard
+# BUILDRUN_DEPENDS+=	perl-5.XX:primary:std
 #
 # if perl_ARGS contain only "run"
-# RUN_DEPENDS+=		perl-5.XX:primary:standard
+# RUN_DEPENDS+=		perl-5.XX:primary:std
 #
 # if perl_ARGS contain only "build"
-# BUILD_DEPENDS+=	perl-5.XX:primary:standard
+# BUILD_DEPENDS+=	perl-5.XX:primary:std
 #
 # if perl_ARGS contain "buildmod"
 # BUILD_DEPENDS+=	perl-Module-Build:single:5XX

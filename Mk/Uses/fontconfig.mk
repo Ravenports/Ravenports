@@ -12,10 +12,10 @@ _INCLUDE_USES_FONTCONFIG_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {fontconfig_ARGS:Mbuild}
-# BUILD_DEPENDS+=	fontconfig:dev:standard
+# BUILD_DEPENDS+=	fontconfig:dev:std
 #.else
-# BUILD_DEPENDS+=	fontconfig:dev:standard
-# BUILDRUN_DEPENDS+=	fontconfig:primary:standard
+# BUILD_DEPENDS+=	fontconfig:dev:std
+# BUILDRUN_DEPENDS+=	fontconfig:primary:std
 #.endif
 # -----------------------------------------------
 

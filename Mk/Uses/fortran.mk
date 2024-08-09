@@ -11,7 +11,7 @@ _INCLUDE_USES_FORTRAN_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# EXRUN[subpackage]=  ravensys-gcc:fortran_run:standard
+# EXRUN[subpackage]=  ravensys-gcc:fortran_run:std
 # -----------------------------------------------
 
 .endif

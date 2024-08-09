@@ -12,10 +12,10 @@ _INCLUDE_USES_LZO_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {lzo_ARGS:Mbuild}
-# BUILD_DEPENDS+=	lzo:dev:standard
+# BUILD_DEPENDS+=	lzo:dev:std
 #.else
-# BUILD_DEPENDS+=	lzo:dev:standard
-# BUILDRUN_DEPENDS+=	lzo:primary:standard
+# BUILD_DEPENDS+=	lzo:dev:std
+# BUILDRUN_DEPENDS+=	lzo:primary:std
 #.endif
 # -----------------------------------------------
 

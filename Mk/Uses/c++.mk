@@ -11,7 +11,7 @@ _INCLUDE_USES_CXX_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# EXRUN[subpackage]=	ravensys-gcc:cxx_run:standard
+# EXRUN[subpackage]=	ravensys-gcc:cxx_run:std
 # -----------------------------------------------
 
 .endif

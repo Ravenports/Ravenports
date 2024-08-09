@@ -11,7 +11,7 @@ _INCLUDE_USES_MAKEINFO_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	texinfo:primary:standard
+# BUILD_DEPENDS+=	texinfo:primary:std
 # -----------------------------------------------
 
 .endif

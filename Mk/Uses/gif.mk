@@ -12,10 +12,10 @@ _INCLUDE_USES_GIF_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------------
 #.if ${gif_ARGS:Mbuild}
-# BUILD_DEPENDS+=	giflib:dev:standard
+# BUILD_DEPENDS+=	giflib:dev:std
 #.else
-# BUILD_DEPENDS+=	giflib:dev:standard
-# BUILDRUN_DEPENDS+=	giflib:primary:standard
+# BUILD_DEPENDS+=	giflib:dev:std
+# BUILDRUN_DEPENDS+=	giflib:primary:std
 #.endif
 # -----------------------------------------------------
 

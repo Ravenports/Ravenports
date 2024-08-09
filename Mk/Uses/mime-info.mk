@@ -10,7 +10,7 @@ _INCLUDE_USES_MIMEINFO_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# RUN_DEPENDS+=	shared-mime-info:primary:standard
+# RUN_DEPENDS+=	shared-mime-info:primary:std
 # -----------------------------------------------
 
 .endif

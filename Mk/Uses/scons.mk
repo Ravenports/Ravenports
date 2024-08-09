@@ -10,7 +10,7 @@ _INCLUDE_USES_SCONS_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	scons:single:standard
+# BUILD_DEPENDS+=	scons:single:std
 # -----------------------------------------------
 
 MAKEFILE=		#

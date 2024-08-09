@@ -10,7 +10,7 @@ _INCLUDE_USES_MESA_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	mesa:libs:standard
+# BUILDRUN_DEPENDS+=	mesa:libs:std
 # -----------------------------------------------
 
 .endif

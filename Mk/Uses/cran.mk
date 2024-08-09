@@ -11,13 +11,13 @@ _INCLUDE_USES_CRAN_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	R:primary:standard
-#                       icu:dev:standard
-# RUN_DEPENDS+=		R:primary:standard
-#                       R:nls:standard
+# BUILD_DEPENDS+=	R:primary:std
+#                       icu:dev:std
+# RUN_DEPENDS+=		R:primary:std
+#                       R:nls:std
 # Not in RUN_DEPENDS:
-#                       R:docs:standard
-#                       R:man:standard
+#                       R:docs:std
+#                       R:man:std
 # -----------------------------------------------
 
 RNAMEBASE=		${NAMEBASE:C/^R-//}

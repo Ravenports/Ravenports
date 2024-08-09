@@ -12,10 +12,10 @@ _INCLUDE_USES_BZ2_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {bz2_ARGS:Mbuild}
-# BUILD_DEPENDS+=	bzip2:dev:standard
+# BUILD_DEPENDS+=	bzip2:dev:std
 #.else
-# BUILD_DEPENDS+=	bzip2:dev:standard
-# BUILDRUN_DEPENDS+=	bzip2:primary:standard
+# BUILD_DEPENDS+=	bzip2:dev:std
+# BUILDRUN_DEPENDS+=	bzip2:primary:std
 #.endif
 # -----------------------------------------------
 

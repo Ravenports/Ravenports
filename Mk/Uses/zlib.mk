@@ -11,10 +11,10 @@ _INCLUDE_USES_ZLIB_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {zlib_ARGS:Mbuild}
-# BUILD_DEPENDS+=	zlib:dev:standard
+# BUILD_DEPENDS+=	zlib:dev:std
 #.else
-# BUILD_DEPENDS+=	zlib:dev:standard
-# BUILDRUN_DEPENDS+=	zlib:primary:standard
+# BUILD_DEPENDS+=	zlib:dev:std
+# BUILDRUN_DEPENDS+=	zlib:primary:std
 #.endif
 # -----------------------------------------------
 

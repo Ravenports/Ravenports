@@ -12,10 +12,10 @@ _INCLUDE_USES_PCRE_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if {pcre_ARGS:Mbuild}
-# BUILD_DEPENDS+=	pcre:dev:standard
+# BUILD_DEPENDS+=	pcre:dev:std
 #.else
-# BUILD_DEPENDS+=	pcre:dev:standard
-# BUILDRUN_DEPENDS+=	pcre:primary:standard
+# BUILD_DEPENDS+=	pcre:dev:std
+# BUILDRUN_DEPENDS+=	pcre:primary:std
 #.endif
 # -----------------------------------------------
 

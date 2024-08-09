@@ -72,10 +72,10 @@ _USES_POST+=	autoreconf
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	autoconf:single:standard
-#			automake:single:standard
+# BUILD_DEPENDS+=	autoconf:primary:std
+#			automake:primary:std
 # if ARGS does not contain "build", then
-# BUILD_DEPENDS+=	libtool:single:standard
+# BUILD_DEPENDS+=	libtool:single:std
 # -----------------------------------------------
 
 _AUTORECONF?=	2.72

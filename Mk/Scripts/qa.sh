@@ -511,9 +511,24 @@ py_conflicts() {
 	return 0
 }
 
+completeset() {
+	if [ "${VARIANT}" = "standard" ]; then
+		err "Standard variant detected (instead of 'std')"
+		return 1
+	fi
+	for spkg in ${SPKGS}; do
+		if [ "${spkg}" = "complete" ]; then
+			err "complete subpackage detected (instead of 'set')"
+			return 1
+		fi
+	done
+	return 0
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
 checks="$checks sonames nls_files doc_files uses_fbsd10fix uses_mbsdfix"
+checks="$checks completeset"
 # don't add to this line
 checks="$checks missing_license licterms showlic py_conflicts"
 

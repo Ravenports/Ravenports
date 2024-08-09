@@ -10,7 +10,7 @@ _INCLUDE_USES_MOLD_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	mold:primary:standard
+# BUILD_DEPENDS+=	mold:primary:std
 # -----------------------------------------------
 
 LDFLAGS+=	-fuse-ld=mold

@@ -12,7 +12,7 @@ _INCLUDE_USES_GTKDOC_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	gtk-doc:single:standard
+# BUILD_DEPENDS+=	gtk-doc:single:std
 # -----------------------------------------------
 
 GTKDOC_OUTPUT_BASEDIR?=	${NAMEBASE}

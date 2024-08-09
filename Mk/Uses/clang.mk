@@ -11,7 +11,7 @@ _INCLUDE_USES_CLANG_MK=	yes
 # -----------------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------------
-# BUILD_DEPENDS+=	clang:complete:standard
+# BUILD_DEPENDS+=	clang:complete:std
 # -----------------------------------------------------
 
 .if ${clang_ARGS:Mkeepcc}

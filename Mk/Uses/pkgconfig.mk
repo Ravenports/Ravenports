@@ -8,6 +8,6 @@
 _INCLUDE_USES_PKGCONFIG_MK=	yes
 
 # The logic is contained in ravenadm.
-# The presence of USES=pkgconfig loads pkgconf:single:standard
+# The presence of USES=pkgconfig loads pkgconf:single:std
 
 .endif

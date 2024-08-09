@@ -16,10 +16,10 @@
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${bdb_ARGS:Mbuild}
-# BUILD_DEPENDS+=	db{X}:dev:standard
+# BUILD_DEPENDS+=	db{X}:dev:std
 #.else
-# BUILD_DEPENDS+=	db{X}:dev:standard
-# BUILDRUN_DEPENDS+=	db{X}:primary:standard
+# BUILD_DEPENDS+=	db{X}:dev:std
+# BUILDRUN_DEPENDS+=	db{X}:primary:std
 #.endif
 # -----------------------------------------------
 

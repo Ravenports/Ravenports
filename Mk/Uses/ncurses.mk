@@ -16,10 +16,10 @@
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=       ncurses:dev:standard
-# BUILDRUN_DEPENDS+=	ncurses:terminfo:standard
+# BUILD_DEPENDS+=       ncurses:dev:std
+# BUILDRUN_DEPENDS+=	ncurses:terminfo:std
 #.if {ncurses_ARGS:Mbuildrun}
-# BUILDRUN_DEPENDS+=	ncurses:primary:standard
+# BUILDRUN_DEPENDS+=	ncurses:primary:std
 #.endif
 # -----------------------------------------------
 

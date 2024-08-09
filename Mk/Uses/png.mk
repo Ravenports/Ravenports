@@ -12,10 +12,10 @@ _INCLUDE_USES_PNG_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------------
 #.if ${png_ARGS:Mbuild}
-# BUILD_DEPENDS+=	png:dev:standard
+# BUILD_DEPENDS+=	png:dev:std
 #.else
-# BUILD_DEPENDS+=	png:dev:standard
-# BUILDRUN_DEPENDS+=	png:primary:standard
+# BUILD_DEPENDS+=	png:dev:std
+# BUILDRUN_DEPENDS+=	png:primary:std
 #.endif
 # -----------------------------------------------------
 

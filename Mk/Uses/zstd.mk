@@ -12,10 +12,10 @@ _INCLUDE_USES_ZSTD_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${zstd_ARGS:Mbuild}
-# BUILD_DEPENDS+=	zstd:dev:standard
+# BUILD_DEPENDS+=	zstd:dev:std
 #.else
-# BUILD_DEPENDS+=	zstd:dev:standard
-# BUILDRUN_DEPENDS+=	zstd:primary:standard
+# BUILD_DEPENDS+=	zstd:dev:std
+# BUILDRUN_DEPENDS+=	zstd:primary:std
 #.endif
 # -----------------------------------------------
 

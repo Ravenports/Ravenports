@@ -12,13 +12,13 @@ _INCLUDE_USES_BISON_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------------
 # if ARGS are none or :build (but not :run, :buildrun)
-# BUILD_DEPENDS+=	bison:primary:standard
+# BUILD_DEPENDS+=	bison:primary:std
 # -----------------------------------------------------
 # if ARGS contain :buildrun (or :build and :run)
-# BUILDRUN_DEPENDS+=   bison:primary:standard
+# BUILDRUN_DEPENDS+=   bison:primary:std
 # -----------------------------------------------------
 # if ARGS contains :run (and not :build, :buildrun)
-# RUN_DEPENDS+=        bison:primary:standard
+# RUN_DEPENDS+=        bison:primary:std
 # -----------------------------------------------------
 
 .endif

@@ -13,11 +13,11 @@ _INCLUDE_USES_TCL_MK=	yes
 # -----------------------------------------------
 #.if {tcl_ARGS:Mbuild}
 #  .if {tcl_ARGS:Mtk}
-#     BUILD_DEPENDS+=    tk:dev:standard   (pulls in tcl:dev)
-#     BUILD_DEPENDS+=    tk:tools:standard (pulls in tcl:tools)
+#     BUILD_DEPENDS+=    tk:dev:std   (pulls in tcl:dev)
+#     BUILD_DEPENDS+=    tk:tools:std (pulls in tcl:tools)
 #  .else
-#     BUILD_DEPENDS+=    tcl:dev:standard
-#     BUILD_DEPENDS+=    tcl:tools:standard
+#     BUILD_DEPENDS+=    tcl:dev:std
+#     BUILD_DEPENDS+=    tcl:tools:std
 #  .endif
 #.elsif {tcl_ARGS:Mrun}
 #  .if {tcl_ARGS:Mtk}
@@ -27,11 +27,11 @@ _INCLUDE_USES_TCL_MK=	yes
 #  .endif
 #.else
 #  .if {tcl_ARGS:Mtk}
-#     BUILD_DEPENDS+=    tk:dev:standard   (pulls in tcl:dev)
-#     BUILDRUN_DEPENDS+= tk:tools:standard (pulls in tcl:tools)
+#     BUILD_DEPENDS+=    tk:dev:std   (pulls in tcl:dev)
+#     BUILDRUN_DEPENDS+= tk:tools:std (pulls in tcl:tools)
 #  .else
-#     BUILD_DEPENDS+=    tcl:dev:standard
-#     BUILDRUN_DEPENDS+= tcl:tools:standard
+#     BUILD_DEPENDS+=    tcl:dev:std
+#     BUILDRUN_DEPENDS+= tcl:tools:std
 #  .endif
 #.endif
 # -----------------------------------------------

@@ -48,7 +48,7 @@ CARGO_CONFIG_ARGS?=
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	rust:single:standard
+# BUILD_DEPENDS+=	rust:single:std
 # -----------------------------------------------
 
 # Augments CARGO_ENV (taking care not to override)

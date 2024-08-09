@@ -11,10 +11,10 @@ _INCLUDE_USES_EXECINFO_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${zstd_ARGS:Mbuild}
-# BUILD_DEPENDS+=	libexecinfo:dev:standard
+# BUILD_DEPENDS+=	libexecinfo:dev:std
 #.else
-# BUILD_DEPENDS+=	libexecinfo:dev:standard
-# BUILDRUN_DEPENDS+=	libexecinfo:primary:standard
+# BUILD_DEPENDS+=	libexecinfo:dev:std
+# BUILDRUN_DEPENDS+=	libexecinfo:primary:std
 #.endif
 #
 # NOTE: On Darwin, this module is a no-op.

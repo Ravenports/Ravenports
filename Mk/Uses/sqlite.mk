@@ -11,10 +11,10 @@ _INCLUDE_USES_SQLITE_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${sqlite_ARGS:Mbuild}
-# BUILD_DEPENDS+=	sqlite:dev:standard
+# BUILD_DEPENDS+=	sqlite:dev:std
 #.else
-# BUILD_DEPENDS+=	sqlite:dev:standard
-# BUILDRUN_DEPENDS+=	sqlite:primary:standard
+# BUILD_DEPENDS+=	sqlite:dev:std
+# BUILDRUN_DEPENDS+=	sqlite:primary:std
 #.endif
 # -----------------------------------------------
 

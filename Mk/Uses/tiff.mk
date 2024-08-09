@@ -12,13 +12,13 @@ _INCLUDE_USES_TIFF_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------------
 #.if ${tiff_ARGS:Mbuild}
-# BUILD_DEPENDS+=	tiff:dev:standard
+# BUILD_DEPENDS+=	tiff:dev:std
 #.else
-# BUILD_DEPENDS+=	tiff:dev:standard
-# BUILDRUN_DEPENDS+=	tiff:primary:standard
+# BUILD_DEPENDS+=	tiff:dev:std
+# BUILDRUN_DEPENDS+=	tiff:primary:std
 #.endif
 # -----------------------------------------------------
 #
-# tiff:tools:standard must be explicitly lists
+# tiff:tools:std must be explicitly lists
 
 .endif

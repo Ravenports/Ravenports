@@ -3,7 +3,7 @@
 # Feature:		ninja
 # Usage:		USES=ninja
 #
-# Ravenadm sets ninja:single:standard
+# Ravenadm sets ninja:single:std
 #
 
 .if !defined(_INCLUDE_USES_NINJA_MK)
