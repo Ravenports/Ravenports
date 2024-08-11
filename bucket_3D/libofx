@@ -2,7 +2,7 @@
 
 NAMEBASE=		libofx
 VERSION=		0.10.9
-REVISION=		4
+REVISION=		5
 KEYWORDS=		finance
 VARIANTS=		std
 SDESC[std]=		Open Financial eXchange (OFX) Library
@@ -15,19 +15,22 @@ DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			dev
 			docs
+			man
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		libtool:single:std
-			gengetopt:primary:std
+BUILD_DEPENDS=		gengetopt:primary:std
 			help2man:primary:std
 			doxygen:primary:std
 BUILDRUN_DEPENDS=	OpenSP:single:std
+EXRUN[tools]=		primary
 
-USES=			cpe gmake iconv libtool pkgconfig gettext ssl curl
-			autoreconf:build
+USES=			cpe gmake iconv libtool:build pkgconfig gettext ssl
+			curl autoreconf:build
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -79,27 +82,26 @@ Future projects for LibOFX include:
  - OFX export
 
 
+[FILE:33:descriptions/desc.tools]
+This package contains OFX tools.
+
+
 [FILE:106:distinfo]
 ea9fa07759622ecc7f25b637fa8fb34d587af80607ca4389d25966a6a4f94ab9       251823 libofx-libofx-0.10.9.tar.gz
 
 
-[FILE:236:manifests/plist.primary]
-bin/
- ofx2qif
- ofxdump
+[FILE:53:manifests/plist.primary]
+lib/
+ libofx.so.%%SOMAJOR%%
+ libofx.so.%%SOVERSION%%
+
+
+[FILE:74:manifests/plist.dev]
 include/libofx/libofx.h
 lib/
  libofx.a
  libofx.so
- libofx.so.%%SOMAJOR%%
- libofx.so.%%SOVERSION%%
 lib/pkgconfig/libofx.pc
-share/libofx/dtd/
- ofc.dtd
- ofx160.dtd
- ofx201.dtd
- opensp.dcl
-share/man/man1/ofxdump.1.gz
 
 
 [FILE:8944:manifests/plist.docs]
@@ -464,6 +466,21 @@ share/doc/libofx/html/
  tree_8hh_source.html
  win32_8cpp_source.html
  win32_8hh_source.html
+
+
+[FILE:25:manifests/plist.man]
+share/man/man1/ofxdump.1
+
+
+[FILE:86:manifests/plist.tools]
+bin/
+ ofx2qif
+ ofxdump
+share/libofx/dtd/
+ ofc.dtd
+ ofx160.dtd
+ ofx201.dtd
+ opensp.dcl
 
 
 [FILE:443:patches/patch-configure.ac]

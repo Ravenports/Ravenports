@@ -2,6 +2,7 @@
 
 NAMEBASE=		mtr
 VERSION=		0.95
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std x11
 SDESC[std]=		Ping/Traceroute network diagnostic tool
@@ -13,8 +14,12 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/traviscross:mtr:v0.95
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
-SPKGS[x11]=		single
+SPKGS[std]=		set
+			primary
+			man
+SPKGS[x11]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	X11
 OPTIONS_STANDARD=	none
@@ -22,8 +27,8 @@ VOPTS[x11]=		X11=ON
 
 USES=			autoreconf pkgconfig ncurses
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"PROBE_H"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/packet/probe.h
@@ -40,7 +45,7 @@ LDFLAGS=		-lncurses
 [X11].CONFIGURE_WITH_BOTH=		gtk
 [X11].GNOME_COMPONENTS_ON=		gtk2
 
-[FILE:476:descriptions/desc.single]
+[FILE:476:descriptions/desc.primary]
 mtr combines the functionality of the 'traceroute' and 'ping' programs in a
 single network diagnostic tool.
 
@@ -55,14 +60,17 @@ machine. As it does this, it prints running statistics about each machine.
 12490fb660ba5fb34df8c06a0f62b4f9cbd11a584fc3f6eceda0a99124e8596f       144541 traviscross-mtr-0.95.tar.gz
 
 
-[FILE:104:manifests/plist.single]
+[FILE:61:manifests/plist.primary]
 sbin/
  mtr
  mtr-packet
 share/bash-completion/completions/mtr
+
+
+[FILE:37:manifests/plist.man]
 share/man/man8/
- mtr-packet.8.gz
- mtr.8.gz
+ mtr-packet.8
+ mtr.8
 
 
 [FILE:235:patches/patch-ui_cmdpipe.h]

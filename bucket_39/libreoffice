@@ -2,6 +2,7 @@
 
 NAMEBASE=		libreoffice
 VERSION=		24.2.5.2
+REVISION=		1
 KEYWORDS=		editors
 VARIANTS=		std
 SDESC[std]=		Free Software Productivity Suite
@@ -21,7 +22,9 @@ DISTFILE[5]=		skia-m116-2ddcf183eb260f63698aa74d1bb380f247ad7ccd.tar.xz:devwww
 DISTFILE[6]=		dragonbox-1.1.3.tar.gz:devwww
 DISTFILE[7]=		libcmis-0.6.1.tar.xz:devwww
 DF_INDEX=		1 2 3 4 5 6 7
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -50,23 +53,24 @@ BUILD_DEPENDS=		bash:primary:std
 			nspr:dev:std
 			nss:dev:std
 			openldap:dev:std
-			patch:single:std
+			patch:primary:std
 			perl-Archive-Zip:single:perl_default
 			poppler:dev:std
 			poppler:primary:std
 			poppler:cppdev:std
 			python-lxml:single:python_used
-			raptor:dev:std
 			sed:primary:std
-			ucpp:single:std
+			ucpp:tools:std
 			xmlsec:dev:std
-			zip:single:std
+			zip:primary:std
 			WebP:dev:std
 			frozen:single:std
 			unixODBC:dev:std
 			neon:dev:std
 			argon2:dev:std
 			zxcvbn-c:dev:std
+			redland:dev:std
+			hunspell:dev:std
 BUILDRUN_DEPENDS=	box2d:single:std
 			clucene:single:std
 			coinmp:single:std
@@ -104,7 +108,6 @@ BUILDRUN_DEPENDS=	box2d:single:std
 			nss:primary:std
 			openldap:client:std
 			poppler:cpp:std
-			raptor:primary:std
 			redland:primary:std
 			serf:single:std
 			xmlsec:primary:std
@@ -114,6 +117,7 @@ BUILDRUN_DEPENDS=	box2d:single:std
 			unixODBC:primary:std
 			argon2:primary:std
 			zxcvbn-c:primary:std
+			hunspell:primary:std
 RUN_DEPENDS=		fonts-crosextra-caladea:single:std
 			fonts-crosextra-carlito:single:std
 			fonts-dejavu:single:std
@@ -125,16 +129,16 @@ B_DEPS[linux]=		gpgme:dev:std gpgme:cppdev:std
 BR_DEPS[linux]=		gpgme:cpp:std
 
 USES=			autoreconf:build perl:build gmake curl jpeg
-			pkgconfig python zlib gnome-icons:single shebangfix
-			mime-info:single ssl mysql:client pgsql:client tiff
-			zstd expat execinfo cpe desktop-utils:single
+			pkgconfig python zlib gnome-icons:primary shebangfix
+			mime-info:primary ssl mysql:client pgsql:client tiff
+			zstd expat execinfo cpe desktop-utils:primary
 GNOME_COMPONENTS=	gtk3 libxslt
 XORG_COMPONENTS=	xaw xrandr
 
 EXTRACT_ONLY=		1 2
 
-LICENSE=		MPL:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		MPL:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		MPL:{{WRKSRC}}/COPYING.MPL
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/Library_merged.mk
@@ -290,7 +294,7 @@ post-patch-midnightbsd:
 	${REINPLACE_CMD} -e 's|$$ENV{TMPDIR};|"${WRKDIR}";|' \
 		${WRKSRC}/solenv/bin/ooinstall
 
-[FILE:444:descriptions/desc.single]
+[FILE:444:descriptions/desc.primary]
 LibreOffice is a powerful office suite -- its clean interface and
 feature-rich tools help you unleash your creativity and enhance your
 productivity. LibreOffice includes several applications that make it the
@@ -314,7 +318,7 @@ f543e6e2d7275557a839a164941c0a86e5f2c3f2a0042bfc434c88c6dde9e140       207992 f5
 d54d19d86153dbc88e2d468f7136269a2cfe71b73227e12fded01d29ac268074       490296 libcmis-0.6.1.tar.xz
 
 
-[FILE:77031:manifests/plist.single]
+[FILE:76854:manifests/plist.primary]
 bin/
  libreoffice
  lobase
@@ -3962,18 +3966,6 @@ share/icons/hicolor/scalable/apps/
  libreoffice-math.svg
  libreoffice-startcenter.svg
  libreoffice-writer.svg
-share/man/man1/
- libreoffice.1.gz
- lobase.1.gz
- localc.1.gz
- lodraw.1.gz
- loffice.1.gz
- lofromtemplate.1.gz
- loimpress.1.gz
- lomath.1.gz
- loweb.1.gz
- lowriter.1.gz
- unopkg.1.gz
 share/metainfo/
  libreoffice-base.appdata.xml
  libreoffice-calc.appdata.xml
@@ -3984,6 +3976,21 @@ share/metainfo/
 share/mime/packages/libreoffice.xml
 @dir lib/libreoffice/share/extensions
 @dir share/libreoffice/sdk/classes
+
+
+[FILE:144:manifests/plist.man]
+share/man/man1/
+ libreoffice.1
+ lobase.1
+ localc.1
+ lodraw.1
+ loffice.1
+ lofromtemplate.1
+ loimpress.1
+ lomath.1
+ loweb.1
+ lowriter.1
+ unopkg.1
 
 
 [FILE:190:patches/patch-Makefile.in]

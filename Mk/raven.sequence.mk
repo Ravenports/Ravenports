@@ -145,7 +145,7 @@ _STAGE_SEQ+=		700:post-install \
 			800:post-stage \
 			820:post-stage-option \
 			840:post-stage-opsys \
-			850:compress-man \
+			850:decompress-man \
 			860:install-rc-script \
 			870:install-smf-manifest \
 			880:install-license \

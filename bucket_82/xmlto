@@ -2,6 +2,7 @@
 
 NAMEBASE=		xmlto
 VERSION=		0.0.29
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Front-end to an XSL toolchain
@@ -15,13 +16,15 @@ DISTFILE[1]=		xmlto-0.0.29.tar.gz:main
 DISTFILE[2]=		xhtml2fo.xsl:xsl
 DIST_SUBDIR=		xmlto-2020
 DF_INDEX=		1 2
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libpaper:dev:std
-BUILDRUN_DEPENDS=	getopt:single:std
+BUILDRUN_DEPENDS=	getopt:primary:std
 			libpaper:primary:std
 			w3m:primary:std
 			docbook-xsl:primary:std
@@ -62,7 +65,7 @@ pre-configure:
 	${SED} -i'' -e 's|http://docbook.sourceforge.net/release/xsl/current|file://${LOCALBASE}/share/xsl/docbook|g' \
 		${WRKSRC}/format/docbook/* ${WRKSRC}/xmlto.in
 
-[FILE:458:descriptions/desc.single]
+[FILE:458:descriptions/desc.primary]
 xmlto is a front-end to an XSL toolchain. It chooses an appropriate
 stylesheet for the conversion you want and applies it using an external
 XSL-T processor.  It also performs any necessary post-processing.
@@ -79,13 +82,10 @@ For DVI, PDF and PostScript output, PassiveTeX is required.
 41632e8abb68ab62aa4da2df2c11023bbc1395c382a4ad07e1f30d750fed750c        69261 xmlto-2020/xhtml2fo.xsl
 
 
-[FILE:375:manifests/plist.single]
+[FILE:335:manifests/plist.primary]
 bin/
  xmlif
  xmlto
-share/man/man1/
- xmlif.1.gz
- xmlto.1.gz
 share/xmlto/
  xhtml2fo.xsl
  xmlto.mak
@@ -126,6 +126,12 @@ share/xmlto/format/xhtml1/
  ps
  svg
  txt
+
+
+[FILE:34:manifests/plist.man]
+share/man/man1/
+ xmlif.1
+ xmlto.1
 
 
 [FILE:662:patches/patch-xmlif_xmlif.c]

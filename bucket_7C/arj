@@ -2,7 +2,7 @@
 
 NAMEBASE=		arj
 VERSION=		3.10.22
-REVISION=		2
+REVISION=		3
 KEYWORDS=		archivers
 VARIANTS=		std
 SDESC[std]=		Free and portable clone of the ARJ archiver
@@ -15,15 +15,17 @@ SITES[debian]=		DEBIAN/pool/main/a/arj
 DISTFILE[1]=		arj-3.10.22.tar.gz:main
 DISTFILE[2]=		arj_3.10.22-24.debian.tar.xz:debian
 DF_INDEX=		1 2
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			autoreconf gmake
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/doc/COPYING
 LICENSE_SCHEME=		solo
 
@@ -62,38 +64,26 @@ post-extract:
 	${AWK} '/LICENSE POLICY/,EOF { print $0 }' \
 	${WRKSRC}/resource/en/arjl.txt > ${WRKDIR}/TERMS
 
-[FILE:545:descriptions/desc.single]
-This is open source implementation of the world-famous ARJ archiver.  This
-version has been created with an intent to preserve maximum compatibility
-and retain the feature set of the original ARJ archiver as provided by ARJ
-Software, Inc.
-
-New ARJ features on Unix-like platforms:
-
-  - Support for symbolic and hard links
-  - Archiving of special entities: pipes and devices
-  - Support for UID/GID storage in a variety of methods
-  - World's smallest native self-extracting modules
-  - Interoperability with ARJ for DOS, Windows, and OS/2 Warp
-
-
 [FILE:204:distinfo]
 589e4c9bccc8669e7b6d8d6fcd64e01f6a2c21fe10aad56a83304ecc3b96a7db       431467 arj-3.10.22.tar.gz
 f1b1bb1ad0deaa0ffb1e3cd600cac6c7e9e705cbd2d3bd577d3df160bbf8fde9        23016 arj_3.10.22-24.debian.tar.xz
 
 
-[FILE:131:manifests/plist.single]
+[FILE:60:manifests/plist.primary]
 bin/
  arj
  arj-register
  arjdisp
  rearj
 lib/arj/arjcrypt.so
+
+
+[FILE:59:manifests/plist.man]
 share/man/man1/
- arj-register.1.gz
- arj.1.gz
- arjdisp.1.gz
- rearj.1.gz
+ arj-register.1
+ arj.1
+ arjdisp.1
+ rearj.1
 
 
 [FILE:391:patches/patch-arjtypes.c]

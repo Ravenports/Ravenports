@@ -2,6 +2,7 @@
 
 NAMEBASE=		rpcbind
 VERSION=		1.2.7
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		Universal address to RPC program number mapper
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/rpcbind/rpcbind/1.2.7
 DISTFILE[1]=		rpcbind-1.2.7.tar.bz2:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	TIRPC
 OPTIONS_STANDARD=	TIRPC
@@ -22,7 +25,7 @@ ONLY_FOR_OPSYS=		linux
 
 USES=			cpe pkgconfig
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -34,9 +37,10 @@ CONFIGURE_ARGS=		--enable-warmstarts
 			--with-systemdsystemunitdir=no
 
 [TIRPC].DESCRIPTION=			Build with Ravenports tirpc library
-[TIRPC].BUILDRUN_DEPENDS_ON=		libtirpc:single:std
+[TIRPC].BUILDRUN_DEPENDS_ON=		libtirpc:primary:std
+[TIRPC].BUILD_DEPENDS_ON=		libtirpc:dev:std
 
-[FILE:161:descriptions/desc.single]
+[FILE:161:descriptions/desc.primary]
 The rpcbind utility is a server that converts RPC program numbers into 
 universal addresses. It's a replacement for portmap which was originally 
 used with NFS.
@@ -46,10 +50,13 @@ used with NFS.
 f6edf8cdf562aedd5d53b8bf93962d61623292bfc4d47eedd3f427d84d06f37e       125792 rpcbind-1.2.7.tar.bz2
 
 
-[FILE:69:manifests/plist.single]
+[FILE:25:manifests/plist.primary]
 bin/rpcinfo
 sbin/rpcbind
+
+
+[FILE:38:manifests/plist.man]
 share/man/man8/
- rpcbind.8.gz
- rpcinfo.8.gz
+ rpcbind.8
+ rpcinfo.8
 

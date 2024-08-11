@@ -2,6 +2,7 @@
 
 NAMEBASE=		bmake
 VERSION=		20240722
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std prevdbsd prevfbsd prevlinux
 SDESC[prevdbsd]=	BSD Make encoded for previous DragonFly sysroot
@@ -16,10 +17,18 @@ SITES[main]=		https://cdn.netbsd.org/pub/NetBSD/misc/sjg/
 			ftp://ftp.netbsd.org/pub/NetBSD/misc/sjg/
 DISTFILE[1]=		bmake-20240722.tar.gz:main
 DF_INDEX=		1
-SPKGS[prevdbsd]=	single
-SPKGS[std]=		single
-SPKGS[prevlinux]=	single
-SPKGS[prevfbsd]=	single
+SPKGS[prevdbsd]=	set
+			primary
+			man
+SPKGS[std]=		set
+			primary
+			man
+SPKGS[prevlinux]=	set
+			primary
+			man
+SPKGS[prevfbsd]=	set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	PREV_DBSD PREV_FBSD PREV_LINUX
 OPTIONS_STANDARD=	none
@@ -29,7 +38,7 @@ VOPTS[prevfbsd]=	PREV_DBSD=OFF PREV_FBSD=ON PREV_LINUX=OFF
 
 DISTNAME=		bmake
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKDIR}}/LICENSE
 LICENSE_AWK=		BSD3CLAUSE:"make.h --"
 LICENSE_SOURCE=		BSD3CLAUSE:{{WRKSRC}}/make.h
@@ -83,7 +92,7 @@ do-install:
 	${INSTALL_DATA} ${WRKSRC}/mk/sys/*.mk \
 		${STAGEDIR}${PREFIX}/share/mk/sys/
 
-[FILE:193:descriptions/desc.single]
+[FILE:193:descriptions/desc.primary]
 bmake is a portable version of NetBSD's make(1) utility,
 conveniently packaged using a configure script, for other environments
 which may lack NetBSD's libraries, regular expression code, etc.
@@ -93,9 +102,8 @@ which may lack NetBSD's libraries, regular expression code, etc.
 1654bd0cad284360849669a1e9a993181fed137896aac2694b82ea9a35f709e4       873877 bmake-20240722.tar.gz
 
 
-[FILE:925:manifests/plist.single]
+[FILE:899:manifests/plist.primary]
 bin/bmake
-share/man/man1/bmake.1.gz
 share/mk/
  auto.dep.mk
  auto.obj.mk
@@ -170,6 +178,10 @@ share/mk/sys/
  SCO_SV.mk
  SunOS.mk
  UnixWare.mk
+
+
+[FILE:23:manifests/plist.man]
+share/man/man1/bmake.1
 
 
 [FILE:638:patches/patch-main.c]

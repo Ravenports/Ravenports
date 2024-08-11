@@ -2,6 +2,7 @@
 
 NAMEBASE=		rspamd
 VERSION=		3.9.1
+REVISION=		1
 KEYWORDS=		mail
 VARIANTS=		std
 SDESC[std]=		Fast, free and open-source spam filtering system
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/vstakhov:rspamd:3.9.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,15 +24,16 @@ BUILD_DEPENDS=		libsodium:dev:std
 			ragel:primary:std
 			icu:dev:std
 			libarchive:dev:std
+			luajit:dev:std
 BUILDRUN_DEPENDS=	icu:primary:std
 			libsodium:primary:std
-			luajit:single:std
+			luajit:primary:std
 			libarchive:primary:std
 RUN_DEPENDS=		nss:caroot:std
 
 USERS=			rspamd
 GROUPS=			rspamd
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
 USES=			cmake perl:build pkgconfig sqlite ssl zlib pcre2
 GNOME_COMPONENTS=	glib
@@ -38,8 +42,8 @@ FPC_EQUIVALENT=		mail/rspamd
 
 PLIST_SUB=		RSPAMDVERSION=3.9.1
 			JQUERY=3.7.1
-RC_SUBR=		rspamd:single
-SUB_FILES=		messages-single.ucl
+RC_SUBR=		rspamd:primary
+SUB_FILES=		messages-primary.ucl
 			rspamd.newsyslog.conf.sample
 
 CMAKE_ARGS=		-DCONFDIR={{PREFIX}}/etc/rspamd
@@ -66,7 +70,7 @@ post-install:
 	${LN} -s etc/rspamd/rspamd.newsyslog.conf \
 		${STAGEDIR}${PREFIX}/etc/newsyslog.conf.d
 
-[FILE:160:descriptions/desc.single]
+[FILE:160:descriptions/desc.primary]
 Rspamd is fast, modular and lightweight spam filter. It is designed to work
 with big amount of mail and can be easily extended with own filters written
 in lua.
@@ -76,7 +80,7 @@ in lua.
 3c0e714389586b39def4fb809b0bff6436a1d605394ea3a591faff6e98b1ac2f      5980094 vstakhov-rspamd-3.9.1.tar.gz
 
 
-[FILE:6691:manifests/plist.single]
+[FILE:6620:manifests/plist.primary]
 @sample etc/rspamd/rspamd.newsyslog.conf.sample
 bin/
  rspamadm
@@ -186,10 +190,6 @@ lib/rspamd/
  librspamd-kann.so
  librspamd-replxx.so
  librspamd-server.so
-share/man/man1/
- rspamadm.1.gz
- rspamc.1.gz
-share/man/man8/rspamd.8.gz
 share/rspamd/effective_tld_names.dat
 share/rspamd/elastic/
  kibana.json
@@ -496,6 +496,13 @@ share/rspamd/www/js/lib/
 @dir /var/run/rspamd
 
 
+[FILE:62:manifests/plist.man]
+share/man/man1/
+ rspamadm.1
+ rspamc.1
+share/man/man8/rspamd.8
+
+
 [FILE:377:patches/patch-contrib_backward-cpp_backward.hpp]
 --- contrib/backward-cpp/backward.hpp.orig	2024-07-23 10:37:27 UTC
 +++ contrib/backward-cpp/backward.hpp
@@ -509,7 +516,7 @@ share/rspamd/www/js/lib/
  template <typename K, typename V> struct hashtable {
 
 
-[FILE:358:files/messages-single.ucl.in]
+[FILE:358:files/messages-primary.ucl.in]
 single: {
   type: "install"
   message: <<EOM

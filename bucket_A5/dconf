@@ -2,7 +2,7 @@
 
 NAMEBASE=		dconf
 VERSION=		0.40.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Configuration database system for GNOME
@@ -15,12 +15,15 @@ DISTFILE[1]=		dconf-0.40.0.tar.xz:main
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		docbook-xsl:primary:std
-			vala:single:std
+			vala:dev:std
+			vala:primary:std
 			dbus:dev:std
 BUILDRUN_DEPENDS=	dbus:primary:std
 
@@ -64,32 +67,38 @@ multiple configuration sources and mandatory keys.
 cf7f22a4c9200421d8d3325c5c1b8b93a36843650c9f95d6451e20f0bcb24533       117764 dconf-0.40.0.tar.xz
 
 
-[FILE:522:manifests/plist.primary]
+[FILE:283:manifests/plist.primary]
 bin/dconf
+lib/
+ libdconf.so.%%SOMAJOR%%
+ libdconf.so.%%SOVERSION%%
+lib/gio/modules/libdconfsettings.so
+lib/systemd/user/dconf.service
+libexec/dconf-service
+share/dbus-1/services/ca.desrt.dconf.service
+share/vala/vapi/
+ dconf.deps
+ dconf.vapi
+@dir etc/dconf/db
+@dir etc/dconf/profile
+
+
+[FILE:168:manifests/plist.dev]
 include/dconf/dconf.h
 include/dconf/client/dconf-client.h
 include/dconf/common/
  dconf-changeset.h
  dconf-enums.h
  dconf-paths.h
-lib/
- libdconf.so
- libdconf.so.%%SOMAJOR%%
- libdconf.so.%%SOVERSION%%
-lib/gio/modules/libdconfsettings.so
+lib/libdconf.so
 lib/pkgconfig/dconf.pc
-lib/systemd/user/dconf.service
-libexec/dconf-service
-share/dbus-1/services/ca.desrt.dconf.service
+
+
+[FILE:65:manifests/plist.man]
 share/man/man1/
- dconf-service.1.gz
- dconf.1.gz
-share/man/man7/dconf.7.gz
-share/vala/vapi/
- dconf.deps
- dconf.vapi
-@dir etc/dconf/db
-@dir etc/dconf/profile
+ dconf-service.1
+ dconf.1
+share/man/man7/dconf.7
 
 
 [FILE:648:patches/patch-docs_meson.build]

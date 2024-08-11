@@ -2,7 +2,7 @@
 
 NAMEBASE=		gconf
 VERSION=		3.2.6
-REVISION=		3
+REVISION=		4
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Configuration database system for GNOME
@@ -16,7 +16,9 @@ DIST_SUBDIR=		gnome2
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			dev
 			docs
+			man
 			nls
 
 OPTIONS_AVAILABLE=	none
@@ -24,6 +26,7 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		dbus:dev:std
 			polkit:dev:std
+			dbus-glib:dev:std
 BUILDRUN_DEPENDS=	dbus-glib:primary:std
 			polkit:primary:std
 
@@ -78,7 +81,7 @@ Some of the features of GConf are:
 1912b91803ab09a5eed34d364bf09fe3a2a9c96751fde03a4e0cfa51a04d784c      1559904 gnome2/GConf-3.2.6.tar.xz
 
 
-[FILE:1200:manifests/plist.primary]
+[FILE:670:manifests/plist.primary]
 bin/
  gconf-merge-tree
  gconftool-2
@@ -87,6 +90,24 @@ bin/
 etc/dbus-1/system.d/org.gnome.GConf.Defaults.conf
 etc/gconf/2/path
 etc/xdg/autostart/gsettings-data-convert.desktop
+lib/
+ libgconf-2.so.%%SOMAJOR%%
+ libgconf-2.so.%%SOVERSION%%
+lib/girepository-1.0/GConf-2.0.typelib
+libexec/
+ gconf-defaults-mechanism
+ gconfd-2
+share/dbus-1/services/org.gnome.GConf.service
+share/dbus-1/system-services/org.gnome.GConf.Defaults.service
+share/gir-1.0/GConf-2.0.gir
+share/polkit-1/actions/org.gnome.gconf.defaults.policy
+share/sgml/gconf/gconf-1.0.dtd
+@dir etc/gconf/gconf.xml.defaults
+@dir etc/gconf/gconf.xml.mandatory
+@dir etc/gconf/gconf.xml.system
+
+
+[FILE:441:manifests/plist.dev]
 include/gconf/2/gconf/
  gconf-changeset.h
  gconf-client.h
@@ -100,8 +121,6 @@ include/gconf/2/gconf/
 lib/
  libgconf-2.a
  libgconf-2.so
- libgconf-2.so.%%SOMAJOR%%
- libgconf-2.so.%%SOVERSION%%
 lib/GConf/2/
  libgconfbackend-oldxml.a
  libgconfbackend-oldxml.so
@@ -110,24 +129,8 @@ lib/GConf/2/
 lib/gio/modules/
  libgsettingsgconfbackend.a
  libgsettingsgconfbackend.so
-lib/girepository-1.0/GConf-2.0.typelib
 lib/pkgconfig/gconf-2.0.pc
-libexec/
- gconf-defaults-mechanism
- gconfd-2
 share/aclocal/gconf-2.m4
-share/dbus-1/services/org.gnome.GConf.service
-share/dbus-1/system-services/org.gnome.GConf.Defaults.service
-share/gir-1.0/GConf-2.0.gir
-share/man/man1/
- gconftool-2.1.gz
- gsettings-data-convert.1.gz
- gsettings-schema-convert.1.gz
-share/polkit-1/actions/org.gnome.gconf.defaults.policy
-share/sgml/gconf/gconf-1.0.dtd
-@dir etc/gconf/gconf.xml.defaults
-@dir etc/gconf/gconf.xml.mandatory
-@dir etc/gconf/gconf.xml.system
 
 
 [FILE:420:manifests/plist.docs]
@@ -153,6 +156,13 @@ share/doc/gconf/
  right.png
  style.css
  up.png
+
+
+[FILE:85:manifests/plist.man]
+share/man/man1/
+ gconftool-2.1
+ gsettings-data-convert.1
+ gsettings-schema-convert.1
 
 
 [FILE:3311:manifests/plist.nls]

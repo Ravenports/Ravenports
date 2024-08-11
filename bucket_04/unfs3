@@ -2,6 +2,7 @@
 
 NAMEBASE=		unfs3
 VERSION=		0.10.0
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		User-space implementation of the NFSv3 server spec
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/unfs3:unfs3:unfs3-0.10.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	TIRPC
 OPTIONS_STANDARD=	TIRPC
@@ -20,13 +23,13 @@ OPT_ON[linux]=		TIRPC/4.4
 
 ONLY_FOR_OPSYS=		linux
 
-RUN_DEPENDS=		rpcbind:single:std
+RUN_DEPENDS=		rpcbind:set:std
 
 USES=			autoreconf gmake pkgconfig
 
 DISTNAME=		unfs3-unfs3-0.10.0
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -35,12 +38,13 @@ MUST_CONFIGURE=		gnu
 SINGLE_JOB=		yes
 
 [TIRPC].DESCRIPTION=			Build with Ravenports tirpc library
-[TIRPC].BUILDRUN_DEPENDS_ON=		libtirpc:single:std
+[TIRPC].BUILDRUN_DEPENDS_ON=		libtirpc:primary:std
+[TIRPC].BUILD_DEPENDS_ON=		libtirpc:dev:std
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/sbin/unfsd
 
-[FILE:269:descriptions/desc.single]
+[FILE:269:descriptions/desc.primary]
 UNFS3 is a user-space implementation of the NFSv3 server specification.
 
 It supports all NFSv3 procedures with the exception of the READDIRPLUS 
@@ -52,8 +56,11 @@ possible, within the limits possible from user-space.
 3705c261bebe3b1ba2f5117ad812330b38e886e8a466e0cda374904435280361       109444 unfs3-unfs3-unfs3-0.10.0.tar.gz
 
 
-[FILE:62:manifests/plist.single]
+[FILE:11:manifests/plist.primary]
 sbin/unfsd
-share/man/man7/tags.7.gz
-share/man/man8/unfsd.8.gz
+
+
+[FILE:45:manifests/plist.man]
+share/man/man7/tags.7
+share/man/man8/unfsd.8
 

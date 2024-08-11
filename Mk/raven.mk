@@ -877,6 +877,22 @@ compress-man:
 	@${ECHO_MSG} "====> Man page compression complete"
 .endif
 
+.if !target(decompress-man)
+
+decompress-man:
+	@${ECHO_MSG} "====> Start decompressing man pages"
+	@mdirs= ; \
+	for dir in ${MANDIRS:S/^/${STAGEDIR}/} ; do \
+		[ -d $$dir ] && mdirs="$$mdirs $$dir" ;\
+	done ; \
+	for dir in $$mdirs; do \
+		${FIND} $$dir -type f -name "*.gz" -links 1 -exec ${GUNZIP_CMD} --verbose {} \; ; \
+	done
+	@${ECHO_MSG} "====> Man page decompression complete"
+
+.endif
+
+
 .if !target(install-rc-script)
 .undef RC_SUBR_USED
 .  for sp in ${SUBPACKAGES}

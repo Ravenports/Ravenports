@@ -2,6 +2,7 @@
 
 NAMEBASE=		vde2
 VERSION=		2.3.3
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		User-mode virtual ethernet infrastructure
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/virtualsquare:vde-2:v2.3.3
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -24,8 +28,8 @@ BUILDRUN_DEPENDS=	libpcap:primary:std
 
 USES=			autoreconf gmake libtool ssl
 
-LICENSE=		GPLv2+:single LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 			LGPL21+:{{WRKSRC}}/COPYING.libvdeplug
 LICENSE_AWK=		TERMS:"^$$"
@@ -55,22 +59,12 @@ post-install:
 	${LN} -sf vdeq.1 ${STAGEDIR}${MANPREFIX}/man/man1/vdeqemu.1
 	${LN} -sf vdeq.1 ${STAGEDIR}${MANPREFIX}/man/man1/vdekvm.1
 
-[FILE:312:descriptions/desc.single]
-Virtual Distributed Ethernet is a user-mode virtual network (layer2)
-infrastructure.  It can be used for network simulations, joining multiple
-qemu instances together in a shared virtual network, or tunneling over the
-Internet.  Physical hosts can be joined to the virtual network by means of
-the tap(4) driver.
-
-
 [FILE:111:distinfo]
 a7d2cc4c3d0c0ffe6aff7eb0029212f2b098313029126dcd12dc542723972379       234790 virtualsquare-vde-2-2.3.3.tar.gz
 
 
-[FILE:1107:manifests/plist.single]
-%%ONLY-LINUX%%lib/vde2/
- libvdetap.a
- libvdetap.so
+[FILE:457:manifests/plist.primary]
+%%ONLY-LINUX%%lib/vde2/libvdetap.so
 %%ONLY-LINUX%%libexec/vdetap
 bin/
  dpipe
@@ -91,6 +85,19 @@ etc/vde2/libvdemgmt/
  closemachine.rc
  openmachine.rc
  sendcmd.rc
+lib/
+ libvdehist.so.0
+ libvdehist.so.0.0.1
+ libvdemgmt.so.0
+ libvdemgmt.so.0.0.1
+ libvdeplug.so.3
+ libvdeplug.so.3.0.1
+ libvdesnmp.so.0
+ libvdesnmp.so.0.0.1
+
+
+[FILE:302:manifests/plist.dev]
+%%ONLY-LINUX%%lib/vde2/libvdetap.a
 include/
  libvdehist.h
  libvdemgmt.h
@@ -100,48 +107,43 @@ include/
 lib/
  libvdehist.a
  libvdehist.so
- libvdehist.so.0
- libvdehist.so.0.0.1
  libvdemgmt.a
  libvdemgmt.so
- libvdemgmt.so.0
- libvdemgmt.so.0.0.1
  libvdeplug.a
  libvdeplug.so
- libvdeplug.so.3
- libvdeplug.so.3.0.1
  libvdesnmp.a
  libvdesnmp.so
- libvdesnmp.so.0
- libvdesnmp.so.0.0.1
 lib/pkgconfig/
  vdehist.pc
  vdemgmt.pc
  vdeplug.pc
  vdesnmp.pc
+
+
+[FILE:307:manifests/plist.man]
 share/man/man1/
- dpipe.1.gz
- slirpvde.1.gz
- unixcmd.1.gz
- unixterm.1.gz
- vde_autolink.1.gz
- vde_cryptcab.1.gz
- vde_l3.1.gz
- vde_over_ns.1.gz
- vde_pcapplug.1.gz
- vde_plug.1.gz
- vde_plug2tap.1.gz
- vde_router.1.gz
- vde_switch.1.gz
- vde_vxlan.1.gz
- vdecmd.1.gz
- vdekvm.1.gz
- vdeq.1.gz
- vdeqemu.1.gz
- vdetaplib.1.gz
- vdeterm.1.gz
- wirefilter.1.gz
-share/man/man8/vde_tunctl.8.gz
+ dpipe.1
+ slirpvde.1
+ unixcmd.1
+ unixterm.1
+ vde_autolink.1
+ vde_cryptcab.1
+ vde_l3.1
+ vde_over_ns.1
+ vde_pcapplug.1
+ vde_plug.1
+ vde_plug2tap.1
+ vde_router.1
+ vde_switch.1
+ vde_vxlan.1
+ vdecmd.1
+ vdekvm.1
+ vdeq.1
+ vdeqemu.1
+ vdetaplib.1
+ vdeterm.1
+ wirefilter.1
+share/man/man8/vde_tunctl.8
 
 
 [FILE:656:patches/patch-configure.ac]

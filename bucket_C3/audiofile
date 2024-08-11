@@ -12,7 +12,11 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNOME/audiofile/0.3
 DISTFILE[1]=		audiofile-0.3.6.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,10 +24,10 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		flac:dev:std
 BUILDRUN_DEPENDS=	flac:primary:std
 
-USES=			cpe pkgconfig libtool c++:single
+USES=			cpe pkgconfig libtool c++:primary
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -39,7 +43,7 @@ post-extract:
 	${AWK} '/Audio File Library itself/,EOF' ${WRKSRC}/README\
 		> ${WRKDIR}/TERMS
 
-[FILE:987:descriptions/desc.single]
+[FILE:987:descriptions/desc.primary]
 The Audio File Library is a C-based library for reading and writing audio
 files in many common formats.
 
@@ -71,14 +75,22 @@ Supported compression formats:
 - ALAC (Apple Lossless Audio Codec)
 
 
+[FILE:42:descriptions/desc.tools]
+This package contains audiofile programs.
+
+
 [FILE:101:distinfo]
 ea2449ad3f201ec590d811db9da6d02ffc5e87a677d06b92ab15363d8cb59782       530760 audiofile-0.3.6.tar.xz
 
 
-[FILE:924:manifests/plist.single]
-bin/
- sfconvert
- sfinfo
+[FILE:65:manifests/plist.primary]
+lib/
+ libaudiofile.so.%%SOMAJOR%%
+ libaudiofile.so.%%SOVERSION%%
+
+
+[FILE:109:manifests/plist.dev]
+lib/pkgconfig/audiofile.pc
 include/
  af_vfs.h
  audiofile.h
@@ -86,44 +98,50 @@ include/
 lib/
  libaudiofile.a
  libaudiofile.so
- libaudiofile.so.%%SOMAJOR%%
- libaudiofile.so.%%SOVERSION%%
-lib/pkgconfig/audiofile.pc
+
+
+[FILE:24:manifests/plist.tools]
+bin/
+ sfconvert
+ sfinfo
+
+
+[FILE:632:manifests/plist.man]
 share/man/man1/
- sfconvert.1.gz
- sfinfo.1.gz
+ sfconvert.1
+ sfinfo.1
 share/man/man3/
- afCloseFile.3.gz
- afGetDataOffset.3.gz
- afGetFrameCount.3.gz
- afGetFrameSize.3.gz
- afGetTrackBytes.3.gz
- afInitAESChannelData.3.gz
- afInitAESChannelDataTo.3.gz
- afInitByteOrder.3.gz
- afInitChannels.3.gz
- afInitCompression.3.gz
- afInitFileFormat.3.gz
- afInitRate.3.gz
- afInitSampleFormat.3.gz
- afNewFileSetup.3.gz
- afOpenFile.3.gz
- afQuery.3.gz
- afQueryDouble.3.gz
- afQueryLong.3.gz
- afQueryPointer.3.gz
- afReadFrames.3.gz
- afReadMisc.3.gz
- afSeekFrame.3.gz
- afSeekMisc.3.gz
- afSetErrorHandler.3.gz
- afSetVirtualByteOrder.3.gz
- afSetVirtualChannels.3.gz
- afSetVirtualPCMMapping.3.gz
- afSetVirtualSampleFormat.3.gz
- afTellFrame.3.gz
- afWriteFrames.3.gz
- afWriteMisc.3.gz
+ afCloseFile.3
+ afGetDataOffset.3
+ afGetFrameCount.3
+ afGetFrameSize.3
+ afGetTrackBytes.3
+ afInitAESChannelData.3
+ afInitAESChannelDataTo.3
+ afInitByteOrder.3
+ afInitChannels.3
+ afInitCompression.3
+ afInitFileFormat.3
+ afInitRate.3
+ afInitSampleFormat.3
+ afNewFileSetup.3
+ afOpenFile.3
+ afQuery.3
+ afQueryDouble.3
+ afQueryLong.3
+ afQueryPointer.3
+ afReadFrames.3
+ afReadMisc.3
+ afSeekFrame.3
+ afSeekMisc.3
+ afSetErrorHandler.3
+ afSetVirtualByteOrder.3
+ afSetVirtualChannels.3
+ afSetVirtualPCMMapping.3
+ afSetVirtualSampleFormat.3
+ afTellFrame.3
+ afWriteFrames.3
+ afWriteMisc.3
 
 
 [FILE:2907:patches/patch-01_gcc6]

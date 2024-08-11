@@ -2,6 +2,7 @@
 
 NAMEBASE=		rsnapshot
 VERSION=		1.4.5
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		Local and remote filesystem snapshot utility
@@ -12,18 +13,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/rsnapshot:rsnapshot:1.4.5
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	rsync:single:std
+BUILDRUN_DEPENDS=	rsync:primary:std
 RUN_DEPENDS=		perl-Lchown:single:perl_default
 
 USES=			perl autoreconf
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^\# tabstop"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/rsnapshot-program.pl
@@ -36,7 +39,7 @@ MUST_CONFIGURE=		gnu
 post-extract:
 	(cd ${WRKSRC} && ${SH} ${WRKSRC}/autogen.sh)
 
-[FILE:267:descriptions/desc.single]
+[FILE:267:descriptions/desc.primary]
 rsnapshot is a filesystem snapshot utility based on rsync(1).
 rsnapshot makes it easy to make periodic snapshots of local machines,
 and remote machines over ssh. The code makes extensive use of hard links
@@ -47,12 +50,15 @@ whenever possible, to greatly reduce the disk space required.
 8ef500e2eaee85a37fb8000f73b3b1325569fcfe940a7e8ea66a8f243cb289a3       159092 rsnapshot-rsnapshot-1.4.5.tar.gz
 
 
-[FILE:112:manifests/plist.single]
+[FILE:59:manifests/plist.primary]
 bin/
  rsnapshot
  rsnapshot-diff
 etc/rsnapshot.conf.default
+
+
+[FILE:47:manifests/plist.man]
 share/man/man1/
- rsnapshot-diff.1.gz
- rsnapshot.1.gz
+ rsnapshot-diff.1
+ rsnapshot.1
 

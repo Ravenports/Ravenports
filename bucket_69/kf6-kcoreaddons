@@ -18,8 +18,14 @@ SPKGS[std]=		set
 			dev
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	NOTIFY
+OPTIONS_STANDARD=	NOTIFY
+OPT_ON[freebsd]=	NOTIFY
+OPT_ON[darwin]=		NOTIFY
+OPT_ON[netbsd]=		NOTIFY
+OPT_ON[openbsd]=	NOTIFY
+OPT_ON[dragonfly]=	NOTIFY
+OPT_ON[midnightbsd]=	NOTIFY
 
 BUILD_DEPENDS=		kf6-extra-cmake-modules:primary:std
 			qt6-qtbase:dev:std
@@ -28,12 +34,6 @@ BUILD_DEPENDS=		kf6-extra-cmake-modules:primary:std
 BUILDRUN_DEPENDS=	qt6-qtbase:primary:std
 			qt6-qtdeclarative:primary:std
 			qt6-qttools:primary:std
-BR_DEPS[freebsd]=	gamin:single:std libinotify:single:std
-BR_DEPS[darwin]=	gamin:single:std libinotify:single:std
-BR_DEPS[netbsd]=	gamin:single:std libinotify:single:std
-BR_DEPS[openbsd]=	gamin:single:std libinotify:single:std
-BR_DEPS[dragonfly]=	gamin:single:std libinotify:single:std
-BR_DEPS[midnightbsd]=	gamin:single:std libinotify:single:std
 
 USES=			cmake mime-info:primary gold
 C_USES[freebsd]=	clang
@@ -61,6 +61,11 @@ FPC_EQUIVALENT=		devel/kf6-kcoreaddons
 SOVERSION=		6.4.0
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
+
+[NOTIFY].DESCRIPTION=			Build with Inotify support
+[NOTIFY].BUILDRUN_DEPENDS_ON=		libinotify:primary:std
+					gamin:single:std
+[NOTIFY].BUILD_DEPENDS_ON=		libinotify:dev:std
 
 post-stage:
 	(cd ${STAGEDIR}${PREFIX}/lib && ${STRIP_CMD} libKF6CoreAddons.so \

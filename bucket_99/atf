@@ -2,6 +2,7 @@
 
 NAMEBASE=		atf
 VERSION=		0.21
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Automated Testing Framework
@@ -12,14 +13,18 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/jmmv/atf/releases/download/atf-0.21/
 DISTFILE[1]=		atf-0.21.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
+			atftests
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			libtool mbsdfix c++:single
+USES=			libtool mbsdfix c++:primary
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -33,7 +38,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-[FILE:746:descriptions/desc.single]
+[FILE:746:descriptions/desc.primary]
 The Automated Testing Framework (ATF) is a collection of libraries to
 implement test programs in a variety of languages.  At the moment, ATF
 offers C, C++ and POSIX shell bindings with which to implement tests.
@@ -52,8 +57,30 @@ The current runtime of choice is Kyua.
 92bc64180135eea8fe84c91c9f894e678767764f6dbc8482021d4dde09857505       567791 atf-0.21.tar.gz
 
 
-[FILE:1666:manifests/plist.single]
+[FILE:131:manifests/plist.primary]
 bin/atf-sh
+lib/
+ libatf-c++.so.2
+ libatf-c++.so.2.0.0
+ libatf-c.so.1
+ libatf-c.so.1.0.0
+libexec/atf-check
+share/atf/libatf-sh.subr
+
+
+[FILE:373:manifests/plist.dev]
+share/aclocal/
+ atf-c++.m4
+ atf-c.m4
+ atf-common.m4
+ atf-sh.m4
+lib/pkgconfig/
+ atf-c++.pc
+ atf-c.pc
+ atf-sh.pc
+lib/
+ libatf-c.a
+ libatf-c.so
 include/
  atf-c++.hpp
  atf-c.h
@@ -76,36 +103,25 @@ include/atf-c++/
 lib/
  libatf-c++.a
  libatf-c++.so
- libatf-c++.so.2
- libatf-c++.so.2.0.0
- libatf-c.a
- libatf-c.so
- libatf-c.so.1
- libatf-c.so.1.0.0
-lib/pkgconfig/
- atf-c++.pc
- atf-c.pc
- atf-sh.pc
-libexec/atf-check
-share/aclocal/
- atf-c++.m4
- atf-c.m4
- atf-common.m4
- atf-sh.m4
-share/atf/libatf-sh.subr
+
+
+[FILE:199:manifests/plist.man]
 share/man/man1/
- atf-check.1.gz
- atf-sh.1.gz
- atf-test-program.1.gz
+ atf-check.1
+ atf-sh.1
+ atf-test-program.1
 share/man/man3/
- atf-c++-api.3.gz
- atf-c++.3.gz
- atf-c-api.3.gz
- atf-c.3.gz
- atf-sh-api.3.gz
- atf-sh.3.gz
-share/man/man4/atf-test-case.4.gz
-share/man/man7/atf.7.gz
+ atf-c++-api.3
+ atf-c++.3
+ atf-c-api.3
+ atf-c.3
+ atf-sh-api.3
+ atf-sh.3
+share/man/man4/atf-test-case.4
+share/man/man7/atf.7
+
+
+[FILE:940:manifests/plist.atftests]
 tests/atf/Kyuafile
 tests/atf/atf-c/
  Kyuafile

@@ -2,6 +2,7 @@
 
 NAMEBASE=		jbig2dec
 VERSION=		0.20
+REVISION=		1
 KEYWORDS=		graphics devel
 VARIANTS=		std
 SDESC[std]=		JBIG2 decoder and library (monochrome documents)
@@ -12,15 +13,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/ArtifexSoftware/jbig2dec/releases/download/0.20/
 DISTFILE[1]=		jbig2dec-0.20.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+EXRUN[tools]=		primary
+
 USES=			autoreconf cpe libtool png ssl zlib
 
-LICENSE=		AGPLv3+:single
-LICENSE_TERMS=		single:{{WRKSRC}}/LICENSE
+LICENSE=		AGPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/LICENSE
 LICENSE_FILE=		AGPLv3+:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -37,7 +44,7 @@ SOVERSION=		0.0.0
 LDFLAGS=		-L{{OPENSSLLIB}}
 			-lcrypto
 
-[FILE:327:descriptions/desc.single]
+[FILE:327:descriptions/desc.primary]
 jbig2dec is a decoder implementation of the JBIG2 image compression format.
 JBIG2 is designed for lossy or lossless encoding of 'bilevel' (1-bit
 monochrome) images at moderately high resolution, and in particular scanned
@@ -45,18 +52,32 @@ paper documents.  In this domain it is very efficient, offering compression
 ratios on the order of 100:1.
 
 
+[FILE:40:descriptions/desc.tools]
+This package contains jbig2dec program.
+
+
 [FILE:99:distinfo]
 7b63ff6470289547e7a3a0f145cb8ea6c2afffdd65645b7d87d3b7febc96fb3a       497524 jbig2dec-0.20.tar.gz
 
 
-[FILE:178:manifests/plist.single]
-bin/jbig2dec
+[FILE:63:manifests/plist.primary]
+lib/
+ libjbig2dec.so.%%SOMAJOR%%
+ libjbig2dec.so.%%SOVERSION%%
+
+
+[FILE:78:manifests/plist.dev]
+lib/pkgconfig/jbig2dec.pc
 include/jbig2.h
 lib/
  libjbig2dec.a
  libjbig2dec.so
- libjbig2dec.so.%%SOMAJOR%%
- libjbig2dec.so.%%SOVERSION%%
-lib/pkgconfig/jbig2dec.pc
-share/man/man1/jbig2dec.1.gz
+
+
+[FILE:13:manifests/plist.tools]
+bin/jbig2dec
+
+
+[FILE:26:manifests/plist.man]
+share/man/man1/jbig2dec.1
 

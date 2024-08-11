@@ -2,6 +2,7 @@
 
 NAMEBASE=		libmikmod
 VERSION=		3.3.11.1
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		Portable MikMod sound module library
@@ -12,22 +13,28 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/mikmod/libmikmod/3.3.11.1/
 DISTFILE[1]=		libmikmod-3.3.11.1.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
+			info
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cpe gmake libtool pkgconfig mbsdfix
 
-LICENSE=		LGPL20+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL20+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL20+:{{WRKSRC}}/COPYING.LIB
 LICENSE_AWK=		TERMS:"ifndef _MIKMOD_H_"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/mikmod.h
 LICENSE_SCHEME=		solo
 
+INFO=			info:mikmod
 CPE_VENDOR=		raphael_assenat
 FPC_EQUIVALENT=		audio/libmikmod
+INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-esd
@@ -37,7 +44,7 @@ SOVERSION=		3.3.0
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libmikmod.so.3.3.0
 
-[FILE:199:descriptions/desc.single]
+[FILE:199:descriptions/desc.primary]
 Libmikmod is the library powering the portable Mikmod module audio player. 
 It supports the IT, XM, S3M, MTM, 669, STM, ULT, FAR, MED, AMF, DSM, IMF, 
 GDM, STX, OKT and of course MOD module formats.
@@ -47,16 +54,22 @@ GDM, STX, OKT and of course MOD module formats.
 ad9d64dfc8f83684876419ea7cd4ff4a41d8bcd8c23ef37ecb3a200a16b46d19      1240373 libmikmod-3.3.11.1.tar.gz
 
 
-[FILE:238:manifests/plist.single]
+[FILE:59:manifests/plist.primary]
+lib/
+ libmikmod.so.%%SOMAJOR%%
+ libmikmod.so.%%SOVERSION%%
+
+
+[FILE:124:manifests/plist.dev]
 bin/libmikmod-config
 include/mikmod.h
 lib/
  libmikmod.a
  libmikmod.so
- libmikmod.so.%%SOMAJOR%%
- libmikmod.so.%%SOVERSION%%
 lib/pkgconfig/libmikmod.pc
 share/aclocal/libmikmod.m4
-share/info/mikmod.info
-share/man/man1/libmikmod-config.1.gz
+
+
+[FILE:34:manifests/plist.man]
+share/man/man1/libmikmod-config.1
 

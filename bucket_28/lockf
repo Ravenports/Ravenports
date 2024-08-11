@@ -2,7 +2,7 @@
 
 NAMEBASE=		lockf
 VERSION=		1
-REVISION=		3
+REVISION=		4
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		FreeBSD's lockf command
@@ -10,14 +10,16 @@ HOMEPAGE=		https://www.freebsd.org/cgi/man.cgi?query=lockf
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	none
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 B_DEPS[sunos]=		libbsd4sol:single:std
 
-LICENSE=		BSD2CLAUSE:single
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKDIR}}/LICENSE_BSD
 LICENSE_AWK=		BSD2CLAUSE:"^$$"
 LICENSE_SOURCE=		BSD2CLAUSE:{{FILESDIR}}/lockf.c
@@ -27,7 +29,7 @@ VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
 			LDFLAGS=-lbsd
 
 do-extract:
-	@${MKDIR} ${WRKSRC}
+	${MKDIR} ${WRKSRC}
 	${CP} ${FILESDIR}/* ${WRKSRC}
 
 do-build:
@@ -37,15 +39,18 @@ do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/lockf   ${STAGEDIR}${PREFIX}/bin/
 	${INSTALL_MAN}     ${WRKSRC}/lockf.1 ${STAGEDIR}${MANPREFIX}/man/man1/
 
-[FILE:166:descriptions/desc.single]
+[FILE:166:descriptions/desc.primary]
 Imported from FreeBSD:
 The lockf utility acquires an exclusive lock on a file, creating it if
 necessary, and removing the file on exit unless explicitly told not to.
 
 
-[FILE:36:manifests/plist.single]
+[FILE:10:manifests/plist.primary]
 bin/lockf
-share/man/man1/lockf.1.gz
+
+
+[FILE:23:manifests/plist.man]
+share/man/man1/lockf.1
 
 
 [FILE:4078:files/lockf.1]

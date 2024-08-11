@@ -2,6 +2,7 @@
 
 NAMEBASE=		smpeg
 VERSION=		0.4.5
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		SDL MPEG video/audio player and library
@@ -13,17 +14,23 @@ SITES[main]=		http://ravenports.elderlinux.org/distcache/
 			https://leaf.dragonflybsd.org/~marino/orphaned-distfiles/
 DISTFILE[1]=		smpeg-0.4.5.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[tools]=		primary
 
 USES=			autoreconf gmake libtool pkgconfig
 GNOME_COMPONENTS=	gtk2
 SDL_COMPONENTS=		sdl1
 
-LICENSE=		LGPL20+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL20+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL20+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"This is the C interface"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/smpeg.h
@@ -46,20 +53,28 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libsmpeg-0.4.so.0.1.4
 
-[FILE:172:descriptions/desc.single]
+[FILE:172:descriptions/desc.primary]
 Smpeg is an mpeg decoding library, which runs on just about any platform. 
 It comes with two sample decoders, plaympeg (console, no UI), and gtv, a 
 simple GTK+ interface.
+
+
+[FILE:44:descriptions/desc.tools]
+This package contains the plaympeg program.
 
 
 [FILE:97:distinfo]
 d492e4963c99dc518e65fced1a3f077a45a8532bd066393f7901b1c46cd8b3ff       289708 smpeg-0.4.5.tar.xz
 
 
-[FILE:348:manifests/plist.single]
-bin/
- plaympeg
- smpeg-config
+[FILE:79:manifests/plist.primary]
+lib/
+ libsmpeg-%%PKGVER%%.so.%%SOMAJOR%%
+ libsmpeg-%%PKGVER%%.so.%%SOVERSION%%
+
+
+[FILE:221:manifests/plist.dev]
+bin/smpeg-config
 include/smpeg/
  MPEG.h
  MPEGaction.h
@@ -73,14 +88,19 @@ include/smpeg/
  MPEGvideo.h
  smpeg.h
 lib/
- libsmpeg-%%PKGVER%%.so.%%SOMAJOR%%
- libsmpeg-%%PKGVER%%.so.%%SOVERSION%%
  libsmpeg.a
  libsmpeg.so
 share/aclocal/smpeg.m4
+
+
+[FILE:13:manifests/plist.tools]
+bin/plaympeg
+
+
+[FILE:35:manifests/plist.man]
 share/man/man1/
- gtv.1.gz
- plaympeg.1.gz
+ gtv.1
+ plaympeg.1
 
 
 [FILE:657:patches/patch-configure.in]

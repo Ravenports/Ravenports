@@ -12,7 +12,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		XORG/individual/driver
 DISTFILE[1]=		xf86-input-synaptics-1.9.2.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -27,7 +30,7 @@ XORG_COMPONENTS=	xorgproto xtst
 
 DISTNAME=		xf86-input-synaptics-1.9.2
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -42,7 +45,7 @@ post-patch:
 	# disable evdev requirement on linux for now
 	${REINPLACE_CMD} -e '/BUILD_EVENTCOMM="yes"/d' ${WRKSRC}/configure
 
-[FILE:61:descriptions/desc.single]
+[FILE:61:descriptions/desc.primary]
 This package contains the X.Org xf86-input-synaptics driver.
 
 
@@ -50,18 +53,24 @@ This package contains the X.Org xf86-input-synaptics driver.
 b8fa4aab913fc63754bbd6439e020658c412743a055201ddf212760593962c38       432380 xf86-input-synaptics-1.9.2.tar.xz
 
 
-[FILE:253:manifests/plist.single]
+[FILE:107:manifests/plist.primary]
 bin/
  synclient
  syndaemon
-include/xorg/synaptics-properties.h
-lib/pkgconfig/xorg-synaptics.pc
 lib/xorg/modules/input/synaptics_drv.so
 share/X11/xorg.conf.d/70-synaptics.conf
+
+
+[FILE:68:manifests/plist.dev]
+include/xorg/synaptics-properties.h
+lib/pkgconfig/xorg-synaptics.pc
+
+
+[FILE:69:manifests/plist.man]
 share/man/man1/
- synclient.1.gz
- syndaemon.1.gz
-share/man/man4/synaptics.4.gz
+ synclient.1
+ syndaemon.1
+share/man/man4/synaptics.4
 
 
 [FILE:421:patches/patch-configure]

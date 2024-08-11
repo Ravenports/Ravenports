@@ -2,6 +2,7 @@
 
 NAMEBASE=		libsmi
 VERSION=		0.5.0
+REVISION=		1
 KEYWORDS=		net_mgmt
 VARIANTS=		std
 SDESC[std]=		Library to access SMI management information
@@ -13,19 +14,19 @@ SITES[main]=		https://www.ibr.cs.tu-bs.de/projects/libsmi/download/
 DISTFILE[1]=		libsmi-0.5.0.tar.gz:main
 DF_INDEX=		1
 SPKGS[std]=		set
-			library
+			primary
+			dev
 			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		wget:primary:std
-EXRUN[tools]=		wget:primary:std
-			libsmi:library:std
+EXRUN[tools]=		primary
 
 USES=			cpe gmake libtool pkgconfig mbsdfix
 
-LICENSE=		MIT:library
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -44,16 +45,6 @@ post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/aclocal
 	${RM} -r ${STAGEDIR}${PREFIX}/share/yang/site
 
-[FILE:382:descriptions/desc.library]
-The purpose of libsmi is to give network management applications a
-concise programmer-friendly interface to access MIB module information,
-separate the knowledge on SMI from the main parts of management
-applications, allow to add new kinds of MIB repositories without the need
-to adapt applications that make use of libsmi.
-
-This package contains only the library and header files.
-
-
 [FILE:387:descriptions/desc.tools]
 The purpose of libsmi is to give network management applications a
 concise programmer-friendly interface to access MIB module information,
@@ -68,30 +59,31 @@ This package contains simple tools that leverage the library.
 f21accdadb1bb328ea3f8a13fc34d715baac6e2db66065898346322c725754d3      4798883 libsmi-0.5.0.tar.gz
 
 
-[FILE:8410:manifests/plist.library]
+[FILE:53:manifests/plist.primary]
+lib/
+ libsmi.so.%%SOMAJOR%%
+ libsmi.so.%%SOVERSION%%
+
+
+[FILE:74:manifests/plist.dev]
 include/
  smi.h
  yang.h
 lib/
  libsmi.a
  libsmi.so
- libsmi.so.%%SOMAJOR%%
- libsmi.so.%%SOVERSION%%
 lib/pkgconfig/libsmi.pc
-share/man/man3/
- libsmi.3.gz
- smi_attribute.3.gz
- smi_class.3.gz
- smi_config.3.gz
- smi_event.3.gz
- smi_identity.3.gz
- smi_macro.3.gz
- smi_module.3.gz
- smi_node.3.gz
- smi_render.3.gz
- smi_type.3.gz
- smi_util.3.gz
- yang_node.3.gz
+
+
+[FILE:8132:manifests/plist.tools]
+bin/
+ smicache
+ smidiff
+ smidump
+ smilint
+ smiquery
+ smistrip
+ smixlate
 share/smi/mibs/iana/
  IANA-ADDRESS-FAMILY-NUMBERS-MIB
  IANA-BFD-TC-STD-MIB
@@ -542,21 +534,27 @@ share/yang/ietf/
 @dir share/smi/pibs/tubs
 
 
-[FILE:190:manifests/plist.tools]
-bin/
- smicache
- smidiff
- smidump
- smilint
- smiquery
- smistrip
- smixlate
+[FILE:286:manifests/plist.man]
 share/man/man1/
- smicache.1.gz
- smidiff.1.gz
- smidump.1.gz
- smilint.1.gz
- smiquery.1.gz
- smistrip.1.gz
- smixlate.1.gz
+ smicache.1
+ smidiff.1
+ smidump.1
+ smilint.1
+ smiquery.1
+ smistrip.1
+ smixlate.1
+share/man/man3/
+ libsmi.3
+ smi_attribute.3
+ smi_class.3
+ smi_config.3
+ smi_event.3
+ smi_identity.3
+ smi_macro.3
+ smi_module.3
+ smi_node.3
+ smi_render.3
+ smi_type.3
+ smi_util.3
+ yang_node.3
 

@@ -2,7 +2,7 @@
 
 NAMEBASE=		tidy
 VERSION=		5.8.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		www
 VARIANTS=		std
 SDESC[std]=		Console app to correct and clean up HTML and XML
@@ -13,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/htacg:tidy-html5:5.8.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,7 +24,7 @@ OPTIONS_STANDARD=	none
 USES=			cmake cpe
 GNOME_COMPONENTS=	libxslt
 
-LICENSE=		CUSTOM1:single
+LICENSE=		CUSTOM1:primary
 LICENSE_NAME=		CUSTOM1:"Tidy permissive license"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/README/LICENSE.txt
 LICENSE_SCHEME=		solo
@@ -39,7 +42,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/tidy
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtidy.${LIBEXT}
 
-[FILE:429:descriptions/desc.single]
+[FILE:429:descriptions/desc.primary]
 Tidy is a console application for Mac OS X, Linux, Windows, UNIX, and 
 more.  It corrects and cleans up HTML and XML documents by fixing markup
 errors and upgrading legacy code to modern standards.
@@ -54,8 +57,15 @@ servers, and more.
 59c86d5b2e452f63c5cdb29c866a12a4c55b1741d7025cf2f3ce0cde99b0660e      1015303 htacg-tidy-html5-5.8.0.tar.gz
 
 
-[FILE:191:manifests/plist.single]
+[FILE:62:manifests/plist.primary]
 bin/tidy
+lib/
+ libtidy.so.%%MAJOR%%
+ libtidy.so.%%SOVERSION%%
+
+
+[FILE:109:manifests/plist.dev]
+lib/pkgconfig/tidy.pc
 include/
  tidy.h
  tidybuffio.h
@@ -64,8 +74,8 @@ include/
 lib/
  libtidy.a
  libtidy.so
- libtidy.so.%%MAJOR%%
- libtidy.so.%%SOVERSION%%
-lib/pkgconfig/tidy.pc
-share/man/man1/tidy.1.gz
+
+
+[FILE:22:manifests/plist.man]
+share/man/man1/tidy.1
 

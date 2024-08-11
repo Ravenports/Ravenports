@@ -2,6 +2,7 @@
 
 NAMEBASE=		ucpp
 VERSION=		1.3.5
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		C preprocessor and lexer
@@ -12,14 +13,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITLAB/scarabeusiv:ucpp:1.3.5
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+EXRUN[tools]=		primary
+
 USES=			autoreconf gmake libtool
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -32,7 +39,7 @@ SOVERSION=		13.0.5
 
 VAR_OPSYS[sunos]=	CFLAGS=-D_XPG6
 
-[FILE:284:descriptions/desc.single]
+[FILE:284:descriptions/desc.primary]
 ucpp is a C preprocessor and lexer. It has the following goals:
 
   - Strict conformance to the C99 standard (with switches to
@@ -42,12 +49,22 @@ ucpp is a C preprocessor and lexer. It has the following goals:
     directly)
 
 
+[FILE:40:descriptions/desc.tools]
+This package contains the ucpp program.
+
+
 [FILE:108:distinfo]
 2a4d7d78b70a5b82c226a463a41e2e225e84296178f1637421c4aeace1e5df29        92981 scarabeusiv-ucpp-1.3.5.tar.gz
 
 
-[FILE:217:manifests/plist.single]
-bin/ucpp
+[FILE:55:manifests/plist.primary]
+lib/
+ libucpp.so.%%SOMAJOR%%
+ libucpp.so.%%SOVERSION%%
+
+
+[FILE:133:manifests/plist.dev]
+lib/pkgconfig/libucpp.pc
 include/libucpp/
  cpp.h
  hash.h
@@ -59,10 +76,14 @@ include/libucpp/
 lib/
  libucpp.a
  libucpp.so
- libucpp.so.%%SOMAJOR%%
- libucpp.so.%%SOVERSION%%
-lib/pkgconfig/libucpp.pc
-share/man/man1/ucpp.1.gz
+
+
+[FILE:9:manifests/plist.tools]
+bin/ucpp
+
+
+[FILE:22:manifests/plist.man]
+share/man/man1/ucpp.1
 
 
 [FILE:416:patches/patch-src_cpp.c]

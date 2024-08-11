@@ -2,6 +2,7 @@
 
 NAMEBASE=		xorg-driver-video-intel
 VERSION=		2.99.917.923
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		x11_drivers
 VARIANTS=		std
@@ -13,7 +14,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://gitlab.freedesktop.org/xorg/driver/xf86-video-intel/-/archive/
 DISTFILE[1]=		b74b67f0f321875492968f7097b9d6e82a66d7df.tar.bz2:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	SNA UXA XVMC
 OPTIONS_STANDARD=	SNA UXA XVMC
@@ -34,7 +38,7 @@ XORG_COMPONENTS=	xorgproto x11 xfont2 xvmc xcb
 
 DISTNAME=		xf86-video-intel-b74b67f0f321875492968f7097b9d6e82a66d7df
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -82,7 +86,7 @@ pre-configure-dragonfly:
 		${WRKSRC}/src/sna/sna.h	\
 		${WRKSRC}/src/sna/sna_accel.c
 
-[FILE:531:descriptions/desc.single]
+[FILE:531:descriptions/desc.primary]
 The xf86-video-intel module is an open-source 2D graphics driver for
 the X Window System as implemented by X.org. It supports a variety of
 Intel graphics chipsets including:
@@ -103,18 +107,25 @@ Intel graphics chipsets including:
 cc4855308af8eedd414c60f0638ef19e1b695e83f9dc1d62146cdab3d5915aba      1250201 b74b67f0f321875492968f7097b9d6e82a66d7df.tar.bz2
 
 
-[FILE:324:manifests/plist.single]
+[FILE:265:manifests/plist.primary]
 %%ONLY-LINUX%%libexec/xf86-video-intel-backlight-helper
 %%ONLY-LINUX%%share/polkit-1/actions/org.x.xf86-video-intel.backlight-helper.policy
 lib/
- libI810XvMC.so
  libI810XvMC.so.1
  libI810XvMC.so.1.0.0
- libIntelXvMC.so
  libIntelXvMC.so.1
  libIntelXvMC.so.1.0.0
 lib/xorg/modules/drivers/intel_drv.so
-share/man/man4/intel.4.gz
+
+
+[FILE:38:manifests/plist.dev]
+lib/
+ libI810XvMC.so
+ libIntelXvMC.so
+
+
+[FILE:23:manifests/plist.man]
+share/man/man4/intel.4
 
 
 [FILE:1201:patches/patch-benchmarks_dri3-swap.c]

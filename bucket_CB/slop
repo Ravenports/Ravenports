@@ -2,7 +2,7 @@
 
 NAMEBASE=		slop
 VERSION=		7.6
-REVISION=		2
+REVISION=		3
 KEYWORDS=		graphics x11
 VARIANTS=		std
 SDESC[std]=		Query for a selection and print to stdout
@@ -13,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/naelstrof:slop:v7.6
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -29,8 +32,8 @@ BUILDRUN_DEPENDS=	glew:primary:std
 USES=			cmake
 XORG_COMPONENTS=	xrender xext
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKSRC}}/license.txt
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/license.txt
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -42,7 +45,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/slop
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libslopy.so
 
-[FILE:1150:descriptions/desc.single]
+[FILE:1150:descriptions/desc.primary]
 slop (Select Operation) is an application that querys for a selection
 from the user and prints the region to stdout. It grabs the mouse and
 turns it into a crosshair, lets the user click and drag to make a
@@ -72,13 +75,18 @@ Features:
 ec45f9a69d7a24df621f5c634d202451ddca987d550cf588c5c427b99106fb6b       198605 naelstrof-slop-7.6.tar.gz
 
 
-[FILE:96:manifests/plist.single]
+[FILE:39:manifests/plist.primary]
 bin/slop
+lib/libslopy.so.%%SOVERSION%%
+
+
+[FILE:33:manifests/plist.dev]
 include/slop.hpp
-lib/
- libslopy.so
- libslopy.so.%%SOVERSION%%
-share/man/man1/slop.1.gz
+lib/libslopy.so
+
+
+[FILE:22:manifests/plist.man]
+share/man/man1/slop.1
 
 
 [FILE:532:patches/patch-CMakeLists.txt]

@@ -2,6 +2,7 @@
 
 NAMEBASE=		uchardet
 VERSION=		0.0.8
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Universal charset detection
@@ -12,15 +13,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.freedesktop.org/software/uchardet/releases/
 DISTFILE[1]=		uchardet-0.0.8.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cmake c++:single
+EXRUN[tools]=		primary
 
-LICENSE=		MPL:single GPLv2+:single LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+USES=			cmake c++:primary
+
+LICENSE=		MPL:primary GPLv2+:primary LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		MPL:{{WRKSRC}}/COPYING
 			GPLv2+:stock
 			LGPL21+:stock
@@ -36,7 +43,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/uchardet
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libuchardet.${LIBEXT}
 
-[FILE:453:descriptions/desc.single]
+[FILE:453:descriptions/desc.primary]
 uchardet is an encoding detection library, which takes a sequence
 of bytes in an unknown character encoding without any additional
 information, and attempts to determine the encoding of the text.
@@ -47,23 +54,37 @@ of the universal charset detection library by Mozilla. It can now
 detect more charsets, and more reliably than the original implementation.
 
 
+[FILE:44:descriptions/desc.tools]
+This package contains the uchardet program.
+
+
 [FILE:100:distinfo]
 e97a60cfc00a1c147a674b097bb1422abd9fa78a2d9ce3f3fdcc2e78a34ac5f0       222648 uchardet-0.0.8.tar.xz
 
 
-[FILE:320:manifests/plist.single]
-bin/uchardet
-include/uchardet/uchardet.h
+[FILE:63:manifests/plist.primary]
 lib/
- libuchardet.a
- libuchardet.so
  libuchardet.so.%%SOMAJOR%%
  libuchardet.so.%%SOVERSION%%
+
+
+[FILE:220:manifests/plist.dev]
 lib/cmake/uchardet/
  uchardet-config-version.cmake
  uchardet-config.cmake
  uchardet-targets-release.cmake
  uchardet-targets.cmake
 lib/pkgconfig/uchardet.pc
-share/man/man1/uchardet.1.gz
+include/uchardet/uchardet.h
+lib/
+ libuchardet.a
+ libuchardet.so
+
+
+[FILE:13:manifests/plist.tools]
+bin/uchardet
+
+
+[FILE:26:manifests/plist.man]
+share/man/man1/uchardet.1
 

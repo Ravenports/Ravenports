@@ -105,8 +105,12 @@ DISTFILE[45]=		generated:cslowfs
 DISTFILE[46]=		generated:fancyindex
 DISTFILE[47]=		generated:naxsi
 DF_INDEX=		1
-SPKGS[std]=		single
-SPKGS[loaded]=		single
+SPKGS[std]=		set
+			primary
+			man
+SPKGS[loaded]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	LOADED
 OPTIONS_STANDARD=	none
@@ -114,11 +118,11 @@ VOPTS[loaded]=		LOADED=ON
 
 USERS=			{{WWWOWN}}
 GROUPS=			{{WWWGRP}}
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
 USES=			cpe ssl zlib pcre iconv:build
 
-LICENSE=		BSD2CLAUSE:single
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -169,8 +173,8 @@ PLIST_SUB=		WWWOWN={{WWWOWN}}
 			WWWGRP={{WWWGRP}}
 			NGINX_TMPDIR=/var/tmp/nginx
 			NGINX_LOGDIR=/var/log/nginx
-RC_SUBR=		nginx:single
-SUB_FILES=		messages-single.ucl
+RC_SUBR=		nginx:primary
+SUB_FILES=		messages-primary.ucl
 SUB_LIST=		WWWOWN={{WWWOWN}}
 			WWWGRP={{WWWGRP}}
 			NGINX_TMPDIR=/var/tmp/nginx
@@ -182,8 +186,9 @@ VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-file-aio
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-file-aio
 
 [LOADED].DESCRIPTION=			All options enabled (heavy dependencies)
-[LOADED].BUILDRUN_DEPENDS_ON=		libmaxminddb:single:std
+[LOADED].BUILDRUN_DEPENDS_ON=		libmaxminddb:primary:std
 					libGD:single:std
+[LOADED].BUILD_DEPENDS_ON=		libmaxminddb:dev:std
 [LOADED].CONFIGURE_ARGS_OFF=		--without-mail_imap_module
 					--without-mail_pop3_module
 					--without-mail_smtp_module
@@ -342,7 +347,7 @@ do-install:
 	(cd ${WRKSRC}/objs/ && ${FIND} . -depth -maxdepth 1 -name '*.so' -type f \
 		-exec ${INSTALL_PROGRAM} {} ${STAGEDIR}${PREFIX}/libexec/nginx \;)
 
-[FILE:351:descriptions/desc.single.std]
+[FILE:351:descriptions/desc.primary.std]
 NGINX is a high performance edge web server with the lowest memory
 footprint and the key features to build modern and efficient web
 infrastructure.
@@ -352,7 +357,7 @@ caching, load balancing, compression, request throttling, connection
 multiplexing and reuse, SSL offload and HTTP media streaming.
 
 
-[FILE:3222:descriptions/desc.single.loaded]
+[FILE:3222:descriptions/desc.primary.loaded]
 NGINX is a high performance edge web server with the lowest memory
 footprint and the key features to build modern and efficient web
 infrastructure.
@@ -457,7 +462,7 @@ c3dd84d8ba0b8daeace3041ef5987e3fb96e9c7c17df30c9ffe2fe3aa2a0ca31        29052 ap
 68d95628bdb3e0da12e94ea05f7e088129d35b2fc43ecc74e5de380226833457       236940 nbs-system-naxsi-d714f16.tar.gz
 
 
-[FILE:549:manifests/plist.single.std]
+[FILE:523:manifests/plist.primary.std]
 @sample etc/nginx/fastcgi_params-dist etc/nginx/fastcgi_params
 @sample etc/nginx/mime.types-dist etc/nginx/mime.types
 @sample etc/nginx/nginx.conf-dist etc/nginx/nginx.conf
@@ -471,7 +476,6 @@ libexec/nginx/
  ngx_mail_module.so
  ngx_stream_module.so
 sbin/nginx
-share/man/man8/nginx.8.gz
 www/nginx-dist/
  50x.html
  EXAMPLE_DIRECTORY-DONT_ADD_OR_TOUCH_ANYTHING
@@ -480,7 +484,11 @@ www/nginx-dist/
 @dir %%NGINX_TMPDIR%%
 
 
-[FILE:1229:manifests/plist.single.loaded]
+[FILE:23:manifests/plist.man]
+share/man/man8/nginx.8
+
+
+[FILE:1203:manifests/plist.primary.loaded]
 @sample etc/nginx/fastcgi_params-dist etc/nginx/fastcgi_params
 @sample etc/nginx/mime.types-dist etc/nginx/mime.types
 @sample etc/nginx/nginx.conf-dist etc/nginx/nginx.conf
@@ -518,7 +526,6 @@ libexec/nginx/
  ngx_stream_js_module.so
  ngx_stream_module.so
 sbin/nginx
-share/man/man8/nginx.8.gz
 www/nginx-dist/
  50x.html
  EXAMPLE_DIRECTORY-DONT_ADD_OR_TOUCH_ANYTHING
@@ -976,7 +983,7 @@ www/nginx-dist/
      NGX_COMPAT_BEGIN(32)
 
 
-[FILE:677:files/messages-single.ucl.in]
+[FILE:677:files/messages-primary.ucl.in]
 primary: {
   type: "install"
   message: <<EOM
@@ -1135,7 +1142,7 @@ nginx_precmd()
 run_rc_command "$1"
 
 
-[FILE:589:files/scripts-single.ucl]
+[FILE:589:files/scripts-primary.ucl]
 post-install-lua: [{
     args: ""
     code: <<EOS

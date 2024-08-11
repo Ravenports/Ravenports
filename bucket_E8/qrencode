@@ -2,6 +2,7 @@
 
 NAMEBASE=		qrencode
 VERSION=		4.1.1
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		C library for encoding data in a QR Code symbol
@@ -12,15 +13,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/fukuchi:libqrencode:v4.1.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+EXRUN[tools]=		primary
+
 USES=			cmake iconv png pkgconfig zlib:build
 
-LICENSE=		LGPL21:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^\#if"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/qrencode.c
@@ -38,7 +45,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libqrencode.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/qrencode
 
-[FILE:467:descriptions/desc.single]
+[FILE:467:descriptions/desc.primary]
 Libqrencode is a C library for encoding data in a QR Code symbol, a kind of
 2D symbology that can be scanned by handy terminals such as a mobile phone
 with CCD. The capacity of QR Code is up to 7000 digits or 4000 characters,
@@ -51,17 +58,30 @@ not supported:
     * QR Code model 1
 
 
+[FILE:44:descriptions/desc.tools]
+This package contains the qrencode program.
+
+
 [FILE:111:distinfo]
 5385bc1b8c2f20f3b91d258bf8ccc8cf62023935df2d2676b5b67049f31a049c       190419 fukuchi-libqrencode-4.1.1.tar.gz
 
 
-[FILE:169:manifests/plist.single]
-bin/qrencode
-include/qrencode.h
+[FILE:63:manifests/plist.primary]
 lib/
- libqrencode.so
  libqrencode.so.%%SOMAJOR%%
  libqrencode.so.%%SOVERSION%%
+
+
+[FILE:67:manifests/plist.dev]
 lib/pkgconfig/libqrencode.pc
-share/man/man1/qrencode.1.gz
+include/qrencode.h
+lib/libqrencode.so
+
+
+[FILE:13:manifests/plist.tools]
+bin/qrencode
+
+
+[FILE:26:manifests/plist.man]
+share/man/man1/qrencode.1
 

@@ -15,21 +15,22 @@ DISTFILE[1]=		upower-v1.90.4.tar.gz:main
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			dev
 			nls
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		automake:primary:std
 			docbook-xsl:primary:std
-			libtool:single:std
 			polkit:dev:std
 BUILDRUN_DEPENDS=	dbus-glib:primary:std
 			polkit:primary:std
 B_DEPS[linux]=		libgudev:dev:std libusb:dev:std
 BR_DEPS[linux]=		libgudev:primary:std libusb:primary:std
 
-USES=			meson pkgconfig shebangfix
+USES=			meson pkgconfig shebangfix libtool:build
 GNOME_COMPONENTS=	glib intltool introspection
 
 DISTNAME=		upower-v1.90.4
@@ -103,7 +104,7 @@ mail to the DeviceKit mailing list for discussion.
 cd194dd278bd8d058b4728efd1d0a91cdf017378f025b558beb6f60a86af4781       181952 upower-v1.90.4.tar.gz
 
 
-[FILE:1210:manifests/plist.primary]
+[FILE:939:manifests/plist.primary]
 %%ONLY-LINUX%%/etc/udev/hwdb.d/95-upower-hid.hwdb
 %%ONLY-LINUX%%/etc/udev/rules.d/
  95-upower-hid.rules
@@ -122,6 +123,22 @@ cd194dd278bd8d058b4728efd1d0a91cdf017378f025b558beb6f60a86af4781       181952 up
 %%ONLY-LINUX%%share/installed-tests/upower/upower-integration.test
 bin/upower
 etc/UPower/UPower.conf
+lib/
+ libupower-glib.so.%%SOMAJOR%%
+ libupower-glib.so.%%SOVERSION%%
+lib/girepository-1.0/UPowerGlib-1.0.typelib
+libexec/upowerd
+share/dbus-1/interfaces/
+ org.freedesktop.UPower.Device.xml
+ org.freedesktop.UPower.KbdBacklight.xml
+ org.freedesktop.UPower.xml
+share/dbus-1/system-services/org.freedesktop.UPower.service
+share/dbus-1/system.d/org.freedesktop.UPower.conf
+share/gir-1.0/UPowerGlib-1.0.gir
+@dir var/lib/upower
+
+
+[FILE:192:manifests/plist.dev]
 include/libupower-glib/
  up-autocleanups.h
  up-client.h
@@ -131,24 +148,8 @@ include/libupower-glib/
  up-types.h
  up-version.h
  upower.h
-lib/
- libupower-glib.so
- libupower-glib.so.%%SOMAJOR%%
- libupower-glib.so.%%SOVERSION%%
-lib/girepository-1.0/UPowerGlib-1.0.typelib
+lib/libupower-glib.so
 lib/pkgconfig/upower-glib.pc
-libexec/upowerd
-share/dbus-1/interfaces/
- org.freedesktop.UPower.Device.xml
- org.freedesktop.UPower.KbdBacklight.xml
- org.freedesktop.UPower.xml
-share/dbus-1/system-services/org.freedesktop.UPower.service
-share/dbus-1/system.d/org.freedesktop.UPower.conf
-share/gir-1.0/UPowerGlib-1.0.gir
-share/man/man1/upower.1.gz
-share/man/man7/UPower.7.gz
-share/man/man8/upowerd.8.gz
-@dir var/lib/upower
 
 
 [FILE:152:manifests/plist.nls]
@@ -156,6 +157,12 @@ share/locale/fr/LC_MESSAGES/upower.mo
 share/locale/it/LC_MESSAGES/upower.mo
 share/locale/pl/LC_MESSAGES/upower.mo
 share/locale/sv/LC_MESSAGES/upower.mo
+
+
+[FILE:73:manifests/plist.man]
+share/man/man1/upower.1
+share/man/man7/UPower.7
+share/man/man8/upowerd.8
 
 
 [FILE:300:patches/patch-meson.build]

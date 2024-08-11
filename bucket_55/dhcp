@@ -2,6 +2,7 @@
 
 NAMEBASE=		dhcp
 VERSION=		4.4.3.P1
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		ISC DHCP Server and Relay Agent
@@ -15,7 +16,9 @@ DF_INDEX=		1
 SPKGS[std]=		set
 			server
 			client
+			dev
 			relay
+			man
 
 OPTIONS_AVAILABLE=	BINLEASES DHCP4O6 LDAP BIND_SYMBOLS BSD
 OPTIONS_STANDARD=	BINLEASES DHCP4O6 LDAP BIND_SYMBOLS BSD
@@ -146,11 +149,22 @@ This subpackage contains the DHCP relay agent.
 0ac416bb55997ca8632174fd10737fd61cdb8dba2752160a335775bc21dc73c7     10081055 dhcp-4.4.3-P1.tar.gz
 
 
-[FILE:497:manifests/plist.server]
+[FILE:141:manifests/plist.server]
 @sample etc/dhcpd.conf.example etc/dhcpd.conf
 %%LDAP-ON%%bin/dhcpd-conf-to-ldap
 %%LDAP-ON%%share/isc-dhcp/dhcp.schema
 bin/omshell
+sbin/dhcpd
+
+
+[FILE:85:manifests/plist.client]
+@sample etc/dhclient.conf.example etc/dhclient.conf
+sbin/
+ dhclient
+ dhclient-script
+
+
+[FILE:173:manifests/plist.dev]
 include/dhcpctl/dhcpctl.h
 include/omapip/
  alloc.h
@@ -166,35 +180,29 @@ lib/
  libdhcp.a
  libdhcpctl.a
  libomapi.a
-sbin/dhcpd
-share/man/man1/omshell.1.gz
-share/man/man3/
- dhcpctl.3.gz
- omapi.3.gz
-share/man/man5/
- dhcp-eval.5.gz
- dhcp-options.5.gz
- dhcpd.conf.5.gz
- dhcpd.leases.5.gz
-share/man/man8/dhcpd.8.gz
 
 
-[FILE:196:manifests/plist.client]
-@sample etc/dhclient.conf.example etc/dhclient.conf
-sbin/
- dhclient
- dhclient-script
-share/man/man5/
- dhclient.conf.5.gz
- dhclient.leases.5.gz
-share/man/man8/
- dhclient-script.8.gz
- dhclient.8.gz
-
-
-[FILE:43:manifests/plist.relay]
+[FILE:14:manifests/plist.relay]
 sbin/dhcrelay
-share/man/man8/dhcrelay.8.gz
+
+
+[FILE:240:manifests/plist.man]
+share/man/man1/omshell.1
+share/man/man3/
+ dhcpctl.3
+ omapi.3
+share/man/man5/
+ dhclient.conf.5
+ dhclient.leases.5
+ dhcp-eval.5
+ dhcp-options.5
+ dhcpd.conf.5
+ dhcpd.leases.5
+share/man/man8/
+ dhclient-script.8
+ dhclient.8
+ dhcpd.8
+ dhcrelay.8
 
 
 [FILE:560:patches/patch-bind_Makefile.in]

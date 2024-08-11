@@ -2,6 +2,7 @@
 
 NAMEBASE=		synth
 VERSION=		3.01
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		Custom package repository builder for FreeBSD
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/jrmarino:synth:v3.01
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	WATCHDOG
 OPTIONS_STANDARD=	WATCHDOG
@@ -24,7 +27,7 @@ BUILD_DEPENDS=		adacurses:primary:std
 
 USES=			gprbuild ncurses
 
-LICENSE=		ISCL:single
+LICENSE=		ISCL:primary
 LICENSE_FILE=		ISCL:{{WRKSRC}}/License.txt
 LICENSE_SCHEME=		solo
 
@@ -71,7 +74,7 @@ do-install:
 	# synth expects pkg to be at ${PREFIX}/sbin/pkg so symlink to it
 	(cd ${STAGEDIR}${PREFIX}/sbin && ln -s /usr/local/sbin/pkg)
 
-[FILE:1155:descriptions/desc.single]
+[FILE:1155:descriptions/desc.primary]
 Synth is a custom packge repository builder for FreeBSD and DragonFly.
 
 It is intended to replace Portmaster, portupgrade, and poudriere for
@@ -100,12 +103,11 @@ Synth requires no preparation; it works immediately upon installation.
 4a286367a5e03c6e654567ca86822cd7b0315d15f6f178013455d35a8a947a1f       172307 jrmarino-synth-3.01.tar.gz
 
 
-[FILE:277:manifests/plist.single]
+[FILE:251:manifests/plist.primary]
 bin/synth
 etc/bash_completion.d/_synth.bash
 libexec/synthexec
 sbin/pkg
-share/man/man1/synth.1.gz
 share/synth/
  favicon.png
  progress.css
@@ -116,6 +118,10 @@ share/synth/
 share/zsh/site-functions/_synth
 @dir /var/log/synth
 @dir /var/synth/live_packages
+
+
+[FILE:23:manifests/plist.man]
+share/man/man1/synth.1
 
 
 [FILE:595:files/extrapatch-nowatchdog-portscan-buildcycle.adb]

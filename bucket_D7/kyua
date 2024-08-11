@@ -2,6 +2,7 @@
 
 NAMEBASE=		kyua
 VERSION=		0.13
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Testing framework for infrastructure software
@@ -12,21 +13,25 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/jmmv/kyua/releases/download/kyua-0.13/
 DISTFILE[1]=		kyua-0.13.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			tests
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		atf:dev:std
 BUILDRUN_DEPENDS=	lutok:primary:std
-			atf:single:std
+			atf:primary:std
 
 USERS=			tests
 GROUPS=			rpnobody
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
 USES=			lua pkgconfig sqlite
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -46,7 +51,7 @@ post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 	${RM} -r ${STAGEDIR}${STD_EXAMPLESDIR}
 
-[FILE:867:descriptions/desc.single]
+[FILE:867:descriptions/desc.primary]
 Kyua is a testing framework for infrastructure software, originally
 designed to equip BSD-based operating systems with a test suite.  This
 means that Kyua is lightweight and simple, and that Kyua integrates well
@@ -65,11 +70,15 @@ was originally designed, but simple, framework-less test programs and
 TAP-compliant test programs can also be executed through Kyua.
 
 
+[FILE:54:descriptions/desc.tests]
+This package contains individual kyua test fragments.
+
+
 [FILE:95:distinfo]
 db6e5d341d5cf7e49e50aa361243e19087a00ba33742b0855d2685c0b8e721d6       663776 kyua-0.13.tar.gz
 
 
-[FILE:3296:manifests/plist.single]
+[FILE:187:manifests/plist.primary]
 @sample etc/kyua/kyua.conf.sample
 bin/kyua
 share/kyua/misc/
@@ -81,22 +90,9 @@ share/kyua/store/
  migrate_v1_v2.sql
  migrate_v2_v3.sql
  schema_v3.sql
-share/man/man1/
- kyua-about.1.gz
- kyua-config.1.gz
- kyua-db-exec.1.gz
- kyua-db-migrate.1.gz
- kyua-debug.1.gz
- kyua-help.1.gz
- kyua-list.1.gz
- kyua-report-html.1.gz
- kyua-report-junit.1.gz
- kyua-report.1.gz
- kyua-test.1.gz
- kyua.1.gz
-share/man/man5/
- kyua.conf.5.gz
- kyuafile.5.gz
+
+
+[FILE:2829:manifests/plist.tests]
 tests/kyua/Kyuafile
 tests/kyua/bootstrap/
  Kyuafile
@@ -277,6 +273,25 @@ tests/kyua/utils/text/
  regex_test
  table_test
  templates_test
+
+
+[FILE:238:manifests/plist.man]
+share/man/man1/
+ kyua-about.1
+ kyua-config.1
+ kyua-db-exec.1
+ kyua-db-migrate.1
+ kyua-debug.1
+ kyua-help.1
+ kyua-list.1
+ kyua-report-html.1
+ kyua-report-junit.1
+ kyua-report.1
+ kyua-test.1
+ kyua.1
+share/man/man5/
+ kyua.conf.5
+ kyuafile.5
 
 
 [FILE:762:patches/patch-utils_datetime.cpp]

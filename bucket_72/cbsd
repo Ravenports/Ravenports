@@ -12,7 +12,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/cbsd:cbsd:v14.1.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -23,21 +25,22 @@ BUILD_DEPENDS=		elftoolchain:dev:std
 			libssh2:dev:std
 			curl:dev:std
 			file:dev:std
+			libedit:dev:std
 BUILDRUN_DEPENDS=	libssh2:primary:std
-			libedit:single:std
+			libedit:primary:std
 			file:primary:std
 			curl:primary:std
-RUN_DEPENDS=		rsync:single:std
+RUN_DEPENDS=		rsync:set:std
 			sudo:set:std
 			nss:caroot:std
 
 USERS=			cbsd
 GROUPS=			cbsd
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
 USES=			pkgconfig:buildrun ssl cmake sqlite
 
-LICENSE=		BSD2CLAUSE:single
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -46,12 +49,12 @@ FPC_EQUIVALENT=		sysutils/cbsd
 SINGLE_JOB=		yes
 
 MANDIRS=		{{PREFIX}}/cbsd/man
-RC_SUBR=		cbsdd:single
-			cbsdrsyncd:single
-			cbsd-statsd-bhyve:single
-			cbsd-statsd-hoster:single
-			cbsd-statsd-jail:single
-SUB_FILES=		messages-single.ucl
+RC_SUBR=		cbsdd:primary
+			cbsdrsyncd:primary
+			cbsd-statsd-bhyve:primary
+			cbsd-statsd-hoster:primary
+			cbsd-statsd-jail:primary
+SUB_FILES=		messages-primary.ucl
 
 post-install:
 	# Add symbolic link
@@ -98,7 +101,7 @@ post-extract:
 	${INSTALL_DATA} ${FILESDIR}/CM_sbin.txt \
 		${WRKSRC}/sbin/CMakeLists.txt
 
-[FILE:496:descriptions/desc.single]
+[FILE:496:descriptions/desc.primary]
 CBSD is a management layer written for the FreeBSD jail(8) subsystem, bhyve
 and Xen. The project is positioned as a single integrated tool of
 comprehensive solution for building and deploying virtual environments
@@ -113,7 +116,7 @@ the CLI using the underlying utilities (Not that you would want to!)
 a6dd2c110fcc887fd867ad1c2a2a075cc2eb908a7f419a32f7cd49682410409e      6594226 cbsd-cbsd-14.1.0.tar.gz
 
 
-[FILE:30410:manifests/plist.single]
+[FILE:30370:manifests/plist.primary]
 @sample cbsd/cbsd.conf.sample
 @sample cbsd/etc/modules.conf.sample
 @sample cbsd/etc/spice.conf.sample
@@ -512,11 +515,11 @@ cbsd/jailctl/
  jupgrade
  jwhereis
 cbsd/man/
- cbsd-jconstruct-tui.8.gz
- cbsd-jdescr.8.gz
- cbsd-jlogin.8.gz
- cbsd-jls.8.gz
- cbsd.8.gz
+ cbsd-jconstruct-tui.8
+ cbsd-jdescr.8
+ cbsd-jlogin.8
+ cbsd-jls.8
+ cbsd.8
 cbsd/misc/
  cbsd_dot
  cbsd_fwatch
@@ -1486,7 +1489,6 @@ cbsd/xenctl/
  xunregister
  xwhereis
 libexec/bsdconfig/cbsd
-share/man/man8/cbsd.8.gz
 @dir cbsd/share/bhyve-system-default/create.d
 @dir cbsd/share/bhyve-system-default/facts.d
 @dir cbsd/share/bhyve-system-default/master_create.d
@@ -1533,6 +1535,10 @@ share/man/man8/cbsd.8.gz
 @dir cbsd/share/xen-system-default/remove.d
 @dir cbsd/share/xen-system-default/start.d
 @dir cbsd/share/xen-system-default/stop.d
+
+
+[FILE:22:manifests/plist.man]
+share/man/man8/cbsd.8
 
 
 [FILE:267:patches/patch-bin_cbsdsh_jail.c]
@@ -2393,7 +2399,7 @@ load_rc_config "$name"
 run_rc_command "$1"
 
 
-[FILE:817:files/messages-single.ucl.in]
+[FILE:817:files/messages-primary.ucl.in]
 single: {
   type: "install"
   message: <<EOM

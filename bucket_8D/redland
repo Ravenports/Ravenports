@@ -2,7 +2,7 @@
 
 NAMEBASE=		redland
 VERSION=		1.0.17
-REVISION=		1
+REVISION=		3
 KEYWORDS=		textproc
 VARIANTS=		std bdb mysql pgsql virtuoso
 SDESC[pgsql]=		RDF Application Framework (PostgreSQL backend)
@@ -17,13 +17,27 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://download.librdf.org/source/
 DISTFILE[1]=		redland-1.0.17.tar.gz:main
 DF_INDEX=		1
-SPKGS[pgsql]=		single
-SPKGS[mysql]=		single
+SPKGS[pgsql]=		set
+			primary
+			dev
+			man
+SPKGS[mysql]=		set
+			primary
+			dev
+			man
 SPKGS[std]=		set
 			primary
+			dev
 			docs
-SPKGS[virtuoso]=	single
-SPKGS[bdb]=		single
+			man
+SPKGS[virtuoso]=	set
+			primary
+			dev
+			man
+SPKGS[bdb]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	BDB MYSQL PGSQL VIRTUOSO NOTSTD
 OPTIONS_STANDARD=	none
@@ -33,9 +47,12 @@ VOPTS[virtuoso]=	BDB=OFF MYSQL=OFF PGSQL=OFF VIRTUOSO=ON NOTSTD=ON
 VOPTS[bdb]=		BDB=ON MYSQL=OFF PGSQL=OFF VIRTUOSO=OFF NOTSTD=ON
 
 BUILD_DEPENDS=		raptor:dev:std
+			rasqal:dev:std
 BUILDRUN_DEPENDS=	libltdl:single:std
 			rasqal:primary:std
 			raptor:primary:std
+EXRUN[dev]=		rasqal:dev:std
+			raptor:dev:std
 
 USES=			gmake libtool perl:build pkgconfig shebangfix
 			mbsdfix
@@ -98,59 +115,23 @@ required.
 This package contains the standard variant (sqlite backend).
 
 
-[FILE:434:descriptions/desc.single.bdb]
-Redland is a set of libraries that provide a high-level interface for RDF
-allowing the model to be stored, queried and manipulated. Redland implements
-each of the RDF model concepts in its own class and provides an object based
-API for them. Some of the classes providing the parsers, storage mechanisms
-and other elements are built as modules that can be added or removed as
-required.
-
-This package contains the BDB-backend variant.
-
-
-[FILE:436:descriptions/desc.single.mysql]
-Redland is a set of libraries that provide a high-level interface for RDF
-allowing the model to be stored, queried and manipulated. Redland implements
-each of the RDF model concepts in its own class and provides an object based
-API for them. Some of the classes providing the parsers, storage mechanisms
-and other elements are built as modules that can be added or removed as
-required.
-
-This package contains the MySQL-backend variant.
-
-
-[FILE:441:descriptions/desc.single.pgsql]
-Redland is a set of libraries that provide a high-level interface for RDF
-allowing the model to be stored, queried and manipulated. Redland implements
-each of the RDF model concepts in its own class and provides an object based
-API for them. Some of the classes providing the parsers, storage mechanisms
-and other elements are built as modules that can be added or removed as
-required.
-
-This package contains the PostgreSQL-backend variant.
-
-
-[FILE:439:descriptions/desc.single.virtuoso]
-Redland is a set of libraries that provide a high-level interface for RDF
-allowing the model to be stored, queried and manipulated. Redland implements
-each of the RDF model concepts in its own class and provides an object based
-API for them. Some of the classes providing the parsers, storage mechanisms
-and other elements are built as modules that can be added or removed as
-required.
-
-This package contains the Virtuoso-backend variant.
-
-
 [FILE:100:distinfo]
 de1847f7b59021c16bdc72abb4d8e2d9187cd6124d69156f3326dd34ee043681      1621566 redland-1.0.17.tar.gz
 
 
-[FILE:636:manifests/plist.primary.std]
+[FILE:130:manifests/plist.primary.std]
 bin/
  rdfproc
- redland-config
  redland-db-upgrade
+lib/
+ librdf.so.0
+ librdf.so.0.0.0
+lib/redland/librdf_storage_sqlite.so
+share/redland/Redland.i
+
+
+[FILE:404:manifests/plist.dev.std]
+bin/redland-config
 include/
  librdf.h
  rdf_concepts.h
@@ -176,18 +157,8 @@ include/
 lib/
  librdf.a
  librdf.so
- librdf.so.0
- librdf.so.0.0.0
 lib/pkgconfig/redland.pc
-lib/redland/
- librdf_storage_sqlite.%%SHARED_OBJECT%%
- librdf_storage_sqlite.a
-share/man/man1/
- rdfproc.1.gz
- redland-config.1.gz
- redland-db-upgrade.1.gz
-share/man/man3/redland.3.gz
-share/redland/Redland.i
+lib/redland/librdf_storage_sqlite.a
 
 
 [FILE:1259:manifests/plist.docs.std]
@@ -246,52 +217,26 @@ share/doc/redland/
  up.png
 
 
-[FILE:557:manifests/plist.single.bdb]
+[FILE:92:manifests/plist.man]
+share/man/man1/
+ rdfproc.1
+ redland-config.1
+ redland-db-upgrade.1
+share/man/man3/redland.3
+
+
+[FILE:93:manifests/plist.primary.bdb]
 bin/
  rdfproc
- redland-config
  redland-db-upgrade
-include/
- librdf.h
- rdf_concepts.h
- rdf_digest.h
- rdf_hash.h
- rdf_init.h
- rdf_iterator.h
- rdf_list.h
- rdf_log.h
- rdf_model.h
- rdf_node.h
- rdf_parser.h
- rdf_query.h
- rdf_raptor.h
- rdf_serializer.h
- rdf_statement.h
- rdf_storage.h
- rdf_storage_module.h
- rdf_stream.h
- rdf_uri.h
- rdf_utf8.h
- redland.h
 lib/
- librdf.a
- librdf.so
  librdf.so.0
  librdf.so.0.0.0
-lib/pkgconfig/redland.pc
-share/man/man1/
- rdfproc.1.gz
- redland-config.1.gz
- redland-db-upgrade.1.gz
-share/man/man3/redland.3.gz
 share/redland/Redland.i
 
 
-[FILE:664:manifests/plist.single.mysql]
-bin/
- rdfproc
- redland-config
- redland-db-upgrade
+[FILE:368:manifests/plist.dev.bdb]
+bin/redland-config
 include/
  librdf.h
  rdf_concepts.h
@@ -317,28 +262,25 @@ include/
 lib/
  librdf.a
  librdf.so
+lib/pkgconfig/redland.pc
+
+
+[FILE:159:manifests/plist.primary.mysql]
+bin/
+ rdfproc
+ redland-db-upgrade
+lib/
  librdf.so.0
  librdf.so.0.0.0
-lib/pkgconfig/redland.pc
-lib/redland/
- librdf_storage_mysql.%%SHARED_OBJECT%%
- librdf_storage_mysql.a
-share/man/man1/
- rdfproc.1.gz
- redland-config.1.gz
- redland-db-upgrade.1.gz
-share/man/man3/redland.3.gz
+lib/redland/librdf_storage_mysql.so
 share/redland/
  Redland.i
  mysql-v1.ttl
  mysql-v2.ttl
 
 
-[FILE:644:manifests/plist.single.pgsql]
-bin/
- rdfproc
- redland-config
- redland-db-upgrade
+[FILE:403:manifests/plist.dev.mysql]
+bin/redland-config
 include/
  librdf.h
  rdf_concepts.h
@@ -364,25 +306,23 @@ include/
 lib/
  librdf.a
  librdf.so
+lib/pkgconfig/redland.pc
+lib/redland/librdf_storage_mysql.a
+
+
+[FILE:149:manifests/plist.primary.pgsql]
+bin/
+ rdfproc
+ redland-db-upgrade
+lib/
  librdf.so.0
  librdf.so.0.0.0
-lib/pkgconfig/redland.pc
-lib/redland/
- librdf_storage_postgresql.%%SHARED_OBJECT%%
- librdf_storage_postgresql.a
-share/man/man1/
- rdfproc.1.gz
- redland-config.1.gz
- redland-db-upgrade.1.gz
-share/man/man3/redland.3.gz
+lib/redland/librdf_storage_postgresql.%%SHARED_OBJECT%%
 share/redland/Redland.i
 
 
-[FILE:640:manifests/plist.single.virtuoso]
-bin/
- rdfproc
- redland-config
- redland-db-upgrade
+[FILE:408:manifests/plist.dev.pgsql]
+bin/redland-config
 include/
  librdf.h
  rdf_concepts.h
@@ -408,18 +348,50 @@ include/
 lib/
  librdf.a
  librdf.so
+lib/pkgconfig/redland.pc
+lib/redland/librdf_storage_postgresql.a
+
+
+[FILE:147:manifests/plist.primary.virtuoso]
+bin/
+ rdfproc
+ redland-db-upgrade
+lib/
  librdf.so.0
  librdf.so.0.0.0
-lib/pkgconfig/redland.pc
-lib/redland/
- librdf_storage_virtuoso.%%SHARED_OBJECT%%
- librdf_storage_virtuoso.a
-share/man/man1/
- rdfproc.1.gz
- redland-config.1.gz
- redland-db-upgrade.1.gz
-share/man/man3/redland.3.gz
+lib/redland/librdf_storage_virtuoso.%%SHARED_OBJECT%%
 share/redland/Redland.i
+
+
+[FILE:406:manifests/plist.dev.virtuoso]
+bin/redland-config
+include/
+ librdf.h
+ rdf_concepts.h
+ rdf_digest.h
+ rdf_hash.h
+ rdf_init.h
+ rdf_iterator.h
+ rdf_list.h
+ rdf_log.h
+ rdf_model.h
+ rdf_node.h
+ rdf_parser.h
+ rdf_query.h
+ rdf_raptor.h
+ rdf_serializer.h
+ rdf_statement.h
+ rdf_storage.h
+ rdf_storage_module.h
+ rdf_stream.h
+ rdf_uri.h
+ rdf_utf8.h
+ redland.h
+lib/
+ librdf.a
+ librdf.so
+lib/pkgconfig/redland.pc
+lib/redland/librdf_storage_virtuoso.a
 
 
 [FILE:415:patches/patch-src_rdf__storage__mysql.c]

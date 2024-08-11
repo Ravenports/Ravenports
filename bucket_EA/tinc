@@ -2,45 +2,51 @@
 
 NAMEBASE=		tinc
 VERSION=		1.0.36
+REVISION=		1
 KEYWORDS=		net security
 VARIANTS=		std
 SDESC[std]=		Virtual Private Network (VPN) daemon
 HOMEPAGE=		https://tinc-vpn.org/
-CONTACT=		Leonid_Bobrov[goleo@disroot.org]
+CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		https://tinc-vpn.org/packages/
 DISTFILE[1]=		tinc-1.0.36.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
+			info
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USERS=			tinc
 GROUPS=			tinc
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
 USES=			cpe makeinfo ssl zlib lzo
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:stock
 LICENSE_AWK=		TERMS:"^\#include"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/bsd/tunemu.c
 LICENSE_SCHEME=		solo
 
+INFO=			info:tinc
 CPE_VENDOR=		tinc-vpn
 FPC_EQUIVALENT=		security/tinc
+INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
 
-RC_SUBR=		tincd:single
+RC_SUBR=		tincd:primary
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/tinc
 
-[FILE:865:descriptions/desc.single]
+[FILE:865:descriptions/desc.primary]
 tinc is a Virtual Private Network (VPN) daemon that uses tunnelling and
 encryption to create a secure private network between hosts on the 
 Internet.
@@ -64,12 +70,14 @@ and in general better responsiveness and throughput.
 40f73bb3facc480effe0e771442a706ff0488edea7a5f2505d4ccb2aa8163108       500320 tinc-1.0.36.tar.gz
 
 
-[FILE:117:manifests/plist.single]
+[FILE:40:manifests/plist.primary]
 sbin/tincd
-share/info/tinc.info
-share/man/man5/tinc.conf.5.gz
-share/man/man8/tincd.8.gz
 @dir(root,tinc,750) etc/tinc
+
+
+[FILE:50:manifests/plist.man]
+share/man/man5/tinc.conf.5
+share/man/man8/tincd.8
 
 
 [FILE:1740:files/tincd.in]

@@ -2,7 +2,7 @@
 
 NAMEBASE=		enchant1
 VERSION=		1.6.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Dictionary/spellchecking framework (legacy)
@@ -13,19 +13,23 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/AbiWord:enchant:enchant-1-6-1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	hunspell:single:std
+BUILD_DEPENDS=		hunspell:dev:std
+BUILDRUN_DEPENDS=	hunspell:primary:std
 			aspell:primary:std
 
 USES=			autoreconf gmake libtool pkgconfig
 GNOME_COMPONENTS=	glib
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING.LIB
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/enchant.h
@@ -54,7 +58,7 @@ post-install:
 	cd ${STAGEDIR}${PREFIX}/share/enchant && \
 		${MV} enchant.ordering enchant1.ordering
 
-[FILE:932:descriptions/desc.single]
+[FILE:932:descriptions/desc.primary]
 This is the legacy version of enchant.  It has been superceded by the
 "enchant" package (version 2).
 
@@ -78,10 +82,24 @@ every definition of "just working."
 ed2b11211a571ab5f963debf4c3bf3fc46541bb9cbb441b2997bd871ba8618d4       194201 AbiWord-enchant-enchant-1-6-1.tar.gz
 
 
-[FILE:366:manifests/plist.single]
+[FILE:180:manifests/plist.primary]
 bin/
  enchant
  enchant-lsmod
+lib/
+ libenchant.so.%%SOMAJOR%%
+ libenchant.so.%%SOVERSION%%
+lib/enchant/
+ libenchant_aspell.so
+ libenchant_myspell.so
+share/enchant/enchant1.ordering
+
+
+[FILE:176:manifests/plist.dev]
+lib/pkgconfig/enchant.pc
+lib/enchant/
+ libenchant_aspell.a
+ libenchant_myspell.a
 include/enchant/
  enchant++.h
  enchant-provider.h
@@ -89,16 +107,10 @@ include/enchant/
 lib/
  libenchant.a
  libenchant.so
- libenchant.so.%%SOMAJOR%%
- libenchant.so.%%SOVERSION%%
-lib/enchant/
- libenchant_aspell.a
- libenchant_aspell.so
- libenchant_myspell.a
- libenchant_myspell.so
-lib/pkgconfig/enchant.pc
-share/enchant/enchant1.ordering
-share/man/man1/enchant.1.gz
+
+
+[FILE:25:manifests/plist.man]
+share/man/man1/enchant.1
 
 
 [FILE:424:patches/patch-configure.ac]

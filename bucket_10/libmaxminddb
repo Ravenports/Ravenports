@@ -2,6 +2,7 @@
 
 NAMEBASE=		libmaxminddb
 VERSION=		1.10.0
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		MaxMindDB GeoIP2 database library
@@ -12,15 +13,21 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/maxmind/libmaxminddb/releases/download/1.10.0/
 DISTFILE[1]=		libmaxminddb-1.10.0.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+EXRUN[tools]=		primary
+
 USES=			cpe gmake libtool
 
-LICENSE=		APACHE20:single
-LICENSE_TERMS=		single:{{WRKSRC}}/NOTICE
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/NOTICE
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -30,8 +37,9 @@ FPC_EQUIVALENT=		net/libmaxminddb
 MUST_CONFIGURE=		gnu
 
 INSTALL_TARGET=		install-strip
+SOVERSION=		0.0.7
 
-[FILE:289:descriptions/desc.single]
+[FILE:289:descriptions/desc.primary]
 The libmaxminddb library provides a C library for reading MaxMind DB
 files, including the GeoIP2 databases from MaxMind. This is a custom
 binary format designed to facilitate fast lookups of IP addresses while
@@ -43,32 +51,42 @@ address.
 5e6db72df423ae225bfe8897069f6def40faa8931f456b99d79b8b4d664c6671       727713 libmaxminddb-1.10.0.tar.gz
 
 
-[FILE:585:manifests/plist.single]
-bin/mmdblookup
+[FILE:65:manifests/plist.primary]
+lib/
+ libmaxminddb.so.%%SOMAJOR%%
+ libmaxminddb.so.%%SOVERSION%%
+
+
+[FILE:110:manifests/plist.dev]
+lib/pkgconfig/libmaxminddb.pc
 include/
  maxminddb.h
  maxminddb_config.h
 lib/
  libmaxminddb.a
  libmaxminddb.so
- libmaxminddb.so.0
- libmaxminddb.so.0.0.7
-lib/pkgconfig/libmaxminddb.pc
-share/man/man1/mmdblookup.1.gz
+
+
+[FILE:370:manifests/plist.man]
+share/man/man1/mmdblookup.1
 share/man/man3/
- MMDB_aget_value.3.gz
- MMDB_close.3.gz
- MMDB_dump_entry_data_list.3.gz
- MMDB_free_entry_data_list.3.gz
- MMDB_get_entry_data_list.3.gz
- MMDB_get_metadata_as_entry_data_list.3.gz
- MMDB_get_value.3.gz
- MMDB_lib_version.3.gz
- MMDB_lookup_sockaddr.3.gz
- MMDB_lookup_string.3.gz
- MMDB_open.3.gz
- MMDB_read_node.3.gz
- MMDB_strerror.3.gz
- MMDB_vget_value.3.gz
- libmaxminddb.3.gz
+ MMDB_aget_value.3
+ MMDB_close.3
+ MMDB_dump_entry_data_list.3
+ MMDB_free_entry_data_list.3
+ MMDB_get_entry_data_list.3
+ MMDB_get_metadata_as_entry_data_list.3
+ MMDB_get_value.3
+ MMDB_lib_version.3
+ MMDB_lookup_sockaddr.3
+ MMDB_lookup_string.3
+ MMDB_open.3
+ MMDB_read_node.3
+ MMDB_strerror.3
+ MMDB_vget_value.3
+ libmaxminddb.3
+
+
+[FILE:15:manifests/plist.tools]
+bin/mmdblookup
 

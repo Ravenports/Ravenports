@@ -2,7 +2,7 @@
 
 NAMEBASE=		flex
 VERSION=		2.6.4
-REVISION=		2
+REVISION=		3
 KEYWORDS=		textproc
 VARIANTS=		std ravensys
 SDESC[ravensys]=	Fast lexical analyzer generator for raven sysroot
@@ -14,11 +14,16 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/westes/flex/releases/download/v2.6.4/
 DISTFILE[1]=		flex-2.6.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[ravensys]=	primary
+SPKGS[ravensys]=	set
+			primary
+			dev
+			man
 SPKGS[std]=		set
 			primary
+			dev
 			examples
 			nls
+			man
 			info
 
 OPTIONS_AVAILABLE=	RAVENSYS
@@ -28,13 +33,14 @@ VOPTS[ravensys]=	RAVENSYS=ON
 BUILD_DEPENDS=		help2man:primary:std
 BUILDRUN_DEPENDS=	m4:primary:std
 
-USES=			bison gmake libtool mbsdfix
+USES=			cpe bison gmake libtool mbsdfix
 
 LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
-CPE_VENDOR=		flex_project
+CPE_VENDOR=		westes
+			flex_project
 FPC_EQUIVALENT=		textproc/flex
 INFO_SUBDIR=		.
 
@@ -90,17 +96,19 @@ corresponding C code.
 e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995      1419096 flex-2.6.4.tar.gz
 
 
-[FILE:158:manifests/plist.primary]
+[FILE:86:manifests/plist.primary]
 %%RAVENSYS-OFF%%lib/
- libfl.so
  libfl.so.%%SOMAJOR%%
  libfl.so.%%SOVERSION%%
 bin/
  flex
  flex++
+
+
+[FILE:66:manifests/plist.dev]
+%%RAVENSYS-OFF%%lib/libfl.so
 include/flex/FlexLexer.h
 lib/libfl.a
-share/man/man1/flex.1.gz
 
 
 [FILE:851:manifests/plist.nls]
@@ -127,4 +135,8 @@ share/locale/tr/LC_MESSAGES/flex.mo
 share/locale/vi/LC_MESSAGES/flex.mo
 share/locale/zh_CN/LC_MESSAGES/flex.mo
 share/locale/zh_TW/LC_MESSAGES/flex.mo
+
+
+[FILE:22:manifests/plist.man]
+share/man/man1/flex.1
 

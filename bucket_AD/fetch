@@ -2,6 +2,7 @@
 
 NAMEBASE=		fetch
 VERSION=		12.0.11
+REVISION=		1
 KEYWORDS=		ftp
 VARIANTS=		std library
 SDESC[std]=		Tool to retrieve file by Uniform Resource Locator
@@ -13,8 +14,13 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/jrmarino:fetch-freebsd:v12.0.11
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
-SPKGS[library]=		single
+SPKGS[std]=		set
+			primary
+			man
+SPKGS[library]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	LIBRARY
 OPTIONS_STANDARD=	none
@@ -22,7 +28,7 @@ VOPTS[library]=		LIBRARY=ON
 
 USES=			cmake ssl
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -38,41 +44,35 @@ post-install-LIBRARY-ON:
 post-install-LIBRARY-OFF:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fetch
 
-[FILE:391:descriptions/desc.single.std]
-The fetch program is a command-line utility originating with FreeBSD.
-Its purpose is to retrieve the file(s) pointed to by the URL(s) on the
-command line.
-
-The original implementation of fetch was done by Jean-Marc Zucconi It was
-extensively re-worked for FreeBSD 2.2 by Garrett Wollman , and later
-completely rewritten to use the fetch(3) library by Dag-Erling Smorgrav
-and Michael Gmelin.
-
-
-[FILE:163:descriptions/desc.single.library]
-The fetch library is the backbone of the fetch command-line utility
-originating with FreeBSD.  Its purpose is to retrieve file(s) given
-Uniform Resource Locators.
-
-
 [FILE:116:distinfo]
 fdaed78bbf1fe2c347ea22726105cdee31ecae16999125b20bde068719e6f60e        91127 jrmarino-fetch-freebsd-12.0.11.tar.gz
 
 
-[FILE:36:manifests/plist.single.std]
+[FILE:10:manifests/plist.primary.std]
 bin/fetch
-share/man/man1/fetch.1.gz
 
 
-[FILE:159:manifests/plist.single.library]
+[FILE:23:manifests/plist.man.std]
+share/man/man1/fetch.1
+
+
+[FILE:57:manifests/plist.primary.library]
+lib/
+ libfetch.so.%%SOMAJOR%%
+ libfetch.so.%%SOVERSION%%
+
+
+[FILE:86:manifests/plist.dev.library]
+lib/
+ libfetch_pic.a
 include/
  fetch-estream.h
  fetch.h
 lib/
  libfetch.a
  libfetch.so
- libfetch.so.%%SOMAJOR%%
- libfetch.so.%%SOVERSION%%
- libfetch_pic.a
-share/man/man3/fetch.3.gz
+
+
+[FILE:23:manifests/plist.man.library]
+share/man/man3/fetch.3
 

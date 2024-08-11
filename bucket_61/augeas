@@ -2,6 +2,7 @@
 
 NAMEBASE=		augeas
 VERSION=		1.14.1
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Configuration editing tool and API
@@ -14,16 +15,20 @@ SITES[savannah]=	https://git.savannah.gnu.org/cgit/gnulib.git/snapshot/
 DISTFILE[1]=		generated:main
 DISTFILE[2]=		gnulib-2f7479a16a3395f1429c7795f10c5d19b9b4453e.tar.gz:savannah
 DF_INDEX=		1 2
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		bash:primary:std
-			libtool:single:std
+EXRUN[tools]=		primary
 
-USES=			autoreconf:build cpe bison gmake libtool pkgconfig
-			readline cclibs:single
+USES=			autoreconf:build cpe bison gmake libtool:build
+			pkgconfig readline cclibs:primary
 GNOME_COMPONENTS=	libxml2
 
 FPC_EQUIVALENT=		textproc/augeas
@@ -52,7 +57,7 @@ pre-configure:
 post-extract:
 	${MV} ${WRKDIR}/gnulib-2f7479a16a3395f1429c7795f10c5d19b9b4453e ${WRKSRC}/gnulib
 
-[FILE:578:descriptions/desc.single]
+[FILE:578:descriptions/desc.primary]
 Augeas - a configuration API
 
 Augeas is a configuration editing tool. It parses configuration files in
@@ -68,31 +73,43 @@ Augeas is:
  - A domain-specific language to describe configuration file formats
 
 
+[FILE:36:descriptions/desc.tools]
+This package contains Augeas tools.
+
+
 [FILE:254:distinfo]
 c75eba96691ccaa8f4484f97008b9d66750eee25664647ed2d47f9124536078d       907098 hercules-team-augeas-release-1.14.1.tar.gz
 528538b14c4cc39741a533dee17ef0937fca611f917a9b4866dd0c33c6680f9c      7739840 gnulib-2f7479a16a3395f1429c7795f10c5d19b9b4453e.tar.gz
 
 
-[FILE:8142:manifests/plist.single]
-bin/
- augmatch
- augparse
- augprint
- augtool
- fadot
+[FILE:111:manifests/plist.primary]
+lib/
+ libaugeas.so.%%SOMAJOR%%
+ libaugeas.so.%%SOVERSION%%
+ libfa.so.%%FA_SOMAJOR%%
+ libfa.so.%%FA_SOVERSION%%
+
+
+[FILE:105:manifests/plist.dev]
+lib/pkgconfig/augeas.pc
+lib/
+ libfa.a
+ libfa.so
 include/
  augeas.h
  fa.h
 lib/
  libaugeas.a
  libaugeas.so
- libaugeas.so.%%SOMAJOR%%
- libaugeas.so.%%SOVERSION%%
- libfa.a
- libfa.so
- libfa.so.%%FA_SOMAJOR%%
- libfa.so.%%FA_SOVERSION%%
-lib/pkgconfig/augeas.pc
+
+
+[FILE:7861:manifests/plist.tools]
+bin/
+ augmatch
+ augparse
+ augprint
+ augtool
+ fadot
 share/augeas/lenses/dist/
  access.aug
  activemq_conf.aug
@@ -561,13 +578,16 @@ share/bash-completion/completions/
  augmatch
  augprint
  augtool
-share/man/man1/
- augmatch.1.gz
- augparse.1.gz
- augprint.1.gz
- augtool.1.gz
 share/vim/vimfiles/ftdetect/augeas.vim
 share/vim/vimfiles/syntax/augeas.vim
+
+
+[FILE:63:manifests/plist.man]
+share/man/man1/
+ augmatch.1
+ augparse.1
+ augprint.1
+ augtool.1
 
 
 [FILE:302:patches/patch-bootstrap]

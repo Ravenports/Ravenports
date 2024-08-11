@@ -2,7 +2,7 @@
 
 NAMEBASE=		i3status
 VERSION=		2.14
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11
 VARIANTS=		std
 SDESC[std]=		Status bar for i3bar, dzen2, xmobar or similar
@@ -13,13 +13,15 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://i3wm.org/i3status/
 DISTFILE[1]=		i3status-2.14.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		asciidoc:single:std
-			xmlto:single:std
+			xmlto:primary:std
 			bash:primary:std
 			libconfuse:dev:std
 			yajl:dev:std
@@ -30,7 +32,7 @@ BR_DEPS[linux]=		alsa-lib:primary:std
 
 USES=			meson pkgconfig perl:build
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -47,7 +49,7 @@ post-install:
 pre-configure:
 	${REINPLACE_CMD} -e 's|/etc|${PREFIX}/etc|g' ${WRKSRC}/i3status.c
 
-[FILE:466:descriptions/desc.single]
+[FILE:466:descriptions/desc.primary]
 i3status is a small program (about 1500 SLOC) for generating a status bar
 for dzen2, xmobar or similar programs. It is designed to be very efficient
 by issuing a very small number of system calls, as one generally wants to
@@ -61,10 +63,13 @@ shell commands would.
 5c4d0273410f9fa3301fd32065deda32e9617fcae8b3cb34793061bf21644924        68900 i3status-2.14.tar.xz
 
 
-[FILE:75:manifests/plist.single]
+[FILE:46:manifests/plist.primary]
 @sample etc/i3status.conf.sample
 bin/i3status
-share/man/man1/i3status.1.gz
+
+
+[FILE:26:manifests/plist.man]
+share/man/man1/i3status.1
 
 
 [FILE:429:patches/patch-src_print__battery__info.c]

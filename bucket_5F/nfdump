@@ -2,6 +2,7 @@
 
 NAMEBASE=		nfdump
 VERSION=		1.7.4
+REVISION=		1
 KEYWORDS=		net_mgmt
 VARIANTS=		std
 SDESC[std]=		Tools to collect and process netflow data
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/phaag:nfdump:v1.7.4
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	PCAP
 OPTIONS_STANDARD=	PCAP
@@ -21,12 +25,13 @@ OPT_ON[netbsd]=		PCAP
 OPT_ON[dragonfly]=	PCAP
 OPT_ON[midnightbsd]=	PCAP
 
+BUILD_DEPENDS=		rrdtool:dev:std
 BUILDRUN_DEPENDS=	flex:primary:std
 			rrdtool:primary:std
 
 USES=			cpe autoreconf libtool pkgconfig bz2:build
 
-LICENSE=		BSD3CLAUSE:single
+LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/BSD-license.txt
 LICENSE_SCHEME=		solo
 
@@ -58,7 +63,7 @@ post-install:
 	${MV} ${STAGEDIR}${PREFIX}/etc/nfdump.conf.dist \
 		${STAGEDIR}${PREFIX}/etc/nfdump.conf.sample
 
-[FILE:735:descriptions/desc.single]
+[FILE:735:descriptions/desc.primary]
 NFDUMP tools support netflow v5, v7 and v9 capturing and processing.
 
 nfcapd - netflow capture daemon.
@@ -84,10 +89,9 @@ ft2nfdump - flow-tools to nfdump - optional component.
 8cf76ad0b4e3c1e7edf9532ec7508b11f125adcfcdac5010fd7eec8fe792cfd8       756319 phaag-nfdump-1.7.4.tar.gz
 
 
-[FILE:342:manifests/plist.single]
+[FILE:160:manifests/plist.primary]
 @sample etc/nfdump.conf.sample
 %%PCAP-ON%%bin/nfpcapd
-%%PCAP-ON%%share/man/man1/nfpcapd.1.gz
 bin/
  nfanon
  nfcapd
@@ -97,18 +101,25 @@ bin/
  nfreplay
  nftrack
  sfcapd
+lib/libnfdump-%%VERSION%%.so
+
+
+[FILE:32:manifests/plist.dev]
 lib/
- libnfdump-%%VERSION%%.so
  libnfdump.a
  libnfdump.so
+
+
+[FILE:129:manifests/plist.man]
+%%PCAP-ON%%share/man/man1/nfpcapd.1
 share/man/man1/
- nfanon.1.gz
- nfcapd.1.gz
- nfdump.1.gz
- nfexpire.1.gz
- nfprofile.1.gz
- nfreplay.1.gz
- sfcapd.1.gz
+ nfanon.1
+ nfcapd.1
+ nfdump.1
+ nfexpire.1
+ nfprofile.1
+ nfreplay.1
+ sfcapd.1
 
 
 [FILE:397:patches/patch-src_nfpcapd_packet__bpf.c]

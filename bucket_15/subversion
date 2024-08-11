@@ -2,6 +2,7 @@
 
 NAMEBASE=		subversion
 VERSION=		1.14.3
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Version control system
@@ -14,7 +15,11 @@ DISTFILE[1]=		subversion-1.14.3.tar.bz2:main
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			dev
 			nls
+			man
+			examples
+			contrib
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -66,11 +71,13 @@ post-patch:
 	${FIND} ${WRKSRC} -name '*.bak' -delete
 
 post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/examples
 	(cd ${WRKSRC}/tools.examples && \
 		${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/subversion)
 	(cd ${STAGEDIR}${PREFIX}/share/subversion && \
 		${RM} backup/hot-backup.py.in \
 		hook-scripts/commit-access-control.pl.in)
+	${MV} ${STAGEDIR}${PREFIX}/share/subversion/examples ${STAGEDIR}${STD_EXAMPLESDIR}
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${MAKE_CMD} -C ${WRKSRC} install-tools ${MAKE_ARGS})
 	${RMDIR} ${STAGEDIR}${PREFIX}/share/subversion/buildbot/slaves/svn-arm64-gentoo
@@ -101,11 +108,15 @@ of users and projects, from individuals to large-scale enterprise
 operations.
 
 
+[FILE:51:descriptions/desc.contrib]
+This package contains contributed scripts for svn.
+
+
 [FILE:104:distinfo]
 949efd451a09435f7e8573574c71c7b71b194d844890fa49cd61d2262ea1a440      8569985 subversion-1.14.3.tar.bz2
 
 
-[FILE:9394:manifests/plist.primary]
+[FILE:1061:manifests/plist.primary]
 bin/
  fsfs-access-map
  fsfs-stats
@@ -131,6 +142,72 @@ bin/
  svnsync
  svnversion
  x509-parser
+lib/
+ libsvn_client-1.so.0
+ libsvn_client-1.so.0.0.0
+ libsvn_delta-1.so.0
+ libsvn_delta-1.so.0.0.0
+ libsvn_diff-1.so.0
+ libsvn_diff-1.so.0.0.0
+ libsvn_fs-1.so.0
+ libsvn_fs-1.so.0.0.0
+ libsvn_fs_base-1.so.0
+ libsvn_fs_base-1.so.0.0.0
+ libsvn_fs_fs-1.so.0
+ libsvn_fs_fs-1.so.0.0.0
+ libsvn_fs_util-1.so.0
+ libsvn_fs_util-1.so.0.0.0
+ libsvn_fs_x-1.so.0
+ libsvn_fs_x-1.so.0.0.0
+ libsvn_ra-1.so.0
+ libsvn_ra-1.so.0.0.0
+ libsvn_ra_local-1.so.0
+ libsvn_ra_local-1.so.0.0.0
+ libsvn_ra_serf-1.so.0
+ libsvn_ra_serf-1.so.0.0.0
+ libsvn_ra_svn-1.so.0
+ libsvn_ra_svn-1.so.0.0.0
+ libsvn_repos-1.so.0
+ libsvn_repos-1.so.0.0.0
+ libsvn_subr-1.so.0
+ libsvn_subr-1.so.0.0.0
+ libsvn_wc-1.so.0
+ libsvn_wc-1.so.0.0.0
+share/subversion/xslt/
+ svnindex.css
+ svnindex.xsl
+
+
+[FILE:1488:manifests/plist.dev]
+lib/
+ libsvn_wc-1.a
+ libsvn_wc-1.so
+ libsvn_subr-1.a
+ libsvn_subr-1.so
+ libsvn_repos-1.a
+ libsvn_repos-1.so
+ libsvn_ra_svn-1.a
+ libsvn_ra_svn-1.so
+ libsvn_ra_serf-1.a
+ libsvn_ra_serf-1.so
+ libsvn_ra_local-1.a
+ libsvn_ra_local-1.so
+ libsvn_ra-1.a
+ libsvn_ra-1.so
+ libsvn_fs_x-1.a
+ libsvn_fs_x-1.so
+ libsvn_fs_util-1.a
+ libsvn_fs_util-1.so
+ libsvn_fs_fs-1.a
+ libsvn_fs_fs-1.so
+ libsvn_fs_base-1.a
+ libsvn_fs_base-1.so
+ libsvn_fs-1.a
+ libsvn_fs-1.so
+ libsvn_diff-1.a
+ libsvn_diff-1.so
+ libsvn_delta-1.a
+ libsvn_delta-1.so
 include/subversion-1/
  mod_authz_svn.h
  mod_dav_svn.h
@@ -182,64 +259,6 @@ include/subversion-1/
 lib/
  libsvn_client-1.a
  libsvn_client-1.so
- libsvn_client-1.so.0
- libsvn_client-1.so.0.0.0
- libsvn_delta-1.a
- libsvn_delta-1.so
- libsvn_delta-1.so.0
- libsvn_delta-1.so.0.0.0
- libsvn_diff-1.a
- libsvn_diff-1.so
- libsvn_diff-1.so.0
- libsvn_diff-1.so.0.0.0
- libsvn_fs-1.a
- libsvn_fs-1.so
- libsvn_fs-1.so.0
- libsvn_fs-1.so.0.0.0
- libsvn_fs_base-1.a
- libsvn_fs_base-1.so
- libsvn_fs_base-1.so.0
- libsvn_fs_base-1.so.0.0.0
- libsvn_fs_fs-1.a
- libsvn_fs_fs-1.so
- libsvn_fs_fs-1.so.0
- libsvn_fs_fs-1.so.0.0.0
- libsvn_fs_util-1.a
- libsvn_fs_util-1.so
- libsvn_fs_util-1.so.0
- libsvn_fs_util-1.so.0.0.0
- libsvn_fs_x-1.a
- libsvn_fs_x-1.so
- libsvn_fs_x-1.so.0
- libsvn_fs_x-1.so.0.0.0
- libsvn_ra-1.a
- libsvn_ra-1.so
- libsvn_ra-1.so.0
- libsvn_ra-1.so.0.0.0
- libsvn_ra_local-1.a
- libsvn_ra_local-1.so
- libsvn_ra_local-1.so.0
- libsvn_ra_local-1.so.0.0.0
- libsvn_ra_serf-1.a
- libsvn_ra_serf-1.so
- libsvn_ra_serf-1.so.0
- libsvn_ra_serf-1.so.0.0.0
- libsvn_ra_svn-1.a
- libsvn_ra_svn-1.so
- libsvn_ra_svn-1.so.0
- libsvn_ra_svn-1.so.0.0.0
- libsvn_repos-1.a
- libsvn_repos-1.so
- libsvn_repos-1.so.0
- libsvn_repos-1.so.0.0.0
- libsvn_subr-1.a
- libsvn_subr-1.so
- libsvn_subr-1.so.0
- libsvn_subr-1.so.0.0.0
- libsvn_wc-1.a
- libsvn_wc-1.so
- libsvn_wc-1.so.0
- libsvn_wc-1.so.0.0.0
 lib/pkgconfig/
  libsvn_client.pc
  libsvn_delta.pc
@@ -256,17 +275,67 @@ lib/pkgconfig/
  libsvn_repos.pc
  libsvn_subr.pc
  libsvn_wc.pc
+
+
+[FILE:513:manifests/plist.nls]
+share/locale/de/LC_MESSAGES/subversion.mo
+share/locale/es/LC_MESSAGES/subversion.mo
+share/locale/fr/LC_MESSAGES/subversion.mo
+share/locale/it/LC_MESSAGES/subversion.mo
+share/locale/ja/LC_MESSAGES/subversion.mo
+share/locale/ko/LC_MESSAGES/subversion.mo
+share/locale/nb/LC_MESSAGES/subversion.mo
+share/locale/pl/LC_MESSAGES/subversion.mo
+share/locale/pt_BR/LC_MESSAGES/subversion.mo
+share/locale/sv/LC_MESSAGES/subversion.mo
+share/locale/zh_CN/LC_MESSAGES/subversion.mo
+share/locale/zh_TW/LC_MESSAGES/subversion.mo
+
+
+[FILE:168:manifests/plist.man]
 share/man/man1/
- svn.1.gz
- svnadmin.1.gz
- svndumpfilter.1.gz
- svnlook.1.gz
- svnmucc.1.gz
- svnrdump.1.gz
- svnsync.1.gz
- svnversion.1.gz
-share/man/man5/svnserve.conf.5.gz
-share/man/man8/svnserve.8.gz
+ svn.1
+ svnadmin.1
+ svndumpfilter.1
+ svnlook.1
+ svnmucc.1
+ svnrdump.1
+ svnsync.1
+ svnversion.1
+share/man/man5/svnserve.conf.5
+share/man/man8/svnserve.8
+
+
+[FILE:406:manifests/plist.examples]
+share/examples/subversion/
+ ExampleAuthn.java
+ ExampleAuthnOld.java
+ ExampleAuthnVeryOld.java
+ SvnCLBrowse
+ blame.py
+ check-modified.py
+ dumpprops.py
+ get-location-segments.py
+ getfile.py
+ getlocks_test.c
+ geturl.py
+ headrev.c
+ info.rb
+ minimal_client.c
+ putfile.py
+ revplist.py
+ svnlog2html.rb
+ svnlook.py
+ svnlook.rb
+ svnput.c
+ svnserve-sgid.c
+ svnshell.py
+ svnshell.rb
+ testwrite.c
+ walk-config-auth.py
+
+
+[FILE:6251:manifests/plist.contrib]
 share/subversion/backup/hot-backup.py
 share/subversion/bdb/
  erase-all-text-data.py
@@ -512,32 +581,6 @@ share/subversion/dist/templates/
  release-notes.ezt
  stable-news.ezt
  stable-release-ann.ezt
-share/subversion/examples/
- ExampleAuthn.java
- ExampleAuthnOld.java
- ExampleAuthnVeryOld.java
- SvnCLBrowse
- blame.py
- check-modified.py
- dumpprops.py
- get-location-segments.py
- getfile.py
- getlocks_test.c
- geturl.py
- headrev.c
- info.rb
- minimal_client.c
- putfile.py
- revplist.py
- svnlog2html.rb
- svnlook.py
- svnlook.rb
- svnput.c
- svnserve-sgid.c
- svnshell.py
- svnshell.rb
- testwrite.c
- walk-config-auth.py
 share/subversion/hook-scripts/
  CVE-2017-9800-pre-commit.py
  commit-access-control.cfg.example
@@ -604,24 +647,6 @@ share/subversion/server-side/svnpubsub/svnpubsub/
  client.py
  server.py
  util.py
-share/subversion/xslt/
- svnindex.css
- svnindex.xsl
-
-
-[FILE:513:manifests/plist.nls]
-share/locale/de/LC_MESSAGES/subversion.mo
-share/locale/es/LC_MESSAGES/subversion.mo
-share/locale/fr/LC_MESSAGES/subversion.mo
-share/locale/it/LC_MESSAGES/subversion.mo
-share/locale/ja/LC_MESSAGES/subversion.mo
-share/locale/ko/LC_MESSAGES/subversion.mo
-share/locale/nb/LC_MESSAGES/subversion.mo
-share/locale/pl/LC_MESSAGES/subversion.mo
-share/locale/pt_BR/LC_MESSAGES/subversion.mo
-share/locale/sv/LC_MESSAGES/subversion.mo
-share/locale/zh_CN/LC_MESSAGES/subversion.mo
-share/locale/zh_TW/LC_MESSAGES/subversion.mo
 
 
 [FILE:371:patches/patch-Makefile.in]

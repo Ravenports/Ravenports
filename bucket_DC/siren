@@ -2,7 +2,7 @@
 
 NAMEBASE=		siren
 VERSION=		0.10
-REVISION=		3
+REVISION=		4
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		Text-based audio player
@@ -13,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.kariliq.nl/siren/dist/
 DISTFILE[1]=		siren-0.10.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -27,6 +29,7 @@ BUILD_DEPENDS=		ffmpeg6:dev:std
 			libmad:dev:std
 			libid3tag:dev:std
 			sndio:dev:std
+			wavpack:dev:std
 BUILDRUN_DEPENDS=	flac:primary:std
 			ffmpeg6:primary:std
 			libao:primary:std
@@ -41,7 +44,7 @@ BUILDRUN_DEPENDS=	flac:primary:std
 
 USES=			ncurses pkgconfig zlib
 
-LICENSE=		ISCL:single
+LICENSE=		ISCL:primary
 LICENSE_FILE=		ISCL:{{WRKSRC}}/LICENCE
 LICENSE_SCHEME=		solo
 
@@ -63,7 +66,7 @@ CFLAGS=			-I{{NCURSESINC}}
 post-extract:
 	${REINPLACE_CMD} -e 's|-lcurses|-lncurses -ltinfo|' ${WRKSRC}/configure
 
-[FILE:210:descriptions/desc.single]
+[FILE:210:descriptions/desc.primary]
 Siren is a text-based audio player for UNIX-like operating systems.
 Various aspects of Siren have been inspired by cmus. Supported file
 formats include Ogg Vorbis, MP3, Opus, FLAC, AAC, WavPack, WAVE and
@@ -74,7 +77,7 @@ AIFF.
 54b6af320e1cf223cf02ca9d56859a4f2f796105cd617efa5f37736a3f9719e4       103388 siren-0.10.tar.gz
 
 
-[FILE:164:manifests/plist.single]
+[FILE:138:manifests/plist.primary]
 bin/siren
 lib/siren/ip/
  ffmpeg.so
@@ -88,5 +91,8 @@ lib/siren/ip/
 lib/siren/op/
  ao.so
  sndio.so
-share/man/man1/siren.1.gz
+
+
+[FILE:23:manifests/plist.man]
+share/man/man1/siren.1
 

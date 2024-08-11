@@ -2,6 +2,7 @@
 
 NAMEBASE=		iverilog
 VERSION=		12.0
+REVISION=		1
 KEYWORDS=		cad
 VARIANTS=		std
 SDESC[std]=		Verilog simulation and synthesis tool
@@ -12,17 +13,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/steveicarus:iverilog:v12_0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		gperf:primary:std
 
-USES=			autoreconf:build bison gmake readline c++:single
+USES=			autoreconf:build bison gmake readline c++:primary
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"StringHeap.h"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/named.h
@@ -39,7 +43,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 pre-configure:
 	cd ${WRKSRC} && ${SH} ./autoconf.sh
 
-[FILE:724:descriptions/desc.single]
+[FILE:724:descriptions/desc.primary]
 Icarus Verilog is a Verilog simulation and synthesis tool. It
 operates as a compiler, compiling source code written in Verilog
 (IEEE-1364) into some target format. For batch simulation, the
@@ -59,21 +63,11 @@ take some time for it to get there, but that's the goal.
 a68cb1ef7c017ef090ebedb2bc3e39ef90ecc70a3400afb4aa94303bc3beaa7d      2995096 steveicarus-iverilog-12_0.tar.gz
 
 
-[FILE:686:manifests/plist.single]
+[FILE:499:manifests/plist.primary]
 bin/
  iverilog
  iverilog-vpi
  vvp
-include/iverilog/
- _pli_types.h
- acc_user.h
- ivl_target.h
- sv_vpi_user.h
- veriuser.h
- vpi_user.h
-lib/
- libveriuser.a
- libvpi.a
 lib/ivl/
  blif-s.conf
  blif.conf
@@ -113,8 +107,24 @@ lib/ivl/
 lib/ivl/include/
  constants.vams
  disciplines.vams
+
+
+[FILE:127:manifests/plist.dev]
+include/iverilog/
+ _pli_types.h
+ acc_user.h
+ ivl_target.h
+ sv_vpi_user.h
+ veriuser.h
+ vpi_user.h
+lib/
+ libveriuser.a
+ libvpi.a
+
+
+[FILE:51:manifests/plist.man]
 share/man/man1/
- iverilog-vpi.1.gz
- iverilog.1.gz
- vvp.1.gz
+ iverilog-vpi.1
+ iverilog.1
+ vvp.1
 

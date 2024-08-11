@@ -2,6 +2,7 @@
 
 NAMEBASE=		utox
 VERSION=		0.18.1
+REVISION=		1
 KEYWORDS=		net net_im net_p2p
 VARIANTS=		std
 SDESC[std]=		Lightweight Tox client
@@ -13,7 +14,9 @@ SITES[main]=		https://github.com/uTox/uTox/releases/download/v0.18.1/
 DISTFILE[1]=		uTox-0.18.1-full.tar.gz:main
 DIST_SUBDIR=		tox
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -25,6 +28,7 @@ BUILD_DEPENDS=		check:dev:std
 			libvpx:dev:std
 			toxcore:dev:std
 			opus:dev:std
+			video4linux:dev:std
 BUILDRUN_DEPENDS=	dbus:primary:std
 			openal:primary:std
 			toxcore:primary:std
@@ -35,13 +39,13 @@ B_DEPS[netbsd]=		evdev-proto:single:std
 B_DEPS[dragonfly]=	evdev-proto:single:std
 B_DEPS[midnightbsd]=	evdev-proto:single:std
 
-USES=			cmake desktop-utils:single dos2unix fontconfig
+USES=			cmake desktop-utils:primary dos2unix fontconfig
 			pkgconfig
 XORG_COMPONENTS=	ice sm x11 xext xrender
 
 DISTNAME=		uTox
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -53,7 +57,7 @@ CMAKE_ARGS=		-DENABLE_FILTERAUDIO=Off
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/utox
 
-[FILE:445:descriptions/desc.single]
+[FILE:445:descriptions/desc.primary]
 uTox is a lightweight Tox client with minimal dependencies, It not only looks
 pretty, it runs fast!
 
@@ -73,7 +77,7 @@ NetBSD, OpenBSD, and even DragonFlyBSD.
 fc883483d86b1830674f3b08515daa27ae54ab47646c7edc48a067e8d1e8c114      3944947 tox/uTox-0.18.1-full.tar.gz
 
 
-[FILE:719:manifests/plist.single]
+[FILE:694:manifests/plist.primary]
 bin/utox
 share/applications/utox.desktop
 share/icons/hicolor/128x128/apps/utox-128x128.png
@@ -90,7 +94,10 @@ share/icons/hicolor/64x64/apps/utox-64x64.png
 share/icons/hicolor/72x72/apps/utox-72x72.png
 share/icons/hicolor/96x96/apps/utox-96x96.png
 share/icons/hicolor/scalable/apps/utox.svg
-share/man/man1/utox.1.gz
+
+
+[FILE:22:manifests/plist.man]
+share/man/man1/utox.1
 
 
 [FILE:761:patches/patch-src_xlib_v4l.c]

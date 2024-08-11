@@ -2,7 +2,7 @@
 
 NAMEBASE=		toxic
 VERSION=		0.15.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		net net_im net_p2p
 VARIANTS=		std
 SDESC[std]=		Ncurses-based Tox client
@@ -14,7 +14,9 @@ SITES[main]=		GITHUB/JFreegman:toxic:v0.15.1
 DISTFILE[1]=		generated:main
 DIST_SUBDIR=		tox
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -24,20 +26,21 @@ BUILD_DEPENDS=		evdev-proto:single:std
 			toxcore:dev:std
 			openal:dev:std
 			libconfig:dev:std
+			qrencode:dev:std
 BUILDRUN_DEPENDS=	freealut:single:std
 			libnotify:primary:std
-			qrencode:single:std
+			qrencode:primary:std
 			toxcore:primary:std
 			openal:primary:std
 			libconfig:primary:std
 
-USES=			desktop-utils:single gmake ncurses pkgconfig curl
+USES=			desktop-utils:primary gmake ncurses pkgconfig curl
 			png zlib:build gettext shebangfix ssl:build
 GNOME_COMPONENTS=	glib
 XORG_COMPONENTS=	x11
 
-LICENSE=		GPLv3+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv3+:{{WRKSRC}}/LICENSE
 LICENSE_AWK=		TERMS:"^\#include"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/toxic.c
@@ -65,7 +68,7 @@ pre-configure:
 	# log the build
 	${REINPLACE_CMD} -e '/@.[(]CC[)]/ s|@||' ${WRKSRC}/Makefile
 
-[FILE:63:descriptions/desc.single]
+[FILE:63:descriptions/desc.primary]
 Toxic is a Tox-based instant messenging and video chat client.
 
 
@@ -73,11 +76,9 @@ Toxic is a Tox-based instant messenging and video chat client.
 56cedc37b22a1411c68fd8b395f40f515d6a4779be02540c5cd495665caa127c      1246436 tox/JFreegman-toxic-0.15.1.tar.gz
 
 
-[FILE:350:manifests/plist.single]
+[FILE:293:manifests/plist.primary]
 bin/toxic
 share/applications/toxic.desktop
-share/man/man1/toxic.1.gz
-share/man/man5/toxic.conf.5.gz
 share/toxic/
  nameservers
  toxic.conf.example
@@ -90,6 +91,11 @@ share/toxic/sounds/
  ToxicRecvMessage.wav
  ToxicTransferComplete.wav
  ToxicTransferStart.wav
+
+
+[FILE:51:manifests/plist.man]
+share/man/man1/toxic.1
+share/man/man5/toxic.conf.5
 
 
 [FILE:855:patches/patch-Makefile]

@@ -2,7 +2,7 @@
 
 NAMEBASE=		nlopt
 VERSION=		2.7.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		math
 VARIANTS=		std
 SDESC[std]=		Nonlinear optimization library
@@ -13,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/stevengj:nlopt:v2.7.1
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -27,8 +30,8 @@ BUILDRUN_DEPENDS=	gmp:primary:std
 
 USES=			cmake pkgconfig python
 
-LICENSE=		MIT:single LGPL21:single
-LICENSE_TERMS=		single:{{WRKSRC}}/COPYING
+LICENSE=		MIT:primary LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYRIGHT
 			LGPL21:stock
 LICENSE_SCHEME=		multi
@@ -45,7 +48,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libnlopt.so
 	${STRIP_CMD} ${STAGEDIR}${PYTHON_SITELIBDIR}/_nlopt.so
 
-[FILE:1018:descriptions/desc.single]
+[FILE:1018:descriptions/desc.primary]
 NLopt is a free/open-source library for nonlinear optimization,
 providing a common interface for a number of different free optimization
 outines available online as well as original implementations of various
@@ -70,30 +73,36 @@ other algorithms. Its features include:
 db88232fa5cef0ff6e39943fc63ab6074208831dc0031cf1545f6ecd31ae2a1a      2044180 stevengj-nlopt-2.7.1.tar.gz
 
 
-[FILE:475:manifests/plist.single]
+[FILE:182:manifests/plist.primary]
 %%PYTHON_SITELIBDIR%%/
  _nlopt.so
  nlopt.py
+lib/
+ libnlopt.so.%%SOMAJOR%%
+ libnlopt.so.%%SOVERSION%%
+lib/guile/%%GVER%%/extensions/nlopt_guile.so
+share/guile/site/%%GVER%%/nlopt.scm
+
+
+[FILE:214:manifests/plist.dev]
 include/
  nlopt.f
  nlopt.h
  nlopt.hpp
-lib/
- libnlopt.so
- libnlopt.so.%%SOMAJOR%%
- libnlopt.so.%%SOVERSION%%
+lib/libnlopt.so
 lib/cmake/nlopt/
  NLoptConfig.cmake
  NLoptConfigVersion.cmake
  NLoptLibraryDepends-%%CMAKE_BUILD_TYPE%%.cmake
  NLoptLibraryDepends.cmake
-lib/guile/%%GVER%%/extensions/nlopt_guile.so
 lib/pkgconfig/nlopt.pc
-share/guile/site/%%GVER%%/nlopt.scm
+
+
+[FILE:73:manifests/plist.man]
 share/man/man3/
- nlopt.3.gz
- nlopt_minimize.3.gz
- nlopt_minimize_constrained.3.gz
+ nlopt.3
+ nlopt_minimize.3
+ nlopt_minimize_constrained.3
 
 
 [FILE:1103:patches/patch-cmake_FindGuile.cmake]

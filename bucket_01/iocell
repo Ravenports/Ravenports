@@ -2,6 +2,7 @@
 
 NAMEBASE=		iocell
 VERSION=		2.2.0
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		Feature rich Jail containers manager
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/bartekrutkowski:iocell:v2.2.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,7 +24,7 @@ ONLY_FOR_OPSYS=		freebsd midnightbsd
 
 RUN_DEPENDS=		uclcmd:single:std
 
-LICENSE=		BSD2CLAUSE:single
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -34,14 +37,14 @@ post-patch:
 		${WRKSRC}/iocell
 
 do-install:
-	@${MKDIR} ${STAGEDIR}${PREFIX}/lib/iocell \
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/iocell \
 		${STAGEDIR}${PREFIX}/etc/rc.d
 	${INSTALL_SCRIPT} ${WRKSRC}/rc.d/iocell ${STAGEDIR}${PREFIX}/etc/rc.d
 	${INSTALL_SCRIPT} ${WRKSRC}/iocell ${STAGEDIR}${PREFIX}/sbin
 	(cd ${WRKSRC}/lib/ && ${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/lib/iocell)
 	${INSTALL_MAN} ${WRKSRC}/iocell.8 ${STAGEDIR}${MANPREFIX}/man/man8
 
-[FILE:417:descriptions/desc.single]
+[FILE:417:descriptions/desc.primary]
 iocell is a zero dependency drop in jail/container manager amalgamating
 some of the best features and technologies FreeBSD operating system has
 to offer.  (This package is exclusively for FreeBSD!)
@@ -57,7 +60,7 @@ iocage experience available, providing bugfixes and new features.
 8c453a51fd1f67e2553bf20b2479a23e4c21a72986d862c4923e69ff9c22eb94       373438 bartekrutkowski-iocell-2.2.0.tar.gz
 
 
-[FILE:244:manifests/plist.single]
+[FILE:217:manifests/plist.primary]
 etc/rc.d/iocell
 lib/iocell/
  ioc-cmd
@@ -77,5 +80,8 @@ lib/iocell/
  ioc-upgrade
  ioc-zfs
 sbin/iocell
-share/man/man8/iocell.8.gz
+
+
+[FILE:24:manifests/plist.man]
+share/man/man8/iocell.8
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		libucl
 VERSION=		0.9.2
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std ravensw
 SDESC[std]=		Universal configuration library parser
@@ -13,8 +14,15 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/vstakhov:libucl:0.9.2
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
-SPKGS[ravensw]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
+			tools
+SPKGS[ravensw]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	LUA RAVENSW
 OPTIONS_STANDARD=	LUA
@@ -22,7 +30,7 @@ VOPTS[ravensw]=		LUA=OFF RAVENSW=ON
 
 USES=			autoreconf gmake libtool pkgconfig
 
-LICENSE=		BSD2CLAUSE:single
+LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -61,55 +69,54 @@ post-build:
 	 ${AR} -cq libucl_pic.a *.o &&\
 	 ranlib libucl_pic.a)
 
-[FILE:271:descriptions/desc.single]
-Libucl is a parser and C API to parse and generate ucl objects. Libucl
-consists of several groups of functions:
-
- * Parser functions
- * Emitting functions
- * Conversion functions
- * Generation functions
- * Iteration functions
- * Validation functions
- * Utility functions
-
-
 [FILE:107:distinfo]
 f63ddee1d7f5217cac4f9cdf72b9c5e8fe43cfe5725db13f1414b0d8a369bbe0      2044512 vstakhov-libucl-0.9.2.tar.gz
 
 
-[FILE:277:manifests/plist.single]
-%%LUA-ON%%%%LUA_MODLIBDIR%%/
- ucl.a
- ucl.so
+[FILE:88:manifests/plist.primary]
+%%LUA-ON%%%%LUA_MODLIBDIR%%/ucl.so
+lib/
+ libucl.so.%%SOMAJOR%%
+ libucl.so.%%SOVERSION%%
+
+
+[FILE:151:manifests/plist.dev]
+%%LUA-ON%%%%LUA_MODLIBDIR%%/ucl.a
 %%LUA-ON%%include/lua_ucl.h
+include/
+ ucl++.h
+ ucl.h
+lib/
+ libucl.a
+ libucl.so
+ libucl_pic.a
+lib/pkgconfig/libucl.pc
+
+
+[FILE:24:manifests/plist.man]
+share/man/man3/libucl.3
+
+
+[FILE:41:manifests/plist.tools]
 bin/
  ucl_chargen
  ucl_objdump
  ucl_tool
+
+
+[FILE:53:manifests/plist.primary.ravensw]
+lib/
+ libucl.so.%%SOMAJOR%%
+ libucl.so.%%SOVERSION%%
+
+
+[FILE:89:manifests/plist.dev.ravensw]
 include/
  ucl++.h
  ucl.h
 lib/
  libucl.a
  libucl.so
- libucl.so.%%SOMAJOR%%
- libucl.so.%%SOVERSION%%
  libucl_pic.a
 lib/pkgconfig/libucl.pc
-share/man/man3/libucl.3.gz
-
-
-[FILE:164:manifests/plist.single.ravensw]
-include/
- ucl++.h
- ucl.h
-lib/
- libucl.a
- libucl.so
- libucl.so.%%SOMAJOR%%
- libucl.so.%%SOVERSION%%
- libucl_pic.a
-lib/pkgconfig/libucl.pc
-share/man/man3/libucl.3.gz
 

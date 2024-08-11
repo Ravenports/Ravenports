@@ -12,16 +12,19 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/hunspell:hunspell:v1.7.2
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			autoreconf cpe libtool:keepla iconv ncurses readline
-			shebangfix perl gettext:build c++:single
+			shebangfix perl gettext:build c++:primary
 
-LICENSE=		GPLv2+:single LGPL21+:single MPL:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary LGPL21+:primary MPL:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 			LGPL21+:{{WRKSRC}}/COPYING.LESSER
 			MPL:{{WRKSRC}}/COPYING.MPL
@@ -48,7 +51,7 @@ post-patch:
 	${REINPLACE_CMD} -e 's|%%PREFIX%%|${PREFIX}|g' \
 		${WRKSRC}/src/tools/hunspell.cxx
 
-[FILE:1328:descriptions/desc.single]
+[FILE:1328:descriptions/desc.primary]
 Hunspell is a spell checker and morphological analyzer library and program
 designed for languages with rich morphology and complex word compounding or
 character encoding. Hunspell interfaces: Ispell-like terminal interface
@@ -78,7 +81,7 @@ Main features of Hunspell spell checker and morphological analyzer:
 69fa312d3586c988789266eaf7ffc9861d9f6396c31fc930a014d551b59bbd6e       981394 hunspell-hunspell-1.7.2.tar.gz
 
 
-[FILE:552:manifests/plist.single]
+[FILE:211:manifests/plist.primary]
 bin/
  affixcompress
  analyze
@@ -92,6 +95,12 @@ bin/
  unmunch
  wordforms
  wordlist2hunspell
+lib/
+ libhunspell-%%SHLIB_VER%%.so.0
+ libhunspell-%%SHLIB_VER%%.so.0.0.1
+
+
+[FILE:201:manifests/plist.dev]
 include/hunspell/
  atypes.hxx
  hunspell.h
@@ -102,16 +111,17 @@ lib/
  libhunspell-%%SHLIB_VER%%.a
  libhunspell-%%SHLIB_VER%%.la
  libhunspell-%%SHLIB_VER%%.so
- libhunspell-%%SHLIB_VER%%.so.0
- libhunspell-%%SHLIB_VER%%.so.0.0.1
 lib/pkgconfig/hunspell.pc
-share/man/hu/man1/hunspell.1.gz
+
+
+[FILE:127:manifests/plist.man]
+share/man/hu/man1/hunspell.1
 share/man/man1/
- hunspell.1.gz
- hunzip.1.gz
- hzip.1.gz
-share/man/man3/hunspell.3.gz
-share/man/man5/hunspell.5.gz
+ hunspell.1
+ hunzip.1
+ hzip.1
+share/man/man3/hunspell.3
+share/man/man5/hunspell.5
 
 
 [FILE:2056:patches/patch-src_tools_hunspell.cxx]

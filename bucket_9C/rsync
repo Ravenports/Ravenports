@@ -2,6 +2,7 @@
 
 NAMEBASE=		rsync
 VERSION=		3.3.0
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		Network file distribution/synchronization utility
@@ -14,7 +15,9 @@ SITES[main]=		https://rsync.samba.org/ftp/rsync/
 			http://www.mirrorservice.org/sites/rsync.samba.org/
 DISTFILE[1]=		rsync-3.3.0.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -41,7 +44,7 @@ CONFIGURE_ARGS=		--disable-debug
 			--disable-simd
 
 INSTALL_TARGET=		install-strip
-RC_SUBR=		rsyncd:single
+RC_SUBR=		rsyncd:primary
 SUB_LIST=		NAME=rsyncd
 
 TEST_TARGET=		check
@@ -58,7 +61,7 @@ post-install:
 	${INSTALL_DATA} ${FILESDIR}/rsyncd.conf.sample ${STAGEDIR}${PREFIX}/etc/rsync
 	${INSTALL_SCRIPT} ${WRKSRC}/support/rrsync ${STAGEDIR}${PREFIX}/sbin
 
-[FILE:494:descriptions/desc.single]
+[FILE:494:descriptions/desc.primary]
 rsync is a replacement for rcp that has many more features.
 
 rsync uses the "rsync algorithm" which provides a very fast method for
@@ -75,16 +78,19 @@ Note, requires rsync on the destination machine.
 7399e9a6708c32d678a72a63219e96f23be0be2336e50fd1348498d07041df90      1153969 rsync-3.3.0.tar.gz
 
 
-[FILE:148:manifests/plist.single]
+[FILE:72:manifests/plist.primary]
 @sample etc/rsync/rsyncd.conf.sample
 bin/
  rsync
  rsync-ssl
 sbin/rrsync
+
+
+[FILE:67:manifests/plist.man]
 share/man/man1/
- rsync-ssl.1.gz
- rsync.1.gz
-share/man/man5/rsyncd.conf.5.gz
+ rsync-ssl.1
+ rsync.1
+share/man/man5/rsyncd.conf.5
 
 
 [FILE:768:files/rsyncd.conf.sample]

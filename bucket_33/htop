@@ -2,6 +2,7 @@
 
 NAMEBASE=		htop
 VERSION=		3.3.0
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		Interactive process viewer for Unix
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/htop-dev:htop:3.3.0
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,8 +23,8 @@ OPTIONS_STANDARD=	none
 USES=			autoreconf libtool ncurses pkgconfig execinfo bdb:5
 			python:build
 
-LICENSE=		GPLv2:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -36,7 +39,7 @@ post-extract:
 	${AWK} '/## License/ { x=1 } {if (x) print $$0;}' \
 		${WRKSRC}/README > ${WRKDIR}/TERMS
 
-[FILE:825:descriptions/desc.single]
+[FILE:825:descriptions/desc.primary]
 htop is an enhanced version of top, the interactive process viewer,
 which can display the list of processes in a tree form.
 
@@ -60,12 +63,15 @@ Comparison between 'htop' and 'top'
 1e5cc328eee2bd1acff89f860e3179ea24b85df3ac483433f92a29977b14b045       406012 htop-dev-htop-3.3.0.tar.gz
 
 
-[FILE:132:manifests/plist.single]
+[FILE:107:manifests/plist.primary]
 bin/htop
 share/applications/htop.desktop
 share/icons/hicolor/scalable/apps/htop.svg
-share/man/man1/htop.1.gz
 share/pixmaps/htop.png
+
+
+[FILE:22:manifests/plist.man]
+share/man/man1/htop.1
 
 
 [FILE:1319:patches/patch-dragonflybsd_DragonFlyBSDMachine.c]

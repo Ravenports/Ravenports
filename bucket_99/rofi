@@ -2,6 +2,7 @@
 
 NAMEBASE=		rofi
 VERSION=		1.7.5
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		std
 SDESC[std]=		Window switcher, run dialog and dmenu replacement
@@ -12,7 +13,10 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/DaveDavenport/rofi/releases/download/1.7.5/
 DISTFILE[1]=		rofi-1.7.5.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			man
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -30,7 +34,7 @@ GNOME_COMPONENTS=	cairo gdkpixbuf librsvg pango
 XORG_COMPONENTS=	xcb xcb-util-cursor xcb-util xcb-util-wm
 			xcb-util-xrm
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -49,46 +53,19 @@ VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
 post-patch:
 	${REINPLACE_CMD} -e 's/ -pedantic//' ${WRKSRC}/configure
 
-[FILE:426:descriptions/desc.single]
-A window switcher, application launcher and dmenu replacement.
-
-A popup window switcher roughly based on superswitcher, requiring only xlib
-and pango. This version started off as a clone of simpleswitcher, the
-version from Sean Pringle. All credit for this great tool should go to him.
-Rofi developed extra features, like a run-dialog, ssh-launcher and can
-act as a drop-in dmenu replacement, making it a very versatile tool.
-
-
 [FILE:96:distinfo]
 caffcf66d165cb32b748c1db7f229d6d75da58c1685eb17455f65c60e8220c8d       772952 rofi-1.7.5.tar.xz
 
 
-[FILE:970:manifests/plist.single]
+[FILE:678:manifests/plist.primary]
 bin/
  rofi
  rofi-sensible-terminal
  rofi-theme-selector
-include/rofi/
- helper.h
- mode-private.h
- mode.h
- rofi-icon-fetcher.h
- rofi-types.h
-lib/pkgconfig/rofi.pc
 share/applications/
  rofi-theme-selector.desktop
  rofi.desktop
 share/icons/hicolor/apps/rofi.svg
-share/man/man1/
- rofi-sensible-terminal.1.gz
- rofi-theme-selector.1.gz
- rofi.1.gz
-share/man/man5/
- rofi-debugging.5.gz
- rofi-dmenu.5.gz
- rofi-keys.5.gz
- rofi-script.5.gz
- rofi-theme.5.gz
 share/rofi/themes/
  Adapta-Nokto.rasi
  Arc-Dark.rasi
@@ -121,6 +98,29 @@ share/rofi/themes/
  sidebar.rasi
  solarized.rasi
  solarized_alternate.rasi
+
+
+[FILE:105:manifests/plist.dev]
+include/rofi/
+ helper.h
+ mode-private.h
+ mode.h
+ rofi-icon-fetcher.h
+ rofi-types.h
+lib/pkgconfig/rofi.pc
+
+
+[FILE:163:manifests/plist.man]
+share/man/man1/
+ rofi-sensible-terminal.1
+ rofi-theme-selector.1
+ rofi.1
+share/man/man5/
+ rofi-debugging.5
+ rofi-dmenu.5
+ rofi-keys.5
+ rofi-script.5
+ rofi-theme.5
 
 
 [FILE:290:patches/patch-source_rofi.c]
