@@ -2,6 +2,7 @@
 
 NAMEBASE=		sndio
 VERSION=		1.10.0
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		Small audio and MIDI framework from OpenBSD
@@ -56,16 +57,11 @@ post-install:
 		${STAGEDIR}${PREFIX}/bin/sndiod \
 		${STAGEDIR}${PREFIX}/bin/aucat \
 		${STAGEDIR}${PREFIX}/bin/midicat
-	${RM} ${STAGEDIR}${PREFIX}/lib/libsndio.so.7.0
 
 pre-configure:
 	# Make sure sndiod can be started inside jails as root
 	${REINPLACE_CMD} 's|err(1, "setpriority")|warn("setpriority")|' \
 		${WRKSRC}/sndiod/sndiod.c
-
-pre-configure-dragonfly:
-	${REINPLACE_CMD} -e 's@\(FreeBSD\))@\1|DragonFly)@g' \
-		${WRKSRC}/configure
 
 [FILE:449:descriptions/desc.primary]
 Sndio is a small audio and MIDI framework part of the OpenBSD project.
@@ -168,7 +164,7 @@ share/man/man8/sndiod.8
   */
 
 
-[FILE:1532:patches/patch-configure]
+[FILE:1729:patches/patch-configure]
 --- configure.orig	2024-08-01 15:36:54 UTC
 +++ configure
 @@ -70,9 +70,9 @@ case `uname` in
@@ -179,7 +175,7 @@ share/man/man8/sndiod.8
 -		so_link="libsndio.so libsndio.so.\${MAJ} libsndio.so.\${MAJ}.0"
 -		so_ldflags="-Wl,-soname=libsndio.so.\${MAJ}"
 +		user=_sndio
-+		so_link="libsndio.so"
++		so_link="libsndio.so libsndio.so.\${MAJ}"
 +		so_ldflags="-Wl,-soname=libsndio.so.\${MAJ}.\${MIN}"
  		defs='-D_GNU_SOURCE -DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
  		;;
@@ -192,7 +188,7 @@ share/man/man8/sndiod.8
  		defs='-DHAVE_ARC4RANDOM -DHAVE_GETPEEREID -DHAVE_ISSETUGID \\\
  		-DHAVE_STRLCAT -DHAVE_STRLCPY \\\
  		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
-@@ -110,7 +111,7 @@ case `uname` in
+@@ -110,16 +111,27 @@ case `uname` in
  		-DHAVE_STRLCAT -DHAVE_STRLCPY -DHAVE_STRTONUM \\\
  		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
  		;;
@@ -201,7 +197,10 @@ share/man/man8/sndiod.8
  		oss=yes
  		umidi=yes
  		user=_sndio
-@@ -120,6 +121,17 @@ case `uname` in
+ 		so_ldflags="-Wl,-soname=libsndio.so.\${MAJ}.\${MIN}"
+-		so_link="libsndio.so"
++		so_link="libsndio.so libsndio.so.\${MAJ}"
+ 		defs='-DHAVE_ARC4RANDOM -DHAVE_GETPEEREID -DHAVE_ISSETUGID \\\
  		-DHAVE_STRLCAT -DHAVE_STRLCPY -DHAVE_STRTONUM \\\
  		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
  		;;
@@ -211,7 +210,7 @@ share/man/man8/sndiod.8
 +		umidi=yes
 +		user=_sndio
 +		so_ldflags="-Wl,-soname,libsndio.so.\${MAJ}.\${MIN}"
-+		so_link="libsndio.so"
++		so_link="libsndio.so libsndio.so.\${MAJ}"
 +		defs='-DHAVE_ISSETUGID -DO_CLOEXEC=0 \\\
 +		-DHAVE_STRLCAT -DHAVE_STRLCPY \\\
 +		-DSOCK_CLOEXEC=0 -DHAVE_CLOCK_GETTIME'

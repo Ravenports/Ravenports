@@ -146,15 +146,11 @@ post-install:
 	# Actually we remove the entire share/doc/rust contents.
 	# We also need to dedup the entries in the generated PLIST, because
 	# both components manifests list them.
-	#
-	# We fix manpage entries in the generated manifests because Rust
-	# installs them uncompressed but the Ports framework compresses them.
 	for f in ${STAGEDIR}${PREFIX}/lib/rustlib/manifest-*; do \
 	    ${SED} -i'' -E \
 		-e '/share\/doc\/rust/d' \
 		-e '/bash_completion/d' \
 	        -e 's|:${STAGEDIR}|:|' \
-	        -e 's|(man/man[1-9]/.*\.[0-9])|\1.gz|' \
 	        $$f; \
 	    ${AWK} '\
 	        /^file:/ { \
