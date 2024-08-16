@@ -2,7 +2,7 @@
 
 NAMEBASE=		chromaprint
 VERSION=		1.5.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		AcoustID audio fingerprinting library
@@ -13,7 +13,8 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GITHUB/acoustid:chromaprint:aa67c95
 DISTFILE[1]=		generated:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -21,10 +22,10 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		ffmpeg5:dev:std
 BUILDRUN_DEPENDS=	ffmpeg5:primary:std
 
-USES=			cmake c++:single
+USES=			cmake c++:primary
 
-LICENSE=		LGPL21:single
-LICENSE_TERMS=		single:{{WRKSRC}}/LICENSE.md
+LICENSE=		LGPL21:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/LICENSE.md
 LICENSE_FILE=		LGPL21:stock
 LICENSE_SCHEME=		solo
 
@@ -38,7 +39,7 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fpcalc
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libchromaprint.so
 
-[FILE:255:descriptions/desc.single]
+[FILE:255:descriptions/desc.primary]
 Chromaprint is the core component of the AcoustID project.  It is a
 client-side library that implements a custom algorithm for extracting
 fingerprints from any audio source.  Also included is fpcalc, a small
@@ -49,12 +50,15 @@ utility for calculating AcoustID fingerprints.
 0893b7198121dd2add81aa1233e5312cbc7446bdd6b6418a5af6ab24e82cb6b3      1581151 acoustid-chromaprint-aa67c95.tar.gz
 
 
-[FILE:153:manifests/plist.single]
+[FILE:80:manifests/plist.primary]
 bin/fpcalc
-include/chromaprint.h
 lib/
- libchromaprint.so
  libchromaprint.so.%%SOMAJOR%%
  libchromaprint.so.%%SOVERSION%%
+
+
+[FILE:76:manifests/plist.dev]
+include/chromaprint.h
+lib/libchromaprint.so
 lib/pkgconfig/libchromaprint.pc
 
