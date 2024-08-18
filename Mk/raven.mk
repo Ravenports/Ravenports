@@ -443,7 +443,7 @@ compile-package-desc:
 	@${ECHO} "This is GNU Info manual subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
 .    elif ${sp:Mlang}
 	@${ECHO} "This is language subpackage of the ${TWO_PART_ID} port." > ${_DESC_FILE}.${sp}
-.    elif ${sp:Mcomplete}
+.    elif ${sp:Mset}
 	@${ECHO} "This is the ${TWO_PART_ID} metapackage." > ${_DESC_FILE}.${sp}
 	@${ECHO} "It pulls in all subpackages of ${TWO_PART_ID}." >> ${_DESC_FILE}.${sp}
 .    endif

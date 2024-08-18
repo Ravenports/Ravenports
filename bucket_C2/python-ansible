@@ -47,9 +47,16 @@ post-install:
 		community/okd/ci/downstream.sh\
 		community/okd/ci/incluster_integration.sh\
 		ovirt/ovirt/build.sh\
+		cisco/dnac/run_tests.sh\
 		cyberark/conjur/roles/conjur_host_identity/tests/test.sh\
 		sensu/sensu_go/docker/build-all.sh\
-		sensu/sensu_go/docker/build.sh)
+		sensu/sensu_go/docker/build.sh\
+		amazon/aws/plugins/module_utils/tower.py\
+		amazon/aws/plugins/modules/ec2_metadata_facts.py\
+		ngine_io/cloudstack/scripts/inventory/cloudstack.py\
+		vultr/cloud/plugins/modules/startup_script.py\
+		community/vmware/plugins/modules/vmware_guest.py\
+	)
 	# Fix python shebangs
 	(cd ${STAGEDIR}${PYTHON_SITELIBDIR}/ansible_collections &&\
 		${SED} -i'' -e "s|/usr/bin/python3|${LOCALBASE}/bin/python3|" \
@@ -59,6 +66,8 @@ post-install:
 	${XARGS} -n 500 -0 ${SED} -i'' \
 		-e 's|/etc/ansible|${PREFIX}/etc|g' \
 		-e 's|/usr/share/ansible|${PREFIX}/share/ansible|g'
+	# rerun compilation
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
 
 [FILE:92:descriptions/desc.single]
    :alt: Ansible Code of Conduct
