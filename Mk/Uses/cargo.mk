@@ -117,17 +117,22 @@ CARGO_ENV+=	SCCACHE_DIR=${CCACHE_DIR}/sccache
 # configure hook.  Place a config file for overriding crates-io index
 # by local source directory.
 do-configure:
+	@${ECHO_MSG} "===>   Cargo config:"
 	@${MKDIR} ${WRKDIR}/.cargo
-	@${ECHO_CMD} "[source.cargo]" > ${WRKDIR}/.cargo/config
-	@${ECHO_CMD} "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKDIR}/.cargo/config
-	@${ECHO_CMD} "[source.crates-io]" >> ${WRKDIR}/.cargo/config
-	@${ECHO_CMD} "replace-with = 'cargo'" >> ${WRKDIR}/.cargo/config
+	@: > ${WRKDIR}/.cargo/config.toml
+	@${ECHO_CMD} "[source.cargo]" >> ${WRKDIR}/.cargo/config.toml
+	@${ECHO_CMD} "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKDIR}/.cargo/config.toml
+	@${ECHO_CMD} "[source.crates-io]" >> ${WRKDIR}/.cargo/config.toml
+	@${ECHO_CMD} "replace-with = 'cargo'" >> ${WRKDIR}/.cargo/config.toml
+	@${CAT} ${WRKDIR}/.cargo/config.toml
+
 	@if ! ${GREP} -qF '[profile.release]' ${CARGO_CARGOTOML}; then \
 		${ECHO_CMD} "" >> ${CARGO_CARGOTOML}; \
 		${ECHO_CMD} "[profile.release]" >> ${CARGO_CARGOTOML}; \
 		${ECHO_CMD} "opt-level = 2" >> ${CARGO_CARGOTOML}; \
 		${ECHO_CMD} "debug = false" >> ${CARGO_CARGOTOML}; \
 	fi
+	@${ECHO_MSG} "===>   Updating Cargo.lock"
 	${CARGO_CARGO_RUN} update \
 		--manifest-path ${CARGO_CARGOTOML} \
 		--verbose \
