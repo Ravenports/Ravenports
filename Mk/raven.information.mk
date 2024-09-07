@@ -183,7 +183,7 @@ ASPELL_INSTALL_VERSION=		0.60
 # apr1 and other apache projects
 # ------------------------------------------------------------------------
 
-APR1_VERSION=			1.7.4
+APR1_VERSION=			1.7.5
 APR1_UTIL_VERSION=		1.6.3
 SUBVERSION_VERSION=		1.14.3
 

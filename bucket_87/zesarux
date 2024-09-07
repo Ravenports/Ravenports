@@ -611,6 +611,63 @@ share/zesarux/text_image_filters/
  dummy_dalle_text_to_image.sh
 
 
+[FILE:194:patches/patch-audio_audio.h]
+--- audio/audio.h.orig	2024-06-06 15:45:53 UTC
++++ audio/audio.h
+@@ -26,6 +26,7 @@
+ #if defined(__APPLE__)
+         #include <sys/syslimits.h>
+ #endif
++#include <limits.h>
+ 
+ 
+ #include "cpu.h"
+
+
+[FILE:194:patches/patch-m68kcpu.h]
+--- m68kcpu.h.orig	2024-06-06 15:45:53 UTC
++++ m68kcpu.h
+@@ -75,7 +75,7 @@
+ 
+ 
+ //Para haiku
+-#ifdef HAIKU_OS
++#if defined HAIKU_OS || defined __DragonFly__
+ typedef unsigned int uint;
+ 
+ #else
+
+
+[FILE:192:patches/patch-network.h]
+--- network.h.orig	2024-06-06 15:45:53 UTC
++++ network.h
+@@ -43,7 +43,7 @@
+ #endif
+ 
+ 
+-#ifdef __FreeBSD__
++#if defined __FreeBSD__ || defined __DragonFly__
+ #include <netinet/in.h>
+ #endif
+ 
+
+
+[FILE:367:patches/patch-snap_snap__z81.c]
+dummy operation does not even build on DragonFly.
+It was there to silence a compiler warning.
+
+--- snap/snap_z81.c.orig	2024-06-06 15:45:53 UTC
++++ snap/snap_z81.c
+@@ -284,7 +284,6 @@ void load_snap_ace(FILE *f)
+ 	//de momento volver sin mas
+ 	//y que el compilador no se queje de variable no usada
+ 	f=NULL;
+-	f++;
+ 	return;
+ /*
+         int puntero_memoria=0x2000;
+
+
 [FILE:255:patches/patch-src_configure]
 --- configure.orig	2024-06-06 15:45:53 UTC
 +++ configure
@@ -650,5 +707,33 @@ share/zesarux/text_image_filters/
 +#include <ncurses/curses.h>
  #include <string.h>
  #include <unistd.h>
+ 
+
+
+[FILE:208:patches/patch-utils.h]
+--- utils.h.orig	2024-06-06 15:45:53 UTC
++++ utils.h
+@@ -22,7 +22,7 @@
+ #ifndef UTILS_H
+ #define UTILS_H
+ 
+-#ifdef __FreeBSD__
++#if defined __FreeBSD__ || defined __DragonFly__
+ #include <limits.h>
+ #endif
+ 
+
+
+[FILE:261:patches/patch-zrcp_remote.c]
+--- zrcp/remote.c.orig	2024-06-06 15:45:53 UTC
++++ zrcp/remote.c
+@@ -104,7 +104,7 @@ int zrcp_command_close_all_menus=0;
+ 	#include <arpa/inet.h>
+ #endif
+ 
+-#ifdef __FreeBSD__
++#if defined __FreeBSD__ || defined __DragonFly__
+ #include <netinet/in.h>
+ #endif
  
 

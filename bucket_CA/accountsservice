@@ -2,6 +2,7 @@
 
 NAMEBASE=		accountsservice
 VERSION=		23.13.9
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		D-Bus service for user account query/manipulation
@@ -16,6 +17,7 @@ DISTFILE[2]=		accountsservice-23.13.9.tar.gz:main
 DF_INDEX=		1 2
 SPKGS[std]=		set
 			primary
+			dev
 			nls
 			docs
 
@@ -52,6 +54,8 @@ MESON_ARGS=		-Dsystemdsystemunitdir=no
 
 PATCH_WRKSRC=		{{WRKDIR}}/accountsservice-1ad45945
 
+SOVERSION=		0.0.0
+
 [LINUX].DESCRIPTION=			Support for Linux system
 [LINUX].CONFIGURE_ARGS_OFF=		-Dconsolekit=true
 					-Dtests=false
@@ -74,22 +78,15 @@ as well.
 15354c7f0457afdc0b9f7cc86bb2b8b90b7f6cfc09a80402bd685b56a4012c54       668351 accountsservice-23.13.9.tar.gz
 
 
-[FILE:867:manifests/plist.primary]
+[FILE:734:manifests/plist.primary]
 %%LINUX-OFF%%@dir(,,0700) /var/db/AccountsService/users
 %%LINUX-OFF%%@dir(,,0775) /var/db/AccountsService/icons
 %%LINUX-ON%%@dir(,,0700) /var/lib/AccountsService/users
 %%LINUX-ON%%@dir(,,0775) /var/lib/AccountsService/icons
-include/accountsservice-1.0/act/
- act-user-enum-types.h
- act-user-manager.h
- act-user.h
- act.h
 lib/
- libaccountsservice.so
- libaccountsservice.so.0
- libaccountsservice.so.0.0.0
+ libaccountsservice.so.%%SOMAJOR%%
+ libaccountsservice.so.%%SOVERSION%%
 lib/girepository-1.0/AccountsService-1.0.typelib
-lib/pkgconfig/accountsservice.pc
 libexec/accounts-daemon
 share/accountsservice/user-templates/
  administrator
@@ -101,6 +98,16 @@ share/dbus-1/system-services/org.freedesktop.Accounts.service
 share/dbus-1/system.d/org.freedesktop.Accounts.conf
 share/gir-1.0/AccountsService-1.0.gir
 share/polkit-1/actions/org.freedesktop.accounts.policy
+
+
+[FILE:154:manifests/plist.dev]
+include/accountsservice-1.0/act/
+ act-user-enum-types.h
+ act-user-manager.h
+ act-user.h
+ act.h
+lib/libaccountsservice.so
+lib/pkgconfig/accountsservice.pc
 
 
 [FILE:3587:manifests/plist.nls]
