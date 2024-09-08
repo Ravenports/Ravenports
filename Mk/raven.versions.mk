@@ -40,7 +40,7 @@ RUBY_DEFAULT?=		3.2
 
 RUBY_3.1_VERSION=	3.1.4
 RUBY_3.2_VERSION=	3.2.2
-RUBY_3.3_VERSION=	3.3.4
+RUBY_3.3_VERSION=	3.3.5
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -49,8 +49,8 @@ RUBY_3.3_VERSION=	3.3.4
 
 PYTHON3_DEFAULT?=	3.12
 
-PYTHON_3.11_VERSION=	3.11.9
-PYTHON_3.12_VERSION=	3.12.5
+PYTHON_3.11_VERSION=	3.11.10
+PYTHON_3.12_VERSION=	3.12.6
 
 #-------------------------------------------------------------------------
 # SSL
@@ -87,11 +87,11 @@ TCL_8.6_VERSION=	8.6.14
 
 PGSQL_DEFAULT?=		15
 
-PGSQL_12_VERSION=	12.19
-PGSQL_13_VERSION=	13.15
-PGSQL_14_VERSION=	14.12
-PGSQL_15_VERSION=	15.7
-PGSQL_16_VERSION=	16.3
+PGSQL_12_VERSION=	12.20
+PGSQL_13_VERSION=	13.16
+PGSQL_14_VERSION=	14.13
+PGSQL_15_VERSION=	15.8
+PGSQL_16_VERSION=	16.4
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
@@ -117,7 +117,7 @@ MYSQL_innovation_VERSION=	9.0.1
 MYSQL_mariadb-10.5_VERSION=	10.5.26
 MYSQL_mariadb-10.6_VERSION=	10.6.19
 MYSQL_mariadb-10.11_VERSION=	10.11.9
-MYSQL_mariadb-11_VERSION=	11.4.3
+MYSQL_mariadb-11_VERSION=	11.5.2
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
@@ -127,8 +127,8 @@ MYSQL_mariadb-11_VERSION=	11.4.3
 PHP_DEFAULT?=		8.2
 
 PHP_8.1_VERSION=	8.1.29
-PHP_8.2_VERSION=	8.2.22
-PHP_8.3_VERSION=	8.3.10
+PHP_8.2_VERSION=	8.2.23
+PHP_8.3_VERSION=	8.3.11
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
