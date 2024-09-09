@@ -2,6 +2,7 @@
 
 NAMEBASE=		lagrange
 VERSION=		1.17.6
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		std
 SDESC[std]=		Web Browser-like beautiful Gemini Client
@@ -19,6 +20,8 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BROKEN[all]=		Does not build with openssl 3.3.2 or LibreSSL (openssl 1.1.1 works but is being removed)
+
 BUILD_DEPENDS=		zip:primary:std
 			mpg123:dev:std
 			WebP:dev:std
@@ -31,7 +34,7 @@ BUILDRUN_DEPENDS=	fribidi:primary:std
 			mpg123:primary:std
 			WebP:primary:std
 
-USES=			cmake ncurses pcre pkgconfig zlib ssl:openssl11 curl
+USES=			cmake ncurses pcre pkgconfig zlib ssl:openssl30 curl
 			desktop-utils:primary
 SDL_COMPONENTS=		sdl2
 XORG_COMPONENTS=	x11
@@ -222,4 +225,19 @@ share/man/man1/lagrange.1
      endif ()
      # Unicode text strings
      set (UNISTRING_DIR "" CACHE PATH "Location of libunistring")
+
+
+[FILE:444:patches/patch-lib_the__Foundation_src_tlsrequest.c]
+--- lib/the_Foundation/src/tlsrequest.c.orig	2024-01-16 08:51:40 UTC
++++ lib/the_Foundation/src/tlsrequest.c
+@@ -249,7 +249,9 @@ void init_Context(iContext *d) {
+     SSL_load_error_strings();
+     ERR_load_crypto_strings();
+ #endif
++#if OPENSSL_VERSION_NUMBER < 0x30000000L
+     ERR_load_BIO_strings();
++#endif
+     d->ctx = SSL_CTX_new(TLS_client_method());
+     if (!d->ctx) {
+         iDebug("[TlsRequest] failed to initialize OpenSSL\n");
 
