@@ -54,7 +54,7 @@ PYTHON_3.12_VERSION=	3.12.6
 
 #-------------------------------------------------------------------------
 # SSL
-# Possible values: openssl10, openssl11, openssl30, libressl, libressl-devel
+# Possible values: openssl30, libressl, libressl-devel
 #-------------------------------------------------------------------------
 
 SSL_DEFAULT?=		libressl
