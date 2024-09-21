@@ -4256,14 +4256,15 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
  #include <memory>
 
 
-[FILE:371:patches/patch-external_libcmis_UnpackedTarball__libcmis.mk]
+[FILE:418:patches/patch-external_libcmis_UnpackedTarball__libcmis.mk]
 --- external/libcmis/UnpackedTarball_libcmis.mk.orig	2024-07-10 15:12:43 UTC
 +++ external/libcmis/UnpackedTarball_libcmis.mk
-@@ -15,6 +15,7 @@ $(eval $(call gb_UnpackedTarball_set_pat
+@@ -15,6 +15,8 @@ $(eval $(call gb_UnpackedTarball_set_pat
  
  $(eval $(call gb_UnpackedTarball_add_patches,libcmis,\
  	external/libcmis/http-session-cleanup.patch.1 \
 +	external/libcmis/libcmis_xml-utils.patch \
++	external/libcmis/libcmis_xml-utils-2.patch \
  ))
  
  # vim: set noet sw=4 ts=4:
@@ -4283,6 +4284,23 @@ $NetBSD: patch-bridges_source_cpp__uno_gcc3__linux__x86-64_share.hxx,v 1.5 2019/
 + #include <libxml/tree.h>
 + #include <libxml/xpathInternals.h>
 + #include <libxml/xmlwriter.h>
+
+
+[FILE:572:patches/patch-external_libcmis_patch_2]
+--- /dev/null	2024-09-21 23:27:00 UTC
++++ external/libcmis/libcmis_xml-utils-2.patch
+@@ -0,0 +1,11 @@
++--- libcmis/src/libcmis/xml-utils.cxx.orig	2023-11-13 09:46:38 UTC
+++++ libcmis/src/libcmis/xml-utils.cxx
++@@ -536,7 +536,7 @@ namespace libcmis
++         sha1.process_bytes( str.c_str(), str.size() );
++ 
++         unsigned int digest[5];
++-        sha1.get_digest( digest );
+++        sha1.get_digest( reinterpret_cast<boost::uuids::detail::sha1::digest_type&>(digest) );
++ 
++         stringstream out;
++         // Setup writing mode. Every number must produce eight
 
 
 [FILE:381:patches/patch-external_skia_Library__skia.mk]
