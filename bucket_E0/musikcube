@@ -127,7 +127,12 @@ This subpackage contains the portaudio output plugin.
 25bb95b8705d8c79bde447e7c7019372eea7eaed9d0268510278e7fcdb1378a5      4827124 clangen-musikcube-3.0.4.tar.gz
 
 
-[FILE:432:manifests/plist.primary]
+[FILE:712:manifests/plist.primary]
+%%ONLY-LINUX%%share/applications/musikcube.desktop
+%%ONLY-LINUX%%share/icons/hicolor/128x128/apps/musikcube.png
+%%ONLY-LINUX%%share/icons/hicolor/48x48/apps/musikcube.png
+%%ONLY-LINUX%%share/icons/hicolor/64x64/apps/musikcube.png
+%%ONLY-LINUX%%share/musikcube/plugins/libmpris.so
 bin/musikcube
 share/musikcube/
  libmusikcore.so
@@ -208,8 +213,8 @@ include/musikcube/musikcore/sdk/
 
 [FILE:79:manifests/plist.server]
 bin/musikcubed
-share/musikcube/plugins/libserver.so
 share/musikcube/musikcubed
+share/musikcube/plugins/libserver.so
 
 
 [FILE:45:manifests/plist.in_openmpt]
@@ -230,4 +235,23 @@ share/musikcube/plugins/libpipewireout.so
 
 [FILE:43:manifests/plist.out_portaudio]
 share/musikcube/plugins/libportaudioout.so
+
+
+[FILE:479:patches/patch-src_musikcube_cursespp_cursespp_curses__config.h]
+--- src/musikcube/cursespp/cursespp/curses_config.h.orig	2024-07-14 19:37:30 UTC
++++ src/musikcube/cursespp/cursespp/curses_config.h
+@@ -43,12 +43,9 @@
+ #if defined(WIN32) || defined(NO_NCURSESW) && !defined(__DragonFly__)
+     #include <curses.h>
+     #include <panel.h>
+-#elif defined(__DragonFly__)
++#else
+     #include <ncurses/curses.h>
+     #include <ncurses/panel.h>
+-#else
+-    #include <ncursesw/curses.h>
+-    #include <ncursesw/panel.h>
+ #endif
+ 
+ #include <stdarg.h>
 

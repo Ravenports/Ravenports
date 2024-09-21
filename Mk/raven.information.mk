@@ -22,7 +22,7 @@ APQ_ODBC_REVISION=		1
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.85.0
+BOOST_VERSION=			1.86.0
 BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
@@ -129,7 +129,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.13.3
+LIBXML2_VERSION=		2.13.4
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -163,7 +163,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.43
-GTK4_PORT_VERSION=		4.14.5
+GTK4_PORT_VERSION=		4.16.1
 
 # ------------------------------------------------------------------------
 # Ravenports binutils

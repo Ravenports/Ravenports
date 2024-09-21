@@ -579,16 +579,18 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  spa_support_dep = declare_dependency(link_with: spa_support_lib)
 
 
-[FILE:323:patches/patch-spa_plugins_v4l2_v4l2-utils.c]
+[FILE:356:patches/patch-spa_plugins_v4l2_v4l2-utils.c]
 --- spa/plugins/v4l2/v4l2-utils.c.orig	2024-07-31 10:02:24 UTC
 +++ spa/plugins/v4l2/v4l2-utils.c
-@@ -15,6 +15,10 @@
+@@ -15,6 +15,12 @@
  #include <spa/utils/cleanup.h>
  #include <spa/utils/result.h>
- 
+
++#if !defined(__linux__) 
 +typedef uint32_t __u32;
 +typedef int32_t  __s32;
 +typedef int64_t  __s64;
++#endif
 +
  static int xioctl(int fd, int request, void *arg)
  {
@@ -731,14 +733,14 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  #include "config.h"
 
 
-[FILE:1085:patches/patch-src_pipewire_mem.c]
+[FILE:1087:patches/patch-src_pipewire_mem.c]
 --- src/pipewire/mem.c.orig	2024-07-31 10:02:24 UTC
 +++ src/pipewire/mem.c
 @@ -26,6 +26,7 @@ PW_LOG_TOPIC_EXTERN(log_mem);
  #define PW_LOG_TOPIC_DEFAULT log_mem
  
  #if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__) \
-+       && !defined(__DragonFly__)
++       && !defined(__DragonFly__) \
         && !defined(HAVE_MEMFD_CREATE)
  /*
   * No glibc wrappers exist for memfd_create(2), so provide our own.
