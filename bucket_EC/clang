@@ -2115,20 +2115,22 @@ share/man/man1/scan-build.1
    void AddHIPIncludeArgs(const llvm::opt::ArgList &DriverArgs,
 
 
-[FILE:758:patches/patch-lib_Driver_ToolChains_Gnu.cpp]
+[FILE:836:patches/patch-lib_Driver_ToolChains_Gnu.cpp]
 --- lib/Driver/ToolChains/Gnu.cpp.orig	2024-06-15 17:21:32 UTC
 +++ lib/Driver/ToolChains/Gnu.cpp
-@@ -439,6 +439,9 @@ void tools::gnutools::Linker::ConstructJ
+@@ -439,6 +439,11 @@ void tools::gnutools::Linker::ConstructJ
    } else if (IsStatic) {
      CmdArgs.push_back("-static");
    } else if (!Args.hasArg(options::OPT_r)) {
 +    CmdArgs.push_back("-rpath");
 +    CmdArgs.push_back("@RAVEN_GCC@");
++    CmdArgs.push_back("-rpath");
++    CmdArgs.push_back("@LOCALBASE@/lib");
 +
      if (Args.hasArg(options::OPT_rdynamic))
        CmdArgs.push_back("-export-dynamic");
      if (!IsShared) {
-@@ -576,6 +579,8 @@ void tools::gnutools::Linker::ConstructJ
+@@ -576,6 +581,8 @@ void tools::gnutools::Linker::ConstructJ
  
    if (!Args.hasArg(options::OPT_nostdlib, options::OPT_r)) {
      if (!Args.hasArg(options::OPT_nodefaultlibs)) {

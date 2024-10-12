@@ -2,7 +2,7 @@
 
 NAMEBASE=		fetch
 VERSION=		12.0.11
-REVISION=		1
+REVISION=		2
 KEYWORDS=		ftp
 VARIANTS=		std library
 SDESC[std]=		Tool to retrieve file by Uniform Resource Locator
@@ -37,12 +37,19 @@ SOVERSION=		1.0
 [LIBRARY].DESCRIPTION=			Build library instead of executable
 [LIBRARY].CMAKE_ARGS_ON=		-DFETCH_LIBRARY:BOOL=ON
 					-DFETCH_PROGRAM:BOOL=OFF
+[LIBRARY].RUN_DEPENDS_OFF=		nss:caroot:std
 
 post-install-LIBRARY-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfetch.so
 
 post-install-LIBRARY-OFF:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/fetch
+
+pre-configure:
+	# adjust cert.pem path
+	${REINPLACE_CMD} -e 's|/usr/local/etc/ssl|${OPENSSLCERT}|' \
+		${WRKSRC}/common.c \
+		${WRKSRC}/fetch.[13]
 
 [FILE:391:descriptions/desc.primary.std]
 The fetch program is a command-line utility originating with FreeBSD.

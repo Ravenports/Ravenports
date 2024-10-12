@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-linux
 VERSION=		3.2.0
-REVISION=		4
+REVISION=		6
 KEYWORDS=		raven
 VARIANTS=		std ABI26
 SDESC[std]=		Linux 3.2.0 builder system root
@@ -10,7 +10,7 @@ SDESC[ABI26]=		Linux 2.6.32 builder system root
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main debian1 debian10 debian11 debian12 debian13 debian14 debian15 debian16 debian17 debian18 debian19 debian2 debian20 debian21 debian22 debian23 debian24 debian25 debian26 debian27 debian28 debian3 debian4 debian5 debian6 debian7 debian8 debian9 leaf sting ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
+DOWNLOAD_GROUPS=	main debian1 debian10 debian11 debian12 debian13 debian14 debian15 debian16 debian17 debian18 debian19 debian2 debian20 debian21 debian22 debian23 debian24 debian25 debian26 debian27 debian28 debian29 debian3 debian4 debian5 debian6 debian7 debian8 debian9 leaf sting ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[debian1]=		DEBIAN/pool/main/g/glibc
 SITES[debian10]=	DEBIAN/pool/main/libx/libxcrypt
@@ -33,6 +33,7 @@ SITES[debian25]=	DEBIAN/pool/main/l/lz4
 SITES[debian26]=	DEBIAN/pool/main/x/xz-utils
 SITES[debian27]=	DEBIAN/pool/main/libg/libgcrypt20
 SITES[debian28]=	DEBIAN/pool/main/libg/libgpg-error
+SITES[debian29]=	DEBIAN/pool/main/libc/libcap2
 SITES[debian3]=		DEBIAN/pool/main/a/acl
 SITES[debian4]=		DEBIAN/pool/main/s/systemd
 SITES[debian5]=		http://security.debian.org/debian-security/pool/updates/main/l/linux/
@@ -120,6 +121,8 @@ DISTFILE[64]=		liblz4-1_1.9.4-1_amd64.deb:debian25
 DISTFILE[65]=		liblzma5_5.4.1-0.2_amd64.deb:debian26
 DISTFILE[66]=		libgcrypt20_1.10.1-3_amd64.deb:debian27
 DISTFILE[67]=		libgpg-error0_1.46-1_amd64.deb:debian28
+DISTFILE[68]=		libcap2_2.66-4_amd64.deb:debian29
+DISTFILE[69]=		libcap-dev_2.66-4_amd64.deb:debian29
 DIST_SUBDIR=		linux-sysroot
 SPKGS[std]=		single
 SPKGS[ABI26]=		single
@@ -161,11 +164,11 @@ BUILD_DEPENDS=		nawk:primary:std
 EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
 			22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38
 			39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57
-			58 59 60 61 62 63 64 65 66 67 47 48
+			58 59 60 61 62 63 64 65 66 67 68 69 47 48
 EXTRACT_DEB_PACKAGE=	2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
 			22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38
 			39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57
-			58 59 60 61 62 63 64 65 66 67
+			58 59 60 61 62 63 64 65 66 67 68 69
 
 INVALID_RPATH=		yes
 
@@ -233,6 +236,8 @@ INFRASTRUCTURE=		yes
 					65
 					66
 					67
+					68
+					69
 					47
 					48
 [NOTSTD].MAKEFILE_OFF=			SYSTEM=Linux/x86_64/x86_64/610000/6.1.0/6.1
@@ -279,7 +284,7 @@ post-extract-ABI26-ON:
 
 post-extract-NOTSTD-OFF:
 	${INSTALL_DATA} ${FILESDIR}/linux61.mk ${WRKSRC}/system_specifics.mk
-.for NDX in 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67
+.for NDX in 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69
 	@echo "copy ${NAMEBASE}_${NDX} files over"
 	@cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	@${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
@@ -313,7 +318,7 @@ This is the full build environment for GNU/Linux 2.6.32, excluding the
 toolchain.  This basis of this environment is Mint 2016.
 
 
-[FILE:8262:distinfo]
+[FILE:8499:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 linux-sysroot/dummy-tarball.tar.gz
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 linux-sysroot/locales_2.23-0ubuntu10_all.deb
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 linux-sysroot/libc6_2.23-0ubuntu9_amd64.deb
@@ -381,9 +386,11 @@ e507cf63aeb8c68719c915028151f42ee7158a172097d47e7f9e421cf7510aca       352236 li
 d4b7736e58512a2b047f9cb91b71db5a3cf9d3451192fc6da044c77bf51fe869       205312 linux-sysroot/liblzma5_5.4.1-0.2_amd64.deb
 bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 linux-sysroot/libgcrypt20_1.10.1-3_amd64.deb
 89944ee11d7370ce6ef46fc52f094c4a6512eff8943ec4c6ebefeae6360ceada        76888 linux-sysroot/libgpg-error0_1.46-1_amd64.deb
+b36fefe9867f9e59b540f952e957a72ebdc241e997179d826da19a9511ade4a3        27008 linux-sysroot/libcap2_2.66-4_amd64.deb
+da67132dba6eb1c452b999d9ac77c10ce4a5ad230ccbde1312868744b149f879       522404 linux-sysroot/libcap-dev_2.66-4_amd64.deb
 
 
-[FILE:36455:manifests/plist.single.std]
+[FILE:36813:manifests/plist.single.std]
 %%BASE%%/bin/
  [
  bash
@@ -418,6 +425,8 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  libanl.so.1
  libc.so.6
  libc_malloc_debug.so.0
+ libcap.so.2
+ libcap.so.2.66
  libcom_err.so.2
  libcom_err.so.2.1
  libcrypt.so.1
@@ -451,6 +460,8 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  libnss_nisplus.so.2
  libnss_nisplus.so.2.0.0
  libpcprofile.so
+ libpsx.so.2
+ libpsx.so.2.66
  libpthread.so.0
  libresolv.so.2
  librt.so.1
@@ -522,9 +533,9 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  portfix
  printenv
  printf
- rvn
  readlink
  rpcgen
+ rvn
  sdiff
  sed
  seq
@@ -1887,7 +1898,10 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  fw.h
  header.h
  tokens.h
-%%BASE%%/usr/include/sys/acl.h
+%%BASE%%/usr/include/sys/
+ acl.h
+ capability.h
+ psx_syscall.h
 %%BASE%%/usr/include/systemd/
  _sd-common.h
  sd-bus-protocol.h
@@ -2352,10 +2366,12 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
 %%BASE%%/usr/lib/pkgconfig/
  libacl.pc
  libattr.pc
+ libcap.pc
  libcrypt.pc
  libnl-3.0.pc
  libnl-genl-3.0.pc
  libnsl.pc
+ libpsx.pc
  libsystemd.pc
  libtirpc.pc
  libudev.pc
@@ -2388,6 +2404,8 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  libc.so
  libc_malloc_debug.so
  libc_nonshared.a
+ libcap.a
+ libcap.so
  libcrmf.a
  libcrypt.a
  libcrypt.so
@@ -2428,6 +2446,8 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  libnssdbm3.chk
  libnssdbm3.so
  libnssutil3.so
+ libpsx.a
+ libpsx.so
  libpthread.a
  libpthread_nonshared.a
  libresolv.a
@@ -2709,6 +2729,18 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  libKSC.so
 %%BASE%%/usr/lib/x86_64-linux-gnu/gconv/gconv-modules.d/gconv-modules-extra.conf
 %%BASE%%/usr/lib/x86_64-linux-gnu/krb5/plugins/preauth/spake.so
+%%BASE%%/usr/lib/x86_64-linux-gnu/libcap2/tests/
+ cap_test
+ exploit
+ libcap_launch_test
+ libcap_psx_launch_test
+ libcap_psx_test
+ noexploit
+ noop
+ psx_test
+ tcapsh-static
+ test_pam_cap
+ uns_test
 %%BASE%%/usr/libexec/
  c++
  cc
@@ -2724,6 +2756,7 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  OSRELEASE
  OSVERSION
  STDARCH
+ cert.pem
  group
  ld.so.cache
  ld.so.conf
@@ -3335,7 +3368,7 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
 @dir %%BASE%%/usr/sbin
 
 
-[FILE:21724:manifests/plist.single.ABI26]
+[FILE:21734:manifests/plist.single.ABI26]
 %%BASE%%/bin/
  [
  bash
@@ -5126,6 +5159,7 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
  OSRELEASE
  OSVERSION
  STDARCH
+ cert.pem
  group
  ld.so.conf
  passwd
@@ -5619,7 +5653,7 @@ install-platform: install-common
 	ln -s asm-generic ${DESTDIR}${BASE}/usr/include/asm
 
 
-[FILE:3907:files/linux61.mk]
+[FILE:3933:files/linux61.mk]
 # For Linux
 
 Libexec_Linux=		# empty
@@ -5643,12 +5677,14 @@ pcfiles_Linux=\
 	libudev.pc \
 	libacl.pc \
 	libattr.pc \
+	libcap.pc \
 	libcrypt.pc \
 	libnsl.pc \
 	libtirpc.pc \
 	libxcrypt.pc \
 	libnl-genl-3.0.pc \
 	libnl-3.0.pc \
+	libpsx.pc \
 	libsystemd.pc \
 	nss.pc \
 	# end
