@@ -163,7 +163,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.43
-GTK4_PORT_VERSION=		4.16.2
+GTK4_PORT_VERSION=		4.16.3
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -185,7 +185,7 @@ ASPELL_INSTALL_VERSION=		0.60
 
 APR1_VERSION=			1.7.5
 APR1_UTIL_VERSION=		1.6.3
-SUBVERSION_VERSION=		1.14.3
+SUBVERSION_VERSION=		1.14.4
 
 # ------------------------------------------------------------------------
 # Miscellaneous master versions
@@ -208,7 +208,7 @@ GHOSTSCRIPT_VERSION=		10.04.0
 SPHINX_UNDERSCORE=		1.13.1
 ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0
-PECL_YAML=			2.2.3
+PECL_YAML=			2.2.4
 LINUX_UTILS_VERSION=		2.40.2
 
 # ------------------------------------------------------------------------
