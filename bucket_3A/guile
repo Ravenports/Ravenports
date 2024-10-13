@@ -2,6 +2,7 @@
 
 NAMEBASE=		guile
 VERSION=		3.0.10
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		std
 SDESC[std]=		GNU Ubiquitous Intelligent Language for Extensions
@@ -58,6 +59,8 @@ SOVERSION=		1.7.0
 PLIST_SUB=		GUILE_VER=3.0
 			RLSOVERSION=0.0.0
 			RLSOMAJOR=0
+SUB_FILES=		scripts-primary.ucl
+SUB_LIST=		GUILE_VER=3.0
 
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--enable-jit=no
 			CONFIGURE_ARGS=--enable-lto=no
@@ -1078,4 +1081,16 @@ Use correct mmap permissions for later PROT_WRITE mprotect.
  #include <sched.h>
  
  /* Threads 
+
+
+[FILE:239:files/scripts-primary.ucl.in]
+post-install: [{
+     args: ""
+     code: <<EOS
+# ensure compiled files are newer than installed source
+CFILES=${PKG_ROOTDIR}%%PREFIX%%/lib/guile/%%GUILE_VER%%/ccache
+sleep 1
+/usr/bin/find ${CFILES} ! -type d | /usr/bin/xargs touch
+EOS
+}]
 
