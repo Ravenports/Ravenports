@@ -82,12 +82,11 @@ TCL_8.6_VERSION=	8.6.14
 
 #-------------------------------------------------------------------------
 # PGSQL
-# Possible values: 12, 13, 14, 15, 16, 17
+# Possible values: 13, 14, 15, 16, 17
 #-------------------------------------------------------------------------
 
-PGSQL_DEFAULT?=		15	# TODO - switch to 16
+PGSQL_DEFAULT?=		16
 
-PGSQL_12_VERSION=	12.20	# TODO - drop
 PGSQL_13_VERSION=	13.16
 PGSQL_14_VERSION=	14.13
 PGSQL_15_VERSION=	15.8
