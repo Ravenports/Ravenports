@@ -41,6 +41,8 @@ _INCLUDE_USES_TCL_MK=	yes
 TCL_VER=	8.6
 .  elif ${tcl_ARGS:M8.5}
 TCL_VER=	8.5
+.  elif ${tcl_ARGS:M9.0}
+TCL_VER=	9.0
 .  else
 TCL_VER=	${TCL_DEFAULT}
 .endif
