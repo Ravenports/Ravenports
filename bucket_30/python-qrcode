@@ -29,6 +29,12 @@ GENERATED=		yes
 
 [PY312].USES_ON=			python:v12,wheel
 
+post-install:
+	# Fix python shebangs
+	(cd ${STAGEDIR}${PYTHON_SITELIBDIR}/qrcode &&\
+		${SED} -i'' -e "s|/usr/bin/env python|${LOCALBASE}/bin/python3|" \
+		console_scripts.py)
+
 [FILE:2750:descriptions/desc.single]
 =============================
 Pure python QR Code generator
