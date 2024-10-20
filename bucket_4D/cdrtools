@@ -2,6 +2,7 @@
 
 NAMEBASE=		cdrtools
 VERSION=		2024-03-21
+REVISION=		1
 KEYWORDS=		sysutils audio
 VARIANTS=		std
 SDESC[std]=		CD/DVD/BluRay command line recording software
@@ -18,6 +19,7 @@ SPKGS[std]=		set
 			ogg
 			docs
 			man
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -40,6 +42,7 @@ MAKE_ARGS=		DESTDIR={{STAGEDIR}}
 			INS_BASE={{PREFIX}}
 			INS_RBASE={{PREFIX}}
 			STRIPFLAGS={{STRIP}}
+			CCOM=cc
 
 post-patch:
 	(cd ${WRKSRC}/RULES && \
@@ -49,7 +52,8 @@ post-patch:
 	 ${LN} -sf i586-linux-cc.rul x86_64-linux-cc.rul)
 
 pre-build:
-.for component in libscg librscg libparanoia libmdigest libdeflt libscgcmd libschily libcdrdeflt libedc libfile libsiconv libfind libhfs_iso
+.for component in libschily libscg librscg libparanoia libmdigest libdeflt libscgcmd libcdrdeflt libedc libfile libsiconv libfind libhfs_iso
+	@${ECHO_MSG} "<=============== Prebuild ${component} ===============>"
 	cd ${WRKSRC}/${component} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} all
 .endfor
 
@@ -63,9 +67,10 @@ do-configure:
 	cd ${WRKSRC}/psmake && ${SETENV} ${MAKE_ENV} ${SH} ./MAKE-all
 
 do-install:
-.for component in cdda2wav cdrecord mkisofs mkisofs/diag readcd scgcheck scgskeleton
+.for component in libschily libscg librscg libparanoia libmdigest libdeflt libscgcmd libcdrdeflt libedc libfile libsiconv libfind libhfs_iso cdda2wav cdrecord mkisofs mkisofs/diag readcd scgcheck scgskeleton
 	cd ${WRKSRC}/${component} && ${SETENV} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_ARGS} install
 .endfor
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
 	# relocate doc pages
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	${RM} ${STAGEDIR}${PREFIX}/share/doc/cdrecord/README.rscsi
@@ -122,7 +127,7 @@ This package contains the following programs:
 76db022e450c1791a00e69780b55d18a2e3fc39b5ff870996433f87312032024      4869239 schily-2024-03-21.tar.bz2
 
 
-[FILE:141:manifests/plist.primary]
+[FILE:406:manifests/plist.primary]
 bin/
  cdda2wav
  cdrecord
@@ -137,6 +142,22 @@ bin/
  scgcheck
  scgskeleton
 etc/default/cdrecord
+lib/
+ libcdrdeflt.so.1.0
+ libdeflt.so.1.0
+ libedc_ecc.so.1.0
+ libedc_ecc_dec.so.1.0
+ libfile.so.1.0
+ libfind.so.4.0
+ libhfs.a
+ libhfs.so.1.0
+ libmdigest.so.1.0
+ libparanoia.so.1.0
+ librscg.so.1.0
+ libscg.so.1.0
+ libscgcmd.so.1.0
+ libschily.so.2.0
+ libsiconv.so.1.0
 
 
 [FILE:13:manifests/plist.mp3]
@@ -147,7 +168,7 @@ bin/cdda2mp3
 bin/cdda2ogg
 
 
-[FILE:648:manifests/plist.docs]
+[FILE:706:manifests/plist.docs]
 share/doc/cdrtools/cdda2wav/README
 share/doc/cdrtools/cdrecord/
  README
@@ -186,9 +207,12 @@ share/doc/cdrtools/mkisofs/
  README.sort
  README.sparcboot
  README.sunx86boot
+share/doc/libparanoia/
+ README.interface
+ README.paranoia
 
 
-[FILE:195:manifests/plist.man]
+[FILE:1031:manifests/plist.man]
 share/man/man1/
  cdda2mp3.1
  cdda2ogg.1
@@ -197,6 +221,75 @@ share/man/man1/
  readcd.1
  scgcheck.1
  scgskeleton.1
+share/man/man3/
+ absfpath.3
+ absnpath.3
+ abspath.3
+ astoi.3
+ astol.3
+ breakline.3
+ cmpbytes.3
+ comerr.3
+ comerrno.3
+ errmsg.3
+ errmsgno.3
+ error.3
+ fdown.3
+ fdup.3
+ fexecl.3
+ fexecle.3
+ fexecv.3
+ fexecve.3
+ file_raise.3
+ fileclose.3
+ fileluopen.3
+ fileopen.3
+ filepos.3
+ fileread.3
+ filereopen.3
+ fileseek.3
+ filesize.3
+ filestat.3
+ filewrite.3
+ findline.3
+ flush.3
+ fnmatch.3
+ format.3
+ fpipe.3
+ fprintf.3
+ getallargs.3
+ getargerror.3
+ getarginit.3
+ getargs.3
+ geterrno.3
+ getfiles.3
+ getlallargs.3
+ getlargs.3
+ getlfiles.3
+ getvallargs.3
+ getvargs.3
+ getvfiles.3
+ handlecond.3
+ js_fgetline.3
+ js_getline.3
+ movebytes.3
+ ofindline.3
+ patcompile.3
+ patmatch.3
+ peekc.3
+ printf.3
+ raisecond.3
+ resolvefpath.3
+ resolvenpath.3
+ resolvepath.3
+ spawnl.3
+ spawnv.3
+ sprintf.3
+ starthandlecond.3
+ strcatl.3
+ streql.3
+ strlen.3
+ unhandlecond.3
 share/man/man8/
  devdump.8
  isodebug.8
@@ -205,4 +298,50 @@ share/man/man8/
  isovfy.8
  mkhybrid.8
  mkisofs.8
+
+
+[FILE:563:manifests/plist.dev]
+lib/
+ libcdrdeflt.a
+ libcdrdeflt.so
+ libdeflt.a
+ libdeflt.so
+ libedc_ecc.a
+ libedc_ecc.so
+ libedc_ecc_dec.a
+ libedc_ecc_dec.so
+ libfile.a
+ libfile.so
+ libfind.a
+ libfind.so
+ libhfs.so
+ libmdigest.a
+ libmdigest.so
+ libparanoia.a
+ libparanoia.so
+ librscg.a
+ librscg.so
+ libscg.a
+ libscg.so
+ libscgcmd.a
+ libscgcmd.so
+ libschily.a
+ libschily.so
+ libsiconv.a
+ libsiconv.so
+lib/profiled/
+ libcdrdeflt.a
+ libdeflt.a
+ libedc_ecc.a
+ libedc_ecc_dec.a
+ libfile.a
+ libfind.a
+ libhfs.a
+ libmdigest.a
+ libparanoia.a
+ librscg.a
+ libscg.a
+ libscgcmd.a
+ libschily.a
+ libsiconv.a
 
