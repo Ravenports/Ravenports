@@ -27,7 +27,7 @@ BUILD_DEPENDS=		clang:set:std
 BUILDRUN_DEPENDS=	llvm:primary:std
 
 USES=			cpe cmake perl:build pkgconfig zlib ncurses:dev
-			python:build c++:primary
+			python c++:primary
 
 DISTNAME=		openmp-19.1.2.src
 
@@ -47,7 +47,8 @@ CMAKE_ARGS=		-DCMAKE_INSTALL_RPATH:STRING="{{LOCALBASE}}/llvm/lib"
 			-DLIBOMP_FORTRAN_MODULES:BOOL=ON
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
+	${FIND} ${STAGEDIR}${PREFIX} -name "*.so" |\
+		${XARGS} ${STRIP_CMD}
 
 post-extract:
 	${CP} ${WRKDIR}/cmake-19.1.2.src/Modules/* \
@@ -79,8 +80,16 @@ is in the separate "libomptarget" directory.
 139209d798fbe4a84becfa605aee7fd8f4412c6591976f3e672211e3fbdcf65b         9296 cmake-19.1.2.src.tar.xz
 
 
-[FILE:84:manifests/plist.primary]
+[FILE:234:manifests/plist.primary]
 %%ONLY-LINUX%%lib/libompd.so
+%%ONLY-LINUX%%share/gdb/python/ompd/
+ __init__.py
+ frame_filter.py
+ ompd.py
+ ompdModule.so
+ ompd_address_space.py
+ ompd_callbacks.py
+ ompd_handles.py
 lib/
  libarcher.so
  libgomp.so

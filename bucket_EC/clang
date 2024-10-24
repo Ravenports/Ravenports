@@ -153,7 +153,7 @@ pre-configure:
 	${REINPLACE_CMD} \
 		-e 's|@LOCALBASE@|${LOCALBASE}|' \
 		-e 's|@RAVEN_GCC@|${LOCALBASE}/toolchain/ravensys-gcc/${ASLIB}|' \
-		-e 's|@RAVEN_GCC_TARGET@|${LOCALBASE}/toolchain/ravensys-gcc/${ASLIB}/gcc/${CONFIGURE_TARGET}/13.2.0|' \
+		-e 's|@RAVEN_GCC_TARGET@|${LOCALBASE}/toolchain/ravensys-gcc/lib/gcc/${CONFIGURE_TARGET}/13.2.0|' \
 		-e 's|@RAVEN_GXX_HEADERS_DIR@|${LOCALBASE}/toolchain/ravensys-gcc/include/c++/13.2.0|' \
 		-e 's|@RAVEN_TRIPLE@|${CONFIGURE_TARGET}|' \
 		${WRKSRC}/lib/Driver/ToolChains/DragonFly.cpp \
@@ -2202,7 +2202,7 @@ share/man/man1/scan-build.1
    void AddHIPIncludeArgs(const llvm::opt::ArgList &DriverArgs,
 
 
-[FILE:836:patches/patch-lib_Driver_ToolChains_Gnu.cpp]
+[FILE:1929:patches/patch-lib_Driver_ToolChains_Gnu.cpp]
 --- lib/Driver/ToolChains/Gnu.cpp.orig	2024-10-15 08:17:37 UTC
 +++ lib/Driver/ToolChains/Gnu.cpp
 @@ -443,6 +443,11 @@ void tools::gnutools::Linker::ConstructJ
@@ -2226,6 +2226,79 @@ share/man/man1/scan-build.1
        if (IsStatic || IsStaticPIE)
          CmdArgs.push_back("--start-group");
  
+@@ -3054,6 +3061,8 @@ Generic_GCC::Generic_GCC(const Driver &D
+     : ToolChain(D, Triple, Args), GCCInstallation(D),
+       CudaInstallation(D, Triple, Args), RocmInstallation(D, Triple, Args) {
+   getProgramPaths().push_back(getDriver().Dir);
++  getFilePaths().push_back(concat(getDriver().SysRoot, "@RAVEN_GCC@"));
++  getFilePaths().push_back(concat(getDriver().SysRoot, "@RAVEN_GCC_TARGET@"));
+ }
+ 
+ Generic_GCC::~Generic_GCC() {}
+@@ -3420,10 +3429,9 @@ bool Generic_GCC::addGCCLibStdCxxInclude
+ void
+ Generic_GCC::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
+                                       llvm::opt::ArgStringList &CC1Args) const {
+-  if (GCCInstallation.isValid()) {
+-    addGCCLibStdCxxIncludePaths(DriverArgs, CC1Args,
+-                                GCCInstallation.getTriple().str());
+-  }
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/backward");
++  addSystemInclude(DriverArgs, CC1Args, "@RAVEN_GXX_HEADERS_DIR@/@RAVEN_TRIPLE@");
+ }
+ 
+ llvm::opt::DerivedArgList *
+
+
+[FILE:2016:patches/patch-lib_Driver_ToolChains_Linux.cpp]
+--- lib/Driver/ToolChains/Linux.cpp.orig	2024-10-15 08:17:37 UTC
++++ lib/Driver/ToolChains/Linux.cpp
+@@ -683,43 +683,7 @@ void Linux::AddClangSystemIncludeArgs(co
+ 
+ void Linux::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
+                                      llvm::opt::ArgStringList &CC1Args) const {
+-  // We need a detected GCC installation on Linux to provide libstdc++'s
+-  // headers in odd Linuxish places.
+-  if (!GCCInstallation.isValid())
+-    return;
+-
+-  // Detect Debian g++-multiarch-incdir.diff.
+-  StringRef TripleStr = GCCInstallation.getTriple().str();
+-  StringRef DebianMultiarch =
+-      GCCInstallation.getTriple().getArch() == llvm::Triple::x86
+-          ? "i386-linux-gnu"
+-          : TripleStr;
+-
+-  // Try generic GCC detection first.
+-  if (Generic_GCC::addGCCLibStdCxxIncludePaths(DriverArgs, CC1Args,
+-                                               DebianMultiarch))
+-    return;
+-
+-  StringRef LibDir = GCCInstallation.getParentLibPath();
+-  const Multilib &Multilib = GCCInstallation.getMultilib();
+-  const GCCVersion &Version = GCCInstallation.getVersion();
+-
+-  const std::string LibStdCXXIncludePathCandidates[] = {
+-      // Android standalone toolchain has C++ headers in yet another place.
+-      LibDir.str() + "/../" + TripleStr.str() + "/include/c++/" + Version.Text,
+-      // Freescale SDK C++ headers are directly in <sysroot>/usr/include/c++,
+-      // without a subdirectory corresponding to the gcc version.
+-      LibDir.str() + "/../include/c++",
+-      // Cray's gcc installation puts headers under "g++" without a
+-      // version suffix.
+-      LibDir.str() + "/../include/g++",
+-  };
+-
+-  for (const auto &IncludePath : LibStdCXXIncludePathCandidates) {
+-    if (addLibStdCXXIncludePaths(IncludePath, TripleStr,
+-                                 Multilib.includeSuffix(), DriverArgs, CC1Args))
+-      break;
+-  }
++  Generic_GCC::addLibStdCxxIncludePaths(DriverArgs, CC1Args);
+ }
+ 
+ void Linux::AddCudaIncludeArgs(const ArgList &DriverArgs,
 
 
 [FILE:3441:patches/patch-lib_Driver_ToolChains_NetBSD.cpp]

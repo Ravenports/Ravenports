@@ -846,15 +846,47 @@ Add support for NetBSD.
  }  // namespace angle
 
 
-[FILE:406:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-macros-internal.h]
+[FILE:363:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-capture-types.h]
+--- Source/ThirdParty/libsysprof-capture/sysprof-capture-types.h.orig	2024-08-19 06:28:36 UTC
++++ Source/ThirdParty/libsysprof-capture/sysprof-capture-types.h
+@@ -59,6 +59,8 @@
+ #include <assert.h>
+ #ifdef __APPLE__
+ # include <machine/endian.h>
++#elif defined(__DragonFly__) || defined(__FreeBSD__)
++# include <sys/endian.h>
+ #else
+ # include <endian.h>
+ #endif
+
+
+[FILE:339:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-capture-writer.c]
+--- Source/ThirdParty/libsysprof-capture/sysprof-capture-writer.c.orig	2024-09-30 08:15:01 UTC
++++ Source/ThirdParty/libsysprof-capture/sysprof-capture-writer.c
+@@ -59,6 +59,7 @@
+ #include <assert.h>
+ #ifdef __APPLE__
+ # include <machine/endian.h>
++#elif defined(__DragonFly__) || defined(__FreeBSD__)
+ #else
+ # include <endian.h>
+ #endif
+
+
+[FILE:578:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-macros-internal.h]
 --- Source/ThirdParty/libsysprof-capture/sysprof-macros-internal.h.orig	2024-08-19 06:28:36 UTC
 +++ Source/ThirdParty/libsysprof-capture/sysprof-macros-internal.h
-@@ -64,6 +64,8 @@
+@@ -64,6 +64,13 @@
  #ifdef __APPLE__
  # include <libkern/OSByteOrder.h>
  # include <architecture/byte_order.h>
-+#elif defined(__DragonFly__) || defined(__FreeBSD__)
++#elif defined(__DragonFly__)
 +# include <sys/endian.h>
++#elif defined(__FreeBSD__)
++# include <sys/endian.h>
++# define __BIG_ENDIAN            _BIG_ENDIAN
++# define __BYTE_ORDER            _BYTE_ORDER
++# define __LITTLE_ENDIAN         _LITTLE_ENDIAN
  #else
  # include <byteswap.h>
  # include <endian.h>
@@ -880,14 +912,16 @@ Add support for NetBSD.
  #else
 
 
-[FILE:438:patches/patch-Source_ThirdParty_skia_src_ports_SkMemory__malloc.cpp]
+[FILE:492:patches/patch-Source_ThirdParty_skia_src_ports_SkMemory__malloc.cpp]
 --- Source/ThirdParty/skia/src/ports/SkMemory_malloc.cpp.orig	2024-08-19 06:28:38 UTC
 +++ Source/ThirdParty/skia/src/ports/SkMemory_malloc.cpp
-@@ -16,7 +16,9 @@
+@@ -16,7 +16,11 @@
  #if defined(SK_BUILD_FOR_MAC) || defined(SK_BUILD_FOR_IOS)
  #include <malloc/malloc.h>
  #elif defined(SK_BUILD_FOR_ANDROID) || defined(SK_BUILD_FOR_UNIX)
-+# if !defined(__DragonFly__)
++# if defined(__FreeBSD__)
++#include <malloc_np.h>
++# elif !defined(__DragonFly__)
  #include <malloc.h>
 +# endif
  #elif defined(SK_BUILD_FOR_WIN)
@@ -996,7 +1030,7 @@ Support MAP_FILE if unavailable.
  
 
 
-[FILE:635:patches/patch-Source_WTF_wtf_RAMSize.cpp]
+[FILE:633:patches/patch-Source_WTF_wtf_RAMSize.cpp]
 --- Source/WTF/wtf/RAMSize.cpp.orig	2024-08-19 06:28:38 UTC
 +++ Source/WTF/wtf/RAMSize.cpp
 @@ -31,7 +31,7 @@
@@ -1004,7 +1038,7 @@ Support MAP_FILE if unavailable.
  #include <windows.h>
  #elif USE(SYSTEM_MALLOC)
 -#if OS(LINUX) || OS(FREEBSD)
-+#if !defined(__DragonFly__) && (OS(LINUX) || OS(FREEBSD))
++#if !defined(__DragonFly__) && !OS(FREEBSD) && OS(LINUX)
  #include <sys/sysinfo.h>
  #elif OS(UNIX)
  #include <unistd.h>
@@ -1013,7 +1047,7 @@ Support MAP_FILE if unavailable.
      return status.ullTotalPhys;
  #elif USE(SYSTEM_MALLOC)
 -#if OS(LINUX) || OS(FREEBSD)
-+#if !defined(__DragonFly__) && (OS(LINUX) || OS(FREEBSD))
++#if !defined(__DragonFly__) && !OS(FREEBSD) && OS(LINUX)
      struct sysinfo si;
      sysinfo(&si);
      return si.totalram * si.mem_unit;
