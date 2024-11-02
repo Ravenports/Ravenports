@@ -846,34 +846,34 @@ Add support for NetBSD.
  }  // namespace angle
 
 
-[FILE:363:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-capture-types.h]
+[FILE:386:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-capture-types.h]
 --- Source/ThirdParty/libsysprof-capture/sysprof-capture-types.h.orig	2024-08-19 06:28:36 UTC
 +++ Source/ThirdParty/libsysprof-capture/sysprof-capture-types.h
 @@ -59,6 +59,8 @@
  #include <assert.h>
  #ifdef __APPLE__
  # include <machine/endian.h>
-+#elif defined(__DragonFly__) || defined(__FreeBSD__)
++#elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
 +# include <sys/endian.h>
  #else
  # include <endian.h>
  #endif
 
 
-[FILE:339:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-capture-writer.c]
+[FILE:362:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-capture-writer.c]
 --- Source/ThirdParty/libsysprof-capture/sysprof-capture-writer.c.orig	2024-09-30 08:15:01 UTC
 +++ Source/ThirdParty/libsysprof-capture/sysprof-capture-writer.c
 @@ -59,6 +59,7 @@
  #include <assert.h>
  #ifdef __APPLE__
  # include <machine/endian.h>
-+#elif defined(__DragonFly__) || defined(__FreeBSD__)
++#elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
  #else
  # include <endian.h>
  #endif
 
 
-[FILE:578:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-macros-internal.h]
+[FILE:601:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-macros-internal.h]
 --- Source/ThirdParty/libsysprof-capture/sysprof-macros-internal.h.orig	2024-08-19 06:28:36 UTC
 +++ Source/ThirdParty/libsysprof-capture/sysprof-macros-internal.h
 @@ -64,6 +64,13 @@
@@ -882,7 +882,7 @@ Add support for NetBSD.
  # include <architecture/byte_order.h>
 +#elif defined(__DragonFly__)
 +# include <sys/endian.h>
-+#elif defined(__FreeBSD__)
++#elif defined(__FreeBSD__) || defined(__NetBSD__)
 +# include <sys/endian.h>
 +# define __BIG_ENDIAN            _BIG_ENDIAN
 +# define __BYTE_ORDER            _BYTE_ORDER
@@ -912,7 +912,23 @@ Add support for NetBSD.
  #else
 
 
-[FILE:492:patches/patch-Source_ThirdParty_skia_src_ports_SkMemory__malloc.cpp]
+[FILE:494:patches/patch-Source_ThirdParty_skia_src_gpu_ganesh_GrAutoLocaleSetter.h]
+NetBSD does not support uselocale
+
+--- Source/ThirdParty/skia/src/gpu/ganesh/GrAutoLocaleSetter.h.orig	2024-08-19 06:28:38 UTC
++++ Source/ThirdParty/skia/src/gpu/ganesh/GrAutoLocaleSetter.h
+@@ -27,7 +27,7 @@
+ #define HAVE_XLOCALE 0
+ #endif
+ 
+-#if defined(SK_BUILD_FOR_ANDROID) || defined(__UCLIBC__) || defined(_NEWLIB_VERSION)
++#if defined(SK_BUILD_FOR_ANDROID) || defined(__UCLIBC__) || defined(_NEWLIB_VERSION) || defined(__NetBSD__)
+ #define HAVE_LOCALE_T 0
+ #else
+ #define HAVE_LOCALE_T 1
+
+
+[FILE:994:patches/patch-Source_ThirdParty_skia_src_ports_SkMemory__malloc.cpp]
 --- Source/ThirdParty/skia/src/ports/SkMemory_malloc.cpp.orig	2024-08-19 06:28:38 UTC
 +++ Source/ThirdParty/skia/src/ports/SkMemory_malloc.cpp
 @@ -16,7 +16,11 @@
@@ -927,6 +943,15 @@ Add support for NetBSD.
  #elif defined(SK_BUILD_FOR_WIN)
  #include <malloc.h>
  #endif
+@@ -123,6 +127,8 @@ size_t sk_malloc_size(void* addr, size_t
+     #if defined(SK_BUILD_FOR_MAC) || defined(SK_BUILD_FOR_IOS)
+         // TODO: remove the max, when the chrome implementation of malloc_size doesn't return 0.
+         completeSize = std::max(malloc_size(addr), size);
++    #elif defined(__NetBSD__)
++	// leave completeSize == size
+     #elif defined(SK_BUILD_FOR_ANDROID) && __ANDROID_API__ >= 17
+         completeSize = malloc_usable_size(addr);
+         SkASSERT(completeSize >= size);
 
 
 [FILE:561:patches/patch-Source_WTF_wtf_Assertions.h]

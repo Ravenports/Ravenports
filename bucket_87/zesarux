@@ -61,6 +61,7 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}
 			--enable-cpustats
 
 LDFLAGS=		-ltinfo
+VAR_OPSYS[netbsd]=	LDFLAGS=-lossaudio
 
 post-patch:
 			${REINPLACE_CMD} -i'' -e \
@@ -638,7 +639,7 @@ share/zesarux/text_image_filters/
  #else
 
 
-[FILE:192:patches/patch-network.h]
+[FILE:214:patches/patch-network.h]
 --- network.h.orig	2024-06-06 15:45:53 UTC
 +++ network.h
 @@ -43,7 +43,7 @@
@@ -646,7 +647,7 @@ share/zesarux/text_image_filters/
  
  
 -#ifdef __FreeBSD__
-+#if defined __FreeBSD__ || defined __DragonFly__
++#if defined __FreeBSD__ || defined __DragonFly__ || defined __NetBSD__
  #include <netinet/in.h>
  #endif
  
@@ -710,7 +711,7 @@ It was there to silence a compiler warning.
  
 
 
-[FILE:208:patches/patch-utils.h]
+[FILE:230:patches/patch-utils.h]
 --- utils.h.orig	2024-06-06 15:45:53 UTC
 +++ utils.h
 @@ -22,7 +22,7 @@
@@ -718,13 +719,13 @@ It was there to silence a compiler warning.
  #define UTILS_H
  
 -#ifdef __FreeBSD__
-+#if defined __FreeBSD__ || defined __DragonFly__
++#if defined __FreeBSD__ || defined __DragonFly__ || defined __NetBSD__
  #include <limits.h>
  #endif
  
 
 
-[FILE:261:patches/patch-zrcp_remote.c]
+[FILE:283:patches/patch-zrcp_remote.c]
 --- zrcp/remote.c.orig	2024-06-06 15:45:53 UTC
 +++ zrcp/remote.c
 @@ -104,7 +104,7 @@ int zrcp_command_close_all_menus=0;
@@ -732,7 +733,7 @@ It was there to silence a compiler warning.
  #endif
  
 -#ifdef __FreeBSD__
-+#if defined __FreeBSD__ || defined __DragonFly__
++#if defined __FreeBSD__ || defined __DragonFly__ || defined __NetBSD__
  #include <netinet/in.h>
  #endif
  

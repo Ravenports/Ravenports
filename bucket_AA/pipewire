@@ -26,6 +26,7 @@ OPT_ON[freebsd]=	BSD C11THREADS
 OPT_ON[netbsd]=		BSD
 OPT_ON[openbsd]=	BSD
 OPT_ON[dragonfly]=	BSD
+OPT_ON[midnightbsd]=	BSD
 
 BUILD_DEPENDS=		video4linux:dev:std
 			dbus:dev:std
@@ -92,6 +93,12 @@ SOVERSION=		0.1206.0
 [BSD].BUILD_DEPENDS_ON=			libinotify:dev:std
 					libepoll-shim:dev:std
 					libgudev-devd:dev:std
+
+pre-configure-midnightbsd:
+	${REINPLACE_CMD} -e 's@freebsd@midnightbsd@g' \
+		${WRKSRC}/src/pipewire/meson.build \
+		${WRKSRC}/meson.build
+	${INSTALL_DATA} ${WRKDIR}/c11threads-1.0/c11threads.h ${LOCALBASE}/include/threads.h
 
 post-install:
 	${RM} ${LOCALBASE}/include/threads.h
@@ -641,10 +648,10 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  	thr_self(&pid);
 
 
-[FILE:385:patches/patch-src_modules_module-rtp-sap.c]
---- src/modules/module-rtp-sap.c.orig	2024-09-27 10:02:20 UTC
+[FILE:782:patches/patch-src_modules_module-rtp-sap.c]
+--- src/modules/module-rtp-sap.c.orig	2024-10-23 07:44:10 UTC
 +++ src/modules/module-rtp-sap.c
-@@ -32,6 +32,10 @@
+@@ -32,6 +32,14 @@
  #define SO_PASSCRED LOCAL_CREDS_PERSISTENT
  #endif
  
@@ -652,9 +659,27 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
 +#define ifr_ifindex ifr_index
 +#endif
 +
++#if defined(__MidnightBSD__)
++#include <sys/endian.h>
++#endif
++
  /** \page page_module_rtp_sap SAP Announce and create RTP streams
   *
   * The `rtp-sap` module announces RTP streams that match the rules with the
+@@ -382,11 +390,13 @@ static int make_unix_socket(const char *
+ 		return -1;
+ 	}
+ 
++#if !defined(__MidnightBSD__)
+ 	int val = 1;
+ 	if (setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &val, sizeof(val)) < 0) {
+ 		pw_log_warn("Failed to bind PTP management socket");
+ 		return -1;
+ 	}
++#endif
+ 
+ 	spa_zero(addr);
+ 	addr.sun_family = AF_UNIX;
 
 
 [FILE:265:patches/patch-src_modules_network-utils.h]
@@ -827,6 +852,35 @@ Upstream issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1819
  
  bool
  pw_debug_is_category_enabled(const char *name);
+
+
+[FILE:670:patches/patch-src_pipewire_thread.c]
+--- src/pipewire/thread.c.orig	2024-10-23 07:44:10 UTC
++++ src/pipewire/thread.c
+@@ -28,7 +28,11 @@ do {									\
+ 	}								\
+ } while(false);
+ 
++#if defined(__MidnightBSD__)
++static int parse_affinity(const char *affinity, cpuset_t *set)
++#else
+ static int parse_affinity(const char *affinity, cpu_set_t *set)
++#endif
+ {
+ 	struct spa_json it[2];
+ 	int v;
+@@ -80,7 +84,11 @@ int pthread_setname_np(pthread_t thread,
+ 
+ static int thread_setaffinity(pthread_t thread, const char *affinity)
+ {
++#if defined(__MidnightBSD__)
++	cpuset_t set;
++#else
+ 	cpu_set_t set;
++#endif
+ 	parse_affinity(affinity, &set);
+ 	return -pthread_setaffinity_np(thread, sizeof(set), &set);
+ }
 
 
 [FILE:344:patches/patch-src_tools_pw-cli.c]

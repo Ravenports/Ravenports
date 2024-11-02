@@ -18,7 +18,7 @@ _USES_POST+=	libtool
 # Incorporated in ravenadm
 # -----------------------------------------------
 #.if ${libtool_ARGS:Mbuild}
-# BUILD_DEPENDS+=	libtool:single:std
+# BUILD_DEPENDS+=	libtool:primary:std
 #.endif
 # -----------------------------------------------
 

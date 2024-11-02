@@ -79,7 +79,7 @@ lib/libzim.so
 lib/pkgconfig/libzim.pc
 
 
-[FILE:496:patches/patch-src_file__reader.cpp]
+[FILE:519:patches/patch-src_file__reader.cpp]
 --- src/file_reader.cpp.orig	2024-06-22 12:19:38 UTC
 +++ src/file_reader.cpp
 @@ -143,7 +143,7 @@ class MMapException : std::exception {};
@@ -87,13 +87,13 @@ lib/pkgconfig/libzim.pc
  mmapReadOnly(int fd, offset_type offset, size_type size)
  {
 -#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__HAIKU__)
-+#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__HAIKU__) || defined(__DragonFly__)
++#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__HAIKU__) || defined(__DragonFly__) || defined(__NetBSD__)
    const auto MAP_FLAGS = MAP_PRIVATE;
  #elif defined(__FreeBSD__)
    const auto MAP_FLAGS = MAP_PRIVATE|MAP_PREFAULT_READ;
 
 
-[FILE:445:patches/patch-src_fs__unix.cpp]
+[FILE:468:patches/patch-src_fs__unix.cpp]
 --- src/fs_unix.cpp.orig	2024-06-22 12:19:38 UTC
 +++ src/fs_unix.cpp
 @@ -36,7 +36,7 @@ namespace unix {
@@ -101,7 +101,7 @@ lib/pkgconfig/libzim.pc
  zsize_t FD::readAt(char* dest, zsize_t size, offset_t offset) const
  {
 -#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__HAIKU__)
-+#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__HAIKU__) || defined(__DragonFly__)
++#if defined(__APPLE__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__HAIKU__) || defined(__DragonFly__) || defined(__NetBSD__)
  # define PREAD pread
  #else
  # define PREAD pread64

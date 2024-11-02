@@ -357,24 +357,6 @@ sbin/
  wpa_supplicant
 
 
-[FILE:398:patches/patch-src-l2_packet-l2_packet_freebsd.c]
---- src/l2_packet/l2_packet_freebsd.c.orig	2022-01-16 20:51:29 UTC
-+++ src/l2_packet/l2_packet_freebsd.c
-@@ -8,7 +8,11 @@
-  */
- 
- #include "includes.h"
--#if defined(__APPLE__) || defined(__GLIBC__)
-+#if defined(__FreeBSD__) \
-+ || defined(__DragonFly__) \
-+ || defined(__NetBSD__) \
-+ || defined(__APPLE__) \
-+ || defined(__GLIBC__)
- #include <net/bpf.h>
- #endif /* __APPLE__ */
- #include <pcap.h>
-
-
 [FILE:851:patches/patch-src_drivers_driver__ndis.c]
 --- src/drivers/driver_ndis.c.orig	2022-01-16 20:51:29 UTC
 +++ src/drivers/driver_ndis.c
@@ -404,6 +386,34 @@ sbin/
  	os_free(names);
  	if (drv->adapter_desc == NULL)
  		return -1;
+
+
+[FILE:595:patches/patch-src_l2__packet_l2__packet__freebsd.c]
+--- src/l2_packet/l2_packet_freebsd.c.orig	2024-07-20 18:04:37 UTC
++++ src/l2_packet/l2_packet_freebsd.c
+@@ -8,7 +8,11 @@
+  */
+ 
+ #include "includes.h"
+-#if defined(__APPLE__) || defined(__GLIBC__)
++#if defined(__FreeBSD__) \
++ || defined(__DragonFly__) \
++ || defined(__NetBSD__) \
++ || defined(__APPLE__) \
++ || defined(__GLIBC__)
+ #include <net/bpf.h>
+ #endif /* __APPLE__ */
+ #include <pcap.h>
+@@ -20,7 +24,9 @@
+ #include <sys/sysctl.h>
+ #endif /* __sun__ */
+ 
++#if !defined(__NetBSD__)
+ #include <net/ethernet.h>
++#endif
+ #include <net/if.h>
+ #include <net/if_dl.h>
+ #include <net/route.h>
 
 
 [FILE:788:patches/patch-src_wps_wps__upnp.c]

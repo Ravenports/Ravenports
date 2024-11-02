@@ -2,7 +2,7 @@
 #
 # Feature:	compiler
 # Usage:	USES=compiler
-# Valid ARGS:	none
+# Valid ARGS:	subpackage (at least one required)
 #
 
 .if !defined(_INCLUDE_USES_COMPILER_MK)

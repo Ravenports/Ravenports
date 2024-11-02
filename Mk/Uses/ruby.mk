@@ -39,7 +39,7 @@ _INCLUDE_USES_RUBY_MK=	yes
 # ------------------------------------------------------
 # Incorporated in ravenadm
 # ------------------------------------------------------
-# BUILD/RUN_DEPENDS+=	rubyXX:single:std
+# BUILD/RUN_DEPENDS+=	rubyXX:primary:std
 # ------------------------------------------------------
 
 

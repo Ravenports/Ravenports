@@ -2,7 +2,7 @@
 
 NAMEBASE=		guile
 VERSION=		3.0.10
-REVISION=		1
+REVISION=		2
 KEYWORDS=		lang
 VARIANTS=		std
 SDESC[std]=		GNU Ubiquitous Intelligent Language for Extensions
@@ -28,12 +28,11 @@ BUILD_DEPENDS=		gmp:dev:std
 			libffi:dev:std
 BUILDRUN_DEPENDS=	gmp:primary:std
 			libffi:primary:std
-			libltdl:single:std
 			libunistring:primary:std
 			boehm_garbage_collector:primary:threaded
 
-USES=			gmake libtool makeinfo ncurses pkgconfig readline
-			iconv charsetfix gettext cpe
+USES=			gmake libtool ncurses pkgconfig readline iconv
+			charsetfix cpe
 
 LICENSE=		LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -45,10 +44,12 @@ LICENSE_SCHEME=		solo
 INFO=			info:guile
 			info:r5rs
 CPE_VENDOR=		gnu
+FPC_EQUIVALENT=		lang/guile3
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--enable-nls
+CONFIGURE_ARGS=		--enable-nls=no
+			--enable-lto=no
 			--with-threads
 
 MAKE_ENV=		PAXCTL="{{PAXCTL}}"
@@ -62,8 +63,10 @@ PLIST_SUB=		GUILE_VER=3.0
 SUB_FILES=		scripts-primary.ucl
 SUB_LIST=		GUILE_VER=3.0
 
+SET_DEBUGGING_ON=	yes
+OPTIMIZER_LEVEL=	0
+VAR_OPSYS[freebsd]=	CONFIGURE_ENV=ac_cv_func_posix_spawn_file_actions_addclosefrom_np=no
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--enable-jit=no
-			CONFIGURE_ARGS=--enable-lto=no
 
 [FILE:322:descriptions/desc.primary]
 GUILE, GNU's Ubiquitous Intelligent Language for Extension, is a library
@@ -989,6 +992,27 @@ lib/
 share/man/man1/guile.1
 
 
+[FILE:591:patches/patch-configure]
+--- configure.orig	2024-06-23 21:38:45 UTC
++++ configure
+@@ -60113,6 +60113,15 @@ then :
+ 
+ fi
+ 
++ac_fn_c_check_func "$LINENO" "posix_spawn_file_actions_addclosefrom_np" "ac_cv_func_posix_spawn_file_actions_addclosefrom_np"
++if test "x$ac_cv_func_posix_spawn_file_actions_addclosefrom_np" = xyes
++then :
++  printf "%s\n" "#define HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSEFROM_NP 1" >>confdefs.h
++ 
++fi
++ 
++
++
+ 
+ # The newlib C library uses _NL_ prefixed locale langinfo constants.
+ ac_fn_check_decl "$LINENO" "_NL_NUMERIC_GROUPING" "ac_cv_have_decl__NL_NUMERIC_GROUPING" "#include <langinfo.h>
+
+
 [FILE:607:patches/patch-libguile_Makefile.in]
 $NetBSD: patch-libguile_Makefile.in,v 1.1 2022/03/08 00:09:30 wiz Exp $
 
@@ -1006,34 +1030,20 @@ Disable PaX MPROTECT for guile binary (needed due to its JIT).
  	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
 
 
-[FILE:409:patches/patch-libguile_filesys.c]
---- libguile/filesys.c.orig	2024-03-17 09:08:25 UTC
-+++ libguile/filesys.c
-@@ -1894,6 +1894,9 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp", 1,
-       mode_bits = scm_i_mode_bits (mode);
-     }
- 
-+#if defined __FreeBSD__ || defined __DragonFly__
-+  open_flags &= O_APPEND | O_DIRECT | O_SHLOCK | O_EXLOCK | O_CLOEXEC;
-+#endif
-   SCM_SYSCALL (rv = mkostemp (c_tmpl, open_flags));
-   if (rv == -1)
-     SCM_SYSERROR;
-
-
-[FILE:245:patches/patch-libguile_gen-scmconfig.c]
+[FILE:559:patches/patch-libguile_gen-scmconfig.c]
 --- libguile/gen-scmconfig.c.orig	2023-02-10 13:16:15 UTC
 +++ libguile/gen-scmconfig.c
-@@ -143,6 +143,9 @@
- 
- #include "gen-scmconfig.h"
- 
-+#if defined __FreeBSD__ || defined __DragonFly__
-+#define _ANSI_SOURCE
-+#endif
- #define pf printf
- 
- int
+@@ -329,6 +329,10 @@ main (int argc, char *argv[])
+   pf ("typedef int scm_t_off;\n");
+   pf ("#define SCM_T_OFF_MAX INT_MAX\n");
+   pf ("#define SCM_T_OFF_MIN INT_MIN\n");
++#elif SIZEOF_OFF_T == SIZEOF_LONG_LONG && SIZEOF_OFF_T != SIZEOF_LONG
++  pf ("typedef long long int scm_t_off;\n");
++  pf ("#define SCM_T_OFF_MAX LLONG_MAX\n");
++  pf ("#define SCM_T_OFF_MIN LLONG_MIN\n");
+ #else
+   pf ("typedef long int scm_t_off;\n");
+   pf ("#define SCM_T_OFF_MAX LONG_MAX\n");
 
 
 [FILE:505:patches/patch-libguile_loader.c]
@@ -1052,20 +1062,6 @@ Use correct mmap permissions for later PROT_WRITE mprotect.
    if (data == MAP_FAILED)
      SCM_SYSERROR;
    *is_read_only = 1;
-
-
-[FILE:460:patches/patch-libguile_numbers.c]
---- libguile/numbers.c.orig	2024-03-20 10:50:53 UTC
-+++ libguile/numbers.c
-@@ -192,7 +192,7 @@ static double atanh (double x) { return
- 
- 
- #if defined (GUILE_I)
--#if defined HAVE_COMPLEX_DOUBLE
-+#if defined HAVE_COMPLEX_DOUBLE && (HAVE_CLOG || HAVE_CLOG10 || HAVE_CEXP || HAVE_USABLE_CSQRT) && defined (SCM_COMPLEX_VALUE)
- 
- /* For an SCM object Z which is a complex number (ie. satisfies
-    SCM_COMPLEXP), return its value as a C level "complex double". */
 
 
 [FILE:229:patches/patch-libguile_pthread-threads.h]

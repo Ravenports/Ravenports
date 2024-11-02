@@ -89,7 +89,7 @@ lib/cmake/KF6Pty/
  KF6PtyTargets.cmake
 
 
-[FILE:440:patches/patch-cmake_FindUTEMPTER.cmake]
+[FILE:449:patches/patch-cmake_FindUTEMPTER.cmake]
 --- cmake/FindUTEMPTER.cmake.orig	2024-08-02 11:15:14 UTC
 +++ cmake/FindUTEMPTER.cmake
 @@ -29,7 +29,9 @@ else ()
@@ -97,7 +97,7 @@ lib/cmake/KF6Pty/
      # On FreeBSD for example we have to use ulog-helper
      if (NOT UTEMPTER_EXECUTABLE)
 -        find_program (UTEMPTER_EXECUTABLE ulog-helper PATHS /usr/libexec)
-+        if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
++        if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|Midnight")
 +           set(UTEMPTER_EXECUTABLE "/usr/libexec/ulog-helper")
 +        endif()
      endif ()
@@ -120,14 +120,14 @@ lib/cmake/KF6Pty/
  deprecated: false
 
 
-[FILE:262:patches/patch-src_kpty.cpp]
+[FILE:234:patches/patch-src_kpty.cpp]
 --- src/kpty.cpp.orig	2024-08-02 11:15:14 UTC
 +++ src/kpty.cpp
 @@ -73,7 +73,9 @@ public:
      int cmdFd;
  };
  #else
-+# if defined __MidnightBSD__ || defined __NetBSD__ || defined __linux__ 
++# if defined __NetBSD__ || defined __linux__
  #include <utmp.h>
 +# endif
  #if HAVE_UTMPX

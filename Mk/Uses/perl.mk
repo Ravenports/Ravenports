@@ -9,7 +9,7 @@
 #              run   (do not use with configure or build)
 #              none  (just sets BUILDRUN_DEPENDS)
 #              538   (specify perl-538 for build/run)
-#              536   (specify perl-536 for build/run)
+#              540   (specify perl-540 for build/run)
 #
 # Internal ravenadm makefile raven.versions.mk sets this variable:
 # PERL5_DEFAULT
@@ -40,9 +40,7 @@
 .if !defined(_INCLUDE_USES_PERL_MK)
 _INCLUDE_USES_PERL_MK=	yes
 
-.  if ${perl_ARGS:M536}
-PERL_VERSION=	${PERL_5.36_VERSION}
-.  elif ${perl_ARGS:M538}
+.  if ${perl_ARGS:M538}
 PERL_VERSION=	${PERL_5.38_VERSION}
 .  elif ${perl_ARGS:M540}
 PERL_VERSION=	${PERL_5.40_VERSION}
@@ -58,9 +56,9 @@ PERL_VER=	${PERL_VERSION:C/\.[0-9]+$//}
 PERL_ARCH=	mach
 
 SITE_PERL_REL=	lib/perl5/site_perl
-SITE_PERL=	${LOCALBASE}/${SITE_PERL_REL}
+SITE_PERL=	${PREFIX}/${SITE_PERL_REL}
 SITE_ARCH_REL=	${SITE_PERL_REL}/${PERL_ARCH}/${PERL_VER}
-SITE_ARCH=	${LOCALBASE}/${SITE_ARCH_REL}
+SITE_ARCH=	${PREFIX}/${SITE_ARCH_REL}
 SITE_MAN1_REL=	${SITE_PERL_REL}/man/man1
 SITE_MAN1=	${PREFIX}/${SITE_MAN1_REL}
 SITE_MAN3_REL=	${SITE_PERL_REL}/man/man3

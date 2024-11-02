@@ -64,6 +64,8 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.99.20
 
+CFLAGS=			-Wno-bidi-chars
+
 post-extract:
 			${ECHO} "Terms extracted from 'caca/caca.h':" > ${WRKDIR}/TERMS
 			${SED} -n '/more details/!p;//q' ${WRKSRC}/caca/caca.h >> ${WRKDIR}/TERMS
@@ -596,4 +598,52 @@ share/libcaca/caca.txt
 [FILE:60:manifests/plist.ruby]
 %%RUBY_SITEARCHLIBDIR%%/caca.so
 %%RUBY_SITELIBDIR%%/caca.rb
+
+
+[FILE:424:patches/patch-caca_dither.c]
+--- caca/dither.c.orig	2021-10-19 13:58:30 UTC
++++ caca/dither.c
+@@ -1324,7 +1324,11 @@ static void get_rgba_default(caca_dither
+         case 3:
+         {
+ #if defined(HAVE_ENDIAN_H)
++  #if defined(__NetBSD__)
++            if(0)
++  #else
+             if(__BYTE_ORDER == __BIG_ENDIAN)
++  #endif
+ #else
+             /* This is compile-time optimised with at least -O1 or -Os */
+             uint32_t const tmp = 0x12345678;
+
+
+[FILE:425:patches/patch-configure.ac]
+--- configure.ac.orig	2021-10-19 13:58:30 UTC
++++ configure.ac
+@@ -269,7 +269,7 @@ if test "${enable_cocoa}" != "no"; then
+    [ac_cv_my_have_cocoa="yes"])
+   CFLAGS="$save_CFLAGS"
+   if test "${ac_cv_my_have_cocoa}" = "yes"; then
+-    [[[ "$target_os" =~ [0-9]+ ]]] && darwin_ver="${BASH_REMATCH[[0]]}"
++    [[[ "$target_os" =~ "SKIP" ]]]
+     case x${target} in
+     xpowerpc*darwin*)
+       # 10.3 needed to link with X11
+
+
+[FILE:378:patches/patch-examples_font.c]
+--- examples/font.c.orig	2021-10-19 13:58:30 UTC
++++ examples/font.c
+@@ -79,7 +79,11 @@ int main(int argc, char *argv[])
+ 
+     {
+ #if defined(HAVE_ENDIAN_H)
++ #if defined(__NetBSD__)
++        if(0)
++ #else
+         if(__BYTE_ORDER == __BIG_ENDIAN)
++ #endif
+ #else
+         /* This is compile-time optimised with at least -O1 or -Os */
+         uint32_t const tmp = 0x12345678;
 

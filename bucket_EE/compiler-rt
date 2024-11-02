@@ -46,7 +46,7 @@ CPE_VENDOR=		llvm
 PLIST_SUB=		OPSYSLC={{OPSYS:tl}}
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*/libclang_*.so
+	${FIND} ${STAGEDIR}${PREFIX}/lib/ -name "libclang_*.so" -exec ${STRIP_CMD} {} \;
 
 post-extract:
 	${MKDIR} ${WRKDIR}/cmake/Modules
@@ -220,6 +220,28 @@ include/xray/
 lib/%%OPSYSLC%%/
  libclang_rt.builtins-x86_64.a
  liborc_rt-x86_64.a
+
+
+[FILE:600:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2024-10-15 08:17:37 UTC
++++ CMakeLists.txt
+@@ -200,16 +200,8 @@ macro(handle_default_cxx_lib var)
+     set(${var}_LIBNAME "${CMAKE_MATCH_1}")
+     set(${var}_SYSTEM 1)
+   elseif (${var} STREQUAL "default")
+-    if (APPLE OR CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+-      set(${var}_LIBNAME "libc++")
+-      set(${var}_SYSTEM 1)
+-    elseif (FUCHSIA)
+-      set(${var}_LIBNAME "libc++")
+-      set(${var}_INTREE 1)
+-    else()
+       set(${var}_LIBNAME "libstdc++")
+       set(${var}_SYSTEM 1)
+-    endif()
+   else()
+     set(${var}_LIBNAME "${${var}}")
+     set(${var}_SYSTEM 1)
 
 
 [FILE:406:patches/patch-lib_fuzzer_FuzzerSHA1.cpp]

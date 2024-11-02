@@ -131,7 +131,7 @@ do-build:
 		pip install --no-build-isolation --verbose .)
 
 do-install:
-	whl=$$(find /root/.cache/pip/wheels -name "*.whl");\
+	whl=$$(find ${INSTALL_WRKSRC}/src/rust/target/wheels -name "*.whl");\
 	pip install \
 		--verbose \
 		--no-index \
@@ -143,6 +143,13 @@ do-install:
 		--disable-pip-version-check \
 		--no-deps $$whl
 	${FIND} ${STAGEDIR}${PREFIX}/lib -name "*.so" | xargs ${STRIP_CMD}
+
+pre-install-midnightbsd:
+	# Due to rust limitations, maturin must set target OS as freebsd, but
+	# pip doesn't recognize that as a legal combination.  Rename to complete build.
+	(cd ${INSTALL_WRKSRC}/src/rust/target/wheels/ && ${MV}\
+	cryptography-43.0.3-cp37-abi3-freebsd_*.whl\
+	cryptography-43.0.3-cp37-abi3-midnightbsd_3_0_0_amd64.whl)
 
 [FILE:1834:descriptions/desc.single]
 pyca/cryptography

@@ -11,7 +11,7 @@ _INCLUDE_USES_GMAKE_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILD_DEPENDS+=	gmake:single:std
+# BUILD_DEPENDS+=	gmake:primary:std
 # -----------------------------------------------
 CONFIGURE_ENV+=		MAKE=gmake
 MAKE_CMD=		gmake

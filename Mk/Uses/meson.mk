@@ -16,11 +16,6 @@
 #			format: -Denable_foo=true
 # MESON_BUILD_DIR	Path to the build directory
 #			Default: ${WRKSRC}/_build
-# MESON_INSERT_RPATH	** OBSOLETE - ignored by meson **
-#			List path relative to WRKSRC for meson.build files that
-#			require rpath adjustments, list.  e.g.
-#			src/meson.build data/meson.build
-#
 
 .if !defined(_INCLUDE_USES_MESON_MK)
 _INCLUDE_USES_MESON_MK=	yes
@@ -66,18 +61,6 @@ meson_badconfig:
 
 .  endif
 
-.  if defined(MESON_INSERT_RPATH)
-_USES_patch+=		875:meson_build_rpath
-
-# Hardcode RPATH
-COMP_RPATH=		${PREFIX}/toolchain/ravensys-gcc/${ASLIB}:${PREFIX}/lib
-
-meson_build_rpath:
-	(cd ${WRKSRC} && ${REINPLACE_CMD} \
-	-E "s|install[ ]?: true|install : true, install_rpath : '${COMP_RPATH}'|"\
-	${MESON_INSERT_RPATH})
-
-.  endif
 
 # Dragonfly
 _USES_patch+=	705:chmod-meson

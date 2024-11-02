@@ -704,6 +704,42 @@ share/man/man1/
  
 
 
+[FILE:326:patches/patch-src_include_compat_math.h]
+--- src/include/compat/math.h.orig	2022-06-21 14:53:53 UTC
++++ src/include/compat/math.h
+@@ -19,6 +19,8 @@
+ #ifndef MATH_H_COMPAT_SHIM
+ #define MATH_H_COMPAT_SHIM
+ 
++#define _NETBSD_SOURCE
++
+ #ifdef _MSC_VER
+ #define _USE_MATH_DEFINES // For M_PI, etc.
+ #if _MSC_VER >= 1900 // Visual C++ 14 (Visual Studio 2015) and above...
+
+
+[FILE:438:patches/patch-src_libespeak-ng_spect.c]
+$NetBSD: patch-src_libespeak-ng_spect.c,v 1.1 2024/03/11 08:03:45 wiz Exp $
+
+Fix endian.h inclusion on NetBSD
+
+--- src/libespeak-ng/spect.c.orig	2022-06-21 14:53:53 UTC
++++ src/libespeak-ng/spect.c
+@@ -25,7 +25,12 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++
++#ifdef HAVE_SYS_ENDIAN_H
++#include <sys/endian.h>
++#else
+ #include <endian.h>
++#endif
+ 
+ #include <espeak-ng/espeak_ng.h>
+ #include <espeak-ng/speak_lib.h>
+
+
 [FILE:379:patches/patch-src_libespeak-ng_speech.h]
 --- src/libespeak-ng/speech.h.orig	2022-06-21 14:53:53 UTC
 +++ src/libespeak-ng/speech.h

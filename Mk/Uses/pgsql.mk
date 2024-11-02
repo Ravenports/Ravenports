@@ -3,7 +3,7 @@
 # Feature:	pgsql
 # Usage:	USES=pgsql
 # Valid ARGS:	none (implies client+buildrun)
-#               server (implies client)
+#               server
 #               client
 #               plperl
 #               plpython
@@ -24,6 +24,6 @@ _INCLUDE_USES_POSTGRESQL_MK=	yes
 # -----------------------------------------------
 
 # Detected MySQL version (read-only)
-PGSQL_VER=	${PGSQL_${MYSQL_DEFAULT}_VERSION}
+PGSQL_VER=	${PGSQL_${PGSQL_DEFAULT}_VERSION}
 
 .endif

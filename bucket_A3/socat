@@ -35,6 +35,7 @@ FPC_EQUIVALENT=		net/socat
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-dccp
+			--enable-devtests=no
 
 RC_SUBR=		socat:primary
 
@@ -139,6 +140,20 @@ Use correct prototype for getprotobynumber_r() on SunOS
  }
  
  #endif /* WITH_TCP */
+
+
+[FILE:377:patches/patch-xio-ip.c]
+--- xio-ip.c.orig	2024-08-24 16:06:11 UTC
++++ xio-ip.c
+@@ -799,7 +799,7 @@ int xioresolve(const char *node, const c
+    }
+    if (res == NULL) {
+       Error3("xioresolve(node=\"%s\", pf=%d, ...): %s",
+-	     node?node:"NULL", pf, gai_strerror(EAI_NODATA));
++	     node?node:"NULL", pf, gai_strerror(EAI_NONAME));
+       xiofreeaddrinfo(res);
+       return STAT_NORETRY;
+    }
 
 
 [FILE:1445:files/socat-instances.conf.sample]

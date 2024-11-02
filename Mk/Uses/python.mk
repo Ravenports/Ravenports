@@ -3,7 +3,7 @@
 #
 # Feature:	python
 # Usage:	USES=python
-# Valid ARGS:	(v11 or v12), build, wheel
+# Valid ARGS:	(v11 or v12), build, wheel, sutools
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -69,11 +69,20 @@
 _INCLUDE_USES_PYTHON_MK=	yes
 
 # ------------------------------------------------------
-# Incorporated in ravenadm
+# Incorporated in ravenadm (v12 and later)
 # ------------------------------------------------------
-# BUILDRUN_DEPENDS+=	pythonXX:single:std
-# BUILD_DEPENDS+=	python-setuptools:single:pyXX or
-#                       python-pip:single:pyXX (if "wheel")
+# BUILD_DEPENDS+=       python3XX:dev:std
+#
+# if arguments contain "build":
+#    BUILD_DEPENDS+=    python3XX:primary:std
+# else:
+#    BUILDRUN_DEPENDS+= python3XX:primary:std
+#
+# if arguments contain "wheel":
+#    BUILD_DEPENDS+=    python-pip:single:vXX
+#
+# if arguments contain "sutools":
+#    BUILD_DEPENDS+=    python-setuptools:single:vXX
 # ------------------------------------------------------
 
 .  if !empty(python_ARGS:Mv11)

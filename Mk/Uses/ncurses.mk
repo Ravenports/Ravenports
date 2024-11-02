@@ -4,21 +4,17 @@
 # Usage:	USES=ncurses
 # Valid ARGS:	buildrun (default, implicit), build
 #
-# Port makefile can now set this variable
-# NCURSES_RPATH= defined	- pass RFLAGS options to CFLAGS
-#
 # The makefile sets the following variables:
 # NCURSESBASE		- ${LOCALBASE}
 # NCURSESLIB		- path to the libs
 # NCURSESINC		- path to the matching includes
-# NCURSESRPATH		- rpath for dynamic linker
 #
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
 # BUILD_DEPENDS+=       ncurses:dev:std
 # BUILDRUN_DEPENDS+=	ncurses:terminfo:std
-#.if {ncurses_ARGS:Mbuildrun}
+#.if {ncurses_ARGS:Nbuild}
 # BUILDRUN_DEPENDS+=	ncurses:primary:std
 #.endif
 # -----------------------------------------------

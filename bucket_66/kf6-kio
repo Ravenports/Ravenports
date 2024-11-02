@@ -1122,10 +1122,27 @@ share/doc/HTML/uk/kioworker6/webdav/
      - name: Android
 
 
-[FILE:667:patches/patch-src_kioworkers_file_file__unix.cpp]
---- src/kioworkers/file/file_unix.cpp.orig	2024-08-02 11:13:59 UTC
+[FILE:391:patches/patch-src_core_kmountpoint.cpp]
+$NetBSD: patch-src_core_kmountpoint.cpp,v 1.1 2024/05/26 11:42:12 markd Exp $
+
+statvfs has f_flag
+
+--- src/core/kmountpoint.cpp.orig	2022-04-02 10:22:23.000000000 +0000
++++ src/core/kmountpoint.cpp
+@@ -293,6 +293,7 @@ KMountPoint::List KMountPoint::currentMo
+ 
+ #if GETMNTINFO_USES_STATVFS
+     struct statvfs *mounted;
++#   define f_flags f_flag
+ #else
+     struct statfs *mounted;
+ #endif
+
+
+[FILE:1344:patches/patch-src_kioworkers_file_file__unix.cpp]
+--- src/kioworkers/file/file_unix.cpp.orig	2024-10-04 15:07:52 UTC
 +++ src/kioworkers/file/file_unix.cpp
-@@ -415,6 +415,9 @@ WorkerResult FileProtocol::tryChangeFile
+@@ -413,6 +413,9 @@ WorkerResult FileProtocol::tryChangeFile
  #if HAVE_SYS_XATTR_H || HAVE_SYS_EXTATTR_H
  bool FileProtocol::copyXattrs(const int src_fd, const int dest_fd)
  {
@@ -1135,7 +1152,7 @@ share/doc/HTML/uk/kioworker6/webdav/
      // Get the list of keys
      ssize_t listlen = 0;
      QByteArray keylist;
-@@ -530,6 +533,7 @@ bool FileProtocol::copyXattrs(const int
+@@ -528,6 +531,7 @@ bool FileProtocol::copyXattrs(const int
          next_key();
      }
      return true;
@@ -1143,4 +1160,22 @@ share/doc/HTML/uk/kioworker6/webdav/
  }
  #endif // HAVE_SYS_XATTR_H || HAVE_SYS_EXTATTR_H
  
+@@ -949,7 +953,7 @@ WorkerResult FileProtocol::listDir(const
+     // qDebug() << "========= LIST " << url << "details=" << details << " =========";
+     UDSEntry entry;
+ 
+-#ifndef HAVE_DIRENT_D_TYPE
++#if !HAVE_DIRENT_D_TYPE
+     QT_STATBUF st;
+ #endif
+     QT_DIRENT *ep;
+@@ -970,7 +974,7 @@ WorkerResult FileProtocol::listDir(const
+          */
+         if (details == KIO::StatBasic) {
+             entry.fastInsert(KIO::UDSEntry::UDS_NAME, filename);
+-#ifdef HAVE_DIRENT_D_TYPE
++#if HAVE_DIRENT_D_TYPE
+             entry.fastInsert(KIO::UDSEntry::UDS_FILE_TYPE, (ep->d_type == DT_DIR) ? S_IFDIR : S_IFREG);
+             const bool isSymLink = (ep->d_type == DT_LNK);
+ #else
 
