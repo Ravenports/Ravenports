@@ -125,7 +125,7 @@ share/doc/mpv/
 share/man/man1/mpv.1
 
 
-[FILE:2159:patches/patch-meson.build]
+[FILE:1855:patches/patch-meson.build]
 
 - Instruct about NetBSD pthread_setname_np(3).
   Maybe pthread_setname_np(3) should be checked in order to distinguish
@@ -144,12 +144,7 @@ share/man/man1/mpv.1
  win32 = host_machine.system() == 'cygwin' or host_machine.system() == 'windows'
  posix = not win32
  
-@@ -549,17 +550,22 @@ features += {'consio.h': not features['v
- 
- features += {'wsdisplay-usl-io.h': cc.has_header_symbol('dev/wscons/wsdisplay_usl_io.h', 'VT_GETMODE', prefix: '#include <sys/types.h>')}
- 
-+features += {'wsdisplay_usl_io.h': not features['vt.h'] and not features['consio.h'] and cc.has_header_symbol('dev/wscons/wsdisplay_usl_io.h', 'VT_GETMODE')}
-+
+@@ -552,14 +553,17 @@ features += {'wsdisplay-usl-io.h': cc.ha
  # macOS's pthread_setname_np is a special snowflake and differs from literally every other platform.
  features += {'mac-thread-name': darwin}
  
@@ -207,6 +202,19 @@ $NetBSD: patch-stream_stream__libarchive.c,v 1.1 2022/05/17 13:12:13 ryoon Exp $
  struct mp_archive_volume {
      struct mp_archive *mpa;
      int index; // volume number (starting with 0, mp_archive.primary_src)
+
+
+[FILE:246:patches/patch-video_out_drm__common.c]
+--- video/out/drm_common.c.orig	2024-09-23 17:36:41 UTC
++++ video/out/drm_common.c
+@@ -34,6 +34,7 @@
+ #elif HAVE_VT_H
+ #include <sys/vt.h>
+ #elif HAVE_WSDISPLAY_USL_IO_H
++#include <sys/types.h>
+ #include <dev/wscons/wsdisplay_usl_io.h>
+ #endif
+ 
 
 
 [FILE:178:files/special.mk]

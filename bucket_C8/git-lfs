@@ -90,8 +90,12 @@ SPKGS[std]=		set
 			primary
 			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	MAN
+OPTIONS_STANDARD=	MAN
+OPT_ON[freebsd]=	MAN
+OPT_ON[linux]=		MAN
+OPT_ON[dragonfly]=	MAN
+OPT_ON[midnightbsd]=	MAN
 
 BUILD_DEPENDS=		golang:single:std
 			ruby-ronn-ng:single:ruby_default
@@ -110,22 +114,32 @@ FPC_EQUIVALENT=		devel/git-lfs
 
 MAKE_ENV=		GOFLAGS="-trimpath -mod=vendor -modcacherw -ldflags=-linkmode=external"
 
+MOUNT_PROCFS=		yes
+
+[MAN].DESCRIPTION=			Build and package man pages
+[MAN].BUILD_DEPENDS_ON=			ruby-ronn-ng:single:ruby_default
+					ruby-asciidoctor:single:ruby_default
+
 post-patch:
 	${CP} ${FILESDIR}/modules.txt ${WRKSRC}/vendor/
 
 do-build:
 	cd ${WRKSRC} && \
 	${SETENV} ${MAKE_ENV} go generate ./commands ${SWITCHES} && \
-	${SETENV} ${MAKE_ENV} go build . && \
-	${SETENV} ${MAKE_ENV} gmake man
+	${SETENV} ${MAKE_ENV} go build .
+
+do-install-MAN-ON:
+	${CP} ${WRKSRC}/man/man1/*.1 ${STAGEDIR}${PREFIX}/share/man/man1
+	${CP} ${WRKSRC}/man/man5/*.5 ${STAGEDIR}${PREFIX}/share/man/man5
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/git-lfs
 
 do-install:
 	${CP} ${WRKSRC}/git-lfs ${STAGEDIR}${PREFIX}/bin
-	${CP} ${WRKSRC}/man/man1/*.1 ${STAGEDIR}${PREFIX}/share/man/man1
-	${CP} ${WRKSRC}/man/man5/*.5 ${STAGEDIR}${PREFIX}/share/man/man5
+
+do-build-MAN-ON:
+	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gmake man
 
 [FILE:279:descriptions/desc.primary]
 Git-LFS is an open source Git extension for versioning large files.
@@ -179,8 +193,8 @@ cf05411540d3e6ef8f1fd88434b34f94cedaceb540329031d80e23b74540c4e5        91173 go
 bin/git-lfs
 
 
-[FILE:686:manifests/plist.man]
-share/man/man1/
+[FILE:706:manifests/plist.man]
+%%MAN-ON%%share/man/man1/
  git-lfs-checkout.1
  git-lfs-clean.1
  git-lfs-clone.1
@@ -215,7 +229,7 @@ share/man/man1/
  git-lfs-untrack.1
  git-lfs-update.1
  git-lfs.1
-share/man/man5/git-lfs-config.5
+%%MAN-ON%%share/man/man5/git-lfs-config.5
 
 
 [FILE:658:files/messages-primary.ucl]

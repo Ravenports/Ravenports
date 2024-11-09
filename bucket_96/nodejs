@@ -69,7 +69,6 @@ MAKE_ENV=		CC.host={{CC}}
 INSTALL_REQ_TOOLCHAIN=	yes
 
 VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--dest-os=netbsd
-			CONFIGURE_ARGS=--experimental-enable-pointer-compression
 VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--dest-os=freebsd
 
 [SYSTEM].DESCRIPTION=			Link with installed ICU library
@@ -85,7 +84,6 @@ VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--dest-os=freebsd
 
 post-configure-netbsd:
 	# Fixes "Fatal process OOM in Failed to reserve virtual memory for CodeRange" error
-	# in addition to enable-pointer-compression option
 	${REINPLACE_CMD} -E 's|(call do_cmd,link\))|\1\n\t${PAXCTL} +m $$@|'\
 		${WRKSRC}/out/tools/v8_gypfiles/mksnapshot.target.mk \
 		${WRKSRC}/out/node_mksnapshot.target.mk

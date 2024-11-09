@@ -148,7 +148,7 @@ if [ -n "${SYSUSERS}" ]; then
 				shell="/usr/bin/false"
 			fi
 			if [ "${dp_OPSYS}" = "NetBSD" ] && [ "$shell" = "/usr/sbin/nologin" ]; then
-				shell="/usr/bin/false"
+				shell="/sbin/nologin"
 			fi
 			homedir=$(echo "$homedir" | sed "s|^LOCALBASE/|${dp_PREFIX}/|")
 			cat >> "${dp_UG_INSTALL}" <<-eot2

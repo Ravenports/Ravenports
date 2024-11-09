@@ -1853,7 +1853,7 @@ share/man/man1/
  ruby%%XY%%.1
 
 
-[FILE:3080:patches/patch-configure.ac]
+[FILE:3508:patches/patch-configure.ac]
 --- configure.ac.orig	2024-09-02 16:09:08 UTC
 +++ configure.ac
 @@ -142,16 +142,6 @@ dnl checks for alternative programs
@@ -1892,12 +1892,21 @@ share/man/man1/
          [*-haiku*], [
              coroutine_type=pthread
          ],
+@@ -3101,7 +3096,7 @@ AC_SUBST(EXTOBJS)
+ 	[bsdi3*], [	AS_CASE(["$CC"],
+ 			[*shlicc*], [	: ${LDSHARED='$(CC) -r'}
+ 					rb_cv_dlopen=yes])],
+-	[linux* | gnu* | k*bsd*-gnu | netbsd* | bsdi* | kopensolaris*-gnu | haiku*], [
++	[linux* | gnu* | k*bsd*-gnu | bsdi* | kopensolaris*-gnu | haiku*], [
+ 			: ${LDSHARED='$(CC) -shared'}
+ 			AS_IF([test "$rb_cv_binary_elf" = yes], [
+ 			    LDFLAGS="$LDFLAGS -Wl,-export-dynamic"
 @@ -3110,7 +3105,7 @@ AC_SUBST(EXTOBJS)
  	[interix*], [	: ${LDSHARED='$(CC) -shared'}
  			XLDFLAGS="$XLDFLAGS -Wl,-E"
  			rb_cv_dlopen=yes],
 -	[freebsd*|dragonfly*], [
-+	[freebsd*|dragonfly*|midnight*], [
++	[freebsd*|dragonfly*|midnight*|netbsd*], [
  			: ${LDSHARED='$(CC) -shared'}
  			AS_IF([test "$rb_cv_binary_elf" = yes], [
  			    LDFLAGS="$LDFLAGS -rdynamic"
@@ -1951,6 +1960,24 @@ share/man/man1/
      $top_srcdir = $hdrdir
      $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
    elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
+
+
+[FILE:541:patches/patch-lib_rdoc_encoding.rb]
+$NetBSD: patch-lib_rdoc_encoding.rb,v 1.1 2023/01/21 13:51:23 taca Exp $
+
+* Always convert "\r\n" to "\n" since it cause rdoc processing error.
+
+--- lib/rdoc/encoding.rb.orig	2024-09-02 16:09:08 UTC
++++ lib/rdoc/encoding.rb
+@@ -31,7 +31,7 @@ module RDoc::Encoding
+ 
+   def self.read_file filename, encoding, force_transcode = false
+     content = File.open filename, "rb" do |f| f.read end
+-    content.gsub!("\r\n", "\n") if RUBY_PLATFORM =~ /mswin|mingw/
++    content.gsub!("\r\n", "\n")
+ 
+     utf8 = content.sub!(/\A\xef\xbb\xbf/, '')
+ 
 
 
 [FILE:533:patches/patch-tool_mkconfig.rb]

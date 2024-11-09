@@ -2,7 +2,7 @@
 
 NAMEBASE=		cyrus-sasl
 VERSION=		2.1.28
-REVISION=		2
+REVISION=		3
 KEYWORDS=		security
 VARIANTS=		std
 SDESC[std]=		Cyrus Simple Authentication Service Layer (SASL)
@@ -71,9 +71,6 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		3.0.0
 PLIST_SUB=		UNDERSCORE=1.13.1
 			JQUERY=3.5.1
-SUB_FILES=		scripts-primary.ucl
-SUB_LIST=		SASLDB_NAME=sasldb2
-			CYRUS_USER=cyrus
 
 CFLAGS=			-Wno-pointer-sign
 VAR_OPSYS[netbsd]=	CONFIGURE_ENV=ac_cv_lib_dl_dlopen=no
@@ -94,8 +91,14 @@ post-install:
 	(cd ${WRKSRC} && \
 		${INSTALL_DATA} AUTHORS ChangeLog INSTALL.TXT README ${STAGEDIR}${STD_DOCDIR})
 	${INSTALL_DATA} ${FILESDIR}/Sendmail.README ${STAGEDIR}${STD_DOCDIR}
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/sasl2/*.${LIBEXT}
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/sasl2/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
+	# Install sample database
+	${LN} -s ${STAGEDIR}${PREFIX}/lib/libsasl2.so.3.0.0 ${LOCALBASE}/lib/libsasl2.so.3
+	${LN} -s ${STAGEDIR}${PREFIX}/lib/sasl2 ${LOCALBASE}/lib/sasl2
+	${ECHO_CMD} test | ${STAGEDIR}${PREFIX}/sbin/saslpasswd2 -p -c -f ${STAGEDIR}${PREFIX}/etc/sasldb2.sample cyrus
+	${RM} ${LOCALBASE}/lib/sasl2
+	${RM} ${LOCALBASE}/lib/libsasl2.so.3
 
 post-configure:
 	# work around horrible libtool
@@ -118,7 +121,8 @@ layer is inserted between the protocol and the connection.
 7ccfc6abd01ed67c1a0924b353e526f1b766b21f42d4562ee635a8ebfc5bb38c      4034803 cyrus-sasl-2.1.28.tar.gz
 
 
-[FILE:555:manifests/plist.primary]
+[FILE:582:manifests/plist.primary]
+@sample etc/sasldb2.sample
 lib/
  libsasl2.so.%%SOMAJOR%%
  libsasl2.so.%%SOVERSION%%
@@ -146,32 +150,6 @@ sbin/
 
 
 [FILE:500:manifests/plist.dev]
-lib/sasl2/
- libscram.a
- libscram.la
- libscram.so
- libsasldb.a
- libsasldb.la
- libsasldb.so
- libplain.a
- libplain.la
- libplain.so
- libntlm.a
- libntlm.la
- libntlm.so
- liblogin.a
- liblogin.la
- liblogin.so
- libdigestmd5.a
- libdigestmd5.la
- libdigestmd5.so
- libcrammd5.a
- libcrammd5.la
- libcrammd5.so
-lib/pkgconfig/libsasl2.pc
- libanonymous.a
- libanonymous.la
- libanonymous.so
 include/sasl/
  hmac-md5.h
  md5.h
@@ -184,6 +162,32 @@ lib/
  libsasl2.a
  libsasl2.la
  libsasl2.so
+lib/pkgconfig/libsasl2.pc
+lib/sasl2/
+ libanonymous.a
+ libanonymous.la
+ libanonymous.so
+ libcrammd5.a
+ libcrammd5.la
+ libcrammd5.so
+ libdigestmd5.a
+ libdigestmd5.la
+ libdigestmd5.so
+ liblogin.a
+ liblogin.la
+ liblogin.so
+ libntlm.a
+ libntlm.la
+ libntlm.so
+ libplain.a
+ libplain.la
+ libplain.so
+ libsasldb.a
+ libsasldb.la
+ libsasldb.so
+ libscram.a
+ libscram.la
+ libscram.so
 
 
 [FILE:895:manifests/plist.man]
@@ -566,73 +570,4 @@ How to enable SMTP AUTH with FreeBSD default Sendmail
    to the sasldb2 database.
 
    SASLv2 support of Sendmail is starting with 8.12.4.
-
-
-[FILE:1836:files/scripts-primary.ucl.in]
-post-install: [{
-     args: ""
-     code: <<EOS
-PKG_BATCH=${BATCH:=NO}
-PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
-SASLDB_NAME=%%SASLDB_NAME%%
-SASLDB_NAME=${SASLDB_NAME:+${PKG_PREFIX}/etc/%%SASLDB_NAME%%}
-CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
-
-create_sasldb() {
-	if [ ! -f ${SASLDB_NAME} ]; then
-		echo "test" | ${PKG_PREFIX}/sbin/saslpasswd2 -p -c ${CYRUS_USER}
-		if [ `${PKG_PREFIX}/sbin/sasldblistusers2 | wc -l` -eq 0 ] ; then
-                        echo "WARNING: Failed to create ${SASLDB_NAME}"
-                else
-			${PKG_PREFIX}/sbin/saslpasswd2 -d ${CYRUS_USER}
-			chown ${CYRUS_USER}:mail ${SASLDB_NAME}
-			chmod 640 ${SASLDB_NAME}
-			if [ -f ${SASLDB_NAME}-lock ]; then
-				chown ${CYRUS_USER}:mail ${SASLDB_NAME}-lock
-				chmod 640 ${SASLDB_NAME}-lock
-			fi
-		fi
-	fi
-}
-
-if [ "${PKG_BATCH}" = "NO" ]; then
-	if [ -n "${SASLDB_NAME}" ]; then
-		create_sasldb
-	fi
-elif [ -n "${SASLDB_NAME}" -a ! -f ${SASLDB_NAME} ]; then
-	echo "*** We do not create ${SASLDB_NAME} automatically in"
-	echo "*** BATCH mode.  Please create it by yourself.  It should be"
-	echo "*** owner: ${CYRUS_USER}, group: mail, mode: 0640."
-fi
-EOS
-}]
-pre-deinstall: [{
-     args: ""
-     code: <<EOS
-PKG_BATCH=${BATCH:=NO}
-PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
-SASLDB_NAME=%%SASLDB_NAME%%
-SASLDB_NAME=${SASLDB_NAME:+${PKG_PREFIX}/etc/%%SASLDB_NAME%%}
-CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
-
-# delete sasldb database
-delete_sasldb() {
-	if [ -f ${SASLDB_NAME} ] ; then
-		if [ `${PKG_PREFIX}/sbin/sasldblistusers2 | wc -l` -eq 0 ]; then
-			echo "Removing ${SASLDB_NAME} as part of cyrus-sasl deinstallation."
-			rm ${SASLDB_NAME}
-			if [ -f ${SASLDB_NAME}-lock ] ; then
-				rm ${SASLDB_NAME}-lock
-			fi
-		else
-			echo "WARNING: Users SASL passwords are in ${SASLDB_NAME}, keeping this file"
-		fi
-	fi
-}
-
-if [ -n "${SASLDB_NAME}" ]; then
-	delete_sasldb
-fi
-EOS
-}]
 

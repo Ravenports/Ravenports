@@ -1778,7 +1778,7 @@ share/man/man1/
  ruby%%XY%%.1
 
 
-[FILE:3080:patches/patch-configure.ac]
+[FILE:3508:patches/patch-configure.ac]
 --- configure.ac.orig	2023-03-30 11:06:29 UTC
 +++ configure.ac
 @@ -130,16 +130,6 @@ dnl checks for alternative programs
@@ -1817,12 +1817,21 @@ share/man/man1/
          [*-haiku*], [
              coroutine_type=pthread
          ],
+@@ -3026,7 +3021,7 @@ AC_SUBST(EXTOBJS)
+ 	[bsdi3*], [	AS_CASE(["$CC"],
+ 			[*shlicc*], [	: ${LDSHARED='$(CC) -r'}
+ 					rb_cv_dlopen=yes])],
+-	[linux* | gnu* | k*bsd*-gnu | netbsd* | bsdi* | kopensolaris*-gnu | haiku*], [
++	[linux* | gnu* | k*bsd*-gnu | bsdi* | kopensolaris*-gnu | haiku*], [
+ 			: ${LDSHARED='$(CC) -shared'}
+ 			AS_IF([test "$rb_cv_binary_elf" = yes], [
+ 			    LDFLAGS="$LDFLAGS -Wl,-export-dynamic"
 @@ -3035,7 +3030,7 @@ AC_SUBST(EXTOBJS)
  	[interix*], [	: ${LDSHARED='$(CC) -shared'}
  			XLDFLAGS="$XLDFLAGS -Wl,-E"
  			rb_cv_dlopen=yes],
 -	[freebsd*|dragonfly*], [
-+	[freebsd*|dragonfly*|midnight*], [
++	[freebsd*|dragonfly*|midnight*|netbsd*], [
  			: ${LDSHARED='$(CC) -shared'}
  			AS_IF([test "$rb_cv_binary_elf" = yes], [
  			    LDFLAGS="$LDFLAGS -rdynamic"
@@ -1876,6 +1885,56 @@ share/man/man1/
      $top_srcdir = $hdrdir
      $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
    elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
+
+
+[FILE:541:patches/patch-lib_rdoc_encoding.rb]
+$NetBSD: patch-lib_rdoc_encoding.rb,v 1.1 2023/01/21 13:51:23 taca Exp $
+
+* Always convert "\r\n" to "\n" since it cause rdoc processing error.
+
+--- lib/rdoc/encoding.rb.orig	2023-03-30 11:06:29 UTC
++++ lib/rdoc/encoding.rb
+@@ -31,7 +31,7 @@ module RDoc::Encoding
+ 
+   def self.read_file filename, encoding, force_transcode = false
+     content = File.open filename, "rb" do |f| f.read end
+-    content.gsub!("\r\n", "\n") if RUBY_PLATFORM =~ /mswin|mingw/
++    content.gsub!("\r\n", "\n")
+ 
+     utf8 = content.sub!(/\A\xef\xbb\xbf/, '')
+ 
+
+
+[FILE:944:patches/patch-lib_rubygems_platform.rb]
+$NetBSD: patch-lib_rubygems_platform.rb,v 1.1 2023/01/21 13:51:23 taca Exp $
+
+* Don't replace "i486" to "x86".
+* Allow simple "netbsd" as Gem::Platform.
+
+--- lib/rubygems/platform.rb.orig	2023-03-30 11:06:29 UTC
++++ lib/rubygems/platform.rb
+@@ -76,12 +76,7 @@ class Gem::Platform
+         arch.last << "-#{extra}"
+       end
+ 
+-      cpu = arch.shift
+-
+-      @cpu = case cpu
+-      when /i\d86/ then "x86"
+-      else cpu
+-      end
++      @cpu = arch.shift
+ 
+       if arch.length == 2 && arch.last =~ /^\d+(\.\d+)?$/ # for command-line
+         @os, @version = arch
+@@ -110,6 +105,7 @@ class Gem::Platform
+         @cpu = "x86" if @cpu.nil? && os =~ /32$/
+         [os, version]
+       when /netbsdelf/ then             [ "netbsdelf", nil ]
++      when /netbsd/ then                [ "netbsd",    nil ]
+       when /openbsd(\d+\.\d+)?/ then    [ "openbsd",   $1  ]
+       when /solaris(\d+\.\d+)?/ then    [ "solaris",   $1  ]
+       # test
 
 
 [FILE:533:patches/patch-tool_mkconfig.rb]

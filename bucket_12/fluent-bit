@@ -406,20 +406,6 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  #include <endian.h>
 
 
-[FILE:375:patches/patch-lib_librdkafka-2.1.0_src_rdposix.h]
---- lib/librdkafka-2.4.0/src/rdposix.h.orig	2024-09-27 20:09:29 UTC
-+++ lib/librdkafka-2.4.0/src/rdposix.h
-@@ -65,7 +65,7 @@
- /**
-  * Allocation
-  */
--#if !defined(__FreeBSD__) && !defined(__OpenBSD__)
-+#if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__DragonFly__) && !defined(__NetBSD__)
- /* alloca(3) is in stdlib on FreeBSD */
- #include <alloca.h>
- #endif
-
-
 [FILE:369:patches/patch-lib_librdkafka-2.1.0_src_snappy__compat.h]
 --- lib/librdkafka-2.4.0/src/snappy_compat.h.orig	2024-09-27 20:09:29 UTC
 +++ lib/librdkafka-2.4.0/src/snappy_compat.h
@@ -432,6 +418,26 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  #  include <sys/endian.h>
  #elif defined(__APPLE_CC_) || (defined(__MACH__) && defined(__APPLE__))  /* MacOS/X support */
  #  include <machine/endian.h>
+
+
+[FILE:462:patches/patch-lib_librdkafka-2.4.0_src_rdposix.h]
+--- lib/librdkafka-2.4.0/src/rdposix.h.orig	2024-09-27 20:09:29 UTC
++++ lib/librdkafka-2.4.0/src/rdposix.h
+@@ -65,12 +65,12 @@
+ /**
+  * Allocation
+  */
+-#if !defined(__FreeBSD__) && !defined(__OpenBSD__)
++#if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__DragonFly__) && !defined(__NetBSD__)
+ /* alloca(3) is in stdlib on FreeBSD */
+ #include <alloca.h>
+ #endif
+ 
+-#define rd_alloca(N) alloca(N)
++#define rd_alloca(N) __builtin_alloca(N)
+ 
+ 
+ /**
 
 
 [FILE:692:patches/patch-lib_luajit-cmake_LuaJIT.cmake]
@@ -471,6 +477,20 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  # Check for LTTng-UST
 
 
+[FILE:599:patches/patch-lib_monkey_include_monkey_mk__core_mk__event.h]
+--- lib/monkey/include/monkey/mk_core/mk_event.h.orig	2024-09-27 20:09:29 UTC
++++ lib/monkey/include/monkey/mk_core/mk_event.h
+@@ -84,7 +84,7 @@
+     /* do our best based on the operating system */
+     #if defined(__linux__)
+         #include "mk_event_epoll.h"
+-    #elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__DragonFly__) || defined(__OpenBSD__)
++    #elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+         #include "mk_event_kqueue.h"
+     #elif defined(_WIN32)
+         #include "mk_event_libevent.h"
+
+
 [FILE:635:patches/patch-lib_monkey_include_monkey_mk__thread__libco.h]
 NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
@@ -506,7 +526,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  #define SENDFILE_IS_MACOSX	1
 
 
-[FILE:804:patches/patch-lib_monkey_mk__core_deps_libevent_kqueue.c]
+[FILE:828:patches/patch-lib_monkey_mk__core_deps_libevent_kqueue.c]
 --- lib/monkey/mk_core/deps/libevent/kqueue.c.orig	2024-09-27 20:09:29 UTC
 +++ lib/monkey/mk_core/deps/libevent/kqueue.c
 @@ -50,7 +50,7 @@
@@ -514,10 +534,24 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
   * intptr_t, whereas others define it as void*.  There doesn't seem to be an
   * easy way to tell them apart via autoconf, so we need to use OS macros. */
 -#if defined(EVENT__HAVE_INTTYPES_H) && !defined(__OpenBSD__) && !defined(__FreeBSD__) && !defined(__darwin__) && !defined(__APPLE__) && !defined(__CloudABI__)
-+#if defined(EVENT__HAVE_INTTYPES_H) && !defined(__OpenBSD__) && !defined(__FreeBSD__) && !defined(__darwin__) && !defined(__APPLE__) && !defined(__CloudABI__) && !defined(__DragonFly__)
++#if defined(EVENT__HAVE_INTTYPES_H) && !defined(__OpenBSD__) && !defined(__FreeBSD__) && !defined(__darwin__) && !defined(__APPLE__) && !defined(__CloudABI__) && !defined(__DragonFly__) && !defined(__NetBSD__)
  #define PTR_TO_UDATA(x)	((intptr_t)(x))
  #define INT_TO_UDATA(x) ((intptr_t)(x))
  #else
+
+
+[FILE:569:patches/patch-lib_monkey_mk__core_mk__event.c]
+--- lib/monkey/mk_core/mk_event.c.orig	2024-09-27 20:09:29 UTC
++++ lib/monkey/mk_core/mk_event.c
+@@ -42,7 +42,7 @@
+     /* do our best based on the operating system */
+     #if defined(__linux__)
+         #include "mk_event_epoll.c"
+-    #elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__DragonFly__) || defined(__OpenBSD__)
++    #elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+         #include "mk_event_kqueue.c"
+     #elif defined(_WIN32)
+         #include "mk_event_libevent.c"
 
 
 [FILE:440:patches/patch-lib_monkey_mk__server_CMakeLists.txt]
@@ -562,6 +596,20 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  #elif defined(__APPLE_CC_) || defined(__MACH__)  /* MacOS/X support */
  #  include <machine/endian.h>
  
+
+
+[FILE:307:patches/patch-src_flb__gzip.c]
+--- src/flb_gzip.c.orig	2024-09-27 20:09:29 UTC
++++ src/flb_gzip.c
+@@ -98,7 +98,7 @@ static inline void flb_hex_dump(uint8_t
+         line_length = 40;
+     }
+ 
+-    printable_line = alloca(line_length + 1);
++    printable_line = __builtin_alloca(line_length + 1);
+ 
+     if (NULL == printable_line)
+     {
 
 
 [FILE:904:patches/patch-src_flb__network.c]

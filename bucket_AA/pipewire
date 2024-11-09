@@ -2,6 +2,7 @@
 
 NAMEBASE=		pipewire
 VERSION=		1.2.6
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Low-latency audio/video router and processor
@@ -26,7 +27,7 @@ OPT_ON[freebsd]=	BSD C11THREADS
 OPT_ON[netbsd]=		BSD
 OPT_ON[openbsd]=	BSD
 OPT_ON[dragonfly]=	BSD
-OPT_ON[midnightbsd]=	BSD
+OPT_ON[midnightbsd]=	BSD C11THREADS
 
 BUILD_DEPENDS=		video4linux:dev:std
 			dbus:dev:std
@@ -81,6 +82,9 @@ SHEBANG_FILES=		doc/*.py
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.1206.0
 
+VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
+			CFLAGS=-I{{LOCALBASE}}/include/libepoll-shim
+
 [JACK].DESCRIPTION=			Add Jack audio server support
 [JACK].BROKEN_ON=			Not yet supported
 
@@ -105,6 +109,7 @@ post-install:
 
 pre-configure:
 	${GREP} -rl "pw_init(" | ${XARGS} ${REINPLACE_CMD} -e 's|pw_init(|pipewire_init|g'
+	${FIND} ${WRKSRC} -name "*.orig" -delete
 
 pre-configure-dragonfly:
 	${REINPLACE_CMD} -e 's@freebsd@dragonfly@g' \
@@ -528,7 +533,38 @@ share/locale/zh_CN/LC_MESSAGES/pipewire.mo
 share/locale/zh_TW/LC_MESSAGES/pipewire.mo
 
 
-[FILE:391:patches/patch-spa_plugins_audioconvert_fmt-ops.h]
+[FILE:423:patches/patch-spa_include_spa_utils_json-pod.h]
+--- spa/include/spa/utils/json-pod.h.orig	2024-10-23 07:44:10 UTC
++++ spa/include/spa/utils/json-pod.h
+@@ -115,7 +115,7 @@ static inline int spa_json_to_pod_part(s
+ 		spa_pod_builder_none(b);
+ 	}
+ 	else {
+-		char *val = (char*)alloca(len+1);
++		char *val = (char*)__builtin_alloca(len+1);
+ 		spa_json_parse_stringn(value, len, val, len+1);
+ 		switch (info ? info->parent : (uint32_t)SPA_TYPE_Struct) {
+ 		case SPA_TYPE_Id:
+
+
+[FILE:331:patches/patch-spa_include_spa_utils_string.h]
+--- spa/include/spa/utils/string.h.orig	2024-10-23 07:44:10 UTC
++++ spa/include/spa/utils/string.h
+@@ -17,6 +17,11 @@ extern "C" {
+ 
+ #include <spa/utils/defs.h>
+ 
++#if defined(__NetBSD__)
++// uselocale is not supported
++#define __LOCALE_C_ONLY
++#endif
++
+ /**
+  * \defgroup spa_string String handling
+  * String handling utilities
+
+
+[FILE:414:patches/patch-spa_plugins_audioconvert_fmt-ops.h]
 --- spa/plugins/audioconvert/fmt-ops.h.orig	2024-09-27 10:02:20 UTC
 +++ spa/plugins/audioconvert/fmt-ops.h
 @@ -3,7 +3,7 @@
@@ -536,7 +572,7 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  
  #include <math.h>
 -#if defined(__FreeBSD__) || defined(__MidnightBSD__)
-+#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  #include <sys/endian.h>
  #define bswap_16 bswap16
  #define bswap_32 bswap32
@@ -553,7 +589,30 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  if get_option('avb').require(host_machine.system() == 'linux', error_message: 'AVB support is only available on Linux').allowed()
 
 
-[FILE:364:patches/patch-spa_plugins_support_logger.c]
+[FILE:532:patches/patch-spa_plugins_support_cpu.c]
+--- spa/plugins/support/cpu.c.orig	2024-10-23 07:44:10 UTC
++++ spa/plugins/support/cpu.c
+@@ -10,7 +10,7 @@
+ #include <sched.h>
+ #include <fcntl.h>
+ 
+-#if defined(__FreeBSD__) || defined(__MidnightBSD__)
++#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__NetBSD__)
+ #include <sys/sysctl.h>
+ #endif
+ 
+@@ -86,7 +86,7 @@ impl_cpu_force_flags(void *object, uint3
+ 	return 0;
+ }
+ 
+-#ifndef __FreeBSD__
++#if !defined(__FreeBSD__) && !defined(__NetBSD__)
+ static uint32_t get_count(struct impl *this)
+ {
+ 	cpu_set_t cpuset;
+
+
+[FILE:387:patches/patch-spa_plugins_support_logger.c]
 --- spa/plugins/support/logger.c.orig	2024-09-27 10:02:20 UTC
 +++ spa/plugins/support/logger.c
 @@ -20,7 +20,7 @@
@@ -561,7 +620,7 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  #include <spa/utils/ansi.h>
  
 -#if defined(__FreeBSD__) || defined(__MidnightBSD__)
-+#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  #define CLOCK_MONOTONIC_RAW CLOCK_MONOTONIC
  #endif
  
@@ -585,8 +644,23 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  	int err;
 
 
-[FILE:387:patches/patch-src_modules_module-netjack2-manager.c]
---- src/modules/module-netjack2-manager.c.orig	2024-09-27 10:02:20 UTC
+[FILE:317:patches/patch-spa_tests_stress-ringbuffer.c]
+--- spa/tests/stress-ringbuffer.c.orig	2024-10-23 07:44:10 UTC
++++ spa/tests/stress-ringbuffer.c
+@@ -19,6 +19,9 @@
+ static int sched_getcpu(void) { return -1; };
+ #endif
+ #endif
++#if defined(__NetBSD__)
++static int sched_getcpu(void) { return -1; };
++#endif
+ 
+ static struct spa_ringbuffer rb;
+ static uint32_t size;
+
+
+[FILE:1037:patches/patch-src_modules_module-netjack2-manager.c]
+--- src/modules/module-netjack2-manager.c.orig	2024-10-23 07:44:10 UTC
 +++ src/modules/module-netjack2-manager.c
 @@ -38,6 +38,10 @@
  #include "module-netjack2/peer.c"
@@ -599,14 +673,31 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  #ifndef IPTOS_DSCP
  #define IPTOS_DSCP_MASK 0xfc
  #define IPTOS_DSCP(x) ((x) & IPTOS_DSCP_MASK)
+@@ -823,10 +827,16 @@ static int make_announce_socket(struct s
+ 		static const uint32_t ipv4_mcast_mask = 0xe0000000;
+ 		struct sockaddr_in *sa4 = (struct sockaddr_in*)sa;
+ 		if ((ntohl(sa4->sin_addr.s_addr) & ipv4_mcast_mask) == ipv4_mcast_mask) {
++#if defined(__NetBSD__)
++			struct ip_mreq mr4;
++			memset(&mr4, 0, sizeof(mr4));
++			mr4.imr_multiaddr = sa4->sin_addr;
++#else
+ 			struct ip_mreqn mr4;
+ 			memset(&mr4, 0, sizeof(mr4));
+ 			mr4.imr_multiaddr = sa4->sin_addr;
+ 			mr4.imr_ifindex = req.ifr_ifindex;
++#endif
+ 			res = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
+ 		} else {
+ 			sa4->sin_addr.s_addr = INADDR_ANY;
 
 
-[FILE:398:patches/patch-src_modules_module-netjack2_peer.c]
+[FILE:421:patches/patch-src_modules_module-netjack2_peer.c]
 --- src/modules/module-netjack2/peer.c.orig	2024-09-27 10:02:20 UTC
 +++ src/modules/module-netjack2/peer.c
 @@ -1,5 +1,12 @@
  
-+#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
 +#include <sys/endian.h>
 +#define bswap_16 bswap16
 +#define bswap_32 bswap32
@@ -634,21 +725,72 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  #include <spa/pod/builder.h>
 
 
-[FILE:365:patches/patch-src_modules_module-rt.c]
---- src/modules/module-rt.c.orig	2024-09-27 10:02:20 UTC
+[FILE:1408:patches/patch-src_modules_module-protocol-pulse_utils.c]
+--- src/modules/module-protocol-pulse/utils.c.orig	2024-10-23 07:44:10 UTC
++++ src/modules/module-protocol-pulse/utils.c
+@@ -86,6 +86,7 @@ int check_flatpak(struct client *client,
+ 	root_fd = openat(AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+ 	if (root_fd == -1) {
+ 		res = -errno;
++#if !defined(__NetBSD__)
+ 		if (res == -EACCES) {
+ 			struct statfs buf;
+ 			/* Access to the root dir isn't allowed. This can happen if the root is on a fuse
+@@ -96,6 +97,7 @@ int check_flatpak(struct client *client,
+ 			    buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
+ 				return 0;
+ 		}
++#endif
+ 		/* Not able to open the root dir shouldn't happen. Probably the app died and
+ 		 * we're failing due to /proc/$pid not existing. In that case fail instead
+ 		 * of treating this as privileged. */
+@@ -124,8 +126,8 @@ int check_flatpak(struct client *client,
+ 
+ pid_t get_client_pid(struct client *client, int client_fd)
+ {
+-	socklen_t len;
+ #if defined(__linux__)
++	socklen_t len;
+ 	struct ucred ucred;
+ 	len = sizeof(ucred);
+ 	if (getsockopt(client_fd, SOL_SOCKET, SO_PEERCRED, &ucred, &len) < 0) {
+@@ -133,6 +135,7 @@ pid_t get_client_pid(struct client *clie
+ 	} else
+ 		return ucred.pid;
+ #elif defined(__FreeBSD__) || defined(__MidnightBSD__)
++	socklen_t len;
+ 	struct xucred xucred;
+ 	len = sizeof(xucred);
+ 	if (getsockopt(client_fd, 0, LOCAL_PEERCRED, &xucred, &len) < 0) {
+
+
+[FILE:624:patches/patch-src_modules_module-rt.c]
+--- src/modules/module-rt.c.orig	2024-10-23 07:44:10 UTC
 +++ src/modules/module-rt.c
-@@ -239,6 +239,8 @@ static pid_t _gettid(void)
+@@ -35,6 +35,9 @@
+ #if defined(__FreeBSD__) || defined(__MidnightBSD__)
+ #include <sys/thr.h>
+ #endif
++#if defined(__NetBSD__)
++#include <lwp.h>
++#endif
+ #if defined(__GNU__)
+ #include <hurd.h>
+ #endif
+@@ -239,6 +242,10 @@ static pid_t _gettid(void)
  	return (pid_t) gettid();
  #elif defined(__linux__)
  	return syscall(SYS_gettid);
 +#elif defined(__DragonFly__)
 +	return syscall(SYS_lwp_gettid);
++#elif defined(__NetBSD__)
++	return (pid_t)_lwp_self();
  #elif defined(__FreeBSD__) || defined(__MidnightBSD__)
  	long pid;
  	thr_self(&pid);
 
 
-[FILE:782:patches/patch-src_modules_module-rtp-sap.c]
+[FILE:1532:patches/patch-src_modules_module-rtp-sap.c]
 --- src/modules/module-rtp-sap.c.orig	2024-10-23 07:44:10 UTC
 +++ src/modules/module-rtp-sap.c
 @@ -32,6 +32,14 @@
@@ -670,7 +812,7 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  		return -1;
  	}
  
-+#if !defined(__MidnightBSD__)
++#if !defined(__MidnightBSD__) && !defined(__NetBSD__)
  	int val = 1;
  	if (setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &val, sizeof(val)) < 0) {
  		pw_log_warn("Failed to bind PTP management socket");
@@ -680,6 +822,67 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  
  	spa_zero(addr);
  	addr.sun_family = AF_UNIX;
+@@ -477,10 +487,16 @@ static int make_recv_socket(struct socka
+ 		static const uint32_t ipv4_mcast_mask = 0xe0000000;
+ 		struct sockaddr_in *sa4 = (struct sockaddr_in*)sa;
+ 		if ((ntohl(sa4->sin_addr.s_addr) & ipv4_mcast_mask) == ipv4_mcast_mask) {
++#if defined(__NetBSD__)
++			struct ip_mreq mr4;
++			memset(&mr4, 0, sizeof(mr4));
++			mr4.imr_multiaddr = sa4->sin_addr;
++#else
+ 			struct ip_mreqn mr4;
+ 			memset(&mr4, 0, sizeof(mr4));
+ 			mr4.imr_multiaddr = sa4->sin_addr;
+ 			mr4.imr_ifindex = req.ifr_ifindex;
++#endif
+ 			pw_net_get_ip(sa, addr, sizeof(addr), NULL, NULL);
+ 			pw_log_info("join IPv4 group: %s iface:%d", addr, req.ifr_ifindex);
+ 			res = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
+
+
+[FILE:827:patches/patch-src_modules_module-rtp-source.c]
+--- src/modules/module-rtp-source.c.orig	2024-10-23 07:44:10 UTC
++++ src/modules/module-rtp-source.c
+@@ -238,10 +238,16 @@ static int make_socket(const struct sock
+ 		static const uint32_t ipv4_mcast_mask = 0xe0000000;
+ 		struct sockaddr_in *sa4 = (struct sockaddr_in*)sa;
+ 		if ((ntohl(sa4->sin_addr.s_addr) & ipv4_mcast_mask) == ipv4_mcast_mask) {
++#if defined(__NetBSD__)
++			struct ip_mreq mr4;
++			memset(&mr4, 0, sizeof(mr4));
++			mr4.imr_multiaddr = sa4->sin_addr;
++#else
+ 			struct ip_mreqn mr4;
+ 			memset(&mr4, 0, sizeof(mr4));
+ 			mr4.imr_multiaddr = sa4->sin_addr;
+ 			mr4.imr_ifindex = req.ifr_ifindex;
++#endif
+ 			pw_net_get_ip((struct sockaddr_storage*)sa, addr, sizeof(addr), NULL, NULL);
+ 			pw_log_info("join IPv4 group: %s", addr);
+ 			res = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
+
+
+[FILE:749:patches/patch-src_modules_module-vban-recv.c]
+--- src/modules/module-vban-recv.c.orig	2024-10-23 07:44:10 UTC
++++ src/modules/module-vban-recv.c
+@@ -225,10 +225,16 @@ static int make_socket(const struct sock
+ 		static const uint32_t ipv4_mcast_mask = 0xe0000000;
+ 		struct sockaddr_in *sa4 = (struct sockaddr_in*)sa;
+ 		if ((ntohl(sa4->sin_addr.s_addr) & ipv4_mcast_mask) == ipv4_mcast_mask) {
++#if defined(__NetBSD__)
++			struct ip_mreq mr4;
++			memset(&mr4, 0, sizeof(mr4));
++			mr4.imr_multiaddr = sa4->sin_addr;
++#else
+ 			struct ip_mreqn mr4;
+ 			memset(&mr4, 0, sizeof(mr4));
+ 			mr4.imr_multiaddr = sa4->sin_addr;
+ 			mr4.imr_ifindex = req.ifr_ifindex;
++#endif
+ 			res = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mr4, sizeof(mr4));
+ 		} else {
+ 			sa4->sin_addr.s_addr = INADDR_ANY;
 
 
 [FILE:265:patches/patch-src_modules_network-utils.h]
@@ -696,18 +899,72 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  
 
 
-[FILE:356:patches/patch-src_pipewire_conf.c]
---- src/pipewire/conf.c.orig	2024-09-27 10:02:20 UTC
+[FILE:1583:patches/patch-src_pipewire_buffers.c]
+--- src/pipewire/buffers.c.orig	2024-10-23 07:44:10 UTC
++++ src/pipewire/buffers.c
+@@ -48,7 +48,7 @@ static int alloc_buffers(struct pw_mempo
+ 	if (!SPA_FLAG_IS_SET(flags, PW_BUFFERS_FLAG_SHARED))
+ 		SPA_FLAG_SET(info.flags, SPA_BUFFER_ALLOC_FLAG_INLINE_ALL);
+ 
+-	datas = alloca(sizeof(struct spa_data) * n_datas);
++	datas = __builtin_alloca(sizeof(struct spa_data) * n_datas);
+ 
+ 	for (i = 0; i < n_datas; i++) {
+ 		struct spa_data *d = &datas[i];
+@@ -221,10 +221,10 @@ int pw_buffers_negotiate(struct pw_conte
+ 	if ((res = param_filter(result, &input, &output, SPA_PARAM_Meta, &b)) > 0)
+ 		n_params += res;
+ 
+-	metas = alloca(sizeof(struct spa_meta) * n_params);
++	metas = __builtin_alloca(sizeof(struct spa_meta) * n_params);
+ 
+ 	n_metas = 0;
+-	params = alloca(n_params * sizeof(struct spa_pod *));
++	params = __builtin_alloca(n_params * sizeof(struct spa_pod *));
+ 	for (i = 0, offset = 0; i < n_params; i++) {
+ 		uint32_t type, size;
+ 
+@@ -318,10 +318,10 @@ int pw_buffers_negotiate(struct pw_conte
+ 	if (SPA_FLAG_IS_SET(flags, PW_BUFFERS_FLAG_NO_MEM))
+ 		minsize = 0;
+ 
+-	data_sizes = alloca(sizeof(uint32_t) * blocks);
+-	data_strides = alloca(sizeof(int32_t) * blocks);
+-	data_aligns = alloca(sizeof(uint32_t) * blocks);
+-	data_types = alloca(sizeof(uint32_t) * blocks);
++	data_sizes = __builtin_alloca(sizeof(uint32_t) * blocks);
++	data_strides = __builtin_alloca(sizeof(int32_t) * blocks);
++	data_aligns = __builtin_alloca(sizeof(uint32_t) * blocks);
++	data_types = __builtin_alloca(sizeof(uint32_t) * blocks);
+ 
+ 	for (i = 0; i < blocks; i++) {
+ 		data_sizes[i] = minsize;
+
+
+[FILE:699:patches/patch-src_pipewire_conf.c]
+--- src/pipewire/conf.c.orig	2024-10-23 07:44:10 UTC
 +++ src/pipewire/conf.c
-@@ -18,7 +18,7 @@
+@@ -18,11 +18,9 @@
  #ifdef HAVE_PWD_H
  #include <pwd.h>
  #endif
 -#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__GNU__)
-+#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__GNU__) || defined(__DragonFly__)
  #ifndef O_PATH
  #define O_PATH 0
  #endif
+-#endif
+ 
+ #include <spa/utils/cleanup.h>
+ #include <spa/utils/result.h>
+@@ -358,7 +356,7 @@ int pw_conf_save_state(const char *prefi
+ 	if ((sfd = open_write_dir(path, sizeof(path), prefix)) < 0)
+ 		return sfd;
+ 
+-	tmp_name = alloca(strlen(name)+5);
++	tmp_name = __builtin_alloca(strlen(name)+5);
+ 	sprintf(tmp_name, "%s.tmp", name);
+ 	if ((fd = openat(sfd, tmp_name,  O_CLOEXEC | O_CREAT | O_WRONLY | O_TRUNC, 0600)) < 0) {
+ 		res = -errno;
 
 
 [FILE:290:patches/patch-src_pipewire_impl-node.c]
@@ -725,14 +982,14 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  #include "config.h"
 
 
-[FILE:1087:patches/patch-src_pipewire_mem.c]
---- src/pipewire/mem.c.orig	2024-09-27 10:02:20 UTC
+[FILE:1107:patches/patch-src_pipewire_mem.c]
+--- src/pipewire/mem.c.orig	2024-10-23 07:44:10 UTC
 +++ src/pipewire/mem.c
 @@ -26,6 +26,7 @@ PW_LOG_TOPIC_EXTERN(log_mem);
  #define PW_LOG_TOPIC_DEFAULT log_mem
  
  #if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__) \
-+       && !defined(__DragonFly__) \
++       && !defined(__DragonFly__) && !defined(__NetBSD__) \
         && !defined(HAVE_MEMFD_CREATE)
  /*
   * No glibc wrappers exist for memfd_create(2), so provide our own.
@@ -741,7 +998,7 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  #endif
  
 -#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__GNU__)
-+#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__GNU__) || defined(__DragonFly__)
++#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__GNU__) || defined(__DragonFly__) || defined(__NetBSD__)
  #define MAP_LOCKED 0
  #endif
  
@@ -750,13 +1007,13 @@ share/locale/zh_TW/LC_MESSAGES/pipewire.mo
  		goto error_free;
  	}
 -#elif defined(__FreeBSD__) || defined(__MidnightBSD__)
-+#elif defined(__FreeBSD__) || defined(__MidnightBSD__) || !defined(__DragonFly__)
++#elif defined(__FreeBSD__) || defined(__MidnightBSD__)
  	b->this.fd = shm_open(SHM_ANON, O_CREAT | O_RDWR | O_CLOEXEC, 0);
  	if (b->this.fd == -1) {
  		res = -errno;
 
 
-[FILE:2152:patches/patch-src_pipewire_pipewire.c]
+[FILE:2223:patches/patch-src_pipewire_pipewire.c]
 PipeWire exports a function named "pw_init". FreeBSD also has the libutil.so
 library, which exports a function with the same name. To workaround the
 conflict, rename the PipeWire init function into "pipewire_init".
@@ -770,7 +1027,7 @@ Upstream issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1819
  #include <limits.h>
  #include <stdio.h>
 -#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__)
-+#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__) && !defined(__DragonFly__)
++#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__) && !defined(__DragonFly__) && !defined(__NetBSD__)
  #include <sys/prctl.h>
  #endif
  #include <pwd.h>
@@ -819,7 +1076,7 @@ Upstream issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1819
  	}
  #endif
 -#if defined __FreeBSD__ || defined(__MidnightBSD__)
-+#if defined __FreeBSD__ || defined(__MidnightBSD__) || defined(__DragonFly__)
++#if defined __FreeBSD__ || defined(__MidnightBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
  	{
  		ssize_t len;
  
@@ -828,7 +1085,7 @@ Upstream issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1819
  	}
  #endif
 -#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__)
-+#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__) && !defined(__DragonFly__)
++#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__GNU__) && !defined(__DragonFly__) && !defined(__NetBSD__)
  	{
  		if (prctl(PR_GET_NAME, (unsigned long) name, 0, 0, 0) == 0) {
  			prgname = name;
@@ -854,14 +1111,50 @@ Upstream issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1819
  pw_debug_is_category_enabled(const char *name);
 
 
-[FILE:670:patches/patch-src_pipewire_thread.c]
+[FILE:626:patches/patch-src_pipewire_private.h]
+--- src/pipewire/private.h.orig	2024-10-23 07:44:10 UTC
++++ src/pipewire/private.h
+@@ -14,6 +14,11 @@ extern "C" {
+ #include <sys/socket.h>
+ #include <sys/types.h> /* for pthread_t */
+ 
++#if defined(__NetBSD__)
++#include <pthread.h>
++#include <sys/time.h>
++#endif
++
+ #include "pipewire/impl.h"
+ 
+ #include <spa/support/plugin.h>
+@@ -24,7 +29,7 @@ extern "C" {
+ #include <spa/utils/result.h>
+ #include <spa/utils/type-info.h>
+ 
+-#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__GNU__)
++#if defined(__FreeBSD__) || defined(__MidnightBSD__) || defined(__GNU__) || defined(__NetBSD__)
+ struct ucred {
+ };
+ #endif
+
+
+[FILE:2201:patches/patch-src_pipewire_thread.c]
 --- src/pipewire/thread.c.orig	2024-10-23 07:44:10 UTC
 +++ src/pipewire/thread.c
-@@ -28,7 +28,11 @@ do {									\
+@@ -9,6 +9,9 @@
+ #ifdef __FreeBSD__
+ #include <pthread_np.h>
+ #endif
++#ifdef __NetBSD__
++#include <sched.h>
++#endif
+ 
+ #include <spa/utils/dict.h>
+ #include <spa/utils/defs.h>
+@@ -28,19 +31,32 @@ do {									\
  	}								\
  } while(false);
  
-+#if defined(__MidnightBSD__)
++#if defined(__MidnightBSD__) || defined(__NetBSD__)
 +static int parse_affinity(const char *affinity, cpuset_t *set)
 +#else
  static int parse_affinity(const char *affinity, cpu_set_t *set)
@@ -869,21 +1162,67 @@ Upstream issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1819
  {
  	struct spa_json it[2];
  	int v;
-@@ -80,7 +84,11 @@ int pthread_setname_np(pthread_t thread,
+ 
++#if defined(__NetBSD__)
++	cpuset_zero(set);
++#else
+ 	CPU_ZERO(set);
++#endif
+ 	spa_json_init(&it[0], affinity, strlen(affinity));
+ 	if (spa_json_enter_array(&it[0], &it[1]) <= 0)
+ 		spa_json_init(&it[1], affinity, strlen(affinity));
+ 
+ 	while (spa_json_get_int(&it[1], &v) > 0) {
++#if defined(__NetBSD__)
++		if (v >= 0 && v < (int)cpuset_size(set))
++			cpuset_set(v, set);
++#else
+ 		if (v >= 0 && v < CPU_SETSIZE)
+ 			CPU_SET(v, set);
++#endif
+         }
+ 	return 0;
+ }
+@@ -80,9 +96,23 @@ int pthread_setname_np(pthread_t thread,
  
  static int thread_setaffinity(pthread_t thread, const char *affinity)
  {
 +#if defined(__MidnightBSD__)
 +	cpuset_t set;
++#elif defined(__NetBSD__)
++	cpuset_t *set = cpuset_create();
 +#else
  	cpu_set_t set;
 +#endif
++	int result;
++#if defined(__NetBSD__)
++	parse_affinity(affinity, set);
++	result = pthread_setaffinity_np(thread, cpuset_size(set), set);
++	cpuset_destroy(set);
++#else
  	parse_affinity(affinity, &set);
- 	return -pthread_setaffinity_np(thread, sizeof(set), &set);
+-	return -pthread_setaffinity_np(thread, sizeof(set), &set);
++	result = -pthread_setaffinity_np(thread, sizeof(set), &set);
++#endif
++	return result;
  }
+ 
+ static struct spa_thread *impl_create(void *object,
+@@ -113,7 +143,11 @@ static struct spa_thread *impl_create(vo
+ 	}
+ 	if (props) {
+ 		if ((str = spa_dict_lookup(props, SPA_KEY_THREAD_NAME)) != NULL &&
++#if defined(__NetBSD__)
++		    (err = pthread_setname_np(pt, "%s", (void *)str)) != 0)
++#else
+ 		    (err = pthread_setname_np(pt, str)) != 0)
++#endif
+ 			pw_log_warn("pthread_setname error: %s", strerror(err));
+ 		if ((str = spa_dict_lookup(props, SPA_KEY_THREAD_AFFINITY)) != NULL &&
+ 		    (err = thread_setaffinity(pt, str)) != 0)
 
 
-[FILE:344:patches/patch-src_tools_pw-cli.c]
+[FILE:368:patches/patch-src_tools_pw-cli.c]
 --- src/tools/pw-cli.c.orig	2024-09-27 10:02:20 UTC
 +++ src/tools/pw-cli.c
 @@ -10,7 +10,7 @@
@@ -891,7 +1230,7 @@ Upstream issue: https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1819
  #include <string.h>
  #include <ctype.h>
 -#if !defined(__FreeBSD__) && !defined(__MidnightBSD__)
-+#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__DragonFly__)
++#if !defined(__FreeBSD__) && !defined(__MidnightBSD__) && !defined(__DragonFly__) && !defined(__NetBSD__)
  #include <alloca.h>
  #endif
  #include <getopt.h>
