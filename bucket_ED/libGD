@@ -2,7 +2,7 @@
 
 NAMEBASE=		libGD
 VERSION=		2.3.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Graphics library for fast creation of images
@@ -13,13 +13,24 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/libgd/libgd/releases/download/gd-2.3.3/
 DISTFILE[1]=		libgd-2.3.3.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		WebP:dev:std
 BUILDRUN_DEPENDS=	WebP:primary:std
+EXRUN[tools]=		primary
+EXRUN[dev]=		png:dev:std
+			tiff:dev:std
+			WebP:dev:std
+			jpeg-turbo:dev:std
+			zlib:dev:std
+			freetype:dev:std
+			fontconfig:dev:std
 
 USES=			cpe pkgconfig libtool:keepla shebangfix zlib jpeg
 			png tiff fontconfig solaris-funcs mbsdfix
@@ -51,7 +62,7 @@ post-install:
 		${STAGEDIR}${PREFIX}/include/
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libgd.so
 
-[FILE:619:descriptions/desc.single]
+[FILE:619:descriptions/desc.primary]
 gd is a graphics library. It allows your code to quickly draw images
 complete with lines, arcs, text, multiple colors, cut and paste from
 other images, and flood fills, and write out the result as a PNG, GIF
@@ -65,24 +76,21 @@ including both truecolor and palette images, resampling (smooth
 resizing of truecolor images) and so forth.
 
 
+[FILE:68:descriptions/desc.tools]
+This package contains tools that come with the GD graphics library.
+
+
 [FILE:97:distinfo]
 3fe822ece20796060af63b7c60acb151e5844204d289da0ce08f8fdf131e5a61      2809056 libgd-2.3.3.tar.xz
 
 
-[FILE:377:manifests/plist.single]
-bin/
- annotate
- bdftogd
- gd2copypal
- gd2togif
- gd2topng
- gdcmpgif
- gdparttopng
- gdtopng
- giftogd2
- pngtogd
- pngtogd2
- webpng
+[FILE:51:manifests/plist.primary]
+lib/
+ libgd.so.%%SOMAJOR%%
+ libgd.so.%%SOVERSION%%
+
+
+[FILE:206:manifests/plist.dev]
 include/
  gd.h
  gd_color_map.h
@@ -101,9 +109,23 @@ lib/
  libgd.a
  libgd.la
  libgd.so
- libgd.so.%%SOMAJOR%%
- libgd.so.%%SOVERSION%%
 lib/pkgconfig/gdlib.pc
+
+
+[FILE:125:manifests/plist.tools]
+bin/
+ annotate
+ bdftogd
+ gd2copypal
+ gd2togif
+ gd2topng
+ gdcmpgif
+ gdparttopng
+ gdtopng
+ giftogd2
+ pngtogd
+ pngtogd2
+ webpng
 
 
 [FILE:1238:patches/patch-bdftogd]

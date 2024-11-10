@@ -45,10 +45,10 @@ A cross-platform interface to file system operations, built on top of the
 0e3b4d40215bee77b52d158a2e4967f4408721576aaf39bc6a77024522c70b34      1200455 CRAN/fs_1.6.5.tar.gz
 
 
-[FILE:1169:patches/patch-src_Makevars]
---- src/Makevars.orig	2024-04-25 09:35:19 UTC
+[FILE:1089:patches/patch-src_Makevars]
+--- src/Makevars.orig	2024-10-27 13:47:33 UTC
 +++ src/Makevars
-@@ -10,13 +10,20 @@ OBJECTS = $(SOURCES:.cc=.o)
+@@ -10,10 +10,14 @@ OBJECTS = $(SOURCES:.cc=.o)
  ifeq ($(UNAME), SunOS)
  PKG_LIBS += -lkstat -lsendfile -lsocket -lxnet
  OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
@@ -63,15 +63,9 @@ A cross-platform interface to file system operations, built on top of the
  ifeq ($(UNAME), OpenBSD)
  PKG_LIBS += -lkvm
  endif
-+ifeq ($(UNAME), NetBSD)
-+PKG_LIBS += -lkvm
-+endif
- ifneq ($(filter $(UNAME), Linux AIX OS400),)
- OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
- endif
-@@ -29,7 +36,7 @@ $(SHLIB): $(LIBUV)/.libs/libuv.a
- 
+@@ -35,7 +39,7 @@ $(SHLIB): $(LIBUV)/.libs/libuv.a
  $(LIBUV)/Makefile:
+ 	touch $(LIBUV)/aclocal.m4 && touch $(LIBUV)/configure && touch $(LIBUV)/Makefile.in
  	(cd $(LIBUV) \
 -	&& CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY) -std=c99" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure $(R_CONFIGURE_FLAGS) --quiet)
 +	&& CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY) -std=c99" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure $(R_CONFIGURE_FLAGS) --quiet $(CONFTGT))
@@ -81,7 +75,7 @@ A cross-platform interface to file system operations, built on top of the
 
 
 [FILE:247:patches/patch-src_libuv-1.44.2_configure]
---- src/libuv-1.44.2/configure.orig	2024-04-25 11:57:22 UTC
+--- src/libuv-1.44.2/configure.orig	2024-10-28 22:30:40 UTC
 +++ src/libuv-1.44.2/configure
 @@ -15005,7 +15005,7 @@ else
  fi
@@ -95,7 +89,7 @@ A cross-platform interface to file system operations, built on top of the
 
 
 [FILE:1592:patches/patch-src_libuv-1.44.2_src_unix_fs.c]
---- src/libuv-1.44.2/src/unix/fs.c.orig	2022-05-25 13:21:41 UTC
+--- src/libuv-1.44.2/src/unix/fs.c.orig	2024-10-25 23:43:17 UTC
 +++ src/libuv-1.44.2/src/unix/fs.c
 @@ -1139,13 +1139,13 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
  static ssize_t uv__fs_utime(uv_fs_t* req) {
@@ -123,7 +117,7 @@ A cross-platform interface to file system operations, built on top of the
 
 
 [FILE:367:patches/patch-src_unix_getmode.cc]
---- src/unix/getmode.cc.orig	2021-12-01 21:54:08 UTC
+--- src/unix/getmode.cc.orig	2024-10-25 10:46:21 UTC
 +++ src/unix/getmode.cc
 @@ -2,6 +2,7 @@
  #include "utils.h"
