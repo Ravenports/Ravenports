@@ -163,7 +163,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.43
-GTK4_PORT_VERSION=		4.16.3
+GTK4_PORT_VERSION=		4.16.5
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -203,7 +203,7 @@ XORG_VERSION=			7.7
 LLVM16_VERSION=			16.0.6		# required for javaports unkindness
 LLVM17_VERSION=			17.0.6
 LLVM18_VERSION=			18.1.8
-LLVM19_VERSION=			19.1.2
+LLVM19_VERSION=			19.1.3
 ZLIB_VERSION=			1.3.1
 GHOSTSCRIPT_VERSION=		10.04.0
 SPHINX_UNDERSCORE=		1.13.1

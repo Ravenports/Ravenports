@@ -87,9 +87,7 @@ expand_SOURCEFORGE()
     http://netix.dl.sourceforge.net/project \
     http://ufpr.dl.sourceforge.net/project \
     http://excellmedia.dl.sourceforge.net/project \
-    http://nchc.dl.sourceforge.net/project \
-    http://superb-sea2.dl.sourceforge.net/project \
-    http://superb-dca2.dl.sourceforge.net/project"
+    http://nchc.dl.sourceforge.net/project"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
     done
