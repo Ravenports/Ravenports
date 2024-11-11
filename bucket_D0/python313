@@ -2,6 +2,7 @@
 
 NAMEBASE=		python313
 VERSION=		3.13.0
+REVISION=		1
 KEYWORDS=		lang python
 VARIANTS=		std
 SDESC[std]=		Interpreted object-oriented programming language
@@ -16,18 +17,22 @@ SPKGS[std]=		set
 			primary
 			dev
 			man
+			sqlite
 
 OPTIONS_AVAILABLE=	DEBUG PYMALLOC
 OPTIONS_STANDARD=	DEBUG PYMALLOC
 OPT_ON[all]=		PYMALLOC
 
 BUILD_DEPENDS=		libffi:dev:std
+			sqlite:dev:std
+			sqlite:primary:std
 BUILDRUN_DEPENDS=	libffi:primary:std
 RUN_DEPENDS=		autoselect-python:single:std
 B_DEPS[sunos]=		libuuid:dev:std
 B_DEPS[linux]=		libuuid:dev:std
 BR_DEPS[sunos]=		libuuid:primary:std
 BR_DEPS[linux]=		libuuid:primary:std
+EXRUN[sqlite]=		sqlite:primary:std
 
 USES=			bdb cpe ncurses pkgconfig readline ssl:openssl30
 			shebangfix zlib gettext gmake expat bz2 xz
@@ -149,6 +154,11 @@ libraries, as well as to various window systems, and is extensible in C
 or C++. It is also usable as an extension language for applications that
 need a programmable interface. Finally, Python is portable: it runs on
 many Unix variants, on the Mac, and on Windows 2000 and later.
+
+
+[FILE:110:descriptions/desc.sqlite]
+This package contains the sqlite module.
+It is separate due to the run time dependency on the sqlite library.
 
 
 [FILE:99:distinfo]
@@ -8238,6 +8248,10 @@ lib/pkgconfig/
 share/man/man1/python%%XYDOT%%.1
 
 
+[FILE:53:manifests/plist.sqlite]
+lib/python%%XYDOT%%/lib-dynload/_sqlite3%%SOABI%%.so
+
+
 [FILE:393:patches/patch-Include_py__curses.h]
 --- Include/py_curses.h.orig	2024-10-07 05:02:14 UTC
 +++ Include/py_curses.h
@@ -8415,6 +8429,6 @@ EOM
 }
 
 
-[FILE:46:files/special.mk]
-DISABLED_EXTENSIONS+=	_sqlite3 _tkinter _gdbm
+[FILE:37:files/special.mk]
+DISABLED_EXTENSIONS+=	_tkinter _gdbm
 

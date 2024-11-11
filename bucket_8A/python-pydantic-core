@@ -3,9 +3,9 @@
 NAMEBASE=		python-pydantic-core
 VERSION=		2.25.0
 KEYWORDS=		python rust
-VARIANTS=		v12 v11
-SDESC[v11]=		Core module for pydantic (3.11)
+VARIANTS=		v12 v13
 SDESC[v12]=		Core module for pydantic (3.12)
+SDESC[v13]=		Core module for pydantic (3.13)
 HOMEPAGE=		https://github.com/pydantic/pydantic-core
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -211,13 +211,13 @@ DF_INDEX=		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 			55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71
 			72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88
 			89 90 91 92 93 94 95 96 97
-SPKGS[v11]=		single
 SPKGS[v12]=		single
+SPKGS[v13]=		single
 
-OPTIONS_AVAILABLE=	PY312 PY311
+OPTIONS_AVAILABLE=	PY312 PY313
 OPTIONS_STANDARD=	none
-VOPTS[v11]=		PY312=OFF PY311=ON
-VOPTS[v12]=		PY312=ON PY311=OFF
+VOPTS[v12]=		PY312=ON PY313=OFF
+VOPTS[v13]=		PY312=OFF PY313=ON
 
 USES=			cargo cclibs:single
 
@@ -228,21 +228,20 @@ GENERATED=		yes
 PLIST_SUB=		VER=2.25.0
 			CPYTHON={{CPYTHON:U{{PYTHON_SUFFIX}}}}
 
-MOUNT_PROCFS=		yes
 VAR_OPSYS[linux]=	MAKEFILE_LINE=CPYTHON={{PYTHON_SUFFIX}}-x86_64-linux-gnu
 CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
 
-[PY311].BUILD_DEPENDS_ON=		python-maturin:single:v11
-					python-pip:single:v11
-					python-typing-extensions:single:v11
-[PY311].USES_ON=			python:v11
-
 [PY312].BUILD_DEPENDS_ON=		python-maturin:single:v12
 					python-pip:single:v12
 					python-typing-extensions:single:v12
 [PY312].USES_ON=			python:v12
+
+[PY313].BUILD_DEPENDS_ON=		python-maturin:single:v13
+					python-pip:single:v13
+					python-typing-extensions:single:v13
+[PY313].USES_ON=			python:v13
 
 post-patch:
 	${MKDIR} ${WRKSRC}/.cargo

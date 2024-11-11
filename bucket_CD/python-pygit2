@@ -3,9 +3,9 @@
 NAMEBASE=		python-pygit2
 VERSION=		1.16.0
 KEYWORDS=		python
-VARIANTS=		v11 v12
-SDESC[v11]=		Python bindings for libgit2 (3.11)
+VARIANTS=		v12 v13
 SDESC[v12]=		Python bindings for libgit2 (3.12)
+SDESC[v13]=		Python bindings for libgit2 (3.13)
 HOMEPAGE=		https://github.com/libgit2/pygit2
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -13,16 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPI/p/pygit2
 DISTFILE[1]=		pygit2-1.16.0.tar.gz:main
 DF_INDEX=		1
-SPKGS[v11]=		single
 SPKGS[v12]=		single
+SPKGS[v13]=		single
 
-OPTIONS_AVAILABLE=	PY311 PY312
+OPTIONS_AVAILABLE=	PY312 PY313
 OPTIONS_STANDARD=	none
-VOPTS[v11]=		PY311=ON PY312=OFF
-VOPTS[v12]=		PY311=OFF PY312=ON
+VOPTS[v12]=		PY312=ON PY313=OFF
+VOPTS[v13]=		PY312=OFF PY313=ON
 
 BUILD_DEPENDS=		libgit2:dev:std
 BUILDRUN_DEPENDS=	libgit2:primary:std
+			python-cffi:single:python_used
 
 DISTNAME=		pygit2-1.16.0
 
@@ -30,65 +31,18 @@ GENERATED=		yes
 
 MAKE_ENV=		LIBGIT2={{LOCALBASE}}
 
-[PY311].BUILDRUN_DEPENDS_ON=		python-cffi:single:v11
-[PY311].USES_ON=			python:v11,sutools
+[PY312].USES_ON=			python:v12,pep517
 
-[PY312].BUILDRUN_DEPENDS_ON=		python-cffi:single:v12
-[PY312].USES_ON=			python:v12,sutools
+[PY313].USES_ON=			python:v13,pep517
 
 post-patch:
 	# This version check is always too conservative, causing breakage
 	${REINPLACE_CMD} -e '/#error You need a compatible libgit2/d' \
 		${WRKSRC}/src/types.h
 
-[FILE:1755:descriptions/desc.single]
-# pygit2 - libgit2 bindings in Python
-
+[FILE:109:descriptions/desc.single]
 Bindings to the libgit2 shared library, implements Git plumbing.
 Supports Python 3.10 to 3.13 and PyPy3 7.3+
-
-[image]
-
-[image]
-
-## Links
-
--   Documentation - <https://www.pygit2.org/>
--   Install - <https://www.pygit2.org/install.html>
--   Download - <https://pypi.org/project/pygit2/>
--   Source code and issue tracker - <https://github.com/libgit2/pygit2>
--   Changelog -
-<https://github.com/libgit2/pygit2/blob/master/CHANGELOG.md>
--   Authors - <https://github.com/libgit2/pygit2/blob/master/AUTHORS.md>
-
-## Sponsors
-
-Add your name and link here, [become a
-sponsor].
-
-## License: GPLv2 with linking exception
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the GNU General Public License, version 2, as
-published by the Free Software Foundation.
-
-In addition to the permissions in the GNU General Public License, the
-authors give you unlimited permission to link the compiled version of
-this file into combinations with other programs, and to distribute those
-combinations without any restriction coming from the use of this file.
-(The General Public License restrictions do apply in other respects; for
-example, they cover modification of the file, and distribution when not
-linked into a combined executable.)
-
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; see the file COPYING. If not, write to the Free
-Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA.
 
 
 [FILE:99:distinfo]

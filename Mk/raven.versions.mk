@@ -52,6 +52,10 @@ PYTHON_3.11_VERSION=	3.11.10
 PYTHON_3.12_VERSION=	3.12.7
 PYTHON_3.13_VERSION=	3.13.0
 
+PIP_3.11_VERSION=	24.0
+PIP_3.12_VERSION=	24.2
+PIP_3.13_VERSION=	24.2
+
 #-------------------------------------------------------------------------
 # SSL
 # Possible values: openssl30, libressl, libressl-devel

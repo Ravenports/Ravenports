@@ -3,20 +3,20 @@
 NAMEBASE=		python-pip
 VERSION=		24.2
 KEYWORDS=		python
-VARIANTS=		v11 v12
-SDESC[v11]=		Tool for installing python packages (3.11)
+VARIANTS=		v12 v13
 SDESC[v12]=		Tool for installing python packages (3.12)
+SDESC[v13]=		Tool for installing python packages (3.13)
 HOMEPAGE=		https://pip.pypa.io/
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
 DOWNLOAD_GROUPS=	none
-SPKGS[v11]=		single
 SPKGS[v12]=		single
+SPKGS[v13]=		single
 
-OPTIONS_AVAILABLE=	PY311 PY312
+OPTIONS_AVAILABLE=	PY312 PY313
 OPTIONS_STANDARD=	none
-VOPTS[v11]=		PY311=ON PY312=OFF
-VOPTS[v12]=		PY311=OFF PY312=ON
+VOPTS[v12]=		PY313=OFF PY312=ON
+VOPTS[v13]=		PY313=ON PY312=OFF
 
 USES=			cpe
 
@@ -24,11 +24,11 @@ CPE_PRODUCT=		pip
 CPE_VENDOR=		pypa
 GENERATED=		yes
 
-[PY311].MAKEFILE_ON=			POST_PLIST_TARGET+=setuptools-autolist
-[PY311].USES_ON=			python:v11
-
 [PY312].MAKEFILE_ON=			POST_PLIST_TARGET+=setuptools-autolist
 [PY312].USES_ON=			python:v12
+
+[PY313].MAKEFILE_ON=			POST_PLIST_TARGET+=setuptools-autolist
+[PY313].USES_ON=			python:v13
 
 post-patch:
 	# Exclude all __pycache__ changes from corruption detection
@@ -53,12 +53,6 @@ do-install:
 	${FIND} /root/.local/ -type d --name __pycache__ | xargs rm -rf
 	${RM} /root/.local/bin/pip3
 	${MV} /root/.local ${STAGEDIR}${PREFIX}
-	# version 11 installs setuptools.  Remove this line when 11 is dropped
-	${RM} -r ${STAGEDIR}${PYTHON_SITELIBDIR}/setuptools \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/pkg_resources \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/setuptools-* \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/_distutils_hack \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/distutils-precedence.pth
 
 [FILE:239:descriptions/desc.single]
 Pip is a package manager for Python that allows you to install additional

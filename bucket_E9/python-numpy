@@ -3,9 +3,9 @@
 NAMEBASE=		python-numpy
 VERSION=		1.26.4
 KEYWORDS=		python
-VARIANTS=		v11 v12
-SDESC[v11]=		Array computing for Python (3.11)
+VARIANTS=		v13 v12
 SDESC[v12]=		Array computing for Python (3.12)
+SDESC[v13]=		Array computing for Python (3.13)
 HOMEPAGE=		https://numpy.org
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -13,13 +13,13 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPI/n/numpy
 DISTFILE[1]=		numpy-1.26.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[v11]=		single
 SPKGS[v12]=		single
+SPKGS[v13]=		single
 
-OPTIONS_AVAILABLE=	PY311 PY312
+OPTIONS_AVAILABLE=	PY313 PY312
 OPTIONS_STANDARD=	none
-VOPTS[v11]=		PY311=ON PY312=OFF
-VOPTS[v12]=		PY311=OFF PY312=ON
+VOPTS[v12]=		PY313=OFF PY312=ON
+VOPTS[v13]=		PY313=ON PY312=OFF
 
 BUILD_DEPENDS=		openblas:dev:std
 BUILDRUN_DEPENDS=	openblas:primary:std
@@ -40,17 +40,6 @@ PLIST_SUB=		EGGVER=1.26.4
 
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SOEXTENSION=-x86_64-linux-gnu
 
-[PY311].BUILDRUN_DEPENDS_ON=		python311:single:std
-[PY311].BUILD_DEPENDS_ON=		python-Cython:single:v11
-					python-meson-python:single:v11
-					python-wheel:single:v11
-					python-spin:single:v11
-					python-pip:single:v11
-[PY311].PLIST_SUB_ON=			SITEPKGS=lib/python3.11/site-packages/numpy
-					VER=3.11
-					XY=311
-					ONLY311=
-
 [PY312].BUILDRUN_DEPENDS_ON=		python312:primary:std
 [PY312].BUILD_DEPENDS_ON=		python312:dev:std
 					python-Cython:single:v12
@@ -58,19 +47,34 @@ VAR_OPSYS[linux]=	MAKEFILE_LINE=SOEXTENSION=-x86_64-linux-gnu
 					python-wheel:single:v12
 					python-spin:single:v12
 					python-pip:single:v12
+[PY312].MAKE_ENV_ON=			AUTOPYTHON=3.12
 [PY312].PLIST_SUB_ON=			SITEPKGS=lib/python3.12/site-packages/numpy
 					VER=3.12
 					XY=312
-					ONLY311="@comment "
+					ONLY313="@comment "
+
+[PY313].BUILDRUN_DEPENDS_ON=		python313:primary:std
+[PY313].BUILD_DEPENDS_ON=		python313:dev:std
+					python-Cython:single:v13
+					python-meson-python:single:v13
+					python-wheel:single:v13
+					python-spin:single:v13
+					python-pip:single:v13
+[PY313].MAKE_ENV_ON=			AUTOPYTHON=3.13
+[PY313].PLIST_SUB_ON=			SITEPKGS=lib/python3.13/site-packages/numpy
+					VER=3.13
+					XY=313
+					ONLY313=
 
 do-build:
-	(cd ${WRKSRC} && pip install . --no-build-isolation )
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} pip install . --no-build-isolation )
 
 do-configure:
 	# do nothing so meson.mk doesn't do anything
 
 do-install:
 	whl=$$(find /root/.cache/pip/wheels -name "*.whl");\
+	${SETENV} ${MAKE_ENV}\
 	pip install \
 		--verbose \
 		--no-index \
@@ -179,138 +183,7 @@ and how to successfully get involved.
 2a02aba9ed12e4ac4eb3ea9421c420301a0c6460d9830d74a9df87efa4912010     15786129 numpy-1.26.4.tar.gz
 
 
-[FILE:18540:manifests/plist.single]
-%%ONLY311%%%%SITEPKGS%%/distutils/
- __init__.py
- __init__.pyi
- _shell_utils.py
- armccompiler.py
- ccompiler.py
- ccompiler_opt.py
- conv_template.py
- core.py
- cpuinfo.py
- exec_command.py
- extension.py
- from_template.py
- fujitsuccompiler.py
- intelccompiler.py
- lib2def.py
- line_endings.py
- log.py
- mingw32ccompiler.py
- misc_util.py
- msvc9compiler.py
- msvccompiler.py
- npy_pkg_config.py
- numpy_distribution.py
- pathccompiler.py
- setup.py
- system_info.py
- unixccompiler.py
-%%ONLY311%%%%SITEPKGS%%/distutils/__pycache__/conv_template.cpython-%%XY%%.pyc
-%%ONLY311%%%%SITEPKGS%%/distutils/checks/
- cpu_asimd.c
- cpu_asimddp.c
- cpu_asimdfhm.c
- cpu_asimdhp.c
- cpu_avx.c
- cpu_avx2.c
- cpu_avx512_clx.c
- cpu_avx512_cnl.c
- cpu_avx512_icl.c
- cpu_avx512_knl.c
- cpu_avx512_knm.c
- cpu_avx512_skx.c
- cpu_avx512_spr.c
- cpu_avx512cd.c
- cpu_avx512f.c
- cpu_f16c.c
- cpu_fma3.c
- cpu_fma4.c
- cpu_neon.c
- cpu_neon_fp16.c
- cpu_neon_vfpv4.c
- cpu_popcnt.c
- cpu_sse.c
- cpu_sse2.c
- cpu_sse3.c
- cpu_sse41.c
- cpu_sse42.c
- cpu_ssse3.c
- cpu_vsx.c
- cpu_vsx2.c
- cpu_vsx3.c
- cpu_vsx4.c
- cpu_vx.c
- cpu_vxe.c
- cpu_vxe2.c
- cpu_xop.c
- extra_avx512bw_mask.c
- extra_avx512dq_mask.c
- extra_avx512f_reduce.c
- extra_vsx3_half_double.c
- extra_vsx4_mma.c
- extra_vsx_asm.c
- test_flags.c
-%%ONLY311%%%%SITEPKGS%%/distutils/command/
- __init__.py
- autodist.py
- bdist_rpm.py
- build.py
- build_clib.py
- build_ext.py
- build_py.py
- build_scripts.py
- build_src.py
- config.py
- config_compiler.py
- develop.py
- egg_info.py
- install.py
- install_clib.py
- install_data.py
- install_headers.py
- sdist.py
-%%ONLY311%%%%SITEPKGS%%/distutils/fcompiler/
- __init__.py
- absoft.py
- arm.py
- compaq.py
- environment.py
- fujitsu.py
- g95.py
- gnu.py
- hpux.py
- ibm.py
- intel.py
- lahey.py
- mips.py
- nag.py
- none.py
- nv.py
- pathf95.py
- pg.py
- sun.py
- vast.py
-%%ONLY311%%%%SITEPKGS%%/distutils/mingw/gfortran_vs2003_hack.c
-%%ONLY311%%%%SITEPKGS%%/distutils/tests/
- __init__.py
- test_build_ext.py
- test_ccompiler_opt.py
- test_ccompiler_opt_conf.py
- test_exec_command.py
- test_fcompiler.py
- test_fcompiler_gnu.py
- test_fcompiler_intel.py
- test_fcompiler_nagfor.py
- test_from_template.py
- test_log.py
- test_mingw32ccompiler.py
- test_misc_util.py
- test_npy_pkg_config.py
- test_shell_utils.py
- test_system_info.py
+[FILE:16320:manifests/plist.single]
 %%SITEPKGS%%/
  __config__.py
  __init__.cython-30.pxd
@@ -1173,7 +1046,7 @@ bin/f2py
 
 
 [FILE:1275:patches/patch-numpy_core_include_numpy_npy__math.h]
---- numpy/core/include/numpy/npy_math.h.orig	1970-01-01 00:00:00 UTC
+--- numpy/core/include/numpy/npy_math.h.orig	2024-02-05 21:17:48 UTC
 +++ numpy/core/include/numpy/npy_math.h
 @@ -285,7 +285,11 @@ NPY_INPLACE npy_longdouble npy_tanl(npy_
  NPY_INPLACE npy_longdouble npy_expl(npy_longdouble x);
@@ -1213,9 +1086,9 @@ bin/f2py
 
 
 [FILE:564:patches/patch-numpy_f2py_cfuncs.py]
---- numpy/f2py/cfuncs.py.orig	1970-01-01 00:00:00 UTC
+--- numpy/f2py/cfuncs.py.orig	2024-02-05 21:17:48 UTC
 +++ numpy/f2py/cfuncs.py
-@@ -547,6 +547,9 @@ cppmacros["F2PY_THREAD_LOCAL_DECL"] = ""
+@@ -548,6 +548,9 @@ cppmacros["F2PY_THREAD_LOCAL_DECL"] = ""
  #define F2PY_THREAD_LOCAL_DECL __thread
  #elif defined(__STDC_VERSION__) \\
        && (__STDC_VERSION__ >= 201112L) \\
