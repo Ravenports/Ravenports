@@ -43,16 +43,14 @@ RUBY_3.3_VERSION=	3.3.5
 
 #-------------------------------------------------------------------------
 # PYTHON
-# Possible values: 3.11, 3.12, 3.13 (3.11 to be deleted)
+# Possible values: 3.12, 3.13
 #-------------------------------------------------------------------------
 
 PYTHON3_DEFAULT?=	3.12
 
-PYTHON_3.11_VERSION=	3.11.10
 PYTHON_3.12_VERSION=	3.12.7
 PYTHON_3.13_VERSION=	3.13.0
 
-PIP_3.11_VERSION=	24.0
 PIP_3.12_VERSION=	24.2
 PIP_3.13_VERSION=	24.2
 

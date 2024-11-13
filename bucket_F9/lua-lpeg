@@ -3,7 +3,8 @@
 NAMEBASE=		lua-lpeg
 VERSION=		1.1.0
 KEYWORDS=		devel
-VARIANTS=		lua52 lua53 lua54
+VARIANTS=		lua51 lua52 lua53 lua54
+SDESC[lua51]=		Parsing Expression Grammars for Lua 5.1
 SDESC[lua52]=		Parsing Expression Grammars for Lua 5.2
 SDESC[lua53]=		Parsing Expression Grammars for Lua 5.3
 SDESC[lua54]=		Parsing Expression Grammars for Lua 5.4
@@ -14,15 +15,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.inf.puc-rio.br/~roberto/lpeg/
 DISTFILE[1]=		lpeg-1.1.0.tar.gz:main
 DF_INDEX=		1
+SPKGS[lua51]=		single
 SPKGS[lua52]=		single
 SPKGS[lua53]=		single
 SPKGS[lua54]=		single
 
-OPTIONS_AVAILABLE=	LUA52 LUA53 LUA54
+OPTIONS_AVAILABLE=	LUA51 LUA52 LUA53 LUA54
 OPTIONS_STANDARD=	none
-VOPTS[lua52]=		LUA52=ON LUA53=OFF LUA54=OFF
-VOPTS[lua53]=		LUA52=OFF LUA53=ON LUA54=OFF
-VOPTS[lua54]=		LUA52=OFF LUA53=OFF LUA54=ON
+VOPTS[lua51]=		LUA51=ON LUA52=OFF LUA53=OFF LUA54=OFF
+VOPTS[lua52]=		LUA51=OFF LUA52=ON LUA53=OFF LUA54=OFF
+VOPTS[lua53]=		LUA51=OFF LUA52=OFF LUA53=ON LUA54=OFF
+VOPTS[lua54]=		LUA51=OFF LUA52=OFF LUA53=OFF LUA54=ON
 
 DISTNAME=		lpeg-1.1.0
 
@@ -38,6 +41,12 @@ MAKE_ARGS=		CC={{CC}}
 			LUADIR={{LUA_INCDIR}}
 
 CFLAGS=			-DLUA_32BITS
+
+[LUA51].DESCRIPTION=			Build with Lua 5.1
+[LUA51].BUILD_DEPENDS_ON=		lua51:set:std
+[LUA51].MAKEFILE_ON=			LUA_INCDIR={{LOCALBASE}}/include/lua51
+					LUA_MODLIBDIR={{LOCALBASE}}/lib/lua/5.1
+[LUA51].PLIST_SUB_ON=			LUA_MODLIBDIR=lib/lua/5.1
 
 [LUA52].DESCRIPTION=			Build with Lua 5.2
 [LUA52].USES_ON=			lua:5.2
