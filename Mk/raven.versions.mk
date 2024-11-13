@@ -116,9 +116,9 @@ MYSQL_DEFAULT=			oracle-8.0
 MYSQL_oracle-8.0_VERSION=	8.0.40
 MYSQL_oracle-8.4_VERSION=	8.4.3
 MYSQL_innovation_VERSION=	9.1.0
-MYSQL_mariadb-10.5_VERSION=	10.5.26
-MYSQL_mariadb-10.6_VERSION=	10.6.19
-MYSQL_mariadb-10.11_VERSION=	10.11.9
+MYSQL_mariadb-10.5_VERSION=	10.5.27
+MYSQL_mariadb-10.6_VERSION=	10.6.20
+MYSQL_mariadb-10.11_VERSION=	10.11.10
 MYSQL_mariadb-11_VERSION=	11.5.2
 
 #-------------------------------------------------------------------------
