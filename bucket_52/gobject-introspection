@@ -40,18 +40,11 @@ MESON_ARGS=		-Dpython={{PYTHON_CMD}}
 
 INSTALL_TARGET=		install-strip
 
+MOUNT_PROCFS=		yes
+
 [CAIRO].DESCRIPTION=			Include cairo for tests
 [CAIRO].CONFIGURE_ARGS_OFF=		-Dcairo=disabled
 [CAIRO].GNOME_COMPONENTS_ON=		cairo
-
-post-patch-linux:
-	# hack, dlopen not working on $ORIGIN but no issue seen
-	ln -s ${WRKSRC}/_build/girepository/libgirepository-1.0.so.1.0.0 \
-		${LOCALBASE}/lib/libgirepository-1.0.so.1
-
-post-install-linux:
-	# remove hack
-	${RM} ${LOCALBASE}/lib/libgirepository-1.0.so.1
 
 post-install:
 	# remove artifacts from doctemplates fix
