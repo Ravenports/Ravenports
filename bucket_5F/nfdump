@@ -125,6 +125,43 @@ share/man/man1/
  sfcapd.1
 
 
+[FILE:810:patches/patch-src_collector_expire.c]
+--- src/collector/expire.c.orig	2024-10-23 17:57:56 UTC
++++ src/collector/expire.c
+@@ -65,7 +65,7 @@ static uint32_t timeout = 0;
+ 
+ static void PrepareDirLists(channel_t *channel);
+ 
+-static int compare(const FTSENT **f1, const FTSENT **f2);
++static int compare(const FTSENT * const *f1, const FTSENT * const *f2);
+ 
+ static void IntHandler(int signal) {
+     switch (signal) {
+@@ -250,7 +250,7 @@ uint64_t ParseTimeDef(char *s, uint64_t
+ 
+ }  // End of ParseTimeDef
+ 
+-static int compare(const FTSENT **f1, const FTSENT **f2) { return strcmp((*f1)->fts_name, (*f2)->fts_name); }  // End of compare
++static int compare(const FTSENT * const *f1, const FTSENT * const *f2) { return strcmp((*f1)->fts_name, (*f2)->fts_name); }  // End of compare
+ 
+ void RescanDir(char *dir, dirstat_t *dirstat) {
+     FTS *fts;
+
+
+[FILE:495:patches/patch-src_libnffile_flist.c]
+--- src/libnffile/flist.c.orig	2024-10-23 17:57:56 UTC
++++ src/libnffile/flist.c
+@@ -235,7 +235,7 @@ static int CheckTimeWindow(char *filenam
+ 
+ /* Functions */
+ 
+-static int compare(const FTSENT **f1, const FTSENT **f2) { return strcmp((*f1)->fts_name, (*f2)->fts_name); }  // End of compare
++static int compare(const FTSENT * const *f1, const FTSENT * const *f2) { return strcmp((*f1)->fts_name, (*f2)->fts_name); }  // End of compare
+ 
+ static void CleanPath(char *entry) {
+     char *p, *q;
+
+
 [FILE:397:patches/patch-src_nfpcapd_packet__bpf.c]
 --- src/nfpcapd/packet_bpf.c.orig	2023-09-02 11:27:28 UTC
 +++ src/nfpcapd/packet_bpf.c

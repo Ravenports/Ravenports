@@ -36,6 +36,8 @@ SOVERSION=		0.1.10
 PLIST_SUB=		FAMVERSION=0.0.0
 			FAMMAJOR=0
 
+CFLAGS=			-Wno-implicit-function-declaration
+			-Wno-incompatible-pointer-types
 CPPFLAGS=		-DHAVE_LINUX
 
 post-install:
@@ -82,6 +84,33 @@ libexec/gam_server
  typedef enum {
  	GAMIN_EVENT_CHANGED = 1 << 4,
  	GAMIN_EVENT_CREATED = 1 << 5,
+
+
+[FILE:236:patches/patch-libgamin_gam__api.c]
+--- libgamin/gam_api.c.orig	2007-08-27 10:21:03 UTC
++++ libgamin/gam_api.c
+@@ -6,6 +6,7 @@
+ #include <pwd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
++#include <string.h>
+ #include <unistd.h>
+ #include <sys/types.h>
+ #include <fcntl.h>
+
+
+[FILE:332:patches/patch-server_gam__eq.c]
+--- server/gam_eq.c.orig	2007-07-04 13:36:49 UTC
++++ server/gam_eq.c
+@@ -124,7 +124,7 @@ gam_eq_flush (gam_eq_t *eq, GamConnDataP
+ {
+ 	gboolean done_work = FALSE;
+ 	if (!eq)
+-		return;
++		return done_work;
+ 
+ #ifdef GAM_EQ_VERBOSE
+ 	GAM_DEBUG(DEBUG_INFO, "gam_eq: Flushing event queue for %s\n", gam_connection_get_pidname (conn));
 
 
 [FILE:4380:freebsd/patch-libgamin_gam__api.c]

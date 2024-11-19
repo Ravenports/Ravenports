@@ -47,6 +47,7 @@ CONFIGURE_ARGS=		--without-krb5
 			--with-ssl-include-dir={{OPENSSLINC}}
 			--with-ssl-lib-dir={{OPENSSLLIB}}
 
+CFLAGS=			-Wno-incompatible-pointer-types
 VAR_OPSYS[sunos]=	CFLAGS=-D_XPG6
 			CFLAGS=-D__EXTENSIONS__
 
@@ -156,4 +157,43 @@ share/man/man1/
  	@echo If you discover that you can not log in to the POP and IMAP
  	@echo servers, then do the following commands:
  	@echo % rm lnxok
+
+
+[FILE:253:patches/patch-imap_src_c-client_netmsg.c]
+--- imap/src/c-client/netmsg.c.orig	2022-06-03 00:14:00 UTC
++++ imap/src/c-client/netmsg.c
+@@ -29,6 +29,7 @@
+ 
+ #include <stdio.h>
+ #include <errno.h>
++#include <time.h>
+ extern int errno;		/* just in case */
+ #include "c-client.h"
+ #include "netmsg.h"
+
+
+[FILE:231:patches/patch-imap_src_c-client_nntp.c]
+--- imap/src/c-client/nntp.c.orig	2022-06-03 00:14:00 UTC
++++ imap/src/c-client/nntp.c
+@@ -28,6 +28,7 @@
+ 
+ #include <ctype.h>
+ #include <stdio.h>
++#include <time.h>
+ #include "c-client.h"
+ #include "newsrc.h"
+ #include "netmsg.h"
+
+
+[FILE:168:patches/patch-pith_imap.h]
+--- pith/imap.h.orig	2022-06-03 00:14:00 UTC
++++ pith/imap.h
+@@ -18,6 +18,7 @@
+ #define PITH_IMAP_INCLUDED
+ 
+ 
++#include <arpa/inet.h>
+ #include "../pith/string.h"
+ 
+ 
 

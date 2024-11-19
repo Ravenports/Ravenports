@@ -27,6 +27,8 @@ CONFIGURE_ARGS=		--enable-default-catalog={{PREFIX}}/share/sgml/catalog
 			--disable-doc-build
 			--disable-nls
 
+CXXFLAGS=		-Wno-deprecated
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libosp.${LIBEXT}
 
@@ -261,10 +263,34 @@ share/sgml/openjade/OpenSP/
  namespace SP_NAMESPACE {
 
 
-[FILE:461:patches/patch-configure]
---- configure.orig	Fri Dec 23 23:15:56 2005
-+++ configure	Fri Aug 25 03:37:02 2006
-@@ -26441,12 +26441,12 @@
+[FILE:1233:patches/patch-configure]
+--- configure.orig	2005-12-23 14:15:56 UTC
++++ configure
+@@ -2918,6 +2918,7 @@ if { (eval echo "$as_me:$LINENO: \"$ac_c
+   (exit $ac_status); }; }; then
+   for ac_declaration in \
+    '' \
++   '#include <cstdlib>' \
+    'extern "C" void std::exit (int) throw (); using std::exit;' \
+    'extern "C" void std::exit (int); using std::exit;' \
+    'extern "C" void exit (int) throw ();' \
+@@ -3687,6 +3688,7 @@ else
+ fi
+ for ac_declaration in \
+    '' \
++   '#include <cstdlib>' \
+    'extern "C" void std::exit (int) throw (); using std::exit;' \
+    'extern "C" void std::exit (int); using std::exit;' \
+    'extern "C" void exit (int) throw ();' \
+@@ -25075,6 +25077,7 @@ cat confdefs.h >>conftest.$ac_ext
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
+ $ac_includes_default
++#include <stddef.h>
+ int
+ main ()
+ {
+@@ -26441,12 +26444,12 @@ cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */
  #include <libintl.h>
  extern int _nl_msg_cat_cntr;

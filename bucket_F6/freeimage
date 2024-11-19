@@ -25,12 +25,6 @@ DISTNAME=		FreeImage
 
 CPE_PRODUCT=		freeimage
 CPE_VENDOR=		freeimage_project
-DOS2UNIX_FILES=		Source/LibOpenJPEG/opj_malloc.h
-			Source/LibRawLite/dcraw/dcraw.c
-			Source/LibRawLite/internal/dcraw_common.cpp
-			Source/FreeImage/PluginBMP.cpp
-			Source/FreeImage/PluginDDS.cpp
-			Source/LibPNG/pngpriv.h
 FPC_EQUIVALENT=		graphics/freeimage
 
 MAKE_ARGS=		CC="{{CC}}"
@@ -41,16 +35,15 @@ SOVERSION=		3.18.0
 SUB_FILES=		freeimage.pc
 SUB_LIST=		VERSION="3.18.0"
 
-CFLAGS=			-std=c++14
-			-DPNG_ARM_NEON_OPT=0
+CFLAGS=			-DPNG_ARM_NEON_OPT=0
 			-fexceptions
 			-fvisibility=hidden
 			-fPIC
-CXXFLAGS=		-std=c++14
-			-DPNG_ARM_NEON_OPT=0
+CXXFLAGS=		-DPNG_ARM_NEON_OPT=0
 			-fexceptions
 			-fvisibility=hidden
 			-fPIC
+			-std=c++14
 
 do-build:
 		( cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gmake -f Makefile.gnu ${_MAKE_JOBS} ${MAKE_ARGS} && \
@@ -96,6 +89,46 @@ lib/
  libfreeimageplus.a
  libfreeimageplus.so
 lib/pkgconfig/freeimage.pc
+
+
+[FILE:531:patches/patch-Source_LibJXR_image_sys_strcodec.h]
+--- Source/LibJXR/image/sys/strcodec.h.orig	2024-11-18 00:57:46 UTC
++++ Source/LibJXR/image/sys/strcodec.h
+@@ -111,6 +111,8 @@ CT_ASSERT(sizeof(INTPTR_T) == sizeof(voi
+ #define ALIGNUP(p, s) ((void*)(((UINTPTR_T)(p) + ((UINTPTR_T)(s) - 1)) & ~((UINTPTR_T)(s) - 1)))
+ #define ALIGNDOWN(p, s) ((void*)((UINTPTR_T)(p) & ~((UINTPTR_T)(s) - 1)))
+ 
++U32 _byteswap_ulong(U32 bits);
++
+ //================================================================
+ // timer support
+ //================================================================
+
+
+[FILE:283:patches/patch-Source_LibJXR_jxrgluelib_JXRGlueJxr.c]
+--- Source/LibJXR/jxrgluelib/JXRGlueJxr.c.orig	2024-11-18 01:05:18 UTC
++++ Source/LibJXR/jxrgluelib/JXRGlueJxr.c
+@@ -27,6 +27,7 @@
+ //
+ //*@@@---@@@@******************************************************************
+ #include <limits.h>
++#include <wchar.h>
+ #include <JXRGlue.h>
+ 
+ 
+
+
+[FILE:205:patches/patch-Source_ZLib_gzguts.h]
+--- Source/ZLib/gzguts.h.orig	2017-01-01 20:37:10 UTC
++++ Source/ZLib/gzguts.h
+@@ -18,6 +18,7 @@
+ #  define ZLIB_INTERNAL
+ #endif
+ 
++#include <unistd.h>
+ #include <stdio.h>
+ #include "zlib.h"
+ #ifdef STDC
 
 
 [FILE:237:files/freeimage.pc.in]

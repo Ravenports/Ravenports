@@ -2,6 +2,7 @@
 
 NAMEBASE=		libdom
 VERSION=		0.4.2
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		std
 SDESC[std]=		Implementation of the W3C DOM
@@ -159,4 +160,54 @@ lib/
  libdom.so.%%SOMAJOR%%
  libdom.so.%%SOVERSION%%
 lib/pkgconfig/libdom.pc
+
+
+[FILE:357:patches/patch-bindings_xml_expat__xmlparser.c]
+--- bindings/xml/expat_xmlparser.c.orig	2023-12-27 15:52:07 UTC
++++ bindings/xml/expat_xmlparser.c
+@@ -484,7 +484,7 @@ dom_xml_parser_create(const char *enc, c
+ 
+ 	UNUSED(int_enc);
+ 
+-	parser = calloc(sizeof(*parser), 1);
++	parser = calloc(1, sizeof(*parser));
+ 	if (parser == NULL) {
+ 		msg(DOM_MSG_CRITICAL, mctx, "No memory for parser");
+ 		return NULL;
+
+
+[FILE:321:patches/patch-src_core_node.c]
+--- src/core/node.c.orig	2023-12-27 15:52:07 UTC
++++ src/core/node.c
+@@ -2379,7 +2379,7 @@ static inline dom_exception _dom_event_t
+ 	if (t == NULL) {
+ 		/* Create the event target list */
+ 		size = 64;
+-		t = calloc(sizeof(*t), size);
++		t = calloc(size, sizeof(*t));
+ 		if (t == NULL) {
+ 			return DOM_NO_MEM_ERR;
+ 		}
+
+
+[FILE:622:patches/patch-src_html_html__document.c]
+--- src/html/html_document.c.orig	2023-12-27 15:52:07 UTC
++++ src/html/html_document.c
+@@ -134,13 +134,13 @@ dom_exception _dom_html_document_initial
+ 	doc->cookie = NULL;
+ 	doc->body = NULL;
+ 
+-	doc->memoised = calloc(sizeof(dom_string *), hds_COUNT);
++	doc->memoised = calloc(hds_COUNT, sizeof(dom_string *));
+ 	if (doc->memoised == NULL) {
+ 		error = DOM_NO_MEM_ERR;
+ 		goto out;
+ 	}
+-	doc->elements = calloc(sizeof(dom_string *),
+-			DOM_HTML_ELEMENT_TYPE__COUNT);
++	doc->elements = calloc(DOM_HTML_ELEMENT_TYPE__COUNT,
++			sizeof(dom_string *));
+ 	if (doc->elements == NULL) {
+ 		error = DOM_NO_MEM_ERR;
+ 		goto out;
 

@@ -32,6 +32,10 @@ GENERATED=		yes
 
 SINGLE_JOB=		yes
 
+CFLAGS=			-Wno-int-to-pointer-cast
+			-Wno-pointer-to-int-cast
+			-Wno-deprecated-declarations
+
 [PERL_540].USES_ON=			perl:540,configure
 
 [PERL_538].USES_ON=			perl:538,configure
@@ -65,6 +69,26 @@ Tk - a Graphical User Interface Toolkit
 32aa7271a6bdfedc3330119b3825daddd0aa4b5c936f84ad74eabb932a200a5e      7024993 Tk-804.036.tar.gz
 
 
+[FILE:583:patches/patch-Event_Event.xs]
+--- Event/Event.xs.orig	2021-02-07 16:34:03 UTC
++++ Event/Event.xs
+@@ -1532,12 +1532,12 @@ PROTOTYPES: DISABLE
+ BOOT:
+  {
+ #ifdef pWARN_NONE
+-  SV *old_warn = PL_curcop->cop_warnings;
++  SV *old_warn = (SV *)PL_curcop->cop_warnings;
+   PL_curcop->cop_warnings = pWARN_NONE;
+ #endif
+   newXS("Tk::Event::INIT", XS_Tk__Event_INIT, file);
+ #ifdef pWARN_NONE
+- PL_curcop->cop_warnings = old_warn;
++ PL_curcop->cop_warnings = (char *)old_warn;
+ #endif
+   newXS("Tk::Callback::Call", XS_Tk__Callback_Call, __FILE__);
+   install_vtab(aTHX_ "TkeventVtab",TkeventVGet(),sizeof(TkeventVtab));
+
+
 [FILE:671:patches/patch-JPEG_Makefile.PL]
 --- JPEG/Makefile.PL.orig	2010-06-01 03:58:38.000000000 +0800
 +++ JPEG/Makefile.PL	2011-10-03 23:34:18.892396436 +0800
@@ -84,6 +108,37 @@ Tk - a Graphical User Interface Toolkit
    warn "Using system's -ljpeg\n";
 
 
+[FILE:333:patches/patch-myConfig]
+--- myConfig.orig	2024-11-17 17:09:32 UTC
++++ myConfig
+@@ -198,7 +198,6 @@ if (try_compile("config/pmop.c", ["-I$Co
+   $define{'HAS_PMOP_EXTRA_FLAGS'} = 1;
+  }
+ 
+-if (try_compile("config/pregcomp2.c",  ["-I$Config{'archlibexp'}/CORE"], undef, ["-c"]))
+  {
+   $define{'USE_PREGCOMP_31027'} = 1; # pregcomp after perl change 31027
+  }
+
+
+[FILE:403:patches/patch-objGlue.c]
+--- objGlue.c.orig	2019-10-20 16:36:39 UTC
++++ objGlue.c
+@@ -625,9 +625,11 @@ Tcl_GetByteArrayFromObj(Tcl_Obj * objPtr
+  /* SRT: Is this correct? */
+  dTHX;
+  sv_utf8_downgrade(objPtr, 0);
++ long unsigned int mylen;
+  if (lengthPtr)
+   {
+-   return (unsigned char *) SvPV(objPtr, *lengthPtr);
++   mylen = (long unsigned int)*lengthPtr;
++   return (unsigned char *) SvPV(objPtr, mylen);
+   }
+  else
+   {
+
+
 [FILE:415:patches/patch-pTk-Makefile.PL]
 --- pTk/Makefile.PL.orig	Fri Jun 11 15:21:32 2004
 +++ pTk/Makefile.PL	Fri Jun 11 15:21:57 2004
@@ -96,4 +151,78 @@ Tk - a Graphical User Interface Toolkit
      'SKIP'	=> [qw( distclean dist makeaperl xs_o)],
      'clean'	=> {'FILES' => 'libpTk$(LIB_EXT)'}
  );
+
+
+[FILE:644:patches/patch-pTk_mTk_generic_tkCanvText.c]
+--- pTk/mTk/generic/tkCanvText.c.orig	2013-11-15 23:50:03 UTC
++++ pTk/mTk/generic/tkCanvText.c
+@@ -1235,6 +1235,7 @@ GetTextIndex(interp, canvas, itemPtr, ob
+ {
+     TextItem *textPtr = (TextItem *) itemPtr;
+     size_t length;
++    int length_int;
+     int c;
+     TkCanvas *canvasPtr = (TkCanvas *) canvas;
+     Tk_CanvasTextInfo *textInfoPtr = textPtr->textInfoPtr;
+@@ -1250,7 +1251,8 @@ GetTextIndex(interp, canvas, itemPtr, ob
+ 	goto doxy;
+     }
+ 
+-    string = Tcl_GetStringFromObj(obj, &length);
++    string = Tcl_GetStringFromObj(obj, &length_int);
++    length = (size_t)length_int;
+     c = string[0];
+     length = strlen(string);
+ 
+
+
+[FILE:373:patches/patch-pTk_mTk_generic_tkEvent.c]
+--- pTk/mTk/generic/tkEvent.c.orig	2013-11-15 23:50:03 UTC
++++ pTk/mTk/generic/tkEvent.c
+@@ -1153,6 +1153,7 @@ TkEventDeadWindow(winPtr)
+ Time
+ TkCurrentTime(dispPtr, fallbackCurrent)
+     TkDisplay *dispPtr;		/* Display for which the time is desired. */
++    int fallbackCurrent;
+ {
+     register XEvent *eventPtr;
+     ThreadSpecificData *tsdPtr = (ThreadSpecificData *)
+
+
+[FILE:256:patches/patch-pTk_mTk_generic_tkImage.c]
+--- pTk/mTk/generic/tkImage.c.orig	2013-11-15 23:50:03 UTC
++++ pTk/mTk/generic/tkImage.c
+@@ -1083,6 +1083,8 @@ int x;
+ int y;
+ int width;
+ int height;
++int imgWidth;
++int imgHeight;
+ {
+     Tk_Tile tile = (Tk_Tile) clientData;
+     Tk_TileChange *handler;
+
+
+[FILE:623:patches/patch-tkGlue.c]
+--- tkGlue.c.orig	2021-02-07 16:34:04 UTC
++++ tkGlue.c
+@@ -5549,15 +5549,15 @@ _((pTHX))
+ #define COP_WARNINGS_TYPE SV*
+ #endif
+ #ifdef pWARN_NONE
+- COP_WARNINGS_TYPE old_warn = PL_curcop->cop_warnings;
+- PL_curcop->cop_warnings = pWARN_NONE;
++ COP_WARNINGS_TYPE old_warn = (long unsigned int*)PL_curcop->cop_warnings;
++ PL_curcop->cop_warnings = (char*)pWARN_NONE;
+ #endif
+ 
+  /* Arrange to call initialization code - an XSUB called INIT */
+  cv = newXS("Tk::INIT", XS_Tk_INIT, __FILE__);
+ 
+ #ifdef pWARN_NONE
+- PL_curcop->cop_warnings = old_warn;
++ PL_curcop->cop_warnings = (char*)old_warn;
+ #endif
+ 
+  initialized = 0;
 

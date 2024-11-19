@@ -17,7 +17,7 @@ src = "GCONF_CONFIG_SOURCE=xml:${OPTIONS}:" .. gconf_dir
 home = "HOME=${WRKDIR}"
 prog = "gconftool-2"
 rule = "--makefile-install-rule"
-cmd  = prog .. " " .. rule .. " " .. rulename .. " > /dev/null"
+cmd  = prog .. " " .. rule .. " " .. rulename .. " > /dev/null 2>&1"
 pkg.print_msg("Installing schema rule " .. rulename)
 pkg.exec({"/usr/bin/env", src, home, "/bin/sh", "-c", cmd})
 EOS
@@ -33,7 +33,7 @@ src = "GCONF_CONFIG_SOURCE=xml:${OPTIONS}:" .. gconf_dir
 home = "HOME=${WRKDIR}"
 prog = "gconftool-2"
 rule = "--makefile-uninstall-rule"
-cmd  = prog .. " " .. rule .. " " .. rulename .. " > /dev/null"
+cmd  = prog .. " " .. rule .. " " .. rulename .. " > /dev/null 2>&1"
 pkg.print_msg("Removing schema rule " .. rulename)
 pkg.exec({"/usr/bin/env", src, home, "/bin/sh", "-c", cmd})
 EOS

@@ -64,3 +64,37 @@ e9c68ae001b9130d0f9d1b311e8121a94e5c134b82553ba03971088e57d12c89       296944 mu
 lib/gtk-2.0/2.10.0/engines/libmurrine.so
 share/gtk-engines/murrine.xml
 
+
+[FILE:1034:patches/patch-add-missing-function-declarations]
+Description: Add declarations for functions to fix implicit function declaration errors.
+Author: Peter Michael Green <plugwash@debian.org>
+
+--- src/murrine_rc_style.h.orig
++++ src/murrine_rc_style.h
+@@ -155,4 +155,6 @@ struct _MurrineRcStyleClass
+ 
+ GType murrine_rc_style_get_type	(void);
+ 
++void murrine_rc_style_register_types (GTypeModule *module);
++
+ #endif /* MURRINE_RC_STYLE_H */
+--- src/murrine_style.h.orig
++++ src/murrine_style.h
+@@ -102,5 +102,6 @@ struct _MurrineStyleClass
+ };
+ 
+ GType murrine_style_get_type (void);
++void murrine_style_register_types (GTypeModule *module);
+ 
+ #endif /* MURRINE_STYLE_H */
+--- src/support.h.orig
++++ src/support.h
+@@ -149,4 +149,7 @@ G_GNUC_INTERNAL void murrine_get_noteboo
+                                                         gboolean  *start,
+                                                         gboolean  *end);
+ 
++gboolean murrine_object_is_a (const GObject * object, const gchar * type_name);
++gboolean murrine_widget_is_ltr (GtkWidget *widget);
++
+ #endif /* SUPPORT_H */
+

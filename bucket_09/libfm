@@ -52,6 +52,8 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		4.1.3
 
+CFLAGS=			-Wno-deprecated-declarations
+
 post-patch:
 	${REINPLACE_CMD} -e 's|^[[:blank:]]\{5,\}USE_NLS=yes|#&|' \
 		${WRKSRC}/configure
@@ -268,4 +270,60 @@ share/locale/zh_TW/LC_MESSAGES/libfm.mo
 share/man/man1/
  libfm-pref-apps.1
  lxshortcut.1
+
+
+[FILE:419:patches/patch-src_actions_action.c]
+--- src/actions/action.c.orig	2018-04-16 19:26:29 UTC
++++ src/actions/action.c
+@@ -2047,7 +2047,7 @@ void fm_load_all_actions (void) {
+ 	gchar* _tmp9_ = NULL;
+ 	_tmp0_ = fm_all_actions;
+ 	g_hash_table_remove_all (_tmp0_);
+-	_tmp2_ = _tmp1_ = g_get_system_data_dirs ();
++	_tmp2_ = _tmp1_ = (gchar **)g_get_system_data_dirs ();
+ 	dirs = _tmp2_;
+ 	dirs_length1 = _vala_array_length (_tmp1_);
+ 	_dirs_size_ = dirs_length1;
+
+
+[FILE:688:patches/patch-src_gtk_exo_exo-icon-view.c]
+--- src/gtk/exo/exo-icon-view.c.orig	2021-01-29 21:02:49 UTC
++++ src/gtk/exo/exo-icon-view.c
+@@ -2819,7 +2819,7 @@ exo_icon_view_key_press_event (GtkWidget
+   /* allocate a new event to forward */
+   new_event = gdk_event_copy ((GdkEvent *) event);
+   g_object_unref (G_OBJECT (new_event->key.window));
+-  new_event->key.window = g_object_ref (G_OBJECT (gtk_widget_get_window (icon_view->priv->search_entry)));
++  new_event->key.window = (GdkWindow *)g_object_ref (G_OBJECT (gtk_widget_get_window (icon_view->priv->search_entry)));
+ 
+   /* send the event to the search entry. If the "preedit-changed" signal is
+    * emitted during this event, priv->search_imcontext_changed will be set.
+
+
+[FILE:581:patches/patch-src_gtk_fm-dnd-dest.c]
+--- src/gtk/fm-dnd-dest.c.orig	2018-04-16 19:11:33 UTC
++++ src/gtk/fm-dnd-dest.c
+@@ -458,7 +458,7 @@ static GdkDragAction _ask_action_on_drop
+             gtk_action_set_sensitive(act, FALSE);
+         }
+     }
+-    ri.menu = g_object_ref(gtk_ui_manager_get_widget(ui, "/popup"));
++    ri.menu = (GtkMenu *)g_object_ref(gtk_ui_manager_get_widget(ui, "/popup"));
+     g_signal_connect(ri.menu, "selection-done", G_CALLBACK(gtk_widget_destroy), NULL);
+     unmap_handler = g_signal_connect(ri.menu, "unmap",
+                                      G_CALLBACK(run_unmap_handler), &ri);
+
+
+[FILE:688:patches/patch-src_gtk_fm-standard-view.c]
+--- src/gtk/fm-standard-view.c.orig	2018-04-16 19:11:33 UTC
++++ src/gtk/fm-standard-view.c
+@@ -637,7 +637,7 @@ static inline void create_icon_view(FmSt
+                                 "text", FM_FOLDER_MODEL_COL_NAME );
+     if(fv->renderer_text)
+         g_object_unref(fv->renderer_text);
+-    fv->renderer_text = g_object_ref_sink(render);
++    fv->renderer_text = (FmCellRendererText *)g_object_ref_sink(render);
+     exo_icon_view_set_search_column((ExoIconView*)fv->view, FM_FOLDER_MODEL_COL_NAME);
+     g_signal_connect(fv->view, "item-activated", G_CALLBACK(on_icon_view_item_activated), fv);
+     g_signal_connect(fv->view, "selection-changed", G_CALLBACK(on_sel_changed), fv);
 

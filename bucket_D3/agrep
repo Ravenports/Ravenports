@@ -26,6 +26,7 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		textproc/agrep
 
 BUILD_TARGET=		agrep
+MAKE_ARGS=		PORTFLAGS=-Wno-implicit-function-declaration
 
 do-install:
 	${MKDIR} -p ${STAGEDIR}${PREFIX}/bin
@@ -45,6 +46,50 @@ d3d5bfd631359056d47ed2c8c37dc5f661c31074ae525a5386d9a0f455136123      3652802 Wi
 bin/agrep
 
 
+[FILE:288:patches/patch-Makefile]
+--- Makefile.orig	2016-10-22 12:40:44 UTC
++++ Makefile
+@@ -59,7 +59,7 @@ MYDEFINEFLAGS	= -DMEASURE_TIMES=0  \
+ 		
+ #		  -Werror=no-unprototyped-calls
+ 
+-CFLAGS		= $(MYDEFINEFLAGS) $(SUBDIRCFLAGS)
++CFLAGS		= $(MYDEFINEFLAGS) $(SUBDIRCFLAGS) $(PORTFLAGS)
+ OTHERLIBS	=
+ 
+ PROG	      = agrep
+
+
+[FILE:325:patches/patch-agrephlp.c]
+--- agrephlp.c.orig	2016-10-22 12:40:44 UTC
++++ agrephlp.c
+@@ -65,8 +65,8 @@ int get_current_codepage();  /* codepage
+ #include "agrep.h"
+ #include "version.h"
+ 
+-extern	AGREPOPT_STR[MAX_LINE_LEN];
+-extern	VERBOSE;
++extern	int AGREPOPT_STR[MAX_LINE_LEN];
++extern	int VERBOSE;
+ 
+ #ifdef __EMX__
+ extern	unsigned int _emx_env;
+
+
+[FILE:241:patches/patch-bitap.c]
+--- bitap.c.intermediate	2016-10-22 12:40:44 UTC
++++ bitap.c
+@@ -447,7 +447,7 @@ int fd, M, D;
+ #endif	/*AGREP_POINTER*/
+ }
+ 
+-fill_buf(fd, buf, record_size)
++int fill_buf(fd, buf, record_size)
+ int fd, record_size; 
+ unsigned char *buf;
+ {
+
+
 [FILE:307:patches/patch-checkfil.c]
 --- checkfil.c.orig	2016-10-22 12:40:44 UTC
 +++ checkfil.c
@@ -59,7 +104,61 @@ bin/agrep
  #include <errno.h>
 
 
-[FILE:307:patches/patch-newmgrep.c]
+[FILE:281:patches/patch-codepage.c]
+--- codepage.c.orig	2016-10-22 12:40:44 UTC
++++ codepage.c
+@@ -47,7 +47,7 @@ char	CP_MAPPING;			/* -i option = case(i
+ unsigned char LUT[256];			/* THE LOOK-UP TABLE (filled in AGREP.C) */
+ 
+ 
+-int get_current_codepage(VOID)
++int get_current_codepage(int VOID)
+ 
+ #ifdef __EMX__
+ 
+
+
+[FILE:534:patches/patch-compat.c]
+--- compat.c.orig	2016-10-22 12:40:44 UTC
++++ compat.c
+@@ -8,13 +8,13 @@
+ 
+ extern int D;
+ extern int FILENAMEONLY, APPROX, PAT_FILE, PAT_BUFFER, MULTI_OUTPUT, COUNT, INVERSE, BESTMATCH;
+-extern FILEOUT;
+-extern REGEX;
+-extern DELIMITER;
+-extern WHOLELINE;
+-extern LINENUM;
+-extern I, S, DD;
+-extern JUMP;
++extern int FILEOUT;
++extern int REGEX;
++extern int DELIMITER;
++extern int WHOLELINE;
++extern int LINENUM;
++extern int I, S, DD;
++extern int JUMP;
+ extern char Progname[32];
+ extern int agrep_initialfd;
+ extern int EXITONERROR;
+
+
+[FILE:407:patches/patch-maskgen.c]
+--- maskgen.c.orig	2016-10-22 12:40:44 UTC
++++ maskgen.c
+@@ -16,7 +16,7 @@ extern int CODEPAGE;
+ extern struct CODEPAGE_struct CP[CODEPAGES][CPSIZE];
+ 
+ extern unsigned D_endpos, endposition, Init1, wildmask;
+-extern Mask[], Bit[], Init[], NO_ERR_MASK;
++extern int Mask[], Bit[], Init[], NO_ERR_MASK;
+ extern int AND, REGEX, NOUPPER, D_length;
+ extern unsigned char Progname[];
+ extern int agrep_initialfd;
+
+
+[FILE:1041:patches/patch-newmgrep.c]
 --- newmgrep.c.orig	2016-10-22 12:40:44 UTC
 +++ newmgrep.c
 @@ -16,7 +16,7 @@
@@ -71,20 +170,82 @@ bin/agrep
      #include <sys/stat.h>
  #endif
  
+@@ -70,14 +70,14 @@ extern CHAR D_pattern[MaxDelimit*2];
+ extern int D_length;
+ extern CHAR tc_D_pattern[MaxDelimit*2];
+ extern int tc_D_length;
+-extern COUNT, FNAME, SILENT, FILENAMEONLY, prev_num_of_matched, num_of_matched;
+-extern INVERSE, OUTTAIL;
+-extern WORDBOUND, WHOLELINE, NOUPPER;
++extern int COUNT, FNAME, SILENT, FILENAMEONLY, prev_num_of_matched, num_of_matched;
++extern int INVERSE, OUTTAIL;
++extern int WORDBOUND, WHOLELINE, NOUPPER;
+ extern ParseTree *AParse;
+ extern int AComplexPattern;
+ extern unsigned char  CurrentFileName[], Progname[]; 
+-extern total_line;
+-extern agrep_initialfd;
++extern int total_line;
++extern int agrep_initialfd;
+ extern int EXITONERROR;
+ extern int PRINTPATTERN;
+ extern int agrep_inlen;
 
 
-[FILE:394:patches/patch-recursiv.c]
+[FILE:158:patches/patch-parse.c]
+--- parse.c.orig	2016-10-22 12:40:44 UTC
++++ parse.c
+@@ -10,6 +10,7 @@
+ #endif
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include "re.h"
+ 
+ #define FALSE	0
+
+
+[FILE:185:patches/patch-putils.c]
+--- putils.c.orig	2016-10-22 12:40:44 UTC
++++ putils.c
+@@ -68,6 +68,7 @@ get_token_bool(buffer, len, ptr, tokenbu
+ void
+ print_tree(t, level)
+ 	ParseTree *t;
++	int level;
+ {
+ 	int	i;
+ 
+
+
+[FILE:279:patches/patch-re.h]
+--- re.h.orig	2016-10-22 12:40:44 UTC
++++ re.h
+@@ -4,6 +4,9 @@
+ 					allows the fully ISO-Charset.
+ */
+ 
++#include <string.h>
++#include <stdlib.h>
++
+ /*************************************************************
+  *							     *
+  * 	Macros defining special characters.		     *
+
+
+[FILE:415:patches/patch-recursiv.c]
 --- recursiv.c.orig	2016-10-22 12:40:44 UTC
 +++ recursiv.c
-@@ -21,6 +21,7 @@
+@@ -21,6 +21,8 @@
  
  #include "autoconf.h"	/* ../libtemplate/include */
  #include <stdio.h>
 +#include <stdlib.h>
++#include <string.h>
  #include <sys/types.h>
  
  #if	ISO_CHAR_SET
-@@ -53,7 +54,7 @@
+@@ -53,7 +55,7 @@
  
  #endif
  
@@ -93,4 +254,35 @@ bin/agrep
      #include <sys/stat.h>
  #endif
  
+
+
+[FILE:766:patches/patch-sgrep.c]
+--- sgrep.c.orig	2016-10-22 12:40:44 UTC
++++ sgrep.c
+@@ -97,7 +97,7 @@ extern int CONSTANT, COUNT, FNAME, SILEN
+ extern int DNA ;	/* DNA flag is set in checksg when pattern is DNA pattern
+ 			   and p_size > 16  */
+ 
+-extern WORDBOUND, WHOLELINE, NOUPPER;
++extern int WORDBOUND, WHOLELINE, NOUPPER;
+ extern unsigned char CurrentFileName[],  Progname[]; 
+ extern unsigned Mask[];
+ extern unsigned endposition;
+@@ -263,6 +263,7 @@ int sgrep(in_pat, in_m, fd, D, samepatte
+ 
+ CHARTYPE *in_pat;  
+ int fd, in_m, D;
++int samepattern;
+ {
+ 	CHARTYPE patbuf[MAXLINE];
+ 	CHARTYPE *pat = patbuf;
+@@ -1485,7 +1486,7 @@ CHARTYPE **lastout;	/* in, out */
+ static void
+ prep_bm(Pattern, m)      
+ unsigned char *Pattern;
+-register m;
++int register m;
+ {
+ 	int i;
+ 	unsigned hash;
 

@@ -71,7 +71,7 @@ BUILDRUN_DEPENDS=	libmypaint:primary:std
 
 USES=			cpe gmake jpeg iconv libtool pkgconfig shebangfix
 			freetype execinfo xz bz2 zlib tiff mbsdfix
-			gnome-icons:primary desktop-utils:primary gold
+			gnome-icons:primary desktop-utils:primary
 GNOME_COMPONENTS=	cairo gtk2 intltool librsvg
 XORG_COMPONENTS=	ice sm x11 xcursor xext xfixes xmu xpm xt
 
@@ -106,6 +106,8 @@ CONFIGURE_ENV=		GIMP_THREAD_LIBS=-lpthread
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.1000.38
+
+CFLAGS=			-Wno-deprecated-declarations
 
 [LINUX].DESCRIPTION=			Build variations for Linux
 [LINUX].BUILDRUN_DEPENDS_ON=		libgudev:primary:std
@@ -6193,4 +6195,34 @@ Should be ok.
  	   (?:/\*<
  	     (([^*]|\*(?!/))*)
  	    >\s*\*/)?
+
+
+[FILE:436:patches/patch-plug-ins_file-tiff_file-tiff-load.c]
+--- plug-ins/file-tiff/file-tiff-load.c.orig	2024-05-03 00:33:35 UTC
++++ plug-ins/file-tiff/file-tiff-load.c
+@@ -1301,8 +1301,8 @@ load_image (GFile        *file,
+ 
+       /* any resolution info in the file? */
+       {
+-        gfloat   xres = 72.0;
+-        gfloat   yres = 72.0;
++        double   xres = 72.0;
++        double   yres = 72.0;
+         gushort  read_unit;
+         GimpUnit unit = GIMP_UNIT_PIXEL; /* invalid unit */
+ 
+
+
+[FILE:541:patches/patch-plug-ins_metadata_metadata-editor.c]
+--- plug-ins/metadata/metadata-editor.c.orig	2024-05-03 00:33:35 UTC
++++ plug-ins/metadata/metadata-editor.c
+@@ -2140,7 +2140,7 @@ metadata_dialog_editor_set_metadata (GEx
+                             }
+                           else
+                             {
+-                              if (! g_strv_contains (values, equiv_values[evi]))
++                              if (! g_strv_contains ((const gchar * const*)values, equiv_values[evi]))
+                                 {
+                                   gchar *tmpvalue;
+ 
 

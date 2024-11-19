@@ -2,7 +2,7 @@
 
 NAMEBASE=		nvi
 VERSION=		1.81.6
-REVISION=		3
+REVISION=		4
 KEYWORDS=		editors
 VARIANTS=		std
 SDESC[std]=		Berkeley nvi with additional features
@@ -35,8 +35,12 @@ CONFIGURE_ARGS=		--program-prefix=n
 			--with-db=system
 			--with-db-prefix={{LOCALBASE}}/db4
 			--with-curses={{NCURSESBASE}}
+CONFIGURE_ENV=		vi_cv_have_curses_setupterm=yes
+			vi_cv_path_preserve="/tmp"
 
 CPPFLAGS=		-I{{NCURSESINC}}
+			-Wno-incompatible-pointer-types
+			-Wno-implicit-function-declaration
 LDFLAGS=		-L{{NCURSESLIB}}
 VAR_OPSYS[sunos]=	CONFIGURE_ENV=LIBS="-lrt -lsocket"
 
@@ -128,10 +132,77 @@ share/man/man1/
  #include <stdio.h>
 
 
-[FILE:349:patches/patch-dist_config.h]
---- dist/config.h.in-	Fri May  9 12:50:29 2003
-+++ dist/config.h.in	Fri May  9 12:50:56 2003
-@@ -103,9 +103,6 @@
+[FILE:518:patches/patch-common_db.h]
+--- common/db.h.orig	2007-11-18 16:41:42 UTC
++++ common/db.h
+@@ -16,7 +16,10 @@
+     (env)->remove(env, path, NULL, flags)
+ #endif
+ 
+-#if DB_VERSION_MAJOR >= 4 && DB_VERSION_MINOR >= 1
++#if DB_VERSION_MAJOR >= 4 && DB_VERSION_MINOR >= 4
++#define db_open(db,file,type,flags,mode)				\
++    (db)->open(db, NULL, file, NULL, type, flags | DB_CREATE, mode)
++#elif DB_VERSION_MAJOR >= 4 && DB_VERSION_MINOR >= 1
+ #define db_open(db,file,type,flags,mode)				\
+     (db)->open(db, NULL, file, NULL, type, flags, mode)
+ #else
+
+
+[FILE:949:patches/patch-common_exf.c]
+Get rid of "page sizes must be a power-of-2" warning when loading a file.
+
+--- common/exf.c.orig	2007-11-18 16:41:42 UTC
++++ common/exf.c
+@@ -228,15 +228,17 @@ file_init(SCR *sp, FREF *frp, char *rcv_
+ 		/*
+ 		 * XXX
+ 		 * A seat of the pants calculation: try to keep the file in
+-		 * 15 pages or less.  Don't use a page size larger than 10K
++		 * 15 pages or less.  Don't use a page size larger than 16K
+ 		 * (vi should have good locality) or smaller than 1K.
+ 		 */
+-		psize = ((sb.st_size / 15) + 1023) / 1024;
+-		if (psize > 10)
+-			psize = 10;
+-		if (psize == 0)
+-			psize = 1;
+-		psize *= 1024;
++		psize = (sb.st_size > 0) ? ffsl(sb.st_size - 1) + 1 : 0;
++		/* Do these very low limits make sense anymore? */
++		if (psize < 10)
++			psize = 10;  /* 1K  */
++		if (psize > 14)
++			psize = 14;  /* 16K */
++		/* Keep page size on power of 2 boundary to keep db4 happy. */
++		psize = 1 << psize;
+ 
+ 		F_SET(ep, F_DEVSET);
+ 		ep->mdev = sb.st_dev;
+
+
+[FILE:604:patches/patch-common_msg.c]
+Ignore LANG=C or any value of LANG.  It was causing exit messages of
+"./C" file does not exist when LANG was defined in the environment.
+
+--- common/msg.c.orig	2007-11-18 16:41:42 UTC
++++ common/msg.c
+@@ -718,8 +718,7 @@ msg_open(SCR *sp, char *file)
+ 	char *p, *t, buf[MAXPATHLEN];
+ 
+ 	if ((p = strrchr(file, '/')) != NULL && p[1] == '\0' &&
+-	    (((t = getenv("LC_MESSAGES")) != NULL && t[0] != '\0') ||
+-	    ((t = getenv("LANG")) != NULL && t[0] != '\0'))) {
++	    (((t = getenv("LC_MESSAGES")) != NULL && t[0] != '\0'))) {
+ 		(void)snprintf(buf, sizeof(buf), "%s%s", file, t);
+ 		p = buf;
+ 	} else
+
+
+[FILE:325:patches/patch-dist_config.h]
+--- dist/config.h.in.orig	2007-11-18 16:43:48 UTC
++++ dist/config.h.in
+@@ -85,9 +85,6 @@
  /* Define if you have <sys/select.h> */
  #undef HAVE_SYS_SELECT_H
  

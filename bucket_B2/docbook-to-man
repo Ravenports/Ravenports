@@ -74,10 +74,50 @@ lib/tpt/
  Version:	allVersion.o
 
 
-[FILE:599:patches/patch-Instant_tptregexp_regexp.c]
+[FILE:541:patches/patch-Instant_main.c]
+--- Instant/main.c.orig	1996-06-17 03:50:28 UTC
++++ Instant/main.c
+@@ -73,6 +73,7 @@ static char *RCSid =
+ #include <stdlib.h>
+ #include <ctype.h>
+ #include <string.h>
++#include <unistd.h>
+ #include <memory.h>
+ #include <errno.h>
+ #include <sys/types.h>
+@@ -171,7 +172,6 @@ Initialize1(
+     time_t	tnow;
+     struct tm	*nowtm;
+     char	*cp, buf[100];
+-    extern	int gethostname(char *, int);	/* not in a system .h file... */
+ 
+     /* where we try to find data/library files */
+     if (!(tpt_lib=getenv(TPT_LIB))) tpt_lib = DEF_TPT_LIB;
+
+
+[FILE:177:patches/patch-Instant_tptregexp_regerror.c]
+--- Instant/tptregexp/regerror.c.orig	1996-06-17 03:50:29 UTC
++++ Instant/tptregexp/regerror.c
+@@ -1,4 +1,5 @@
+ #include <stdio.h>
++#include <stdlib.h>
+ 
+ void
+ tpt_regerror(s)
+
+
+[FILE:733:patches/patch-Instant_tptregexp_regexp.c]
 --- Instant/tptregexp/regexp.c.orig	1996-06-17 03:50:29 UTC
 +++ Instant/tptregexp/regexp.c
-@@ -196,7 +196,6 @@ char *exp;
+@@ -24,6 +24,7 @@
+  */
+ #include <stdio.h>
+ #include <string.h>
++#include <stdlib.h>
+ #include <tptregexp.h>
+ #include "regmagic.h"
+ 
+@@ -196,7 +197,6 @@ char *exp;
  	register char *longest;
  	register int len;
  	int flags;
@@ -85,7 +125,7 @@ lib/tpt/
  
  	if (exp == NULL)
  		FAIL("NULL argument");
-@@ -705,7 +704,6 @@ register regexp *prog;
+@@ -705,7 +705,6 @@ register regexp *prog;
  register char *string;
  {
  	register char *s;
@@ -93,7 +133,7 @@ lib/tpt/
  
  	/* Be paranoid... */
  	if (prog == NULL || string == NULL) {
-@@ -804,7 +802,6 @@ char *prog;
+@@ -804,7 +803,6 @@ char *prog;
  {
  	register char *scan;	/* Current node. */
  	char *next;		/* Next node. */
@@ -101,6 +141,56 @@ lib/tpt/
  
  	scan = prog;
  #ifdef DEBUG
+
+
+[FILE:259:patches/patch-Instant_tptregexp_regsub.c]
+--- Instant/tptregexp/regsub.c.orig	1996-06-17 03:50:29 UTC
++++ Instant/tptregexp/regsub.c
+@@ -19,6 +19,7 @@
+  *		be misrepresented as being the original software.
+  */
+ #include <stdio.h>
++#include <string.h>
+ #include <tptregexp.h>
+ #include "regmagic.h"
+ 
+
+
+[FILE:213:patches/patch-Instant_tptregexp_strerror.c]
+--- Instant/tptregexp/strerror.c.orig	1996-06-17 03:50:30 UTC
++++ Instant/tptregexp/strerror.c
+@@ -3,9 +3,11 @@
+  * (eg, SUN)
+  */
+ 
++#if 0
+ char *
+ strerror(int num)
+ {
+ 	perror(num);
+ 	return "";
+ }    
++#endif
+
+
+[FILE:707:patches/patch-Instant_translate.h]
+--- Instant/translate.h.orig	1996-06-17 03:50:29 UTC
++++ Instant/translate.h
+@@ -142,12 +142,14 @@ void	ProcessOneSpec(char *, Element_t *,
+ void	TransElement(Element_t *, FILE *, Trans_t *);
+ void	TranByAction(Element_t *, int, FILE *);
+ void	TranTByAction(Element_t *, char *, FILE *);
++void    ExpandVariables (char *in, char *out, Element_t *e);
+ 
+ /* prototypes for things defined in tranvar.c */
+ void	ExpandSpecialVar(char *, Element_t *, FILE *, int);
+ 
+ /* prototypes for things defined in tables.c */
+ void	OSFtable(Element_t *, FILE *, char **, int);
++void    CALStable(Element_t *e, FILE *fp, char **av, int ac);
+ 
+ /* ______________________________________________________________________ */
+ 
 
 
 [FILE:353:patches/patch-Transpec_Makefile]

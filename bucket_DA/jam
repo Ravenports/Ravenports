@@ -62,6 +62,50 @@ share/doc/jam/
  Jamfile.html
 
 
+[FILE:224:patches/patch-execunix.c]
+--- execunix.c.orig	2019-06-20 23:12:56 UTC
++++ execunix.c
+@@ -51,9 +51,8 @@
+ # include <process.h>
+ # endif
+ 
+-# ifdef OS_MACOSX
+ # include <unistd.h>
+-# endif
++# include <sys/wait.h>
+ 
+ # ifdef OS_NT 
+ # define USE_EXECNT
+
+
+[FILE:228:patches/patch-fileunix.c]
+--- fileunix.c.orig	2019-06-20 23:12:56 UTC
++++ fileunix.c
+@@ -47,6 +47,8 @@
+ # define PORTAR 1
+ # endif
+ 
++#include <unistd.h>
++
+ # if defined( OS_RHAPSODY ) || \
+      defined( OS_DARWIN ) || \
+      defined( OS_MACOSX ) || \
+
+
+[FILE:248:patches/patch-jam.c]
+--- jam.c.orig	2019-06-20 23:12:56 UTC
++++ jam.c
+@@ -166,7 +166,7 @@ extern char **environ;
+ # endif
+ # endif
+ 
+-main( int argc, char **argv, char **arg_environ )
++int main( int argc, char **argv, char **arg_environ )
+ {
+ 	int		n;
+ 	const char	*s;
+
+
 [FILE:261:patches/patch-jam.h]
 --- jam.h.orig	2014-08-07 18:24:14 UTC
 +++ jam.h
@@ -74,4 +118,47 @@ share/doc/jam/
  # define OSMINOR "OS=FREEBSD"
  # define OS_FREEBSD
  # endif
+
+
+[FILE:222:patches/patch-make1.c]
+--- make1.c.orig	2019-06-20 23:12:56 UTC
++++ make1.c
+@@ -49,6 +49,7 @@
+  * 12/03/02 (seiwald) - fix odd includes support by grafting them onto depends
+  */
+ 
++# include <unistd.h>
+ # include "jam.h"
+ 
+ # include "lists.h"
+
+
+[FILE:196:patches/patch-mkjambase.c]
+--- mkjambase.c.orig	2019-06-20 23:12:56 UTC
++++ mkjambase.c
+@@ -24,6 +24,7 @@
+ # include <stdio.h>
+ # include <string.h>
+ 
++int
+ main( int argc, char **argv, char **envp )
+ {
+ 	char buf[ 1024 ];
+
+
+[FILE:340:patches/patch-parse.c]
+--- parse.c.orig	2019-06-20 23:12:56 UTC
++++ parse.c
+@@ -98,8 +98,11 @@ parse_make(
+ 
+ 	if( DEBUG_COMPILE && !p->left && !p->right )
+ 	{
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+ 	    p->yyfname = yyfname();
+ 	    p->yylineno = yylineno();
++#pragma GCC diagnostic pop
+ 	}
+ 
+ 	return p;
 

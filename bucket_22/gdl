@@ -189,7 +189,44 @@ share/doc/gdl/
  widget.html
 
 
-[FILE:252:patches/patch-gdl_gdl-dock-layout.c]
+[FILE:588:patches/patch-gdl_gdl-dock-bar.c]
+--- gdl/gdl-dock-bar.c.orig	2018-10-22 19:36:04 UTC
++++ gdl/gdl-dock-bar.c
+@@ -425,7 +425,7 @@ gdl_dock_bar_set_master (GdlDockBar    *
+         if (GDL_IS_DOCK_OBJECT (master)) {
+             master = gdl_dock_object_get_master (GDL_DOCK_OBJECT (master));
+         }
+-        dockbar->priv->master = g_object_ref (master);
++        dockbar->priv->master = (GdlDockMaster *)g_object_ref (master);
+         dockbar->priv->layout_changed_id =
+             g_signal_connect (dockbar->priv->master, "layout-changed",
+                               (GCallback) gdl_dock_bar_layout_changed_cb,
+
+
+[FILE:1059:patches/patch-gdl_gdl-dock-item.c]
+--- gdl/gdl-dock-item.c.orig	2018-10-22 19:36:04 UTC
++++ gdl/gdl-dock-item.c
+@@ -355,7 +355,7 @@ gdl_dock_item_class_init (GdlDockItemCla
+     container_class->set_focus_child = gdl_dock_item_set_focus_child;
+     gtk_container_class_handle_border_width (container_class);
+ 
+-    gdl_dock_object_class_set_is_compound (object_class, FALSE);
++    gdl_dock_object_class_set_is_compound ((GdlDockObjectClass *)object_class, FALSE);
+     dock_object_class->dock_request = gdl_dock_item_dock_request;
+     dock_object_class->dock = gdl_dock_item_dock;
+     dock_object_class->present = gdl_dock_item_present;
+@@ -744,7 +744,7 @@ gdl_dock_item_set_property  (GObject
+         case PROP_RESIZE:
+             item->priv->resize = g_value_get_boolean (value);
+             {
+-                GObject * parent = gtk_widget_get_parent (GTK_WIDGET (item));
++                GObject * parent = (GObject *)gtk_widget_get_parent (GTK_WIDGET (item));
+                 //if we docked update "resize" child_property of our parent
+                 if(parent)
+                 {
+
+
+[FILE:764:patches/patch-gdl_gdl-dock-layout.c]
 --- gdl/gdl-dock-layout.c.orig	2018-10-22 19:36:04 UTC
 +++ gdl/gdl-dock-layout.c
 @@ -27,6 +27,7 @@
@@ -200,4 +237,13 @@ share/doc/gdl/
  #include <gtk/gtk.h>
  
  #include "gdl-dock-layout.h"
+@@ -620,7 +621,7 @@ gdl_dock_layout_set_master (GdlDockLayou
+         if (GDL_IS_DOCK_OBJECT (master)) {
+             master = gdl_dock_object_get_master (GDL_DOCK_OBJECT (master));
+         }
+-        layout->priv->master = g_object_ref (master);
++        layout->priv->master = (GdlDockMaster *)g_object_ref (master);
+         layout->priv->layout_changed_id =
+             g_signal_connect (layout->priv->master, "layout-changed",
+                               (GCallback) gdl_dock_layout_layout_changed_cb,
 

@@ -111,3 +111,127 @@ share/man/man1/
  
  .SH OPTIONS
 
+
+[FILE:3134:patches/patch-unix_configure]
+Don't force compiler optimization flags.
+Introduce DISABLE_ASM
+Remove broken configure tests. Assume we have
+standard libc functions such as memset(3).
+
+--- unix/configure.orig	2008-06-20 03:32:20 UTC
++++ unix/configure
+@@ -118,10 +118,6 @@ _EOF_
+ fi
+ 
+ # optimization flags
+-if test -n "${CFLAGS_OPT}"; then
+-  CFLAGS="${CFLAGS} ${CFLAGS_OPT}"
+-  CFLAGS_BZ="${CFLAGS_BZ} ${CFLAGS_OPT}"
+-fi
+ 
+ 
+ # bzip2
+@@ -235,6 +231,7 @@ $CPP conftest.c >/dev/null 2>/dev/null |
+ echo Check if we can use asm code
+ OBJA=""
+ OCRCU8=""
++if [ -z "$DISABLE_ASM" ]; then
+ if eval "$CPP match.S > _match.s 2>/dev/null"; then
+   if test ! -s _match.s || grep error < _match.s > /dev/null; then
+     :
+@@ -257,6 +254,7 @@ if eval "$CPP match.S > _match.s 2>/dev/
+   fi
+ fi
+ rm -f _match.s _match.o _crc_i386.s _crc_i386.o
++fi
+ 
+ 
+ # ANSI options for compilers that don't have __STDC__ defined by default
+@@ -506,86 +504,6 @@ $CC $CFLAGS -c conftest.c >/dev/null 2>/
+ [ $? -eq 0 ] && BFLAG="-fno-builtin"
+ 
+ 
+-# Check for missing functions
+-# add NO_'function_name' to flags if missing
+-
+-for func in rmdir strchr strrchr rename mktemp mktime mkstemp
+-do
+-  echo Check for $func
+-  echo "int main(){ $func(); return 0; }" > conftest.c
+-  $CC $BFLAG -o conftest conftest.c >/dev/null 2>/dev/null
+-  [ $? -ne 0 ] && CFLAGS="${CFLAGS} -DNO_`echo $func | tr '[a-z]' '[A-Z]'`"
+-done
+-
+-
+-echo Check for memset
+-echo "int main(){ char k; memset(&k,0,0); return 0; }" > conftest.c
+-$CC -o conftest conftest.c >/dev/null 2>/dev/null
+-[ $? -ne 0 ] && CFLAGS="${CFLAGS} -DZMEM"
+-
+-
+-echo Check for memmove
+-cat > conftest.c << _EOF_
+-#include <string.h>
+-int main() { int a; int b = 0; memmove( &a, &b, sizeof( a)); return a; }
+-_EOF_
+-$CC -o conftest conftest.c >/dev/null 2>/dev/null
+-[ $? -ne 0 ] && CFLAGS="${CFLAGS} -DNEED_MEMMOVE"
+-
+-
+-echo Check for strerror
+-cat > conftest.c << _EOF_
+-#include <string.h>
+-int main() { strerror( 0); return 0; }
+-_EOF_
+-$CC -o conftest conftest.c >/dev/null 2>/dev/null
+-[ $? -ne 0 ] && CFLAGS="${CFLAGS} -DNEED_STRERROR"
+-
+-echo Check for errno declaration
+-cat > conftest.c << _EOF_
+-#include <errno.h>
+-main()
+-{
+-  errno = 0;
+-  return 0;
+-}
+-_EOF_
+-$CC $CFLAGS -c conftest.c >/dev/null 2>/dev/null
+-[ $? -ne 0 ] && CFLAGS="${CFLAGS} -DNO_ERRNO"
+-
+-
+-echo Check for directory libraries
+-cat > conftest.c << _EOF_
+-int main() { return closedir(opendir(".")); }
+-_EOF_
+-
+-$CC -o conftest conftest.c >/dev/null 2>/dev/null
+-if [ $? -ne 0 ]; then
+-  OPT=""
+-  for lib in ndir dir ucb bsd BSD PW x dirent
+-  do
+-    $CC -o conftest conftest.c -l$lib >/dev/null 2>/dev/null
+-    [ $? -eq 0 ] && OPT=-l$lib && break
+-  done
+-  if [ ${OPT} ]; then
+-    LFLAGS2="${LFLAGS2} ${OPT}"
+-  else
+-    CFLAGS="${CFLAGS} -DNO_DIR"
+-  fi
+-fi
+-
+-
+-# Dynix/ptx 1.3 needed this
+-
+-echo Check for readlink
+-echo "int main(){ return readlink(); }" > conftest.c
+-$CC -o conftest conftest.c >/dev/null 2>/dev/null
+-if [ $? -ne 0 ]; then
+-  $CC -o conftest conftest.c -lseq >/dev/null 2>/dev/null
+-  [ $? -eq 0 ] && LFLAGS2="${LFLAGS2} -lseq"
+-fi
+-
+-
+ echo Check for directory include file
+ OPT=""
+ for inc in dirent.h sys/ndir.h ndir.h sys/dir.h
+

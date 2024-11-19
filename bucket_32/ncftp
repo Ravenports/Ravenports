@@ -32,6 +32,10 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-curses
 			--without-ncurses
 
+pre-configure:
+	${REINPLACE_CMD} -e 's/def HAVE_STDLIB_H/ 1/; s/def HAVE_UNISTD_H/ 1/' \
+		${WRKSRC}/configure
+
 [FILE:559:descriptions/desc.primary]
 NcFTP is a free set of programs that use the File Transfer Protocol.
 The main program is simply called "ncftp".  There are also separate
@@ -68,16 +72,57 @@ share/man/man1/
  ncftpspooler.1
 
 
-[FILE:545:patches/patch-configure]
---- configure.orig	2016-12-04 18:54:11 UTC
+[FILE:1787:patches/patch-configure]
+--- configure.orig	2024-01-01 03:42:47 UTC
 +++ configure
-@@ -6286,7 +6286,7 @@ if test "$nc_cv_curses" = yes ; then
+@@ -4833,6 +4833,7 @@ else
+   cat > conftest.$ac_ext <<EOF
+ #line 4835 "configure"
+ #include "confdefs.h"
++#include <stdlib.h>
+ #include <ctype.h>
+ #define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
+ #define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
+@@ -5078,6 +5079,7 @@ cat > conftest.$ac_ext <<EOF
+ #ifdef HAVE_STDLIB_H
+ #	include <stdlib.h>
+ #endif
++#include <string.h>
+ #include <sys/types.h>
+ #include <sys/uio.h>
+ #include <sys/socket.h>
+@@ -6356,7 +6358,7 @@ if test "$nc_cv_curses" = yes ; then
  echo $ac_n "checking for curses library headers""... $ac_c" 1>&6
- echo "configure:6288: checking for curses library headers" >&5
+ echo "configure:6358: checking for curses library headers" >&5
  if test "$wi_cv_ncurses" != "no" ; then
 -	for ac_hdr in ncurses.h curses.h termios.h termio.h sgtty.h sys/ioctl.h
 +	for ac_hdr in ncurses/ncurses.h curses.h termios.h termio.h sgtty.h sys/ioctl.h
  do
  ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
  echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
+@@ -8461,7 +8463,7 @@ else
+ #include <sys/select.h>
+ #endif
+ #include <sys/socket.h>	/* MG: always incl */
+-extern select ($ac_cv_func_select_arg1,$ac_cv_func_select_arg234,$ac_cv_func_select_arg234,$ac_cv_func_select_arg234,$ac_cv_func_select_arg5);
++extern int select ($ac_cv_func_select_arg1,$ac_cv_func_select_arg234,$ac_cv_func_select_arg234,$ac_cv_func_select_arg234,$ac_cv_func_select_arg5);
+ int main(void) {
+ 
+ ; return 0; }
+@@ -8726,6 +8728,7 @@ cat > conftest.$ac_ext <<EOF
+ #ifdef HAVE_STDLIB_H
+ #	include <stdlib.h>
+ #endif
++#include <string.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/socket.h>
+@@ -10414,6 +10417,7 @@ else
+ else
+   cat > conftest.$ac_ext <<EOF
+ #line 10417 "configure"
++#include <stdlib.h>
+ #include "confdefs.h"
+ find_stack_direction ()
+ {
 

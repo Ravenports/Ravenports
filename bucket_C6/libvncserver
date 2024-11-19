@@ -2,6 +2,7 @@
 
 NAMEBASE=		libvncserver
 VERSION=		0.9.14
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		VNC server and client C libraries
@@ -14,7 +15,9 @@ SITES[commits]=		https://github.com/LibVNC/libvncserver/commit/
 DISTFILE[1]=		generated:main
 DIST_SUBDIR=		vncserver
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -24,8 +27,8 @@ BUILDRUN_DEPENDS=	libgcrypt:primary:std
 
 USES=			cpe cmake png jpeg lzo libtool pkgconfig zlib ssl
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"defined __cplusplus"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/rfb/rfb.h
@@ -53,11 +56,12 @@ CMAKE_ARGS=		-DWITH_24BPP:BOOL=ON
 			-DWITH_SYSTEMD:BOOL=OFF
 			-DWITH_SASL:BOOL=OFF
 			-DWITH_GNUTLS:BOOL=OFF
+			-DWITH_EXAMPLES:BOOL=OFF
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 
-[FILE:490:descriptions/desc.single]
+[FILE:490:descriptions/desc.primary]
 LibVNCServer/LibVNCClient are cross-platform C libraries that allow you to
 easily implement Virtual Network Computing (VNC) server or client
 functionality in programs.
@@ -75,7 +79,18 @@ other direction, over a network.
 aae6bb9093f4931fd5ff0cd2cd704069c534b64179d160ef8e390a10b3d7dfeb         3262 vncserver/0becaf749e83.patch
 
 
-[FILE:449:manifests/plist.single]
+[FILE:176:manifests/plist.primary]
+lib/
+ libvncclient.so.%%MAJORVER%%
+ libvncclient.so.%%SOVERSION%%
+ libvncserver.so.%%MAJORVER%%
+ libvncserver.so.%%SOVERSION%%
+lib/pkgconfig/
+ libvncclient.pc
+ libvncserver.pc
+
+
+[FILE:278:manifests/plist.dev]
 include/rfb/
  keysym.h
  rfb.h
@@ -86,19 +101,12 @@ include/rfb/
  threading.h
 lib/
  libvncclient.so
- libvncclient.so.%%MAJORVER%%
- libvncclient.so.%%SOVERSION%%
  libvncserver.so
- libvncserver.so.%%MAJORVER%%
- libvncserver.so.%%SOVERSION%%
 lib/cmake/LibVNCServer/
  LibVNCServerConfig.cmake
  LibVNCServerConfigVersion.cmake
  LibVNCServerTargets-release.cmake
  LibVNCServerTargets.cmake
-lib/pkgconfig/
- libvncclient.pc
- libvncserver.pc
 
 
 [FILE:278:patches/patch-libvncserver_main.c]

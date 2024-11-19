@@ -362,22 +362,6 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  # include <sys/byteorder.h>
 
 
-[FILE:369:patches/patch-lib_librdkafka-2.1.0_src_rd.h]
---- lib/librdkafka-2.4.0/src/rd.h.orig	2024-11-04 22:36:47 UTC
-+++ lib/librdkafka-2.4.0/src/rd.h
-@@ -39,6 +39,10 @@
- #define _DARWIN_C_SOURCE /* for strlcpy, pthread_setname_np, etc */
- #endif
- 
-+#if defined(__NetBSD__)
-+#define _XOPEN_SOURCE 600
-+#endif
-+
- #define __need_IOV_MAX
- #ifndef _POSIX_C_SOURCE
- #define _POSIX_C_SOURCE 200809L /* for timespec on solaris */
-
-
 [FILE:374:patches/patch-lib_librdkafka-2.1.0_src_rdaddr.h]
 --- lib/librdkafka-2.4.0/src/rdaddr.h.orig	2024-11-04 22:36:47 UTC
 +++ lib/librdkafka-2.4.0/src/rdaddr.h
@@ -418,6 +402,26 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  #  include <sys/endian.h>
  #elif defined(__APPLE_CC_) || (defined(__MACH__) && defined(__APPLE__))  /* MacOS/X support */
  #  include <machine/endian.h>
+
+
+[FILE:411:patches/patch-lib_librdkafka-2.4.0_src_rd.h]
+--- lib/librdkafka-2.4.0/src/rd.h.orig	2024-11-04 22:36:47 UTC
++++ lib/librdkafka-2.4.0/src/rd.h
+@@ -39,10 +39,11 @@
+ #define _DARWIN_C_SOURCE /* for strlcpy, pthread_setname_np, etc */
+ #endif
+ 
++# if defined(__NetBSD__)
++# define _XOPEN_SOURCE 600
++# endif
++
+ #define __need_IOV_MAX
+-#ifndef _POSIX_C_SOURCE
+-#define _POSIX_C_SOURCE 200809L /* for timespec on solaris */
+-#endif
+ #endif
+ 
+ #include <stdio.h>
 
 
 [FILE:462:patches/patch-lib_librdkafka-2.4.0_src_rdposix.h]
@@ -612,24 +616,44 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
      {
 
 
-[FILE:904:patches/patch-src_flb__network.c]
+[FILE:1664:patches/patch-src_flb__network.c]
 --- src/flb_network.c.orig	2024-11-04 22:36:47 UTC
 +++ src/flb_network.c
-@@ -1871,7 +1871,7 @@ static int net_address_unix_socket_peer_
+@@ -551,9 +551,6 @@ static int net_connect_async(int fd,
+             }
+ 
+             /* Connection is broken, not much to do here */
+-#if ((defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) ||    \
+-     (defined(_XOPEN_SOURCE) || _XOPEN_SOURCE - 0L >= 600L)) &&     \
+-  (!defined(_GNU_SOURCE))
+             ret = strerror_r(error, so_error_buf, sizeof(so_error_buf));
+             if (ret == 0) {
+                 str = so_error_buf;
+@@ -562,9 +559,6 @@ static int net_connect_async(int fd,
+                 flb_errno();
+                 return -1;
+             }
+-#else
+-            str = strerror_r(error, so_error_buf, sizeof(so_error_buf));
+-#endif
+             flb_error("[net] TCP connection failed: %s:%i (%s)",
+                       u->tcp_host, u->tcp_port, str);
+             return -1;
+@@ -1871,7 +1865,7 @@ static int net_address_unix_socket_peer_
                                                  int output_buffer_size,
                                                  size_t *output_data_size)
  {
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__)
      unsigned int peer_credentials_size;
      struct ucred peer_credentials;
  #endif
-@@ -1889,7 +1889,7 @@ static int net_address_unix_socket_peer_
+@@ -1889,7 +1883,7 @@ static int net_address_unix_socket_peer_
          return -1;
      }
  
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__)
      peer_credentials_size = sizeof(struct ucred);
  
      result = getsockopt(fd,

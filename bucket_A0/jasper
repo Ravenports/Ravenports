@@ -41,6 +41,7 @@ FPC_EQUIVALENT=		graphics/jasper
 
 SOVERSION=		7.0.0
 
+CFLAGS=			-Wno-incompatible-pointer-types
 CMAKE_ARGS=		-DJAS_ENABLE_DOC:BOOL=ON
 			-DJAS_ENABLE_LIBJPEG:BOOL=ON
 			-DJAS_ENABLE_OPENGL:BOOL=ON
@@ -134,4 +135,28 @@ share/man/man1/
 share/doc/jasper/
  README.md
  jpeg2000.pdf
+
+
+[FILE:906:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2024-04-27 17:53:19 UTC
++++ CMakeLists.txt
+@@ -318,8 +318,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "Clang"
+ 	  JAS_GCC_WARN_NO_STRINGOP_TRUNCATION)
+ 	check_c_compiler_flag("-Wno-stringop-overflow"
+ 	  JAS_GCC_WARN_NO_STRINGOP_OVERFLOW)
+-	check_c_compiler_flag("-Wno-tautological-constant-out-of-range-compare"
+-	  JAS_CLANG_WARN_NO_OUT_OF_RANGE_COMPARE)
+ 	add_c_compile_options(-Wall)
+ 
+ 	# Note: Use CMAKE_C_FLAGS (instead of add_compile_options) so that the
+@@ -333,9 +331,6 @@ if(CMAKE_C_COMPILER_ID STREQUAL "Clang"
+ 	add_c_compile_options(-Wmissing-prototypes)
+ 	add_c_compile_options(-Wstrict-prototypes)
+ 	add_c_compile_options(-Wno-type-limits)
+-	if (JAS_CLANG_WARN_NO_OUT_OF_RANGE_COMPARE)
+-		add_c_compile_options(-Wno-tautological-constant-out-of-range-compare)
+-	endif()
+ 	if(JAS_GCC_WARN_NO_STRINGOP_TRUNCATION)
+ 		add_c_compile_options(-Wno-stringop-truncation)
+ 	endif()
 

@@ -55,7 +55,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 
 CPPFLAGS=		-Wno-deprecated-declarations
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl/current/|file://${LOCALBASE}/share/xsl/docbook/|" \
 		${WRKSRC}/configure
 
@@ -1929,10 +1929,10 @@ share/man/man1/dia.1
    if (!app_is_interactive())
 
 
-[FILE:1505:patches/patch-configure]
---- configure.orig	2014-09-05 17:08:16.000000000 +0200
-+++ configure	2022-12-31 14:57:06.653904000 +0100
-@@ -16688,7 +16688,7 @@
+[FILE:1820:patches/patch-configure]
+--- configure.orig	2014-09-05 15:08:16 UTC
++++ configure
+@@ -16688,7 +16688,7 @@ fi
  
  
  
@@ -1941,7 +1941,7 @@ share/man/man1/dia.1
  
  pkg_failed=no
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PANGOVERSION" >&5
-@@ -16849,7 +16849,7 @@
+@@ -16849,7 +16849,7 @@ if ${ac_cv_lib_freetype_FT_Init_FreeType
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -1950,7 +1950,7 @@ share/man/man1/dia.1
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -16889,7 +16889,7 @@
+@@ -16889,7 +16889,7 @@ fi
                  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if FreeType version is 2.0.9 or higher" >&5
  $as_echo_n "checking if FreeType version is 2.0.9 or higher... " >&6; }
      old_CPPFLAGS="$CPPFLAGS"
@@ -1959,7 +1959,7 @@ share/man/man1/dia.1
      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  #include <ft2build.h>
-@@ -16902,9 +16902,9 @@
+@@ -16902,9 +16902,9 @@ _ACEOF
  if ac_fn_c_try_cpp "$LINENO"; then :
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
  $as_echo "yes" >&6; }
@@ -1971,6 +1971,15 @@ share/man/man1/dia.1
  
  	 GTK_MODULES="$GTK_MODULES pangoft2"
  
+@@ -17571,7 +17571,7 @@ $as_echo_n "checking for png_structp in
+                   png_structp pp;
+ 		  png_infop info;
+ 		  png_colorp cmap;
+-		  main() { void*foo = png_create_read_struct; }
++		  int main() { void*foo = png_create_read_struct; }
+ _ACEOF
+ if ac_fn_c_try_link "$LINENO"; then :
+   png_ok=yes
 
 
 [FILE:331:patches/patch-doc_fr_Makefile.in]
@@ -1987,10 +1996,10 @@ share/man/man1/dia.1
  pdfdir = @pdfdir@
 
 
-[FILE:483:patches/patch-objects__GRAFCET__boolequation.c]
---- objects/GRAFCET/boolequation.c.orig	Sun Oct  6 14:55:22 2002
-+++ objects/GRAFCET/boolequation.c	Mon Mar 17 13:56:09 2003
-@@ -58,7 +58,7 @@
+[FILE:514:patches/patch-objects__GRAFCET__boolequation.c]
+--- objects/GRAFCET/boolequation.c.orig	2014-08-24 15:46:01 UTC
++++ objects/GRAFCET/boolequation.c
+@@ -58,7 +58,7 @@ struct _Block {
  
  
  /* utility */
@@ -1999,7 +2008,7 @@ share/man/man1/dia.1
  {
    switch (c) {
    case '!':
-@@ -136,7 +136,7 @@
+@@ -136,7 +136,7 @@ static Block *textblock_create(const gch
      gchar *p1;
      c = g_utf8_get_char(*str);
      p1 = g_utf8_next_char(*str);
@@ -2008,6 +2017,20 @@ share/man/man1/dia.1
      *str = p1;
    }
    
+
+
+[FILE:501:patches/patch-objects_custom_custom__object.c]
+--- objects/custom/custom_object.c.orig	2014-08-24 15:46:01 UTC
++++ objects/custom/custom_object.c
+@@ -379,7 +379,7 @@ void custom_setup_properties (ShapeInfo
+ 	 Maybe it even works cause the sizeof() in *_get_data_size can be
+ 	 calculated at compile time. Anyway, a mess ;) --hb
+       */
+-      size = info->props[i].ops->get_data_size (&info->props[i]);
++      size = info->props[i].ops->get_data_size ((Property *)&info->props[i]);
+       info->ext_attr_size += size;
+       offs += size;
+     }
 
 
 [FILE:252:patches/patch-plug-ins_drs_dia-render-script-import.c]
@@ -2023,10 +2046,81 @@ share/man/man1/dia.1
  static real
 
 
-[FILE:417:patches/patch-plug-ins_wmf_wmf.cpp]
---- plug-ins/wmf/wmf.cpp.orig	2014-08-24 17:46:01.000000000 +0200
-+++ plug-ins/wmf/wmf.cpp	2022-12-31 14:35:14.378917000 +0100
-@@ -54,15 +54,17 @@
+[FILE:2308:patches/patch-plug-ins_postscript_diapsft2renderer.c]
+--- plug-ins/postscript/diapsft2renderer.c.orig	2014-08-24 15:46:01 UTC
++++ plug-ins/postscript/diapsft2renderer.c
+@@ -61,16 +61,16 @@ void draw_bezier_outline(DiaPsRenderer *
+ 			 double pos_y
+ 			 );
+ /* Countour traveling functions */
+-static int paps_move_to( FT_Vector* to,
++static int paps_move_to( const FT_Vector* to,
+ 			 void *user_data);
+-static int paps_line_to( FT_Vector*  to,
++static int paps_line_to( const FT_Vector*  to,
+ 			 void *user_data);
+-static int paps_conic_to( FT_Vector*  control,
+-			  FT_Vector*  to,
++static int paps_conic_to( const FT_Vector*  control,
++			  const FT_Vector*  to,
+ 			  void *user_data);
+-static int paps_cubic_to( FT_Vector*  control1,
+-			  FT_Vector*  control2,
+-			  FT_Vector*  to,
++static int paps_cubic_to( const FT_Vector*  control1,
++			  const FT_Vector*  control2,
++			  const FT_Vector*  to,
+ 			  void *user_data);
+ 
+ static void dia_ps_ft2_renderer_class_init (DiaPsFt2RendererClass *klass);
+@@ -111,7 +111,7 @@ set_font(DiaRenderer *self, DiaFont *fon
+ /*======================================================================
+   outline traversing functions.
+   ----------------------------------------------------------------------*/
+-static int paps_move_to( FT_Vector* to,
++static int paps_move_to( const FT_Vector* to,
+ 			 void *user_data)
+ {
+   OutlineInfo *outline_info = (OutlineInfo*)user_data;
+@@ -121,7 +121,7 @@ static int paps_move_to( FT_Vector* to,
+   return 0;
+ }
+ 
+-static int paps_line_to( FT_Vector*  to,
++static int paps_line_to( const FT_Vector*  to,
+ 			 void *user_data)
+ {
+   OutlineInfo *outline_info = (OutlineInfo*)user_data;
+@@ -131,8 +131,8 @@ static int paps_line_to( FT_Vector*  to,
+   return 0;
+ }
+ 
+-static int paps_conic_to( FT_Vector*  control,
+-			  FT_Vector*  to,
++static int paps_conic_to( const FT_Vector*  control,
++			  const FT_Vector*  to,
+ 			  void *user_data)
+ {
+   OutlineInfo *outline_info = (OutlineInfo*)user_data;
+@@ -144,9 +144,9 @@ static int paps_conic_to( FT_Vector*  co
+   return 0;
+ }
+ 
+-static int paps_cubic_to( FT_Vector*  control1,
+-			  FT_Vector*  control2,
+-			  FT_Vector*  to,
++static int paps_cubic_to( const FT_Vector*  control1,
++			  const FT_Vector*  control2,
++			  const FT_Vector*  to,
+ 			  void *user_data)
+ {
+   OutlineInfo *outline_info = (OutlineInfo*)user_data;
+
+
+[FILE:401:patches/patch-plug-ins_wmf_wmf.cpp]
+--- plug-ins/wmf/wmf.cpp.orig	2014-08-24 15:46:01 UTC
++++ plug-ins/wmf/wmf.cpp
+@@ -54,15 +54,17 @@ typedef W32::LOGFONTW LOGFONTW;
  
  #elif HAVE_LIBEMF
    namespace W32 {
@@ -2047,13 +2141,56 @@ share/man/man1/dia.1
  // #define SAVE_EMF
 
 
-[FILE:244:patches/patch-po_checktrans.py]
---- po-checktrans.py.orig	Wed Sep 24 21:32:42 2003
-+++ po-checktrans.py	Wed Sep 24 21:33:03 2003
+[FILE:218:patches/patch-po_checktrans.py]
+--- po-checktrans.py.orig	2014-08-24 15:44:08 UTC
++++ po-checktrans.py
 @@ -1,4 +1,4 @@
 -#!/usr/bin/python
 +#!/usr/bin/env python
  #
  # This quick hack gives translation statistics (from the core translation
  # files).
+
+
+[FILE:460:patches/patch-tests_test-boundingbox.c]
+--- tests/test-boundingbox.c.orig	2014-08-24 15:46:02 UTC
++++ tests/test-boundingbox.c
+@@ -116,7 +116,7 @@ _add_bezier_tests (void)
+     {
+       gchar *testpath = g_strdup_printf ("/Dia/BoundingBox/Bezier%d", i+1);
+ #if GLIB_CHECK_VERSION(2,16,0)
+-      g_test_add_data_func (testpath, &_test_beziers[i], _check_one_bezier);
++      g_test_add_data_func (testpath, &_test_beziers[i], (GTestDataFunc)_check_one_bezier);
+ #endif
+       g_free (testpath);
+     }
+
+
+[FILE:1045:patches/patch-tests_test-objects.c]
+--- tests/test-objects.c.orig	2014-08-24 15:46:02 UTC
++++ tests/test-objects.c
+@@ -259,19 +259,19 @@ _ot_item (gpointer key,
+ 
+ #if GLIB_CHECK_VERSION(2,16,0)
+   testpath = g_strdup_printf ("%s/%s/%s", base, name, "Creation");
+-  g_test_add_data_func (testpath, type, _test_creation);
++  g_test_add_data_func (testpath, type, (GTestDataFunc) _test_creation);
+   g_free (testpath);
+ 
+   testpath = g_strdup_printf ("%s/%s/%s", base, name, "Copy");
+-  g_test_add_data_func (testpath, type, _test_copy);
++  g_test_add_data_func (testpath, type, (GTestDataFunc) _test_copy);
+   g_free (testpath);
+ 
+   testpath = g_strdup_printf ("%s/%s/%s", base, name, "Movement");
+-  g_test_add_data_func (testpath, type, _test_movement);
++  g_test_add_data_func (testpath, type, (GTestDataFunc) _test_movement);
+   g_free (testpath);
+ 
+   testpath = g_strdup_printf ("%s/%s/%s", base, name, "Change");
+-  g_test_add_data_func (testpath, type, _test_change);
++  g_test_add_data_func (testpath, type, (GTestDataFunc) _test_change);
+   g_free (testpath);
+ #endif
+ 
 

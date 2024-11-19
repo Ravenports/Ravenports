@@ -35,6 +35,7 @@ SHEBANG_ADD_SH=		lib/luajit-2.1.0-1e66d0f/configure
 
 RC_SUBR=		fluent-bit:primary
 
+CFLAGS=			-Wno-implicit-function-declaration
 CMAKE_ARGS=		-DFLB_DEBUG=Off
 			-DFLB_TRACE=Off
 			-DFLB_BACKTRACE=Off
@@ -284,6 +285,19 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  #if LJ_TARGET_HAS_GETENTROPY
 
 
+[FILE:470:patches/patch-lib_mbedtls-2.28.0_CMakeLists.txt]
+--- lib/mbedtls-2.28.0/CMakeLists.txt.orig	2022-03-22 22:42:32 UTC
++++ lib/mbedtls-2.28.0/CMakeLists.txt
+@@ -236,7 +236,6 @@ if(MBEDTLS_FATAL_WARNINGS)
+     endif(CMAKE_COMPILER_IS_MSVC)
+ 
+     if(CMAKE_COMPILER_IS_CLANG OR CMAKE_COMPILER_IS_GNU)
+-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+         if(UNSAFE_BUILD)
+             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=cpp")
+             set(CMAKE_C_FLAGS_ASAN "${CMAKE_C_FLAGS_ASAN} -Wno-error=cpp")
+
+
 [FILE:840:patches/patch-lib_monkey_CMakeLists.txt]
 --- lib/monkey/CMakeLists.txt.orig	2022-03-22 22:42:32 UTC
 +++ lib/monkey/CMakeLists.txt
@@ -354,6 +368,20 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  #define PTR_TO_UDATA(x)	((intptr_t)(x))
  #define INT_TO_UDATA(x) ((intptr_t)(x))
  #else
+
+
+[FILE:463:patches/patch-lib_monkey_mk__core_mk__iov.c]
+--- lib/monkey/mk_core/mk_iov.c.orig	2022-03-22 22:42:32 UTC
++++ lib/monkey/mk_core/mk_iov.c
+@@ -57,7 +57,7 @@ struct mk_iov *mk_iov_create(int n, int
+ 
+     /* Set pointer address */
+     iov     = p;
+-    iov->io = (struct mk_iov *)((uint8_t *)p + sizeof(struct mk_iov));
++    iov->io = (struct iovec *)((uint8_t *)p + sizeof(struct mk_iov));
+     iov->buf_to_free = (void *) ((uint8_t*)p + sizeof(struct mk_iov) + s_iovec);
+ 
+     mk_iov_init(iov, n, offset);
 
 
 [FILE:440:patches/patch-lib_monkey_mk__server_CMakeLists.txt]
@@ -430,6 +458,29 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  #elif defined(__APPLE_CC_) || defined(__MACH__)  /* MacOS/X support */
  #  include <machine/endian.h>
  
+
+
+[FILE:805:patches/patch-src_flb__network.c]
+--- src/flb_network.c.orig	2022-03-22 22:42:32 UTC
++++ src/flb_network.c
+@@ -478,9 +478,15 @@ static int net_connect_async(int fd,
+             }
+ 
+             /* Connection is broken, not much to do here */
+-            str = strerror_r(error, so_error_buf, sizeof(so_error_buf));
+-            flb_error("[net] TCP connection failed: %s:%i (%s)",
++            ret = strerror_r(error, so_error_buf, sizeof(so_error_buf));
++            if (ret == 0) {
++               str = so_error_buf;
++               flb_error("[net] TCP connection failed: %s:%i (%s)",
+                       u->tcp_host, u->tcp_port, str);
++            } else {
++               flb_error("[net] TCP connection failed: %s:%i",
++                      u->tcp_host, u->tcp_port);
++            }
+             return -1;
+         }
+     }
 
 
 [FILE:700:files/fluent-bit.in]

@@ -61,3 +61,39 @@ transparency and gradients.
 [FILE:99:distinfo]
 21b29808c8348cd41b22bd07ccc83fdf09f026c466b67e0fd5bc4a7cfafeb20f       595689 Tk-Zinc-3.306.tar.gz
 
+
+[FILE:549:patches/patch-PostScript.c]
+--- PostScript.c.orig	2020-11-25 19:23:17 UTC
++++ PostScript.c
+@@ -305,7 +305,7 @@ ZnPostScriptCmd(ZnWInfo        *wi,
+   ps_info.prolog = 1;
+   Tcl_InitHashTable(&ps_info.fontTable, TCL_STRING_KEYS);
+   result = Tk_ConfigureWidget(wi->interp, wi->win, config_specs,
+-                              argc-2, (CONST char **) argv+2,
++                              argc-2, (Tcl_Obj * const*) argv+2,
+                               (char *) &ps_info,
+                               TK_CONFIG_ARGV_ONLY|TK_CONFIG_OBJS);
+   if (result != TCL_OK) {
+
+
+[FILE:1102:patches/patch-tkZinc.c]
+--- tkZinc.c.orig	2020-11-25 19:23:17 UTC
++++ tkZinc.c
+@@ -8999,11 +8999,11 @@ InitZinc(Tcl_Interp *interp) {
+   ZnTesselator.tess = gluNewTess();
+   ZnTesselator.combine_list = NULL;
+         ZnTesselator.combine_length = 0;
+-  gluTessCallback(ZnTesselator.tess, GLU_TESS_BEGIN_DATA, ZnTessBegin);
+-  gluTessCallback(ZnTesselator.tess, GLU_TESS_VERTEX_DATA, ZnTessVertex);
+-  gluTessCallback(ZnTesselator.tess, GLU_TESS_END_DATA, ZnTessEnd);
+-  gluTessCallback(ZnTesselator.tess, GLU_TESS_COMBINE_DATA, ZnTessCombine);
+-  gluTessCallback(ZnTesselator.tess, GLU_TESS_ERROR_DATA, ZnTessError);
++  gluTessCallback(ZnTesselator.tess, GLU_TESS_BEGIN_DATA, (_GLUfuncptr)ZnTessBegin);
++  gluTessCallback(ZnTesselator.tess, GLU_TESS_VERTEX_DATA, (_GLUfuncptr)ZnTessVertex);
++  gluTessCallback(ZnTesselator.tess, GLU_TESS_END_DATA, (_GLUfuncptr)ZnTessEnd);
++  gluTessCallback(ZnTesselator.tess, GLU_TESS_COMBINE_DATA, (_GLUfuncptr)ZnTessCombine);
++  gluTessCallback(ZnTesselator.tess, GLU_TESS_ERROR_DATA, (_GLUfuncptr)ZnTessError);
+   gluTessNormal(ZnTesselator.tess, 0.0, 0.0, -1.0);
+ 
+   /*
+

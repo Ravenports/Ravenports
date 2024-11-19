@@ -25,7 +25,7 @@ BUILD_DEPENDS=		freetype:dev:std
 BUILDRUN_DEPENDS=	freetype:primary:std
 			qt5-qtbase:primary:std
 
-USES=			cmake jpeg png zlib pkgconfig fontconfig
+USES=			cmake jpeg png zlib pkgconfig fontconfig ninja
 SDL_COMPONENTS=		mixer2 sdl2
 
 LICENSE=		GPLv2+:primary
@@ -35,12 +35,19 @@ LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/garglk/garglk.h
 LICENSE_SCHEME=		solo
 
+INSTALL_REQ_TOOLCHAIN=	yes
+
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH="{{PREFIX}}/lib/qt5/cmake/"
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/gargoyle
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libgarglk.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/gargoyle/*
+
+do-install:
+	(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+		${MAKE_CMD} ${MAKE_FLAGS} ${MAKEFILE} ${MAKE_ARGS} -dexplain \
+		${INSTALL_TARGET})
 
 [FILE:388:descriptions/desc.primary]
 Gargoyle is an IF player that supports all the major interactive fiction

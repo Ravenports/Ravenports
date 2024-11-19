@@ -62,6 +62,7 @@ CFLAGS=			-fPIC
 VAR_OPSYS[darwin]=	CONFIGURE_ARGS=lt_cv_apple_cc_single_mod=yes
 VAR_ARCH[aarch64]=	CONFIGURE_ARGS=--enable-posixmutexes
 			CONFIGURE_ARGS=--with-mutex=POSIX/pthreads
+VAR_ARCH[x86_64]=	CONFIGURE_ARGS=--with-mutex=x86_64/gcc-assembly
 VAR_ARCH[i386]=		CONFIGURE_ARGS=--with-mutex=x86/gcc-assembly
 
 [TCL].CONFIGURE_ARGS_OFF=		--disable-tcl
@@ -2372,7 +2373,27 @@ share/doc/db5/upgrading/
  upgrade_process.html
 
 
-[FILE:3769:patches/patch-dist_configure]
+[FILE:581:patches/patch-dist_aclocal_tls.m4]
+Fixes "No appropriate TLS modifier defined." error on GCC 14
+
+--- dist/aclocal/tls.m4.orig	2013-09-09 15:35:02 UTC
++++ dist/aclocal/tls.m4
+@@ -42,10 +42,10 @@ AC_DEFUN([AX_TLS], [
+              pthread_key_create(&key, NULL);
+          }
+          static void *get_tls() {
+-             return (void *)pthread_getspecific(&key);
++             return (void *)pthread_getspecific(key);
+          }
+          static void set_tls(void *p) {
+-              pthread_setspecific(&key, p);
++              pthread_setspecific(key, p);
+          }], [],
+          [ac_cv_tls=pthread])
+   fi
+
+
+[FILE:4205:patches/patch-dist_configure]
 --- dist/configure.orig	2013-09-09 15:35:02 UTC
 +++ dist/configure
 @@ -7683,7 +7683,7 @@ else
@@ -2469,6 +2490,19 @@ share/doc/db5/upgrading/
  MAKEFILE_CXXLINK="\$(LIBTOOL) --mode=link ${MAKEFILE_CXXLINK}"
  
  
+@@ -19187,10 +19187,10 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
+              pthread_key_create(&key, NULL);
+          }
+          static void *get_tls() {
+-             return (void *)pthread_getspecific(&key);
++             return (void *)pthread_getspecific(key);
+          }
+          static void set_tls(void *p) {
+-              pthread_setspecific(&key, p);
++              pthread_setspecific(key, p);
+          }
+ int
+ main ()
 @@ -27322,7 +27322,7 @@ esac
  # !!! END COPIED from autoconf distribution
  
