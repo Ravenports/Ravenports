@@ -2,7 +2,7 @@
 
 NAMEBASE=		pipewire
 VERSION=		1.2.6
-REVISION=		1
+REVISION=		2
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Low-latency audio/video router and processor
@@ -14,7 +14,7 @@ SITES[main]=		https://gitlab.freedesktop.org/pipewire/pipewire/-/archive/1.2.6/
 SITES[jtsiomb]=		https://github.com/jtsiomb/c11threads/releases/download/v1.0/
 DISTFILE[1]=		pipewire-1.2.6.tar.gz:main
 DISTFILE[2]=		c11threads-1.0.tar.gz:jtsiomb
-DF_INDEX=		1 2
+DF_INDEX=		1
 SPKGS[std]=		set
 			primary
 			dev
@@ -23,10 +23,10 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	BSD JACK C11THREADS
 OPTIONS_STANDARD=	BSD JACK C11THREADS
-OPT_ON[freebsd]=	BSD C11THREADS
+OPT_ON[freebsd]=	BSD
 OPT_ON[netbsd]=		BSD
 OPT_ON[openbsd]=	BSD
-OPT_ON[dragonfly]=	BSD
+OPT_ON[dragonfly]=	BSD C11THREADS
 OPT_ON[midnightbsd]=	BSD C11THREADS
 
 BUILD_DEPENDS=		video4linux:dev:std
@@ -89,6 +89,7 @@ VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 [JACK].BROKEN_ON=			Not yet supported
 
 [C11THREADS].DESCRIPTION=		Install <threads.h> on platforms missing it
+[C11THREADS].DF_INDEX_ON=		2
 
 [BSD].DESCRIPTION=			BSD-specific build instructions
 [BSD].BUILDRUN_DEPENDS_ON=		libinotify:primary:std
@@ -98,24 +99,25 @@ VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 					libepoll-shim:dev:std
 					libgudev-devd:dev:std
 
+post-install-C11THREADS-ON:
+	${RM} ${LOCALBASE}/include/threads.h
+
 pre-configure-midnightbsd:
 	${REINPLACE_CMD} -e 's@freebsd@midnightbsd@g' \
 		${WRKSRC}/src/pipewire/meson.build \
 		${WRKSRC}/meson.build
-	${INSTALL_DATA} ${WRKDIR}/c11threads-1.0/c11threads.h ${LOCALBASE}/include/threads.h
-
-post-install:
-	${RM} ${LOCALBASE}/include/threads.h
 
 pre-configure:
 	${GREP} -rl "pw_init(" | ${XARGS} ${REINPLACE_CMD} -e 's|pw_init(|pipewire_init|g'
 	${FIND} ${WRKSRC} -name "*.orig" -delete
 
+pre-configure-C11THREADS-ON:
+	${INSTALL_DATA} ${WRKDIR}/c11threads-1.0/c11threads.h ${LOCALBASE}/include/threads.h
+
 pre-configure-dragonfly:
 	${REINPLACE_CMD} -e 's@freebsd@dragonfly@g' \
 		${WRKSRC}/src/pipewire/meson.build \
 		${WRKSRC}/meson.build
-	${INSTALL_DATA} ${WRKDIR}/c11threads-1.0/c11threads.h ${LOCALBASE}/include/threads.h
 
 [FILE:365:descriptions/desc.primary]
 PipeWire is a server and user space API to deal with multimedia pipelines.
