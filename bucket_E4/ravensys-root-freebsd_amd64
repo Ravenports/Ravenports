@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-freebsd_amd64
 VERSION=		13.2
-REVISION=		6
+REVISION=		7
 KEYWORDS=		raven
 VARIANTS=		std REL12
 SDESC[std]=		FreeBSD/AMD64 13.2 builder system root
@@ -124,7 +124,7 @@ b76ab084e339ee05f59be81354c8cb7dfadf9518e0548f88017d2759a910f17c   1072607232 Fr
 289522e2f4e1260859505adab6d7b54ab83d19aeb147388ff7e28019984da5dc    965099520 FreeBSD-12.2-RELEASE-amd64-disc1.iso
 
 
-[FILE:19337:manifests/plist.single]
+[FILE:19392:manifests/plist.single]
 %%BASE%%/bin/
  [
  cat
@@ -1639,6 +1639,9 @@ b76ab084e339ee05f59be81354c8cb7dfadf9518e0548f88017d2759a910f17c   1072607232 Fr
  libsbuf.a
  libsbuf.so.6
  libssp_nonshared.a
+ libstdthreads.a
+ libstdthreads.so
+ libstdthreads.so.0
  libthr.a
  libthr.so
  libthr.so.3
@@ -3229,7 +3232,7 @@ b76ab084e339ee05f59be81354c8cb7dfadf9518e0548f88017d2759a910f17c   1072607232 Fr
 @dir %%BASE%%/usr/local
 
 
-[FILE:7215:files/freebsd.mk]
+[FILE:7484:files/freebsd.mk]
 # For FreeBSD
 
 Libexec_FreeBSD=	/libexec/ld-elf.so.1
@@ -3559,6 +3562,13 @@ install-platform: install-common
 .if "${OSMAJOR}" == "13"
 	${BSD_INSTALL_LIB} ../${OPSYS:tl}/lib/casper/libcap_fileargs.so.1 \
 		${DESTDIR}${BASE}/usr/lib/
+	${BSD_INSTALL_LIB} ../${OPSYS:tl}/usr/lib/libstdthreads.so.0 \
+		${DESTDIR}${BASE}/usr/lib/
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/lib/libstdthreads.a \
+		${DESTDIR}${BASE}/usr/lib/
+	(cd ${DESTDIR}${BASE}/usr/lib && \
+		ln -s libstdthreads.so.0 libstdthreads.so \
+	)
 .endif
 	sed -e 's|/lib/libc\.so|/usr/lib/libc.so|'  ../${OPSYS:tl}/usr/lib/libc.so \
 		> ${DESTDIR}${BASE}/usr/lib/libc.so

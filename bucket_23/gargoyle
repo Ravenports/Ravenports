@@ -35,7 +35,7 @@ LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/garglk/garglk.h
 LICENSE_SCHEME=		solo
 
-INSTALL_REQ_TOOLCHAIN=	yes
+MAKE_ARGS=		-dexplain
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH="{{PREFIX}}/lib/qt5/cmake/"
 
@@ -43,11 +43,6 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/gargoyle
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libgarglk.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/gargoyle/*
-
-do-install:
-	(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		${MAKE_CMD} ${MAKE_FLAGS} ${MAKEFILE} ${MAKE_ARGS} -dexplain \
-		${INSTALL_TARGET})
 
 [FILE:388:descriptions/desc.primary]
 Gargoyle is an IF player that supports all the major interactive fiction
@@ -151,4 +146,17 @@ share/man/man6/gargoyle.6
  #include <cstddef>
  #include <cstdio>
  #include <cstring>
+
+
+[FILE:356:patches/patch-terps_CMakeLists.txt]
+--- terps/CMakeLists.txt.orig	2023-02-20 06:08:58 UTC
++++ terps/CMakeLists.txt
+@@ -41,7 +41,6 @@ function(terp target)
+         target_compile_definitions(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:_XOPEN_SOURCE=600>)
+     endif()
+     if(TERP_LTO)
+-        lto(${target})
+     endif()
+     if(TERP_MATH)
+         target_link_libraries(${target} PRIVATE m)
 

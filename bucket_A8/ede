@@ -2,7 +2,7 @@
 
 NAMEBASE=		ede
 VERSION=		2.1
-REVISION=		4
+REVISION=		5
 KEYWORDS=		x11_wm
 VARIANTS=		std
 SDESC[std]=		Extremely light-weight desktop environment
@@ -17,22 +17,25 @@ SPKGS[std]=		set
 			primary
 			wallpapers
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	GAMIN
+OPTIONS_STANDARD=	GAMIN
+OPT_ON[freebsd]=	GAMIN
+OPT_ON[sunos]=		GAMIN
+OPT_ON[netbsd]=		GAMIN
+OPT_ON[dragonfly]=	GAMIN
+OPT_ON[midnightbsd]=	GAMIN
 
 BUILD_DEPENDS=		jam:primary:std
 			asciidoc:single:std
 			dbus:dev:std
 			fltk:dev:std
+			startup-notification:dev:std
 BUILDRUN_DEPENDS=	edelib:single:std
 			fltk:primary:std
 			pekwm:primary:std
 			xorg-setxkbmap:primary:std
-			startup-notification:single:std
+			startup-notification:primary:std
 			dbus:primary:std
-BR_DEPS[freebsd]=	gamin:single:std
-BR_DEPS[sunos]=		gamin:single:std
-BR_DEPS[dragonfly]=	gamin:single:std
 
 USES=			gettext:build pkgconfig jpeg png zlib curl
 			mime-info:primary
@@ -48,6 +51,10 @@ LICENSE_SCHEME=		solo
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ENV=		PEKWM_CXXFLAGS="-fpermissive"
+
+[GAMIN].DESCRIPTION=			Support file and directory monitoring
+[GAMIN].BUILDRUN_DEPENDS_ON=		gamin:primary:std
+[GAMIN].BUILD_DEPENDS_ON=		gamin:dev:std
 
 post-patch:
 	${REINPLACE_CMD} -e "s|__LDFLAGS__|${LDFLAGS}|" \

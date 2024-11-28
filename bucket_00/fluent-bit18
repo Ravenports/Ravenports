@@ -384,6 +384,29 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
      mk_iov_init(iov, n, offset);
 
 
+[FILE:756:patches/patch-lib_monkey_mk__core_mk__string.c]
+--- lib/monkey/mk_core/mk_string.c.orig	2022-03-22 22:42:32 UTC
++++ lib/monkey/mk_core/mk_string.c
+@@ -65,7 +65,7 @@ void *memmem(const void *haystack, size_
+     free_needle_buffer = 0;
+ 
+     if(1024 > haystacklen){
+-        null_terminated_haystack_buffer = (uint8_t *)_alloca(haystacklen + 1);
++        null_terminated_haystack_buffer = (uint8_t *)__builtin_alloca(haystacklen + 1);
+     }
+     else
+     {
+@@ -75,7 +75,7 @@ void *memmem(const void *haystack, size_
+ 
+     if(NULL != null_terminated_haystack_buffer){
+         if(1024 > needlelen){
+-            null_terminated_needle_buffer = (uint8_t*)_alloca(needlelen + 1);
++            null_terminated_needle_buffer = (uint8_t*)__builtin_alloca(needlelen + 1);
+         }
+         else
+         {
+
+
 [FILE:440:patches/patch-lib_monkey_mk__server_CMakeLists.txt]
 --- lib/monkey/mk_server/CMakeLists.txt.orig	2022-03-22 22:42:32 UTC
 +++ lib/monkey/mk_server/CMakeLists.txt
@@ -460,24 +483,28 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  
 
 
-[FILE:805:patches/patch-src_flb__network.c]
+[FILE:901:patches/patch-src_flb__network.c]
 --- src/flb_network.c.orig	2022-03-22 22:42:32 UTC
 +++ src/flb_network.c
-@@ -478,9 +478,15 @@ static int net_connect_async(int fd,
+@@ -478,9 +478,21 @@ static int net_connect_async(int fd,
              }
  
              /* Connection is broken, not much to do here */
--            str = strerror_r(error, so_error_buf, sizeof(so_error_buf));
--            flb_error("[net] TCP connection failed: %s:%i (%s)",
++#if defined(_GNU_SOURCE)
+             str = strerror_r(error, so_error_buf, sizeof(so_error_buf));
+             flb_error("[net] TCP connection failed: %s:%i (%s)",
+                       u->tcp_host, u->tcp_port, str);
++#else
 +            ret = strerror_r(error, so_error_buf, sizeof(so_error_buf));
 +            if (ret == 0) {
 +               str = so_error_buf;
 +               flb_error("[net] TCP connection failed: %s:%i (%s)",
-                       u->tcp_host, u->tcp_port, str);
++                      u->tcp_host, u->tcp_port, str);
 +            } else {
 +               flb_error("[net] TCP connection failed: %s:%i",
 +                      u->tcp_host, u->tcp_port);
 +            }
++#endif
              return -1;
          }
      }

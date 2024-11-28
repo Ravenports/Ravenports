@@ -2,7 +2,7 @@
 
 NAMEBASE=		xorg-driver-video-amdgpu
 VERSION=		23.0.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_drivers
 VARIANTS=		std
 SDESC[std]=		X.org amdgpu video driver
@@ -136,8 +136,35 @@ share/man/man4/amdgpu.4
  		if (e->crtc->scrn == scrn)
 
 
+[FILE:522:patches/patch-src_amdgpu__glamor.c]
+--- src/amdgpu_glamor.c.orig	2023-02-22 17:14:50 UTC
++++ src/amdgpu_glamor.c
+@@ -28,9 +28,10 @@
+ #include "config.h"
+ #endif
+ 
+-#ifdef USE_GLAMOR
+-
+ #include <xf86.h>
++DevPrivateKeyRec amdgpu_pixmap_index;
++
++#ifdef USE_GLAMOR
+ 
+ #include "amdgpu_bo_helper.h"
+ #include "amdgpu_pixmap.h"
+@@ -42,8 +43,6 @@
+ #include <GL/gl.h>
+ #endif
+ 
+-DevPrivateKeyRec amdgpu_pixmap_index;
+-
+ void amdgpu_glamor_exchange_buffers(PixmapPtr src, PixmapPtr dst)
+ {
+ 	AMDGPUInfoPtr info = AMDGPUPTR(xf86ScreenToScrn(dst->drawable.pScreen));
+
+
 [FILE:333:patches/patch-src_amdgpu__kms.c]
---- src/amdgpu_kms.c.orig	2022-02-23 12:27:54 UTC
+--- src/amdgpu_kms.c.orig	2023-02-22 17:14:50 UTC
 +++ src/amdgpu_kms.c
 @@ -932,7 +932,7 @@ static void
  amdgpu_dirty_update(ScrnInfoPtr scrn)

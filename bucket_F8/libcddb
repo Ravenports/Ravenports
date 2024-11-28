@@ -12,14 +12,25 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/libcddb/libcddb/1.3.2
 DISTFILE[1]=		libcddb-1.3.2.tar.bz2:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		bash:primary:std
+EXRUN[tools]=		primary
 
 USES=			iconv libtool fbsd10fix mbsdfix
+
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"CDDB_H"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/cddb/cddb.h
+LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		audio/libcddb
 
@@ -27,24 +38,35 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-cdio
 
 INSTALL_TARGET=		install-strip
+SOVERSION=		2.2.3
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|/bin/sh|${LOCALBASE}/bin/bash|' \
 		${WRKSRC}/configure
 
-[FILE:221:descriptions/desc.single]
+[FILE:221:descriptions/desc.primary]
 Libcddb is a library that implements the different protocols (CDDBP,
 HTTP, SMTP) to access data on a CDDB server (http://freedb.org).  It
 tries to be as cross-platform as possible.  The initial library will
 have a C API.
 
 
+[FILE:46:descriptions/desc.tools]
+This package contains the cddb query program.
+
+
 [FILE:100:distinfo]
 35ce0ee1741ea38def304ddfe84a958901413aa829698357f0bee5bb8f0a223b       352909 libcddb-1.3.2.tar.bz2
 
 
-[FILE:239:manifests/plist.single]
-bin/cddb_query
+[FILE:55:manifests/plist.primary]
+lib/
+ libcddb.so.%%SOMAJOR%%
+ libcddb.so.%%SOVERSION%%
+
+
+[FILE:192:manifests/plist.dev]
+lib/pkgconfig/libcddb.pc
 include/cddb/
  cddb.h
  cddb_cmd.h
@@ -59,9 +81,10 @@ include/cddb/
 lib/
  libcddb.a
  libcddb.so
- libcddb.so.2
- libcddb.so.2.2.3
-lib/pkgconfig/libcddb.pc
+
+
+[FILE:15:manifests/plist.tools]
+bin/cddb_query
 
 
 [FILE:225:patches/patch-include_cddb_cddb__log.h]

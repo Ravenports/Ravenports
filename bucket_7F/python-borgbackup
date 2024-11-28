@@ -35,6 +35,8 @@ GENERATED=		yes
 
 MAKE_ENV=		BORG_OPENSSL_PREFIX={{OPENSSLBASE}}
 
+VAR_OPSYS[freebsd]=	CFLAGS=-Wno-implicit-function-declaration
+
 [PY312].BUILDRUN_DEPENDS_ON=		python-msgpack:single:v12
 					python-packaging:single:v12
 					python-setuptools-scm:single:v12
@@ -50,6 +52,9 @@ MAKE_ENV=		BORG_OPENSSL_PREFIX={{OPENSSLBASE}}
 post-patch:
 	${SED} -i'' -e 's|msgpack-python|msgpack|' \
 	${WRKSRC}/setup.py ${WRKSRC}/src/borgbackup.egg-info/requires.txt
+
+post-extract-freebsd:
+	${CP} ${FILESDIR}/acl_extended_file_np.c ${WRKSRC}/src/borg/platform/
 
 [FILE:3430:descriptions/desc.single]
 
@@ -156,4 +161,104 @@ interactive
 
 [FILE:113:distinfo]
 c54c45155643fa66fed7f9ff2d134ea0a58d0ac197c18781ddc2fb236bf6ed29      3798511 python-src/borgbackup-1.4.0.tar.gz
+
+
+[FILE:707:patches/patch-setup.py]
+--- setup.py.orig	2024-07-02 22:06:38 UTC
++++ setup.py
+@@ -181,7 +181,7 @@ if not on_rtd:
+     syncfilerange_ext = Extension(
+         "borg.platform.syncfilerange", [platform_syncfilerange_source], extra_compile_args=cflags
+     )
+-    freebsd_ext = Extension("borg.platform.freebsd", [platform_freebsd_source], extra_compile_args=cflags)
++    freebsd_ext = Extension("borg.platform.freebsd", [platform_freebsd_source, 'src/borg/platform/acl_extended_file_np.c'], extra_compile_args=cflags)
+     darwin_ext = Extension("borg.platform.darwin", [platform_darwin_source], extra_compile_args=cflags)
+     windows_ext = Extension("borg.platform.windows", [platform_windows_source], extra_compile_args=cflags)
+ 
+
+
+[FILE:2633:files/acl_extended_file_np.c]
+/*-
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * Copyright (c) 2021 Gleb Popov
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+/* taken from FreeBSD src branch as of 559a218c9b25 Wed Nov 1 16:43:37 2023 -0600 */
+/*
+ * acl_extended_file_np: Check if the file has extended ACLs set.
+ */
+
+#include <sys/param.h>
+#include <sys/errno.h>
+#include <sys/acl.h>
+
+#include <unistd.h>
+
+typedef acl_t (*acl_get_func)(const char *, acl_type_t);
+typedef long (*pathconf_func)(const char *, int);
+
+static int
+_acl_extended_file(acl_get_func f, pathconf_func pathconf_f, const char* path_p);
+
+int
+acl_extended_file_np(const char *path_p)
+{
+	return (_acl_extended_file(acl_get_file, pathconf, path_p));
+}
+
+int
+acl_extended_file_nofollow_np(const char *path_p)
+{
+	return (_acl_extended_file(acl_get_link_np, lpathconf, path_p));
+}
+
+int
+acl_extended_link_np(const char *path_p)
+{
+	return (_acl_extended_file(acl_get_link_np, lpathconf, path_p));
+}
+
+int
+_acl_extended_file(acl_get_func acl_get, pathconf_func pathconf_f, const char* path_p)
+{
+	acl_t acl;
+	int retval, istrivial, acltype = ACL_TYPE_ACCESS;
+
+	retval = pathconf_f(path_p, _PC_ACL_NFS4);
+	if (retval > 0)
+		acltype = ACL_TYPE_NFS4;
+
+	acl = acl_get(path_p, acltype);
+	if (acl == NULL)
+		return (-1);
+
+	retval = acl_is_trivial_np(acl, &istrivial);
+	acl_free(acl);
+	if (retval == -1)
+		return (-1);
+
+	return (!istrivial);
+}
 

@@ -12,16 +12,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://bitmath.org/code/mtdev/
 DISTFILE[1]=		mtdev-1.1.7.tar.bz2:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		evdev-proto:single:std
+EXRUN[tools]=		primary
 
 USES=			libtool
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
@@ -32,19 +36,28 @@ MUST_CONFIGURE=		gnu
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.0
 
-[FILE:282:descriptions/desc.single]
+[FILE:282:descriptions/desc.primary]
 The mtdev is a stand-alone library which transforms all variants of kernel 
 MT events to the slotted type B protocol. The events put into mtdev may be 
 from any MT device, specifically type A without contact tracking, type A 
 with contact tracking, or type B with contact tracking.
 
 
+[FILE:46:descriptions/desc.tools]
+This package contains the mtdev test program.
+
+
 [FILE:98:distinfo]
 a107adad2101fecac54ac7f9f0e0a0dd155d954193da55c2340c97f2ff1d814e       301994 mtdev-1.1.7.tar.bz2
 
 
-[FILE:173:manifests/plist.single]
-bin/mtdev-test
+[FILE:57:manifests/plist.primary]
+lib/
+ libmtdev.so.%%SOMAJOR%%
+ libmtdev.so.%%SOVERSION%%
+
+
+[FILE:106:manifests/plist.dev]
 include/
  mtdev-mapping.h
  mtdev-plumbing.h
@@ -52,9 +65,11 @@ include/
 lib/
  libmtdev.a
  libmtdev.so
- libmtdev.so.%%SOMAJOR%%
- libmtdev.so.%%SOVERSION%%
 lib/pkgconfig/mtdev.pc
+
+
+[FILE:15:manifests/plist.tools]
+bin/mtdev-test
 
 
 [FILE:225:patches/patch-src_common.h]

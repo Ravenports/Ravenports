@@ -39,8 +39,8 @@ B_DEPS[netbsd]=		evdev-proto:single:std
 B_DEPS[dragonfly]=	evdev-proto:single:std
 B_DEPS[midnightbsd]=	evdev-proto:single:std
 
-USES=			cmake desktop-utils:primary dos2unix fontconfig
-			pkgconfig
+USES=			cmake desktop-utils:primary dos2unix ninja
+			fontconfig pkgconfig
 XORG_COMPONENTS=	ice sm x11 xext xrender
 
 DISTNAME=		uTox
@@ -52,7 +52,10 @@ LICENSE_SCHEME=		solo
 DOS2UNIX_GLOB=		*
 FPC_EQUIVALENT=		net-im/uTox
 
-CMAKE_ARGS=		-DENABLE_FILTERAUDIO=Off
+MAKE_ARGS=		-dexplain
+
+CMAKE_ARGS=		-DENABLE_FILTERAUDIO:BOOL=OFF
+			-DENABLE_LTO:BOOL=OFF
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/utox
@@ -98,6 +101,20 @@ share/icons/hicolor/scalable/apps/utox.svg
 
 [FILE:22:manifests/plist.man]
 share/man/man1/utox.1
+
+
+[FILE:523:patches/patch-src_friend.c]
+--- src/friend.c.orig	2024-11-27 11:53:58 UTC
++++ src/friend.c
+@@ -491,7 +491,7 @@ void friend_add(char *name, uint16_t len
+         friend_addid(id, msg, msg_length);
+     } else if (length_cleaned == TOX_PUBLIC_KEY_SIZE * 2) {
+         string_to_id(id, (char*)name_cleaned);
+-        uint8_t *data = calloc(sizeof(uint8_t), TOX_PUBLIC_KEY_SIZE);
++        uint8_t *data = calloc(TOX_PUBLIC_KEY_SIZE, sizeof(uint8_t));
+         if (!data) {
+             LOG_ERR("Calloc", "Memory allocation failed!");
+             return;
 
 
 [FILE:761:patches/patch-src_xlib_v4l.c]

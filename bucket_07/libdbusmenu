@@ -2,7 +2,7 @@
 
 NAMEBASE=		libdbusmenu
 VERSION=		16.04.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Library for passing menus over DBus
@@ -15,7 +15,9 @@ DISTFILE[1]=		libdbusmenu-16.04.0.tar.gz:main
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			dev
 			docs
+			tools
 
 OPTIONS_AVAILABLE=	INTROSPECTION
 OPTIONS_STANDARD=	INTROSPECTION
@@ -23,8 +25,9 @@ OPTIONS_STANDARD=	INTROSPECTION
 BUILD_DEPENDS=		harfbuzz:dev:std
 			json-glib:dev:std
 BUILDRUN_DEPENDS=	json-glib:primary:std
+EXRUN[tools]=		python-dbus-python:primary:python_used
 
-USES=			gmake libtool gtk-doc pkgconfig python:run
+USES=			gmake libtool gtk-doc pkgconfig python:build
 			shebangfix mbsdfix
 GNOME_COMPONENTS=	glib intltool libxslt gtk3
 
@@ -73,11 +76,15 @@ protocol. The DBusMenu protocol make it possible for applications to export
 and import their menus over DBus.
 
 
+[FILE:52:descriptions/desc.tools]
+This package contains the dbus-bench python script.
+
+
 [FILE:105:distinfo]
 b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a       760376 libdbusmenu-16.04.0.tar.gz
 
 
-[FILE:828:manifests/plist.primary]
+[FILE:433:manifests/plist.primary]
 %%INTROSPECTION-ON%%lib/girepository-1.0/
  Dbusmenu-%%VERSION%%.typelib
  DbusmenuGtk3-%%VERSION%%.typelib
@@ -87,6 +94,14 @@ b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a       760376 li
 %%INTROSPECTION-ON%%share/vala/vapi/
  Dbusmenu-%%VERSION%%.vapi
  DbusmenuGtk3-%%VERSION%%.vapi
+lib/
+ libdbusmenu-glib.so.%%SOMAJOR%%
+ libdbusmenu-glib.so.%%SOVERSION%%
+ libdbusmenu-gtk3.so.%%SOMAJOR%%
+ libdbusmenu-gtk3.so.%%SOVERSION%%
+
+
+[FILE:377:manifests/plist.dev]
 include/libdbusmenu-glib-%%VERSION%%/libdbusmenu-glib/
  client.h
  dbusmenu-glib.h
@@ -103,15 +118,10 @@ include/libdbusmenu-gtk3-%%VERSION%%/libdbusmenu-gtk/
  parser.h
 lib/
  libdbusmenu-glib.so
- libdbusmenu-glib.so.%%SOMAJOR%%
- libdbusmenu-glib.so.%%SOVERSION%%
  libdbusmenu-gtk3.so
- libdbusmenu-gtk3.so.%%SOMAJOR%%
- libdbusmenu-gtk3.so.%%SOVERSION%%
 lib/pkgconfig/
  dbusmenu-glib-%%VERSION%%.pc
  dbusmenu-gtk3-%%VERSION%%.pc
-libexec/dbusmenu-bench
 
 
 [FILE:988:manifests/plist.docs]
@@ -161,6 +171,10 @@ share/doc/libdbusmenu/libdbusmenu-gtk/
  up.png
 
 
+[FILE:23:manifests/plist.tools]
+libexec/dbusmenu-bench
+
+
 [FILE:876:patches/patch-configure]
 --- configure.orig	2016-02-27 19:00:11 UTC
 +++ configure
@@ -184,6 +198,93 @@ share/doc/libdbusmenu/libdbusmenu-gtk/
  if test -z "${HAVE_INTROSPECTION_TRUE}" && test -z "${HAVE_INTROSPECTION_FALSE}"; then
    as_fn_error $? "conditional \"HAVE_INTROSPECTION\" was never defined.
  Usually this means the macro was only invoked conditionally." "$LINENO" 5
+
+
+[FILE:2999:patches/patch-dbusmenu-bench]
+Convert tool to work on python3 
+--- tools/dbusmenu-bench.orig	2016-02-27 18:58:43 UTC
++++ tools/dbusmenu-bench
+@@ -60,8 +60,8 @@ class Chrono(object):
+ 
+ 
+ def dump_properties(properties, prepend=""):
+-    for key, value in properties.items():
+-        print "%s- %s: %s" % (prepend, key, value)
++    for key, value in list(properties.items()):
++        print("%s- %s: %s" % (prepend, key, value))
+ 
+ 
+ def run_test_sequence(menu, dump=False):
+@@ -74,9 +74,9 @@ def run_test_sequence(menu, dump=False):
+     revision, layout = menu.GetLayout(dbus.Int32(0))
+     times["GetLayout"] = chrono.elapsed()
+     if dump:
+-        print "revision:", revision
+-        print "layout:"
+-        print layout
++        print("revision:", revision)
++        print("layout:")
++        print(layout)
+ 
+     # Get ids
+     tree = ET.fromstring(layout)
+@@ -89,27 +89,27 @@ def run_test_sequence(menu, dump=False):
+     children = menu.GetChildren(dbus.Int32(root_id), property_names)
+     times["GetChildren"] = chrono.elapsed()
+     if dump:
+-        print "children:"
++        print("children:")
+         for child in children:
+             id, properties = child
+-            print "- %d:" % id
++            print("- %d:" % id)
+             dump_properties(properties, prepend=" ")
+ 
+     chrono.restart()
+     properties = menu.GetProperties(dbus.Int32(child_id), property_names)
+     times["GetProperties"] = chrono.elapsed()
+     if dump:
+-        print "properties:"
++        print("properties:")
+         dump_properties(properties)
+ 
+     return times
+ 
+ def create_timing_dict():
+-    return dict(zip(PROBES, itertools.repeat(0)))
++    return dict(list(zip(PROBES, itertools.repeat(0))))
+ 
+ def print_probe(prefix, name, value, timestamp):
+     value = int(value * 1000000)
+-    print "%(prefix)s.%(name)s:%(value)d@%(timestamp)d" % locals()
++    print("%(prefix)s.%(name)s:%(value)d@%(timestamp)d" % locals())
+ 
+ def main():
+     parser = OptionParser(usage = "%prog [options]")
+@@ -134,7 +134,7 @@ def main():
+     max_timings = create_timing_dict()
+     for x in range(options.count):
+         timings = run_test_sequence(menu)
+-        for name, timing in timings.items():
++        for name, timing in list(timings.items()):
+             cumulated_timings[name] += timing
+             if min_timings[name] == 0 or min_timings[name] > timing:
+                 min_timings[name] = timing
+@@ -142,11 +142,11 @@ def main():
+                 max_timings[name] = timing
+ 
+     timestamp = int(time.time())
+-    for name, timing in cumulated_timings.items():
++    for name, timing in list(cumulated_timings.items()):
+         print_probe("average", name, timing / options.count, timestamp)
+-    for name, timing in min_timings.items():
++    for name, timing in list(min_timings.items()):
+         print_probe("min", name, timing, timestamp)
+-    for name, timing in max_timings.items():
++    for name, timing in list(max_timings.items()):
+         print_probe("max", name, timing, timestamp)
+ 
+     return 0
 
 
 [FILE:903:patches/patch-libdbusmenu-glib_Makefile.in]
