@@ -1,16 +1,14 @@
 actions: [dir]
 post-install-lua: <<EOD
   fontdir = pkg.prefixed_path(arg[1])
-  pkg.exec({"mkfontscale", fontdir})
-  pkg.exec({"mkfontdir", fontdir})
+  pkg.exec({pkg_prefix .. "/bin/mkfontscale", fontdir})
+  pkg.exec({pkg_prefix .. "/bin/mkfontdir", fontdir})
 EOD
-post-deinstall-lua: <<EOD
+pre-deinstall-lua: <<EOD
   fontdir = pkg.prefixed_path(arg[1])
-  pkg.exec({"mkfontscale", fontdir})
-  pkg.exec({"mkfontdir", fontdir})
   for _, v in pairs {"/fonts.scale", "/fonts.dir" } do
     local st = pkg.stat(fontdir .. v)
-    if st and st.type == "reg" and st.size == 2 then
+    if st and st.type == "reg" then
       os.remove(fontdir .. v)
     end
   end
