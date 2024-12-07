@@ -483,14 +483,14 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  
 
 
-[FILE:901:patches/patch-src_flb__network.c]
+[FILE:899:patches/patch-src_flb__network.c]
 --- src/flb_network.c.orig	2022-03-22 22:42:32 UTC
 +++ src/flb_network.c
 @@ -478,9 +478,21 @@ static int net_connect_async(int fd,
              }
  
              /* Connection is broken, not much to do here */
-+#if defined(_GNU_SOURCE)
++#if defined(__linux__)
              str = strerror_r(error, so_error_buf, sizeof(so_error_buf));
              flb_error("[net] TCP connection failed: %s:%i (%s)",
                        u->tcp_host, u->tcp_port, str);
