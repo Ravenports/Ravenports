@@ -2,6 +2,7 @@
 
 NAMEBASE=		libasr
 VERSION=		1.0.4
+REVISION=		1
 KEYWORDS=		dns
 VARIANTS=		std
 SDESC[std]=		Asynchronous DNS resolver library
@@ -12,19 +13,20 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://github.com/OpenSMTPD/libasr/releases/download/1.0.4/
 DISTFILE[1]=		libasr-1.0.4.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		groff:primary:std
-BUILDRUN_DEPENDS=	nss:caroot:std
 
 USES=			autoreconf libtool
 
-LICENSE=		ISCL:single BSD2CLAUSE:single BSD3CLAUSE:single
-			CUSTOM1:single
-LICENSE_TERMS=		single:{{WRKSRC}}/LICENCE
+LICENSE=		ISCL:primary BSD2CLAUSE:primary BSD3CLAUSE:primary
+			CUSTOM1:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/LICENCE
 LICENSE_NAME=		CUSTOM1:"ISC License - OpenBSD Compat"
 LICENSE_FILE=		ISCL:{{WRKDIR}}/ISCL_MAIN
 			BSD2CLAUSE:{{WRKDIR}}/BSD2
@@ -50,7 +52,7 @@ post-extract:
 	${AWK} '/work by Damien Miller/,/\* OR IN CONNECTION/' \
 		${WRKSRC}/LICENCE > ${WRKDIR}/ISCL_OPENBSD
 
-[FILE:236:descriptions/desc.single]
+[FILE:236:descriptions/desc.primary]
 libasr is a FREE asynchronous DNS resolver.
 
 libasr runs on top of the OpenBSD operating system but also has a portable
@@ -67,13 +69,17 @@ version that can build and run on several systems, including:
 19fb6bed10d15c9775c8d008cd1130155917ae4e801c729fe85e6d88a545dab4       413258 libasr-1.0.4.tar.gz
 
 
-[FILE:88:manifests/plist.single]
+[FILE:53:manifests/plist.primary]
+lib/
+ libasr.so.%%SOMAJOR%%
+ libasr.so.%%SOVERSION%%
+
+
+[FILE:40:manifests/plist.dev]
 include/asr.h
 lib/
  libasr.a
  libasr.so
- libasr.so.%%SOMAJOR%%
- libasr.so.%%SOVERSION%%
 
 
 [FILE:333:patches/patch-openbsd-compat_recallocarray.c]

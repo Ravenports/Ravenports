@@ -2,6 +2,7 @@
 
 NAMEBASE=		qca
 VERSION=		2.3.9
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		qt5 qt6
 SDESC[qt5]=		Cross-platform crypto API for Qt 5
@@ -17,10 +18,12 @@ SPKGS[qt5]=		set
 			primary
 			dev
 			man
+			tools
 SPKGS[qt6]=		set
 			primary
 			dev
 			man
+			tools
 
 OPTIONS_AVAILABLE=	QT5 QT6
 OPTIONS_STANDARD=	none
@@ -36,9 +39,9 @@ BUILDRUN_DEPENDS=	botan:primary:std
 			cyrus-sasl:primary:std
 			gnupg:primary:std
 			nss:primary:std
-			nss:caroot:std
+EXRUN[tools]=		primary
 
-USES=			cmake pkgconfig qt5
+USES=			cmake pkgconfig qt5 rootca:tools
 
 FPC_EQUIVALENT=		devel/qca
 
@@ -108,14 +111,15 @@ implementations without even needing to recompile the application! QCA
 should work everywhere Qt does, including Windows/Unix/MacOSX.
 
 
+[FILE:57:descriptions/desc.tools]
+This package contains the config and cert tools for QCA.
+
+
 [FILE:95:distinfo]
 c555d5298cdd7b6bafe2b1f96106f30cfa543a23d459d50c8a91eac33c476e4e       765256 qca-2.3.9.tar.xz
 
 
-[FILE:277:manifests/plist.primary]
-bin/
- mozcerts-qt5
- qcatool-qt5
+[FILE:209:manifests/plist.primary]
 lib/
  libqca-qt5.so.%%SOMAJOR%%
  libqca-qt5.so.%%SOVERSION%%
@@ -127,10 +131,9 @@ lib/qca-qt5/crypto/
  libqca-logger.so
  libqca-nss.so
  libqca-softstore.so
-lib/qt5/mkspecs/features/crypto.prf
 
 
-[FILE:433:manifests/plist.dev]
+[FILE:469:manifests/plist.dev]
 include/Qca-qt5/QtCrypto/
  QtCrypto
  qca.h
@@ -156,16 +159,20 @@ lib/cmake/Qca-qt5/
  Qca-qt5Targets-release.cmake
  Qca-qt5Targets.cmake
 lib/pkgconfig/qca2-qt5.pc
+lib/qt5/mkspecs/features/crypto.prf
 
 
 [FILE:29:manifests/plist.man]
 share/man/man1/qcatool-qt5.1
 
 
-[FILE:241:manifests/plist.primary.qt6]
+[FILE:32:manifests/plist.tools]
 bin/
- mozcerts-qt6
- qcatool-qt6
+ mozcerts-qt5
+ qcatool-qt5
+
+
+[FILE:209:manifests/plist.primary.qt6]
 lib/
  libqca-qt6.so.%%SOMAJOR%%
  libqca-qt6.so.%%SOVERSION%%
@@ -208,4 +215,10 @@ lib/cmake/Qca-qt6/
 
 [FILE:29:manifests/plist.man.qt6]
 share/man/man1/qcatool-qt6.1
+
+
+[FILE:32:manifests/plist.tools.qt6]
+bin/
+ mozcerts-qt6
+ qcatool-qt6
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		mesa
 VERSION=		24.2.8
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Mesa 3D Graphics Library
@@ -36,7 +37,9 @@ BUILD_DEPENDS=		libdrm:dev:std
 			libvdpau:dev:std
 			python-Mako:single:python_used
 			python-PyYAML:single:python_used
+			xorg-pciaccess:dev:std
 BUILDRUN_DEPENDS=	libdrm:primary:std
+			xorg-pciaccess:primary:std
 EXRUN[drivers]=		mesa:primary:std
 			libelf:primary:std
 
@@ -114,12 +117,10 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 			MAKEFILE_LINE=MESON_ARGS+=-Dshader-cache=false
 
 [ARM_DRIVERS].DESCRIPTION=		Build drivers for aarch64 architecture
-[ARM_DRIVERS].MAKEFILE_ON=		GALLIUM_DRIVERS+=FREEDRENO
-					GALLIUM_DRIVERS+=VC4
+[ARM_DRIVERS].MAKEFILE_ON=		GALLIUM_DRIVERS+={{GALLIUM_ARM64}}
 
 [X86_DRIVERS].DESCRIPTION=		Build drivers for i386 and x86_64 architectures
-[X86_DRIVERS].MAKEFILE_ON=		GALLIUM_DRIVERS+=R300
-					GALLIUM_DRIVERS+=SVGA
+[X86_DRIVERS].MAKEFILE_ON=		GALLIUM_DRIVERS+={{GALLIUM_X86}}
 					VULKAN_DRIVERS+={{VULKAN_DRIVERS_X86}}
 
 [WAYLAND].DESCRIPTION=			Build Vulkan drivers for Wayland platform
@@ -132,25 +133,25 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 					VULKAN_DRIVERS_X86+=RADEON
 
 [LLVMPIPE].DESCRIPTION=			Build LLVM-based drivers and libraries
-[LLVMPIPE].BUILDRUN_DEPENDS_ON=		llvm18:primary:std
+[LLVMPIPE].BUILDRUN_DEPENDS_ON=		llvm:primary:std
 					ocl-icd:primary:std
 [LLVMPIPE].BUILD_DEPENDS_ON=		libclc:single:std
 					opencl-headers:single:std
 					ocl-icd:dev:std
-					llvm18:tools:std
-					llvm18:dev:std
-					clang18:set:std
+					llvm:tools:std
+					llvm:dev:std
+					clang:set:std
+					spirv-tools:set:std
+					spirv-llvm-translator:set:std
 [LLVMPIPE].MAKEFILE_OFF=		MESON_ARGS+=-Dgallium-opencl=disabled
-					MESON_ARGS+=-Dllvm=false
-[LLVMPIPE].MAKEFILE_ON=			GALLIUM_LLVM_DRIVERS+=R600
-					GALLIUM_LLVM_DRIVERS+=RADEONSI
-					GALLIUM_LLVM_DRIVERS+=LLVMPIPE
-					GALLIUM_DRIVERS+={{GALLIUM_LLVM_DRIVERS}}
-					MESON_ARGS+=-Dllvm=true
+					MESON_ARGS+=-Dllvm=disabled
+[LLVMPIPE].MAKEFILE_ON=			GALLIUM_DRIVERS+={{GALLIUM_X86_LLVM}}
+					GALLIUM_DRIVERS+={{GALLIUM_ALL_LLVM}}
+					MESON_ARGS+=-Dllvm=enabled
 					MESON_ARGS+=-Dgallium-va=enabled
 					MESON_ARGS+=-Dgallium-opencl=icd
 					MESON_ARGS+=-Dgallium-vdpau=enabled
-[LLVMPIPE].RUN_DEPENDS_ON=		clang18:dynlibs:std
+[LLVMPIPE].RUN_DEPENDS_ON=		clang:dynlibs:std
 
 pre-patch-linux:
 	# qsort fixes for BSD break linux
@@ -174,7 +175,7 @@ post-extract:
 	${AWK} '/Copyright/,/DEALINGS/' ${WRKSRC}/include/GL/glext.h \
 		> ${WRKDIR}/LICENSE_KHRONOS
 
-[FILE:1198:descriptions/desc.primary]
+[FILE:1049:descriptions/desc.primary]
 The Mesa project began as an open-source implementation of the OpenGL
 specification - a system for rendering interactive 3D graphics.
 
@@ -191,41 +192,42 @@ Infrastructure and X.org to provide OpenGL support on Linux, FreeBSD
 and other operating systems.
 
 This package contains the Mesa OpenGL libraries for GLX and EGL clients.
-These include libOSMesa, libEGL, libGL, and libglesv2 as well as utility
-libraries libglapi and gbm.  The OSMesa library is an Off-Screen version
-of Mesa in order to do off-screen rendering in other packages like VTK.
+These include libOSMesa and libglesv2 as well as the utility libraries
+libglapi and gbm.  The OSMesa library is an Off-Screen version of Mesa
+in order to do off-screen rendering in other packages like VTK.
 Offscreen rendering is useful for a number of things, such as batch
 processing, parallel processing, and remote processing.
 
-This package also contains Mesa's libOpenCL implementation "Clover".  It is
-built upon GALLIUM and currently only supports Radeon GPUs.
 
-
-[FILE:162:descriptions/desc.drivers]
-This package contains the Mesa OpenGL libraries for GLX and EGL clients.
-These include libEGL, libGL, and libglesv2 as well as utlity libraries
-libglapi and gbm.
+[FILE:64:descriptions/desc.drivers]
+This package contains the drivers provided by the Mesa project.
 
 
 [FILE:97:distinfo]
 999d0a854f43864fc098266aaf25600ce7961318a1e2e358bff94a7f53580e30     29622208 mesa-24.2.8.tar.xz
 
 
-[FILE:468:manifests/plist.primary]
+[FILE:898:manifests/plist.primary]
 %%LLVMPIPE-ON%%%%X86_DRIVERS-ON%%lib/gallium-pipe/
+ pipe_crocus.so
+ pipe_i915.so
  pipe_r300.so
- pipe_vmwgfx.so
 %%LLVMPIPE-ON%%etc/OpenCL/vendors/mesa.icd
 %%LLVMPIPE-ON%%lib/
  libMesaOpenCL.so.1
  libMesaOpenCL.so.1.0.0
+%%LLVMPIPE-ON%%lib/dri/iris_dri.so
 %%LLVMPIPE-ON%%lib/gallium-pipe/
+ pipe_iris.so
+ pipe_nouveau.so
  pipe_r600.so
  pipe_radeonsi.so
  pipe_swrast.so
-%%X86_DRIVERS-ON%%lib/
- libxatracker.so.2
- libxatracker.so.2.5.0
+ pipe_vmwgfx.so
+%%X86_DRIVERS-OFF%%lib/dri/vmwgfx_dri.so
+%%X86_DRIVERS-ON%%lib/dri/
+ crocus_dri.so
+ i915_dri.so
 lib/
  libOSMesa.so.8
  libOSMesa.so.8.0.0
@@ -234,6 +236,20 @@ lib/
  libgbm.so.1.0.0
  libglapi.so.0
  libglapi.so.0.0.0
+ libxatracker.so.2
+ libxatracker.so.2.5.0
+lib/dri/
+ nouveau_dri.so
+ nouveau_drv_video.so
+ virtio_gpu_dri.so
+ virtio_gpu_drv_video.so
+lib/vdpau/
+ libvdpau_nouveau.so.1
+ libvdpau_nouveau.so.1.0
+ libvdpau_nouveau.so.1.0.0
+ libvdpau_virtio_gpu.so.1
+ libvdpau_virtio_gpu.so.1.0
+ libvdpau_virtio_gpu.so.1.0.0
 
 
 [FILE:499:manifests/plist.drivers]
@@ -265,32 +281,35 @@ share/drirc.d/
  01-freebsd.conf
 
 
-[FILE:411:manifests/plist.dev]
+[FILE:390:manifests/plist.dev]
 %%LLVMPIPE-ON%%lib/libMesaOpenCL.so
 %%LLVMPIPE-ON%%lib/vdpau/
  libvdpau_r600.so
  libvdpau_radeonsi.so
-%%X86_DRIVERS-ON%%include/
+include/
+ gbm.h
  xa_composite.h
  xa_context.h
  xa_tracker.h
-%%X86_DRIVERS-ON%%lib/libxatracker.so
-%%X86_DRIVERS-ON%%lib/pkgconfig/xatracker.pc
-include/gbm.h
 include/GL/osmesa.h
 include/GL/internal/dri_interface.h
 lib/
  libOSMesa.so
  libgbm.so
  libglapi.so
+ libxatracker.so
 lib/pkgconfig/
  dri.pc
  gbm.pc
  osmesa.pc
+ xatracker.pc
+lib/vdpau/
+ libvdpau_nouveau.so
+ libvdpau_virtio_gpu.so
 
 
-[FILE:2287:patches/patch-meson.build]
---- meson.build.orig	2024-11-13 15:28:52 UTC
+[FILE:2854:patches/patch-meson.build]
+--- meson.build.orig	2024-11-28 00:08:18 UTC
 +++ meson.build
 @@ -118,7 +118,7 @@ with_any_opengl = with_opengl or with_gl
  # Only build shared_glapi if at least one OpenGL API is enabled
@@ -301,7 +320,16 @@ lib/pkgconfig/
  
  gallium_drivers = get_option('gallium-drivers')
  if gallium_drivers.contains('auto')
-@@ -1158,7 +1158,7 @@ else
+@@ -500,6 +500,8 @@ if not have_mtls_dialect
+   # cross-compiling, but because this is just an optimization we can skip it
+   if meson.is_cross_build() and not meson.can_run_host_binaries()
+     warning('cannot auto-detect -mtls-dialect when cross-compiling, using compiler default')
++  elif (['freebsd', 'dragonfly', 'netbsd'].contains(host_machine.system()))
++    c_cpp_args += '-ftls-model=initial-exec'
+   else
+     # The way to specify the TLSDESC dialect is architecture-specific.
+     # We probe both because there is not a fallback guaranteed to work for all
+@@ -1158,7 +1160,7 @@ else
    endif
  
    # FreeBSD annotated <pthread.h> but Mesa isn't ready
@@ -310,7 +338,7 @@ lib/pkgconfig/
      _trial_c += ['-Werror=thread-safety']
    endif
  
-@@ -1430,34 +1430,34 @@ foreach f, prefix: functions_to_detect
+@@ -1430,34 +1432,34 @@ foreach f, prefix: functions_to_detect
  endforeach
  
  if cpp.links('''
@@ -878,9 +906,17 @@ lib/pkgconfig/
 </driconf>
 
 
-[FILE:27:files/special.mk]
-GALLIUM_DRIVERS+=	SOFTPIPE
+[FILE:373:files/special.mk]
+# common between x86/x86-64/arm64
+GALLIUM_DRIVERS+=	SOFTPIPE NOUVEAU SVGA VIRGL #ZINK
 
+# LLVMPIPE is supported on arm64, but currently the specification
+# defines it as x86-only.  Once ARM64 is support, update this.
+
+GALLIUM_X86=		R300 CROCUS I915
+GALLIUM_X86_LLVM=	R600 RADEONSI LLVMPIPE
+GALLIUM_ARM64=		V3D VC4 FREEDRENO ETNAVIV TEGRA LIMA PANFROST
+GALLIUM_ALL_LLVM=	IRIS
 
 [FILE:911:sunos/patch-src_gallium_targets_dri_meson.build]
 --- src/gallium/targets/dri/meson.build.orig	2020-12-31 03:59:58 UTC

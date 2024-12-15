@@ -2,6 +2,7 @@
 
 NAMEBASE=		glib-networking
 VERSION=		2.80.0
+REVISION=		1
 KEYWORDS=		net devel
 VARIANTS=		std
 SDESC[std]=		Network-related giomodules for GLib
@@ -25,8 +26,7 @@ BUILD_DEPENDS=		dbus:dev:std
 			libgcrypt:dev:std
 			libproxy:dev:std
 			p11-kit:dev:std
-BUILDRUN_DEPENDS=	nss:caroot:std
-			gsettings-desktop-schemas:primary:std
+BUILDRUN_DEPENDS=	gsettings-desktop-schemas:primary:std
 			gnutls:primary:std
 			libgcrypt:primary:std
 			p11-kit:primary:std
@@ -70,12 +70,11 @@ in gsettings-desktop-schemas.
 d8f4f1aab213179ae3351617b59dab5de6bcc9e785021eee178998ebd4bb3acf       287044 glib-networking-2.80.0.tar.xz
 
 
-[FILE:97:manifests/plist.primary]
+[FILE:74:manifests/plist.primary]
 lib/gio/modules/
  libgiognomeproxy.so
  libgiognutls.so
  libgiolibproxy.so
-libexec/glib-pacrunner
 
 
 [FILE:146:manifests/plist.dev]
@@ -161,6 +160,26 @@ share/locale/vi/LC_MESSAGES/glib-networking.mo
 share/locale/zh_CN/LC_MESSAGES/glib-networking.mo
 share/locale/zh_HK/LC_MESSAGES/glib-networking.mo
 share/locale/zh_TW/LC_MESSAGES/glib-networking.mo
+
+
+[FILE:367:patches/patch-proxy_libproxy_meson.build]
+--- proxy/libproxy/meson.build.orig	2024-03-15 17:40:44 UTC
++++ proxy/libproxy/meson.build
+@@ -67,14 +67,6 @@ sources = files(
+   'glibpacrunner.c'
+ )
+ 
+-executable(
+-  'glib-pacrunner',
+-  sources,
+-  include_directories: top_inc,
+-  dependencies: deps,
+-  install: true,
+-  install_dir: libexecdir
+-)
+ 
+ proxy_test_programs += [['environment', 'libproxy', deps]]
+ 
 
 
 [FILE:300:patches/patch-tls_tests_meson.build]

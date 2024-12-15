@@ -2,6 +2,7 @@
 
 NAMEBASE=		vte
 VERSION=		0.78.2
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		std
 SDESC[std]=		Virtual Terminal Emulator widget
@@ -240,9 +241,18 @@ share/locale/zh_HK/LC_MESSAGES/vte-%%VERSION%%.mo
 share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
-[FILE:345:patches/patch-meson.build]
---- meson.build.orig	2024-10-19 19:25:25 UTC
+[FILE:691:patches/patch-meson.build]
+--- meson.build.orig	2024-11-23 20:05:13 UTC
 +++ meson.build
+@@ -231,7 +231,7 @@ libc_feature_defines = [
+ 
+ system = host_machine.system()
+ 
+-if system == 'freebsd'
++if system == 'freebsd' or system == 'dragonfly'
+   # Defining _POSIX_C_SOURCE above makes freebsd not expose some functionality
+   # that's hidden behind __BSD_VISIBLE.  Not defininy any of the above however
+   # makes it expose verything.
 @@ -244,6 +244,10 @@ elif system == 'darwin'
      ['_DARWIN_C_SOURCE', '1'],
    ]
@@ -257,7 +267,7 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
 [FILE:703:patches/patch-src_app_app.cc]
---- src/app/app.cc.orig	2024-10-19 19:25:25 UTC
+--- src/app/app.cc.orig	2024-11-23 20:05:13 UTC
 +++ src/app/app.cc
 @@ -3971,7 +3971,15 @@ main(int argc,
                 struct termios tcattr;
@@ -278,7 +288,7 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
 [FILE:549:patches/patch-src_dumpkeys.c]
---- src/dumpkeys.c.orig	2024-10-19 19:25:25 UTC
+--- src/dumpkeys.c.orig	2024-11-23 20:05:13 UTC
 +++ src/dumpkeys.c
 @@ -162,7 +162,15 @@ main(int argc, char **argv)
  	}
@@ -299,7 +309,7 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
 [FILE:453:patches/patch-src_libc-glue.hh]
---- src/libc-glue.hh.orig	2024-10-19 19:25:25 UTC
+--- src/libc-glue.hh.orig	2024-11-23 20:05:13 UTC
 +++ src/libc-glue.hh
 @@ -220,7 +220,13 @@ fd_dup_cloexec(int oldfd,
  {
@@ -318,7 +328,7 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
 [FILE:537:patches/patch-src_mev.c]
---- src/mev.c.orig	2024-10-19 19:25:25 UTC
+--- src/mev.c.orig	2024-11-23 20:05:13 UTC
 +++ src/mev.c
 @@ -358,7 +358,15 @@ main(int argc, char **argv)
  
@@ -338,8 +348,22 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
  		return 1;
 
 
+[FILE:491:patches/patch-src_missing.cc]
+--- src/missing.cc.orig	2024-11-23 20:05:13 UTC
++++ src/missing.cc
+@@ -125,7 +125,7 @@ getrlimit_NOFILE_max(void)
+ 
+ #endif /* HAVE_SYS_RESOURCE_H */
+ 
+-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
++#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__) || defined(__DragonFly__)
+         /* Use sysconf() function provided by the system if it is known to be
+          * async-signal safe.
+          */
+
+
 [FILE:1402:patches/patch-src_pty.cc]
---- src/pty.cc.orig	2024-10-19 19:25:25 UTC
+--- src/pty.cc.orig	2024-11-23 20:05:13 UTC
 +++ src/pty.cc
 @@ -77,6 +77,10 @@
  
@@ -403,7 +427,7 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
 [FILE:324:patches/patch-src_vte.cc]
---- src/vte.cc.orig	2024-10-19 19:25:25 UTC
+--- src/vte.cc.orig	2024-11-23 20:05:13 UTC
 +++ src/vte.cc
 @@ -34,6 +34,13 @@
  #if __has_include(<sys/stream.h>)
@@ -422,7 +446,7 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
 
 
 [FILE:270:patches/patch-src_widget.cc]
---- src/widget.cc.orig	2024-10-19 19:25:25 UTC
+--- src/widget.cc.orig	2024-11-23 20:05:13 UTC
 +++ src/widget.cc
 @@ -22,6 +22,10 @@
  

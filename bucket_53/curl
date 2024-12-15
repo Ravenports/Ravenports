@@ -2,6 +2,7 @@
 
 NAMEBASE=		curl
 VERSION=		8.11.0
+REVISION=		1
 KEYWORDS=		ftp net www
 VARIANTS=		std embed
 SDESC[std]=		Tool and library for transferring data with URLs
@@ -16,24 +17,26 @@ DF_INDEX=		1
 SPKGS[std]=		set
 			primary
 			dev
+			tools
 			man
 			examples
 			docs
 SPKGS[embed]=		set
 			primary
 			dev
+			tools
 
 OPTIONS_AVAILABLE=	EMBED
 OPTIONS_STANDARD=	EMBED
 VOPTS[embed]=		EMBED=ON
 
-BUILDRUN_DEPENDS=	nss:caroot:std
+EXRUN[tools]=		primary
 EXRUN[dev]=		libnghttp2:dev:std
 			libressl:dev:std
 			zlib:dev:std
 
 USES=			cpe gmake libtool perl:build pkgconfig shebangfix
-			zlib:build
+			zlib:build rootca:tools
 
 LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING
@@ -126,6 +129,10 @@ form based upload, proxies, HTTP/2, cookies, user+password authentication
 file transfer resume, proxy tunneling and more.
 
 
+[FILE:53:descriptions/desc.tools]
+This package contains the curl command line program.
+
+
 [FILE:116:descriptions/desc.primary.embed]
 Minimal Command line tool and library for transferring data with URLs.
 
@@ -137,19 +144,15 @@ FILE HTTP HTTPS SCP SFTP
 db59cf0d671ca6e7f5c2c5ec177084a33a79e04c97e71cf183a5cdea235054eb      2750684 curl-8.11.0.tar.xz
 
 
-[FILE:143:manifests/plist.primary]
-bin/
- curl
- curl-config
+[FILE:55:manifests/plist.primary]
 lib/
  libcurl.so.%%SOMAJOR%%
  libcurl.so.%%SOVERSION%%
-share/fish/completions/curl.fish
-share/zsh/site-functions/_curl
 
 
-[FILE:256:manifests/plist.dev]
+[FILE:272:manifests/plist.dev]
 %%EMBED-ON%%lib/libcurl_pic.a
+bin/curl-config
 include/curl/
  curl.h
  curlver.h
@@ -168,6 +171,12 @@ lib/
  libcurl.so
 lib/pkgconfig/libcurl.pc
 share/aclocal/libcurl.m4
+
+
+[FILE:73:manifests/plist.tools]
+bin/curl
+share/fish/completions/curl.fish
+share/zsh/site-functions/_curl
 
 
 [FILE:12240:manifests/plist.man]

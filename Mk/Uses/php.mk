@@ -3,7 +3,7 @@
 # Feature:	php
 # Usage:	USES=php or USES=php:ARGS
 # Valid ARGS:	phpize, ext, zend, build, cli, (cgi|mod), web, embed,
-#               (81|82|83)
+#               (81|82|83|84)
 #
 #  phpize   : Use to build a PHP extension.
 #  ext      : Use to build, install and register a PHP extension.
@@ -48,7 +48,10 @@
 .if !defined(_INCLUDE_USES_PHP_MK)
 _INCLUDE_USES_PHP_MK=	yes
 
-.  if ${php_ARGS:M83}
+.  if ${php_ARGS:M84}
+PHP_SUFFIX=	84
+PHP_DOTVER=	8.4
+.  elif ${php_ARGS:M83}
 PHP_SUFFIX=	83
 PHP_DOTVER=	8.3
 .  elif ${php_ARGS:M82}
@@ -78,7 +81,10 @@ PHP_EXT_DIR!=	${LOCALBASE}/bin/php-config --extension-dir | \
 PHP_VER=	${PHP_SUFFIX}
 PHP_VERSION=	${PHP_${PHP_DOTVER}_VERSION}
 PHP_SAPI=	# assume none
-.      if ${PHP_SUFFIX} == 83
+.      if ${PHP_SUFFIX} == 84
+PHP_EXT_DIR=	20240924
+PHP_EXT_INC=	hash json pcre spl
+.    elif ${PHP_SUFFIX} == 83
 PHP_EXT_DIR=	20230831
 PHP_EXT_INC=	hash json pcre spl
 .    elif ${PHP_SUFFIX} == 82
