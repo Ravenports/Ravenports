@@ -2,6 +2,7 @@
 
 NAMEBASE=		tmux
 VERSION=		3.5a
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		Terminal multiplexer
@@ -10,7 +11,7 @@ CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main bash
 SITES[main]=		https://github.com/tmux/tmux/releases/download/3.5a/
-SITES[bash]=		GITHUB/imomaliev:tmux-bash-completion:f5d5323
+SITES[bash]=		GITHUB/imomaliev:tmux-bash-completion:8da7f79
 DISTFILE[1]=		tmux-3.5a.tar.gz:main
 DISTFILE[2]=		generated:bash
 DF_INDEX=		1 2
@@ -36,19 +37,17 @@ FPC_EQUIVALENT=		sysutils/tmux
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--sysconfdir={{PREFIX}}/etc
 
-CFLAGS=			-Wno-implicit-function-declaration
-			-Wno-int-conversion
 CPPFLAGS=		-I{{NCURSESINC}}
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e 's|/etc/tmux.conf|${PREFIX}/etc/tmux.conf|g' \
 		${WRKSRC}/CHANGES ${WRKSRC}/tmux.h
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/tmux ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_MAN} ${WRKSRC}/tmux.1 ${STAGEDIR}${MANPREFIX}/man/man1
-	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/bash_completion.d
-	${INSTALL_DATA} ${WRKDIR}/tmux-bash-completion-f5d5323/completions/tmux \
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/bash_completion.d
+	${INSTALL_DATA} ${WRKDIR}/tmux-bash-completion-8da7f79/completions/tmux \
 		${STAGEDIR}${PREFIX}/etc/bash_completion.d/tmux
 
 [FILE:232:descriptions/desc.primary]
@@ -60,7 +59,7 @@ such as GNU screen.
 
 [FILE:219:distinfo]
 16216bd0877170dfcc64157085ba9013610b12b082548c7c9542cc0103198951       715619 tmux-3.5a.tar.gz
-4e4f791c446e3cab1a02d39a30fbfd4cec6c7e3119365860a04c9de205eaa626         8726 imomaliev-tmux-bash-completion-f5d5323.tar.gz
+2ba28d9a0f0b419184229f234fcb20ed6d6f456b4ef592e4cd2eec79142e7502         9438 imomaliev-tmux-bash-completion-8da7f79.tar.gz
 
 
 [FILE:36:manifests/plist.primary]
@@ -70,4 +69,18 @@ etc/bash_completion.d/tmux
 
 [FILE:22:manifests/plist.man]
 share/man/man1/tmux.1
+
+
+[FILE:298:patches/patch-osdep-dragonfly.c]
+--- osdep-dragonfly.c.orig	2023-05-22 08:53:49 UTC
++++ osdep-dragonfly.c
+@@ -28,6 +28,8 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
++#include "compat.h"
++
+ struct kinfo_proc	*cmp_procs(struct kinfo_proc *, struct kinfo_proc *);
+ char			*osdep_get_name(int, char *);
+ char			*osdep_get_cwd(int);
 

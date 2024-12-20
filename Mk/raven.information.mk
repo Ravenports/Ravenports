@@ -167,7 +167,7 @@ ASPELL_INSTALL_VERSION=		0.60
 
 APR1_VERSION=			1.7.5
 APR1_UTIL_VERSION=		1.6.3
-SUBVERSION_VERSION=		1.14.4
+SUBVERSION_VERSION=		1.14.5
 
 # ------------------------------------------------------------------------
 # Miscellaneous master versions
@@ -185,7 +185,7 @@ XORG_VERSION=			7.7
 LLVM16_VERSION=			16.0.6		# required for javaports unkindness
 LLVM17_VERSION=			17.0.6
 LLVM18_VERSION=			18.1.8
-LLVM19_VERSION=			19.1.3
+LLVM19_VERSION=			19.1.5
 ZLIB_VERSION=			1.3.1
 GHOSTSCRIPT_VERSION=		10.04.0
 SPHINX_UNDERSCORE=		1.13.1

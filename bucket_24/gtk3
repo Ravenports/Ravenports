@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtk3
 VERSION=		3.24.43
+REVISION=		1
 KEYWORDS=		x11_toolkits
 VARIANTS=		std
 SDESC[std]=		Gimp Toolkit for X11 GUI
@@ -18,6 +19,7 @@ SPKGS[std]=		set
 			dev
 			nls
 			icon_cache
+			tools
 
 OPTIONS_AVAILABLE=	DBUS CUPS CLOUDPRINT COLORD BROADWAY INTROSPECTION
 OPTIONS_STANDARD=	DBUS BROADWAY INTROSPECTION
@@ -26,7 +28,8 @@ OPT_ON[all]=		DBUS BROADWAY INTROSPECTION
 BUILD_DEPENDS=		harfbuzz:dev:std
 			libepoxy:dev:std
 BUILDRUN_DEPENDS=	libepoxy:primary:std
-EXRUN[primary]=		gtk3:icon_cache:std
+EXRUN[tools]=		primary
+EXRUN[primary]=		icon_cache
 EXRUN[dev]=		cairo:dev:std
 			pango:dev:std
 			xorg-xrandr:dev:std
@@ -52,6 +55,7 @@ FPC_EQUIVALENT=		x11-toolkits/gtk30
 GLIB_SCHEMAS=		org.gtk.Demo.gschema.xml
 			org.gtk.Settings.ColorChooser.gschema.xml
 			org.gtk.Settings.Debug.gschema.xml
+			org.gtk.Settings.EmojiChooser.gschema.xml
 			org.gtk.Settings.FileChooser.gschema.xml
 MESON_ARGS=		-Dx11_backend=true
 			-Dwayland_backend=false
@@ -110,12 +114,15 @@ This package contains the gtk-update-icon-cache utility from the
 third generation of the GIMP toolkit.
 
 
+[FILE:60:descriptions/desc.tools]
+This package contains gtk3 demo applications and utilities.
+
+
 [FILE:105:distinfo]
 7e04f0648515034b806b74ae5d774d87cffb1a2a96c468cb5be476d51bf2f3c7     13227856 gnome3/gtk+-3.24.43.tar.xz
 
 
-[FILE:2766:manifests/plist.primary]
-%%BROADWAY-ON%%bin/broadwayd
+[FILE:991:manifests/plist.primary]
 %%BROADWAY-ON%%lib/gtk-3.0/%%GTK_VERSION%%/immodules/im-broadway.so
 %%CLOUDPRINT-ON%%lib/gtk-3.0/%%GTK_VERSION%%/printbackends/libprintbackend-cloudprint.so
 %%CUPS-ON%%lib/gtk-3.0/%%GTK_VERSION%%/printbackends/libprintbackend-cups.so
@@ -127,17 +134,6 @@ third generation of the GIMP toolkit.
  Gdk-3.0.gir
  GdkX11-3.0.gir
  Gtk-3.0.gir
-bin/
- gtk-builder-tool
- gtk-encode-symbolic-svg
- gtk-launch
- gtk-query-immodules-3.0
- gtk-query-settings
- gtk3-demo
- gtk3-demo-application
- gtk3-icon-browser
- gtk3-widget-factory
-etc/gtk-3.0/im-multipress.conf
 lib/
  libgailutil-3.so.0
  libgailutil-3.so.0.0.0
@@ -160,72 +156,9 @@ lib/gtk-3.0/%%GTK_VERSION%%/immodules/
 lib/gtk-3.0/%%GTK_VERSION%%/printbackends/
  libprintbackend-file.so
  libprintbackend-lpr.so
-share/applications/
- gtk3-demo.desktop
- gtk3-icon-browser.desktop
- gtk3-widget-factory.desktop
 share/gettext/its/
  gtkbuilder.its
  gtkbuilder.loc
-share/glib-2.0/schemas/org.gtk.Settings.EmojiChooser.gschema.xml
-share/gtk-3.0/gtkbuilder.rng
-share/gtk-3.0/emoji/
- bn.gresource
- da.gresource
- de.gresource
- es.gresource
- et.gresource
- fi.gresource
- fr.gresource
- hi.gresource
- hu.gresource
- it.gresource
- ja.gresource
- ko.gresource
- lt.gresource
- ms.gresource
- nb.gresource
- nl.gresource
- pl.gresource
- pt.gresource
- ru.gresource
- sv.gresource
- th.gresource
- uk.gresource
- zh.gresource
-share/gtk-3.0/valgrind/gtk.supp
-share/icons/hicolor/16x16/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/22x22/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/24x24/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/256x256/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/32x32/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/icons/hicolor/48x48/apps/
- gtk3-demo-symbolic.symbolic.png
- gtk3-demo.png
- gtk3-widget-factory-symbolic.symbolic.png
- gtk3-widget-factory.png
-share/themes/Default/gtk-3.0/gtk-keys.css
-share/themes/Emacs/gtk-3.0/gtk-keys.css
 @dir lib/gtk-3.0/%%GTK_VERSION%%/engines
 @dir lib/gtk-3.0/%%GTK_VERSION%%/loaders
 @dir lib/gtk-3.0/modules
@@ -1020,6 +953,83 @@ share/locale/zh_TW/LC_MESSAGES/
 
 [FILE:26:manifests/plist.icon_cache]
 bin/gtk-update-icon-cache
+
+
+[FILE:1710:manifests/plist.tools]
+%%BROADWAY-ON%%bin/broadwayd
+bin/
+ gtk-builder-tool
+ gtk-encode-symbolic-svg
+ gtk-launch
+ gtk-query-immodules-3.0
+ gtk-query-settings
+ gtk3-demo
+ gtk3-demo-application
+ gtk3-icon-browser
+ gtk3-widget-factory
+etc/gtk-3.0/im-multipress.conf
+share/applications/
+ gtk3-demo.desktop
+ gtk3-icon-browser.desktop
+ gtk3-widget-factory.desktop
+share/gtk-3.0/gtkbuilder.rng
+share/gtk-3.0/emoji/
+ bn.gresource
+ da.gresource
+ de.gresource
+ es.gresource
+ et.gresource
+ fi.gresource
+ fr.gresource
+ hi.gresource
+ hu.gresource
+ it.gresource
+ ja.gresource
+ ko.gresource
+ lt.gresource
+ ms.gresource
+ nb.gresource
+ nl.gresource
+ pl.gresource
+ pt.gresource
+ ru.gresource
+ sv.gresource
+ th.gresource
+ uk.gresource
+ zh.gresource
+share/gtk-3.0/valgrind/gtk.supp
+share/icons/hicolor/16x16/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/22x22/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/24x24/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/256x256/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/32x32/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/icons/hicolor/48x48/apps/
+ gtk3-demo-symbolic.symbolic.png
+ gtk3-demo.png
+ gtk3-widget-factory-symbolic.symbolic.png
+ gtk3-widget-factory.png
+share/themes/Default/gtk-3.0/gtk-keys.css
+share/themes/Emacs/gtk-3.0/gtk-keys.css
 
 
 [FILE:500:patches/patch-gtk_a11y_gtkaccessibility.c]
