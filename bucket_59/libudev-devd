@@ -2,7 +2,7 @@
 
 NAMEBASE=		libudev-devd
 VERSION=		0.6.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Libudev-compatible interface for devd
@@ -38,6 +38,9 @@ SOVERSION=		0.0.0
 
 CFLAGS=			-Wno-error
 
+post-install:
+	${LN} -s ${PREFIX}/lib/pkgconfig/libudev.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig/udev.pc
+
 [FILE:86:descriptions/desc.primary]
 libudev-compatible interface for devd
 
@@ -54,10 +57,12 @@ lib/
  libudev.so.%%SOVERSION%%
 
 
-[FILE:58:manifests/plist.dev]
+[FILE:69:manifests/plist.dev]
 include/libudev.h
 lib/libudev.so
-lib/pkgconfig/libudev.pc
+lib/pkgconfig/
+ libudev.pc
+ udev.pc
 
 
 [FILE:467:patches/patch-udev-net.c]

@@ -2,7 +2,7 @@
 
 NAMEBASE=		gtk3
 VERSION=		3.24.43
-REVISION=		1
+REVISION=		2
 KEYWORDS=		x11_toolkits
 VARIANTS=		std
 SDESC[std]=		Gimp Toolkit for X11 GUI
@@ -22,8 +22,8 @@ SPKGS[std]=		set
 			tools
 
 OPTIONS_AVAILABLE=	DBUS CUPS CLOUDPRINT COLORD BROADWAY INTROSPECTION
-OPTIONS_STANDARD=	DBUS BROADWAY INTROSPECTION
-OPT_ON[all]=		DBUS BROADWAY INTROSPECTION
+OPTIONS_STANDARD=	DBUS BROADWAY INTROSPECTION CUPS
+OPT_ON[all]=		DBUS BROADWAY INTROSPECTION CUPS
 
 BUILD_DEPENDS=		harfbuzz:dev:std
 			libepoxy:dev:std
@@ -78,7 +78,7 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 [INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 
 [CLOUDPRINT].DESCRIPTION=		Support for printing to cloud
-[CLOUDPRINT].BROKEN_ON=			CLOUDPRINT option not supported yet
+[CLOUDPRINT].BROKEN_ON=			CLOUDPRINT option causes circular dependency
 [CLOUDPRINT].BUILDRUN_DEPENDS_ON=	librest:single:std
 					json-glib:primary:std
 [CLOUDPRINT].BUILD_DEPENDS_ON=		json-glib:dev:std
@@ -87,13 +87,17 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 [DBUS].DESCRIPTION=			AT-SPI ATK bridge support (requires dbus)
 [DBUS].GNOME_COMPONENTS_ON=		atk
 
-[COLORD].BROKEN_ON=			COLORD option not supported yet
+[COLORD].DESCRIPTION=			Build with colord support
+[COLORD].BROKEN_ON=			COLORD option causes circular dependency
+[COLORD].BUILDRUN_DEPENDS_ON=		colord:primary:std
+[COLORD].BUILD_DEPENDS_ON=		colord:dev:std
+[COLORD].CONFIGURE_ARGS_ON=		-Dcolord=true
 
 [BROADWAY].DESCRIPTION=			Backend for HTML5 and websocket support
 [BROADWAY].CONFIGURE_ARGS_ON=		-Dbroadway_backend=true
 
-[CUPS].BROKEN_ON=			CUPS option not supported yet
-[CUPS].BUILDRUN_DEPENDS_ON=		cups:single:std
+[CUPS].BUILDRUN_DEPENDS_ON=		cups:primary:std
+[CUPS].BUILD_DEPENDS_ON=		cups:dev:std
 [CUPS].CONFIGURE_ARGS_OFF=		-Dprint_backends=file,lpr
 [CUPS].CONFIGURE_ARGS_ON=		-Dprint_backends=cups,file,lpr
 

@@ -2,7 +2,7 @@
 
 NAMEBASE=		roundcube
 VERSION=		1.6.9
-REVISION=		1
+REVISION=		2
 KEYWORDS=		mail www
 VARIANTS=		php82 php83 php84
 SDESC[php82]=		Open source webmail software (php82)
@@ -65,7 +65,7 @@ SUB_LIST=		WWWDIR="{{PREFIX}}/www/roundcube"
 					php82-exif:single:std
 					php82-ctype:single:std
 					php82-gd:single:std
-					php82-pspell:single:std
+					php82-enchant:single:std
 					php82-pdo_sqlite:single:std
 					php82-pdo_pgsql:single:std
 					php82-pdo_mysql:single:std
@@ -84,7 +84,7 @@ SUB_LIST=		WWWDIR="{{PREFIX}}/www/roundcube"
 					php83-exif:single:std
 					php83-ctype:single:std
 					php83-gd:single:std
-					php83-pspell:single:std
+					php83-enchant:single:std
 					php83-pdo_sqlite:single:std
 					php83-pdo_pgsql:single:std
 					php83-pdo_mysql:single:std
@@ -103,15 +103,18 @@ SUB_LIST=		WWWDIR="{{PREFIX}}/www/roundcube"
 					php84-exif:single:std
 					php84-ctype:single:std
 					php84-gd:single:std
+					php84-enchant:single:std
 					php84-pdo_sqlite:single:std
 					php84-pdo_pgsql:single:std
 					php84-pdo_mysql:single:std
 
 post-patch:
-	${FIND} ${WRKSRC} -type f -name "*.orig" -delete
 	# remove unsupported databases
 	${MV} ${WRKSRC}/SQL/mssql ${WRKDIR}/
 	${MV} ${WRKSRC}/SQL/oracle ${WRKDIR}/
+
+pre-configure:
+	${FIND} ${WRKSRC} -type f -name "*.orig" -delete
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/www/roundcube
@@ -3048,12 +3051,24 @@ share/doc/roundcube/
  UPGRADING
 
 
-[FILE:763:patches/patch-config_defaults.inc.php]
---- config/defaults.inc.php.orig	2024-08-04 09:45:14 UTC
+[FILE:1336:patches/patch-config_defaults.inc.php]
+--- config/defaults.inc.php.orig	2024-09-01 07:31:36 UTC
 +++ config/defaults.inc.php
-@@ -941,8 +941,8 @@ $config['spellcheck_dictionary'] = false
+@@ -925,7 +925,7 @@ $config['show_real_foldernames'] = false
+ $config['quota_zero_as_unlimited'] = false;
+ 
+ // Make use of the built-in spell checker.
+-$config['enable_spellcheck'] = false;
++$config['enable_spellcheck'] = true;
+ 
+ // Enables spellchecker exceptions dictionary.
+ // Setting it to 'shared' will make the dictionary shared by all users.
+@@ -939,10 +939,10 @@ $config['spellcheck_dictionary'] = false
+ // Since Google shut down their public spell checking service, the default settings
+ // connect to http://spell.roundcube.net which is a hosted service provided by Roundcube.
  // You can connect to any other googie-compliant service by setting 'spellcheck_uri' accordingly.
- $config['spellcheck_engine'] = 'googie';
+-$config['spellcheck_engine'] = 'googie';
++$config['spellcheck_engine'] = 'enchant';
  
 -// For locally installed Nox Spell Server or After the Deadline services,
 -// please specify the URI to call it.

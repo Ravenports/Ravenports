@@ -127,13 +127,13 @@ LIBXSLT_PYTHON_REVISION=	0
 # ruby
 # ------------------------------------------------------------------------
 
-RUBY_3.1_REVISION=		3
+RUBY_3.1_REVISION=		4
 RUBY_3.1_PATCHLEVEL=		0
 
-RUBY_3.2_REVISION=		1
+RUBY_3.2_REVISION=		2
 RUBY_3.2_PATCHLEVEL=		0
 
-RUBY_3.3_REVISION=		1
+RUBY_3.3_REVISION=		2
 RUBY_3.3_PATCHLEVEL=		0
 
 # ------------------------------------------------------------------------
@@ -185,7 +185,7 @@ XORG_VERSION=			7.7
 LLVM16_VERSION=			16.0.6		# required for javaports unkindness
 LLVM17_VERSION=			17.0.6
 LLVM18_VERSION=			18.1.8
-LLVM19_VERSION=			19.1.5
+LLVM19_VERSION=			19.1.6
 ZLIB_VERSION=			1.3.1
 GHOSTSCRIPT_VERSION=		10.04.0
 SPHINX_UNDERSCORE=		1.13.1
