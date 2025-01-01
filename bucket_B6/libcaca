@@ -2,6 +2,7 @@
 
 NAMEBASE=		libcaca
 VERSION=		0.99.b20
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Graphics library to output text instead of pixels
@@ -17,8 +18,9 @@ SPKGS[std]=		set
 			dev
 			man
 			docs
-			python
-			ruby
+			bindpython
+			bindruby
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -33,11 +35,14 @@ BUILDRUN_DEPENDS=	imlib2:primary:std
 			ftgl:primary:std
 			libglvnd:primary:std
 			slang:primary:std
-EXRUN[ruby]=		primary
-EXRUN[python]=		primary
+EXRUN[bindruby]=	primary
+			ruby
+EXRUN[tools]=		primary
+EXRUN[bindpython]=	primary
+			python
 
-USES=			autoreconf gettext libtool ncurses python ruby zlib
-			cpe
+USES=			autoreconf gettext libtool ncurses zlib cpe
+			python:build ruby:build
 GNOME_COMPONENTS=	pango
 XORG_COMPONENTS=	x11
 
@@ -88,28 +93,23 @@ famous AAlib library, with the following improvements:
  * advanced text canvas operations (blitting, rotations)
 
 
-[FILE:58:descriptions/desc.python]
+[FILE:58:descriptions/desc.bindpython]
 This subpackage contains the Python bindings for libcaca.
 
 
-[FILE:53:descriptions/desc.ruby]
+[FILE:53:descriptions/desc.bindruby]
 This package contains the ruby bindings for libcaca.
+
+
+[FILE:54:descriptions/desc.tools]
+This package contains programs based on caca library.
 
 
 [FILE:105:distinfo]
 3edb8763a8f888ed4d4b85b3a056e81c840d5d27f79bdebc0b991688b23084f2       729604 libcaca-0.99.beta20.tar.gz
 
 
-[FILE:199:manifests/plist.primary]
-bin/
- caca-config
- cacaclock
- cacademo
- cacafire
- cacaplay
- cacaserver
- cacaview
- img2txt
+[FILE:109:manifests/plist.primary]
 lib/
  libcaca++.so.%%SOMAJOR%%
  libcaca++.so.%%SOVERSION%%
@@ -117,7 +117,8 @@ lib/
  libcaca.so.%%SOVERSION%%
 
 
-[FILE:154:manifests/plist.dev]
+[FILE:170:manifests/plist.dev]
+bin/caca-config
 include/
  caca++.h
  caca.h
@@ -569,7 +570,7 @@ share/doc/libcaca-dev/html/
 share/libcaca/caca.txt
 
 
-[FILE:1200:manifests/plist.python]
+[FILE:1200:manifests/plist.bindpython]
 %%PYTHON_SITELIBDIR%%/caca/
  __init__.py
  canvas.py
@@ -598,9 +599,20 @@ share/libcaca/caca.txt
  font.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.pyc
 
 
-[FILE:60:manifests/plist.ruby]
+[FILE:60:manifests/plist.bindruby]
 %%RUBY_SITEARCHLIBDIR%%/caca.so
 %%RUBY_SITELIBDIR%%/caca.rb
+
+
+[FILE:77:manifests/plist.tools]
+bin/
+ cacaclock
+ cacademo
+ cacafire
+ cacaplay
+ cacaserver
+ cacaview
+ img2txt
 
 
 [FILE:424:patches/patch-caca_dither.c]

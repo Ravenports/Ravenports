@@ -82,7 +82,7 @@ _SHEBANG_REINPLACE_ARGS+= -e "1s|^\#![[:space:]]*${old_cmd:C/\"//g}$$|\#!${SHEBA
 _USES_stage+=	710:fix-shebang
 BASESRC=${WRKDIR}
 .else
-_USES_patch+=	210:fix-shebang
+_USES_patch+=	860:fix-shebang
 BASESRC=${WRKSRC}
 .endif
 

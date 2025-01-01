@@ -3,9 +3,9 @@
 # Feature:	gem
 # Usage:	USES=gem
 # Valid ARGS:	skiplist (Don't generate package list automatically)
-#               v31      (requires Ruby 3.1) (implicit)
+#               v33      (requires Ruby 3.3) (implicit)
 #               v32      (requires Ruby 3.2)
-#               v33      (requires Ruby 3.3)
+#               v34      (requires Ruby 3.4)
 
 .if !defined(_INCLUDE_USES_GEM_MK)
 _INCLUDE_USES_GEM_MK=	yes
@@ -13,21 +13,21 @@ _INCLUDE_USES_GEM_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v(31,32,33)
+# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v(32,33,34)
 # -----------------------------------------------
 
-.  if ${gem_ARGS} == "v33"
-GEMS_BASE_DIR=	lib/ruby/gems/3.3
-RUBYGEMBIN=	${LOCALBASE}/bin/gem33
-USING_RUBY=	3.3
-.  elif ${gem_ARGS} == "v31"
-GEMS_BASE_DIR=	lib/ruby/gems/3.1
-RUBYGEMBIN=	${LOCALBASE}/bin/gem31
-USING_RUBY=	3.1
-.  else
+.  if ${gem_ARGS} == "v32"
 GEMS_BASE_DIR=	lib/ruby/gems/3.2
 RUBYGEMBIN=	${LOCALBASE}/bin/gem32
 USING_RUBY=	3.2
+.  elif ${gem_ARGS} == "v34"
+GEMS_BASE_DIR=	lib/ruby/gems/3.4
+RUBYGEMBIN=	${LOCALBASE}/bin/gem34
+USING_RUBY=	3.4
+.  else
+GEMS_BASE_DIR=	lib/ruby/gems/3.3
+RUBYGEMBIN=	${LOCALBASE}/bin/gem33
+USING_RUBY=	3.3
 .  endif
 
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -122,7 +122,11 @@ post-install-gem:
 	if [ -s /tmp/rprograms ]; then\
 	  ${SED} -i'' ${RUBY_SB_ARGS} `cat /tmp/rprograms`;\
 	fi
-.    if "${USING_RUBY}" != "${RUBY_DEFAULT}"
+.    if "${NAMEBASE:Mruby-racc}"
+	while read thisfile; do \
+	  mv $${thisfile} $${thisfile}${USING_RUBY:S/.//};\
+	done < /tmp/rconflicts
+.    elif "${USING_RUBY}" != "${RUBY_DEFAULT}"
 	while read thisfile; do \
 	  mv $${thisfile} $${thisfile}${USING_RUBY:S/.//};\
 	done < /tmp/rconflicts

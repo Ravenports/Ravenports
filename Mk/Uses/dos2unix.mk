@@ -20,7 +20,7 @@ DOS2UNIX_WRKSRC?=	${WRKSRC}
 
 _USES_patch+=	200:dos2unix
 dos2unix:
-	@${ECHO_MSG} "===>   Converting DOS text files to UNIX text files"
+	@${ECHO_MSG} "===>  Converting DOS text files to UNIX text files"
 .  if defined(_DOS2UNIX_ALL)
 	@${FIND} ${DOS2UNIX_WRKSRC} -type f -print0 | \
 		${XARGS} -0 ${SED} -i'' -e 's/$$//'

@@ -2,7 +2,7 @@
 #
 # Feature:	ruby
 # Usage:	USES=ruby
-# Valid ARGS:	(v31, v32, v33), build, interp
+# Valid ARGS:	(v32, v33, v34), build, interp
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -43,12 +43,12 @@ _INCLUDE_USES_RUBY_MK=	yes
 # ------------------------------------------------------
 
 
-.  if !empty(ruby_ARGS:Mv31)
-_RUBY_VERSION=	3.1
-.  elif !empty(ruby_ARGS:Mv32)
+.  if !empty(ruby_ARGS:Mv32)
 _RUBY_VERSION=	3.2
 .  elif !empty(ruby_ARGS:Mv33)
 _RUBY_VERSION=	3.3
+.  elif !empty(ruby_ARGS:Mv34)
+_RUBY_VERSION=	3.4
 .  else
 _RUBY_VERSION=	${RUBY_DEFAULT}
 .  endif

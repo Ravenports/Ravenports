@@ -189,6 +189,13 @@ _${_t}_REAL_SEQ+=	${s}
 .ORDER: ${_${_t}_DEP} ${_${_t}_REAL_SEQ}
 .endfor
 
+# special repatch sequence (real targets only)
+.for s in ${_PATCH_SEQ:M[12345]*:O:C/^[0-9]+://}
+. if target(${s})
+_REPATCH_SEQ+= ${s}
+. endif
+.endfor
+
 # --------------------------------------------------------------------------
 # --  pre-* and post-script targets
 # --------------------------------------------------------------------------

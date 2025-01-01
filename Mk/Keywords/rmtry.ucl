@@ -1,8 +1,5 @@
 actions: []
-post-deinstall: <<EOD
-	case "%@" in
-	/*) f="%@" ;;
-	 *) f="%D/%@" ;;
-	esac
-	/bin/rm -f $f 2>/dev/null || true
+pre-deinstall-lua: <<EOD
+  target=pkg.prefixed_path(arg[1])
+  pkg.exec({"/bin/rm", "-f", pkg_rootdir .. target})
 EOD

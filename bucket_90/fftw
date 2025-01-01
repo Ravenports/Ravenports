@@ -2,7 +2,7 @@
 
 NAMEBASE=		fftw
 VERSION=		3.3.10
-REVISION=		1
+REVISION=		2
 KEYWORDS=		math
 VARIANTS=		std float long quad
 SDESC[quad]=		Fast Fourier Transform library (quad precision)
@@ -16,10 +16,22 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://www.fftw.org/
 DISTFILE[1]=		fftw-3.3.10.tar.gz:main
 DF_INDEX=		1
-SPKGS[quad]=		single
-SPKGS[std]=		single
-SPKGS[float]=		single
-SPKGS[long]=		single
+SPKGS[quad]=		set
+			primary
+			dev
+			info
+SPKGS[std]=		set
+			primary
+			dev
+			info
+SPKGS[float]=		set
+			primary
+			dev
+			info
+SPKGS[long]=		set
+			primary
+			dev
+			info
 
 OPTIONS_AVAILABLE=	FLOAT LONG QUAD FLAV
 OPTIONS_STANDARD=	none
@@ -27,13 +39,14 @@ VOPTS[quad]=		FLOAT=OFF LONG=OFF QUAD=ON FLAV=ON
 VOPTS[float]=		FLOAT=ON LONG=OFF QUAD=OFF FLAV=ON
 VOPTS[long]=		FLOAT=OFF LONG=ON QUAD=OFF FLAV=ON
 
-USES=			cmake makeinfo perl:build pkgconfig fortran:single
+USES=			cmake makeinfo perl:build pkgconfig fortran:primary
 
-LICENSE=		GPLv2+:single
-LICENSE_TERMS=		single:{{WRKSRC}}/COPYRIGHT
+LICENSE=		GPLv2+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYRIGHT
 LICENSE_FILE=		GPLv2+:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
+INFO=			info:fftw3
 FPC_EQUIVALENT=		math/fftw3
 INFO_SUBDIR=		.
 
@@ -47,7 +60,6 @@ CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
 			-DENABLE_THREADS:BOOL=ON
 
 [FLAV].DESCRIPTION=			Enabled for non-standard variants
-[FLAV].INFO_OFF=			single:fftw3
 
 [QUAD].DESCRIPTION=			Build quad precision version of fftw
 [QUAD].CMAKE_ARGS_ON=			-DENABLE_QUAD_PRECISION:BOOL=ON
@@ -71,11 +83,7 @@ post-patch-QUAD-ON:
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.${LIBEXT}
 
-post-install-FLAV-ON:
-	${RM} ${STAGEDIR}${PREFIX}/include/*
-	${RM} -r ${STAGEDIR}${PREFIX}/share/info
-
-[FILE:548:descriptions/desc.single]
+[FILE:548:descriptions/desc.primary]
 FFTW is a C subroutine library for computing the Discrete Fourier Transform
 (DFT) in one or more dimensions, of both real and complex data, and of
 arbitrary input size. We believe that FFTW, which is free software, should
@@ -90,11 +98,19 @@ most architectures without modification.
 56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467      4144100 fftw-3.3.10.tar.gz
 
 
-[FILE:457:manifests/plist.single.std]
+[FILE:197:manifests/plist.primary.std]
 %%OMP%%lib/
- libfftw3_omp.so
  libfftw3_omp.so.%%SOMAJOR%%
  libfftw3_omp.so.%%SOVERSION%%
+lib/
+ libfftw3.so.%%SOMAJOR%%
+ libfftw3.so.%%SOVERSION%%
+ libfftw3_threads.so.%%SOMAJOR%%
+ libfftw3_threads.so.%%SOVERSION%%
+
+
+[FILE:275:manifests/plist.dev.std]
+%%OMP%%lib/libfftw3_omp.so
 include/
  fftw3.f
  fftw3.f03
@@ -103,11 +119,7 @@ include/
  fftw3q.f03
 lib/
  libfftw3.so
- libfftw3.so.%%SOMAJOR%%
- libfftw3.so.%%SOVERSION%%
  libfftw3_threads.so
- libfftw3_threads.so.%%SOMAJOR%%
- libfftw3_threads.so.%%SOVERSION%%
 lib/cmake/fftw3/
  FFTW3Config.cmake
  FFTW3ConfigVersion.cmake
@@ -116,18 +128,28 @@ lib/cmake/fftw3/
 lib/pkgconfig/fftw3.pc
 
 
-[FILE:421:manifests/plist.single.float]
+[FILE:203:manifests/plist.primary.float]
 %%OMP%%lib/
- libfftw3f_omp.so
  libfftw3f_omp.so.%%SOMAJOR%%
  libfftw3f_omp.so.%%SOVERSION%%
 lib/
- libfftw3f.so
  libfftw3f.so.%%SOMAJOR%%
  libfftw3f.so.%%SOVERSION%%
- libfftw3f_threads.so
  libfftw3f_threads.so.%%SOMAJOR%%
  libfftw3f_threads.so.%%SOVERSION%%
+
+
+[FILE:295:manifests/plist.dev.float]
+%%OMP%%lib/libfftw3f_omp.so
+include/
+ fftw3.f
+ fftw3.f03
+ fftw3.h
+ fftw3l.f03
+ fftw3q.f03
+lib/
+ libfftw3f.so
+ libfftw3f_threads.so
 lib/cmake/fftw3f/
  FFTW3LibraryDepends-%%CMAKE_BUILD_TYPE%%.cmake
  FFTW3LibraryDepends.cmake
@@ -136,18 +158,28 @@ lib/cmake/fftw3f/
 lib/pkgconfig/fftw3f.pc
 
 
-[FILE:421:manifests/plist.single.long]
+[FILE:203:manifests/plist.primary.long]
 %%OMP%%lib/
- libfftw3l_omp.so
  libfftw3l_omp.so.%%SOMAJOR%%
  libfftw3l_omp.so.%%SOVERSION%%
 lib/
- libfftw3l.so
  libfftw3l.so.%%SOMAJOR%%
  libfftw3l.so.%%SOVERSION%%
- libfftw3l_threads.so
  libfftw3l_threads.so.%%SOMAJOR%%
  libfftw3l_threads.so.%%SOVERSION%%
+
+
+[FILE:295:manifests/plist.dev.long]
+%%OMP%%lib/libfftw3l_omp.so
+include/
+ fftw3.f
+ fftw3.f03
+ fftw3.h
+ fftw3l.f03
+ fftw3q.f03
+lib/
+ libfftw3l.so
+ libfftw3l_threads.so
 lib/cmake/fftw3l/
  FFTW3LibraryDepends-%%CMAKE_BUILD_TYPE%%.cmake
  FFTW3LibraryDepends.cmake
@@ -156,18 +188,28 @@ lib/cmake/fftw3l/
 lib/pkgconfig/fftw3l.pc
 
 
-[FILE:408:manifests/plist.single.quad]
+[FILE:203:manifests/plist.primary.quad]
 %%OMP%%lib/
- libfftw3q_omp.so
  libfftw3q_omp.so.%%SOMAJOR%%
  libfftw3q_omp.so.%%SOVERSION%%
 lib/
- libfftw3q.so
  libfftw3q.so.%%SOMAJOR%%
  libfftw3q.so.%%SOVERSION%%
- libfftw3q_threads.so
  libfftw3q_threads.so.%%SOMAJOR%%
  libfftw3q_threads.so.%%SOVERSION%%
+
+
+[FILE:282:manifests/plist.dev.quad]
+%%OMP%%lib/libfftw3q_omp.so
+include/
+ fftw3.f
+ fftw3.f03
+ fftw3.h
+ fftw3l.f03
+ fftw3q.f03
+lib/
+ libfftw3q.so
+ libfftw3q_threads.so
 lib/cmake/fftw3q/
  FFTW3LibraryDepends-release.cmake
  FFTW3LibraryDepends.cmake
