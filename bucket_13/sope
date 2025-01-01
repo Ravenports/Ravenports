@@ -2,7 +2,7 @@
 
 NAMEBASE=		sope
 VERSION=		5.11.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel www
 VARIANTS=		std
 SDESC[std]=		Set of GNUstep web application frameworks
@@ -19,6 +19,7 @@ SPKGS[std]=		set
 			dev
 			tools
 			pgsql
+			ldap
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -28,15 +29,18 @@ BUILD_DEPENDS=		gnustep-base:dev:std
 			gnustep-make:primary:std
 			gnutls:dev:std
 			libobjc2:dev:std
+			openldap:dev:std
 			postgresql17:dev:std
 			postgresql17:client:std
 BUILDRUN_DEPENDS=	gnustep-base:primary:std
 			gnutls:primary:std
+			openldap:client:std
+RUN_DEPENDS=		memcached:primary:std
 EXRUN[pgsql]=		primary
 			postgresql17:client:std
 EXRUN[tools]=		primary
 
-USES=			clang gmake iconv ssl:openssl11 zlib
+USES=			clang gmake iconv zlib
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		SOPE
@@ -55,6 +59,9 @@ CONFIGURE_ARGS=		--with-gnustep
 
 MAKEFILE=		GNUmakefile
 
+PLIST_SUB=		SO_LDAP=4.9.35
+			SO_LDAP_MAJMIN=4.9
+
 do-configure:
 	cd ${WRKSRC} ; . ${GNUSTEP_MAKEFILES}/GNUstep.sh ; ./configure ${CONFIGURE_ARGS}
 
@@ -72,6 +79,10 @@ This package contains SOPE programs.
 
 [FILE:63:descriptions/desc.pgsql]
 This subpackage contains the PostgreSQL functionality of SOPE.
+
+
+[FILE:57:descriptions/desc.ldap]
+This subpackage contains the LDAP functionality of SOPE.
 
 
 [FILE:105:distinfo]
@@ -111,7 +122,7 @@ lib/GNUstep/WOxElemBuilders-4.9/WEExtensions.wox/WEExtensions
 lib/GNUstep/WOxElemBuilders-4.9/WOExtensions.wox/WOExtensions
 
 
-[FILE:8654:manifests/plist.dev]
+[FILE:8914:manifests/plist.dev]
 include/DOM/
  DOM.h
  DOMAttribute.h
@@ -554,6 +565,21 @@ share/GNUstep/Makefiles/
  woapp.make
  wobundle.make
 share/GNUstep/Makefiles/Additional/ngobjweb.make
+include/NGLdap/
+ EOQualifier+LDAP.h
+ NGLdapGlobalID.h
+ NGLdapConnection.h
+ NGLdapSearchResultEnumerator.h
+ NGLdapFileManager.h
+ NGLdap.h
+ NGLdapAttribute.h
+ NGLdapModification.h
+ NGLdapDataSource.h
+ NSString+DN.h
+ NGLdapURL.h
+ NGLdapEntry.h
+lib/
+ libNGLdap.so
 
 
 [FILE:45:manifests/plist.tools]
@@ -570,6 +596,12 @@ lib/GNUstep/GDLAdaptors-4.9/PostgreSQL.gdladaptor/Resources/
 lib/GNUstep/GDLAdaptors-4.9/PostgreSQL.gdladaptor/
  PostgreSQL
  stamp.make
+
+
+[FILE:64:manifests/plist.ldap]
+lib/
+ libNGLdap.so.%%SO_LDAP%%
+ libNGLdap.so.%%SO_LDAP_MAJMIN%%
 
 
 [FILE:527:patches/patch-sope-core_NGStreams_NGDescriptorFunctions.m]
@@ -638,6 +670,19 @@ Add support for DragonFly.
  
  ifneq ($(CGS_LIBDIR_NAME),)
  ADDITIONAL_CPPFLAGS += -DCGS_LIBDIR_NAME=\@\"$(CGS_LIBDIR_NAME)\"
+
+
+[FILE:317:patches/patch-sope-ldap_NGLdap_GNUmakefile.preamble]
+--- sope-ldap/NGLdap/GNUmakefile.preamble.orig	2024-12-31 10:10:02.846559000 +0100
++++ sope-ldap/NGLdap/GNUmakefile.preamble	2024-12-31 10:11:24.184863000 +0100
+@@ -9,6 +9,7 @@
+ 	-I/usr/local/include
+ 
+ ADDITIONAL_CPPFLAGS += -Wall -Wno-protocol
++ADDITIONAL_OBJCFLAGS += -Wno-error=int-conversion
+ 
+ 
+ # dependencies
 
 
 [FILE:722:files/special.mk]
