@@ -2,6 +2,7 @@
 
 NAMEBASE=		libdvbpsi
 VERSION=		1.3.3
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Lib decoding / generating MPEG TS / DVB PSI tables
@@ -12,15 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		http://download.videolan.org/pub/libdvbpsi/1.3.3/
 DISTFILE[1]=		libdvbpsi-1.3.3.tar.bz2:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			libtool mbsdfix
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/dvbpsi.h
@@ -36,7 +39,7 @@ SOVERSION=		10.0.0
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libdvbpsi.so.10.0.0
 
-[FILE:797:descriptions/desc.single]
+[FILE:797:descriptions/desc.primary]
 Libdvbpsi is a simple cross-platform library designed for decoding and 
 generation of MPEG TS and DVB PSI tables according to standards ISO/IEC 
 13818 and ITU-T H.222.0.
@@ -60,7 +63,13 @@ Some of its features include:
 02b5998bcf289cdfbd8757bedd5987e681309b0a25b3ffe6cebae599f7a00112       488020 libdvbpsi-1.3.3.tar.bz2
 
 
-[FILE:853:manifests/plist.single]
+[FILE:59:manifests/plist.primary]
+lib/
+ libdvbpsi.so.%%SOMAJOR%%
+ libdvbpsi.so.%%SOVERSION%%
+
+
+[FILE:799:manifests/plist.dev]
 include/dvbpsi/
  atsc_eit.h
  atsc_ett.h
@@ -143,7 +152,5 @@ include/dvbpsi/types/aac_profile.h
 lib/
  libdvbpsi.a
  libdvbpsi.so
- libdvbpsi.so.%%SOMAJOR%%
- libdvbpsi.so.%%SOVERSION%%
 lib/pkgconfig/libdvbpsi.pc
 

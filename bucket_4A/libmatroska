@@ -2,6 +2,7 @@
 
 NAMEBASE=		libmatroska
 VERSION=		1.7.1
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Extensible Multimedia Container Format
@@ -12,7 +13,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://dl.matroska.org/downloads/libmatroska/
 DISTFILE[1]=		libmatroska-1.7.1.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -20,10 +23,10 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		libebml:dev:std
 BUILDRUN_DEPENDS=	libebml:primary:std
 
-USES=			cpe cmake c++:single
+USES=			cpe cmake c++:primary
 
-LICENSE=		LGPL21+:single
-LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
 LICENSE_FILE=		LGPL21+:{{WRKSRC}}/LICENSE.LGPL
 LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/KaxVersion.cpp
@@ -39,7 +42,7 @@ CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libmatroska.so
 
-[FILE:470:descriptions/desc.single]
+[FILE:470:descriptions/desc.primary]
 libmatroska is a C++ libary to parse and create Matroska files.
 
 Matroska aims to become THE standard of multimedia container formats. It
@@ -54,7 +57,13 @@ extensibility, without breaking file support in old parsers.
 572a3033b8d93d48a6a858e514abce4b2f7a946fe1f02cbfeca39bfd703018b3        61416 libmatroska-1.7.1.tar.xz
 
 
-[FILE:729:manifests/plist.single]
+[FILE:63:manifests/plist.primary]
+lib/
+ libmatroska.so.%%SOMAJOR%%
+ libmatroska.so.%%SOVERSION%%
+
+
+[FILE:669:manifests/plist.dev]
 include/matroska/
  FileKax.h
  KaxAttached.h
@@ -87,10 +96,7 @@ include/matroska/
 include/matroska/c/
  libmatroska.h
  libmatroska_t.h
-lib/
- libmatroska.so
- libmatroska.so.%%SOMAJOR%%
- libmatroska.so.%%SOVERSION%%
+lib/libmatroska.so
 lib/cmake/Matroska/
  MatroskaConfig.cmake
  MatroskaConfigVersion.cmake
