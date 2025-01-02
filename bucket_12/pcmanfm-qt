@@ -20,15 +20,15 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[all]=		Requires layer-shell-qt (wayland), not yet available
-
-BUILD_DEPENDS=		qt6-qttools:set:std
-			lxqt-build-tools:single:std
-			libfm-qt:dev:std
+BUILD_DEPENDS=		layer-shell-qt:dev:std
 			libexif:dev:std
-BUILDRUN_DEPENDS=	libfm-qt:primary:std
-			menu-cache:single:std
+			libfm-qt:dev:std
+			lxqt-build-tools:single:std
+			qt6-qttools:set:std
+BUILDRUN_DEPENDS=	layer-shell-qt:primary:std
 			libexif:primary:std
+			libfm-qt:primary:std
+			menu-cache:single:std
 			qt6-qtbase:primary:std
 EXRUN[lang]=		libfm-qt:lang:std
 
@@ -50,6 +50,8 @@ CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH="{{PREFIX}}/lib/qt6/cmake/"
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/pcmanfm-qt
+	${MV} ${STAGEDIR}/etc/xdg ${STAGEDIR}${PREFIX}/etc/
+	${RM} -r ${STAGEDIR}/etc
 
 [FILE:186:descriptions/desc.primary]
 PCManFM-Qt is the Qt port of PCManFM, the file manager of LXDE.
@@ -71,7 +73,7 @@ share/applications/
 share/icons/hicolor/scalable/apps/pcmanfm-qt.svg
 
 
-[FILE:916:manifests/plist.lang]
+[FILE:952:manifests/plist.lang]
 share/pcmanfm-qt/translations/
  pcmanfm-qt_ar.qm
  pcmanfm-qt_arn.qm
@@ -97,6 +99,8 @@ share/pcmanfm-qt/translations/
  pcmanfm-qt_hr.qm
  pcmanfm-qt_hu.qm
  pcmanfm-qt_id.qm
+ pcmanfm-qt_ie.qm
+ pcmanfm-qt_is.qm
  pcmanfm-qt_it.qm
  pcmanfm-qt_ja.qm
  pcmanfm-qt_kk.qm
