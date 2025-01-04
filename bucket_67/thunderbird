@@ -2,6 +2,7 @@
 
 NAMEBASE=		thunderbird
 VERSION=		128.5.0
+REVISION=		1
 KEYWORDS=		mail net_im news
 VARIANTS=		std
 SDESC[std]=		Mozilla Thunderbird mail/newsgroup client
@@ -19,7 +20,6 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		aom:dev:std
 			autoconf213:single:std
-			botan2:dev:std
 			cbindgen:single:std
 			clang18:set:std
 			dav1d:dev:std
@@ -42,7 +42,6 @@ BUILD_DEPENDS=		aom:dev:std
 			pciutils:dev:std
 			startup-notification:dev:std
 BUILDRUN_DEPENDS=	aom:primary:std
-			botan2:primary:std
 			dav1d:primary:std
 			dbus-glib:primary:std
 			ffmpeg:primary:std
@@ -97,7 +96,6 @@ QMAKE_ARGS=		--prefix="{{PREFIX}}"
 			--with-system-graphite2
 			--with-system-av1
 			--with-system-webp
-			--with-system-botan
 			--enable-system-ffi
 			--enable-system-pixman
 			--enable-install-strip
@@ -887,6 +885,19 @@ index a060a59f728f..f0778d1ae2d6 100644
  #ifdef HAS_DLL_BLOCKLIST
    DllBlocklist_Initialize(gBlocklistInitFlags);
  #endif
+
+
+[FILE:440:patches/patch-comm_third__party_botan_botan.mozbuild]
+--- comm/third_party/botan/botan.mozbuild.orig	2024-11-25 20:13:07 UTC
++++ comm/third_party/botan/botan.mozbuild
+@@ -44,6 +44,7 @@ if CONFIG['COMPILE_ENVIRONMENT']:
+     botan_build.script = 'botan_configure.py'
+     botan_build.flags = [
+         '--cc-bin={}'.format(CONFIG['CXX']),
++        '--cc=gcc',
+         '--cpu={}'.format(CONFIG['TARGET_CPU']),
+         '--os={}'.format(botan_os),
+         '--with-build-dir={}'.format(OBJDIR),
 
 
 [FILE:914:patches/patch-env-api-keys]

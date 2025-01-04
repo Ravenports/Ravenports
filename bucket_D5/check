@@ -2,6 +2,7 @@
 
 NAMEBASE=		check
 VERSION=		0.15.2
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Unit test framework for C
@@ -17,12 +18,11 @@ SPKGS[std]=		set
 			tools
 			dev
 			man
-			info
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			autoreconf libtool makeinfo pkgconfig
+USES=			cmake pkgconfig
 
 LICENSE=		LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -31,23 +31,14 @@ LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/src/check.c
 LICENSE_SCHEME=		solo
 
-INFO=			info:check
 FPC_EQUIVALENT=		devel/check
-INFO_SUBDIR=		.
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ENV=		ac_cv_path_AWK_PATH={{AWK}}
+SOVERSION=		0.15.2
 
-INSTALL_TARGET=		install-strip
-
-post-patch:
-	${REINPLACE_CMD} \
-		-e 's|COPYING.LESSER||' \
-		-e '/^docdir = / s|$$(PACKAGE)|check|' \
-			${WRKSRC}/Makefile.am
+CMAKE_ARGS=		-DBUILD_TESTING:BOOL=OFF
 
 post-install:
-	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/check
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libcheck.so
 
 [FILE:289:descriptions/desc.primary]
 Check is a unit test framework for C. It features a simple interface for
@@ -64,55 +55,45 @@ This package contains the checkmk tool of the Check framework.
 998d355294bb94072f40584272cf4424571c396c631620ce463f6ea97aa67d2e       306136 libcheck-check-0.15.2.tar.gz
 
 
-[FILE:39:manifests/plist.primary]
+[FILE:57:manifests/plist.primary]
 lib/
- libcheck.so.0
- libcheck.so.0.0.0
+ libcheck.so.%%SOMAJOR%%
+ libcheck.so.%%SOVERSION%%
 
 
 [FILE:12:manifests/plist.tools]
 bin/checkmk
 
 
-[FILE:110:manifests/plist.dev]
+[FILE:202:manifests/plist.dev]
 include/
  check.h
  check_stdint.h
 lib/
  libcheck.a
  libcheck.so
+lib/cmake/check/
+ check-config-version.cmake
+ check-config.cmake
+ check-targets-release.cmake
+ check-targets.cmake
 lib/pkgconfig/check.pc
-share/aclocal/check.m4
 
 
 [FILE:25:manifests/plist.man]
 share/man/man1/checkmk.1
 
 
-[FILE:784:patches/patch-check.m4]
---- check.m4.orig	2020-08-09 06:12:30 UTC
-+++ check.m4
-@@ -21,8 +21,20 @@ AC_DEFUN([AM_PATH_CHECK],
-       CHECK_CFLAGS="-I$with_check/include"
-       CHECK_LIBS="-L$with_check/lib -lcheck"
-     else
--      CHECK_CFLAGS=""
--      CHECK_LIBS="-lcheck"
-+      for check_includedir in /usr/local/include /usr/local/include/check /usr/include $prefix/include
-+      do
-+        if test -e $check_includedir/check.h ; then
-+          CHECK_CFLAGS="-I${check_includedir}"
-+          break
-+        fi
-+      done
-+      for check_libdir in /usr/local/lib /usr/local/lib/check /usr/lib $prefix/lib
-+      do
-+        if test -e $check_libdir/libcheck.a ; then
-+          CHECK_LIBS="-L${check_libdir} -lcheck"
-+          break
-+        fi
-+      done
-     fi
+[FILE:323:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2020-08-09 06:12:30 UTC
++++ CMakeLists.txt
+@@ -387,7 +387,7 @@ if (HAVE_LIBM)
+   set (LIBM "m")
+ endif (HAVE_LIBM)
  
-     ac_save_CFLAGS="$CFLAGS"
+-check_library_exists(rt clock_gettime "" HAVE_LIBRT)
++check_library_exists(rt xxxclock_gettime "" HAVE_LIBRT)
+ if (HAVE_LIBRT)
+   set(LIBRT "rt")
+   ADD_DEFINITIONS(-DHAVE_LIBRT=1)
 

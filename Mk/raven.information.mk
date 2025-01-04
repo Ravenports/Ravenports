@@ -22,7 +22,7 @@ APQ_ODBC_REVISION=		1
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.86.0
+BOOST_VERSION=			1.87.0
 BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
@@ -126,9 +126,6 @@ LIBXSLT_PYTHON_REVISION=	0
 # ------------------------------------------------------------------------
 # ruby
 # ------------------------------------------------------------------------
-
-RUBY_3.1_REVISION=		4
-RUBY_3.1_PATCHLEVEL=		0
 
 RUBY_3.2_REVISION=		2
 RUBY_3.2_PATCHLEVEL=		0
