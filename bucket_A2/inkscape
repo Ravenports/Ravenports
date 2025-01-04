@@ -2,7 +2,7 @@
 
 NAMEBASE=		inkscape
 VERSION=		1.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics editors
 VARIANTS=		std
 SDESC[std]=		Scalable Vector Graphics (SVG) editor
@@ -43,6 +43,7 @@ BUILD_DEPENDS=		appstream-glib:dev:std
 			libvisio:dev:std
 			potrace:dev:std
 			gdl:dev:std
+			GraphicsMagick:dev:std
 BUILDRUN_DEPENDS=	aspell:primary:std
 			boehm_garbage_collector:primary:std
 			boost-libraries:primary:std
@@ -58,10 +59,11 @@ BUILDRUN_DEPENDS=	aspell:primary:std
 			libwpg:primary:std
 			popt:primary:std
 			potrace:primary:std
+			GraphicsMagick:primary:std
 
 USES=			cmake cpe png jpeg pkgconfig python:build perl:build
 			shebangfix desktop-utils:primary gnome-icons:primary
-			freetype
+			freetype readline ncurses
 GNOME_COMPONENTS=	libxslt gtkmm30 cairomm10 pangomm14 glibmm24 atkmm16
 XORG_COMPONENTS=	x11
 
@@ -80,9 +82,7 @@ SHEBANG_FILES=		share/extensions/*.py
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		GEOMVER=1.4.0
 
-CMAKE_ARGS=		-DWITH_GNOME_VFS:BOOL=OFF
-			-DWITH_DBUS:BOOL=OFF
-			-DWITH_IMAGE_MAGICK:BOOL=OFF
+CMAKE_ARGS=		-DWITH_IMAGE_MAGICK:BOOL=OFF
 			-DWITH_OPENMP:BOOL=OFF
 			-DWITH_PROFILING:BOOL=OFF
 			-DENABLE_LCMS:BOOL=ON
@@ -93,6 +93,7 @@ CMAKE_ARGS=		-DWITH_GNOME_VFS:BOOL=OFF
 			-DWITH_LIBWPG:BOOL=ON
 			-DWITH_NLS:BOOL=ON
 			-DBUILD_SHARED_LIBS:BOOL=OFF
+			-Wno-dev
 
 [PREVIEW].DESCRIPTION=			Add support for PDF Previews
 [PREVIEW].BUILDRUN_DEPENDS_ON=		poppler:primary:std
