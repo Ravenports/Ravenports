@@ -3,33 +3,58 @@
 NAMEBASE=		meson
 VERSION=		1.6.1
 KEYWORDS=		devel python
-VARIANTS=		std
+VARIANTS=		std v13
 SDESC[std]=		High performance build system
+SDESC[v13]=		High performance build system (py 3.13)
 HOMEPAGE=		https://mesonbuild.com
 CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		https://github.com/mesonbuild/meson/releases/download/1.6.1/
-DISTFILE[1]=		meson-1.6.1.tar.gz:main
+SITES[main]=		PYPIWHL/d2/f3/9d53c24a7113e08879b14117f83e7105251e6ecf7e03bb7c04926888db9c
+DISTFILE[1]=		meson-1.6.1-py3-none-any.whl:main
+DIST_SUBDIR=		python-src
 DF_INDEX=		1
 SPKGS[std]=		single
+SPKGS[v13]=		single
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	PY313
 OPTIONS_STANDARD=	none
+VOPTS[v13]=		PY313=ON
 
 RUN_DEPENDS=		ninja:single:std
-			python-setuptools:single:python_used
-
-USES=			python:sutools
 
 LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
-LICENSE_FILE=		APACHE20:{{WRKSRC}}/COPYING
-LICENSE_AWK=		TERMS:"^from "
-LICENSE_SOURCE=		TERMS:{{WRKSRC}}/meson.py
+LICENSE_FILE=		APACHE20:stock
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/meson
+
+PATCH_WRKSRC=		{{WRKSRC}}/{{PYTHON_SITELIBDIR}}
+
+[PY313].USES_OFF=			python:v12,wheel
+[PY313].USES_ON=			python:v13,wheel
+
+pre-configure:
+	${FIND} ${WRKSRC} -name "*.orig" -type f -delete
+
+post-extract:
+	${MKDIR} ${WRKSRC}
+	${SETENV} AUTOPYTHON=${_PYTHON_VERSION} \
+	pip install --verbose \
+		--no-deps \
+		--no-index \
+		--no-compile \
+		--progress-bar off \
+		--root ${WRKSRC} \
+		${DISTDIR}/${DIST_SUBDIR}/${DISTFILE_1:C/:.*//}
+	# extract license terms
+	${AWK} '/^from / {exit}; {print}' ${PATCH_WRKSRC}/mesonbuild/mesonmain.py > ${WRKDIR}/TERMS
+
+do-install:
+	${MKDIR} ${STAGEDIR}
+	${MV} ${WRKSRC}${PREFIX} ${STAGEDIR}/
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
 
 [FILE:473:descriptions/desc.single]
 Meson is a cross-platform build system designed to be both as fast and as
@@ -41,8 +66,8 @@ definitions is a second wasted.  So is every second spent waiting for the
 build system to actually start compiling code.
 
 
-[FILE:97:distinfo]
-1eca49eb6c26d58bbee67fd3337d8ef557c0804e30a6d16bfdf269db997464de      2276144 meson-1.6.1.tar.gz
+[FILE:118:distinfo]
+3f41f6b03df56bb76836cc33c94e1a404c3584d48b3259540794a60a21fad1f9       974359 python-src/meson-1.6.1-py3-none-any.whl
 
 
 [FILE:85:manifests/plist.single]
@@ -163,20 +188,9 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
          if isinstance(e.code, int) and e.code == 0:
 
 
-[FILE:627:patches/patch-unittests_linuxliketests.py]
-https://github.com/mesonbuild/meson/pull/4324
-
---- unittests/linuxliketests.py.orig	2024-12-16 20:34:40 UTC
-+++ unittests/linuxliketests.py
-@@ -1552,7 +1552,7 @@ class LinuxlikeTests(BasePlatformTests):
-         # Test that installed libraries works
-         self.new_builddir()
-         self.prefix = oldprefix
--        meson_args = [f'-Dc_link_args=-L{libdir}',
-+        meson_args = [f'-Dc_link_args=-L{libdir} -Wl,-rpath,{libdir}',
-                       '--fatal-meson-warnings']
-         testdir = os.path.join(self.unit_test_dir, '66 static link')
-         env = {'PKG_CONFIG_LIBDIR': os.path.join(libdir, 'pkgconfig')}
+[FILE:25:files/special.mk]
+stage-dir:
+	# do nothing
 
 
 [FILE:607:sunos/patch-mesonbuild_compilers_compilers.py]

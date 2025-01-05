@@ -22,11 +22,9 @@ OPTIONS_STANDARD=	none
 VOPTS[v12]=		PY312=ON PY313=OFF
 VOPTS[v13]=		PY312=OFF PY313=ON
 
-BROKEN[all]=		No wheel and difficult to build from source, WIP
-
 BUILD_DEPENDS=		python-Cython:single:python_used
 
-USES=			cpe meson c++:single
+USES=			cpe c++:single
 
 DISTNAME=		pandas-2.2.3
 
@@ -37,14 +35,16 @@ GENERATED=		yes
 [PY312].BUILDRUN_DEPENDS_ON=		python-python-dateutil:single:v12
 					python-pytz:single:v12
 					python-numpy:single:v12
+					python-meson-python:single:v12
 [PY312].BUILD_DEPENDS_ON=		python-versioneer:single:v12
-[PY312].USES_ON=			python:v12,sutools
+[PY312].USES_ON=			python:v12,pep517
 
 [PY313].BUILDRUN_DEPENDS_ON=		python-python-dateutil:single:v13
 					python-pytz:single:v13
 					python-numpy:single:v13
+					python-meson-python:single:v13
 [PY313].BUILD_DEPENDS_ON=		python-versioneer:single:v13
-[PY313].USES_ON=			python:v13,sutools
+[PY313].USES_ON=			python:v13,pep517
 
 [FILE:3351:descriptions/desc.single]
 
@@ -131,4 +131,20 @@ the ideal tool for all of these tasks.
 
 [FILE:109:distinfo]
 4f18ba62b61d7e192368b84517265a99b4d7ee8912f8708660fb4a366cc82667      4399213 python-src/pandas-2.2.3.tar.gz
+
+
+[FILE:493:patches/patch-pyproject.toml]
+--- pyproject.toml.orig	1970-01-01 00:00:00 UTC
++++ pyproject.toml
+@@ -2,8 +2,8 @@
+ # Minimum requirements for the build system to execute.
+ # See https://github.com/scipy/scipy/pull/12940 for the AIX issue.
+ requires = [
+-    "meson-python==0.13.1",
+-    "meson==1.2.1",
++    "meson-python>=0.13.1",
++    "meson>=1.2.1",
+     "wheel",
+     "Cython~=3.0.5",  # Note: sync with setup.py, environment.yml and asv.conf.json
+     # Force numpy higher than 2.0, so that built wheels are compatible
 
