@@ -2,6 +2,7 @@
 
 NAMEBASE=		musikcube
 VERSION=		3.0.4
+REVISION=		1
 KEYWORDS=		multimedia audio
 VARIANTS=		std
 SDESC[std]=		Terminal-based music player, server & more
@@ -16,6 +17,7 @@ SPKGS[std]=		set
 			primary
 			dev
 			server
+			in_gme
 			in_openmpt
 			out_alsa
 			out_sndio
@@ -32,6 +34,7 @@ BUILD_DEPENDS=		alsa-lib:dev:std
 			flac:dev:std
 			lame:dev:std
 			libev:dev:std
+			libgme:dev:std
 			libmicrohttpd:dev:std
 			libogg:dev:std
 			libopenmpt:dev:std
@@ -50,15 +53,22 @@ BUILDRUN_DEPENDS=	curl:primary:std
 			libogg:primary:std
 			libvorbis:primary:std
 			taglib:primary:std
-EXRUN[out_sndio]=	sndio:primary:std
-EXRUN[out_portaudio]=	portaudio:primary:std
-EXRUN[in_openmpt]=	libopenmpt:primary:std
+EXRUN[out_sndio]=	primary
+			sndio:primary:std
+EXRUN[out_portaudio]=	primary
+			portaudio:primary:std
+EXRUN[in_openmpt]=	primary
+			libopenmpt:primary:std
 			mpg123:primary:std
 			zlib:primary:std
-EXRUN[out_alsa]=	alsa-lib:primary:std
+EXRUN[out_alsa]=	primary
+			alsa-lib:primary:std
+EXRUN[in_gme]=		primary
+			libgme:primary:std
 EXRUN[server]=		primary
 			libmicrohttpd:primary:std
-EXRUN[out_pipewire]=	pipewire:primary:std
+EXRUN[out_pipewire]=	primary
+			pipewire:primary:std
 
 USES=			cmake ncurses pkgconfig ssl zlib
 
@@ -101,6 +111,10 @@ you should exercise caution exposing these services over the Internet.
 
 [FILE:61:descriptions/desc.server]
 This package contains the server of the Musikcube ecosystem.
+
+
+[FILE:50:descriptions/desc.in_gme]
+This subpackage contains the libgme input plugin.
 
 
 [FILE:54:descriptions/desc.in_openmpt]
@@ -215,6 +229,10 @@ include/musikcube/musikcore/sdk/
 bin/musikcubed
 share/musikcube/musikcubed
 share/musikcube/plugins/libserver.so
+
+
+[FILE:41:manifests/plist.in_gme]
+share/musikcube/plugins/libgmedecoder.so
 
 
 [FILE:45:manifests/plist.in_openmpt]
