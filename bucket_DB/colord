@@ -2,6 +2,7 @@
 
 NAMEBASE=		colord
 VERSION=		1.4.7
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Manage profiles to accurately color I/O devices
@@ -36,6 +37,7 @@ BUILDRUN_DEPENDS=	json-glib:primary:std
 			lcms2:primary:std
 			libgusb:primary:std
 			polkit:primary:std
+B_DEPS[linux]=		libusb:dev:std
 
 USERS=			colord
 GROUPS=			colord
@@ -64,6 +66,7 @@ CONFIGURE_ARGS=		-Dsystemd=false
 SOVERSION=		2.0.5
 
 [BSD].DESCRIPTION=			Support BSD platform
+[BSD].BUILDRUN_DEPENDS_OFF=		libgudev:primary:std
 [BSD].BUILDRUN_DEPENDS_ON=		libepoll-shim:primary:std
 					libgudev-devd:primary:std
 					libudev-devd:primary:std
@@ -80,7 +83,7 @@ post-patch:
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/colord/icc
-	${FIND} ${STAGEDIR}${PREFIX}/var/lib -type d | ${TAIL} -r | ${XARGS} ${RMDIR}
+	${FIND} ${STAGEDIR}${PREFIX}/var/lib -type d -empty -delete
 
 [FILE:691:descriptions/desc.primary]
 colord is a system service that makes it easy to manage, install and 
