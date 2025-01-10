@@ -80,13 +80,16 @@ CMAKE_ARGS=		-DUSE_PORTMIDI:BOOL=OFF
 			-DBUILD_PRINT:BOOL=OFF
 			-DUSE_OPENMP:BOOL=OFF
 
-post-patch:
-	${REINPLACE_CMD} '/add_definitions."-D_XOPEN_SOURCE=.*"/d' ${WRKSRC}/CMakeLists.txt
-
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/share/doc/darktable/LICENSE
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/darktable*
 	${FIND} ${STAGEDIR}${PREFIX}/lib/darktable -type f -name "*.so" | ${XARGS} ${STRIP_CMD}
+
+pre-configure-dragonfly:
+	${REINPLACE_CMD} '/add_definitions."-D_XOPEN_SOURCE=.*"/d' ${WRKSRC}/CMakeLists.txt
+
+pre-configure-freebsd:
+	${REINPLACE_CMD} '/add_definitions."-D_XOPEN_SOURCE=.*"/d' ${WRKSRC}/CMakeLists.txt
 
 [FILE:1180:descriptions/desc.primary]
 Darktable is a virtual lighttable and darkroom for photographers: an open
