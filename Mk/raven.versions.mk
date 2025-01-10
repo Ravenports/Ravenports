@@ -111,7 +111,9 @@ PGSQL_17_VERSION=	17.2
 #   MariaDB 11.3   EOL 29 May 2024 (REMOVED)
 #   MariaDB 11.4   EOL 29 May 2029 (STABLE-LTS)
 #   MariaDB 11.5   EOL 21 Nov 2024 (REMOVED)
-#   MariaDB 11.6   current         (ROLLING)
+#   MariaDB 11.6   next 1.7.2      (STABLE ROLLING)
+#   MariaDB 11.7   ?               (DEVEL  ROLLING)
+#   MariaDB 11.8   ?               (ALPHA RELEASE)
 #
 #-------------------------------------------------------------------------
 
