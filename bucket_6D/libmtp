@@ -43,6 +43,10 @@ CONFIGURE_ARGS=		--enable-mtpz
 
 INSTALL_TARGET=		install-strip
 
+post-patch-dragonfly:
+	${REINPLACE_CMD} -e 's@machine/endian.h@sys/endian.h@g' \
+		${WRKSRC}/m4/byteorder.m4
+
 pre-configure:
 	cd ${WRKSRC} && MAKE=gmake sh autogen.sh
 
@@ -100,7 +104,7 @@ bin/
  mtp-trexist
 
 
-[FILE:855:freebsd/patch-src_libusb1-glue.c]
+[FILE:855:patches/patch-src_libusb1-glue.c]
 --- src/libusb1-glue.c.orig	2024-11-20 13:47:46.000000000 +0100
 +++ src/libusb1-glue.c	2025-01-05 21:55:34.942857000 +0100
 @@ -153,7 +153,7 @@

@@ -2,7 +2,7 @@
 
 NAMEBASE=		oniguruma
 VERSION=		6.9.10
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc devel
 VARIANTS=		std
 SDESC[std]=		REGEX library compatible with POSIX/GNU/Perl
@@ -22,7 +22,7 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe autoreconf libtool
+USES=			cmake cpe
 
 LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/COPYING
@@ -31,21 +31,15 @@ LICENSE_SCHEME=		solo
 CPE_VENDOR=		oniguruma_project
 FPC_EQUIVALENT=		devel/oniguruma
 
-MUST_CONFIGURE=		gnu
-
-INSTALL_TARGET=		install-strip
 SOVERSION=		5.5.0
 
-post-patch:
-	${REINPLACE_CMD} -e \
-		'/^INCLUDES/s|$$(includedir)|| ; \
-		 s|$$(<)|$$(@).in|' ${WRKSRC}/Makefile.am
+CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
+			-DINSTALL_DOCUMENTATION:BOOL=ON
+			-DINSTALL_EXAMPLES:BOOL=ON
+			-DENABLE_POSIX_API:BOOL=ON
 
 post-install:
-	@${MKDIR} ${STAGEDIR}${STD_DOCDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
-	(cd ${WRKSRC} && ${INSTALL_DATA} HISTORY README ${STAGEDIR}${STD_DOCDIR})
-	(cd ${WRKSRC}/doc && ${INSTALL_DATA} * ${STAGEDIR}${STD_DOCDIR})
-	(cd ${WRKSRC}/sample && ${INSTALL_DATA} *.c ${STAGEDIR}${STD_EXAMPLESDIR})
+	${STRIP_CMD}	${STAGEDIR}${PREFIX}/lib/libonig.so
 
 [FILE:173:descriptions/desc.primary]
 Oniguruma is a regular expressions library. The characteristics of this 
@@ -64,23 +58,26 @@ lib/
  libonig.so.%%SOVERSION%%
 
 
-[FILE:88:manifests/plist.dev]
+[FILE:218:manifests/plist.dev]
 include/
  oniggnu.h
+ onigposix.h
  oniguruma.h
-lib/
- libonig.a
- libonig.so
+lib/libonig.so
 lib/pkgconfig/oniguruma.pc
+lib/cmake/oniguruma/
+ onigurumaTargets-release.cmake
+ onigurumaConfigVersion.cmake
+ onigurumaConfig.cmake
+ onigurumaTargets.cmake
 
 
-[FILE:197:manifests/plist.examples]
-share/examples/oniguruma/
+[FILE:184:manifests/plist.examples]
+share/examples/onig/
  bug_fix.c
  callback_each_match.c
  callout.c
  count.c
- crnl.c
  echo.c
  encode.c
  listcap.c
@@ -94,21 +91,21 @@ share/examples/oniguruma/
  user_property.c
 
 
-[FILE:191:manifests/plist.docs]
-share/doc/oniguruma/
- API
- API.ja
- CALLOUTS.API
- CALLOUTS.API.ja
- CALLOUTS.BUILTIN
- CALLOUTS.BUILTIN.ja
- FAQ
- FAQ.ja
+[FILE:181:manifests/plist.docs]
+share/doc/onig/
  HISTORY
- RE
+ CALLOUTS.API.ja
  RE.ja
- README
- SYNTAX.md
+ COPYING
+ CALLOUTS.BUILTIN.ja
+ API.ja
+ FAQ.ja
+ API
+ CALLOUTS.API
  UNICODE_PROPERTIES
- onig_syn_md.c
+ CALLOUTS.BUILTIN
+ README.md
+ FAQ
+ AUTHORS
+ RE
 
