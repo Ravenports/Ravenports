@@ -225,60 +225,16 @@ DISTNAME=		pydantic_core-2.27.2
 
 GENERATED=		yes
 
-PLIST_SUB=		VER=2.27.2
-			CPYTHON={{CPYTHON:U{{PYTHON_SUFFIX}}}}
-
-VAR_OPSYS[linux]=	MAKEFILE_LINE=CPYTHON={{PYTHON_SUFFIX}}-x86_64-linux-gnu
-CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
 
 [PY312].BUILD_DEPENDS_ON=		python-maturin:single:v12
-					python-pip:single:v12
 					python-typing-extensions:single:v12
-[PY312].USES_ON=			python:v12
+[PY312].USES_ON=			python:v12,pep517
 
 [PY313].BUILD_DEPENDS_ON=		python-maturin:single:v13
-					python-pip:single:v13
 					python-typing-extensions:single:v13
-[PY313].USES_ON=			python:v13
-
-post-patch:
-	${MKDIR} ${WRKSRC}/.cargo
-	${RM} ${WRKSRC}/.cargo/config.toml
-	echo "[source.cargo]" >> ${WRKSRC}/.cargo/config.toml
-	echo "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKSRC}/.cargo/config.toml
-	echo "[source.crates-io]" >> ${WRKSRC}/.cargo/config.toml
-	echo "replace-with = 'cargo'" >> ${WRKSRC}/.cargo/config.toml
-
-do-build:
-	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} maturin build \
-		--release \
-		--interpreter ${PYTHON_CMD})
-
-do-install:
-	# Due to upstream not supplying a setup.py file or other way to install
-	# using pip command for now...
-	${SETENV} ${MAKE_ENV} pip install \
-		--verbose \
-		--no-index \
-		--no-compile \
-		--progress-bar off \
-		--root=${STAGEDIR} \
-		--root-user-action=ignore \
-		--disable-pip-version-check \
-		--no-deps ${INSTALL_WRKSRC}/target/wheels/*.whl
-	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
-	${INSTALL_LIB} ${WRKSRC}/target/release/lib_pydantic_core.so \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/pydantic_core
-	${CHMOD} +x ${STAGEDIR}${PYTHON_SITELIBDIR}/pydantic_core/lib_pydantic_core.so
-
-pre-install-midnightbsd:
-	# Due to rust limitations, maturin must set target OS as freebsd, but
-	# pip doesn't recognize that as a legal combination.  Rename to complete build.
-	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
-	pydantic_core-2.27.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-freebsd_*.whl\
-	pydantic_core-2.27.2-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-midnightbsd_3_0_0_amd64.whl)
+[PY313].USES_ON=			python:v13,pep517
 
 [FILE:2567:descriptions/desc.single]
 # pydantic-core
@@ -481,25 +437,4 @@ ae87e3fcd617500e5d106f0380cf7b77f3c6092aae37191433159dda23cfb087       151177 ru
 0ea7b4a3637ea8669cedf0f1fd5c286a17f3de97b8dd5a70a6c167a1730e63a5         8232 rust/crates/zerofrom-derive-0.1.4.tar.gz
 aa2b893d79df23bfb12d5461018d408ea19dfafe76c2c7ef6d4eba614f8ff079       126398 rust/crates/zerovec-0.10.4.tar.gz
 6eafa6dfb17584ea3e2bd6e76e0cc15ad7af12b09abdd1ca55961bed9b1063c6        19438 rust/crates/zerovec-derive-0.10.3.tar.gz
-
-
-[FILE:479:manifests/plist.single]
-%%PYTHON_SITELIBDIR%%/pydantic_core/
- __init__.py
- _pydantic_core.cpython-%%CPYTHON%%.so
- _pydantic_core.pyi
- core_schema.py
- lib_pydantic_core.so
- py.typed
-%%PYTHON_SITELIBDIR%%/pydantic_core-%%VER%%.dist-info/
- INSTALLER
- METADATA
- RECORD
- REQUESTED
- WHEEL
- direct_url.json
-%%PYTHON_SITELIBDIR%%/pydantic_core-%%VER%%.dist-info/licenses/LICENSE
-%%PYTHON_SITELIBDIR%%/pydantic_core/__pycache__/
- __init__.cpython-%%PYTHON_SUFFIX%%.pyc
- core_schema.cpython-%%PYTHON_SUFFIX%%.pyc
 

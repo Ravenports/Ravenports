@@ -102,58 +102,21 @@ CPE_VENDOR=		cryptography
 
 MAKE_ENV=		OPENSSL_STATIC=1
 
-INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		VERSION=44.0.0
 			CPYTHON={{CPYTHON:U{{PYTHON_SUFFIX}}}}
 
-VAR_OPSYS[linux]=	MAKEFILE_LINE=CPYTHON={{PYTHON_SUFFIX}}-x86_64-linux-gnu
-CARGO_SKIP_CONFIGURE=	yes
+CARGO_SKIP_BUILD=	yes
+CARGO_SKIP_INSTALL=	yes
 
 [PY312].BUILDRUN_DEPENDS_ON=		python-cffi:single:v12
-[PY312].BUILD_DEPENDS_ON=		python-pip:single:v12
-					python-wheel:single:v12
-					python-setuptools-rust:single:v12
+[PY312].BUILD_DEPENDS_ON=		python-setuptools-rust:single:v12
 					python-maturin:single:v12
-[PY312].USES_ON=			python:v12
+[PY312].USES_ON=			python:v12,pep517
 
 [PY313].BUILDRUN_DEPENDS_ON=		python-cffi:single:v13
-[PY313].BUILD_DEPENDS_ON=		python-pip:single:v13
-					python-wheel:single:v13
-					python-setuptools-rust:single:v13
+[PY313].BUILD_DEPENDS_ON=		python-setuptools-rust:single:v13
 					python-maturin:single:v13
-[PY313].USES_ON=			python:v13
-
-post-patch:
-	${MKDIR} ${WRKSRC}/.cargo
-	echo "[source.cargo]" >> ${WRKSRC}/.cargo/config.toml
-	echo "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKSRC}/.cargo/config.toml
-	echo "[source.crates-io]" >> ${WRKSRC}/.cargo/config.toml
-	echo "replace-with = 'cargo'" >> ${WRKSRC}/.cargo/config.toml
-
-do-build:
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
-		pip install --no-build-isolation --verbose .)
-
-do-install:
-	whl=$$(find ${INSTALL_WRKSRC}/target/wheels -name "*.whl");\
-	pip install \
-		--verbose \
-		--no-index \
-		--no-compile \
-		--force-reinstall \
-		--progress-bar off \
-		--root=${STAGEDIR} \
-		--root-user-action=ignore \
-		--disable-pip-version-check \
-		--no-deps $$whl
-	${FIND} ${STAGEDIR}${PREFIX}/lib -name "*.so" | xargs ${STRIP_CMD}
-
-pre-install-midnightbsd:
-	# Due to rust limitations, maturin must set target OS as freebsd, but
-	# pip doesn't recognize that as a legal combination.  Rename to complete build.
-	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
-	cryptography-44.0.0-cp37-abi3-freebsd_*.whl\
-	cryptography-44.0.0-cp37-abi3-midnightbsd_3_0_0_amd64.whl)
+[PY313].USES_ON=			python:v13,pep517
 
 [FILE:1834:descriptions/desc.single]
 pyca/cryptography
@@ -258,138 +221,4 @@ d369a96f978623eb3dc28807c4852d6cc617fed53da5d3c400feff1ef34a714a        15220 ru
 adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83        47547 rust/crates/unicode-ident-1.0.14.tar.gz
 c7de7d73e1754487cb58364ee906a499937a0dfabd86bcb980fa99ec8c8fa2ce         7306 rust/crates/unindent-0.2.3.tar.gz
 accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426       228735 rust/crates/vcpkg-0.2.15.tar.gz
-
-
-[FILE:2742:manifests/plist.single]
-%%PYTHON_SITELIBDIR%%/cryptography/
- __about__.py
- __init__.py
- exceptions.py
- fernet.py
- py.typed
- utils.py
-%%PYTHON_SITELIBDIR%%/cryptography-%%VERSION%%.dist-info/
- INSTALLER
- METADATA
- RECORD
- REQUESTED
- WHEEL
- direct_url.json
-%%PYTHON_SITELIBDIR%%/cryptography-%%VERSION%%.dist-info/licenses/
- LICENSE
- LICENSE.APACHE
- LICENSE.BSD
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/
- __init__.py
- _oid.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/backends/__init__.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/backends/openssl/
- __init__.py
- backend.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/bindings/
- __init__.py
- _rust.abi3.so
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/bindings/_rust/
- __init__.pyi
- _openssl.pyi
- asn1.pyi
- exceptions.pyi
- ocsp.pyi
- pkcs12.pyi
- pkcs7.pyi
- test_support.pyi
- x509.pyi
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/bindings/_rust/openssl/
- __init__.pyi
- aead.pyi
- ciphers.pyi
- cmac.pyi
- dh.pyi
- dsa.pyi
- ec.pyi
- ed25519.pyi
- ed448.pyi
- hashes.pyi
- hmac.pyi
- kdf.pyi
- keys.pyi
- poly1305.pyi
- rsa.pyi
- x25519.pyi
- x448.pyi
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/bindings/openssl/
- __init__.py
- _conditional.py
- binding.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/decrepit/__init__.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/decrepit/ciphers/
- __init__.py
- algorithms.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/primitives/
- __init__.py
- _asymmetric.py
- _cipheralgorithm.py
- _serialization.py
- cmac.py
- constant_time.py
- hashes.py
- hmac.py
- keywrap.py
- padding.py
- poly1305.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/primitives/asymmetric/
- __init__.py
- dh.py
- dsa.py
- ec.py
- ed25519.py
- ed448.py
- padding.py
- rsa.py
- types.py
- utils.py
- x25519.py
- x448.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/primitives/ciphers/
- __init__.py
- aead.py
- algorithms.py
- base.py
- modes.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/primitives/kdf/
- __init__.py
- argon2.py
- concatkdf.py
- hkdf.py
- kbkdf.py
- pbkdf2.py
- scrypt.py
- x963kdf.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/primitives/serialization/
- __init__.py
- base.py
- pkcs12.py
- pkcs7.py
- ssh.py
-%%PYTHON_SITELIBDIR%%/cryptography/hazmat/primitives/twofactor/
- __init__.py
- hotp.py
- totp.py
-%%PYTHON_SITELIBDIR%%/cryptography/x509/
- __init__.py
- base.py
- certificate_transparency.py
- extensions.py
- general_name.py
- name.py
- ocsp.py
- oid.py
- verification.py
-%%PYTHON_SITELIBDIR%%/rust/Cargo.toml
-%%PYTHON_SITELIBDIR%%/rust/cryptography-cffi/Cargo.toml
-%%PYTHON_SITELIBDIR%%/rust/cryptography-keepalive/Cargo.toml
-%%PYTHON_SITELIBDIR%%/rust/cryptography-key-parsing/Cargo.toml
-%%PYTHON_SITELIBDIR%%/rust/cryptography-openssl/Cargo.toml
-%%PYTHON_SITELIBDIR%%/rust/cryptography-x509/Cargo.toml
-%%PYTHON_SITELIBDIR%%/rust/cryptography-x509-verification/Cargo.toml
 

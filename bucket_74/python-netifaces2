@@ -120,64 +120,16 @@ USES=			cargo cclibs:single
 
 DISTNAME=		netifaces2-0.0.22
 
-CARGO_CARGOLOCK=	{{WRKSRC}}/Cargo.lock
-CARGO_CARGOTOML=	{{WRKSRC}}/Cargo.toml
 GENERATED=		yes
 
-PLIST_SUB=		VER=0.0.22
-			CPYTHON={{CPYTHON:U{{PYTHON_SUFFIX}}}}
-
-VAR_OPSYS[linux]=	MAKEFILE_LINE=CPYTHON={{PYTHON_SUFFIX}}-x86_64-linux-gnu
-CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
 
-[PY312].BUILD_DEPENDS_ON=		python-setuptools-rust:single:v12
-					python-maturin:single:v12
-					python-pip:single:v12
-[PY312].USES_ON=			python:v12
+[PY312].BUILD_DEPENDS_ON=		python-maturin:single:v12
+[PY312].USES_ON=			python:v12,pep517
 
-[PY313].BUILD_DEPENDS_ON=		python-setuptools-rust:single:v13
-					python-maturin:single:v13
-					python-pip:single:v13
-[PY313].USES_ON=			python:v13
-
-post-patch:
-	${MKDIR} ${WRKSRC}/.cargo
-	${RM} ${WRKSRC}/.cargo/config.toml
-	echo "[source.cargo]" >> ${WRKSRC}/.cargo/config.toml
-	echo "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKSRC}/.cargo/config.toml
-	echo "[source.crates-io]" >> ${WRKSRC}/.cargo/config.toml
-	echo "replace-with = 'cargo'" >> ${WRKSRC}/.cargo/config.toml
-
-do-build:
-	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} maturin build \
-		--release \
-		--interpreter ${PYTHON_CMD})
-
-do-install:
-	# Due to upstream not supplying a setup.py file or other way to install
-	# using pip command for now...
-	${SETENV} ${MAKE_ENV} pip install \
-		--verbose \
-		--no-index \
-		--no-compile \
-		--progress-bar off \
-		--root=${STAGEDIR} \
-		--root-user-action=ignore \
-		--disable-pip-version-check \
-		--no-deps ${INSTALL_WRKSRC}/target/wheels/*.whl
-	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
-	${INSTALL_LIB} ${WRKSRC}/target/release/libnetifaces.so \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/netifaces
-	${CHMOD} +x ${STAGEDIR}${PYTHON_SITELIBDIR}/netifaces/libnetifaces.so
-
-pre-install-midnightbsd:
-	# Due to rust limitations, maturin must set target OS as freebsd, but
-	# pip doesn't recognize that as a legal combination.  Rename to complete build.
-	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
-	netifaces2-0.0.22-cp37-abi3-freebsd_*.whl\
-	netifaces2-0.0.22-cp37-abi3-midnightbsd_3_0_0_amd64.whl)
+[PY313].BUILD_DEPENDS_ON=		python-maturin:single:v13
+[PY313].USES_ON=			python:v13,pep517
 
 [FILE:2772:descriptions/desc.single]
 # netifaces (2)
@@ -330,28 +282,6 @@ bf7b1b21b5362cbc318f686150e5bcea75ecedc74dd157d874d754a2ca44b0ed       692493 ru
 09d525d2ba30eeb3297665bd434a54297e4170c7f1a44cad4ef58095b4cd2028       357906 rust/crates/windows_x86_64_gnullvm-0.42.0.tar.gz
 c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680       661999 rust/crates/windows_x86_64_msvc-0.36.1.tar.gz
 f40009d85759725a34da6d89a94e63d7bdc50a862acf0dbc7c8e488f1edcb6f5       659377 rust/crates/windows_x86_64_msvc-0.42.0.tar.gz
-
-
-[FILE:455:manifests/plist.single]
-%%PYTHON_SITELIBDIR%%/netifaces/
- __init__.py
- defs.py
- libnetifaces.so
- netifaces.abi3.so
- py.typed
- routes.py
-%%PYTHON_SITELIBDIR%%/netifaces/__pycache__/
- __init__.cpython-%%PYTHON_SUFFIX%%.pyc
- defs.cpython-%%PYTHON_SUFFIX%%.pyc
- routes.cpython-%%PYTHON_SUFFIX%%.pyc
-%%PYTHON_SITELIBDIR%%/netifaces2-%%VER%%.dist-info/
- INSTALLER
- METADATA
- RECORD
- REQUESTED
- WHEEL
- direct_url.json
-%%PYTHON_SITELIBDIR%%/netifaces2-%%VER%%.dist-info/licenses/LICENSE
 
 
 [FILE:1306:patches/patch-src_linux.rs]

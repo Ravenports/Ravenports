@@ -99,74 +99,16 @@ USES=			cargo cclibs:single
 
 DISTNAME=		orjson-3.10.14
 
-CARGO_CARGOLOCK=	{{WRKSRC}}/Cargo.lock
-CARGO_CARGOTOML=	{{WRKSRC}}/Cargo.toml
 GENERATED=		yes
 
-PLIST_SUB=		VER=3.10.14
-			CPYTHON={{CPYTHON:U{{PYTHON_SUFFIX}}}}
-
-VAR_OPSYS[linux]=	MAKEFILE_LINE=CPYTHON={{PYTHON_SUFFIX}}-x86_64-linux-gnu
-CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
 
-[PY312].BUILD_DEPENDS_ON=		python-setuptools-rust:single:v12
-					python-maturin:single:v12
-					python-pip:single:v12
-[PY312].USES_ON=			python:v12
+[PY312].BUILD_DEPENDS_ON=		python-maturin:single:v12
+[PY312].USES_ON=			python:v12,pep517
 
-[PY313].BUILD_DEPENDS_ON=		python-setuptools-rust:single:v13
-					python-maturin:single:v13
-					python-pip:single:v13
-[PY313].USES_ON=			python:v13
-
-post-patch:
-	${MKDIR} ${WRKSRC}/.cargo
-	${RM} ${WRKSRC}/.cargo/config.toml
-	echo "[source.cargo]" >> ${WRKSRC}/.cargo/config.toml
-	echo "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKSRC}/.cargo/config.toml
-	echo "[source.crates-io]" >> ${WRKSRC}/.cargo/config.toml
-	echo "replace-with = 'cargo'" >> ${WRKSRC}/.cargo/config.toml
-
-do-build:
-	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} maturin build \
-		--release \
-		--interpreter ${PYTHON_CMD})
-
-pre-install-linux:
-	# for some reason compatibility ends at -manylinux_2_23_x86_64 on
-	# ubuntu 16.04 sysroot
-	if [ -f "${INSTALL_WRKSRC}/target/wheels/orjson-3.10.14-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_24_x86_64.whl" ];\
-	then ${MV}\
-	  ${INSTALL_WRKSRC}/target/wheels/orjson-3.10.14-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_24_x86_64.whl\
-	  ${INSTALL_WRKSRC}/target/wheels/orjson-3.10.14-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-manylinux_2_23_x86_64.whl;\
-	fi
-
-do-install:
-	# Due to upstream not supplying a setup.py file or other way to install
-	# using pip command for now...
-	${SETENV} ${MAKE_ENV} pip install \
-		--verbose \
-		--no-index \
-		--no-compile \
-		--progress-bar off \
-		--root=${STAGEDIR} \
-		--root-user-action=ignore \
-		--disable-pip-version-check \
-		--no-deps ${INSTALL_WRKSRC}/target/wheels/*.whl
-	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
-	${INSTALL_LIB} ${WRKSRC}/target/release/liborjson.so \
-		${STAGEDIR}${PYTHON_SITELIBDIR}/orjson
-	${CHMOD} +x ${STAGEDIR}${PYTHON_SITELIBDIR}/orjson/liborjson.so
-	${STRIP_CMD} ${STAGEDIR}${PYTHON_SITELIBDIR}/orjson/orjson.*.so
-
-pre-install-midnightbsd:
-	# Due to rust limitations, maturin must set target OS as freebsd, but
-	# pip doesn't recognize that as a legal combination.  Rename to complete build.
-	(cd ${INSTALL_WRKSRC}/target/wheels/ && ${MV}\
-	orjson-3.10.14-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-freebsd_*.whl\
-	orjson-3.10.14-cp${PYTHON_SUFFIX}-cp${PYTHON_SUFFIX}-midnightbsd_3_0_0_amd64.whl)
+[PY313].BUILD_DEPENDS_ON=		python-maturin:single:v13
+[PY313].USES_ON=			python:v13,pep517
 
 [FILE:1392:descriptions/desc.single]
 orjson is a fast, correct JSON library for Python. It benchmarks as the
@@ -234,24 +176,4 @@ adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83        47547 ru
 f8c5f0a0af699448548ad1a2fbf920fb4bee257eae39953ba95cb84891a0446a        47683 rust/crates/uuid-1.11.0.tar.gz
 0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a        15554 rust/crates/version_check-0.9.5.tar.gz
 fdd20c5420375476fbd4394763288da7eb0cc0b8c11deed431a91562af7335d3        21515 rust/crates/xxhash-rust-0.8.15.tar.gz
-
-
-[FILE:390:manifests/plist.single]
-%%PYTHON_SITELIBDIR%%/orjson/
- __init__.py
- __init__.pyi
- liborjson.so
- orjson.cpython-%%CPYTHON%%.so
- py.typed
-%%PYTHON_SITELIBDIR%%/orjson-%%VER%%.dist-info/
- INSTALLER
- METADATA
- RECORD
- REQUESTED
- WHEEL
- direct_url.json
-%%PYTHON_SITELIBDIR%%/orjson-%%VER%%.dist-info/licenses/
- LICENSE-APACHE
- LICENSE-MIT
-%%PYTHON_SITELIBDIR%%/orjson/__pycache__/__init__.cpython-%%PYTHON_SUFFIX%%.pyc
 
