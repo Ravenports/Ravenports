@@ -394,16 +394,8 @@ expand_GNOME()
     local cluster="\
     https://download.gnome.org/sources \
     http://download.gnome.org/sources \
-    ftp://ftp.belnet.be/mirror/ftp.gnome.org/sources \
-    http://ftp.acc.umu.se/pub/GNOME/sources \
-    ftp://ftp.cse.buffalo.edu/pub/Gnome/sources \
     http://fr2.rpmfind.net/linux/gnome.org/sources \
     http://www.gtlib.gatech.edu/pub/gnome/sources \
-    ftp://ftp.dti.ad.jp/pub/X/gnome/sources \
-    http://linorg.usp.br/gnome/sources \
-    ftp://ftp.kddlabs.co.jp/pub/GNOME/sources \
-    ftp://ftp.mirrorservice.org/sites/ftp.gnome.org/pub/GNOME/sources \
-    ftp://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources \
     http://ftp.gnome.org/pub/GNOME/sources"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
