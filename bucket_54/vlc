@@ -166,6 +166,7 @@ BUILDRUN_DEPENDS=	fribidi:primary:std
 			qt5-qtx11extras:primary:std
 			qt5-qtxmlpatterns:primary:std
 			readline:primary:std
+B_DEPS[linux]=		libusb:dev:std
 EXRUN[vpx]=		primary
 			libvpx:primary:std
 EXRUN[upnp]=		primary
@@ -364,7 +365,6 @@ CONFIGURE_ARGS=		--enable-a52
 			--enable-ncurses
 			--disable-nfs
 			--enable-nls
-			--enable-notify
 			--enable-ogg
 			--enable-oggspots
 			--disable-omxil
@@ -372,7 +372,6 @@ CONFIGURE_ARGS=		--enable-a52
 			--disable-opencv
 			--enable-optimizations
 			--enable-opus
-			--enable-oss
 			--enable-png
 			--enable-postproc
 			--disable-projectm
@@ -457,6 +456,8 @@ CFLAGS=			-Wno-deprecated-declarations
 					libgudev-devd:dev:std
 					libudev-devd:dev:std
 					libnotify:dev:std
+[BSD].CONFIGURE_ARGS_ON=		--enable-notify
+					--enable-oss
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/kde4
@@ -699,8 +700,13 @@ This subpackage contains the h.265/HEVC video plugin.
 24dbbe1d7dfaeea0994d5def0bbde200177347136dbfe573f5b6a4cee25afbb0     25649288 vlc-3.0.21.tar.xz
 
 
-[FILE:11105:manifests/plist.primary]
+[FILE:11299:manifests/plist.primary]
 %%BSD-ON%%lib/vlc/plugins/notify/libnotify_plugin.so
+%%ONLY-LINUX%%lib/vlc/plugins/access/
+ libdtv_plugin.so
+ libdvb_plugin.so
+%%ONLY-LINUX%%lib/vlc/plugins/logger/libsd_journal_plugin.so
+%%ONLY-LINUX%%lib/vlc/plugins/video_output/libfb_plugin.so
 bin/
  cvlc
  nvlc
@@ -1610,9 +1616,9 @@ lib/vlc/plugins/mux/libmux_ogg_plugin.so
 lib/vlc/plugins/codec/libopus_plugin.so
 
 
-[FILE:93:manifests/plist.oss]
-lib/vlc/plugins/access/libaccess_oss_plugin.so
-lib/vlc/plugins/audio_output/liboss_plugin.so
+[FILE:113:manifests/plist.oss]
+%%BSD-ON%%lib/vlc/plugins/access/libaccess_oss_plugin.so
+%%BSD-ON%%lib/vlc/plugins/audio_output/liboss_plugin.so
 
 
 [FILE:53:manifests/plist.samplerate]
@@ -1673,6 +1679,20 @@ lib/vlc/plugins/codec/
 
 [FILE:40:manifests/plist.x265]
 lib/vlc/plugins/codec/libx265_plugin.so
+
+
+[FILE:290:patches/patch-configure]
+--- configure.orig	2024-06-05 16:02:21 UTC
++++ configure
+@@ -9873,7 +9873,7 @@ case "${host_os}" in
+     SYS=bsdi
+     CFLAGS="${CFLAGS} -pthread"
+     ;;
+-  freebsd*)
++  freebsd*|midnight*)
+     SYS=freebsd
+     CFLAGS="${CFLAGS} -pthread"
+     CPPFLAGS="${CPPFLAGS} -I/usr/local/include"
 
 
 [FILE:216:patches/patch-modules_codec_opus__header.h]

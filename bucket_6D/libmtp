@@ -23,6 +23,8 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		libgcrypt:dev:std
 			libtool:primary:std
 BUILDRUN_DEPENDS=	libgcrypt:primary:std
+B_DEPS[linux]=		libusb:dev:std
+BR_DEPS[linux]=		libusb:primary:std
 EXRUN[tools]=		primary
 
 USES=			cpe autoreconf:build gettext gmake iconv libtool
@@ -40,6 +42,7 @@ FPC_EQUIVALENT=		multimedia/libmtp
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-mtpz
+			--with-udev=/etc/udev
 
 INSTALL_TARGET=		install-strip
 
@@ -79,7 +82,11 @@ lib/
 lib/pkgconfig/libmtp.pc
 
 
-[FILE:287:manifests/plist.tools]
+[FILE:445:manifests/plist.tools]
+%%ONLY-LINUX%%/etc/udev/mtp-probe
+%%ONLY-LINUX%%/etc/udev/hwdb.d/69-libmtp.hwdb
+%%ONLY-LINUX%%/etc/udev/rules.d/69-libmtp.rules
+%%ONLY-LINUX%%bin/mtp-hotplug
 bin/
  mtp-albumart
  mtp-albums

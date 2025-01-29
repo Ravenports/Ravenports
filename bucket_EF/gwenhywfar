@@ -466,7 +466,24 @@ share/gwenhywfar/typemaker2/c/
      QT_DIR=`$QT_QMAKE --version | grep -o -E /.+`
 
 
-[FILE:403:patches/patch-src_os_portable__endian.h]
+[FILE:391:patches/patch-src_base_endianfns.h]
+--- src/base/endianfns.h.orig	2017-08-07 19:02:11 UTC
++++ src/base/endianfns.h
+@@ -40,7 +40,11 @@
+ #  define GWEN_ENDIAN_HTOLE64(x) (x)
+ #else
+ /* for Linux and others use definitions from endian.h */
++# if defined(__MidnightBSD__)
++#  include <sys/endian.h>
++# else
+ #  include <endian.h>
++# endif
+ 
+ #  define GWEN_ENDIAN_LE16TOH(x) le16toh(x)
+ #  define GWEN_ENDIAN_HTOLE16(x) htole16(x)
+
+
+[FILE:431:patches/patch-src_os_portable__endian.h]
 --- src/os/portable_endian.h.orig	2024-04-21 13:51:43 UTC
 +++ src/os/portable_endian.h
 @@ -50,7 +50,11 @@
@@ -474,7 +491,7 @@ share/gwenhywfar/typemaker2/c/
  #	define __PDP_ENDIAN    PDP_ENDIAN
  
 -#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
-+#elif defined(__DragonFly__)
++#elif defined(__DragonFly__) || defined(__MidnightBSD__)
 +
 +#	include <sys/endian.h>
 +

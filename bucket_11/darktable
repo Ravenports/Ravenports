@@ -49,8 +49,8 @@ BUILDRUN_DEPENDS=	lensfun:primary:std
 			bash:primary:std
 			icu:primary:std
 
-USES=			cmake c++:primary perl jpeg tiff pkgconfig sqlite
-			shebangfix desktop-utils:primary
+USES=			cmake perl jpeg tiff pkgconfig sqlite shebangfix ssl
+			desktop-utils:primary c++:primary
 GNOME_COMPONENTS=	cairo gtk3 intltool librsvg libxml2
 
 LICENSE=		GPLv3+:primary
@@ -79,6 +79,11 @@ CMAKE_ARGS=		-DUSE_PORTMIDI:BOOL=OFF
 			-DUSE_SDL2:BOOL=OFF
 			-DBUILD_PRINT:BOOL=OFF
 			-DUSE_OPENMP:BOOL=OFF
+			-Wno-dev
+VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DRAWSPEED_CACHELINESIZE=64
+
+pre-configure-midnightbsd:
+	${REINPLACE_CMD} '/add_definitions."-D_XOPEN_SOURCE=.*"/d' ${WRKSRC}/CMakeLists.txt
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/share/doc/darktable/LICENSE
@@ -1077,11 +1082,11 @@ share/locale/zh_CN/LC_MESSAGES/darktable.mo
 share/locale/zh_TW/LC_MESSAGES/darktable.mo
 
 
-[FILE:719:patches/patch-src_common_darktable.h]
---- src/common/darktable.h.orig	2023-08-23 11:50:51 UTC
+[FILE:764:patches/patch-src_common_darktable.h]
+--- src/common/darktable.h.orig	2024-12-15 21:38:01 UTC
 +++ src/common/darktable.h
-@@ -143,7 +143,7 @@ extern "C" {
- #if __has_attribute(target_clones) && !defined(_WIN32) && !defined(NATIVE_ARCH)
+@@ -153,7 +153,7 @@ extern "C" {
+ #if __has_attribute(target_clones) && !defined(_WIN32) && !defined(NATIVE_ARCH) && !defined(__APPLE__) && defined(__GLIBC__)
  # if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
  #define __DT_CLONE_TARGETS__ __attribute__((target_clones("default", "sse2", "sse3", "sse4.1", "sse4.2", "popcnt", "avx", "avx2", "avx512f", "fma4")))
 -# elif defined(__PPC64__)
@@ -1092,7 +1097,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 
 
 [FILE:840:patches/patch-src_common_extra__optimizations.h]
---- src/common/extra_optimizations.h.orig	2022-12-14 15:18:18 UTC
+--- src/common/extra_optimizations.h.orig	2024-12-15 21:38:01 UTC
 +++ src/common/extra_optimizations.h
 @@ -17,19 +17,3 @@
  */
@@ -1116,10 +1121,10 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 -#endif
 
 
-[FILE:1201:patches/patch-src_common_iop__order.c]
---- src/common/iop_order.c.orig	2023-07-06 21:18:18 UTC
+[FILE:1146:patches/patch-src_common_iop__order.c]
+--- src/common/iop_order.c.orig	2024-12-15 21:38:01 UTC
 +++ src/common/iop_order.c
-@@ -37,23 +37,6 @@ static void _ioppr_reset_iop_order(GList *iop_order_li
+@@ -38,23 +38,6 @@
  
  static void _ioppr_reset_iop_order(GList *iop_order_list);
  
@@ -1146,7 +1151,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 
 
 [FILE:1237:patches/patch-src_common_iop__profile.c]
---- src/common/iop_profile.c.orig	2023-07-06 21:19:34 UTC
+--- src/common/iop_profile.c.orig	2024-12-15 21:38:01 UTC
 +++ src/common/iop_profile.c
 @@ -34,24 +34,6 @@
  #include <stdlib.h>
@@ -1176,7 +1181,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 
 
 [FILE:978:patches/patch-src_develop_blends_blendif__lab.c]
---- src/develop/blends/blendif_lab.c.orig	2023-01-26 22:14:31 UTC
+--- src/develop/blends/blendif_lab.c.orig	2024-12-15 21:38:01 UTC
 +++ src/develop/blends/blendif_lab.c
 @@ -16,15 +16,6 @@
      along with darktable.  If not, see <http://www.gnu.org/licenses/>.
@@ -1197,7 +1202,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 
 
 [FILE:954:patches/patch-src_develop_blends_blendif__raw.c]
---- src/develop/blends/blendif_raw.c.orig	2023-01-26 22:18:41 UTC
+--- src/develop/blends/blendif_raw.c.orig	2024-12-15 21:38:01 UTC
 +++ src/develop/blends/blendif_raw.c
 @@ -16,15 +16,6 @@
      along with darktable.  If not, see <http://www.gnu.org/licenses/>.
@@ -1218,7 +1223,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 
 
 [FILE:986:patches/patch-src_develop_blends_blendif__rgb__hsl.c]
---- src/develop/blends/blendif_rgb_hsl.c.orig	2023-01-26 22:19:10 UTC
+--- src/develop/blends/blendif_rgb_hsl.c.orig	2024-12-15 21:38:01 UTC
 +++ src/develop/blends/blendif_rgb_hsl.c
 @@ -16,15 +16,6 @@
      along with darktable.  If not, see <http://www.gnu.org/licenses/>.
@@ -1239,7 +1244,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 
 
 [FILE:994:patches/patch-src_develop_blends_blendif__rgb__jzczhz.c]
---- src/develop/blends/blendif_rgb_jzczhz.c.orig	2023-01-26 22:19:33 UTC
+--- src/develop/blends/blendif_rgb_jzczhz.c.orig	2024-12-15 21:38:01 UTC
 +++ src/develop/blends/blendif_rgb_jzczhz.c
 @@ -16,15 +16,6 @@
      along with darktable.  If not, see <http://www.gnu.org/licenses/>.
@@ -1259,10 +1264,10 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
  #include "develop/blend.h"
 
 
-[FILE:450:patches/patch-src_external_rawspeed_cmake_Modules_CheckZLIB.cmake]
---- src/external/rawspeed/cmake/Modules/CheckZLIB.cmake.orig	2023-12-10 23:28:08 UTC
+[FILE:424:patches/patch-src_external_rawspeed_cmake_Modules_CheckZLIB.cmake]
+--- src/external/rawspeed/cmake/Modules/CheckZLIB.cmake.orig	2024-12-13 20:15:16 UTC
 +++ src/external/rawspeed/cmake/Modules/CheckZLIB.cmake
-@@ -45,7 +45,7 @@ CHECK_PROTOTYPE_DEFINITION(zError
+@@ -47,7 +47,7 @@ endif()
  CHECK_PROTOTYPE_DEFINITION(zError
   "const char* zError(int zErrorCode)"
   "NULL"
@@ -1273,8 +1278,8 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
    message(SEND_ERROR "Found unexpected prototype for zError() in <zlib.h>")
 
 
-[FILE:535:patches/patch-src_external_rawspeed_cmake_Modules_cpu-cache-line-size.cpp]
---- src/external/rawspeed/cmake/Modules/cpu-cache-line-size.cpp.orig	2024-12-31 00:33:15 UTC
+[FILE:897:patches/patch-src_external_rawspeed_cmake_Modules_cpu-cache-line-size.cpp]
+--- src/external/rawspeed/cmake/Modules/cpu-cache-line-size.cpp.orig	2024-12-13 20:15:16 UTC
 +++ src/external/rawspeed/cmake/Modules/cpu-cache-line-size.cpp
 @@ -11,7 +11,7 @@
  #include <elf.h>
@@ -1285,24 +1290,33 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
  static std::optional<int64_t> get_cachelinesize_from_sysconf() {
    long val = ::sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
    if (val == -1) // On error, -1 is returned.
+@@ -39,7 +39,7 @@ static std::optional<int64_t> get_cachel
+ }
+ #endif
+ 
+-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) ||     \
++#if (defined(__FreeBSD__) && !defined(__MidnightBSD__)) || defined(__NetBSD__) || defined(__OpenBSD__) ||     \
+     defined(__DragonFly__) || defined(__APPLE__)
+ #include <cstddef>
+ #include <sys/sysctl.h>
 
 
-[FILE:429:patches/patch-src_external_rawspeed_cmake_Modules_cpu-page-size.cpp]
---- src/external/rawspeed/cmake/Modules/cpu-page-size.cpp.orig	2024-12-30 22:11:10 UTC
+[FILE:457:patches/patch-src_external_rawspeed_cmake_Modules_cpu-page-size.cpp]
+--- src/external/rawspeed/cmake/Modules/cpu-page-size.cpp.orig	2024-12-13 20:15:16 UTC
 +++ src/external/rawspeed/cmake/Modules/cpu-page-size.cpp
 @@ -4,7 +4,7 @@
  #include <unistd.h>
  #endif
  
 -#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) || defined(__APPLE__)
-+#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) || defined(__APPLE__) || defined(__DragonFly__)
++#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) || defined(__APPLE__) || defined(__DragonFly__) || defined(__MidnightBSD__)
  
  int main() {
    long val = ::sysconf(_SC_PAGESIZE);
 
 
 [FILE:1305:patches/patch-src_iop_channelmixerrgb.c]
---- src/iop/channelmixerrgb.c.orig	2024-12-31 11:59:33 UTC
+--- src/iop/channelmixerrgb.c.orig	2024-12-15 21:38:01 UTC
 +++ src/iop/channelmixerrgb.c
 @@ -16,23 +16,6 @@
    along with darktable.  If not, see <http://www.gnu.org/licenses/>.

@@ -2,6 +2,7 @@
 
 NAMEBASE=		postgresql17
 VERSION=		17.2
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Powerful, open source object-relational database
@@ -57,6 +58,7 @@ EXRUN[contrib]=		postgresql17:client:std
 			ssl
 EXRUN[plperl]=		perl
 EXRUN[server]=		postgresql17:client:std
+			icu:data:std
 
 USERS=			pgsql
 GROUPS=			pgsql
@@ -111,18 +113,10 @@ VAR_OPSYS[openbsd]=	CONFIGURE_ARGS=-Duuid=bsd
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=-Duuid=bsd
 VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=-Duuid=bsd
 
-post-install-darwin:
+post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/periodic/daily
 	${INSTALL_SCRIPT} ${WRKDIR}/502.pgsql \
 		${STAGEDIR}${PREFIX}/etc/periodic/daily
-	# install-world doesn't strip (and install-strip won't install enough)
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/*.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.${LIBEXT}
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/pgxs/src/test/regress/pg_regress
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/pgxs/src/test/isolation/isolationtester
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/pgxs/src/test/isolation/pg_isolation_regress
-	list=$$(${LS} ${STAGEDIR}${PREFIX}/bin/* | ${GREP} -v pltcl_); \
-		${STRIP_CMD} $${list}
 
 pre-configure:
 	${REINPLACE_CMD} -e "s|http://www.oasis-open.org/docbook/xml/|file://${LOCALBASE}/share/xml/docbook/|" \
@@ -178,7 +172,7 @@ This subpackage contains Tcl Procedural Language support for PostgreSQL.
 82ef27c0af3751695d7f64e2d963583005fbb6a0c3df63d0e4b42211d7021164     21408880 postgresql/postgresql-17.2.tar.bz2
 
 
-[FILE:8119:manifests/plist.server]
+[FILE:8148:manifests/plist.server]
 bin/
  initdb
  pg_archivecleanup
@@ -197,6 +191,7 @@ bin/
  pg_waldump
  pg_walsummary
  postgres
+etc/periodic/daily/502.pgsql
 lib/postgresql/
  amcheck.so
  basebackup_to_shell.so
@@ -2771,11 +2766,11 @@ lib/pkgconfig/
  #------------------------------------------------------------------------------
 
 
-[FILE:3090:files/502.pgsql.in]
+[FILE:3094:files/502.pgsql.in]
 #!/bin/sh
 #
 # Maintenance shell script to vacuum and backup database
-# Put this in /usr/local/etc/periodic/daily, and it will be run 
+# Put this in %%PREFIX%%/etc/periodic/daily, and it will be run
 # every night
 #
 # Written by Palle Girgensohn <girgen@pingpong.net>
@@ -2808,7 +2803,7 @@ fi
 : ${daily_pgsql_backupdir:="~${daily_pgsql_user}/backups"}
 : ${daily_pgsql_savedays:="7"}
 
-# allow '~´ in dir name
+# allow '~' in directory name
 eval backupdir=${daily_pgsql_backupdir}
 
 rc=0
@@ -2817,7 +2812,7 @@ pgsql_backup() {
 	# daily_pgsql_backupdir must be writeable by user %%PG_USER%%
 	# ~%%PG_USER%% is just that under normal circumstances,
 	# but this might not be where you want the backups...
-	if [ ! -d ${backupdir} ] ; then 
+	if [ ! -d ${backupdir} ] ; then
 	    echo Creating ${backupdir}
 	    mkdir -m 700 ${backupdir}; chown ${daily_pgsql_user} ${backupdir}
 	fi
@@ -2888,21 +2883,22 @@ esac
 exit $rc
 
 
-[FILE:3182:files/postgresql.in]
+[FILE:3533:files/postgresql.in]
 #!/bin/sh
 
 # PROVIDE: postgresql
-# REQUIRE: sshd
+# REQUIRE: DAEMON
 # KEYWORD: shutdown
 #
 # Add the following line to /etc/rc.conf to enable PostgreSQL:
 #
 #  postgresql_enable="YES"
 #  # optional
-#  postgresql_data="%%PREFIX%%/%%PG_USER%%/%%DATADIR%%"
+#  postgresql_data="/var/db/%%PG_USER%%/data%%PG_VERSION%%"
 #  postgresql_flags="-w -s -m fast"
 #  postgresql_initdb_flags="--encoding=utf-8 --lc-collate=C"
-#  postgresql_class="default"
+#  # leave empty to use the login class set in in /etc/passwd:
+#  postgresql_login_class="my_custom_login_class"
 #  postgresql_profiles=""
 #
 # See %%PREFIX%%/share/doc/postgresql/README-server for more info
@@ -2920,12 +2916,14 @@ command=%%PREFIX%%/bin/pg_ctl
 load_rc_config postgresql
 
 # set defaults
-postgresql_enable=${postgresql_enable:-"NO"}
-postgresql_flags=${postgresql_flags:-"-w -s -m fast"}
-postgresql_user=${postgresql_user:-"%%PG_USER%%"}
-eval postgresql_data=${postgresql_data:-"~${postgresql_user}/%%DATADIR%%"}
-postgresql_class=${postgresql_class:-"default"}
-postgresql_initdb_flags=${postgresql_initdb_flags:-"--encoding=utf-8 --lc-collate=C"}
+: ${postgresql_enable:="NO"}
+: ${postgresql_flags:="-w -s -m fast"}
+: ${postgresql_user:="%%PG_USER%%"}
+eval _pgdir="~${postgresql_user}/data%%PG_VERSION%%"
+: ${postgresql_data:="${_pgdir}"}
+: ${postgresql_login_class:=""}
+: ${postgresql_initdb_flags:="--encoding=utf-8 --lc-collate=C"}
+: ${postgresql_svcj_options:="net_basic"}
 
 name=postgresql
 rcvar=postgresql_enable
@@ -2936,8 +2934,11 @@ stop_cmd="postgresql_command stop"
 restart_cmd="postgresql_command restart"
 reload_cmd="postgresql_command reload"
 status_cmd="postgresql_command status"
+promote_cmd="postgresql_command promote"
 
 initdb_cmd="postgresql_initdb"
+
+su_cmd="/usr/bin/su"
 
 if [ -n "$2" ]; then
 	profile="$2"
@@ -2950,6 +2951,7 @@ if [ -n "$2" ]; then
 		eval postgresql_enable="\${postgresql_${profile}_enable:-${postgresql_enable}}"
 		eval postgresql_data="\${postgresql_${profile}_data:-${postgresql_data}}"
 		eval postgresql_flags="\${postgresql_${profile}_flags:-${postgresql_flags}}"
+		eval postgresql_login_class="\${postgresql_${profile}_login_class:-${postgresql_login_class}}"
 		eval postgresql_initdb_flags="\${postgresql_${profile}_initdb_flags:-${postgresql_initdb_flags}}"
 	fi
 else
@@ -2992,12 +2994,16 @@ command_args="-D ${postgresql_data} ${postgresql_flags}"
 
 postgresql_command()
 {
-    su -l ${postgresql_user} -c "exec ${command} ${command_args} ${rc_arg}"
+    ${su_cmd} ${postgresql_login_class:+-c ${postgresql_login_class}} \
+	    -l ${postgresql_user} \
+	    -c "exec ${command} ${command_args} ${rc_arg}"
 }
 
 postgresql_initdb()
 {
-    su -l -c ${postgresql_class} ${postgresql_user} -c "exec %%PREFIX%%/bin/initdb ${postgresql_initdb_flags} -D ${postgresql_data} -U ${postgresql_user}"
+    ${su_cmd} ${postgresql_login_class:+-c ${postgresql_login_class}} \
+	    -l ${postgresql_user} \
+	    -c "exec %%PREFIX%%/bin/initdb ${postgresql_initdb_flags} -D ${postgresql_data} -U ${postgresql_user}"
 }
 
 run_rc_command "$1"

@@ -19,7 +19,7 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			fbsd10fix libtool
+USES=			fbsd10fix libtool mbsdfix
 
 DISTNAME=		goom2k4-0
 
@@ -66,4 +66,14 @@ lib/
  libgoom2.a
  libgoom2.so
 lib/pkgconfig/libgoom2.pc
+
+
+[FILE:205:files/special.mk]
+_USES_configure+=	427:midgoom
+
+midgoom:
+	@${ECHO_MSG} "===>  Second configure script fix for MidnightBSD"
+	${SED} -i.mbsd2 \
+		-e 's#freebsd\*)#freebsd* | dragonfly* | midnight*)#' \
+		${WRKSRC}/configure
 

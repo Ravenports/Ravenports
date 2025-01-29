@@ -48,12 +48,14 @@ SINGLE_JOB=		yes
 
 SOVERSION=		19.1.7
 PLIST_SUB=		SOMAJMIN=19.1
+			SOEXTENSION={{SOEXTENSION}}
 
 LDFLAGS=		-lpthread
 CMAKE_ARGS=		-DLLVM_COMMON_CMAKE_UTILS={{WRKDIR}}/cmake-19.1.7.src
 			-DLLDB_INCLUDE_TESTS:BOOL=OFF
 			-DLUA_INCLUDE_DIR={{LOCALBASE}}/include/lua{{LUA_VER_STR}}
 			-DLUA_LIBRARY={{LOCALBASE}}/lib/liblua-{{LUA_VER}}.so
+VAR_OPSYS[linux]=	MAKEFILE_LINE=SOEXTENSION=-x86_64-linux-gnu
 
 post-install:
 	# set python cache
@@ -85,10 +87,11 @@ disassembler.
 11c5a28f90053b0c43d0dec3d0ad579347fc277199c005206b963c19aae514e3         9300 cmake-19.1.7.src.tar.xz
 
 
-[FILE:1522:manifests/plist.primary]
+[FILE:1592:manifests/plist.primary]
+%%ONLY-LINUX%%lib/liblldbIntelFeatures.so.%%SOMAJMIN%%
 %%PYTHON_SITELIBDIR%%/lldb/
  __init__.py
- _lldb.cpython-%%PYTHON_SUFFIX%%.so
+ _lldb.cpython-%%PYTHON_SUFFIX%%%%SOEXTENSION%%.so
  embedded_interpreter.py
  lldb-argdumper
 %%PYTHON_SITELIBDIR%%/lldb/__pycache__/
@@ -150,7 +153,8 @@ lib/
 lib/lua/%%LUA_VER%%/lldb.so
 
 
-[FILE:10594:manifests/plist.dev]
+[FILE:10636:manifests/plist.dev]
+%%ONLY-LINUX%%lib/liblldbIntelFeatures.so
 include/lldb/
  lldb-defines.h
  lldb-enumerations.h
@@ -722,7 +726,7 @@ include/lldb/Version/Version.h
 lib/liblldb.so
 
 
-[FILE:507:patches/patch-cmake_modules_LLDBConfig.cmake]
+[FILE:519:patches/patch-cmake_modules_LLDBConfig.cmake]
 --- cmake/modules/LLDBConfig.cmake.orig	2024-12-17 11:04:04 UTC
 +++ cmake/modules/LLDBConfig.cmake
 @@ -299,7 +299,7 @@ endif()
@@ -730,7 +734,7 @@ lib/liblldb.so
  # Figure out if lldb could use lldb-server.  If so, then we'll
  # ensure we build lldb-server when an lldb target is being built.
 -if (CMAKE_SYSTEM_NAME MATCHES "Android|Darwin|FreeBSD|Linux|NetBSD|Windows")
-+if (CMAKE_SYSTEM_NAME MATCHES "Android|Darwin|FreeBSD|Linux|NetBSD|DragonFly|Windows")
++if (CMAKE_SYSTEM_NAME MATCHES "Android|Darwin|FreeBSD|Linux|NetBSD|DragonFly|Windows|MidnightBSD")
    set(LLDB_CAN_USE_LLDB_SERVER ON)
  else()
    set(LLDB_CAN_USE_LLDB_SERVER OFF)
@@ -765,10 +769,17 @@ lib/liblldb.so
  
 
 
-[FILE:438:patches/patch-source_Host_CMakeLists.txt]
---- source/Host/CMakeLists.txt.orig	2024-12-17 11:04:04 UTC
+[FILE:660:patches/patch-source_Host_CMakeLists.txt]
+--- source/Host/CMakeLists.txt.orig	2025-01-14 09:41:02 UTC
 +++ source/Host/CMakeLists.txt
-@@ -122,6 +122,12 @@ else()
+@@ -116,12 +116,18 @@ else()
+         android/LibcGlue.cpp
+         )
+     endif()
+-  elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++  elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|MidnightBSD")
+     add_host_subdirectory(freebsd
+       freebsd/Host.cpp
        freebsd/HostInfoFreeBSD.cpp
        )
  
@@ -836,6 +847,17 @@ lib/liblldb.so
  #else
 
 
+[FILE:333:patches/patch-source_Initialization_CMakeLists.txt]
+--- source/Initialization/CMakeLists.txt.orig	2025-01-14 09:41:02 UTC
++++ source/Initialization/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-if ( CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD|NetBSD" )
++if ( CMAKE_SYSTEM_NAME MATCHES "Linux|Android|FreeBSD|NetBSD|MidnightBSD" )
+   list(APPEND EXTRA_PLUGINS lldbPluginProcessPOSIX)
+ endif()
+ 
+
+
 [FILE:689:patches/patch-source_Initialization_SystemInitializerCommon.cpp]
 --- source/Initialization/SystemInitializerCommon.cpp.orig	2024-12-17 11:04:04 UTC
 +++ source/Initialization/SystemInitializerCommon.cpp
@@ -880,11 +902,15 @@ lib/liblldb.so
      Platform::SetHostPlatform(default_platform_sp);
 
 
-[FILE:478:patches/patch-source_Plugins_Process_CMakeLists.txt]
---- source/Plugins/Process/CMakeLists.txt.orig	2024-12-17 11:04:04 UTC
+[FILE:598:patches/patch-source_Plugins_Process_CMakeLists.txt]
+--- source/Plugins/Process/CMakeLists.txt.orig	2025-01-14 09:41:02 UTC
 +++ source/Plugins/Process/CMakeLists.txt
-@@ -4,6 +4,9 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux|And
- elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+@@ -1,9 +1,12 @@
+ if (CMAKE_SYSTEM_NAME MATCHES "Linux|Android")
+   add_subdirectory(Linux)
+   add_subdirectory(POSIX)
+-elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++elseif (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|MidnightBSD")
    add_subdirectory(FreeBSD)
    add_subdirectory(POSIX)
 +elseif (CMAKE_SYSTEM_NAME MATCHES "DragonFly")
@@ -895,10 +921,29 @@ lib/liblldb.so
    add_subdirectory(POSIX)
 
 
-[FILE:439:patches/patch-tools_lldb-server_CMakeLists.txt]
---- tools/lldb-server/CMakeLists.txt.orig	2024-12-17 11:04:04 UTC
+[FILE:553:patches/patch-source_Plugins_SymbolLocator_Default_SymbolLocatorDefault.cpp]
+--- source/Plugins/SymbolLocator/Default/SymbolLocatorDefault.cpp.orig	2025-01-14 09:41:02 UTC
++++ source/Plugins/SymbolLocator/Default/SymbolLocatorDefault.cpp
+@@ -145,7 +145,7 @@ std::optional<FileSpec> SymbolLocatorDef
+       FileSystem::Instance().Resolve(file_spec);
+       debug_file_search_paths.AppendIfUnique(file_spec);
+     }
+-#if defined(__FreeBSD__)
++#if defined(__FreeBSD__) && !defined(__MidnightBSD__)
+     // Add $LOCALBASE/lib/debug directory, where LOCALBASE is
+     // usually /usr/local, but may be adjusted by the end user.
+     {
+
+
+[FILE:596:patches/patch-tools_lldb-server_CMakeLists.txt]
+--- tools/lldb-server/CMakeLists.txt.orig	2025-01-14 09:41:02 UTC
 +++ tools/lldb-server/CMakeLists.txt
-@@ -12,6 +12,10 @@ if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+@@ -8,10 +8,14 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux|Andr
+   list(APPEND LLDB_PLUGINS lldbPluginProcessLinux)
+ endif()
+ 
+-if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|MidnightBSD")
    list(APPEND LLDB_PLUGINS lldbPluginProcessFreeBSD)
  endif()
  
@@ -932,6 +977,20 @@ lib/liblldb.so
  #elif defined(__NetBSD__)
  typedef process_netbsd::NativeProcessNetBSD::Manager NativeProcessManager;
  #elif defined(_WIN32)
+
+
+[FILE:479:patches/patch-unittests_Process_Utility_CMakeLists.txt]
+--- unittests/Process/Utility/CMakeLists.txt.orig	2025-01-14 09:41:02 UTC
++++ unittests/Process/Utility/CMakeLists.txt
+@@ -4,7 +4,7 @@ set(NETBSD_SOURCES
+   RegisterContextNetBSDTest_i386.cpp
+   RegisterContextNetBSDTest_x86_64.cpp)
+ 
+-if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
++if (CMAKE_SYSTEM_NAME MATCHES "FreeBSD|MidnightBSD")
+   list(APPEND PLATFORM_SOURCES ${FREEBSD_SOURCES})
+ elseif (CMAKE_SYSTEM_NAME MATCHES "NetBSD")
+   list(APPEND PLATFORM_SOURCES ${NETBSD_SOURCES})
 
 
 [FILE:344:files/DFProc.CMakeLists.txt]
