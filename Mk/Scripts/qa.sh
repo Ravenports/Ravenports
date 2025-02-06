@@ -535,7 +535,7 @@ rcscripts() {
 
 	for rcfile in $rclist; do
 		echo $rcfile
-		if grep -Fq '%%' ${rcfile}; then
+		if grep -q '%%.*%%' ${rcfile}; then
 			bname=$(basename ${rcfile})
 			err "RC script '${bname}' contains an unreplaced %% variable token"
 			rc=1

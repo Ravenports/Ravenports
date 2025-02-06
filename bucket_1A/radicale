@@ -2,6 +2,7 @@
 
 NAMEBASE=		radicale
 VERSION=		3.4.1
+REVISION=		1
 KEYWORDS=		python
 VARIANTS=		std
 SDESC[std]=		CalDAV and CardDAV Server
@@ -103,16 +104,15 @@ www/radicale/radicale.wsgi
 @dir(radicale,radicale,0755) share/radicale
 
 
-[FILE:898:files/radicale.in]
+[FILE:871:files/radicale.in]
 #!/bin/sh
 # Created by: Mark Felder <feld@FreeBSD.org>
-#
-#
+
 # PROVIDE: radicale
 # REQUIRE: DAEMON
 # BEFORE: LOGIN
 # KEYWORD: shutdown
-#
+
 #
 # Add the following lines to /etc/rc.conf to enable radicale:
 #  radicale_enable (bool):    Set to "NO" by default.
@@ -130,13 +130,12 @@ load_rc_config $name
 
 : ${radicale_enable:=NO}
 : ${radicale_config=%%PREFIX%%/etc/radicale/config}
-: ${radicale_user:=radicale}
-: ${radicale_group:=radicale}
+: ${radicale_user=radicale}
+: ${radicale_group=radicale}
 
 pidfile=/var/run/radicale/radicale.pid
-command=%%PREFIX%%/bin/radicale-%%PYTHON_VER%%
-command_args="-d -p ${pidfile} -C ${radicale_config}"
-command_interpreter=%%PYTHON_CMD%%
+command=/usr/sbin/daemon
+command_args="-P ${pidfile} -f -ST ${name} %%PREFIX%%/bin/radicale -C ${radicale_config}"
 required_files=${radicale_config}
 start_precmd=do_precmd
 
