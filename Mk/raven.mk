@@ -728,6 +728,7 @@ BUILD_WRKSRC?=		${WRKSRC}
 MAKE_ENV+=		${DESTDIRNAME}=${STAGEDIR}
 .else
 MAKE_ARGS+=		${DESTDIRNAME}=${STAGEDIR}
+TEST_ARGS+=		${DESTDIRNAME}=${STAGEDIR}
 .endif
 
 .for lang in C CXX
@@ -1172,8 +1173,8 @@ test-message:
 
 .if !target(do-test)
 .  if defined(TEST_TARGET)
-DO_MAKE_TEST?=		${SETENV} ${TEST_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
-			${MAKEFILE} ${TEST_ARGS:C,^${DESTDIRNAME}=.*,,g}
+DO_MAKE_TEST?=		${SETENV} ${MAKE_ENV} ${TEST_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
+			${MAKEFILE} ${TEST_ARGS}
 do-test:
 	@(cd ${TEST_WRKSRC}; \
 	if ! ${DO_MAKE_TEST} ${TEST_TARGET}; then \

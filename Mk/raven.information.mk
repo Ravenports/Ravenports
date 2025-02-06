@@ -151,7 +151,7 @@ GTK4_PORT_VERSION=		4.16.12
 # Ravenports binutils
 # ------------------------------------------------------------------------
 
-BINUTILS_VERSION=		2.43.1
+BINUTILS_VERSION=		2.44
 RPBASE_BINUTILS=		2.43.1
 
 # ------------------------------------------------------------------------
@@ -210,7 +210,7 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # ------------------------------------------------------------------------
 
 QT5_VERSION=			5.15.9
-QT6_VERSION=			6.8.1
+QT6_VERSION=			6.8.2
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
 KDE5_FRAMEWORKS_VERSION=	5.115.0

@@ -525,10 +525,30 @@ completeset() {
 	return 0
 }
 
+rcscripts() {
+	local rc bname
+	rc=0
+	rclist=$(find "${STAGEDIR}${PREFIX}/etc/rc.d" -type f -print 2>/dev/null)
+	if [ -z "${rclist}" ]; then
+		return 0
+	fi
+
+	for rcfile in $rclist; do
+		echo $rcfile
+		if grep -Fq '%%' ${rcfile}; then
+			bname=$(basename ${rcfile})
+			err "RC script '${bname}' contains an unreplaced %% variable token"
+			rc=1
+		fi
+	done
+
+	return ${rc}
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
 checks="$checks sonames nls_files doc_files uses_fbsd10fix uses_mbsdfix"
-checks="$checks completeset"
+checks="$checks completeset rcscripts"
 # don't add to this line
 checks="$checks missing_license licterms showlic py_conflicts"
 
