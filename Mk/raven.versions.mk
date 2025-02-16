@@ -32,15 +32,14 @@ PERL_5.40_VERSION=	5.40.1
 
 #-------------------------------------------------------------------------
 # RUBY
-# Possible values: 3.1, 3.2, 3.3, 3.4
+# Possible values: 3.2, 3.3, 3.4
 #-------------------------------------------------------------------------
 
 RUBY_DEFAULT?=		3.3
 
-RUBY_3.1_VERSION=	3.1.4
 RUBY_3.2_VERSION=	3.2.2
 RUBY_3.3_VERSION=	3.3.6
-RUBY_3.4_VERSION=	3.4.1
+RUBY_3.4_VERSION=	3.4.2
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -136,8 +135,8 @@ MYSQL_mariadb-11_VERSION=	11.6.2
 PHP_DEFAULT?=		8.2
 
 PHP_8.2_VERSION=	8.2.27
-PHP_8.3_VERSION=	8.3.16
-PHP_8.4_VERSION=	8.4.3
+PHP_8.3_VERSION=	8.3.17
+PHP_8.4_VERSION=	8.4.4
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
