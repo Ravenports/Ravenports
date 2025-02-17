@@ -2,6 +2,7 @@
 
 NAMEBASE=		mariadb11
 VERSION=		11.6.2
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Fast SQL database server, derived from MySQL
@@ -30,13 +31,13 @@ BUILD_DEPENDS=		bison:primary:std
 			boost-libraries:dev:std
 			krb5:dev:std
 			judy:dev:std
+			openpam:dev:std
 BUILDRUN_DEPENDS=	boost-libraries:primary:std
 			snappy:primary:std
 			msgpack:primary:std
 			judy:primary:std
 			krb5:primary:std
-B_DEPS[netbsd]=		openpam:dev:std
-BR_DEPS[netbsd]=	openpam:primary:std
+			openpam:primary:std
 
 USERS=			mysql
 GROUPS=			mysql
@@ -64,7 +65,19 @@ SHEBANG_FILES=		scripts/*.sh
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		PORTNAME=mariadb11
 			AUTHSOCKET={{AUTHSOCKET}}
-			PAM={{PAM:U"@comment "}}
+			MARIADB_USER="mysql"
+			MARIADB_GROUP="mysql"
+			MARIADB_LOGDIR="/var/log/mysql"
+RC_SUBR=		mysql-server:server
+SUB_FILES=		my.cnf.sample
+			client.cnf.sample
+			server.cnf.sample
+SUB_LIST=		MARIADB_DBDIR="/var/db/mysql"
+			MARIADB_RUNDIR="/var/run/mysql"
+			MARIADB_LOGDIR="/var/log/mysql"
+			MARIADB_SOCK="mysql.sock"
+			MARIADB_USER="mysql"
+			OPSYS="{{OPSYS}}"
 
 CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_INCLUDEDIR=include/mysql
@@ -79,9 +92,14 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_SCRIPTDIR=bin
 			-DINSTALL_MYSQLTESTDIR=
 			-DINSTALL_SQLBENCHDIR=
+			-DINSTALL_UNIX_ADDRDIR="/var/run/mysql/mysql.sock"
+			-DINSTALL_SYSCONFDIR="etc/mysql"
+			-DINSTALL_SYSCONF2DIR="etc/mysql/conf.d"
+			-DINSTALL_MYSQLDATADIR="/var/db/mysql"
+			-DINSTALL_PAMDATADIR="etc/mysql"
+			-DINSTALL_SBINDIR=libexec
 			-DDEFAULT_CHARSET=utf8mb4
 			-DDEFAULT_COLLATION=utf8mb4_unicode_ci
-			-DDEFAULT_SYSCONFDIR="{{PREFIX}}/etc"
 			-DENABLED_LOCAL_INFILE=ON
 			-DPLUGIN_EXAMPLE=NO
 			-DPLUGIN_FEEDBACK=NO
@@ -100,21 +118,26 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-Wno-dev
 VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
-			MAKEFILE_LINE=PAM=
 
 [ROCKSDB].DESCRIPTION=			Build RocksDB LSM Engine
 [ROCKSDB].CMAKE_ARGS_OFF=		-DPLUGIN_ROCKSDB=NO
 [ROCKSDB].CMAKE_ARGS_ON=		-DPLUGIN_ROCKSDB=DYNAMIC
 
 post-install:
-	${RM} ${STAGEDIR}${STD_DOCDIR}/COPYING
 	${MV} ${STAGEDIR}${PREFIX}/lib/mysql/pkgconfig/mariadb.pc \
 		${STAGEDIR}${PREFIX}/lib/pkgconfig/
 	${RMDIR} ${STAGEDIR}${PREFIX}/lib/mysql/pkgconfig
+	${RM} ${STAGEDIR}${STD_DOCDIR}/COPYING
+	${RM} ${STAGEDIR}${PREFIX}/libexec/rcmysql
+	${RM} -r ${STAGEDIR}${PREFIX}/etc/mysql/init.d
+	${RM} -r ${STAGEDIR}${PREFIX}/etc/mysql/logrotate.d
+	${RM} -r ${STAGEDIR}/suite
+	${MKDIR} ${STAGEDIR}/var/log/mysql
 	# strip plugins and libraries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadb.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadbd.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/*/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/plugin/auth_pam_tool_dir/auth_pam_tool
 	# strip binaries
 	@flist=$$(${FIND} ${STAGEDIR}${PREFIX}/bin -type f -perm /111 -print) ;\
 	for f in $$flist; do \
@@ -122,13 +145,18 @@ post-install:
 		&& ${ECHO_CMD} "Auto-stripping $$f"\
 		&& ${STRIP_CMD} $$f || ${TRUE} ;\
 	done
-	# if pam config file exists, set it as a sample
-	# remove testsuite files too
-	if [ -f "${STAGEDIR}${PREFIX}/etc/mariadb/user_map.conf" ]; then \
-		(cd ${STAGEDIR}${PREFIX}/etc/mariadb && \
-		${MV} user_map.conf user_map.conf.sample) ;\
-		${RM} -r ${STAGEDIR}/suite ;\
-	fi
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/mariadbd
+	# sample installation
+	${RM} ${STAGEDIR}${PREFIX}/etc/mysql/conf.d/server.cnf
+	${RM} ${STAGEDIR}${PREFIX}/etc/mysql/my.cnf
+	${INSTALL_DATA} ${WRKDIR}/server.cnf.sample \
+		${STAGEDIR}${PREFIX}/etc/mysql/conf.d/server.cnf.sample
+	${INSTALL_DATA} ${WRKDIR}/my.cnf.sample \
+		${STAGEDIR}${PREFIX}/etc/mysql/my.cnf.sample
+	${INSTALL_DATA} ${WRKDIR}/client.cnf.sample \
+		${STAGEDIR}${PREFIX}/etc/mysql/conf.d/client.cnf.sample
+	${MV} ${STAGEDIR}${PREFIX}/etc/mysql/user_map.conf \
+		${STAGEDIR}${PREFIX}/etc/mysql/user_map.conf.sample
 
 pre-configure:
 	${REINPLACE_CMD} 's|/usr/bin/env python|${PYTHON_CMD}|' \
@@ -181,15 +209,11 @@ This package contains the client and related files.
 40fc58bebcf38c759e11a7bd8fdc163507d2423ef5058bba7f26280c5b9c5465      1422604 fmt-11.0.2.zip
 
 
-[FILE:4361:manifests/plist.server]
+[FILE:4647:manifests/plist.server]
+@sample etc/mysql/conf.d/server.cnf.sample
+@sample etc/mysql/user_map.conf.sample
 %%ONLY-FREEBSD%%lib/mysql/plugin/parsec.so
 %%ONLY-LINUX%%lib/mysql/plugin/parsec.so
-%%PAM%%@sample etc/mariadb/user_map.conf.sample
-%%PAM%%lib/mysql/plugin/
- auth_pam.so
- auth_pam_v1.so
-%%PAM%%lib/mysql/plugin/auth_pam_tool_dir/auth_pam_tool
-%%PAM%%lib/mysql/security/pam_user_map.so
 %%ROCKSDB-ON%%bin/
  mariadb-ldb
  myrocks_hotbackup
@@ -221,7 +245,6 @@ bin/
  mariadb-tzinfo-to-sql
  mariadb-upgrade
  mariadb-waitpid
- mariadbd
  mariadbd-multi
  mariadbd-safe
  mariadbd-safe-helper
@@ -241,7 +264,6 @@ bin/
  mysql_tzinfo_to_sql
  mysql_upgrade
  mysql_waitpid
- mysqld
  mysqld_multi
  mysqld_safe
  mysqld_safe_helper
@@ -258,6 +280,18 @@ bin/
  wsrep_sst_mysqldump
  wsrep_sst_rsync
  wsrep_sst_rsync_wan
+etc/mysql/conf.d/
+ client.cnf
+ enable_encryption.preset
+ hashicorp_key_management.cnf
+ mysql-clients.cnf
+ provider_bzip2.cnf
+ provider_lz4.cnf
+ provider_lzma.cnf
+ provider_lzo.cnf
+ provider_snappy.cnf
+ s3.cnf
+ spider.cnf
 lib/mysql/
  libmariadbd.so.19
  libmysqld.so
@@ -267,6 +301,8 @@ lib/mysql/plugin/
  auth_ed25519.so
  auth_gssapi.so
  auth_gssapi_client.so
+ auth_pam.so
+ auth_pam_v1.so
  auth_parsec.so
  auth_test_plugin.so
  caching_sha2_password.so
@@ -314,6 +350,11 @@ lib/mysql/plugin/
  type_test.so
  wsrep_info.so
  zstd.so
+lib/mysql/plugin/auth_pam_tool_dir/auth_pam_tool
+lib/mysql/security/pam_user_map.so
+libexec/
+ mariadbd
+ mysqld
 share/groonga/
  COPYING
  README.md
@@ -407,9 +448,12 @@ share/mysql/spanish/errmsg.sys
 share/mysql/swahili/errmsg.sys
 share/mysql/swedish/errmsg.sys
 share/mysql/ukrainian/errmsg.sys
+@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,) %%MARIADB_LOGDIR%%
 
 
-[FILE:661:manifests/plist.client]
+[FILE:736:manifests/plist.client]
+@sample etc/mysql/conf.d/client.cnf.sample
+@sample etc/mysql/my.cnf.sample
 bin/
  mariadb
  mariadb-access
@@ -1712,4 +1756,285 @@ If timer_t is an integer type, setting it to nullptr fails.
  #else
  #define get_curr_thread_id() pthread_self()
  #endif
+
+
+[FILE:1413:files/client.cnf.sample.in]
+# Options specific to client applications, see
+# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#client-option-groups
+
+# Options specific to all client programs
+[client]
+# port			= 3306 # inherited from %%ETCDIR%%/my.cnf
+# socket		= %%MARIADB_RUNDIR%%/%%MARIADB_SOCK%% # inherited from %%ETCDIR%%/my.cnf
+
+# Options specific to MariaDB client programs
+[client-mariadb]
+
+#
+## Options for specific client Tools
+#
+
+# Options read by `mysql`
+# Renamed from [mysql] starting with MariaDB 10.4.6.
+[mariadb-client]	Options read by mysql. Available starting with MariaDB 10.4.6.
+prompt			= \u@\h [\d]>\_
+no_auto_rehash
+
+# Options read by `mysqldump`
+# Renamed from [mysqldump] starting with MariaDB 10.4.6.
+[mariadb-dump]
+max_allowed_packet	= 256M
+quote_names
+quick
+
+# Options read by `mysqladmin`
+# Renamed from [mysqladmin] starting with MariaDB 10.4.6.
+[mariadb-admin]
+
+# Options read by `mysqlbinlog` 
+# Renamed from [mysqlbinlog] starting with MariaDB 10.4.6.
+[mariadb-binlog]
+
+# Options read by `mysqlcheck`
+# Renamed from [mysqlcheck] starting with MariaDB 10.4.6.
+[mariadb-check]
+
+# Options read by `mysqlimport`
+# Renamed from [mysqlimport] starting with MariaDB 10.4.6.
+[mariadb-import]
+
+# Options read by `mysqlshow`
+# Renamed from [mysqlshow] starting with MariaDB 10.4.6.
+[mariadb-show]
+
+# Options read by `mysqlslap`
+# Renamed from [mysqlslap]  starting with MariaDB 10.4.6.
+[mariadb-slap]
+
+
+
+[FILE:340:files/my.cnf.sample.in]
+#
+# This group is read both by the client and the server
+# use it for options that affect everything, see
+# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#option-groups
+#
+[client-server]
+port	= 3306
+socket	= %%MARIADB_RUNDIR%%/%%MARIADB_SOCK%%
+
+#
+# include *.cnf from the config directory
+#
+!includedir %%ETCDIR%%/conf.d/
+
+
+[FILE:4910:files/mysql-server.in]
+#!/bin/sh
+
+# PROVIDE: mysql
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# Add the following line to /etc/rc.conf to enable mysql:
+# mysql_(instance_)?enable (bool):	Set to "NO" by default.
+#			Set it to "YES" to enable MySQL.
+# mysql_(instance_)?dbdir (str):	Default to "%%MARIADB_DBDIR%%"
+#			Base database directory.
+# mysql_(instance_)?args (str):	Custom additional arguments to be passed
+#			to mysqld_safe (default empty).
+# mysql_(instance_)?pidfile (str): Custom PID file path and name.
+#			Default to "${mysql_dbdir}/${hostname}.pid".
+# mysql_(instance_)?user (str): User to run mysqld as
+#			Default to "%%MARIADB_USER%%" created by the port
+# mysql_(instance_)?optfile (str): Server-specific option file.
+#			Default to "${mysql_dbdir}/my.cnf".
+# mysql_(instance)?rundir (str):	Default to "%%MARIADB_RUNDIR%%"
+# mysql_instances (str): Set to "" by default. 
+#			If defined, list of instances to enable
+# ======================== EXCEPT FREEBSD ========================
+# mysql_(instance_)?limits (bool):	Set to "NO" by default.
+#			Set it to yes to run `limits -e -U mysql`
+#			just before mysql starts.
+# ================================================================
+
+. /etc/rc.subr
+
+name="mysql"
+rcvar=mysql_enable
+
+load_rc_config $name
+
+: ${mysql_enable="NO"}
+: ${mysql_user="%%MARIADB_USER%%"}
+: ${mysql_dbdir="%%MARIADB_DBDIR%%"}
+: ${mysql_optfile="%%ETCDIR%%/my.cnf"}
+: ${mysql_rundir="%%MARIADB_RUNDIR%%"}
+: ${mysql_limits="NO"}
+mysql_limits_args="-e -U ${mysql_user}"
+
+command="/usr/sbin/daemon"
+procname="%%PREFIX%%/libexec/mariadbd"
+start_precmd="${name}_prestart"
+start_postcmd="${name}_poststart"
+
+if [ -n "$2" ]; then
+	instance="$2"
+	load_rc_config ${name}_${instance}
+	case "$mysql_instances" in
+	"$2 "*|*" $2 "*|*" $2"|"$2")
+		eval mysql_args="\${mysql_${instance}_args:-\"${mysql_args}\"}"
+		eval mysql_dbdir="\${mysql_${instance}_dbdir:-\"%%MARIADB_DBDIR%%_${instance}\"}"
+		eval mysql_user="\${mysql_${instance}_user:-\"${mysql_user}\"}"
+		eval mysql_socket="\${mysql_${instance}_socket:-\"%%MARIADB_RUNDIR%%_${instance}/%%MARIADB_SOCK%%\"}"
+		eval mysql_optfile="\${mysql_${instance}_optfile:-\"%%ETCDIR%%_${instance}/my.cnf\"}"
+		eval mysql_pidfile="\${mysql_${instance}_pidfile:-\"%%MARIADB_RUNDIR%%_${instance}/mysqld.pid\"}"
+		eval mysql_limits="\${mysql_${instance}_limits:-\"${mysql_limits}\"}"
+		eval mysql_limits_args="\${mysql_${instance}_limits_args:-\"-e -U $mysql_user\"}"
+	;;
+	*)
+		err 1 "$2 not found in mysql_instances" ;;
+	esac
+else
+	if [ -n "${mysql_instances}" -a -n "$1" ]; then
+		for instance in ${mysql_instances}; do
+			eval _enable="\${mysql_${instance}_enable}"
+			case "${_enable:-${mysql_enable}}" in
+			[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+				continue
+			;;
+			[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|1)
+			;;
+			*)
+				if [ -z "$_enable" ]; then
+					_var=mysql_enable
+				else
+					_var=mysql_${instance}_enable
+				fi
+				warn "Bad value" \
+					"'${_enable:-${mysql_enable}}'" \
+					"for ${_var}. " \
+					"Instance ${instance} skipped."
+				continue
+			;;
+			esac
+			echo "===> mysql instance: ${instance}"
+			if %%PREFIX%%/etc/rc.d/mysql-server $1 ${instance}; then
+				success="${instance} ${success}"
+			else
+				failed="${instance} (${retcode}) ${failed}"
+			fi
+		done
+		exit 0
+	else
+		mysql_pidfile=${mysql_pidfile:-"%%MARIADB_RUNDIR%%/mysqld.pid"}
+	fi
+fi
+
+pidfile=$mysql_pidfile
+mysql_install_db="%%PREFIX%%/bin/mariadb-install-db"
+mysql_install_db_args="--basedir=%%PREFIX%% --datadir=${mysql_dbdir} --force"
+command_args="-c -f %%PREFIX%%/bin/mariadbd-safe --defaults-extra-file=${mysql_optfile} --user=${mysql_user} --datadir=${mysql_dbdir} --pid-file=${pidfile} ${mysql_socket:+--socket=${mysql_socket}} ${mysql_args}"
+
+mysql_create_auth_tables()
+{
+	eval $mysql_install_db $mysql_install_db_args
+        [ $? -eq 0 ] && chown -R ${mysql_user}:$(id -gn $mysql_user) ${mysql_dbdir}
+}
+
+mysql_prestart()
+{
+	local dir
+	for dir in /etc /usr/local/etc /etc/mysql /var/db/mysql; do
+		if [ -f "${dir}/my.cnf" ]; then
+			echo "Please merge existing ${dir}/my.cnf file with %%ETCDIR%%/conf.d/server.cnf"
+			return 1
+		fi
+	done
+	if [ ! -d "${mysql_dbdir}/mysql/." ]; then
+		mysql_create_auth_tables || return 1
+	fi
+	mysql_group="`/usr/bin/id -gn ${mysql_user}`"
+	[ "${mysql_socket}" = "" ] && mysql_rundir="%%MARIADB_RUNDIR%%" || mysql_rundir="`/usr/bin/dirname ${mysql_socket}`"
+	if [ ! -d "${mysql_rundir}" ]; then
+		install -d -o ${mysql_user} -g ${mysql_group} "${mysql_rundir}"
+	fi
+if [ "%%OPSYS%%" = "FreeBSD" ]; then
+	return 0
+else
+	if checkyesno mysql_limits; then
+		eval `/usr/bin/limits ${mysql_limits_args}` 2>/dev/null
+	else
+		return 0
+	fi
+	if [ ! -d "${mysql_rundir}" ]; then
+		install -d -u${mysql_user} -g$(id -gn $mysql_user) -m755 ${mysql_rundir}
+	fi
+fi
+}
+
+mysql_poststart()
+{
+	local timeout=15
+	while [ ! -f "${pidfile}" -a ${timeout} -gt 0 ]; do
+		timeout=$(( timeout - 1 ))
+		sleep 1
+	done
+	return 0
+}
+
+run_rc_command "$1"
+
+
+[FILE:1602:files/server.cnf.sample.in]
+# Options specific to server applications, see
+# https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#server-option-groups
+
+# Options specific to all server programs
+[server]
+
+# Options specific to MariaDB server programs
+[server-mariadb]
+
+#
+# Options for specific server tools
+#
+
+[mysqld]
+user				= %%MARIADB_USER%%
+# port				= 3306 # inherited from %%ETCDIR%%/my.cnf
+# socket			= %%MARIADB_RUNDIR%%/mysql.sock # inherited from %%ETCDIR%%/my.cnf
+bind-address			= 127.0.0.1
+basedir				= %%PREFIX%%
+# datadir			= %%MARIADB_DBDIR%% # set with --db_dir from rc-script
+net_retry_count			= 16384
+log_error			= %%MARIADB_LOGDIR%%/mysqld.err
+# [mysqld] configuration for ZFS
+# From https://www.percona.com/resources/technical-presentations/zfs-mysql-percona-technical-webinar
+# Create separate datasets for data and logs, eg
+# zroot/mysql      compression=on recordsize=128k atime=off
+# zroot/mysql/data recordsize=16k
+# zroot/mysql/logs
+# datadir 			= %%MARIADB_DBDIR%%/data
+# innodb_log_group_home_dir	= %%MARIADB_DBDIR%%/log
+# audit_log_file		= %%MARIADB_DBDIR%%/log/audit.log
+# general_log_file		= %%MARIADB_DBDIR%%/log/general.log
+# log_bin			= %%MARIADB_DBDIR%%/log/mysql-bin
+# relay_log			= %%MARIADB_DBDIR%%/log/relay-log
+# slow_query_log_file		= %%MARIADB_DBDIR%%/log/slow.log
+# innodb_doublewrite		= 0
+# innodb_flush_method		= O_DSYNC
+
+# Options read by `mariadb-safe` (and `mysql_safe`)
+[mariadb-safe]
+
+# Options read my `mariabackup`
+[mariabackup]
+
+# Options read by mariadb-upgrade (and `mysql_upgrade`)
+[mariadb-upgrade]
+
+# Specific options read by the mariabackup SST method
+[sst]
+
 

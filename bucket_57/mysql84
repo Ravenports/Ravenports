@@ -2,6 +2,7 @@
 
 NAMEBASE=		mysql84
 VERSION=		8.4.4
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Multithreaded SQL database (server)
@@ -81,6 +82,7 @@ SUB_FILES=		my.cnf.sample
 SUB_LIST=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
+			OPSYS="{{OPSYS}}"
 
 CFLAGS=			-Wno-deprecated-declarations
 CXXFLAGS=		-DNDEBUG
@@ -1492,7 +1494,7 @@ quote_names
 quick
 
 
-[FILE:2478:files/mysql-server.in]
+[FILE:2623:files/mysql-server.in]
 #!/bin/sh
 #
 # PROVIDE: mysql
@@ -1503,9 +1505,6 @@ quick
 # Add the following line to /etc/rc.conf to enable mysql:
 # mysql_enable (bool):	Set to "NO" by default.
 #			Set it to "YES" to enable MySQL.
-# mysql_limits (bool):	Set to "NO" by default.
-#			Set it to yes to run `limits -e -U mysql`
-#			just before mysql starts.
 # mysql_dbdir (str):	Default to "%%MY_DBDIR%%"
 #			Base database directory.
 # mysql_confdir (str):	Default to "%%ETCDIR%%"
@@ -1514,10 +1513,15 @@ quick
 #			Set it in the rc.conf or default behaviour of
 #			`mysqld_safe` itself, will be picking
 #			${mysql_confdir}/my.cnf if it exists.
-# mysql_pidfile (str):	Custum PID file path and name.
+# mysql_pidfile (str):	Custom PID file path and name.
 #			Default to "${mysql_dbdir}/${hostname}.pid".
 # mysql_args (str):	Custom additional arguments to be passed
 #			to mysqld_safe (default empty).
+# ======================== EXCEPT FREEBSD ========================
+# mysql_limits (bool):	Set to "NO" by default.
+#			Set it to yes to run `limits -e -U mysql`
+#			just before mysql starts.
+# ================================================================
 #
 
 . /etc/rc.subr
@@ -1549,12 +1553,12 @@ command_args="-c -f %%PREFIX%%/bin/mysqld_safe ${mysql_extra} --basedir=%%PREFIX
 procname="%%PREFIX%%/libexec/mysqld"
 start_precmd="${name}_prestart"
 start_postcmd="${name}_poststart"
-mysql_install_db="%%PREFIX%%/bin/mysql_install_db"
-mysql_install_db_args="${mysql_extra} --basedir=%%PREFIX%% --datadir=${mysql_dbdir} --mysqld-file=${procname} --user=${mysql_user}"
+mysqld_init="${procname}"
+mysqld_init_args="${mysql_extra} --initialize-insecure --basedir=%%PREFIX%% --datadir=${mysql_dbdir} --user=${mysql_user}"
 
 mysql_create_auth_tables()
 {
-	eval $mysql_install_db $mysql_install_db_args >/dev/null 2>/dev/null
+	eval $mysqld_init $mysqld_init_args >/dev/null 2>/dev/null
 }
 
 mysql_prestart()
@@ -1562,11 +1566,15 @@ mysql_prestart()
 	if [ ! -d "${mysql_dbdir}/mysql/." ]; then
 		mysql_create_auth_tables || return 1
 	fi
+if [ "%%OPSYS%%" = "FreeBSD" ]; then
+	return 0
+else
 	if checkyesno mysql_limits; then
 		eval `/usr/bin/limits ${mysql_limits_args}` 2>/dev/null
 	else
 		return 0
 	fi
+fi
 }
 
 mysql_poststart()

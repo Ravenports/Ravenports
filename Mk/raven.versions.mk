@@ -97,7 +97,7 @@ PGSQL_17_VERSION=	17.3
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(8.0,8.4),innovation,mariadb-(10.[56], 10.1[1], 11)
+# Possible values: oracle-(8.0,8.4),innovation,mariadb-(10.[56], 10.11, 11.4, 11)
 #
 # MariaDB releases:
 #   MariaDB 10.5   EOL 24 JUN 2025 (STABLE)
