@@ -2,7 +2,7 @@
 
 NAMEBASE=		mariadb105
 VERSION=		10.5.28
-REVISION=		1
+REVISION=		2
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Fast SQL database server, derived from MySQL
@@ -36,6 +36,7 @@ BUILDRUN_DEPENDS=	boost-libraries:primary:std
 			judy:primary:std
 			krb5:primary:std
 			openpam:primary:std
+EXRUN[server]=		client
 
 USERS=			mysql
 GROUPS=			mysql
@@ -65,7 +66,7 @@ PLIST_SUB=		AUTHSOCKET={{AUTHSOCKET}}
 			MARIADB_USER="mysql"
 			MARIADB_GROUP="mysql"
 			MARIADB_LOGDIR="/var/log/mysql"
-RC_SUBR=		mysql-server:server
+RC_SUBR=		mysql:server
 SUB_FILES=		my.cnf.sample
 			client.cnf.sample
 			server.cnf.sample
@@ -1293,7 +1294,7 @@ share/doc/mariadb105/
  
 
 
-[FILE:413:patches/patch-scripts_CMakeLists.txt]
+[FILE:757:patches/patch-scripts_CMakeLists.txt]
 --- scripts/CMakeLists.txt.orig	2025-01-28 18:36:05 UTC
 +++ scripts/CMakeLists.txt
 @@ -131,11 +131,7 @@ IF(CMAKE_GENERATOR MATCHES "Makefiles|Ni
@@ -1309,6 +1310,16 @@ share/doc/mariadb105/
  
  IF(UNIX)
    # FIND_PROC and CHECK_PID are used by mysqld_safe
+@@ -150,8 +146,7 @@ ENDIF()
+ 
+ IF(NOT FIND_PROC)
+   # BSD style
+-  EXECUTE_PROCESS(COMMAND ps -uaxww OUTPUT_QUIET ERROR_QUIET RESULT_VARIABLE result)
+-  IF(result MATCHES 0)
++  IF(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|DragonFly")
+      SET( FIND_PROC
+        "ps -uaxww | grep -v mysqld_safe | grep -- $MYSQLD | grep $PID > /dev/null")
+   ENDIF()
 
 
 [FILE:403:patches/patch-scripts_mysql__config.sh]
@@ -1652,14 +1663,14 @@ If timer_t is an integer type, setting it to nullptr fails.
  #endif
 
 
-[FILE:1413:files/client.cnf.sample.in]
+[FILE:1433:files/client.cnf.sample.in]
 # Options specific to client applications, see
 # https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#client-option-groups
 
 # Options specific to all client programs
 [client]
-# port			= 3306 # inherited from %%ETCDIR%%/my.cnf
-# socket		= %%MARIADB_RUNDIR%%/%%MARIADB_SOCK%% # inherited from %%ETCDIR%%/my.cnf
+# port			= 3306 # inherited from %%PREFIX%%/etc/mysql/my.cnf
+# socket		= %%MARIADB_RUNDIR%%/%%MARIADB_SOCK%% # inherited from %%PREFIX%%/etc/mysql/my.cnf
 
 # Options specific to MariaDB client programs
 [client-mariadb]
@@ -1707,7 +1718,7 @@ quick
 
 
 
-[FILE:340:files/my.cnf.sample.in]
+[FILE:350:files/my.cnf.sample.in]
 #
 # This group is read both by the client and the server
 # use it for options that affect everything, see
@@ -1720,10 +1731,10 @@ socket	= %%MARIADB_RUNDIR%%/%%MARIADB_SOCK%%
 #
 # include *.cnf from the config directory
 #
-!includedir %%ETCDIR%%/conf.d/
+!includedir %%PREFIX%%/etc/mysql/conf.d/
 
 
-[FILE:4910:files/mysql-server.in]
+[FILE:4940:files/mysql.in]
 #!/bin/sh
 
 # PROVIDE: mysql
@@ -1762,7 +1773,7 @@ load_rc_config $name
 : ${mysql_enable="NO"}
 : ${mysql_user="%%MARIADB_USER%%"}
 : ${mysql_dbdir="%%MARIADB_DBDIR%%"}
-: ${mysql_optfile="%%ETCDIR%%/my.cnf"}
+: ${mysql_optfile="%%PREFIX%%/etc/mysql/my.cnf"}
 : ${mysql_rundir="%%MARIADB_RUNDIR%%"}
 : ${mysql_limits="NO"}
 mysql_limits_args="-e -U ${mysql_user}"
@@ -1781,7 +1792,7 @@ if [ -n "$2" ]; then
 		eval mysql_dbdir="\${mysql_${instance}_dbdir:-\"%%MARIADB_DBDIR%%_${instance}\"}"
 		eval mysql_user="\${mysql_${instance}_user:-\"${mysql_user}\"}"
 		eval mysql_socket="\${mysql_${instance}_socket:-\"%%MARIADB_RUNDIR%%_${instance}/%%MARIADB_SOCK%%\"}"
-		eval mysql_optfile="\${mysql_${instance}_optfile:-\"%%ETCDIR%%_${instance}/my.cnf\"}"
+		eval mysql_optfile="\${mysql_${instance}_optfile:-\"%%PREFIX%%/etc/mysql_${instance}/my.cnf\"}"
 		eval mysql_pidfile="\${mysql_${instance}_pidfile:-\"%%MARIADB_RUNDIR%%_${instance}/mysqld.pid\"}"
 		eval mysql_limits="\${mysql_${instance}_limits:-\"${mysql_limits}\"}"
 		eval mysql_limits_args="\${mysql_${instance}_limits_args:-\"-e -U $mysql_user\"}"
@@ -1841,7 +1852,7 @@ mysql_prestart()
 	local dir
 	for dir in /etc /usr/local/etc /etc/mysql /var/db/mysql; do
 		if [ -f "${dir}/my.cnf" ]; then
-			echo "Please merge existing ${dir}/my.cnf file with %%ETCDIR%%/conf.d/server.cnf"
+			echo "Please merge existing ${dir}/my.cnf file with %%PREFIX%%/etc/mysql/conf.d/server.cnf"
 			return 1
 		fi
 	done
@@ -1880,7 +1891,7 @@ mysql_poststart()
 run_rc_command "$1"
 
 
-[FILE:1602:files/server.cnf.sample.in]
+[FILE:1622:files/server.cnf.sample.in]
 # Options specific to server applications, see
 # https://mariadb.com/kb/en/configuring-mariadb-with-option-files/#server-option-groups
 
@@ -1896,8 +1907,8 @@ run_rc_command "$1"
 
 [mysqld]
 user				= %%MARIADB_USER%%
-# port				= 3306 # inherited from %%ETCDIR%%/my.cnf
-# socket			= %%MARIADB_RUNDIR%%/mysql.sock # inherited from %%ETCDIR%%/my.cnf
+# port				= 3306 # inherited from %%PREFIX%%/etc/mysql/my.cnf
+# socket			= %%MARIADB_RUNDIR%%/mysql.sock # inherited from %%PREFIX%%/etc/mysql/my.cnf
 bind-address			= 127.0.0.1
 basedir				= %%PREFIX%%
 # datadir			= %%MARIADB_DBDIR%% # set with --db_dir from rc-script
