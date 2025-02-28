@@ -2,7 +2,7 @@
 
 NAMEBASE=		shadowsocks-libev
 VERSION=		3.3.5
-REVISION=		3
+REVISION=		4
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		Secure socks5 proxy
@@ -10,7 +10,7 @@ HOMEPAGE=		https://github.com/shadowsocks/shadowsocks-libev/blob/master/README.m
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main bloom cork ipset
-SITES[main]=		GITHUB/shadowsocks:shadowsocks-libev:v3.3.5
+SITES[main]=		GITHUB/shadowsocks:shadowsocks-libev:9afa3ca
 SITES[bloom]=		GITHUB/shadowsocks:libbloom:437e1ad:libbloom
 SITES[cork]=		GITHUB/shadowsocks:libcork:074e074:libcork
 SITES[ipset]=		GITHUB/shadowsocks:ipset:3ea7fe3:libipset
@@ -21,6 +21,7 @@ DISTFILE[4]=		generated:ipset
 DF_INDEX=		1 2 3 4
 SPKGS[std]=		set
 			primary
+			dev
 			man
 			docs
 
@@ -32,13 +33,13 @@ BUILD_DEPENDS=		asciidoc:single:std
 			libsodium:dev:std
 			xmlto:primary:std
 			c-ares:dev:std
-			mbedtls13:dev:std
+			mbedtls:dev:std
 BUILDRUN_DEPENDS=	libev:primary:std
-			mbedtls13:primary:std
+			mbedtls:primary:std
 			libsodium:primary:std
 			c-ares:primary:std
 
-USES=			autoreconf cpe gmake libtool pcre
+USES=			cpe cmake pcre
 
 LICENSE=		GPLv3+:primary
 LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
@@ -48,14 +49,13 @@ LICENSE_SCHEME=		solo
 CPE_VENDOR=		shadowsocks
 FPC_EQUIVALENT=		net/shadowsocks-libev
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--enable-shared
-
-INSTALL_TARGET=		install-strip
-SOVERSION=		2.0.0
 RC_SUBR=		shadowsocks_libev:primary
 
+LDFLAGS=		-lpthread
+
 post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/ss-*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libshadowsocks-libev.so
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/shadowsocks-libev
 	${INSTALL_DATA} ${WRKSRC}/debian/config.json \
 		${STAGEDIR}${PREFIX}/etc/shadowsocks-libev/config.json.sample
@@ -94,29 +94,23 @@ to be a very simple implementation of shadowsocks protocol, in order to
 keep the resource usage as low as possible.
 
 
-[FILE:459:distinfo]
-cca6f46d9ac51c290cd50b8c26286a347bfd189d686340f32e8b264b630a166a       303368 shadowsocks-shadowsocks-libev-3.3.5.tar.gz
+[FILE:461:distinfo]
+88c9bd32b4dfec9096ceea5ee0c22b58157c75b68a32bbec754ac49f0cced97c       313996 shadowsocks-shadowsocks-libev-9afa3ca.tar.gz
 bc10f87b9f06711e2d2783dc53b04dceca7eed952fe0a89a35794952afa495d5      1208176 shadowsocks-libbloom-437e1ad.tar.gz
 6bb33c93dcbb7fbbeb7d82994e769bb05cdd168d8ebf5c0e1921bd22327fe54e       186531 shadowsocks-libcork-074e074.tar.gz
 e7b487c21a5352a3c9faef3256ed1a539f7ee46f38bf57922340c125c720da61        64895 shadowsocks-ipset-3ea7fe3.tar.gz
 
 
-[FILE:472:manifests/plist.primary]
+[FILE:335:manifests/plist.primary]
 @sample etc/shadowsocks-libev/config.json.sample
-%%ONLY-LINUX%%bin/
- ss-nat
- ss-redir
+%%ONLY-LINUX%%bin/ss-nat
 bin/
  ss-local
  ss-manager
+ ss-redir
  ss-server
  ss-tunnel
-include/shadowsocks.h
-lib/
- libshadowsocks-libev.so
- libshadowsocks-libev.so.%%SOMAJOR%%
- libshadowsocks-libev.so.%%SOVERSION%%
-lib/pkgconfig/shadowsocks-libev.pc
+lib/libshadowsocks-libev.so
 share/bash-completion/completions/
  ss-local
  ss-manager
@@ -129,6 +123,12 @@ share/zsh/site-functions/
  _ss-redir
  _ss-server
  _ss-tunnel
+
+
+[FILE:84:manifests/plist.dev]
+include/shadowsocks.h
+lib/libshadowsocks-libev.a
+lib/pkgconfig/shadowsocks-libev.pc
 
 
 [FILE:125:manifests/plist.man]
@@ -191,6 +191,44 @@ share/doc/shadowsocks-libev/
  #else
  /* Otherwise assume that we have clearenv available. */
  #endif
+
+
+[FILE:418:patches/patch-src_redir.c]
+--- src/redir.c.orig	2025-01-20 03:11:47 UTC
++++ src/redir.c
+@@ -37,9 +37,15 @@
+ #include <unistd.h>
+ #include <getopt.h>
+ #include <limits.h>
++#if defined(__linux__)
+ #include <linux/if.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
++#else
++#define SOL_IP          IPPROTO_IP
++#define SOL_IPV6        IPPROTO_IPV6
++#define SO_ORIGINAL_DST 0
++#endif
+ 
+ #include <libcork/core.h>
+ 
+
+
+[FILE:405:patches/patch-src_udprelay.c]
+--- src/udprelay.c.orig	2025-01-20 03:11:47 UTC
++++ src/udprelay.c
+@@ -74,6 +74,11 @@
+ #define EWOULDBLOCK EAGAIN
+ #endif
+ 
++#if !defined(__linux__)
++#define SOL_IP   IPPROTO_IP
++#define SOL_IPV6 IPPROTO_IPV6
++#endif
++
+ static void server_recv_cb(EV_P_ ev_io *w, int revents);
+ static void remote_recv_cb(EV_P_ ev_io *w, int revents);
+ static void remote_timeout_cb(EV_P_ ev_timer *watcher, int revents);
 
 
 [FILE:807:files/shadowsocks_libev.in]
