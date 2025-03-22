@@ -151,6 +151,7 @@ BUILD_DEPENDS=		a52dec:set:std
 			x265:set:std
 			abseil-cpp:set:std
 			aalib:set:std
+			libnotify:dev:std
 BUILDRUN_DEPENDS=	fribidi:primary:std
 			harfbuzz:primary:std
 			libarchive:primary:std
@@ -166,6 +167,7 @@ BUILDRUN_DEPENDS=	fribidi:primary:std
 			qt5-qtx11extras:primary:std
 			qt5-qtxmlpatterns:primary:std
 			readline:primary:std
+			libnotify:primary:std
 B_DEPS[linux]=		libusb:dev:std
 EXRUN[vpx]=		primary
 			libvpx:primary:std
@@ -274,7 +276,7 @@ EXRUN[caca]=		primary
 USES=			bison desktop-utils:primary expat freetype
 			fontconfig gettext gmake iconv jpeg libtool
 			lua:tools png pkgconfig zlib cpe ncurses
-			execinfo:build
+			execinfo:build bsd:epoll,gudev
 GNOME_COMPONENTS=	cairo gtk3 librsvg libxml2 glib
 SDL_COMPONENTS=		sdl1 image1
 XORG_COMPONENTS=	ice sm x11 xcb xcb-render-util xcb-util
@@ -426,6 +428,7 @@ CONFIGURE_ARGS=		--enable-a52
 			--enable-x265
 			--enable-xcb
 			--enable-xvideo
+			--enable-notify
 			--disable-zvbi
 			--with-x
 			ac_cv_search_pthread_rwlock_init=-pthread
@@ -448,16 +451,8 @@ PLIST_SUB=		SO_LIBVLC=5.6.1
 CFLAGS=			-Wno-deprecated-declarations
 
 [BSD].DESCRIPTION=			Support BSD platform
-[BSD].BUILDRUN_DEPENDS_ON=		libepoll-shim:primary:std
-					libudev-devd:primary:std
-					libnotify:primary:std
-[BSD].BUILD_DEPENDS_OFF=		libgudev:dev:std
-[BSD].BUILD_DEPENDS_ON=			libepoll-shim:dev:std
-					libgudev-devd:dev:std
-					libudev-devd:dev:std
-					libnotify:dev:std
-[BSD].CONFIGURE_ARGS_ON=		--enable-notify
-					--enable-oss
+[BSD].BUILD_DEPENDS_ON=			libudev-devd:dev:std
+[BSD].CONFIGURE_ARGS_ON=		--enable-oss
 
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/kde4

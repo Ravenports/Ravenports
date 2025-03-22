@@ -2,7 +2,7 @@
 
 NAMEBASE=		colord
 VERSION=		1.4.7
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Manage profiles to accurately color I/O devices
@@ -20,12 +20,8 @@ SPKGS[std]=		set
 			man
 			docs
 
-OPTIONS_AVAILABLE=	BSD
-OPTIONS_STANDARD=	BSD
-OPT_ON[freebsd]=	BSD
-OPT_ON[netbsd]=		BSD
-OPT_ON[dragonfly]=	BSD
-OPT_ON[midnightbsd]=	BSD
+OPTIONS_AVAILABLE=	none
+OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		bash-completion:single:std
 			docbook-xsl:primary:std
@@ -43,7 +39,7 @@ USERS=			colord
 GROUPS=			colord
 USERGROUP_SPKG=		primary
 
-USES=			cpe gtk-doc meson pkgconfig sqlite
+USES=			cpe gtk-doc meson pkgconfig sqlite bsd:epoll,gudev
 GNOME_COMPONENTS=	glib introspection
 
 LICENSE=		GPLv2+:primary
@@ -64,16 +60,6 @@ CONFIGURE_ARGS=		-Dsystemd=false
 			--localstatedir={{PREFIX}}/var
 
 SOVERSION=		2.0.5
-
-[BSD].DESCRIPTION=			Support BSD platform
-[BSD].BUILDRUN_DEPENDS_OFF=		libgudev:primary:std
-[BSD].BUILDRUN_DEPENDS_ON=		libepoll-shim:primary:std
-					libgudev-devd:primary:std
-					libudev-devd:primary:std
-[BSD].BUILD_DEPENDS_OFF=		libgudev:dev:std
-[BSD].BUILD_DEPENDS_ON=			libepoll-shim:dev:std
-					libgudev-devd:dev:std
-					libudev-devd:dev:std
 
 post-patch:
 	${REINPLACE_CMD} \

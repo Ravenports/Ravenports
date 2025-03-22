@@ -19,8 +19,12 @@ SPKGS[std]=		set
 			docs
 			nls
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	GTOP
+OPTIONS_STANDARD=	GTOP
+OPT_ON[freebsd]=	GTOP
+OPT_ON[linux]=		GTOP
+OPT_ON[dragonfly]=	GTOP
+OPT_ON[midnightbsd]=	GTOP
 
 BUILD_DEPENDS=		harfbuzz:dev:std
 			libxfce4util:dev:std
@@ -33,20 +37,10 @@ BUILDRUN_DEPENDS=	glade:primary:std
 			startup-notification:primary:std
 			xfconf:primary:std
 			libxfce4util:primary:std
-B_DEPS[freebsd]=	libgtop:dev:std libgudev-devd:dev:std
-B_DEPS[linux]=		libgtop:dev:std libgudev:dev:std
-B_DEPS[netbsd]=		libgudev-devd:dev:std
-B_DEPS[dragonfly]=	libgtop:dev:std libgudev-devd:dev:std
-B_DEPS[midnightbsd]=	libgtop:dev:std libgudev-devd:dev:std
-BR_DEPS[freebsd]=	libgtop:primary:std libgudev-devd:primary:std
-BR_DEPS[linux]=		libgtop:primary:std libgudev:primary:std
-BR_DEPS[netbsd]=	libgudev-devd:primary:std
-BR_DEPS[dragonfly]=	libgtop:primary:std libgudev-devd:primary:std
-BR_DEPS[midnightbsd]=	libgtop:primary:std libgudev-devd:primary:std
 EXRUN[dev]=		libxfce4util:dev:std
 			xfconf:dev:std
 
-USES=			iconv gmake gtk-doc libtool pkgconfig
+USES=			iconv gmake gtk-doc libtool pkgconfig bsd:gudev
 GNOME_COMPONENTS=	glib gtk3 intltool introspection
 XORG_COMPONENTS=	sm
 
@@ -66,6 +60,10 @@ CONFIGURE_ARGS=		--enable-nls
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.0.0
+
+[GTOP].DESCRIPTION=			Build libxfce4cui with GNU Top
+[GTOP].BUILDRUN_DEPENDS_ON=		libgtop:primary:std
+[GTOP].BUILD_DEPENDS_ON=		libgtop:dev:std
 
 [FILE:136:descriptions/desc.primary]
 Libxfce4ui is used to share commonly used Xfce widgets among the Xfce 

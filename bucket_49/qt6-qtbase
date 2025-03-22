@@ -18,14 +18,14 @@ SPKGS[std]=		set
 			dev
 			docs
 
-OPTIONS_AVAILABLE=	X11 WAYLAND EPOLLSHIM
-OPTIONS_STANDARD=	X11 WAYLAND EPOLLSHIM
-OPT_ON[freebsd]=	WAYLAND EPOLLSHIM
+OPTIONS_AVAILABLE=	X11 WAYLAND
+OPTIONS_STANDARD=	X11 WAYLAND
+OPT_ON[freebsd]=	WAYLAND
 OPT_ON[linux]=		WAYLAND
 OPT_ON[all]=		X11
-OPT_ON[netbsd]=		WAYLAND EPOLLSHIM
-OPT_ON[dragonfly]=	WAYLAND EPOLLSHIM
-OPT_ON[midnightbsd]=	WAYLAND EPOLLSHIM
+OPT_ON[netbsd]=		WAYLAND
+OPT_ON[dragonfly]=	WAYLAND
+OPT_ON[midnightbsd]=	WAYLAND
 
 BUILD_DEPENDS=		evdev-proto:single:std
 			elftoolchain:dev:std
@@ -107,14 +107,12 @@ VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
 			CMAKE_ARGS=-DBUILD_WITH_PCH=OFF
 
-[EPOLLSHIM].DESCRIPTION=		Platform depends on libepoll-shim
-[EPOLLSHIM].BUILD_DEPENDS_ON=		libepoll-shim:dev:std
-[EPOLLSHIM].EXTRA_PATCHES_ON=		extra-patch-src_corelib_configure.cmake
-
 [WAYLAND].DESCRIPTION=			Build with wayland support
 [WAYLAND].BUILDRUN_DEPENDS_ON=		wayland:primary:std
 [WAYLAND].BUILD_DEPENDS_ON=		wayland:dev:std
 [WAYLAND].CMAKE_ARGS_ON=		-DFEATURE_wayland=ON
+[WAYLAND].EXTRA_PATCHES_ON=		extra-patch-src_corelib_configure.cmake
+[WAYLAND].USES_ON=			bsd:epoll
 
 [X11].DESCRIPTION=			Build with X11 support
 [X11].CMAKE_ARGS_OFF=			-DFEATURE_xcb=OFF

@@ -18,17 +18,9 @@ SPKGS[std]=		set
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	GUDEV GUDEV-DEVD NO-GUDEV
-OPTIONS_STANDARD=	GUDEV GUDEV-DEVD NO-GUDEV
-OPTGROUP_RADIO=		GUDEVS
-OPTDESCR[GUDEVS]=	Flavors of libudev gobject bindings
-OPTGROUP[GUDEVS]=	NO-GUDEV GUDEV GUDEV-DEVD
-OPT_ON[freebsd]=	GUDEV-DEVD
+OPTIONS_AVAILABLE=	NO-GUDEV
+OPTIONS_STANDARD=	NO-GUDEV
 OPT_ON[sunos]=		NO-GUDEV
-OPT_ON[linux]=		GUDEV
-OPT_ON[netbsd]=		GUDEV-DEVD
-OPT_ON[dragonfly]=	GUDEV-DEVD
-OPT_ON[midnightbsd]=	GUDEV-DEVD
 
 BUILD_DEPENDS=		libgpg-error:dev:std
 			dbus:dev:std
@@ -82,27 +74,15 @@ MESON_ARGS=		-Dsystemduserunitdir="no"
 LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/gvfs
 VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 
-[GUDEV-DEVD].DESCRIPTION=		Build with gudev-devd library (BSD)
-[GUDEV-DEVD].BUILDRUN_DEPENDS_ON=	libcdio-paranoia:primary:std
-					libgudev-devd:primary:std
-[GUDEV-DEVD].BUILD_DEPENDS_ON=		libgudev-devd:dev:std
-					libcdio-paranoia:dev:std
-[GUDEV-DEVD].CONFIGURE_ARGS_ON=		-Dgudev=true
-					-Dcdda=true
-[GUDEV-DEVD].USES_ON=			iconv
-
 [NO-GUDEV].DESCRIPTION=			Build without gudev support
+[NO-GUDEV].BUILDRUN_DEPENDS_OFF=	libcdio-paranoia:primary:std
+[NO-GUDEV].BUILD_DEPENDS_OFF=		libcdio-paranoia:dev:std
+[NO-GUDEV].CONFIGURE_ARGS_OFF=		-Dgudev=true
+					-Dcdda=true
 [NO-GUDEV].CONFIGURE_ARGS_ON=		-Dgudev=false
 					-Dcdda=false
-
-[GUDEV].DESCRIPTION=			Build with gudev library
-[GUDEV].BUILDRUN_DEPENDS_ON=		libcdio-paranoia:primary:std
-					libgudev:primary:std
-[GUDEV].BUILD_DEPENDS_ON=		libcdio-paranoia:dev:std
-					libgudev:dev:std
-[GUDEV].CONFIGURE_ARGS_ON=		-Dgudev=true
-					-Dcdda=true
-[GUDEV].USES_ON=			iconv
+[NO-GUDEV].USES_OFF=			iconv
+					bsd:gudev
 
 [FILE:595:descriptions/desc.primary]
 GVfs is a userspace virtual filesystem implementation for GIO (a library 
@@ -121,11 +101,9 @@ required libraries are getting ported.
 86731ccec679648f8734e237b1de190ebdee6e4c8c0f56f454c31588e509aa10      1266412 gnome4/gvfs-1.56.1.tar.xz
 
 
-[FILE:776:manifests/plist.primary]
-%%GUDEV-DEVD-ON%%libexec/gvfsd-cdda
-%%GUDEV-DEVD-ON%%share/gvfs/mounts/cdda.mount
-%%GUDEV-ON%%libexec/gvfsd-cdda
-%%GUDEV-ON%%share/gvfs/mounts/cdda.mount
+[FILE:702:manifests/plist.primary]
+%%NO-GUDEV-OFF%%libexec/gvfsd-cdda
+%%NO-GUDEV-OFF%%share/gvfs/mounts/cdda.mount
 lib/gio/modules/
  libgioremote-volume-monitor.so
  libgvfsdbus.so

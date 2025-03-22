@@ -2,6 +2,7 @@
 
 NAMEBASE=		glib
 VERSION=		2.82.5
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Some useful routines of C programming
@@ -58,7 +59,6 @@ SHEBANG_FILES=		*/*.pl
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		LIBVERSION=0.8200.5
-			RESETPREFIX={{PREFIX}}
 SUB_FILES=		triggers-primary.ucl
 
 SET_DEBUGGING_ON=	yes
@@ -80,8 +80,8 @@ post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/lib/gio/modules
 	${RM} -r ${STAGEDIR}${PREFIX}/libexec
 	# set python cache files
-	(cd ${STAGEDIR}${PREFIX}/share/glib-2.0/codegen && ${PYTHON_CMD} -m compileall -d / . ||:)
-	(cd ${STAGEDIR}${PREFIX}/share/glib-2.0/gdb && ${PYTHON_CMD} -m compileall -d / . ||:)
+	${FIND} ${STAGEDIR}${PREFIX}/share/glib-2.0 -type f -name "*.pyc" -delete
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g ; \
@@ -105,8 +105,10 @@ more.  It is a foundation for writing portable applications.
 05c2031f9bdf6b5aba7a06ca84f0b4aced28b19bf1b50c6ab25cc675277cbc3f      5554704 gnome2/glib-2.82.5.tar.xz
 
 
-[FILE:1740:manifests/plist.primary]
+[FILE:1089:manifests/plist.primary]
 @comment share/glib-2.0/codegen auto-generated
+@comment share/glib-2.0/gdb auto-generated
+@comment share/gdb/auto-load
 bin/
  gapplication
  gdbus
@@ -146,41 +148,10 @@ share/bash-completion/completions/
  gio
  gresource
  gsettings
-share/gdb/auto-load%%RESETPREFIX%%/lib/
- libglib-2.0.so.%%LIBVERSION%%-gdb.py
- libgobject-2.0.so.%%LIBVERSION%%-gdb.py
 share/gettext/its/
  gschema.its
  gschema.loc
-share/glib-2.0/codegen/
- __init__.py
- codegen.py
- codegen_docbook.py
- codegen_main.py
- codegen_md.py
- codegen_rst.py
- config.py
- dbustypes.py
- parser.py
- utils.py
-share/glib-2.0/codegen/__pycache__/
- __init__.cpython-312.pyc
- codegen.cpython-312.pyc
- codegen_docbook.cpython-312.pyc
- codegen_main.cpython-312.pyc
- codegen_md.cpython-312.pyc
- codegen_rst.cpython-312.pyc
- config.cpython-312.pyc
- dbustypes.cpython-312.pyc
- parser.cpython-312.pyc
- utils.cpython-312.pyc
 share/glib-2.0/dtds/gresource.dtd
-share/glib-2.0/gdb/
- glib_gdb.py
- gobject_gdb.py
-share/glib-2.0/gdb/__pycache__/
- glib_gdb.cpython-312.pyc
- gobject_gdb.cpython-312.pyc
 share/glib-2.0/gettext/po/Makefile.in.in
 share/glib-2.0/schemas/gschema.dtd
 share/glib-2.0/valgrind/glib.supp
@@ -1054,7 +1025,7 @@ Fix build on NetBSD.
  
 
 
-[FILE:532:files/special.mk]
+[FILE:575:files/special.mk]
 glib_MAN=	gtester.1 gtester-report.1 glib-gettextize.1
 gio_MAN=	gdbus.1 gsettings.1 gio-querymodules.1 \
 		glib-compile-schemas.1 gapplication.1 \
@@ -1067,9 +1038,10 @@ pyscripts=	gio/tests/gengiotypefuncs.py \
 POST_PLIST_TARGET=	my-autolist
 
 my-autolist:
-	(cd ${STAGEDIR}${PREFIX} && ${FIND} share/glib-2.0/codegen \
+	(cd ${STAGEDIR}${PREFIX} && \
+	${FIND} share/glib-2.0/codegen share/glib-2.0/gdb share/gdb/auto-load \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
-	>> ${WRKDIR}/.manifest.single.mktmp
+	>> ${WRKDIR}/.manifest.primary.mktmp
 
 
 [FILE:598:files/triggers-primary.ucl.in]

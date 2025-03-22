@@ -20,17 +20,9 @@ SPKGS[std]=		set
 			docs
 			nls
 
-OPTIONS_AVAILABLE=	GUDEV GUDEV-DEVD NO-GUDEV
-OPTIONS_STANDARD=	GUDEV GUDEV-DEVD NO-GUDEV
-OPTGROUP_RADIO=		GUDEVS
-OPTDESCR[GUDEVS]=	Flavors of libudev gobject bindings
-OPTGROUP[GUDEVS]=	NO-GUDEV GUDEV GUDEV-DEVD
-OPT_ON[freebsd]=	GUDEV-DEVD
+OPTIONS_AVAILABLE=	NO-GUDEV
+OPTIONS_STANDARD=	NO-GUDEV
 OPT_ON[sunos]=		NO-GUDEV
-OPT_ON[linux]=		GUDEV
-OPT_ON[netbsd]=		GUDEV-DEVD
-OPT_ON[dragonfly]=	GUDEV-DEVD
-OPT_ON[midnightbsd]=	GUDEV-DEVD
 
 BUILD_DEPENDS=		appstream:dev:std
 			harfbuzz:dev:std
@@ -86,15 +78,8 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.0.0
 PLIST_SUB=		INTRO="@comment "
 
-[GUDEV-DEVD].DESCRIPTION=		Build with gudev-devd library (BSD)
-[GUDEV-DEVD].BUILDRUN_DEPENDS_ON=	libgudev-devd:primary:std
-[GUDEV-DEVD].BUILD_DEPENDS_ON=		libgudev-devd:dev:std
-
 [NO-GUDEV].DESCRIPTION=			Build without gudev support
-
-[GUDEV].DESCRIPTION=			Build with gudev library
-[GUDEV].BUILDRUN_DEPENDS_ON=		libgudev:primary:std
-[GUDEV].BUILD_DEPENDS_ON=		libgudev:dev:std
+[NO-GUDEV].USES_OFF=			bsd:gudev
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/gtk-doc/html/thunarx \

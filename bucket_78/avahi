@@ -2,6 +2,7 @@
 
 NAMEBASE=		avahi
 VERSION=		0.8
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		Service Discovery using mDNS/DNS-SD
@@ -18,6 +19,8 @@ SPKGS[std]=		set
 			dev
 			nls
 			man
+			libdns
+			libdnsdev
 
 OPTIONS_AVAILABLE=	BSD LINUX SOLARIS
 OPTIONS_STANDARD=	BSD LINUX SOLARIS
@@ -69,7 +72,7 @@ CONFIGURE_ARGS=		--disable-mono
 			--disable-autoipd
 			--disable-gtk
 			--disable-gtk3
-			--disable-compat-libdns_sd
+			--enable-compat-libdns_sd
 			--disable-stack-protector
 			--disable-monodoc
 			--disable-doxygen-doc
@@ -81,6 +84,22 @@ CONFIGURE_ARGS=		--disable-mono
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
+PLIST_SUB=		SO_CLIENT=3.2.9
+			SO_CLIENT_MAJ=3
+			SO_COMMON=3.5.4
+			SO_COMMON_MAJ=3
+			SO_CORE=7.1.0
+			SO_CORE_MAJ=7
+			SO_GLIB=1.0.2
+			SO_GLIB_MAJ=1
+			SO_GOBJ=0.0.5
+			SO_GOBJ_MAJ=0
+			SO_LEVENT=1.0.0
+			SO_LEVENT_MAJ=1
+			SO_LIBHOWL=0.0.0
+			SO_LIBHOWL_MAJ=0
+			SO_LIBDNS=1.0.0
+			SO_LIBDNS_MAJ=1
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-distro=freebsd
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-distro=debian
@@ -134,26 +153,36 @@ shared. This kind of technology is already found in MacOS X (branded
 This package contains avahi programs.
 
 
+[FILE:79:descriptions/desc.libdns]
+This subpackage contains the mDNSResponder compatibility library from 
+avavhi.
+
+
+[FILE:88:descriptions/desc.libdnsdev]
+This subpackage contains the mDNSResponder compatibility development files 
+from avahi.
+
+
 [FILE:95:distinfo]
 060309d7a333d38d951bc27598c677af1796934dbd98e1024e7ad8de798fedda      1591458 avahi-0.8.tar.gz
 
 
-[FILE:922:manifests/plist.primary]
+[FILE:1080:manifests/plist.primary]
 lib/
- libavahi-client.so.3
- libavahi-client.so.3.2.9
- libavahi-common.so.3
- libavahi-common.so.3.5.4
- libavahi-core.so.7
- libavahi-core.so.7.1.0
- libavahi-glib.so.1
- libavahi-glib.so.1.0.2
- libavahi-gobject.so.0
- libavahi-gobject.so.0.0.5
- libavahi-libevent.so.1
- libavahi-libevent.so.1.0.0
- libhowl.so.0
- libhowl.so.0.0.0
+ libavahi-client.so.%%SO_CLIENT%%
+ libavahi-client.so.%%SO_CLIENT_MAJ%%
+ libavahi-common.so.%%SO_COMMON%%
+ libavahi-common.so.%%SO_COMMON_MAJ%%
+ libavahi-core.so.%%SO_CORE%%
+ libavahi-core.so.%%SO_CORE_MAJ%%
+ libavahi-glib.so.%%SO_GLIB%%
+ libavahi-glib.so.%%SO_GLIB_MAJ%%
+ libavahi-gobject.so.%%SO_GOBJ%%
+ libavahi-gobject.so.%%SO_GOBJ_MAJ%%
+ libavahi-libevent.so.%%SO_LEVENT%%
+ libavahi-libevent.so.%%SO_LEVENT_MAJ%%
+ libhowl.so.%%SO_LIBHOWL%%
+ libhowl.so.%%SO_LIBHOWL_MAJ%%
 lib/girepository-1.0/
  Avahi-0.6.typelib
  AvahiCore-0.6.typelib
@@ -354,6 +383,18 @@ share/man/man8/
  avahi-daemon.8
  avahi-dnsconfd.8
  avahi-dnsconfd.action.8
+
+
+[FILE:65:manifests/plist.libdns]
+lib/
+ libdns_sd.so.%%SO_LIBDNS_MAJ%%
+ libdns_sd.so.%%SO_LIBDNS%%
+
+
+[FILE:97:manifests/plist.libdnsdev]
+include/avahi-compat-libdns_sd/dns_sd.h
+lib/libdns_sd.so
+lib/pkgconfig/avahi-compat-libdns_sd.pc
 
 
 [FILE:553:patches/patch-avahi-core_socket.c]

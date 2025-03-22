@@ -20,13 +20,10 @@ SPKGS[std]=		set
 			tools
 			nls
 
-OPTIONS_AVAILABLE=	BSD JACK C11THREADS
-OPTIONS_STANDARD=	BSD JACK C11THREADS
-OPT_ON[freebsd]=	BSD
-OPT_ON[netbsd]=		BSD
-OPT_ON[openbsd]=	BSD
-OPT_ON[dragonfly]=	BSD C11THREADS
-OPT_ON[midnightbsd]=	BSD C11THREADS
+OPTIONS_AVAILABLE=	JACK C11THREADS
+OPTIONS_STANDARD=	JACK C11THREADS
+OPT_ON[dragonfly]=	C11THREADS
+OPT_ON[midnightbsd]=	C11THREADS
 
 BUILD_DEPENDS=		video4linux:dev:std
 			dbus:dev:std
@@ -45,7 +42,7 @@ BUILDRUN_DEPENDS=	dbus:primary:std
 EXRUN[tools]=		primary
 
 USES=			meson ncurses pkgconfig ssl shebangfix python:build
-			gettext:build
+			gettext:build bsd:epoll,gudev,inotify
 GNOME_COMPONENTS=	glib
 
 LICENSE=		MIT:primary
@@ -89,14 +86,6 @@ VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 
 [C11THREADS].DESCRIPTION=		Install <threads.h> on platforms missing it
 [C11THREADS].DF_INDEX_ON=		2
-
-[BSD].DESCRIPTION=			BSD-specific build instructions
-[BSD].BUILDRUN_DEPENDS_ON=		libinotify:primary:std
-					libepoll-shim:primary:std
-					libgudev-devd:primary:std
-[BSD].BUILD_DEPENDS_ON=			libinotify:dev:std
-					libepoll-shim:dev:std
-					libgudev-devd:dev:std
 
 post-install-C11THREADS-ON:
 	${RM} ${LOCALBASE}/include/threads.h

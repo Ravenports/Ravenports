@@ -17,13 +17,12 @@ SPKGS[std]=		set
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	BSDUDEV LIBINPUT
-OPTIONS_STANDARD=	BSDUDEV LIBINPUT
-OPT_ON[freebsd]=	BSDUDEV LIBINPUT
+OPTIONS_AVAILABLE=	LIBINPUT
+OPTIONS_STANDARD=	LIBINPUT
+OPT_ON[freebsd]=	LIBINPUT
 OPT_ON[linux]=		LIBINPUT
-OPT_ON[netbsd]=		BSDUDEV
-OPT_ON[dragonfly]=	BSDUDEV LIBINPUT
-OPT_ON[midnightbsd]=	BSDUDEV LIBINPUT
+OPT_ON[dragonfly]=	LIBINPUT
+OPT_ON[midnightbsd]=	LIBINPUT
 
 BUILD_DEPENDS=		colord:dev:std
 			harfbuzz:dev:std
@@ -43,7 +42,7 @@ BUILDRUN_DEPENDS=	colord:primary:std
 RUN_DEPENDS=		libcanberra:gtk3:std
 
 USES=			cpe desktop-utils:primary fontconfig:build gmake
-			iconv libtool pkgconfig
+			iconv libtool pkgconfig bsd:epoll,gudev
 GNOME_COMPONENTS=	glib gtk3 intltool libxml2
 
 LICENSE=		GPLv2:primary
@@ -60,13 +59,6 @@ FPC_EQUIVALENT=		sysutils/xfce4-settings
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-sound-settings
 			--enable-upower-glib
-
-[BSDUDEV].DESCRIPTION=			Enable UDEV emulation on BSD
-[BSDUDEV].BUILDRUN_DEPENDS_ON=		libepoll-shim:primary:std
-					libudev-devd:primary:std
-[BSDUDEV].BUILD_DEPENDS_ON=		libepoll-shim:dev:std
-					libgudev-devd:dev:std
-					libudev-devd:dev:std
 
 [LIBINPUT].DESCRIPTION=			Enable libinput settings
 [LIBINPUT].BUILDRUN_DEPENDS_ON=		libinput:primary:std

@@ -17,12 +17,8 @@ SPKGS[std]=		set
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	BSD
-OPTIONS_STANDARD=	BSD
-OPT_ON[freebsd]=	BSD
-OPT_ON[netbsd]=		BSD
-OPT_ON[dragonfly]=	BSD
-OPT_ON[midnightbsd]=	BSD
+OPTIONS_AVAILABLE=	none
+OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		kf6-extra-cmake-modules:primary:std
 			qt6-qtbase:dev:std
@@ -36,7 +32,7 @@ BUILDRUN_DEPENDS=	qt6-qtbase:primary:std
 			qt6-qtwayland:primary:std
 			wayland:primary:std
 
-USES=			cmake pkgconfig
+USES=			cmake pkgconfig bsd:epoll,gudev
 
 LICENSE=		LGPL21:primary LGPL3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -51,14 +47,6 @@ FPC_EQUIVALENT=		x11/plasma6-layer-shell-qt
 SOVERSION=		6.3.2
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
-
-[BSD].DESCRIPTION=			Support BSD platform
-[BSD].BUILDRUN_DEPENDS_ON=		libepoll-shim:primary:std
-					libudev-devd:primary:std
-[BSD].BUILD_DEPENDS_OFF=		libgudev:dev:std
-[BSD].BUILD_DEPENDS_ON=			libepoll-shim:dev:std
-					libgudev-devd:dev:std
-					libudev-devd:dev:std
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt6/plugins/wayland-shell-integration/liblayer-shell.so
