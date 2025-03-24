@@ -135,7 +135,7 @@ MYSQL_mariadb-11_VERSION=	11.6.2
 PHP_DEFAULT?=		8.3
 
 PHP_8.2_VERSION=	8.2.28
-PHP_8.3_VERSION=	8.3.18
+PHP_8.3_VERSION=	8.3.19
 PHP_8.4_VERSION=	8.4.5
 
 #-------------------------------------------------------------------------

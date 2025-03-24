@@ -2,6 +2,7 @@
 
 NAMEBASE=		libzen
 VERSION=		0.4.41
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Small C++ derivate classes
@@ -19,32 +20,28 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe autoreconf:build libtool:build c++:primary
-			dos2unix
+USES=			cpe c++:primary dos2unix pkgconfig cmake:insource
 
 LICENSE=		CUSTOM1:primary
 LICENSE_NAME=		CUSTOM1:"zlib License"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/License.txt
 LICENSE_SCHEME=		solo
 
+CMAKE_SOURCE_PATH=	{{CONFIGURE_WRKSRC}}
 CPE_PRODUCT=		zenlib
 CPE_VENDOR=		mediaarea
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_WRKSRC=	{{WRKSRC}}/Project/GNU/Library
-CONFIGURE_ARGS=		--enable-shared
-			--enable-static
+CONFIGURE_WRKSRC=	{{WRKSRC}}/Project/CMake
 
-BUILD_WRKSRC=		{{WRKSRC}}/Project/GNU/Library
+BUILD_WRKSRC=		{{WRKSRC}}/Project/CMake
 
-INSTALL_WRKSRC=		{{WRKSRC}}/Project/GNU/Library
-INSTALL_TARGET=		install-strip
-SOVERSION=		0.0.0
+INSTALL_WRKSRC=		{{WRKSRC}}/Project/CMake
+SOVERSION=		0.4.41
 
-VAR_OPSYS[sunos]=	CXXFLAGS=-fpermissive
+CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
 
-pre-configure:
-	cd ${CONFIGURE_WRKSRC} && ${SH} ./autogen.sh
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libzen.so
 
 [FILE:59:descriptions/desc.primary]
 Zenlib: Small C++ derivate classes to have an easier life.
@@ -60,7 +57,7 @@ lib/
  libzen.so.%%SOVERSION%%
 
 
-[FILE:645:manifests/plist.dev]
+[FILE:612:manifests/plist.dev]
 include/ZenLib/
  BitStream.h
  BitStream_Fast.h
@@ -71,7 +68,6 @@ include/ZenLib/
  Dir.h
  File.h
  FileName.h
- HTTP_Client.h
  InfoMap.h
  MemoryDebug.h
  OS_Utils.h
@@ -94,14 +90,11 @@ include/ZenLib/Format/Http/
  Http_Handler.h
  Http_Request.h
  Http_Utils.h
-include/ZenLib/HTTP_Client/
- HTTPClient.h
- HTTPClientAuth.h
- HTTPClientCommon.h
- HTTPClientString.h
- HTTPClientWrapper.h
-lib/
- libzen.a
- libzen.so
+lib/libzen.so
+lib/cmake/zenlib/
+ ZenLibConfig.cmake
+ ZenLibConfigVersion.cmake
+ ZenLibTargets-release.cmake
+ ZenLibTargets.cmake
 lib/pkgconfig/libzen.pc
 
