@@ -74,6 +74,10 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${u}
 .endfor
 
+pre-configure:
+	# remove patch remnants that could get installed
+	${FIND} ${WRKSRC} -type f -name "*.orig" -delete
+
 [FILE:197:descriptions/desc.primary]
 The POCO C++ Libraries are powerful cross-platform open-source C++ 
 libraries for building network- and internet-based applications that run 
@@ -1181,4 +1185,114 @@ lib/cmake/Poco/
  PocoPrometheusConfigVersion.cmake
  PocoPrometheusTargets-release.cmake
  PocoPrometheusTargets.cmake
+
+
+[FILE:652:patches/patch-Foundation_CMakeLists.txt]
+--- Foundation/CMakeLists.txt.orig	2025-02-12 17:01:49 UTC
++++ Foundation/CMakeLists.txt
+@@ -157,7 +157,7 @@ else()
+ 			if("${CMAKE_SYSTEM_NAME}" STREQUAL "QNX")
+ 				target_compile_definitions(Foundation PUBLIC _QNX_SOURCE=1 POCO_HAVE_FD_POLL)
+ 				target_link_libraries(Foundation PUBLIC m socket)
+-			elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
++			elseif("${CMAKE_SYSTEM_NAME}" MATCHES "FreeBSD|DragonFly")
+ 				target_compile_definitions(Foundation PUBLIC POCO_HAVE_FD_POLL)
+ 				target_link_libraries(Foundation PUBLIC pthread ${CMAKE_DL_LIBS} rt)
+ 			elseif("${CMAKE_SYSTEM_NAME}" STREQUAL "AIX"  OR "${CMAKE_SYSTEM_NAME}" STREQUAL "GNU")
+
+
+[FILE:405:patches/patch-Foundation_include_Poco_Platform.h]
+--- Foundation/include/Poco/Platform.h.orig	2025-02-12 17:01:49 UTC
++++ Foundation/include/Poco/Platform.h
+@@ -44,7 +44,7 @@
+ #define POCO_OS_VMS           0x2001
+ 
+ 
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+ 	#define POCO_OS_FAMILY_UNIX 1
+ 	#define POCO_OS_FAMILY_BSD 1
+ 	#define POCO_OS POCO_OS_FREE_BSD
+
+
+[FILE:596:patches/patch-Foundation_src_File__UNIX.cpp]
+--- Foundation/src/File_UNIX.cpp.orig	2025-02-12 17:01:49 UTC
++++ Foundation/src/File_UNIX.cpp
+@@ -255,7 +255,7 @@ Timestamp FileImpl::getLastModifiedImpl(
+ 	struct stat st;
+ 	if (::stat(_path.c_str(), &st) == 0)
+ 	{
+-#if defined(__FreeBSD__) || (defined(__APPLE__) && defined(_DARWIN_FEATURE_64_BIT_INODE))
++#if defined(__FreeBSD__) || defined(__DragonFly__) || (defined(__APPLE__) && defined(_DARWIN_FEATURE_64_BIT_INODE))
+ 		const TV tv = static_cast<TV>(st.st_mtimespec.tv_sec) * Timestamp::resolution() + st.st_mtimespec.tv_nsec/nsk;
+ 		return Timestamp(tv);
+ #elif POCO_OS == POCO_OS_LINUX
+
+
+[FILE:691:patches/patch-Foundation_src_Thread__POSIX.cpp]
+--- Foundation/src/Thread_POSIX.cpp.orig	2025-02-12 17:01:49 UTC
++++ Foundation/src/Thread_POSIX.cpp
+@@ -24,7 +24,13 @@
+ 
+ 
+ #if POCO_OS == POCO_OS_FREE_BSD
++# if defined(__DragonFly__)
++#    include <sys/syscall.h>
++#    include <unistd.h>
++# endif
++# if defined(__FreeBSD__)
+ #    include <sys/thr.h>
++# endif
+ #    include <pthread_np.h>
+ #    include <osreldate.h>
+ #endif
+@@ -414,7 +420,11 @@ long ThreadImpl::currentOsTidImpl()
+ #elif POCO_OS == POCO_OS_MAC_OS_X
+ 	id = ::pthread_mach_thread_np(::pthread_self());
+ #elif POCO_OS == POCO_OS_FREE_BSD
++# if defined(__DragonFly__)
++	id = syscall(SYS_lwp_gettid);
++# else
+ 	if (0 != thr_self(&id)) id = 0;
++# endif
+ #endif
+ 	return id;
+ }
+
+
+[FILE:1087:patches/patch-Foundation_src_Timezone__UNIX.cpp]
+--- Foundation/src/Timezone_UNIX.cpp.orig	2025-02-12 17:01:49 UTC
++++ Foundation/src/Timezone_UNIX.cpp
+@@ -33,7 +33,7 @@ public:
+ 	{
+ 		std::lock_guard<std::mutex> lock(_mutex);
+ 
+-	#if defined(__APPLE__)  || defined(__FreeBSD__) || defined (__OpenBSD__) || POCO_OS == POCO_OS_ANDROID // no timezone global var
++	#if defined(__APPLE__)  || defined(__FreeBSD__) || defined (__OpenBSD__) || defined(__DragonFly__) || POCO_OS == POCO_OS_ANDROID // no timezone global var
+ 		std::time_t now = std::time(NULL);
+ 		struct std::tm t;
+ 		gmtime_r(&now, &t);
+@@ -86,7 +86,7 @@ int Timezone::dst(const Poco::Timestamp&
+ 	{
+ #if defined(__CYGWIN__)
+ 		return local.__TM_GMTOFF - utcOffset();
+-#elif defined(_BSD_SOURCE) || defined(__APPLE__)  || defined(__FreeBSD__) || defined (__OpenBSD__) || POCO_OS == POCO_OS_LINUX || POCO_OS == POCO_OS_ANDROID
++#elif defined(_BSD_SOURCE) || defined(__APPLE__)  || defined(__FreeBSD__) || defined (__OpenBSD__) || defined(__DragonFly__) || POCO_OS == POCO_OS_LINUX || POCO_OS == POCO_OS_ANDROID
+ 		return local.tm_gmtoff - utcOffset();
+ #else
+ 		return 3600;
+
+
+[FILE:506:patches/patch-Net_src_SocketImpl.cpp]
+--- Net/src/SocketImpl.cpp.orig	2025-02-12 17:01:50 UTC
++++ Net/src/SocketImpl.cpp
+@@ -1273,7 +1273,7 @@ void SocketImpl::initSocket(int af, int
+ 	if (_sockfd == POCO_INVALID_SOCKET)
+ 		error();
+ 
+-#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__)
++#if defined(__MACH__) && defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
+ 	// SIGPIPE sends a signal that if unhandled (which is the default)
+ 	// will crash the process. This only happens on UNIX, and not Linux.
+ 	//
 

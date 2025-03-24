@@ -17,23 +17,21 @@ SPKGS[std]=		set
 			primary
 			nls
 
-OPTIONS_AVAILABLE=	LIBINPUT
-OPTIONS_STANDARD=	LIBINPUT
+OPTIONS_AVAILABLE=	LIBINPUT COLORD
+OPTIONS_STANDARD=	LIBINPUT COLORD
 OPT_ON[freebsd]=	LIBINPUT
 OPT_ON[linux]=		LIBINPUT
 OPT_ON[dragonfly]=	LIBINPUT
 OPT_ON[midnightbsd]=	LIBINPUT
 
-BUILD_DEPENDS=		colord:dev:std
-			harfbuzz:dev:std
+BUILD_DEPENDS=		harfbuzz:dev:std
 			garcon:dev:std
 			libcanberra:dev:std
 			libnotify:dev:std
 			libxklavier:dev:std
 			libexo:dev:std
 			upower:dev:std
-BUILDRUN_DEPENDS=	colord:primary:std
-			garcon:primary:std
+BUILDRUN_DEPENDS=	garcon:primary:std
 			libcanberra:primary:std
 			libexo:primary:std
 			libnotify:primary:std
@@ -60,6 +58,10 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-sound-settings
 			--enable-upower-glib
 
+[COLORD].DESCRIPTION=			Enable colord
+[COLORD].BUILDRUN_DEPENDS_ON=		colord:primary:std
+[COLORD].BUILD_DEPENDS_ON=		colord:dev:std
+
 [LIBINPUT].DESCRIPTION=			Enable libinput settings
 [LIBINPUT].BUILDRUN_DEPENDS_ON=		libinput:primary:std
 [LIBINPUT].BUILD_DEPENDS_ON=		libinput:dev:std
@@ -83,11 +85,12 @@ to configure the Xfce desktop.
 fd0d602853ea75d94024e5baae2d2bf5ca8f8aa4dad7bfd5d08f9ff8afee77b2      2507814 xfce/xfce4-settings-4.20.1.tar.bz2
 
 
-[FILE:5158:manifests/plist.primary]
+[FILE:5205:manifests/plist.primary]
+%%COLORD-ON%%bin/xfce4-color-settings
+%%COLORD-ON%%share/applications/xfce4-color-settings.desktop
 bin/
  xfce4-accessibility-settings
  xfce4-appearance-settings
- xfce4-color-settings
  xfce4-display-settings
  xfce4-find-cursor
  xfce4-keyboard-settings
@@ -111,7 +114,6 @@ share/applications/
  xfce-settings-manager.desktop
  xfce-ui-settings.desktop
  xfce4-accessibility-settings.desktop
- xfce4-color-settings.desktop
  xfce4-file-manager.desktop
  xfce4-mail-reader.desktop
  xfce4-mime-settings.desktop

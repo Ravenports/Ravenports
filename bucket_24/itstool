@@ -2,6 +2,7 @@
 
 NAMEBASE=		itstool
 VERSION=		2.0.7
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		ITS-based XML translation tool
@@ -25,9 +26,12 @@ FPC_EQUIVALENT=		textproc/itstool
 
 MUST_CONFIGURE=		gnu
 
-post-patch:
+post-install:
+	# don't allow !python shebang
+	${SED} -i'' -e 's|#!python|#!${PYTHON_CMD}|' ${STAGEDIR}${PREFIX}/bin/itstool
+
+pre-configure:
 	${REINPLACE_CMD} \
-		-e 's|@PYTHON@|${PYTHON_CMD}|g' \
 		-e 's|/usr/local|${LOCALBASE}|g' \
 		${WRKSRC}/itstool.in
 	${REINPLACE_CMD} -e 's|python -|${PYTHON_CMD} -|' \

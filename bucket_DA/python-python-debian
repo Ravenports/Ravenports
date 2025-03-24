@@ -32,6 +32,11 @@ GENERATED=		yes
 [PY313].RUN_DEPENDS_ON=			python-charset-normalizer:single:v13
 [PY313].USES_ON=			python:v13,wheel
 
+post-install:
+	# Fix python shebangs
+	${SED} -i'' -e 's|#!/usr/bin/python3|#!${PYTHON_CMD}|' \
+		${STAGEDIR}${PYTHON_SITELIBDIR}/debian/doc-debtags
+
 [FILE:1729:descriptions/desc.single]
 The `debian` Python modules work with Debian-related data formats,
 providing a means to read data from files involved in Debian packaging,

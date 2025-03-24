@@ -42,6 +42,13 @@ shebangonefile() {
 		;;
 	esac
 
+	# March 2025
+	# From now on, consider !python as a valid interpreter.
+	# Some new mechanism is overwriting shebangs during installation.
+	# The autoselect-python will link these, so there's only trouble for
+	# rare users that have multiple python installations, but the ports
+	# that use this probably have install conflicts between variants anyway.
+
 	interp=$(sed -n -e '1s/^#![[:space:]]*\([^[:space:]]*\).*/\1/p;2q' "${f}")
 	badinterp=""
 	case "${interp}" in
@@ -89,7 +96,10 @@ shebangonefile() {
 		;;
 	/usr/bin/sed) ;;
 	*)
-		badinterp="${interp}"
+		if [ "${interp}" != "python" ];
+		then
+			badinterp="${interp}"
+		fi
 		;;
 	esac
 

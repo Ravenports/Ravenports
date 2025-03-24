@@ -2,6 +2,7 @@
 
 NAMEBASE=		libnice
 VERSION=		0.1.22
+REVISION=		1
 KEYWORDS=		net_im devel
 VARIANTS=		std
 SDESC[std]=		Implementation of ICE standard (RFC 5245)
@@ -14,8 +15,10 @@ DISTFILE[1]=		libnice-0.1.22.tar.gz:main
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			dev
 			gstreamer
 			docs
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -27,7 +30,9 @@ BUILD_DEPENDS=		gnutls:dev:std
 			gstreamer1-plugins-base:primary:std
 BUILDRUN_DEPENDS=	gnutls:primary:std
 EXRUN[gstreamer]=	gstreamer1-plugins-base:primary:std
-			libnice:primary:std
+			primary
+EXRUN[tools]=		gnutls:primary:std
+EXRUN[dev]=		gnutls:dev:std
 
 USES=			gmake pkgconfig ssl meson gtk-doc
 GNOME_COMPONENTS=	glib introspection
@@ -57,14 +62,24 @@ protocols.
 This package containers the GStreamer1 ICE plugin.
 
 
+[FILE:55:descriptions/desc.tools]
+This package contains the tools based on nice library.
+
+
 [FILE:100:distinfo]
 a5f724cf09eae50c41a7517141d89da4a61ec9eaca32da4a0073faed5417ad7e       460696 libnice-0.1.22.tar.gz
 
 
-[FILE:415:manifests/plist.primary]
-bin/
- stunbdc
- stund
+[FILE:120:manifests/plist.primary]
+lib/
+ libnice.so.%%SOMAJOR%%
+ libnice.so.%%SOVERSION%%
+lib/girepository-1.0/Nice-0.1.typelib
+share/gir-1.0/Nice-0.1.gir
+
+
+[FILE:277:manifests/plist.dev]
+lib/pkgconfig/nice.pc
 include/nice/
  address.h
  agent.h
@@ -85,13 +100,7 @@ include/stun/usages/
  ice.h
  timer.h
  turn.h
-lib/
- libnice.so
- libnice.so.%%SOMAJOR%%
- libnice.so.%%SOVERSION%%
-lib/girepository-1.0/Nice-0.1.typelib
-lib/pkgconfig/nice.pc
-share/gir-1.0/Nice-0.1.gir
+lib/libnice.so
 
 
 [FILE:32:manifests/plist.gstreamer]
@@ -151,6 +160,12 @@ share/doc/libnice/
  style.css
  up-insensitive.png
  up.png
+
+
+[FILE:21:manifests/plist.tools]
+bin/
+ stunbdc
+ stund
 
 
 [FILE:182:patches/patch-agent_interfaces.h]

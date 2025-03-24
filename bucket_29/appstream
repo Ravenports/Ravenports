@@ -71,6 +71,9 @@ pre-configure:
 	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl/current/|file://${LOCALBASE}/share/xsl/docbook/|" \
 		${WRKSRC}/docs/meson.build
 
+post-extract:
+	${INSTALL_SCRIPT} ${FILESDIR}/hack.sh ${WRKSRC}/data
+
 [FILE:575:descriptions/desc.primary]
 AppStream is a cross-distribution effort for enhancing the way we interact 
 with the software repositories provided by (Linux) distributions by 
@@ -1160,6 +1163,20 @@ share/doc/appstream/html/static/images/
 share/doc/appstream/html/static/js/INFO.md
 
 
+[FILE:512:patches/patch-data_meson.build]
+--- data/meson.build.orig	2024-12-08 22:35:19 UTC
++++ data/meson.build
+@@ -21,7 +21,7 @@ endif
+ metainfo_with_relinfo = custom_target('gen-output',
+     input : ['../NEWS', 'org.freedesktop.appstream.cli.metainfo.xml'],
+     output : ['nol10n_withrelinfo_org.freedesktop.appstream.cli.metainfo.xml'],
+-    command : [ascli_exe, 'news-to-metainfo', '--limit=6', '@INPUT0@', '@INPUT1@', '@OUTPUT@']
++    command : ['hack.sh', '@INPUT1@', ascli_exe, '@INPUT0@', '@OUTPUT@']
+ )
+ 
+ metainfo_i18n = i18n.itstool_join(
+
+
 [FILE:747:patches/patch-src_as-system-info.c]
 --- src/as-system-info.c.orig	2024-04-24 18:03:56 UTC
 +++ src/as-system-info.c
@@ -1181,4 +1198,11 @@ share/doc/appstream/html/static/js/INFO.md
  	unsigned long physmem;
  	size_t len = sizeof (physmem);
  	int mib[2] = { CTL_HW, HW_PHYSMEM };
+
+
+[FILE:164:files/hack.sh]
+#/bin/sh
+# Nasty hack for appstreamcli bug using relative paths
+echo ===  appstreamcli hack here  ===
+/bin/cat "$1" | "$2" news-to-metainfo --limit=6 "$3" - > "$4"
 
