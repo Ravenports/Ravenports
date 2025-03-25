@@ -119,7 +119,7 @@ LIBXML2_PYTHON_REVISION=	0
 # libxslt
 # ------------------------------------------------------------------------
 
-LIBXSLT_VERSION=		1.1.42
+LIBXSLT_VERSION=		1.1.43
 LIBXSLT_REVISION=		0
 LIBXSLT_PYTHON_REVISION=	0
 
@@ -173,7 +173,7 @@ SUBVERSION_VERSION=		1.14.5
 # Miscellaneous master versions
 # ------------------------------------------------------------------------
 
-LIBFM_VERSION=			1.3.2
+LIBFM_VERSION=			1.4.0
 LIBTOOL_VERSION=		2.5.4
 FREI0R_VERSION=			1.8.0
 M17N_VERSION=			1.8.5
