@@ -192,7 +192,7 @@ SPHINX_UNDERSCORE=		1.13.1
 ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0
 PECL_YAML=			2.2.4
-LINUX_UTILS_VERSION=		2.40.4
+LINUX_UTILS_VERSION=		2.41
 
 # ------------------------------------------------------------------------
 # Gnatcross options
