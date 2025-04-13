@@ -33,15 +33,15 @@ SOVERSION=		2.1.0
 
 OPTIMIZER_LEVEL=	0
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/* \
+		${STAGEDIR}${PREFIX}/lib/libyajl.so
+
+pre-configure:
 	${REINPLACE_CMD} -e "s,share/pkgconfig,lib/pkgconfig,g" \
 		${WRKSRC}/src/CMakeLists.txt
 	${REINPLACE_CMD} -e 's|include/yajl|include|' \
 		${WRKSRC}/src/yajl.pc.cmake
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/* \
-		${STAGEDIR}${PREFIX}/lib/libyajl.${LIBEXT}
 
 [FILE:137:descriptions/desc.primary]
 Yet Another JSON Library. YAJL is a small event-driven (SAX-style)
@@ -79,4 +79,50 @@ lib/pkgconfig/yajl.pc
 bin/
  json_reformat
  json_verify
+
+
+[FILE:339:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2014-03-19 04:58:29 UTC
++++ CMakeLists.txt
+@@ -12,7 +12,7 @@
+ # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
++CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+ 
+ PROJECT(YetAnotherJSONParser C)
+ 
+
+
+[FILE:519:patches/patch-reformatter_CMakeLists.txt]
+--- reformatter/CMakeLists.txt.orig	2014-03-19 04:58:29 UTC
++++ reformatter/CMakeLists.txt
+@@ -35,9 +35,7 @@ IF (NOT WIN32)
+ ENDIF (NOT WIN32)
+ 
+ # copy the binary into the output directory
+-GET_TARGET_PROPERTY(binPath json_reformat LOCATION)
+-
+ ADD_CUSTOM_COMMAND(TARGET json_reformat POST_BUILD
+-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${binPath} ${binDir})
++    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:json_reformat> ${binDir})
+ 
+ INSTALL(TARGETS json_reformat RUNTIME DESTINATION bin)
+
+
+[FILE:523:patches/patch-verify_CMakeLists.txt]
+--- verify/CMakeLists.txt.orig	2014-03-19 04:58:29 UTC
++++ verify/CMakeLists.txt
+@@ -29,9 +29,7 @@ ADD_EXECUTABLE(json_verify ${SRCS})
+ TARGET_LINK_LIBRARIES(json_verify yajl_s)
+ 
+ # copy in the binary
+-GET_TARGET_PROPERTY(binPath json_verify LOCATION)
+-
+ ADD_CUSTOM_COMMAND(TARGET json_verify POST_BUILD
+-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${binPath} ${binDir})
++    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:json_verify> ${binDir})
+ 
+ INSTALL(TARGETS json_verify RUNTIME DESTINATION bin)
 

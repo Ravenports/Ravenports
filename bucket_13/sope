@@ -20,8 +20,9 @@ SPKGS[std]=		set
 			pgsql
 			ldap
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	NOMAJOR
+OPTIONS_STANDARD=	NOMAJOR
+OPT_ON[netbsd]=		NOMAJOR
 
 BUILD_DEPENDS=		gnustep-base:dev:std
 			gnustep-base:tools:std
@@ -61,6 +62,8 @@ MAKEFILE=		GNUmakefile
 PLIST_SUB=		SO_LDAP=4.9.35
 			SO_LDAP_MAJMIN=4.9
 
+[NOMAJOR].DESCRIPTION=			Does not install intermediate SO links
+
 do-configure:
 	cd ${WRKSRC} ; . ${GNUSTEP_MAKEFILES}/GNUstep.sh ; ./configure ${CONFIGURE_ARGS}
 
@@ -88,31 +91,32 @@ This subpackage contains the LDAP functionality of SOPE.
 acabd014d1107de93fd7aa2604203c6fef50a38e04e6252a2ff4c2571ec081dd      2305547 gnustep/SOPE-5.12.0.tar.gz
 
 
-[FILE:813:manifests/plist.primary]
-lib/
+[FILE:833:manifests/plist.primary]
+%%NOMAJOR-OFF%%lib/
  libDOM.so.4.9
- libDOM.so.4.9.24
  libEOControl.so.4.9
- libEOControl.so.4.9.74
  libGDLAccess.so.4.9
- libGDLAccess.so.4.9.63
  libNGExtensions.so.4.9
- libNGExtensions.so.4.9.203
  libNGMime.so.4.9
- libNGMime.so.4.9.3
  libNGObjWeb.so.4.9
- libNGObjWeb.so.4.9.37
  libNGStreams.so.4.9
- libNGStreams.so.4.9.57
  libSBJson.so.2
- libSBJson.so.2.3.1
  libSaxObjC.so.4.9
- libSaxObjC.so.4.9.66
  libWEExtensions.so.4.9
- libWEExtensions.so.4.9.94
  libWOExtensions.so.4.9
- libWOExtensions.so.4.9.31
  libXmlRpc.so.4.9
+lib/
+ libDOM.so.4.9.24
+ libEOControl.so.4.9.74
+ libGDLAccess.so.4.9.63
+ libNGExtensions.so.4.9.203
+ libNGMime.so.4.9.3
+ libNGObjWeb.so.4.9.37
+ libNGStreams.so.4.9.57
+ libSBJson.so.2.3.1
+ libSaxObjC.so.4.9.66
+ libWEExtensions.so.4.9.94
+ libWOExtensions.so.4.9.31
  libXmlRpc.so.4.9.31
 lib/GNUstep/SaxDrivers-4.9/STXSaxDriver.sax/STXSaxDriver
 lib/GNUstep/SaxDrivers-4.9/libxmlSAXDriver.sax/libxmlSAXDriver
@@ -121,7 +125,7 @@ lib/GNUstep/WOxElemBuilders-4.9/WEExtensions.wox/WEExtensions
 lib/GNUstep/WOxElemBuilders-4.9/WOExtensions.wox/WOExtensions
 
 
-[FILE:8914:manifests/plist.dev]
+[FILE:8909:manifests/plist.dev]
 include/DOM/
  DOM.h
  DOMAttribute.h
@@ -314,6 +318,19 @@ include/NGImap4/
  NGImap4Support.h
  NGSieveClient.h
  NSString+Imap4.h
+include/NGLdap/
+ EOQualifier+LDAP.h
+ NGLdap.h
+ NGLdapAttribute.h
+ NGLdapConnection.h
+ NGLdapDataSource.h
+ NGLdapEntry.h
+ NGLdapFileManager.h
+ NGLdapGlobalID.h
+ NGLdapModification.h
+ NGLdapSearchResultEnumerator.h
+ NGLdapURL.h
+ NSString+DN.h
 include/NGMail/
  NGMBoxReader.h
  NGMail.h
@@ -522,6 +539,7 @@ lib/
  libEOControl.so
  libGDLAccess.so
  libNGExtensions.so
+ libNGLdap.so
  libNGMime.so
  libNGObjWeb.so
  libNGStreams.so
@@ -564,21 +582,6 @@ share/GNUstep/Makefiles/
  woapp.make
  wobundle.make
 share/GNUstep/Makefiles/Additional/ngobjweb.make
-include/NGLdap/
- EOQualifier+LDAP.h
- NGLdapGlobalID.h
- NGLdapConnection.h
- NGLdapSearchResultEnumerator.h
- NGLdapFileManager.h
- NGLdap.h
- NGLdapAttribute.h
- NGLdapModification.h
- NGLdapDataSource.h
- NSString+DN.h
- NGLdapURL.h
- NGLdapEntry.h
-lib/
- libNGLdap.so
 
 
 [FILE:45:manifests/plist.tools]
@@ -589,18 +592,17 @@ bin/
 
 
 [FILE:165:manifests/plist.pgsql]
-lib/GNUstep/GDLAdaptors-4.9/PostgreSQL.gdladaptor/Resources/
- Info-gnustep.plist
- Version
 lib/GNUstep/GDLAdaptors-4.9/PostgreSQL.gdladaptor/
  PostgreSQL
  stamp.make
+lib/GNUstep/GDLAdaptors-4.9/PostgreSQL.gdladaptor/Resources/
+ Info-gnustep.plist
+ Version
 
 
-[FILE:64:manifests/plist.ldap]
-lib/
- libNGLdap.so.%%SO_LDAP%%
- libNGLdap.so.%%SO_LDAP_MAJMIN%%
+[FILE:80:manifests/plist.ldap]
+%%NOMAJOR-OFF%%lib/libNGLdap.so.%%SO_LDAP_MAJMIN%%
+lib/libNGLdap.so.%%SO_LDAP%%
 
 
 [FILE:527:patches/patch-sope-core_NGStreams_NGDescriptorFunctions.m]

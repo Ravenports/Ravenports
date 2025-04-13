@@ -72,6 +72,21 @@ lib/pkgconfig/mtdev.pc
 bin/mtdev-test
 
 
+[FILE:309:patches/patch-src_caps.c]
+--- src/caps.c.orig	2020-01-26 14:00:32 UTC
++++ src/caps.c
+@@ -26,6 +26,9 @@
+  *
+  ****************************************************************************/
+ 
++#ifdef __NetBSD__
++#include <sys/ioctl.h>
++#endif
+ #include "state.h"
+ 
+ static const int SN_COORD = 250;	/* coordinate signal-to-noise ratio */
+
+
 [FILE:225:patches/patch-src_common.h]
 --- src/common.h.orig	2020-01-26 13:34:52 UTC
 +++ src/common.h
@@ -84,4 +99,19 @@ bin/mtdev-test
  #include <string.h>
  #include <errno.h>
  
+
+
+[FILE:274:patches/patch-test_mtdev-test.c]
+--- test/mtdev-test.c.orig	2020-01-26 14:00:32 UTC
++++ test/mtdev-test.c
+@@ -31,6 +31,9 @@
+ #include <unistd.h>
+ #include <fcntl.h>
+ #include <stdint.h>
++#if defined(__NetBSD__)
++#include <sys/ioctl.h>
++#endif
+ 
+ #ifndef input_event_sec
+ #define input_event_sec time.tv_sec
 

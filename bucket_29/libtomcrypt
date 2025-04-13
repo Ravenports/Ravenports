@@ -2,7 +2,7 @@
 
 NAMEBASE=		libtomcrypt
 VERSION=		1.18.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		security
 VARIANTS=		std
 SDESC[std]=		Comprehensive, portable cryptographic toolkit
@@ -41,6 +41,7 @@ MAKE_ARGS=		INCPATH="{{PREFIX}}/include"
 SOVERSION=		1.0.1
 
 CFLAGS=			-DLTM_DESC
+CVE_FIXED=		CVE-2019-17362
 
 post-patch:
 	${REINPLACE_CMD} -e 's|gcc|${CC}|' -e 's| make | $$(MAKE) |' \
@@ -86,4 +87,27 @@ lib/
  libtomcrypt.a
  libtomcrypt.so
 lib/pkgconfig/libtomcrypt.pc
+
+
+[FILE:731:patches/patch-fix-CVE-2019-17362]
+From 25c26a3b7a9ad8192ccc923e15cf62bf0108ef94 Mon Sep 17 00:00:00 2001
+From: werew <werew@ret2libc.com>
+Date: Thu, 3 Oct 2019 19:57:10 +0200
+Subject: [PATCH] Fixes #507
+
+---
+ src/pk/asn1/der/utf8/der_decode_utf8_string.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- src/pk/asn1/der/utf8/der_decode_utf8_string.c
++++ src/pk/asn1/der/utf8/der_decode_utf8_string.c
+@@ -65,7 +65,7 @@ int der_decode_utf8_string(const unsigned char *in,  unsigned long inlen,
+       /* count number of bytes */
+       for (z = 0; (tmp & 0x80) && (z <= 4); z++, tmp = (tmp << 1) & 0xFF);
+ 
+-      if (z > 4 || (x + (z - 1) > inlen)) {
++      if (z == 1 || z > 4 || (x + (z - 1) > inlen)) {
+          return CRYPT_INVALID_PACKET;
+       }
+ 
 

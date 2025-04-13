@@ -97,6 +97,40 @@ lib/pkgconfig/fuse3.pc
 %%ONLY-LINUX%%share/man/man8/mount.fuse3.8
 
 
+[FILE:390:patches/patch-lib_fuse.c]
+--- lib/fuse.c.orig	2025-03-24 12:25:30 UTC
++++ lib/fuse.c
+@@ -4917,7 +4917,11 @@ static void *fuse_prune_nodes(void *fuse
+ 	struct fuse *f = fuse;
+ 	int sleep_time;
+ 
++#if defined(__NetBSD__)
++	pthread_setname_np(pthread_self(), "%s", (void *)"fuse_prune_nodes");
++#else
+ 	pthread_setname_np(pthread_self(), "fuse_prune_nodes");
++#endif
+ 
+ 	while(1) {
+ 		sleep_time = fuse_clean_cache(f);
+
+
+[FILE:445:patches/patch-lib_fuse__loop__mt.c]
+--- lib/fuse_loop_mt.c.orig	2025-03-24 12:25:30 UTC
++++ lib/fuse_loop_mt.c
+@@ -132,7 +132,11 @@ static void *fuse_do_work(void *data)
+ 	struct fuse_worker *w = (struct fuse_worker *) data;
+ 	struct fuse_mt *mt = w->mt;
+ 
++#if defined(__NetBSD__)
++	pthread_setname_np(pthread_self(), "%s", (void *)"fuse_worker");
++#else
+ 	pthread_setname_np(pthread_self(), "fuse_worker");
++#endif
+ 
+ 	while (!fuse_session_exited(mt->se)) {
+ 		int isforget = 0;
+
+
 [FILE:489:patches/patch-lib_mount__bsd.c]
 --- lib/mount_bsd.c.orig	2025-03-24 12:25:30 UTC
 +++ lib/mount_bsd.c

@@ -2,7 +2,7 @@
 
 NAMEBASE=		libcaca
 VERSION=		0.99.b20
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Graphics library to output text instead of pixels
@@ -56,7 +56,9 @@ LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/COPYING
 			LGPL20+:{{WRKSRC}}/COPYING.LGPL
 LICENSE_SCHEME=		multi
 
+CPE_UPDATE=		beta20
 CPE_VENDOR=		libcaca_project
+CPE_VERSION=		0.99
 FPC_EQUIVALENT=		graphics/libcaca
 
 MUST_CONFIGURE=		gnu
@@ -73,6 +75,7 @@ CFLAGS=			-Wno-bidi-chars
 			-Wno-incompatible-pointer-types
 			-Wno-implicit-function-declaration
 			-Wno-int-conversion
+CVE_FIXED=		CVE-2022-0856
 
 post-extract:
 			${ECHO} "Terms extracted from 'caca/caca.h':" > ${WRKDIR}/TERMS
@@ -661,4 +664,43 @@ bin/
  #else
          /* This is compile-time optimised with at least -O1 or -Os */
          uint32_t const tmp = 0x12345678;
+
+
+[FILE:1072:patches/patch-fix-CVE-2022-0856]
+From d33a9ca2b7e9f32483c1aee4c3944c56206d456b Mon Sep 17 00:00:00 2001
+From: Josef Moellers <jmoellers@suse.de>
+Date: Fri, 18 Mar 2022 11:52:22 +0100
+Subject: [PATCH] Prevent a divide-by-zero by checking for a zero width or
+ height.
+
+---
+ src/img2txt.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+--- src/img2txt.c.orig
++++ src/img2txt.c
+@@ -177,7 +177,13 @@ int main(int argc, char **argv)
+     }
+ 
+     /* Assume a 6×10 font */
+-    if(!cols && !lines)
++    if(!i->w || !i->h)
++    {
++	fprintf(stderr, "%s: image size is 0\n", argv[0]);
++        lines = 0;
++	cols = 0;
++    }
++    else if(!cols && !lines)
+     {
+         cols = 60;
+         lines = cols * i->h * font_width / i->w / font_height;
+@@ -214,7 +220,7 @@ int main(int argc, char **argv)
+     export = caca_export_canvas_to_memory(cv, format?format:"ansi", &len);
+     if(!export)
+     {
+-        fprintf(stderr, "%s: Can't export to format '%s'\n", argv[0], format);
++        fprintf(stderr, "%s: Can't export to format '%s'\n", argv[0], format?format:"ansi");
+     }
+     else
+     {
 

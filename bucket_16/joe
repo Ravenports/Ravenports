@@ -22,6 +22,11 @@ OPTIONS_STANDARD=	none
 
 USES=			gmake iconv desktop-utils:primary ncurses
 
+LICENSE=		GPLv2:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv2:{{WRKSRC}}/COPYING
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		editors/joe
 
 MUST_CONFIGURE=		gnu
@@ -33,16 +38,20 @@ INSTALL_REQ_TOOLCHAIN=	yes
 CFLAGS=			-I{{LOCALBASE}}/ncurses60/include
 LDFLAGS=		-L{{LOCALBASE}}/ncurses60/lib
 
-post-patch:
-	${REINPLACE_CMD} -e 's|docs/README.old docs/man.md ||' \
-		${WRKSRC}/Makefile.in
-
 post-install:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 	for rc in jmacsrc joerc jpicorc jstarrc rjoerc; do \
 		${MV} ${STAGEDIR}${PREFIX}/etc/joe/$${rc} \
 			${STAGEDIR}${PREFIX}/etc/joe/$${rc}.sample ; \
 	done
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|docs/README.old docs/man.md ||' \
+		${WRKSRC}/Makefile.in
+
+post-extract:
+	${AWK} '/which is distributed/,/many Linux distrib/' \
+		${WRKSRC}/README.md > ${WRKDIR}/TERMS
 
 [FILE:670:descriptions/desc.primary]
 JOE is the professional freeware ASCII text screen editor for UNIX.  It
@@ -189,4 +198,20 @@ share/joe/syntax/
 [FILE:45:manifests/plist.man]
 share/man/man1/joe.1
 share/man/ru/man1/joe.1
+
+
+[FILE:195:patches/patch-joe_tty.c]
+--- joe/tty.c.orig	2018-01-10 16:28:34 UTC
++++ joe/tty.c
+@@ -31,6 +31,10 @@
+ #include <libutil.h>
+ #endif
+ 
++#if defined(__NetBSD__)
++#include <util.h>
++#endif
++
+ #endif
+ 
+ #ifdef HAVE_LOGIN_TTY
 

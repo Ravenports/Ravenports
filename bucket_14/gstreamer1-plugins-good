@@ -729,23 +729,23 @@ share/locale/zh_TW/LC_MESSAGES/gst-plugins-good-%%GSTVER%%.mo
    tmp = ilog2 (spec->segsize);
 
 
-[FILE:636:netbsd/patch-sys_oss_meson.build]
---- sys/oss/meson.build.orig	2024-04-09 20:48:55 UTC
+[FILE:534:netbsd/patch-sys_oss_meson.build]
+--- sys/oss/meson.build.orig	2025-03-11 20:14:44 UTC
 +++ sys/oss/meson.build
-@@ -25,11 +25,12 @@ if not oss_option.disabled()
+@@ -53,11 +53,12 @@ if not oss_option.disabled()
  endif
  
  if have_oss
 +  ossaudio_dep = cc.find_library('ossaudio', required: true)
-   plugins += [library('gstossaudio',
-     'gstossaudio.c', 'gstossaudioelement.c', 'gstossdeviceprovider.c', 'gstosshelper.c', 'gstosssink.c', 'gstosssrc.c',
+   gstossaudio = library('gstossaudio',
+     ossaudio_sources,
      c_args : gst_plugins_good_args,
      include_directories : [configinc, libsinc],
 -    dependencies : [gstaudio_dep, gstbase_dep],
 +    dependencies : [gstaudio_dep, gstbase_dep, ossaudio_dep],
      install : true,
-     install_dir : plugins_install_dir)]
- endif
+     install_dir : plugins_install_dir)
+ 
 
 
 [FILE:576:sunos/patch-gst_avi_meson.build]

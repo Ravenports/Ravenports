@@ -32,6 +32,8 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BROKEN[netbsd]=		Needs more patching
+
 BUILD_DEPENDS=		mysql80:dev:std
 			mysql80:client:std
 			postgresql16:dev:std
@@ -65,6 +67,7 @@ SOVERSION=		111
 
 CMAKE_ARGS=		-DPOCO_UNBUNDLED=on
 			-DENABLE_NETSSL=on
+VAR_OPSYS[netbsd]=	CXXFLAGS=-D_NETBSD_SOURCE
 
 post-install:
 .for l in ActiveRecord Crypto Data DataMySQL DataODBC DataPostgreSQL DataSQLite Encodings Foundation JSON JWT MongoDB Net NetSSL Prometheus Redis Util XML Zip
@@ -1213,6 +1216,20 @@ lib/cmake/Poco/
  	#define POCO_OS_FAMILY_UNIX 1
  	#define POCO_OS_FAMILY_BSD 1
  	#define POCO_OS POCO_OS_FREE_BSD
+
+
+[FILE:680:patches/patch-Foundation_include_Poco_Types.h]
+--- Foundation/include/Poco/Types.h.orig	2025-02-12 17:01:49 UTC
++++ Foundation/include/Poco/Types.h
+@@ -54,7 +54,7 @@ using UIntPtr = std::uintptr_t;
+ 		#if defined(__LP64__)
+ 			#define POCO_PTR_IS_64_BIT 1
+ 			#define POCO_LONG_IS_64_BIT 1
+-			#if POCO_OS == POCO_OS_LINUX || POCO_OS == POCO_OS_FREE_BSD || POCO_OS == POCO_OS_ANDROID || POCO_OS == POCO_OS_AIX || POCO_OS == POCO_OS_QNX || POCO_OS == POCO_OS_SOLARIS
++			#if POCO_OS == POCO_OS_LINUX || POCO_OS == POCO_OS_FREE_BSD || POCO_OS == POCO_OS_ANDROID || POCO_OS == POCO_OS_AIX || POCO_OS == POCO_OS_QNX || POCO_OS == POCO_OS_SOLARIS || POCO_OS == POCO_OS_NET_BSD
+ 				#define POCO_INT64_IS_LONG 1
+ 			#endif
+ 		#endif
 
 
 [FILE:596:patches/patch-Foundation_src_File__UNIX.cpp]

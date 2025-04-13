@@ -49,6 +49,7 @@ CMAKE_ARGS=		-DFLB_DEBUG=Off
 VAR_OPSYS[freebsd]=	CMAKE_ARGS=-DFLB_WASM=Off
 VAR_OPSYS[linux]=	CFLAGS=-Wno-implicit-function-declaration
 VAR_OPSYS[netbsd]=	CMAKE_ARGS=-DFLB_WASM=Off
+			CFLAGS=-D_NETBSD_SOURCE
 VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DFLB_WASM=Off
 VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DFLB_WASM=Off
 
@@ -632,7 +633,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
      {
 
 
-[FILE:1325:patches/patch-src_flb__network.c]
+[FILE:1373:patches/patch-src_flb__network.c]
 --- src/flb_network.c.orig	2025-03-24 22:35:10 UTC
 +++ src/flb_network.c
 @@ -603,9 +603,7 @@ static int net_connect_async(int fd,
@@ -651,7 +652,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
                                                  size_t *output_data_size)
  {
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
      unsigned int peer_credentials_size;
      struct ucred peer_credentials;
  #endif
@@ -660,7 +661,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
      }
  
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
      peer_credentials_size = sizeof(struct ucred);
  
      result = getsockopt(fd,

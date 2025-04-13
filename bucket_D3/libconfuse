@@ -2,7 +2,7 @@
 
 NAMEBASE=		libconfuse
 VERSION=		3.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Configuration file parser library
@@ -38,6 +38,8 @@ CONFIGURE_ARGS=		--disable-nls
 INSTALL_TARGET=		install-strip
 SOVERSION=		2.1.0
 
+CVE_FIXED=		CVE-2022-40320
+
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/confuse
 
@@ -71,4 +73,42 @@ lib/
  libconfuse.a
  libconfuse.so
 lib/pkgconfig/libconfuse.pc
+
+
+[FILE:945:patches/patch-fix-CVE-2022-40320]
+commit d73777c2c3566fb2647727bb56d9a2295b81669b
+Author: Joachim Wiberg <troglobit@gmail.com>
+Date:   Fri Sep 2 16:12:46 2022 +0200
+
+    Fix #163: unterminated username used with getpwnam()
+    
+    Signed-off-by: Joachim Wiberg <troglobit@gmail.com>
+
+--- src/confuse.c.orig	2020-06-21 20:53:26 UTC
++++ src/confuse.c
+@@ -1863,18 +1863,20 @@ DLLIMPORT char *cfg_tilde_expand(const c
+ 			passwd = getpwuid(geteuid());
+ 			file = filename + 1;
+ 		} else {
+-			/* ~user or ~user/path */
+-			char *user;
++			char *user; /* ~user or ~user/path */
++			size_t len;
+ 
+ 			file = strchr(filename, '/');
+ 			if (file == 0)
+ 				file = filename + strlen(filename);
+ 
+-			user = malloc(file - filename);
++			len = file - filename - 1;
++			user = malloc(len + 1);
+ 			if (!user)
+ 				return NULL;
+ 
+-			strncpy(user, filename + 1, file - filename - 1);
++			strncpy(user, &filename[1], len);
++			user[len] = 0;
+ 			passwd = getpwnam(user);
+ 			free(user);
+ 		}
 

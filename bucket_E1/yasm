@@ -2,7 +2,7 @@
 
 NAMEBASE=		yasm
 VERSION=		1.3.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel lang
 VARIANTS=		std
 SDESC[std]=		Modular BSD reimplementation of NASM
@@ -28,7 +28,7 @@ LICENSE_NAME=		CUSTOM1:"YASM License"
 LICENSE_FILE=		CUSTOM1:{{WRKSRC}}/COPYING
 LICENSE_SCHEME=		solo
 
-CPE_VENDOR=		tortall
+CPE_VENDOR=		yasm_project
 FPC_EQUIVALENT=		devel/yasm
 
 MUST_CONFIGURE=		gnu
@@ -37,6 +37,8 @@ CONFIGURE_ARGS=		--disable-python
 			--disable-nls
 
 INSTALL_TARGET=		install install-man
+
+CVE_FIXED=		CVE-2023-30402 CVE-2023-31975
 
 [FILE:431:descriptions/desc.primary]
 Yasm is a complete rewrite of the NASM assembler under the "new" BSD
@@ -101,4 +103,67 @@ share/man/man7/
  yasm_dbgfmts.7
  yasm_objfmts.7
  yasm_parsers.7
+
+
+[FILE:881:patches/patch-address-CVE-2023-30402]
+From ecb47f1c8786b4628d5cd718cdccf134ad96e0cb Mon Sep 17 00:00:00 2001
+From: dataisland <dataisland@outlook.com>
+Date: Fri, 22 Sep 2023 00:21:10 -0500
+Subject: [PATCH] Fix handle_dot_label heap-out-of-bound (#243)
+
+---
+ modules/parsers/nasm/nasm-token.re | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+ CVE-2023-30402 is disputed to be a bug, not a security flaw
+
+--- modules/parsers/nasm/nasm-token.re
++++ modules/parsers/nasm/nasm-token.re
+@@ -79,7 +79,7 @@ handle_dot_label(YYSTYPE *lvalp, char *tok, size_t toklen, size_t zeropos,
+         lvalp->str_val = yasm__xstrndup(tok+zeropos+(parser_nasm->tasm?2:0),
+             toklen-zeropos-(parser_nasm->tasm?2:0));
+         /* check for special non-local ..@label */
+-        if (lvalp->str_val[zeropos+2] == '@')
++        if (lvalp->str_val[2] == '@')
+             return NONLOCAL_ID;
+         return SPECIAL_ID;
+     }
+
+
+[FILE:1206:patches/patch-address-CVE-2023-31975]
+From 84be2ee6c310607fddbe8154696c9386364679ea Mon Sep 17 00:00:00 2001
+From: dataisland <dataisland@outlook.com>
+Date: Fri, 22 Sep 2023 00:20:58 -0500
+Subject: [PATCH] Fix use-after-free in yasm_intnum_destroy (#242)
+
+ CVE-2023-31975 is disputed to be a bug, not a security flaw 
+
+---
+ libyasm/expr.c   | 1 +
+ libyasm/intnum.c | 2 ++
+ 2 files changed, 3 insertions(+)
+
+--- libyasm/expr.c
++++ libyasm/expr.c
+@@ -687,6 +687,7 @@ expr_level_op(/*@returned@*/ /*@only@*/ yasm_expr *e, int fold_const,
+                 level_numterms--;
+                 /* make sure to delete folded intnum */
+                 yasm_intnum_destroy(e->terms[i].data.intn);
++                e->terms[i].data.intn = NULL;
+             } else if (o != i) {
+                 /* copy term if it changed places */
+                 e->terms[o++] = e->terms[i];
+diff --git a/libyasm/intnum.c b/libyasm/intnum.c
+index 6feba3348..794c0723f 100644
+--- libyasm/intnum.c
++++ libyasm/intnum.c
+@@ -412,6 +412,8 @@ yasm_intnum_copy(const yasm_intnum *intn)
+ void
+ yasm_intnum_destroy(yasm_intnum *intn)
+ {
++    if (intn == NULL)
++        return;
+     if (intn->type == INTNUM_BV)
+         BitVector_Destroy(intn->val.bv);
+     yasm_xfree(intn);
 

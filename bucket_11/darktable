@@ -81,7 +81,12 @@ CMAKE_ARGS=		-DUSE_PORTMIDI:BOOL=OFF
 			-DUSE_OPENMP:BOOL=OFF
 			-Wno-dev
 VAR_OPSYS[freebsd]=	CMAKE_ARGS=-DRAWSPEED_CACHELINESIZE=64
+VAR_OPSYS[netbsd]=	CMAKE_ARGS=-DRAWSPEED_CACHELINESIZE=64
+			CFLAGS=-D_NETBSD_SOURCE
 VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DRAWSPEED_CACHELINESIZE=64
+
+pre-configure-netbsd:
+	${REINPLACE_CMD} '/add_definitions."-D_XOPEN_SOURCE=.*"/d' ${WRKSRC}/CMakeLists.txt
 
 pre-configure-midnightbsd:
 	${REINPLACE_CMD} '/add_definitions."-D_XOPEN_SOURCE=.*"/d' ${WRKSRC}/CMakeLists.txt
@@ -1184,6 +1189,22 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
    dt_mark_colormatrix_invalid(&profile_info->matrix_in[0][0]);
 
 
+[FILE:245:patches/patch-src_common_utility.c]
+--- src/common/utility.c.orig	2025-02-08 17:55:20 UTC
++++ src/common/utility.c
+@@ -40,6 +40,10 @@
+   #include <FileAPI.h>
+ #endif
+ 
++#if defined(__NetBSD__)
++#define uselocale(locale) NULL
++#endif
++
+ #include <math.h>
+ #include <glib/gi18n.h>
+ 
+
+
 [FILE:978:patches/patch-src_develop_blends_blendif__lab.c]
 --- src/develop/blends/blendif_lab.c.orig	2024-12-15 21:38:01 UTC
 +++ src/develop/blends/blendif_lab.c
@@ -1305,7 +1326,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
  #include <sys/sysctl.h>
 
 
-[FILE:453:patches/patch-src_external_rawspeed_cmake_Modules_cpu-page-size.cpp]
+[FILE:476:patches/patch-src_external_rawspeed_cmake_Modules_cpu-page-size.cpp]
 --- src/external/rawspeed/cmake/Modules/cpu-page-size.cpp.orig	2024-12-13 20:15:16 UTC
 +++ src/external/rawspeed/cmake/Modules/cpu-page-size.cpp
 @@ -4,7 +4,7 @@
@@ -1313,7 +1334,7 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
  #endif
  
 -#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) || defined(__APPLE__)
-+#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) || defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__)
++#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) || defined(__APPLE__) || defined(__DragonFly__) || defined(__FreeBSD__) || defined(__NetBSD__)
  
  int main() {
    long val = ::sysconf(_SC_PAGESIZE);

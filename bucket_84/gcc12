@@ -103,6 +103,8 @@ PLIST_SUB=		GCCVER=12.4.0
 			TARGET={{CONFIGURE_TARGET}}
 			BRANCH=12
 			VSTDCXX=6.0.30
+			CC1_SHARED={{CC1_SHARED}}
+			CC1_STATIC={{CC1_STATIC:U"@comment "}}
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-gnu-as
@@ -118,6 +120,8 @@ VAR_OPSYS[netbsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
 			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
+			MAKEFILE_LINE=CC1_SHARED="@comment "
+			MAKEFILE_LINE=CC1_STATIC=
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
@@ -239,7 +243,26 @@ d7e8c62cbf1465e56605da78b2bdc1f5af65a943b8cfc92d0ecf379a089ce692        18924 gc
 817fa207c609760e5e6391e851500bc3c12b2931be11acaae236a7cc95adab81         1894 gcc12_12.2.0-rev1/patch-diff-gcc-testsuite
 
 
-[FILE:27574:manifests/plist.compilers]
+[FILE:27830:manifests/plist.compilers]
+%%ASLIB%%/
+ libatomic.a
+ libatomic.so
+ libgcc_s.so
+ libitm.a
+ libitm.so
+ libitm.spec
+%%CC1_SHARED%%%%ASLIB%%/libcc1.so
+%%CC1_SHARED%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
+ libcc1plugin.so
+ libcc1plugin.so.0
+ libcc1plugin.so.0.0.0
+ libcp1plugin.so
+ libcp1plugin.so.0
+ libcp1plugin.so.0.0.0
+%%CC1_STATIC%%%%ASLIB%%/libcc1.a
+%%CC1_STATIC%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
+ libcc1plugin.a
+ libcp1plugin.a
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
  crtendS.o
@@ -1339,14 +1362,7 @@ lib/gcc/%%TARGET%%/%%GCCVER%%/install-tools/
 lib/gcc/%%TARGET%%/%%GCCVER%%/install-tools/include/
  README
  limits.h
-lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/
- gtype.state
- libcc1plugin.%%SHARED_OBJECT%%
- libcc1plugin.so.0
- libcc1plugin.so.0.0.0
- libcp1plugin.%%SHARED_OBJECT%%
- libcp1plugin.so.0
- libcp1plugin.so.0.0.0
+lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/gtype.state
 lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/
  addresses.h
  alias.h
@@ -4331,29 +4347,16 @@ share/gcc-%%GCCVER%%/python/libstdcxx/v6/
  libquadmath.so.0.0.0
 
 
-[FILE:415:manifests/plist.libs]
+[FILE:147:manifests/plist.libs]
 %%ASLIB%%/
- libatomic.a
- libatomic.so
  libatomic.so.1
- libcc1.%%SHARED_OBJECT%%
- libgcc_s.so.1
- libitm.a
- libitm.so
- libitm.so.1
- libitm.spec
-%%EXCLUDE-DARWIN%%%%ASLIB%%/
  libatomic.so.1.2.0
- libcc1.%%SHARED_OBJECT%%.0
- libcc1.so.0.0.0
- libgcc_s.so
+ libgcc_s.so.1
+ libitm.so.1
  libitm.so.1.0.0
-%%ONLY-DARWIN%%%%ASLIB%%/
- libcc1.0.%%SHARED_OBJECT%%
- libgcc_ext.10.4.dylib
- libgcc_ext.10.5.dylib
- libgcc_s_ppc64.1.dylib
- libgcc_s_x86_64.1.dylib
+%%CC1_SHARED%%%%ASLIB%%/
+ libcc1.so.0
+ libcc1.so.0.0.0
 
 
 [FILE:95:manifests/plist.man]

@@ -38,6 +38,7 @@ SOVERSION=		2.3.0
 CFLAGS=			-Wno-incompatible-pointer-types
 			-Wno-unused-function
 			-Wno-format-truncation
+			-Wno-attributes
 
 pre-configure:
 	${CP} ${LOCALBASE}/include/linux/*.h ${WRKSRC}/include/linux/
@@ -90,6 +91,38 @@ share/man/man1/
  mouse-dpi-tool.1
  touchpad-edge-detector.1
 share/man/man3/libevdev.3
+
+
+[FILE:302:patches/patch-libevdev_libevdev-uinput.c]
+--- libevdev/libevdev-uinput.c.orig	2025-03-24 23:41:55 UTC
++++ libevdev/libevdev-uinput.c
+@@ -15,6 +15,10 @@
+ #include <time.h>
+ #include <unistd.h>
+ 
++#if defined(__NetBSD__)
++#include <sys/ioctl.h>
++#endif
++
+ #include "libevdev-int.h"
+ #include "libevdev-uinput-int.h"
+ #include "libevdev-uinput.h"
+
+
+[FILE:277:patches/patch-libevdev_libevdev.c]
+--- libevdev/libevdev.c.orig	2025-03-24 23:41:55 UTC
++++ libevdev/libevdev.c
+@@ -14,6 +14,10 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
++#if defined(__NetBSD__)
++#include <sys/ioctl.h>
++#endif
++
+ #include "libevdev-int.h"
+ #include "libevdev-util.h"
+ #include "libevdev.h"
 
 
 [FILE:572:patches/patch-meson.build]
