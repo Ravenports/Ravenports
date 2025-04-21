@@ -2,7 +2,7 @@
 
 NAMEBASE=		jbig2dec
 VERSION=		0.20
-REVISION=		1
+REVISION=		2
 KEYWORDS=		graphics devel
 VARIANTS=		std
 SDESC[std]=		JBIG2 decoder and library (monochrome documents)
@@ -43,6 +43,7 @@ SOVERSION=		0.0.0
 
 LDFLAGS=		-L{{OPENSSLLIB}}
 			-lcrypto
+CVE_FIXED=		CVE-2023-46361
 
 [FILE:327:descriptions/desc.primary]
 jbig2dec is a decoder implementation of the JBIG2 image compression format.
@@ -80,4 +81,29 @@ bin/jbig2dec
 
 [FILE:26:manifests/plist.man]
 share/man/man1/jbig2dec.1
+
+
+[FILE:753:patches/patch-CVE-2023-46361]
+From 44ca5b9d023e1de33fcb8984c85bb29619c4db7e Mon Sep 17 00:00:00 2001
+From: Sebastian Rasmussen <sebras@gmail.com>
+Date: Sun, 5 Nov 2023 12:21:52 +0100
+Subject: [PATCH] Bug 705041: jbig2dec: Avoid uninitialized allocator in
+ command-line tool.
+
+This fixes CVE-2023-46361.
+---
+ jbig2dec/jbig2dec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- jbig2dec.c.orig	2023-08-30 11:34:46 UTC
++++ jbig2dec.c
+@@ -567,7 +567,7 @@ main(int argc, char **argv)
+ {
+     jbig2dec_params_t params;
+     jbig2dec_error_callback_state_t error_callback_state;
+-    jbig2dec_allocator_t allocator_;
++    jbig2dec_allocator_t allocator_ = { 0 };
+     jbig2dec_allocator_t *allocator = &allocator_;
+     Jbig2Ctx *ctx = NULL;
+     FILE *f = NULL, *f_page = NULL;
 

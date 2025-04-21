@@ -110,9 +110,9 @@ PGSQL_17_VERSION=	17.4
 #   MariaDB 11.3   EOL 29 May 2024 (REMOVED)
 #   MariaDB 11.4   EOL 29 May 2029 (STABLE-LTS)
 #   MariaDB 11.5   EOL 21 Nov 2024 (REMOVED)
-#   MariaDB 11.6   next 1.7.2      (STABLE ROLLING)
-#   MariaDB 11.7   ?               (DEVEL  ROLLING)
-#   MariaDB 11.8   ?               (ALPHA RELEASE)
+#   MariaDB 11.7                   (STABLE ROLLING)
+#   MariaDB 11.8   ?               (DEVEL  ROLLING)
+#   MariaDB 12.0   ?               (ALPHA RELEASE)
 #
 #-------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ MYSQL_mariadb-10.5_VERSION=	10.5.28
 MYSQL_mariadb-10.6_VERSION=	10.6.21
 MYSQL_mariadb-10.11_VERSION=	10.11.11
 MYSQL_mariadb-11.4_VERSION=	11.4.5
-MYSQL_mariadb-11_VERSION=	11.6.2
+MYSQL_mariadb-11_VERSION=	11.7.2
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
