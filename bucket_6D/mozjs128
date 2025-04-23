@@ -2,6 +2,7 @@
 
 NAMEBASE=		mozjs128
 VERSION=		128.9.0
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		std
 SDESC[std]=		Standalone JS interpreter from Mozilla 128-esr
@@ -16,18 +17,15 @@ SPKGS[std]=		set
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SYSICU
+OPTIONS_STANDARD=	SYSICU
 
 BUILD_DEPENDS=		zip:primary:std
 			rust:single:std
-			icu:dev:std
 			llvm:tools:std
 			nspr:dev:std
 			cbindgen:single:std
-BUILDRUN_DEPENDS=	icu:primary:std
-			icu:data:std
-			nspr:primary:std
+BUILDRUN_DEPENDS=	nspr:primary:std
 EXRUN[dev]=		nspr:dev:std
 
 USES=			gmake perl pkgconfig zlib readline clang:keepcc
@@ -57,7 +55,6 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}
 			--enable-gczeal
 			--with-intl-api
 			--with-system-nspr
-			--with-system-icu
 			--with-system-zlib
 CONFIGURE_ENV=		BINDGEN_CFLAGS="-I{{LOCALBASE}}/include"
 
@@ -66,6 +63,13 @@ PLIST_SUB=		MOZJS_MAJOR=128
 
 VAR_OPSYS[linux]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-ravenadm-linux-gnu
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
+
+[SYSICU].DESCRIPTION=			Build with external ICU package
+[SYSICU].BUILDRUN_DEPENDS_ON=		icu:primary:std
+					icu:data:std
+[SYSICU].BUILD_DEPENDS_ON=		icu:dev:std
+[SYSICU].CONFIGURE_ARGS_ON=		--with-system-icu
+[SYSICU].USES_OFF=			c++:primary
 
 pre-configure:
 	${CHMOD} 755 ${WRKSRC}/configure
@@ -109,7 +113,201 @@ bin/
 lib/libmozjs-%%MOZJS_MAJOR%%.so
 
 
-[FILE:6251:manifests/plist.dev]
+[FILE:8674:manifests/plist.dev]
+%%SYSICU-OFF%%include/mozjs-%%MOZJS_MAJOR%%/unicode/
+ alphaindex.h
+ appendable.h
+ basictz.h
+ brkiter.h
+ bytestream.h
+ bytestrie.h
+ bytestriebuilder.h
+ calendar.h
+ caniter.h
+ casemap.h
+ char16ptr.h
+ chariter.h
+ choicfmt.h
+ coleitr.h
+ coll.h
+ compactdecimalformat.h
+ curramt.h
+ currpinf.h
+ currunit.h
+ datefmt.h
+ dbbi.h
+ dcfmtsym.h
+ decimfmt.h
+ displayoptions.h
+ docmain.h
+ dtfmtsym.h
+ dtintrv.h
+ dtitvfmt.h
+ dtitvinf.h
+ dtptngen.h
+ dtrule.h
+ edits.h
+ enumset.h
+ errorcode.h
+ fieldpos.h
+ filteredbrk.h
+ fmtable.h
+ format.h
+ formattednumber.h
+ formattedvalue.h
+ fpositer.h
+ gender.h
+ gregocal.h
+ icudataver.h
+ icuplug.h
+ idna.h
+ listformatter.h
+ localebuilder.h
+ localematcher.h
+ localpointer.h
+ locdspnm.h
+ locid.h
+ measfmt.h
+ measunit.h
+ measure.h
+ messagepattern.h
+ msgfmt.h
+ normalizer2.h
+ normlzr.h
+ nounit.h
+ numberformatter.h
+ numberrangeformatter.h
+ numfmt.h
+ numsys.h
+ parseerr.h
+ parsepos.h
+ platform.h
+ plurfmt.h
+ plurrule.h
+ ptypes.h
+ putil.h
+ rbbi.h
+ rbnf.h
+ rbtz.h
+ regex.h
+ region.h
+ reldatefmt.h
+ rep.h
+ resbund.h
+ schriter.h
+ scientificnumberformatter.h
+ search.h
+ selfmt.h
+ simpleformatter.h
+ simplenumberformatter.h
+ simpletz.h
+ smpdtfmt.h
+ sortkey.h
+ std_string.h
+ strenum.h
+ stringoptions.h
+ stringpiece.h
+ stringtriebuilder.h
+ stsearch.h
+ symtable.h
+ tblcoll.h
+ timezone.h
+ tmunit.h
+ tmutamt.h
+ tmutfmt.h
+ translit.h
+ tzfmt.h
+ tznames.h
+ tzrule.h
+ tztrans.h
+ ubidi.h
+ ubiditransform.h
+ ubrk.h
+ ucal.h
+ ucasemap.h
+ ucat.h
+ uchar.h
+ ucharstrie.h
+ ucharstriebuilder.h
+ uchriter.h
+ uclean.h
+ ucnv.h
+ ucnv_cb.h
+ ucnv_err.h
+ ucnvsel.h
+ ucol.h
+ ucoleitr.h
+ uconfig.h
+ ucpmap.h
+ ucptrie.h
+ ucsdet.h
+ ucurr.h
+ udat.h
+ udata.h
+ udateintervalformat.h
+ udatpg.h
+ udisplaycontext.h
+ udisplayoptions.h
+ uenum.h
+ ufieldpositer.h
+ uformattable.h
+ uformattednumber.h
+ uformattedvalue.h
+ ugender.h
+ uidna.h
+ uiter.h
+ uldnames.h
+ ulistformatter.h
+ uloc.h
+ ulocdata.h
+ umachine.h
+ umisc.h
+ umsg.h
+ umutablecptrie.h
+ unifilt.h
+ unifunct.h
+ unimatch.h
+ unirepl.h
+ uniset.h
+ unistr.h
+ unorm.h
+ unorm2.h
+ unum.h
+ unumberformatter.h
+ unumberoptions.h
+ unumberrangeformatter.h
+ unumsys.h
+ uobject.h
+ upluralrules.h
+ uregex.h
+ uregion.h
+ ureldatefmt.h
+ urename.h
+ urep.h
+ ures.h
+ uscript.h
+ usearch.h
+ uset.h
+ usetiter.h
+ ushape.h
+ usimplenumberformatter.h
+ uspoof.h
+ usprep.h
+ ustring.h
+ ustringtrie.h
+ utext.h
+ utf.h
+ utf16.h
+ utf32.h
+ utf8.h
+ utf_old.h
+ utmscale.h
+ utrace.h
+ utrans.h
+ utypes.h
+ uvernum.h
+ uversion.h
+ vtzone.h
 include/mozjs-%%MOZJS_MAJOR%%/
  BaseProfiler.h
  BaseProfilerSharedLibraries.h
