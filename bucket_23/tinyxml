@@ -2,6 +2,7 @@
 
 NAMEBASE=		tinyxml
 VERSION=		2.6.2
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Simple, small, C++ XML parser
@@ -34,6 +35,8 @@ CPE_VENDOR=		tinyxml_project
 FPC_EQUIVALENT=		textproc/tinyxml
 
 SOVERSION=		3.0.0
+
+CVE_FIXED=		CVE-2021-42260 CVE-2023-34194
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtinyxml.so
@@ -162,6 +165,63 @@ share/doc/tinyxml/
  tinystr_8h_source.html
  tinyxml_8h_source.html
  tutorial0.html
+
+
+[FILE:938:patches/patch-CVE-2021-42260]
+Description: In stamp always advance the pointer if *p= 0xef
+ .
+ The current implementation only advanced if 0xef is followed
+ by two non-zero bytes. In case of malformed input (0xef should be
+ the start byte of a three byte character) this leads to an infinite
+ loop. (CVE-2021-42260)
+Origin: https://sourceforge.net/p/tinyxml/git/merge-requests/1/
+Bug-Debian: https://security-tracker.debian.org/tracker/CVE-2021-42260
+Bug-Debian: https://security-tracker.debian.org/tracker/CVE-2023-40458
+
+--- tinyxmlparser.cpp.orig
++++ tinyxmlparser.cpp
+@@ -274,6 +274,12 @@ void TiXmlParsingData::Stamp( const char* now, TiXmlEncoding encoding )
+ 						else
+ 							{ p +=3; ++col; }	// A normal character.
+ 					}
++					else
++					{
++						// TIXML_UTF_LEAD_0 (239) is the start character of a 3 byte sequence, so
++						// there is something wrong here. Just advance the pointer to evade infinite loops
++						++p;
++					}
+ 				}
+ 				else
+ 				{
+
+
+[FILE:824:patches/patch-CVE-2023-34194]
+From: Guilhem Moulin <guilhem@debian.org>
+Date: Sat, 30 Dec 2023 14:15:54 +0100
+Subject: Avoid reachable assertion via crafted XML document with a '\0'
+ located after whitespace
+
+Bug: https://www.forescout.com/resources/sierra21-vulnerabilities
+Bug-Debian: https://bugs.debian.org/1059315
+Bug-Debian: https://security-tracker.debian.org/tracker/CVE-2023-34194
+Bug-Debian: https://security-tracker.debian.org/tracker/CVE-2023-40462
+---
+ tinyxmlparser.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- tinyxmlparser.cpp.orig
++++ tinyxmlparser.cpp
+@@ -1606,6 +1606,10 @@ const char* TiXmlDeclaration::Parse( const char* p, TiXmlParsingData* data, TiXm
+ 		}
+ 
+ 		p = SkipWhiteSpace( p, _encoding );
++		if ( !p || !*p )
++		{
++			break;
++		}
+ 		if ( StringEqual( p, "version", true, _encoding ) )
+ 		{
+ 			TiXmlAttribute attrib;
 
 
 [FILE:998:patches/patch-tinyxml.cpp]

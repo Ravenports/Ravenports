@@ -2,49 +2,45 @@
 
 NAMEBASE=		unzoo
 VERSION=		4.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		archivers
 VARIANTS=		std
 SDESC[std]=		ZOO archive extractor
-HOMEPAGE=		http://freshmeat.sourceforge.net/projects/unzoo/
+HOMEPAGE=		https://github.com/museoa/unzoo/
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main
-SITES[main]=		FREELOCAL/ehaupt
-DISTFILE[1]=		unzoo_4.4.orig.tar.gz:main
-DISTFILE[2]=		unzoo_4.4-4.diff.gz:main
+SITES[main]=		GITHUB/museoa:unzoo:4.4
+DISTFILE[1]=		generated:main
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
-			man
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cpe
 
-EXTRACT_DIRTY=		1
-
 LICENSE=		PUBDOM:primary
-LICENSE_FILE=		PUBDOM:{{WRKSRC}}/debian/copyright
+LICENSE_FILE=		PUBDOM:{{WRKDIR}}/LICENSE
+LICENSE_AWK=		PUBDOM:"SYNTAX"
+LICENSE_SOURCE=		PUBDOM:{{WRKSRC}}/src/unzoo.c
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		archivers/unzoo
 
-PATCHFILES=		2
-PATCHFILES_STRIP=	-p1
-
 CFLAGS=			-DSYS_IS_UNIX
 			-DSYS_HAS_MKDIR
-			-trigraphs
+CVE_FIXED=		CVE-2007-1673 CVE-2015-1845
 
 do-build:
-	cd ${WRKSRC} && ${CC} ${CFLAGS} -o unzoo unzoo.c
+	cd ${WRKSRC}/src && ${CC} ${CFLAGS} -o unzoo unzoo.c
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/unzoo ${STAGEDIR}${PREFIX}/bin
-	${INSTALL_MAN} ${WRKSRC}/debian/unzoo.1 \
-		${STAGEDIR}${MANPREFIX}/man/man1
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${INSTALL_PROGRAM} ${WRKSRC}/src/unzoo ${STAGEDIR}${PREFIX}/bin
+	${INSTALL_DATA} ${WRKSRC}/README.TXT ${STAGEDIR}${STD_DOCDIR}/unzoo.txt
 
 [FILE:195:descriptions/desc.primary]
 Unzoo is a zoo archive extractor written by Martin Schoenert. If unzoo is
@@ -52,75 +48,200 @@ called with no arguments, it will first print a summary of the commands
 and then prompt for command lines interactively.
 
 
-[FILE:198:distinfo]
-977bb2147a52370d3fce87947f66ea18eb927654d732f685d977a1f68ac35ef6        25737 unzoo_4.4.orig.tar.gz
-67b8e05465448cfad88c20dfebc4cce9b3fc62326231a83f3e3fb41ab746d283         8567 unzoo_4.4-4.diff.gz
+[FILE:102:distinfo]
+929a4e0ae68478617bd6f4794c48586b40ce5109fabe594aa3d91d3e56b92f35        26954 museoa-unzoo-4.4.tar.gz
 
 
 [FILE:10:manifests/plist.primary]
 bin/unzoo
 
 
-[FILE:23:manifests/plist.man]
-share/man/man1/unzoo.1
+[FILE:26:manifests/plist.docs]
+share/doc/unzoo/unzoo.txt
 
 
-[FILE:2220:patches/patch-unzoo.c]
---- unzoo.c.orig	2021-01-10 02:37:57 UTC
-+++ unzoo.c
-@@ -949,7 +949,7 @@ int             MacOpenWritBinr ( patl )
-         return 0;
+[FILE:4692:patches/patch-000-CVE-2015-1845]
+Addresses CVE-2015-1845
+
+Buffer overflow in the EntrReadArch function in unzoo might allow remote
+attackers to execute arbitrary code via unspecified vectors.
+
+--- src/unzoo.c.orig	2025-04-23 17:10:34 UTC
++++ src/unzoo.c
+@@ -247,6 +247,7 @@
+ *H
+ */
+ #include        <stdio.h>
++#include        <string.h>
+ 
+ 
+ /****************************************************************************
+@@ -508,16 +509,16 @@ FILE *          WritBinr;
+ **  want to use the universal conversion function 'ConvName'.
+ */
+ #ifdef  SYS_IS_UNIX
+-#define CONV_NAME(naml,namu)    strcpy( (naml), (namu) )
++#define CONV_NAME(naml,namu)    strncpy( (naml), (namu), sizeof((naml)) - 1 )
+ #endif
+ #ifdef  SYS_IS_DOS_DJGPP
+ #define CONV_NAME(naml,namu)    ConvName( (naml), (namu), 8L, 3L, '_' )
+ #endif
+ #ifdef  SYS_IS_OS2_EMX
+-#define CONV_NAME(naml,namu)    strcpy( (naml), (namu) )
++#define CONV_NAME(naml,namu)    strncpy( (naml), (namu), sizeof((naml)) - 1 )
+ #endif
+ #ifdef  SYS_IS_TOS_GCC
+-#define CONV_NAME(naml,namu)    strcpy( (naml), (namu) )
++#define CONV_NAME(naml,namu)    strncpy( (naml), (namu), sizeof((naml)) - 1 )
+ #endif
+ #ifdef  SYS_IS_VMS
+ #define CONV_NAME(naml,namu)    ConvName( (naml), (namu), 39L, 39L, '_' )
+@@ -1224,9 +1225,13 @@ int             MakeDirs ( pre, patu )
+         *d = '\0';  *n = '\0';
+         CONV_DIRE( dirl, diru );
+         CONV_NAME( naml, namu );
+-        strcpy( patl, pre  );
+-        strcat( patl, dirl );
+-        strcat( patl, naml );
++        strncpy( patl, pre,  sizeof(patl) - 1 );
++        if ( sizeof(patl) - strnlen( patl, sizeof(patl) ) >
++             strnlen( dirl, sizeof( dirl ) ) + 1)
++            strncat( patl, dirl, sizeof( dirl ) );
++        if ( sizeof(patl) - strnlen( patl, sizeof(patl) ) >
++             strnlen( naml, sizeof( naml ) ) + 1)
++            strncat( patl, naml, sizeof(naml) );
+         /*N 1993/11/03 martin what should I do with the return code?       */
+         /*N 1993/11/03 martin it could be 0 if the directory exists!       */
+         MAKE_DIRE( patl );
+@@ -1583,14 +1588,17 @@ int             EntrReadArch ()
+         CONV_NAME( Entry.naml, (Entry.lnamu ? Entry.namu : Entry.nams) );
      }
-     fndrInfo.ioFlFndrInfo.fdType    = 'BINA';
--	fndrInfo.ioFlFndrInfo.fdCreator = '????';
-+    fndrInfo.ioFlFndrInfo.fdCreator = '____';
-      if ( PBSetFInfo( (ParmBlkPtr)&fndrInfo, 0 ) ) {
-         return 0;
-     }
-@@ -2590,20 +2590,20 @@ int             ExtrArch ( bim, out, ovr
-             /* but only if the user did not request otherwise              */
+     else {
+-        strcpy( Entry.dirl, Entry.diru );
+-        strcpy( Entry.naml, (Entry.lnamu ? Entry.namu : Entry.nams) );
+-    }
+-    strcpy( Entry.patl, Entry.dirl );
+-    strcat( Entry.patl, Entry.naml );
++        strncpy( Entry.dirl, Entry.diru, sizeof(Entry.dirl) - 1 );
++        strncpy( Entry.naml, (Entry.lnamu ? Entry.namu : Entry.nams),
++	         sizeof(Entry.naml) - 1 );
++    }
++    strncpy( Entry.patl, Entry.dirl, sizeof(Entry.patl) - 1 );
++    if ( sizeof( Entry.patl) - strnlen( Entry.patl, sizeof( Entry.patl ) ) >
++         strnlen( Entry.naml, sizeof( Entry.naml ) ) + 1 )
++        strncat( Entry.patl, Entry.naml, sizeof( Entry.naml ) );
  
-             /* building the universal path of this member                  */
-+            int found_trav = 0;
-             char patu [sizeof(Entry.diru) + sizeof(Entry.namu) + 2];
-             strcpy( patu, Entry.diru );
-             if ( strlen(patu) && patu[strlen(patu)-1] != '/') strcat( patu, "/" );
-             strcat( patu, (Entry.lnamu ? Entry.namu : Entry.nams) );
+     /* create the name with the version appended                           */
+-    strcpy( Entry.patv, Entry.patl );
++    strncpy( Entry.patv, Entry.patl, sizeof(Entry.patv) - 1 );
+     p = Entry.patv;  while ( *p != '\0' )  p++;
+     *p++ = ';';
+     for ( l = 10000; 0 < l; l /= 10 )
+@@ -2349,7 +2357,9 @@ int             ListArch ( ver, arc, fil
+     unsigned long       i;              /* loop variable                   */
  
--            int found_trav = 0;
+     /* try to open the archive under various names                         */
+-    strcpy(arczoo,arc);  strcat(arczoo,".zoo");
++    strncpy(arczoo,arc,sizeof(arczoo)-1);
++    if (sizeof(arczoo) - strnlen(arczoo, sizeof(arczoo)) > 5)
++    	strncat(arczoo,".zoo",4);
+     if ( OpenReadArch(arc) ) {
+         if ( ! DescReadArch() ) {
+             ClosReadArch();
+@@ -2504,7 +2514,9 @@ int             ExtrArch ( bim, out, ovr
+     unsigned long       i;              /* loop variable                   */
  
-             if ( strstr( patu, "/../" )) {
--                found_trav = 1;
+     /* try to open the archive under various names                         */
+-    strcpy(arczoo,arc);  strcat(arczoo,".zoo");
++    strncpy(arczoo,arc,sizeof(arczoo)-1);
++    if (sizeof(arczoo) - strnlen(arczoo, sizeof(arczoo)) > 5)
++    	strncat(arczoo,".zoo",4);
+     if ( OpenReadArch(arc) ) {
+         if ( ! DescReadArch() ) {
+             ClosReadArch();
+@@ -2577,7 +2589,10 @@ int             ExtrArch ( bim, out, ovr
+         }
  
-                 /* remove "/../" from the path                             */
-                 char tmp [sizeof(patu)];
-                 char *p;
-                 char *q;
-+                found_trav = 1;
-                 memset(tmp, 0, sizeof(tmp));
-                 q = patu;
+         /* check that such a file does not already exist                   */
+-        strcpy( patl, pre );  strcat( patl, Entry.patl );
++        strncpy( patl, pre, sizeof( patl ) - 1 );
++        if ( sizeof(patl) - strnlen( patl, sizeof(patl) ) >
++             strnlen( Entry.patl, sizeof( Entry.patl ) ) + 1)
++            strncat( patl, Entry.patl, sizeof( Entry.patl ) );
+         if ( out == 2 && ovr == 0 && OpenReadFile(patl,0L) ) {
+             ClosReadFile();
+             do {
+
+
+[FILE:1525:patches/patch-001-CVE-2007-1673]
+Addresses CVE-2007-1673
+
+unzoo.c, as used in multiple products including AMaViS 2.4.1 and earlier,
+allows remote attackers to cause a denial of service (infinite loop) via
+a ZOO archive with a direntry structure that points to a previous file.
+--- src/unzoo.c.orig	2025-04-23 17:10:34 UTC
++++ src/unzoo.c
+@@ -2402,9 +2402,11 @@ int             ListArch ( ver, arc, fil
+     /* loop over the members of the archive                                */
+     Entry.posnxt = Descript.posent;
+     while ( 1 ) {
++	unsigned long oldpos = Entry.posnxt;
  
-@@ -2625,10 +2625,10 @@ int             ExtrArch ( bim, out, ovr
-                 printf("unzoo: skipped \"/../\" path component(s) in '%s'\n", Entry.patl);
-             }
-             if ( *patu == '/' && !strlen( pre ) ) {
--                found_trav = 1;
+         /* read the directory entry for the next member                    */
+-        if ( ! GotoReadArch( Entry.posnxt ) || ! EntrReadArch() ) {
++        if ( ! GotoReadArch( Entry.posnxt ) || ! EntrReadArch() ||
++             Entry.posnxt <= oldpos ) {
+             printf("unzoo: found bad directory entry in archive '%s'\n",arc);
+             return 0;
+         }
+@@ -2558,9 +2560,11 @@ int             ExtrArch ( bim, out, ovr
+     /* loop over the members of the archive                                */
+     Entry.posnxt = Descript.posent;
+     while ( 1 ) {
++	unsigned long oldpos = Entry.posnxt;
  
-                 char *p = malloc(sizeof(patu));
-                 char *q = p;
-+                found_trav = 1;
-                 memset(p, 0, sizeof(patu));
-                 strcpy(p, patu);
-                 while ( q[0] == '/' ) q++;
-@@ -2638,9 +2638,9 @@ int             ExtrArch ( bim, out, ovr
-                 printf("unzoo: skipped root directory path component in '%s'\n", patl);
-             }
-             if ( !strncmp( patu, "../", 3 )) {
--                found_trav = 1;
+         /* read the directory entry for the next member                    */
+-        if ( ! GotoReadArch( Entry.posnxt ) || ! EntrReadArch() ) {
++        if ( ! GotoReadArch( Entry.posnxt ) || ! EntrReadArch() ||
++             Entry.posnxt <= oldpos ) {
+             printf("unzoo: found bad directory entry in archive '%s'\n",arc);
+             return 0;
+         }
+
+
+[FILE:1322:patches/patch-002-fix-warnings]
+--- src/unzoo.c.orig	2022-01-02 12:42:42 UTC
++++ src/unzoo.c
+@@ -270,6 +270,11 @@
+ **  must be opened in binary mode, so that for example no  <cr>/<lf> <-> <lf>
+ **  translation happens.  You must supply a definition for each new port.
+ */
++#include        <stdlib.h>
++#include        <sys/stat.h>
++#include        <sys/types.h>
++#include        <utime.h>
++
+ #ifdef  SYS_IS_UNIX
+ FILE *          ReadArch;
+ #define OPEN_READ_ARCH(patl)    ((ReadArch = fopen( (patl), "r" )) != 0)
+@@ -613,8 +618,8 @@ char            Cmd [256];
+ **  members with the correct time as stored in the archive.
+ */
+ #ifdef  SYS_IS_UNIX
+-unsigned int   Secs [2];
+-#define SETF_TIME(patl,secs)    (Secs[0]=Secs[1]=(secs),!utime((patl),Secs))
++struct  utimbuf Secs;
++#define SETF_TIME(patl,secs)    (Secs.actime=Secs.modtime=(secs),!utime((patl),&Secs))
+ #endif
+ #ifdef  SYS_IS_DOS_DJGPP
+ unsigned long   Secs [2];
+@@ -1461,7 +1466,7 @@ struct {
+ int             DescReadArch ()
+ {
+     /* read the text at the beginning                                      */
+-    BlckReadArch(Descript.text,20L);  Descript.text[20] = '\0';
++    BlckReadArch(Descript.text,20L);  Descript.text[19] = '\0';
  
-                 char tmp [sizeof(patu)];
-+                found_trav = 1;
-                 memset(tmp, 0, sizeof(tmp));
-                 strcpy(tmp, patu + 3);
-                 strcpy(patu, tmp);
+     /* try to read the magic words                                         */
+     if ( (Descript.magic = WordReadArch()) != (unsigned long)0xfdc4a7dcL )
 
