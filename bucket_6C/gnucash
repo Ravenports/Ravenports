@@ -1378,8 +1378,86 @@ include/gnucash/
  window-main-summarybar.h
 
 
+[FILE:2815:patches/patch-boost-1.88]
+--- common/cmake_modules/GncAddSwigCommand.cmake.orig	2025-03-29 19:02:57 UTC
++++ common/cmake_modules/GncAddSwigCommand.cmake
+@@ -73,7 +73,7 @@ macro (gnc_add_swig_python_command _targ
+         endif()
+     set (DEFAULT_SWIG_PYTHON_FLAGS
+         -python ${SWIG_EXTRA_OPT}
+-        -Wall -Werror
++        -Wall
+         ${SWIG_ARGS}
+         )
+     set (DEFAULT_SWIG_PYTHON_C_INCLUDES
+--- libgnucash/app-utils/CMakeLists.txt.orig	2024-11-12 02:02:45 UTC
++++ libgnucash/app-utils/CMakeLists.txt
+@@ -70,7 +70,7 @@ endif()
+ 
+ 
+ add_library (gnc-app-utils ${app_utils_ALL_SOURCES} ${SWIG_APP_UTILS_GUILE_CPP})
+-target_link_libraries(gnc-app-utils ${app_utils_ALL_LIBRARIES})
++target_link_libraries(gnc-app-utils ${app_utils_ALL_LIBRARIES} boost_process)
+ 
+ target_include_directories (gnc-app-utils
+     PUBLIC
+--- libgnucash/app-utils/gnc-quotes.cpp.orig	2025-03-29 19:02:57 UTC
++++ libgnucash/app-utils/gnc-quotes.cpp
+@@ -39,6 +39,13 @@
+ #ifdef BOOST_WINDOWS_API
+ #include <boost/process/windows.hpp>
+ #endif
++#include <boost/process/v1/async.hpp>
++#include <boost/process/v1/child.hpp>
++#include <boost/process/v1/env.hpp>
++#include <boost/process/v1/environment.hpp>
++#include <boost/process/v1/error.hpp>
++#include <boost/process/v1/io.hpp>
++#include <boost/process/v1/search_path.hpp>
+ #include <boost/process.hpp>
+ #include <boost/regex.hpp>
+ #include <boost/property_tree/ptree.hpp>
+@@ -133,7 +140,7 @@ class GncFQQuoteSource final : public Gn
+     std::string c_fq_wrapper;
+     std::string m_version;
+     StrVec m_sources;
+-    bp::environment m_env;
++    bp::v1::environment m_env;
+ public:
+     GncFQQuoteSource();
+     ~GncFQQuoteSource() = default;
+@@ -152,7 +159,7 @@ static std::string parse_quotesource_err
+ static const std::string empty_string{};
+ 
+ GncFQQuoteSource::GncFQQuoteSource() :
+-c_cmd{bp::search_path("perl")},
++c_cmd{bp::v1::search_path("perl")},
+ m_version{}, m_sources{}, m_env{boost::this_process::environment()}
+ {
+     char *bindir = gnc_path_get_bindir();
+@@ -207,12 +214,12 @@ GncFQQuoteSource::run_cmd (const StrVec&
+         std::future<std::vector<char> > out_buf, err_buf;
+         boost::asio::io_context svc;
+ 
+-        auto input_buf = bp::buffer (json_string);
+-	bp::child process;
+-        process = bp::child(c_cmd, args,
+-                            bp::std_out > out_buf,
+-                            bp::std_err > err_buf,
+-                            bp::std_in < input_buf,
++        auto input_buf = bp::v1::buffer (json_string);
++	bp::v1::child process;
++        process = bp::v1::child(c_cmd, args,
++                            bp::v1::std_out > out_buf,
++                            bp::v1::std_err > err_buf,
++                            bp::v1::std_in < input_buf,
+ #ifdef BOOST_WINDOWS_API
+                             bp::windows::create_no_window,
+ #endif
+
+
 [FILE:454:patches/patch-libgnucash_quotes_CMakeLists.txt]
---- libgnucash/quotes/CMakeLists.txt.orig	2024-09-20 21:42:41 UTC
+--- libgnucash/quotes/CMakeLists.txt.orig	2024-11-12 02:02:45 UTC
 +++ libgnucash/quotes/CMakeLists.txt
 @@ -15,7 +15,7 @@ foreach(file finance-quote-wrapper)
    list(APPEND _MAN_FILES ${_MAN_OUTPUT})
