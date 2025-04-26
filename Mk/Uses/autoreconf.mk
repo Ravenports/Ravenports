@@ -25,39 +25,33 @@
 #		uses) contains AM_INIT_AUTOMAKE.
 #
 # Autoreconf may also run these additional commands provided by other ports.
-# A port needs to have a build depdendency on these ports when that's the case.
+# A port needs to have a build dependency on these ports when that's the case.
 #
-# autopoint	Provided by devel/gettext-tools.  Updates gettext related *.m4
+# autopoint	Provided by gettext:bldtools:std.  Updates gettext related *.m4
 #		files included with the source code and build scripts such as
 #		config.rpath.  Run by autoreconf if configure.ac (or one of the
 #		macros it uses) contains AM_GNU_GETTEXT.  A build dependency on
-#		devel/gettext-tools can be added with USES+=gettext-tools.
+#		can be added with USES+=gettext:build.
 #		Note that autoreconf runs autopoint even if a port has an NLS
 #		option and the option is disabled.  The build dependency on
 #		gettext-tools is not optional.  If the run dependency on
 #		gettext is optional this can be specified with
 #		NLS_USES=gettext-runtime.
-# gtkdocize	Provided by textproc/gtk-doc.  Updates gtk-doc related *.m4
+# gtkdocize	Provided by gtk-doc.  Updates gtk-doc related *.m4
 #		files included with the source code and build scripts such as
 #		gtk-doc.make.  Run by autoreconf if configure.ac contains
-#		GTK_DOC_CHECK.  The build dependency can be made optional with
-#		DOCS option and DOCS_BUILD_DEPENDS+=gtkdocize:textproc/gtk-doc
-#		on condition that you remove GTK_DOC_CHECK from configure.ac,
-#		for instance using a post-patch-DOCS-off target with the
-#		following command:
-#		@${REINPLACE_CMD} /^GTK_DOC_CHECK/d ${WRKSRC}/configure.ac
-#		It is likely that more patching is needed to eliminate or avoid
-#		use of gtk-doc.
-# intltoolize	Provided by textproc/intltool.  Updates intltool related *.m4
+#		GTK_DOC_CHECK.  The build dependency can be made with
+#		USES=gtkdoc.
+# intltoolize	Provided by intltool:primary.  Updates intltool related *.m4
 #		files included with the source code and build scripts such as
 #		po/Makefile.in.in.  Run by autoreconf if configure.ac contains
-#		(AC|IT)_PROG_INTLTOOL.  A build dependency on textproc/intltool
-#		can be added with USES+=gnome and USE_GNOME+=intltool.
-# libtoolize	Provided by devel/libtool.  Updates libtool related *.m4 files
+#		(AC|IT)_PROG_INTLTOOL.  A build dependency on intltool
+#		can be added with GNOME_COMPONENTS+= intltool.
+# libtoolize	Provided by libtool.  Updates libtool related *.m4 files
 #		included with the source code and build scripts such as
 #		ltmain.sh.  Run by autoreconf if configure.ac  (or one of the
 #		macros it uses) contains AC_PROG_LIBTOOL or LT_INIT.  A build
-#		dependency on devel/libtool is added implicitly when USES
+#		dependency on libtool is added implicitly when USES
 #		contains both autoreconf and libtool.
 #
 # Feature:	autoreconf
