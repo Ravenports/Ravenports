@@ -2,17 +2,19 @@
 
 NAMEBASE=		musikcube
 VERSION=		3.0.4
-REVISION=		1
+REVISION=		2
 KEYWORDS=		multimedia audio
 VARIANTS=		std
 SDESC[std]=		Terminal-based music player, server & more
 HOMEPAGE=		https://musikcube.com/
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main asio
 SITES[main]=		GITHUB/clangen:musikcube:3.0.4
+SITES[asio]=		GITHUB/chriskohlhoff:asio:f693a3e:src/3rdparty/asio
 DISTFILE[1]=		generated:main
-DF_INDEX=		1
+DISTFILE[2]=		generated:asio
+DF_INDEX=		1 2
 SPKGS[std]=		set
 			primary
 			dev
@@ -27,10 +29,7 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BROKEN[all]=		Fails to build after asio upgrade
-
 BUILD_DEPENDS=		alsa-lib:dev:std
-			asio:dev:std
 			curl:dev:std
 			ffmpeg6:dev:std
 			flac:dev:std
@@ -139,8 +138,9 @@ This subpackage contains the pipewire output plugin.
 This subpackage contains the portaudio output plugin.
 
 
-[FILE:109:distinfo]
+[FILE:221:distinfo]
 25bb95b8705d8c79bde447e7c7019372eea7eaed9d0268510278e7fcdb1378a5      4827124 clangen-musikcube-3.0.4.tar.gz
+8b3b6a20fefe74ba7216380c25211b1c57515806b4b41660bad84c544f2410b1      2962746 chriskohlhoff-asio-f693a3e.tar.gz
 
 
 [FILE:712:manifests/plist.primary]
@@ -255,47 +255,6 @@ share/musikcube/plugins/libpipewireout.so
 
 [FILE:43:manifests/plist.out_portaudio]
 share/musikcube/plugins/libportaudioout.so
-
-
-[FILE:1817:patches/patch-src_3rdparty_include_websocketpp_transport_asio_connection.hpp]
---- src/3rdparty/include/websocketpp/transport/asio/connection.hpp.orig	2024-07-14 19:37:30 UTC
-+++ src/3rdparty/include/websocketpp/transport/asio/connection.hpp
-@@ -573,7 +573,7 @@ protected:
-         lib::error_code const & ec)
-     {
-         if (ec == transport::error::operation_aborted ||
--            (post_timer && lib::asio::is_neg(post_timer->expires_from_now())))
-+            (post_timer && lib::asio::is_neg(post_timer->expires_after())))
-         {
-             m_alog->write(log::alevel::devel,"post_init cancelled");
-             return;
-@@ -679,7 +679,7 @@ protected:
-         // Whatever aborted it will be issuing the callback so we are safe to
-         // return
-         if (ec == lib::asio::error::operation_aborted ||
--            lib::asio::is_neg(m_proxy_data->timer->expires_from_now()))
-+            lib::asio::is_neg(m_proxy_data->timer->expires_after()))
-         {
-             m_elog->write(log::elevel::devel,"write operation aborted");
-             return;
-@@ -751,7 +751,7 @@ protected:
-         // Whatever aborted it will be issuing the callback so we are safe to
-         // return
-         if (ec == lib::asio::error::operation_aborted ||
--            lib::asio::is_neg(m_proxy_data->timer->expires_from_now()))
-+            lib::asio::is_neg(m_proxy_data->timer->expires_after()))
-         {
-             m_elog->write(log::elevel::devel,"read operation aborted");
-             return;
-@@ -1095,7 +1095,7 @@ protected:
-         callback, lib::asio::error_code const & ec)
-     {
-         if (ec == lib::asio::error::operation_aborted ||
--            lib::asio::is_neg(shutdown_timer->expires_from_now()))
-+            lib::asio::is_neg(shutdown_timer->expires_after()))
-         {
-             m_alog->write(log::alevel::devel,"async_shutdown cancelled");
-             return;
 
 
 [FILE:479:patches/patch-src_musikcube_cursespp_cursespp_curses__config.h]

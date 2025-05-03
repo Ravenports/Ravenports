@@ -460,7 +460,27 @@ doc_files() {
 		err "Package documents detected outside of docs manifest"
 		for xf in ${entries}; do
 		  writeln "  ${xf}"
-		done 
+		done
+		return 1
+	fi
+	return 0
+}
+
+info_files() {
+	local entries
+	entries=$(find "${STAGEDIR}/.." -maxdepth 1 -type f \
+		\( -name '\.manifest\.*\.mktmp' -a ! \
+		   -name '\.manifest\.info\.mktmp' \) \
+		   -exec grep -E '^(@info \/\S+\/)?share\/info\/' {} \; 2>/dev/null)
+
+	if [ -n "${entries}" ]; then
+		err "Package info page detected outside of info manifest"
+		for xf in ${entries}; do
+		  if [ "${xf}" != "@info" ]
+		  then
+		    writeln "  ${xf}"
+		  fi
+		done
 		return 1
 	fi
 	return 0
@@ -558,7 +578,7 @@ rcscripts() {
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
 checks="$checks sonames nls_files doc_files uses_fbsd10fix uses_mbsdfix"
-checks="$checks completeset rcscripts"
+checks="$checks info_files completeset rcscripts"
 # don't add to this line
 checks="$checks missing_license licterms showlic py_conflicts"
 
