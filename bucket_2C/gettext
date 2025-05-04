@@ -86,6 +86,12 @@ post-install:
 .endif
 	${RM} ${STAGEDIR}${PREFIX}/share/info/libtextstyle.info
 	${RMDIR} ${STAGEDIR}${PREFIX}/lib/gettext
+	# v0.24.1 broke a couple of autoreconf ports (wavpack, libmtp) with
+	# relocation of m4 files, so add symlinks
+	${MKDIR} ${STAGEDIR}${PREFIX}/share/aclocal
+.for m4 in gettext iconv nls po lib-ld lib-link lib-prefix
+	${LN} -s ../gettext/m4/${m4}.m4 ${STAGEDIR}${PREFIX}/share/aclocal/${m4}.m4
+.endfor
 
 pre-configure:
 	# Do not install csharp and java documentation.
@@ -471,7 +477,15 @@ lib/
  libasprintf.so
 
 
-[FILE:159:manifests/plist.aclocal]
+[FILE:250:manifests/plist.aclocal]
+share/aclocal/
+ gettext.m4
+ iconv.m4
+ lib-ld.m4
+ lib-link.m4
+ lib-prefix.m4
+ nls.m4
+ po.m4
 share/gettext/m4/
  build-to-host.m4
  gettext.m4
