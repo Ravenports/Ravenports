@@ -111,7 +111,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.13.6
+LIBXML2_VERSION=		2.14.2
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -145,7 +145,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.49
-GTK4_PORT_VERSION=		4.18.4
+GTK4_PORT_VERSION=		4.18.5
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -186,9 +186,9 @@ LLVM16_VERSION=			16.0.6		# required for javaports unkindness
 LLVM17_VERSION=			17.0.6		# same
 LLVM18_VERSION=			18.1.8		# same
 LLVM19_VERSION=			19.1.7		# same
-LLVM20_VERSION=			20.1.3
+LLVM20_VERSION=			20.1.4
 ZLIB_VERSION=			1.3.1
-GHOSTSCRIPT_VERSION=		10.05.0
+GHOSTSCRIPT_VERSION=		10.05.1
 SPHINX_UNDERSCORE=		1.13.1
 ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0

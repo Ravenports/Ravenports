@@ -2,7 +2,7 @@
 
 NAMEBASE=		dbus
 VERSION=		1.16.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Message bus system for IPC communication
@@ -63,11 +63,6 @@ post-install:
 	# install xmlcat catalogs
 	(cd ${WRKDIR} && ${INSTALL_DATA} catalog* \
 		${STAGEDIR}${PREFIX}/share/xml/dbus-1/)
-	# Workaround for software looking for machine-id in wrong place (lumina)
-	${MKDIR} ${STAGEDIR}/var/lib
-	${MKDIR} ${STAGEDIR}/var/run
-	${LN} -s ../..${PREFIX}/var/lib/dbus ${STAGEDIR}/var/lib/dbus
-	${LN} -s ../..${PREFIX}/var/run/dbus ${STAGEDIR}/var/run/dbus
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|/usr/local|${LOCALBASE}|g' \
@@ -92,9 +87,7 @@ daemon).
 0ba2a1a4b16afe7bceb2c07e9ce99a8c2c3508e5dec290dbb643384bd6beb7e2      1115644 dbus-1.16.2.tar.xz
 
 
-[FILE:648:manifests/plist.primary]
-/var/lib/dbus
-/var/run/dbus
+[FILE:622:manifests/plist.primary]
 bin/
  dbus-cleanup-sockets
  dbus-daemon
@@ -118,12 +111,12 @@ share/dbus-1/
 share/xml/dbus-1/
  busconfig.dtd
  introspect.dtd
+@dir /var/lib/dbus
+@dir /var/run/dbus
 @dir share/dbus-1/services
 @dir share/dbus-1/session.d
 @dir share/dbus-1/system-services
 @dir share/dbus-1/system.d
-@dir var/lib/dbus
-@dir var/run/dbus
 @xmlcatmgr %%DTDDIR%%/catalog
 @xmlcatmgr %%DTDDIR%%/catalog.xml
 
@@ -195,7 +188,7 @@ share/doc/dbus/examples/
 
 
 [FILE:3151:patches/patch-dbus_dbus-connection.c]
---- dbus/dbus-connection.c.orig	2024-12-16 12:21:54 UTC
+--- dbus/dbus-connection.c.orig	2025-02-27 16:29:06 UTC
 +++ dbus/dbus-connection.c
 @@ -2401,7 +2401,7 @@ _dbus_connection_block_pending_call (DBu
    DBusConnection *connection;
@@ -267,7 +260,7 @@ share/doc/dbus/examples/
 
 
 [FILE:542:patches/patch-tools_dbus-launch.c]
---- tools/dbus-launch.c.orig	2024-12-16 12:21:54 UTC
+--- tools/dbus-launch.c.orig	2025-02-27 16:29:06 UTC
 +++ tools/dbus-launch.c
 @@ -853,6 +853,12 @@ main (int argc, char **argv)
    exit_with_session = FALSE;
