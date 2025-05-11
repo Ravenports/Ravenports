@@ -984,6 +984,23 @@ Fix building on systems where RTF_LLINFO is not defined.
  			   from seeing incoming traffic, even in other
 
 
+[FILE:519:patches/patch-libdnet-stripped_src_intf.c]
+--- libdnet-stripped/src/intf.c.orig	2025-03-31 19:30:47 UTC
++++ libdnet-stripped/src/intf.c
+@@ -178,7 +178,11 @@ intf_open(void)
+ #if defined(SIOCGLIFCONF) || defined(SIOCGIFNETMASK_IN6) || defined(SIOCGIFNETMASK6)
+ 		if ((intf->fd6 = socket(AF_INET6, SOCK_DGRAM, 0)) < 0) {
+ #  ifdef EPROTONOSUPPORT
++#    if defined(__FreeBSD__) || defined(__DragonFly__)
++			if (errno != EPROTONOSUPPORT && errno != EAFNOSUPPORT)
++#    else
+ 			if (errno != EPROTONOSUPPORT)
++#    endif
+ #endif
+ 				return (intf_close(intf));
+ 		}
+
+
 [FILE:470:patches/patch-liblinear_Makefile]
 --- liblinear/Makefile.orig	2024-02-28 18:18:35 UTC
 +++ liblinear/Makefile
@@ -1042,37 +1059,4 @@ Fix building on systems where RTF_LLINFO is not defined.
  #include "nmap.h"
  #include "osscan.h"
  #include "scan_engine.h"
-
-
-[FILE:441:freebsd/patch-intf.c]
---- libdnet-stripped/src/intf.c.orig	2016-07-27 20:11:27 UTC
-+++ libdnet-stripped/src/intf.c
-@@ -163,7 +163,7 @@ intf_open(void)
- #if defined(SIOCGLIFCONF) || defined(SIOCGIFNETMASK_IN6) || defined(SIOCGIFNETMASK6)
- 		if ((intf->fd6 = socket(AF_INET6, SOCK_DGRAM, 0)) < 0) {
- #  ifdef EPROTONOSUPPORT
--			if (errno != EPROTONOSUPPORT)
-+			if (errno != EPROTONOSUPPORT && errno != EAFNOSUPPORT)
- #  endif
- 				return (intf_close(intf));
- 		}
-
-
-[FILE:506:freebsd/patch-libdnet-stripped__configure]
---- libdnet-stripped/configure.orig	2020-10-13 20:13:38 UTC
-+++ libdnet-stripped/configure
-@@ -11824,11 +11824,8 @@ $as_echo_n "checking for Berkeley Packet
-     if ${ac_cv_dnet_bsd_bpf+:} false; then :
-   $as_echo_n "(cached) " >&6
- else
--  if test -c /dev/bpf0 ; then
--	    ac_cv_dnet_bsd_bpf=yes
--	else
--	    ac_cv_dnet_bsd_bpf=no
--	fi
-+# PR ports/154353 : support building in FreeBSD jail
-+    ac_cv_dnet_bsd_bpf=yes
- fi
- 
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_dnet_bsd_bpf" >&5
 
