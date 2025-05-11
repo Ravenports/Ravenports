@@ -89,11 +89,11 @@ TCL_9.0_VERSION=	9.0.1
 
 PGSQL_DEFAULT?=		16
 
-PGSQL_13_VERSION=	13.20
-PGSQL_14_VERSION=	14.17
-PGSQL_15_VERSION=	15.12
-PGSQL_16_VERSION=	16.8
-PGSQL_17_VERSION=	17.4
+PGSQL_13_VERSION=	13.21
+PGSQL_14_VERSION=	14.18
+PGSQL_15_VERSION=	15.13
+PGSQL_16_VERSION=	16.9
+PGSQL_17_VERSION=	17.5
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
@@ -121,9 +121,9 @@ MYSQL_DEFAULT=			oracle-8.0
 MYSQL_oracle-8.0_VERSION=	8.0.42
 MYSQL_oracle-8.4_VERSION=	8.4.5
 MYSQL_innovation_VERSION=	9.3.0
-MYSQL_mariadb-10.5_VERSION=	10.5.28
-MYSQL_mariadb-10.6_VERSION=	10.6.21
-MYSQL_mariadb-10.11_VERSION=	10.11.11
+MYSQL_mariadb-10.5_VERSION=	10.5.29
+MYSQL_mariadb-10.6_VERSION=	10.6.22
+MYSQL_mariadb-10.11_VERSION=	10.11.12
 MYSQL_mariadb-11.4_VERSION=	11.4.5
 MYSQL_mariadb-11_VERSION=	11.7.2
 
@@ -135,8 +135,8 @@ MYSQL_mariadb-11_VERSION=	11.7.2
 PHP_DEFAULT?=		8.3
 
 PHP_8.2_VERSION=	8.2.28
-PHP_8.3_VERSION=	8.3.20
-PHP_8.4_VERSION=	8.4.6
+PHP_8.3_VERSION=	8.3.21
+PHP_8.4_VERSION=	8.4.7
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
