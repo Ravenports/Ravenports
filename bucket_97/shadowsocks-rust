@@ -1641,7 +1641,79 @@ bin/
  
 
 
-[FILE:4565:patches/patch-cargo-crates_shadowsocks-service-1.23.2_src_config.rs]
+[FILE:769:files/sslocal-rust.in]
+#!/bin/sh
+
+# PROVIDE: sslocal_rust
+# REQUIRE: NETWORKING SERVERS
+#
+# Add the following lines to /etc/rc.conf to run sslocal:
+# sslocal_rust_enable (bool):	Set it to "YES" to enable sslocal.
+#				Default is "NO".
+# sslocal_rust_args (string):	Set it to the desired arguments to run sslocal.
+#				Default is "-c %%ETCDIR%%/config.json".
+#
+
+. /etc/rc.subr
+
+name="sslocal_rust"
+rcvar=sslocal_rust_enable
+
+pidfile="/var/run/${name}.pid"
+logfile="/var/log/${name}.log"
+
+: ${sslocal_rust_enable="NO"}
+: ${sslocal_rust_args="-c %%ETCDIR%%/config.json"}
+
+procname=%%PREFIX%%/bin/sslocal
+command="/usr/sbin/daemon"
+command_args="-f -S \
+	-p ${pidfile} \
+	-o ${logfile} \
+	-t ${name}_sslocal \
+	%%PREFIX%%/bin/sslocal $sslocal_rust_args"
+
+load_rc_config $name
+run_rc_command "$1"
+
+
+[FILE:783:files/ssserver-rust.in]
+#!/bin/sh
+
+# PROVIDE: ssserver_rust
+# REQUIRE: NETWORKING SERVERS
+#
+# Add the following lines to /etc/rc.conf to run ssserver:
+# ssserver_rust_enable (bool):	Set it to "YES" to enable ssserver.
+#				Default is "NO".
+# ssserver_rust_args (string):	Set it to the desired arguments to run ssserver.
+#				Default is "-c %%ETCDIR%%/config.json".
+#
+
+. /etc/rc.subr
+
+name="ssserver_rust"
+rcvar=ssserver_rust_enable
+
+pidfile="/var/run/${name}.pid"
+logfile="/var/log/${name}.log"
+
+: ${ssserver_rust_enable="NO"}
+: ${ssserver_rust_args="-c %%ETCDIR%%/config.json"}
+
+procname=%%PREFIX%%/bin/ssserver
+command="/usr/sbin/daemon"
+command_args="-f -S \
+	-p ${pidfile} \
+	-o ${logfile} \
+	-t ${name}_ssserver \
+	%%PREFIX%%/bin/ssserver $ssserver_rust_args"
+
+load_rc_config $name
+run_rc_command "$1"
+
+
+[FILE:4565:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.2_src_config.rs]
 --- cargo-crates/shadowsocks-service-1.23.3/src/config.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/src/config.rs
 @@ -206,7 +206,7 @@ struct SSConfig {
@@ -1748,7 +1820,7 @@ bin/
          }
 
 
-[FILE:403:patches/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_net_udp_association.rs]
+[FILE:403:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_net_udp_association.rs]
 --- cargo-crates/shadowsocks-service-1.23.3/src/local/net/udp/association.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/src/local/net/udp/association.rs
 @@ -479,6 +479,7 @@ where
@@ -1761,7 +1833,7 @@ bin/
  
 
 
-[FILE:1022:patches/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_sys_unix_mod.rs]
+[FILE:1022:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_sys_unix_mod.rs]
 --- cargo-crates/shadowsocks-service-1.23.3/src/local/redir/sys/unix/mod.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/src/local/redir/sys/unix/mod.rs
 @@ -3,6 +3,7 @@ use cfg_if::cfg_if;
@@ -1783,7 +1855,7 @@ bin/
          #[allow(clippy::useless_transmute, clippy::too_many_arguments, clippy::unnecessary_cast)]
 
 
-[FILE:1996:patches/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_tcprelay_sys_unix_bsd.rs]
+[FILE:1996:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_tcprelay_sys_unix_bsd.rs]
 --- cargo-crates/shadowsocks-service-1.23.3/src/local/redir/tcprelay/sys/unix/bsd.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/src/local/redir/tcprelay/sys/unix/bsd.rs
 @@ -19,10 +19,10 @@ use crate::{
@@ -1819,7 +1891,7 @@ bin/
                  //
 
 
-[FILE:514:patches/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_tcprelay_sys_unix_mod.rs]
+[FILE:514:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_tcprelay_sys_unix_mod.rs]
 --- cargo-crates/shadowsocks-service-1.23.3/src/local/redir/tcprelay/sys/unix/mod.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/src/local/redir/tcprelay/sys/unix/mod.rs
 @@ -7,6 +7,7 @@ cfg_if! {
@@ -1832,7 +1904,7 @@ bin/
          pub use self::bsd::*;
 
 
-[FILE:556:patches/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_udprelay_sys_unix_mod.rs]
+[FILE:556:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_redir_udprelay_sys_unix_mod.rs]
 --- cargo-crates/shadowsocks-service-1.23.3/src/local/redir/udprelay/sys/unix/mod.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/src/local/redir/udprelay/sys/unix/mod.rs
 @@ -7,7 +7,7 @@ cfg_if! {
@@ -1846,7 +1918,7 @@ bin/
      } else if #[cfg(target_os = "openbsd")] {
 
 
-[FILE:536:patches/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_tun_mod.rs]
+[FILE:536:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.2_src_local_tun_mod.rs]
 --- cargo-crates/shadowsocks-service-1.23.3/src/local/tun/mod.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/src/local/tun/mod.rs
 @@ -28,6 +28,7 @@ cfg_if! {
@@ -1859,7 +1931,7 @@ bin/
              create_as_async, AsyncDevice, Configuration as TunConfiguration, AbstractDevice, Error as TunError, Layer,
 
 
-[FILE:531:patches/patch-cargo-crates_shadowsocks-service-1.23.3_Cargo.toml]
+[FILE:531:dragonfly/patch-cargo-crates_shadowsocks-service-1.23.3_Cargo.toml]
 --- cargo-crates/shadowsocks-service-1.23.3/Cargo.toml.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/shadowsocks-service-1.23.3/Cargo.toml
 @@ -343,7 +343,7 @@ version = "0.7"
@@ -1873,7 +1945,7 @@ bin/
  
 
 
-[FILE:1855:patches/patch-cargo-crates_tokio-1.44.2_src_io_interest.rs]
+[FILE:1855:dragonfly/patch-cargo-crates_tokio-1.44.2_src_io_interest.rs]
 --- cargo-crates/tokio-1.45.0/src/io/interest.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tokio-1.45.0/src/io/interest.rs
 @@ -10,7 +10,7 @@ use std::ops;
@@ -1928,7 +2000,7 @@ bin/
                  write!(fmt, " | ")?;
 
 
-[FILE:542:patches/patch-cargo-crates_tokio-1.44.2_src_io_poll__evented.rs]
+[FILE:542:dragonfly/patch-cargo-crates_tokio-1.44.2_src_io_poll__evented.rs]
 --- cargo-crates/tokio-1.45.0/src/io/poll_evented.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tokio-1.45.0/src/io/poll_evented.rs
 @@ -206,6 +206,7 @@ feature! {
@@ -1941,7 +2013,7 @@ bin/
                                  target_os = "netbsd",
 
 
-[FILE:498:patches/patch-cargo-crates_tokio-1.44.2_src_io_ready.rs]
+[FILE:498:dragonfly/patch-cargo-crates_tokio-1.44.2_src_io_ready.rs]
 --- cargo-crates/tokio-1.45.0/src/io/ready.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tokio-1.45.0/src/io/ready.rs
 @@ -57,7 +57,7 @@ impl Ready {
@@ -1955,7 +2027,7 @@ bin/
                  ready |= Ready::READABLE;
 
 
-[FILE:680:patches/patch-cargo-crates_tokio-1.44.2_src_macros_cfg.rs]
+[FILE:680:dragonfly/patch-cargo-crates_tokio-1.44.2_src_macros_cfg.rs]
 --- cargo-crates/tokio-1.45.0/src/macros/cfg.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tokio-1.45.0/src/macros/cfg.rs
 @@ -84,9 +84,9 @@ macro_rules! cfg_atomic_waker_impl {
@@ -1972,7 +2044,7 @@ bin/
          )*
 
 
-[FILE:433:patches/patch-cargo-crates_tokio-1.45.0_Cargo.toml]
+[FILE:433:dragonfly/patch-cargo-crates_tokio-1.45.0_Cargo.toml]
 --- cargo-crates/tokio-1.45.0/Cargo.toml.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tokio-1.45.0/Cargo.toml
 @@ -804,7 +804,7 @@ version = "0.5.5"
@@ -1986,7 +2058,7 @@ bin/
  
 
 
-[FILE:460:patches/patch-cargo-crates_tun-0.7.18_Cargo.toml]
+[FILE:460:dragonfly/patch-cargo-crates_tun-0.7.18_Cargo.toml]
 --- cargo-crates/tun-0.7.19/Cargo.toml.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tun-0.7.19/Cargo.toml
 @@ -142,7 +142,7 @@ version = "1"
@@ -2000,7 +2072,7 @@ bin/
  [target.'cfg(target_os = "windows")'.dependencies.futures]
 
 
-[FILE:581:patches/patch-cargo-crates_tun-0.7.18_src_platform_mod.rs]
+[FILE:581:dragonfly/patch-cargo-crates_tun-0.7.18_src_platform_mod.rs]
 --- cargo-crates/tun-0.7.19/src/platform/mod.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tun-0.7.19/src/platform/mod.rs
 @@ -24,9 +24,9 @@ pub(crate) mod linux;
@@ -2017,7 +2089,7 @@ bin/
  #[cfg(target_os = "macos")]
 
 
-[FILE:735:patches/patch-cargo-crates_tun-0.7.18_src_platform_posix_split.rs]
+[FILE:735:dragonfly/patch-cargo-crates_tun-0.7.18_src_platform_posix_split.rs]
 --- cargo-crates/tun-0.7.19/src/platform/posix/split.rs.orig	2025-05-12 00:10:42 UTC
 +++ cargo-crates/tun-0.7.19/src/platform/posix/split.rs
 @@ -47,9 +47,9 @@ pub(crate) fn generate_packet_informatio
@@ -2032,76 +2104,4 @@ bin/
      const TUN_PROTO_IP4: [u8; PIL] = 0x0800_u32.to_be_bytes();
  
      #[cfg(unix)]
-
-
-[FILE:769:files/sslocal-rust.in]
-#!/bin/sh
-
-# PROVIDE: sslocal_rust
-# REQUIRE: NETWORKING SERVERS
-#
-# Add the following lines to /etc/rc.conf to run sslocal:
-# sslocal_rust_enable (bool):	Set it to "YES" to enable sslocal.
-#				Default is "NO".
-# sslocal_rust_args (string):	Set it to the desired arguments to run sslocal.
-#				Default is "-c %%ETCDIR%%/config.json".
-#
-
-. /etc/rc.subr
-
-name="sslocal_rust"
-rcvar=sslocal_rust_enable
-
-pidfile="/var/run/${name}.pid"
-logfile="/var/log/${name}.log"
-
-: ${sslocal_rust_enable="NO"}
-: ${sslocal_rust_args="-c %%ETCDIR%%/config.json"}
-
-procname=%%PREFIX%%/bin/sslocal
-command="/usr/sbin/daemon"
-command_args="-f -S \
-	-p ${pidfile} \
-	-o ${logfile} \
-	-t ${name}_sslocal \
-	%%PREFIX%%/bin/sslocal $sslocal_rust_args"
-
-load_rc_config $name
-run_rc_command "$1"
-
-
-[FILE:783:files/ssserver-rust.in]
-#!/bin/sh
-
-# PROVIDE: ssserver_rust
-# REQUIRE: NETWORKING SERVERS
-#
-# Add the following lines to /etc/rc.conf to run ssserver:
-# ssserver_rust_enable (bool):	Set it to "YES" to enable ssserver.
-#				Default is "NO".
-# ssserver_rust_args (string):	Set it to the desired arguments to run ssserver.
-#				Default is "-c %%ETCDIR%%/config.json".
-#
-
-. /etc/rc.subr
-
-name="ssserver_rust"
-rcvar=ssserver_rust_enable
-
-pidfile="/var/run/${name}.pid"
-logfile="/var/log/${name}.log"
-
-: ${ssserver_rust_enable="NO"}
-: ${ssserver_rust_args="-c %%ETCDIR%%/config.json"}
-
-procname=%%PREFIX%%/bin/ssserver
-command="/usr/sbin/daemon"
-command_args="-f -S \
-	-p ${pidfile} \
-	-o ${logfile} \
-	-t ${name}_ssserver \
-	%%PREFIX%%/bin/ssserver $ssserver_rust_args"
-
-load_rc_config $name
-run_rc_command "$1"
 
