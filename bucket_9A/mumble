@@ -46,6 +46,8 @@ BUILDRUN_DEPENDS=	avahi:primary:std
 			qt5-qttools:primary:std
 			speexdsp:primary:std
 			utf8proc:primary:std
+B_DEPS[linux]=		alsa-lib:dev:std
+BR_DEPS[linux]=		alsa-lib:primary:std
 
 USES=			cmake desktop-utils:client execinfo expat gmake
 			pcre2 pkgconfig python:build shebangfix ssl zlib cpe
@@ -81,6 +83,15 @@ CMAKE_ARGS=		-DCMAKE_PREFIX_PATH={{PREFIX}}/lib/qt5/cmake
 			-Dtranslations=on
 			-Dxinput2=on
 			-Doss=on
+			-Dspeechd=off
+			-Dpulseaudio=off
+			-Dpipewire=off
+
+post-install-linux:
+	(cd ${STAGEDIR}${PREFIX}/etc/sysusers.d && \
+		${MV} mumble-server.conf mumble-server.conf.sample)
+	(cd ${STAGEDIR}${PREFIX}/etc/tmpfiles.d && \
+		${MV} mumble-server.conf mumble-server.conf.sample)
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/mumble
@@ -128,7 +139,53 @@ user database
 db8990079f556a877218d471bcf2c24eb5e4520b652f3c20793d0aadedaae6ae     26010842 mumble-1.5.735.tar.gz
 
 
-[FILE:308:manifests/plist.client]
+[FILE:927:manifests/plist.client]
+%%ONLY-LINUX%%lib/mumble/plugins/
+ libamongus.so
+ libaoc.so
+ libarma2.so
+ libbf1.so
+ libbf1942.so
+ libbf2.so
+ libbf2142.so
+ libbf3.so
+ libbf4.so
+ libbf4_x86.so
+ libbfbc2.so
+ libbfheroes.so
+ libblacklight.so
+ libborderlands.so
+ libborderlands2.so
+ libbreach.so
+ libcod2.so
+ libcod4.so
+ libcod5.so
+ libcodmw2.so
+ libcodmw2so.so
+ libcs.so
+ libdys.so
+ libetqw.so
+ libffxiv.so
+ libffxiv_x64.so
+ libgmod.so
+ libgtaiv.so
+ libgtasa.so
+ libgtav.so
+ libgw.so
+ libinsurgency.so
+ libjc2.so
+ liblol.so
+ liblotro.so
+ libql.so
+ librl.so
+ libse.so
+ libsr.so
+ libut2004.so
+ libut3.so
+ libut99.so
+ libwolfet.so
+ libwow.so
+ libwow_x64.so
 bin/
  mumble
  mumble-overlay
@@ -142,16 +199,21 @@ share/icons/hicolor/scalable/apps/mumble.svg
 share/metainfo/info.mumble.Mumble.appdata.xml
 
 
-[FILE:47:manifests/plist.server]
+[FILE:273:manifests/plist.server]
+%%ONLY-LINUX%%@sample etc/sysusers.d/mumble-server.conf.sample
+%%ONLY-LINUX%%@sample etc/tmpfiles.d/mumble-server.conf.sample
+%%ONLY-LINUX%%bin/mumble-server-user-wrapper
+%%ONLY-LINUX%%etc/systemd/system/mumble-server.service
 bin/mumble-server
 etc/mumble/mumble-server.ini
 
 
-[FILE:61:manifests/plist.man]
+[FILE:119:manifests/plist.man]
+%%ONLY-LINUX%%share/man/man1/mumble-server-user-wrapper.1
 share/man/man1/
  mumble-overlay.1
- mumble.1
  mumble-server.1
+ mumble.1
 
 
 [FILE:1330:patches/patch-src_ProcessResolver.cpp]

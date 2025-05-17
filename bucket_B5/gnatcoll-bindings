@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnatcoll-bindings
 VERSION=		25.0.0
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		std
@@ -75,7 +76,7 @@ do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		gprbuild -p -XLIBRARY_TYPE=${libtype} \
 		-XGNATCOLL_VERSION="25.0" \
-		-XGNATCOLL_ICONV_OPT="-liconv_pic" \
+		-XGNATCOLL_ICONV_OPT="${ICONV_LIB_PIC}" \
 		-XGNATCOLL_PYTHON_CFLAGS="-I${LOCALBASE}/include/python3.12" \
 		-P ${component}/gnatcoll_${component}.gpr)
 .  endfor
@@ -96,7 +97,7 @@ do-install:
 		--no-manifest \
 		-XGNATCOLL_VERSION="25.0" \
 		-XLIBRARY_TYPE=${libtype} \
-		-XGNATCOLL_ICONV_OPT="-liconv_pic" \
+		-XGNATCOLL_ICONV_OPT="${ICONV_LIB_PIC}" \
 		-P ${component}/gnatcoll_${component}.gpr)
 .  endfor
 	${MKDIR} ${STAGEDIR}${PREFIX}/include/gnatcoll_${component}
@@ -485,7 +486,7 @@ share/gpr/
 +end GnatColl_Python3;
 
 
-[FILE:2458:files/gen_gpr.sh]
+[FILE:2484:files/gen_gpr.sh]
 #!/bin/sh
 # This scripts generates gpr files and creates symbolic links
 # Expected inputs: component, destdir, python-includes
@@ -506,10 +507,10 @@ case "$name" in
 		component_upper=GMP
 		linker_opts='"-lgmp"'
 		;;
-	"iconv")	
+	"iconv")
 		component=Iconv
 		component_upper=ICONV
-		linker_opts='"-liconv"'
+		linker_opts=	# none required (glibc or liconv_pic)
 		;;
 	"readline")
 		component=Readline
@@ -597,7 +598,7 @@ ln -s "../libgnatcoll_${name}.so.${soversion}" \
 	"${destdir}/lib/gnatcoll_${component_lower}.relocatable/libgnatcoll_${name}.so.${soversion}"
 
 
-[FILE:1997:files/gnatcoll_template.gpr]
+[FILE:1996:files/gnatcoll_template.gpr]
 with "gpr";
 with "xmlada_schema";
 with "xmlada_dom";
@@ -655,7 +656,7 @@ library project GnatColl_%%COMPONENT%% is
    %%PYTHON_ON%%python_static_lib := "";
    %%PYTHON_ON%%python_libs       := ();
    %%PYTHON_ON%%python_cflags     := ("%%PYTHON_INCLUDE%%");
-   %%ICONV_ON%%iconv_opt    := "-liconv";
+   %%ICONV_ON%%iconv_opt          := "";
    build        : build_type := "PROD";
    name         := "gnatcoll_%%NAME%%";
    version      := "0.0";

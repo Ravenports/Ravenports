@@ -1,123 +1,124 @@
 #!/bin/sh
+# shellcheck disable=SC1091,SC3037,SC2154
 
 set -e
 
 . "${dp_SCRIPTSDIR}/functions.sh"
 
 validate_env dp_DISTDIR dp_DISTINFO_FILE dp_DISABLE_CHECKSUM dp_DISABLE_SIZE \
-	dp_DIST_SUBDIR dp_ECHO_MSG dp_FETCH_CMD dp_FORCE_FETCH_ALL \
-	dp_FORCE_FETCH_LIST dp_MASTER_SITE_BACKUP dp_MASTER_SITE_OVERRIDE \
+	dp_DIST_SUBDIR dp_ECHO_MSG dp_FETCH_CMD \
+	dp_MASTER_SITE_BACKUP dp_MASTER_SITE_OVERRIDE \
 	dp_MASTER_SORT_AWK dp_TARGET dp_FETCH_ENV dp_OPSYS
 
-[ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_DO_FETCH}" ] && set -x
+[ -n "${DEBUG_MK_SCRIPTS}" ] || [ -n "${DEBUG_MK_SCRIPTS_DO_FETCH}" ] && set -x
 
 . "${dp_SCRIPTSDIR}/sites.sh"
 
 set -u
 
-if [ ! -d "${dp_DISTDIR}/${dp_DIST_SUBDIR}" ]; then
-	mkdir -p "${dp_DISTDIR}/${dp_DIST_SUBDIR}"
-fi
-cd "${dp_DISTDIR}/${dp_DIST_SUBDIR}"
-
-if [ -f /usr/bin/lockf ]; then
-    if [ ! -n "${DO_FETCH_ISLOCKED:=}" ]; then
-	for _file in "${@}"; do
-		file=${_file%%:*}
-		lkfile="`echo "$file" | /bin/md5`"
-		DO_FETCH_ISLOCKED=YES /usr/bin/lockf -s ${lkfile}.lk sh $0 "${_file}" || exit 1
-	done
-	exit 0
-    fi
-else
-    ${dp_ECHO_MSG} "=> Notice: Upgrade ravensys-root; /usr/bin/lockf was not detected."
-fi
+mkdir -p "${dp_DISTDIR}"/"${dp_DIST_SUBDIR}"
+mkdir -p "${dp_DISTDIR}"/transient
 
 for _file in "${@}"; do
+	# _file = <filename>:<sitegroup>.  Validated at spec sheet level.
 	file=${_file%%:*}
+	sitegroup=${_file##*:}
+	full_file="${dp_DIST_SUBDIR:+${dp_DIST_SUBDIR}/}${file}"
+	final_path="${dp_DISTDIR}/${dp_DIST_SUBDIR}/${file}"
+	download_path="${dp_DISTDIR}/transient/${file}"
+	path_hash=$(echo "$full_file" | /bin/md5)
+	lockfile="${dp_DISTDIR}/transient/${path_hash}.lk"
+	maxsecs=$((60 * 60 * 2)) # Put a two hour maximum on downloads
+	tzero=$(date +%s)
 
-	# If this files has groups
-	if [ "$_file" = "$file" ]; then
-		${dp_ECHO_MSG} "===> /!\\ Error /!\\"
-		${dp_ECHO_MSG} "     The $file is missing the mandatory :group"
-		exit 1
-	else
-		select=$(echo "${_file##*:}" | sed -e 's/,/ /g')
-	fi
+	until [ ! -f "${lockfile}" ]
+	do
+		tnow=$(date +%s)
+		elapsed=$((tnow - tzero))
+		if [ ${elapsed} -gt ${maxsecs} ]; then
+			${dp_ECHO_MSG} "=> The ${file} file was locked for 2+ hours"
+			${dp_ECHO_MSG} "=> Another fetch process is downloading it"
+			${dp_ECHO_MSG} "=> Consider using a faster mirror"
+			exit 1
+		fi
+		sleep 10
+	done
 
-	filebasename=${file##*/}
-	if [ -n "${dp_FORCE_FETCH_ALL}" ]; then
-		force_fetch=true
-	else
-		force_fetch=false
-		for afile in ${dp_FORCE_FETCH_LIST}; do
-			afile=${afile##*/}
-			if [ "x$afile" = "x$filebasename" ]; then
-				force_fetch=true
-			fi
-		done
-	fi
-	if [ -f "${file}" -a "$force_fetch" != "true" ]; then
+	touch "${lockfile}"
+
+	if [ -f "${final_path}" ]; then
+		# regular file exists.  Don't verify size or checksum
+		# The makesum target will establish those properties.
+		# The do-fetch target already verified them at download time
+		# The extract phase will verify the checksum in case they were placed in
+		# the distfiles directory by a different mechanism.
+		rm -f "${lockfile}"
 		continue
 	fi
-	full_file="${dp_DIST_SUBDIR:+${dp_DIST_SUBDIR}/}${file}"
-	if [ -L "$file" ]; then
-		${dp_ECHO_MSG} "=> ${dp_DISTDIR}/$file is a broken symlink."
-		${dp_ECHO_MSG} "=> Perhaps a filesystem (most likely a CD) isn't mounted?"
-		${dp_ECHO_MSG} "=> Please correct this problem and try again."
+
+	if [ -e "${final_path}" ]; then
+		if [ -L "${final_path}" ]; then
+			${dp_ECHO_MSG} "=> ${final_path} is a broken symlink."
+			${dp_ECHO_MSG} "=> Perhaps a filesystem (most likely a CD) isn't mounted?"
+			${dp_ECHO_MSG} "=> Please correct this problem and try again."
+		else
+			${dp_ECHO_MSG} "=> ${final_path} is of an unexpected file type"
+			${dp_ECHO_MSG} "=> Please investigate and correct."
+		fi
+		rm -f "${lockfile}"
 		exit 1
 	fi
-	if [ -f "${dp_DISTINFO_FILE}" -a -z "${dp_DISABLE_CHECKSUM}" ]; then
+
+	if [ -f "${dp_DISTINFO_FILE}" ] && [ -z "${dp_DISABLE_CHECKSUM}" ]; then
 		_sha256sum=$(distinfo_data SHA256 "${full_file}")
-		if [ -z "$_sha256sum" ]; then
-			${dp_ECHO_MSG} "=> ${dp_DIST_SUBDIR:+$dp_DIST_SUBDIR/}$file is not in ${dp_DISTINFO_FILE}."
-			${dp_ECHO_MSG} "=> Either ${dp_DISTINFO_FILE} is out of date, or"
-			${dp_ECHO_MSG} "=> ${dp_DIST_SUBDIR:+$dp_DIST_SUBDIR/}$file is spelled incorrectly."
+		if [ -z "${_sha256sum}" ]; then
+			${dp_ECHO_MSG} "=> ${full_file} is not listed in ${dp_DISTINFO_FILE}."
+			${dp_ECHO_MSG} "=> The ${dp_DISTINFO_FILE} may be out of date"
+			rm -f "${lockfile}"
 			exit 1
 		fi
 	fi
-	case ${dp_TARGET} in
-		do-fetch|makesum)
-			${dp_ECHO_MSG} "=> $file doesn't seem to exist in ${dp_DISTDIR}."
-			if [ ! -w "${dp_DISTDIR}" ]; then
-				${dp_ECHO_MSG} "=> ${dp_DISTDIR} is not writable by you; cannot fetch."
-				exit 1
-			fi
-			;;
-	esac
-	__MASTER_SITES_TMP=
-	for group in $select; do
-		# Disable nounset for this, it may come up empty, but
-		# we don't want to fail with a strange error here.
-		set +u
-		eval __MASTER_SITES_TMP3="\${_DOWNLOAD_SITES_${group}}"
-		set -u
-		if [ -n "${__MASTER_SITES_TMP3}" ] ; then
-			for MS3 in ${__MASTER_SITES_TMP3}; do
-				__MASTER_SITES_TMP4="$(process_site ${MS3})"
-				__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${__MASTER_SITES_TMP4}"
-			done
-		else
-			case ${dp_TARGET} in
-				do-fetch|makesum)
-					${dp_ECHO_MSG} "===> /!\\ Error /!\\"
-					${dp_ECHO_MSG} "     DL_SITES_${group} group is not defined."
-					${dp_ECHO_MSG} "     Check for typos, or errors."
-					exit 1
-					;;
-			esac
 
+	if [ -f "${dp_DISTINFO_FILE}" ] && [ -z "${dp_DISABLE_SIZE}" ]; then
+		CKSIZE=$(distinfo_data SIZE "${full_file}")
+		if [ -z "${CKSIZE}" ]; then
+			${dp_ECHO_MSG} "=> ${full_file} is not listed in ${dp_DISTINFO_FILE}."
+			${dp_ECHO_MSG} "=> The ${dp_DISTINFO_FILE} may be out of date"
+			rm -f "${lockfile}"
+			exit 1
 		fi
-	done
+	fi
+
+	# Always - because ${dp_TARGET} is limited to (do-fetch|makesum)
+	${dp_ECHO_MSG} "=> $file doesn't seem to exist in ${dp_DISTDIR}."
+	if [ ! -w "${dp_DISTDIR}" ]; then
+		${dp_ECHO_MSG} "=> ${dp_DISTDIR} is not writable by you; cannot fetch."
+		rm -f "${lockfile}"
+		exit 1
+	fi
+
+	__MASTER_SITES_TMP=
+	# Disable nounset for this, it may come up empty, but
+	# we don't want to fail with a strange error here.
+	set +u
+	eval __MASTER_SITES_TMP3="\${_DOWNLOAD_SITES_${sitegroup}}"
+	set -u
+	if [ -n "${__MASTER_SITES_TMP3}" ] ; then
+		for MS3 in ${__MASTER_SITES_TMP3}; do
+			__MASTER_SITES_TMP4="$(process_site "${MS3}")"
+			__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${__MASTER_SITES_TMP4}"
+		done
+	else
+		# Always - because ${dp_TARGET} is limited to (do-fetch|makesum)
+		${dp_ECHO_MSG} "===> /!\\ Error /!\\"
+		${dp_ECHO_MSG} "     DL_SITES_${sitegroup} site group is not defined."
+		${dp_ECHO_MSG} "     Check for typos, or errors."
+		rm -f "${lockfile}"
+		exit 1
+	fi
 	__MASTER_SITES_TMP3=
 	__MASTER_SITES_TMP4=
 	SORTED_MASTER_SITES_CMD_TMP="echo ${dp_MASTER_SITE_OVERRIDE} $(/bin/echo -n "${__MASTER_SITES_TMP}" | awk "${dp_MASTER_SORT_AWK}") ${dp_MASTER_SITE_BACKUP}"
-	case ${dp_TARGET} in
-		fetch-list)
-			/bin/echo -n "mkdir -p ${dp_DISTDIR} && "
-			/bin/echo -n "cd ${dp_DISTDIR} && { "
-			;;
-	esac
 	sites_remaining=0
 	sites="$(${SORTED_MASTER_SITES_CMD_TMP})"
 	for site in ${sites}; do
@@ -125,60 +126,60 @@ for _file in "${@}"; do
 	done
 	for site in ${sites}; do
 		sites_remaining=$((sites_remaining - 1))
-		CKSIZE=$(distinfo_data SIZE "${full_file}")
-		# There is a lot of escaping, but the " needs to survive echo/eval.
-		case ${file} in
-			*/*)
-				mkdir -p "${file%/*}"
-				args="-o ${file} ${site}${file}"
-				;;
-			*)
-				args="${site}${file}"
-				;;
-		esac
-		if [ -z "${dp_DISABLE_SIZE}" -a -n "${CKSIZE}" ]; then
+
+		args="-o ${download_path} ${site}${file}"
+		if [ -z "${dp_DISABLE_SIZE}" ]; then
 			_fetch_cmd="${dp_FETCH_CMD} --require-size ${CKSIZE} ${args}"
 		else
 			_fetch_cmd="${dp_FETCH_CMD} ${args}"
 		fi
-		case ${dp_TARGET} in
-			do-fetch|makesum)
-				${dp_ECHO_MSG} "=> Attempting to fetch ${site}${file}"
-				if env ${dp_FETCH_ENV} ${_fetch_cmd}; then
-					chmod 644 "${file}"
-					if [ "${dp_OPSYS}" = "Linux" -o "${dp_OPSYS}" = "SunOS" ]; then
-						actual_size=$(stat --printf=%s "${file}")
-					else
-						actual_size=$(stat -f %z "${file}")
-					fi
-					if [ -n "${dp_DISABLE_SIZE}" ] || [ -z "${CKSIZE}" ] || [ "${actual_size}" -eq "${CKSIZE}" ]; then
-						continue 2
-					else
-						${dp_ECHO_MSG} "=> Fetched file size mismatch (expected ${CKSIZE}, actual ${actual_size})"
-						if [ ${sites_remaining} -gt 0 ]; then
-							${dp_ECHO_MSG} "=> Trying next site"
-							rm -f "${file}"
-						fi
-					fi
-				fi
-				;;
-			fetch-list)
-				/bin/echo -n "env $(escape "${_fetch_cmd}") || "
-				;;
-			fetch-url-list-int)
-				echo ${args}
-				;;
-		esac
-	done
-	case ${dp_TARGET} in
-		do-fetch|makesum)
-			${dp_ECHO_MSG} "=> Couldn't fetch it - please try to retrieve this"
-			${dp_ECHO_MSG} "=> port manually into ${dp_DISTDIR} and try again."
-			exit 1
-			;;
-		fetch-list)
-			echo "echo \"${file}\" not fetched; }"
-			;;
-	esac
-done
 
+		# Always - because ${dp_TARGET} is limited to (do-fetch|makesum)
+		${dp_ECHO_MSG} "=> Attempting to fetch ${site}${file}"
+		if env ${dp_FETCH_ENV} ${_fetch_cmd}; then
+			chmod 644 "${download_path}"
+
+			if [ -z "${dp_DISABLE_SIZE}" ]; then
+				if [ "${dp_OPSYS}" = "Linux" ] || [ "${dp_OPSYS}" = "SunOS" ]; then
+					actual_size=$(stat --printf=%s "${download_path}")
+				else
+					actual_size=$(stat -f %z "${download_path}")
+				fi
+				if [ "${actual_size}" -ne "${CKSIZE}" ]; then
+					${dp_ECHO_MSG} "=> Fetched file size mismatch (expected ${CKSIZE}, actual ${actual_size})"
+					rm -f "${download_path}"
+					if [ ${sites_remaining} -eq 0 ]; then
+						rm -f "${lockfile}"
+						exit 1
+					fi
+					${dp_ECHO_MSG} "=> Trying next site"
+					continue
+				fi
+			fi
+
+			if [ -z "${dp_DISABLE_CHECKSUM}" ]; then
+				downloadsum=$(${SHA256} < "${download_path}")
+				if [ "${downloadsum}" != "${_sha256sum}" ]; then
+					${dp_ECHO_MSG} "=> Downloaded file failed checksum verification"
+					rm -f "${download_path}"
+					if [ ${sites_remaining} -eq 0 ]; then
+						rm -f "${lockfile}"
+						exit 1
+					fi
+					${dp_ECHO_MSG} "=> Trying next site"
+					continue
+				fi
+			fi
+
+			# considered a good download.  Relocate to final destination
+			mv "${download_path}" "${final_path}"
+			rm -f "${lockfile}"
+			continue 2
+		fi
+	done
+
+	rm -f "${lockfile}"
+	${dp_ECHO_MSG} "=> Couldn't fetch it - please try to retrieve this"
+	${dp_ECHO_MSG} "=> port manually into ${dp_DISTDIR} and try again."
+	exit 1
+done

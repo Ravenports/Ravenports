@@ -2,6 +2,7 @@
 
 NAMEBASE=		freetds
 VERSION=		1.5.1
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Sybase/Microsoft TDS protocol library
@@ -24,12 +25,14 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		libgcrypt:dev:std
 			unixODBC:dev:std
+			krb5:dev:std
 BUILDRUN_DEPENDS=	libgcrypt:primary:std
 			unixODBC:primary:std
-EXRUN[tools]=		freetds:primary:std
+			krb5:primary:std
+EXRUN[tools]=		primary
 
-USES=			autoreconf cpe gettext:build gmake iconv libtool
-			pkgconfig readline ssl:openssl30
+USES=			cpe cmake gettext:build gmake iconv pkgconfig
+			readline ssl:openssl30
 
 LICENSE=		LGPL20+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -40,37 +43,38 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		databases/freetds
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-tdsver=7.4
-			--sysconfdir={{PREFIX}}/etc/freetds
-			--enable-sybase-compat
-			--enable-msdblib
-			--with-openssl={{OPENSSLBASE}}
-			--with-unixodbc={{LOCALBASE}}
-
-INSTALL_TARGET=		install-strip
-
-LDFLAGS=		-lgcrypt
-			-lpthread
-
-post-patch:
-	${FIND} ${WRKSRC} -name "Makefile.am" | ${XARGS} ${REINPLACE_CMD} -e \
-		's|<malloc.h>|<stdlib.h>| ; \
-		 s|/freetds.conf|/freetds.conf.sample|g ; \
-		 s|/locales.conf|/locales.conf.sample|g ; \
-		 s|/pool.conf|/pool.conf.sample|g ; \
-		 s| common.h||g'
-	${REINPLACE_CMD} -e 's|\(\$with_iodbc/include\)|\1/libiodbc|g' \
-		${WRKSRC}/configure.ac
+CMAKE_ARGS=		-DENABLE_MSDBLIB:BOOL=ON
+			-DENABLE_ODBC_WIDE:BOOL=ON
+			-DENABLE_ODBC_MARS:BOOL=ON
+			-DENABLE_KRB5:BOOL=ON
+			-DWITH_OPENSSL:BOOL=ON
+			-DBUILD_SHARED_LIBS:BOOL=ON
+			-DCMAKE_INSTALL_SYSCONFDIR={{PREFIX}}/etc/freetds
 
 post-install:
+	# manually install man pages
+	${INSTALL_MAN} ${WRKSRC}/doc/*.1 ${STAGEDIR}${PREFIX}/share/man/man1/
+	${INSTALL_MAN} ${WRKSRC}/doc/*.5 ${STAGEDIR}${PREFIX}/share/man/man5/
+	# manually add interfaces.sample
 	${INSTALL_DATA} ${WRKSRC}/interfaces \
 		${STAGEDIR}${PREFIX}/etc/freetds/interfaces.sample
+	# manually instal osql (missing from cmake install)
+	${INSTALL_SCRIPT} ${WRKSRC}/src/apps/osql ${STAGEDIR}${PREFIX}/bin/
+	# manually stript
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/[bdft]*
+
+pre-configure:
+	${REINPLACE_CMD} -e '/^set(libs / s|)| ${ICONV_LIB_NAME})|' \
+		-e '/readline/ s|)| ${ICONV_LIB_NAME})|' \
+		${WRKSRC}/src/apps/CMakeLists.txt
+	${REINPLACE_CMD} -e '/target_link_libraries/ s| tds | tds ${ICONV_LIB_NAME} |' \
+		${WRKSRC}/src/pool/CMakeLists.txt
 
 post-extract:
-	(cd ${WRKSRC} && ${LN} -s freetds.conf freetds.conf.sample)
-	(cd ${WRKSRC} && ${LN} -s locales.conf locales.conf.sample)
-	(cd ${WRKSRC}/src/pool && ${LN} -s pool.conf pool.conf.sample)
+	(cd ${WRKSRC} && ${CP} freetds.conf freetds.conf.sample)
+	(cd ${WRKSRC} && ${CP} locales.conf locales.conf.sample)
+	(cd ${WRKSRC}/src/pool && ${CP} pool.conf pool.conf.sample)
 
 [FILE:487:descriptions/desc.primary]
 FreeTDS is a set of libraries for Unix and Linux that allows your
@@ -91,14 +95,11 @@ This package contains FreeTDS tools.
 6146fde211b00583fad3c6d10030cfa664a744e0f5ae6b87edfd657bdf463b05      2438375 freetds-1.5.1.tar.bz2
 
 
-[FILE:105:manifests/plist.primary]
+[FILE:55:manifests/plist.primary]
 lib/
- libct.so.4
  libct.so.4.0.0
- libsybdb.so.5
  libsybdb.so.5.1.0
- libtdsodbc.so.0
- libtdsodbc.so.0.0.0
+ libtdsodbc.so
 
 
 [FILE:235:manifests/plist.tools]
@@ -118,26 +119,26 @@ bin/
  tsql
 
 
-[FILE:219:manifests/plist.dev]
+[FILE:239:manifests/plist.dev]
 include/
  bkpublic.h
  cspublic.h
  cstypes.h
  ctpublic.h
- odbcss.h
  sqldb.h
  sqlfront.h
  sybdb.h
  syberror.h
  sybfront.h
  tds_sysdep_public.h
+include/freetds/version.h
 lib/
  libct.a
  libct.so
- libsybdb.a
+ libdb-lib.a
+ libreplacements.a
  libsybdb.so
- libtdsodbc.a
- libtdsodbc.so
+ libtdssrv.a
 
 
 [FILE:128:manifests/plist.man]
@@ -151,6 +152,42 @@ share/man/man1/
  osql.1
  tsql.1
 share/man/man5/freetds.conf.5
+
+
+[FILE:612:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2025-03-06 20:38:39 UTC
++++ CMakeLists.txt
+@@ -505,9 +505,9 @@ set(FREETDS_PUBLIC_INCLUDE_2
+ 	${CMAKE_BINARY_DIR}/include/freetds/version.h)
+ 
+ set(FREETDS_CONF_FILES
+-	${CMAKE_SOURCE_DIR}/freetds.conf
+-	${CMAKE_SOURCE_DIR}/locales.conf
+-	${CMAKE_SOURCE_DIR}/src/pool/pool.conf)
++	${CMAKE_SOURCE_DIR}/freetds.conf.sample
++	${CMAKE_SOURCE_DIR}/locales.conf.sample
++	${CMAKE_SOURCE_DIR}/src/pool/pool.conf.sample)
+ 
+ install(FILES ${FREETDS_PUBLIC_INCLUDE} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+ install(FILES ${FREETDS_PUBLIC_INCLUDE_2} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/freetds)
+
+
+[FILE:662:patches/patch-src_apps_CMakeLists.txt]
+--- src/apps/CMakeLists.txt.orig	2025-05-13 21:13:26 UTC
++++ src/apps/CMakeLists.txt
+@@ -18,7 +18,11 @@ endif(WIN32)
+ add_executable(bsqlodbc bsqlodbc.c)
+ target_link_libraries(bsqlodbc tdsodbc replacements tdsutils ${libs})
+ 
+-INSTALL(TARGETS tsql bsqlodbc defncopy freebcp datacopy bsqldb
++add_executable(fisql fisql/fisql.c fisql/edit.c fisql/handlers.c fisql/interrupt.c fisql/terminal.c)
++target_include_directories(fisql PRIVATE fisql)
++target_link_libraries(fisql sybdb replacements readline)
++
++INSTALL(TARGETS tsql bsqlodbc defncopy freebcp datacopy bsqldb fisql
+ 	PUBLIC_HEADER DESTINATION include
+ 		RUNTIME DESTINATION bin
+ 		LIBRARY DESTINATION lib
 
 
 [FILE:420:patches/patch-src_tds_sec__negotiate__openssl.h]

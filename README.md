@@ -8,7 +8,7 @@ that is also truly cross-platform.  Think FreeBSD ports with several new
 cutting edge features and enhancements, but with equal support to Linux,
 Solaris(like), and all BSD platforms.  MacOS was previously supported, but
 it proved difficult to maintain due to the different file format (Mach-o vs 
-ELF) and extrememly large system root.
+ELF) and extremely large system root.
 
 It is not a reinvention of pkgsrc.  The approach is new and not based
 on the 'make' program.
@@ -69,7 +69,7 @@ enable speedups by magnitudes as compared to other ports systems.
 ## Official Website
 
 Please visit
-[http://www.ravenports.com](http://www.ravenports.com)
+[https://www.ravenports.com](https://www.ravenports.com)
 for additional and current information.
 
 ## License
@@ -141,7 +141,7 @@ UwIDAQAB
 
 The downloader skip no longer installs this file, but it still works.
 An example of use is to save the contents to
-/raven/etc/rvn/keys/ravenports.key.  The ravensw repository
+/raven/etc/rvn/keys/ravenports.key.  The Raven repository
 configuration file might look like this:
 
 ```
@@ -157,7 +157,7 @@ Raven: {
 ## Bootstrapping Ravenports
 
 These are operating system-specific examples on how to install Ravenports on a new
-system using basic commands.
+system using basic commands.  The https protocol can also be used.
 
 ### FreeBSD / DragonFly / MidnightBSD
 

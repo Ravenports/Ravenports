@@ -1192,16 +1192,19 @@ NetBSD has uucred, not sockpeercred.
  
 
 
-[FILE:591:patches/patch-router_src_mysql__rest__service_include_helper_string_contains.h]
+[FILE:631:patches/patch-router_src_mysql__rest__service_include_helper_string_contains.h]
 --- router/src/mysql_rest_service/include/helper/string/contains.h.orig	2025-03-31 08:00:22 UTC
 +++ router/src/mysql_rest_service/include/helper/string/contains.h
-@@ -84,7 +84,8 @@ bool index(const std::string &value, con
+@@ -84,7 +84,12 @@ bool index(const std::string &value, con
  inline bool index(const char *value, const char *search_for, uint32_t *idx) {
    auto ptr = strstr(value, search_for);
    if (nullptr == ptr) return false;
--  if (idx) *idx = static_cast<uint32_t>(std::distance(value, ptr));
++#if defined(__linux__)
+   if (idx) *idx = static_cast<uint32_t>(std::distance(value, ptr));
++#else
 +  char* char_value = const_cast<char*>(value);
 +  if (idx) *idx = static_cast<uint32_t>(std::distance(char_value, ptr));
++#endif
    return true;
  }
  

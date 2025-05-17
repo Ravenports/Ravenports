@@ -92,12 +92,15 @@ CMAKE_ARGS+=		-DQT_QMAKE_TARGET_MKSPEC="${QMAKESPEC}"
 _USES_install+=		730:strip-qt6
 . else
 # stage support
+
+.  if empty(USES:Mcmake)
 DESTDIRNAME=	INSTALL_ROOT
 
-.  if !defined(GNU_CONFIGURE)
-.   if !target(do-configure)
+.   if !defined(GNU_CONFIGURE)
+.    if !target(do-configure)
 do-configure:
 	(cd ${WRKSRC} && ${QMAKE_CMD} ${QMAKE_ARGS} -o Makefile)
+.    endif
 .   endif
 .  endif
 . endif

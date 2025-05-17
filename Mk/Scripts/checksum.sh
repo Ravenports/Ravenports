@@ -8,7 +8,7 @@ validate_env dp_CHECKSUM_ALGORITHMS dp_CURDIR dp_DISTDIR dp_DISTINFO_FILE \
 	dp_DIST_SUBDIR dp_ECHO_MSG dp_FETCH_REGET dp_MAKE dp_MAKEFLAGS \
 	dp_DISABLE_SIZE dp_DISABLE_CHECKSUM
 
-[ -n "${DEBUG_MK_SCRIPTS}" -o -n "${DEBUG_MK_SCRIPTS_CHECKSUM}" ] && set -x
+[ -n "${DEBUG_MK_SCRIPTS}" ] || [ -n "${DEBUG_MK_SCRIPTS_CHECKSUM}" ] && set -x
 
 set -u
 
@@ -31,7 +31,7 @@ if [ -f "${dp_DISTINFO_FILE}" ]; then
 				ignore="true"
 			fi
 
-			if [ $ignore = "false" -a -z "$CKSUM" ]; then
+			if [ $ignore = "false" ] && [ -z "$CKSUM" ]; then
 				${dp_ECHO_MSG} "=> No $alg checksum recorded for $file."
 				ignore="true"
 			fi
@@ -54,7 +54,7 @@ if [ -f "${dp_DISTINFO_FILE}" ]; then
 				${dp_ECHO_MSG} "=> $alg Checksum mismatch for $file."
 				refetchlist="$refetchlist $file "
 				OK="${OK:-retry}"
-				[ "${OK}" = "retry" -a "${dp_FETCH_REGET}" -gt 0 ] && rm -f "${file}"
+				[ "${OK}" = "retry" ] && [ "${dp_FETCH_REGET}" -gt 0 ] && rm -f "${file}"
 				ignored="false"
 			fi
 		done
@@ -74,7 +74,7 @@ if [ -f "${dp_DISTINFO_FILE}" ]; then
 		fi
 	fi
 
-	if [ "$OK" != "true" -a "${dp_FETCH_REGET}" -eq 0 ]; then
+	if [ "$OK" != "true" ] && [ "${dp_FETCH_REGET}" -eq 0 ]; then
 		${dp_ECHO_MSG} "===>  Giving up on fetching files: $refetchlist"
 		${dp_ECHO_MSG} "Make sure the Makefile and distinfo file (${dp_DISTINFO_FILE})"
 		${dp_ECHO_MSG} "are up to date."
@@ -83,7 +83,7 @@ if [ -f "${dp_DISTINFO_FILE}" ]; then
 	if [ "$OK" != "true" ]; then
 		exit 1
 	fi
-elif [ -n "${@}" ]; then
+elif [ -n "${*}" ]; then
 	${dp_ECHO_MSG} "=> No checksum file (${dp_DISTINFO_FILE})."
 	exit 1
 fi

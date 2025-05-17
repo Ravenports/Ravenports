@@ -42,19 +42,7 @@ CONFIGURE_ARGS=		--with-cxx
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
-post-extract-linux:
-	${CP} ${FILESDIR}/CMakeLists.txt ${WRKSRC}/
-	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/config.sub
-	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/config.guess
-
-pre-configure-linux:
-	# Run gnu configure script to generate config.h
-	(cd ${WRKSRC} && ${SETENV} ${SCRIPTS_ENV} ${SH} configure\
-		--prefix=${PREFIX} \
-		--with-cxx \
-		--includedir=${PREFIX}/include/ossp \
-		--libdir=${PREFIX}/lib/ossp \
-	)
+VAR_OPSYS[linux]=	CFLAGS=-D_GNU_SOURCE
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/ossp/lib*.so
