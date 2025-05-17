@@ -158,7 +158,7 @@ for _file in "${@}"; do
 			fi
 
 			if [ -z "${dp_DISABLE_CHECKSUM}" ]; then
-				downloadsum=$(${SHA256} < "${download_path}")
+				downloadsum=$(/bin/sha256 < "${download_path}")
 				if [ "${downloadsum}" != "${_sha256sum}" ]; then
 					${dp_ECHO_MSG} "=> Downloaded file failed checksum verification"
 					rm -f "${download_path}"

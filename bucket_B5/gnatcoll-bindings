@@ -2,7 +2,7 @@
 
 NAMEBASE=		gnatcoll-bindings
 VERSION=		25.0.0
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		std
@@ -46,8 +46,7 @@ EXRUN[readline]=	readline:primary:std
 EXRUN[cpp]=		gnatcoll-core:primary:std
 EXRUN[zlib]=		zlib:primary:std
 			gnatcoll-core:primary:std
-EXRUN[iconv]=		libiconv:primary:std
-			gnatcoll-core:primary:std
+EXRUN[iconv]=		gnatcoll-core:primary:std
 EXRUN[lzma]=		xz:primary:std
 			gnatcoll-core:primary:std
 EXRUN[python3]=		python312:primary:std
@@ -121,7 +120,8 @@ do-install:
 		"${STAGEDIR}${PREFIX}" \
 		"-I${LOCALBASE}/include/python3.12" \
 		"25.0" \
-		"-lpython3.12"
+		"-lpython3.12" \
+		"${ICONV_LIB_PIC}"
 .endfor
 
 [FILE:102:descriptions/desc.gmp]
@@ -486,7 +486,7 @@ share/gpr/
 +end GnatColl_Python3;
 
 
-[FILE:2484:files/gen_gpr.sh]
+[FILE:2523:files/gen_gpr.sh]
 #!/bin/sh
 # This scripts generates gpr files and creates symbolic links
 # Expected inputs: component, destdir, python-includes
@@ -497,6 +497,7 @@ destdir="$2"
 python_includes="$3"
 soversion="$4"
 python3_linking="\"$5\""
+iconv_linking="$6"
 
 component_lower="$name"
 component_target="$name"
@@ -510,7 +511,7 @@ case "$name" in
 	"iconv")
 		component=Iconv
 		component_upper=ICONV
-		linker_opts=	# none required (glibc or liconv_pic)
+		linker_opts="\"${iconv_linking}\""
 		;;
 	"readline")
 		component=Readline
@@ -571,7 +572,7 @@ esac
 
 case "$name" in
 	"iconv")
-		iconvhandle="s|%%ICONV_ON%%||"
+		iconvhandle="s|%%ICONV_ON%%||; s|%%ICONV_LINK%%|${iconv_linking}|"
 		;;
 	*)
 		iconvhandle="/%%ICONV_ON%%/d"
@@ -598,7 +599,7 @@ ln -s "../libgnatcoll_${name}.so.${soversion}" \
 	"${destdir}/lib/gnatcoll_${component_lower}.relocatable/libgnatcoll_${name}.so.${soversion}"
 
 
-[FILE:1996:files/gnatcoll_template.gpr]
+[FILE:2010:files/gnatcoll_template.gpr]
 with "gpr";
 with "xmlada_schema";
 with "xmlada_dom";
@@ -656,7 +657,7 @@ library project GnatColl_%%COMPONENT%% is
    %%PYTHON_ON%%python_static_lib := "";
    %%PYTHON_ON%%python_libs       := ();
    %%PYTHON_ON%%python_cflags     := ("%%PYTHON_INCLUDE%%");
-   %%ICONV_ON%%iconv_opt          := "";
+   %%ICONV_ON%%iconv_opt          := "%%ICONV_LINK%%";
    build        : build_type := "PROD";
    name         := "gnatcoll_%%NAME%%";
    version      := "0.0";
