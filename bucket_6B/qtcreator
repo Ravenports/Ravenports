@@ -2102,22 +2102,22 @@ higher up in the application.
      ../3rdparty/tl_expected/include/tl/expected.hpp
 
 
-[FILE:1264:patches/patch-src_tools_process__stub_main.cpp]
+[FILE:1286:patches/patch-src_tools_process__stub_main.cpp]
 --- src/tools/process_stub/main.cpp.orig	2025-04-10 08:57:18 UTC
 +++ src/tools/process_stub/main.cpp
-@@ -22,10 +22,9 @@
- #include <unistd.h>
+@@ -28,6 +28,11 @@
+ #include <sys/prctl.h>
  #endif
  
--#ifdef Q_OS_LINUX
 +#ifdef Q_OS_UNIX
- #include <sys/ptrace.h>
- #include <sys/wait.h>
--#include <sys/prctl.h>
- #endif
- 
++#include <sys/ptrace.h>
++#include <sys/wait.h>
++#endif
++
  #include <iostream>
-@@ -254,6 +253,9 @@ void onInferiorStarted()
+ 
+ Q_LOGGING_CATEGORY(log, "qtc.process_stub", QtWarningMsg);
+@@ -254,6 +259,9 @@ void onInferiorStarted()
      // In debug mode we use the poll timer to send the pid.
      if (!debugMode)
          sendPid(inferiorId);
@@ -2127,7 +2127,7 @@ higher up in the application.
  #elif defined(Q_OS_LINUX)
      if (debugMode) {
          qCInfo(log) << "Waiting for SIGTRAP from inferiors execve ...";
-@@ -288,6 +290,11 @@ void setupUnixInferior()
+@@ -288,6 +296,11 @@ void setupUnixInferior()
              // Suspend ourselves ...
              raise(SIGSTOP);
          });
