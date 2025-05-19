@@ -16,7 +16,14 @@ validate_env dp_DISTDIR dp_DISTINFO_FILE dp_DISABLE_CHECKSUM dp_DISABLE_SIZE \
 
 set -u
 
-mkdir -p "${dp_DISTDIR}"/"${dp_DIST_SUBDIR}"
+if ! mkdir -p "${dp_DISTDIR}"/"${dp_DIST_SUBDIR}"; then
+	${dp_ECHO_MSG} "=> Fatal: failed to create ${dp_DISTDIR}/${dp_DIST_SUBDIR}"
+	exit 1
+fi
+if [ ! -w "${dp_DISTDIR}" ]; then
+	${dp_ECHO_MSG} "=> Fatal: ${dp_DISTDIR} is not writable by you"
+	exit 1
+fi
 mkdir -p "${dp_DISTDIR}"/transient
 
 for _file in "${@}"; do
@@ -89,13 +96,7 @@ for _file in "${@}"; do
 		fi
 	fi
 
-	# Always - because ${dp_TARGET} is limited to (do-fetch|makesum)
-	${dp_ECHO_MSG} "=> $file doesn't seem to exist in ${dp_DISTDIR}."
-	if [ ! -w "${dp_DISTDIR}" ]; then
-		${dp_ECHO_MSG} "=> ${dp_DISTDIR} is not writable by you; cannot fetch."
-		rm -f "${lockfile}"
-		exit 1
-	fi
+	${dp_ECHO_MSG} "=> ${file} is not cached."
 
 	__MASTER_SITES_TMP=
 	# Disable nounset for this, it may come up empty, but
@@ -148,11 +149,9 @@ for _file in "${@}"; do
 				if [ "${actual_size}" -ne "${CKSIZE}" ]; then
 					${dp_ECHO_MSG} "=> Fetched file size mismatch (expected ${CKSIZE}, actual ${actual_size})"
 					rm -f "${download_path}"
-					if [ ${sites_remaining} -eq 0 ]; then
-						rm -f "${lockfile}"
-						exit 1
+					if [ ${sites_remaining} -gt 0 ]; then
+						${dp_ECHO_MSG} "=> Trying next site"
 					fi
-					${dp_ECHO_MSG} "=> Trying next site"
 					continue
 				fi
 			fi
@@ -162,11 +161,9 @@ for _file in "${@}"; do
 				if [ "${downloadsum}" != "${_sha256sum}" ]; then
 					${dp_ECHO_MSG} "=> Downloaded file failed checksum verification"
 					rm -f "${download_path}"
-					if [ ${sites_remaining} -eq 0 ]; then
-						rm -f "${lockfile}"
-						exit 1
+					if [ ${sites_remaining} -gt 0 ]; then
+						${dp_ECHO_MSG} "=> Trying next site"
 					fi
-					${dp_ECHO_MSG} "=> Trying next site"
 					continue
 				fi
 			fi
@@ -178,8 +175,8 @@ for _file in "${@}"; do
 		fi
 	done
 
+	${dp_ECHO_MSG} "=> Unable to download ${file}"
+	${dp_ECHO_MSG} "=> Try copying the file manually to ${dp_DISTDIR} and retry."
 	rm -f "${lockfile}"
-	${dp_ECHO_MSG} "=> Couldn't fetch it - please try to retrieve this"
-	${dp_ECHO_MSG} "=> port manually into ${dp_DISTDIR} and try again."
 	exit 1
 done
