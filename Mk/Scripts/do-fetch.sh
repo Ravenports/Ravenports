@@ -130,7 +130,8 @@ for _file in "${@}"; do
 
 		args="-o ${download_path} ${site}${file}"
 		if [ -z "${dp_DISABLE_SIZE}" ]; then
-			_fetch_cmd="${dp_FETCH_CMD} --require-size ${CKSIZE} ${args}"
+			_tlimit=$(dynamic_timeout "${CKSIZE}")
+			_fetch_cmd="${dp_FETCH_CMD} -S ${CKSIZE} -T ${_tlimit} ${args}"
 		else
 			_fetch_cmd="${dp_FETCH_CMD} ${args}"
 		fi

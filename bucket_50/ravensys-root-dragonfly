@@ -2,11 +2,10 @@
 
 NAMEBASE=		ravensys-root-dragonfly
 VERSION=		6.4.0
-REVISION=		5
+REVISION=		6
 KEYWORDS=		raven
-VARIANTS=		std REL62
+VARIANTS=		std
 SDESC[std]=		DragonFly 6.4.0 builder system root
-SDESC[REL62]=		DragonFly 6.2.2 builder system root
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
@@ -15,13 +14,11 @@ SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[avalon]=		https://mirror-master.dragonflybsd.org/iso-images/
 DISTFILE[1]=		dummy-tarball.tar.gz:main
 DISTFILE[2]=		dfly-x86_64-6.4.0_REL.iso.bz2:avalon
-DISTFILE[3]=		dfly-x86_64-6.2.2_REL.iso.bz2:avalon
+DF_INDEX=		1 2
 SPKGS[std]=		single
-SPKGS[REL62]=		single
 
-OPTIONS_AVAILABLE=	NOTSTD R62
+OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-VOPTS[REL62]=		NOTSTD=ON R62=ON
 
 ONLY_FOR_OPSYS=		dragonfly
 
@@ -46,12 +43,13 @@ BUILD_DEPENDS=		nawk:primary:std
 			rvn:primary:std
 			mandoc:primary:std
 			genpatch:primary:std
-			lockf:primary:std
 			fetch:primary:std
 			ccache:primary:std
 			bzip2:tools:std
+			bmake:primary:std
+			ravensys-utils:primary:std
 
-EXTRACT_DIRTY=		2 3
+EXTRACT_DIRTY=		2
 
 INVALID_RPATH=		yes
 
@@ -70,55 +68,31 @@ SINGLE_JOB=		yes
 PLIST_SUB=		BASE={{SYSPATH}}
 
 INFRASTRUCTURE=		yes
-
-[NOTSTD].DESCRIPTION=			Earlier system root of DragonFly
-[NOTSTD].BUILD_DEPENDS_OFF=		bmake:primary:std
-					ravensys-utils:primary:std
-[NOTSTD].DF_INDEX_OFF=			2
-[NOTSTD].MAKEFILE_OFF=			SYSTEM=DragonFly/x86_64/x86_64/600400/6.4/6.4
-
-[R62].DESCRIPTION=			DragonFly Release 6.2.2 system root
-[R62].BUILD_DEPENDS_ON=			bmake:primary:prevdbsd
-					ravensys-utils:primary:prevdbsd
-[R62].DF_INDEX_ON=			3
-[R62].MAKEFILE_ON=			SYSTEM=DragonFly/x86_64/x86_64/600200/6.2/6.2
-
-post-extract-R62-ON:
-	${MV} ${WRKDIR}/${NAMEBASE}_3 ${WRKDIR}/dragonfly
-
-post-extract-NOTSTD-OFF:
-	${MV} ${WRKDIR}/${NAMEBASE}_2 ${WRKDIR}/dragonfly
+VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600400/6.4/6.4
 
 post-extract:
 	${MKDIR} ${WRKSRC}
 	${INSTALL_DATA} ${FILESDIR}/dragonfly.mk ${WRKSRC}/system_specifics.mk
 	${INSTALL_DATA} ${MK_SCRIPTS}/ravensys-root-Makefile ${WRKSRC}/Makefile
+	${MV} ${WRKDIR}/${NAMEBASE}_2 ${WRKDIR}/dragonfly
 
 pre-fetch:
 	${SH} ${MK_SCRIPTS}/ravensys-root-validate_pkgs.sh ${PREFIX} \
 		${OPSYS} ${ARCH} ${ARCH_STANDARD} ${OSVERSION} ${OSREL} ${MAJOR}
 
-[FILE:140:descriptions/desc.single.std]
-Ravenports system root
+[FILE:167:descriptions/desc.single.std]
+Ravenports system root for DragonFly release 6.4.
 
 This is the full build environment for the most recent supported release
 of DragonFly BSD, excluding the toolchain.
 
 
-[FILE:122:descriptions/desc.single.REL62]
-Ravenports system root
-
-This is the full build environment for the 6.2 release of DragonFly BSD,
-excluding the toolchain.
-
-
-[FILE:315:distinfo]
+[FILE:207:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 dummy-tarball.tar.gz
 c213cc20ba1284efafe017c16db1974c154728e2e757c649af91d0e2a246a0dd    386581582 dfly-x86_64-6.4.0_REL.iso.bz2
-f645e3865f243fc532d9cf4d5363b4ceec7fe3c103a3ea40f5d29504f4dd2ea3    257548264 dfly-x86_64-6.2.2_REL.iso.bz2
 
 
-[FILE:16094:manifests/plist.single]
+[FILE:16069:manifests/plist.single]
 %%BASE%%/bin/
  [
  cat
@@ -187,7 +161,6 @@ f645e3865f243fc532d9cf4d5363b4ceec7fe3c103a3ea40f5d29504f4dd2ea3    257548264 df
  join
  ldd
  less
- lockf
  lorder
  lzcat
  lzcmp
@@ -1433,12 +1406,14 @@ f645e3865f243fc532d9cf4d5363b4ceec7fe3c103a3ea40f5d29504f4dd2ea3    257548264 df
 %%BASE%%/usr/share/rvn-terminfo/d/dumb
 %%BASE%%/usr/share/rvn-terminfo/v/vt100
 %%BASE%%/usr/share/rvn-terminfo/x/xterm
-%%R62-OFF%%%%BASE%%/usr/include/malloc_np.h
-%%R62-OFF%%%%BASE%%/usr/include/sys/gtaskqueue.h
+%%BASE%%/usr/include/
+ malloc_np.h
+%%BASE%%/usr/include/sys/
+ gtaskqueue.h
 @dir %%BASE%%/usr/local
 
 
-[FILE:7166:files/dragonfly.mk]
+[FILE:7167:files/dragonfly.mk]
 # For DragonFly
 
 Libexec_DragonFly=	/libexec/ld-elf.so.2
@@ -1802,7 +1777,8 @@ install-platform: install-common
 		${DESTDIR}${BASE}/usr/share/
 	rm -rf ${DESTDIR}${BASE}/var
 
-[FILE:441:files/special.mk]
+
+[FILE:349:files/special.mk]
 # Override bmake settings (important for bootstraps and sysroot rebases)
 OPSYS=				${SYSTEM:H:H:H:H:H}
 ARCH=				${SYSTEM:H:H:H:H:T}
@@ -1811,11 +1787,7 @@ OSVERSION=			${SYSTEM:H:H:T}
 OSREL=				${SYSTEM:H:T}
 MAJOR=				${SYSTEM:T}
 
-.if "${MAJOR}" == "6.4"
 SYSPATH=			share${RAVENBASE}/sysroot/${OPSYS}
-.else
-SYSPATH=			share${RAVENBASE}/sysroot/${OPSYS}-${OSREL}
-.endif
 RSYS=				${PREFIX}/${SYSPATH}
 FOS=				${WRKDIR}/${OPSYS:tl}
 

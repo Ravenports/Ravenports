@@ -1301,7 +1301,13 @@ CONFIGURE_ENV+=		PATH=${PATH}
 
 .if "${OPSYS}" == "SunOS"
 # Solaris reserves 60001-60003 for nobody, noaccess, and aiuser
-# So shift all the UIDs and GIDs to start at 50001 instead on SunOS
+# So shift all the UIDs and GIDs to start at 50000 instead on SunOS
+UID_OFFSET?=	-10000
+GID_OFFSET?=	-10000
+.elif "${OPSYS}" == "Linux"
+# Debian reserves 60000-65533 for their static assignments.
+# Moreover systemd process reserves 60001-65519 for systemd-homed
+# So shift all the UIDs and GIDs to start at 50000 instead on Linux
 UID_OFFSET?=	-10000
 GID_OFFSET?=	-10000
 .else

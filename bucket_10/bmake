@@ -2,9 +2,9 @@
 
 NAMEBASE=		bmake
 VERSION=		20250414
+REVISION=		1
 KEYWORDS=		devel
-VARIANTS=		std prevdbsd prevfbsd prevlinux
-SDESC[prevdbsd]=	BSD Make encoded for previous DragonFly sysroot
+VARIANTS=		std prevfbsd prevlinux
 SDESC[std]=		Portable version of NetBSD 'make' utility
 SDESC[prevlinux]=	BSD Make encoded for previous Linux sysroot
 SDESC[prevfbsd]=	BSD Make encoded for previous FreeBSD sysroot
@@ -16,9 +16,6 @@ SITES[main]=		https://cdn.netbsd.org/pub/NetBSD/misc/sjg/
 			ftp://ftp.netbsd.org/pub/NetBSD/misc/sjg/
 DISTFILE[1]=		bmake-20250414.tar.gz:main
 DF_INDEX=		1
-SPKGS[prevdbsd]=	set
-			primary
-			man
 SPKGS[std]=		set
 			primary
 			man
@@ -29,11 +26,10 @@ SPKGS[prevfbsd]=	set
 			primary
 			man
 
-OPTIONS_AVAILABLE=	PREV_DBSD PREV_FBSD PREV_LINUX
+OPTIONS_AVAILABLE=	PREV_FBSD PREV_LINUX
 OPTIONS_STANDARD=	none
-VOPTS[prevdbsd]=	PREV_DBSD=ON PREV_FBSD=OFF PREV_LINUX=OFF
-VOPTS[prevlinux]=	PREV_DBSD=OFF PREV_FBSD=OFF PREV_LINUX=ON
-VOPTS[prevfbsd]=	PREV_DBSD=OFF PREV_FBSD=ON PREV_LINUX=OFF
+VOPTS[prevlinux]=	PREV_FBSD=OFF PREV_LINUX=ON
+VOPTS[prevfbsd]=	PREV_FBSD=ON PREV_LINUX=OFF
 
 DISTNAME=		bmake
 
@@ -50,7 +46,7 @@ CONFIGURE_ARGS=		--with-default-sys-path="/xports/Mk:{{PREFIX}}/share/mk"
 			--with-machine-arch={{ARCH}}
 			--with-mksrc=no
 
-VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1302001/13.2/13
+VAR_OPSYS[freebsd]=	MAKEFILE_LINE=SYSTEM=FreeBSD/amd64/x86_64/1402000/14.2/14
 VAR_OPSYS[sunos]=	MAKEFILE_LINE=SYSTEM=SunOS/i86pc/x86_64/510200910/5.10/5.10
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SYSTEM=Linux/x86_64/x86_64/610000/6.1.0/6.1
 VAR_OPSYS[darwin]=	MAKEFILE_LINE=SYSTEM=Darwin/x86_64/x86_64/170700/17.7.0/17
@@ -58,12 +54,8 @@ VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SYSTEM=NetBSD/x86_64/x86_64/902000000/10.0/10
 VAR_OPSYS[dragonfly]=	MAKEFILE_LINE=SYSTEM=DragonFly/x86_64/x86_64/600400/6.4/6.4
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=SYSTEM=MidnightBSD/amd64/x86_64/300005/3.0.0/3
 
-[PREV_DBSD].DESCRIPTION=		Hardcode OS values to older DragonFly release
-[PREV_DBSD].MAKEFILE_ON=		SYSTEM=DragonFly/x86_64/x86_64/600200/6.2/6.2
-[PREV_DBSD].ONLY_FOR_OPSYS_ON=		dragonfly
-
 [PREV_FBSD].DESCRIPTION=		Hardcode OS values to older FreeBSD release
-[PREV_FBSD].MAKEFILE_ON=		SYSTEM=FreeBSD/amd64/x86_64/1202000/12.2/12
+[PREV_FBSD].MAKEFILE_ON=		SYSTEM=FreeBSD/amd64/x86_64/1302001/13.2/13
 [PREV_FBSD].ONLY_FOR_OPSYS_ON=		freebsd
 
 [PREV_LINUX].DESCRIPTION=		Hardcode OS values to older Linux release
@@ -183,6 +175,16 @@ share/mk/sys/
 
 [FILE:23:manifests/plist.man]
 share/man/man1/bmake.1
+
+
+[FILE:187:patches/patch-machine.sh]
+--- machine.sh.orig	2023-01-17 18:30:21 UTC
++++ machine.sh
+@@ -1,3 +1,4 @@
++#!/bin/sh
+ :
+ # This is mostly redundant.
+ # These days I use the pseudo machine "host" when building for host
 
 
 [FILE:638:patches/patch-main.c]
