@@ -39,7 +39,7 @@ RUBY_DEFAULT?=		3.3
 
 RUBY_3.2_VERSION=	3.2.8
 RUBY_3.3_VERSION=	3.3.8
-RUBY_3.4_VERSION=	3.4.3
+RUBY_3.4_VERSION=	3.4.4
 
 #-------------------------------------------------------------------------
 # PYTHON
