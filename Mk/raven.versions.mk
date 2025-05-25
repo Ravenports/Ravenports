@@ -123,8 +123,8 @@ MYSQL_oracle-8.4_VERSION=	8.4.5
 MYSQL_innovation_VERSION=	9.3.0
 MYSQL_mariadb-10.5_VERSION=	10.5.29
 MYSQL_mariadb-10.6_VERSION=	10.6.22
-MYSQL_mariadb-10.11_VERSION=	10.11.12
-MYSQL_mariadb-11.4_VERSION=	11.4.5
+MYSQL_mariadb-10.11_VERSION=	10.11.13
+MYSQL_mariadb-11.4_VERSION=	11.4.7
 MYSQL_mariadb-11_VERSION=	11.7.2
 
 #-------------------------------------------------------------------------
