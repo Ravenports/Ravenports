@@ -61,18 +61,23 @@ and a single header.
 5d84dec684c27b97b921d2f3b73218cb773cf4ea915caee317ac8fc73cef8136       363838 hidapi-0.15.0.tar.gz
 
 
-[FILE:160:manifests/plist.primary]
+[FILE:248:manifests/plist.primary]
 %%ONLY-LINUX%%lib/
  libhidapi-hidraw.so.%%SOMAJOR%%
  libhidapi-hidraw.so.%%SOVERSION%%
+%%ONLY-NETBSD%%lib/
+ libhidapi-netbsd.so.%%SOMAJOR%%
+ libhidapi-netbsd.so.%%SOVERSION%%
 lib/
  libhidapi-libusb.so.%%SOMAJOR%%
  libhidapi-libusb.so.%%SOVERSION%%
 
 
-[FILE:291:manifests/plist.dev]
+[FILE:376:manifests/plist.dev]
 %%ONLY-LINUX%%lib/libhidapi-hidraw.so
 %%ONLY-LINUX%%lib/pkgconfig/hidapi-hidraw.pc
+%%ONLY-NETBSD%%lib/libhidapi-netbsd.so
+%%ONLY-NETBSD%%lib/pkgconfig/hidapi-netbsd.pc
 include/hidapi/
  hidapi.h
  hidapi_libusb.h
@@ -83,4 +88,27 @@ lib/cmake/hidapi/
  libhidapi-release.cmake
  libhidapi.cmake
 lib/pkgconfig/hidapi-libusb.pc
+
+
+[FILE:526:patches/patch-netbsd_hid.c]
+--- netbsd/hid.c.orig	2025-05-18 18:25:13 UTC
++++ netbsd/hid.c
+@@ -1087,7 +1087,7 @@ int HID_API_EXPORT_CALL hid_get_indexed_
+ 	struct usb_string_desc usd;
+ 	usb_string_descriptor_t *str;
+ 	iconv_t ic;
+-	const char *src;
++	char *src;
+ 	size_t srcleft;
+ 	char *dst;
+ 	size_t dstleft;
+@@ -1131,7 +1131,7 @@ int HID_API_EXPORT_CALL hid_get_indexed_
+ 		return -1;
+ 	}
+ 
+-	src = (const char *) str->bString;
++	src = (char *) str->bString;
+ 	srcleft = str->bLength - 2;
+ 	dst = (char *) string;
+ 	dstleft = sizeof(wchar_t[maxlen]);
 

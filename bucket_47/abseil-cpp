@@ -938,6 +938,42 @@ lib/pkgconfig/
  #endif
 
 
+[FILE:1689:patches/patch-absl_debugging_stacktrace.cc]
+--- absl/debugging/stacktrace.cc.orig	2025-05-12 17:41:36 UTC
++++ absl/debugging/stacktrace.cc
+@@ -61,7 +61,7 @@
+ #include <alloca.h>
+ #define ABSL_INTERNAL_HAVE_ALLOCA 1
+ #elif !defined(alloca)
+-static void* alloca(size_t) noexcept { return nullptr; }
++static void* __builtin_alloca(size_t) noexcept { return nullptr; }
+ #endif
+ #endif
+ #endif
+@@ -158,8 +158,8 @@ ABSL_ATTRIBUTE_NOINLINE ABSL_ATTRIBUTE_N
+     if constexpr (kHaveAlloca) {
+       const size_t nmax = static_cast<size_t>(max_depth);
+       uintptr_t* frames =
+-          static_cast<uintptr_t*>(alloca(nmax * sizeof(*frames)));
+-      int* sizes = static_cast<int*>(alloca(nmax * sizeof(*sizes)));
++          static_cast<uintptr_t*>(__builtin_alloca(nmax * sizeof(*frames)));
++      int* sizes = static_cast<int*>(__builtin_alloca(nmax * sizeof(*sizes)));
+       size_t depth = static_cast<size_t>(Unwind<true, false>(
+           result, frames, sizes, max_depth, skip_count, nullptr, nullptr));
+       internal_stacktrace::FixUpStack(result, frames, sizes, nmax, depth);
+@@ -178,8 +178,8 @@ GetStackTraceWithContext(void** result,
+     if constexpr (kHaveAlloca) {
+       const size_t nmax = static_cast<size_t>(max_depth);
+       uintptr_t* frames =
+-          static_cast<uintptr_t*>(alloca(nmax * sizeof(*frames)));
+-      int* sizes = static_cast<int*>(alloca(nmax * sizeof(*sizes)));
++          static_cast<uintptr_t*>(__builtin_alloca(nmax * sizeof(*frames)));
++      int* sizes = static_cast<int*>(__builtin_alloca(nmax * sizeof(*sizes)));
+       size_t depth = static_cast<size_t>(
+           Unwind<true, true>(result, frames, sizes, max_depth, skip_count, uc,
+                              min_dropped_frames));
+
+
 [FILE:501:patches/patch-absl_time_internal_cctz_src_time__zone__format.cc]
 --- absl/time/internal/cctz/src/time_zone_format.cc.orig	2025-05-12 17:41:36 UTC
 +++ absl/time/internal/cctz/src/time_zone_format.cc

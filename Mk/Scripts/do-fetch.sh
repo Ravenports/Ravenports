@@ -26,6 +26,13 @@ if [ ! -w "${dp_DISTDIR}" ]; then
 fi
 mkdir -p "${dp_DISTDIR}"/transient
 
+if [ -x "/usr/bin/timeout" ]; then
+	timeout_present=1
+else
+	timeout_present=0
+	${dp_ECHO_MSG} "=> Warning: missing executable timeout command.  Please update the system root."
+fi
+
 for _file in "${@}"; do
 	# _file = <filename>:<sitegroup>.  Validated at spec sheet level.
 	file=${_file%%:*}
@@ -131,7 +138,11 @@ for _file in "${@}"; do
 		args="-o ${download_path} ${site}${file}"
 		if [ -z "${dp_DISABLE_SIZE}" ]; then
 			_tlimit=$(dynamic_timeout "${CKSIZE}")
-			_fetch_cmd="${dp_FETCH_CMD} -S ${CKSIZE} -T ${_tlimit} ${args}"
+			if [ $timeout_present -eq 1 ]; then
+				_fetch_cmd="/usr/bin/timeout -s SIGINT ${_tlimit} ${dp_FETCH_CMD} -S ${CKSIZE} ${args}"
+			else
+				_fetch_cmd="${dp_FETCH_CMD} -S ${CKSIZE} ${args}"
+			fi
 		else
 			_fetch_cmd="${dp_FETCH_CMD} ${args}"
 		fi

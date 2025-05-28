@@ -171,7 +171,7 @@ php-error:
 # RUN_DEPENDS+=      php${PHP_SUFFIX}:primary:std
 # endif
 # if args contain "phpize" or "ext" or "zend"
-# BUILD_DEPENDS+=    autconf:single:std
+# BUILD_DEPENDS+=    autoconf:single:std
 # endif
 # Each extension may have individual port dependencies,
 # which are listed on the individual makefile.
