@@ -70,7 +70,7 @@ LUA_DEFAULT?=		5.4
 
 LUA_5.2_VERSION=	5.2.4
 LUA_5.3_VERSION=	5.3.6
-LUA_5.4_VERSION=	5.4.7
+LUA_5.4_VERSION=	5.4.8
 
 #-------------------------------------------------------------------------
 # TCL/TK
@@ -135,8 +135,8 @@ MYSQL_mariadb-11_VERSION=	11.7.2
 PHP_DEFAULT?=		8.3
 
 PHP_8.2_VERSION=	8.2.28
-PHP_8.3_VERSION=	8.3.21
-PHP_8.4_VERSION=	8.4.7
+PHP_8.3_VERSION=	8.3.22
+PHP_8.4_VERSION=	8.4.8
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform

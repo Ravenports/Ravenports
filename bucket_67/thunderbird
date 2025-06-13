@@ -122,6 +122,7 @@ VAR_OPSYS[linux]=	QMAKE_ARGS=--disable-elf-hack
 			QMAKE_ARGS=--enable-audio-backends=sndio
 			CONFIGURE_ENV=PKG_CONFIG_LIBDIR={{LOCALBASE}}/lib/pkgconfig
 VAR_OPSYS[netbsd]=	QMAKE_ARGS=--enable-audio-backends=sndio
+			MAKEFILE_LINE=NBSD=-lrt
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
 post-patch:
@@ -149,7 +150,7 @@ post-patch:
 		${ECHO_CMD} ".mozconfig <<  $$arg" ;\
 		${ECHO_CMD} ac_add_options $$arg >> ${WRKSRC}/.mozconfig ;\
 	done
-	@${ECHO_CMD} LDFLAGS=\"-lm -Wl,-rpath,${PREFIX}/lib/thunderbird\" \
+	@${ECHO_CMD} LDFLAGS=\"-lm ${NBSD} -Wl,-rpath,${PREFIX}/lib/thunderbird\" \
 		>> ${WRKSRC}/.mozconfig
 	# disable rust checksums
 .for RD in mtu quinn-udp
@@ -186,6 +187,10 @@ pre-configure:
 post-install-netbsd:
 	${PAXCTL} +m ${STAGEDIR}${PREFIX}/lib/thunderbird/thunderbird
 	${PAXCTL} +m ${STAGEDIR}${PREFIX}/lib/thunderbird/thunderbird-bin
+
+post-extract-netbsd:
+	# remove patch that breaks netbsd
+	${RM} ${PATCHDIR}/patch-comm_third__party_rust__wgpu-hal_src_vulkan_drm.rs
 
 [FILE:391:descriptions/desc.single]
 Thunderbird is a free and open source email, newsfeed, chat, and
