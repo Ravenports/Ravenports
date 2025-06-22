@@ -2,6 +2,7 @@
 
 NAMEBASE=		graphviz
 VERSION=		13.0.1
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Graph visualization tools
@@ -65,6 +66,8 @@ PLIST_SUB=		CDT_SOVERSION=6.0.0
 			XDOT_SOMAJOR=4
 			PPLAN_SOMAJOR=4
 			CGRAPH_SOMAJOR=7
+SUB_FILES=		scripts-tools.ucl
+SUB_LIST=		CONFIG=config8
 
 SET_DEBUGGING_ON=	yes
 LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/graphviz
@@ -590,7 +593,7 @@ share/doc/graphviz/pdf/
  }
 
 
-[FILE:257:files/scripts-tools.ucl]
+[FILE:266:files/scripts-tools.ucl.in]
 post-install-lua: [{
      args: ""
      code: <<EOS
@@ -601,8 +604,8 @@ EOS
 pre-deinstall-lua: [{
      args: ""
      code: <<EOS
-config6 = pkg.prefixed_path ("lib/graphviz/config6")
-os.remove(config6)
+configfile = pkg.prefixed_path ("lib/graphviz/%%CONFIG%%")
+os.remove(configfile)
 EOS
 }]
 
