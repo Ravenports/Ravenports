@@ -20,8 +20,6 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-B_DEPS[sunos]=		libbsd4sol:single:std
-
 USES=			gmake
 
 LICENSE=		MIT:primary
@@ -30,15 +28,12 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		devel/hexd
 
-VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/bsd
-			CFLAGS=-D__EXTENSIONS__
-
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/hexd ${STAGEDIR}${PREFIX}/bin
 	${INSTALL_MAN} ${WRKSRC}/hexd.1 ${STAGEDIR}${MANPREFIX}/man/man1
 
 post-patch-sunos:
-	${REINPLACE_CMD} -e '/_POSIX_C/d' ${WRKSRC}/hexd.c
+	# ${REINPLACE_CMD} -e '/_POSIX_C/d' ${WRKSRC}/hexd.c
 
 [FILE:254:descriptions/desc.primary]
 hexd prints a human-readable hexdump of the specified files, or standard

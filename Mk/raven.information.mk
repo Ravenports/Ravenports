@@ -111,7 +111,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.14.3
+LIBXML2_VERSION=		2.14.4
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -193,7 +193,7 @@ SPHINX_UNDERSCORE=		1.13.1
 ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0
 PECL_YAML=			2.2.4
-LINUX_UTILS_VERSION=		2.41
+LINUX_UTILS_VERSION=		2.41.1
 
 # ------------------------------------------------------------------------
 # Gnatcross options

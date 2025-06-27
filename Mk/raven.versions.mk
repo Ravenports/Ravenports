@@ -97,15 +97,16 @@ PGSQL_17_VERSION=	17.5
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(8.0,8.4),innovation,mariadb-(10.6, 10.11, 11.[48])
+# Possible values: oracle-(8.0,8.4),innovation,mariadb-(10.6, 10.11, 11.[48], 12)
 #
 # MariaDB releases:
 #   MariaDB 10.6   EOL 06 JUL 2026 (STABLE-LTS)
 #   MariaDB 10.11  EOL 16 Feb 2028 (STABLE-LTS)
 #   MariaDB 11.4   EOL 29 May 2029 (STABLE-LTS)
 #   MariaDB 11.8   EOL 04 JUN 2028 (STABLE-LTS)
-#   MariaDB 12.0   ?               (ALPHA RELEASE)
-#
+#   MariaDB 12.0   EST     Q3 2025 (12.3 EST LTS)
+#   MariaDB 13.0   EST     Q3 2026 (13.3 EST LTS)
+#   MariaDB 14.0   EST     Q3 2027 (14.3 EST LTS)
 #-------------------------------------------------------------------------
 
 MYSQL_DEFAULT=			oracle-8.0
@@ -138,7 +139,7 @@ PHP_8.4_VERSION=	8.4.8
 PLATFORM_FreeBSD_x86-64=	FreeBSD/amd64/x86_64/1402000/14.2/14
 PLATFORM_DragonFly_x86-64=	DragonFly/x86_64/x86_64/600400/6.4/6.4
 PLATFORM_Linux_x86-64=		Linux/x86_64/x86_64/610000/6.1.0/6.1
-PLATFORM_SunOS_x86-64=		SunOS/i86pc/x86_64/510200910/5.10/5.10
+PLATFORM_SunOS_x86-64=		SunOS/i86pc/x86_64/151054/5.11/5.11
 PLATFORM_MacOS_x86-64=		Darwin/x86_64/x86_64/170700/17.7.0/17
 PLATFORM_NetBSD_x86-64=		NetBSD/x86_64/x86_64/902000000/10.0/10
 PLATFORM_MidnightBSD_x86-64=	MidnightBSD/amd64/x86_64/300005/3.0.0/3
