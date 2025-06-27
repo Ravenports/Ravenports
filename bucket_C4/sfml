@@ -2,6 +2,7 @@
 
 NAMEBASE=		sfml
 VERSION=		3.0.1
+REVISION=		1
 KEYWORDS=		devel multimedia
 VARIANTS=		std
 SDESC[std]=		Simple Fast Multimedia Library
@@ -46,6 +47,7 @@ PLIST_SUB=		SOMINOR=0
 CMAKE_ARGS=		-DSFML_USE_SYSTEM_DEPS:BOOL=ON
 			-DBUILD_SHARED_LIBS:BOOL=ON
 			-DWARNINGS_AS_ERRORS=FALSE
+			-DSFML_INSTALL_PKGCONFIG_FILES:BOOL=ON
 
 pre-configure-netbsd:
 	${REINPLACE_CMD} 's|SFML_SYSTEM_OPENBSD|SFML_SYSTEM_NETBSD|' \
@@ -102,7 +104,7 @@ lib/
  libsfml-window.so.%%SOVERSION%%
 
 
-[FILE:2514:manifests/plist.dev]
+[FILE:2598:manifests/plist.dev]
 include/SFML/
  Audio.hpp
  Config.hpp
@@ -250,21 +252,32 @@ lib/cmake/SFML/
  SFMLSystemSharedTargets.cmake
  SFMLWindowSharedTargets-%%CMAKE_BUILD_TYPE%%.cmake
  SFMLWindowSharedTargets.cmake
-lib/pkgconfig/sfml-all.pc
+lib/pkgconfig/
+ sfml-all.pc
+ sfml-audio.pc
+ sfml-graphics.pc
+ sfml-network.pc
+ sfml-system.pc
+ sfml-window.pc
 
 
-[FILE:1022:patches/patch-CMakeLists.txt]
+[FILE:1162:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2025-04-22 13:06:02 UTC
 +++ CMakeLists.txt
-@@ -209,6 +209,7 @@ set(SFML_INSTALL_PKGCONFIG_DEFAULT OFF)
+@@ -205,11 +205,8 @@ set_property(GLOBAL PROPERTY PREDEFINED_
+ add_subdirectory(src/SFML)
  
- if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_OPENBSD OR SFML_OS_NETBSD)
+ # on Linux and BSD-like OS, install pkg-config files by default
+-set(SFML_INSTALL_PKGCONFIG_DEFAULT OFF)
+-
+-if(SFML_OS_LINUX OR SFML_OS_FREEBSD OR SFML_OS_OPENBSD OR SFML_OS_NETBSD)
      set(SFML_INSTALL_PKGCONFIG_DEFAULT ON)
+-endif()
 +    set(SFML_PKGCONFIG_DIR "lib/pkgconfig")
- endif()
  
  sfml_set_option(SFML_INSTALL_PKGCONFIG_FILES ${SFML_INSTALL_PKGCONFIG_DEFAULT} BOOL "ON to automatically install pkg-config files so other projects can find SFML")
-@@ -221,10 +222,6 @@ if(SFML_INSTALL_PKGCONFIG_FILES)
+ 
+@@ -221,10 +218,6 @@ if(SFML_INSTALL_PKGCONFIG_FILES)
      # this could be e.g. macports on mac or msys2 on windows etc.
      set(SFML_PKGCONFIG_DIR "${SFML_RELATIVE_INSTALL_LIBDIR}/pkgconfig")
  
@@ -294,6 +307,20 @@ lib/pkgconfig/sfml-all.pc
  elseif(CMAKE_SYSTEM_NAME MATCHES "^OpenBSD$")
      set(SFML_OS_OPENBSD 1)
  
+
+
+[FILE:508:patches/patch-cmake_Macros.cmake]
+--- cmake/Macros.cmake.orig	2025-04-22 13:06:02 UTC
++++ cmake/Macros.cmake
+@@ -244,7 +244,7 @@ macro(sfml_add_library module)
+             "${CMAKE_CURRENT_BINARY_DIR}/tools/pkg-config/${target}.pc"
+             @ONLY)
+         install(FILES "${CMAKE_CURRENT_BINARY_DIR}/tools/pkg-config/${target}.pc"
+-            DESTINATION "${SFML_PKGCONFIG_INSTALL_DIR}")
++            DESTINATION "lib/pkgconfig")
+     endif()
+ 
+     # because the frameworks directory hierarchy has to be set up before any target files
 
 
 [FILE:279:patches/patch-include_SFML_Config.hpp]

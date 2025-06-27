@@ -2,6 +2,7 @@
 
 NAMEBASE=		scribus
 VERSION=		1.6.4
+REVISION=		1
 KEYWORDS=		print editors
 VARIANTS=		std
 SDESC[std]=		Page Layout and Desktop Publishing
@@ -83,6 +84,7 @@ CMAKE_ARGS=		-DWANT_HUNSPELL=YES
 			-DQt5OpenGL_DIR="{{PREFIX}}/lib/qt5/cmake/Qt5OpenGL"
 			-DQt5LinguistTools_DIR="{{PREFIX}}/lib/qt5/cmake/Qt5LinguistTools"
 			-DQt5PrintSupport_DIR="{{PREFIX}}/lib/qt5/cmake/Qt5PrintSupport"
+			-DWITH_PODOFO:BOOL=OFF
 			-DLIBPODOFO_CONFIG_H="{{LOCALBASE}}/include/podofo/auxiliary/podofo_config.h"
 
 post-install:
@@ -3767,7 +3769,7 @@ share/doc/scribus/ru/
 
 
 [FILE:897:patches/patch-scribus_CMakeLists.txt]
---- scribus/CMakeLists.txt.orig	2025-04-21 19:50:52 UTC
+--- scribus/CMakeLists.txt.orig	2025-06-27 17:04:30 UTC
 +++ scribus/CMakeLists.txt
 @@ -811,12 +811,12 @@ endif ()
  
@@ -3787,7 +3789,7 @@ share/doc/scribus/ru/
 
 
 [FILE:442:patches/patch-scribus_third__party_lib2geom_isnan.h]
---- scribus/third_party/lib2geom/isnan.h.orig	2025-04-21 19:50:52 UTC
+--- scribus/third_party/lib2geom/isnan.h.orig	2025-06-27 17:04:30 UTC
 +++ scribus/third_party/lib2geom/isnan.h
 @@ -34,7 +34,7 @@
  #elif defined(WIN32) || defined(_isnan)
@@ -3801,7 +3803,7 @@ share/doc/scribus/ru/
 
 
 [FILE:624:patches/patch-scribus_third__party_pgf_PGFplatform.h]
---- scribus/third_party/pgf/PGFplatform.h.orig	2025-04-21 19:50:52 UTC
+--- scribus/third_party/pgf/PGFplatform.h.orig	2025-06-27 17:04:30 UTC
 +++ scribus/third_party/pgf/PGFplatform.h
 @@ -336,7 +336,7 @@ inline OSError SetFPos(HANDLE hFile, int
  //-------------------------------------------------------------------------------
@@ -3815,7 +3817,7 @@ share/doc/scribus/ru/
 
 
 [FILE:511:patches/patch-scribus_util__debug.cpp]
---- scribus/util_debug.cpp.orig	2025-04-21 19:50:52 UTC
+--- scribus/util_debug.cpp.orig	2025-06-27 17:04:30 UTC
 +++ scribus/util_debug.cpp
 @@ -53,7 +53,7 @@ void tDebug(const QString& message)
   */
@@ -3826,4 +3828,130 @@ share/doc/scribus/ru/
  	void ** trace = new void*[nFrames + 1];
  	char **messages = ( char ** ) nullptr;
  	int i, trace_size = 0;
+
+
+[FILE:5308:patches/patch-support-podofo-100]
+From 760ff25fcc250099c0dca3949f62739be126c231 Mon Sep 17 00:00:00 2001
+From: Jean Ghali <jghali@libertysurf.fr>
+Date: Fri, 6 Jun 2025 23:40:58 +0000
+Subject: [PATCH] Fix build with PoDoFo 1.0.0
+
+git-svn-id: svn://scribus.net/trunk/Scribus@26920 11d20701-8431-0410-a711-e3c959e3b870
+---
+ scribus/pdf_analyzer.cpp | 31 +++++++++++++++++++++++++++++++
+ scribus/pdflib_core.cpp  | 22 ++++++++++++++++++++--
+ 2 files changed, 51 insertions(+), 2 deletions(-)
+
+--- scribus/pdf_analyzer.cpp.orig	2025-06-27 17:04:30 UTC
++++ scribus/pdf_analyzer.cpp
+@@ -276,7 +276,11 @@ bool PDFAnalyzer::inspectCanvas(PdfCanva
+ 	try
+ 	{
+ 		// start parsing the content stream
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++		PdfContentReaderArgs tokenizerArgs;
++#else
+ 		PdfContentReaderArgs tokenizerArgs = { PdfContentReaderFlags::DontFollowXObjectForms };
++#endif
+ 		PdfContentStreamReader tokenizer(*canvas, tokenizerArgs);
+ 		PdfContent pdfContent;
+ 		PdfVariant var;
+@@ -289,13 +293,29 @@ bool PDFAnalyzer::inspectCanvas(PdfCanva
+ 		while (tokenizer.TryReadNext(pdfContent))
+ 		{
+ 			++tokenNumber;
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++			if (pdfContent.GetType() == PdfContentType::Operator)
++#else
+ 			if (pdfContent.Type == PdfContentType::Operator)
++#endif
+ 			{
+ 				args.clear();
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++				const auto& pdfContentStack = pdfContent.GetStack();
++				size_t stackSize = pdfContentStack.size();
++				for (size_t i = 0; i < stackSize; ++i)
++					args.append(pdfContentStack[stackSize - 1 - i]);
++#else
++
+ 				size_t stackSize = pdfContent.Stack.size();
+ 				for (size_t i = 0; i < stackSize; ++i)
+ 					args.append(pdfContent.Stack[stackSize - 1 - i]);
++#endif
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++				switch (pdfContent.GetOperator())
++#else
+ 				switch (pdfContent.Operator)
++#endif
+ 				{
+ 				case PdfOperator::q:
+ 					gsStack.push(currGS);
+@@ -677,12 +697,23 @@ bool PDFAnalyzer::inspectCanvas(PdfCanva
+ 				}
+ 				args.clear();
+ 			}
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++			if (pdfContent.GetType() == PdfContentType::DoXObject)
++#else
+ 			if (pdfContent.Type == PdfContentType::DoXObject)
++#endif
+ 			{
+ 				args.clear();
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++				const auto& pdfContentStack = pdfContent.GetStack();
++				size_t stackSize = pdfContentStack.size();
++				for (size_t i = 0; i < stackSize; ++i)
++					args.append(pdfContentStack[stackSize - 1 - i]);
++#else
+ 				size_t stackSize = pdfContent.Stack.size();
+ 				for (size_t i = 0; i < stackSize; ++i)
+ 					args.append(pdfContent.Stack[stackSize - 1 - i]);
++#endif
+ 				if (!processedNamedXObj.contains(args[0].GetName()))
+ 				{
+ 					if (args.size() == 1 && args[0].IsName() && xObjectsDict)
+--- scribus/pdflib_core.cpp.orig	2025-06-27 17:04:30 UTC
++++ scribus/pdflib_core.cpp
+@@ -9834,7 +9834,11 @@ bool PDFLibCore::PDF_EmbeddedPDF(PageIte
+ 		PoDoFo::PdfPage& page = doc->GetPages().GetPageAt(qMin(qMax(1, c->pixm.imgInfo.actualPageNumber), c->pixm.imgInfo.numberOfPages) - 1);
+ 		PoDoFo::PdfObject& pageObj = page.GetObject();
+ 		PoDoFo::PdfObject* contents = page.GetContents() ? &(page.GetContents()->GetObject()) : nullptr;
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++		const PoDoFo::PdfObject* resources = &(page.GetResources().GetObject());
++#else
+ 		PoDoFo::PdfObject* resources = page.GetResources() ? &(page.GetResources()->GetObject()) : nullptr;
++#endif
+ 		PoDoFo::PdfDictionary* pageObjDict = pageObj.IsDictionary() ? &(pageObj.GetDictionary()) : nullptr;
+ 		for (PoDoFo::PdfDictionary* par = pageObjDict, *parentDict = nullptr; par && !resources; par = parentDict)
+ 		{
+@@ -9855,7 +9859,14 @@ bool PDFLibCore::PDF_EmbeddedPDF(PageIte
+ 			importedObjects[page.GetObject().GetIndirectReference()] = xObj;
+ 			writer.startObj(xObj);
+ 			PutDoc("<<\n/Type /XObject\n/Subtype /Form\n/FormType 1");
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++			PoDoFo::Rect pageRect = page.GetArtBoxRaw().GetNormalized(); // Because scimagedataloader_pdf use ArtBox
++			double rotation = 0;
++			if (!page.TryGetRotationRaw(rotation))
++				rotation = 0;
++#else
+ 			PoDoFo::Rect pageRect = page.GetArtBox(true); // Because scimagedataloader_pdf use ArtBox
++#endif
+ 			int rotation = page.GetRotationRaw();
+ 			double imgWidth  = (rotation == 90 || rotation == 270) ? pageRect.Height : pageRect.Width;
+ 			double imgHeight = (rotation == 90 || rotation == 270) ? pageRect.Width : pageRect.Height;
+@@ -9976,7 +9987,14 @@ bool PDFLibCore::PDF_EmbeddedPDF(PageIte
+ 			importedObjects[page.GetObject().GetIndirectReference()] = xObj;
+ 			writer.startObj(xObj);
+ 			PutDoc("<<\n/Type /XObject\n/Subtype /Form\n/FormType 1");
++#if (PODOFO_VERSION >= PODOFO_MAKE_VERSION(1, 0, 0))
++			PoDoFo::Rect pageRect = page.GetArtBoxRaw().GetNormalized(); // Because scimagedataloader_pdf use ArtBox
++			double rotation = 0;
++			if (!page.TryGetRotationRaw(rotation))
++				rotation = 0;
++#else
+ 			PoDoFo::Rect pageRect = page.GetArtBox(true); // Because scimagedataloader_pdf use ArtBox
++#endif
+ 			int rotation = page.GetRotationRaw();
+ 			double imgWidth  = (rotation == 90 || rotation == 270) ? pageRect.Height : pageRect.Width;
+ 			double imgHeight = (rotation == 90 || rotation == 270) ? pageRect.Width : pageRect.Height;
 
