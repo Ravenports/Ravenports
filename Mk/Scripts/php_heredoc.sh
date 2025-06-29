@@ -41,7 +41,22 @@ pre-deinstall-lua: [{
    args: ""
    code: <<EOS
 cfg = pkg.prefixed_path("include/${PHPXX}/ext/php_config.h")
-pkg.exec({"/usr/bin/sed", "-i", "", "-e", "/ext.${PHP_MODNAME}.config.h/d", cfg})
+cfg_last = cfg .. ".last"
+sed_prog = "/usr/bin/sed"
+st = pkg.stat(sed_prog)
+if not st then
+   sed_prog = "/bin/sed"
+   st = pkg.stat(sed_prog)
+   if not st then
+      pkg.print_msg("No sed program found - ${PHP_MODNAME} not removed from configuration")
+      return false
+   end
+end
+pkg.exec({sed_prog, "-i.last", "-e", "/ext.${PHP_MODNAME}.config.h/d", cfg})
+st = pkg.stat(cfg_last)
+if st then
+   os.remove(cfg_last)
+end
 st = pkg.stat(cfg)
 if st then
    if st.size == 0 then
