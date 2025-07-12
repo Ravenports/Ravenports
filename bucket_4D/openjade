@@ -2,7 +2,7 @@
 
 NAMEBASE=		openjade
 VERSION=		1.3.2
-REVISION=		3
+REVISION=		4
 EPOCH=			1
 KEYWORDS=		textproc
 VARIANTS=		std
@@ -22,25 +22,34 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILDRUN_DEPENDS=	OpenSP:single:std
+BUILDRUN_DEPENDS=	OpenSP:tools:std
 RUN_DEPENDS=		xmlcatmgr:primary:std
+			OpenSP:dev:std
 
 USES=			gmake libtool perl
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-default-catalog={{PREFIX}}/share/sgml/catalog
 			--datadir={{PREFIX}}/share/sgml/openjade
+			--enable-spincludedir={{LOCALBASE}}/include/OpenSP
+			--enable-splibdir={{LOCALBASE}}/lib
 			--disable-nls
 
 MAKE_ENV=		STRIP="{{STRIP}}"
 
 INSTALL_TARGET=		install install-man
+SOVERSION=		0.0.1
 PLIST_SUB=		XMLCATMGR={{LOCALBASE}}/bin/xmlcatmgr
 			CATALOG_PORTS_SGML={{PREFIX}}/share/sgml/catalog.ports
+
+CXXFLAGS=		-Wno-deprecated
+VAR_OPSYS[sunos]=	CXXFLAGS=-fno-use-cxa-atexit
 
 post-install:
 	${FIND} ${WRKSRC}/dsssl -depth -maxdepth 1 -type f \
 		-exec ${INSTALL_DATA} {} ${STAGEDIR}/${PREFIX}/share/sgml/openjade \;
+	${LN} -s openjade ${STAGEDIR}${PREFIX}/bin/jade
+	${LN} -s openjade.1 ${STAGEDIR}${PREFIX}/share/man/man1/jade.1
 
 [FILE:213:descriptions/desc.primary]
 OpenJade is an implementation of the ISO/IEC 10179:1996 standard DSSSL
@@ -52,15 +61,17 @@ Jade.  OpenJade is now developed and maintained by the OpenJade team.
 1d2d7996cc94f9b87d0c51cf0e028070ac177c4123ecbfd7ac1cb8d0b7d322d1       894834 openjade-1.3.2.tar.gz
 
 
-[FILE:311:manifests/plist.primary]
-%%EXCLUDE-DARWIN%%lib/
- libogrove.so.0
- libogrove.so.0.0.1
- libospgrove.so.0
- libospgrove.so.0.0.1
- libostyle.so.0
- libostyle.so.0.0.1
-bin/openjade
+[FILE:355:manifests/plist.primary]
+bin/
+ jade
+ openjade
+lib/
+ libogrove.so.%%SOMAJOR%%
+ libogrove.so.%%SOVERSION%%
+ libospgrove.so.%%SOMAJOR%%
+ libospgrove.so.%%SOVERSION%%
+ libostyle.so.%%SOMAJOR%%
+ libostyle.so.%%SOVERSION%%
 share/sgml/openjade/
  README.jadetex
  builtins.dsl
@@ -84,13 +95,15 @@ lib/
  libostyle.a
 
 
-[FILE:26:manifests/plist.man]
-share/man/man1/openjade.1
+[FILE:36:manifests/plist.man]
+share/man/man1/
+ jade.1
+ openjade.1
 
 
-[FILE:332:patches/patch-GroveApp.h]
---- spgrove/GroveApp.h.orig	Sun May  2 21:57:37 1999
-+++ spgrove/GroveApp.h	Tue Aug  5 11:27:44 2003
+[FILE:306:patches/patch-GroveApp.h]
+--- spgrove/GroveApp.h.orig	1999-05-02 12:57:37 UTC
++++ spgrove/GroveApp.h
 @@ -7,9 +7,9 @@
  #pragma interface
  #endif
@@ -105,9 +118,9 @@ share/man/man1/openjade.1
  namespace SP_NAMESPACE {
 
 
-[FILE:1132:patches/patch-GroveBuilder.cxx]
---- spgrove/GroveBuilder.cxx.orig	Sun Nov 17 03:01:12 2002
-+++ spgrove/GroveBuilder.cxx	Tue Aug  5 11:27:44 2003
+[FILE:1106:patches/patch-GroveBuilder.cxx]
+--- spgrove/GroveBuilder.cxx.orig	2002-11-16 18:01:12 UTC
++++ spgrove/GroveBuilder.cxx
 @@ -4,26 +4,24 @@
  // FIXME location for SgmlDocument node.
  
@@ -150,10 +163,16 @@ share/man/man1/openjade.1
  #pragma warning ( disable : 4250 ) // inherits via dominance
 
 
-[FILE:346:patches/patch-Makefile.lib.in]
+[FILE:671:patches/patch-Makefile.lib.in]
 --- Makefile.lib.in.orig	2002-01-22 11:57:53 UTC
 +++ Makefile.lib.in
-@@ -28,7 +28,7 @@
+@@ -23,12 +23,12 @@ Makefile.lt:
+ 	echo 'LT_OBJS='`echo $(OBJS)|sed 's/\.o/.lo/g'` >Makefile.lt
+ 
+ lib$(LIB).la: $(LT_OBJS)
+-	$(LIBTOOL) --mode=link $(CC) $(LINKFLAGS) -o lib$(LIB).la $(LT_OBJS) \
++	$(LIBTOOL) --mode=link $(CXX) $(LINKFLAGS) $(LDFLAGS) -o lib$(LIB).la $(LT_OBJS) \
+ 	    -rpath $(libdir) -version-info $(LTVERSION) $(DEPLIBS)
  
  install:
  	$(mkinstalldirs) $(DESTDIR)$(libdir)
@@ -164,10 +183,10 @@ share/man/man1/openjade.1
  depend.temp: $(GENSRCS)
 
 
-[FILE:882:patches/patch-Makefile.prog.in]
---- Makefile.prog.in.orig	Tue Jan 22 20:57:53 2002
-+++ Makefile.prog.in	Sun Aug 22 05:48:16 2004
-@@ -12,7 +12,9 @@
+[FILE:897:patches/patch-Makefile.prog.in]
+--- Makefile.prog.in.orig	2002-01-22 11:57:53 UTC
++++ Makefile.prog.in
+@@ -12,7 +12,9 @@ LINKFLAGS = @LINKFLAGS@
  
  ALL_LIBS = $(XLIBS) $(LIBS)
  Makefile.lt:
@@ -178,7 +197,7 @@ share/man/man1/openjade.1
  
  PROG:=$(shell echo "$(PROG)" | sed '@program_transform_name@')
  
-@@ -25,7 +27,7 @@
+@@ -25,7 +27,7 @@ install: $(PROG)
  	-test -d $(DESTDIR)$(bindir) || \
  	  (mkdir $(DESTDIR)$(bindir); chmod 755 $(DESTDIR)$(bindir))
  	-rm -f $(DESTDIR)$(bindir)/$(PROG)
@@ -189,9 +208,9 @@ share/man/man1/openjade.1
  depend.temp: $(GENSRCS)
 
 
-[FILE:552:patches/patch-Node.h]
---- grove/Node.h.orig	Mon Oct 21 06:47:24 2002
-+++ grove/Node.h	Tue Aug  5 11:27:44 2003
+[FILE:554:patches/patch-Node.h]
+--- grove/Node.h.orig	2002-10-20 21:47:24 UTC
++++ grove/Node.h
 @@ -8,7 +8,8 @@
  #endif
  
@@ -202,7 +221,7 @@ share/man/man1/openjade.1
  
  #ifdef SP_USE_DLL
  #ifdef BUILD_LIBGROVE
-@@ -34,10 +35,10 @@
+@@ -34,10 +35,10 @@ namespace GROVE_NAMESPACE {
  #endif
  
  #ifdef SP_MULTI_BYTE
@@ -218,10 +237,10 @@ share/man/man1/openjade.1
  typedef unsigned char GroveChar;
 
 
-[FILE:640:patches/patch-TeXFOTBuilder.cxx]
---- jade/TeXFOTBuilder.cxx.orig	2011-09-24 14:17:02.000000000 +0000
-+++ jade/TeXFOTBuilder.cxx	2011-09-24 14:19:42.000000000 +0000
-@@ -83,6 +83,8 @@
+[FILE:610:patches/patch-TeXFOTBuilder.cxx]
+--- jade/TeXFOTBuilder.cxx.orig	2002-01-15 10:35:37 UTC
++++ jade/TeXFOTBuilder.cxx
+@@ -88,6 +88,8 @@ public:
        value.convertString(nic_.placement);
        }
      ExtensionFlowObj *copy() const { return new PageFloatFlowObj(*this); }
@@ -230,7 +249,7 @@ share/man/man1/openjade.1
    private:
      PageFloatNIC nic_;
      StringC name_;
-@@ -96,6 +98,8 @@
+@@ -101,6 +103,8 @@ public:
        fotb.endPageFootnote();
      }
      ExtensionFlowObj *copy() const { return new PageFootnoteFlowObj(*this); }
@@ -242,9 +261,9 @@ share/man/man1/openjade.1
 
 
 [FILE:1440:patches/patch-TransformFOTBuilder.cxx]
---- jade/TransformFOTBuilder.cxx.orig	2011-09-24 14:20:28.000000000 +0000
-+++ jade/TransformFOTBuilder.cxx	2011-09-24 14:22:32.000000000 +0000
-@@ -41,6 +41,7 @@
+--- jade/TransformFOTBuilder.cxx.orig	2002-12-01 14:55:51 UTC
++++ jade/TransformFOTBuilder.cxx
+@@ -41,6 +41,7 @@ public:
    };
    class EntityRefFlowObj : public TransformExtensionFlowObj {
    public:
@@ -252,7 +271,7 @@ share/man/man1/openjade.1
      void atomic(TransformFOTBuilder &fotb, const NodePtr &) const {
        fotb.entityRef(name_);
      }
-@@ -56,6 +57,7 @@
+@@ -56,6 +57,7 @@ public:
    };
    class ProcessingInstructionFlowObj : public TransformExtensionFlowObj {
    public:
@@ -260,7 +279,7 @@ share/man/man1/openjade.1
      void atomic(TransformFOTBuilder &fotb, const NodePtr &) const {
        fotb.processingInstruction(data_);
      }
-@@ -98,6 +100,8 @@
+@@ -98,6 +100,8 @@ public:
        }
      }
      ExtensionFlowObj *copy() const { return new EmptyElementFlowObj(*this); }
@@ -269,7 +288,7 @@ share/man/man1/openjade.1
    private:
      ElementNIC nic_;
    };
-@@ -133,6 +137,8 @@
+@@ -133,6 +137,8 @@ public:
        }
      }
      ExtensionFlowObj *copy() const { return new ElementFlowObj(*this); }
@@ -278,7 +297,7 @@ share/man/man1/openjade.1
    private:
      ElementNIC nic_;
    };
-@@ -150,6 +156,8 @@
+@@ -150,6 +156,8 @@ public:
        value.convertString(systemId_);
      }
      ExtensionFlowObj *copy() const { return new EntityFlowObj(*this); }
@@ -287,7 +306,7 @@ share/man/man1/openjade.1
    private:
      StringC systemId_;
    };
-@@ -174,6 +182,8 @@
+@@ -174,6 +182,8 @@ public:
        }
      }
      ExtensionFlowObj *copy() const { return new DocumentTypeFlowObj(*this); }
@@ -362,11 +381,11 @@ share/man/man1/openjade.1
    case $version_type in
 
 
-[FILE:744:patches/patch-msggen]
+[FILE:801:patches/patch-msggen]
 Use Getopt::Std in place of getopts.pl.
 https://bugs.gentoo.org/show_bug.cgi?id=420083
 
---- msggen.pl
+--- msggen.pl.orig	2002-10-20 21:47:23 UTC
 +++ msggen.pl
 @@ -4,6 +4,7 @@
  # See the file COPYING for copying permission.
@@ -376,7 +395,7 @@ https://bugs.gentoo.org/show_bug.cgi?id=420083
  
  # Package and version.
  $package = 'openjade';
-@@ -18,8 +19,7 @@
+@@ -18,8 +19,7 @@ $gen_c = 0;
  undef $opt_l;
  undef $opt_p;
  undef $opt_t;
@@ -386,7 +405,7 @@ https://bugs.gentoo.org/show_bug.cgi?id=420083
  $module = $opt_l;
  $pot_file = $opt_p;
  
-@@ -72,7 +72,7 @@
+@@ -72,7 +72,7 @@ while (<DEF>) {
      else {
  	$field[0] =~ /^[IWQXE][0-9]$/ || &error("invalid first field");;
  	$type[$num] = substr($field[0], 0, 1);

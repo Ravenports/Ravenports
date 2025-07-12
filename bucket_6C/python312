@@ -144,16 +144,13 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|/usr/local/bin/python|${python_CMD}|' \
 		${WRKSRC}/Lib/cgi.py
 
+post-extract-sunos:
+	# remove opt-[12].pyc from primary manifest
+	${SED} -i.sunos -e '/opt[-][12][.]pyc/d' /port/manifests/plist.primary
+
 post-install-DEBUG-OFF:
 	# Upstream Issue: http://bugs.python.org/issue17975 (won't fix, ever)
 	${RM} ${STAGEDIR}${PREFIX}/lib/libpython3.so
-
-pre-configure-sunos:
-	# non-understood missing ref to uuid_generate_time_safe even
-	# though it is correctly present in libuuid (hack to fix uuid
-	# module)
-	${REINPLACE_CMD} -e 's|ifdef HAVE_UUID_GENERATE_TIME_SAFE|if 0|' \
-		${WRKSRC}/Modules/_uuidmodule.c
 
 [FILE:558:descriptions/desc.primary]
 Python is an interpreted, interactive, object-oriented programming

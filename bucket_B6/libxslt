@@ -2,6 +2,7 @@
 
 NAMEBASE=		libxslt
 VERSION=		1.1.43
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		XSLT C library for GNOME
@@ -17,6 +18,7 @@ SPKGS[std]=		set
 			primary
 			dev
 			man
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -24,7 +26,7 @@ OPTIONS_STANDARD=	none
 BUILD_DEPENDS=		libgcrypt:dev:std
 BUILDRUN_DEPENDS=	libgcrypt:primary:std
 
-USES=			cpe gmake libtool pkgconfig
+USES=			cpe cmake pkgconfig
 GNOME_COMPONENTS=	libxml2
 
 LICENSE=		MIT:primary
@@ -34,22 +36,19 @@ LICENSE_SCHEME=		solo
 CPE_VENDOR=		xmlsoft
 FPC_EQUIVALENT=		textproc/libxslt
 
-MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-html-dir={{PREFIX}}/share/doc
-			--with-crypto
-			--without-python
-			--enable-static
-
-INSTALL_TARGET=		install-strip
-INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		1.1.43
 PLIST_SUB=		EXSLTSOVERSION=0.8.24
 			EXSLTSOMAJOR=0
+			EXSLTVER=1.1.43
 
-post-install:
-	# docs are disabled via patch
-	${INSTALL_MAN} ${WRKSRC}/doc/xsltproc.1 \
-		${STAGEDIR}${MANPREFIX}/man/man1/
+CMAKE_ARGS=		-DLIBXSLT_WITH_CRYPTO:BOOL=ON
+			-DBUILD_SHARED_LIBS:BOOL=ON
+			-DLIBXSLT_WITH_PROGRAMS:BOOL=ON
+			-DLIBXSLT_WITH_THREADS:BOOL=ON
+			-DLIBXSLT_WITH_PYTHON:BOOL=OFF
+			-DLIBXSLT_WITH_PROFILER:BOOL=OFF
+			-DLIBXSLT_WITH_TESTS:BOOL=OFF
+			-DLIBXSLT_WITH_XSLT_DEBUG=OFF
 
 [FILE:462:descriptions/desc.primary]
 Libxslt is the XSLT C library developed for the GNOME project.  XSLT
@@ -78,7 +77,7 @@ lib/
  xsltConf.sh
 
 
-[FILE:497:manifests/plist.dev]
+[FILE:569:manifests/plist.dev]
 include/libexslt/
  exslt.h
  exsltconfig.h
@@ -106,13 +105,14 @@ include/libxslt/
  xsltlocale.h
  xsltutils.h
 lib/
- libexslt.a
  libexslt.so
- libxslt.a
  libxslt.so
-lib/cmake/libxslt/
+lib/cmake/libxslt-%%EXSLTVER%%/
  FindGcrypt.cmake
+ libxslt-config-version.cmake
  libxslt-config.cmake
+ libxslt-export-release.cmake
+ libxslt-export.cmake
 lib/pkgconfig/
  libexslt.pc
  libxslt.pc
@@ -125,34 +125,152 @@ share/man/man3/
  libxslt.3
 
 
-[FILE:507:patches/patch-Makefile.in]
---- Makefile.in.orig	2025-03-12 17:57:47 UTC
-+++ Makefile.in
-@@ -433,8 +433,8 @@ top_build_prefix = @top_build_prefix@
- top_builddir = @top_builddir@
- top_srcdir = @top_srcdir@
- ACLOCAL_AMFLAGS = -I m4
--SUBDIRS = libxslt libexslt xsltproc doc tests $(am__append_1)
--DIST_SUBDIRS = libxslt libexslt xsltproc python doc tests
-+SUBDIRS = libxslt libexslt xsltproc $(am__append_1)
-+DIST_SUBDIRS = libxslt libexslt xsltproc python
- confexecdir = $(libdir)
- confexec_DATA = xsltConf.sh
- bin_SCRIPTS = xslt-config
+[FILE:1244:manifests/plist.docs]
+share/doc/libxslt/
+ apibuild.py
+ libxslt-api.xml
+ xsltproc.1
+ xsltproc.html
+ xsltproc.xml
+share/doc/libxslt/EXSLT/libexslt-api.xml
+share/doc/libxslt/EXSLT/devhelp/
+ devhelp2.xsl
+ general.html
+ home.png
+ html.xsl
+ index.html
+ left.png
+ libexslt-exslt.html
+ libexslt-exsltexports.html
+ libexslt.devhelp2
+ right.png
+ style.css
+ up.png
+share/doc/libxslt/devhelp/
+ devhelp2.xsl
+ general.html
+ home.png
+ html.xsl
+ index.html
+ left.png
+ libxslt-attributes.html
+ libxslt-documents.html
+ libxslt-extensions.html
+ libxslt-extra.html
+ libxslt-functions.html
+ libxslt-imports.html
+ libxslt-keys.html
+ libxslt-namespaces.html
+ libxslt-numbersInternals.html
+ libxslt-pattern.html
+ libxslt-preproc.html
+ libxslt-security.html
+ libxslt-templates.html
+ libxslt-transform.html
+ libxslt-variables.html
+ libxslt-xslt.html
+ libxslt-xsltInternals.html
+ libxslt-xsltexports.html
+ libxslt-xsltlocale.html
+ libxslt-xsltutils.html
+ libxslt.devhelp2
+ right.png
+ style.css
+ up.png
+share/doc/libxslt/tutorial/
+ libxslt_tutorial.c
+ libxslttutorial.html
+ libxslttutorial.xml
+share/doc/libxslt/tutorial/images/callouts/
+ 1.png
+ 10.png
+ 2.png
+ 3.png
+ 4.png
+ 5.png
+ 6.png
+ 7.png
+ 8.png
+ 9.png
+share/doc/libxslt/tutorial2/
+ libxslt_pipes.c
+ libxslt_pipes.html
+ libxslt_pipes.xml
 
 
-[FILE:610:patches/patch-python_Makefile.in]
---- python/Makefile.in.orig	2025-03-12 17:57:47 UTC
-+++ python/Makefile.in
-@@ -137,8 +137,8 @@ am__installdirs = "$(DESTDIR)$(pyexecdir
- LTLIBRARIES = $(pyexec_LTLIBRARIES)
- am__DEPENDENCIES_1 =
- @WITH_PYTHON_TRUE@libxsltmod_la_DEPENDENCIES =  \
--@WITH_PYTHON_TRUE@	$(top_builddir)/libxslt/libxslt.la \
--@WITH_PYTHON_TRUE@	$(top_builddir)/libexslt/libexslt.la \
-+@WITH_PYTHON_TRUE@	-lxslt \
-+@WITH_PYTHON_TRUE@	-lexslt \
- @WITH_PYTHON_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
- am__libxsltmod_la_SOURCES_DIST = libxslt.c types.c
- @WITH_PYTHON_TRUE@am_libxsltmod_la_OBJECTS = libxsltmod_la-libxslt.lo \
+[FILE:474:sunos/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2025-03-12 17:57:19 UTC
++++ CMakeLists.txt
+@@ -219,7 +219,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang" O
+ 		if (FLAG_UNDEFINED_VERSION)
+ 			target_link_options(LibXslt PRIVATE "LINKER:--undefined-version")
+ 		endif()
+-		target_link_options(LibXslt PRIVATE "LINKER:--version-script=${CMAKE_CURRENT_SOURCE_DIR}/libxslt/libxslt.syms")
++		target_link_options(LibXslt PRIVATE LINKER:-M${CMAKE_CURRENT_SOURCE_DIR}/libxslt/libxslt.syms)
+ 	endif()
+ endif()
+ 
+
+
+[FILE:1335:sunos/patch-libxslt_libxslt.syms]
+--- libxslt/libxslt.syms.orig	2025-03-12 17:57:52 UTC
++++ libxslt/libxslt.syms
+@@ -117,7 +117,7 @@ LIBXML2_1.0.11 {
+   xsltTemplateProcess;
+ 
+ # transform
+-  xslHandleDebugger;
++  # xslHandleDebugger;
+   xsltApplyImports;
+   xsltApplyOneTemplate;
+   xsltApplyStripSpaces;
+@@ -179,24 +179,24 @@ LIBXML2_1.0.11 {
+   xsltParseTemplateContent;
+ 
+ # xsltutils
+-  xslAddCall;
+-  xslDropCall;
+-  xsltCalibrateAdjust;
++  # xslAddCall;
++  # xslDropCall;
++  # xsltCalibrateAdjust;
+   xsltDocumentSortFunction;
+   xsltDoSortFunction;
+   xsltGetNsProp;
+   xsltGetQNameURI;
+   xsltMessage;
+   xsltPrintErrorContext;
+-  xsltSaveProfiling;
++  # xsltSaveProfiling;
+   xsltSaveResultToFd;
+   xsltSaveResultToFilename;
+   xsltSaveResultToFile;
+   xsltSaveResultTo;
+-  xsltSetDebuggerCallbacks;
++  # xsltSetDebuggerCallbacks;
+   xsltSetGenericDebugFunc;
+   xsltSetGenericErrorFunc;
+-  xsltTimestamp;
++  # xsltTimestamp;
+ 
+ # xslt
+   xsltCleanupGlobals;
+@@ -293,7 +293,7 @@ LIBXML2_1.0.24 {
+   xsltGenericDebug; # variable
+   xsltGenericErrorContext; # variable
+   xsltGenericError; # variable
+-  xsltGetProfileInformation;
++  # xsltGetProfileInformation;
+   xsltGetUTF8Char;
+ 
+ # xslt
+@@ -342,7 +342,7 @@ LIBXML2_1.1.0 {
+ 
+ # xsltutils
+   xsltGetDebuggerStatus;
+-  xsltSetDebuggerStatus;
++  # xsltSetDebuggerStatus;
+ } LIBXML2_1.0.33;
+ 
+ LIBXML2_1.1.1 {
 

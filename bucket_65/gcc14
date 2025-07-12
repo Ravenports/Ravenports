@@ -2,6 +2,7 @@
 
 NAMEBASE=		gcc14
 VERSION=		14.3.0
+REVISION=		1
 KEYWORDS=		lang raven
 VARIANTS=		std
 SDESC[std]=		GNU Compiler collection (GCC), Series 14
@@ -10,14 +11,14 @@ CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main draco
 SITES[main]=		GCC/releases/gcc-14.3.0
-SITES[draco]=		https://raw.githubusercontent.com/jrmarino/draco/14.3.0-base/generated/patches-14.3.0/
+SITES[draco]=		https://raw.githubusercontent.com/jrmarino/draco/14.3.0-rev2/generated/patches-14.3.0/
 DISTFILE[1]=		gcc-14.3.0.tar.xz:main
 DISTFILE[2]=		patch-diff-ada:draco
 DISTFILE[3]=		patch-diff-core:draco
 DISTFILE[4]=		patch-diff-cxx:draco
 DISTFILE[5]=		patch-diff-ada-testsuite:draco
 DISTFILE[6]=		patch-diff-gcc-testsuite:draco
-DIST_SUBDIR=		gcc14_14.3.0-base
+DIST_SUBDIR=		gcc14_14.3.0-rev2
 DF_INDEX=		1
 SPKGS[std]=		set
 			compilers
@@ -30,8 +31,6 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-NOT_FOR_OPSYS=		sunos
 
 BUILD_DEPENDS=		gmp:dev:std
 			mpfr:dev:std
@@ -70,7 +69,7 @@ INFO=			info:cpp
 			info:libgomp
 CPE_PRODUCT=		gcc
 CPE_VENDOR=		gnu
-FPC_EQUIVALENT=		lang/gcc11
+FPC_EQUIVALENT=		lang/gcc14
 INFO_SUBDIR=		.
 
 PATCHFILES=		2 3 4 5 6
@@ -106,6 +105,11 @@ VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--disable-libstdcxx-pch
 			CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
 			CONFIGURE_ARGS=--with-ld={{LOCALBASE}}/bin/ld
+			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--disable-bootstrap
+			CONFIGURE_ARGS=--with-gnu-as
+			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
+			CONFIGURE_ARGS=--without-gnu-ld
 			CONFIGURE_ARGS=--with-libiconv-prefix={{WRKDIR}}/fake
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-gnu-as
 			CONFIGURE_ARGS=--with-as={{LOCALBASE}}/bin/as
@@ -146,6 +150,8 @@ post-patch:
 		${WRKSRC}/gcc/config/i386/gnu-user64.h \
 		${WRKSRC}/gcc/config/aarch64/aarch64-freebsd.h \
 		${WRKSRC}/gcc/ada/gnatls.adb
+	${REINPLACE_CMD} -e 's|/usr/ccs/bin/elfdump|/usr/bin/elfdump|' \
+		${WRKSRC}/contrib/make_sunver.pl
 
 post-patch-linux:
 	# undo BSD thin socket modification
@@ -176,6 +182,11 @@ post-extract:
 	${INSTALL_DATA} ${LOCALBASE}/lib/libiconv_pic.a \
 		${WRKDIR}/fake/lib/libiconv.a ;\
 	fi
+
+post-patch-sunos:
+	# undo BSD thin socket modification
+	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
+		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
 
 [FILE:330:descriptions/desc.compilers]
 This is series 13 of the GNU Compiler Collection (GCC)
@@ -213,15 +224,15 @@ the Ada, C++, and Fortran libraries.
 
 
 [FILE:690:distinfo]
-e0dc77297625631ac8e50fa92fffefe899a4eb702592da5c32ef04e2293aca3a     95212220 gcc14_14.3.0-base/gcc-14.3.0.tar.xz
-e46a743f055d955b3b86dd0438fa0da46be3b8a8dde4b62b16c6caad67a1036c        65972 gcc14_14.3.0-base/patch-diff-ada
-bd7f6d89815d22a8d46de7379ff68f21cecd027716fdabe1df4aa5bcb785c569        10562 gcc14_14.3.0-base/patch-diff-core
-f2f5e7f386a807b8ee28572360471bc222fef7d599cb7cbabbbc4fd6564deeea         6705 gcc14_14.3.0-base/patch-diff-cxx
-4182fbd55846131da646767d4a3c1c9d0af826141376a26eea6cabad17e75f6e        19253 gcc14_14.3.0-base/patch-diff-ada-testsuite
-0c943f75b1c8d03233f3947148a0aaa2e083418b1e89a4cfed8e8cd401a51bba         1894 gcc14_14.3.0-base/patch-diff-gcc-testsuite
+e0dc77297625631ac8e50fa92fffefe899a4eb702592da5c32ef04e2293aca3a     95212220 gcc14_14.3.0-rev2/gcc-14.3.0.tar.xz
+11fb07f7d56acafaf615b72b971758702a10af459c0689b1157c6379344daec2        65661 gcc14_14.3.0-rev2/patch-diff-ada
+1383c36da0abe353fc7d014232d0b712e3a3766411a70dd4f5d187a1e98d7194        15811 gcc14_14.3.0-rev2/patch-diff-core
+f2f5e7f386a807b8ee28572360471bc222fef7d599cb7cbabbbc4fd6564deeea         6705 gcc14_14.3.0-rev2/patch-diff-cxx
+4182fbd55846131da646767d4a3c1c9d0af826141376a26eea6cabad17e75f6e        19253 gcc14_14.3.0-rev2/patch-diff-ada-testsuite
+0c943f75b1c8d03233f3947148a0aaa2e083418b1e89a4cfed8e8cd401a51bba         1894 gcc14_14.3.0-rev2/patch-diff-gcc-testsuite
 
 
-[FILE:28710:manifests/plist.compilers]
+[FILE:28751:manifests/plist.compilers]
 %%ASLIB%%/
  libatomic.a
  libatomic.so
@@ -308,7 +319,11 @@ f2f5e7f386a807b8ee28572360471bc222fef7d599cb7cbabbbc4fd6564deeea         6705 gc
  clearcap.map
  libgcc-unwind.map
 %%ONLY-SUNOS%%lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtendS.o
  crtfastmath.o
+ crtp.o
+ crtpg.o
  crtprec32.o
  crtprec64.o
  crtprec80.o

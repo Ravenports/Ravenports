@@ -45,6 +45,10 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/uchardet
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libuchardet.${LIBEXT}
 
+pre-configure-sunos:
+	# sun linker not supported, so drop symbol map
+	${REINPLACE_CMD} -e '/Wl,--version-script/d' ${WRKSRC}/src/symbols.cmake
+
 [FILE:453:descriptions/desc.primary]
 uchardet is an encoding detection library, which takes a sequence
 of bytes in an unknown character encoding without any additional

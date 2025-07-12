@@ -59,6 +59,9 @@ SUB_FILES=		catalog
 			catalog.xml
 SUB_LIST=		DTDDIR={{PREFIX}}/share/xml/dbus-1
 
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=-Depoll=disabled
+			LDFLAGS=-lsocket
+
 post-install:
 	# install xmlcat catalogs
 	(cd ${WRKDIR} && ${INSTALL_DATA} catalog* \
@@ -187,6 +190,21 @@ share/doc/dbus/examples/
  example-system-hardening-without-traditional-activation.conf
 
 
+[FILE:322:patches/patch-cmake_config.h.cmake]
+--- cmake/config.h.cmake.orig	2025-02-27 16:29:06 UTC
++++ cmake/config.h.cmake
+@@ -24,7 +24,8 @@
+ # define __EXTENSIONS__
+ # define _POSIX_PTHREAD_SEMANTICS
+ # define _REENTRANT
+-# define _XOPEN_SOURCE 500
++# define _XOPEN_SOURCE 1
++# define _XOPEN_SOURCE_EXTENDED 1
+ #endif
+ 
+ #cmakedefine DBUS_DATADIR  "@DBUS_DATADIR@"
+
+
 [FILE:3151:patches/patch-dbus_dbus-connection.c]
 --- dbus/dbus-connection.c.orig	2025-02-27 16:29:06 UTC
 +++ dbus/dbus-connection.c
@@ -257,6 +275,47 @@ share/doc/dbus/examples/
          }
  
        goto recheck_status;
+
+
+[FILE:1265:patches/patch-meson.build]
+--- meson.build.orig	2025-02-27 16:29:06 UTC
++++ meson.build
+@@ -171,14 +171,15 @@ compile_args = [
+ # See https://gitlab.freedesktop.org/dbus/dbus/-/issues/4
+ compile_args += ['-fno-strict-aliasing']
+ 
+-if host_os.contains('solaris')
++if host_os.contains('sunos')
+     compile_args += [
+         # Solaris' C library apparently needs these runes to be threadsafe...
+         '-D_POSIX_PTHREAD_SEMANTICS',
+         # ... this opt-in to get sockaddr_in6 and sockaddr_storage...
+         '-D__EXTENSIONS__',
+         # ... and this opt-in to get file descriptor passing support
+-        ' -D_XOPEN_SOURCE=500',
++        '-D_XOPEN_SOURCE=1',
++        '-D_XOPEN_SOURCE_EXTENDED=1',
+     ]
+ endif
+ 
+@@ -532,7 +533,7 @@ endif
+ have_console_owner_file = false
+ console_owner_file = get_option('solaris_console_owner_file')
+ if console_owner_file != ''
+-  if not host_os.contains('solaris')
++  if not host_os.contains('sunos')
+     error('solaris_console_owner_file is only supported on Solaris)')
+   endif
+   have_console_owner_file = true
+@@ -1379,7 +1380,7 @@ summary_dict += {
+     'Tests socket dir':         test_socket_dir,
+ }
+ 
+-if host_os.contains('solaris')
++if host_os.contains('sunos')
+   summary_dict += {
+       'Console owner file': console_owner_file,
+   }
 
 
 [FILE:542:patches/patch-tools_dbus-launch.c]

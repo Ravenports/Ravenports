@@ -33,7 +33,8 @@ EXRUN[tools]=		primary
 EXRUN[bldtools]=	primary
 EXRUN[dev]=		aclocal
 
-USES=			charsetfix cpe libtool iconv:build c++:asprintf
+USES=			charsetfix cpe libtool iconv:build,standalone
+			c++:asprintf
 
 LICENSE=		GPLv3+:primary LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -81,6 +82,8 @@ post-install:
 		${STAGEDIR}${PREFIX}/share/gettext/0
 .if "${.MAKE.OS.NAME}" == "Linux"
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/preloadable_libintl.so
+.elif "${.MAKE.OS.NAME}" == "SunOS"
+	# There's no library to strip
 .else
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libintl.${LIBEXT}
 .endif
@@ -672,9 +675,9 @@ share/gettext/m4/
    return result;
 
 
-[FILE:433:files/special.mk]
+[FILE:454:files/special.mk]
 # On linux, libintl is part of glibc so libintl.so doesn't get installed
-.if ${OPSYS} == Linux
+.if ${OPSYS} == Linux || ${OPSYS} == SunOS
 EXTERNAL="@comment "
 .else
 EXTERNAL=""

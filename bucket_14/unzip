@@ -98,7 +98,7 @@ post-install-LANG_CN-ON:
 post-install-LANG_RU-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
-post-extract:
+pre-configure:
 	# statically link libz
 	${RM} ${LOCALBASE}/lib/libz.so
 	${MV} ${LOCALBASE}/lib/libz_pic.a ${LOCALBASE}/lib/libz.a
@@ -374,12 +374,12 @@ share/doc/unzip/
          wsize = G.redirect_size, redirSlide = G.redirect_buffer;
 
 
-[FILE:1177:patches/patch-fileio.c]
+[FILE:1165:patches/patch-fileio.c]
 $NetBSD: patch-fileio.c,v 1.1 2014/12/25 16:48:33 wiz Exp $
 
 https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2014-8141
 
---- fileio.c.orig	2009-04-20 00:03:44.000000000 +0000
+--- fileio.c.orig	2009-04-20 00:03:44 UTC
 +++ fileio.c
 @@ -176,6 +176,8 @@ static ZCONST char Far FilenameTooLongTr
  #endif
@@ -435,7 +435,7 @@ https://bugzilla.redhat.com/show_bug.cgi?id=CVE-2014-8141
                  Trace((stderr, "oops!  (inflateBack() err = %d)\n", err));
 
 
-[FILE:1564:patches/patch-list.c]
+[FILE:1552:patches/patch-list.c]
 $NetBSD: patch-list.c,v 1.2 2017/02/04 23:25:59 wiz Exp $
 
 chunk 1:
@@ -448,7 +448,7 @@ https://people.debian.org/~sanvila/unzip/cve-2014-9913/cve-2014-9913-unzip-buffe
 via
 http://www.info-zip.org/phpBB3/viewtopic.php?f=7&t=529
 
---- list.c.orig	2009-02-08 17:11:34.000000000 +0000
+--- list.c.orig	2009-02-08 17:11:34 UTC
 +++ list.c
 @@ -116,7 +116,7 @@ int list_files(__G)    /* return PK-type
      ulg acl_size, tot_aclsize=0L, tot_aclfiles=0L;
@@ -629,10 +629,21 @@ http://www.info-zip.org/phpBB3/viewtopic.php?f=7&t=529
  #  SysV group (for extern long timezone and ioctl.h instead of sgtty.h):
 
 
-[FILE:451:patches/patch-unix_unix.c]
+[FILE:667:patches/patch-unix_unix.c]
 --- unix/unix.c.orig	2009-01-23 23:31:26 UTC
 +++ unix/unix.c
-@@ -610,7 +610,7 @@ int mapname(__G__ renamed)
+@@ -30,6 +30,10 @@
+ #define UNZIP_INTERNAL
+ #include "unzip.h"
+ 
++#if defined(__sun__)
++#include <utime.h>
++#endif
++
+ #ifdef SCO_XENIX
+ #  define SYSNDIR
+ #else  /* SCO Unix, AIX, DNIX, TI SysV, Coherent 4.x, ... */
+@@ -610,7 +614,7 @@ int mapname(__G__ renamed)
                   * else allow 8-bit characters (e.g. UTF-8) in filenames:
                   */
                  if (uO.cflxflag ||
@@ -643,7 +654,7 @@ http://www.info-zip.org/phpBB3/viewtopic.php?f=7&t=529
  
 
 
-[FILE:726:patches/patch-unix_unxcfg.h]
+[FILE:714:patches/patch-unix_unxcfg.h]
 $NetBSD: patch-unix_unxcfg.h,v 1.2 2014/05/03 11:24:19 ryoon Exp $
 
 * Fix build on Debian GNU/kFreeBSD.
@@ -651,7 +662,7 @@ $NetBSD: patch-unix_unxcfg.h,v 1.2 2014/05/03 11:24:19 ryoon Exp $
   Patch from OpenBSD Ports
   "timeb was already well deprecated on 4.4BSD"
 
---- unix/unxcfg.h.orig	2009-04-16 18:36:12.000000000 +0000
+--- unix/unxcfg.h.orig	2009-04-16 18:36:12 UTC
 +++ unix/unxcfg.h
 @@ -52,6 +52,7 @@
  
@@ -674,13 +685,13 @@ $NetBSD: patch-unix_unxcfg.h,v 1.2 2014/05/03 11:24:19 ryoon Exp $
  #  endif
 
 
-[FILE:1102:patches/patch-zipinfo.c]
+[FILE:1090:patches/patch-zipinfo.c]
 $NetBSD: patch-zipinfo.c,v 1.1 2017/02/04 23:25:59 wiz Exp $
 
 Fix crash in zipinfo, CVE-2016-9844.
 http://www.openwall.com/lists/oss-security/2016/12/05/19
 
---- zipinfo.c.orig	2009-02-08 17:04:30.000000000 +0000
+--- zipinfo.c.orig	2009-02-08 17:04:30 UTC
 +++ zipinfo.c
 @@ -1921,7 +1921,18 @@ static int zi_short(__G)   /* return PK-
          ush  dnum=(ush)((G.crec.general_purpose_bit_flag>>1) & 3);

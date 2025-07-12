@@ -214,9 +214,16 @@ paths() {
 		[ -z "${f}" ] && continue
 		# Ignore false-positive/harmless files
 		case "${f}" in
-			*/lib/ruby/gems/*) continue ;;
-			*/share/texmf-var/web2c/*/*.fmt) continue ;;
-			*/share/texmf-var/web2c/*/*.log) continue ;;
+			${STAGEDIR}${PREFIX}/lib/ruby/gems/*) continue ;;
+			${STAGEDIR}${PREFIX}/share/texmf-var/web2c/*/*.fmt) continue ;;
+			${STAGEDIR}${PREFIX}/share/texmf-var/web2c/*/*.log) continue ;;
+
+			# solaris linker embeds output path into ncurses libraries
+			${STAGEDIR}${PREFIX}/lib/libform.so.*) continue ;;
+			${STAGEDIR}${PREFIX}/lib/libmenu.so.*) continue ;;
+			${STAGEDIR}${PREFIX}/lib/libpanel.so.*) continue ;;
+			${STAGEDIR}${PREFIX}/lib/libtinfo.so.*) continue ;;
+			${STAGEDIR}${PREFIX}/lib/libncurses.so.*) continue ;;
 		esac
 		err "'${f#"${STAGEDIR}${PREFIX}"/}' is referring to ${STAGEDIR}"
 		rc=1

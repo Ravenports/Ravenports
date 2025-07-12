@@ -57,7 +57,6 @@ PLIST_SUB=		PLUGINAPI={{PLUGINAPI}}
 			TARGET={{CONFIGURE_TARGET}}
 
 INFRASTRUCTURE=		yes
-LDFLAGS=		-Wl,--disable-new-dtags
 VAR_OPSYS[freebsd]=	VAR1=/libexec/ld-elf.so.1
 			VAR2=/libexec/ld-elf.so.1
 			MAKEFILE_LINE=BUILD_GOLD=yes
@@ -319,7 +318,7 @@ For loader.efi linking support.
  #endif /* SAFE_CTYPE_H */
 
 
-[FILE:221:files/special.mk]
+[FILE:417:files/special.mk]
 .if defined(BUILD_GOLD)
 CONFIGURE_ARGS+=	${GOLD_CONFIG}
 CONFIGURE_ARGS+=	--enable-plugins
@@ -328,5 +327,11 @@ PLIST_SUB+=		GOLD=""
 CONFIGURE_ARGS+=	--disable-gold
 CONFIGURE_ARGS+=	--disable-plugins
 PLIST_SUB+=		GOLD="@comment "
+.endif
+
+# for non-GNU linkers, ensure DT_RPATH set instead of DT_RUNPATH
+# See rtld man page, we need to be invulnerable to LD_LIBRARY_PATH
+.if ${OPSYS} != SunOS
+LDFLAGS+= -Wl,--disable-new-dtags
 .endif
 

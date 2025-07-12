@@ -40,6 +40,11 @@ MUST_CONFIGURE=		gnu
 INSTALL_TARGET=		install-strip
 SOVERSION=		5.2.0
 
+VAR_OPSYS[sunos]=	CFLAGS=-D_STRICT_SYMBOLS
+
+pre-configure:
+	${REINPLACE_CMD} -e '/^SUBDIRS =/ s|tests||' ${WRKSRC}/Makefile.in
+
 [FILE:174:descriptions/desc.primary]
 GNU LIBUNISTRING - Unicode string library
 
@@ -113,4 +118,45 @@ share/doc/libunistring/
  libunistring_abt.html
  libunistring_fot.html
  libunistring_toc.html
+
+
+[FILE:221:patches/patch-lib_unistdio_u16-u16-vasnprintf.c]
+--- lib/unistdio/u16-u16-vasnprintf.c.orig	2024-01-29 00:58:11 UTC
++++ lib/unistdio/u16-u16-vasnprintf.c
+@@ -31,6 +31,7 @@
+ #endif
+ 
+ #include <config.h>
++#include <string.h>
+ #include <alloca.h>
+ 
+ /* Specification.  */
+
+
+[FILE:228:patches/patch-lib_unistr_u8-stpcpy.c]
+--- lib/unistr/u8-stpcpy.c.orig	2024-01-29 00:58:11 UTC
++++ lib/unistr/u8-stpcpy.c
+@@ -33,7 +33,7 @@
+ /* Specification.  */
+ #include "unistr.h"
+ 
+-#if HAVE_STPCPY
++#if HAVE_STPCPY && !defined(__sun__)
+ 
+ # include <string.h>
+ 
+
+
+[FILE:408:patches/patch-lib_vasnprintf.c]
+--- lib/vasnprintf.c.orig	2024-09-11 23:03:55 UTC
++++ lib/vasnprintf.c
+@@ -233,7 +233,7 @@
+ #define remainder rem
+ 
+ #if (!USE_SNPRINTF || !HAVE_SNPRINTF_RETVAL_C99 || USE_MSVC__SNPRINTF || (PTRDIFF_MAX > INT_MAX)) && !WIDE_CHAR_VERSION
+-# if (HAVE_STRNLEN && !defined _AIX)
++# if (HAVE_STRNLEN && !defined _AIX) && !defined(__sun__)
+ #  define local_strnlen strnlen
+ # else
+ #  ifndef local_strnlen_defined
 

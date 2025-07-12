@@ -84,7 +84,7 @@ lib/pkgconfig/libargon2.pc
 bin/argon2
 
 
-[FILE:549:patches/patch-Makefile]
+[FILE:820:patches/patch-Makefile]
 --- Makefile.orig	2019-05-20 09:18:00 UTC
 +++ Makefile
 @@ -76,9 +76,11 @@ ifeq ($(KERNEL_NAME), Linux)
@@ -101,4 +101,16 @@ bin/argon2
  	PC_EXTRA_LIBS ?=
  endif
  ifeq ($(KERNEL_NAME), Darwin)
+@@ -105,8 +107,10 @@ endif
+ ifeq ($(KERNEL_NAME), SunOS)
+ 	CC := gcc
+ 	CFLAGS += -D_REENTRANT
+-	LIB_EXT := so
++	LIB_EXT := so.$(ABI_VERSION)
+ 	LIB_CFLAGS := -shared -fPIC
++	LINKED_LIB_EXT := so
++	SO_LDFLAGS := -Wl,-h,lib$(LIB_NAME).$(LIB_EXT)
+ 	PC_EXTRA_LIBS ?=
+ endif
+ 
 

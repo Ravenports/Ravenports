@@ -2,7 +2,7 @@
 
 NAMEBASE=		bash
 VERSION=		5.2.p37
-REVISION=		3
+REVISION=		5
 KEYWORDS=		shells
 VARIANTS=		std static
 SDESC[std]=		GNU Bourne Again SHell
@@ -55,11 +55,16 @@ DIST_SUBDIR=		bash
 DF_INDEX=		1
 SPKGS[std]=		set
 			primary
+			loadables
+			dev
 			nls
 			man
 			docs
 			info
-SPKGS[static]=		primary
+SPKGS[static]=		set
+			primary
+			loadables
+			dev
 
 OPTIONS_AVAILABLE=	STATIC NLS NOTSTD
 OPTIONS_STANDARD=	STATIC NLS
@@ -113,7 +118,6 @@ VAR_OPSYS[dragonfly]=	VAR1=-Wl,--export-dynamic
 [NOTSTD].USES_OFF=			makeinfo
 
 [STATIC].BUILDRUN_DEPENDS_OFF=		ncurses:primary:std
-[STATIC].CFLAGS_ON=			-fcommon
 
 [NLS].CONFIGURE_ARGS_ON=		--with-libiconv-prefix={{ICONV_PREFIX}}
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
@@ -128,11 +132,6 @@ post-patch:
 
 post-install-NOTSTD-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
-
-post-install-STATIC-ON:
-	# These are not installed when --enable-static-link set
-	${RM} -r ${STAGEDIR}${PREFIX}/include
-	${RM} -r ${STAGEDIR}${PREFIX}/lib
 
 post-install:
 	${LN} -sf bash ${STAGEDIR}${PREFIX}/bin/rbash
@@ -152,6 +151,10 @@ a complete implementation of the POSIX.2 shell spec, but also
 with interactive command line editing, job control on architectures
 that support it, csh-like features such as history substitution and
 brace expansion, and a slew of other features.
+
+
+[FILE:57:descriptions/desc.loadables]
+This subpackage contains the loadable buildins for bash.
 
 
 [FILE:3577:distinfo]
@@ -195,72 +198,14 @@ c2d1b7be2df771126105020af7fafa00fffd4deff4a4e45d60fc6a235bcba795         1159 ba
 8a2c1c3b5125d9ae5b47882f7d2ddf9648805f8c67c13aa5ea7efeac475cda94         2835 bash/bash52-037
 
 
-[FILE:1185:manifests/plist.primary]
+[FILE:45:manifests/plist.primary]
 @shell bin/bash
 @shell bin/rbash
-%%STATIC-OFF%%include/bash/
- alias.h
- array.h
- arrayfunc.h
- assoc.h
- bashansi.h
- bashintl.h
- bashjmp.h
- bashtypes.h
- builtins.h
- command.h
- config-bot.h
- config-top.h
- config.h
- conftypes.h
- dispose_cmd.h
- error.h
- execute_cmd.h
- externs.h
- general.h
- hashlib.h
- jobs.h
- make_cmd.h
- pathnames.h
- quit.h
- shell.h
- sig.h
- siglist.h
- signames.h
- subst.h
- syntax.h
- unwind_prot.h
- variables.h
- version.h
- xmalloc.h
- y.tab.h
-%%STATIC-OFF%%include/bash/builtins/
- bashgetopt.h
- builtext.h
- common.h
- getopt.h
-%%STATIC-OFF%%include/bash/include/
- ansi_stdlib.h
- chartypes.h
- filecntl.h
- gettext.h
- maxpath.h
- memalloc.h
- ocache.h
- posixdir.h
- posixjmp.h
- posixstat.h
- posixtime.h
- posixwait.h
- shmbchar.h
- shmbutil.h
- shtty.h
- stat-time.h
- stdc.h
- systimes.h
- typemax.h
- unionwait.h
-%%STATIC-OFF%%lib/bash/
+bin/bashbug
+
+
+[FILE:314:manifests/plist.loadables]
+lib/bash/
  Makefile.inc
  Makefile.sample
  accept
@@ -300,8 +245,72 @@ c2d1b7be2df771126105020af7fafa00fffd4deff4a4e45d60fc6a235bcba795         1159 ba
  uname
  unlink
  whoami
-%%STATIC-OFF%%lib/pkgconfig/bash.pc
-bin/bashbug
+
+
+[FILE:756:manifests/plist.dev]
+include/bash/
+ alias.h
+ array.h
+ arrayfunc.h
+ assoc.h
+ bashansi.h
+ bashintl.h
+ bashjmp.h
+ bashtypes.h
+ builtins.h
+ command.h
+ config-bot.h
+ config-top.h
+ config.h
+ conftypes.h
+ dispose_cmd.h
+ error.h
+ execute_cmd.h
+ externs.h
+ general.h
+ hashlib.h
+ jobs.h
+ make_cmd.h
+ pathnames.h
+ quit.h
+ shell.h
+ sig.h
+ siglist.h
+ signames.h
+ subst.h
+ syntax.h
+ unwind_prot.h
+ variables.h
+ version.h
+ xmalloc.h
+ y.tab.h
+include/bash/builtins/
+ bashgetopt.h
+ builtext.h
+ common.h
+ getopt.h
+include/bash/include/
+ ansi_stdlib.h
+ chartypes.h
+ filecntl.h
+ gettext.h
+ maxpath.h
+ memalloc.h
+ ocache.h
+ posixdir.h
+ posixjmp.h
+ posixstat.h
+ posixtime.h
+ posixwait.h
+ shmbchar.h
+ shmbutil.h
+ shtty.h
+ stat-time.h
+ stdc.h
+ systimes.h
+ typemax.h
+ unionwait.h
+lib/pkgconfig/bash.pc
 
 
 [FILE:1427:manifests/plist.nls]
@@ -433,6 +442,20 @@ share/doc/bash/
  
 
 
+[FILE:470:patches/patch-examples_loadables_Makefile.in]
+--- examples/loadables/Makefile.in.orig	2022-08-19 20:33:30 UTC
++++ examples/loadables/Makefile.in
+@@ -281,7 +281,7 @@ install-supported:	all installdirs insta
+ 	@echo installing example loadable builtins in $(DESTDIR)${loadablesdir}
+ 	@for prog in ${ALLPROG}; do \
+ 		echo $$prog ; \
+-		$(INSTALL_PROGRAM) $(INSTALLMODE) $$prog $(DESTDIR)$(loadablesdir)/$$prog ;\
++		$(BSD_INSTALL_LIB) $(INSTALLMODE) $$prog $(DESTDIR)$(loadablesdir)/$$prog ;\
+ 	done
+ 
+ uninstall-dev:
+
+
 [FILE:226:patches/patch-examples_loadables_fdflags.c]
 --- examples/loadables/fdflags.c.orig	2022-07-26 14:16:57 UTC
 +++ examples/loadables/fdflags.c
@@ -445,6 +468,20 @@ share/doc/bash/
  #endif
  };
  
+
+
+[FILE:274:patches/patch-examples_loadables_finfo.c]
+--- examples/loadables/finfo.c.orig	2020-06-29 14:56:32 UTC
++++ examples/loadables/finfo.c
+@@ -28,7 +28,7 @@
+ #endif
+ 
+ #include <sys/types.h>
+-#ifdef MAJOR_IN_MKDEV
++#if defined MAJOR_IN_MKDEV || defined __sun__
+ #  include <sys/mkdev.h>
+ #endif
+ #ifdef MAJOR_IN_SYSMACROS
 
 
 [FILE:528:patches/patch-examples_loadables_getconf.c]
@@ -482,6 +519,38 @@ Handle _SC_RTSIG_MAX not being defined (NetBSD 9)
    memset (line_state_invisible->wrapped_line, 0, line_state_invisible->wbsize * sizeof (int));
 
 
+[FILE:384:patches/patch-lib_readline_rlprivate.h]
+--- lib/readline/rlprivate.h.orig	Thu Jul  3 06:05:24 2025
++++ lib/readline/rlprivate.h	Thu Jul  3 11:27:57 2025
+@@ -406,6 +406,8 @@
+ extern int _rl_init_terminal_io (const char *);
+ #ifdef _MINIX
+ extern void _rl_output_character_function (int);
++#elif defined __sun__
++extern int _rl_output_character_function (char);
+ #else
+ extern int _rl_output_character_function (int);
+ #endif
+
+
+[FILE:343:patches/patch-lib_readline_terminal.c]
+--- lib/readline/terminal.c.orig	Thu Jul  3 06:06:42 2025
++++ lib/readline/terminal.c	Thu Jul  3 06:12:32 2025
+@@ -697,6 +697,12 @@
+ {
+   putc (c, _rl_out_stream);
+ }
++#elif defined(__sun__)
++int
++_rl_output_character_function (char c)
++{
++  return putc (c, _rl_out_stream);
++}
+ #else /* !_MINIX */
+ int
+ _rl_output_character_function (int c)
+
+
 [FILE:266:patches/patch-lib_termcap_ltcap.h]
 --- lib/termcap/ltcap.h.orig	2009-01-04 19:32:36 UTC
 +++ lib/termcap/ltcap.h
@@ -497,27 +566,20 @@ Handle _SC_RTSIG_MAX not being defined (NetBSD 9)
  #  define MAX_TGETENT_BUFSIZ 2048
 
 
-[FILE:656:patches/patch-support_shobj-conf]
+[FILE:331:patches/patch-support_shobj-conf]
 --- support/shobj-conf.orig	2021-12-03 15:54:46 UTC
 +++ support/shobj-conf
-@@ -113,7 +113,7 @@ sunos5*-*gcc*|solaris2*-*gcc*)
- 	SHLIB_LIBVERSION='$(SHLIB_LIBSUFF).$(SHLIB_MAJOR)'
+@@ -114,8 +114,8 @@ sunos5*-*gcc*|solaris2*-*gcc*)
  	;;
  
--sunos5*|solaris2*)
-+sunos5*)
- 	SHOBJ_CFLAGS='-K pic'
- 	SHOBJ_LD=/usr/ccs/bin/ld
+ sunos5*|solaris2*)
+-	SHOBJ_CFLAGS='-K pic'
+-	SHOBJ_LD=/usr/ccs/bin/ld
++	SHOBJ_CFLAGS='-fPIC'
++	SHOBJ_LD=/usr/bin/ld.sun
  	SHOBJ_LDFLAGS='-G -dy -z text -i -h $@'
-@@ -123,7 +123,7 @@ sunos5*|solaris2*)
- 	;;
  
- # All versions of Linux (including Gentoo/FreeBSD) or the semi-mythical GNU Hurd.
--linux*-*|gnu*-*|k*bsd*-gnu-*|midnightbsd*|freebsd*|dragonfly*)
-+linux*-*|gnu*-*|k*bsd*-gnu-*|midnightbsd*|freebsd*|dragonfly*|solaris*)
- 	SHOBJ_CFLAGS=-fPIC
- 	SHOBJ_LD='${CC}'
- 	SHOBJ_LDFLAGS='-shared -Wl,-soname,$@'
+ #	SHLIB_XLDFLAGS='-R $(libdir)'
 
 
 [FILE:685:files/special.mk]
@@ -546,21 +608,21 @@ LDFLAGS+=	${VAR1}
 .endif
 
 
-[FILE:2609:sunos/patch-configure]
---- configure.orig	2020-12-04 14:05:14 UTC
-+++ configure
-@@ -5009,14 +5009,18 @@ prefer_static=no
+[FILE:2371:sunos/patch-configure]
+--- configure.orig	Fri Sep 23 14:13:22 2022
++++ configure	Thu Jul  3 05:52:33 2025
+@@ -5329,14 +5329,18 @@
  if test "$opt_static_link" = yes; then
  	prefer_static=yes
  	prefer_shared=no
 +	TINFO_LIBRARY=${prefix}/lib/libtinfo.a
  	# if we're using gcc, add `-static' to LDFLAGS, except on Solaris >= 2
- 	if test -n "$GCC" || test "$ac_cv_c_compiler_gnu" = "yes"; then
+ 	if test "$GCC" = "yes"; then
  		STATIC_LD="-static"
  		case "$host_os" in
 -		solaris2*|linux*)	;;
-+		linux*)	;;
-+		solaris*)	STATIC_LD= ;;
++		linux*) ;;
++		solaris*) STATIC_LD=	;;
  		*)		LDFLAGS="$LDFLAGS -static" ;;	# XXX experimental
  		esac
  	fi
@@ -569,24 +631,25 @@ LDFLAGS+=	${VAR1}
  fi
  
  # set the appropriate make variables for building the "build tools"
-@@ -5160,13 +5164,13 @@ $as_echo "$ac_cv_lib_termcap_tgetent" >&
- if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
+@@ -5766,14 +5770,14 @@
+ then :
    bash_cv_termcap_lib=libtermcap
- else
--  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltinfo" >&5
--$as_echo_n "checking for tgetent in -ltinfo... " >&6; }
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in ${TINFO_LIBRARY}" >&5
-+$as_echo_n "checking for tgetent in ${TINFO_LIBRARY}... " >&6; }
- if ${ac_cv_lib_tinfo_tgetent+:} false; then :
-   $as_echo_n "(cached) " >&6
- else
+ else $as_nop
+-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltinfo" >&5
+-printf %s "checking for tgetent in -ltinfo... " >&6; }
++  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tgetent in ${TINFO_LIBRARY}" >&5
++printf %s "checking for tgetent in ${TINFO_LIBRARY}... " >&6; }
+ if test ${ac_cv_lib_tinfo_tgetent+y}
+ then :
+   printf %s "(cached) " >&6
+ else $as_nop
    ac_check_lib_save_LIBS=$LIBS
 -LIBS="-ltinfo  $LIBS"
 +LIBS="${TINFO_LIBRARY}  $LIBS"
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -5345,7 +5349,7 @@ elif test $bash_cv_termcap_lib = libterm
+@@ -5951,7 +5955,7 @@
  TERMCAP_LIB=-ltermcap
  TERMCAP_DEP=
  elif test $bash_cv_termcap_lib = libtinfo; then
@@ -595,24 +658,25 @@ LDFLAGS+=	${VAR1}
  TERMCAP_DEP=
  elif test $bash_cv_termcap_lib = libncurses; then
  TERMCAP_LIB=-lncurses
-@@ -20076,13 +20080,13 @@ $as_echo "$ac_cv_lib_termcap_tgetent" >&
- if test "x$ac_cv_lib_termcap_tgetent" = xyes; then :
+@@ -21390,14 +21394,14 @@
+ then :
    bash_cv_termcap_lib=libtermcap
- else
--  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltinfo" >&5
--$as_echo_n "checking for tgetent in -ltinfo... " >&6; }
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in ${TINFO_LIBRARY}" >&5
-+$as_echo_n "checking for tgetent in ${TINFO_LIBRARY}... " >&6; }
- if ${ac_cv_lib_tinfo_tgetent+:} false; then :
-   $as_echo_n "(cached) " >&6
- else
+ else $as_nop
+-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltinfo" >&5
+-printf %s "checking for tgetent in -ltinfo... " >&6; }
++  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tgetent in ${TINFO_LIBRARY}" >&5
++printf %s "checking for tgetent in ${TINFO_LIBRARY}... " >&6; }
+ if test ${ac_cv_lib_tinfo_tgetent+y}
+ then :
+   printf %s "(cached) " >&6
+ else $as_nop
    ac_check_lib_save_LIBS=$LIBS
 -LIBS="-ltinfo  $LIBS"
 +LIBS="${TINFO_LIBRARY}  $LIBS"
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -20261,7 +20265,7 @@ elif test $bash_cv_termcap_lib = libterm
+@@ -21575,7 +21579,7 @@
  TERMCAP_LIB=-ltermcap
  TERMCAP_DEP=
  elif test $bash_cv_termcap_lib = libtinfo; then

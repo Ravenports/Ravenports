@@ -59,9 +59,9 @@ MAKE_ARGS=		TEXMF={{LOCALBASE}}/share/texmf
 INSTALL_TARGET=		install install-tex
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		TEXMF=share/texmf
-			XS={{NOXS:U""}}
+			TEXI2ANY={{NOT2A:U""}}
 
-VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=NOXS="@comment "
+VAR_OPSYS[sunos]=	MAKEFILE_LINE=NOT2A="@comment "
 
 post-install:
 	if [ -d "${STAGEDIR}${PREFIX}/lib/texinfo" ]; then \
@@ -101,22 +101,11 @@ Emacs.
 cb8a5fed2801350c093aa5ccb082aa9c315717ec3e818ef5ec70c367d7232b9e        52733 texinfo/7.2/texi2dvi-20241223
 
 
-[FILE:6245:manifests/plist.primary]
-bin/
- info
- install-info
- makeinfo
- pdftexi2dvi
- pod2texi
- texi2any
- texi2dvi
- texi2pdf
- texindex
-lib/texi2any/
+[FILE:6269:manifests/plist.primary]
+%%TEXI2ANY%%lib/texi2any/
  ConvertXS.so
  DocumentXS.so
  IndicesXS.so
- MiscXS.so
  Parsetexi.so
  StructuringTransfoXS.so
  libtexinfo-convert.so
@@ -131,6 +120,17 @@ lib/texi2any/
  libtexinfoxs.so
  libtexinfoxs.so.0
  libtexinfoxs.so.0.0.0
+bin/
+ info
+ install-info
+ makeinfo
+ pdftexi2dvi
+ pod2texi
+ texi2any
+ texi2dvi
+ texi2pdf
+ texindex
+lib/texi2any/MiscXS.so
 share/texi2any/Pod-Simple-Texinfo/Pod/Simple/Texinfo.pm
 share/texi2any/Texinfo/
  Commands.pm
@@ -767,6 +767,31 @@ share/man/man5/
                    LIBICONV_PREFIX="$basedir"
                  fi
                  additional_includedir="$basedir/include"
+
+
+[FILE:507:patches/patch-info_terminal.c]
+--- info/terminal.c.orig	Tue Jul  1 20:08:05 2025
++++ info/terminal.c	Tue Jul  1 20:11:15 2025
+@@ -151,11 +151,19 @@
+    return its argument, all the code I've looked at (termutils, less)
+    does so, so fine.  */
+ static int
++#if defined(__sun__)
++output_character_function (char c)
++{
++  putc ((int)c, stdout);
++  return (int)c;
++}
++#else
+ output_character_function (int c)
+ {
+   putc (c, stdout);
+   return c;
+ }
++#endif
+ 
+ /* Macro to send STRING to the terminal. */
+ #define send_to_terminal(string) \
 
 
 [FILE:1569:patches/patch-tp_Texinfo_XS_configure]

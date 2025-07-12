@@ -2054,7 +2054,7 @@ share/man/mann/
  install-private-headers:
 
 
-[FILE:1439:patches/patch-unix_configure]
+[FILE:1627:patches/patch-unix_configure]
 --- unix/configure.orig	2024-12-02 12:57:40 UTC
 +++ unix/configure
 @@ -7303,9 +7303,13 @@ fi
@@ -2072,25 +2072,29 @@ share/man/mann/
  
  	    CFLAGS_OPTIMIZE="-O2"
  	    # egcs-2.91.66 on Redhat Linux 6.0 generates lots of warnings
-@@ -7314,12 +7318,15 @@ fi
+@@ -7314,13 +7318,17 @@ fi
  	    #CFLAGS_OPTIMIZE="${CFLAGS_OPTIMIZE} -D__NO_STRING_INLINES -D__NO_MATH_INLINES"
  
  	    SHLIB_LD='${CC} ${CFLAGS} ${LDFLAGS} -shared'
 +	    TCL_SHLIB_LD_EXTRAS="-Wl,-soname,libtcl${TCL_TRIM_DOTS}.so.1"
  	    DL_OBJS="tclLoadDl.o"
 -	    DL_LIBS="-ldl"
- 	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
+-	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
  
  	    case $system in
 -	    DragonFly-*|FreeBSD-*)
+-		if test "${TCL_THREADS}" = "1"; then
 +	    Linux*|GNU*)
 +	       DL_LIBS="-ldl"
++	       LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
 +	       ;;
 + 	    DragonFly-*|FreeBSD-*|NetBSD-*|MidnightBSD-*)
- 		if test "${TCL_THREADS}" = "1"; then
++	       LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
++	       if test "${TCL_THREADS}" = "1"; then
  
  		    # The -pthread needs to go in the LDFLAGS, not LIBS
-@@ -7495,7 +7502,7 @@ fi
+ 		    LIBS=`echo $LIBS | sed s/-pthread//`
+@@ -7495,7 +7503,7 @@ fi
  	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
  	    TCL_LIB_VERSIONS_OK=nodots
  	    ;;

@@ -19,7 +19,6 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		ravensys-binutils:single:std
 			rvn:primary:std
-B_DEPS[sunos]=		ravensys-utils:primary:std
 
 EXTRACT_DIRTY=		1
 
@@ -68,7 +67,7 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:67027:manifests/plist.single]
+[FILE:67018:manifests/plist.single]
 %%CC1_SHARED%%ravensys-gcc/%%ASLIB%%/
  libcc1.so
  libcc1.so.0
@@ -153,16 +152,15 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  netbsd-stdint.h
  netbsd.h
 %%ONLY-NETBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/netbsd64.h
-%%ONLY-SUNOS%%bin/
- ld.lld
- ld.sun
- ld64.lld
- lld
 %%ONLY-SUNOS%%ravensys-gcc/lib/
  clearcap.map
  libgcc-unwind.map
 %%ONLY-SUNOS%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/
+ crtbeginS.o
+ crtendS.o
  crtfastmath.o
+ crtp.o
+ crtpg.o
  crtprec32.o
  crtprec64.o
  crtprec80.o
@@ -4331,7 +4329,7 @@ share/
  ravensys-gcc~set~std~%%COMPVER%%.rvn
 
 
-[FILE:1244:files/Makefile]
+[FILE:1088:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -4364,9 +4362,6 @@ install:
 
 .if "${OPSYS}" == "SunOS"
 	rm ${DESTDIR}${PREFIX}/bin/ld
-	cp ${LOCALBASE}/libexec/ld ${DESTDIR}${PREFIX}/bin/
-	cp /usr/bin/ld.sun ${DESTDIR}${PREFIX}/bin/
-	(cd ../ravensys-toolchain_1${LOCALBASE}/bin/ && \
-	 cp -a lld ld.lld ld64.lld ${DESTDIR}${PREFIX}/bin/)
+	cp /usr/bin/ld.sun ${DESTDIR}${PREFIX}/bin/ld
 .endif
 

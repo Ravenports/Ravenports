@@ -49,9 +49,6 @@ MUST_CONFIGURE=		gnu
 [RAVENSYS].INFO_OFF=			info:sed
 [RAVENSYS].USES_OFF=			gettext
 
-post-patch-darwin:
-	${REINPLACE_CMD} -e "s|'cr'|'Scr'|" ${WRKSRC}/configure
-
 post-install-RAVENSYS-ON:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/info
 
@@ -130,4 +127,18 @@ bin/sed
 
 [FILE:21:manifests/plist.man.ravensys]
 share/man/man1/sed.1
+
+
+[FILE:352:patches/patch-gnulib-tests_localename.c]
+--- gnulib-tests/localename.c.orig	2022-10-09 14:42:28 UTC
++++ gnulib-tests/localename.c
+@@ -45,7 +45,7 @@
+ # if defined __sun
+ #  if HAVE_GETLOCALENAME_L
+ /* Solaris >= 12.  */
+-extern char * getlocalename_l(int, locale_t);
++extern const char * getlocalename_l(int, locale_t);
+ #  elif HAVE_SOLARIS114_LOCALES
+ #   include <sys/localedef.h>
+ #  endif
 

@@ -44,13 +44,23 @@ CONFIGURE_ARGS=		--enable-static
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 
-post-patch:
-	${REINPLACE_CMD} -e 's|\.ini$$|.ini.sample|' ${WRKSRC}/Makefile.in
-	${HEAD} -n 17 ${WRKSRC}/README | ${TAIL} -n 5 > ${WRKDIR}/TERMS
+VAR_OPSYS[sunos]=	CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
+			LDFLAGS=-lsocket
 
 post-install:
 	(cd ${WRKSRC}/doc && ${COPYTREE_SHARE} . ${STAGEDIR}${STD_DOCDIR} \
 	    "-not -name 'Makefile*'")
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|\.ini$$|.ini.sample|' ${WRKSRC}/Makefile.in
+	# fix mutext
+	${REINPLACE_CMD} -e 's,mutex_exit,odbc_mutex_exit,g' \
+		${WRKSRC}/DriverManager/__handles.c \
+		${WRKSRC}/odbcinst/_logging.c \
+		${WRKSRC}/odbcinst/SQLGetPrivateProfileString.c
+
+post-extract:
+	${HEAD} -n 17 ${WRKSRC}/README | ${TAIL} -n 5 > ${WRKDIR}/TERMS
 
 [FILE:356:descriptions/desc.primary]
 What is the unixODBC Project?

@@ -133,7 +133,7 @@ share/man/man3/backtrace.3
 -.include <bsd.lib.mk>
 
 
-[FILE:2230:patches/patch-execinfo.c]
+[FILE:2929:patches/patch-execinfo.c]
 --- execinfo.c.orig	2004-07-19 05:21:09 UTC
 +++ execinfo.c
 @@ -69,7 +69,8 @@ backtrace(void **buffer, int size)
@@ -190,7 +190,22 @@ share/man/man3/backtrace.3
      return rval;
  }
  
-@@ -155,6 +158,6 @@ backtrace_symbols_fd(void *const *buffer
+@@ -141,7 +144,7 @@ backtrace_symbols_fd(void *const *buffer
+                   5 +                      /* "> at " */
+                   strlen(info.dli_fname) + /* "filename" */
+                   2;                       /* "\n\0" */
+-            buf = alloca(len);
++            buf = __builtin_alloca(len);
+             if (buf == NULL)
+                 return;
+             snprintf(buf, len, "%p <%s+%d> at %s\n",
+@@ -150,11 +153,11 @@ backtrace_symbols_fd(void *const *buffer
+             len = 2 +                      /* "0x" */
+                   (sizeof(void *) * 2) +   /* "01234567" */
+                   2;                       /* "\n\0" */
+-            buf = alloca(len);
++            buf = __builtin_alloca(len);
+             if (buf == NULL)
                  return;
              snprintf(buf, len, "%p\n", buffer[i]);
          }

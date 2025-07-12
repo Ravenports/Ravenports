@@ -60,6 +60,7 @@ INSTALL_TARGET=		install-strip
 SOVERSION=		1.3.0
 
 CFLAGS=			-Wno-implicit-function-declaration
+VAR_OPSYS[sunos]=	CFLAGS=-D_XPG7
 
 [NOSETPROC].DESCRIPTION=		Omit built-in setproctitle support
 
@@ -71,11 +72,6 @@ post-install:
 
 pre-configure:
 	cd ${WRKSRC} && ${SH} ./autogen.sh
-
-post-patch-sunos:
-	# there's a problem with nls, just mass-remove the macro
-	${GREP} -rl '_(".*")' ${WRKSRC} | ${XARGS} \
-		${PERL} -p -i.pbak -e 's|[_][(]["](.*?)["][)]|"\1"|g'
 
 [FILE:568:descriptions/desc.primary]
 The UUID library is used to generate unique identifiers for objects
@@ -242,6 +238,22 @@ Define values if missing.
  	tp->c_cc[VDISCARD] = CDISCARD;
  	tp->c_cc[VWERASE]  = CWERASE;
  	tp->c_cc[VLNEXT]   = CLNEXT;
+
+
+[FILE:251:patches/patch-lib_procfs.c]
+--- lib/procfs.c.orig	2025-06-23 11:25:00 UTC
++++ lib/procfs.c
+@@ -8,6 +8,10 @@
+ #include <unistd.h>
+ #include <errno.h>
+ 
++#if defined __sun__
++#undef HAVE_SYS_VFS_H
++#endif
++
+ #ifdef HAVE_SYS_VFS_H
+ # include <sys/vfs.h>
+ # include "statfs_magic.h"
 
 
 [FILE:331:patches/patch-lib_randutils.c]

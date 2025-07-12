@@ -2,6 +2,7 @@
 
 NAMEBASE=		docbook-utils
 VERSION=		0.6.15
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Shell scripts to manage DocBook documents
@@ -22,7 +23,7 @@ OPTIONS_STANDARD=	none
 BUILDRUN_DEPENDS=	docbook-dsssl:single:std
 			docbook-sgml:single:std
 			perl-SGMLSpm:single:perl_used
-			jade:primary:std
+			openjade:primary:std
 
 USES=			perl gmake autoreconf shebangfix
 
@@ -33,6 +34,9 @@ SHEBANG_OLD_PERL=	@perl_bindir@/perl
 MUST_CONFIGURE=		gnu
 
 PLIST_SUB=		VER=0.6.15
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|@LOCALBASE@|${LOCALBASE}|' ${WRKSRC}/configure.ac
 
 [FILE:383:descriptions/desc.primary]
 The docbook-utils is a set of a few small programs intended to ease
@@ -97,6 +101,20 @@ share/man/man7/
  frontend-spec.7
 
 
+[FILE:489:patches/patch-backends_man.in]
+--- backends/man.in.orig	2024-10-09 12:46:46 UTC
++++ backends/man.in
+@@ -7,7 +7,7 @@ HELPER=$SGML_BASE_DIR/docbook/utils-@VER
+ TMPDIR=`mktemp -d /tmp/man.XXXXXX` || \
+  { echo >&2 "man backend: could not create secure temporary directory"; exit 1;}
+ trap 'rm -rf "${TMPDIR}"' EXIT
+-nsgmls ${SGML_INCLUDE} "$SGML_FILE" > "${TMPDIR}/nsgmls.tmp"
++onsgmls ${SGML_INCLUDE} "$SGML_FILE" > "${TMPDIR}/nsgmls.tmp"
+ sgmlspl $HELPER <"${TMPDIR}/nsgmls.tmp" 2>"${TMPDIR}/errs"
+ if [ $? -ne 0 ]
+ then
+
+
 [FILE:534:patches/patch-bin_jw.in]
 --- bin/jw.in.orig	2024-10-09 12:46:46 UTC
 +++ bin/jw.in
@@ -120,18 +138,38 @@ share/man/man7/
    RE='^[[:space:]]*SGML_BASE_DIR[[:space:]]*=[[:space:]]*'
 
 
-[FILE:208:patches/patch-configure.ac]
+[FILE:298:patches/patch-bin_sgmldiff.in]
+--- bin/sgmldiff.in.orig	2025-07-08 00:23:15 UTC
++++ bin/sgmldiff.in
+@@ -28,7 +28,7 @@ use Getopt::Long 2.01;
+ $VERSION = 1.03;
+ 
+ my $nsgmls;
+-$nsgmls = "@jade_bindir@/nsgmls";
++$nsgmls = "@jade_bindir@/onsgmls";
+ 
+ #----------------------------------------------------------------------
+ # TODO:
+
+
+[FILE:522:patches/patch-configure.ac]
 --- configure.ac.orig	2024-10-09 12:46:46 UTC
 +++ configure.ac
-@@ -17,7 +17,7 @@ done
- 
- AM_INIT_AUTOMAKE
- 
--docdir='$(prefix)/doc'
-+docdir='$(prefix)/share/doc'
+@@ -21,11 +21,11 @@ docdir='$(prefix)/doc'
  AC_SUBST(docdir)
  
  dnl Checks for programs.
+-jade_bindirs="/usr/bin /usr/local/bin"
+-AC_FIND_PROGRAM(nsgmls, $jade_bindirs, jade_bindir)
++jade_bindirs="/usr/bin @LOCALBASE@/bin"
++AC_FIND_PROGRAM(onsgmls, $jade_bindirs, jade_bindir)
+ AC_SUBST(jade_bindir)
+ 
+-perl_bindirs="/usr/bin /usr/local/bin"
++perl_bindirs="/usr/bin @LOCALBASE@/bin"
+ AC_FIND_PROGRAM(perl, $perl_bindirs, perl_bindir)
+ AC_SUBST(perl_bindir)
+ 
 
 
 [FILE:540:patches/patch-doc_HTML_Makefile.am]
@@ -159,7 +197,7 @@ share/man/man7/
  
 
 
-[FILE:455:patches/patch-doc_man_Makefile.am]
+[FILE:473:patches/patch-doc_man_Makefile.am]
 --- doc/man/Makefile.am.orig	2024-10-09 12:46:46 UTC
 +++ doc/man/Makefile.am
 @@ -10,7 +10,7 @@ CLEANFILES=$(man1_MANS) $(man7_MANS) man
@@ -169,6 +207,21 @@ share/man/man7/
 -	SGML_CATALOG_FILES=/etc/sgml/catalog \
 +	SGML_CATALOG_FILES=$(prefix)/share/sgml/catalog \
  	SGML_SEARCH_PATH=$(top_srcdir)/doc:.. \
- 		nsgmls $< | \
+-		nsgmls $< | \
++		onsgmls $< | \
  		sgmlspl $(top_srcdir)/helpers/docbook2man-spec.pl
+
+
+[FILE:426:patches/patch-helpers_docbook2man-spec.pl]
+--- helpers/docbook2man-spec.pl.orig	2024-10-09 12:46:46 UTC
++++ helpers/docbook2man-spec.pl
+@@ -7,7 +7,7 @@ docbook2man-spec - convert DocBook RefEn
+ The SGMLSpm package from CPAN.  This contains the sgmlspl script which
+ is used to grok this file.  Use it like this:
+ 
+-nsgmls some-docbook-document.sgml | sgmlspl docbook2man-spec.pl
++onsgmls some-docbook-document.sgml | sgmlspl docbook2man-spec.pl
+ 
+ =head1 DESCRIPTION
+ 
 

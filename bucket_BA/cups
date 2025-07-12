@@ -167,7 +167,7 @@ lib/
 lib/pkgconfig/cups.pc
 
 
-[FILE:13774:manifests/plist.tools]
+[FILE:13841:manifests/plist.tools]
 @sample etc/cups/cups-files.conf.sample
 @sample etc/cups/cupsd.conf.sample
 @sample etc/cups/snmp.conf.sample
@@ -181,6 +181,8 @@ lib/pkgconfig/cups.pc
 %%ONLY-MIDNIGHTBSD%%libexec/cups/backend/snmp
 %%ONLY-MIDNIGHTBSD%%share/cups/usb/org.cups.usb-quirks
 %%ONLY-NETBSD%%libexec/cups/backend/snmp
+%%ONLY-SUNOS%%bin/ippfind
+%%ONLY-SUNOS%%libexec/cups/backend/dnssd
 bin/
  cancel
  cups-config
@@ -888,7 +890,8 @@ share/locale/zh_CN/cups_zh_CN.po
 @dir(cups,,511) /var/run/cups/certs
 
 
-[FILE:717:manifests/plist.man]
+[FILE:756:manifests/plist.man]
+%%ONLY-SUNOS%%share/man/man1/ippfind.1
 share/man/man1/
  cancel.1
  cups-config.1
@@ -947,7 +950,8 @@ share/man/man8/
  lpmove.8
 
 
-[FILE:1792:manifests/plist.docs]
+[FILE:1843:manifests/plist.docs]
+%%ONLY-SUNOS%%share/doc/cups/help/man-ippfind.html
 share/doc/cups/
  apple-touch-icon.png
  cups-printable.css
@@ -1262,7 +1266,36 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
   * macOS 10.2.x does not define socklen_t, and in fact uses an int instead of
 
 
-[FILE:775:patches/patch-scheduler_auth.c]
+[FILE:764:patches/patch-cups_transcode.c]
+--- cups/transcode.c.orig	2025-04-08 10:47:14 UTC
++++ cups/transcode.c
+@@ -165,7 +165,11 @@ cupsCharsetToUTF8(
+     srclen       = strlen(src);
+     outBytesLeft = (size_t)maxout - 1;
+ 
++#if defined(__sun__)
++    iconv(map_to_utf8, (const char **)&src, &srclen, &altdestptr, &outBytesLeft);
++#else
+     iconv(map_to_utf8, (char **)&src, &srclen, &altdestptr, &outBytesLeft);
++#endif
+     *altdestptr = '\0';
+ 
+     _cupsMutexUnlock(&map_mutex);
+@@ -289,7 +293,11 @@ cupsUTF8ToCharset(
+ 
+   if (map_from_utf8 != (iconv_t)-1)
+   {
++#if defined(__sun__)
++    const char* altsrc = (const char*)src; 
++#else
+     char *altsrc = (char *)src;		/* Silence bogus GCC type-punned */
++#endif
+ 
+     srclen       = strlen((char *)src);
+     outBytesLeft = (size_t)maxout - 1;
+
+
+[FILE:1127:patches/patch-scheduler_auth.c]
 --- scheduler/auth.c.orig	2025-04-08 10:47:14 UTC
 +++ scheduler/auth.c
 @@ -449,7 +449,7 @@ cupsdAuthorize(cupsd_client_t *con)	/* I
@@ -1274,6 +1307,15 @@ http://www.linuxfoundation.org/collaborate/workgroups/openprinting/pdf_as_standa
      if (getsockopt(httpGetFd(con->http), 0, LOCAL_PEERCRED, &peercred, &peersize))
  #  else
      if (getsockopt(httpGetFd(con->http), SOL_SOCKET, SO_PEERCRED, &peercred, &peersize))
+@@ -576,7 +576,7 @@ cupsdAuthorize(cupsd_client_t *con)	/* I
+       strlcpy(data.password, password, sizeof(data.password));
+ 
+ #  ifdef __sun
+-      pamdata.conv        = (int (*)(int, struct pam_message **,
++      pamdata.conv        = (int (*)(int, const struct pam_message **,
+ 				     struct pam_response **,
+ 				     void *))pam_func;
+ #  else
 @@ -840,7 +840,7 @@ cupsdAuthorize(cupsd_client_t *con)	/* I
  
        peersize = sizeof(peercred);

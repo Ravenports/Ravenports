@@ -2,6 +2,7 @@
 
 NAMEBASE=		OpenSP
 VERSION=		1.5.2
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Collection of SGML/XML tools
@@ -12,12 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		SF/openjade/opensp/1.5.2
 DISTFILE[1]=		OpenSP-1.5.2.tar.gz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			gmake libtool perl fbsd10fix mbsdfix c++:single
+EXRUN[tools]=		primary
+
+USES=			gmake libtool perl fbsd10fix mbsdfix c++:primary
 
 FPC_EQUIVALENT=		textproc/opensp
 
@@ -30,9 +36,17 @@ CONFIGURE_ARGS=		--enable-default-catalog={{PREFIX}}/share/sgml/catalog
 CXXFLAGS=		-Wno-deprecated
 
 post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libosp.${LIBEXT}
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libosp.so
 
-[FILE:179:descriptions/desc.single]
+[FILE:232:descriptions/desc.primary]
+This package is a collection of SGML/XML tools called OpenSP.
+It is a fork from James Clark's SP suite. These tools are used
+to parse, validate, and normalize SGML and XML files.
+
+The primary subpackage contains the OpenSP library.
+
+
+[FILE:179:descriptions/desc.tools]
 This package is a collection of SGML/XML tools called OpenSP.
 It is a fork from James Clark's SP suite. These tools are used
 to parse, validate, and normalize SGML and XML files.
@@ -42,14 +56,13 @@ to parse, validate, and normalize SGML and XML files.
 57f4898498a368918b0d49c826aa434bb5b703d2c3b169beb348016ab25617ce      1521390 OpenSP-1.5.2.tar.gz
 
 
-[FILE:2532:manifests/plist.single]
-bin/
- onsgmls
- osgmlnorm
- ospam
- ospcat
- ospent
- osx
+[FILE:35:manifests/plist.primary]
+lib/
+ libosp.so.5
+ libosp.so.5.0.0
+
+
+[FILE:2085:manifests/plist.dev]
 include/OpenSP/
  Allocator.h
  ArcEngine.h
@@ -191,8 +204,16 @@ include/OpenSP/
 lib/
  libosp.a
  libosp.so
- libosp.so.5
- libosp.so.5.0.0
+
+
+[FILE:417:manifests/plist.tools]
+bin/
+ onsgmls
+ osgmlnorm
+ ospam
+ ospcat
+ ospent
+ osx
 share/sgml/openjade/OpenSP/
  HTML32.dcl
  HTML32.dtd

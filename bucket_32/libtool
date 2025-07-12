@@ -19,7 +19,7 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe macfix
+USES=			cpe
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -35,10 +35,23 @@ FPC_EQUIVALENT=		devel/libtool
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-ltdl-install
 
+VAR_OPSYS[sunos]=	CONFIGURE_ENV=LT_SYS_LIBRARY_PATH=/lib/amd64:/usr/lib/amd64
+
 post-patch:
 	${RM} ${WRKSRC}/doc/*.info*
 	${REINPLACE_CMD} -e "/INFO_DEPS =/d" ${WRKSRC}/Makefile.in
 	${FIND} ${WRKSRC} -type f | ${XARGS} ${TOUCH}
+
+post-install-sunos:
+	# During OmniOS bootstrap, the nawk system() command is simply ignored.
+	# hopefully this self-corrects.  To complete the bootstrap, use this hack
+	${AWK} '/^\. ["]/{exit}; {print}' ${WRKSRC}/libtoolize > /tmp/libtoolize
+	${CAT} ${WRKSRC}/build-aux/funclib.sh >> /tmp/libtoolize
+	${CAT} ${WRKSRC}/build-aux/options-parser >> /tmp/libtoolize
+	${CAT} ${WRKSRC}/build-aux/extract-trace >> /tmp/libtoolize
+	${ECHO} "" >> /tmp/libtoolize
+	${AWK} '/^# Set a version string./,EOF' ${WRKSRC}/libtoolize >> /tmp/libtoolize
+	${INSTALL_SCRIPT} /tmp/libtoolize ${STAGEDIR}${PREFIX}/bin/libtoolize
 
 [FILE:262:descriptions/desc.primary]
 This is GNU Libtool, a generic library support script.  Libtool hides

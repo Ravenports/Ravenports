@@ -2,7 +2,7 @@
 
 NAMEBASE=		matreshka
 VERSION=		21.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Ada framework for information systems development
@@ -31,7 +31,7 @@ MAKE_ENV=		SMP_MFLAGS=-j{{MAKE_JOBS_NUMBER}}
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		20.0
-PLIST_SUB=		LIBSUFFIX=14.2
+PLIST_SUB=		LIBSUFFIX=210
 
 [SQLITE].CONFIGURE_ENABLE_BOTH=		sqlite3
 [SQLITE].USES_ON=			sqlite
@@ -55,6 +55,11 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/uaflex
 
 pre-configure:
+	# Remove obnoxious library naming based on ravensys-gcc
+	${GREP} -rl "Library_Name := .*RTL_Version_Suffix" ${WRKSRC}/gnat |\
+		${XARGS} ${REINPLACE_CMD} -e \
+		'/Library_Name :=/ s|Matreshka_Config.RTL_Version_Suffix|"-210"|'
+	# inline @PREFIX@ replacement
 	${REINPLACE_CMD} -e "s|@PREFIX@|${LOCALBASE}|" \
 		${WRKSRC}/tools/configure/configure-tests-mysql.adb \
 		${WRKSRC}/tools/configure/configure-tests-postgresql.adb \

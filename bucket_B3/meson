@@ -192,36 +192,3 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
 stage-dir:
 	# do nothing
 
-
-[FILE:607:sunos/patch-mesonbuild_compilers_compilers.py]
---- mesonbuild/compilers/compilers.py.orig	2021-06-07 17:35:31 UTC
-+++ mesonbuild/compilers/compilers.py
-@@ -404,9 +404,6 @@ def get_base_link_args(options: 'KeyedOp
-     # -bitcode_bundle is incompatible with -undefined and -bundle
-     if bitcode and not is_shared_module:
-         args.extend(linker.bitcode_args())
--    elif as_needed:
--        # -Wl,-dead_strip_dylibs is incompatible with bitcode
--        args.extend(linker.get_asneeded_args())
- 
-     # Apple's ld (the only one that supports bitcode) does not like -undefined
-     # arguments or -headerpad_max_install_names when bitcode is enabled
-
-
-[FILE:666:sunos/patch-mesonbuild_linkers_detect.py]
---- mesonbuild/linkers/detect.py.orig	2021-08-18 11:22:15 UTC
-+++ mesonbuild/linkers/detect.py
-@@ -141,6 +141,12 @@ def guess_nix_linker(env: 'Environment',
-         check_args = comp_class.LINKER_PREFIX + ['--version'] + extra_args
- 
-     override = []  # type: T.List[str]
-+    # sunos-only patch, hardcode to solaris (detection is broken)
-+    linker = SolarisDynamicLinker(
-+        compiler, for_machine, comp_class.LINKER_PREFIX, override,
-+        version='unknown version')
-+    return linker
-+
-     value = env.lookup_binary_entry(for_machine, comp_class.language + '_ld')
-     if value is not None:
-         override = comp_class.use_linker_args(value[0])
-

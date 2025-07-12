@@ -8,13 +8,11 @@ SDESC[std]=		Fast C/C++ compiler cache tool
 HOMEPAGE=		https://ccache.samba.org/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main fmt xxhash
+DOWNLOAD_GROUPS=	main fmt
 SITES[main]=		https://github.com/ccache/ccache/releases/download/v4.11.3/
-SITES[xxhash]=		https://github.com/Cyan4973/xxhash/archive/refs/tags/
 DISTFILE[1]=		ccache-4.11.3.tar.xz:main
-DISTFILE[2]=		v0.8.3.tar.gz:xxhash
 DIST_SUBDIR=		ccache
-DF_INDEX=		1 2
+DF_INDEX=		1
 SPKGS[std]=		set
 			primary
 			man
@@ -25,6 +23,7 @@ OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		ruby-asciidoctor:single:ruby_default
 			libblake3:dev:std
+			xxhash:dev:std
 
 USES=			cmake perl:build c++:primary zstd:build
 
@@ -40,12 +39,13 @@ FPC_EQUIVALENT=		devel/ccache
 
 BUILD_TARGET=		all doc
 
-INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		CCLINKDIR="libexec/ccache"
 
 CMAKE_ARGS=		-DENABLE_TESTING:BOOL=OFF
 			-DREDIS_STORAGE_BACKEND:BOOL=OFF
 			-DDEP_FMT:STRING=BUNDLED
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			LDFLAGS=-lsendfile
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/libexec/ccache
