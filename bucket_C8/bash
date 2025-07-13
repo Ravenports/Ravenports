@@ -23,14 +23,11 @@ SPKGS[std]=		set
 			man
 			docs
 			info
-SPKGS[static]=		set
-			primary
-			loadables
-			dev
+SPKGS[static]=		primary
 
-OPTIONS_AVAILABLE=	STATIC NLS NOTSTD
+OPTIONS_AVAILABLE=	STATIC NLS
 OPTIONS_STANDARD=	STATIC NLS
-VOPTS[static]=		STATIC=ON NLS=OFF NOTSTD=ON
+VOPTS[static]=		STATIC=ON NLS=OFF
 OPT_ON[all]=		NLS
 
 BUILD_DEPENDS=		ncurses:dev:std
@@ -51,8 +48,7 @@ CPE_VENDOR=		gnu
 INFO_SUBDIR=		.
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--enable-readline
-			--enable-progcomp
+CONFIGURE_ARGS=		--enable-progcomp
 			--enable-process-substitution
 			--enable-history
 			--enable-help-builtin
@@ -75,11 +71,12 @@ VAR_OPSYS[linux]=	VAR1=-Wl,--export-dynamic
 VAR_OPSYS[netbsd]=	VAR1=-Wl,--export-dynamic
 VAR_OPSYS[dragonfly]=	VAR1=-Wl,--export-dynamic
 
-[NOTSTD].DESCRIPTION=			Non-standard designation
-[NOTSTD].INFO_OFF=			info:bash
-[NOTSTD].USES_OFF=			makeinfo
-
 [STATIC].BUILDRUN_DEPENDS_OFF=		ncurses:primary:std
+[STATIC].CONFIGURE_ARGS_OFF=		--enable-readline
+[STATIC].CONFIGURE_ARGS_ON=		--enable-static-link
+					--enable-readline=no
+[STATIC].INFO_OFF=			info:bash
+[STATIC].USES_OFF=			makeinfo
 
 [NLS].CONFIGURE_ARGS_ON=		--with-libiconv-prefix={{ICONV_PREFIX}}
 [NLS].CONFIGURE_ENABLE_BOTH=		nls
@@ -92,7 +89,7 @@ post-patch:
 	${RM} ${WRKSRC}/y.tab.c
 	${REINPLACE_CMD} -e "s|%%PREFIX%%|${PREFIX}|g" ${WRKSRC}/doc/bash.1
 
-post-install-NOTSTD-ON:
+post-install-STATIC-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
 
 post-install:
@@ -102,10 +99,6 @@ post-install:
 post-configure:
 	${FIND} ${WRKSRC} -name Makefile -print0 | ${XARGS} -0 \
 		${REINPLACE_CMD} -e "s|^DESTDIR *=|& ${DESTDIR}|"
-
-post-extract-STATIC-ON:
-	# force static linking
-	${RM} ${LOCALBASE}/lib/libncurses.so
 
 [FILE:310:descriptions/desc.primary]
 This is GNU Bash.  Bash is the GNU Project's Bourne Again SHell,
