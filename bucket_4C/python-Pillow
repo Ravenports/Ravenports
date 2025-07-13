@@ -123,18 +123,16 @@ in the [Tidelift security policy].
 3828ee7586cd0b2091b6209e5ad53e20d0649bbe87164a459d0676e035e8f523     47113069 python-src/pillow-11.3.0.tar.gz
 
 
-[FILE:509:patches/patch-setup.py]
---- setup.py.orig	2019-07-02 19:13:39 UTC
+[FILE:557:patches/patch-setup.py]
+--- setup.py.orig	2025-07-01 07:52:08 UTC
 +++ setup.py
-@@ -465,9 +465,7 @@ class pil_build_ext(build_ext):
-                 _add_directory(include_dirs, "/usr/X11/include")
+@@ -647,7 +647,7 @@ class pil_build_ext(build_ext):
+             for extension in self.extensions:
+                 extension.extra_compile_args = ["-Wno-nullability-completeness"]
  
-         elif (
--            sys.platform.startswith("linux")
--            or sys.platform.startswith("gnu")
--            or sys.platform.startswith("freebsd")
-+            sys.platform.startswith("nothing")
-         ):
+-        elif sys.platform.startswith(("linux", "gnu", "freebsd")):
++        elif sys.platform.startswith(("nothing")):
              for dirname in _find_library_dirs_ldconfig():
                  _add_directory(library_dirs, dirname)
+             if sys.platform.startswith("linux") and os.environ.get("ANDROID_ROOT"):
 
