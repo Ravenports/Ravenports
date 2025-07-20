@@ -111,7 +111,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.14.4
+LIBXML2_VERSION=		2.14.5
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
