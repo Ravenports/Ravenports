@@ -20,8 +20,9 @@ SPKGS[std]=		set
 			dev
 			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	NOEXTRAS
+OPTIONS_STANDARD=	NOEXTRAS
+OPT_ON[sunos]=		NOEXTRAS
 
 USES=			cpe gmake c++:primary python:build
 
@@ -48,6 +49,9 @@ PLIST_SUB=		ICUMAJOR=77
 CPPFLAGS=		-DICU_NO_USER_DATA_OVERRIDE
 TEST_TARGET=		check
 
+[NOEXTRAS].DESCRIPTION=			Do not build extra tools
+[NOEXTRAS].CONFIGURE_ARGS_ON=		--disable-extras
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/g* \
 		${STAGEDIR}${PREFIX}/bin/*conv \
@@ -56,6 +60,11 @@ post-install:
 		${STAGEDIR}${PREFIX}/bin/pkgdata \
 		${STAGEDIR}${PREFIX}/sbin/*
 	# ${RM} ${STAGEDIR}${PREFIX}/share/icu/77.1/LICENSE
+
+post-install-sunos:
+	# hack to workaround pkgdata failure that I can't explain
+	${INSTALL_DATA} ${WRKSRC}/data/out/icudt77l.dat \
+		${STAGEDIR}${PREFIX}/share/icu/77.1/
 
 [FILE:292:descriptions/desc.primary]
 The International Components for Unicode (ICU) is a mature, widely used
@@ -93,7 +102,8 @@ lib/
  libicuuc.so.%%ICUVER%%
 
 
-[FILE:166:manifests/plist.tools]
+[FILE:185:manifests/plist.tools]
+%%NOEXTRAS-OFF%%bin/uconv
 bin/
  derb
  genbrk
@@ -105,7 +115,6 @@ bin/
  icuinfo
  makeconv
  pkgdata
- uconv
 sbin/
  escapesrc
  genccode
@@ -361,7 +370,8 @@ share/icu/%%ICUVER%%/
  mkinstalldirs
 
 
-[FILE:199:manifests/plist.man]
+[FILE:229:manifests/plist.man]
+%%NOEXTRAS-OFF%%share/man/man1/uconv.1
 share/man/man1/
  derb.1
  genbrk.1
@@ -373,7 +383,6 @@ share/man/man1/
  icuexportdata.1
  makeconv.1
  pkgdata.1
- uconv.1
 share/man/man8/
  genccode.8
  gencmn.8
@@ -544,6 +553,20 @@ Do not play _XOPEN_SOURCE games on NetBSD, as it breaks at least gcc 6.4 on NetB
  
  /**
   * Solaris says:
+
+
+[FILE:899:patches/patch-data_Makefile.in]
+--- data/Makefile.in.orig	2025-03-13 18:31:23 UTC
++++ data/Makefile.in
+@@ -195,7 +195,7 @@ ifneq ($(ICUDATA_SOURCE_IS_NATIVE_TARGET
+ ifeq ($(MINGW_MOVEDLLSTOBINDIR),YES)
+ 	$(PKGDATA_INVOKE) $(PKGDATA) -m $(PKGDATA_MODE) $(PKGDATA_VERSIONING) -e $(ICUDATA_ENTRY_POINT) -T $(OUTTMPDIR) -s $(BUILDDIR) -p $(ICUDATA_NAME) $(PKGDATA_LIBNAME) $(PKGDATA_LIST) -I $(DESTDIR)$(bindir)
+ else
+-	$(PKGDATA_INVOKE) $(PKGDATA) -m $(PKGDATA_MODE) $(PKGDATA_VERSIONING) -e $(ICUDATA_ENTRY_POINT) -T $(OUTTMPDIR) -s $(BUILDDIR) -p $(ICUDATA_NAME) $(PKGDATA_LIBNAME) $(PKGDATA_LIST) -I $(ICUPKGDATA_INSTALL_DIR)
++	$(PKGDATA_INVOKE) $(PKGDATA) -m $(PKGDATA_MODE) $(PKGDATA_VERSIONING) -e $(ICUDATA_ENTRY_POINT) -T $(OUTTMPDIR) -s $(BUILDDIR) -p $(ICUDATA_NAME) $(PKGDATA_LIBNAME) $(PKGDATA_LIST) -I $(ICUPKGDATA_INSTALL_DIR) || true
+ endif
+ else
+ 	$(INSTALL_DATA) $(ICUDATA_SOURCE_ARCHIVE) $(DESTDIR)$(ICUPKGDATA_DIR)
 
 
 [FILE:411:patches/patch-i18n_Makefile.in]
