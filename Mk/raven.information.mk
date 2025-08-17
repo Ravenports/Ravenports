@@ -192,7 +192,7 @@ GHOSTSCRIPT_VERSION=		10.05.1
 SPHINX_UNDERSCORE=		1.13.1
 ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0
-PECL_YAML=			2.2.4
+PECL_YAML=			2.2.5
 LINUX_UTILS_VERSION=		2.41.1
 
 # ------------------------------------------------------------------------
