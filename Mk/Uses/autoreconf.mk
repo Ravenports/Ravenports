@@ -69,7 +69,7 @@ _USES_POST+=	autoreconf
 # BUILD_DEPENDS+=	autoconf:primary:std
 #			automake:primary:std
 # if ARGS does not contain "build", then
-# BUILD_DEPENDS+=	libtool:single:std
+# BUILD_DEPENDS+=	libtool:primary:std
 # -----------------------------------------------
 
 _AUTORECONF?=	2.72

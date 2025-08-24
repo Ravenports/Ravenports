@@ -151,7 +151,8 @@ GTK4_PORT_VERSION=		4.18.6
 # Ravenports binutils
 # ------------------------------------------------------------------------
 
-BINUTILS_VERSION=		2.44
+BINUTILS_VERSION=		2.45
+BINUTILS_GOLD_VERSION=		2.44
 RPBASE_BINUTILS=		2.43.1
 
 # ------------------------------------------------------------------------
