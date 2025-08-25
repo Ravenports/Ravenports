@@ -60,8 +60,10 @@ shebangonefile() {
 		# perl ports are allowed to have these shebangs.
 		if [ "${NAMEBASE}" != "perl-5.38" ] &&\
 		   [ "${NAMEBASE}" != "perl-5.40" ] &&\
+		   [ "${NAMEBASE}" != "perl-5.42" ] &&\
 		   [ "${VARIANT}" != "538" ] &&\
-		   [ "${VARIANT}" != "540" ];
+		   [ "${VARIANT}" != "540" ] &&\
+		   [ "${VARIANT}" != "542" ];
 		then
 			err "'${interp}' is an invalid shebang for '${f#"${STAGEDIR}${PREFIX}"/}' you must use ${LOCALBASE}/bin/perl."
 			err "Either pass \${PERL} to the build or use USES=shebangfix"

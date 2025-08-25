@@ -28,7 +28,8 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 PERL5_DEFAULT?=		5.38
 
 PERL_5.38_VERSION=	5.38.4
-PERL_5.40_VERSION=	5.40.2
+PERL_5.40_VERSION=	5.40.3
+PERL_5.42_VERSION=	5.42.0
 
 #-------------------------------------------------------------------------
 # RUBY
