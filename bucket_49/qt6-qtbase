@@ -18,7 +18,7 @@ SPKGS[std]=		set
 			dev
 			docs
 
-OPTIONS_AVAILABLE=	X11 WAYLAND
+OPTIONS_AVAILABLE=	X11 WAYLAND VULKAN
 OPTIONS_STANDARD=	X11 WAYLAND
 OPT_ON[freebsd]=	WAYLAND
 OPT_ON[linux]=		WAYLAND
@@ -27,22 +27,22 @@ OPT_ON[netbsd]=		WAYLAND
 OPT_ON[dragonfly]=	WAYLAND
 OPT_ON[midnightbsd]=	WAYLAND
 
-BUILD_DEPENDS=		evdev-proto:single:std
+BUILD_DEPENDS=		cups:dev:std
 			elftoolchain:dev:std
+			evdev-proto:single:std
+			fontconfig:dev:std
 			harfbuzz:dev:std
 			icu:dev:std
-			fontconfig:dev:std
 			libglvnd:dev:std
-			cups:dev:std
 			libxkbcommon:dev:std
-BUILDRUN_DEPENDS=	harfbuzz:icu:std
+BUILDRUN_DEPENDS=	cups:primary:std
+			harfbuzz:icu:std
 			icu:primary:std
-			libxkbcommon:primary:std
 			libb2:single:std
-			cups:primary:std
-EXRUN[dev]=		libglvnd:dev:std
+			libxkbcommon:primary:std
+EXRUN[dev]=		cups:dev:std
+			libglvnd:dev:std
 			libxkbcommon:dev:std
-			cups:dev:std
 
 USES=			qt6 zlib png sqlite jpeg pkgconfig execinfo iconv
 			perl:build shebangfix ssl:openssl30 cpe cmake ninja
@@ -105,6 +105,11 @@ VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
 			CMAKE_ARGS=-DBUILD_WITH_PCH=OFF
 
+[VULKAN].DESCRIPTION=			Build with Vulkan support
+[VULKAN].BUILD_DEPENDS_ON=		vulkan-headers:single:std
+					vulkan-loader:dev:std
+[VULKAN].RUN_DEPENDS_ON=		vulkan-loader:primary:std
+
 [WAYLAND].DESCRIPTION=			Build with wayland support
 [WAYLAND].BUILDRUN_DEPENDS_ON=		wayland:primary:std
 [WAYLAND].BUILD_DEPENDS_ON=		wayland:dev:std
@@ -166,7 +171,7 @@ This package contains the Qt6 qtbase submodule.
 40caedbf83cc9a1959610830563565889878bc95f115868bbf545d1914acf28e     49755912 qtbase-everywhere-src-6.9.1.tar.xz
 
 
-[FILE:2537:manifests/plist.primary]
+[FILE:2596:manifests/plist.primary]
 %%EVDEV%%lib/qt6/plugins/generic/
  libqevdevkeyboardplugin.so
  libqevdevmouseplugin.so
@@ -178,6 +183,7 @@ This package contains the Qt6 qtbase submodule.
 %%ONLY-FREEBSD%%lib/qt6/modules/InputSupportPrivate.json
 %%ONLY-LINUX%%lib/qt6/plugins/networkinformation/libqnetworkmanager.so
 %%ONLY-LINUX%%lib/qt6/plugins/platforms/libqlinuxfb.so
+%%VULKAN-ON%%lib/qt6/plugins/platforms/libqvkkhrdisplay.so
 %%X11-ON%%lib/qt6/
  libQt6XcbQpa.prl
  libQt6XcbQpa.so
@@ -242,7 +248,7 @@ lib/qt6/plugins/tls/
  libqopensslbackend.so
 
 
-[FILE:91939:manifests/plist.dev]
+[FILE:92887:manifests/plist.dev]
 %%EVDEV%%include/qt6/QtDeviceDiscoverySupport/%%QTVER%%/QtDeviceDiscoverySupport/private/qdevicediscovery_%%DSSTYPE%%_p.h
 %%EVDEV%%include/qt6/QtInputSupport/
  QtInputSupport
@@ -333,6 +339,34 @@ lib/qt6/plugins/tls/
  qkeyboardmap_p.h
  qkeycodeaction_p.h
  qtouchfilter_p.h
+%%VULKAN-ON%%include/qt6/QtGui/
+ QVulkanDeviceFunctions
+ QVulkanExtension
+ QVulkanFunctions
+ QVulkanInfoVector
+ QVulkanInstance
+ QVulkanLayer
+ QVulkanWindow
+ QVulkanWindowRenderer
+ qvulkanfunctions.h
+ qvulkaninstance.h
+ qvulkanwindow.h
+%%VULKAN-ON%%include/qt6/QtGui/%%QTVER%%/QtGui/private/
+ qbasicvulkanplatforminstance_p.h
+ qrhivulkan_p.h
+ qvulkandefaultinstance_p.h
+ qvulkanfunctions_p.h
+ qvulkaninstance_p.h
+ qvulkanwindow_p.h
+%%VULKAN-ON%%include/qt6/QtGui/%%QTVER%%/QtGui/qpa/qplatformvulkaninstance.h
+%%VULKAN-ON%%include/qt6/QtOpenGL/%%QTVER%%/QtOpenGL/private/qvkconvenience_p.h
+%%VULKAN-ON%%lib/qt6/cmake/Qt6Gui/
+ Qt6QVkKhrDisplayIntegrationPluginAdditionalTargetInfo.cmake
+ Qt6QVkKhrDisplayIntegrationPluginConfig.cmake
+ Qt6QVkKhrDisplayIntegrationPluginConfigVersion.cmake
+ Qt6QVkKhrDisplayIntegrationPluginConfigVersionImpl.cmake
+ Qt6QVkKhrDisplayIntegrationPluginTargets-release.cmake
+ Qt6QVkKhrDisplayIntegrationPluginTargets.cmake
 %%X11-ON%%include/qt6/QtGui/
  bus_interface.h
  cache_adaptor.h
