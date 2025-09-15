@@ -2,6 +2,7 @@
 
 NAMEBASE=		postgis
 VERSION=		3.6.0
+REVISION=		1
 KEYWORDS=		databases geography
 VARIANTS=		std
 SDESC[std]=		Spatial and Geographic objects for PostgreSQL
@@ -25,11 +26,13 @@ BUILD_DEPENDS=		geos:dev:std
 			proj:dev:std
 			gdal:dev:std
 			json-c:dev:std
+			protobuf-c:dev:std
+			protobuf-c:tools:std
 BUILDRUN_DEPENDS=	gdal:primary:std
 			geos:primary:std
 			json-c:primary:std
 			proj:primary:std
-			protobuf-c:single:std
+			protobuf-c:primary:std
 
 USES=			autoreconf:build gmake iconv libtool:build pkgconfig
 			pcre perl:build shebangfix cpe pgsql:server,contrib
@@ -71,6 +74,7 @@ post-patch:
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/[rs]*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/pgsql2shp
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/postgresql/*.so
 	(cd ${WRKSRC}/extras/tiger_geocoder && \
 		${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/postgis/tiger_geocoder )
