@@ -25,24 +25,32 @@ VOPTS[v13]=		PY312=OFF PY313=ON
 BUILD_DEPENDS=		libsodium:dev:std
 BUILDRUN_DEPENDS=	libsodium:primary:std
 
+USES=			gmake
+
 DISTNAME=		pynacl-1.6.0
 
 GENERATED=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+[PY312].BUILDRUN_DEPENDS_ON=		python-cffi117:single:v12
+[PY312].BUILD_DEPENDS_ON=		python-cffi117:single:v12
 [PY312].USES_ON=			python:v12,pep517
 
+[PY313].BUILDRUN_DEPENDS_ON=		python-cffi117:single:v13
+[PY313].BUILD_DEPENDS_ON=		python-cffi117:single:v13
 [PY313].USES_ON=			python:v13,pep517
 
-post-patch:
+pre-configure:
+	# disable pic on BSD* to fix ld: internal error in relocate_tls, at x86_64.cc:5195
+	# gmake is required[B
 	if [ "${OPSYS}" = "Linux" ]; then \
-	  ${REINPLACE_CMD} -e 's|with-pic"|with-pic", "--build=${CONFIGURE_TARGET}"|' ${WRKSRC}/setup.py;\
+	  ${REINPLACE_CMD} -e 's|"make|"gmake"|; s|with-pic"|with-pic", "--build=${CONFIGURE_TARGET}"|' ${WRKSRC}/setup.py;\
 	else \
-	  ${REINPLACE_CMD} -e 's|with-pic"|build=${CONFIGURE_TARGET}"|' ${WRKSRC}/setup.py;\
+	  ${REINPLACE_CMD} -e 's|"make"|"gmake"|; s|with-pic"|build=${CONFIGURE_TARGET}"|' ${WRKSRC}/setup.py;\
 	fi
 
-post-patch-sunos:
+pre-configure-sunos:
 	# fails one library test
 	${SED} -i.bak.sunos -e '/make.*check/d' ${WRKSRC}/setup.py
 
