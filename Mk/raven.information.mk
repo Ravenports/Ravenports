@@ -111,7 +111,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.15.0
+LIBXML2_VERSION=		2.15.1
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -211,8 +211,8 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # Qt and Qt-based desktops
 # ------------------------------------------------------------------------
 
-QT5_VERSION=			5.15.9
-QT6_VERSION=			6.9.1
+QT5_VERSION=			5.15.12
+QT6_VERSION=			6.9.3
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
 KDE6_FRAMEWORKS_VERSION=	6.18.0

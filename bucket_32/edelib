@@ -2,6 +2,7 @@
 
 NAMEBASE=		edelib
 VERSION=		2.1
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		std
 SDESC[std]=		Component construction library for EDE
@@ -16,8 +17,6 @@ SPKGS[std]=		single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-BROKEN[all]=		Won't build with fltk 1.4.x
 
 BUILD_DEPENDS=		jam:primary:std
 			dbus:dev:std
@@ -182,9 +181,497 @@ share/edelib/colors/rgb.txt
  $as_echo "yes" >&6; }
 
 
-[FILE:1380:patches/patch-src_WindowUtils.cpp]
---- src/WindowUtils.cpp.orig	2014-06-21 23:24:07.000000000 +0200
-+++ src/WindowUtils.cpp	2017-10-18 12:26:55.886134000 +0200
+[FILE:284:patches/patch-m4_fltk.m4]
+--- m4/fltk.m4.orig	2014-06-21 23:24:06.000000000 +0200
++++ m4/fltk.m4	2025-10-14 21:16:05.304445000 +0200
+@@ -37,7 +37,7 @@
+ 			AC_MSG_RESULT(yes)
+ 			;;
+ 			dnl check for FLTK 1.3.x branch
+-			["1.3."[0123456789]])
++			[1.[3456].*])
+ 			HAVE_FL_TREE=1
+ 			AC_MSG_RESULT(yes)
+ 			;;
+
+
+[FILE:298:patches/patch-src_IconChooser.cpp]
+--- src/IconChooser.cpp.orig	2014-06-21 23:24:07.000000000 +0200
++++ src/IconChooser.cpp	2025-10-14 21:13:53.514891000 +0200
+@@ -36,6 +36,8 @@
+ #include <edelib/StrUtil.h>
+ #include <edelib/Missing.h>
+ 
++#include <stdlib.h>
++
+ /* max icon sizes */
+ #define MAX_ICON_W  128
+ #define MAX_ICON_H  128
+
+
+[FILE:1386:patches/patch-src_MenuItem.cpp]
+--- src/MenuItem.cpp.orig	2014-06-21 23:24:07.000000000 +0200
++++ src/MenuItem.cpp	2025-10-14 21:13:53.516402000 +0200
+@@ -44,6 +44,12 @@
+ # include <Carbon/Carbon.h>
+ #endif
+ 
++#if (FL_MAJOR_VERSION >= 1) && (FL_MINOR_VERSION > 3)
++# define CLEAR_OVERLAY set_flag(NO_OVERLAY)
++#else
++# define CLEAR_OVERLAY clear_overlay()
++#endif
++
+ /* do not allow arrows to stretch; looks bad */
+ #define FLTK_FIXED_ARROW_SIZE 1
+ 
+@@ -305,7 +311,7 @@
+   set_modal();
+   clear_border();
+   menu = L;
+-  if (L->labelcolor_ || Fl::scheme() || L->labeltype_ > FL_NO_LABEL) clear_overlay();
++  if (L->labelcolor_ || Fl::scheme() || L->labeltype_ > FL_NO_LABEL) CLEAR_OVERLAY;
+ }
+ 
+ menuwindow::menuwindow(const MenuItem* m, int X, int Y, int Wp, int Hp,
+@@ -394,7 +400,7 @@
+       w1 = int(fl_width(fl_shortcut_label(m->shortcut_))) + 8;
+       if (w1 > hotKeysw) hotKeysw = w1;
+     }
+-    if (m->labelcolor_ || Fl::scheme() || m->labeltype_ > FL_NO_LABEL) clear_overlay();
++    if (m->labelcolor_ || Fl::scheme() || m->labeltype_ > FL_NO_LABEL) CLEAR_OVERLAY;
+   }
+ 
+   if (selected >= 0 && !Wp) X -= W/2;
+@@ -403,7 +409,8 @@
+   if (Wp > W) W = Wp;
+   if (Wtitle > W) W = Wtitle;
+ 
+-  if (X < scr_x) X = scr_x; if (X > scr_x+scr_w-W) X= scr_x+scr_w-W;
++  if (X < scr_x) X = scr_x;
++  if (X > scr_x+scr_w-W) X = scr_x+scr_w-W;
+   x(X); w(W);
+ 
+   h((numitems ? itemheight*numitems-LEADING : 0)+2*BW+3);
+
+
+[FILE:310:patches/patch-src_Missing.c]
+--- src/Missing.c.orig	2014-06-21 23:24:07.000000000 +0200
++++ src/Missing.c	2025-10-14 21:13:53.517241000 +0200
+@@ -96,7 +96,7 @@
+ #else
+ 	char* nval;
+ 
+-	if(!name || name == '\0' || strchr(name, '=') != NULL) {
++	if(!name || *name == '\0' || strchr(name, '=') != NULL) {
+ 		errno = EINVAL;
+ 		return -1;
+ 	}
+
+
+[FILE:13204:patches/patch-src_TableBase.cpp]
+--- src/TableBase.cpp.orig	2014-06-21 23:24:07.000000000 +0200
++++ src/TableBase.cpp	2025-10-14 21:13:53.528394000 +0200
+@@ -41,7 +41,7 @@
+ 	else if ( row >= rows() ) row = rows() - 1;
+ 	if ( table_h <= tih ) return;		// don't scroll if table smaller than window
+ 	double newtop = row_scroll_position(row);
+-	if ( newtop > vscrollbar->maximum() ) 
++	if ( newtop > vscrollbar->maximum() )
+ 		{ newtop = vscrollbar->maximum(); }
+ 	vscrollbar->Fl_Slider::value(newtop);
+ 	table_scrolled();
+@@ -57,7 +57,7 @@
+ 	else if ( col >= cols() ) col = cols() - 1;
+ 	if ( table_w <= tiw ) return;		// don't scroll if table smaller than window
+ 	double newleft = col_scroll_position(col);
+-	if ( newleft > hscrollbar->maximum() ) 
++	if ( newleft > hscrollbar->maximum() )
+ 		{ newleft = hscrollbar->maximum(); }
+ 	hscrollbar->Fl_Slider::value(newleft);
+ 	table_scrolled();
+@@ -71,7 +71,7 @@
+ 	int startrow = 0;
+ 	long scroll = 0;
+ 
+-	// OPTIMIZATION: 
++	// OPTIMIZATION:
+ 	//	   Attempt to use precomputed row scroll position
+ 	//
+ 	if ( toprow_scrollpos != -1 && row >= toprow )
+@@ -88,7 +88,7 @@
+ 	int startcol = 0;
+ 	long scroll = 0;
+ 
+-	// OPTIMIZATION: 
++	// OPTIMIZATION:
+ 	//	   Attempt to use precomputed row scroll position
+ 	//
+ 	if ( leftcol_scrollpos != -1 && col >= leftcol )
+@@ -176,7 +176,7 @@
+ void TableBase::row_height(int row, int height)
+ {
+ 	if ( row < 0 ) return;
+-	if ( row < (int)_rowheights.size() && _rowheights[row] == height ) 
++	if ( row < (int)_rowheights.size() && _rowheights[row] == height )
+ 		{ return; }				// OPTIMIZATION: no change? avoid redraw
+ 	// Add row heights, even if none yet
+ 	int now_size = (int)_rowheights.size();
+@@ -199,7 +199,7 @@
+ void TableBase::col_width(int col, int width)
+ {
+ 	if ( col < 0 ) return;
+-	if ( col < (int)_colwidths.size() && _colwidths[col] == width ) 
++	if ( col < (int)_colwidths.size() && _colwidths[col] == width )
+ 		{ return; }				// OPTIMIZATION: no change? avoid redraw
+ 
+ 	// Add column widths, even if none yet
+@@ -276,7 +276,7 @@
+ 
+ 		// TODO: Add other contexts..
+ 		default:
+-			fprintf(stderr, "TableBase::get_bounds(): context %d unimplemented\n", 
++			fprintf(stderr, "TableBase::get_bounds(): context %d unimplemented\n",
+ 				(int)context);
+ 			return;
+ 	}
+@@ -388,7 +388,7 @@
+ }
+ 
+ // Find X/Y/W/H for cell at R/C
+-//	   If R or C are out of range, returns -1 
++//	   If R or C are out of range, returns -1
+ //	   with X/Y/W/H set to zero.
+ //
+ int TableBase::find_cell(TableContext context, int R, int C, int &X, int &Y, int &W, int &H)
+@@ -471,7 +471,7 @@
+ 	else if (lx < (x() + row_header_width()))
+ 	{
+ 		Fl::e_x = x() + row_header_width() + 1;
+-		if (hscrollbar->visible()) 
++		if (hscrollbar->visible())
+ 			((Fl_Slider*)hscrollbar)->value(
+ 				hscrollbar->clamp(hscrollbar->value() - 30));
+ 		hscrollbar->do_callback();
+@@ -481,7 +481,7 @@
+ 	if (ly > y() + h() - 20)
+ 	{
+ 		Fl::e_y = y() + h() - 20;
+-		if (vscrollbar->visible()) 
++		if (vscrollbar->visible())
+ 			((Fl_Slider*)vscrollbar)->value(
+ 				vscrollbar->clamp(vscrollbar->value() + 30));
+ 		vscrollbar->do_callback();
+@@ -503,7 +503,7 @@
+ 	Fl::e_y = ly;
+ 	Fl::check();
+ 	Fl::flush();
+-	if (Fl::event_buttons() && _auto_drag) 
++	if (Fl::event_buttons() && _auto_drag)
+ 		{ Fl::add_timeout(0.05, _auto_drag_cb2, this); }
+ }
+ 
+@@ -535,13 +535,13 @@
+ 			hideh = (table_w <= tiw);
+ 
+ 		// Second pass: Check for interference
+-		if ( !hideh & hidev ) { hidev = (( table_h - tih + SCROLLBAR_SIZE ) <= 0 ); } 
+-		if ( !hidev & hideh ) { hideh = (( table_w - tiw + SCROLLBAR_SIZE ) <= 0 ); }
++		if ( (!hideh) & hidev ) { hidev = (( table_h - tih + SCROLLBAR_SIZE ) <= 0 ); }
++		if ( (!hidev) & hideh ) { hideh = (( table_w - tiw + SCROLLBAR_SIZE ) <= 0 ); }
+ 
+ 		// Determine scrollbar visibility, trim ti[xywh]/to[xywh]
+-		if ( hidev ) { vscrollbar->hide(); } 
++		if ( hidev ) { vscrollbar->hide(); }
+ 		else { vscrollbar->show(); tiw -= SCROLLBAR_SIZE; tow -= SCROLLBAR_SIZE; }
+-		if ( hideh ) { hscrollbar->hide(); } 
++		if ( hideh ) { hscrollbar->hide(); }
+ 		else { hscrollbar->show(); tih -= SCROLLBAR_SIZE; toh -= SCROLLBAR_SIZE; }
+ 	}
+ 
+@@ -626,15 +626,15 @@
+ 		vscrollbar->precision(10);
+ 		vscrollbar->slider_size(vscrolltab);
+ 		vscrollbar->resize(wix+wiw-SCROLLBAR_SIZE, wiy,
+-						   SCROLLBAR_SIZE, 
++						   SCROLLBAR_SIZE,
+ 						   wih - ((hscrollbar->visible())?SCROLLBAR_SIZE:0));
+-		vscrollbar->Fl_Valuator::value(vscrollbar->clamp(vscrollbar->value())); 
++		vscrollbar->Fl_Valuator::value(vscrollbar->clamp(vscrollbar->value()));
+ 
+ 		hscrollbar->bounds(0, table_w-tiw);
+ 		hscrollbar->precision(10);
+ 		hscrollbar->slider_size(hscrolltab);
+ 		hscrollbar->resize(wix, wiy+wih-SCROLLBAR_SIZE,
+-						   wiw - ((vscrollbar->visible())?SCROLLBAR_SIZE:0), 
++						   wiw - ((vscrollbar->visible())?SCROLLBAR_SIZE:0),
+ 						   SCROLLBAR_SIZE);
+ 		hscrollbar->Fl_Valuator::value(hscrollbar->clamp(hscrollbar->value()));
+ 	}
+@@ -778,7 +778,7 @@
+ 		if (Fl::event_inside(hscrollbar) || Fl::event_inside(vscrollbar)) return 1;
+ 		if (Fl::focus() != this && contains(Fl::focus())) return 1;
+ 	}
+- 
++
+ 	// Which row/column are we over?
+ 	int R, C;							// row/column being worked on
+ 	ResizeFlag resizeflag;				// which resizing area are we over? (0=none)
+@@ -796,13 +796,13 @@
+ 					ret = 1;
+ 				}
+ 				damage_zone(current_row, current_col, select_row, select_col, R, C);
+-				if (context == CONTEXT_CELL) 
++				if (context == CONTEXT_CELL)
+ 				{
+ 					current_row = select_row = R;
+ 					current_col = select_col = C;
+ 					_selecting = CONTEXT_CELL;
+ 				}
+-				else 
++				else
+ 				{
+ 					current_row = select_row = -1;
+ 					current_col = select_col = -1;
+@@ -822,13 +822,13 @@
+ 
+ 				case CONTEXT_NONE:
+ 					// FL_PUSH on table corner?
+-					if ( Fl::event_button() == 1 && 
+-						 Fl::event_x() < x() + row_header_width()) 
++					if ( Fl::event_button() == 1 &&
++						 Fl::event_x() < x() + row_header_width())
+ 					{
+ 						current_col = 0;
+ 						select_col = cols() - 1;
+ 						current_row = 0;
+-						select_row = rows() - 1;								
++						select_row = rows() - 1;
+ 						damage_zone(current_row, current_col, select_row, select_col);
+ 						ret = 1;
+ 					}
+@@ -843,12 +843,12 @@
+ 						{
+ 							// Start resize if left click on column border.
+ 							//	  "ret=1" ensures we get drag events from now on.
+-							//	  (C-1) is used if mouse is over the left hand side 
++							//	  (C-1) is used if mouse is over the left hand side
+ 							//	  of cell, so we resize the next column on the left.
+ 							//
+-							_resizing_col = ( resizeflag & RESIZE_COL_LEFT ) ? C-1 : C; 
++							_resizing_col = ( resizeflag & RESIZE_COL_LEFT ) ? C-1 : C;
+ 							_resizing_row = -1;
+-							_dragging_x = Fl::event_x(); 
++							_dragging_x = Fl::event_x();
+ 							ret = 1;
+ 						}
+ 						else
+@@ -858,7 +858,7 @@
+ 							current_row = 0;
+ 							select_row = rows() - 1;
+ 							_selecting = CONTEXT_COL_HEADER;
+-							damage_zone(current_row, current_col, 
++							damage_zone(current_row, current_col,
+ 										select_row, select_col);
+ 							ret = 1;
+ 						}
+@@ -877,11 +877,11 @@
+ 							//	  (R-1) is used if mouse is over the top of the cell,
+ 							//	  so that we resize the row above.
+ 							//
+-							_resizing_row = ( resizeflag & RESIZE_ROW_ABOVE ) ? R-1 : R; 
++							_resizing_row = ( resizeflag & RESIZE_ROW_ABOVE ) ? R-1 : R;
+ 							_resizing_col = -1;
+-							_dragging_y = Fl::event_y(); 
++							_dragging_y = Fl::event_y();
+ 							ret = 1;
+-						} 
++						}
+ 						else
+ 						{
+ 							// Not resizing? Select the row
+@@ -889,7 +889,7 @@
+ 							current_col = 0;
+ 							select_col = cols() - 1;
+ 							_selecting = CONTEXT_ROW_HEADER;
+-							damage_zone(current_row, current_col, 
++							damage_zone(current_row, current_col,
+ 										select_row, select_col);
+ 							ret = 1;
+ 						}
+@@ -949,23 +949,23 @@
+ 				if ( Fl_Widget::callback() && when() & FL_WHEN_CHANGED )
+ 					{ do_callback(CONTEXT_RC_RESIZE, R, C); }
+ 			} else {
+-				if (Fl::event_button() == 1 && _selecting == CONTEXT_CELL 
+-						&& context == CONTEXT_CELL) 
++				if (Fl::event_button() == 1 && _selecting == CONTEXT_CELL
++						&& context == CONTEXT_CELL)
+ 				{
+ 					if (select_row != R || select_col != C)
+ 						damage_zone(current_row, current_col, select_row, select_col, R, C);
+ 					select_row = R;
+ 					select_col = C;
+ 					ret = 1;
+-				} else if (Fl::event_button() == 1 && _selecting == CONTEXT_ROW_HEADER 
+-						&& context & (CONTEXT_ROW_HEADER|CONTEXT_COL_HEADER|CONTEXT_CELL)) 
++				} else if (Fl::event_button() == 1 && _selecting == CONTEXT_ROW_HEADER
++						&& context & (CONTEXT_ROW_HEADER|CONTEXT_COL_HEADER|CONTEXT_CELL))
+ 				{
+ 				   if (select_row != R)
+ 						damage_zone(current_row, current_col, select_row, select_col, R, C);
+ 					select_row = R;
+ 					ret = 1;
+-				} else if (Fl::event_button() == 1 && _selecting == CONTEXT_COL_HEADER 
+-						&& context & (CONTEXT_ROW_HEADER|CONTEXT_COL_HEADER|CONTEXT_CELL)) 
++				} else if (Fl::event_button() == 1 && _selecting == CONTEXT_COL_HEADER
++						&& context & (CONTEXT_ROW_HEADER|CONTEXT_COL_HEADER|CONTEXT_CELL))
+ 				{
+ 					if (select_col != C)
+ 						damage_zone(current_row, current_col, select_row, select_col, R, C);
+@@ -974,9 +974,9 @@
+ 				}
+ 			}
+ 			// Enable autodrag if not resizing, and mouse has moved off table edge
+-			if ( _resizing_row < 0 && _resizing_col < 0 && _auto_drag == 0 && 
++			if ( _resizing_row < 0 && _resizing_col < 0 && _auto_drag == 0 &&
+ 				( Fl::event_x() > x() + w() - 20 ||
+-				  Fl::event_x() < x() + row_header_width() || 
++				  Fl::event_x() < x() + row_header_width() ||
+ 				  Fl::event_y() > y() + h() - 20 ||
+ 				  Fl::event_y() < y() + col_header_height()
+ 				) )
+@@ -1037,7 +1037,7 @@
+ 		case FL_LEAVE:			// We want to track the mouse if resizing is allowed.
+ 			if ( resizeflag )
+ 				{ ret = 1; }
+-			if ( event == FL_LEAVE ) 
++			if ( event == FL_LEAVE )
+ 			{
+ 				_stop_auto_drag();
+ 				change_cursor(FL_CURSOR_DEFAULT);
+@@ -1080,10 +1080,10 @@
+ 				do_callback(CONTEXT_TABLE, -1, -1);
+ 				take_focus();
+ 			}
+-			//if (!ret && Fl_Widget::callback() && when() & FL_WHEN_NOT_CHANGED  ) { 
+-			if ( Fl_Widget::callback() && 
++			//if (!ret && Fl_Widget::callback() && when() & FL_WHEN_NOT_CHANGED  ) {
++			if ( Fl_Widget::callback() &&
+ 				 ( ( !ret && when() & FL_WHEN_NOT_CHANGED ) || ( is_row!= select_row || is_col!= select_col ) ) ) {
+-				do_callback(CONTEXT_CELL, select_row, select_col); 
++				do_callback(CONTEXT_CELL, select_row, select_col);
+ 				//damage_zone(current_row, current_col, select_row, select_col);
+ 				ret = 1;
+ 			}
+@@ -1120,7 +1120,7 @@
+ int TableBase::is_selected(int r, int c)
+ {
+ 	int s_left, s_right, s_top, s_bottom;
+- 
++
+ 	if (select_col > current_col) {
+ 		s_left = current_col;
+ 		s_right = select_col;
+@@ -1173,7 +1173,7 @@
+ //	  Then tell the group to draw over us.
+ //
+ void TableBase::draw()
+-{	
++{
+ 	draw_cell(CONTEXT_STARTPAGE, 0, 0,			// let user's drawing routine
+ 			  tix, tiy, tiw, tih);				// prep new page
+ 
+@@ -1210,7 +1210,7 @@
+ 			fl_push_clip(tix, tiy, tiw, tih);
+ 			for ( int c = _redraw_leftcol; c <= _redraw_rightcol; c++ )
+ 				for ( int r = _redraw_toprow; r <= _redraw_botrow; r++ )
+-				{ 
++				{
+ 					_redraw_cell(CONTEXT_CELL, r, c);
+ 				}
+ 			fl_pop_clip();
+@@ -1256,7 +1256,7 @@
+ 				{
+ 					for ( int c = leftcol; c <= rightcol; c++ )
+ 					{
+-						_redraw_cell(CONTEXT_CELL, r, c); 
++						_redraw_cell(CONTEXT_CELL, r, c);
+ 					}
+ 				}
+ 			}
+@@ -1270,10 +1270,10 @@
+ 			if ( table->box() )
+ 			{
+ 				if ( col_header() )
+-					{ fl_rectf(tox, wiy, Fl::box_dx(table->box()), 
++					{ fl_rectf(tox, wiy, Fl::box_dx(table->box()),
+ 											 col_header_height(), color()); }
+ 				if ( row_header() )
+-					{ fl_rectf(wix, toy, row_header_width(), 
++					{ fl_rectf(wix, toy, row_header_width(),
+ 										 Fl::box_dx(table->box()), color()); }
+ 			}
+ 
+@@ -1285,10 +1285,10 @@
+ 				// Col header? fill that too
+ 				if ( col_header() )
+ 				{
+-					fl_rectf(tix + table_w, 
+-							 wiy, 
++					fl_rectf(tix + table_w,
++							 wiy,
+ 							 // get that corner just right..
+-							 (tiw - table_w + Fl::box_dw(table->box()) - 
++							 (tiw - table_w + Fl::box_dw(table->box()) -
+ 											  Fl::box_dx(table->box())),
+ 							 col_header_height(),
+ 							 color());
+@@ -1303,12 +1303,12 @@
+ 				if ( row_header() )
+ 				{
+ 					// NOTE:
+-					//	   Careful with that lower corner; don't use tih; when eg. 
+-					//	   table->box(FL_THIN_UPFRAME) and hscrollbar hidden, 
++					//	   Careful with that lower corner; don't use tih; when eg.
++					//	   table->box(FL_THIN_UPFRAME) and hscrollbar hidden,
+ 					//	   leaves a row of dead pixels.
+ 					//
+-					fl_rectf(wix, tiy + table_h, row_header_width(), 
+-							 (wiy+wih) - (tiy+table_h) - 
++					fl_rectf(wix, tiy + table_h, row_header_width(),
++							 (wiy+wih) - (tiy+table_h) -
+ 							 ( hscrollbar->visible() ? SCROLLBAR_SIZE : 0),
+ 							 color());
+ 				}
+@@ -1318,7 +1318,7 @@
+ 		// Both scrollbars? Draw little box in lower right
+ 		if ( vscrollbar->visible() && hscrollbar->visible() )
+ 		{
+-			fl_rectf(vscrollbar->x(), hscrollbar->y(), 
++			fl_rectf(vscrollbar->x(), hscrollbar->y(),
+ 					 vscrollbar->w(), hscrollbar->h(), color());
+ 		}
+ 
+
+
+[FILE:382:patches/patch-src_ThemeLoader.cpp]
+--- src/ThemeLoader.cpp.orig	2014-06-21 23:24:07.000000000 +0200
++++ src/ThemeLoader.cpp	2025-10-14 21:13:53.529239000 +0200
+@@ -116,7 +116,7 @@
+ static void update_fonts(int sz) {
+ #ifdef EDELIB_HAVE_RTTI
+ 	for(Fl_Window *i = Fl::first_window(); i; i = Fl::next_window(i))
+-		update_fonts_on_group(i, sz);
++		update_fonts_on_group((Fl_Group*)i, sz);
+ #else
+ 	Fl::redraw();
+ #endif
+
+
+[FILE:1741:patches/patch-src_WindowUtils.cpp]
+--- src/WindowUtils.cpp.orig	2025-10-14 21:23:46.817905000 +0200
++++ src/WindowUtils.cpp	2025-10-14 21:25:41.348421000 +0200
 @@ -1,5 +1,5 @@
  /*
 - * $Id: WindowUtils.cpp 3106 2011-10-21 20:26:08Z karijes $
@@ -203,7 +690,19 @@ share/edelib/colors/rgb.txt
  
  EDELIB_NS_BEGIN
  
-@@ -165,7 +167,7 @@
+@@ -140,9 +142,10 @@
+ 
+ 		XChangeProperty(fl_display, xp->xid, WM_PROTOCOLS, XA_ATOM, 32, 0, (unsigned char*)&WM_DELETE_WINDOW, 1);
+ 
++#if (FL_MAJOR_VERSION >= 1) && (FL_MINOR_VERSION <= 3)
+ 		// send size limits and border:
+ 		xp->sendxjunk();
+-
++#endif
+ 		// set the class property, which controls the icon used:
+ 		if(win->xclass()) {
+ 			char buffer[1024];
+@@ -165,7 +168,7 @@
  			XChangeProperty(fl_display, xp->xid, XA_WM_CLASS, XA_STRING, 8, 0, (unsigned char *)buffer, p-buffer-1);
  		}
  
@@ -212,7 +711,7 @@ share/edelib/colors/rgb.txt
  			// find some other window to be "transient for":
  			Fl_Window* wp = xp->next->w;
  			while(wp->parent()) 
-@@ -193,13 +195,14 @@
+@@ -193,13 +196,14 @@
  		XWMHints *hints = XAllocWMHints();
  		hints->input = True;
  		hints->flags = InputHint;
@@ -228,6 +727,429 @@ share/edelib/colors/rgb.txt
  
  		// This is not removed so it can be used with windows inherited from Fl_Window
  		if(win->icon()) {
+
+
+[FILE:348:patches/patch-sslib_init.ss]
+--- sslib/init.ss.orig	2014-06-21 23:24:09.000000000 +0200
++++ sslib/init.ss	2025-10-14 21:13:53.531133000 +0200
+@@ -256,7 +256,7 @@
+            (cars (car unz))
+            (cdrs (cdr unz)))
+       (apply proc cars)
+-      (apply map (cons proc cdrs)) )]))
++      (apply for-each (cons proc cdrs)) )]))
+ 
+ (define (list-tail x k)
+   (if (zero? k)
+
+
+[FILE:10987:patches/patch-sslib_json.ss]
+--- sslib/json.ss.orig	2014-06-21 23:24:09.000000000 +0200
++++ sslib/json.ss	2025-10-14 21:13:53.532571000 +0200
+@@ -3,21 +3,21 @@
+ 
+ (define (string-split str delimiter)
+   (let ([len (string-length str)]
+-		[ret '()]
+-		[s   0])
+-	(let loop ([e 0])
+-	  (if (>= e len)
+-		(begin
+-		  (if (> e s)
+-			(set! ret (cons (substring str s e) ret)))
+-		  (reverse ret))
+-		(if (char=? delimiter (string-ref str e))
+-		  (let* ([sub    (substring str s e)]
+-				 [sublen (string-length sub)])
+-			(set! ret (cons sub ret))
+-			(set! s (+ s sublen 1))
+-			(loop s))
+-		  (loop (+ 1 e)) ) ) ) ) ) 
++        [ret '()]
++        [s   0])
++    (let loop ([e 0])
++      (if (>= e len)
++        (begin
++          (if (> e s)
++            (set! ret (cons (substring str s e) ret)))
++          (reverse ret))
++        (if (char=? delimiter (string-ref str e))
++          (let* ([sub    (substring str s e)]
++                 [sublen (string-length sub)])
++            (set! ret (cons sub ret))
++            (set! s (+ s sublen 1))
++            (loop s))
++          (loop (+ 1 e)) ) ) ) ) )
+ 
+ (define (string-empty? str)
+   (> (string-length str) 0))
+@@ -27,9 +27,9 @@
+ (define (->string x)
+   (cond
+     [(char? x) (string x)]
+-	[(symbol? x) (symbol->string x)]
+-	[(eof-object? x) "<EOF>"]
+-	[else ""]))
++    [(symbol? x) (symbol->string x)]
++    [(eof-object? x) "<EOF>"]
++    [else ""]))
+ 
+ (define (lexer-error c)
+   (error (string-append "unexpected character " (->string c))))
+@@ -40,172 +40,172 @@
+ (define (hex-char-value ch)
+   (let ([n (char->integer ch)])
+     (cond
+-	  [(<= 97 n 102) (- n 87)] ; a-f
+-	  [(<= 65 n 70)  (- n 55)] ; A-F
+-	  [(<= 48 n 57)  (- n 48)] ; 0-9
+-	  [else
+-	    (lexer-error ch) ] ) ) )
++      [(<= 97 n 102) (- n 87)] ; a-f
++      [(<= 65 n 70)  (- n 55)] ; A-F
++      [(<= 48 n 57)  (- n 48)] ; 0-9
++      [else
++        (lexer-error ch) ] ) ) )
+ 
+ (define (char-control? ch)
+   (let ([i (char->integer ch)])
+     (or (< i 32)
+-		(< 127 i 160))))
++        (< 127 i 160))))
+ 
+ (define (consume-char expect)
+   (let ([ch (read-char)])
+     (if (eqv? ch expect)
+-	  ch
+-	  (lexer-error ch) ) ) )
++      ch
++      (lexer-error ch) ) ) )
+ 
+ (define (parse-unicode)
+   (let* ([a (hex-char-value (read-char))]
+-		 [b (hex-char-value (read-char))]
+-		 [c (hex-char-value (read-char))]
+-		 [d (hex-char-value (read-char))])
+-	(integer->char
+-	  (+ (* 4096 a)
+-		 (*  256 b)
+-		 (*   16 c)
+-		 d))))
++         [b (hex-char-value (read-char))]
++         [c (hex-char-value (read-char))]
++         [d (hex-char-value (read-char))])
++    (integer->char
++      (+ (* 4096 a)
++         (*  256 b)
++         (*   16 c)
++         d))))
+ 
+ (define (parse-escape q)
+   (let ([ch (read-char)])
+     (case ch
+-	  [(#\b) #\x08]
+-	  [(#\f) #\x0C]
+-	  [(#\n) #\newline]
+-	  [(#\r) #\return]
+-	  [(#\t) #\tab]
+-	  [(#\\) #\\]
+-	  [(#\u) (parse-unicode)]
+-	  [else
+-	    (if (eqv? ch q)
+-		  q
+-		  (lexer-error ch) ) ] ) ) )
++      [(#\b) #\x08]
++      [(#\f) #\x0C]
++      [(#\n) #\newline]
++      [(#\r) #\return]
++      [(#\t) #\tab]
++      [(#\\) #\\]
++      [(#\u) (parse-unicode)]
++      [else
++        (if (eqv? ch q)
++          q
++          (lexer-error ch) ) ] ) ) )
+ 
+ (define (parse-number ch)
+   (let loop ([res (string ch)])
+-	(let ([ch (peek-char)])
+-	  (case ch
+-		[(#\- #\+ #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\. #\e #\E)
+-		 (begin
+-		   (read-char)
+-		   (loop (string-append res (string ch))) ) ]
+-		[else
+-		  (string->number res) ] ) ) ) )
++    (let ([ch (peek-char)])
++      (case ch
++        [(#\- #\+ #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\. #\e #\E)
++         (begin
++           (read-char)
++           (loop (string-append res (string ch))) ) ]
++        [else
++          (string->number res) ] ) ) ) )
+ 
+ (define (parse-string q)
+   (let loop ([res ""])
+-	(let ([ch (read-char)])
+-	  (cond
+-	    [(eqv? ch #\\) (loop string-append rest (string (parse-escape q)))]
+-		[(eqv? ch q) res]
+-		;[(eqv? ch q) res]
+-		[(not (char-control? ch)) (loop (string-append res (string ch)))]
+-		[else (lexer-error ch)] ) ) ) )
++    (let ([ch (read-char)])
++      (cond
++        [(eqv? ch #\\) (loop string-append rest (string (parse-escape q)))]
++        [(eqv? ch q) res]
++        ;[(eqv? ch q) res]
++        [(not (char-control? ch)) (loop (string-append res (string ch)))]
++        [else (lexer-error ch)] ) ) ) )
+ 
+ ;; reads symbol 'true', the first character is already read by next-token
+ (define (parse-true)
+   (begin
+-	(consume-char #\r)
+-	(consume-char #\u)
+-	(consume-char #\e)
+-	#t))
++    (consume-char #\r)
++    (consume-char #\u)
++    (consume-char #\e)
++    #t))
+ 
+ (define (parse-false)
+   (begin
+-	(consume-char #\a)
+-	(consume-char #\l)
+-	(consume-char #\s)
+-	(consume-char #\e)
+-	#f))
++    (consume-char #\a)
++    (consume-char #\l)
++    (consume-char #\s)
++    (consume-char #\e)
++    #f))
+ 
+ (define (parse-null)
+   (begin
+-	(consume-char #\u)
+-	(consume-char #\l)
+-	(consume-char #\l)
+-	'()))
++    (consume-char #\u)
++    (consume-char #\l)
++    (consume-char #\l)
++    '()))
+ 
+ (define (next-token)
+   (let ([ch (read-char)])
+     (case ch
+-	  [(#\space #\newline #\tab #\return) (next-token)]
+-	  [(#\" #\') (parse-string ch)]
+-	  [(#\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (parse-number ch)]
+-	  [(#\[) 'open-brace]
+-	  [(#\]) 'close-brace]
+-	  [(#\{) 'open-curly]
+-	  [(#\}) 'close-curly]
+-	  [(#\:) 'colon]
+-	  [(#\,) 'comma]
+-	  [(#\t) (parse-true)]
+-	  [(#\f) (parse-false)]
+-	  [(#\n) (parse-null)]
+-	  [else
+-	    (if (eof-object? ch)
+-		  ch
+-		  (lexer-error ch) ) ] ) ) )
++      [(#\space #\newline #\tab #\return) (next-token)]
++      [(#\" #\') (parse-string ch)]
++      [(#\- #\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (parse-number ch)]
++      [(#\[) 'open-brace]
++      [(#\]) 'close-brace]
++      [(#\{) 'open-curly]
++      [(#\}) 'close-curly]
++      [(#\:) 'colon]
++      [(#\,) 'comma]
++      [(#\t) (parse-true)]
++      [(#\f) (parse-false)]
++      [(#\n) (parse-null)]
++      [else
++        (if (eof-object? ch)
++          ch
++          (lexer-error ch) ) ] ) ) )
+ 
+ (define (parse-list)
+   (let loop ([res '(list)])
+-	(let ([token (next-token)])
+-	  (cond
+-	    [(eqv? token 'close-brace) (reverse res)]
+-		[else
+-		  (let* ([res  (cons (parse-object-helper token) res)]
+-				 [next (next-token)])
+-			(cond
+-			  [(eqv? next 'close-brace) (reverse res)]
+-			  [(eqv? next 'comma) (loop res)]
+-			  [else
+-			    (parse-error next) ] ) ) ] ) ) ) )
++    (let ([token (next-token)])
++      (cond
++        [(eqv? token 'close-brace) (reverse res)]
++        [else
++          (let* ([res  (cons (parse-object-helper token) res)]
++                 [next (next-token)])
++            (cond
++              [(eqv? next 'close-brace) (reverse res)]
++              [(eqv? next 'comma) (loop res)]
++              [else
++                (parse-error next) ] ) ) ] ) ) ) )
+ 
+ (define (parse-map)
+   (let loop ([res '(map)])
+-	(let ([token (next-token)])
+-	  (cond
+-	    [(eqv? token 'close-curly) (reverse res)]
+-		[(string? token)
+-		 (let* ([res  (cons
+-					    (cons (string->symbol token) (parse-map-value))
+-						res)]
+-				[next (next-token)])
+-		   (cond
+-			 [(eqv? next 'close-curly) (reverse res)]
+-			 [(eqv? next 'comma) (loop res)]
+-			 [else (parse-error next) ] ) ) ]
+-		[else
+-		  (parse-error next) ] ) ) ) )
++    (let ([token (next-token)])
++      (cond
++        [(eqv? token 'close-curly) (reverse res)]
++        [(string? token)
++         (let* ([res  (cons
++                        (cons (string->symbol token) (parse-map-value))
++                        res)]
++                [next (next-token)])
++           (cond
++             [(eqv? next 'close-curly) (reverse res)]
++             [(eqv? next 'comma) (loop res)]
++             [else (parse-error next) ] ) ) ]
++        [else
++          (parse-error next) ] ) ) ) )
+ 
+ (define (parse-map-value)
+   (let ([token (next-token)])
+     (if (eqv? token 'colon)
+-	  (parse-object)
+-	  (parse-error token) ) ) )
++      (parse-object)
++      (parse-error token) ) ) )
+ 
+ (define (parse-object-helper token)
+   (cond
+     [(eqv? token 'open-brace) (parse-list)]
+-	[(eqv? token 'open-curly) (parse-map)]
+-	[(null?    token) token]
+-	[(string?  token) token]
+-	[(number?  token) token]
+-	[(boolean? token) token]
+-	[else
+-	  (parse-error token) ] ) )
++    [(eqv? token 'open-curly) (parse-map)]
++    [(null?    token) token]
++    [(string?  token) token]
++    [(number?  token) token]
++    [(boolean? token) token]
++    [else
++      (parse-error token) ] ) )
+ 
+ (define (parse-object)
+   (parse-object-helper (next-token)))
+ 
+ (define (tokenize)
+   (let loop ([res   '()]
+-			 [token (next-token)])
+-	(if (eof-object? token)
+-	  (reverse res)
+-	  (loop
+-	    (cons token res)
+-		(next-token) ) ) ) )
++             [token (next-token)])
++    (if (eof-object? token)
++      (reverse res)
++      (loop
++        (cons token res)
++        (next-token) ) ) ) )
+ 
+ (define (double-quote str)
+   (string-append "\"" str "\""))
+@@ -230,36 +230,36 @@
+ 
+ (define (json/gen-string obj)
+   (if (pair? obj)
+-	(let ([token (car obj)])
+-	  (case tok
+-		[(map)
+-		 (string-append "{"
+-						(reduce
+-						  (lambda (o s)
+-							(string-append
+-							  (double-quote
+-							    (symbol->string (car o)))
+-							  ":"
+-							  (json/gen-string (cdr o))
+-							  (if (> (string-length s) 0) ", " "")
+-							  s))
+-						  ""
+-						  (cdr obj))
+-						"}")]
+-		[(list)
+-		 (string-append "["
+-						(reduce
+-						  (lambda (o s)
+-							(string-append
+-							  (json/gen-string o)
+-							  (if (> (string-length s) 0) ", " "")
+-							  S))
+-						  ""
+-						  (cdr obj))
+-						"]")]))
+-	;; else
+-	(cond
+-	  [(boolean? obj) (if obj "true" "false")]
+-	  [(number? obj) (number->string obj)]
+-	  [(string? obj) (double-quote obj)]
+-	  [(list? obj) "null"] ) ) )
++    (let ([token (car obj)])
++      (case token
++        [(map)
++         (string-append "{"
++                        (reduce
++                          (lambda (o s)
++                            (string-append
++                              (double-quote
++                                (symbol->string (car o)))
++                              ":"
++                              (json/gen-string (cdr o))
++                              (if (> (string-length s) 0) ", " "")
++                              s))
++                          ""
++                          (cdr obj))
++                        "}")]
++        [(list)
++         (string-append "["
++                        (reduce
++                          (lambda (o s)
++                            (string-append
++                              (json/gen-string o)
++                              (if (> (string-length s) 0) ", " "")
++                              S))
++                          ""
++                          (cdr obj))
++                        "]")]))
++    ;; else
++    (cond
++      [(boolean? obj) (if obj "true" "false")]
++      [(number? obj) (number->string obj)]
++      [(string? obj) (double-quote obj)]
++      [(list? obj) "null"] ) ) )
 
 
 [FILE:7019:files/scheme.h]

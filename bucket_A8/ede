@@ -2,7 +2,7 @@
 
 NAMEBASE=		ede
 VERSION=		2.1
-REVISION=		5
+REVISION=		6
 KEYWORDS=		x11_wm
 VARIANTS=		std
 SDESC[std]=		Extremely light-weight desktop environment
@@ -1577,6 +1577,20 @@ share/wallpapers/
  	if $(3) != "noinstall" {
 
 
+[FILE:353:patches/patch-configure]
+--- configure.orig	2025-10-21 16:51:00.661592000 +0200
++++ configure	2025-10-21 17:10:35.758724000 +0200
+@@ -6017,7 +6017,7 @@
+ 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+ 		;;
+-				"1.3."[0123456789])
++				1.[23456789].*)
+ 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+ 		;;
+
+
 [FILE:394:patches/patch-data_Jamfile]
 --- data/Jamfile.orig	2014-06-21 23:24:23.000000000 +0200
 +++ data/Jamfile	2017-11-12 21:27:35.958930000 +0100
@@ -1589,6 +1603,19 @@ share/wallpapers/
 +#SubInclude TOP data desktop-links ;
 +#SubInclude TOP data pekwm ;
  SubInclude TOP data wallpapers ;
+
+
+[FILE:333:patches/patch-ede-keyboard-conf_ede-keyboard-conf.cpp]
+--- ede-keyboard-conf/ede-keyboard-conf.cpp.orig	2025-10-21 17:20:38.894523000 +0200
++++ ede-keyboard-conf/ede-keyboard-conf.cpp	2025-10-21 17:21:01.203558000 +0200
+@@ -21,6 +21,7 @@
+ #ifdef HAVE_XKBRULES
+ #include <stdio.h>
+ #include <string.h>
++#include <stdlib.h>
+ #include <FL/Fl.H>
+ #include <FL/x.H>
+ #include <FL/Fl_Button.H>
 
 
 [FILE:370:patches/patch-ede-panel_Jamfile]
@@ -1605,6 +1632,33 @@ share/wallpapers/
  #ObjectC++Flags Panel.cpp : -DEDE_PANEL_LOCAL_APPLETS ;
  
  if $(OS) != "SOLARIS" {
+
+
+[FILE:512:patches/patch-ede__bug__tools_ede-crasher_CrashDialog.cpp]
+--- ede-bug-tools/ede-crasher/CrashDialog.cpp.orig	2025-10-21 17:13:24.697341000 +0200
++++ ede-bug-tools/ede-crasher/CrashDialog.cpp	2025-10-21 17:13:47.077818000 +0200
+@@ -86,7 +86,7 @@
+ 	txt_buf->append("---------- short summary ----------\n");
+ 
+ 	/* make first X version */
+-	char buf[256];
++	char buf[512];
+ 	snprintf(buf, sizeof(buf), "\nX version: %s %i %i.%i", XServerVendor(fl_display), XVendorRelease(fl_display), XProtocolVersion(fl_display), XProtocolRevision(fl_display));
+ 	txt_buf->append(buf);
+ 
+
+
+[FILE:319:patches/patch-ede__desktop_Wallpaper.cpp]
+--- ede-desktop/Wallpaper.cpp.orig	2025-10-21 17:16:56.510291000 +0200
++++ ede-desktop/Wallpaper.cpp	2025-10-21 17:17:11.175439000 +0200
+@@ -22,6 +22,7 @@
+ #include <stdlib.h>
+ #include <FL/Fl_Shared_Image.H>
+ #include <FL/Fl_RGB_Image.H>
++#include <FL/Fl_Group.H>
+ #include <FL/fl_draw.H>
+ #include <edelib/Debug.h>
+ 
 
 
 [FILE:399:patches/patch-evoke_Jamfile]

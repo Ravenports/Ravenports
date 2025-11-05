@@ -112,9 +112,9 @@ PGSQL_17_VERSION=	17.6
 
 MYSQL_DEFAULT=			oracle-8.0
 
-MYSQL_oracle-8.0_VERSION=	8.0.43
-MYSQL_oracle-8.4_VERSION=	8.4.6
-MYSQL_innovation_VERSION=	9.4.0
+MYSQL_oracle-8.0_VERSION=	8.0.44
+MYSQL_oracle-8.4_VERSION=	8.4.7
+MYSQL_innovation_VERSION=	9.5.0
 MYSQL_mariadb-10.6_VERSION=	10.6.23
 MYSQL_mariadb-10.11_VERSION=	10.11.14
 MYSQL_mariadb-11.4_VERSION=	11.4.8
@@ -128,8 +128,8 @@ MYSQL_mariadb-11.8_VERSION=	11.8.3
 PHP_DEFAULT?=		8.3
 
 PHP_8.2_VERSION=	8.2.29
-PHP_8.3_VERSION=	8.3.26
-PHP_8.4_VERSION=	8.4.13
+PHP_8.3_VERSION=	8.3.27
+PHP_8.4_VERSION=	8.4.14
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
