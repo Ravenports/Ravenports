@@ -2,7 +2,7 @@
 
 NAMEBASE=		augeas
 VERSION=		1.14.1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Configuration editing tool and API
@@ -10,11 +10,9 @@ HOMEPAGE=		http://augeas.net/
 CONTACT=		nobody
 
 DOWNLOAD_GROUPS=	main savannah
-SITES[main]=		GITHUB/hercules-team:augeas:release-1.14.1
-SITES[savannah]=	https://git.savannah.gnu.org/cgit/gnulib.git/snapshot/
-DISTFILE[1]=		generated:main
-DISTFILE[2]=		gnulib-2f7479a16a3395f1429c7795f10c5d19b9b4453e.tar.gz:savannah
-DF_INDEX=		1 2
+SITES[main]=		https://github.com/hercules-team/augeas/releases/download/release-1.14.1/
+DISTFILE[1]=		augeas-1.14.1.tar.gz:main
+DF_INDEX=		1
 SPKGS[std]=		set
 			primary
 			dev
@@ -24,11 +22,10 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		bash:primary:std
 EXRUN[tools]=		primary
 
-USES=			autoreconf:build cpe bison gmake libtool:build
-			pkgconfig readline cclibs:primary
+USES=			cpe bison gmake libtool:build pkgconfig readline
+			cclibs:primary
 GNOME_COMPONENTS=	libxml2
 
 FPC_EQUIVALENT=		textproc/augeas
@@ -41,6 +38,10 @@ SOVERSION=		0.25.0
 PLIST_SUB=		FA_SOVERSION=1.5.3
 			FA_SOMAJOR=1
 
+post-patch:
+	${TOUCH} -r ${WRKSRC}/gnulib/m4/gnulib-common.m4.orig \
+		${WRKSRC}/gnulib/m4/gnulib-common.m4
+
 pre-configure:
 	${REINPLACE_CMD} -e 's|%%PREFIX%%|${PREFIX}|' \
 		${WRKSRC}/lenses/pg_hba.aug \
@@ -49,13 +50,10 @@ pre-configure:
 		${WRKSRC}/lenses/puppet.aug \
 		${WRKSRC}/lenses/puppet_auth.aug \
 		${WRKSRC}/lenses/puppetfileserver.aug
-	(cd ${WRKSRC} && ${LOCALBASE}/bin/bash ./autogen.sh \
+	# (cd ${WRKSRC} && ${LOCALBASE}/bin/bash ./autogen.sh \
 		--gnulib-srcdir=${WRKSRC}/gnulib \
 		--disable-dependency-tracking \
 		--enable-debug=no)
-
-post-extract:
-	${MV} ${WRKDIR}/gnulib-2f7479a16a3395f1429c7795f10c5d19b9b4453e ${WRKSRC}/gnulib
 
 [FILE:578:descriptions/desc.primary]
 Augeas - a configuration API
@@ -77,9 +75,8 @@ Augeas is:
 This package contains Augeas tools.
 
 
-[FILE:254:distinfo]
-c75eba96691ccaa8f4484f97008b9d66750eee25664647ed2d47f9124536078d       907098 hercules-team-augeas-release-1.14.1.tar.gz
-528538b14c4cc39741a533dee17ef0937fca611f917a9b4866dd0c33c6680f9c      7739840 gnulib-2f7479a16a3395f1429c7795f10c5d19b9b4453e.tar.gz
+[FILE:99:distinfo]
+368bfdd782e4b9c7163baadd621359c82b162734864b667051ff6bcb57b9edff      2653776 augeas-1.14.1.tar.gz
 
 
 [FILE:111:manifests/plist.primary]
@@ -589,23 +586,8 @@ share/man/man1/
  augtool.1
 
 
-[FILE:302:patches/patch-bootstrap]
---- bootstrap.orig	2023-07-08 07:53:17 UTC
-+++ bootstrap
-@@ -53,9 +53,6 @@ case ${GNULIB_SRCDIR--} in
-     echo "$0: getting gnulib files..."
-     git submodule update || exit $?
-     GNULIB_SRCDIR=.gnulib
--  else
--    echo >&2 "$0: invalid gnulib srcdir: $GNULIB_SRCDIR"
--    exit 1
-   fi
-   ;;
- esac
-
-
 [FILE:441:patches/patch-gnulib_lib_libc-config.h]
---- gnulib/lib/libc-config.h.orig	2022-12-02 14:49:07 UTC
+--- gnulib/lib/libc-config.h.orig	2023-07-14 23:39:13 UTC
 +++ gnulib/lib/libc-config.h
 @@ -35,6 +35,11 @@
  
@@ -622,7 +604,7 @@ share/man/man1/
 
 
 [FILE:543:patches/patch-gnulib_m4_gnulib-common.m4]
---- gnulib/m4/gnulib-common.m4.orig	2022-12-02 14:49:07 UTC
+--- gnulib/m4/gnulib-common.m4.orig	2023-07-14 23:39:14 UTC
 +++ gnulib/m4/gnulib-common.m4
 @@ -345,11 +345,7 @@ AC_DEFUN([gl_COMMON_BODY], [
     _GL_ATTRIBUTE_NONNULL () declares that all pointer arguments must not be
@@ -639,7 +621,7 @@ share/man/man1/
 
 
 [FILE:477:patches/patch-lenses_pg__hba.aug]
---- lenses/pg_hba.aug.orig	2023-07-08 07:53:17 UTC
+--- lenses/pg_hba.aug.orig	2023-07-14 11:07:23 UTC
 +++ lenses/pg_hba.aug
 @@ -81,6 +81,7 @@ module Pg_Hba =
      (* View: filter
@@ -652,7 +634,7 @@ share/man/man1/
 
 
 [FILE:477:patches/patch-lenses_postgresql.aug]
---- lenses/postgresql.aug.orig	2023-07-08 07:53:17 UTC
+--- lenses/postgresql.aug.orig	2023-07-14 11:07:23 UTC
 +++ lenses/postgresql.aug
 @@ -70,6 +70,7 @@ let lns = (Util.empty | Util.comment | e
  
