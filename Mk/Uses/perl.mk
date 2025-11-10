@@ -8,7 +8,7 @@
 #              build (do not use with configure or run)
 #              run   (do not use with configure or build)
 #              none  (just sets BUILDRUN_DEPENDS)
-#              538   (specify perl-538 for build/run)
+#              542   (specify perl-542 for build/run)
 #              540   (specify perl-540 for build/run)
 #
 # Internal ravenadm makefile raven.versions.mk sets this variable:
@@ -40,8 +40,8 @@
 .if !defined(_INCLUDE_USES_PERL_MK)
 _INCLUDE_USES_PERL_MK=	yes
 
-.  if ${perl_ARGS:M538}
-PERL_VERSION=	${PERL_5.38_VERSION}
+.  if ${perl_ARGS:M542}
+PERL_VERSION=	${PERL_5.42_VERSION}
 .  elif ${perl_ARGS:M540}
 PERL_VERSION=	${PERL_5.40_VERSION}
 .  else
