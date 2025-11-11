@@ -2,10 +2,12 @@
 
 NAMEBASE=		meson
 VERSION=		1.9.1
+REVISION=		1
 KEYWORDS=		devel python
-VARIANTS=		std v13
+VARIANTS=		std v13 v14
 SDESC[std]=		High performance build system
 SDESC[v13]=		High performance build system (py 3.13)
+SDESC[v14]=		High performance build system (py 3.14)
 HOMEPAGE=		https://mesonbuild.com
 CONTACT=		John_Marino[draco@marino.st]
 
@@ -16,12 +18,12 @@ DIST_SUBDIR=		python-src
 DF_INDEX=		1
 SPKGS[std]=		single
 SPKGS[v13]=		single
+SPKGS[v14]=		single
 
-OPTIONS_AVAILABLE=	PY313
+OPTIONS_AVAILABLE=	PY313 PY314
 OPTIONS_STANDARD=	none
-VOPTS[v13]=		PY313=ON
-
-RUN_DEPENDS=		ninja:single:std
+VOPTS[v13]=		PY313=ON PY314=OFF
+VOPTS[v14]=		PY313=OFF PY314=ON
 
 LICENSE=		APACHE20:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -32,8 +34,10 @@ FPC_EQUIVALENT=		devel/meson
 
 PATCH_WRKSRC=		{{WRKSRC}}/{{PYTHON_SITELIBDIR}}
 
-[PY313].USES_OFF=			python:v12,wheel
-[PY313].USES_ON=			python:v13,wheel
+[PY314].RUN_DEPENDS_OFF=		python-ninja:single:v13
+[PY314].RUN_DEPENDS_ON=			python-ninja:single:v13
+[PY314].USES_OFF=			python:v13,wheel
+[PY314].USES_ON=			python:v14,wheel
 
 pre-configure:
 	${FIND} ${WRKSRC} -name "*.orig" -type f -delete
@@ -132,6 +136,29 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
          """Machine is illumos or Solaris?"""
 
 
+[FILE:962:patches/patch-mesonbuild_environment.py]
+--- mesonbuild/environment.py.orig	2025-11-10 20:57:42 UTC
++++ mesonbuild/environment.py
+@@ -386,6 +386,8 @@ def detect_cpu_family(compilers: Compile
+         trial = detect_windows_arch(compilers)
+     elif mesonlib.is_freebsd() or mesonlib.is_netbsd() or mesonlib.is_openbsd() or mesonlib.is_qnx() or mesonlib.is_aix():
+         trial = platform.processor().lower()
++    elif mesonlib.is_dragonflybsd():
++        trial = platform.processor().lower()
+     else:
+         trial = platform.machine().lower()
+     if trial.startswith('i') and trial.endswith('86'):
+@@ -452,6 +454,8 @@ def detect_cpu(compilers: CompilersDict)
+         trial = detect_windows_arch(compilers)
+     elif mesonlib.is_freebsd() or mesonlib.is_netbsd() or mesonlib.is_openbsd() or mesonlib.is_aix():
+         trial = platform.processor().lower()
++    elif mesonlib.is_dragonflybsd():
++        trial = platform.processor().lower()
+     else:
+         trial = platform.machine().lower()
+ 
+
+
 [FILE:1048:patches/patch-mesonbuild_linkers_linkers.py]
 --- mesonbuild/linkers/linkers.py.orig	2025-08-24 17:28:31 UTC
 +++ mesonbuild/linkers/linkers.py
@@ -186,6 +213,20 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
          return
      except SystemExit as e:
          if isinstance(e.code, int) and e.code == 0:
+
+
+[FILE:502:patches/patch-mesonbuild_scripts_symbolextractor.py]
+--- mesonbuild/scripts/symbolextractor.py.orig	2025-11-10 20:43:53 UTC
++++ mesonbuild/scripts/symbolextractor.py
+@@ -281,6 +281,8 @@ def gen_symbols(libfilename: str, impfil
+         openbsd_syms(libfilename, outfilename)
+     elif mesonlib.is_freebsd():
+         freebsd_syms(libfilename, outfilename)
++    elif mesonlib.is_dragonflybsd():
++        freebsd_syms(libfilename, outfilename)
+     elif mesonlib.is_netbsd():
+         freebsd_syms(libfilename, outfilename)
+     elif mesonlib.is_windows():
 
 
 [FILE:25:files/special.mk]

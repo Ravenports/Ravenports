@@ -2,10 +2,11 @@
 
 NAMEBASE=		python-e3-core
 VERSION=		22.10.0
+REVISION=		1
 KEYWORDS=		python
-VARIANTS=		v13 v12
-SDESC[v12]=		Adacore testing and building tools (3.12)
+VARIANTS=		v13 v14
 SDESC[v13]=		Adacore testing and building tools (3.13)
+SDESC[v14]=		Adacore testing and building tools (3.14)
 HOMEPAGE=		https://github.com/AdaCore/e3-core
 CONTACT=		John_Marino[draco@marino.st]
 
@@ -14,13 +15,13 @@ SITES[main]=		GITHUB/AdaCore:e3-core:v22.10.0
 DISTFILE[1]=		generated:main
 DIST_SUBDIR=		python-src
 DF_INDEX=		1
-SPKGS[v12]=		single
 SPKGS[v13]=		single
+SPKGS[v14]=		single
 
-OPTIONS_AVAILABLE=	PY313 PY312
+OPTIONS_AVAILABLE=	PY313 PY314
 OPTIONS_STANDARD=	none
-VOPTS[v12]=		PY313=OFF PY312=ON
-VOPTS[v13]=		PY313=ON PY312=OFF
+VOPTS[v13]=		PY313=ON PY314=OFF
+VOPTS[v14]=		PY313=OFF PY314=ON
 
 BUILD_DEPENDS=		python-wheel:single:python_used
 			python-pip:single:python_used
@@ -30,20 +31,9 @@ BR_DEPS[linux]=		python-distro:single:python_used
 
 PLIST_SUB=		DIVER=22.10
 			OPSYS={{OPSYS:tl}}
+			PYC=.cpython-{{PYTHON_SUFFIX}}
 SUB_FILES=		build_rlimit.sh
 SUB_LIST=		PYCMD="{{PYTHON_CMD}}"
-
-[PY312].BUILDRUN_DEPENDS_ON=		python-colorama:single:v12
-					python-PyYAML:single:v12
-					python-python-dateutil:single:v12
-					python-requests:single:v12
-					python-requests-cache:single:v12
-					python-requests-toolbelt:single:v12
-					python-tqdm:single:v12
-					python-stevedore:single:v12
-					python-packaging:single:v12
-					python-resolvelib:single:v12
-[PY312].USES_ON=			python:v12
 
 [PY313].BUILDRUN_DEPENDS_ON=		python-colorama:single:v13
 					python-PyYAML:single:v13
@@ -56,6 +46,18 @@ SUB_LIST=		PYCMD="{{PYTHON_CMD}}"
 					python-packaging:single:v13
 					python-resolvelib:single:v13
 [PY313].USES_ON=			python:v13
+
+[PY314].BUILDRUN_DEPENDS_ON=		python-colorama:single:v14
+					python-PyYAML:single:v14
+					python-python-dateutil:single:v14
+					python-requests:single:v14
+					python-requests-cache:single:v14
+					python-requests-toolbelt:single:v14
+					python-tqdm:single:v14
+					python-stevedore:single:v14
+					python-packaging:single:v14
+					python-resolvelib:single:v14
+[PY314].USES_ON=			python:v14
 
 pre-build:
 	${MV} ${WRKDIR}/build_rlimit.sh ${WRKSRC}/tools/rlimit
@@ -82,6 +84,8 @@ do-install:
 		--disable-pip-version-check \
 		--no-deps $$whl
 	${FIND} ${STAGEDIR}${PREFIX}/lib -name "rlimit-*" | xargs ${STRIP_CMD}
+	# compile them separately (avoids embedded stagedir)
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
 
 [FILE:2913:descriptions/desc.single]
 The `e3` Project
@@ -180,7 +184,7 @@ See [CONTRIBUTING.md].
 496b630569579c0b544e5455681076baeb6195d9ed03b4a7c7add9618d9e7127       805122 python-src/AdaCore-e3-core-22.10.0.tar.gz
 
 
-[FILE:2228:manifests/plist.single]
+[FILE:5210:manifests/plist.single]
 %%PYTHON_SITELIBDIR%%/e3/
  archive.py
  cve.py
@@ -206,6 +210,30 @@ See [CONTRIBUTING.md].
  sys.py
  text.py
  yaml.py
+%%PYTHON_SITELIBDIR%%/e3/__pycache__/
+ archive%%PYC%%.pyc
+ cve%%PYC%%.pyc
+ date%%PYC%%.pyc
+ decorator%%PYC%%.pyc
+ diff%%PYC%%.pyc
+ dsse%%PYC%%.pyc
+ env%%PYC%%.pyc
+ error%%PYC%%.pyc
+ fingerprint%%PYC%%.pyc
+ fs%%PYC%%.pyc
+ hash%%PYC%%.pyc
+ json%%PYC%%.pyc
+ log%%PYC%%.pyc
+ main%%PYC%%.pyc
+ maven%%PYC%%.pyc
+ mypy%%PYC%%.pyc
+ npm%%PYC%%.pyc
+ platform%%PYC%%.pyc
+ pytest%%PYC%%.pyc
+ spdx%%PYC%%.pyc
+ sys%%PYC%%.pyc
+ text%%PYC%%.pyc
+ yaml%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/anod/
  __init__.py
  buildspace.py
@@ -222,53 +250,116 @@ See [CONTRIBUTING.md].
  queries.py
  spec.py
  status.py
+%%PYTHON_SITELIBDIR%%/e3/anod/__pycache__/
+ __init__%%PYC%%.pyc
+ buildspace%%PYC%%.pyc
+ checkout%%PYC%%.pyc
+ context%%PYC%%.pyc
+ deps%%PYC%%.pyc
+ driver%%PYC%%.pyc
+ error%%PYC%%.pyc
+ helper%%PYC%%.pyc
+ loader%%PYC%%.pyc
+ package%%PYC%%.pyc
+ qualifier%%PYC%%.pyc
+ qualifiers_manager%%PYC%%.pyc
+ queries%%PYC%%.pyc
+ spec%%PYC%%.pyc
+ status%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/anod/action/__init__.py
+%%PYTHON_SITELIBDIR%%/e3/anod/action/__pycache__/__init__%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/anod/sandbox/
  __init__.py
  main.py
  scripts.py
+%%PYTHON_SITELIBDIR%%/e3/anod/sandbox/__pycache__/
+ __init__%%PYC%%.pyc
+ main%%PYC%%.pyc
+ scripts%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/collection/
  __init__.py
  dag.py
  toggleable_bool.py
  trie.py
+%%PYTHON_SITELIBDIR%%/e3/collection/__pycache__/
+ __init__%%PYC%%.pyc
+ dag%%PYC%%.pyc
+ toggleable_bool%%PYC%%.pyc
+ trie%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/electrolyt/
  __init__.py
  entry_point.py
  host.py
  plan.py
  run.py
+%%PYTHON_SITELIBDIR%%/e3/electrolyt/__pycache__/
+ __init__%%PYC%%.pyc
+ entry_point%%PYC%%.pyc
+ host%%PYC%%.pyc
+ plan%%PYC%%.pyc
+ run%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/encoding/
  __init__.py
  vex.py
+%%PYTHON_SITELIBDIR%%/e3/encoding/__pycache__/
+ __init__%%PYC%%.pyc
+ vex%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/event/__init__.py
+%%PYTHON_SITELIBDIR%%/e3/event/__pycache__/__init__%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/event/handler/
  __init__.py
  file.py
  logging.py
  s3.py
  smtp.py
+%%PYTHON_SITELIBDIR%%/e3/event/handler/__pycache__/
+ __init__%%PYC%%.pyc
+ file%%PYC%%.pyc
+ logging%%PYC%%.pyc
+ s3%%PYC%%.pyc
+ smtp%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/job/
  __init__.py
  scheduler.py
  walk.py
+%%PYTHON_SITELIBDIR%%/e3/job/__pycache__/
+ __init__%%PYC%%.pyc
+ scheduler%%PYC%%.pyc
+ walk%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/mock/
  __init__.py
  env.py
+%%PYTHON_SITELIBDIR%%/e3/mock/__pycache__/
+ __init__%%PYC%%.pyc
+ env%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/mock/os/
  __init__.py
  process.py
+%%PYTHON_SITELIBDIR%%/e3/mock/os/__pycache__/
+ __init__%%PYC%%.pyc
+ process%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/net/
  __init__.py
  http.py
  smtp.py
  token.py
+%%PYTHON_SITELIBDIR%%/e3/net/__pycache__/
+ __init__%%PYC%%.pyc
+ http%%PYC%%.pyc
+ smtp%%PYC%%.pyc
+ token%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/os/
  __init__.py
  fs.py
  platform.py
  process.py
  timezone.py
+%%PYTHON_SITELIBDIR%%/e3/os/__pycache__/
+ __init__%%PYC%%.pyc
+ fs%%PYC%%.pyc
+ platform%%PYC%%.pyc
+ process%%PYC%%.pyc
+ timezone%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/os/data/rlimit-%%OPSYS%%
 %%PYTHON_SITELIBDIR%%/e3/os/windows/
  __init__.py
@@ -276,31 +367,62 @@ See [CONTRIBUTING.md].
  native_api.py
  object.py
  process.py
+%%PYTHON_SITELIBDIR%%/e3/os/windows/__pycache__/
+ __init__%%PYC%%.pyc
+ fs%%PYC%%.pyc
+ native_api%%PYC%%.pyc
+ object%%PYC%%.pyc
+ process%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/platform_db/
  __init__.py
  knowledge_base.py
+%%PYTHON_SITELIBDIR%%/e3/platform_db/__pycache__/
+ __init__%%PYC%%.pyc
+ knowledge_base%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/python/
  __init__.py
  pypi.py
  pypiscript.py
  wheel.py
+%%PYTHON_SITELIBDIR%%/e3/python/__pycache__/
+ __init__%%PYC%%.pyc
+ pypi%%PYC%%.pyc
+ pypiscript%%PYC%%.pyc
+ wheel%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/slsa/
  __init__.py
  provenance.py
+%%PYTHON_SITELIBDIR%%/e3/slsa/__pycache__/
+ __init__%%PYC%%.pyc
+ provenance%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/store/__init__.py
+%%PYTHON_SITELIBDIR%%/e3/store/__pycache__/__init__%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/store/backends/
  __init__.py
  base.py
  http_simple_store.py
+%%PYTHON_SITELIBDIR%%/e3/store/backends/__pycache__/
+ __init__%%PYC%%.pyc
+ base%%PYC%%.pyc
+ http_simple_store%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/store/cache/__init__.py
+%%PYTHON_SITELIBDIR%%/e3/store/cache/__pycache__/__init__%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/store/cache/backends/
  __init__.py
  base.py
  filecache.py
+%%PYTHON_SITELIBDIR%%/e3/store/cache/backends/__pycache__/
+ __init__%%PYC%%.pyc
+ base%%PYC%%.pyc
+ filecache%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3/vcs/
  __init__.py
  git.py
  svn.py
+%%PYTHON_SITELIBDIR%%/e3/vcs/__pycache__/
+ __init__%%PYC%%.pyc
+ git%%PYC%%.pyc
+ svn%%PYC%%.pyc
 %%PYTHON_SITELIBDIR%%/e3_core-%%DIVER%%.dist-info/
  INSTALLER
  METADATA

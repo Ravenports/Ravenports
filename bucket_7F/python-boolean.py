@@ -3,9 +3,9 @@
 NAMEBASE=		python-boolean.py
 VERSION=		5.0
 KEYWORDS=		python
-VARIANTS=		v12 v13
-SDESC[v12]=		Boolean expression and algebra library (3.12)
+VARIANTS=		v13 v14
 SDESC[v13]=		Boolean expression and algebra library (3.13)
+SDESC[v14]=		Boolean expression and algebra library (3.14)
 HOMEPAGE=		https://github.com/bastikr/boolean.py
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -14,21 +14,21 @@ SITES[main]=		PYPIWHL/e5/ca/78d423b324b8d77900030fa59c4aa9054261ef0925631cd2501d
 DISTFILE[1]=		boolean_py-5.0-py3-none-any.whl:main
 DIST_SUBDIR=		python-src
 DF_INDEX=		1
-SPKGS[v12]=		single
 SPKGS[v13]=		single
+SPKGS[v14]=		single
 
-OPTIONS_AVAILABLE=	PY312 PY313
+OPTIONS_AVAILABLE=	PY313 PY314
 OPTIONS_STANDARD=	none
-VOPTS[v12]=		PY312=ON PY313=OFF
-VOPTS[v13]=		PY312=OFF PY313=ON
+VOPTS[v13]=		PY313=ON PY314=OFF
+VOPTS[v14]=		PY313=OFF PY314=ON
 
 DISTNAME=		boolean_py-5.0.dist-info
 
 GENERATED=		yes
 
-[PY312].USES_ON=			python:v12,wheel
-
 [PY313].USES_ON=			python:v13,wheel
+
+[PY314].USES_ON=			python:v14,wheel
 
 [FILE:602:descriptions/desc.single]
 

@@ -3,9 +3,9 @@
 NAMEBASE=		python-ninja
 VERSION=		1.13.0
 KEYWORDS=		python
-VARIANTS=		v12 v13
-SDESC[v12]=		Small build system with a focus on speed (3.12)
+VARIANTS=		v14 v13
 SDESC[v13]=		Small build system with a focus on speed (3.13)
+SDESC[v14]=		Small build system with a focus on speed (3.14)
 HOMEPAGE=		https://ninja-build.org/
 CONTACT=		Python_Automaton[python@ironwolf.systems]
 
@@ -14,13 +14,13 @@ SITES[main]=		GITHUB/ninja-build:ninja:v1.13.0
 DISTFILE[1]=		generated:main
 DIST_SUBDIR=		python-src
 DF_INDEX=		1
-SPKGS[v12]=		single
 SPKGS[v13]=		single
+SPKGS[v14]=		single
 
-OPTIONS_AVAILABLE=	PY312 PY313
+OPTIONS_AVAILABLE=	PY314 PY313
 OPTIONS_STANDARD=	none
-VOPTS[v12]=		PY312=ON PY313=OFF
-VOPTS[v13]=		PY312=OFF PY313=ON
+VOPTS[v13]=		PY314=OFF PY313=ON
+VOPTS[v14]=		PY314=ON PY313=OFF
 
 USES=			cmake c++:single
 
@@ -35,9 +35,9 @@ INSTALL_REQ_TOOLCHAIN=	yes
 
 CMAKE_ARGS=		-DBUILD_TESTING:BOOL=FALSE
 
-[PY312].BUILDRUN_DEPENDS_ON=		python312:primary:std
-
 [PY313].BUILDRUN_DEPENDS_ON=		python313:primary:std
+
+[PY314].BUILDRUN_DEPENDS_ON=		python314:primary:std
 
 post-stage:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/ninja
@@ -55,4 +55,30 @@ f08641d00099a9e40d44ec0146f841c472ae58b7e6dd517bee3945cfd923cedf       291328 py
 
 [FILE:10:manifests/plist.single]
 bin/ninja
+
+
+[FILE:1011:patches/patch-src_graph.cc]
+The recorded mtime for output files on DragonFly are just wrong.
+The input file times seem to be correct.  I don't know what's going on
+here.  Rather than disabling this "obsolete output" check for all platforms,
+just disable it on DragonFly for now and observe.
+
+--- src/graph.cc.orig	2025-06-18 12:08:38 UTC
++++ src/graph.cc
+@@ -343,6 +343,7 @@ bool DependencyScan::RecomputeOutputDirt
+                              output->path().c_str());
+         return true;
+       }
++#if !defined(__DragonFly__)
+       if (most_recent_input && entry->mtime < most_recent_input->mtime()) {
+         // May also be dirty due to the mtime in the log being older than the
+         // mtime of the most recent input.  This can occur even when the mtime
+@@ -358,6 +359,7 @@ bool DependencyScan::RecomputeOutputDirt
+             entry->mtime, most_recent_input->mtime());
+         return true;
+       }
++#endif
+     }
+     if (!entry && !generator) {
+       explanations_.Record(output, "command line not found in log for %s",
 

@@ -3,13 +3,16 @@
 # Feature:		ninja
 # Usage:		USES=ninja
 #
-# Ravenadm sets ninja:single:std
-#
+# ------------------------------------------------------
+# Incorporated in ravenadm
+# ------------------------------------------------------
+# BUILD_DEPENDS+=   ninja:single:python_used
+# ------------------------------------------------------
 
 .if !defined(_INCLUDE_USES_NINJA_MK)
 _INCLUDE_USES_NINJA_MK=	yes
 
-MAKE_ARGS+=		-v
+MAKE_ARGS+=		-v -d explain
 CMAKE_ARGS+=		-GNinja
 MAKE_CMD=		ninja
 DESTDIR_VIA_ENV=	yes
