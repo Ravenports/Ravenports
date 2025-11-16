@@ -96,6 +96,13 @@ post-patch:
 
 post-install-STATIC-ON:
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	# remove includes and preloadables
+	# On linux, these build because bash isn't truly static linked
+	if [ "${OPSYS}" = "Linux" ]; then \
+	${RM} -r ${STAGEDIR}${PREFIX}/include/* ;\
+	${RM} -r ${STAGEDIR}${PREFIX}/lib/bash ;\
+	${RM} ${STAGEDIR}${PREFIX}/lib/pkgconfig/bash.pc ;\
+	fi
 
 post-install:
 	${LN} -sf bash ${STAGEDIR}${PREFIX}/bin/rbash

@@ -117,6 +117,13 @@ SOVERSION=		0.0.4
 [LINUX].MAKEFILE_OFF=			VAR1="-lexecinfo -lm"
 [LINUX].MAKEFILE_ON=			VAR1="-lexecinfo -lm -ldl"
 
+post-extract-linux:
+	# HACK: meson/ninja fails to use gexiv2 cflags on every command
+	(cd ${LOCALBASE}/include && ${LN} -s gexiv2-*/gexiv2 .)
+
+post-install-linux:
+	${RM} ${LOCALBASE}/include/gexiv2
+
 post-extract:
 	${CP} ${FILESDIR}/cp-plug-in-subfolder.py ${WRKSRC}/build/meson/
 	glib-compile-schemas ${LOCALBASE}/share/glib-2.0/schemas

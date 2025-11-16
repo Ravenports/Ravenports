@@ -84,20 +84,20 @@ TCL_9.0_VERSION=	9.0.2
 
 #-------------------------------------------------------------------------
 # PGSQL
-# Possible values: 13, 14, 15, 16, 17
+# Possible values: 14, 15, 16, 17, 18
 #-------------------------------------------------------------------------
 
-PGSQL_DEFAULT?=		16
+PGSQL_DEFAULT?=		17
 
-PGSQL_13_VERSION=	13.22
-PGSQL_14_VERSION=	14.19
-PGSQL_15_VERSION=	15.14
-PGSQL_16_VERSION=	16.10
-PGSQL_17_VERSION=	17.6
+PGSQL_14_VERSION=	14.19	# EOL 12 NOV 2026
+PGSQL_15_VERSION=	15.14	# EOL 11 NOV 2027
+PGSQL_16_VERSION=	16.10	# EOL 09 NOV 2028
+PGSQL_17_VERSION=	17.6	# EOL 08 NOV 2029
+PGSQL_18_VERSION=	18.0	# EOL 14 NOV 2030
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(8.0,8.4),innovation,mariadb-(10.6, 10.11, 11.[48], 12)
+# Possible values: oracle-(8.0,8.4),innovation,mariadb(,-10.6, -10.11, -11.[48])
 #
 # MariaDB releases:
 #   MariaDB 10.6   EOL 06 JUL 2026 (STABLE-LTS)
@@ -114,10 +114,11 @@ MYSQL_DEFAULT=			oracle-8.0
 MYSQL_oracle-8.0_VERSION=	8.0.44
 MYSQL_oracle-8.4_VERSION=	8.4.7
 MYSQL_innovation_VERSION=	9.5.0
-MYSQL_mariadb-10.6_VERSION=	10.6.23
-MYSQL_mariadb-10.11_VERSION=	10.11.14
-MYSQL_mariadb-11.4_VERSION=	11.4.8
-MYSQL_mariadb-11.8_VERSION=	11.8.3
+MYSQL_mariadb-10.6_VERSION=	10.6.24
+MYSQL_mariadb-10.11_VERSION=	10.11.15
+MYSQL_mariadb-11.4_VERSION=	11.4.9
+MYSQL_mariadb-11.8_VERSION=	11.8.4
+MYSQL_mariadb-BE_VERSION=	12.0.2		# Bleeding Edge
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)

@@ -8,10 +8,13 @@ SDESC[std]=		Extremely fast bundler for the web
 HOMEPAGE=		https://esbuild.github.io/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main
+DOWNLOAD_GROUPS=	main cr01
 SITES[main]=		GITHUB/evanw:esbuild:v0.27.0
+SITES[cr01]=		GITHUB/golang:sys:c0bba94af5f8:vendor/golang.org/x/sys
 DISTFILE[1]=		generated:main
-DF_INDEX=		1
+DISTFILE[2]=		generated:cr01
+DIST_SUBDIR=		golang/esbuild
+DF_INDEX=		1 2
 SPKGS[std]=		single
 
 OPTIONS_AVAILABLE=	none
@@ -28,7 +31,7 @@ FPC_EQUIVALENT=		devel/esbuild
 do-build:
 	cd ${WRKSRC} && \
 		${SETENV} CGO_ENABLED=0 \
-		go build -ldflags="-s -w" -trimpath ./cmd/esbuild
+		go build -ldflags="-s -w" -trimpath -mod=vendor -modcacherw ./cmd/esbuild
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/esbuild ${STAGEDIR}${PREFIX}/bin
@@ -47,21 +50,18 @@ Major features:
 - Local server, watch mode, and plugins
 
 
-[FILE:106:distinfo]
-a4fd2af11353d41999b51bfa4276cbdd562b5f5fc19b3ca56ab69a520b176529      1975334 evanw-esbuild-0.27.0.tar.gz
+[FILE:245:distinfo]
+a4fd2af11353d41999b51bfa4276cbdd562b5f5fc19b3ca56ab69a520b176529      1975334 golang/esbuild/evanw-esbuild-0.27.0.tar.gz
+948e3a5eb69c316307892d81d7c7c63a481e8909a28b886901c0f7caf02e6a30      1337164 golang/esbuild/golang-sys-c0bba94af5f8.tar.gz
 
 
 [FILE:12:manifests/plist.single]
 bin/esbuild
 
 
-[FILE:402:patches/patch-go.mod]
---- go.mod.orig	2025-11-09 18:50:15 UTC
-+++ go.mod
-@@ -7,4 +7,4 @@ go 1.13
- // This dependency cannot be upgraded or esbuild would no longer
- // compile with Go 1.13. Please do not change this. For more info,
- // please read this: https://esbuild.github.io/faq/#old-go-version
--require golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
-+// require golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
+[FILE:183:files/modules.txt]
+go: downloading golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
+# golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
 
