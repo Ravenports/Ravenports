@@ -120,7 +120,7 @@ LIBXML2_PYTHON_REVISION=	0
 # ------------------------------------------------------------------------
 
 LIBXSLT_VERSION=		1.1.43
-LIBXSLT_REVISION=		0
+LIBXSLT_REVISION=		2
 LIBXSLT_PYTHON_REVISION=	0
 
 # ------------------------------------------------------------------------
@@ -215,5 +215,5 @@ QT5_VERSION=			5.15.14
 QT6_VERSION=			6.9.3
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
-KDE6_FRAMEWORKS_VERSION=	6.19.0
+KDE6_FRAMEWORKS_VERSION=	6.20.0
 KDE6_APPLICATIONS_VERSION=	25.08.3	

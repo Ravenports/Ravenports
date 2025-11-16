@@ -58,10 +58,8 @@ shebangonefile() {
 		;;
 	"${LOCALBASE}"/bin/perl5.* | "${PREFIX}"/bin/perl5.*)
 		# perl ports are allowed to have these shebangs.
-		if [ "${NAMEBASE}" != "perl-5.38" ] &&\
-		   [ "${NAMEBASE}" != "perl-5.40" ] &&\
+		if [ "${NAMEBASE}" != "perl-5.40" ] &&\
 		   [ "${NAMEBASE}" != "perl-5.42" ] &&\
-		   [ "${VARIANT}" != "538" ] &&\
 		   [ "${VARIANT}" != "540" ] &&\
 		   [ "${VARIANT}" != "542" ];
 		then
@@ -584,10 +582,38 @@ rcscripts() {
 	return ${rc}
 }
 
+usergroup() {
+	local rc uguinstall result ugname uglen
+	uginstall="${STAGEDIR}/../users-groups-install.sh"
+	rc=0
+
+	if [ -f "$uginstall" ]; then
+		result=$(awk '{dl = sprintf("%c", 39) }/existing group/ {split($5, n, dl) ; print (n[2] ":" length(n[2])); }' $uginstall)
+		ugname=${result%%:*}
+		uglen=${result#*:}
+		case "$uglen" in
+			1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) ;;
+			*) err "Length of '${ugname}' exceeds 8 characters"
+			   rc=1
+			;;
+		esac
+		result=$(awk '{dl = sprintf("%c", 39) }/existing user/ {split($5, n, dl) ; print (n[2] ":" length(n[2])); }' $uginstall)
+		ugname=${result%%:*}
+		uglen=${result#*:}
+		case "$uglen" in
+			1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) ;;
+			*) err "Length of '${ugname}' exceeds 8 characters"
+			   rc=1
+			;;
+		esac
+	fi
+	return ${rc}
+}
+
 checks="shebang symlinks paths desktopfileutils sharedmimeinfo"
 checks="$checks suidfiles libtool prefixvar terminfo"
 checks="$checks sonames nls_files doc_files uses_fbsd10fix uses_mbsdfix"
-checks="$checks info_files completeset rcscripts"
+checks="$checks info_files completeset rcscripts usergroup"
 # don't add to this line
 checks="$checks missing_license licterms showlic py_conflicts"
 

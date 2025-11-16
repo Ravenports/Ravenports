@@ -89,11 +89,11 @@ TCL_9.0_VERSION=	9.0.2
 
 PGSQL_DEFAULT?=		17
 
-PGSQL_14_VERSION=	14.19	# EOL 12 NOV 2026
-PGSQL_15_VERSION=	15.14	# EOL 11 NOV 2027
-PGSQL_16_VERSION=	16.10	# EOL 09 NOV 2028
-PGSQL_17_VERSION=	17.6	# EOL 08 NOV 2029
-PGSQL_18_VERSION=	18.0	# EOL 14 NOV 2030
+PGSQL_14_VERSION=	14.20	# EOL 12 NOV 2026
+PGSQL_15_VERSION=	15.15	# EOL 11 NOV 2027
+PGSQL_16_VERSION=	16.11	# EOL 09 NOV 2028
+PGSQL_17_VERSION=	17.7	# EOL 08 NOV 2029
+PGSQL_18_VERSION=	18.1	# EOL 14 NOV 2030
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
@@ -117,7 +117,7 @@ MYSQL_innovation_VERSION=	9.5.0
 MYSQL_mariadb-10.6_VERSION=	10.6.24
 MYSQL_mariadb-10.11_VERSION=	10.11.15
 MYSQL_mariadb-11.4_VERSION=	11.4.9
-MYSQL_mariadb-11.8_VERSION=	11.8.4
+MYSQL_mariadb-11.8_VERSION=	11.8.5
 MYSQL_mariadb-BE_VERSION=	12.0.2		# Bleeding Edge
 
 #-------------------------------------------------------------------------
