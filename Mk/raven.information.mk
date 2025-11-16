@@ -22,7 +22,7 @@ APQ_ODBC_REVISION=		1
 # boost
 # ------------------------------------------------------------------------
 
-BOOST_VERSION=			1.88.0
+BOOST_VERSION=			1.89.0
 BOOST_JAM_REVISION=		0
 BOOST_LIBRARIES_REVISION=	0
 
@@ -151,7 +151,7 @@ GTK4_PORT_VERSION=		4.20.2
 # Ravenports binutils
 # ------------------------------------------------------------------------
 
-BINUTILS_VERSION=		2.45
+BINUTILS_VERSION=		2.45.1
 BINUTILS_GOLD_VERSION=		2.44
 RPBASE_BINUTILS=		2.43.1
 
@@ -193,7 +193,7 @@ GHOSTSCRIPT_VERSION=		10.05.1
 SPHINX_UNDERSCORE=		1.13.1
 ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0
-PECL_YAML=			2.2.5
+PECL_YAML=			2.3.0
 LINUX_UTILS_VERSION=		2.41.2
 
 # ------------------------------------------------------------------------
