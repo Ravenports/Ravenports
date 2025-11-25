@@ -145,7 +145,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.51
-GTK4_PORT_VERSION=		4.20.2
+GTK4_PORT_VERSION=		4.20.3
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -211,7 +211,7 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # Qt and Qt-based desktops
 # ------------------------------------------------------------------------
 
-QT5_VERSION=			5.15.14
+QT5_VERSION=			5.15.16
 QT6_VERSION=			6.9.3
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
