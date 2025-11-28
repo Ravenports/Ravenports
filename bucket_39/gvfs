@@ -2,6 +2,7 @@
 
 NAMEBASE=		gvfs
 VERSION=		1.58.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		GNOME virtual file system
@@ -28,12 +29,14 @@ BUILD_DEPENDS=		dbus:dev:std
 			libgpg-error:dev:std
 			libsecret:dev:std
 			libsoup:dev:std
+			libudisks:dev:std
 			p11-kit:dev:std
 BUILDRUN_DEPENDS=	dbus:primary:std
 			gcr:primary:std
 			libarchive:primary:std
 			libsecret:primary:std
 			libsoup:primary:std
+			libudisks:primary:std
 			p11-kit:primary:std
 
 USES=			cpe meson pkgconfig ssl:build schemas:primary
@@ -67,7 +70,7 @@ MESON_ARGS=		-Dsystemduserunitdir="no"
 			-Donedrive=false
 			-Dsftp=false
 			-Dsmb=false
-			-Dudisks2=false
+			-Dudisks2=true
 			-Dburn=true
 
 LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/gvfs
@@ -100,7 +103,7 @@ required libraries are getting ported.
 dd9be36873d0fcb309eb89a8d274770ce576287628a2cf111bd387e1c34f182f      1283696 gnome4/gvfs-1.58.0.tar.xz
 
 
-[FILE:702:manifests/plist.primary]
+[FILE:823:manifests/plist.primary]
 %%NO-GUDEV-OFF%%libexec/gvfsd-cdda
 %%NO-GUDEV-OFF%%share/gvfs/mounts/cdda.mount
 lib/gio/modules/
@@ -110,6 +113,7 @@ lib/gvfs/
  libgvfscommon.so
  libgvfsdaemon.so
 libexec/
+ gvfs-udisks2-volume-monitor
  gvfsd
  gvfsd-afp
  gvfsd-afp-browse
@@ -128,6 +132,7 @@ libexec/
 share/dbus-1/services/
  org.gtk.vfs.Daemon.service
  org.gtk.vfs.Metadata.service
+ org.gtk.vfs.UDisks2VolumeMonitor.service
 share/gvfs/mounts/
  afp-browse.mount
  afp.mount
@@ -144,6 +149,7 @@ share/gvfs/mounts/
  recent.mount
  trash.mount
  wsdd.mount
+share/gvfs/remote-volume-monitors/udisks2.monitor
 
 
 [FILE:2965:manifests/plist.nls]
