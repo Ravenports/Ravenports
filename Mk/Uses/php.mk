@@ -3,7 +3,7 @@
 # Feature:	php
 # Usage:	USES=php or USES=php:ARGS
 # Valid ARGS:	phpize, ext, zend, build, cli, (cgi|mod), web, embed,
-#               (81|82|83|84)
+#               (83|84|85)
 #
 #  phpize   : Use to build a PHP extension.
 #  ext      : Use to build, install and register a PHP extension.
@@ -14,9 +14,9 @@
 #  mod      : Require the Apache Module for PHP.
 #  web      : Require the Apache Module or the CGI version of PHP.
 #  embed    : Require the embedded library version of PHP.
-#  80       : Specify latest PHP 8.0.x (otherwise use default PHP)
-#  81       : Specify latest PHP 8.1.x (otherwise use default PHP)
-#  82       : Specify latest PHP 8.2.x (otherwise use default PHP)
+#  83       : Specify latest PHP 8.3.x (otherwise use default PHP)
+#  84       : Specify latest PHP 8.4.x (otherwise use default PHP)
+#  85       : Specify latest PHP 8.5.x (otherwise use default PHP)
 #
 # If the port requires a predefined set of PHP extensions, they can be
 # listed in this way:
@@ -48,18 +48,15 @@
 .if !defined(_INCLUDE_USES_PHP_MK)
 _INCLUDE_USES_PHP_MK=	yes
 
-.  if ${php_ARGS:M84}
+.  if ${php_ARGS:M85}
+PHP_SUFFIX=	85
+PHP_DOTVER=	8.5
+.  elif ${php_ARGS:M84}
 PHP_SUFFIX=	84
 PHP_DOTVER=	8.4
 .  elif ${php_ARGS:M83}
 PHP_SUFFIX=	83
 PHP_DOTVER=	8.3
-.  elif ${php_ARGS:M82}
-PHP_SUFFIX=	82
-PHP_DOTVER=	8.2
-.  elif ${php_ARGS:M81}
-PHP_SUFFIX=	81
-PHP_DOTVER=	8.1
 .  else
 PHP_SUFFIX=	${PHP_DEFAULT:S/.//}
 PHP_DOTVER=	${PHP_DEFAULT}
@@ -81,17 +78,14 @@ PHP_EXT_DIR!=	${LOCALBASE}/bin/php-config --extension-dir | \
 PHP_VER=	${PHP_SUFFIX}
 PHP_VERSION=	${PHP_${PHP_DOTVER}_VERSION}
 PHP_SAPI=	# assume none
-.      if ${PHP_SUFFIX} == 84
+.      if ${PHP_SUFFIX} == 85
+PHP_EXT_DIR=	20250925
+PHP_EXT_INC=	hash json opcache pcre spl
+.    elif ${PHP_SUFFIX} == 84
 PHP_EXT_DIR=	20240924
 PHP_EXT_INC=	hash json pcre spl
 .    elif ${PHP_SUFFIX} == 83
 PHP_EXT_DIR=	20230831
-PHP_EXT_INC=	hash json pcre spl
-.    elif ${PHP_SUFFIX} == 82
-PHP_EXT_DIR=	20220829
-PHP_EXT_INC=	hash json pcre spl
-.    elif ${PHP_SUFFIX} == 81
-PHP_EXT_DIR=	20210902
 PHP_EXT_INC=	hash json pcre spl
 .    endif
 .  endif
@@ -129,23 +123,23 @@ USAGE_ERROR+=	"This port requires the CLI version of PHP, but the installed PHP 
 USAGE_ERROR+=	"This port requires the embedded PHP library, but the installed PHP does not contain it."
 .    endif
 .  endif
-.  if ${php_ARGS:M82}
-.    if ${php_ARGS:M80} || ${php_ARGS:M81}
+.  if ${php_ARGS:M85}
+.    if ${php_ARGS:M83} || ${php_ARGS:M84}
 MULTIPLE_PHP=	yes
 .    endif
 .  endif
-.  if ${php_ARGS:M81}
-.    if ${php_ARGS:M80} || ${php_ARGS:M82}
-MULTIPLE_PHP=	yes
+.  if ${php_ARGS:M84}
+.    if ${php_ARGS:M83} || ${php_ARGS:M85}
+MULTIPLE_PHP=  yes
 .    endif
 .  endif
-.  if ${php_ARGS:M80}
-.    if ${php_ARGS:M81} || ${php_ARGS:M82}
-MULTIPLE_PHP=	yes
+.  if ${php_ARGS:M83}
+.    if ${php_ARGS:M84} || ${php_ARGS:M85}
+MULTIPLE_PHP=  yes
 .    endif
 .  endif
 .  if defined(MULTIPLE_PHP)
-USAGE_ERROR+=	"Multiple versions detected.  Pick 80, 81, or 82 ONLY."
+USAGE_ERROR+=	"Multiple versions detected.  Pick 83, 84, or 85 ONLY."
 .  endif
 
 .  if defined(DEV_WARNING)

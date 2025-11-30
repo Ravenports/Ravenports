@@ -98,16 +98,9 @@ expand_GNU()
     # pattern [element]/%SUBDIR%/
     local SUBDIR=${1##GNU/}
     local cluster="\
-    http://ftpmirror.gnu.org \
     http://ftp.gnu.org/gnu \
-    ftp://ftp.gnu.org/gnu \
     http://www.gtlib.gatech.edu/pub/gnu/gnu \
     http://mirrors.kernel.org/gnu \
-    ftp://ftp.kddlabs.co.jp/GNU/gnu \
-    ftp://ftp.dti.ad.jp/pub/GNU \
-    ftp://ftp.mirrorservice.org/sites/ftp.gnu.org/gnu \
-    ftp://ftp.informatik.hu-berlin.de/pub/gnu/gnu \
-    ftp://ftp.informatik.rwth-aachen.de/pub/mirror/ftp.gnu.org/pub/gnu \
     http://ftp.funet.fi/pub/gnu/prep"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/

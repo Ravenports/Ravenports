@@ -122,14 +122,14 @@ MYSQL_mariadb-BE_VERSION=	12.0.2		# Bleeding Edge
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
-# Possible values: 8.2, 8.3, 8.4
+# Possible values: 8.3, 8.4, 8.5
 #-------------------------------------------------------------------------
 
-PHP_DEFAULT?=		8.3
+PHP_DEFAULT?=		8.4
 
-PHP_8.2_VERSION=	8.2.29
-PHP_8.3_VERSION=	8.3.27
-PHP_8.4_VERSION=	8.4.14
+PHP_8.3_VERSION=	8.3.28
+PHP_8.4_VERSION=	8.4.15
+PHP_8.5_VERSION=	8.5.0
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
