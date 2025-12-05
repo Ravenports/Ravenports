@@ -48,10 +48,10 @@ RUBY_3.4_VERSION=	3.4.7
 
 PYTHON3_DEFAULT?=	3.13
 
-PYTHON_3.13_VERSION=	3.13.9
+PYTHON_3.13_VERSION=	3.13.10
 PYTHON_3.14_VERSION=	3.14.1
 
-PIP_3.13_VERSION=	25.2
+PIP_3.13_VERSION=	25.3
 PIP_3.14_VERSION=	25.3
 
 #-------------------------------------------------------------------------
