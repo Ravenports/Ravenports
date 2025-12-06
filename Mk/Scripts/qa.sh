@@ -588,24 +588,28 @@ usergroup() {
 	rc=0
 
 	if [ -f "$uginstall" ]; then
-		result=$(awk '{dl = sprintf("%c", 39) }/existing group/ {split($5, n, dl) ; print (n[2] ":" length(n[2])); }' $uginstall)
-		ugname=${result%%:*}
-		uglen=${result#*:}
-		case "$uglen" in
-			1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) ;;
-			*) err "Length of '${ugname}' exceeds 8 characters"
-			   rc=1
-			;;
-		esac
-		result=$(awk '{dl = sprintf("%c", 39) }/existing user/ {split($5, n, dl) ; print (n[2] ":" length(n[2])); }' $uginstall)
-		ugname=${result%%:*}
-		uglen=${result#*:}
-		case "$uglen" in
-			1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) ;;
-			*) err "Length of '${ugname}' exceeds 8 characters"
-			   rc=1
-			;;
-		esac
+		awk '{dl = sprintf("%c", 39) }/existing group/ {split($5, n, dl) ; print (n[2] ":" length(n[2])); }' $uginstall |\
+		while IFS= read -r result; do
+			ugname=${result%%:*}
+			uglen=${result#*:}
+			case "$uglen" in
+				1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) ;;
+				*) err "Length of '${ugname}' exceeds 8 characters"
+				   rc=1
+				;;
+			esac
+		done
+		awk '{dl = sprintf("%c", 39) }/existing user/ {split($5, n, dl) ; print (n[2] ":" length(n[2])); }' $uginstall |\
+		while IFS= read -r result; do
+			ugname=${result%%:*}
+			uglen=${result#*:}
+			case "$uglen" in
+				1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) ;;
+				*) err "Length of '${ugname}' exceeds 8 characters ($result)"
+				   rc=1
+				;;
+			esac
+		done
 	fi
 	return ${rc}
 }

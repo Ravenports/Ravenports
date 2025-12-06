@@ -2,6 +2,7 @@
 
 NAMEBASE=		leatherman
 VERSION=		1.12.13
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		C++ and CMake utility libraries
@@ -40,6 +41,7 @@ CMAKE_ARGS=		-DLEATHERMAN_SHARED:BOOL=ON
 			-DENABLE_CXX_WERROR:BOOL=OFF
 			-DLEATHERMAN_ENABLE_TESTING:BOOL=OFF
 			-DCMAKE_POLICY_VERSION_MINIMUM=3.5
+			-Wno-dev
 			-DBoost_NO_BOOST_CMAKE:BOOL=ON
 
 post-patch:
@@ -258,4 +260,88 @@ share/locale/fr/LC_MESSAGES/
          // Ensure creating and adding a new locale is thread-safe.
          try {
              return g_locales.insert(make_pair(domain, gen(id))).first->second;
+
+
+[FILE:3435:patches/patch-support-boost-1.89]
+--- curl/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ curl/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED COMPONENTS regex system filesystem)
++find_package(Boost 1.54 REQUIRED COMPONENTS regex filesystem)
+ 
+ add_leatherman_deps("${Boost_LIBRARIES}")
+ add_leatherman_includes("${Boost_INCLUDE_DIRS}")
+--- dynamic_library/CMakeLists.txt.orig	2025-12-05 17:27:22 UTC
++++ dynamic_library/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED COMPONENTS regex system)
++find_package(Boost 1.54 REQUIRED COMPONENTS regex)
+ 
+ add_leatherman_deps("${Boost_LIBRARIES}")
+ add_leatherman_includes("${Boost_INCLUDE_DIRS}")
+--- execution/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ execution/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED COMPONENTS regex filesystem system)
++find_package(Boost 1.73 REQUIRED COMPONENTS regex filesystem nowide)
+ 
+ add_leatherman_deps("${Boost_LIBRARIES}")
+ if ("${CMAKE_SYSTEM_NAME}" MATCHES "SunOS")
+--- file_util/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ file_util/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED COMPONENTS regex filesystem system)
++find_package(Boost 1.73 REQUIRED COMPONENTS regex filesystem nowide)
+ 
+ add_leatherman_deps("${Boost_LIBRARIES}")
+ add_leatherman_includes("${Boost_INCLUDE_DIRS}")
+--- locale/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ locale/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ if (LEATHERMAN_USE_LOCALES)
+-    find_package(Boost 1.54 REQUIRED COMPONENTS locale system)
++    find_package(Boost 1.54 REQUIRED COMPONENTS locale)
+     if (BOOST_STATIC AND LEATHERMAN_USE_ICU)
+         find_package(ICU COMPONENTS i18n uc)
+     endif()
+--- logging/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ logging/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED COMPONENTS log log_setup thread date_time filesystem system chrono regex)
++find_package(Boost 1.54 REQUIRED COMPONENTS log log_setup thread date_time filesystem chrono regex)
+ find_package(Threads)
+ 
+ add_leatherman_deps(${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+--- ruby/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ ruby/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED COMPONENTS regex filesystem system)
++find_package(Boost 1.54 REQUIRED COMPONENTS regex filesystem)
+ 
+ add_leatherman_deps("${Boost_LIBRARIES}")
+ add_leatherman_includes("${Boost_INCLUDE_DIRS}")
+--- tests/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ tests/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-set(BOOST_REQUIRED_COMPONENTS system date_time chrono log log_setup thread filesystem regex)
++set(BOOST_REQUIRED_COMPONENTS date_time chrono log log_setup thread filesystem regex nowide)
+ if (LEATHERMAN_USE_LOCALES)
+     set(BOOST_REQUIRED_COMPONENTS ${BOOST_REQUIRED_COMPONENTS} locale)
+ endif()
+--- util/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ util/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED date_time chrono system)
++find_package(Boost 1.73 REQUIRED date_time chrono nowide)
+ 
+ add_leatherman_deps(${Boost_LIBRARIES})
+ add_leatherman_includes("${Boost_INCLUDE_DIRS}")
+--- windows/CMakeLists.txt.orig	2024-03-01 18:47:06 UTC
++++ windows/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(Boost 1.54 REQUIRED COMPONENTS filesystem regex system)
++find_package(Boost 1.54 REQUIRED COMPONENTS filesystem regex)
+ 
+ add_leatherman_deps(Wbemuuid.lib userenv.lib "${Boost_LIBRARIES}")
+ add_leatherman_includes("${Boost_INCLUDE_DIRS}")
 
