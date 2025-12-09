@@ -57,11 +57,13 @@ f08641d00099a9e40d44ec0146f841c472ae58b7e6dd517bee3945cfd923cedf       291328 py
 bin/ninja
 
 
-[FILE:1011:patches/patch-src_graph.cc]
+[FILE:1067:patches/patch-src_graph.cc]
 The recorded mtime for output files on DragonFly are just wrong.
 The input file times seem to be correct.  I don't know what's going on
 here.  Rather than disabling this "obsolete output" check for all platforms,
 just disable it on DragonFly for now and observe.
+
+Also seen on MidnightBSD
 
 --- src/graph.cc.orig	2025-06-18 12:08:38 UTC
 +++ src/graph.cc
@@ -69,7 +71,7 @@ just disable it on DragonFly for now and observe.
                               output->path().c_str());
          return true;
        }
-+#if !defined(__DragonFly__)
++#if !(defined(__DragonFly__) || defined(__MidnightBSD__))
        if (most_recent_input && entry->mtime < most_recent_input->mtime()) {
          // May also be dirty due to the mtime in the log being older than the
          // mtime of the most recent input.  This can occur even when the mtime
