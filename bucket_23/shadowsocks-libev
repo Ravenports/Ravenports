@@ -2,7 +2,7 @@
 
 NAMEBASE=		shadowsocks-libev
 VERSION=		3.3.5
-REVISION=		4
+REVISION=		5
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		Secure socks5 proxy
@@ -51,6 +51,7 @@ FPC_EQUIVALENT=		net/shadowsocks-libev
 
 RC_SUBR=		shadowsocks_libev:primary
 
+CFLAGS=			-DMBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
 LDFLAGS=		-lpthread
 CMAKE_ARGS=		-DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
@@ -193,6 +194,38 @@ share/doc/shadowsocks-libev/
  #endif
 
 
+[FILE:296:patches/patch-src_crypto.c]
+Support mbedtls 4.0 header relocation
+
+--- src/crypto.c.orig	2025-01-20 03:11:47 UTC
++++ src/crypto.c
+@@ -34,7 +34,7 @@
+ #include <stdint.h>
+ #include <sodium.h>
+ #include <mbedtls/version.h>
+-#include <mbedtls/md5.h>
++#include <mbedtls/private/md5.h>
+ 
+ #include "base64.h"
+ #include "crypto.h"
+
+
+[FILE:407:patches/patch-src_crypto.h]
+Support mbedtls 4.0 header relocation
+
+--- src/crypto.h.orig	2025-01-20 03:11:47 UTC
++++ src/crypto.h
+@@ -40,7 +40,7 @@
+ #include <sodium.h>
+ typedef crypto_aead_aes256gcm_state aes256gcm_ctx;
+ /* Definitions for mbedTLS */
+-#include <mbedtls/cipher.h>
++#include <mbedtls/private/cipher.h>
+ #include <mbedtls/md.h>
+ typedef mbedtls_cipher_info_t cipher_kt_t;
+ typedef mbedtls_cipher_context_t cipher_evp_t;
+
+
 [FILE:418:patches/patch-src_redir.c]
 --- src/redir.c.orig	2025-01-20 03:11:47 UTC
 +++ src/redir.c
@@ -211,6 +244,24 @@ share/doc/shadowsocks-libev/
 +#endif
  
  #include <libcork/core.h>
+ 
+
+
+[FILE:363:patches/patch-src_stream.c]
+Support mbedtls 4.0 header relocation
+
+--- src/stream.c.orig	2025-01-20 03:11:47 UTC
++++ src/stream.c
+@@ -24,8 +24,8 @@
+ #include "config.h"
+ #endif
+ 
+-#include <mbedtls/entropy.h>
+-#include <mbedtls/ctr_drbg.h>
++#include <mbedtls/private/entropy.h>
++#include <mbedtls/private/ctr_drbg.h>
+ #include <mbedtls/version.h>
+ #define CIPHER_UNSUPPORTED "unsupported"
  
 
 

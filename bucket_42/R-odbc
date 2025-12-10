@@ -47,31 +47,3 @@ A DBI-compatible interface to ODBC databases.
 [FILE:101:distinfo]
 317a577b6ec27de6b9880faf42a5284cb35a5933d9438fc8f156091c96683d6f       359848 CRAN/odbc_1.6.4.tar.gz
 
-
-[FILE:515:patches/patch-src_cctz_src_time__zone__info.cc]
---- src/cctz/src/time_zone_info.cc.orig	2021-02-26 16:03:16 UTC
-+++ src/cctz/src/time_zone_info.cc
-@@ -54,7 +54,7 @@ char* errmsg(int errnum, char* buf, size
- #if defined(_WIN32) || defined(_WIN64)
-   strerror_s(buf, buflen, errnum);
-   return buf;
--#elif defined(__APPLE__)
-+#elif defined(__APPLE__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
-   strerror_r(errnum, buf, buflen);
-   return buf;
- #elif ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE) || __MUSL__
-
-
-[FILE:404:patches/patch-src_cctz_src_time__zone__libc.cc]
---- src/cctz/src/time_zone_libc.cc.orig	2020-10-23 14:44:20 UTC
-+++ src/cctz/src/time_zone_libc.cc
-@@ -28,7 +28,7 @@
- #  define OFFSET(tm) ((tm).__tm_gmtoff)
- #  define ABBR(tm)   ((tm).__tm_zone)
- # endif
--#elif defined(__APPLE__)
-+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__)
- # define OFFSET(tm) ((tm).tm_gmtoff)
- # define ABBR(tm)   ((tm).tm_zone)
- #elif defined(__sun)
-

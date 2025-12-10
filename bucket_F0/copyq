@@ -58,6 +58,8 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		deskutils/copyq
 
+CXXFLAGS=		-I{{PREFIX}}/include/qt6/QtGui/6.10.1
+			-I{{PREFIX}}/include/qt6/QtCore/6.10.1
 CMAKE_ARGS=		-DWITH_PLUGINS:BOOL=TRUE
 			-DWITH_QT6:BOOL=TRUE
 			-DCMAKE_PREFIX_PATH={{PREFIX}}/lib/qt6/cmake
@@ -170,4 +172,18 @@ share/copyq/translations/
  copyq_vi.qm
  copyq_zh_CN.qm
  copyq_zh_TW.qm
+
+
+[FILE:480:patches/patch-src_platform_x11_x11platform.cmake]
+--- src/platform/x11/x11platform.cmake.orig	2025-10-22 07:58:33 UTC
++++ src/platform/x11/x11platform.cmake
+@@ -42,7 +42,7 @@ if (WITH_X11)
+         if (QT_VERSION VERSION_GREATER_EQUAL "6.10.0")
+             find_package(${copyq_qt} ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS GuiPrivate)
+         endif()
+-        list(APPEND copyq_LIBRARIES Qt::GuiPrivate)
++        list(APPEND copyq_LIBRARIES Qt::Gui)
+     else()
+         list(APPEND copyq_qt_modules X11Extras)
+     endif()
 
