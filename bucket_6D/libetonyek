@@ -2,6 +2,7 @@
 
 NAMEBASE=		libetonyek
 VERSION=		0.1.13
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Import filter for Apple Keynote presentations
@@ -17,7 +18,7 @@ SPKGS[std]=		single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-BUILD_DEPENDS=		mdds:single:std
+BUILD_DEPENDS=		mdds-3.0:single:std
 			glm:single:std
 			boost-libraries:dev:std
 			librevenge:dev:std
@@ -37,6 +38,7 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-tests
 			--disable-werror
 			--without-docs
+			--with-mdds=3.0
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		1.0.13
@@ -70,6 +72,20 @@ lib/
  libetonyek-%%VER%%.so.%%SOMAJOR%%
  libetonyek-%%VER%%.so.%%SOVERSION%%
 lib/pkgconfig/libetonyek-%%VER%%.pc
+
+
+[FILE:370:patches/patch-mdds3]
+--- src/lib/IWORKTable.cpp.orig	2025-09-22 09:49:50 UTC
++++ src/lib/IWORKTable.cpp
+@@ -168,7 +168,7 @@ void parseDateTimeFormat(std::string con
+ 
+ void writeBorder(librevenge::RVNGPropertyList &props, const char *name, IWORKGridLine_t &line, unsigned index)
+ {
+-  if (!line.is_tree_valid())
++  if (!line.valid_tree())
+     line.build_tree();
+ 
+   IWORKStylePtr_t style;
 
 
 [FILE:197:patches/patch-src_lib_NUM3Parser.cpp]
