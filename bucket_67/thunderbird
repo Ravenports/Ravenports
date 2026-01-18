@@ -847,6 +847,31 @@ index 36cc6bdfe492..ed0fb2b7aa45 100644
              },
 
 
+[FILE:694:patches/patch-config_system-headers.mozbuild]
+--- config/system-headers.mozbuild.intermediate	2025-12-17 18:42:29 UTC
++++ config/system-headers.mozbuild
+@@ -865,7 +865,6 @@ system_headers = [
+     "sys/shm.h",
+     "sys/siginfo.h",
+     "sys/signal.h",
+-    "sys/single_threaded.h",
+     "sys/socket.h",
+     "sys/sockio.h",
+     "sys/sparc/frame.h",
+@@ -1387,9 +1386,10 @@ if CONFIG["MOZ_WAYLAND"]:
+         "wayland-util.h",
+     ]
+ 
+-if CONFIG["OS_TARGET"] in ("Android", "Linux", "FreeBSD"):
++if CONFIG["OS_TARGET"] in ("Android", "Linux", "FreeBSD", "DragonFly"):
+     system_headers += [
+         "sys/auxv.h",
++        "sys/single_threaded.h",
+     ]
+ 
+ if CONFIG["OS_TARGET"] == "Linux" and CONFIG["TARGET_CPU"].startswith("mips"):
+
+
 [FILE:914:patches/patch-env-api-keys]
 # Accept API keys from environment like before bug 1294585
 
@@ -1268,6 +1293,22 @@ index b932103f46..2c88e28421 100644
      info["os"] = "bsd"  # community builds
      version = os_version = sys.platform
  elif system == "Darwin":
+
+
+[FILE:678:patches/patch-third__party_abseil-cpp_absl_debugging_internal_elf__mem__image.cc]
+Fix build on NetBSD 10 (and 11)
+
+--- third_party/abseil-cpp/absl/debugging/internal/elf_mem_image.cc.orig	2025-12-04 02:11:46 UTC
++++ third_party/abseil-cpp/absl/debugging/internal/elf_mem_image.cc
+@@ -377,7 +377,7 @@ void ElfMemImage::SymbolIterator::Update
+   const ElfW(Versym) *version_symbol = image->GetVersym(index_);
+   ABSL_RAW_CHECK(symbol && version_symbol, "");
+   const char *const symbol_name = image->GetDynstr(symbol->st_name);
+-#if defined(__NetBSD__)
++#if defined(__NetBSD__) && ((_SYS_EXEC_ELF_H_ + 0) < 2)
+   const int version_index = version_symbol->vs_vers & VERSYM_VERSION;
+ #else
+   const ElfW(Versym) version_index = version_symbol[0] & VERSYM_VERSION;
 
 
 [FILE:452:patches/patch-third__party_llama.cpp_ggml_src_ggml-c.c]

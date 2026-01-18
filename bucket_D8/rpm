@@ -122,7 +122,7 @@ This subpackage contains the Python bindings for librpm.
 44fd2e1425885288ce8e8da8f18e6b85bd380332c2972554a85860af10f86d0f      1438018 rpm-6.0.1.tar.bz2
 
 
-[FILE:4876:manifests/plist.primary]
+[FILE:5328:manifests/plist.primary]
 %%ONLY-LINUX%%lib/rpm/macros.d/macros.transaction_unshare
 %%ONLY-LINUX%%lib/rpm/platform/aarch64-linux/macros
 %%ONLY-LINUX%%lib/rpm/platform/alpha-linux/macros
@@ -146,6 +146,15 @@ This subpackage contains the Python bindings for librpm.
 %%ONLY-LINUX%%lib/rpm/platform/armv8hl-linux/macros
 %%ONLY-LINUX%%lib/rpm/platform/armv8l-linux/macros
 %%ONLY-LINUX%%lib/rpm/platform/athlon-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2k-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2k16c-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2k1cp-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2k2c3-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2k8c-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2k8c2-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2kv4-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2kv5-linux/macros
+%%ONLY-LINUX%%lib/rpm/platform/e2kv6-linux/macros
 %%ONLY-LINUX%%lib/rpm/platform/geode-linux/macros
 %%ONLY-LINUX%%lib/rpm/platform/i386-linux/macros
 %%ONLY-LINUX%%lib/rpm/platform/i486-linux/macros
@@ -480,6 +489,21 @@ share/doc/rpm/examples/
  rpmls.py
  rpmunpack.py
  srpmspec.py
+
+
+[FILE:328:patches/patch-lib_header.cc]
+--- lib/header.cc.orig	2025-12-10 13:48:29 UTC
++++ lib/header.cc
+@@ -15,6 +15,9 @@
+ #include <atomic>
+ #include <rpm/rpmtypes.h>
+ #include <rpm/rpmstring.h>
++#if defined(__FreeBSD__)
++#include <arpa/inet.h>                  /* for ntohl */
++#endif
+ #include "header_internal.hh"
+ #include "misc.hh"			/* tag function proto */
+ 
 
 
 [FILE:1731:patches/patch-misc_fts.c]

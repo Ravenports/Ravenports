@@ -101,7 +101,10 @@ VAR_OPSYS[netbsd]=	VAR1=netbsd
 VAR_OPSYS[dragonfly]=	VAR1=dragonfly
 VAR_OPSYS[midnightbsd]=	VAR1=midnightbsd
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt5/bin/qmake
+
+pre-configure:
 	${MKDIR} ${WRKSRC}/mkspecs/dragonfly-g++
 	${MKDIR} ${WRKSRC}/mkspecs/midnightbsd-g++
 	${INSTALL_DATA} ${WRKSRC}/mkspecs/freebsd-g++/qplatformdefs.h \
@@ -114,10 +117,7 @@ post-patch:
 	# Clean up files created by patching
 	find ${WRKSRC}/mkspecs/ -name "*.orig" -delete
 
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/qt5/bin/qmake
-
-post-patch-sunos:
+pre-configure-sunos:
 	# getauxval test triggers false positive on Solaris
 	${REINPLACE_CMD} -e 's|sys/auxv.h|sys/auxvnope.h|' \
 		${WRKSRC}/src/corelib/global/qconfig-bootstrapped.h
@@ -4338,6 +4338,34 @@ $NetBSD: patch-tests_auto_corelib_io_qprocess_qprocess.pro,v 1.1 2014/12/30 17:2
     qsslcipher \
     qsslellipticcurve
  
+
+
+[FILE:813:patches/patch-tests_auto_tools_moc_tst__moc.cpp]
+NetBSD compile problem:
+error: declaration of '__sF' as array of references
+  763 |         const QByteArray stderr = p.readAllStandardError(); \
+error: request for member 'data' in '& __sF[2]', which is of pointer type 'FILE*' (maybe you meant to use '->' ?)
+  764 |         QVERIFY2(stderr.isEmpty(), stderr.data()); \
+
+--- tests/auto/tools/moc/tst_moc.cpp.orig	2025-06-05 14:07:26 UTC
++++ tests/auto/tools/moc/tst_moc.cpp
+@@ -758,12 +758,16 @@ private:
+ 
+ };
+ 
++#if defined(__NetBSD__)
++#define VERIFY_NO_ERRORS(proc)
++#else
+ #define VERIFY_NO_ERRORS(proc) do { \
+         auto &&p = proc; \
+         const QByteArray stderr = p.readAllStandardError(); \
+         QVERIFY2(stderr.isEmpty(), stderr.data()); \
+         QCOMPARE(p.exitCode(), 0); \
+     } while (false)
++#endif
+ 
+ 
+ void tst_Moc::initTestCase()
 
 
 [FILE:2056:files/qmake.conf.in]

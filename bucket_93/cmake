@@ -2,6 +2,7 @@
 
 NAMEBASE=		cmake
 VERSION=		4.2.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Cross-platform Makefile generator
@@ -58,7 +59,11 @@ PLIST_SUB=		MANPAGES="@comment "
 VAR_OPSYS[netbsd]=	CXXFLAGS=-D_NETBSD_SOURCE
 
 post-patch:
-	${CP} ${FILESDIR}/MidnightBSD.cmake ${WRKSRC}/Modules/Platform
+	${CP} ${FILESDIR}/MidnightBSD*.cmake ${WRKSRC}/Modules/Platform
+.for fname in Clang-ASM Clang-C Clang-CXX Determine-CXX GNU GNU-ASM GNU-C GNU-CXX GNU-Fortran
+	${CP} ${WRKSRC}/Modules/Platform/FreeBSD-${fname}.cmake \
+		${WRKSRC}/Modules/Platform/MidnightBSD-${fname}.cmake
+.endfor
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/cmake \
@@ -112,7 +117,7 @@ pre-processor generation, code generation, and template instantiation.
 414aacfac54ba0e78e64a018720b64ed6bfca14b587047b8b3489f407a14a070     12341564 cmake-4.2.1.tar.gz
 
 
-[FILE:40209:manifests/plist.primary]
+[FILE:40490:manifests/plist.primary]
 bin/
  ccmake
  cmake
@@ -1285,6 +1290,16 @@ share/cmake/Modules/Platform/
  MSYS.cmake
  Midipix-Initialize.cmake
  Midipix.cmake
+ MidnightBSD-Clang-ASM.cmake
+ MidnightBSD-Clang-C.cmake
+ MidnightBSD-Clang-CXX.cmake
+ MidnightBSD-Determine-CXX.cmake
+ MidnightBSD-GNU-ASM.cmake
+ MidnightBSD-GNU-C.cmake
+ MidnightBSD-GNU-CXX.cmake
+ MidnightBSD-GNU-Fortran.cmake
+ MidnightBSD-GNU.cmake
+ MidnightBSD-Initialize.cmake
  MidnightBSD.cmake
  MirBSD-GNU-ASM.cmake
  MirBSD-GNU-C.cmake
@@ -4356,6 +4371,11 @@ set(LIBLZMA_LIBRARY "/usr/lib/liblzma.so" CACHE PATH
 
 # Don't even try
 set(CPACK_ENABLE_FREEBSD_PKG OFF CACHE BOOL "Enable pkg(8) generator in CPack")
+
+
+[FILE:35:files/MidnightBSD-Initialize.cmake]
+set(BSD "MidnightBSD")
+set(UNIX 1)
 
 
 [FILE:124:files/MidnightBSD.cmake]

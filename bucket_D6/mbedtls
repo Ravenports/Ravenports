@@ -2,22 +2,17 @@
 
 NAMEBASE=		mbedtls
 VERSION=		4.0.0
+REVISION=		1
 KEYWORDS=		security devel
 VARIANTS=		std
 SDESC[std]=		Light-weight cryptographic and SSL/TLS library
 HOMEPAGE=		https://www.trustedfirmware.org/projects/mbed-tls/
 CONTACT=		nobody
 
-DOWNLOAD_GROUPS=	main crypto framework subframe
-SITES[main]=		GITHUB/ARMmbed:mbedtls:v4.0.0
-SITES[crypto]=		GITHUB/Mbed-TLS:TF-PSA-Crypto:cb9d0ed:tf-psa-crypto
-SITES[framework]=	GITHUB/Mbed-TLS:mbedtls-framework:f58263d:framework
-SITES[subframe]=	GITHUB/Mbed-TLS:mbedtls-framework:1726775:tf-psa-crypto/framework
-DISTFILE[1]=		generated:main
-DISTFILE[2]=		generated:framework
-DISTFILE[3]=		generated:crypto
-DISTFILE[4]=		generated:subframe
-DF_INDEX=		1 2 3 4
+DOWNLOAD_GROUPS=	main
+SITES[main]=		https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-4.0.0/
+DISTFILE[1]=		mbedtls-4.0.0.tar.bz2:main
+DF_INDEX=		1
 SPKGS[std]=		set
 			primary
 			tools
@@ -27,7 +22,6 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		python-Jinja2:single:python_used
-			python-jsonschema:single:python_used
 EXRUN[tools]=		mbedtls:primary:std
 
 USES=			cpe cmake perl:build python:build
@@ -80,11 +74,8 @@ Mbed TLS includes a reference implementation of the PSA Cryptography API.
 This packages contains tools powered by Mbed TLS library.
 
 
-[FILE:463:distinfo]
-f4460881faaa71bc573f473bb5c4493af28bbdb84b281d119ef8978184c3d291      1212283 ARMmbed-mbedtls-4.0.0.tar.gz
-83a73488651dfbb462877277f14b29b943ec80251963c69bf57e0a33a19c9f57       955089 Mbed-TLS-mbedtls-framework-f58263d.tar.gz
-fe12d7f9f6192c5fa53819196630e60d4c6a2e7fc4388a8eb7c18b6d2bec85c4      3544216 Mbed-TLS-TF-PSA-Crypto-cb9d0ed.tar.gz
-9887b7a5fc7dfe13dd8d088c70e97df43acf0badd490b24ad86f7837d7a556f8       952660 Mbed-TLS-mbedtls-framework-1726775.tar.gz
+[FILE:100:distinfo]
+2f3a47f7b3a541ddef450e4867eeecb7ce2ef7776093f3a11d6d43ead6bf2827      6342607 mbedtls-4.0.0.tar.bz2
 
 
 [FILE:248:manifests/plist.primary]
@@ -135,13 +126,14 @@ bin/
  zeroize
 
 
-[FILE:2608:manifests/plist.dev]
+[FILE:2523:manifests/plist.dev]
 include/mbedtls/
  asn1.h
  asn1write.h
  base64.h
  build_info.h
  compat-3-crypto.h
+ config_adjust_legacy_crypto.h
  constant_time.h
  debug.h
  error.h
@@ -183,11 +175,11 @@ include/mbedtls/private/
  chachapoly.h
  cipher.h
  cmac.h
+ config_adjust_legacy_from_psa.h
  config_adjust_ssl.h
  config_adjust_test_accelerators.h
  config_adjust_x509.h
- crypto_adjust_config_enable_builtins.h
- crypto_adjust_config_tweak_builtins.h
+ config_psa.h
  ctr_drbg.h
  ecdh.h
  ecdsa.h
@@ -198,7 +190,6 @@ include/mbedtls/private/
  gcm.h
  hmac_drbg.h
  md5.h
- pk_private.h
  pkcs5.h
  poly1305.h
  ripemd160.h
@@ -209,6 +200,11 @@ include/mbedtls/private/
  sha512.h
 include/psa/
  crypto.h
+ crypto_adjust_auto_enabled.h
+ crypto_adjust_config_dependencies.h
+ crypto_adjust_config_derived.h
+ crypto_adjust_config_key_pair_types.h
+ crypto_adjust_config_synonyms.h
  crypto_builtin_composites.h
  crypto_builtin_key_derivation.h
  crypto_builtin_primitives.h
@@ -228,13 +224,6 @@ include/psa/
 include/tf-psa-crypto/
  build_info.h
  version.h
-include/tf-psa-crypto/private/
- crypto_adjust_config_auto_enabled.h
- crypto_adjust_config_dependencies.h
- crypto_adjust_config_derived.h
- crypto_adjust_config_key_pair_types.h
- crypto_adjust_config_support.h
- crypto_adjust_config_synonyms.h
 include/tf-psa-crypto/private/everest/everest/
  Hacl_Curve25519.h
  everest.h
@@ -320,4 +309,88 @@ Signed-off-by: Ben Taylor <ben.taylor@linaro.org>
  
  error:
      /* RFC 8446 section 4.4.3
+
+
+[FILE:1039:patches/patch-library_CMakeLists.txt]
+--- library/CMakeLists.txt.orig	2025-10-14 16:14:11 UTC
++++ library/CMakeLists.txt
+@@ -195,12 +195,14 @@ if(USE_STATIC_MBEDTLS_LIBRARY)
+     set_base_compile_options(${mbedx509_static_target})
+     target_compile_options(${mbedx509_static_target} PRIVATE ${LIBS_C_FLAGS})
+     set_target_properties(${mbedx509_static_target} PROPERTIES OUTPUT_NAME mbedx509)
++    set_target_properties(${mbedx509_static_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+     target_link_libraries(${mbedx509_static_target} PUBLIC ${libs} ${tfpsacrypto_static_target})
+ 
+     add_library(${mbedtls_static_target} STATIC ${src_tls})
+     set_base_compile_options(${mbedtls_static_target})
+     target_compile_options(${mbedtls_static_target} PRIVATE ${LIBS_C_FLAGS})
+     set_target_properties(${mbedtls_static_target} PROPERTIES OUTPUT_NAME mbedtls)
++    set_target_properties(${mbedtls_static_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+     target_link_libraries(${mbedtls_static_target} PUBLIC ${libs} ${mbedx509_static_target})
+ 
+     if(GEN_FILES)
+
+
+[FILE:600:patches/patch-tf-psa-crypto_core_CMakeLists.txt]
+--- tf-psa-crypto/core/CMakeLists.txt.orig	2025-10-01 15:29:27 UTC
++++ tf-psa-crypto/core/CMakeLists.txt
+@@ -140,6 +140,7 @@ if(USE_STATIC_TF_PSA_CRYPTO_LIBRARY)
+     tf_psa_crypto_set_base_compile_options(${tfpsacrypto_static_target})
+     target_compile_options(${tfpsacrypto_static_target} PRIVATE ${LIBS_C_FLAGS})
+     set_target_properties(${tfpsacrypto_static_target} PROPERTIES OUTPUT_NAME tfpsacrypto)
++    set_target_properties(${tfpsacrypto_static_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+     target_link_libraries(${tfpsacrypto_static_target} PUBLIC ${libs})
+ 
+     if(GEN_FILES)
+
+
+[FILE:453:patches/patch-tf-psa-crypto_drivers_builtin_CMakeLists.txt]
+--- tf-psa-crypto/drivers/builtin/CMakeLists.txt.orig	2025-10-01 15:29:27 UTC
++++ tf-psa-crypto/drivers/builtin/CMakeLists.txt
+@@ -55,6 +55,7 @@ endforeach(target)
+ 
+ if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
+     set_property(TARGET ${builtin_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
++    set_property(TARGET ${builtin_static_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+ endif(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
+ 
+ if(INSTALL_TF_PSA_CRYPTO_HEADERS)
+
+
+[FILE:478:patches/patch-tf-psa-crypto_drivers_builtin_src_platform__util.c]
+--- tf-psa-crypto/drivers/builtin/src/platform_util.c.orig	2025-10-01 15:21:30 UTC
++++ tf-psa-crypto/drivers/builtin/src/platform_util.c
+@@ -369,7 +369,7 @@ static int getrandom_wrapper(void *buf,
+  *
+  * Documentation: https://netbsd.gw.com/cgi-bin/man-cgi?sysctl+7
+  */
+-#if (defined(__FreeBSD__) || defined(__NetBSD__)) && !defined(HAVE_GETRANDOM)
++#if defined(__FreeBSD__) && !defined(HAVE_GETRANDOM)
+ #include <sys/param.h>
+ #include <sys/sysctl.h>
+ #if defined(KERN_ARND)
+
+
+[FILE:453:patches/patch-tf-psa-crypto_drivers_everest_CMakeLists.txt]
+--- tf-psa-crypto/drivers/everest/CMakeLists.txt.orig	2025-10-01 15:29:27 UTC
++++ tf-psa-crypto/drivers/everest/CMakeLists.txt
+@@ -27,6 +27,7 @@ endforeach(target)
+ 
+ if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
+     set_property(TARGET ${everest_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
++    set_property(TARGET ${everest_static_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+ endif(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
+ 
+ if(INSTALL_TF_PSA_CRYPTO_HEADERS)
+
+
+[FILE:410:patches/patch-tf-psa-crypto_drivers_p256-m_CMakeLists.txt]
+--- tf-psa-crypto/drivers/p256-m/CMakeLists.txt.orig	2025-10-01 15:29:27 UTC
++++ tf-psa-crypto/drivers/p256-m/CMakeLists.txt
+@@ -26,4 +26,5 @@ endforeach(target)
+ 
+ if(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
+     set_property(TARGET ${p256m_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
++    set_property(TARGET ${p256m_static_target} PROPERTY POSITION_INDEPENDENT_CODE ON)
+ endif(USE_SHARED_TF_PSA_CRYPTO_LIBRARY)
 

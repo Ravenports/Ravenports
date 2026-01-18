@@ -401,9 +401,11 @@ share/man/man1/
  #else
 
 
-[FILE:949:patches/patch-common_exf.c]
+[FILE:1059:patches/patch-common_exf.c]
 Get rid of "page sizes must be a power-of-2" warning when loading a file.
 
+ffsl function is available on NetBSD 11, not NetBSD 10.
+Just use the GCC builtin for all platforms.
 --- common/exf.c.orig	2007-11-18 16:41:42 UTC
 +++ common/exf.c
 @@ -228,15 +228,17 @@ file_init(SCR *sp, FREF *frp, char *rcv_
@@ -420,7 +422,7 @@ Get rid of "page sizes must be a power-of-2" warning when loading a file.
 -		if (psize == 0)
 -			psize = 1;
 -		psize *= 1024;
-+		psize = (sb.st_size > 0) ? ffsl(sb.st_size - 1) + 1 : 0;
++		psize = (sb.st_size > 0) ? __builtin_ffsl(sb.st_size - 1) + 1 : 0;
 +		/* Do these very low limits make sense anymore? */
 +		if (psize < 10)
 +			psize = 10;  /* 1K  */

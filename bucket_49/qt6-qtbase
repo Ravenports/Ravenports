@@ -395,7 +395,7 @@ share/qt6/wayland/protocols/xdg-toplevel-icon/
  xdg-toplevel-icon-v1.xml
 
 
-[FILE:103083:manifests/plist.dev]
+[FILE:103900:manifests/plist.dev]
 %%EVDEV%%include/qt6/QtDeviceDiscoverySupport/%%QTVER%%/QtDeviceDiscoverySupport/private/qdevicediscovery_%%DSSTYPE%%_p.h
 %%EVDEV%%include/qt6/QtInputSupport/
  QtInputSupport
@@ -499,11 +499,28 @@ share/qt6/wayland/protocols/xdg-toplevel-icon/
 %%ONLY-LINUX%%lib/qt6/metatypes/qt6inputsupportprivate_metatypes.json
 %%ONLY-LINUX%%lib/qt6/mkspecs/modules/qt_lib_input_support_private.pri
 %%ONLY-LINUX%%lib/qt6/modules/InputSupportPrivate.json
+%%ONLY-MIDNIGHTBSD%%include/qt6/QtInputSupport/QtInputSupportDepends
 %%ONLY-MIDNIGHTBSD%%include/qt6/QtInputSupport/%%QTVER%%/QtInputSupport/private/
  qfdcontainer_p.h
  qkeyboardmap_p.h
  qkeycodeaction_p.h
  qtouchfilter_p.h
+%%ONLY-MIDNIGHTBSD%%lib/qt6/
+ libQt6InputSupport.a
+ libQt6InputSupport.prl
+%%ONLY-MIDNIGHTBSD%%lib/qt6/cmake/Qt6InputSupportPrivate/
+ Qt6InputSupportPrivateAdditionalTargetInfo.cmake
+ Qt6InputSupportPrivateConfig.cmake
+ Qt6InputSupportPrivateConfigVersion.cmake
+ Qt6InputSupportPrivateConfigVersionImpl.cmake
+ Qt6InputSupportPrivateDependencies.cmake
+ Qt6InputSupportPrivateTargets-release.cmake
+ Qt6InputSupportPrivateTargets.cmake
+ Qt6InputSupportPrivateVersionlessAliasTargets.cmake
+ Qt6InputSupportPrivateVersionlessTargets.cmake
+%%ONLY-MIDNIGHTBSD%%lib/qt6/metatypes/qt6inputsupportprivate_metatypes.json
+%%ONLY-MIDNIGHTBSD%%lib/qt6/mkspecs/modules/qt_lib_input_support_private.pri
+%%ONLY-MIDNIGHTBSD%%lib/qt6/modules/InputSupportPrivate.json
 %%VULKAN-ON%%include/qt6/QtGui/
  QVulkanDeviceFunctions
  QVulkanExtension
@@ -5048,21 +5065,22 @@ share/doc/qt6/global/tools-doc-front-page/images/
                                             << fixLibFlags("QMAKE_LIBS_PRIVATE").join(' ') << Qt::endl;
 
 
-[FILE:591:patches/patch-src_3rdparty_forkfd_forkfd.c]
+[FILE:521:patches/patch-src_3rdparty_forkfd_forkfd.c]
 --- src/3rdparty/forkfd/forkfd.c.orig	2025-11-12 10:17:57 UTC
 +++ src/3rdparty/forkfd/forkfd.c
-@@ -79,9 +79,11 @@
+@@ -77,8 +77,12 @@
+ #  define HAVE_EVENTFD 1
+ #  define HAVE_WAITID   1
  #endif
++#if defined(__MidnightBSD__)
++#  define HAVE_WAITID   1
++#endif
  #if (defined(__FreeBSD__) && defined(__FreeBSD_version) && __FreeBSD_version >= 1000032) || \
      (defined(__OpenBSD__) && OpenBSD >= 201505) || \
 +    defined(__MidnightBSD__) || \
      (defined(__NetBSD__) && __NetBSD_Version__ >= 600000000)
  #  define HAVE_PIPE2    1
  #endif
-+
- #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__) || \
-     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__APPLE__)
- #  define HAVE_WAIT4    1
 
 
 [FILE:649:patches/patch-src_3rdparty_sha3_brg__endian.h]
@@ -5293,7 +5311,7 @@ Fix build on SunOS.
              false
 
 
-[FILE:789:patches/patch-src_corelib_thread_qthread__unix.cpp]
+[FILE:817:patches/patch-src_corelib_thread_qthread__unix.cpp]
 --- src/corelib/thread/qthread_unix.cpp.orig	2025-11-12 10:17:57 UTC
 +++ src/corelib/thread/qthread_unix.cpp
 @@ -34,7 +34,7 @@
@@ -5301,7 +5319,7 @@ Fix build on SunOS.
  #endif
  
 -#if defined(Q_OS_FREEBSD)
-+#if (defined(Q_OS_FREEBSD) || defined(__MidnightBSD__)) && !defined(__DragonFly__)
++#if defined(Q_OS_FREEBSD) && !defined(__DragonFly__) && !defined(__MidnightBSD__)
  #  include <sys/cpuset.h>
  #elif defined(Q_OS_BSD4)
  #  include <sys/sysctl.h>
@@ -5310,7 +5328,7 @@ Fix build on SunOS.
          cores = (int)psd.psd_proc_cnt;
      }
 -#elif (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)) || defined(Q_OS_FREEBSD)
-+#elif (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)) || (defined(Q_OS_FREEBSD) && !defined(__DragonFly__))
++#elif (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)) || (defined(Q_OS_FREEBSD) && !defined(__DragonFly__) && !defined(__MidnightBSD__))
      QT_WARNING_PUSH
  #  if defined(Q_CC_CLANG) && Q_CC_CLANG >= 1800
      QT_WARNING_DISABLE_CLANG("-Wvla-cxx-extension")

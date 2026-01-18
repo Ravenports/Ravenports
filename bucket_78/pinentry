@@ -2,10 +2,10 @@
 
 NAMEBASE=		pinentry
 VERSION=		1.3.2
+REVISION=		1
 KEYWORDS=		security
-VARIANTS=		std ncurses qt5 fltk gnome3
+VARIANTS=		std ncurses fltk gnome3
 SDESC[std]=		Assuan passphrase entry dialog (console)
-SDESC[qt5]=		Assuan passphrase entry dialog (Qt5)
 SDESC[ncurses]=		Assuan passphrase entry dialog (ncurses)
 SDESC[fltk]=		Assuan passphrase entry dialog (FLTK)
 SDESC[gnome3]=		Assuan passphrase entry dialog (GNOME3)
@@ -17,21 +17,15 @@ SITES[main]=		GNUPG/pinentry
 DISTFILE[1]=		pinentry-1.3.2.tar.bz2:main
 DF_INDEX=		1
 SPKGS[std]=		single
-SPKGS[qt5]=		single
 SPKGS[ncurses]=		single
 SPKGS[fltk]=		single
 SPKGS[gnome3]=		single
 
-OPTIONS_AVAILABLE=	NCURSES QT5 GTK2 FLTK NOTSTD GNOME3
+OPTIONS_AVAILABLE=	NCURSES FLTK NOTSTD GNOME3
 OPTIONS_STANDARD=	none
-VOPTS[qt5]=		NCURSES=OFF QT5=ON GTK2=OFF FLTK=OFF NOTSTD=ON
-			GNOME3=OFF
-VOPTS[ncurses]=		NCURSES=ON QT5=OFF GTK2=OFF FLTK=OFF NOTSTD=ON
-			GNOME3=OFF
-VOPTS[fltk]=		NCURSES=OFF QT5=OFF GTK2=OFF FLTK=ON NOTSTD=ON
-			GNOME3=OFF
-VOPTS[gnome3]=		NCURSES=OFF QT5=OFF GTK2=OFF FLTK=OFF NOTSTD=ON
-			GNOME3=ON
+VOPTS[ncurses]=		NCURSES=ON FLTK=OFF NOTSTD=ON GNOME3=OFF
+VOPTS[fltk]=		NCURSES=OFF FLTK=ON NOTSTD=ON GNOME3=OFF
+VOPTS[gnome3]=		NCURSES=OFF FLTK=OFF NOTSTD=ON GNOME3=ON
 
 BUILD_DEPENDS=		libgpg-error:dev:std
 			libassuan:dev:std
@@ -81,20 +75,6 @@ CONFIGURE_ARGS=		--enable-libsecret
 					xext
 					xinerama
 
-[GTK2].DESCRIPTION=			Build GTK2 variant
-[GTK2].BUILD_DEPENDS_ON=		harfbuzz:dev:std
-[GTK2].CONFIGURE_ENABLE_BOTH=		pinentry-gtk2
-[GTK2].GNOME_COMPONENTS_ON=		gtk2
-
-[QT5].DESCRIPTION=			Build Qt5 variant
-[QT5].BUILDRUN_DEPENDS_ON=		qt5-qtbase:primary:std
-[QT5].BUILD_DEPENDS_ON=			qt5-qttools:set:std
-[QT5].CONFIGURE_ARGS_OFF=		--disable-pinentry-qt
-[QT5].CONFIGURE_ARGS_ON=		--program-suffix=5
-[QT5].CONFIGURE_ENABLE_BOTH=		pinentry-qt5
-[QT5].CONFIGURE_ENV_ON=			PKG_CONFIG_PATH={{LOCALBASE}}/lib/qt5/pkgconfig
-[QT5].MAKEFILE_ON=			PREPEND_PATH={{LOCALBASE}}/lib/qt5/bin
-
 [NCURSES].DESCRIPTION=			Build ncurses variant
 [NCURSES].CFLAGS_ON=			-DWITH_UTF8_CONVERSION
 [NCURSES].CONFIGURE_ARGS_OFF=		--disable-fallback-curses
@@ -121,12 +101,6 @@ bin/
 
 [FILE:20:manifests/plist.single.ncurses]
 bin/pinentry-curses
-
-
-[FILE:95:manifests/plist.single.qt5]
-bin/pinentry-qt55
-share/applications/org.gnupg.pinentry-qt5.desktop
-share/pixmaps/pinentry.png
 
 
 [FILE:18:manifests/plist.single.fltk]

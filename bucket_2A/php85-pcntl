@@ -38,3 +38,22 @@ This package contains the pcntl extension for PHP 8.4.
 [FILE:95:distinfo]
 39cb6e4acd679b574d3d3276f148213e935fc25f90403eb84fb1b836a806ef1e     14314552 php-8.5.0.tar.xz
 
+
+[FILE:566:patches/patch-pcntl.c]
+--- pcntl.c.orig	2025-11-18 08:02:20 UTC
++++ pcntl.c
+@@ -437,8 +437,13 @@ PHP_FUNCTION(pcntl_waitid)
+ 		}
+ 		struct rusage rusage;
+ # if defined(HAVE_WAIT6) /* FreeBSD */
++#    if defined(__NetBSD__)
++		struct wrusage wrusage;
++		memset(&wrusage, 0, sizeof(struct wrusage));
++#    else
+ 		struct __wrusage wrusage;
+ 		memset(&wrusage, 0, sizeof(struct __wrusage));
++#    endif
+ 		pid_t pid = wait6((idtype_t) idtype, (id_t) id, &status, (int) options, &wrusage, &siginfo);
+ 		status = pid > 0 ? 0 : pid;
+ 		memcpy(&rusage, &wrusage.wru_self, sizeof(struct rusage));
+
