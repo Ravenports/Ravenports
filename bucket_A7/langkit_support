@@ -90,6 +90,16 @@ do-install:
 		--build-mode=prod \
 		--disable-all-mains \
 		${STAGEDIR}${PREFIX})
+	# Construct python wheels
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} python -m build \
+		--no-isolation --wheel lkt/build/python)
+	# install wheel in stage directory
+	${MKDIR} ${STAGEDIR}${PYTHONPREFIX_SITELIBDIR}
+	(cd ${BUILD_WRKSRC} && ${SETENV} AUTOPYTHON=${_PYTHON_VERSION} \
+		python -m installer \
+		--destdir ${STAGEDIR} \
+		--prefix ${PREFIX} \
+		${BUILD_WRKSRC}/lkt/build/python/dist/*.whl)
 	# fix shebang
 	${SED} -i'' -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
 		${STAGEDIR}${PREFIX}/bin/lkt_playground
