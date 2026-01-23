@@ -2,7 +2,7 @@
 #
 # Feature:	ruby
 # Usage:	USES=ruby
-# Valid ARGS:	(v32, v33, v34), build, interp
+# Valid ARGS:	(v33, v34, v40), build, interp
 #
 # --------------------------------------
 # Variables which can be set by the port
@@ -39,16 +39,17 @@ _INCLUDE_USES_RUBY_MK=	yes
 # ------------------------------------------------------
 # Incorporated in ravenadm
 # ------------------------------------------------------
-# BUILD/RUN_DEPENDS+=	rubyXX:primary:std
+# If "interp" is not in arguments:
+#    BUILD/RUN_DEPENDS+=	rubyXX:primary:std
 # ------------------------------------------------------
 
 
-.  if !empty(ruby_ARGS:Mv32)
-_RUBY_VERSION=	3.2
-.  elif !empty(ruby_ARGS:Mv33)
+.  if !empty(ruby_ARGS:Mv33)
 _RUBY_VERSION=	3.3
 .  elif !empty(ruby_ARGS:Mv34)
 _RUBY_VERSION=	3.4
+.  elif !empty(ruby_ARGS:Mv40)
+_RUBY_VERSION=	4.0
 .  else
 _RUBY_VERSION=	${RUBY_DEFAULT}
 .  endif

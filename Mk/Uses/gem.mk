@@ -3,9 +3,9 @@
 # Feature:	gem
 # Usage:	USES=gem
 # Valid ARGS:	skiplist (Don't generate package list automatically)
-#               v33      (requires Ruby 3.3) (implicit)
-#               v32      (requires Ruby 3.2)
+#               v33      (requires Ruby 3.3)
 #               v34      (requires Ruby 3.4)
+#               v40      (requires Ruby 4.0)
 
 .if !defined(_INCLUDE_USES_GEM_MK)
 _INCLUDE_USES_GEM_MK=	yes
@@ -13,13 +13,13 @@ _INCLUDE_USES_GEM_MK=	yes
 # -----------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------
-# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v(32,33,34)
+# BUILDRUN_DEPENDS+=	ruby-rubygems:single:v(33,34,40)
 # -----------------------------------------------
 
-.  if ${gem_ARGS} == "v32"
-GEMS_BASE_DIR=	lib/ruby/gems/3.2
-RUBYGEMBIN=	${LOCALBASE}/bin/gem32
-USING_RUBY=	3.2
+.  if ${gem_ARGS} == "v40"
+GEMS_BASE_DIR=	lib/ruby/gems/4.0
+RUBYGEMBIN=	${LOCALBASE}/bin/gem40
+USING_RUBY=	4.0
 .  elif ${gem_ARGS} == "v34"
 GEMS_BASE_DIR=	lib/ruby/gems/3.4
 RUBYGEMBIN=	${LOCALBASE}/bin/gem34
