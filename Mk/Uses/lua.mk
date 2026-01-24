@@ -23,6 +23,8 @@ LUA_VER=	5.2
 LUA_VER=	5.3
 .  elif ${lua_ARGS:M5.4}
 LUA_VER=	5.4
+.  elif ${lua_ARGS:M5.5}
+LUA_VER=	5.5
 .  else
 LUA_VER=	${LUA_DEFAULT}
 .endif
