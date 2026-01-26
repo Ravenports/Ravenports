@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-dragonfly
 VERSION=		6.4.0
-REVISION=		7
+REVISION=		8
 KEYWORDS=		raven
 VARIANTS=		std
 SDESC[std]=		DragonFly 6.4.0 builder system root
@@ -92,7 +92,7 @@ of DragonFly BSD, excluding the toolchain.
 c213cc20ba1284efafe017c16db1974c154728e2e757c649af91d0e2a246a0dd    386581582 dfly-x86_64-6.4.0_REL.iso.bz2
 
 
-[FILE:16078:manifests/plist.single]
+[FILE:16041:manifests/plist.single]
 %%BASE%%/bin/
  [
  cat
@@ -284,6 +284,7 @@ c213cc20ba1284efafe017c16db1974c154728e2e757c649af91d0e2a246a0dd    386581582 df
  locale.h
  login_cap.h
  luks.h
+ malloc_np.h
  math.h
  memory.h
  mntopts.h
@@ -999,6 +1000,7 @@ c213cc20ba1284efafe017c16db1974c154728e2e757c649af91d0e2a246a0dd    386581582 df
  globaldata.h
  gmon.h
  gpt.h
+ gtaskqueue.h
  hash.h
  ibaa.h
  iconv.h
@@ -1391,6 +1393,7 @@ c213cc20ba1284efafe017c16db1974c154728e2e757c649af91d0e2a246a0dd    386581582 df
  cert.pem
  group
  ld-elf.so.hints
+ localtime
  master.passwd
  passwd
  pwd.db
@@ -1407,14 +1410,10 @@ c213cc20ba1284efafe017c16db1974c154728e2e757c649af91d0e2a246a0dd    386581582 df
 %%BASE%%/usr/share/rvn-terminfo/d/dumb
 %%BASE%%/usr/share/rvn-terminfo/v/vt100
 %%BASE%%/usr/share/rvn-terminfo/x/xterm
-%%BASE%%/usr/include/
- malloc_np.h
-%%BASE%%/usr/include/sys/
- gtaskqueue.h
 @dir %%BASE%%/usr/local
 
 
-[FILE:7167:files/dragonfly.mk]
+[FILE:7295:files/dragonfly.mk]
 # For DragonFly
 
 Libexec_DragonFly=	/libexec/ld-elf.so.2
@@ -1777,6 +1776,10 @@ install-platform: install-common
 	mv ${DESTDIR}${BASE}/var/run/ld-elf.so.hints \
 		${DESTDIR}${BASE}/usr/share/
 	rm -rf ${DESTDIR}${BASE}/var
+
+	# support /etc/localtime
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/share/zoneinfo/UTC \
+		${DESTDIR}${BASE}/usr/share/localtime
 
 
 [FILE:349:files/special.mk]

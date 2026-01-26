@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnatcoll-core
 VERSION=		26.0.0
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		std
@@ -113,7 +114,7 @@ lib/gnatcoll_projects.relocatable/
  libgnatcoll_projects.so.%%SOVERSION%%
 
 
-[FILE:14144:manifests/plist.dev]
+[FILE:14174:manifests/plist.dev]
 include/gnatcoll_core/
  blake3.c
  blake3.h
@@ -149,7 +150,7 @@ include/gnatcoll_core/
  gnatcoll-hash-blake3.adb
  gnatcoll-hash-blake3.ads
  gnatcoll-hash-xxhash.ads
- gnatcoll-hash-xxhash__generic.adb
+ gnatcoll-hash-xxhash__x8664.adb
  gnatcoll-hash.ads
  gnatcoll-io-native-codec__unix.adb
  gnatcoll-io-native.adb
@@ -281,6 +282,8 @@ include/gnatcoll_core/
  set_std_prefix.c
  terminals.c
  update_path.c
+ xxh_x86dispatch.c
+ xxh_x86dispatch.h
  xxhash.c
  xxhash.h
 include/gnatcoll_minimal/
@@ -353,7 +356,7 @@ lib/gnatcoll_core.relocatable/
  gnatcoll-formatters.ali
  gnatcoll-geometry.ali
  gnatcoll-hash-blake3.ali
- gnatcoll-hash-xxhash__generic.ali
+ gnatcoll-hash-xxhash__x8664.ali
  gnatcoll-hash.ali
  gnatcoll-io-native.ali
  gnatcoll-io-remote-unix.ali
@@ -425,7 +428,7 @@ lib/gnatcoll_core.static/
  gnatcoll-formatters.ali
  gnatcoll-geometry.ali
  gnatcoll-hash-blake3.ali
- gnatcoll-hash-xxhash__generic.ali
+ gnatcoll-hash-xxhash__x8664.ali
  gnatcoll-hash.ali
  gnatcoll-io-native.ali
  gnatcoll-io-remote-unix.ali
@@ -497,7 +500,7 @@ lib/gnatcoll_core.static-pic/
  gnatcoll-formatters.ali
  gnatcoll-geometry.ali
  gnatcoll-hash-blake3.ali
- gnatcoll-hash-xxhash__generic.ali
+ gnatcoll-hash-xxhash__x8664.ali
  gnatcoll-hash.ali
  gnatcoll-io-native.ali
  gnatcoll-io-remote-unix.ali
@@ -969,10 +972,20 @@ share/examples/gnatcoll-core/projects/
  gpr_sources.gpr
 
 
-[FILE:1186:patches/patch-core_gnatcoll__core.gpr]
+[FILE:1577:patches/patch-core_gnatcoll__core.gpr]
 --- core/gnatcoll_core.gpr.orig	2025-11-28 12:36:47 UTC
 +++ core/gnatcoll_core.gpr
-@@ -154,7 +154,7 @@ library project GNATCOLL_Core is
+@@ -75,9 +75,6 @@ library project GNATCOLL_Core is
+    Blake3_C_Flags := ();
+ 
+    case Blake3_Arch is
+-      when "x86_64-linux" =>
+-         Sources := Sources & ("src/hash/blake3/x86_64-linux");
+-         Project_Languages := Project_Languages & ("Asm_Cpp");
+       when "aarch64-linux" =>
+          Sources := Sources & ("src/hash/blake3/aarch64-linux");
+       when "x86_64-windows" =>
+@@ -154,7 +151,7 @@ library project GNATCOLL_Core is
     end case;
     case OS is
        when "unix" =>
@@ -981,7 +994,7 @@ share/examples/gnatcoll-core/projects/
        when others =>
           null;
     end case;
-@@ -173,7 +173,7 @@ library project GNATCOLL_Core is
+@@ -173,7 +170,7 @@ library project GNATCOLL_Core is
  
     case Library_Type is
        when "relocatable" =>
@@ -990,7 +1003,7 @@ share/examples/gnatcoll-core/projects/
  
           --  Put user options in front, for options like --as-needed.
           for Leading_Library_Options use External_As_List ("LDFLAGS", " ");
-@@ -398,7 +398,7 @@ library project GNATCOLL_Core is
+@@ -398,7 +395,7 @@ library project GNATCOLL_Core is
  
     package Install is
        for Artifacts ("share/examples/gnatcoll") use ("../examples/*");
@@ -999,6 +1012,102 @@ share/examples/gnatcoll-core/projects/
        for Artifacts ("share/doc/gnatcoll")
          use ("../docs/_build/latex/GNATColl.pdf");
     end Install;
+
+
+[FILE:891:patches/patch-core_gnatcoll__core.gpr.py]
+--- core/gnatcoll_core.gpr.py.orig	2025-11-28 12:36:47 UTC
++++ core/gnatcoll_core.gpr.py
+@@ -38,7 +38,7 @@ class GNATCollCore(BuilderApp):
+ 
+     def adjust_config(self, gpr: GPRTool, args: argparse.Namespace) -> None:
+         # Compute which implementation should be used for blake3
+-        if gpr.target in ("x86_64-linux", "aarch64-linux", "x86_64-windows"):
++        if gpr.target.startswith(("x86_64-", "aarch64-")):
+             blake3_arch = gpr.target
+         else:
+             blake3_arch = "generic"
+@@ -47,7 +47,7 @@ class GNATCollCore(BuilderApp):
+         gpr.set_variable("GNATCOLL_BLAKE3_ARCH", blake3_arch)
+ 
+         # Compute which implementation should be used for xxhash
+-        if gpr.target in ("x86_64-linux", "x86_64-windows"):
++        if gpr.target.startswith("x86_64-"):
+             xxhash_arch = "x86_64"
+         else:
+             xxhash_arch = "generic"
+
+
+[FILE:4122:patches/patch-core_src_gnatcoll-strings__impl.adb]
+Solve elaboration warnings:
+libadalang-doc_utils.ads:34:04: warning: in instantiation at gnatcoll-strings_impl.adb:123 [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning: "Access" attribute of "Make_Writable_Thread_Safe" before body seen [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning: possible Program_Error on later references [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning:   spec of unit "Doc_Utils" elaborated [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning:   "Access" of "Make_Writable_Thread_Safe" taken at gnatcoll-strings_impl.adb:123, instance at line 34 [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning: in instantiation at gnatcoll-strings_impl.adb:124 [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning: "Access" attribute of "Make_Writable_Thread_Unsafe" before body seen [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning: possible Program_Error on later references [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning:   spec of unit "Doc_Utils" elaborated [-gnatw.f]
+libadalang-doc_utils.ads:34:04: warning:   "Access" of "Make_Writable_Thread_Unsafe" taken at gnatcoll-strings_impl.adb:124, instance at line 34 [-gnatw.f]
+
+--- core/src/gnatcoll-strings_impl.adb.orig	2025-11-28 12:36:47 UTC
++++ core/src/gnatcoll-strings_impl.adb
+@@ -117,25 +117,6 @@ package body GNATCOLL.Strings_Impl is
+       procedure Make_Writable_Thread_Safe (Self : in out XString) with Inline;
+       procedure Make_Writable_Thread_Unsafe (Self : in out XString)
+          with Inline;
+-      Make_Writable : constant not null
+-         access procedure (Self : in out XString) :=
+-            (if GNATCOLL.Refcount.Application_Uses_Tasks
+-             then Make_Writable_Thread_Safe'Access
+-             else Make_Writable_Thread_Unsafe'Access);
+-      --  Make sure we can modify Self (not a shared string)
+-      --  Two versions are provided: the Unsafe version is faster, but will
+-      --  fail when a string is read from a thread and written in another one,
+-      --  as in the following scenario:
+-      --            thread 1                   |               thread 2
+-      --    S.Set ("some long long long str"); |
+-      --    Append (S, "some long long str");  |
+-      --    --  stops after testing refcount   |
+-      --                                       | S2 := S;
+-      --                                       | --  buffer is now shared
+-      --                                       | Put_Line (S2.To_String);
+-      --    --  modifies shared buffer         |
+-      --                                       | Put_Line (S2.To_String);
+-      --                                       | --  different output
+ 
+       procedure Convert_To_Big_String
+          (Self : in out XString;
+@@ -232,6 +213,29 @@ package body GNATCOLL.Strings_Impl is
+          end if;
+       end Make_Writable_Thread_Safe;
+ 
++      -------------------
++      -- Make_Writable --
++      ------------------- 
++      Make_Writable : constant not null
++         access procedure (Self : in out XString) :=
++            (if GNATCOLL.Refcount.Application_Uses_Tasks
++             then Make_Writable_Thread_Safe'Access
++             else Make_Writable_Thread_Unsafe'Access);
++      --  Make sure we can modify Self (not a shared string)
++      --  Two versions are provided: the Unsafe version is faster, but will
++      --  fail when a string is read from a thread and written in another one,
++      --  as in the following scenario:
++      --            thread 1                   |               thread 2
++      --    S.Set ("some long long long str"); |
++      --    Append (S, "some long long str");  |
++      --    --  stops after testing refcount   |
++      --                                       | S2 := S;
++      --                                       | --  buffer is now shared
++      --                                       | Put_Line (S2.To_String);
++      --    --  modifies shared buffer         |
++      --                                       | Put_Line (S2.To_String);
++      --                                       | --  different output
++
+       -----------
+       -- Clone --
+       -----------
 
 
 [FILE:1279:patches/patch-src_os_unix_libc-wrappers.c]

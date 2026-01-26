@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-freebsd_amd64
 VERSION=		13.2
-REVISION=		10
+REVISION=		11
 KEYWORDS=		raven
 VARIANTS=		std
 SDESC[std]=		FreeBSD/AMD64 13.2 builder system root
@@ -97,7 +97,7 @@ of FreeBSD/AMD64, excluding the toolchain.
 b76ab084e339ee05f59be81354c8cb7dfadf9518e0548f88017d2759a910f17c   1072607232 FreeBSD-13.2-RELEASE-amd64-disc1.iso
 
 
-[FILE:19404:manifests/plist.single]
+[FILE:19415:manifests/plist.single]
 %%BASE%%/bin/
  [
  cat
@@ -1653,6 +1653,7 @@ b76ab084e339ee05f59be81354c8cb7dfadf9518e0548f88017d2759a910f17c   1072607232 Fr
  cert.pem
  group
  ld-elf.so.hints
+ localtime
  master.passwd
  passwd
  pwd.db
@@ -1672,7 +1673,7 @@ b76ab084e339ee05f59be81354c8cb7dfadf9518e0548f88017d2759a910f17c   1072607232 Fr
 @dir %%BASE%%/usr/local
 
 
-[FILE:7496:files/freebsd.mk]
+[FILE:7624:files/freebsd.mk]
 # For FreeBSD
 
 Libexec_FreeBSD=	/libexec/ld-elf.so.1
@@ -2047,6 +2048,10 @@ install-platform: install-common
 	mv ${DESTDIR}${BASE}/var/run/ld-elf.so.hints \
 		${DESTDIR}${BASE}/usr/share/
 	rm -rf ${DESTDIR}${BASE}/var
+
+	# support /etc/localtime
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/share/zoneinfo/UTC \
+		${DESTDIR}${BASE}/usr/share/localtime
 
 
 [FILE:349:files/special.mk]

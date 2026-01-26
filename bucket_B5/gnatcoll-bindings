@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnatcoll-bindings
 VERSION=		26.0.0
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		devel
 VARIANTS=		std
@@ -45,8 +46,7 @@ EXRUN[readline]=	readline:primary:std
 EXRUN[cpp]=		gnatcoll-core:primary:std
 EXRUN[zlib]=		zlib:primary:std
 			gnatcoll-core:primary:std
-EXRUN[iconv]=		libiconv:primary:std
-			gnatcoll-core:primary:std
+EXRUN[iconv]=		gnatcoll-core:primary:std
 EXRUN[lzma]=		xz:primary:std
 			gnatcoll-core:primary:std
 EXRUN[python3]=		python313:primary:std
@@ -75,7 +75,7 @@ do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		gprbuild -p -XLIBRARY_TYPE=${libtype} \
 		-XGNATCOLL_VERSION="26.0" \
-		-XGNATCOLL_ICONV_OPT="-liconv_pic" \
+		-XGNATCOLL_ICONV_OPT="${ICONV_LIB_PIC}" \
 		-XGNATCOLL_PYTHON_CFLAGS="-I${LOCALBASE}/include/python3.13" \
 		-P ${component}/gnatcoll_${component}.gpr)
 .  endfor
@@ -96,7 +96,7 @@ do-install:
 		--no-manifest \
 		-XGNATCOLL_VERSION="26.0" \
 		-XLIBRARY_TYPE=${libtype} \
-		-XGNATCOLL_ICONV_OPT="-liconv_pic" \
+		-XGNATCOLL_ICONV_OPT="${ICONV_LIB_PIC}" \
 		-P ${component}/gnatcoll_${component}.gpr)
 .  endfor
 	${MKDIR} ${STAGEDIR}${PREFIX}/include/gnatcoll_${component}
@@ -120,7 +120,8 @@ do-install:
 		"${STAGEDIR}${PREFIX}" \
 		"-I${LOCALBASE}/include/python3.13" \
 		"26.0" \
-		"-lpython3.13"
+		"-lpython3.13" \
+		"${ICONV_LIB_PIC}"
 .endfor
 
 [FILE:102:descriptions/desc.gmp]
@@ -486,7 +487,7 @@ share/gpr/
 +end GnatColl_Python3;
 
 
-[FILE:2458:files/gen_gpr.sh]
+[FILE:2523:files/gen_gpr.sh]
 #!/bin/sh
 # This scripts generates gpr files and creates symbolic links
 # Expected inputs: component, destdir, python-includes
@@ -497,6 +498,7 @@ destdir="$2"
 python_includes="$3"
 soversion="$4"
 python3_linking="\"$5\""
+iconv_linking="$6"
 
 component_lower="$name"
 component_target="$name"
@@ -507,10 +509,10 @@ case "$name" in
 		component_upper=GMP
 		linker_opts='"-lgmp"'
 		;;
-	"iconv")	
+	"iconv")
 		component=Iconv
 		component_upper=ICONV
-		linker_opts='"-liconv"'
+		linker_opts="\"${iconv_linking}\""
 		;;
 	"readline")
 		component=Readline
@@ -571,7 +573,7 @@ esac
 
 case "$name" in
 	"iconv")
-		iconvhandle="s|%%ICONV_ON%%||"
+		iconvhandle="s|%%ICONV_ON%%||; s|%%ICONV_LINK%%|${iconv_linking}|"
 		;;
 	*)
 		iconvhandle="/%%ICONV_ON%%/d"
@@ -598,7 +600,7 @@ ln -s "../libgnatcoll_${name}.so.${soversion}" \
 	"${destdir}/lib/gnatcoll_${component_lower}.relocatable/libgnatcoll_${name}.so.${soversion}"
 
 
-[FILE:1997:files/gnatcoll_template.gpr]
+[FILE:2010:files/gnatcoll_template.gpr]
 with "gpr";
 with "xmlada_schema";
 with "xmlada_dom";
@@ -656,7 +658,7 @@ library project GnatColl_%%COMPONENT%% is
    %%PYTHON_ON%%python_static_lib := "";
    %%PYTHON_ON%%python_libs       := ();
    %%PYTHON_ON%%python_cflags     := ("%%PYTHON_INCLUDE%%");
-   %%ICONV_ON%%iconv_opt    := "-liconv";
+   %%ICONV_ON%%iconv_opt          := "%%ICONV_LINK%%";
    build        : build_type := "PROD";
    name         := "gnatcoll_%%NAME%%";
    version      := "0.0";

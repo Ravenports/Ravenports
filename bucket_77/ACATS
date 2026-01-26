@@ -2,6 +2,7 @@
 
 NAMEBASE=		ACATS
 VERSION=		4.2.1
+REVISION=		3
 KEYWORDS=		ada devel
 VARIANTS=		std
 SDESC[std]=		Latest Ada Conformity Assessment Test Suite
@@ -34,9 +35,9 @@ SHEBANG_LANG=		expect
 SKIP_BUILD=		yes
 
 SUB_FILES=		installed_compiler.sh
-			test_ada_on_gcc11
-			test_ada_on_gcc12
 			test_ada_on_gcc13
+			test_ada_on_gcc14
+			test_ada_on_gcc15
 			test_ada_on_ravensys
 
 do-install:
@@ -66,9 +67,9 @@ compilers contained within Ravenports.
 The following scripts have been added to /raven/bin:
 
   acats_test_ravensys  (for testing ravensys-gcc)
-  acats_test_gcc11     (for testing gcc11)
-  acats_test_gcc12     (for testing gcc12)
-  acats_test_gcc12     (for testing gcc13)
+  acats_test_gcc13     (for testing gcc13)
+  acats_test_gcc14     (for testing gcc14)
+  acats_test_gcc15     (for testing gcc15)
 
 By default, the results of these tests are placed at $HOME/ACATS_results .
 If ACATS_RESULT_DIR is defined in the environment, this location will
@@ -81,9 +82,9 @@ be used instead.
 
 [FILE:64480:manifests/plist.primary]
 bin/
- test_ada_on_gcc11
- test_ada_on_gcc12
  test_ada_on_gcc13
+ test_ada_on_gcc14
+ test_ada_on_gcc15
  test_ada_on_ravensys
 share/ACATS/
  elabd.lst
@@ -5572,7 +5573,7 @@ share/doc/ACATS/
  done
 
 
-[FILE:2815:files/installed_compiler.sh.in]
+[FILE:2941:files/installed_compiler.sh.in]
 # Source file (no shebang)
 # shellcheck shell=sh
 #
@@ -5622,10 +5623,15 @@ quit_if_compiler_is_missing() {
       echo "FATAL: The variable ADA_COMPILER must be defined."
       exit 1
    fi
-   candidate="${prefix}/toolchain/${ADA_COMPILER}/bin/gcc"
+   PREPEND="${prefix}/toolchain/${ADA_COMPILER}/bin"
+   candidate="${PREPEND}/gcc"
    if [ ! -x "$candidate" ]; then
-      echo "FATAL: The compiler '$candidate' does not exist or is not executable"
-      exit 1
+      PREPEND="${prefix}/${ADA_COMPILER}/bin"
+      candidate="${PREPEND}/gcc"
+      if [ ! -x "$candidate" ]; then
+         echo "FATAL: The compiler '$candidate' does not exist or is not executable"
+         exit 1
+      fi
    fi
    $candidate --version
 }
@@ -5652,7 +5658,7 @@ quit_if_compiler_is_missing
 mkdir -p "${ACATS_RESULTS_DIR:?}"
 rm -rf "${ACATS_RESULTS_DIR:?}/*"
 
-TAILORED_PATH="${prefix}/toolchain/${ADA_COMPILER}/bin:/sbin:/bin:/usr/sbin:/usr/bin:${prefix}/bin"
+TAILORED_PATH="${PREPEND}:/sbin:/bin:/usr/sbin:/usr/bin:${prefix}/bin"
 START_TESTS="${prefix}/share/ACATS/run_local.sh"
 
 # Execute the ACATS testsuite
@@ -5662,48 +5668,6 @@ START_TESTS="${prefix}/share/ACATS/run_local.sh"
 [FILE:80:files/special.mk]
 SHEBANG_OLD_EXPECT=	/usr/bin/expect
 SHEBANG_NEW_EXPECT=	${LOCALBASE}/bin/expect
-
-
-[FILE:735:files/test_ada_on_gcc11.in]
-#!/bin/sh
-# shellcheck disable=SC1091
-#
-# This script executes the Ada Conformity Assessment Test Suite (ACATS) on
-# the installed compiler indicated by ADA_COMPILER.
-# The output will be generated at $HOME/ACATS_results_<timestamp> by default
-# for non-root users.  A root user must define the ACATS_RESULTS_DIR environment
-# variable to specify the output directory.  This environment variable is
-# respected for ALL users and overrides the default for non-root users.
-#
-# To run all chapters of ACATS, run this script without arguments.
-# To run specific chapters, provide them as arguments, e.g.
-# > %%PREFIX%%/bin/test_ada_on_gcc11 cxd cxe
-
-ADA_COMPILER="gcc11"
-export ADA_COMPILER
-
-. %%PREFIX%%/share/ACATS/installed_compiler.sh
-
-
-[FILE:735:files/test_ada_on_gcc12.in]
-#!/bin/sh
-# shellcheck disable=SC1091
-#
-# This script executes the Ada Conformity Assessment Test Suite (ACATS) on
-# the installed compiler indicated by ADA_COMPILER.
-# The output will be generated at $HOME/ACATS_results_<timestamp> by default
-# for non-root users.  A root user must define the ACATS_RESULTS_DIR environment
-# variable to specify the output directory.  This environment variable is
-# respected for ALL users and overrides the default for non-root users.
-#
-# To run all chapters of ACATS, run this script without arguments.
-# To run specific chapters, provide them as arguments, e.g.
-# > %%PREFIX%%/bin/test_ada_on_gcc11 cxd cxe
-
-ADA_COMPILER="gcc12"
-export ADA_COMPILER
-
-. %%PREFIX%%/share/ACATS/installed_compiler.sh
 
 
 [FILE:735:files/test_ada_on_gcc13.in]
@@ -5722,6 +5686,48 @@ export ADA_COMPILER
 # > %%PREFIX%%/bin/test_ada_on_gcc11 cxd cxe
 
 ADA_COMPILER="gcc13"
+export ADA_COMPILER
+
+. %%PREFIX%%/share/ACATS/installed_compiler.sh
+
+
+[FILE:735:files/test_ada_on_gcc14.in]
+#!/bin/sh
+# shellcheck disable=SC1091
+#
+# This script executes the Ada Conformity Assessment Test Suite (ACATS) on
+# the installed compiler indicated by ADA_COMPILER.
+# The output will be generated at $HOME/ACATS_results_<timestamp> by default
+# for non-root users.  A root user must define the ACATS_RESULTS_DIR environment
+# variable to specify the output directory.  This environment variable is
+# respected for ALL users and overrides the default for non-root users.
+#
+# To run all chapters of ACATS, run this script without arguments.
+# To run specific chapters, provide them as arguments, e.g.
+# > %%PREFIX%%/bin/test_ada_on_gcc11 cxd cxe
+
+ADA_COMPILER="gcc14"
+export ADA_COMPILER
+
+. %%PREFIX%%/share/ACATS/installed_compiler.sh
+
+
+[FILE:735:files/test_ada_on_gcc15.in]
+#!/bin/sh
+# shellcheck disable=SC1091
+#
+# This script executes the Ada Conformity Assessment Test Suite (ACATS) on
+# the installed compiler indicated by ADA_COMPILER.
+# The output will be generated at $HOME/ACATS_results_<timestamp> by default
+# for non-root users.  A root user must define the ACATS_RESULTS_DIR environment
+# variable to specify the output directory.  This environment variable is
+# respected for ALL users and overrides the default for non-root users.
+#
+# To run all chapters of ACATS, run this script without arguments.
+# To run specific chapters, provide them as arguments, e.g.
+# > %%PREFIX%%/bin/test_ada_on_gcc11 cxd cxe
+
+ADA_COMPILER="gcc15"
 export ADA_COMPILER
 
 . %%PREFIX%%/share/ACATS/installed_compiler.sh

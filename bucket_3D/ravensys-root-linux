@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-linux
 VERSION=		3.2.0
-REVISION=		9
+REVISION=		10
 KEYWORDS=		raven
 VARIANTS=		std ABI26
 SDESC[std]=		Linux 3.2.0 builder system root
@@ -10,7 +10,7 @@ SDESC[ABI26]=		Linux 2.6.32 builder system root
 HOMEPAGE=		none
 CONTACT=		John_Marino[draco@marino.st]
 
-DOWNLOAD_GROUPS=	main debian10 debian11 debian12 debian13 debian14 debian16 debian18 debian19 debian2 debian20 debian21 debian22 debian24 debian25 debian26 debian27 debian28 debian29 debian3 debian6 debian7 debian8 debian9 leaf sting ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
+DOWNLOAD_GROUPS=	main debian10 debian11 debian12 debian13 debian14 debian16 debian18 debian19 debian2 debian20 debian21 debian22 debian24 debian25 debian26 debian27 debian28 debian29 debian3 debian30 debian6 debian7 debian8 debian9 leaf sting ubuntu1 ubuntu10 ubuntu11 ubuntu2 ubuntu3 ubuntu4 ubuntu5 ubuntu6 ubuntu7 ubuntu8 ubuntu9
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/dports-src/
 SITES[debian10]=	DEBIAN/pool/main/libx/libxcrypt
 SITES[debian11]=	DEBIAN/pool/main/libn/libnsl
@@ -31,6 +31,7 @@ SITES[debian27]=	DEBIAN/pool/main/libg/libgcrypt20
 SITES[debian28]=	DEBIAN/pool/main/libg/libgpg-error
 SITES[debian29]=	DEBIAN/pool/main/libc/libcap2
 SITES[debian3]=		DEBIAN/pool/main/a/acl
+SITES[debian30]=	DEBIAN/pool/main/t/tzdata
 SITES[debian6]=		DEBIAN/pool/main/h/hostname
 SITES[debian7]=		DEBIAN/pool/main/d/dash
 SITES[debian8]=		DEBIAN/pool/main/s/shadow
@@ -117,6 +118,7 @@ DISTFILE[66]=		libgcrypt20_1.10.1-3_amd64.deb:debian27
 DISTFILE[67]=		libgpg-error0_1.46-1_amd64.deb:debian28
 DISTFILE[68]=		libcap2_2.66-4_amd64.deb:debian29
 DISTFILE[69]=		libcap-dev_2.66-4_amd64.deb:debian29
+DISTFILE[70]=		tzdata_2025b-0+deb12u2_all.deb:debian30
 DIST_SUBDIR=		linux-sysroot
 SPKGS[std]=		single
 SPKGS[ABI26]=		single
@@ -157,11 +159,11 @@ BUILD_DEPENDS=		nawk:primary:std
 EXTRACT_DIRTY=		2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
 			22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38
 			39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57
-			58 59 60 61 62 63 64 65 66 67 68 69 47 48
+			58 59 60 61 62 63 64 65 66 67 68 69 70 47 48
 EXTRACT_DEB_PACKAGE=	2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21
 			22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38
 			39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57
-			58 59 60 61 62 63 64 65 66 67 68 69
+			58 59 60 61 62 63 64 65 66 67 68 69 70
 
 INVALID_RPATH=		yes
 
@@ -231,6 +233,7 @@ INFRASTRUCTURE=		yes
 					67
 					68
 					69
+					70
 					47
 					48
 [NOTSTD].MAKEFILE_OFF=			SYSTEM=Linux/x86_64/x86_64/610000/6.1.0/6.1
@@ -277,7 +280,7 @@ post-extract-ABI26-ON:
 
 post-extract-NOTSTD-OFF:
 	${INSTALL_DATA} ${FILESDIR}/linux61.mk ${WRKSRC}/system_specifics.mk
-.for NDX in 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69
+.for NDX in 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70
 	@echo "copy ${NAMEBASE}_${NDX} files over"
 	@cp -a ${WRKDIR}/${NAMEBASE}_${NDX}/* ${WRKDIR}/linux/
 	@${RM} -r ${WRKDIR}/${NAMEBASE}_${NDX}
@@ -311,7 +314,7 @@ This is the full build environment for GNU/Linux 2.6.32, excluding the
 toolchain.  This basis of this environment is Mint 2016.
 
 
-[FILE:8499:distinfo]
+[FILE:8622:distinfo]
 7e0e1a8ebe7f195083e1b917757b857c77c97af7bf90ee067e944ae94231fc38          180 linux-sysroot/dummy-tarball.tar.gz
 1212898914978ba4380ce890abc48c223ece3a6c362da1e85c1dcfb4d56897aa      3212542 linux-sysroot/locales_2.23-0ubuntu10_all.deb
 89627142971b65ee12716f2592ec217b6b1f2527af036a4c64a0c859942373a7      2586304 linux-sysroot/libc6_2.23-0ubuntu9_amd64.deb
@@ -381,9 +384,10 @@ bffcac7e4f69e39d37d4a33e841d6371ac8b5aba6cd55546b385dc7ff6c702f5       696328 li
 89944ee11d7370ce6ef46fc52f094c4a6512eff8943ec4c6ebefeae6360ceada        76888 linux-sysroot/libgpg-error0_1.46-1_amd64.deb
 b36fefe9867f9e59b540f952e957a72ebdc241e997179d826da19a9511ade4a3        27008 linux-sysroot/libcap2_2.66-4_amd64.deb
 da67132dba6eb1c452b999d9ac77c10ce4a5ad230ccbde1312868744b149f879       522404 linux-sysroot/libcap-dev_2.66-4_amd64.deb
+719b61acbc9974a86b92c1d043b9f3b7883dbfe9f5824f9a43c575445fa55d2a       299756 linux-sysroot/tzdata_2025b-0+deb12u2_all.deb
 
 
-[FILE:36822:manifests/plist.single.std]
+[FILE:36833:manifests/plist.single.std]
 %%BASE%%/bin/
  [
  bash
@@ -2754,6 +2758,7 @@ da67132dba6eb1c452b999d9ac77c10ce4a5ad230ccbde1312868744b149f879       522404 li
  group
  ld.so.cache
  ld.so.conf
+ localtime
  passwd
  x86_64-linux-gnu.conf
 %%BASE%%/usr/share/file/magic.mgc
@@ -5648,7 +5653,7 @@ install-platform: install-common
 	ln -s asm-generic ${DESTDIR}${BASE}/usr/include/asm
 
 
-[FILE:3959:files/linux61.mk]
+[FILE:4087:files/linux61.mk]
 # For Linux
 
 Libexec_Linux=		# empty
@@ -5764,6 +5769,10 @@ install-platform: install-common
 	# pre-generated locale definitions
 	cp ${CPA} ../ravensys-root-linux_48/locale-archive \
 		${DESTDIR}${BASE}/usr/lib/locale/
+
+	# support /etc/localtime
+	${BSD_INSTALL_DATA} ../${OPSYS:tl}/usr/share/zoneinfo/UTC \
+		${DESTDIR}${BASE}/usr/share/localtime
 
 
 [FILE:441:files/special.mk]
