@@ -2,7 +2,7 @@
 
 NAMEBASE=		libcanberra
 VERSION=		0.30
-REVISION=		3
+REVISION=		4
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		Implementation of the XDG sound theme specs
@@ -17,15 +17,14 @@ SPKGS[std]=		set
 			primary
 			dev
 			docs
-			gtk2
 			gtk3
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 BUILD_DEPENDS=		at-spi2-core:dev:std
 			gstreamer1:dev:std
-			gtk2:set:std
 			gtk3:set:std
 			harfbuzz:dev:std
 			libvorbis:dev:std
@@ -36,8 +35,7 @@ BUILDRUN_DEPENDS=	gstreamer1:primary:std
 			libvorbis:primary:std
 			tdb:primary:std
 RUN_DEPENDS=		sound-theme-freedesktop:single:std
-EXRUN[gtk2]=		primary
-			gtk2:primary:std
+EXRUN[tools]=		gtk3
 EXRUN[gtk3]=		primary
 			gtk3:primary:std
 
@@ -55,6 +53,7 @@ FPC_EQUIVALENT=		audio/libcanberra
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--disable-lynx
+			--disable-gtk
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -79,12 +78,12 @@ GNOME. It comes with several backends (ALSA, PulseAudio, OSS, GStreamer,
 null) and is designed to be portable.
 
 
-[FILE:59:descriptions/desc.gtk2]
-This subpackage contains the libcanberra GTK+2 components.
-
-
 [FILE:59:descriptions/desc.gtk3]
 This subpackage contains the libcanberra GTK+3 components.
+
+
+[FILE:61:descriptions/desc.tools]
+This subpackage contains tools based on libcanberra library.
 
 
 [FILE:102:distinfo]
@@ -107,16 +106,14 @@ lib/libcanberra-0.30/
 share/vala/vapi/libcanberra.vapi
 
 
-[FILE:171:manifests/plist.dev]
+[FILE:131:manifests/plist.dev]
 include/
  canberra-gtk.h
  canberra.h
 lib/
- libcanberra-gtk.so
  libcanberra-gtk3.so
  libcanberra.so
 lib/pkgconfig/
- libcanberra-gtk.pc
  libcanberra-gtk3.pc
  libcanberra.pc
 
@@ -137,26 +134,22 @@ share/doc/libcanberra/libcanberra/
  up.png
 
 
-[FILE:415:manifests/plist.gtk2]
-bin/canberra-gtk-play
-lib/
- libcanberra-gtk.so.%%SOMAJ_GTK%%
- libcanberra-gtk.so.%%SOVER_GTK%%
-lib/gnome-settings-daemon-3.0/gtk-modules/canberra-gtk-module.desktop
-lib/gtk-2.0/modules/libcanberra-gtk-module.so
-share/gdm/autostart/LoginWindow/libcanberra-ready-sound.desktop
-share/gnome/autostart/libcanberra-login-sound.desktop
-share/gnome/shutdown/libcanberra-logout-sound.sh
-share/vala/vapi/libcanberra-gtk.vapi
-
-
-[FILE:151:manifests/plist.gtk3]
+[FILE:188:manifests/plist.gtk3]
 lib/
  libcanberra-gtk3.so.%%SOMAJ_GTK%%
  libcanberra-gtk3.so.%%SOVER_GTK%%
 lib/gtk-3.0/modules/
  libcanberra-gtk-module.so
  libcanberra-gtk3-module.so
+share/vala/vapi/libcanberra-gtk.vapi
+
+
+[FILE:259:manifests/plist.tools]
+bin/canberra-gtk-play
+lib/gnome-settings-daemon-3.0/gtk-modules/canberra-gtk-module.desktop
+share/gdm/autostart/LoginWindow/libcanberra-ready-sound.desktop
+share/gnome/autostart/libcanberra-login-sound.desktop
+share/gnome/shutdown/libcanberra-logout-sound.sh
 
 
 [FILE:360:patches/patch-src_oss.c]

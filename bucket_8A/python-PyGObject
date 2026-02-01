@@ -2,6 +2,7 @@
 
 NAMEBASE=		python-PyGObject
 VERSION=		3.54.5
+REVISION=		1
 KEYWORDS=		python
 VARIANTS=		v14 v13
 SDESC[v13]=		Python bindings for GObject Introspection (3.13)
@@ -71,4 +72,22 @@ b6656f6348f5245606cf15ea48c384c7f05156c75ead206c1b246c80a22fb585      1274658 py
 [FILE:65:manifests/plist.dev]
 include/pygobject-3.0/pygobject.h
 lib/pkgconfig/pygobject-3.0.pc
+
+
+[FILE:540:patches/patch-gi_overrides_Gio.py]
+$NetBSD: patch-gi_overrides_Gio.py,v 1.1 2026/01/06 08:41:40 adam Exp $
+
+Work-around for: AttributeError: 'bool' object has no attribute 'islower'
+
+--- gi/overrides/Gio.py.orig	2025-10-18 11:13:44 UTC
++++ gi/overrides/Gio.py
+@@ -656,7 +656,7 @@ if GioPlatform:
+             try:
+                 name = original_attr.__name__[0]
+             except (AttributeError, IndexError):
+-                name = original_attr
++                name = attr
+ 
+             # Fallback if we don't have the original name.
+             if name.islower():
 

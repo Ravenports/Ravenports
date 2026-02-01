@@ -30,29 +30,13 @@ BOOST_LIBRARIES_REVISION=	0
 # Only keep the open branches of GCC
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-# gcc12
-# ------------------------------------------------------------------------
-
-GCC12_BRANCH=			12
-GCC12_POINT=			5.0
-GCC12_VERSION=			${GCC12_BRANCH}.${GCC12_POINT}
-GCC12_REVISION=			0
-GCC12_GNATCROSS_REVISION=	0
-GCC12_BOOTSTRAP_REVISION=	0
-
-GCC12_PORTVERSION=		${GCC12_VERSION}
-GCC12_IDENTIFICATION=		gcc-${GCC12_VERSION}
-GCC12_MS_SUBDIR=		releases/gcc-${GCC12_VERSION}
-GCC12_PHASE=			release
-
-# ------------------------------------------------------------------------
 # gcc13
 # ------------------------------------------------------------------------
 
 GCC13_BRANCH=			13
 GCC13_POINT=			4.0
 GCC13_VERSION=			${GCC13_BRANCH}.${GCC13_POINT}
-GCC13_REVISION=			0
+GCC13_REVISION=			2
 GCC13_GNATCROSS_REVISION=	0
 GCC13_BOOTSTRAP_REVISION=	0
 
@@ -95,7 +79,7 @@ GCC15_POINT=			2.0
 GCC15_VERSION=			${GCC15_BRANCH}.${GCC15_POINT}
 GCC15_SNAPSHOT=			20250808
 GCC15_BUILD_RELEASE=		yes
-GCC15_REVISION=			0
+GCC15_REVISION=			1
 GCC15_GNATCROSS_REVISION=	0
 GCC15_BOOTSTRAP_REVISION=	0
 

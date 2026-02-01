@@ -2,6 +2,7 @@
 
 NAMEBASE=		langkit_support
 VERSION=		26.0.0
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		ada devel
 VARIANTS=		std
@@ -21,8 +22,12 @@ SPKGS[std]=		set
 			modules
 			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	REGULAR
+OPTIONS_STANDARD=	REGULAR
+OPT_ON[freebsd]=	REGULAR
+OPT_ON[netbsd]=		REGULAR
+OPT_ON[dragonfly]=	REGULAR
+OPT_ON[midnightbsd]=	REGULAR
 
 BUILD_DEPENDS=		python313:primary:std
 			gmp:dev:std
@@ -61,6 +66,10 @@ MAKE_ENV=		GPR_PROJECT_PATH={{LOCALBASE}}/share/gpr
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		26.0.0
 
+[REGULAR].DESCRIPTION=			Build as regular, not Stand-Alone Library
+[REGULAR].MAKEFILE_OFF=			SALTYPE=standard
+[REGULAR].MAKEFILE_ON=			SALTYPE=no
+
 do-build:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		python manage.py make --no-mypy \
@@ -70,6 +79,7 @@ do-build:
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|%%SOVERSION%%|26.0.0|' \
+		-e 's|@SALTYPE@|${SALTYPE}|' \
 		${WRKSRC}/langkit/support/langkit_support.gpr
 
 post-extract:
@@ -159,7 +169,21 @@ python/liblktlang/
 share/liblktlang/gdbinit.py
 
 
-[FILE:22694:manifests/plist.dev]
+[FILE:23253:manifests/plist.dev]
+%%REGULAR-ON%%include/langkit_support/
+ langkit_support-prettier_utils.adb
+ langkit_support-prettier_utils.ads
+ langkit_support-rewriting-unparsing.adb
+ langkit_support-rewriting-unparsing.ads
+%%REGULAR-ON%%lib/langkit_support.relocatable/
+ langkit_support-prettier_utils.ali
+ langkit_support-rewriting-unparsing.ali
+%%REGULAR-ON%%lib/langkit_support.static/
+ langkit_support-prettier_utils.ali
+ langkit_support-rewriting-unparsing.ali
+%%REGULAR-ON%%lib/langkit_support.static-pic/
+ langkit_support-prettier_utils.ali
+ langkit_support-rewriting-unparsing.ali
 include/langkit_support/
  langkit_support-adalog-debug.adb
  langkit_support-adalog-debug.ads
@@ -813,9 +837,18 @@ share/gpr/
  liblktlang.gpr
 
 
-[FILE:408:patches/patch-langkit_support_langkit__support.gpr]
+[FILE:811:patches/patch-langkit_support_langkit__support.gpr]
 --- langkit/support/langkit_support.gpr.orig	2025-09-19 07:31:11 UTC
 +++ langkit/support/langkit_support.gpr
+@@ -15,7 +15,7 @@ library project Langkit_Support is
+ 
+    type Library_Standalone_Type is ("standard", "no", "encapsulated");
+    Library_Standalone : Library_Standalone_Type := external
+-     ("LANGKIT_SUPPORT_STANDALONE", external ("STANDALONE", "standard"));
++     ("LANGKIT_SUPPORT_STANDALONE", external ("STANDALONE", "@SALTYPE@"));
+ 
+    for Languages use ("Ada");
+    for Source_Dirs use (".");
 @@ -81,6 +81,7 @@ library project Langkit_Support is
     end case;
  

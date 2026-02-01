@@ -2,6 +2,7 @@
 
 NAMEBASE=		xscreensaver
 VERSION=		6.14
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		std
 SDESC[std]=		Screen saver and locker for X11
@@ -69,6 +70,10 @@ VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--build=x86_64-raven-midnightbsd3
 
 post-install:
 	${RM} -r ${STAGEDIR}/etc
+
+pre-configure:
+	${REINPLACE_CMD} -e "s|@BASH@|${LOCALBASE}/bin/bash|" \
+		${WRKSRC}/hacks/glx/xshadertoy-compile.pl
 
 [FILE:347:descriptions/desc.primary]
 XScreenSaver is a collection of popular screen savers that has become a 
@@ -957,6 +962,24 @@ share/man/man6/
  zoom.6
 
 
+[FILE:530:patches/patch-hacks_glx_xshadertoy-compile.pl]
+$NetBSD: patch-hacks_glx_xshadertoy-compile.pl,v 1.1 2026/01/16 14:53:05 hauke Exp $
+
+Supply the correct path to bash(1).
+
+--- hacks/glx/xshadertoy-compile.pl.orig	2026-01-14 05:19:40 UTC
++++ hacks/glx/xshadertoy-compile.pl
+@@ -85,7 +85,7 @@ sub compile($@) {
+   $title =~ s@^.*/@@gs;
+ 
+   my $year = (localtime)[5] + 1900;
+-  my $head = '#!/bin/bash
++  my $head = '#!@BASH@
+ # XScreenSaver, Copyright © ' . $year . ' Jamie Zawinski <jwz@jwz.org>
+ #
+ # Permission to use, copy, modify, distribute, and sell this software and its
+
+
 [FILE:438:patches/patch-utils_textclient.c]
 --- utils/textclient.c.orig	2025-03-07 19:56:45 UTC
 +++ utils/textclient.c
@@ -978,4 +1001,51 @@ share/man/man6/
  #endif /* HAVE_FORKPTY */
  
  #undef DEBUG
+
+
+[FILE:1423:netbsd/patch-hacks_glx_xshadertoy.c]
+$NetBSD: patch-hacks_glx_xshadertoy.c,v 1.1 2026/01/16 14:53:05 hauke Exp $
+
+Do not mess with <stdio.h>'s 'stdin'.
+
+--- hacks/glx/xshadertoy.c.orig	2026-01-15 19:44:37 UTC
++++ hacks/glx/xshadertoy.c
+@@ -732,7 +732,7 @@ init_xshadertoy (ModeInfo *mi)
+ # ifndef HAVE_ANDROID /* X11, Cocoa and iOS read files with fopen. */
+   {
+     int j;
+-    FILE *in = 0, *stdin = 0;
++    FILE *in = 0, *the_stdin = 0;
+     Bool nl_p = True;
+     int order[] = { 5, 0, 1, 2, 3, 4 };    /* Read "common" first on stdin */
+ 
+@@ -757,8 +757,8 @@ init_xshadertoy (ModeInfo *mi)
+           in = fopen (fn, "r");
+         else
+           {
+-            in = (stdin ? stdin : fdopen (STDIN_FILENO, "r"));
+-            stdin = in;
++            in = (the_stdin ? the_stdin : fdopen (STDIN_FILENO, "r"));
++            the_stdin = in;
+           }
+ 
+         if (!in)
+@@ -773,7 +773,7 @@ init_xshadertoy (ModeInfo *mi)
+         while (fgets (buf, sizeof(buf)-1, in))
+           {
+             res = strlen (buf);
+-            if (nl_p && stdin &&
++            if (nl_p && the_stdin &&
+                 !strcmp (buf, ".\n"))	/* "." alone on a line is EOF */
+               break;
+             nl_p = (res > 0 && buf[res-1] == '\n');
+@@ -791,7 +791,7 @@ init_xshadertoy (ModeInfo *mi)
+             bp->shader_program[i][len] = 0;
+           }
+ 
+-        if (!stdin)
++        if (!the_stdin)
+           {
+             fclose (in);
+             in = 0;
 

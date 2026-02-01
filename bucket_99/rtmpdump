@@ -2,6 +2,7 @@
 
 NAMEBASE=		rtmpdump
 VERSION=		2.6
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		multimedia
 VARIANTS=		std
@@ -24,7 +25,7 @@ OPTIONS_STANDARD=	none
 
 EXRUN[tools]=		primary
 
-USES=			cpe pkgconfig ssl:openssl30 zlib
+USES=			cpe gmake pkgconfig ssl:openssl30 zlib
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -43,6 +44,9 @@ LDFLAGS=		-L{{OPENSSLLIB}}
 			-Wl,-rpath,{{OPENSSLLIB}}
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 			LDFLAGS=-lnsl
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/librtmp.so
 
 [FILE:183:descriptions/desc.primary]
 rtmpdump is a toolkit for RTMP streams. All forms of RTMP are supported,

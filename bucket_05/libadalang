@@ -2,6 +2,7 @@
 
 NAMEBASE=		libadalang
 VERSION=		26.0.0
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		lang devel
 VARIANTS=		std
@@ -19,9 +20,13 @@ SPKGS[std]=		set
 			tools
 			examples
 
-OPTIONS_AVAILABLE=	DEBUG
-OPTIONS_STANDARD=	DEBUG
+OPTIONS_AVAILABLE=	DEBUG REGULAR
+OPTIONS_STANDARD=	DEBUG REGULAR
+OPT_ON[freebsd]=	REGULAR
 OPT_ON[all]=		DEBUG
+OPT_ON[netbsd]=		REGULAR
+OPT_ON[dragonfly]=	REGULAR
+OPT_ON[midnightbsd]=	REGULAR
 
 BUILD_DEPENDS=		langkit_support:dev:std
 			libgpr2:dev:std
@@ -61,6 +66,10 @@ VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 
 [DEBUG].MAKEFILE_ON=			WITH_DEBUG=yes
 
+[REGULAR].DESCRIPTION=			Build as regular, not Stand-Alone Library
+[REGULAR].MAKEFILE_OFF=			SALTYPE=standard
+[REGULAR].MAKEFILE_ON=			SALTYPE=no
+
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} -m langkit.scripts.lkm build \
@@ -78,6 +87,7 @@ do-configure:
 	${PATCH} -d ${PATCH_WRKSRC} --backup --forward -E -p0 --batch \
 		< ${FILESDIR}/pc-patch-build_libadalang.gpr
 	${REINPLACE_CMD} -e 's|@SOVERSION@|26.0.0|' \
+		-e 's|@SALTYPE@|${SALTYPE}|' \
 		${WRKSRC}/build/libadalang.gpr
 
 do-install:
@@ -129,7 +139,31 @@ lib/libadalang.so.%%SOVERSION%%
 lib/libadalang.relocatable/libadalang.so.%%SOVERSION%%
 
 
-[FILE:6302:manifests/plist.dev]
+[FILE:7058:manifests/plist.dev]
+%%REGULAR-ON%%include/libadalang/
+ libadalang-gdb.c
+ libadalang-generic_impl.adb
+ libadalang-generic_impl.ads
+ libadalang-generic_introspection.adb
+ libadalang-generic_introspection.ads
+ libadalang-parsers_impl.adb
+ libadalang-parsers_impl.ads
+ libadalang-unparsers.ads
+%%REGULAR-ON%%lib/libadalang.relocatable/
+ libadalang-generic_impl.ali
+ libadalang-generic_introspection.ali
+ libadalang-parsers_impl.ali
+ libadalang-unparsers.ali
+%%REGULAR-ON%%lib/libadalang.static/
+ libadalang-generic_impl.ali
+ libadalang-generic_introspection.ali
+ libadalang-parsers_impl.ali
+ libadalang-unparsers.ali
+%%REGULAR-ON%%lib/libadalang.static-pic/
+ libadalang-generic_impl.ali
+ libadalang-generic_introspection.ali
+ libadalang-parsers_impl.ali
+ libadalang-unparsers.ali
 include/libadalang/
  libadalang-analysis.adb
  libadalang-analysis.ads
@@ -396,9 +430,18 @@ share/examples/libadalang/highlight/
  term256.ads
 
 
-[FILE:385:files/pc-patch-build_libadalang.gpr]
---- build/libadalang.gpr.orig	2026-01-20 02:55:48 UTC
+[FILE:752:files/pc-patch-build_libadalang.gpr]
+--- build/libadalang.gpr.orig	2026-01-26 22:40:48 UTC
 +++ build/libadalang.gpr
+@@ -31,7 +31,7 @@ library project Libadalang is
+ 
+    type Library_Standalone_Type is ("standard", "no", "encapsulated");
+    Library_Standalone : Library_Standalone_Type := external
+-     ("LIBADALANG_STANDALONE", external ("STANDALONE", "standard"));
++     ("LIBADALANG_STANDALONE", external ("STANDALONE", "@SALTYPE@"));
+ 
+    type Boolean is ("false", "true");
+ 
 @@ -63,6 +63,7 @@ library project Libadalang is
  
  

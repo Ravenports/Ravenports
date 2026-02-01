@@ -2,6 +2,7 @@
 
 NAMEBASE=		gobject-introspection
 VERSION=		1.86.0
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Introspection data generator for GObject libraries
@@ -50,7 +51,7 @@ post-install:
 	# remove artifacts from doctemplates fix
 	${FIND} ${STAGEDIR}${PREFIX}/lib/gobject-introspection/giscanner/doctemplates \
 		-type f -name "meson.build*" -delete
-.for base in GLib GModule GObject Gio
+.for base in GLib GModule GObject Gio GioUnix
 	${INSTALL_DATA} ${WRKSRC}/${MESON_BUILD_DIR}/gir/${base}-2.0.typelib \
 		${STAGEDIR}${PREFIX}/lib/girepository-1.0/
 	${INSTALL_DATA} ${WRKSRC}/${MESON_BUILD_DIR}/gir/${base}-2.0.gir \
@@ -77,7 +78,7 @@ introspection data.
 920d1a3fcedeadc32acff95c2e203b319039dd4b4a08dd1a2dfd283d19c0b9ae      1083172 gnome3/gobject-introspection-1.86.0.tar.xz
 
 
-[FILE:4726:manifests/plist.primary]
+[FILE:4764:manifests/plist.primary]
 %%ONLY-DRAGONFLY%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-FREEBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-LINUX%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%-x86_64-linux-gnu.so
@@ -102,6 +103,7 @@ lib/girepository-1.0/
  GModule-2.0.typelib
  GObject-2.0.typelib
  Gio-2.0.typelib
+ GioUnix-2.0.typelib
  Vulkan-1.0.typelib
  cairo-1.0.typelib
  fontconfig-2.0.typelib
@@ -246,6 +248,7 @@ share/gir-1.0/
  GModule-2.0.gir
  GObject-2.0.gir
  Gio-2.0.gir
+ GioUnix-2.0.gir
  Vulkan-1.0.gir
  cairo-1.0.gir
  fontconfig-2.0.gir
@@ -321,27 +324,63 @@ share/man/man1/
  g-ir-scanner.1
 
 
-[FILE:593:patches/patch-gir_meson.build]
+[FILE:1232:patches/patch-gir_meson.build]
+$NetBSD: patch-gir_meson.build,v 1.7 2026/01/05 14:49:02 ryoon Exp $
+
 --- gir/meson.build.orig	2025-09-13 11:08:06 UTC
 +++ gir/meson.build
-@@ -431,6 +431,7 @@ if giounix_dep.found()
-   dep_type = giounix_dep.type_name()
-   if dep_type == 'pkgconfig'
-     gio_command += ['--pkg=gio-unix-2.0']
-+    gio_command += ['--pkg=glib-2.0', '--pkg=gmodule-2.0']
-     giounix_includedir = get_option('gi_cross_pkgconfig_sysroot_path') + join_paths(giounix_dep.get_variable(pkgconfig: 'includedir'), 'gio-unix-2.0')
-     # Get the installed gio-unix header list
-     ret = run_command(python, '-c', globber.format(join_paths(giounix_includedir, 'gio', '*.h')), check: true)
+@@ -384,7 +384,6 @@ gio_command = scanner_command + [
+   '--identifier-prefix=G',
+   '--symbol-prefix=g',
+   '--c-include=gio/gio.h',
+-  '--namespace=Gio',
+   '--nsversion=2.0',
+   '--library=gio-2.0',
+ ]
+@@ -470,12 +469,33 @@ gio_gir = custom_target('gir-gio',
+     '-DGIO_COMPILATION',
+     '-DG_SETTINGS_ENABLE_BACKEND',
+     '--cflags-end',
++    '--namespace=Gio',
+     '@INPUT@',
+   ]
+ )
+ 
+ uninstalled_gir_files += gio_gir
+ 
++gio_unix_gir = custom_target('gir-gio-unix',
++  input: gio_files,
++  output: 'GioUnix-2.0.gir',
++  depends: [gobject_gir, gir_giscanner_pymod, gio_gir_dep, gdump],
++  depend_files: gir_giscanner_built_files,
++  env: g_ir_scanner_env,
++  command: gio_command + [
++    '--include-uninstalled=' + gobject_gir.full_path(),
++    '--cflags-begin'] + glib_includes + extra_giscanner_cflags + [
++    '-DGIO_COMPILATION',
++    '-DG_SETTINGS_ENABLE_BACKEND',
++    '--cflags-end',
++    '--namespace=GioUnix',
++    '--pkg-export=gio-unix-2.0',
++    '@INPUT@',
++  ]
++)
++
++uninstalled_gir_files += gio_unix_gir
++
+ # GIRepository
+ 
+ girepository_command = scanner_command + [
 
 
-[FILE:767:patches/patch-giscanner_ast.py]
-$NetBSD: patch-giscanner_ast.py,v 1.3 2024/04/09 17:55:46 wiz Exp $
+[FILE:933:patches/patch-giscanner_ast.py]
+$NetBSD: patch-giscanner_ast.py,v 1.4 2025/01/14 14:40:52 ryoon Exp $
 
 - add double underscore versions
 
---- giscanner/ast.py.orig	2025-09-13 11:08:06 UTC
+--- giscanner/ast.py.orig	2024-09-13 13:08:54.000000000 +0000
 +++ giscanner/ast.py
-@@ -352,6 +352,16 @@ type_names['uint32_t'] = TYPE_UINT32
+@@ -351,6 +351,20 @@ type_names['uint32_t'] = TYPE_UINT32
  type_names['int64_t'] = TYPE_INT64
  type_names['uint64_t'] = TYPE_UINT64
  
@@ -354,6 +393,10 @@ $NetBSD: patch-giscanner_ast.py,v 1.3 2024/04/09 17:55:46 wiz Exp $
 +type_names['__int64_t'] = TYPE_INT64
 +type_names['__uint64_t'] = TYPE_UINT64
 +type_names['__off_t'] = TYPE_OFF_T
++type_names['__gid_t'] = TYPE_GID_T
++type_names['__uid_t'] = TYPE_UID_T
++type_names['__pid_t'] = TYPE_PID_T
++type_names['__socklen_t'] = TYPE_SOCKLEN_T
 +
  # A few additional GLib type aliases
  type_names['guchar'] = TYPE_UINT8
@@ -381,6 +424,24 @@ $NetBSD: patch-giscanner_ast.py,v 1.3 2024/04/09 17:55:46 wiz Exp $
              args.append('-Wl,--no-as-needed')
  
          for library in libraries:
+
+
+[FILE:692:patches/patch-giscanner_maintransformer.py]
+$NetBSD: patch-giscanner_maintransformer.py,v 1.1 2026/01/05 14:49:02 ryoon Exp $
+
+* For building GioUnix too.
+
+--- giscanner/maintransformer.py.orig	2025-12-07 09:37:11.904841636 +0000
++++ giscanner/maintransformer.py
+@@ -1215,7 +1215,7 @@ the ones that failed to resolve removed.
+             short = short[:-len('_quark')]
+             if full == "g_io_error":
+                 # Special case; GIOError was already taken forcing GIOErrorEnum
+-                assert self._namespace.name == 'Gio'
++                # assert self._namespace.name == 'Gio'
+                 enum = self._namespace.get('IOErrorEnum')
+             else:
+                 enum = self._uscore_type_names.get(short)
 
 
 [FILE:706:patches/patch-giscanner_scannerlexer.l]

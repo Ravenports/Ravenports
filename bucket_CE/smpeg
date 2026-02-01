@@ -2,7 +2,7 @@
 
 NAMEBASE=		smpeg
 VERSION=		0.4.5
-REVISION=		1
+REVISION=		2
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		SDL MPEG video/audio player and library
@@ -25,8 +25,7 @@ OPTIONS_STANDARD=	none
 
 EXRUN[tools]=		primary
 
-USES=			autoreconf gmake libtool pkgconfig
-GNOME_COMPONENTS=	gtk2
+USES=			autoreconf gmake libtool pkgconfig c++:primary
 SDL_COMPONENTS=		sdl1
 
 LICENSE=		LGPL20+:primary
@@ -52,6 +51,9 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libsmpeg-0.4.so.0.1.4
+
+pre-configure:
+	${MV} ${WRKSRC}/configure.in ${WRKSRC}/configure.ac
 
 [FILE:172:descriptions/desc.primary]
 Smpeg is an mpeg decoding library, which runs on just about any platform. 
@@ -103,12 +105,20 @@ share/man/man1/
  plaympeg.1
 
 
-[FILE:657:patches/patch-configure.in]
---- configure.in.orig	2018-04-23 00:23:56.325249000 +0200
-+++ configure.in	2018-04-23 00:24:26.244430000 +0200
-@@ -59,7 +59,20 @@
+[FILE:850:patches/patch-configure.in]
+--- configure.in.orig	2018-04-22 21:49:56 UTC
++++ configure.in
+@@ -58,8 +58,28 @@ AC_LIBTOOL_WIN32_DLL
+ AM_PROG_LIBTOOL
  AC_PROG_INSTALL
  
++# Stub for AM_PATH_GTK_2_0 if it's not found in the system library
++m4_ifndef([AM_PATH_GTK_2_0], [
++  AC_DEFUN([AM_PATH_GTK_2_0], [
++    echo "GTK 2.0 macro not found; skipping GTK checks."
++  ])
++])
++
  dnl Work around the lack of certain typedefs.
 -AC_TYPE_SOCKLEN_T
 +AC_DEFUN(AC_TYPE_SOCKLEN_T,

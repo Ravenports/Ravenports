@@ -2,6 +2,7 @@
 
 NAMEBASE=		gprbuild
 VERSION=		26.0.0
+REVISION=		1
 EPOCH=			1
 KEYWORDS=		devel ada
 VARIANTS=		std
@@ -846,7 +847,7 @@ Revert to older code compatible with gcc 14
        for Leading_Required_Switches        ("Ada") use
 
 
-[FILE:2159:patches/patch-gprconfig__kbase_db_linker.xml]
+[FILE:2513:patches/patch-gprconfig__kbase_db_linker.xml]
 --- gprconfig_kbase/db/linker.xml.orig	2025-09-18 21:21:22 UTC
 +++ gprconfig_kbase/db/linker.xml
 @@ -1227,6 +1227,7 @@
@@ -901,7 +902,19 @@ Revert to older code compatible with gcc 14
         <target name="^.*-fastos.*$" />
         <target name="^.*-qnx[0-9]*"/>
       </targets>
-@@ -1888,6 +1911,7 @@
+@@ -1409,6 +1432,11 @@
+        <target name="^.*qnx[0-9]*$" />
+        <target name="darwin" />
+        <target name="mingw" />
++       <target name="^.*freebsd.*$" />
++       <target name="^.*dragonfly.*$" />
++       <target name="^.*openbsd.*$" />
++       <target name="^.*netbsd.*$" />
++       <target name="^.*midnightbsd.*$" />
+     </targets>
+     <config>
+    for Library_Partial_Linker use
+@@ -1888,6 +1916,7 @@
         <target name="^.*openbsd.*$" />
         <target name="^.*netbsd.*$" />
         <target name="^.*dragonfly.*$" />
@@ -909,11 +922,10 @@ Revert to older code compatible with gcc 14
         <target name="^.*-qnx[0-9]*"/>
       </targets>
      <config>
-@@ -1942,6 +1966,8 @@
+@@ -1942,6 +1971,7 @@
         <target name="^.*openbsd.*$" />
         <target name="^.*netbsd.*$" />
         <target name="^.*dragonfly.*$" />
-+       <target name="^.*midnightbsd.*$" />
 +       <target name="^.*midnightbsd.*$" />
       </targets>
      <config>
@@ -990,7 +1002,7 @@ Revert to older code compatible with gcc 14
  
 
 
-[FILE:1602:patches/patch-src_gprlib.adb]
+[FILE:1630:patches/patch-src_gprlib.adb]
 --- src/gprlib.adb.orig	2025-09-15 13:19:27 UTC
 +++ src/gprlib.adb
 @@ -722,9 +722,6 @@ procedure Gprlib is
@@ -1021,7 +1033,7 @@ Revert to older code compatible with gcc 14
  
           elsif Partial_Linker_Path = null then
 -            Fail_Program (null, "unknown object file """ & Opt & """");
-+            Put_Line ("WARNING: unknown object '" & Opt & "'");
++            Put_Line ("WARNING - No defined Partial Linker: unknown object '" & Opt & "'");
           else
              Trailing_PL_Options.Append (Opt);
           end if;
