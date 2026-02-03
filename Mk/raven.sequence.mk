@@ -115,6 +115,7 @@ _BUILD_SEQ=		100:build-message \
 
 .if defined(INSTALL_REQ_TOOLCHAIN)
 _BUILD_SEQ+=		852:stage-dir \
+			853:wheel-install \
 			854:pre-install \
 			856:pre-install-option \
 			858:pre-install-opsys \
@@ -129,6 +130,7 @@ _STAGE_DEP=		build
 _STAGE_SEQ=		100:stage-message
 .if !defined(INSTALL_REQ_TOOLCHAIN)
 _STAGE_SEQ+=		200:stage-dir \
+			250:wheel-install \
 			300:pre-install \
 			325:pre-install-option \
 			350:pre-install-opsys \

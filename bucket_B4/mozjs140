@@ -2,6 +2,7 @@
 
 NAMEBASE=		mozjs140
 VERSION=		140.7.0
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		std
 SDESC[std]=		Standalone JS interpreter from Mozilla 140-esr
@@ -16,8 +17,8 @@ SPKGS[std]=		set
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	SYSICU
-OPTIONS_STANDARD=	SYSICU
+OPTIONS_AVAILABLE=	SYSICU DEBUG TEST
+OPTIONS_STANDARD=	SYSICU DEBUG TEST
 
 BUILD_DEPENDS=		zip:primary:std
 			rust:single:std
@@ -43,13 +44,10 @@ MUST_CONFIGURE=		yes
 CONFIGURE_OUTSOURCE=	yes
 CONFIGURE_ARGS=		--prefix={{PREFIX}}
 			--target={{CONFIGURE_TARGET}}
-			--disable-debug
-			--disable-debug-symbols
 			--disable-jemalloc
 			--enable-readline
 			--enable-release
 			--enable-shared-js
-			--enable-tests
 			--enable-optimize
 			--enable-gczeal
 			--with-intl-api
@@ -63,12 +61,28 @@ PLIST_SUB=		MOZJS_MAJOR=140
 VAR_OPSYS[linux]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-ravenadm-linux-gnu
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
+[DEBUG].CONFIGURE_ARGS_OFF=		--disable-debug
+					--disable-debug-symbols
+[DEBUG].MAKEFILE_ON=			WITH_DEBUG=yes
+
+[TEST].DESCRIPTION=			Run self-test after build
+[TEST].BUILD_DEPENDS_ON=		python-six:single:python_used
+[TEST].CONFIGURE_ARGS_OFF=		--disable-tests
+[TEST].CONFIGURE_ARGS_ON=		--enable-tests
+
 [SYSICU].DESCRIPTION=			Build with external ICU package
 [SYSICU].BUILDRUN_DEPENDS_ON=		icu:primary:std
 					icu:data:std
 [SYSICU].BUILD_DEPENDS_ON=		icu:dev:std
 [SYSICU].CONFIGURE_ARGS_ON=		--with-system-icu
 [SYSICU].USES_OFF=			c++:primary
+
+post-build-TEST-ON:
+	(cd ${BUILD_WRKSRC}; \
+	if ! ${DO_MAKE_BUILD} check-jstests; then \
+		${ECHO_MSG} "===> At least one test failed unexpectedly."; \
+		${TRUE}; \
+	fi)
 
 pre-configure:
 	${CHMOD} 755 ${WRKSRC}/configure
@@ -716,7 +730,7 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
 
 
 [FILE:414:patches/patch-build_autoconf_config.guess]
---- ../../build/autoconf/config.guess.orig	2025-12-01 18:15:29 UTC
+--- ../../build/autoconf/config.guess.orig	2026-01-06 21:09:41 UTC
 +++ ../../build/autoconf/config.guess
 @@ -290,7 +290,7 @@ case $UNAME_MACHINE:$UNAME_SYSTEM:$UNAME
  	GUESS=$UNAME_MACHINE_ARCH-unknown-libertybsd$UNAME_RELEASE
@@ -730,7 +744,7 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
 
 
 [FILE:553:patches/patch-build_moz.configure_init.configure]
---- ../../build/moz.configure/init.configure.orig	2025-12-01 18:15:30 UTC
+--- ../../build/moz.configure/init.configure.orig	2026-01-06 21:09:42 UTC
 +++ ../../build/moz.configure/init.configure
 @@ -523,8 +523,8 @@ def split_triplet(triplet, allow_wasi=Fa
      if cpu.endswith("86") or (cpu.startswith("i") and "86" in cpu):
@@ -745,8 +759,41 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
          canonical_cpu = cpu
 
 
+[FILE:751:patches/patch-config_gcc__hidden.h]
+Toggle symbol visibility, otherwise certain symbols are marked as local
+which are actually supposed to be used (e.g. by gjs):
+
+void js::UnsafeTraceManuallyBarrieredEdge<jsid>(JSTracer*, jsid*, char const*)
+void JS::TraceEdge<JSObject*>(JSTracer*, JS::Heap<JSObject*>*, char const*)
+void js::UnsafeTraceManuallyBarrieredEdge<JSObject*>(JSTracer*, JSObject**, char const*)
+void js::UnsafeTraceManuallyBarrieredEdge<JS::Value>(JSTracer*, JS::Value*, char const*)
+
+--- ../../config/gcc_hidden.h.orig	2026-01-06 21:09:41 UTC
++++ ../../config/gcc_hidden.h
+@@ -3,4 +3,4 @@
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+ /* Begin all files as hidden visibility */
+-#pragma GCC visibility push(hidden)
++#pragma GCC visibility push(default)
+
+
+[FILE:473:patches/patch-js_src_jit_ProcessExecutableMemory.h]
+--- ../../js/src/jit/ProcessExecutableMemory.h.orig	2026-01-06 21:09:44 UTC
++++ ../../js/src/jit/ProcessExecutableMemory.h
+@@ -14,7 +14,7 @@ namespace jit {
+ 
+ // Limit on the number of bytes of executable memory to prevent JIT spraying
+ // attacks.
+-#if JS_BITS_PER_WORD == 32
++#if JS_BITS_PER_WORD == 32 || defined(__NetBSD__)
+ static const size_t MaxCodeBytesPerProcess = 140 * 1024 * 1024;
+ #else
+ // This is the largest number which satisfies various alignment static
+
+
 [FILE:500:patches/patch-testing_mozbase_mozinfo_mozinfo_mozinfo.py]
---- ../../testing/mozbase/mozinfo/mozinfo/mozinfo.py.orig	2025-12-01 18:15:39 UTC
+--- ../../testing/mozbase/mozinfo/mozinfo/mozinfo.py.orig	2026-01-06 21:09:51 UTC
 +++ ../../testing/mozbase/mozinfo/mozinfo/mozinfo.py
 @@ -104,7 +104,7 @@ elif system == "Linux":
  
@@ -757,4 +804,45 @@ lib/pkgconfig/mozjs-%%MOZJS_MAJOR%%.pc
      info["os"] = "bsd"  # community builds
      version = os_version = sys.platform
  elif system == "Darwin":
+
+
+[FILE:2387:files/test-failures.txt]
+-------------
+-- FreeBSD --
+-------------
+## shell/os.js: rc = 3, run time = 60.226526
+/construction/mozjs140/firefox-140.7.0/js/src/tests/shell/os.js:29:9 
+Error: Assertion failed: got true, expected false: killed process should not have exitStatus
+Stack:
+  @/construction/mozjs140/firefox-140.7.0/js/src/tests/shell/os.js:29:9
+TEST-UNEXPECTED-FAIL | shell/os.js | (args: "") [60.2 s]
+
+## non262/Date/parse-dashed-numeric-date.js: rc = 3, run time = 0.088944
+/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/parse-dashed-numeric-date.js:119:13 
+Error: Assertion failed: got 568962338400000, expected 568962313200000: "19999-09-12 22:00:00 GMT-0800" should be Sun Sep 12 19999 23:00:00 GMT+0000 (Mountain Standard Time) (got Mon Sep 13 19999 06:00:00 GMT+0000 (Mountain Standard Time)).
+Stack:
+  @/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/parse-dashed-numeric-date.js:119:13
+  inTimeZone@/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/shell.js:100:13
+  @/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/parse-dashed-numeric-date.js:7:11
+TEST-UNEXPECTED-FAIL | non262/Date/parse-dashed-numeric-date.js | (args: "") [0.1 s]
+
+
+---------------
+-- DragonFly --
+---------------
+## shell/os.js: rc = 3, run time = 60.104901
+/construction/mozjs140/firefox-140.7.0/js/src/tests/shell/os.js:29:9
+Error: Assertion failed: got true, expected false: killed process should not have exitStatus
+Stack:
+  @/construction/mozjs140/firefox-140.7.0/js/src/tests/shell/os.js:29:9
+TEST-UNEXPECTED-FAIL | shell/os.js | (args: "") [60.1 s]
+
+## non262/Date/parse-dashed-numeric-date.js: rc = 3, run time = 0.05192
+/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/parse-dashed-numeric-date.js:119:13
+Error: Assertion failed: got 568962338400000, expected 568962313200000: "19999-09-12 22:00:00 GMT-0800" should be Sun Sep 12 19999 23:00:00 GMT+0000 (Mountain Standard Time) (got Mon Sep 13 19999 06:00:00 GMT+0000 (Mountain Standard Time)).
+Stack:
+  @/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/parse-dashed-numeric-date.js:119:13
+  inTimeZone@/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/shell.js:100:13
+  @/construction/mozjs140/firefox-140.7.0/js/src/tests/non262/Date/parse-dashed-numeric-date.js:7:11
+TEST-UNEXPECTED-FAIL | non262/Date/parse-dashed-numeric-date.js | (args: "") [0.1 s]
 

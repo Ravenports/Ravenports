@@ -207,9 +207,12 @@ EXTRACT_HEAD_1=		echo "python wheel file: "
 EXTRACT_TAIL_1=
 NO_BUILD=		yes
 
-.    if !target(do-install)
-do-install:
+.    if !target(wheel-install)
+wheel-install:
 	# install files directory from distfiles (WRKSRC is not populated)
+	@${ECHO_MSG} "==================================================="
+	@${ECHO_MSG} "===  Extract wheel contents to stage directory  ==="
+	@${ECHO_MSG} "==================================================="
 	${SETENV} AUTOPYTHON=${_PYTHON_VERSION} \
 	pip install --verbose \
 		--no-deps \
@@ -218,7 +221,14 @@ do-install:
 		--progress-bar off \
 		--root ${STAGEDIR} \
 		${DISTDIR}/${DIST_SUBDIR}/${DISTFILE_1:C/:.*//}
+.    endif
+
+.    if !target(do-install)
+do-install:
 	# compile them separately (avoids embedded stagedir)
+	@${ECHO_MSG} "========================================="
+	@${ECHO_MSG} "===  Recompile sources into bytecode  ==="
+	@${ECHO_MSG} "========================================="
 	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
 	# Don't allow LICENSE to be put at {PYTHON_SITELIBDIR}
 	@for badfile in LICENSE LICENCE README README.md; do \

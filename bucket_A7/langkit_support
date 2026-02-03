@@ -2,7 +2,7 @@
 
 NAMEBASE=		langkit_support
 VERSION=		26.0.0
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		ada devel
 VARIANTS=		std
@@ -24,10 +24,6 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	REGULAR
 OPTIONS_STANDARD=	REGULAR
-OPT_ON[freebsd]=	REGULAR
-OPT_ON[netbsd]=		REGULAR
-OPT_ON[dragonfly]=	REGULAR
-OPT_ON[midnightbsd]=	REGULAR
 
 BUILD_DEPENDS=		python313:primary:std
 			gmp:dev:std
@@ -81,6 +77,8 @@ pre-configure:
 	${REINPLACE_CMD} -e 's|%%SOVERSION%%|26.0.0|' \
 		-e 's|@SALTYPE@|${SALTYPE}|' \
 		${WRKSRC}/langkit/support/langkit_support.gpr
+	${REINPLACE_CMD} -e 's|%%SOVERSION%%|26.0.0|' \
+		${WRKSRC}/langkit/support/adasat.gpr
 
 post-extract:
 	# relocate adasat source
@@ -835,6 +833,19 @@ lib/liblktlang.static-pic/
 share/gpr/
  langkit_support.gpr
  liblktlang.gpr
+
+
+[FILE:475:patches/patch-adasat.gpr]
+--- langkit/support/adasat.gpr.orig	2024-01-03 17:00:52 UTC
++++ langkit/support/adasat.gpr
+@@ -12,6 +12,7 @@ library project AdaSAT is
+    for Library_Dir use "lib/" & Library_Kind_Param & "/" & Build_Mode;
+    for Object_Dir use "obj/" & Library_Kind_Param & "/" & Build_Mode;
+    for Library_Name use "adasat";
++   for Library_Version use "libadasat.so.%%SOVERSION%%";
+    for Library_Kind use Library_Kind_Param;
+ 
+    Common_Ada_Cargs := ("-gnatwa", "-gnatyg", "-fPIC");
 
 
 [FILE:811:patches/patch-langkit_support_langkit__support.gpr]

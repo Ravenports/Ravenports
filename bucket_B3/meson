@@ -54,11 +54,6 @@ post-extract:
 	# extract license terms
 	${AWK} '/^from / {exit}; {print}' ${PATCH_WRKSRC}/mesonbuild/mesonmain.py > ${WRKDIR}/TERMS
 
-do-install:
-	${MKDIR} ${STAGEDIR}
-	${MV} ${WRKSRC}${PREFIX} ${STAGEDIR}/
-	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
-
 [FILE:473:descriptions/desc.single]
 Meson is a cross-platform build system designed to be both as fast and as
 user friendly as possible. It supports many languages and compilers,
@@ -223,7 +218,11 @@ Do not default to -z ignore on SunOS, it breaks for example -fstack-protector.
      elif mesonlib.is_windows():
 
 
-[FILE:25:files/special.mk]
+[FILE:102:files/special.mk]
+wheel-install:
+	${MKDIR} ${STAGEDIR}
+	${MV} ${WRKSRC}${PREFIX} ${STAGEDIR}/
+
 stage-dir:
 	# do nothing
 

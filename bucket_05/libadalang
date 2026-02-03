@@ -2,7 +2,7 @@
 
 NAMEBASE=		libadalang
 VERSION=		26.0.0
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		lang devel
 VARIANTS=		std
@@ -22,11 +22,6 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	DEBUG REGULAR
 OPTIONS_STANDARD=	DEBUG REGULAR
-OPT_ON[freebsd]=	REGULAR
-OPT_ON[all]=		DEBUG
-OPT_ON[netbsd]=		REGULAR
-OPT_ON[dragonfly]=	REGULAR
-OPT_ON[midnightbsd]=	REGULAR
 
 BUILD_DEPENDS=		langkit_support:dev:std
 			libgpr2:dev:std
@@ -41,8 +36,7 @@ EXRUN[dev]=		libgpr2:dev:std
 			langkit_support:dev:std
 			prettier-ada:dev:std
 
-USES=			gprbuild iconv:build python:build,sutools
-			ada:primary
+USES=			gprbuild iconv:build python:build,pep517 ada:primary
 
 LICENSE=		APACHE20:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -95,12 +89,22 @@ do-install:
 		${PYTHON_CMD} -m langkit.scripts.lkm install \
 		--library-types=static,static-pic,relocatable \
 		${STAGEDIR}${PREFIX})
+	# construct python wheel
+	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} python -m build \
+		--no-isolation --wheel build/python)
+	# install wheel in stage directory
+	(cd ${BUILD_WRKSRC} && ${SETENV} AUTOPYTHON=${_PYTHON_VERSION} \
+		python -m installer \
+		--destdir ${STAGEDIR} \
+		--prefix ${PREFIX} \
+		${BUILD_WRKSRC}/build/python/dist/*.whl)
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/[n]*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/gnat_compare
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_dda
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_prep
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_parse
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lal_unparse
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/incrementality
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libadalang.relocatable/libadalang.so
 	${SED} -i'' -e 's|/usr/bin/env python|${PYTHON_CMD}|' \
 		${STAGEDIR}${PREFIX}/bin/lal_playground \
@@ -134,7 +138,8 @@ This package contains tools based on the Ada language library.
 a2df0e991290b3440dcbae973e56ab2c232e63f73bc78b04cd06b55d7e942c4a      3092312 AdaCore-libadalang-26.0.0.tar.gz
 
 
-[FILE:87:manifests/plist.primary]
+[FILE:146:manifests/plist.primary]
+@comment libadalang python module lists are auto-generated
 lib/libadalang.so.%%SOVERSION%%
 lib/libadalang.relocatable/libadalang.so.%%SOVERSION%%
 
@@ -467,4 +472,12 @@ post-configure patch to generated mains.gpr
 +   end Linker;
 +
  end Mains;
+
+
+[FILE:202:files/special.mk]
+setuptools-autolist:
+	@echo "[Packing build python modules]"
+	@(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} lib/pyth* \( -type f -o -type l \) 2>/dev/null | ${SORT}) \
+		>> ${WRKDIR}/.manifest.primary.mktmp
 

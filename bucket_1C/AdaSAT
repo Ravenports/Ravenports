@@ -2,6 +2,7 @@
 
 NAMEBASE=		AdaSAT
 VERSION=		26.0.0
+REVISION=		1
 KEYWORDS=		math ada
 VARIANTS=		std
 SDESC[std]=		Implementation of a DPLL-based SAT solver in Ada
@@ -37,10 +38,16 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		26.0.0
 
 post-install:
-	# remove manifests
-	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
-	# strip binaries
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/adasat.relocatable/libadasat.so
+	# Fix non-standard placement of shared libraries
+	${RM} ${STAGEDIR}${PREFIX}/lib/libadasat.so*
+	${RM} ${STAGEDIR}${PREFIX}/lib/adasat.relocatable/libadasat.so
+	${MV} ${STAGEDIR}${PREFIX}/lib/adasat.relocatable/libadasat.so.26.0.0 \
+		${STAGEDIR}${PREFIX}/lib/
+	${LN} -s libadasat.so.26.0.0 ${STAGEDIR}${PREFIX}/lib/libadasat.so
+	${LN} -s ../libadasat.so.26.0.0 ${STAGEDIR}${PREFIX}/lib/adasat.relocatable/libadasat.so
+	${LN} -s ../libadasat.so.26.0.0 ${STAGEDIR}${PREFIX}/lib/adasat.relocatable/libadasat.so.26.0.0
+	# strip library
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libadasat.so
 
 pre-configure:
 	${REINPLACE_CMD} -e 's|%%SOVERSION%%|26.0.0|' ${WRKSRC}/adasat.gpr
@@ -150,6 +157,19 @@ lib/adasat.static-pic/
  adasat.ali
  libadasat.a
 share/gpr/adasat.gpr
+
+
+[FILE:301:patches/patch-Makefile]
+--- Makefile.orig	2024-01-03 17:00:52 UTC
++++ Makefile
+@@ -28,6 +28,7 @@ install:
+ 		gprinstall -P adasat.gpr -p -f \
+ 			-XLIBRARY_TYPE=$$kind \
+ 			-XBUILD_MODE=$(BUILD_MODE) \
++			--no-manifests \
+ 			--relocate-build-tree="$(BUILD_DIR)" \
+ 			--prefix="$(INSTALL_DIR)" \
+ 			--build-name=$$kind \
 
 
 [FILE:443:patches/patch-adasat.gpr]
