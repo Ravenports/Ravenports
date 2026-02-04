@@ -85,6 +85,9 @@ do-configure:
 		${WRKSRC}/build/libadalang.gpr
 
 do-install:
+	# Normally libadalang.so would go in the dev subpackage.
+	# It has been placed in the primary subpackage because the lal_utils
+	# python module dlopens libadalang.so, not libadalang.so.26.0.0
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} -m langkit.scripts.lkm install \
 		--library-types=static,static-pic,relocatable \
@@ -138,13 +141,17 @@ This package contains tools based on the Ada language library.
 a2df0e991290b3440dcbae973e56ab2c232e63f73bc78b04cd06b55d7e942c4a      3092312 AdaCore-libadalang-26.0.0.tar.gz
 
 
-[FILE:146:manifests/plist.primary]
+[FILE:180:manifests/plist.primary]
 @comment libadalang python module lists are auto-generated
-lib/libadalang.so.%%SOVERSION%%
-lib/libadalang.relocatable/libadalang.so.%%SOVERSION%%
+lib/
+ libadalang.so
+ libadalang.so.%%SOVERSION%%
+lib/libadalang.relocatable/
+ libadalang.so
+ libadalang.so.%%SOVERSION%%
 
 
-[FILE:7058:manifests/plist.dev]
+[FILE:7025:manifests/plist.dev]
 %%REGULAR-ON%%include/libadalang/
  libadalang-gdb.c
  libadalang-generic_impl.adb
@@ -254,7 +261,6 @@ java/
  pom.xml
 java/jni/jni_impl.c
 java/src/main/java/com/adacore/libadalang/Libadalang.java
-lib/libadalang.so
 lib/libadalang.relocatable/
  libadalang-analysis.ali
  libadalang-auto_provider.ali
@@ -296,7 +302,6 @@ lib/libadalang.relocatable/
  libadalang-target_info.ali
  libadalang-unit_files.ali
  libadalang.ali
- libadalang.so
 lib/libadalang.static/
  libadalang-analysis.ali
  libadalang-auto_provider.ali
