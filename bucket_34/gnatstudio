@@ -2,6 +2,7 @@
 
 NAMEBASE=		gnatstudio
 VERSION=		20250919
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Multilanguage IDE for Ada, SPARK, C/C++, and more
@@ -46,6 +47,8 @@ BUILDRUN_DEPENDS=	gnatcoll-db:sql:std
 RUN_DEPENDS=		librsvg:primary:std
 			gdb:primary:std
 			libcanberra:primary:std
+			python-jedi:single:python_used
+			python-pycodestyle:single:python_used
 EXRUN[primary]=		ravensys-gcc:compilers:std
 			ravensys-gcc:ada_run:std
 			ravensys-gcc:cxx_run:std
@@ -84,8 +87,11 @@ SUB_LIST=		ADA_PATH={{PREFIX}}/toolchain/ravensys-gcc/bin
 [DEBUG].MAKE_ARGS_OFF=			BUILD=Production
 [DEBUG].MAKE_ARGS_ON=			BUILD=Debug
 
-post-patch:
-	${ECHO} "GNAT_SOURCES=" > ${WRKSRC}/Makefile.gnat
+pre-install:
+	# .gitignore can't be removed after the build
+	${FIND} ${WRKSRC} -type f -name ".gitignore" -delete
+	${FIND} ${WRKSRC} -type f -name ".cvsignore" -delete
+	${FIND} ${WRKSRC} -type d -empty -delete
 
 do-build:
 	cd ${WRKSRC}/docs && ${SETENV} ${MAKE_ENV} \
@@ -94,16 +100,27 @@ do-build:
 		${MAKE_CMD} ${MAKE_ARGS} ${BUILD_TARGET}
 
 post-install:
-	${FIND} ${STAGEDIR}${PREFIX} -type f -name ".gitignore" -delete
-	${FIND} ${STAGEDIR}${PREFIX} -type f -name "*.orig" -delete
 	${FIND} ${STAGEDIR}${PREFIX} -type d -empty -delete
 	${FIND} ${STAGEDIR}${PREFIX} -type d -name "__pycache__" | ${XARGS} rm -rf
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/gnatdoc3
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/gnatstudio
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/gnatstudio_cli
 	${INSTALL_SCRIPT} ${WRKDIR}/gps ${STAGEDIR}${PREFIX}/bin
 	echo "This is the GPS GPL Edition for Ravenports." \
 		> ${STAGEDIR}${PREFIX}/share/gnatstudio/about.txt
+	# Automatically add __pycache__ files to the primary manifest
+	(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} share/gnatstudio -type d -name __pycache__ |\
+		${XARGS} -I DIR ${FIND} DIR ! -type d 2>/dev/null | \
+		${SORT} >> ${WRKDIR}/.manifest.primary.mktmp)
+	# Automatically add __pycache__ files to the examples manifest
+	(cd ${STAGEDIR}${PREFIX} && \
+		${FIND} share/examples -type d -name __pycache__ |\
+		${XARGS} -I DIR ${FIND} DIR ! -type d 2>/dev/null | \
+		${SORT} >> ${WRKDIR}/.manifest.examples.mktmp)
 
 pre-configure:
-	${RM} ${WRKSRC}/share/plug-ins/*.orig
 	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
 		${WRKSRC}/gnatstudio/gps.gpr \
 		${WRKSRC}/gnatdoc/gnatdoc.gpr \
@@ -125,10 +142,10 @@ pre-configure:
 	${REINPLACE_CMD} -e 's/relocatable/static/g' \
 		${WRKSRC}/testsuite/Makefile
 	${REINPLACE_CMD} -e 's/latexpdf//g' ${WRKSRC}/docs/Makefile.in
+	${FIND} ${WRKSRC} -type f -name "*.orig" -delete
+	${FIND} ${WRKSRC} -type f -name "*.bak" -delete
 
 post-extract:
-	${FIND} ${WRKSRC} -type f -name ".cvsignore" -delete
-	${FIND} ${WRKSRC} -type d -empty -delete
 	echo "19 September 2025" > ${WRKSRC}/DATE.txt
 	echo "Continuous Release 20250919" > ${WRKSRC}/VERSION.txt
 
@@ -164,7 +181,8 @@ are performed on a separate server.
 0d9381f932b1b646866d8488a6e22e9c8bf530e5a4fc72ca1172e36f498450c2     16511298 AdaCore-gnatstudio-14a6978.tar.gz
 
 
-[FILE:16205:manifests/plist.primary]
+[FILE:16260:manifests/plist.primary]
+@comment __pycache__ files are automatically generated
 bin/
  gnatdoc3
  gnatstudio
@@ -1114,7 +1132,8 @@ share/doc/gnatstudio/html/users_guide/_static/js/
  versions.js
 
 
-[FILE:1979:manifests/plist.examples]
+[FILE:2034:manifests/plist.examples]
+@comment __pycache__ files are automatically generated
 share/examples/gnatstudio/demo/
  demo.gpr
  input.txt
@@ -1215,7 +1234,7 @@ share/examples/gnatstudio/xml/
  gnatmake.xml
 
 
-[FILE:881:patches/patch-Makefile.in]
+[FILE:1402:patches/patch-Makefile.in]
 --- Makefile.in.orig	2025-09-19 10:04:04 UTC
 +++ Makefile.in
 @@ -3,17 +3,16 @@ MV              = mv
@@ -1244,6 +1263,15 @@ share/examples/gnatstudio/xml/
  
  BUILD?=Debug
  
+@@ -61,7 +60,7 @@ install-common:
+ 
+ 	(cd share; tar cf - library/*.py) | (cd $(sharedir)/gnatstudio; tar xf -)
+ 	(cd share; tar cf - support/) | (cd $(sharedir)/gnatstudio; tar xf -)
+-	-${PYTHON} distrib/gnat_switches.py > $(sharedir)/gnatstudio/support/core/gnat_switches.py
++	echo "switches_comments={}" > $(sharedir)/gnatstudio/support/core/gnat_switches.py
+ 	$(RM) $(sharedir)/gnatstudio/plug-ins/emacs.xml
+ 	$(RM) $(sharedir)/gnatstudio/plug-ins/python_doc.py
+ 	$(RM) $(sharedir)/gnatstudio/plug-ins/python_doc.pyc
 
 
 [FILE:1865:patches/patch-cherry-001]
@@ -1328,6 +1356,47 @@ Issue: eng/toolchain/gnat#1696
  
  install:
  	$(MKDIR) $(docdir)
+
+
+[FILE:1411:patches/patch-docs_users__guide_GPS_____init____.py]
+--- docs/users_guide/GPS/__init__.py.orig	2025-09-19 10:04:04 UTC
++++ docs/users_guide/GPS/__init__.py
+@@ -2147,7 +2147,7 @@ class Console(GUI):
+         pass  # implemented in Ada
+ 
+     def write_with_links(self, text):
+-        """
++        r"""
+         Outputs some text on the console, highlighting the parts of it that
+         match the regular expression registered by
+         :func:`GPS.Console.create_link`.
+@@ -4540,7 +4540,7 @@ class EditorHighlighter(object):
+     """
+ 
+     def __init__(self, pattern, action, index=0, secondary_action=None):
+-        """
++        r"""
+         Register a highlighter. The action is a Python function that takes a
+         string as a parameter: the string being passed is the section of text
+         which is highlighted.
+@@ -7377,7 +7377,7 @@ class MDI(object):
+ 
+     @staticmethod
+     def file_selector(file_filter="empty", base_dir="", except_filter=""):
+-        """
++        r"""
+         Displays a modal file selector. The user selected file is returned,
+         or a file with an empty name if :guilabel:`Cancel` is pressed.
+ 
+@@ -11086,7 +11086,7 @@ class XMLViewer(object):
+     def __init__(
+         self, name, columns=3, parser=None, on_click=None, on_select=None, sorted=False
+     ):
+-        """
++        r"""
+         Creates a new XMLViewer, named ``name``.
+ 
+         ``columns`` is the number of columns that the table representation
 
 
 [FILE:331:patches/patch-gnatdoc_gnatdoc.gpr]
@@ -1425,6 +1494,53 @@ Issue: eng/toolchain/gnat#1696
          changed = False
 
 
+[FILE:664:patches/patch-share_support_core_aliases.py]
+--- share/support/core/aliases.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/aliases.py
+@@ -12,13 +12,13 @@ from text_utils import goto_word_start
+ import re
+ from color_utils import Color
+ 
+-subst_pattern = re.compile("%\(.*?\)|%_")
++subst_pattern = re.compile(r"%\(.*?\)|%_")
+ # The regexp used to detect aliases parameters
+ 
+-lsp_subst_pattern = re.compile("\${[^}]*}|\$[0-9]")
++lsp_subst_pattern = re.compile(r"\${[^}]*}|\$[0-9]")
+ # The regexp used to detect LSP snippets parameters
+ 
+-lsp_get_placeholder = re.compile("\${[0-9]+:([^}]*)}")
++lsp_get_placeholder = re.compile(r"\${[0-9]+:([^}]*)}")
+ 
+ color_pref_name = "Src-Editor-Ephemeral-Smart"
+ 
+
+
+[FILE:1065:patches/patch-share_support_core_align.py]
+--- share/support/core/align.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/align.py
+@@ -495,7 +495,7 @@ def align_formal_params():
+     """
+     # The regexp needs the three nested groups, since we want \\1 to always
+     # returns at least the empty string
+-    buffer_align_on(sep=":\s*(((in\s+out|out|in|access) )?)", replace_with=" : \\1")
++    buffer_align_on(sep=r":\s*(((in\s+out|out|in|access) )?)", replace_with=r" : \\1")
+ 
+ 
+ @interactive(
+@@ -523,7 +523,7 @@ def align_end_of_line_comments():
+     buffer = GPS.EditorBuffer.get()
+     lang = buffer.file().language().lower()
+     if lang in ("ada", "project file"):
+-        buffer_align_on(sep="\s*[^\s]+\s*( --\s*)", replace_with=" --  ", sep_group=1)
++        buffer_align_on(sep=r"\s*[^\s]+\s*( --\s*)", replace_with=" --  ", sep_group=1)
+     else:
+-        buffer_align_on(sep=" //\s*", replace_with=" // ")
+-        buffer_align_on(sep=" #\s*", replace_with=" # ")
++        buffer_align_on(sep=r" //\s*", replace_with=r" // ")
++        buffer_align_on(sep=r" #\s*", replace_with=r" # ")
+
+
 [FILE:3078:patches/patch-share_support_core_extensions_____init____.py]
 --- share/support/core/extensions/__init__.py.orig	2025-09-19 10:04:04 UTC
 +++ share/support/core/extensions/__init__.py
@@ -1503,6 +1619,184 @@ Issue: eng/toolchain/gnat#1696
              )
 
 
+[FILE:478:patches/patch-share_support_core_gnat__examples.py]
+--- share/support/core/gnat_examples.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/gnat_examples.py
+@@ -72,7 +72,7 @@ class GNATExamples(Module):
+         """
+ 
+         actions = []
+-        title_regexp = re.compile("<title>GNAT \&prefix;(.+)</title>")
++        title_regexp = re.compile(r"<title>GNAT \&prefix;(.+)</title>")
+ 
+         for subdir in glob.glob(os.path.join(example_directory, "*")) + glob.glob(
+             os.path.join(example_directory, "*", "*")
+
+
+[FILE:282:patches/patch-share_support_core_gnatdist.py]
+--- share/support/core/gnatdist.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/gnatdist.py
+@@ -22,7 +22,7 @@ if gnatdist_tool == "":
+ 
+ if gnatdist_tool != "":
+     GPS.parse_xml(
+-        """
++        r"""
+   <Language>
+     <Name>gnatdist</Name>
+     <Parent>Ada</Parent>
+
+
+[FILE:672:patches/patch-share_support_core_gnathub.py]
+--- share/support/core/gnathub.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/gnathub.py
+@@ -18,14 +18,14 @@ class GNAThub_Parser(tool_output.OutputP
+         self.open_report = False
+         if NEED_INIT:
+             GPS.Console().create_link(
+-                "\[PASSED\]",
++                r"\[PASSED\]",
+                 lambda x: None,
+                 foreground="green",
+                 background="",
+                 underline=False,
+             )
+             GPS.Console().create_link(
+-                "\[FAILED\]",
++                r"\[FAILED\]",
+                 lambda x: None,
+                 foreground="red",
+                 background="",
+
+
+[FILE:319:patches/patch-share_support_core_gs__utils_____init____.py]
+--- share/support/core/gs_utils/__init__.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/gs_utils/__init__.py
+@@ -9,6 +9,7 @@ import GPS.Browsers
+ 
+ # The autodoc may not have visibility on gi.repository
+ try:
++    gi.require_version('Gtk', '3.0')
+     from gi.repository import Gtk
+ except Exception:
+     pass
+
+
+[FILE:475:patches/patch-share_support_core_gs__utils_highlighter.py]
+--- share/support/core/gs_utils/highlighter.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/gs_utils/highlighter.py
+@@ -673,7 +673,7 @@ class Location_Highlighter(Background_Hi
+ 
+ class Regexp_Highlighter(On_The_Fly_Highlighter):
+ 
+-    """
++    r"""
+     The Regexp_Highlighter is a concrete implementation to highlight
+     editors based on regular expressions. One example is for instance
+     to highlight tabs or trailing spaces on lines, when this is considered
+
+
+[FILE:1284:patches/patch-share_support_core_makefile.py]
+--- share/support/core/makefile.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/makefile.py
+@@ -185,20 +185,20 @@ class Makefile(Builder):
+         # The list of targets at the beginning of a line. Ignore
+         # special characters like #.= that are used by GNU make.
+         # The list of targets is stored in the 'target' capturing group.
+-        targets = "^(?P<targets>[^#.=%\t][^#=\(\)%]*?)"
++        targets = r"^(?P<targets>[^#.=%\t][^#=\(\)%]*?)"
+ 
+         # The dependencies for these targets
+-        deps = "[^#=:]*"
++        deps = r"[^#=:]*"
+ 
+         # Extra comments at the ened of the line. Adding #IGNORE is used
+         # to hide this target from GPS.
+-        comments = "(?:#(?P<comments>.+))?$"
++        comments = r"(?:#(?P<comments>.+))?$"
+ 
+         # It is valid for a target to be followed by two colons, in GNU
+         # make at least.
+-        self.target_matcher = re.compile(targets + "::?" + deps + comments)
++        self.target_matcher = re.compile(targets + r"::?" + deps + comments)
+ 
+-        self.include_matcher = re.compile("^include (?P<file>.*)$")
++        self.include_matcher = re.compile(r"^include (?P<file>.*)$")
+ 
+         self.current_dir = None
+         # The directory of the toplevel makefile. All include statements
+
+
+[FILE:547:patches/patch-share_support_core_shell.py]
+--- share/support/core/shell.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/core/shell.py
+@@ -41,7 +41,7 @@ class Unix_Shell(ANSI_Console_Process):
+         ANSI_Console_Process.__init__(self, command)
+         if GPS.Preference("External Commands:Shell/stty").get():
+             self.send(
+-                'stty echo; PS1="\[\e[1G\]$PS1";'
++                r'stty echo; PS1="\[\e[1G\]$PS1";'
+                 ' echo -en "\\e[1;"$(stty size | cut -d" " -f1)'
+                 '";1;"$(stty size | cut -d" " -f2)"r";'
+                 " clear"
+
+
+[FILE:524:patches/patch-share_support_languages_highlighter_engine.py]
+--- share/support/languages/highlighter/engine.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/languages/highlighter/engine.py
+@@ -635,7 +635,7 @@ class Highlighter(object):
+         gtk_ed.connect("insert-text", highlighting_insert_text_before)
+ 
+     def generate_markup(self, text, allow_nested_tag=False):
+-        """
++        r"""
+         Generate the pango markup representation of text by Highlighter.
+         :param allow_nested_tag: When True, insert markup for each tags.
+         Otherwise skip nested tags.
+
+
+[FILE:343:patches/patch-share_support_languages_why3__highlighter.py]
+--- share/support/languages/why3_highlighter.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/languages/why3_highlighter.py
+@@ -48,7 +48,7 @@ keywords = "|".join(
+     ]
+ )
+ 
+-comment_region = region(r"\(\*", "\*\)", tag=tag_comment)
++comment_region = region(r"\(\*", r"\*\)", tag=tag_comment)
+ 
+ ada_keywords = "|".join(["True", "False"])
+ 
+
+
+[FILE:268:patches/patch-share_support_languages_xml__support.py]
+--- share/support/languages/xml_support.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/languages/xml_support.py
+@@ -166,7 +166,7 @@ def goto_matching_tag():
+ 
+ 
+ parse_xml(
+-    """
++    r"""
+   <Language>
+     <Name>XML</Name>
+     <Body_Suffix>.xml</Body_Suffix>
+
+
+[FILE:494:patches/patch-share_support_ui_gnattest.py]
+--- share/support/ui/gnattest.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/ui/gnattest.py
+@@ -682,7 +682,7 @@ def is_supported_by_tgen(subp_spec):
+ @interactive(
+     "General",
+     fuzz_subp_filter,
+-    contextual="GNATtest/Start\/Stop fuzzing subprogram",
++    contextual=r"GNATtest/Start\/Stop fuzzing subprogram",
+     name="gnattest fuzz subprogram",
+     description="Fuzz suprogram using test cases as initial seeds",
+     contextual_group=GPS.Contextual.Group.EXTRA_INFORMATION,
+
+
 [FILE:389:patches/patch-share_support_ui_pygps_____init____.py]
 --- share/support/ui/pygps/__init__.py.orig	2025-09-19 10:04:04 UTC
 +++ share/support/ui/pygps/__init__.py
@@ -1515,6 +1809,106 @@ Issue: eng/toolchain/gnat#1696
          GDK_BACKSPACE = 65288
          GDK_TAB = 65289
          GDK_RETURN = Gdk.KEY_Return
+
+
+[FILE:526:patches/patch-share_support_ui_theme__handling.py]
+--- share/support/ui/theme_handling.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/ui/theme_handling.py
+@@ -145,7 +145,7 @@ class Color:
+             if len(from_rgba) == 4:
+                 self.a = from_rgba[3] / 255.0
+         else:
+-            rgba_values = re.findall("\d+", from_pref)
++            rgba_values = re.findall(r"\d+", from_pref)
+             self.r, self.g, self.b = (int(x) / 255.0 for x in rgba_values[0:3])
+             if len(rgba_values) == 4:
+                 self.a = int(rgba_values[3]) / 255.0
+
+
+[FILE:1767:patches/patch-share_support_ui_vcs2_cvs.py]
+--- share/support/ui/vcs2/cvs.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/ui/vcs2/cvs.py
+@@ -27,13 +27,13 @@ REV_HEADER = "revision "
+ @core.register_vcs(default_status=GPS.VCS2.Status.UNTRACKED)
+ class CVS(core_staging.Emulate_Staging, core.File_Based_VCS):
+     __re_status = re.compile(
+-        "^(?:"
+-        + "(?:cvs status: Examining (?P<dir>.+))|"
+-        + "(?:File: (?P<deleted>no file )?(?P<file>\S+)\s+"
+-        + "Status: (?P<status>.+))|"
+-        + "(?:\s+Working revision:\s*(?P<rev>[\d.]+).*)|"
+-        + "(?:\s+Repository revision:\s*(?P<rrev>[\d.]+).*)"
+-        + ")$"
++        r"^(?:"
++        + r"(?:cvs status: Examining (?P<dir>.+))|"
++        + r"(?:File: (?P<deleted>no file )?(?P<file>\S+)\s+"
++        + r"Status: (?P<status>.+))|"
++        + r"(?:\s+Working revision:\s*(?P<rev>[\d.]+).*)|"
++        + r"(?:\s+Repository revision:\s*(?P<rrev>[\d.]+).*)"
++        + r")$"
+     )
+ 
+     def _cvs(self, args, block_exit=False, spawn_console=False):
+@@ -155,7 +155,7 @@ class CVS(core_staging.Emulate_Staging,
+                 self.current = None
+                 self.names = []
+                 self.__re_log = re.compile(
+-                    "^date: (?P<date>[^;]+);\s+author: (?P<author>[^;]+)"
++                    r"^date: (?P<date>[^;]+);\s+author: (?P<author>[^;]+)"
+                 )
+ 
+             def emit_previous(self, out_stream):
+@@ -278,7 +278,7 @@ class CVS(core_staging.Emulate_Staging,
+     @core.run_in_background
+     def async_annotations(self, visitor, file):
+         r = re.compile(
+-            "^(?P<rev>\d+\.\d+)" "\s+\(" "(?P<author>\S+)" "\s+" "(?P<date>[^)]+)"
++            r"^(?P<rev>\d+\.\d+)" r"\s+\(" r"(?P<author>\S+)" r"\s+" "(?P<date>[^)]+)"
+         )
+         lines = []
+         ids = []
+
+
+[FILE:1429:patches/patch-share_support_ui_vcs2_subversion.py]
+--- share/support/ui/vcs2/subversion.py.orig	2025-09-19 10:04:04 UTC
++++ share/support/ui/vcs2/subversion.py
+@@ -14,8 +14,8 @@ CAN_RENAME = True
+ @core.register_vcs(name="subversion", default_status=GPS.VCS2.Status.UNTRACKED)
+ class SVN(core_staging.Emulate_Staging, core.File_Based_VCS):
+     __re_status = re.compile(
+-        "^(?P<status>....... .)\s+(?P<rev>\S+)\s+"
+-        + "(?P<lastcommit>\S+)\s+(?P<author>\S+)\s+(?P<file>.+)$"
++        r"^(?P<status>....... .)\s+(?P<rev>\S+)\s+"
++        + r"(?P<lastcommit>\S+)\s+(?P<author>\S+)\s+(?P<file>.+)$"
+     )
+ 
+     @staticmethod
+@@ -130,11 +130,11 @@ class SVN(core_staging.Emulate_Staging,
+         """
+ 
+         _re_log = re.compile(
+-            "^r(?P<rev>\d+)"
+-            + "\s\|\s"
+-            + "(?P<author>[^\|]+)"
+-            + "\s\|\s"
+-            + "(?P<date>[^|]+)"
++            r"^r(?P<rev>\d+)"
++            + r"\s\|\s"
++            + r"(?P<author>[^\|]+)"
++            + r"\s\|\s"
++            + r"(?P<date>[^|]+)"
+         )
+ 
+         class line_to_block:
+@@ -219,7 +219,7 @@ class SVN(core_staging.Emulate_Staging,
+     @core.run_in_background
+     def async_annotations(self, visitor, file):
+         r = re.compile(
+-            "^\s*(?P<rev>\d\S*)" "\s+" "(?P<author>\S+)" "\s+" "(?P<date>....-..-..)"
++            r"^\s*(?P<rev>\d\S*)" r"\s+" r"(?P<author>\S+)" r"\s+" r"(?P<date>....-..-..)"
+         )
+         lines = []
+         ids = []
 
 
 [FILE:1039:patches/patch-shared.gpr.in]

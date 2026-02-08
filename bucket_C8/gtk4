@@ -2,6 +2,7 @@
 
 NAMEBASE=		gtk4
 VERSION=		4.20.3
+REVISION=		2
 KEYWORDS=		x11_toolkits
 VARIANTS=		std
 SDESC[std]=		Gimp Toolkit for X11 GUI
@@ -23,22 +24,19 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	CUPS BROADWAY INTROSPECTION COLORD
 OPTIONS_STANDARD=	CUPS BROADWAY INTROSPECTION COLORD
+OPT_ON[freebsd]=	INTROSPECTION
 OPT_ON[all]=		CUPS BROADWAY
+OPT_ON[midnightbsd]=	INTROSPECTION
 
-BUILD_DEPENDS=		git:primary:std
-			graphene:dev:std
+BUILD_DEPENDS=		graphene:dev:std
 			harfbuzz:dev:std
-			libdrm:dev:std
+			libdrm:set:std
 			libepoxy:dev:std
-			libidn2:dev:std
 			libxkbcommon:dev:std
 			python-docutils:single:python_used
 			sassc:single:std
 BUILDRUN_DEPENDS=	graphene:primary:std
-			iso-codes:primary:std
-			libdrm:primary:std
 			libepoxy:primary:std
-			libidn2:primary:std
 			libxkbcommon:primary:std
 EXRUN[tools]=		primary
 EXRUN[dev]=		graphene:dev:std
@@ -47,9 +45,9 @@ EXRUN[dev]=		graphene:dev:std
 			glib:dev:std
 EXRUN[icon_cache]=	gdk-pixbuf:primary:std
 
-USES=			gmake pkgconfig cpe meson gtk-doc jpeg tiff
+USES=			gmake pkgconfig cpe meson gtk-doc jpeg tiff png
 			schemas:primary perl:build python:build
-GNOME_COMPONENTS=	atk cairo gdkpixbuf librsvg pango
+GNOME_COMPONENTS=	cairo gdkpixbuf librsvg pango
 XORG_COMPONENTS=	xext x11 xinerama xi xrandr xcursor xfixes xdamage
 			xcomposite
 
@@ -133,7 +131,17 @@ This package contains gtk4 demo applications and utilities.
 2873f2903088a66c71173ea2ed85ffae266a66b972c3a4842bbb2f6f187ec153     16003020 gnome4/gtk-4.20.3.tar.xz
 
 
-[FILE:217:manifests/plist.primary]
+[FILE:420:manifests/plist.primary]
+%%INTROSPECTION-ON%%lib/girepository-1.0/
+ Gdk-4.0.typelib
+ GdkX11-4.0.typelib
+ Gsk-4.0.typelib
+ Gtk-4.0.typelib
+%%INTROSPECTION-ON%%share/gir-1.0/
+ Gdk-4.0.gir
+ GdkX11-4.0.gir
+ Gsk-4.0.gir
+ Gtk-4.0.gir
 lib/
  libgtk-4.so.%%SOMAJOR%%
  libgtk-4.so.%%SOVERSION%%
@@ -145,7 +153,7 @@ share/gettext/its/
 @dir lib/gtk-4.0/modules
 
 
-[FILE:7830:manifests/plist.dev]
+[FILE:7627:manifests/plist.dev]
 %%BROADWAY-ON%%include/gtk-4.0/gdk/broadway/
  gdkbroadway.h
  gdkbroadwaycursor.h
@@ -154,16 +162,6 @@ share/gettext/its/
  gdkbroadwaysurface.h
 %%BROADWAY-ON%%include/gtk-4.0/gsk/broadway/gskbroadwayrenderer.h
 %%BROADWAY-ON%%lib/pkgconfig/gtk4-broadway.pc
-%%INTROSPECTION-ON%%lib/girepository-1.0/
- Gdk-4.0.typelib
- GdkX11-4.0.typelib
- Gsk-4.0.typelib
- Gtk-4.0.typelib
-%%INTROSPECTION-ON%%share/gir-1.0/
- Gdk-4.0.gir
- GdkX11-4.0.gir
- Gsk-4.0.gir
- Gtk-4.0.gir
 include/gtk-4.0/gdk/
  gdk.h
  gdkapplaunchcontext.h
