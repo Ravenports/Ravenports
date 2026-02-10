@@ -3,9 +3,8 @@
 NAMEBASE=		ravensys-utils
 VERSION=		1.5.5
 KEYWORDS=		raven sysutils
-VARIANTS=		std prevfbsd prevlinux
+VARIANTS=		std prevfbsd
 SDESC[std]=		Consistent tools for Ravenports system root
-SDESC[prevlinux]=	System root tools for previous Linux
 SDESC[prevfbsd]=	System root tools for previous FreeBSD
 HOMEPAGE=		https://github.com/ravenports/ravensys-utils
 CONTACT=		John_Marino[draco@marino.st]
@@ -17,17 +16,13 @@ DF_INDEX=		1
 SPKGS[std]=		set
 			primary
 			man
-SPKGS[prevlinux]=	set
-			primary
-			man
 SPKGS[prevfbsd]=	set
 			primary
 			man
 
-OPTIONS_AVAILABLE=	PREV_FBSD PREV_LINUX
+OPTIONS_AVAILABLE=	PREV_FBSD
 OPTIONS_STANDARD=	none
-VOPTS[prevlinux]=	PREV_FBSD=OFF PREV_LINUX=ON
-VOPTS[prevfbsd]=	PREV_FBSD=ON PREV_LINUX=OFF
+VOPTS[prevfbsd]=	PREV_FBSD=ON
 
 B_DEPS[sunos]=		musl-fts:single:std
 B_DEPS[linux]=		libbsd:dev:std libbsd:primary:std
@@ -57,10 +52,6 @@ VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=SYSTEM=MidnightBSD/amd64/x86_64/300005/3.0
 [PREV_FBSD].DESCRIPTION=		Hardcode uname values to older FreeBSD release
 [PREV_FBSD].MAKEFILE_ON=		SYSTEM=FreeBSD/amd64/x86_64/1302001/13.2/13
 [PREV_FBSD].ONLY_FOR_OPSYS_ON=		freebsd
-
-[PREV_LINUX].DESCRIPTION=		Hardcode uname values to older Linux release
-[PREV_LINUX].MAKEFILE_ON=		SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
-[PREV_LINUX].ONLY_FOR_OPSYS_ON=		linux
 
 post-install:
 .for prog in md5 mtree patch ravensys-uname which rpcgen

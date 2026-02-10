@@ -151,7 +151,6 @@ PLATFORM_OpenBSD_x86-64=	OpenBSD/amd64/x86_64/tbd/tbd/tbd
 #-------------------------------------------------------------------------
 
 PREVIOUS_DF64_R62=		DragonFly/x86_64/x86_64/600200/6.2/6.2
-PREVIOUS_Linux_K44=		Linux/x86_64/x86_64/440053/4.4.0/4.4
 PREVIOUS_FBSD64_R13=		FreeBSD/amd64/x86_64/1302001/13.2/13
 
 .endif # defined (_INCLUDE_BSD_DEFAULT_VERSIONS_MK)

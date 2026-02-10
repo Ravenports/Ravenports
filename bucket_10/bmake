@@ -3,9 +3,8 @@
 NAMEBASE=		bmake
 VERSION=		20251111
 KEYWORDS=		devel
-VARIANTS=		std prevfbsd prevlinux
+VARIANTS=		std prevfbsd
 SDESC[std]=		Portable version of NetBSD 'make' utility
-SDESC[prevlinux]=	BSD Make encoded for previous Linux sysroot
 SDESC[prevfbsd]=	BSD Make encoded for previous FreeBSD sysroot
 HOMEPAGE=		http://www.crufty.net/help/sjg/bmake.html
 CONTACT=		nobody
@@ -18,17 +17,13 @@ DF_INDEX=		1
 SPKGS[std]=		set
 			primary
 			man
-SPKGS[prevlinux]=	set
-			primary
-			man
 SPKGS[prevfbsd]=	set
 			primary
 			man
 
-OPTIONS_AVAILABLE=	PREV_FBSD PREV_LINUX
+OPTIONS_AVAILABLE=	PREV_FBSD
 OPTIONS_STANDARD=	none
-VOPTS[prevlinux]=	PREV_FBSD=OFF PREV_LINUX=ON
-VOPTS[prevfbsd]=	PREV_FBSD=ON PREV_LINUX=OFF
+VOPTS[prevfbsd]=	PREV_FBSD=ON
 
 DISTNAME=		bmake
 
@@ -56,10 +51,6 @@ VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=SYSTEM=MidnightBSD/amd64/x86_64/300005/3.0
 [PREV_FBSD].DESCRIPTION=		Hardcode OS values to older FreeBSD release
 [PREV_FBSD].MAKEFILE_ON=		SYSTEM=FreeBSD/amd64/x86_64/1302001/13.2/13
 [PREV_FBSD].ONLY_FOR_OPSYS_ON=		freebsd
-
-[PREV_LINUX].DESCRIPTION=		Hardcode OS values to older Linux release
-[PREV_LINUX].MAKEFILE_ON=		SYSTEM=Linux/x86_64/x86_64/440053/4.4.0/4.4
-[PREV_LINUX].ONLY_FOR_OPSYS_ON=		linux
 
 post-patch:
 	${REINPLACE_CMD} -e 's|@CFLAGS@|\
