@@ -2,6 +2,7 @@
 
 NAMEBASE=		freeimage
 VERSION=		3.18.0
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Simple C/C++ bitmap graphics library
@@ -45,19 +46,19 @@ CXXFLAGS=		-DPNG_ARM_NEON_OPT=0
 			-fPIC
 			-std=c++14
 
-do-build:
-		( cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gmake -f Makefile.gnu ${_MAKE_JOBS} ${MAKE_ARGS} && \
-			${SETENV} ${MAKE_ENV} gmake -f Makefile.fip ${_MAKE_JOBS} ${MAKE_ARGS} )
+post-install:
+	${SETENVI} ${WRK_ENV} ${MAKE_ENV} ${MAKE_CMD} -f Makefile.fip ${MAKE_ARGS} \
+		-C ${INSTALL_WRKSRC} ${INSTALL_TARGET}
+	${MKDIR} -p ${STAGEDIR}${PREFIX}/lib/pkgconfig
+	${INSTALL_DATA} ${WRKDIR}/freeimage.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig
+
+post-build:
+	${SETENVI} ${WRK_ENV} ${MAKE_ENV} ${MAKE_CMD} -f Makefile.fip ${_MAKE_JOBS} \
+		${MAKE_ARGS} -C ${BUILD_WRKSRC}
 
 pre-configure:
-		${REINPLACE_CMD} -e 's|/usr|${PREFIX}| ; s|-o root -g root || ; \
-			/^-fPIC/d' ${WRKSRC}/Makefile.gnu ${WRKSRC}/Makefile.fip
-
-do-install:
-		( cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} gmake -f Makefile.gnu install ${MAKE_ARGS} && \
-			${SETENV} ${MAKE_ENV} gmake -f Makefile.fip install ${MAKE_ARGS} )
-		${MKDIR} -p ${STAGEDIR}${PREFIX}/lib/pkgconfig
-		${INSTALL_DATA} ${WRKDIR}/freeimage.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig
+	${REINPLACE_CMD} -e 's|/usr|${PREFIX}| ; s|-o root -g root || ; \
+		/^-fPIC/d' ${WRKSRC}/Makefile.gnu ${WRKSRC}/Makefile.fip
 
 [FILE:364:descriptions/desc.primary]
 FreeImage is an open source library project for developers who would like 
@@ -89,6 +90,34 @@ lib/
  libfreeimageplus.a
  libfreeimageplus.so
 lib/pkgconfig/freeimage.pc
+
+
+[FILE:1289:patches/patch-Source_FreeImage_PluginDDS.cpp]
+--- Source/FreeImage/PluginDDS.cpp.orig	2018-11-18 16:17:59 UTC
++++ Source/FreeImage/PluginDDS.cpp
+@@ -356,14 +356,14 @@ SwapHeader(DDSHEADER *header) {
+ 	for(int i=0; i<11; i++) {
+ 		SwapLong(&header->surfaceDesc.dwReserved1[i]);
+ 	}
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwSize);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwFlags);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwFourCC);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwRGBBitCount);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwRBitMask);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwGBitMask);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwBBitMask);
+-	SwapLong(&header->surfaceDesc.ddpfPixelFormat.dwRGBAlphaBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwSize);
++	SwapLong(&header->surfaceDesc.ddspf.dwFlags);
++	SwapLong(&header->surfaceDesc.ddspf.dwFourCC);
++	SwapLong(&header->surfaceDesc.ddspf.dwRGBBitCount);
++	SwapLong(&header->surfaceDesc.ddspf.dwRBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwGBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwBBitMask);
++	SwapLong(&header->surfaceDesc.ddspf.dwRGBAlphaBitMask);
+ 	SwapLong(&header->surfaceDesc.ddsCaps.dwCaps1);
+ 	SwapLong(&header->surfaceDesc.ddsCaps.dwCaps2);
+ 	SwapLong(&header->surfaceDesc.ddsCaps.dwReserved[0]);
 
 
 [FILE:531:patches/patch-Source_LibJXR_image_sys_strcodec.h]

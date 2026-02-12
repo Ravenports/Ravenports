@@ -85,10 +85,10 @@ do-configure:
 	@${ECHO_MSG} ${_CMAKE_MSG}
 	${MKDIR} ${CONFIGURE_WRKSRC}
 	@${ECHO_MSG} "============================================="
-	@${ECHO_MSG} "    ${SETENV} ${CONFIGURE_ENV}"
+	@${ECHO_MSG} "    ${SETENVI} ${CONFIGURE_ENV}"
 	@${ECHO_MSG} "    ${CMAKE_BIN} ${CMAKE_ARGS} ${CMAKE_SOURCE_PATH}"
 	@${ECHO_MSG} "============================================="
-	@(cd ${CONFIGURE_WRKSRC} && ${SETENV} ${CONFIGURE_ENV} \
+	@(cd ${CONFIGURE_WRKSRC} && ${SETENVI} ${CONFIGURE_ENV} \
 		${CMAKE_BIN} ${CMAKE_ARGS} ${CMAKE_SOURCE_PATH})
 .  endif
 

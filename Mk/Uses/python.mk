@@ -255,7 +255,7 @@ pre-build-script:
 
 .    if !target(do-build)
 do-build:
-	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	@(cd ${BUILD_WRKSRC} && ${SETENVI} ${MAKE_ENV} \
 		${PYTHON_CMD} -m build --no-isolation --wheel ${PEP517_CONFIG})
 .    endif
 
@@ -290,19 +290,19 @@ POST_PLIST_TARGET+=	setuptools-autolist
 
 .    if !target(do-configure) && !defined(HAS_CONFIGURE) && !defined(GNU_CONFIGURE)
 do-configure:
-	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	@(cd ${BUILD_WRKSRC} && ${SETENVI} ${MAKE_ENV} \
 		${PYTHON_CMD} ${PYD_SETUP} ${PYD_CONFIGURE_TARGET} ${PYD_CONFIGUREARGS})
 .    endif
 
 .    if !target(do-build)
 do-build:
-	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	@(cd ${BUILD_WRKSRC} && ${SETENVI} ${MAKE_ENV} \
 		${PYTHON_CMD} ${PYD_SETUP} ${PYD_BUILD_TARGET} ${PYD_BUILDARGS})
 .    endif
 
 .    if !target(do-install)
 do-install:
-	@(cd ${INSTALL_WRKSRC}; ${SETENV} ${MAKE_ENV} \
+	@(cd ${INSTALL_WRKSRC}; ${SETENVI} ${MAKE_ENV} \
 		${PYTHON_CMD} ${PYD_SETUP} ${PYD_INSTALL_TARGET} ${PYD_INSTALLARGS})
 .    endif
 .    if "${GENERATED}" == "yes"

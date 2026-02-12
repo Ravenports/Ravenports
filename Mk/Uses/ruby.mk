@@ -124,7 +124,7 @@ ruby-setup-configure:
 	${ECHO_MSG} "      $$myarg";\
 	done;\
 	${ECHO_MSG} "===>  Running ${RUBY_SETUP} to configure";\
-	(cd ${CONFIGURE_WRKSRC} && ${SETENV} ${CONFIGURE_ENV} \
+	(cd ${CONFIGURE_WRKSRC} && ${SETENVI} ${CONFIGURE_ENV} \
 	  ${RUBY} ${RUBY_FLAGS} ${RUBY_SETUP} config ${CONFIGURE_ARGS});\
 	fi
 
@@ -134,7 +134,7 @@ ruby-extconf-configure:
 	@if [ -f "${CONFIGURE_WRKSRC}/${RUBY_EXTCONF}" ]; then \
 	${ECHO_MSG} "===>  Running ${RUBY_EXTCONF} in ${d} to configure";\
 	(cd ${CONFIGURE_WRKSRC}/${d} && \
-		${SETENV} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \
+		${SETENVI} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \
 		${RUBY} ${RUBY_FLAGS} ${RUBY_EXTCONF} \
 		--with-opt-dir="${LOCALBASE}" ${CONFIGURE_ARGS});\
 	fi
@@ -143,7 +143,7 @@ ruby-extconf-configure:
 	@if [ -f "${CONFIGURE_WRKSRC}/${RUBY_EXTCONF}" ]; then \
 	${ECHO_MSG} "===>  Running ${RUBY_EXTCONF} to configure";\
 	(cd ${CONFIGURE_WRKSRC} && \
-		${SETENV} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \
+		${SETENVI} ${CONFIGURE_ENV} RB_USER_INSTALL=yes \
 		${RUBY} ${RUBY_FLAGS} ${RUBY_EXTCONF} \
 		--with-opt-dir="${LOCALBASE}" ${CONFIGURE_ARGS});\
 	fi
@@ -152,14 +152,14 @@ ruby-extconf-configure:
 ruby-setup-build:
 	@if [ -f "${BUILD_WRKSRC}/${RUBY_SETUP}" ]; then \
 	${ECHO_MSG} "===>  Running ${RUBY_SETUP} to build";\
-	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	(cd ${BUILD_WRKSRC} && ${SETENVI} ${MAKE_ENV} \
 	  ${RUBY} ${RUBY_FLAGS} ${RUBY_SETUP} setup);\
 	fi
 
 ruby-setup-install:
 	@if [ -f "${INSTALL_WRKSRC}/${RUBY_SETUP}" ]; then \
 	${ECHO_MSG} "===>  Running ${RUBY_SETUP} to install";\
-	(cd ${INSTALL_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	(cd ${INSTALL_WRKSRC} && ${SETENVI} ${MAKE_ENV} \
 	  ${RUBY} ${RUBY_FLAGS} ${RUBY_SETUP} install --prefix=${STAGEDIR});\
 	fi
 

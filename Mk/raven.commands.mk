@@ -52,6 +52,7 @@ RM=		/bin/rm -f
 RMDIR=		/bin/rmdir
 SED=		/usr/bin/sed
 SETENV=		/usr/bin/env
+SETENVI=	/usr/bin/env -i
 SH=		/bin/sh
 SHA256=		/bin/sha256
 SORT=		/usr/bin/sort

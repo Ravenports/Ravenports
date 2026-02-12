@@ -73,7 +73,7 @@ CARGO_ENV+=	RUSTFLAGS="${RUSTFLAGS} -C linker=${CC:Q} ${LDFLAGS:S/^/-C link-arg=
 
 # Helper to shorten cargo calls.
 CARGO_CARGO_RUN= \
-	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${CARGO_ENV} ${CARGO_CARGO_BIN}
+	cd ${WRKSRC} && ${SETENVI} ${MAKE_ENV} ${CARGO_ENV} ${CARGO_CARGO_BIN}
 
 # Manage crate features.
 .if !empty(CARGO_FEATURES)

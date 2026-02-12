@@ -37,7 +37,7 @@ do-build:
 
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/${R_LIB_DIR}
-	(cd ${WRKDIR} && ${SETENV} ${MAKE_ENV} \
+	(cd ${WRKDIR} && ${SETENVI} ${MAKE_ENV} \
 		${R_COMMAND} \
 		${R_PRECMD_INSTALL_OPTIONS} CMD INSTALL \
 		${R_POSTCMD_INSTALL_OPTIONS} ${RNAMEBASE})

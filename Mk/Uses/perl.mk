@@ -111,11 +111,11 @@ MAN3PREFIX=		${PREFIX}/${SITE_PERL_REL}
 .    if !target(do-configure)
 do-configure:
 	@if [ -f ${SCRIPTDIR}/configure ]; then \
-		cd ${.CURDIR} && ${SETENV} ${SCRIPTS_ENV} ${SH} \
+		cd ${.CURDIR} && ${SETENVI} ${SCRIPTS_ENV} ${SH} \
 		${SCRIPTDIR}/configure; \
 	fi
 	@cd ${CONFIGURE_WRKSRC} && \
-		${SETENV} ${CONFIGURE_ENV} \
+		${SETENVI} ${CONFIGURE_ENV} \
 		${PERL5} ${CONFIGURE_CMD} ${CONFIGURE_ARGS}
 .      if !${perl_ARGS:Mbuildmod*}
 	@cd ${CONFIGURE_WRKSRC} && \
@@ -154,14 +154,14 @@ CONFIGURE_ARGS+=	--create_packlist 1
 
 .    if !target(do-build)
 do-build:
-	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	@(cd ${BUILD_WRKSRC} && ${SETENVI} ${MAKE_ENV} \
 		${PERL5} ${PL_BUILD} ${ALL_TARGET} ${MAKE_ARGS})
 .    endif	# !target(do-build)
 
 .    if !${USES:Mgmake}
 .      if !target(do-install)
 do-install:
-	@(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
+	@(cd ${BUILD_WRKSRC} && ${SETENVI} ${MAKE_ENV} \
 		${PERL5} ${PL_BUILD} ${INSTALL_TARGET} ${MAKE_ARGS})
 .      endif	# !target(do-install)
 .    endif 	# ! USES=gmake
@@ -179,10 +179,10 @@ TEST_WRKSRC?=	${BUILD_WRKSRC}
 
 do-test:
 .    if ${perl_ARGS:Mbuildmod*}
-	(cd ${TEST_WRKSRC}/ && ${SETENV} ${TEST_ENV} \
+	(cd ${TEST_WRKSRC}/ && ${SETENVI} ${TEST_ENV} \
 		${PERL5} ${PL_BUILD} ${TEST_TARGET} ${TEST_ARGS})
 .    elif ${perl_ARGS:Mconfigure}
-	(cd ${TEST_WRKSRC}/ && ${SETENV} ${TEST_ENV} \
+	(cd ${TEST_WRKSRC}/ && ${SETENVI} ${TEST_ENV} \
 		${MAKE_CMD} ${TEST_ARGS} ${TEST_TARGET})
 .    endif
 .  endif	# !target(do-test) plus ...
