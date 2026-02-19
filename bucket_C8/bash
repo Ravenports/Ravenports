@@ -2,6 +2,7 @@
 
 NAMEBASE=		bash
 VERSION=		5.3.p9
+REVISION=		1
 KEYWORDS=		shells
 VARIANTS=		std static
 SDESC[std]=		GNU Bourne Again SHell
@@ -40,7 +41,6 @@ VOPTS[static]=		STATIC=ON NLS=OFF
 OPT_ON[all]=		NLS
 
 BUILD_DEPENDS=		ncurses:dev:std
-RUN_DEPENDS=		ncurses:terminfo:std
 
 USES=			bison cpe
 
@@ -71,6 +71,7 @@ CONFIGURE_ARGS=		--enable-progcomp
 			--enable-alias
 			--enable-brace-expansion
 			--enable-array-variables
+			--enable-readline
 			--without-bash-malloc
 
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -83,10 +84,10 @@ VAR_OPSYS[netbsd]=	VAR1=-Wl,--export-dynamic
 VAR_OPSYS[dragonfly]=	VAR1=-Wl,--export-dynamic
 
 [STATIC].BUILDRUN_DEPENDS_OFF=		ncurses:primary:std
-[STATIC].CONFIGURE_ARGS_OFF=		--enable-readline
 [STATIC].CONFIGURE_ARGS_ON=		--enable-static-link
-					--enable-readline=no
+					--disable-ncurses-terminfo
 [STATIC].INFO_OFF=			info:bash
+[STATIC].RUN_DEPENDS_OFF=		ncurses:terminfo:std
 [STATIC].USES_OFF=			makeinfo
 
 [NLS].CONFIGURE_ARGS_ON=		--with-libiconv-prefix={{ICONV_PREFIX}}

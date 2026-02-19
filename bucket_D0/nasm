@@ -2,6 +2,7 @@
 
 NAMEBASE=		nasm
 VERSION=		3.01
+REVISION=		1
 KEYWORDS=		devel lang
 VARIANTS=		std
 SDESC[std]=		General-purpose x86 and amd64 assembler
@@ -37,6 +38,7 @@ FPC_EQUIVALENT=		devel/nasm
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--docdir="{{STD_DOCDIR}}"
+CONFIGURE_ENV=		pa_cv_CFLAGS__std_c23=no
 
 MAKE_ARGS=		INSTALLROOT={{STAGEDIR}}
 
@@ -136,4 +138,39 @@ share/doc/nasm/html/
  XZOUT           = nasmdoc.pdf.xz
  
  # Use "make install PDFZ=.xz" to install pdf.xz
+
+
+[FILE:754:patches/patch-include_compiler.h]
+--- include/compiler.h.orig	2025-10-11 06:44:05 UTC
++++ include/compiler.h
+@@ -93,6 +93,14 @@
+ #define PRIzx PRIz "x"
+ #define PRIzX PRIz "X"
+ 
++# ifdef HAVE_ENDIAN_H
++#  include <endian.h>
++# elif defined(HAVE_SYS_ENDIAN_H)
++#  include <sys/endian.h>
++# elif defined(HAVE_MACHINE_ENDIAN_H)
++#  include <machine/endian.h>
++# endif
++
+ #ifdef HAVE_STDBIT_H
+ 
+ # include <stdbit.h>
+@@ -107,14 +115,6 @@
+ 
+ #else  /* No <stdbit.h> */
+ 
+-# ifdef HAVE_ENDIAN_H
+-#  include <endian.h>
+-# elif defined(HAVE_SYS_ENDIAN_H)
+-#  include <sys/endian.h>
+-# elif defined(HAVE_MACHINE_ENDIAN_H)
+-#  include <machine/endian.h>
+-# endif
+-
+ /*
+  * If we have BYTE_ORDER defined, or the compiler provides
+  * __BIG_ENDIAN__ or __LITTLE_ENDIAN__, trust it over what autoconf
 

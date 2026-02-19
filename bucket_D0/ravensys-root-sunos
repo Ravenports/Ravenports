@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-sunos
 VERSION=		2
-REVISION=		3
+REVISION=		5
 KEYWORDS=		raven
 VARIANTS=		std
 SDESC[std]=		Solaris 2.11 system root for Ravenports build env
@@ -11,8 +11,8 @@ CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/raven-distfiles/omnios-sysroot/
-DISTFILE[1]=		omnios-r151054-rev2-sysroot.tar.gz:main
-DISTFILE[2]=		omnios-r151054-programs-rev2.tar.gz:main
+DISTFILE[1]=		omnios-r151054-rev5-sysroot.tar.gz:main
+DISTFILE[2]=		omnios-r151054-programs-rev4.tar.gz:main
 DF_INDEX=		1 2
 SPKGS[std]=		single
 
@@ -94,11 +94,11 @@ of OmniOS, excluding the toolchain.
 
 
 [FILE:227:distinfo]
-0fa50572bcfbf0d129059f50d4e3b4d1541db53c03fb7d384f91e6b118ad3285     33056888 omnios-r151054-rev2-sysroot.tar.gz
-2640f2acb3a2717223b370505e0fb61fdc0916c004e67e2262f79cf7b4ebd936       364610 omnios-r151054-programs-rev2.tar.gz
+83dd1c05588e4efee20af7568dcbe0c5473a13b63a586c95ada32a48fd6c7c27     36913518 omnios-r151054-rev5-sysroot.tar.gz
+bf28656a3912bc0eda6b8c72f5f0a3cc406e87defd060d8618ff3d3399b6b0c1       538111 omnios-r151054-programs-rev4.tar.gz
 
 
-[FILE:38697:manifests/plist.single]
+[FILE:39946:manifests/plist.single]
 %%BASE%%/bin/
  [
  bash
@@ -127,7 +127,6 @@ of OmniOS, excluding the toolchain.
  test
  unlink
 %%BASE%%/lib/
- 32
  64
  c_synonyms.so.1
  ld.so.1
@@ -428,7 +427,6 @@ of OmniOS, excluding the toolchain.
  nss_nis.so.1
  nss_user.so.1
 %%BASE%%/lib/crypto/
- 32
  64
  kmf_mapper_cn.so.1
  kmf_nss.so.1
@@ -441,9 +439,9 @@ of OmniOS, excluding the toolchain.
  kmf_pkcs11.so.1
 %%BASE%%/lib/libmvec/libmvec_hwcap1.so.1
 %%BASE%%/lib/mpxio/stmsboot_util
-%%BASE%%/lib/secure/
- 32
- 64
+%%BASE%%/lib/secure/64
+%%BASE%%/lib/svc/bin/svc.configd
+%%BASE%%/lib/svc/seed/global.db
 %%BASE%%/usr/bin/
  awk
  basename
@@ -486,6 +484,7 @@ of OmniOS, excluding the toolchain.
  head
  id
  install
+ isainfo
  join
  ld.sun
  ldd
@@ -519,6 +518,8 @@ of OmniOS, excluding the toolchain.
  seq
  sort
  stat
+ strip
+ svccfg
  tail
  tar
  tee
@@ -2141,7 +2142,6 @@ of OmniOS, excluding the toolchain.
  vpm.h
 %%BASE%%/usr/lib/
  0@0.so.1
- 32
  64
  crt1.o
  crti.o
@@ -2205,6 +2205,8 @@ of OmniOS, excluding the toolchain.
  libdll.so.1
  libdlpi.so
  libdlpi.so.1
+ libdns_sd.so
+ libdns_sd.so.1
  libdoor.so
  libdoor.so.1
  libdwarf.so.1
@@ -2401,6 +2403,7 @@ of OmniOS, excluding the toolchain.
  crtn.o
  gcrt1.o
  getloginx.so.1
+ lddstub
  libadm.so
  libadm.so.1
  libads.so
@@ -2455,6 +2458,8 @@ of OmniOS, excluding the toolchain.
  libdll.so.1
  libdlpi.so
  libdlpi.so.1
+ libdns_sd.so
+ libdns_sd.so.1
  libdoor.so
  libdoor.so.1
  libdwarf.so.1
@@ -2683,8 +2688,33 @@ of OmniOS, excluding the toolchain.
  libc_hwcap1.so.1
  libc_hwcap2.so.1
  libc_hwcap3.so.1
+%%BASE%%/usr/lib/locale/POSIX
+%%BASE%%/usr/lib/locale/C.UTF-8/LC_CTYPE/LCL_DATA
+%%BASE%%/usr/lib/locale/C/LC_MESSAGES/
+ AMD.mo
+ DISK.mo
+ FMD.mo
+ FMNOTIFY.mo
+ GMCA.mo
+ INTEL.mo
+ NIC.mo
+ NXGE.mo
+ PCI.mo
+ PCIEX.mo
+ SCA1000.mo
+ SCA500.mo
+ SENSOR.mo
+ SMF.mo
+ STORAGE.mo
+ SUNOS.mo
+ ZFS.mo
+%%BASE%%/usr/lib/locale/en_US.UTF-8/LC_COLLATE/LCL_DATA
+%%BASE%%/usr/lib/locale/en_US.UTF-8/LC_CTYPE/LCL_DATA
+%%BASE%%/usr/lib/locale/en_US.UTF-8/LC_MESSAGES/LCL_DATA
+%%BASE%%/usr/lib/locale/en_US.UTF-8/LC_MONETARY/LCL_DATA
+%%BASE%%/usr/lib/locale/en_US.UTF-8/LC_NUMERIC/LCL_DATA
+%%BASE%%/usr/lib/locale/en_US.UTF-8/LC_TIME/LCL_DATA
 %%BASE%%/usr/lib/lwp/
- 32
  64
  libthread.so.1
  libthread_db.so.1
@@ -2981,6 +3011,7 @@ of OmniOS, excluding the toolchain.
  group
  passwd
 %%BASE%%/usr/share/file/magic.mgc
+%%BASE%%/usr/share/lib/xml/dtd/service_bundle.dtd.1
 %%BASE%%/usr/share/rvn-terminfo/d/dumb
 %%BASE%%/usr/share/rvn-terminfo/v/vt100
 %%BASE%%/usr/share/rvn-terminfo/x/xterm
@@ -2995,6 +3026,16 @@ of OmniOS, excluding the toolchain.
 @dir %%BASE%%/lib/secure/amd64
 @dir %%BASE%%/usr/lib/iconv
 @dir %%BASE%%/usr/lib/iconv/amd64
+@dir %%BASE%%/usr/lib/locale/C.UTF-8/LC_COLLATE
+@dir %%BASE%%/usr/lib/locale/C.UTF-8/LC_MESSAGES
+@dir %%BASE%%/usr/lib/locale/C.UTF-8/LC_MONETARY
+@dir %%BASE%%/usr/lib/locale/C.UTF-8/LC_NUMERIC
+@dir %%BASE%%/usr/lib/locale/C.UTF-8/LC_TIME
+@dir %%BASE%%/usr/lib/locale/C/LC_COLLATE
+@dir %%BASE%%/usr/lib/locale/C/LC_CTYPE
+@dir %%BASE%%/usr/lib/locale/C/LC_MONETARY
+@dir %%BASE%%/usr/lib/locale/C/LC_NUMERIC
+@dir %%BASE%%/usr/lib/locale/C/LC_TIME
 @dir %%BASE%%/usr/local
 @dir %%BASE%%/usr/sbin
 
@@ -3071,7 +3112,7 @@ RSYS=				${PREFIX}/${SYSPATH}
 FOS=				${WRKDIR}/${OPSYS:tl}
 
 
-[FILE:1434:files/sunos.mk]
+[FILE:1725:files/sunos.mk]
 # For SunOS (OmniOS)
 
 Libexec_SunOS=\
@@ -3129,9 +3170,17 @@ install-platform: install-common
 	cp ${CPA} ${LOCALBASE}/bin/${item} ${DESTDIR}${BASE}/usr/bin/${item}
 .  endfor
 
+	# install gnu strip
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/toolchain/bin/strip ${DESTDIR}${BASE}/usr/bin
+
 	# install user and guest files
 	cp /port/files/passwd.initial ${DESTDIR}${BASE}/usr/share/passwd
 	cp /port/files/group.initial ${DESTDIR}${BASE}/usr/share/group
+
+	# install dtd for SMF configuration
+	mkdir -p ${DESTDIR}${BASE}/usr/share/lib/xml/dtd
+	mv ${DESTDIR}${BASE}/usr/share/service_bundle.dtd.1 \
+		${DESTDIR}${BASE}/usr/share/lib/xml/dtd/
 
 	# install libgcc_s for sysroot programs that need it
 	cp ${LOCALBASE}/toolchain/ravensys-gcc/lib/amd64/libgcc_s.so.1 \

@@ -65,10 +65,6 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/vpx*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libvpx.so.*.*.*
 
-post-patch-sunos:
-	${REINPLACE_CMD} -e 's/-Wl,--no-undefined//' \
-		${WRKSRC}/build/make/Makefile
-
 [FILE:53:descriptions/desc.primary]
 This package contains libvpx, the VP8/VP9 Codec SDK.
 
@@ -120,4 +116,18 @@ lib/pkgconfig/vpx.pc
  endef
  
  define archive_template
+
+
+[FILE:356:sunos/patch-build_make_Makefile]
+--- build/make/Makefile.intermediate	2026-02-17 13:52:39 UTC
++++ build/make/Makefile
+@@ -338,7 +338,7 @@ $(1):
+ 	$(qexec)$$(LD) -shared $$(LDFLAGS) \
+             $(NO_UNDEFINED) \
+             -Wl,-soname,$$(SONAME) \
+-            -Wl,--version-script,$$(EXPORTS_FILE) -o $$@ \
++            -o $$@ \
+             $$(filter %.o,$$^) $$(extralibs)
+ endef
+ 
 

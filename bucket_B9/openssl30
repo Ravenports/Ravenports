@@ -2,6 +2,7 @@
 
 NAMEBASE=		openssl30
 VERSION=		3.6.1
+REVISION=		1
 KEYWORDS=		security devel
 VARIANTS=		std
 SDESC[std]=		SSL and crypto library
@@ -60,7 +61,7 @@ CONFIGURE_ENV=		PERL="{{PERL}}"
 MAKE_ARGS=		MANSUFFIX=
 MAKE_ENV=		GREP_OPTIONS=
 
-SOVERSION=		3
+SOVERSION=		103
 
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=-lrt
 
@@ -84,12 +85,6 @@ VAR_OPSYS[sunos]=	CONFIGURE_ARGS=-lrt
 [SSL3].CONFIGURE_ARGS_ON=		enable-ssl3
 					enable-ssl3-method
 
-post-patch:
-	${REINPLACE_CMD} \
-		-e 's|^MANDIR=.*$$|MANDIR=${MANPREFIX}/man|' \
-		-e 's| install_html_docs$$||' \
-		${WRKSRC}/Configurations/unix-Makefile.tmpl
-
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl30/bin/openssl
 	${RM} ${STAGEDIR}${PREFIX}/etc/openssl30/openssl.cnf
@@ -100,12 +95,22 @@ post-install:
 		>> ${STAGEDIR}${PREFIX}/etc/man.d/openssl30.conf
 	# strip
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl30/lib/lib*.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl30/lib/engines-3/*.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl30/lib/engines-103/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/openssl30/lib/ossl-modules/legacy.so
 	# Relocation documentation to standard
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/doc
 	${MV} ${STAGEDIR}${PREFIX}/openssl30/share/doc/openssl ${STAGEDIR}${STD_DOCDIR}
 	${RM} -r ${STAGEDIR}${PREFIX}/openssl30/share/doc
+
+pre-configure:
+	# Handle document and man page installation changes
+	${REINPLACE_CMD} \
+		-e 's|^MANDIR=.*$$|MANDIR=${MANPREFIX}/man|' \
+		-e 's| install_html_docs$$||' \
+		${WRKSRC}/Configurations/unix-Makefile.tmpl
+	# Override SONAME extension of so.3
+	${REINPLACE_CMD} -e '/SHLIB_VERSION=/ s|3|103|' \
+		${WRKSRC}/VERSION.dat
 
 [FILE:737:descriptions/desc.primary]
 The OpenSSL Project is a collaborative effort to develop a robust,
@@ -127,7 +132,7 @@ to some simple license conditions.
 b1bfedcd5b289ff22aee87c9d600f515767ebf45f77168cb6d64f231f518a82e     54891951 openssl-3.6.1.tar.gz
 
 
-[FILE:508:manifests/plist.primary]
+[FILE:520:manifests/plist.primary]
 @sample etc/openssl30/ct_log_list.cnf.dist etc/openssl30/ct_log_list.cnf
 @sample etc/openssl30/openssl.cnf.dist etc/openssl30/openssl.cnf
 %%ONLY-LINUX%%openssl30/lib/engines-3/afalg.so
@@ -143,7 +148,7 @@ openssl30/lib/
  libcrypto.so.%%SOVERSION%%
  libssl.so
  libssl.so.%%SOVERSION%%
-openssl30/lib/engines-3/
+openssl30/lib/engines-%%SOVERSION%%/
  capi.so
  loader_attic.so
  padlock.so

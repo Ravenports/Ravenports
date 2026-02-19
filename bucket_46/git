@@ -105,9 +105,9 @@ post-install:
 	${LN} -s ../../share/git-core/contrib/completion/git-completion.bash \
 		${STAGEDIR}${PREFIX}/etc/bash_completion.d/git.sh
 	# subtree support
-	(cd ${WRKSRC}/Documentation  && ${SETENV} ${MAKE_ENV} \
+	(cd ${WRKSRC}/Documentation  && ${SETENVI} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_FLAGS} Makefile asciidoc.conf)
-	(cd ${WRKSRC}/contrib/subtree && ${SETENV} ${MAKE_ENV} \
+	(cd ${WRKSRC}/contrib/subtree && ${SETENVI} ${MAKE_ENV} \
 		${MAKE_CMD} ${MAKE_FLAGS} Makefile ${MAKE_ARGS} \
 		install install-doc)
 	# htmldocs support
@@ -1543,9 +1543,9 @@ share/git-core/contrib/vscode/
 
 
 [FILE:806:patches/patch-Documentation_Makefile]
---- Documentation/Makefile.orig	2025-11-17 16:38:17 UTC
+--- Documentation/Makefile.orig	2026-02-02 02:26:11 UTC
 +++ Documentation/Makefile
-@@ -154,11 +154,11 @@ DOC_MAN1 = $(patsubst %.adoc,%.1,$(filte
+@@ -156,11 +156,11 @@ DOC_MAN1 = $(patsubst %.adoc,%.1,$(filte
  DOC_MAN5 = $(patsubst %.adoc,%.5,$(filter $(MAN_FILTER),$(MAN5_TXT)))
  DOC_MAN7 = $(patsubst %.adoc,%.7,$(filter $(MAN_FILTER),$(MAN7_TXT)))
  
@@ -1560,7 +1560,7 @@ share/git-core/contrib/vscode/
  mandir ?= $(prefix)/share/man
  man1dir = $(mandir)/man1
  man5dir = $(mandir)/man5
-@@ -256,7 +256,7 @@ DEFAULT_EDITOR_SQ = $(subst ','\'',$(DEF
+@@ -258,7 +258,7 @@ DEFAULT_EDITOR_SQ = $(subst ','\'',$(DEF
  ASCIIDOC_EXTRA += -a 'git-default-editor=$(DEFAULT_EDITOR_SQ)'
  endif
  
@@ -1572,9 +1572,9 @@ share/git-core/contrib/vscode/
 
 
 [FILE:2418:patches/patch-Makefile]
---- Makefile.orig	2025-11-17 16:38:17 UTC
+--- Makefile.orig	2026-02-02 02:26:11 UTC
 +++ Makefile
-@@ -625,12 +625,12 @@ bash_completion_dir = $(prefix)/share/ba
+@@ -635,12 +635,12 @@ bash_completion_dir = $(prefix)/share/ba
  gitexecdir = libexec/git-core
  mergetoolsdir = $(gitexecdir)/mergetools
  sharedir = $(prefix)/share
@@ -1589,7 +1589,7 @@ share/git-core/contrib/vscode/
  ETC_GITCONFIG = $(sysconfdir)/gitconfig
  ETC_GITATTRIBUTES = $(sysconfdir)/gitattributes
  lib = lib
-@@ -1792,9 +1792,9 @@ endif
+@@ -1832,9 +1832,9 @@ endif
  
  ifndef NO_OPENSSL
  	OPENSSL_LIBSSL = -lssl
@@ -1602,7 +1602,7 @@ share/git-core/contrib/vscode/
          else
  		OPENSSL_LINK =
          endif
-@@ -2738,7 +2738,7 @@ git-instaweb: git-instaweb.sh generate-s
+@@ -2782,7 +2782,7 @@ git-instaweb: git-instaweb.sh generate-s
  	chmod +x $@+ && \
  	mv $@+ $@
  else # NO_PERL
@@ -1611,7 +1611,7 @@ share/git-core/contrib/vscode/
  	$(QUIET_GEN) \
  	sed -e '1s|#!.*/sh|#!$(SHELL_PATH_SQ)|' \
  	    -e 's|@REASON@|NO_PERL=$(NO_PERL)|g' \
-@@ -3607,12 +3607,12 @@ endif
+@@ -3651,12 +3651,12 @@ endif
  ifndef NO_GETTEXT
  	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(localedir_SQ)'
  	(cd po/build/locale && $(TAR) cf - .) | \
@@ -1626,7 +1626,7 @@ share/git-core/contrib/vscode/
  endif
  ifndef NO_TCLTK
  	$(MAKE) -C gitk-git install
-@@ -3683,7 +3683,7 @@ install-man: install-man-perl
+@@ -3727,7 +3727,7 @@ install-man: install-man-perl
  install-man-perl: man-perl
  	$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$(mandir_SQ)/man3'
  	(cd perl/build/man/man3 && $(TAR) cf - .) | \
@@ -1638,9 +1638,9 @@ share/git-core/contrib/vscode/
 
 
 [FILE:1115:patches/patch-config.mak.uname]
---- config.mak.uname.orig	2025-11-17 16:38:17 UTC
+--- config.mak.uname.orig	2026-02-02 02:26:11 UTC
 +++ config.mak.uname
-@@ -251,8 +251,6 @@ ifeq ($(uname_S),SunOS)
+@@ -238,8 +238,6 @@ ifeq ($(uname_S),SunOS)
  		NO_SETENV = YesPlease
  		GIT_TEST_CMP = cmp
          endif
@@ -1649,7 +1649,7 @@ share/git-core/contrib/vscode/
  	BASIC_CFLAGS += -D__EXTENSIONS__ -D__sun__
  endif
  ifeq ($(uname_O),Cygwin)
-@@ -305,12 +303,8 @@ ifeq ($(uname_S),FreeBSD)
+@@ -292,12 +290,8 @@ ifeq ($(uname_S),FreeBSD)
          ifeq ($(shell v=$(uname_R) && test $${v%%.*} -lt 12 && echo 1),1)
  		NO_MEMMEM = UnfortunatelyYes
          endif
@@ -1662,7 +1662,7 @@ share/git-core/contrib/vscode/
  	HAVE_PATHS_H = YesPlease
  	HAVE_BSD_SYSCTL = YesPlease
  	HAVE_BSD_KERN_PROC_SYSCTL = YesPlease
-@@ -344,8 +338,6 @@ ifeq ($(uname_S),NetBSD)
+@@ -331,8 +325,6 @@ ifeq ($(uname_S),NetBSD)
          ifeq ($(shell expr "$(uname_R)" : '[01]\.'),2)
  		NEEDS_LIBICONV = YesPlease
          endif
@@ -1674,7 +1674,7 @@ share/git-core/contrib/vscode/
 
 
 [FILE:353:patches/patch-configure.ac]
---- configure.ac.orig	2025-11-17 16:38:17 UTC
+--- configure.ac.orig	2026-02-02 02:26:11 UTC
 +++ configure.ac
 @@ -396,7 +396,7 @@ GIT_PARSE_WITH_SET_MAKE_VAR(editor, DEFA
  GIT_ARG_SET_PATH(shell)
@@ -1688,7 +1688,7 @@ share/git-core/contrib/vscode/
 
 
 [FILE:471:patches/patch-contrib_subtree_Makefile]
---- contrib/subtree/Makefile.orig	2025-11-17 16:38:17 UTC
+--- contrib/subtree/Makefile.orig	2026-02-02 02:26:11 UTC
 +++ contrib/subtree/Makefile
 @@ -81,7 +81,7 @@ install-html: $(GIT_SUBTREE_HTML)
  	$(INSTALL) -m 644 $^ $(DESTDIR)$(htmldir)
@@ -1702,7 +1702,7 @@ share/git-core/contrib/vscode/
 
 
 [FILE:382:patches/patch-http.c]
---- http.c.orig	2025-11-17 16:38:17 UTC
+--- http.c.orig	2026-02-02 02:26:11 UTC
 +++ http.c
 @@ -2292,7 +2292,11 @@ static int http_request_reauth(const cha
  				return HTTP_START_FAILED;
@@ -1719,7 +1719,7 @@ share/git-core/contrib/vscode/
 
 
 [FILE:393:patches/patch-templates_Makefile]
---- templates/Makefile.orig	2025-11-17 16:38:17 UTC
+--- templates/Makefile.orig	2026-02-02 02:26:11 UTC
 +++ templates/Makefile
 @@ -75,4 +75,4 @@ clean:
  install: all
@@ -1788,7 +1788,7 @@ EOM
 }
 
 
-[FILE:1895:files/packdoc.py]
+[FILE:1947:files/packdoc.py]
 """
 This script combines individual point release notes to avoid an every
 changing package list.  Releases 1.5.0 to 1.8.5 use four part versions.
@@ -1799,6 +1799,7 @@ argument 2: PREFIX
 
 import os
 import sys
+import subprocess
 
 RNOTES = "share/doc/git/RelNotes"
 STAGEDIR = "tbd"
@@ -1812,7 +1813,7 @@ def merge_point(major, minor, point):
     abs_subfile = f"{STAGEDIR}{PREFIX}/{RNOTES}/{subfile}"
     abs_finfile = f"{STAGEDIR}{PREFIX}/{RNOTES}/{finfile}"    
     if os.path.exists(abs_subfile):
-        os.system(f"/bin/cat {abs_subfile} >> {abs_finfile}")
+        subprocess.run(f"/bin/cat {abs_subfile} >> {abs_finfile}", shell=True)
         os.remove(abs_subfile)
         print(f"Merge {subfile} => {finfile}")
 
@@ -1824,7 +1825,7 @@ def merge_subpoint(major, minor, point, subpoint):
     abs_subfile = f"{STAGEDIR}{PREFIX}/{RNOTES}/{subfile}"
     abs_finfile = f"{STAGEDIR}{PREFIX}/{RNOTES}/{finfile}"    
     if os.path.exists(abs_subfile):
-        os.system(f"/bin/cat {abs_subfile} >> {abs_finfile}")
+        subprocess.run(f"/bin/cat {abs_subfile} >> {abs_finfile}", shell=True)
         os.remove(abs_subfile)
         print(f"Merge {subfile} => {finfile}")
 
@@ -1853,12 +1854,4 @@ if __name__ == "__main__":
     STAGEDIR = sys.argv[1]
     PREFIX = sys.argv[2]
     main()
-
-
-[FILE:72:sunos/special.mk]
-.if "${VARIANT}" == "standard"
-LDFLAGS+=	-lintl
-.endif
-
-LDFLAGS+=	-lnsl
 

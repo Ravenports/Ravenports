@@ -2,6 +2,7 @@
 
 NAMEBASE=		aom
 VERSION=		3.13.1
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Alliance for Open Media video codec
@@ -17,10 +18,10 @@ SPKGS[std]=		set
 			tools
 			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	ASM
+OPTIONS_STANDARD=	ASM
+OPT_ON[all]=		ASM
 
-BUILD_DEPENDS=		nasm:primary:std
 EXRUN[tools]=		aom:primary:std
 
 USES=			cpe cmake c++:primary perl:build
@@ -42,6 +43,11 @@ SOVERSION=		3.13.1
 CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
 			-DENABLE_DOCS:BOOL=OFF
 			-DENABLE_TESTS:BOOL=OFF
+
+[ASM].DESCRIPTION=			Use NASM assembler during build
+[ASM].BUILD_DEPENDS_ON=			nasm:primary:std
+[ASM].CMAKE_ARGS_OFF=			-DAOM_TARGET_CPU="generic"
+[ASM].CMAKE_ARGS_ON=			-DAOM_TARGET_CPU="x86_64"
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/aomdec
@@ -116,4 +122,18 @@ Corrects feature detection for NASM 3.01
  
    if(NOT "${nasm_helptext}" MATCHES "-Ox")
      message(
+
+
+[FILE:443:patches/patch-build_cmake_exports.cmake]
+--- build/cmake/exports.cmake.orig	2025-09-05 22:10:37 UTC
++++ build/cmake/exports.cmake
+@@ -68,7 +68,7 @@ function(setup_exports_target)
+                    APPEND_STRING
+                    PROPERTY LINK_FLAGS "${aom_sym_file}")
+     endif()
+-  else()
++  elseif(NOT CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+     set_property(TARGET aom
+                  APPEND_STRING
+                  PROPERTY LINK_FLAGS "-Wl,--version-script,${aom_sym_file}")
 

@@ -1,0 +1,13 @@
+# @smf lib/svc/manifest/my-service.xml
+# Handle registering services on Solaris-based systems
+#
+
+actions: [file]
+post-install-lua: <<EOD
+  manifest_path = pkg.prefixed_path("%@")
+  pkg.exec({"/usr/sbin/svccfg", "import", manifest_path})
+EOD
+pre-deinstall-lua: <<EOD
+  manifest_path = pkg.prefixed_path("%@")
+  pkg.exec({"/usr/sbin/svccfg", "delete", manifest_path})
+EOD

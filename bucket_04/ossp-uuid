@@ -42,6 +42,7 @@ CONFIGURE_ARGS=		--with-cxx
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 VAR_OPSYS[linux]=	CFLAGS=-D_GNU_SOURCE
 
 post-install:
@@ -109,4 +110,17 @@ share/man/man3/
  	$(LIBTOOL) --mode=install install -c -m 755 uuid@EXEEXT@ $(DESTDIR)$(bindir)/
  	cp uuid-config   $(DESTDIR)$(bindir)/
  	cp uuid.1        $(DESTDIR)$(mandir)/man1/
+
+
+[FILE:446:patches/patch-configure.ac]
+--- configure.ac.orig	2025-12-08 18:04:55 UTC
++++ configure.ac
+@@ -83,6 +83,7 @@ AC_CHECK_FUNCS(getentropy)
+ 
+ case $(uname) in
+     Darwin) AC_SUBST(LDVERSFLAGS, ['-Wl,-exported_symbols_list,libuuid.darwinver']) AC_SUBST(LDVERSDEP, [libuuid.darwinver]) ;;
++    SunOS) ;;
+     *     ) AC_SUBST(LDVERSFLAGS, ['-Wl,--version-script=$(S)/libuuid.ver'])        AC_SUBST(LDVERSDEP, [libuuid.ver])       ;;
+ esac
+ echo "version script is $LDVERSFLAGS"
 

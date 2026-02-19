@@ -85,10 +85,6 @@ do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		bjam ${MAKE_ARGS:C,^${DESTDIRNAME}=.*,,g} ${BUILD_TARGET})
 
-post-install-darwin:
-	(cd ${STAGEDIR}${PREFIX} && ${FIND} lib -name "*.dylib" | ${XARGS}\
-		-I{LIB} /usr/bin/install_name_tool -id "${PREFIX}/{LIB}" {LIB})
-
 do-install:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		bjam ${MAKE_ARGS:NDESTDIR=*:S,^--prefix=,&${STAGEDIR},} \
@@ -17931,18 +17927,4 @@ Needs memory for std::unique_ptr.
      toolset.flags gcc.link RPATH <target-os>solaris : <dll-path> ;
      # Solaris linker does not have a separate -rpath-link, but allows using
      # -L for the same purpose.
-
-
-[FILE:245:sunos/patch-libs_process_src_pid.cpp]
---- libs/process/src/pid.cpp.orig	2025-12-03 13:46:45 UTC
-+++ libs/process/src/pid.cpp
-@@ -42,6 +42,8 @@
- #include <sys/sysctl.h>
- #include <sys/user.h>
- #include <kvm.h>
-+#include <fcntl.h>
-+#include <memory>
- #endif
- 
- #if defined(__NetBSD__)
 

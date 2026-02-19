@@ -2,6 +2,7 @@
 
 NAMEBASE=		erlang
 VERSION=		28.3.1
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		std
 SDESC[std]=		Concurrent functional programming language
@@ -30,8 +31,8 @@ OPTIONS_STANDARD=	NATIVE
 
 BUILD_DEPENDS=		autoconf:primary:std
 			libGLU:dev:std
-			wxWidgets30:dev:std
-BUILDRUN_DEPENDS=	wxWidgets30:primary:std
+			wxWidgets:dev:std
+BUILDRUN_DEPENDS=	wxWidgets:primary:std
 
 USES=			cpe gmake ncurses perl:build ssl zlib
 XORG_COMPONENTS=	x11
@@ -5731,7 +5732,7 @@ share/doc/erlang/system/dist/
 
 
 [FILE:508:patches/patch-erts_emulator_drivers_common_inet__drv.c]
---- erts/emulator/drivers/common/inet_drv.c.orig	2025-12-10 11:05:56 UTC
+--- erts/emulator/drivers/common/inet_drv.c.orig	2026-01-13 09:25:18 UTC
 +++ erts/emulator/drivers/common/inet_drv.c
 @@ -14496,7 +14496,9 @@ static ErlDrvSSizeT packet_inet_ctl(ErlD
          switch(buf[2]) {
@@ -5746,7 +5747,7 @@ share/doc/erlang/system/dist/
 
 
 [FILE:552:patches/patch-erts_emulator_nifs_common_prim__tty__nif.c]
---- erts/emulator/nifs/common/prim_tty_nif.c.orig	2025-12-10 11:05:56 UTC
+--- erts/emulator/nifs/common/prim_tty_nif.c.orig	2026-01-13 09:25:18 UTC
 +++ erts/emulator/nifs/common/prim_tty_nif.c
 @@ -46,12 +46,7 @@
  #include <locale.h>
@@ -5765,7 +5766,7 @@ share/doc/erlang/system/dist/
 
 
 [FILE:251:patches/patch-erts_etc_unix_run__erl.c]
---- erts/etc/unix/run_erl.c.orig	2025-12-10 11:05:56 UTC
+--- erts/etc/unix/run_erl.c.orig	2026-01-13 09:25:18 UTC
 +++ erts/etc/unix/run_erl.c
 @@ -83,7 +83,7 @@
  #ifdef HAVE_LIBUTIL_H
@@ -5779,7 +5780,7 @@ share/doc/erlang/system/dist/
 
 
 [FILE:773:patches/patch-lib_crypto_c__src_Makefile.in]
---- lib/crypto/c_src/Makefile.in.orig	2025-12-10 11:05:56 UTC
+--- lib/crypto/c_src/Makefile.in.orig	2026-01-13 09:25:18 UTC
 +++ lib/crypto/c_src/Makefile.in
 @@ -149,7 +149,7 @@ endif
  endif
@@ -5802,7 +5803,7 @@ share/doc/erlang/system/dist/
 
 
 [FILE:381:patches/patch-lib_erl__interface_src_connect_ei__resolve.c]
---- lib/erl_interface/src/connect/ei_resolve.c.orig	2025-12-10 11:05:56 UTC
+--- lib/erl_interface/src/connect/ei_resolve.c.orig	2026-01-13 09:25:18 UTC
 +++ lib/erl_interface/src/connect/ei_resolve.c
 @@ -433,7 +433,8 @@ struct hostent *ei_gethostbyname_r(const
  
@@ -5817,7 +5818,7 @@ share/doc/erlang/system/dist/
 
 
 [FILE:1112:patches/patch-lib_stdlib_src_calendar.erl]
---- lib/stdlib/src/calendar.erl.orig	2025-12-10 11:05:56 UTC
+--- lib/stdlib/src/calendar.erl.orig	2026-01-13 09:25:18 UTC
 +++ lib/stdlib/src/calendar.erl
 @@ -475,11 +475,19 @@ The return value is a list of 0, 1, or 2
        DateTime1 :: datetime1970(),
@@ -5845,8 +5846,25 @@ share/doc/erlang/system/dist/
  	{DateTime,DateTime} when UtDst =/= Ut ->
 
 
+[FILE:656:patches/patch-lib_wx_c_src_gen_wxe__wrapper__c.cpp]
+--- lib/wx/c_src/gen/wxe_wrapper_7.cpp.orig	2026-01-13 09:25:18 UTC
++++ lib/wx/c_src/gen/wxe_wrapper_7.cpp
+@@ -2341,7 +2341,11 @@ void wxToolBar_AddTool_4(WxeApp *app, wx
+     } else        Badarg("Options");
+   };
+   if(!This) throw wxe_badarg("This");
++#if wxCHECK_VERSION(3,1,6)
++  wxToolBarToolBase * Result = (wxToolBarToolBase*)This->AddTool(toolId,label,(wxBitmapBundle)*bitmap,shortHelp,kind);
++#else < 3.1.6
+   wxToolBarToolBase * Result = (wxToolBarToolBase*)This->AddTool(toolId,label,*bitmap,shortHelp,kind);
++#endif
+   wxeReturn rt = wxeReturn(memenv, Ecmd.caller, true);
+   rt.send(  rt.make_ref(app->getRef((void *)Result,memenv), "wx"));
+ 
+
+
 [FILE:324:patches/patch-make_output.mk.in]
---- make/output.mk.in.orig	2025-12-10 11:05:56 UTC
+--- make/output.mk.in.orig	2026-01-13 09:25:18 UTC
 +++ make/output.mk.in
 @@ -103,7 +103,7 @@ V_JAVAC = $(javac_verbose)$(JAVAC)
  

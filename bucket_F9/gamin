@@ -2,7 +2,7 @@
 
 NAMEBASE=		gamin
 VERSION=		0.1.10
-REVISION=		3
+REVISION=		4
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Monitor files and directories for changes
@@ -33,14 +33,20 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		devel/gamin
 
 MUST_CONFIGURE=		gnu
+CONFIGURE_ARGS=		--disable-debug
+			--disable-debug-api
+			--disable-gtk-doc
+			--without-threads
+			--without-python
 
-SOVERSION=		0.1.10
 PLIST_SUB=		FAMVERSION=0.0.0
 			FAMMAJOR=0
 
 CFLAGS=			-Wno-implicit-function-declaration
 			-Wno-incompatible-pointer-types
+			-Wno-deprecated-declarations
 CPPFLAGS=		-DHAVE_LINUX
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so*
@@ -105,6 +111,42 @@ lib/pkgconfig/gamin.pc
  	GAM_DEBUG(DEBUG_INFO, "gam_eq: Flushing event queue for %s\n", gam_connection_get_pidname (conn));
 
 
+[FILE:481:patches/patch-server_gam__node.c]
+$NetBSD: patch-server_gam__node.c,v 1.1 2012/03/17 02:19:08 wiz Exp $
+
+G_CONST_RETURN has been obsoleted.
+
+--- server/gam_node.c.orig	2007-07-04 13:36:49 UTC
++++ server/gam_node.c
+@@ -122,7 +122,7 @@ gam_node_set_is_dir(GamNode * node, gboo
+  * it has finished with the string.  If it must keep it longer, it
+  * should makes its own copy.  The returned string must not be freed.
+  */
+-G_CONST_RETURN char *
++const char *
+ gam_node_get_path(GamNode * node)
+ {
+     g_assert(node);
+
+
+[FILE:576:patches/patch-server_gam__node.h]
+$NetBSD: patch-server_gam__node.h,v 1.1 2012/03/17 02:19:08 wiz Exp $
+
+G_CONST_RETURN has been obsoleted.
+
+--- server/gam_node.h.orig	2007-07-04 13:36:49 UTC
++++ server/gam_node.h
+@@ -58,7 +58,7 @@ gboolean              gam_node_is_dir
+ void                  gam_node_set_is_dir          (GamNode         *node,
+ 						   gboolean        is_dir);
+ 	
+-G_CONST_RETURN char  *gam_node_get_path            (GamNode         *node);
++const char  *gam_node_get_path            (GamNode         *node);
+ 
+ GList                *gam_node_get_subscriptions   (GamNode         *node);
+ 
+
+
 [FILE:532:patches/patch-server_gam__poll__basic.c]
 --- server/gam_poll_basic.c.orig	2007-07-04 13:46:29 UTC
 +++ server/gam_poll_basic.c
@@ -117,6 +159,57 @@ lib/pkgconfig/gamin.pc
  #endif /* ST_MTIM_NSEC */
  #endif /* VERBOSE_POLL */
  	}
+
+
+[FILE:481:patches/patch-server_gam__subscription.c]
+$NetBSD: patch-server_gam__subscription.c,v 1.1 2012/03/17 02:19:08 wiz Exp $
+
+G_CONST_RETURN has been obsoleted.
+
+--- server/gam_subscription.c.orig	2007-07-04 13:36:49 UTC
++++ server/gam_subscription.c
+@@ -141,7 +141,7 @@ gam_subscription_pathlen(GamSubscription
+  * @param sub the GamSubscription
+  * @returns The path being monitored.  It should not be freed.
+  */
+-G_CONST_RETURN char *
++const char *
+ gam_subscription_get_path(GamSubscription * sub)
+ {
+     if (sub == NULL)
+
+
+[FILE:566:patches/patch-server_gam__subscription.h]
+$NetBSD: patch-server_gam__subscription.h,v 1.1 2012/03/17 02:19:08 wiz Exp $
+
+G_CONST_RETURN has been obsoleted.
+
+--- server/gam_subscription.h.orig	2007-07-04 13:36:49 UTC
++++ server/gam_subscription.h
+@@ -21,7 +21,7 @@ int                  gam_subscription_pa
+ 
+ int                  gam_subscription_get_reqno    (GamSubscription *sub);
+ 
+-G_CONST_RETURN char *gam_subscription_get_path     (GamSubscription *sub);
++const char *gam_subscription_get_path     (GamSubscription *sub);
+ 
+ GamListener         *gam_subscription_get_listener (GamSubscription *sub);
+ 
+
+
+[FILE:332:patches/patch-server_inotify-kernel.c]
+--- server/inotify-kernel.c.orig	2008-11-12 20:45:28 UTC
++++ server/inotify-kernel.c
+@@ -25,6 +25,9 @@
+ #include "inotify-kernel.h"
+ 
+ #include <sys/inotify.h>
++#if defined(__sun__)
++#include <sys/filio.h>
++#endif
+ 
+ /* Timings for pairing MOVED_TO / MOVED_FROM events */
+ #define PROCESS_EVENTS_TIME 1000 /* milliseconds (1 hz) */
 
 
 [FILE:971:patches/patch-tests_testing.c]
@@ -147,6 +240,16 @@ lib/pkgconfig/gamin.pc
              debugLoop(100);
  
  /*	    printf("+"); fflush(stdout); */
+
+
+[FILE:157:files/special.mk]
+.if ${OPSYS} == "SunOS"
+PLIST_SUB+= 	SOVERSION=0.0.0
+PLIST_SUB+=	SOMAJOR=0
+.else
+PLIST_SUB+= 	SOVERSION=${VERSION}
+PLIST_SUB+=	SOMAJOR=${VERSION:R:R}
+.endif
 
 
 [FILE:3586:freebsd/patch-libgamin_gam__api.c]
@@ -912,4 +1015,25 @@ lib/pkgconfig/gamin.pc
  }
  
  gboolean
+
+
+[FILE:667:sunos/patch-libgamin_Makefile.in]
+--- libgamin/Makefile.in.orig	2008-11-24 15:25:07 UTC
++++ libgamin/Makefile.in
+@@ -255,13 +255,11 @@ libgamin_1_la_SOURCES = \
+ 
+ CLEANFILES = gam_error.c gam_event.c
+ libgamin_1_la_LIBADD = 
+-libgamin_1_la_LDFLAGS = -Wl,--version-script=$(srcdir)/gamin_sym.version \
+-                        -version-info @GAMIN_VERSION_INFO@ @THREAD_LIBS@
++libgamin_1_la_LDFLAGS = 
+ 
+ libfam_la_SOURCES = $(libgamin_1_la_SOURCES)
+ libfam_la_LIBADD = $(libgamin_1_la_LIBADD)
+-libfam_la_LDFLAGS = -Wl,--version-script=$(srcdir)/gamin_sym.version	\
+-                    -version-info @FAM_VERSION_INFO@ @THREAD_LIBS@
++libfam_la_LDFLAGS = 
+ 
+ gamin_SOURCES = gamin.c
+ gamin_LDFLAGS = 
 

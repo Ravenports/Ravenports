@@ -2,6 +2,7 @@
 
 NAMEBASE=		python313
 VERSION=		3.13.12
+REVISION=		1
 KEYWORDS=		lang python
 VARIANTS=		std
 SDESC[std]=		Interpreted object-oriented programming language
@@ -128,7 +129,7 @@ post-install:
 	rm -rf ${STAGEDIR}${PREFIX}/lib/python3.13${ABIFLAGS}/test
 	cp ${STAGEDIR}${PREFIX}/lib/libpython3.13.so.1.0 ${LOCALBASE}/lib
 	(cd ${STAGEDIR}${PREFIX}/lib/python3.13${ABIFLAGS} && \
-	        ../../bin/python3.13 -m compileall -f -d / . ||:)
+	        ../../bin/python3.13 -m compileall -f -d / . -o0 -o1 -o2||:)
 	${RM} ${LOCALBASE}/lib/libpython3.13.so.1.0
 
 pre-configure:
@@ -139,10 +140,6 @@ pre-configure:
 .  endfor
 	# ${REINPLACE_CMD} -e 's|/usr/local/bin/python|${python_CMD}|' \
 		${WRKSRC}/Lib/cgi.py
-
-post-extract-sunos:
-	# remove opt-[12].pyc from primary manifest
-	${SED} -i.sunos -e '/opt[-][12][.]pyc/d' /port/manifests/plist.primary
 
 post-install-DEBUG-OFF:
 	# Upstream Issue: http://bugs.python.org/issue17975 (won't fix, ever)
@@ -168,7 +165,7 @@ It is separate due to the run time dependency on the sqlite library.
 2a84cd31dd8d8ea8aaff75de66fc1b4b0127dd5799aa50a64ae9a313885b4593     22926488 python-src/Python-3.13.12.tar.xz
 
 
-[FILE:69075:manifests/plist.primary]
+[FILE:69141:manifests/plist.primary]
 %%DEBUG-ON%%bin/
  python%%XYDOT%%%%ABI%%
  python%%XYDOT%%%%ABI%%-config
@@ -1080,7 +1077,10 @@ lib/python%%XYDOT%%/config-%%XYDOT%%%%FULLABI%%/
  makesetup
  python-config.py
  python.o
-lib/python%%XYDOT%%/config-%%XYDOT%%%%FULLABI%%/__pycache__/python-config%%PYC%%.pyc
+lib/python%%XYDOT%%/config-%%XYDOT%%%%FULLABI%%/__pycache__/
+ python-config%%PYC%%.pyc
+ python-config%%PYC%%.opt-1.pyc
+ python-config%%PYC%%.opt-2.pyc
 lib/python%%XYDOT%%/ctypes/
  __init__.py
  _aix.py
@@ -3563,6 +3563,25 @@ lib/python%%XYDOT%%/lib-dynload/_sqlite3%%SOABI%%.so
  	$(INSTALL_SCRIPT) $(SCRIPT_IDLE) $(DESTDIR)$(BINDIR)/idle$(VERSION)
  	$(INSTALL_SCRIPT) $(SCRIPT_PYDOC) $(DESTDIR)$(BINDIR)/pydoc$(VERSION)
  	@if [ -s Modules/python.exp -a \
+
+
+[FILE:463:patches/patch-Modules_socketmodule.c]
+$NetBSD: patch-Modules_socketmodule.c,v 1.1 2024/10/09 19:53:20 adam Exp $
+
+SunOS needs _XOPEN_SOURCE for sendmsg bits that are now required.
+
+--- Modules/socketmodule.c.orig	2026-02-03 17:53:27 UTC
++++ Modules/socketmodule.c
+@@ -89,6 +89,9 @@ Local naming conventions:
+ #  define Py_BUILD_CORE_MODULE 1
+ #endif
+ 
++#ifdef __sun
++#define _XOPEN_SOURCE	600
++#endif
+ #ifdef __APPLE__
+ // Issue #35569: Expose RFC 3542 socket options.
+ #define __APPLE_USE_RFC_3542 1
 
 
 [FILE:383:patches/patch-Modules_timemodule.c]

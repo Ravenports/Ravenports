@@ -2,6 +2,7 @@
 
 NAMEBASE=		giflib
 VERSION=		5.2.2
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		GIF image format library and tools
@@ -38,6 +39,8 @@ MAKE_ARGS=		PREFIX={{PREFIX}}
 SINGLE_JOB=		yes
 
 SOVERSION=		7.2.0
+
+CVE_FIXED=		CVE-2024-45993
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/g*
@@ -89,6 +92,25 @@ bin/
  giffix
  giftext
  giftool
+
+
+[FILE:574:patches/patch-CVE-2025-2024-45993]
+Should resolve CVE-2024-45993
+
+--- gif2rgb.c.orig	2024-02-19 03:01:28 UTC
++++ gif2rgb.c
+@@ -329,6 +329,11 @@ static void DumpScreen2RGB(char *FileNam
+ 			GifRow = ScreenBuffer[i];
+ 			GifQprintf("\b\b\b\b%-4d", ScreenHeight - i);
+ 			for (j = 0; j < ScreenWidth; j++) {
++				/* Check if color is within color palete */
++				if (GifRow[j] >= ColorMap->ColorCount) {
++					GIF_EXIT(GifErrorString(
++					    D_GIF_ERR_IMAGE_DEFECT));
++				}
+ 				ColorMapEntry = &ColorMap->Colors[GifRow[j]];
+ 				Buffers[0][j] = ColorMapEntry->Red;
+ 				Buffers[1][j] = ColorMapEntry->Green;
 
 
 [FILE:917:patches/patch-Makefile]

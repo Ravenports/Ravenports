@@ -11,7 +11,7 @@
 _INCLUDE_USES_ICONV_MK=	yes
 
 
-.  if !exists(/usr/include/libintl.h) || ${iconv_ARGS:Mstandalone}
+.  if "${OPSYS}" != "Linux" || ${iconv_ARGS:Mstandalone}
 
 ICONV_CMD=		${LOCALBASE}/bin/iconv
 ICONV_LIB=		-liconv

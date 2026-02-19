@@ -25,14 +25,15 @@ DISTFILE[10]=		cargo-1.92.0-x86_64-unknown-linux-gnu.tar.gz:main
 DISTFILE[11]=		rustc-1.92.0-x86_64-unknown-netbsd.tar.gz:main
 DISTFILE[12]=		rust-std-1.92.0-x86_64-unknown-netbsd.tar.gz:main
 DISTFILE[13]=		cargo-1.92.0-x86_64-unknown-netbsd.tar.gz:main
-DISTFILE[14]=		curl-7.88.0.tar.xz:curl
-DF_INDEX=		1 14
+DISTFILE[14]=		rustc-1.92.0-x86_64-unknown-illumos.tar.gz:main
+DISTFILE[15]=		rust-std-1.92.0-x86_64-unknown-illumos.tar.gz:main
+DISTFILE[16]=		cargo-1.92.0-x86_64-unknown-illumos.tar.gz:main
+DISTFILE[17]=		curl-7.88.0.tar.xz:curl
+DF_INDEX=		1 17
 SPKGS[std]=		single
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-ONLY_FOR_OPSYS=		dragonfly freebsd linux netbsd midnightbsd
 
 BUILD_DEPENDS=		bash:primary:std
 			cmake:primary:std
@@ -47,7 +48,7 @@ USES=			cpe gmake zlib:build python:build shebangfix
 			execinfo c++:single dos2unix ssl:build rootca:single
 
 DISTNAME=		rustc-1.93.0-src
-EXTRACT_ONLY=		1 14
+EXTRACT_ONLY=		1 17
 
 LICENSE=		APACHE20:single MIT:single
 LICENSE_TERMS=		single:{{WRKSRC}}/COPYRIGHT
@@ -95,6 +96,8 @@ INSTALL_REQ_TOOLCHAIN=	yes
 
 MOUNT_PROCFS=		yes
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.92.0
+			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.92.0
+VAR_OPSYS[sunos]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.92.0
 			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.92.0
 VAR_OPSYS[linux]=	MAKEFILE_LINE=BOOTSTRAP_RUST=1.92.0
 			MAKEFILE_LINE=BOOTSTRAP_CARGO=1.92.0
@@ -244,6 +247,10 @@ do-install:
 
 post-build-midnightbsd:
 	${RM} ${LOCALBASE}/lib/libc++.so
+
+pre-build-sunos:
+	${LN} -s ${LOCALBASE}/toolchain/ravensys-gcc/lib/amd64/libssp.so.0 \
+	${WRKDIR}/bootstrap/lib/libssp.so.0
 
 pre-build-dragonfly:
 	${LN} -s ${LOCALBASE}/toolchain/ravensys-gcc/lib/libgcc_s.so \
@@ -742,7 +749,7 @@ env MAKE=gmake \
 	--enable-threaded-resolver
 
 
-[FILE:583:files/special.mk]
+[FILE:685:files/special.mk]
 .if "${OPSYS}" == "DragonFly"
 DF_INDEX+=		2 3 4
 COMPEXT=		zst
@@ -756,6 +763,10 @@ SFX=			${ARCH_STANDARD}-unknown-linux-gnu
 .elif "${OPSYS}" == "NetBSD"
 DF_INDEX+=		11 12 13
 COMPEXT=		gz
+.elif "${OPSYS}" == "SunOS"
+DF_INDEX+=		14 15 16
+COMPEXT=		gz
+SFX=			${ARCH_STANDARD}-unknown-illumos
 .elif "${OPSYS}" == "MidnightBSD"
 DF_INDEX+=		5 6 7
 COMPEXT=		gz

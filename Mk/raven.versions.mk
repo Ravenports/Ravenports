@@ -90,11 +90,11 @@ TCL_9.0_VERSION=	9.0.3
 
 PGSQL_DEFAULT?=		17
 
-PGSQL_14_VERSION=	14.20	# EOL 12 NOV 2026
-PGSQL_15_VERSION=	15.15	# EOL 11 NOV 2027
-PGSQL_16_VERSION=	16.11	# EOL 09 NOV 2028
-PGSQL_17_VERSION=	17.7	# EOL 08 NOV 2029
-PGSQL_18_VERSION=	18.1	# EOL 14 NOV 2030
+PGSQL_14_VERSION=	14.21	# EOL 12 NOV 2026
+PGSQL_15_VERSION=	15.16	# EOL 11 NOV 2027
+PGSQL_16_VERSION=	16.12	# EOL 09 NOV 2028
+PGSQL_17_VERSION=	17.8	# EOL 08 NOV 2029
+PGSQL_18_VERSION=	18.2	# EOL 14 NOV 2030
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
@@ -129,8 +129,8 @@ MYSQL_mariadb-BE_VERSION=	12.1.2		# Bleeding Edge
 PHP_DEFAULT?=		8.4
 
 PHP_8.3_VERSION=	8.3.30
-PHP_8.4_VERSION=	8.4.17
-PHP_8.5_VERSION=	8.5.2
+PHP_8.4_VERSION=	8.4.18
+PHP_8.5_VERSION=	8.5.3
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform

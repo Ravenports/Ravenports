@@ -63,26 +63,30 @@ LICENSE_AWK=		TERMS:"^\/\*$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/include/mysql.h
 LICENSE_SCHEME=		multi
 
-INFO=			info:mysql
 CMAKE_BUILD_TYPE=	Release
 CPE_PRODUCT=		mysql
 CPE_VENDOR=		oracle
 FPC_EQUIVALENT=		databases/mysql80-server
-INFO_SUBDIR=		.
 SHEBANG_FILES=		scripts/*.pl
 
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
+			SMF_NAME=mysql
 			RPCGEN=
 RC_SUBR=		mysql-server:server
 SUB_FILES=		my.cnf.sample
+			manifest.xml
+			mysql_command.sh
 			messages-server.ucl
 SUB_LIST=		MY_DBDIR=/var/db/mysql
 			MY_SECDIR=/var/db/mysql_secure
 			MY_TMPDIR=/var/db/mysql_tmpdir
 			OPSYS="{{OPSYS}}"
+			SMF_NAME=mysql
+			SMF_PREFIX=ravenports
+			SMF_METHOD_SCRIPT=mysql_command.sh
 
 CFLAGS=			-Wno-deprecated-declarations
 CXXFLAGS=		-DNDEBUG
@@ -115,6 +119,7 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 			-DWITH_SSL={{OPENSSLBASE}}
 			-DINSTALL_MYSQLTESTDIR=0
 			-DWITH_UNIT_TESTS:BOOL=OFF
+			-DWITH_AUTHENTICATION_LDAP:BOOL=OFF
 
 [PERFSCHEMA].DESCRIPTION=		Provide "Performance Schema Storage" engine
 [PERFSCHEMA].CMAKE_ARGS_OFF=		-DWITHOUT_PERFSCHEMA_STORAGE_ENGINE=1
@@ -179,6 +184,7 @@ pre-configure:
 		-e 's|@OPENSSLLIB@|${OPENSSLLIB}|g' \
 		${WRKSRC}/scripts/CMakeLists.txt
 	${RM} ${WRKSRC}/cmake/os/FreeBSD.cmake
+	${RM} ${WRKSRC}/cmake/os/SunOS.cmake
 	# current_path not supported by DragonFly
 	${REINPLACE_CMD} -e '/mock_server/d' \
 		${WRKSRC}/router/src/CMakeLists.txt
@@ -186,6 +192,17 @@ pre-configure:
 post-extract:
 	${RM} -rv ${WRKSRC}/sql/sql_hints.yy.cc ${WRKSRC}/sql/sql_hints.yy.h
 	${CP} ${FILESDIR}/ffsll.cc ${WRKSRC}/sql/
+
+pre-configure-sunos:
+	${REINPLACE_CMD} -e 's|-Wl,--no-as-needed||' \
+		${WRKSRC}/plugin/x/protocol/plugin/CMakeLists.txt
+
+post-install-sunos:
+	# install SMF manifest and method files
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/svc/manifest
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib/svc/method
+	${INSTALL_DATA} ${WRKDIR}/manifest.xml ${STAGEDIR}${PREFIX}/lib/svc/manifest
+	${INSTALL_SCRIPT} ${WRKDIR}/mysql_command.sh ${STAGEDIR}${PREFIX}/lib/svc/method
 
 [FILE:294:descriptions/desc.server]
 MySQL is a very fast, multi-threaded, multi-user and robust SQL
@@ -208,10 +225,14 @@ This package contains the MySQL client.
 f679707d05f0c2b61e9b14961302e7f540c23e9e5e2bffd8ad9193599e295cee    492472802 mysql-boost-8.0.45.tar.gz
 
 
-[FILE:6148:manifests/plist.server]
+[FILE:6369:manifests/plist.server]
+@comment add @smf in front of lib/svc/manifest line after testing svccfg
 @sample etc/mysql/my.cnf.sample
 @sample etc/mysql/mysqlrouter.conf.sample
 %%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
+%%ONLY-SUNOS%%lib/svc/manifest/%%SMF_NAME%%.xml
+%%ONLY-SUNOS%%lib/svc/method/mysql_command.sh
+%%ONLY-SUNOS%%share/mysql/solaris/postinstall-solaris
 %%RPCGEN%%lib/mysql/plugin/group_replication.so
 bin/
  comp_err
@@ -533,10 +554,21 @@ share/man/man1/
 share/man/man8/mysqld.8
 
 
-[FILE:865:patches/patch-CMakeLists.txt]
+[FILE:1108:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2025-12-17 13:14:47 UTC
 +++ CMakeLists.txt
-@@ -2288,7 +2288,6 @@ ADD_SUBDIRECTORY(share)
+@@ -1868,10 +1868,6 @@ MYSQL_CHECK_KERBEROS_DLLS()
+ MYSQL_CHECK_SASL()
+ MYSQL_CHECK_SASL_DLLS()
+ 
+-# Add LDAP library
+-MYSQL_CHECK_LDAP()
+-MYSQL_CHECK_LDAP_DLLS()
+-
+ # Add Windows specific jemalloc DLL
+ IF(WIN32)
+   MYSQL_CHECK_WIN_JEMALLOC()
+@@ -2288,7 +2284,6 @@ ADD_SUBDIRECTORY(share)
  ADD_SUBDIRECTORY(libservices)
  
  IF(NOT WITHOUT_SERVER)
@@ -544,7 +576,7 @@ share/man/man8/mysqld.8
    ADD_SUBDIRECTORY(sql)
  ENDIF()
  
-@@ -2361,8 +2360,6 @@ ENDIF()
+@@ -2361,8 +2356,6 @@ ENDIF()
  ADD_SUBDIRECTORY(scripts)
  
  IF(NOT WITHOUT_SERVER)
@@ -553,7 +585,7 @@ share/man/man8/mysqld.8
    ADD_SUBDIRECTORY(support-files)
    IF(WITH_INTERNAL)
      ADD_SUBDIRECTORY(internal)
-@@ -2547,6 +2544,7 @@ ENDIF()
+@@ -2547,6 +2540,7 @@ ENDIF()
  #
  # RPM installs documentation directly from the source tree
  #
@@ -561,7 +593,7 @@ share/man/man8/mysqld.8
  IF(NOT INSTALL_LAYOUT MATCHES "RPM")
    INSTALL(FILES
      README
-@@ -2573,6 +2571,7 @@ IF(HAVE_ASAN AND WIN32_CLANG)
+@@ -2573,6 +2567,7 @@ IF(HAVE_ASAN AND WIN32_CLANG)
    STRING_APPEND(CMAKE_CXX_FLAGS
      " -fsanitize=address -fsanitize-address-use-after-scope")
  ENDIF()
@@ -1314,6 +1346,149 @@ NetBSD has uucred, not sockpeercred.
    size_t size = sizeof(ncpu);
 
 
+[FILE:4393:patches/patch-sql_resourcegroups_platform_thread__attrs__api__solaris.cc]
+--- sql/resourcegroups/platform/thread_attrs_api_solaris.cc.orig	2025-12-17 13:14:47 UTC
++++ sql/resourcegroups/platform/thread_attrs_api_solaris.cc
+@@ -34,112 +34,41 @@
+ 
+ namespace resourcegroups {
+ namespace platform {
+-bool is_platform_supported() { return true; }
++bool is_platform_supported() { return false; }
+ 
+ bool bind_to_cpu(cpu_id_t cpu_id) {
+-  if (processor_bind(P_LWPID, P_MYID, static_cast<processorid_t>(cpu_id),
+-                     nullptr) == -1) {
+-    char errbuf[MYSQL_ERRMSG_SIZE];
+-    LogErr(ERROR_LEVEL, ER_RES_GRP_SOLARIS_PROCESSOR_BIND_TO_CPUID_FAILED,
+-           cpu_id, my_errno(),
+-           my_strerror(errbuf, MYSQL_ERRMSG_SIZE, my_errno()));
+-    return true;
+-  }
+-  return false;
++  return true;
+ }
+ 
+ bool bind_to_cpu(cpu_id_t cpu_id, my_thread_os_id_t thread_id) {
+-  if (processor_bind(P_LWPID, thread_id, static_cast<processorid_t>(cpu_id),
+-                     nullptr) == -1) {
+-    char errbuf[MYSQL_ERRMSG_SIZE];
+-    LogErr(ERROR_LEVEL, ER_RES_GRP_SOLARIS_PROCESSOR_BIND_TO_THREAD_FAILED,
+-           thread_id, cpu_id, my_errno(),
+-           my_strerror(errbuf, MYSQL_ERRMSG_SIZE, my_errno()));
+-    return true;
+-  }
+-  return false;
++  return true;
+ }
+ 
+ bool bind_to_cpus(const std::vector<cpu_id_t> &cpu_ids) {
+-  if (cpu_ids.empty()) return false;
+-
+-  procset_t ps;
+-  uint_t nids = cpu_ids.size();
+-  id_t *ids = reinterpret_cast<id_t *>(const_cast<unsigned *>(cpu_ids.data()));
+-  uint32_t flags = PA_TYPE_CPU | PA_AFF_STRONG;
+-
+-  setprocset(&ps, POP_AND, P_PID, P_MYID, P_LWPID, my_thread_os_id());
+-  if (processor_affinity(&ps, &nids, ids, &flags) != 0) {
+-    char errbuf[MYSQL_ERRMSG_SIZE];
+-    LogErr(ERROR_LEVEL, ER_RES_GRP_SOLARIS_PROCESSOR_AFFINITY_FAILED,
+-           "bind_to_cpus", my_errno(),
+-           my_strerror(errbuf, MYSQL_ERRMSG_SIZE, my_errno()));
+-    return true;
+-  }
+-  return false;
++  return true;
+ }
+ 
+ bool bind_to_cpus(const std::vector<cpu_id_t> &cpu_ids,
+                   my_thread_os_id_t thread_id) {
+-  procset_t ps;
+-  uint_t nids = cpu_ids.size();
+-  id_t *ids = reinterpret_cast<id_t *>(const_cast<unsigned *>(cpu_ids.data()));
+-  uint32_t flags = PA_TYPE_CPU | PA_AFF_STRONG;
+-
+-  setprocset(&ps, POP_AND, P_PID, P_MYID, P_LWPID,
+-             static_cast<id_t>(thread_id));
+-
+-  if (processor_affinity(&ps, &nids, ids, &flags) != 0) {
+-    char errbuf[MYSQL_ERRMSG_SIZE];
+-    LogErr(ERROR_LEVEL, ER_RES_GRP_SOLARIS_PROCESSOR_AFFINITY_FAILED,
+-           "bind_to_cpus", my_errno(),
+-           my_strerror(errbuf, MYSQL_ERRMSG_SIZE, my_errno()));
+-    return true;
+-  }
+-  return false;
++  return true;
+ }
+ 
+ bool unbind_thread() {
+-  procset_t ps;
+-  uint32_t flags = PA_CLEAR;
+-
+-  setprocset(&ps, POP_AND, P_PID, P_MYID, P_LWPID, my_thread_os_id());
+-
+-  if (processor_affinity(&ps, nullptr, nullptr, &flags) != 0) {
+-    char errbuf[MYSQL_ERRMSG_SIZE];
+-    LogErr(ERROR_LEVEL, ER_RES_GRP_SOLARIS_PROCESSOR_AFFINITY_FAILED,
+-           "unbind_thread", my_errno(),
+-           my_strerror(errbuf, MYSQL_ERRMSG_SIZE, my_errno()));
+-    return true;
+-  }
+-  return false;
++  return true;
+ }
+ 
+ bool unbind_thread(my_thread_os_id_t thread_id) {
+-  procset_t ps;
+-  uint32_t flags = PA_CLEAR;
+-
+-  setprocset(&ps, POP_AND, P_PID, P_MYID, P_LWPID, thread_id);
+-
+-  if (processor_affinity(&ps, nullptr, nullptr, &flags) != 0) {
+-    char errbuf[MYSQL_ERRMSG_SIZE];
+-    LogErr(ERROR_LEVEL, ER_RES_GRP_SOLARIS_PROCESSOR_AFFINITY_FAILED,
+-           "unbind_thread", my_errno(),
+-           my_strerror(errbuf, MYSQL_ERRMSG_SIZE, my_errno()));
+-    return true;
+-  }
+-  return false;
++  return true;
+ }
+ 
+ int thread_priority() { return getpriority(PRIO_PROCESS, my_thread_os_id()); }
+ 
+ int thread_priority(my_thread_os_id_t thread_id) {
+-  DBUG_TRACE;
+-  return getpriority(PRIO_PROCESS, thread_id);
++  return 0;
+ }
+ 
+ bool set_thread_priority(int priority) {
+-  return set_thread_priority(priority, my_thread_os_id());
++  return false;
+ }
+ 
+ bool set_thread_priority(int, my_thread_os_id_t) {
+@@ -149,14 +78,7 @@ bool set_thread_priority(int, my_thread_
+ }
+ 
+ uint32_t num_vcpus_using_affinity() {
+-  uint32_t num_vcpus = 0;
+-  pid_t pid = getpid();
+-  psetid_t pset = PS_NONE;
+-
+-  if (pset_bind(PS_QUERY, P_PID, pid, &pset) == 0 && pset != PS_NONE) {
+-    pset_info(pset, nullptr, &num_vcpus, nullptr);
+-  }
+-  return num_vcpus;
++  return 0;
+ }
+ 
+ uint32_t num_vcpus_using_config() {
+
+
 [FILE:1992:patches/patch-sql_sys__vars.cc]
 --- sql/sys_vars.cc.orig	2025-12-17 13:14:47 UTC
 +++ sql/sys_vars.cc
@@ -1447,6 +1622,41 @@ for (size_t i=0; i < llbits; ++i)
 
 return 0;
 }
+
+
+[FILE:1524:files/manifest.xml.in]
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='%%SMF_NAME%%'>
+  <service name='%%SMF_PREFIX%%/%%SMF_NAME%%' type='service' version='1'>
+    <create_default_instance enabled='false' />
+    <single_instance />
+    <dependency name='fs' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/local' />
+    </dependency>
+    <dependency name='net' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/network/loopback' />
+    </dependency>
+    <method_context working_directory='%%MY_DBDIR%%'>
+      <method_credential user='mysql' group='mysql' />
+      <method_environment>
+        <envvar name='LD_PRELOAD_32' value='/usr/lib/extendedFILE.so.1' />
+      </method_environment>
+    </method_context>
+    <exec_method type='method' name='start' exec='%%PREFIX%%/lib/svc/method/%%SMF_METHOD_SCRIPT%% start' timeout_seconds='18446744073709551615' />
+    <exec_method type='method' name='stop' exec='%%PREFIX%%/lib/svc/method/%%SMF_METHOD_SCRIPT%% stop' timeout_seconds='18446744073709551615' />
+    <stability value='Evolving' />
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>MySQL RDBMS</loctext>
+      </common_name>
+      <documentation>
+        <manpage title='MySQL 8.0' section='1' />
+        <doc_link name='mysql.com' uri='http://dev.mysql.com/docs' />
+      </documentation>
+    </template>
+  </service>
+</service_bundle>
 
 
 [FILE:470:files/messages-server.ucl.in]
@@ -1626,6 +1836,38 @@ mysql_poststart()
 }
 
 run_rc_command "$1"
+
+
+[FILE:449:files/mysql_command.sh.in]
+#!/bin/sh
+#
+# Init script for mysqld.
+#
+
+. /lib/svc/share/smf_include.sh
+
+PIDFILE="%%MY_DBDIR%%/mysql.pid"
+
+ulimit -n 10240
+
+case "$1" in
+start)
+	%%PREFIX%%/bin/mysqld_safe -U =mysql \
+		--basedir=%%PREFIX%% \
+		--datadir=%%MY_DBDIR%% \
+		--pid-file=${PIDFILE} \
+		--log-error=/var/log/mysql/error.log &
+	;;
+stop)
+	[ -f ${PIDFILE} ] && kill `/usr/bin/head -1 ${PIDFILE}`
+	;;
+*)
+	echo "Usage: $0 {start|stop}" >&2
+	exit 1
+	;;
+esac
+
+exit $SMF_EXIT_OK
 
 
 [FILE:28:files/special.mk]

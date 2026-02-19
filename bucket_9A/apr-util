@@ -63,6 +63,7 @@ CPPFLAGS=		-I{{OPENSSLINC}}
 			-I{{LOCALBASE}}/include/nss
 LDFLAGS=		-L{{OPENSSLLIB}}
 			-L{{LOCALBASE}}/lib/nss
+VAR_OPSYS[sunos]=	CONFIGURE_ENV=apu_cv_memset_s=no
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/apr-util-1/*.so
@@ -149,4 +150,24 @@ lib/apr-util-1/
  apr_dbd_sqlite3.a
  apr_dbm_db.a
 lib/pkgconfig/apr-util-1.pc
+
+
+[FILE:488:patches/patch-configure]
+$NetBSD: patch-aa,v 1.8 2025/07/09 09:42:49 jperkin Exp $
+
+* Remove hardcoded iconv const, let the configure test decide.
+
+--- configure.orig	2023-01-31 20:57:52 UTC
++++ configure
+@@ -4461,10 +4461,6 @@ if test "x$apu_preload_done" != "xyes" ;
+         ;;
+     *-solaris2*)
+ 
+-  if test -z "$apu_iconv_inbuf_const"; then
+-    test "x$silent" != "xyes" && echo "  setting apu_iconv_inbuf_const to \"1\""
+-    apu_iconv_inbuf_const="1"
+-  fi
+ 
+ 
+   if test -z "$apu_crypt_threadsafe"; then
 
