@@ -119,7 +119,7 @@ MYSQL_mariadb-10.6_VERSION=	10.6.25
 MYSQL_mariadb-10.11_VERSION=	10.11.16
 MYSQL_mariadb-11.4_VERSION=	11.4.10
 MYSQL_mariadb-11.8_VERSION=	11.8.6
-MYSQL_mariadb-BE_VERSION=	12.1.2		# Bleeding Edge
+MYSQL_mariadb-BE_VERSION=	12.2.2		# Bleeding Edge
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
