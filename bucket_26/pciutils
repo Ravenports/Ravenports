@@ -51,6 +51,10 @@ post-install-linux:
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libpc*.so
 
+pre-configure-sunos:
+	# avoid symbol map
+	${REINPLACE_CMD} -e '/--version-script/d' ${WRKSRC}/lib/configure
+
 [FILE:123:descriptions/desc.primary]
 libpci is a common portable library which offers access to the PCI 
 configuration space on a variety of operating systems.
@@ -166,6 +170,33 @@ share/man/man8/
    pi.pi_sel.pc_domain = d->domain;
  #else
    if (d->domain)
+
+
+[FILE:898:patches/patch-lib_internal.h]
+$NetBSD: patch-lib_internal.h,v 1.7 2025/07/23 18:32:32 pin Exp $
+
+No symbol versioning available on SunOS.
+
+--- lib/internal.h.orig	2025-06-21 16:06:20 UTC
++++ lib/internal.h
+@@ -23,6 +23,17 @@
+ #define STATIC_ALIAS(_decl, _for) VERSIONED_ABI _decl { return _for; }
+ #define DEFINE_ALIAS(_decl, _for)
+ #define SYMBOL_VERSION(_int, _ext)
++#elif defined(__sun__)
++#define STATIC_ALIAS(_decl, _for)
++#define DEFINE_ALIAS(_decl, _for)
++#define SYMBOL_VERSION(_int, _ext)
++#define pci_fill_info_v313 pci_fill_info
++#define pci_filter_init_v38 pci_filter_init
++#define pci_fill_info_v38 pci_fill_info
++#define pci_init_v35 pci_init
++#define pci_filter_parse_slot_v38 pci_filter_parse_slot
++#define pci_filter_parse_id_v38 pci_filter_parse_id
++#define pci_filter_match_v38 pci_filter_match
+ #else
+ #define DEFINE_ALIAS(_decl, _for) extern _decl __attribute__((alias(#_for))) VERSIONED_ABI
+ #ifdef _WIN32
 
 
 [FILE:263:patches/patch-lib_physmem-posix.c]

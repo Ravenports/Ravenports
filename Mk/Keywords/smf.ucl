@@ -4,10 +4,30 @@
 
 actions: [file]
 post-install-lua: <<EOD
-  manifest_path = pkg.prefixed_path("%@")
-  pkg.exec({"/usr/sbin/svccfg", "import", manifest_path})
+  local manifest_path = pkg.prefixed_path(arg[1])
+  local st = pkg.stat("/tmp/.smf.present")
+  if st then
+     pkg.exec({"/usr/bin/env", "SVCCFG_REPOSITORY=/etc/svc/repository.db",
+               "/usr/bin/svccfg", "-v", "import", manifest_path})
+  else
+     pkg.exec({"/usr/sbin/svccfg", "-v", "import", manifest_path})
+  end
 EOD
 pre-deinstall-lua: <<EOD
-  manifest_path = pkg.prefixed_path("%@")
-  pkg.exec({"/usr/sbin/svccfg", "delete", manifest_path})
+  local svcname = arg[1]:match("([^/]+)%.xml$")
+  local st = pkg.stat("/tmp/.smf.present")  
+  local service
+  if svcname then
+     service = "svc:/ravenports/" .. svcname .. ":default"
+     pkg.print_msg("SMF: Deleting definition of " .. service .. " service.")
+     if st then
+        pkg.exec({"/usr/bin/env", "SVCCFG_REPOSITORY=/etc/svc/repository.db",
+                  "/usr/bin/svccfg", "-v", "delete", "-f", service})
+     else
+        pkg.exec({"/usr/sbin/svccfg", "-v", "delete", "-f", service})
+     end
+  else
+     pkg.print_msg("SMF: could not determine service from " .. arg[1])
+     pkg.print_msg("SMF: This package's service was not deregistered.")
+  end
 EOD

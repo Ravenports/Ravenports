@@ -33,6 +33,8 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		emulators/z80pack
 
+VAR_OPSYS[sunos]=	MAKE_ENV=PLAT_LDFLAGS=-lsocket
+
 post-patch:
 	${REINPLACE_CMD} -i'' -e 's|__PREFIX__|${PREFIX}|g' \
 		${FILESDIR}/runcpm
@@ -164,6 +166,50 @@ share/z80pack/disks/
  ucsd-iv-2.dsk
  ucsd-iv-interp.dsk
  z80tests.dsk
+
+
+[FILE:396:patches/patch-cpmsim_srcsim_Makefile]
+--- cpmsim/srcsim/Makefile.orig	2024-06-01 14:02:02 UTC
++++ cpmsim/srcsim/Makefile
+@@ -52,7 +52,7 @@ endif
+ 
+ DEFS = -DCONFDIR=\"$(CONF_DIR)\" -DDISKSDIR=\"$(DISKS_DIR)\"
+ INCS = -I. -I$(CORE_DIR) -I$(IO_DIR) $(PLAT_INCS)
+-CPPFLAGS = $(DEFS) $(INCS)
++CPPFLAGS = $(DEFS) $(INCS) -D__EXTENSIONS__
+ 
+ CSTDS = -std=c99 -D_DEFAULT_SOURCE # -D_XOPEN_SOURCE=700L
+ CWARNS = -Wall -Wextra -Wwrite-strings
+
+
+[FILE:361:patches/patch-cpmsim_srcsim_iosim.c]
+--- cpmsim/srcsim/iosim.c.orig	2024-06-01 14:02:02 UTC
++++ cpmsim/srcsim/iosim.c
+@@ -137,6 +137,10 @@
+ #include "log.h"
+ #include "rtc.h"
+ 
++#if !defined(O_ASYNC)
++#define O_ASYNC 0
++#endif
++
+ #define BUFSIZE 256		/* max line length of command buffer */
+ #define MAX_BUSY_COUNT 10	/* max counter to detect I/O busy waiting
+ 				   on the console status port */
+
+
+[FILE:373:patches/patch-cpmsim_srctools_Makefile]
+--- cpmsim/srctools/Makefile.orig	2024-06-01 14:02:02 UTC
++++ cpmsim/srctools/Makefile
+@@ -12,7 +12,7 @@ INSTALL_DATA = $(INSTALL) -m 644
+ 
+ CSTDS = -std=c99 -D_DEFAULT_SOURCE # -D_XOPEN_SOURCE=700L
+ CWARNS= -Wall -Wextra -Wwrite-strings
+-CFLAGS= -O3 $(CSTDS) $(CWARNS)
++CFLAGS= -O3 $(CSTDS) $(CWARNS) -D__EXTENSIONS__
+ 
+ TOOLS = mkdskimg bin2hex cpmsend cpmrecv ptp2bin
+ 
 
 
 [FILE:158:files/messages-primary.ucl]

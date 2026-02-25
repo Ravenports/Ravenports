@@ -224,10 +224,10 @@ scenario.
      /* Mark this entity as having been checked - never do this again */
 
 
-[FILE:1492:patches/patch-src_sort__r.h]
+[FILE:2233:patches/patch-src_sort__r.h]
 --- src/sort_r.h.orig	2017-07-01 20:53:27 UTC
 +++ src/sort_r.h
-@@ -24,11 +24,12 @@ void sort_r(void *base, size_t nel, size
+@@ -24,12 +24,15 @@ void sort_r(void *base, size_t nel, size
       defined OpenBSD3_1 || defined OpenBSD3_9 || defined __OpenBSD__ || \
       defined __NetBSD__ || \
       defined __DragonFly__ || \
@@ -240,9 +240,12 @@ scenario.
 +       defined __CYGWIN__) || \
 +       defined(qsort_r)
  #  define _SORT_R_LINUX
++#elif defined __sun
++#  define _SORT_R_SUN
  #elif (defined _WIN32 || defined _WIN64 || defined __WINDOWS__)
  #  define _SORT_R_WINDOWS
-@@ -65,7 +66,7 @@ void sort_r(void *base, size_t nel, size
+ #else
+@@ -65,7 +68,7 @@ void sort_r(void *base, size_t nel, size
    #if defined _SORT_R_BSD
  
      /* BSD requires argument swap */
@@ -251,7 +254,7 @@ scenario.
                          int (*compar)(void *_thunk, const void *_a, const void *_b));
  
      struct sort_r_data
-@@ -83,7 +84,7 @@ void sort_r(void *base, size_t nel, size
+@@ -83,10 +86,15 @@ void sort_r(void *base, size_t nel, size
    #elif defined _SORT_R_LINUX
  
      typedef int(* __compar_d_fn_t)(const void *, const void *, void *);
@@ -260,4 +263,30 @@ scenario.
                          __compar_d_fn_t __compar, void *arg)
        __attribute__((nonnull (1, 4)));
  
++  #elif defined _SORT_R_SUN
++
++     extern void qsort_r(void *base, size_t nel, size_t width,
++         int (*compar_arg)(const void *, const void *, void *), void *arg);
++
+   #endif
+ 
+   /* implementation */
+@@ -106,6 +114,10 @@ void sort_r(void *base, size_t nel, size
+       tmp.compar = compar;
+       qsort_r(base, nel, width, &tmp, sort_r_arg_swap);
+ 
++    #elif defined _SORT_R_SUN
++
++      qsort_r(base, nel, width, compar, arg);
++
+     #else /* defined _SORT_R_WINDOWS */
+ 
+       struct sort_r_data tmp;
+@@ -121,5 +133,6 @@ void sort_r(void *base, size_t nel, size
+ #undef _SORT_R_WINDOWS
+ #undef _SORT_R_LINUX
+ #undef _SORT_R_BSD
++#undef _SORT_R_SUN
+ 
+ #endif /* SORT_R_H_ */
 

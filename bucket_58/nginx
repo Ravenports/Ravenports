@@ -2,6 +2,7 @@
 
 NAMEBASE=		nginx
 VERSION=		1.29.5
+REVISION=		2
 KEYWORDS=		www
 VARIANTS=		std loaded
 SDESC[std]=		HTTP and reverse proxy server (basic options)
@@ -120,7 +121,7 @@ USERS=			{{WWWOWN}}
 GROUPS=			{{WWWGRP}}
 USERGROUP_SPKG=		primary
 
-USES=			cpe ssl zlib pcre
+USES=			cpe ssl zlib pcre smf:primary
 
 LICENSE=		BSD2CLAUSE:primary
 LICENSE_FILE=		BSD2CLAUSE:{{WRKSRC}}/LICENSE
@@ -129,6 +130,7 @@ LICENSE_SCHEME=		solo
 CPE_PRODUCT=		nginx
 CPE_VENDOR=		nginx
 FPC_EQUIVALENT=		www/nginx
+SMF_NAME=		nginx
 
 MUST_CONFIGURE=		yes
 CONFIGURE_ARGS=		--prefix={{PREFIX}}/etc/nginx
@@ -136,18 +138,18 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}/etc/nginx
 			--with-ld-opt="-L{{LOCALBASE}}/lib -L{{OPENSSLLIB}} -Wl,-rpath,{{LOCALBASE}}/lib:{{OPENSSLRPATH}}"
 			--conf-path={{PREFIX}}/etc/nginx/nginx.conf
 			--sbin-path={{PREFIX}}/sbin/nginx
-			--pid-path=/var/run/nginx.pid
-			--error-log-path=/var/log/nginx/error.log
+			--pid-path={{PREFIX}}/var/run/nginx/nginx.pid
+			--error-log-path={{PREFIX}}/var/log/nginx/error.log
 			--user={{WWWOWN}}
 			--group={{WWWGRP}}
 			--with-pcre
 			--modules-path={{PREFIX}}/libexec/nginx
-			--http-client-body-temp-path=/var/tmp/nginx/client_body_temp
-			--http-fastcgi-temp-path=/var/tmp/nginx/fastcgi_temp
-			--http-proxy-temp-path=/var/tmp/nginx/proxy_temp
-			--http-scgi-temp-path=/var/tmp/nginx/scgi_temp
-			--http-uwsgi-temp-path=/var/tmp/nginx/uwsgi_temp
-			--http-log-path=/var/log/nginx/access.log
+			--http-client-body-temp-path={{PREFIX}}/var/tmp/nginx/client_body_temp
+			--http-fastcgi-temp-path={{PREFIX}}/var/tmp/nginx/fastcgi_temp
+			--http-proxy-temp-path={{PREFIX}}/var/tmp/nginx/proxy_temp
+			--http-scgi-temp-path={{PREFIX}}/var/tmp/nginx/scgi_temp
+			--http-uwsgi-temp-path={{PREFIX}}/var/tmp/nginx/uwsgi_temp
+			--http-log-path={{PREFIX}}/var/log/nginx/access.log
 			--with-http_addition_module
 			--with-http_auth_request_module
 			--with-http_dav_module
@@ -171,15 +173,18 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}/etc/nginx
 
 PLIST_SUB=		WWWOWN={{WWWOWN}}
 			WWWGRP={{WWWGRP}}
-			NGINX_TMPDIR=/var/tmp/nginx
-			NGINX_LOGDIR=/var/log/nginx
+			NGINX_TMPDIR={{PREFIX}}/var/tmp/nginx
+			NGINX_LOGDIR={{PREFIX}}/var/log/nginx
+			NGINX_RUNDIR={{PREFIX}}/var/run/nginx
 RC_SUBR=		nginx:primary
 SUB_FILES=		messages-primary.ucl
+			manifest.xml
 SUB_LIST=		WWWOWN={{WWWOWN}}
 			WWWGRP={{WWWGRP}}
-			NGINX_TMPDIR=/var/tmp/nginx
-			NGINX_LOGDIR=/var/log/nginx
-			NGINX_RUNDIR=/var/run
+			NGINX_TMPDIR={{PREFIX}}/var/tmp/nginx
+			NGINX_LOGDIR={{PREFIX}}/var/log/nginx
+			NGINX_RUNDIR={{PREFIX}}/var/run/nginx
+			SYSCONFDIR={{PREFIX}}/etc/nginx
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-file-aio
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-file-aio
@@ -301,7 +306,7 @@ VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-file-aio
 post-patch:
 	${REINPLACE_CMD} 's!%%HTTP_PORT%%!80!; \
 		s!%%PREFIX%%!${PREFIX}!; \
-		s!%%NGINX_ERRORLOG%%!/var/log/nginx/error.log!' \
+		s!%%NGINX_ERRORLOG%%!${PREFIX}/var/log/nginx/error.log!' \
 		${WRKSRC}/conf/nginx.conf
 
 post-patch-LOADED-ON:
@@ -332,8 +337,9 @@ do-install-LOADED-ON:
 do-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/nginx \
 		${STAGEDIR}${PREFIX}/libexec/nginx \
-		${STAGEDIR}/var/tmp/nginx \
-		${STAGEDIR}/var/log/nginx \
+		${STAGEDIR}${PREFIX}/var/tmp/nginx \
+		${STAGEDIR}${PREFIX}/var/log/nginx \
+		${STAGEDIR}${PREFIX}/var/run/nginx \
 		${STAGEDIR}${PREFIX}/www/nginx-dist
 	${INSTALL_PROGRAM} ${WRKSRC}/objs/nginx ${STAGEDIR}${PREFIX}/sbin
 .for i in koi-utf koi-win win-utf
@@ -464,7 +470,7 @@ c3dd84d8ba0b8daeace3041ef5987e3fb96e9c7c17df30c9ffe2fe3aa2a0ca31        29052 ap
 68d95628bdb3e0da12e94ea05f7e088129d35b2fc43ecc74e5de380226833457       236940 nbs-system-naxsi-d714f16.tar.gz
 
 
-[FILE:523:manifests/plist.primary.std]
+[FILE:617:manifests/plist.primary.std]
 @sample etc/nginx/fastcgi_params-dist etc/nginx/fastcgi_params
 @sample etc/nginx/mime.types-dist etc/nginx/mime.types
 @sample etc/nginx/nginx.conf-dist etc/nginx/nginx.conf
@@ -482,15 +488,16 @@ www/nginx-dist/
  50x.html
  EXAMPLE_DIRECTORY-DONT_ADD_OR_TOUCH_ANYTHING
  index.html
-@dir %%NGINX_LOGDIR%%
-@dir %%NGINX_TMPDIR%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,) %%NGINX_LOGDIR%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,) %%NGINX_RUNDIR%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,) %%NGINX_TMPDIR%%
 
 
 [FILE:23:manifests/plist.man]
 share/man/man8/nginx.8
 
 
-[FILE:1203:manifests/plist.primary.loaded]
+[FILE:1297:manifests/plist.primary.loaded]
 @sample etc/nginx/fastcgi_params-dist etc/nginx/fastcgi_params
 @sample etc/nginx/mime.types-dist etc/nginx/mime.types
 @sample etc/nginx/nginx.conf-dist etc/nginx/nginx.conf
@@ -532,8 +539,9 @@ www/nginx-dist/
  50x.html
  EXAMPLE_DIRECTORY-DONT_ADD_OR_TOUCH_ANYTHING
  index.html
-@dir %%NGINX_LOGDIR%%
-@dir %%NGINX_TMPDIR%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,) %%NGINX_LOGDIR%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,) %%NGINX_RUNDIR%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,) %%NGINX_TMPDIR%%
 
 
 [FILE:721:files/extra-patch-iconv]
@@ -983,6 +991,43 @@ www/nginx-dist/
      ngx_http_upstream_rr_peer_t    *next;
  
      NGX_COMPAT_BEGIN(32)
+
+
+[FILE:1806:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="export">
+  <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="0">
+    <create_default_instance enabled="false" />
+    <single_instance />
+    <dependency name="network" grouping="require_all" restart_on="error" type="service">
+      <service_fmri value="svc:/milestone/network:default" />
+    </dependency>
+    <dependency name="filesystem-local" grouping="require_all" restart_on="none" type="service">
+      <service_fmri value="svc:/system/filesystem/local:default" />
+    </dependency>
+      <dependency name="autofs" grouping="optional_all" restart_on="error" type="service">
+        <service_fmri value="svc:/system/filesystem/autofs:default"/>
+      </dependency>
+
+    <!-- method_context is unnecessary.  nginx starts as root, but drops workers to %%WWWOWN%%:%%WWWGRP%% -->
+    <exec_method type="method" name="start" exec="%%PREFIX%%/sbin/nginx -c %{config_file}" timeout_seconds="60"/>
+    <exec_method type="method" name="stop" exec="%%PREFIX%%/sbin/nginx -s stop" timeout_seconds="60" />
+    <exec_method type="method" name="refresh" exec="%%PREFIX%%/sbin/nginx -s reload" timeout_seconds="60" />
+    <property_group name="startd" type="framework">
+      <propval name="duration" type="astring" value="contract" />
+      <propval name="ignore_error" type="astring" value="core,signal" />
+    </property_group>
+    <property_group name="application" type="application">
+      <propval name="config_file" type="astring" value="%%SYSCONFDIR%%/nginx.conf" />
+    </property_group>
+    <template>
+      <common_name>
+        <loctext xml:lang="C">Nginx HTTP daemon</loctext>
+      </common_name>
+    </template>
+  </service>
+</service_bundle>
 
 
 [FILE:677:files/messages-primary.ucl.in]

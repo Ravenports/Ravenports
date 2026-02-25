@@ -68,8 +68,9 @@ post-install:
 		${STAGEDIR}${PREFIX}/share/doc/libcanberra
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 
-post-patch-sunos:
-	${REINPLACE_CMD} -e '/as-needed/d' ${WRKSRC}/configure
+pre-configure-sunos:
+	${REINPLACE_CMD} -e '/-Wl,--as-needed/d' \
+		-e 's|-Wl,--gc-sections||' ${WRKSRC}/configure
 
 [FILE:249:descriptions/desc.primary]
 libcanberra is an implementation of the XDG Sound Theme and Name 

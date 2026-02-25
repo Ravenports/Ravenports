@@ -962,6 +962,35 @@ share/man/man6/
  zoom.6
 
 
+[FILE:959:patches/patch-hacks_glx_platonicfolding.c]
+--- hacks/glx/platonicfolding.c.orig	2026-01-02 13:52:48 UTC
++++ hacks/glx/platonicfolding.c
+@@ -935,7 +935,7 @@ static inline double get_current_julian_
+    mathematical rigor: Mathematical setup, application and extension of a
+    formula based on the subsolar point and atan2 function. Renewable Energy
+    172:1333-1340, 2021. */
+-static inline void get_sun_direction(double jd, float sun[4])
++static inline void get_sun_direction(double jd, float xxsun[4])
+ {
+   double n, utc;
+   double l, g, gr, lambda, lambdar, epsilon, epsilonr;
+@@ -958,10 +958,10 @@ static inline void get_sun_direction(dou
+   lon = -15.0*(utc-12.0+eot*(4.0/60.0));
+   latr = (float)rad(lat);
+   lonr = (float)rad(lon);
+-  sun[0] = cosf(latr)*cosf(lonr);
+-  sun[1] = cosf(latr)*sinf(lonr);
+-  sun[2] = sinf(latr);
+-  sun[3] = 0.0f;
++  xxsun[0] = cosf(latr)*cosf(lonr);
++  xxsun[1] = cosf(latr)*sinf(lonr);
++  xxsun[2] = sinf(latr);
++  xxsun[3] = 0.0f;
+ }
+ 
+ #endif /* HAVE_GLSL */
+
+
 [FILE:530:patches/patch-hacks_glx_xshadertoy-compile.pl]
 $NetBSD: patch-hacks_glx_xshadertoy-compile.pl,v 1.1 2026/01/16 14:53:05 hauke Exp $
 
@@ -980,30 +1009,7 @@ Supply the correct path to bash(1).
  # Permission to use, copy, modify, distribute, and sell this software and its
 
 
-[FILE:438:patches/patch-utils_textclient.c]
---- utils/textclient.c.orig	2025-03-07 19:56:45 UTC
-+++ utils/textclient.c
-@@ -49,12 +49,14 @@
- # ifdef HAVE_PTY_H
- #  include <pty.h>
- # endif
--# ifdef HAVE_UTIL_H
--#  include <util.h>
--# endif
- # ifdef HAVE_SYS_TERMIOS_H
- #  include <sys/termios.h>
- # endif
-+# if defined(__FreeBSD__) || defined(__DragonFly__)
-+#  include <libutil.h>
-+# elif defined(__NetBSD__)
-+#  include <util.h>
-+# endif
- #endif /* HAVE_FORKPTY */
- 
- #undef DEBUG
-
-
-[FILE:1423:netbsd/patch-hacks_glx_xshadertoy.c]
+[FILE:1423:patches/patch-hacks_glx_xshadertoy.c]
 $NetBSD: patch-hacks_glx_xshadertoy.c,v 1.1 2026/01/16 14:53:05 hauke Exp $
 
 Do not mess with <stdio.h>'s 'stdin'.
@@ -1048,4 +1054,27 @@ Do not mess with <stdio.h>'s 'stdin'.
            {
              fclose (in);
              in = 0;
+
+
+[FILE:438:patches/patch-utils_textclient.c]
+--- utils/textclient.c.orig	2025-03-07 19:56:45 UTC
++++ utils/textclient.c
+@@ -49,12 +49,14 @@
+ # ifdef HAVE_PTY_H
+ #  include <pty.h>
+ # endif
+-# ifdef HAVE_UTIL_H
+-#  include <util.h>
+-# endif
+ # ifdef HAVE_SYS_TERMIOS_H
+ #  include <sys/termios.h>
+ # endif
++# if defined(__FreeBSD__) || defined(__DragonFly__)
++#  include <libutil.h>
++# elif defined(__NetBSD__)
++#  include <util.h>
++# endif
+ #endif /* HAVE_FORKPTY */
+ 
+ #undef DEBUG
 

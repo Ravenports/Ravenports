@@ -2,6 +2,7 @@
 
 NAMEBASE=		openh264
 VERSION=		2.6.0
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Cisco implementation of H.264 codec
@@ -45,6 +46,7 @@ SUB_LIST=		PORTVERSION=2.6.0
 
 CFLAGS=			-I{{LOCALBASE}}/include/gmp-api
 VAR_OPSYS[freebsd]=	MAKE_ARGS=OS=bsd
+VAR_OPSYS[sunos]=	MAKE_ARGS=OS=bsd
 VAR_OPSYS[linux]=	MAKE_ARGS=OS=linux
 VAR_OPSYS[netbsd]=	MAKE_ARGS=OS=bsd
 VAR_OPSYS[dragonfly]=	MAKE_ARGS=OS=bsd
@@ -95,20 +97,23 @@ lib/pkgconfig/openh264.pc
  libgmpopenh264.so
 
 
-[FILE:573:patches/patch-Makefile]
+[FILE:823:patches/patch-Makefile]
 # Force gmp plugin to link dynamically against libopenh264
 
 --- Makefile.orig	2025-02-10 07:27:56 UTC
 +++ Makefile
-@@ -279,7 +279,7 @@ endif
+@@ -279,9 +279,9 @@ endif
  echo-plugin-name:
  	@echo $(MODULE)
  
 -$(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIXFULLVER): $(MODULE_OBJS) $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
 +$(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIXFULLVER): $(MODULE_OBJS) $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX)
  	$(QUIET)rm -f $@
- 	$(QUIET_CXX)$(CXX) $(SHARED) $(CXX_LINK_O) $+ $(LDFLAGS) $(SHLDFLAGS) $(MODULE_LDFLAGS)
+-	$(QUIET_CXX)$(CXX) $(SHARED) $(CXX_LINK_O) $+ $(LDFLAGS) $(SHLDFLAGS) $(MODULE_LDFLAGS)
++	$(QUIET_CXX)$(CXX) $(SHARED) $(CXX_LINK_O) $+ $(LDFLAGS) -Wl,-soname,$(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX) $(MODULE_LDFLAGS)
  ifeq (True, $(PROCESS_FILES))
+ 	cp $@ $(LIBPREFIX)$(MODULE_NAME)$(DEBUGSYMBOLS_TAG).$(SHAREDLIBSUFFIXFULLVER)
+ 	$(STRIP) $(STRIP_FLAGS) $@ -o $@
 
 
 [FILE:107:files/gmpopenh264.js.in]

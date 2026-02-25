@@ -38,14 +38,18 @@ MAKE_ARGS=		CC="{{CC}}"
 
 INSTALL_TARGET=		install install-sharedlib
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/cdb \
+		${STAGEDIR}${PREFIX}/lib/libcdb.so.1
+
+pre-configure:
 	${REINPLACE_CMD} -e 's|--soname=|-soname,|' \
 		-e '/version-script=/ s/pt=/pt,/' \
 		${WRKSRC}/Makefile
 
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/cdb \
-		${STAGEDIR}${PREFIX}/lib/libcdb.so.1
+pre-configure-sunos:
+	${SED} -i'.sunback' -e 's|.(LDFLAGS_VSCRIPT).(LIBMAP)||' \
+		${WRKSRC}/Makefile
 
 [FILE:847:descriptions/desc.primary]
 TinyCDB is a very fast and simple package for creating and reading constant

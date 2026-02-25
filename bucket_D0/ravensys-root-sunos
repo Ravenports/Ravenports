@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-sunos
 VERSION=		2
-REVISION=		5
+REVISION=		7
 KEYWORDS=		raven
 VARIANTS=		std
 SDESC[std]=		Solaris 2.11 system root for Ravenports build env
@@ -12,7 +12,7 @@ CONTACT=		John_Marino[draco@marino.st]
 DOWNLOAD_GROUPS=	main
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/raven-distfiles/omnios-sysroot/
 DISTFILE[1]=		omnios-r151054-rev5-sysroot.tar.gz:main
-DISTFILE[2]=		omnios-r151054-programs-rev4.tar.gz:main
+DISTFILE[2]=		omnios-r151054-programs-rev5.tar.gz:main
 DF_INDEX=		1 2
 SPKGS[std]=		single
 
@@ -95,10 +95,10 @@ of OmniOS, excluding the toolchain.
 
 [FILE:227:distinfo]
 83dd1c05588e4efee20af7568dcbe0c5473a13b63a586c95ada32a48fd6c7c27     36913518 omnios-r151054-rev5-sysroot.tar.gz
-bf28656a3912bc0eda6b8c72f5f0a3cc406e87defd060d8618ff3d3399b6b0c1       538111 omnios-r151054-programs-rev4.tar.gz
+ca01b5af9aebfd1b8991cf06f148a80e2405cf495b5fae25c1426003d15fa926       548326 omnios-r151054-programs-rev5.tar.gz
 
 
-[FILE:39946:manifests/plist.single]
+[FILE:39961:manifests/plist.single]
 %%BASE%%/bin/
  [
  bash
@@ -472,6 +472,7 @@ bf28656a3912bc0eda6b8c72f5f0a3cc406e87defd060d8618ff3d3399b6b0c1       538111 om
  find
  flex
  flex++
+ gar
  genpatch
  gm4
  grep
@@ -2386,6 +2387,7 @@ bf28656a3912bc0eda6b8c72f5f0a3cc406e87defd060d8618ff3d3399b6b0c1       538111 om
  nss_ldap.so.1
  nss_nis.so.1
  nss_user.so.1
+ passmgmt
  passwdutil.so.1
  straddr.so
  straddr.so.2
@@ -3112,7 +3114,7 @@ RSYS=				${PREFIX}/${SYSPATH}
 FOS=				${WRKDIR}/${OPSYS:tl}
 
 
-[FILE:1725:files/sunos.mk]
+[FILE:1828:files/sunos.mk]
 # For SunOS (OmniOS)
 
 Libexec_SunOS=\
@@ -3172,6 +3174,9 @@ install-platform: install-common
 
 	# install gnu strip
 	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/toolchain/bin/strip ${DESTDIR}${BASE}/usr/bin
+
+	# install gnu ar
+	${BSD_INSTALL_PROGRAM} ${LOCALBASE}/toolchain/bin/ar ${DESTDIR}${BASE}/usr/bin/gar
 
 	# install user and guest files
 	cp /port/files/passwd.initial ${DESTDIR}${BASE}/usr/share/passwd

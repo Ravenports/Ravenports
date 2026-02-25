@@ -161,6 +161,52 @@ share/man/man8/
      AX_APPEND_LINK_FLAGS([-Wl,-z,now])
 
 
+[FILE:1163:patches/patch-src_log.c]
+--- src/log.c.orig	2025-03-05 14:52:14 UTC
++++ src/log.c
+@@ -198,7 +198,7 @@ void s_vlog(int level, const char *forma
+         len=vsnprintf(NULL, 0, format, ap);
+         if(len>1024)
+             len=1024;
+-        text=alloca((size_t)len+1);
++        text=__builtin_alloca((size_t)len+1);
+         len=vsnprintf(text, (size_t)len+1, format, aq);
+         va_end(aq);
+         while(len>0 && text[len-1]=='\n')
+@@ -284,7 +284,7 @@ NOEXPORT void log_raw(SERVICE_OPTIONS *o
+     switch(log_mode) {
+     case LOG_MODE_CONFIGURED:
+         size=strlen(stamp)+strlen(id)+strlen(text)+4;
+-        line=alloca(size);
++        line=__builtin_alloca(size);
+         snprintf(line, size, "%s %s: %s", stamp, id, text);
+         if(level<=opt->log_level) {
+ #if !defined(USE_WIN32) && !defined(__vms)
+@@ -302,7 +302,7 @@ NOEXPORT void log_raw(SERVICE_OPTIONS *o
+     case LOG_MODE_ERROR:
+         /* don't log the id or the time stamp */
+         size=strlen(text)+5;
+-        line=alloca(size);
++        line=__builtin_alloca(size);
+         if(level>=0 && level<=7) /* just in case */
+             snprintf(line, size, "[%c] %s", "***!:.  "[level], text);
+         else
+
+
+[FILE:396:patches/patch-src_sthreads.c]
+--- src/sthreads.c.orig	2025-06-19 13:33:35 UTC
++++ src/sthreads.c
+@@ -725,7 +725,7 @@ NOEXPORT size_t stack_num(size_t stack_s
+     verify_area=(stack_size-STACK_RESERVE)&~(sizeof(TL)-1);
+     verify_num=verify_area/sizeof(TL);
+     test_value=(TL)0x1337deadbeef1337;
+-    table=alloca(verify_area);
++    table=__built_alloca(verify_area);
+ 
+     if(init) {
+         for(i=0; i<verify_num; i++)
+
+
 [FILE:27:files/pid.conf]
 pid = /var/run/stunnel.pid
 

@@ -32,9 +32,17 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		sysutils/tree
 
-post-patch:
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+
+pre-configure:
 	${REINPLACE_CMD} -e 's|__TARGET__|${PREFIX}/share/xsl/docbook/manpages|' \
 		${WRKSRC}/Makefile
+	# avoid definition conflict with <pwd.h> on solaris
+	${REINPLACE_CMD} -e 's|struct comment|struct opinion|g' \
+		${WRKSRC}/info.c \
+		${WRKSRC}/tree.c \
+		${WRKSRC}/file.c \
+		${WRKSRC}/tree.h
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/tree ${STAGEDIR}${PREFIX}/bin

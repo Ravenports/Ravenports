@@ -2,7 +2,7 @@
 
 NAMEBASE=		mysql80
 VERSION=		8.0.45
-REVISION=		1
+REVISION=		2
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Multithreaded SQL database (server)
@@ -48,9 +48,9 @@ USERS=			mysql
 GROUPS=			mysql
 USERGROUP_SPKG=		server
 
-USES=			cpe bison cmake perl:run shebangfix zstd zlib lz4
-			execinfo ssl:openssl30 pkgconfig c++:server,client
-			cclibs:server,client
+USES=			cpe bison cmake perl:run shebangfix zstd zlib
+			smf:server lz4 execinfo ssl:openssl30 pkgconfig
+			c++:server,client cclibs:server,client
 
 DISTNAME=		mysql-8.0.45
 
@@ -68,24 +68,24 @@ CPE_PRODUCT=		mysql
 CPE_VENDOR=		oracle
 FPC_EQUIVALENT=		databases/mysql80-server
 SHEBANG_FILES=		scripts/*.pl
+SMF_NAME=		mysql
 
 INSTALL_REQ_TOOLCHAIN=	yes
-PLIST_SUB=		MY_DBDIR=/var/db/mysql
-			MY_SECDIR=/var/db/mysql_secure
-			MY_TMPDIR=/var/db/mysql_tmpdir
-			SMF_NAME=mysql
+PLIST_SUB=		MY_DBDIR=var/db/mysql
+			MY_SECDIR=var/db/mysql_secure
+			MY_TMPDIR=var/db/mysql_tmpdir
+			MY_LOGDIR=var/log/mysql
 			RPCGEN=
 RC_SUBR=		mysql-server:server
 SUB_FILES=		my.cnf.sample
 			manifest.xml
 			mysql_command.sh
 			messages-server.ucl
-SUB_LIST=		MY_DBDIR=/var/db/mysql
-			MY_SECDIR=/var/db/mysql_secure
-			MY_TMPDIR=/var/db/mysql_tmpdir
+SUB_LIST=		MY_DBDIR={{PREFIX}}/var/db/mysql
+			MY_SECDIR={{PREFIX}}/var/db/mysql_secure
+			MY_TMPDIR={{PREFIX}}/var/db/mysql_tmpdir
+			MY_LOGDIR={{PREFIX}}/var/log/mysql
 			OPSYS="{{OPSYS}}"
-			SMF_NAME=mysql
-			SMF_PREFIX=ravenports
 			SMF_METHOD_SCRIPT=mysql_command.sh
 
 CFLAGS=			-Wno-deprecated-declarations
@@ -97,15 +97,19 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 			-DINSTALL_INFODIR="share/info"
 			-DINSTALL_LIBDIR="lib/mysql"
 			-DINSTALL_MANDIR="share/man"
-			-DINSTALL_MYSQLDATADIR="/var/db/mysql"
+			-DINSTALL_MYSQLDATADIR="var/db/mysql"
 			-DINSTALL_MYSQLKEYRINGDIR="etc/mysql/keyring"
 			-DINSTALL_MYSQLSHAREDIR="share/mysql"
 			-DINSTALL_MYSQLTESTDIR="share/mysql/tests"
 			-DINSTALL_PLUGINDIR="lib/mysql/plugin"
 			-DINSTALL_SBINDIR="libexec"
-			-DINSTALL_SECURE_FILE_PRIVDIR="/var/db/mysql_secure"
+			-DINSTALL_SECURE_FILE_PRIVDIR="{{PREFIX}}/var/db/mysql_secure"
 			-DINSTALL_SHAREDIR="share"
 			-DINSTALL_SUPPORTFILESDIR="share/mysql"
+			-DINSTALL_LAYOUT=STANDALONE
+			-DINSTALL_LOGDIR_ERROR=var/log/mysql
+			-DINSTALL_LOGDIR_BIN=var/log/mysql
+			-DINSTALL_LOGDIR_SLOW=var/log/mysql
 			-DRPATH_OPTION_PC=" -Wl,-rpath,{{PREFIX}}/lib/mysql"
 			-DMYSQL_KEYRINGDIR="etc/mysql/keyring"
 			-DWITH_BOOST="{{WRKSRC}}/boost"
@@ -120,6 +124,7 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 			-DINSTALL_MYSQLTESTDIR=0
 			-DWITH_UNIT_TESTS:BOOL=OFF
 			-DWITH_AUTHENTICATION_LDAP:BOOL=OFF
+SMF_METHODS=		mysql_command.sh
 
 [PERFSCHEMA].DESCRIPTION=		Provide "Performance Schema Storage" engine
 [PERFSCHEMA].CMAKE_ARGS_OFF=		-DWITHOUT_PERFSCHEMA_STORAGE_ENGINE=1
@@ -152,9 +157,11 @@ CMAKE_ARGS=		-DINSTALL_PKGCONFIGDIR="{{LOCALBASE}}/lib/pkgconfig"
 [INNOBASE].CMAKE_ARGS_ON=		-DWITH_INNOBASE_STORAGE_ENGINE=1
 
 post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/etc/mysql/keyring \
-		${STAGEDIR}/var/db/mysql_secure \
-		${STAGEDIR}/var/db/mysql_tmpdir
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/mysql/keyring
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/mysql
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/mysql_secure
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/mysql_tmpdir
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/mysql
 	${INSTALL_DATA} ${WRKDIR}/my.cnf.sample \
 		${STAGEDIR}${ETCDIR}/my.cnf.sample
 	${MV} ${STAGEDIR}${PREFIX}/share/doc/mysql/sample_mysqlrouter.conf \
@@ -197,13 +204,6 @@ pre-configure-sunos:
 	${REINPLACE_CMD} -e 's|-Wl,--no-as-needed||' \
 		${WRKSRC}/plugin/x/protocol/plugin/CMakeLists.txt
 
-post-install-sunos:
-	# install SMF manifest and method files
-	${MKDIR} ${STAGEDIR}${PREFIX}/lib/svc/manifest
-	${MKDIR} ${STAGEDIR}${PREFIX}/lib/svc/method
-	${INSTALL_DATA} ${WRKDIR}/manifest.xml ${STAGEDIR}${PREFIX}/lib/svc/manifest
-	${INSTALL_SCRIPT} ${WRKDIR}/mysql_command.sh ${STAGEDIR}${PREFIX}/lib/svc/method
-
 [FILE:294:descriptions/desc.server]
 MySQL is a very fast, multi-threaded, multi-user and robust SQL
 (Structured Query Language) database server.
@@ -225,13 +225,10 @@ This package contains the MySQL client.
 f679707d05f0c2b61e9b14961302e7f540c23e9e5e2bffd8ad9193599e295cee    492472802 mysql-boost-8.0.45.tar.gz
 
 
-[FILE:6369:manifests/plist.server]
-@comment add @smf in front of lib/svc/manifest line after testing svccfg
+[FILE:6275:manifests/plist.server]
 @sample etc/mysql/my.cnf.sample
 @sample etc/mysql/mysqlrouter.conf.sample
 %%ONLY-LINUX%%lib/mysql/plugin/auth_socket.so
-%%ONLY-SUNOS%%lib/svc/manifest/%%SMF_NAME%%.xml
-%%ONLY-SUNOS%%lib/svc/method/mysql_command.sh
 %%ONLY-SUNOS%%share/mysql/solaris/postinstall-solaris
 %%RPCGEN%%lib/mysql/plugin/group_replication.so
 bin/
@@ -468,6 +465,8 @@ share/mysql/spanish/errmsg.sys
 share/mysql/swedish/errmsg.sys
 share/mysql/ukrainian/errmsg.sys
 @dir var/lib/mysqlrouter
+@dir(mysql,mysql,0750) %%MY_DBDIR%%
+@dir(mysql,mysql,0750) %%MY_LOGDIR%%
 @dir(mysql,mysql,0750) %%MY_SECDIR%%
 @dir(mysql,mysql,0750) %%MY_TMPDIR%%
 @dir(mysql,mysql,0750) etc/mysql/keyring
@@ -1659,6 +1658,20 @@ return 0;
 </service_bundle>
 
 
+[FILE:354:files/messages-server-sunos.ucl]
+primary: {
+  type: "install"
+  message: <<EOM
+During SMF testing, the server comes up on OmniOS but hits a fault that
+emits a stacktrace on a freshly initialized database.
+
+This version of mysql may require additional patches for SunOS.
+You may prefer to uninstall this version and move to the mysql~server
+package instead, which does stay online.
+EOM
+}
+
+
 [FILE:470:files/messages-server.ucl.in]
 primary: {
   type: "install"
@@ -1670,7 +1683,7 @@ Initial password for first time use of MySQL is saved in $HOME/.mysql_secret
 ie. when you want to use "mysql -u root -p" first you should see password
 in /root/.mysql_secret
 
-MySQL57 has a default %%ETCDIR%%/my.cnf,
+MySQL80 has a default %%ETCDIR%%/my.cnf,
 remember to replace it wit your own
 or set `mysql_optfile="$YOUR_CNF_FILE` in rc.conf.
 EOM
@@ -1838,7 +1851,7 @@ mysql_poststart()
 run_rc_command "$1"
 
 
-[FILE:449:files/mysql_command.sh.in]
+[FILE:451:files/mysql_command.sh.in]
 #!/bin/sh
 #
 # Init script for mysqld.
@@ -1852,11 +1865,11 @@ ulimit -n 10240
 
 case "$1" in
 start)
-	%%PREFIX%%/bin/mysqld_safe -U =mysql \
+	%%PREFIX%%/bin/mysqld_safe --user=mysql \
 		--basedir=%%PREFIX%% \
 		--datadir=%%MY_DBDIR%% \
 		--pid-file=${PIDFILE} \
-		--log-error=/var/log/mysql/error.log &
+		--log-error=%%MY_LOGDIR%%/error.log &
 	;;
 stop)
 	[ -f ${PIDFILE} ] && kill `/usr/bin/head -1 ${PIDFILE}`

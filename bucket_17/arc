@@ -199,10 +199,10 @@ share/man/man1/arc.1
  int             nocomp = 0;	/* true to suppress compression */
 
 
-[FILE:539:patches/patch-arcdos.c]
+[FILE:556:patches/patch-arcdos.c]
 --- arcdos.c.orig	2013-06-27 02:00:19 UTC
 +++ arcdos.c
-@@ -173,14 +173,13 @@ setstamp(f, date, time)		/* set a file's
+@@ -173,14 +173,14 @@ setstamp(f, date, time)		/* set a file's
  	struct tm	tm;
  	struct timeval  tvp[2];
  	int	utimes();
@@ -214,7 +214,8 @@ share/man/man1/arc.1
  	tm.tm_mon = ((date >> 5) & 15) - 1;
  	tm.tm_year = (date >> 9) + 80;
 -	tvp[0].tv_sec = tmclock(&tm);
-+	tvp[0].tv_sec = timelocal(&tm);
++	tm.tm_isdst = -1;
++	tvp[0].tv_sec = mktime(&tm);
  	tvp[1].tv_sec = tvp[0].tv_sec;
  	tvp[0].tv_usec = tvp[1].tv_usec = 0;
  	utimes(f, tvp);

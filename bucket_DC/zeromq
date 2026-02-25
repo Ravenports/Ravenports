@@ -2,6 +2,7 @@
 
 NAMEBASE=		zeromq
 VERSION=		4.3.5
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		High-performance, asynchronous messaging library
@@ -17,14 +18,17 @@ SPKGS[std]=		set
 			dev
 			man
 
-OPTIONS_AVAILABLE=	none
+OPTIONS_AVAILABLE=	NORM
 OPTIONS_STANDARD=	none
+OPT_ON[freebsd]=	NORM
+OPT_ON[linux]=		NORM
+OPT_ON[dragonfly]=	NORM
+OPT_ON[midnightbsd]=	NORM
 
 BUILD_DEPENDS=		asciidoc:single:std
 			libsodium:dev:std
 			xmlto:primary:std
 BUILDRUN_DEPENDS=	libsodium:primary:std
-			norm:single:std
 
 USES=			cpe gmake libtool pkgconfig mbsdfix
 
@@ -37,7 +41,6 @@ FPC_EQUIVALENT=		net/libzmq4
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-libsodium
 			--with-pkgconfigdir={{LOCALBASE}}/lib/pkgconfig
-			--with-norm={{LOCALBASE}}
 			--without-pgm
 			--disable-Werror
 
@@ -45,6 +48,11 @@ MAKE_ENV=		V=1
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		5.2.5
+
+[NORM].DESCRIPTION=			Build with multicast support via norm
+[NORM].BUILDRUN_DEPENDS_ON=		norm:single:std
+[NORM].CONFIGURE_ARGS_OFF=		--without-norm
+[NORM].CONFIGURE_ARGS_ON=		--with-norm={{LOCALBASE}}
 
 [FILE:433:descriptions/desc.primary]
 ZeroMQ - Distributed Computing Made Simple

@@ -2,9 +2,10 @@
 
 NAMEBASE=		ocl-icd
 VERSION=		2.3.4
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
-SDESC[std]=		Utility to regenerate the GNU info page index
+SDESC[std]=		OpenCL Installable Client Driver loader
 HOMEPAGE=		https://github.com/OCL-dev/ocl-icd
 CONTACT=		nobody
 
@@ -95,6 +96,31 @@ share/doc/ocl-icd/html/libOpenCL.html
 
 [FILE:42:manifests/plist.examples]
 share/examples/ocl-icd/ocl_icd_bindings.c
+
+
+[FILE:708:patches/patch-configure.ac]
+--- configure.ac.orig	2025-09-18 17:35:10 UTC
++++ configure.ac
+@@ -17,6 +17,10 @@ case $host_os in
+   *darwin*) macos="yes" ;;
+   *) macos="no" ;;
+ esac
++case $host_os in
++  *solaris*) sunos="yes" ;;
++  *) sunos="no" ;;
++esac
+ AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.9 tar-pax check-news color-tests parallel-tests])
+ AMX_SILENT_RULES([AM_DEFAULT_VERBOSITY=1])
+ # AM_PROG_AR must be called before LT_INIT...
+@@ -196,7 +200,7 @@ AS_IF([test x"$OCL_ICD_LAYERDIR" = x"/et
+ ])
+ 
+ # always use versionned symbols (check required for MacOSX)
+-if test "x$macos" == xyes ; then
++if test "x$macos" == xyes || test "x$sunos" = xyes ; then
+ AM_CONDITIONAL([USE_MAP], [false])
+ else
+ AM_CONDITIONAL([USE_MAP], [true])
 
 
 [FILE:366:patches/patch-icd__generator.rb]

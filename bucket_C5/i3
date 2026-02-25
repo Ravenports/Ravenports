@@ -38,6 +38,7 @@ RUN_DEPENDS=		perl-IPC-Run:single:perl_default
 			perl-AnyEvent-I3:single:perl_default
 
 USES=			meson perl zlib gettext:build fontconfig:build
+C_USES[sunos]=		iconv
 GNOME_COMPONENTS=	cairo pango
 XORG_COMPONENTS=	xcb xcb-util xcb-util-cursor xcb-util-keysyms
 			xcb-util-wm xcb-util-xrm
@@ -46,6 +47,8 @@ FPC_EQUIVALENT=		x11-wm/i3
 
 INSTALL_TARGET=		install-strip
 
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			LDFLAGS=-lsocket
 VAR_OPSYS[linux]=	CFLAGS=-DHAVE_strndup=1
 
 post-install:
@@ -205,4 +208,20 @@ Should help SunOS.
      if (ftruncate(logbuffer_shm, logbuffer_size) == -1) {
          fprintf(stderr, "Could not ftruncate SHM segment for the i3 log: %s\n", strerror(errno));
  #else
+
+
+[FILE:234:patches/patch-src_sd-daemon.c]
+--- src/sd-daemon.c.orig	2026-02-06 07:30:55 UTC
++++ src/sd-daemon.c
+@@ -30,6 +30,10 @@
+ 
+ #include "sd-daemon.h"
+ 
++#if defined(__sun__)
++#include <fcntl.h>
++#endif
++
+ #include <errno.h>
+ #include <netinet/in.h>
+ #include <stdarg.h>
 

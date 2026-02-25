@@ -157,8 +157,8 @@ share/man/man1/luajit.1
  
 
 
-[FILE:809:patches/patch-src_Makefile]
---- src/Makefile.orig	2025-10-30 01:00:44 UTC
+[FILE:1186:patches/patch-src_Makefile]
+--- src/Makefile.orig	2026-01-14 01:32:40 UTC
 +++ src/Makefile
 @@ -35,7 +35,6 @@ CC= $(DEFAULT_CC)
  # to slow down the C part by not omitting it. Debugging, tracebacks and
@@ -176,6 +176,26 @@ share/man/man1/luajit.1
  CCOPT_x64=
  CCOPT_arm=
  CCOPT_arm64=
+@@ -361,6 +359,9 @@ else
+   ifeq (GNU,$(TARGET_SYS))
+     TARGET_XLIBS+= -ldl
+   endif
++  ifeq (SunOS,$(TARGET_SYS))
++    TARGET_XSHLDFLAGS+= -mimpure-text
++  endif
+ endif
+ endif
+ endif
+@@ -598,9 +599,6 @@ endif
+ ifeq (iOS,$(TARGET_SYS))
+   LJVM_MODE= machasm
+ endif
+-ifeq (SunOS,$(TARGET_SYS))
+-  BUILDMODE= static
+-endif
+ ifeq (PS3,$(TARGET_SYS))
+   BUILDMODE= static
+ endif
 
 
 [FILE:226:patches/patch-src_lj__ccallback.c]

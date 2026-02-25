@@ -2,6 +2,7 @@
 
 NAMEBASE=		l-smash
 VERSION=		2.18.0
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		MP4 muxer and other tools
@@ -24,7 +25,7 @@ BUILD_DEPENDS=		obuparse:dev:std
 BUILDRUN_DEPENDS=	obuparse:primary:std
 EXRUN[tools]=		primary
 
-USES=			gmake
+USES=			gmake perl:build
 
 LICENSE=		ISCL:primary
 LICENSE_FILE=		ISCL:{{WRKSRC}}/LICENSE
@@ -85,10 +86,46 @@ bin/
  timelineeditor
 
 
-[FILE:561:patches/patch-configure]
+[FILE:4146:patches/patch-configure]
 --- configure.orig	2023-04-06 19:10:47 UTC
 +++ configure
-@@ -282,7 +282,7 @@ if test -n "$DEBUG"; then
+@@ -218,19 +218,19 @@ case "$TARGET_OS" in
+             if is_64bit ; then
+                 LIBARCH=x64
+             fi
+-            SLIB_CMD='sed -i "s/ @[^ ]*//" $(DEFNAME); lib.exe -machine:$(LIBARCH) -def:$(DEFNAME) -out:lsmash.lib'
++            SLIB_CMD='sed -i "" "" "s/ @[^ ]*//" $(DEFNAME); lib.exe -machine:$(LIBARCH) -def:$(DEFNAME) -out:lsmash.lib'
+         elif genlib -V > /dev/null 2>&1 ; then
+             if is_64bit ; then
+                 LIBARCH=x86_64
+             else
+                 LIBARCH=x86
+             fi
+-            SLIB_CMD='sed -i "s/ @[^ ]*//" $(DEFNAME); genlib -a $(LIBARCH) -o lsmash.lib -d $(SHAREDLIBNAME) $(DEFNAME)'
++            SLIB_CMD='sed -i "" "" "s/ @[^ ]*//" $(DEFNAME); genlib -a $(LIBARCH) -o lsmash.lib -d $(SHAREDLIBNAME) $(DEFNAME)'
+         elif ${CROSS}dlltool --version > /dev/null 2>&1 ; then
+             if is_64bit ; then
+                 LIBARCH="i386:x86-64"
+             fi
+-            SLIB_CMD="sed -i \"s/ @[^ ]*//\" \$(DEFNAME); ${CROSS}dlltool -m \$(LIBARCH) -d \$(DEFNAME) -l lsmash.lib -D \$(SHAREDLIBNAME)"
++            SLIB_CMD="sed -i "" "" \"s/ @[^ ]*//\" \$(DEFNAME); ${CROSS}dlltool -m \$(LIBARCH) -d \$(DEFNAME) -l lsmash.lib -D \$(SHAREDLIBNAME)"
+         fi
+         ;;
+     *cygwin*)
+@@ -245,8 +245,10 @@ case "$TARGET_OS" in
+         SO_LDFLAGS="-dynamiclib -Wl,-undefined,suppress -Wl,-read_only_relocs,suppress -Wl,-flat_namespace -Wl,--version-script,liblsmash.ver"
+         ;;
+     *solaris*)
+-        #patches welcome
+-        SHAREDLIB=""
++        SHARED_NAME="liblsmash"
++        SHARED_EXT=".so.$MAJVER"
++        SO_LDFLAGS="-shared -Wl,-soname,${SHARED_NAME}${SHARED_EXT}"
++        CFLAGS="$CFLAGS -fPIC"
+         ;;
+     *)
+         SHARED_NAME="liblsmash"
+@@ -282,7 +284,7 @@ if test -n "$DEBUG"; then
      CFLAGS="$CFLAGS -g3 -O0"
      STRIP=""
  else
@@ -97,7 +134,7 @@ bin/
  fi
  
  
-@@ -290,9 +290,6 @@ if ! cc_check "$CFLAGS" "$LDFLAGS"; then
+@@ -290,9 +292,6 @@ if ! cc_check "$CFLAGS" "$LDFLAGS"; then
      error_exit "invalid CFLAGS/LDFLAGS"
  fi
  
@@ -107,4 +144,38 @@ bin/
  
  if cc_check "$CFLAGS" "$LDFLAGS -Wl,--large-address-aware"; then
      LDFLAGS="$LDFLAGS -Wl,--large-address-aware"
+@@ -423,20 +422,22 @@ EOF
+ 
+ 
+ sed "s/\\\$MAJOR/$MAJVER/" $SRCDIR/liblsmash.v > liblsmash.ver
++cp liblsmash.ver liblsmash.ver.1st
+ # Add non-public symbols which have lsmash_* prefix to local.
+ find $SRCDIR/common/ $SRCDIR/importer/ -name "*.h" | xargs sed -e 's/^[ ]*//g' | \
+-    grep "^\(void\|lsmash_bits_t\|uint64_t\|int\|int64_t\|lsmash_bs_t\|uint8_t\|uint16_t\|uint32_t\|lsmash_entry_list_t\|lsmash_entry_t\|lsmash_multiple_buffers_t\|double\|float\|FILE\) \+\*\{0,1\}lsmash_" | \
+-    sed -e "s/.*\(lsmash_.*\)(.*/\1/g" -e "s/.*\(lsmash_.*\)/\1;/g" | xargs -I% sed -i "/^};$/i \           %" liblsmash.ver
++    grep -E "^\(void\|lsmash_bits_t\|uint64_t\|int\|int64_t\|lsmash_bs_t\|uint8_t\|uint16_t\|uint32_t\|lsmash_entry_list_t\|lsmash_entry_t\|lsmash_multiple_buffers_t\|double\|float\|FILE\) \+\*\{0,1\}lsmash_" | \
++    sed -e "s/.*\(lsmash_.*\)(.*/\1/g" -e "s/.*\(lsmash_.*\)/\1;/g" | xargs -I% perl -i "" "" -pe 's/^};$/           %\n$&/' liblsmash.ver
+ # Get rid of non-public symbols for the cli tools from local.
+-sed -i -e '/lsmash_win32_fopen/d' \
+-    -e '/lsmash_string_from_wchar/d' \
+-    -e '/lsmash_importer_open/d' \
+-    -e '/lsmash_importer_close/d' \
+-    -e '/lsmash_importer_get_access_unit/d' \
+-    -e '/lsmash_importer_get_last_delta/d' \
+-    -e '/lsmash_importer_construct_timeline/d' \
+-    -e '/lsmash_importer_get_track_count/d' \
+-    -e '/lsmash_duplicate_summary/d' liblsmash.ver
++cp liblsmash.ver liblsmash.ver.2nd
++sed -e "/lsmash_win32_fopen/d;\
++ /lsmash_string_from_wchar/d;\
++ /lsmash_importer_open/d;\
++ /lsmash_importer_close/d;\
++ /lsmash_importer_get_access_unit/d;\
++ /lsmash_importer_get_last_delta/d;\
++ /lsmash_importer_construct_timeline/d;\
++ /lsmash_importer_get_track_count/d;\
++ /lsmash_duplicate_summary/d" liblsmash.ver.2nd > liblsmash.ver
+ 
+ 
+ cat >> liblsmash.pc << EOF
 

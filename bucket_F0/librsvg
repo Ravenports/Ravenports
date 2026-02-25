@@ -774,6 +774,7 @@ SOVERSION=		2.61.4
 PLIST_SUB=		PORTVERSION=2.61.4
 			GTK_VERSION=2.10.0
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 CARGO_SKIP_CONFIGURE=	yes
 CARGO_SKIP_BUILD=	yes
 CARGO_SKIP_INSTALL=	yes
@@ -1325,4 +1326,38 @@ share/man/man1/rsvg-convert.1
  style.css
  type_func.Error.quark.html
  urlmap.js
+
+
+[FILE:677:patches/patch-meson.build]
+$NetBSD: patch-meson.build,v 1.1 2025/10/31 12:29:12 jperkin Exp $
+
+Disable libsocket handling on SunOS.  meson cannot handle the fact that this
+library is not provided by pkg-config and refuses to build gdk-pixbuf-loader.
+We already just link against it directly anyway.
+
+--- meson.build.orig	2026-02-13 21:19:01 UTC
++++ meson.build
+@@ -180,7 +180,7 @@ m_dep = cc.find_library('m', required: f
+ # into '-lsocket' and '-lnsl'.  Anything that calls socketpair(), getifaddr(),
+ # etc. probably needs to include network_deps
+ #
+-if host_system == 'sunos'
++if host_system == 'meson-dependencies-are-broken'
+   network_deps = [
+     cc.find_library('socket', required: false),
+   ]
+
+
+[FILE:425:patches/patch-rsvg_meson.build]
+--- rsvg/meson.build.orig	2026-02-23 05:26:54 UTC
++++ rsvg/meson.build
+@@ -170,7 +170,7 @@ version_script = meson.current_build_dir
+ 
+ if host_system in ['darwin', 'ios']
+   vflag = '-Wl,-exported_symbols_list,@0@'.format(version_script)
+-elif host_system in ['windows', 'cygwin']
++elif host_system in ['windows', 'cygwin', 'solaris', 'sunos']
+   vflag = []
+ else
+   vflag = '-Wl,--version-script,@0@'.format(version_script)
 
