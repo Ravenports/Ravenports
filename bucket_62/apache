@@ -2,6 +2,7 @@
 
 NAMEBASE=		apache
 VERSION=		2.4.66
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		std
 SDESC[std]=		Secure, efficient and extensible HTTP server
@@ -40,12 +41,12 @@ BUILDRUN_DEPENDS=	apr1:primary:std
 			libnghttp2:primary:std
 			gdbm:primary:std
 
-USERS=			wwwraven
-GROUPS=			wwwraven
+USERS=			{{WWWOWN}}
+GROUPS=			{{WWWGRP}}
 USERGROUP_SPKG=		primary
 
 USES=			autoreconf cpe iconv libtool ssl perl:run zlib expat
-			pcre bdb
+			pcre bdb smf:primary
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		httpd-2.4.66
@@ -201,7 +202,12 @@ CONFIGURE_ENV=		LOCALBASE="{{LOCALBASE}}"
 MAKE_ENV=		EXPR_COMPAT="yes"
 			INSTALL_MAN="{{INSTALL_MAN}}"
 
+PLIST_SUB=		WWWOWN={{WWWOWN}}
+			WWWGRP={{WWWGRP}}
+			LOGDIR=var/log/httpd
+			RUNDIR=var/run/httpd
 RC_SUBR=		apache:primary
+SUB_FILES=		manifest.xml
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
@@ -219,7 +225,6 @@ VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--enable-proxy-fdpass=shared
 
 post-install:
 	${FIND} ${STAGEDIR}${STD_DOCDIR} -type d -empty -delete
-	${FIND} ${STAGEDIR}/var -type d -empty -delete
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/apache/*.so
 .for binary in ab htdbm htdigest htpasswd httxt2dbm logresolve
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/${binary}
@@ -227,6 +232,9 @@ post-install:
 .for binary in checkgid fcgistarter htcacheclean httpd rotatelogs
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/sbin/${binary}
 .endfor
+
+pre-configure:
+	${REINPLACE_CMD} -e "s|%%PREFIX%%|${PREFIX}|g" ${WRKSRC}/config.layout
 
 [FILE:403:descriptions/desc.primary]
 The Apache HTTP Server is a powerful and flexible HTTP/1.1 compliant web
@@ -241,7 +249,22 @@ with freely available source code.
 94d7ff2b42acbb828e870ba29e4cbad48e558a79c623ad3596e4116efcfea25a      7504564 httpd-2.4.66.tar.bz2
 
 
-[FILE:6800:manifests/plist.primary]
+[FILE:7012:manifests/plist.primary]
+@sample etc/apache/extra/httpd-autoindex.conf.sample
+@sample etc/apache/extra/httpd-dav.conf.sample
+@sample etc/apache/extra/httpd-default.conf.sample
+@sample etc/apache/extra/httpd-info.conf.sample
+@sample etc/apache/extra/httpd-languages.conf.sample
+@sample etc/apache/extra/httpd-manual.conf.sample
+@sample etc/apache/extra/httpd-mpm.conf.sample
+@sample etc/apache/extra/httpd-multilang-errordoc.conf.sample
+@sample etc/apache/extra/httpd-ssl.conf.sample
+@sample etc/apache/extra/httpd-userdir.conf.sample
+@sample etc/apache/extra/httpd-vhosts.conf.sample
+@sample etc/apache/extra/proxy-html.conf.sample
+@sample etc/apache/httpd.conf.sample
+@sample etc/apache/magic.sample
+@sample etc/apache/mime.types.sample
 %%ONLY-DRAGONFLY%%libexec/apache/mod_proxy_fdpass.so
 %%ONLY-FREEBSD%%libexec/apache/mod_proxy_fdpass.so
 %%ONLY-LINUX%%libexec/apache/mod_proxy_fdpass.so
@@ -256,37 +279,6 @@ bin/
  htpasswd
  httxt2dbm
  logresolve
-etc/apache/
- httpd.conf
- magic
- mime.types
-etc/apache/extra/
- httpd-autoindex.conf
- httpd-dav.conf
- httpd-default.conf
- httpd-info.conf
- httpd-languages.conf
- httpd-manual.conf
- httpd-mpm.conf
- httpd-multilang-errordoc.conf
- httpd-ssl.conf
- httpd-userdir.conf
- httpd-vhosts.conf
- proxy-html.conf
-etc/apache/original/httpd.conf
-etc/apache/original/extra/
- httpd-autoindex.conf
- httpd-dav.conf
- httpd-default.conf
- httpd-info.conf
- httpd-languages.conf
- httpd-manual.conf
- httpd-mpm.conf
- httpd-multilang-errordoc.conf
- httpd-ssl.conf
- httpd-userdir.conf
- httpd-vhosts.conf
- proxy-html.conf
 libexec/apache/
  httpd.exp
  mod_access_compat.so
@@ -691,6 +683,8 @@ www/apache/icons/small/
  unknown.png
  uu.gif
  uu.png
+@dir(%%WWWOWN%%,%%WWWGRP%%,0750) %%LOGDIR%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,0750) %%RUNDIR%%
 
 
 [FILE:906:manifests/plist.dev]
@@ -781,7 +775,44 @@ share/man/man8/
  suexec.8
 
 
-[FILE:986:patches/patch-config.layout]
+[FILE:1332:patches/patch-Makefile.in]
+--- Makefile.in.orig	2025-07-07 10:18:22 UTC
++++ Makefile.in
+@@ -32,12 +32,9 @@ include $(top_srcdir)/build/program.mk
+ install-conf:
+ 	@echo Installing configuration files
+ 	@$(MKINSTALLDIRS) $(DESTDIR)$(sysconfdir) $(DESTDIR)$(sysconfdir)/extra
+-	@$(MKINSTALLDIRS) $(DESTDIR)$(sysconfdir)/original/extra
+ 	@cd $(top_srcdir)/docs/conf; \
+ 	for i in mime.types magic; do \
+-	    if test ! -f $(DESTDIR)$(sysconfdir)/$$i; then \
+-	        $(INSTALL_DATA) $$i $(DESTDIR)$(sysconfdir); \
+-	    fi; \
++	    $(INSTALL_DATA) $$i $(DESTDIR)$(sysconfdir)/$${i}.sample; \
+ 	done; \
+ 	for j in $(top_srcdir)/docs/conf $(top_builddir)/docs/conf ; do \
+ 	    cd $$j ; \
+@@ -108,15 +105,12 @@ install-conf:
+ 	    				-e 's#@@SSLPort@@#$(SSLPORT)#g' \
+ 	    				< $$i; \
+ 	    		fi \
+-	    	) > $(DESTDIR)$(sysconfdir)/original/$$i; \
+-	    	chmod 0644 $(DESTDIR)$(sysconfdir)/original/$$i; \
++	    	) > $(DESTDIR)$(sysconfdir)/$${i}.sample; \
++	    	chmod 0644 $(DESTDIR)$(sysconfdir)/$${i}.sample; \
+ 	    	file=$$i; \
+ 	    	if [ "$$i" = "httpd.conf" ]; then \
+ 	    		file=`echo $$i|sed s/.*.conf/$(PROGRAM_NAME).conf/`; \
+ 	    	fi; \
+-	    	if test ! -f $(DESTDIR)$(sysconfdir)/$$file; then \
+-	    		$(INSTALL_DATA) $(DESTDIR)$(sysconfdir)/original/$$i $(DESTDIR)$(sysconfdir)/$$file; \
+-	    	fi; \
+ 	    	fi; \
+ 	    done ; \
+ 	done ; \
+
+
+[FILE:997:patches/patch-config.layout]
 --- config.layout.orig	2020-02-21 00:39:22 UTC
 +++ config.layout
 @@ -298,6 +298,30 @@
@@ -790,8 +821,8 @@ share/man/man8/
  
 +# Ravenports Layout
 +<Layout Ravenports>
-+  prefix:        /raven
-+  localstatedir: /var/rav-apache
++  prefix:        %%PREFIX%%
++  localstatedir: %%PREFIX%%/var
 +  exec_prefix:   ${prefix}
 +  bindir:        ${exec_prefix}/bin
 +  sbindir:       ${exec_prefix}/sbin
@@ -805,11 +836,11 @@ share/man/man8/
 +  iconsdir:      ${datadir}/icons
 +  htdocsdir:     ${datadir}/data
 +  cgidir:        ${datadir}/cgi-bin
++  proxycachedir: ${datadir}/proxy
 +  manualdir:     ${prefix}/share/doc/apache
 +  includedir:    ${prefix}/include/apache
-+  runtimedir:    ${localstatedir}/run
-+  logfiledir:    ${localstatedir}/log
-+  proxycachedir: ${datadir}/proxy
++  runtimedir:    %%PREFIX%%/var/run/httpd
++  logfiledir:    %%PREFIX%%/var/log/httpd
 +</Layout>
 +
  # Debian layout
@@ -860,7 +891,7 @@ share/man/man8/
              X509_up_ref(issuer);
 
 
-[FILE:5912:files/apache.in]
+[FILE:5922:files/apache.in]
 #!/bin/sh
 
 # PROVIDE: apache
@@ -899,7 +930,7 @@ graceful_cmd="apache_graceful"
 gracefulstop_cmd="apache_gracefulstop"
 configtest_cmd="apache_checkconfig"
 command="%%PREFIX%%/sbin/httpd"
-_pidprefix="/var/run/httpd"
+_pidprefix="%%PREFIX%%/var/run/httpd"
 pidfile="${_pidprefix}.pid"
 required_files=%%PREFIX%%/etc/apache/httpd.conf
 envvars="%%PREFIX%%/sbin/envvars"
@@ -1075,4 +1106,39 @@ apache_prestart() {
 
 extra_commands="reload graceful gracefulstop configtest"
 run_rc_command "$1"
+
+
+[FILE:1663:files/manifest.xml.in]
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='export'>
+  <service name='%%SMF_PREFIX%%/%%SMF_NAME%%' type='service' version='0'>
+    <create_default_instance enabled="false" />
+    <single_instance />
+    <dependency name='network' grouping='require_all' restart_on='error' type='service'>
+      <service_fmri value='svc:/milestone/network:default' />
+    </dependency>
+    <dependency name='filesystem-local' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/local:default' />
+    </dependency>
+    <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+      <service_fmri value='file://localhost%%PREFIX%%/etc/apache/httpd.conf'/>
+    </dependency>
+    <exec_method name='start' type='method' exec='%%PREFIX%%/sbin/httpd -k start' timeout_seconds='300' />
+    <exec_method name='stop' type='method' exec='%%PREFIX%%/sbin/httpd -k stop' timeout_seconds='300' />
+    <exec_method name='refresh' type='method' exec='%%PREFIX%%/sbin/httpd -k graceful' timeout_seconds='300' />
+    <property_group name='startd' type='framework'>
+      <propval name='ignore_error' type='astring' value='core,signal' />
+    </property_group>
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>Apache 2 HTTP server</loctext>
+      </common_name>
+      <documentation>
+        <manpage title='httpd' section='8' manpath='%%PREFIX%%/apache2/man' />
+        <doc_link name='apache.org' uri='http://httpd.apache.org' />
+      </documentation>
+    </template>
+  </service>
+</service_bundle>
 

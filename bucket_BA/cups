@@ -2,6 +2,7 @@
 
 NAMEBASE=		cups
 VERSION=		2.4.16
+REVISION=		1
 KEYWORDS=		print
 VARIANTS=		std
 SDESC[std]=		Common UNIX Printing System
@@ -38,7 +39,7 @@ USERS=			cups
 GROUPS=			cups
 USERGROUP_SPKG=		tools
 
-USES=			cpe gmake iconv pkgconfig
+USES=			cpe gmake iconv pkgconfig smf:tools
 
 LICENSE=		APACHE20:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -63,6 +64,7 @@ CONFIGURE_ARGS=		--enable-libpaper
 			--with-rcdir=no
 			--with-optim=" "
 			--with-pam-module="unix"
+			--localstatedir={{PREFIX}}/var
 CONFIGURE_ENV=		ac_cv_path_JAVA=
 			ac_cv_path_PERL=
 			ac_cv_path_PHPCGI=
@@ -72,7 +74,12 @@ CONFIGURE_ENV=		ac_cv_path_JAVA=
 
 DESTDIRNAME=		DSTROOT
 
+PLIST_SUB=		LOGDIR=var/log/cups
+			SPOOLDIR=var/spool/cups
+			STATEDIR=var/run/cups
+			CACHEDIR=var/cache/cups
 RC_SUBR=		cupsd:tools
+SUB_FILES=		manifest.xml
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-system-groups=wheel
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=LSB_BUILD=y
@@ -108,7 +115,6 @@ post-install:
 		${STAGEDIR}${STD_EXAMPLESDIR}
 	${RMDIR} ${STAGEDIR}${PREFIX}/share/cups/examples
 	${RM} ${STAGEDIR}${PREFIX}/etc/cups/*.conf
-	${MKDIR} /var/spool/cups /var/cache/cups
 
 post-patch-sunos:
 	${REINPLACE_CMD} -e '/-o .. ippeveprinter.o/ s/$$/ -lsocket/' \
@@ -167,7 +173,7 @@ lib/
 lib/pkgconfig/cups.pc
 
 
-[FILE:13841:manifests/plist.tools]
+[FILE:13899:manifests/plist.tools]
 @sample etc/cups/cups-files.conf.sample
 @sample etc/cups/cupsd.conf.sample
 @sample etc/cups/snmp.conf.sample
@@ -876,18 +882,19 @@ share/locale/ja/cups_ja.po
 share/locale/pt_BR/cups_pt_BR.po
 share/locale/ru/cups_ru.po
 share/locale/zh_CN/cups_zh_CN.po
-@dir /var/log/cups
-@dir /var/run/cups
 @dir libexec/cups/driver
 @dir share/cups/banners
 @dir share/cups/data
 @dir share/cups/model
 @dir share/cups/profiles
 @dir(,cups,) etc/cups/ppd
-@dir(,cups,1770) /var/spool/cups/tmp
-@dir(,cups,700) etc/cups/ssl
-@dir(,cups,775) /var/cache/cups/rss
-@dir(cups,,511) /var/run/cups/certs
+@dir(,cups,0700) etc/cups/ssl
+@dir(,cups,0775) %%CACHEDIR%%/rss
+@dir(,cups,0710) %%SPOOLDIR%%
+@dir(,cups,1770) %%SPOOLDIR%%/tmp
+@dir(cups,cups,0750) %%STATEDIR%%
+@dir(cups,cups,0711) %%STATEDIR%%/certs
+@dir(cups,cups,0750) %%LOGDIR%%
 
 
 [FILE:756:manifests/plist.man]
@@ -1408,6 +1415,53 @@ load_rc_config ${name}
 : ${cupsd_enable=NO}
 
 run_rc_command "$1"
+
+
+[FILE:1939:files/manifest.xml.in]
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='CUPS'>
+  <service name='%%SMF_PREFIX%%/%%SMF_NAME%%/scheduler' type='service' version='0'>
+    <create_default_instance enabled='false' />
+    <single_instance />
+
+    <dependency name='network' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/milestone/network:default' />
+    </dependency>
+    <dependency name='filesystem-local' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/local:default' />
+    </dependency>
+
+    <exec_method type='method' name='start' exec='%%PREFIX%%/sbin/cupsd' timeout_seconds='60' />
+    <exec_method type='method' name='stop' exec=':kill' timeout_seconds='60' />
+    <exec_method type='method' name='refresh' exec=':kill -HUP' timeout_seconds='60' />
+
+    <property_group name='startd' type='framework'>
+      <propval name='duration' type='astring' value='contract' />
+    </property_group>
+  </service>
+
+  <service name='%%SMF_PREFIX%%/%%SMF_NAME%%/in-lpd' type='service' version='0'>
+    <restarter>
+      <service_fmri value='svc:/network/inetd:default' />
+    </restarter>
+    <instance name='default' enabled='false'>
+      <exec_method 
+        type='method'
+        name='inetd_start'
+        exec='%%PREFIX%%/libexec/cups/daemon/cups-lpd -o document-format=application/octet-stream'
+        timeout_seconds='0'
+      />
+      <property_group name='inetd' type='framework'>
+        <propval name='name' type='astring' value='printer' />
+        <propval name='endpoint_type' type='astring' value='stream' />
+        <propval name='proto' type='astring' value='tcp' />
+        <propval name='wait' type='boolean' value='false' />
+        <propval name='isrpc' type='boolean' value='false' />
+      </property_group>
+    </instance>
+  </service>
+</service_bundle>
 
 
 [FILE:223:files/scripts-tools.ucl]

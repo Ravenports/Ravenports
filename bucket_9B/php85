@@ -30,7 +30,7 @@ EXRUN[dev]=		pcre2:dev:std
 			libxml2:dev:std
 
 USES=			cpe gmake pkgconfig zlib pcre2 cclibs:primary
-			mbsdfix
+			mbsdfix smf:primary
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		php-8.5.3
@@ -42,6 +42,7 @@ LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		php
 FPC_EQUIVALENT=		lang/php85
+SMF_NAME=		php85-fpm
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-layout=GNU
@@ -63,6 +64,7 @@ PLIST_SUB=		SUFFIX=85
 			SOMAJOR=8
 RC_SUBR=		php85-fpm:primary
 SUB_FILES=		scripts-dev.ucl
+			manifest.xml
 SUB_LIST=		SUFFIX=85
 
 CVE_FIXED=		CVE-2007-3205
@@ -619,6 +621,38 @@ share/man/man1/
  ;   '/path/to/unix/socket' - to listen on a unix socket.
  ; Note: This value is mandatory.
  listen = 127.0.0.1:9000
+
+
+[FILE:1433:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="export">
+  <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+    <create_default_instance enabled="false" />
+    <single_instance />
+    <dependency name="network" grouping="require_all" restart_on="error" type="service">
+      <service_fmri value="svc:/milestone/network:default" />
+    </dependency>
+    <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+      <service_fmri value="svc:/system/filesystem/local" />
+    </dependency>
+    <method_context></method_context>
+    <exec_method type="method" name="start" exec="%%PREFIX%%/sbin/php-fpm%%SUFFIX%% -y %{config_file}" timeout_seconds="60" />
+    <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60" />
+    <property_group name="startd" type="framework">
+      <propval name="duration" type="astring" value="contract" />
+      <propval name="ignore_error" type="astring" value="core,signal" />
+    </property_group>
+    <property_group name="application" type="application">
+      <propval name="config_file" type="astring" value="%%PREFIX%%/etc/php%%SUFFIX%%/php-fpm.conf" />
+    </property_group>
+    <template>
+      <common_name>
+        <loctext xml:lang="C">PHP FPM Service</loctext>
+      </common_name>
+    </template>
+  </service>
+</service_bundle>
 
 
 [FILE:1394:files/php85-fpm.in]
