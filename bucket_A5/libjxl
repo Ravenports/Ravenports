@@ -155,3 +155,46 @@ share/man/man1/
  cjxl.1
  djxl.1
 
+
+[FILE:558:patches/patch-lib_jxl.cmake]
+--- lib/jxl.cmake.orig	2026-02-10 13:53:22 UTC
++++ lib/jxl.cmake
+@@ -244,6 +244,8 @@ foreach(target IN ITEMS jxl jxl_dec)
+       LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/jxl/jxl_osx.syms")
+   elseif(WIN32)
+     # Nothing needed here, we use __declspec(dllexport) (jxl_export.h)
++  elseif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
++    # solaris linked does not support --version-script
+   else()
+   set_property(TARGET ${target} APPEND_STRING PROPERTY
+       LINK_FLAGS " -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/jxl/jxl.version")
+
+
+[FILE:539:patches/patch-lib_jxl__threads.cmake]
+--- lib/jxl_threads.cmake.orig	2026-02-10 13:53:22 UTC
++++ lib/jxl_threads.cmake
+@@ -45,6 +45,8 @@ if(APPLE)
+       LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/jxl/jxl_osx.syms")
+ elseif(WIN32)
+ # Nothing needed here, we use __declspec(dllexport) (jxl_threads_export.h)
++elseif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
++# version-script not supported by solaris linker
+ else()
+   set_property(TARGET jxl_threads APPEND_STRING PROPERTY
+       LINK_FLAGS " -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/jxl/jxl.version")
+
+
+[FILE:501:patches/patch-tools_speed__stats.cc]
+Fix ambiguity with converting ssize_t type to either double or int
+--- tools/speed_stats.cc.orig	2026-02-10 13:53:22 UTC
++++ tools/speed_stats.cc
+@@ -43,7 +43,7 @@ bool SpeedStats::GetSummary(SpeedStats::
+   }
+ 
+   // Prefer geomean unless numerically unreliable (too many reps)
+-  if (pow(elapsed_[0], elapsed_.size()) < 1E100) {
++  if (pow(elapsed_[0], (double)elapsed_.size()) < 1E100) {
+     double product = 1.0;
+     for (size_t i = 1; i < elapsed_.size(); ++i) {
+       product *= elapsed_[i];
+

@@ -2,7 +2,7 @@
 
 NAMEBASE=		dhcp
 VERSION=		4.4.3.P1
-REVISION=		1
+REVISION=		2
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		ISC DHCP Server and Relay Agent
@@ -49,13 +49,25 @@ CPE_VERSION=		4.4.3
 SHEBANG_FILES=		contrib/ldap/dhcpd-conf-to-ldap
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--localstatedir=/var
+CONFIGURE_ARGS=		--localstatedir={{PREFIX}}/var
+			--with-srv-pid-file={{PREFIX}}/var/run/dhcpd/dhcpd.pid
+			--with-cli-pid-file={{PREFIX}}/var/run/dhcpd/dhclient.pid
+			--with-relay-pid-file={{PREFIX}}/var/run/dhcpd/dhcrelay.pid
+			--with-srv-lease-file={{PREFIX}}/var/db/dhcpd/dhcpd.leases
+			--with-srv6-pid-file={{PREFIX}}/var/run/dhcpd/dhcpd6.pid
+			--with-cli6-pid-file={{PREFIX}}/var/run/dhcpd/dhclient6.pid
+			--with-relay6-pid-file={{PREFIX}}/var/run/dhcpd/dhcrelay6.pid
+			--with-srv6-lease-file={{PREFIX}}/var/db/dhcpd/dhcpd6.leases
 			--enable-paranoia
 			--enable-early-chroot
 			--enable-dhcpv6
 
 SINGLE_JOB=		yes
 
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
+			RUNDIR=var/run/dhcpd
+			DATADIR=var/db/dhcpd
 RC_SUBR=		isc-dhcpd:server
 			isc-dhcrelay:relay
 SUB_LIST=		MANPREFIX={{MANPREFIX}}
@@ -99,6 +111,8 @@ post-patch:
 		${WRKSRC}/bind/Makefile.in
 
 post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/dhcpd
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/dhcpd
 	${INSTALL_SCRIPT} ${WRKSRC}/client/scripts/freebsd \
 		${STAGEDIR}${PREFIX}/sbin/dhclient-script
 
@@ -153,12 +167,14 @@ This subpackage contains the DHCP relay agent.
 0ac416bb55997ca8632174fd10737fd61cdb8dba2752160a335775bc21dc73c7     10081055 dhcp-4.4.3-P1.tar.gz
 
 
-[FILE:141:manifests/plist.server]
+[FILE:218:manifests/plist.server]
 @sample etc/dhcpd.conf.example etc/dhcpd.conf
 %%LDAP-ON%%bin/dhcpd-conf-to-ldap
 %%LDAP-ON%%share/isc-dhcp/dhcp.schema
 bin/omshell
 sbin/dhcpd
+@dir(%%OWN%%,%%GRP%%,0750) %%DATADIR%%
+@dir(%%OWN%%,%%GRP%%,0750) %%RUNDIR%%
 
 
 [FILE:85:manifests/plist.client]
@@ -239,7 +255,7 @@ share/man/man8/
  		data_string_forget(&new_ds, MDL);
 
 
-[FILE:12136:files/isc-dhcpd.in]
+[FILE:12184:files/isc-dhcpd.in]
 #! /bin/sh
 
 # PROVIDE: dhcpd
@@ -292,7 +308,7 @@ eval ": \${${name}_withgroup:=dhcpd}"			# group name to run as
 
 eval ": \${${name}_chroot_enable:=\"NO\"}"		# runs chrooted?
 eval ": \${${name}_devfs_enable:=\"YES\"}"		# devfs if available?
-eval ": \${${name}_chrootdir:=/var/db/${name}}"		# directory to run in
+eval ": \${${name}_chrootdir:=%%PREFIX%%/var/db/${name}}"		# directory to run in
 # dhcpd_includedir=""			# directory for included config files
 
 safe_run ()	# rc command [args...]
@@ -317,8 +333,14 @@ precious ()	# entry...
 
 	_rc=0
 	for _entry; do
-		# do nothing if /dev, /var/run or /var/db
-		echo ${_entry} | egrep -q '^//*(dev|var//*(run|db))?/*$' || _rc=1
+		case "${_entry}" in
+			# Matches /dev, %%PREFIX%%/var/run, %%PREFIX/var/db prefix
+			/dev*|%%PREFIX%%/var/run*|%%PREFIX%%/var/db*)
+				;;
+			*)
+				_rc=1
+				;;
+		esac
 	done
 	debug precious: "$@" rc=${_rc}
 	return ${_rc}
@@ -756,9 +778,8 @@ load_rc_config ${name}
 __dhcpd_uninstall="NO"			# internal use only
 __dhcpd_devdir=/dev			# devices directory
 __dhcpd_etcdir=/etc			# etc directory
-__dhcpd_piddir=/var/run			# pid file directory
-__dhcpd_leasesdir=/var/db		# leases file directory
-#__dhcpd_chrootdir=/var/db/${name}	# root directory
+__dhcpd_piddir=%%PREFIX%%/var/run/dhcpd			# pid file directory
+__dhcpd_leasesdir=%%PREFIX%%/var/db/dhcpd		# leases file directory
 
 dhcpd_check
 dhcpd_rcvar
@@ -776,7 +797,7 @@ extra_commands="uninstall configtest"
 run_rc_command "$1"
 
 
-[FILE:1814:files/isc-dhcrelay.in]
+[FILE:1830:files/isc-dhcrelay.in]
 #!/bin/sh
 
 # PROVIDE: dhcrelay
@@ -871,7 +892,7 @@ dhcrelay6_precmd ()
 rcvar=${name}_enable
 
 command=%%PREFIX%%/sbin/dhcrelay
-pidfile=/var/run/${name}.pid
+pidfile=%%PREFIX%%/var/run/dhcpd/${name}.pid
 start_precmd=${name}_precmd
 
 load_rc_config ${name}
@@ -912,7 +933,7 @@ EOM
 }
 
 
-[FILE:1029:files/messages-server.ucl.in]
+[FILE:1039:files/messages-server.ucl.in]
 bsd_server: {
   type: "install"
   message: <<EOM
@@ -931,7 +952,7 @@ If you want to invoke dhcpd at startup, add these lines to /etc/rc.conf:
     dhcpd_withgroup="dhcpd"		# group name to run as
     dhcpd_chroot_enable="YES"		# runs chrooted?
     dhcpd_devfs_enable="YES"		# use devfs if available?
-    dhcpd_rootdir="/var/db/dhcpd"	# directory to run in
+    dhcpd_rootdir="%%PREFIX%%/var/db/dhcpd"	# directory to run in
     dhcpd_includedir="<some_dir>"	# directory with config-files
 
 WARNING: never edit the chrooted or jailed dhcpd.conf file but
@@ -941,17 +962,28 @@ EOM
 }
 
 
-[FILE:244:files/scripts-client.ucl]
-post-install: [{
+[FILE:443:files/scripts-client.ucl]
+post-install-lua: [{
      args: ""
      code: <<EOS
-[ -f /var/run/dhclient.leases ] || touch /var/run/dhclient.leases
+local lease = pkg.prefixed_path("var/run/dhcpd/dhclient.leases")
+local st = pkg.stat(lease)
+if not st then
+   local f = io.open(lease, "w")
+   if f then
+      f:close()
+   end
+end
 EOS
 }]
-post-deinstall: [{
+pre-deinstall-lua: [{
      args: ""
      code: <<EOS
-[ -s /var/run/dhclient.leases ] || rm -f /var/run/dhclient.leases
+local lease = pkg.prefixed_path("var/run/dhcpd/dhclient.leases")
+local st = pkg.stat(lease)
+if st and st.size == 0 then
+   os.remove(lease)
+end
 EOS
 }]
 

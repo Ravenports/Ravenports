@@ -378,9 +378,9 @@ _PKGSCRIPTOPSYSARCH=	${.CURDIR}/files/scripts-xxx-opsys-arch.ucl
 _PKGSCRIPTARCH=		${.CURDIR}/files/scripts-xxx-arch.ucl
 _PKGTRIGGER=		${.CURDIR}/files/triggers-xxx.ucl
 _IN_PKGMESSAGE=		${WRKDIR}/messages-xxx.ucl
-_IN_PKGMESSAGEOPSYS=	${WRKDIR}/messages-xxx-opsys
-_IN_PKGMESSAGEOPSYSARCH=${WRKDIR}/messages-xxx-opsys-arch
-_IN_PKGMESSAGEARCH=	${WRKDIR}/messages-xxx-arch
+_IN_PKGMESSAGEOPSYS=	${WRKDIR}/messages-xxx-opsys.ucl
+_IN_PKGMESSAGEOPSYSARCH=${WRKDIR}/messages-xxx-opsys-arch.ucl
+_IN_PKGMESSAGEARCH=	${WRKDIR}/messages-xxx-arch.ucl
 _IN_PKGSCRIPT=		${WRKDIR}/scripts-xxx.ucl
 _IN_PKGSCRIPTOPSYS=	${WRKDIR}/scripts-xxx-opsys.ucl
 _IN_PKGSCRIPTOPSYSARCH=	${WRKDIR}/scripts-xxx-opsys-arch.ucl
@@ -1256,6 +1256,8 @@ MAKE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/share/gpr"\
 			SSL_VARIANT="${SSL_VARIANT}"
 
 CONFIGURE_ENV+=		ADA_PROJECT_PATH="${LOCALBASE}/share/gpr"\
+			XML_CATALOG_FILES="${LOCALBASE}/share/xml/catalog" \
+			SGML_CATALOG_FILES="${LOCALBASE}/share/sgml/docbook/catalog" \
 			F77="gfortran" \
 			FC="gfortran" \
 			HOME="${HOME}" \

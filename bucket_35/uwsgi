@@ -2,6 +2,7 @@
 
 NAMEBASE=		uwsgi
 VERSION=		2.0.31
+REVISION=		3
 KEYWORDS=		python www
 VARIANTS=		std
 SDESC[std]=		Fast, self-healing, application container server
@@ -26,7 +27,7 @@ GROUPS=			uwsgi
 USERGROUP_SPKG=		single
 
 USES=			cpe pkgconfig ssl zlib pcre iconv gettext
-			python:sutools
+			python:sutools smf:single
 GNOME_COMPONENTS=	libxml2
 
 LICENSE=		GPLv2:single
@@ -43,11 +44,20 @@ PYSETUP=		uwsgiconfig.py
 MAKE_ENV=		CPUCOUNT={{MAKE_JOBS_NUMBER}}
 			UWSGI_EMBED_PLUGINS=cgi
 
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		uwsgi:single
+SUB_FILES=		messages-primary-sunos.ucl
+			uwsgi_command.sh
+			manifest.xml
+SUB_LIST=		APP_USR={{USERS}}
+			APP_GRP={{GROUPS}}
+			MSCRIPT="{{PREFIX}}/lib/svc/method/uwsgi_command.sh"
 
 CPPFLAGS=		-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
 			-Wl,-rpath,{{OPENSSLLIB}}
+SMF_METHODS=		uwsgi_command.sh
 
 post-patch:
 	${REINPLACE_CMD} \
@@ -63,6 +73,9 @@ post-extract:
 	${GREP} License ${WRKSRC}/setup.py > ${WRKDIR}/TERMS
 
 do-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/uwsgi
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/uwsgi
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/uwsgi/vassals-default
 	${MKDIR} ${STAGEDIR}${PYTHON_SITELIBDIR}
 	${INSTALL_PROGRAM} ${WRKSRC}/uwsgi ${STAGEDIR}${PREFIX}/bin/
 	${INSTALL_DATA} ${WRKSRC}/uwsgidecorators.py \
@@ -78,6 +91,12 @@ management.
 
 [FILE:110:distinfo]
 d5fb7b058a6e037cad1f0fb8841de56d673d80a3af036bba830143b60c67c3dc       822440 uswsi/unbit-uwsgi-2.0.31.tar.gz
+
+
+[FILE:113:manifests/plist.single]
+@dir etc/uwsgi/vassals-default
+@dir(%%OWN%%,%%GRP%%,0750) var/log/uwsgi
+@dir(%%OWN%%,%%GRP%%,0750) var/run/uwsgi
 
 
 [FILE:469:patches/patch-core_logging.c]
@@ -188,7 +207,78 @@ https://github.com/unbit/uwsgi/pull/2506
          if filemonitor_mode == 'inotify':
 
 
-[FILE:5086:files/uwsgi.in]
+[FILE:1535:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="3">
+        <create_default_instance enabled='false'/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%MSCRIPT%% start" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec="%%MSCRIPT%% stop" timeout_seconds="60"/>
+        <exec_method type="method" name="refresh" exec=":kill -TERM" timeout_seconds="60"/>
+        <property_group name='application' type='application'></property_group>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    high-performance python web application server
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:1452:files/messages-primary-sunos.ucl.in]
+sunos: {
+  type: install
+  message: <<EOM
+===========================================================================
+
+This package supports multiple SMF instances.
+
+By default a 'default' instance is created.  It could have an optional
+configuration file located at %%PREFIX%%/etc/uwsgi/uwsgi-default.ini
+
+Configure using the SMF properties:
+  - socket         (default "/tmp/uwsgi-${instance}.sock"
+  - config_file    (default "%%PREFIX%%/etc/uwsgi/uwsgi-${instance}.ini"
+  - vassels_dir    (default "%%PREFIX%%/etc/uwsgi/vassals-${instance}"
+  - flags          (default "-L)
+  - emperor        (default False)  
+
+Hardcoded properties:
+  - log_file       "%%PREFIX%%/var/log/${instance}.log
+  - pid_file       "%%PREFIX%%/var/run/${instance}.pid
+
+ Review https://uwsgi-docs.readthedocs.io/en/latest/ for information on these settings
+
+ Add a example service instance:
+
+  svccfg -s uwsgi add myappserver
+  svccfg -s uwsgi:myappserver addpg srv1 application
+  svccfg -s uwsgi:myappserver setprop srv1/socket = astring: /tmp/uwsgi-srv1.sock
+  svccfg -s uwsgi:myappserver setprop srv1/config_file = astring: %%PREFIX%%/etc/uwsgi-srv1.ini
+  svccfg -s uwsgi:myappserver setprop srv1/vassals_dir = astring: %%PREFIX%%/etc/uswgi/vassals-srv1  
+  svccfg -s uwsgi:myappserver setprop srv1/flags = astring: -L
+  svccfg -s uwsgi:myappserver setprop srv1/emperor = boolean: false
+
+===========================================================================
+EOM
+}
+
+
+[FILE:5150:files/uwsgi.in]
 #!/bin/sh
 #
 # $FreeBSD: head/www/uwsgi/files/uwsgi.in 448482 2017-08-21 17:49:01Z ultima $
@@ -214,9 +304,9 @@ https://github.com/unbit/uwsgi/pull/2506
 # uwsgi_vassals_dir (path):	Set the path to the vassals directory
 #				Default is %%PREFIX%%/etc/uwsgi/vassals.
 # uwsgi_logfile (path):		Set the path to the uwsgi log file
-#				Default is /var/log/uwsgi.log.
+#				Default is %%PREFIX%%/var/log/uwsgi/uwsgi.log.
 # uwsgi_pidfile (path):		Set the path to the uwsgi pid file
-#				Default is /var/run/uwsgi.pid.
+#				Default is %%PREFIX%%/var/run/uwsgi/uwsgi.pid.
 # uwsgi_uid (int):		Set the UID of the process to run with
 #				Default is uwsgi.
 # uwsgi_gid (int):		Set the GID of the process to run with
@@ -250,8 +340,8 @@ command=%%PREFIX%%/bin/uwsgi
 : ${uwsgi_socket_owner="uwsgi:www"}
 : ${uwsgi_configfile="%%PREFIX%%/etc/uwsgi/uwsgi.ini"}
 : ${uwsgi_profiles=""}
-: ${uwsgi_logfile="/var/log/${name}.log"}
-: ${uwsgi_pidfile="/var/run/${name}.pid"}
+: ${uwsgi_logfile="%%PREFIX%%/var/log/uwsgi/${name}.log"}
+: ${uwsgi_pidfile="%%PREFIX%%/var/run/uwsgi/${name}.pid"}
 : ${uwsgi_uid="uwsgi"}
 : ${uwsgi_gid="uwsgi"}
 : ${uwsgi_flags="-L"}
@@ -348,4 +438,100 @@ brutalreload_cmd()
 }
 
 run_rc_command "$1"
+
+
+[FILE:2083:files/uwsgi_command.sh.in]
+#!/bin/sh
+#
+# Init script for uwsgi (SMF)
+#
+
+. /lib/svc/share/smf_include.sh
+
+getproparg() {
+        svcprop -p $1 $SMF_FMRI 2>/dev/null
+}
+
+pgroup() {
+   svccfg -s "$FMRI" listpg | while read -r PG_NAME PG_TYPE _; do
+      if [ "$PG_TYPE" = "application" ]; then
+         echo "${PG_NAME}"
+      fi
+   done
+}
+
+METHOD=$1
+INSTANCE=$(echo $SMF_FMRI | sed s_.*:__)
+INSTANCE=${INSTANCE:=default}
+PROP=$(pgroup)
+
+LOGDIR="%%PREFIX%%/var/log/uwsgi"
+RUNDIR="%%PREFIX%%/var/run/uwsgi"
+LOGFILE="${LOGDIR}/${INSTANCE}.log"
+PIDFILE="${RUNDIR}/${INSTANCE}.pid"
+
+_FLAGS=$(getproparg ${PROP}/flags)
+_SOCKET=$(getproparg ${PROP}/socket)
+_CONFIG=$(getproparg ${PROP}/config_file)
+_VASDIR=$(getproparg ${PROP}/vassels_dir)
+_EMPEROR=$(getproparg ${PROP}/emperor)
+
+
+if [ -z "$_FLAGS" ]; then
+   _FLAGS="-L"
+fi
+
+if [ -z "$_SOCKET" ]; then
+   _SOCKET="/tmp/uwsgi-${INSTANCE}.sock"
+fi
+
+if [ -z "${_CONFIG}" ]; then
+   _CONFIG="%%PREFIX%%/etc/uwsgi/uwsgi-${INSTANCE}.ini"
+fi
+
+if [ -z "${_VASDIR}" ]; then
+   _VASDIR="%%PREFIX%%/etc/uwsgi/vassals-${INSTANCE}"
+fi
+
+if [ -z "${_EMPEROR}" ]; then
+   _EMPEROR="false"
+fi
+
+
+USR=%%APP_USR%%
+GRP=%%APP_GRP%%
+
+APP_FLAGS="-d ${LOGFILE}"
+
+if [ -f "${_CONFIG}" ]; then
+   APP_FLAGS="${APP_FLAGS} --ini ${_CONFIG}"
+fi
+
+if [ "${_EMPEROR}" = "false" ]; then
+   APP_FLAGS="${APP_FLAGS} --master  --uid ${USR} --gid ${GRP} --pidfile ${PIDFILE}"
+   APP_FLAGS="${APP_FLAGS} -s ${_SOCKET} --chmod-socket=660 --chown-socket=${USR}:${GRP}"
+else
+   APP_FLAGS="${APP_FLAGS} --emperor-pidfile ${PIDFILE} --emperor ${_VASDIR}"
+   APP_FLAGS="${APP_FLAGS} --vassals-set uid=${USR} --vassals-set gid=${GRP}"
+   APP_FLAGS="${APP_FLAGS} --vassals-set chmod-socket=660"
+   APP_FLAGS="${APP_FLAGS} --vassals-set chown-socket=${USR}:${GRP}"
+fi
+APP_FLAGS="${APP_FLAGS} ${_FLAGS}"
+
+
+case ${METHOD} in
+start)
+        %%PREFIX%%/bin/uwsgi ${APP_FLAGS}
+        ;;
+stop)
+        CTID=$(svcprop -p restarter/contract $SMF_FMRI)
+        if [ -n "$CTID" ]; then
+            pkill -INT -c $CTID
+            rm -f ${PIDFILE}
+            rm -f ${_SOCKET}
+        fi	
+        ;;
+esac
+
+exit ${SMF_EXIT_OK}
 

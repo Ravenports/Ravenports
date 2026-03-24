@@ -44,6 +44,9 @@ MUST_CONFIGURE=		gnu
 INSTALL_TARGET=		install-strip
 SOVERSION=		53.0.0
 
+VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__
+			LDFLAGS=-lsocket
+
 [FILE:673:descriptions/desc.primary]
 libfilezilla is a small and modern C++ library, offering some basic 
 functionality to build high-performing, platform-independent programs. 
@@ -248,6 +251,23 @@ share/locale/zh_TW/LC_MESSAGES/libfilezilla.mo
  #include <utime.h>
  #endif
  
+
+
+[FILE:445:patches/patch-lib_string.cpp]
+--- lib/string.cpp.orig	2025-03-26 10:07:26 UTC
++++ lib/string.cpp
+@@ -16,6 +16,11 @@
+ 
+ #include <cstdlib>
+ 
++#if defined(__sun__)
++#include <cwchar>
++using std::wcsnrtombs;
++#endif
++
+ static_assert('a' + 25 == 'z', "We only support systems running with an ASCII-based character set. Sorry, no EBCDIC.");
+ 
+ // char may be unsigned, yielding stange results if subtracting characters. To work around it, expect a particular order of characters.
 
 
 [FILE:256:files/special.mk]

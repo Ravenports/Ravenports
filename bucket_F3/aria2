@@ -2,7 +2,7 @@
 
 NAMEBASE=		aria2
 VERSION=		1.37.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		ftp net www
 VARIANTS=		std
 SDESC[std]=		CLI download for HTTP/S, FTP, BitTorrent, Metalink
@@ -25,8 +25,12 @@ OPTIONS_STANDARD=	none
 
 EXRUN[tools]=		primary
 
+USERS=			aria2
+GROUPS=			aria2
+USERGROUP_SPKG=		tools
+
 USES=			cpe libtool pkgconfig ssl sqlite zlib mbsdfix
-			c++:primary rootca:tools
+			c++:primary rootca:tools smf:tools
 GNOME_COMPONENTS=	libxml2
 
 LICENSE=		GPLv2+:primary
@@ -71,15 +75,24 @@ CONFIGURE_ENV=		OPENSSL_CFLAGS=-I{{OPENSSLINC}}
 			ac_cv_path_RST2HTML=no
 
 INSTALL_TARGET=		install-strip
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		aria2:tools
+SUB_FILES=		manifest.xml
+			aria2.conf.sample
+SUB_LIST=		ARIA2_USR={{USERS}}
+			ARIA2_GRP={{GROUPS}}
 
 post-patch:
 	${REINPLACE_CMD} -e '/GAI_STRERROR/d' ${WRKSRC}/src/Makefile.in
 
 post-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/bash_completion.d/
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/aria2
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/aria2
 	${INSTALL_DATA} ${WRKSRC}/doc/bash_completion/aria2c \
 		${STAGEDIR}${PREFIX}/etc/bash_completion.d/
+	${INSTALL_DATA} ${WRKDIR}/aria2.conf.sample ${STAGEDIR}${PREFIX}/etc/
 
 [FILE:1298:descriptions/desc.primary]
 aria2 is a lightweight multi-protocol & multi-source command-line download
@@ -123,9 +136,12 @@ lib/
  libaria2.so.0.0.0
 
 
-[FILE:40:manifests/plist.tools]
+[FILE:151:manifests/plist.tools]
+@sample etc/aria2.conf.sample
 bin/aria2c
 etc/bash_completion.d/aria2c
+@dir(%%OWN%%,%%GRP%%,0750) var/db/aria2
+@dir(%%OWN%%,%%GRP%%,0750) var/log/aria2
 
 
 [FILE:78:manifests/plist.dev]
@@ -169,7 +185,51 @@ share/doc/aria2/xmlrpc/
  #include <numeric>
 
 
-[FILE:677:files/aria2.in]
+[FILE:294:patches/patch-src_getaddrinfo.c]
+--- src/getaddrinfo.c.orig	2023-11-15 09:49:41 UTC
++++ src/getaddrinfo.c
+@@ -109,6 +109,7 @@
+ #else    /* not STDC_HEADERS and not HAVE_STRING_H */
+ #  include <strings.h>
+ #endif /* not STDC_HEADERS and not HAVE_STRING_H */
++#include <strings.h>
+ 
+ #ifdef HAVE_STDLIB_H
+ #  include <stdlib.h>
+
+
+[FILE:575:files/aria2.conf.sample.in]
+# Basic Settings
+dir=%%PREFIX%%/var/db/aria2
+continue=true
+max-concurrent-downloads=5
+max-connection-per-server=16
+min-split-size=20M
+split=10
+disable-ipv6=false
+
+# Advanced Settings
+file-allocation=falloc
+log-level=warn
+log=%%PREFIX%%/var/log/aria2/aria2.log
+
+# BitTorrent Settings
+bt-max-peers=55
+enable-dht=true
+enable-peer-exchange=true
+seed-ratio=1.0
+seed-time=0
+
+# RPC Settings (for Web UIs like AriaNg)
+enable-rpc=true
+rpc-allow-origin-all=true
+rpc-listen-all=true
+rpc-listen-port=6800
+# It is highly recommended to set a secret token
+# rpc-secret=YourSecureTokenHere
+
+
+[FILE:691:files/aria2.in]
 #!/bin/sh
 #
 # PROVIDE: aria2
@@ -196,11 +256,51 @@ load_rc_config $name
 aria2_enable=${aria2_enable:-"NO"}
 aria2_config=${aria2_config:-"%%PREFIX%%/etc/aria2.conf"}
 aria2_flags=${aria2_flags:-""}
-aria2_user=${aria2_user:-"nobody"}
-aria2_group=${aria2_group:-"nobody"}
+aria2_user=${aria2_user:-"%%ARIA2_USR%%"}
+aria2_group=${aria2_group:-"%%ARIA2_GRP%%"}
 
 required_files=${aria2_config}
 command_args="-D --conf-path=${aria2_config} ${aria2_flags}"
 
 run_rc_command "$1"
+
+
+[FILE:1969:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+            <service_fmri value='file://localhost/%%PREFIX%%/etc/aria2.conf'/>
+        </dependency>
+        <method_context working_directory="%%PREFIX%%/var/log/aria2">
+            <method_credential user="%%ARIA2_USR%%" group="%%ARIA2_GRP%%"/>
+        </method_context>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/aria2c --conf-path=%{config_file} &amp;" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/aria2.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    CLI download for HTTP/S, FTP, BitTorrent, Metalink
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
 

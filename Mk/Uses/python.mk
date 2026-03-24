@@ -317,6 +317,12 @@ do-install:
 	done
 .      endif
 .    endif
+
+.    if !target(post-install-module)
+post-install-module:
+	(cd ${STAGEDIR} && ${PYTHON_CMD} -m compileall -d / . ||:)
+.    endif
+
 .  endif
 
 .endif	# _INCLUDE_USES_PYTHON_MK

@@ -2,6 +2,7 @@
 
 NAMEBASE=		afdko
 VERSION=		4.0.3
+REVISION=		1
 KEYWORDS=		x11_fonts
 VARIANTS=		std
 SDESC[std]=		Adobe Font Development Kit for OpenType
@@ -30,6 +31,10 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		x11-fonts/afdko
 
 CMAKE_ARGS=		-DSKBUILD:BOOL=OFF
+VAR_OPSYS[sunos]=	CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
+
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
 
 [FILE:513:descriptions/desc.single]
 The AFDKO is a set of tools for building OpenType font files from
@@ -92,4 +97,50 @@ bin/
  add_subdirectory(c/tx/source)
  add_subdirectory(c/type1/source)
 -add_subdirectory(c/makeotf)
+
+
+[FILE:514:patches/patch-c_detype1_source_detype1.c]
+--- c/detype1/source/detype1.c.orig	2025-12-05 00:32:05 UTC
++++ c/detype1/source/detype1.c
+@@ -4,6 +4,7 @@
+ #include <stdarg.h>
+ #include <string.h>
+ #include <stdlib.h>
++#include <unistd.h>
+ #include <stdbool.h>
+ #ifdef _MSC_VER /* defined by Microsoft Compiler */
+ #include <io.h>
+@@ -524,7 +525,9 @@ static void usage(void) {
+ }
+ 
+ #ifndef _MSC_VER /* Unix */
++#if !defined(__sun__)
+ extern int getopt(int argc, char **argv, char *optstring);
++#endif
+ extern int optind;
+ extern char *optarg;
+ #else  /* dos */
+
+
+[FILE:507:patches/patch-c_type1_source_type1.c]
+--- c/type1/source/type1.c.orig	2025-12-05 00:32:05 UTC
++++ c/type1/source/type1.c
+@@ -4,6 +4,7 @@
+ #include <ctype.h>
+ #include <string.h>
+ #include <stdarg.h>
++#include <unistd.h>
+ #include <stdlib.h>
+ #ifdef _MSC_VER /* defined by Microsoft Compiler */
+ #include <fcntl.h>
+@@ -504,7 +505,9 @@ static void usage(void) {
+ }
+ 
+ #ifndef _MSC_VER /* Unix */
++#if !defined(__sun__)
+ extern int getopt(int argc, char **argv, char *optstring);
++#endif
+ extern int optind;
+ extern char *optarg;
+ #else  /* dos */
 

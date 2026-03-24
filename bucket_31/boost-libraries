@@ -67,6 +67,7 @@ PLIST_SUB=		BOOSTVER=1.90.0
 			EXECMON={{EXECMON}}
 
 VAR_OPSYS[freebsd]=	MAKE_ARGS=pch=off
+VAR_OPSYS[sunos]=	MAKE_ARGS=pch=off
 VAR_OPSYS[netbsd]=	MAKE_ARGS=pch=off
 			MAKEFILE_LINE=STADDR2LINE="@comment "
 			MAKE_ARGS=--without-json
@@ -84,6 +85,9 @@ post-extract-midnightbsd:
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		bjam ${MAKE_ARGS:C,^${DESTDIRNAME}=.*,,g} ${BUILD_TARGET})
+
+post-extract-sunos:
+	echo "using gcc : 14 : g++ : <archiver>ar <ranlib>ranlib ;" > /root/user-config.jam
 
 do-install:
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} \

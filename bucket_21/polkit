@@ -60,6 +60,9 @@ SHEBANG_FILES=		{{WRKSRC}}/src/polkitbackend/toarray.pl
 CFLAGS=			-Wno-deprecated-declarations
 			-Wno-implicit-function-declaration
 			-Wno-int-conversion
+VAR_OPSYS[sunos]=	CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
+			CFLAGS=-D__EXTENSIONS__
+			LDFLAGS=-lsocket
 
 post-install:
 	${MKDIR} ${STAGEDIR}/var/lib/polkit-1
@@ -83,9 +86,6 @@ pre-configure:
 		${WRKSRC}/src/examples/org.freedesktop.policykit.examples.pkexec.policy.in
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${PREFIX}|g' \
 		${WRKSRC}/docs/man/polkit.xml
-
-post-patch-sunos:
-	${REINPLACE_CMD} -e '/as-needed/ s/^.*$$/NOOP=1/' ${WRKSRC}/configure
 
 [FILE:300:descriptions/desc.primary]
 Polkit is an application-level toolkit for defining and handling the 

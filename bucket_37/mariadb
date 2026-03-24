@@ -21,8 +21,9 @@ SPKGS[std]=		set
 			man
 			docs
 
-OPTIONS_AVAILABLE=	ROCKSDB
-OPTIONS_STANDARD=	ROCKSDB
+OPTIONS_AVAILABLE=	ROCKSDB LINUX
+OPTIONS_STANDARD=	ROCKSDB LINUX
+OPT_ON[linux]=		LINUX
 
 BUILD_DEPENDS=		bison:primary:std
 			msgpack:dev:std
@@ -79,6 +80,7 @@ SUB_LIST=		MARIADB_DBDIR="/var/db/mysql"
 			MARIADB_USER="mysql"
 			OPSYS="{{OPSYS}}"
 
+CFLAGS=			-I{{NCURSESINC}}
 CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_INCLUDEDIR=include/mysql
 			-DINSTALL_PLUGINDIR=lib/mysql/plugin
@@ -117,11 +119,16 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DWITH_LIBFMT=bundle
 			-Wno-dev
 VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
+VAR_OPSYS[sunos]=	CXXFLAGS=-fPIC
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
 
 [ROCKSDB].DESCRIPTION=			Build RocksDB LSM Engine
 [ROCKSDB].CMAKE_ARGS_OFF=		-DPLUGIN_ROCKSDB=NO
 [ROCKSDB].CMAKE_ARGS_ON=		-DPLUGIN_ROCKSDB=DYNAMIC
+
+[LINUX].DESCRIPTION=			Ensure linux-only modules are built
+[LINUX].CMAKE_ARGS_OFF=			-DPLUGIN_DISKS=NO
+[LINUX].CMAKE_ARGS_ON=			-DPLUGIN_DISKS=YES
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/lib/mysql/pkgconfig/mariadb.pc \
@@ -209,9 +216,10 @@ fe82fe2e9af98dfcad8c0266a283ca349b78fd46989fff0d5e1ffca644b514bd    121458906 ma
 695fd197fa5aff8fc67b5f2bbc110490a875cdf7a41686ac8512fb480fa8ada7      1435256 fmt-12.1.0.zip
 
 
-[FILE:4720:manifests/plist.server]
+[FILE:4748:manifests/plist.server]
 @sample etc/mysql/conf.d/server.cnf.sample
 @sample etc/mysql/user_map.conf.sample
+%%LINUX-ON%%lib/mysql/plugin/disks.so
 %%ONLY-FREEBSD%%lib/mysql/plugin/parsec.so
 %%ONLY-LINUX%%lib/mysql/plugin/parsec.so
 %%ONLY-NETBSD%%lib/mysql/plugin/parsec.so
@@ -310,7 +318,6 @@ lib/mysql/plugin/
  caching_sha2_password.so
  debug_key_management.so
  dialog_examples.so
- disks.so
  example_key_management.so
  file_key_management.so
  func_test.so
@@ -1454,6 +1461,29 @@ share/doc/%%PORTNAME%%/
  
 
 
+[FILE:748:patches/patch-mysys_my__largepage.c]
+$NetBSD: patch-mysys_my__largepage.c,v 1.2 2025/10/27 20:56:37 nia Exp $
+
+--- mysys/my_largepage.c.orig	2026-02-06 17:11:16 UTC
++++ mysys/my_largepage.c
+@@ -28,6 +28,7 @@
+ #endif
+ 
+ #ifdef HAVE_SOLARIS_LARGE_PAGES
++my_bool opt_super_large_pages= 0;
+ #if defined(__sun__) && defined(__GNUC__) && defined(__cplusplus) \
+     && defined(_XOPEN_SOURCE)
+ /* memcntl exist within sys/mman.h, but under-defines what is need to use it */
+@@ -203,7 +204,6 @@ int my_init_large_pages(void)
+   my_get_large_page_sizes(my_large_page_sizes);
+ 
+ #ifdef HAVE_SOLARIS_LARGE_PAGES
+-  extern my_bool opt_super_large_pages;
+   /*
+     tell the kernel that we want to use 4/256MB page for heap storage
+     and also for the stack. We use 4 MByte as default and if the
+
+
 [FILE:1167:patches/patch-oqgraph-MDEV-15291]
 --- storage/oqgraph/oqgraph_judy.cc.orig	2026-02-06 17:11:17 UTC
 +++ storage/oqgraph/oqgraph_judy.cc
@@ -1495,6 +1525,23 @@ share/doc/%%PORTNAME%%/
    };
  }
  
+
+
+[FILE:441:patches/patch-plugin_auth__pam_auth__pam__base.c]
+--- plugin/auth_pam/auth_pam_base.c.orig	2026-02-06 17:11:16 UTC
++++ plugin/auth_pam/auth_pam_base.c
+@@ -128,11 +128,7 @@ static int conv(int n, const struct pam_
+ 
+ #define DO(X) if ((status = (X)) != PAM_SUCCESS) goto end
+ 
+-#if defined(SOLARIS) || defined(__sun)
+-typedef void** pam_get_item_3_arg;
+-#else
+ typedef const void** pam_get_item_3_arg;
+-#endif
+ 
+ static int pam_auth_base(struct param *param, MYSQL_SERVER_AUTH_INFO *info)
+ {
 
 
 [FILE:759:patches/patch-scripts_CMakeLists.txt]
@@ -1574,9 +1621,77 @@ share/doc/%%PORTNAME%%/
                  fi
 
 
-[FILE:250:patches/patch-sql_mysqld.cc]
+[FILE:2809:patches/patch-sql_item__numconvfunc.cc]
+--- sql/item_numconvfunc.cc.orig	2026-02-06 17:11:17 UTC
++++ sql/item_numconvfunc.cc
+@@ -50,10 +50,10 @@ public:
+   class Single_char_token
+   {
+   public:
+-    static constexpr uchar _C= 'C'; // Positional currency (C, L, U)
+-    static constexpr uchar _B= 'B'; // Prefix/inline flag B
+-    static constexpr uchar _S= 'S'; // Sign S
+-    static constexpr uchar _G= 'G'; // Group decimiter G
++    static constexpr uchar HC= 'C'; // Positional currency (C, L, U)
++    static constexpr uchar HB= 'B'; // Prefix/inline flag B
++    static constexpr uchar HS= 'S'; // Sign S
++    static constexpr uchar HG= 'G'; // Group decimiter G
+     // Single char tokens: $ B . D , G 09 C L U
+     static uchar elem(uchar ch)
+     {
+@@ -63,10 +63,10 @@ public:
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* ................ */
+          0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, /*  !"#$%&'()*+,-./ */
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* 0123456789:;<=>? */
+-         0, 0,_B,_C, 1, 0, 0,_G, 0, 0, 0, 0,_C, 0, 0, 0, /* @ABCDEFGHIJKLMNO */
+-         0, 0, 0,_S, 0,_C, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* PQRSTUVWXYZ[\]^_ */
+-         0, 0,_B,_C, 1, 0, 0,_G, 0, 0, 0, 0,_C, 0, 0, 0, /* `abcdefghijklmno */
+-         0, 0, 0,_S, 0,_C, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* pqrstuvwxyz{|}~. */
++         0, 0,HB,HC, 1, 0, 0,HG, 0, 0, 0, 0,HC, 0, 0, 0, /* @ABCDEFGHIJKLMNO */
++         0, 0, 0,HS, 0,HC, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* PQRSTUVWXYZ[\]^_ */
++         0, 0,HB,HC, 1, 0, 0,HG, 0, 0, 0, 0,HC, 0, 0, 0, /* `abcdefghijklmno */
++         0, 0, 0,HS, 0,HC, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* pqrstuvwxyz{|}~. */
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* ................ */
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* ................ */
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* ................ */
+@@ -83,19 +83,19 @@ public:
+   // Wrappers for the above class
+   static bool is_positional_currency(char ch)
+   {
+-    return Single_char_token::elem((uchar) ch) == Single_char_token::_C;
++    return Single_char_token::elem((uchar) ch) == Single_char_token::HC;
+   }
+   static bool is_currency_flag_B(char ch)
+   {
+-    return Single_char_token::elem((uchar) ch) == Single_char_token::_B;
++    return Single_char_token::elem((uchar) ch) == Single_char_token::HB;
+   }
+   static bool is_group_delimiter_G(char ch)
+   {
+-    return Single_char_token::elem((uchar) ch) == Single_char_token::_G;
++    return Single_char_token::elem((uchar) ch) == Single_char_token::HG;
+   }
+   static bool is_sign_S(char ch)
+   {
+-    return Single_char_token::elem((uchar) ch) == Single_char_token::_S;
++    return Single_char_token::elem((uchar) ch) == Single_char_token::HS;
+   }
+   // Combining wrappers
+   static bool is_currency_flag(char ch)
+
+
+[FILE:544:patches/patch-sql_mysqld.cc]
 --- sql/mysqld.cc.orig	2026-02-06 17:11:17 UTC
 +++ sql/mysqld.cc
+@@ -430,7 +430,7 @@ char* opt_secure_file_priv;
+ my_bool lower_case_file_system= 0;
+ my_bool opt_large_pages= 0;
+ #ifdef HAVE_SOLARIS_LARGE_PAGES
+-my_bool opt_super_large_pages= 0;
++extern my_bool opt_super_large_pages;
+ #endif
+ my_bool opt_myisam_use_mmap= 0;
+ #if defined(ENABLED_DEBUG_SYNC)
 @@ -4771,8 +4771,9 @@ static void init_ssl()
          sql_print_warning("SSL error: %s",buf);
        }

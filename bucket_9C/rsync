@@ -2,6 +2,7 @@
 
 NAMEBASE=		rsync
 VERSION=		3.4.1
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		Network file distribution/synchronization utility
@@ -25,7 +26,14 @@ BUILD_DEPENDS=		xxhash:dev:std
 BUILDRUN_DEPENDS=	xxhash:primary:std
 
 USES=			cpe iconv zstd zlib lz4 shebangfix ssl
-			rootca:primary
+			rootca:primary smf:primary
+
+LICENSE=		GPLv3+:primary
+LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
+LICENSE_FILE=		GPLv3+:{{WRKSRC}}/COPYING
+LICENSE_AWK=		TERMS:"^$$"
+LICENSE_SOURCE=		TERMS:{{WRKSRC}}/rsync.h
+LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		rsync
 CPE_VENDOR=		samba
@@ -44,6 +52,8 @@ CONFIGURE_ARGS=		--disable-debug
 
 INSTALL_TARGET=		install-strip
 RC_SUBR=		rsyncd:primary
+SUB_FILES=		rsyncd.conf.sample
+			manifest.xml
 SUB_LIST=		NAME=rsyncd
 
 TEST_TARGET=		check
@@ -56,8 +66,10 @@ post-patch:
 		${WRKSRC}/support/rrsync
 
 post-install:
-	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/rsync
-	${INSTALL_DATA} ${FILESDIR}/rsyncd.conf.sample ${STAGEDIR}${PREFIX}/etc/rsync
+	# A rare use of /raven/var/run, rsync drop priv to "nobody", so no "rsyncd" user
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/rsync
+	${INSTALL_DATA} ${WRKDIR}/rsyncd.conf.sample ${STAGEDIR}${PREFIX}/etc/rsync
 	${INSTALL_SCRIPT} ${WRKSRC}/support/rrsync ${STAGEDIR}${PREFIX}/sbin
 
 [FILE:494:descriptions/desc.primary]
@@ -77,12 +89,13 @@ Note, requires rsync on the destination machine.
 2924bcb3a1ed8b551fc101f740b9f0fe0a202b115027647cf69850d65fd88c52      1172739 rsync-3.4.1.tar.gz
 
 
-[FILE:72:manifests/plist.primary]
+[FILE:85:manifests/plist.primary]
 @sample etc/rsync/rsyncd.conf.sample
 bin/
  rsync
  rsync-ssl
 sbin/rrsync
+@dir var/run
 
 
 [FILE:67:manifests/plist.man]
@@ -107,12 +120,48 @@ share/man/man5/rsyncd.conf.5
  
 
 
-[FILE:768:files/rsyncd.conf.sample]
+[FILE:1665:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <method_context>
+        </method_context>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/rsync --daemon --config=%{config_file}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/rsync/rsyncd.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Rsync daemon for native file synchronization and transfer.
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:778:files/rsyncd.conf.sample.in]
 # rsyncd.conf - Example file, see rsyncd.conf(5)
 #
 
 # Set this if you want to stop rsync daemon with rc.d scripts
-pid file = /var/run/rsyncd.pid
+pid file = %%PREFIX%%/var/run/rsyncd.pid
 
 # Edit this file before running rsync daemon!!
 
@@ -145,7 +194,7 @@ pid file = /var/run/rsyncd.pid
 #	secrets file = /raven/etc/rsync/rsyncd.secrets
 
 
-[FILE:974:files/rsyncd.in]
+[FILE:984:files/rsyncd.in]
 #!/bin/sh
 #
 
@@ -169,7 +218,7 @@ rcvar=%%NAME%%_enable
 
 command="%%PREFIX%%/bin/rsync"
 start_precmd="%%NAME%%_precmd"
-pidfile="/var/run/$name.pid"
+pidfile="%%PREFIX%%/var/run/$name.pid"
 
 # read configuration and set defaults
 load_rc_config "$name"

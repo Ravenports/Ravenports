@@ -2,6 +2,7 @@
 
 NAMEBASE=		php83
 VERSION=		8.3.30
+REVISION=		1
 KEYWORDS=		lang www php
 VARIANTS=		std
 SDESC[std]=		PHP Hypertext Preprocessor version 8.3
@@ -26,6 +27,10 @@ OPT_ON[all]=		CLI CGI FPM EMBED DEBUGGER
 
 BUILD_DEPENDS=		autoconf:primary:std
 
+USERS=			{{WWWOWN}}
+GROUPS=			{{WWWGRP}}
+USERGROUP_SPKG=		primary
+
 USES=			cpe gmake pkgconfig zlib pcre2 mbsdfix smf:primary
 GNOME_COMPONENTS=	libxml2
 
@@ -43,7 +48,7 @@ SMF_NAME=		php83-fpm
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-layout=GNU
 			--with-libxml
-			--localstatedir=/var
+			--localstatedir={{PREFIX}}/var
 			--with-config-file-scan-dir={{PREFIX}}/etc/php83
 			--sysconfdir={{PREFIX}}/etc/php83
 			--libdir={{PREFIX}}/lib/php83
@@ -58,6 +63,8 @@ DESTDIRNAME=		INSTALL_ROOT
 
 PLIST_SUB=		SUFFIX=83
 			SOMAJOR=8
+			WWWOWN="{{WWWOWN}}"
+			WWWGRP="{{WWWGRP}}"
 RC_SUBR=		php83-fpm:primary
 SUB_FILES=		scripts-dev.ucl
 			manifest.xml
@@ -109,12 +116,16 @@ post-install-DEBUGGER-ON:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/phpdbg83
 
 post-patch-FPM-ON:
-	${REINPLACE_CMD} -e "s|^;\(pid\)|\1|;s|^;\(pm\.[a-z_]*_servers\)|\1|" \
+	# enable pid file and change location
+	# override default location of error log
+	${REINPLACE_CMD} -e "s|^;pid = run/|pid = run/php83/|" \
+		-e "s|^;error_log = log/|error_log = log/php83/|" \
 		${WRKSRC}/sapi/fpm/php-fpm.conf.in
 
 post-install:
-	@${MKDIR} ${STAGEDIR}${PREFIX}/etc/php83
-	${RM} -r ${STAGEDIR}/var
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/php83
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/php83
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/php83
 	${RM} -r ${STAGEDIR}${PREFIX}/include/php83/include
 	${INSTALL_DATA} ${WRKSRC}/php.ini-development \
 		${WRKSRC}/php.ini-production \
@@ -158,7 +169,7 @@ This package provides PHP version 8.3.x.
 67f084d36852daab6809561a7c8023d130ca07fc6af8fb040684dd1414934d48     12609216 php-8.3.30.tar.xz
 
 
-[FILE:473:manifests/plist.primary]
+[FILE:583:manifests/plist.primary]
 %%CGI-ON%%bin/php-cgi%%SUFFIX%%
 %%CLI-ON%%bin/php%%SUFFIX%%
 %%DEBUGGER-ON%%bin/phpdbg%%SUFFIX%%
@@ -171,6 +182,8 @@ etc/php%%SUFFIX%%/
  php.conf
  php.ini-development
  php.ini-production
+@dir(%%WWWOWN%%,%%WWWGRP%%,0750) var/log/php%%SUFFIX%%
+@dir(%%WWWOWN%%,%%WWWGRP%%,0750) var/run/php%%SUFFIX%%
 
 
 [FILE:5619:manifests/plist.dev]
@@ -672,7 +685,7 @@ share/man/man1/
 </service_bundle>
 
 
-[FILE:1394:files/php83-fpm.in]
+[FILE:1418:files/php83-fpm.in]
 #!/bin/sh
 #
 
@@ -703,7 +716,7 @@ load_rc_config "$name"
 extra_commands="reload configtest logrotate"
 
 command="%%PREFIX%%/sbin/php-fpm"
-pidfile="/var/run/php-fpm.pid"
+pidfile="%%PREFIX%%/var/run/php%%SUFFIX%%/php-fpm.pid"
 sig_stop="QUIT"
 sig_reload="USR2"
 logrotate_cmd="php%%SUFFIX%%_fpm_logrotate"

@@ -112,7 +112,7 @@ GCCBASE_PHASE=			release
 # icu
 # ------------------------------------------------------------------------
 
-ICU_VERSION=			78.2
+ICU_VERSION=			78.3
 ICU_REVISION=			0
 ICU_LX_REVISION=		0
 
@@ -120,7 +120,7 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.15.1
+LIBXML2_VERSION=		2.15.2
 LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
@@ -157,7 +157,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.51
-GTK4_PORT_VERSION=		4.20.3
+GTK4_PORT_VERSION=		4.22.1
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -229,4 +229,4 @@ QT6_VERSION=			6.10.1
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
 KDE6_FRAMEWORKS_VERSION=	6.23.0
-KDE6_APPLICATIONS_VERSION=	25.12.2
+KDE6_APPLICATIONS_VERSION=	25.12.3

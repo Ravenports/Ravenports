@@ -19,8 +19,9 @@ SPKGS[std]=		set
 			man
 			docs
 
-OPTIONS_AVAILABLE=	ROCKSDB
-OPTIONS_STANDARD=	ROCKSDB
+OPTIONS_AVAILABLE=	ROCKSDB LINUX
+OPTIONS_STANDARD=	ROCKSDB LINUX
+OPT_ON[linux]=		LINUX
 
 BUILD_DEPENDS=		bison:primary:std
 			msgpack:dev:std
@@ -77,6 +78,7 @@ SUB_LIST=		MARIADB_DBDIR="/var/db/mysql"
 			MARIADB_USER="mysql"
 			OPSYS="{{OPSYS}}"
 
+CFLAGS=			-I{{NCURSESINC}}
 CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_INCLUDEDIR=include/mysql
 			-DINSTALL_PLUGINDIR=lib/mysql/plugin
@@ -115,11 +117,16 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DCMAKE_POLICY_VERSION_MINIMUM=3.5
 			-Wno-dev
 VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
+VAR_OPSYS[sunos]=	CXXFLAGS=-fPIC
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
 
 [ROCKSDB].DESCRIPTION=			Build RocksDB LSM Engine
 [ROCKSDB].CMAKE_ARGS_OFF=		-DPLUGIN_ROCKSDB=NO
 [ROCKSDB].CMAKE_ARGS_ON=		-DPLUGIN_ROCKSDB=DYNAMIC
+
+[LINUX].DESCRIPTION=			Ensure linux-only modules are built
+[LINUX].CMAKE_ARGS_OFF=			-DPLUGIN_DISKS=NO
+[LINUX].CMAKE_ARGS_ON=			-DPLUGIN_DISKS=YES
 
 post-patch:
 	${CP} ${WRKSRC}/cmake/os/FreeBSD.cmake \
@@ -210,9 +217,10 @@ This package contains the client and related files.
 ae221fbcaf3730070343e848e11e256092ba52c6fcf51a510374931720240a6c    108006288 mariadb-10.6.25.tar.gz
 
 
-[FILE:4181:manifests/plist.server]
+[FILE:4209:manifests/plist.server]
 @sample etc/mysql/conf.d/server.cnf.sample
 @sample etc/mysql/user_map.conf.sample
+%%LINUX-ON%%lib/mysql/plugin/disks.so
 %%ROCKSDB-ON%%bin/
  mariadb-ldb
  myrocks_hotbackup
@@ -299,7 +307,6 @@ lib/mysql/plugin/
  caching_sha2_password.so
  debug_key_management.so
  dialog_examples.so
- disks.so
  example_key_management.so
  file_key_management.so
  func_test.so
@@ -1427,6 +1434,23 @@ share/doc/%%PORTNAME%%/
    };
  }
  
+
+
+[FILE:441:patches/patch-plugin_auth__pam_auth__pam__base.c]
+--- plugin/auth_pam/auth_pam_base.c.orig	2026-01-31 10:47:55 UTC
++++ plugin/auth_pam/auth_pam_base.c
+@@ -128,11 +128,7 @@ static int conv(int n, const struct pam_
+ 
+ #define DO(X) if ((status = (X)) != PAM_SUCCESS) goto end
+ 
+-#if defined(SOLARIS) || defined(__sun)
+-typedef void** pam_get_item_3_arg;
+-#else
+ typedef const void** pam_get_item_3_arg;
+-#endif
+ 
+ static int pam_auth_base(struct param *param, MYSQL_SERVER_AUTH_INFO *info)
+ {
 
 
 [FILE:759:patches/patch-scripts_CMakeLists.txt]

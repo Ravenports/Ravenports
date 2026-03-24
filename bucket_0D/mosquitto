@@ -62,6 +62,8 @@ CMAKE_ARGS=		-DWITH_SRV:BOOL=ON
 			-DWITH_WEBSOCKETS:BOOL=ON
 			-DWITH_TESTS:BOOL=OFF
 			-DOPENSSL_ROOT_DIR={{OPENSSLBASE}}
+VAR_OPSYS[sunos]=	CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
+			LDFLAGS=-lsocket
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/etc/mosquitto/pwfile.example \
@@ -278,6 +280,20 @@ share/man/man8/mosquitto.8
  #  define _XOPEN_SOURCE 600
 
 
+[FILE:448:patches/patch-lib_CMakeLists.txt]
+--- lib/CMakeLists.txt.orig	2026-02-09 09:29:46 UTC
++++ lib/CMakeLists.txt
+@@ -127,7 +127,7 @@ set_target_properties(libmosquitto PROPE
+ 	POSITION_INDEPENDENT_CODE 1
+ )
+ 
+-if(UNIX AND NOT APPLE)
++if(UNIX AND NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES "SunOS")
+ 	set_target_properties(libmosquitto PROPERTIES
+ 		LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/linker.version
+ 		LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/linker.version"
+
+
 [FILE:366:patches/patch-lib_socks__mosq.c]
 --- lib/socks_mosq.c.orig	2026-02-09 09:29:46 UTC
 +++ lib/socks_mosq.c
@@ -324,7 +340,7 @@ share/man/man8/mosquitto.8
  
 
 
-[FILE:445:patches/patch-src_CMakeLists.txt]
+[FILE:795:patches/patch-src_CMakeLists.txt]
 --- src/CMakeLists.txt.orig	2026-02-09 09:29:46 UTC
 +++ src/CMakeLists.txt
 @@ -211,7 +211,7 @@ endif()
@@ -336,6 +352,14 @@ share/man/man8/mosquitto.8
  		target_link_libraries(mosquitto PRIVATE m)
  	elseif (${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
  		target_link_libraries(mosquitto PRIVATE m)
+@@ -310,6 +310,7 @@ if(UNIX)
+ 			LINK_FLAGS "-Wl,-exported_symbols_list -Wl,${mosquitto_SOURCE_DIR}/src/linker-macosx.syms"
+ 		)
+ 	elseif (${CMAKE_SYSTEM_NAME} MATCHES "AIX")
++	elseif (CMAKE_SYSTEM_NAME MATCHES "SunOS")
+ 	else()
+ 		set_target_properties(mosquitto PROPERTIES
+ 			LINK_FLAGS "-Wl,-dynamic-list=${mosquitto_SOURCE_DIR}/src/linker.syms"
 
 
 [FILE:228:patches/patch-src_proxy__v1.c]

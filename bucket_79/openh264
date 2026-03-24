@@ -116,7 +116,71 @@ lib/pkgconfig/openh264.pc
  	$(STRIP) $(STRIP_FLAGS) $@ -o $@
 
 
+[FILE:765:patches/patch-codec_common_src_WelsThreadLib.cpp]
+$NetBSD: patch-codec_common_src_WelsThreadLib.cpp,v 1.1 2024/11/07 10:48:03 jperkin Exp $
+
+Support illumos.
+
+--- codec/common/src/WelsThreadLib.cpp.orig	2025-02-10 07:27:56 UTC
++++ codec/common/src/WelsThreadLib.cpp
+@@ -50,7 +50,7 @@
+ #include <unistd.h>
+ #ifdef __EMSCRIPTEN__
+ #include <emscripten/threading.h>
+-#elif !defined(__Fuchsia__)
++#elif !defined(__Fuchsia__) && !defined(__sun__)
+ #include <sys/sysctl.h>
+ #endif
+ #ifdef __APPLE__
+@@ -515,7 +515,7 @@ WELS_THREAD_ERROR_CODE    WelsQueryLogic
+   pInfo->ProcessorCount = emscripten_num_logical_cores();
+   return WELS_THREAD_ERROR_OK;
+ 
+-#elif defined(__Fuchsia__)
++#elif defined(__Fuchsia__) || defined(__sun__)
+ 
+   pInfo->ProcessorCount = sysconf(_SC_NPROCESSORS_ONLN);
+   return WELS_THREAD_ERROR_OK;
+
+
 [FILE:107:files/gmpopenh264.js.in]
 pref("media.gmp-gmpopenh264.autoupdate", false);
 pref("media.gmp-gmpopenh264.version", "%%PORTVERSION%%");
+
+
+[FILE:929:sunos/patch-codec_encoder_core_src_encoder__ext.cpp]
+--- codec/encoder/core/src/encoder_ext.cpp.orig	2025-02-10 07:27:56 UTC
++++ codec/encoder/core/src/encoder_ext.cpp
+@@ -1714,7 +1714,7 @@ int32_t RequestMemorySvc (sWelsEncCtx**
+     (*ppCtx)->pVaa->sAdaptiveQuantParam.pMotionTextureUnit   = static_cast<SMotionTextureUnit*>
+         (pMa->WelsMallocz (iCountMaxMbNum * sizeof (SMotionTextureUnit), "pVaa->sAdaptiveQuantParam.pMotionTextureUnit"));
+     WELS_VERIFY_RETURN_IF (1, (NULL == (*ppCtx)->pVaa->sAdaptiveQuantParam.pMotionTextureUnit))
+-    (*ppCtx)->pVaa->sAdaptiveQuantParam.pMotionTextureIndexToDeltaQp   = static_cast<int8_t*>
++    (*ppCtx)->pVaa->sAdaptiveQuantParam.pMotionTextureIndexToDeltaQp   = reinterpret_cast<signed char*>
+         (pMa->WelsMallocz (iCountMaxMbNum * sizeof (int8_t), "pVaa->sAdaptiveQuantParam.pMotionTextureIndexToDeltaQp"));
+     WELS_VERIFY_RETURN_IF (1, (NULL == (*ppCtx)->pVaa->sAdaptiveQuantParam.pMotionTextureIndexToDeltaQp))
+   }
+
+
+[FILE:1232:sunos/patch-codec_encoder_core_src_wels__preprocess.cpp]
+--- codec/encoder/core/src/wels_preprocess.cpp.orig	2025-02-10 07:27:56 UTC
++++ codec/encoder/core/src/wels_preprocess.cpp
+@@ -754,7 +754,7 @@ void CWelsPreProcess::BackgroundDetectio
+     sRefPixMap.sRect.iRectHeight = pRefPicture->iHeightInPixel;
+     sRefPixMap.eFormat = VIDEO_FORMAT_I420;
+ 
+-    BGDParam.pBackgroundMbFlag = pVaaInfo->pVaaBackgroundMbFlag;
++    BGDParam.pBackgroundMbFlag = reinterpret_cast<signed char*>(pVaaInfo->pVaaBackgroundMbFlag);
+     BGDParam.pCalcRes = & (pVaaInfo->sVaaCalcInfo);
+     m_pInterfaceVp->Set (iMethodIdx, (void*)&BGDParam);
+     m_pInterfaceVp->Process (iMethodIdx, &sSrcPixMap, &sRefPixMap);
+@@ -901,7 +901,7 @@ void CWelsPreProcess::AnalyzePictureComp
+ 
+     sComplexityAnalysisParam->iComplexityAnalysisMode = iComplexityAnalysisMode;
+     sComplexityAnalysisParam->pCalcResult = & (pVaaInfo->sVaaCalcInfo);
+-    sComplexityAnalysisParam->pBackgroundMbFlag = pVaaInfo->pVaaBackgroundMbFlag;
++    sComplexityAnalysisParam->pBackgroundMbFlag = reinterpret_cast<signed char*>(pVaaInfo->pVaaBackgroundMbFlag);
+     if (pRefPicture)
+       SetRefMbType (pCtx, & (sComplexityAnalysisParam->uiRefMbType), pRefPicture->iPictureType);
+     sComplexityAnalysisParam->iCalcBgd = bCalculateBGD;
 

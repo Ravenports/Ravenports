@@ -1037,10 +1037,10 @@ share/examples/gnatcoll-core/projects/
              xxhash_arch = "generic"
 
 
-[FILE:1260:patches/patch-core_src_executable__path.c]
---- core/src/executable_path.c.orig	2026-02-03 02:47:56 UTC
+[FILE:1701:patches/patch-core_src_executable__path.c]
+--- core/src/executable_path.c.orig	2025-11-28 12:36:47 UTC
 +++ core/src/executable_path.c
-@@ -59,11 +59,45 @@ c_executable_path (char *buffer, int siz
+@@ -59,11 +59,63 @@ c_executable_path (char *buffer, int siz
      return readlink("/proc/self/exe", buffer, (size_t) size);
  }
  
@@ -1072,8 +1072,26 @@ share/examples/gnatcoll-core/projects/
 +c_executable_path (char *buffer, int size)
 +{
 +    ssize_t len;
-+    len = readlink("/proc/curproc/exe", buffer, (size_t) size);
-+    if (len > 0) { return len; }
++    len = readlink("/proc/curproc/exe", buffer, (size_t) size - 1);
++    if (len > 0) {
++        buffer[len] = '\0';
++        return (int)len;
++    }
++    return 0;
++}
++
++#elif defined(__sun__)
++#include <unistd.h>
++#include <sys/types.h>
++int
++c_executable_path(char *buffer, int size)
++{
++    ssize_t len = readlink("/proc/self/path/a.out", buffer, (size_t)size - 1);
++
++    if (len > 0) {
++        buffer[len] = '\0'; // Manually null-terminate for C-string compatibility
++        return (int)len;    // Return length on success
++    }
 +    return 0;
 +}
 +
@@ -1161,10 +1179,18 @@ libadalang-doc_utils.ads:34:04: warning:   "Access" of "Make_Writable_Thread_Uns
        -----------
 
 
-[FILE:1279:patches/patch-src_os_unix_libc-wrappers.c]
+[FILE:1727:patches/patch-core_src_os_unix_libc-wrappers.c]
 --- core/src/os/unix/libc-wrappers.c.orig	2025-11-28 12:36:47 UTC
 +++ core/src/os/unix/libc-wrappers.c
-@@ -408,6 +408,23 @@ void __gnatcoll_readdir(DIR *dirp, struc
+@@ -25,6 +25,7 @@
+ #define _LARGE_FILE_SOURCE 1
+ #define _FILE_OFFSET_BITS 64
+ #define _GNU_SOURCE 1
++#define _LARGEFILE64_SOURCE 1
+ 
+ #include <sys/stat.h>
+ #include <sys/statvfs.h>
+@@ -408,6 +409,31 @@ void __gnatcoll_readdir(DIR *dirp, struc
  
    if (result != NULL)
    {
@@ -1184,11 +1210,19 @@ libadalang-doc_utils.ads:34:04: warning:   "Access" of "Make_Writable_Thread_Uns
 +     strncpy(buf->name, result->d_name, 511);
 +     buf->name[511] = '\0';
 +
++#elif defined(__sun__)
++     buf->inode = (uint_64) result->d_ino;
++     buf->offset = (uint_64) result->d_off;
++     buf->reclen = (uint_32) result->d_reclen;
++     buf->file_type = 0;
++     strncpy(buf->name, result->d_name, 511);
++     buf->name[511] = '\0';
++
 +#else   /* All other platforms besides DragonFly and NetBSD below */
       buf->inode = (uint_64) result->d_ino;
  #if defined(__APPLE__)
       buf->offset = 0;
-@@ -418,6 +435,7 @@ void __gnatcoll_readdir(DIR *dirp, struc
+@@ -418,6 +444,7 @@ void __gnatcoll_readdir(DIR *dirp, struc
       buf->file_type = (unsigned char) result->d_type;
       strncpy(buf->name, result->d_name, GNATCOLL_DIRENT_NAME_MAX);
       buf->name[GNATCOLL_DIRENT_NAME_MAX - 1] = '\0';
@@ -1198,13 +1232,14 @@ libadalang-doc_utils.ads:34:04: warning:   "Access" of "Make_Writable_Thread_Uns
       buf->offset = 0;
 
 
-[FILE:306:patches/patch-src_os_unix_process-wrappers.c]
+[FILE:327:patches/patch-core_src_os_unix_process-wrappers.c]
 --- core/src/os/unix/process-wrappers.c.orig	2025-11-28 12:36:47 UTC
 +++ core/src/os/unix/process-wrappers.c
-@@ -29,6 +29,10 @@
+@@ -29,6 +29,11 @@
  #include <sys/wait.h>
  #include <sys/time.h>
  #include <signal.h>
++#include <string.h>
 +#ifdef __NetBSD__
 +#include <sys/select.h>
 +#include <sys/time.h>

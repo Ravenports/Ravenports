@@ -153,6 +153,38 @@ lib/pkgconfig/
  libhwy.pc
 
 
+[FILE:1321:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2025-08-14 07:25:53 UTC
++++ CMakeLists.txt
+@@ -603,7 +603,7 @@ set_target_properties(hwy PROPERTIES
+ # For GCC __atomic_store_8, see #887
+ target_link_libraries(hwy PRIVATE ${ATOMICS_LIBRARIES})
+ # not supported by MSVC/Clang, safe to skip (we use DLLEXPORT annotations)
+-if(UNIX AND NOT APPLE)
++if(UNIX AND NOT APPLE AND NOT CMAKE_HOST_SOLARIS)
+   set_property(TARGET hwy APPEND_STRING PROPERTY
+     LINK_FLAGS " -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/hwy/hwy.version")
+ endif()
+@@ -634,7 +634,7 @@ target_link_libraries(hwy_contrib PUBLIC
+ endif()
+ 
+ # not supported by MSVC/Clang, safe to skip (we use DLLEXPORT annotations)
+-if(UNIX AND NOT APPLE)
++if(UNIX AND NOT APPLE AND NOT CMAKE_HOST_SOLARIS)
+   set_property(TARGET hwy_contrib APPEND_STRING PROPERTY
+     LINK_FLAGS " -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/hwy/hwy.version")
+ endif()
+@@ -655,7 +655,7 @@ endif()
+ set_target_properties(hwy_test PROPERTIES
+   LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hwy/hwy.version)
+ # not supported by MSVC/Clang, safe to skip (we use DLLEXPORT annotations)
+-if(UNIX AND NOT APPLE)
++if(UNIX AND NOT APPLE AND NOT CMAKE_HOST_SOLARIS)
+   set_property(TARGET hwy_test APPEND_STRING PROPERTY
+     LINK_FLAGS " -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/hwy/hwy.version")
+ endif()
+
+
 [FILE:732:patches/patch-hwy_base.h]
 --- hwy/base.h.orig	2025-08-14 07:25:53 UTC
 +++ hwy/base.h

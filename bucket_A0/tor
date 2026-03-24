@@ -2,6 +2,7 @@
 
 NAMEBASE=		tor
 VERSION=		0.4.9.5
+REVISION=		1
 KEYWORDS=		security net
 VARIANTS=		std
 SDESC[std]=		Anonymizing overlay network for TCP
@@ -31,7 +32,7 @@ GROUPS=			_tor
 USERGROUP_SPKG=		primary
 
 USES=			cpe gmake pkgconfig ssl zlib zstd xz cclibs:primary
-			rootca:primary
+			rootca:primary smf:primary
 
 LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
@@ -47,16 +48,18 @@ CONFIGURE_ARGS=		--with-openssl-dir="{{OPENSSLBASE}}"
 			--enable-lzma
 			--enable-nss
 			--disable-systemd
+			--localstatedir={{PREFIX}}/var
 CONFIGURE_ENV=		TOR_CPPFLAGS_libevent="-I{{LOCALBASE}}/include"
 			TOR_LDFLAGS_libevent="-L{{LOCALBASE}}/lib/"
 			TOR_LIBEVENT_LIBS="-levent"
 			tor_cv_cflags__Wextra_semi=no
 
-PLIST_SUB=		USER="{{USERS}}"
-			GROUP="{{GROUPS}}"
+PLIST_SUB=		OWN="{{USERS}}"
+			GRP="{{GROUPS}}"
 RC_SUBR=		tor:primary
-SUB_LIST=		USER="{{USERS}}"
-			GROUP="{{GROUPS}}"
+SUB_FILES=		manifest.xml
+SUB_LIST=		TOR_USR="{{USERS}}"
+			TOR_GRP="{{GROUPS}}"
 
 CVE_FIXED=		CVE-2017-16541
 
@@ -67,14 +70,13 @@ post-patch:
 		${WRKSRC}/src/config/torrc.*.in \
 		${WRKSRC}/doc/man/tor.1.* \
 		${WRKSRC}/doc/man/tor.html.in
-	${REINPLACE_CMD} -e '/SOURCE_DATE_EPOCH/d' ${WRKSRC}/doc/asciidoc-helper.sh
 	${REINPLACE_CMD} -e "s@-ltcmalloc@${LOCALBASE}/lib/libtcmalloc.so@" \
 		${WRKSRC}/configure
 
 post-install:
-	${MKDIR} ${STAGEDIR}/var/log/tor \
-		${STAGEDIR}/var/run/tor \
-		${STAGEDIR}/var/db/tor
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/tor
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/tor
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/tor
 
 [FILE:547:descriptions/desc.primary]
 Tor: an anonymizing overlay network for TCP
@@ -93,7 +95,7 @@ new applications with built-in anonymity, safety, and privacy features.
 c949c2f86b348e64891976f6b1e49c177655b23df97193049bf1b8cd3099e179     10810648 tor-0.4.9.5.tar.gz
 
 
-[FILE:238:manifests/plist.primary]
+[FILE:229:manifests/plist.primary]
 @sample etc/tor/torrc.sample
 bin/
  tor
@@ -103,9 +105,9 @@ bin/
 share/tor/
  geoip
  geoip6
-@dir(%%USER%%,%%GROUP%%,700) /var/db/tor
-@dir(%%USER%%,%%GROUP%%,700) /var/log/tor
-@dir(%%USER%%,%%GROUP%%,700) /var/run/tor
+@dir(%%OWN%%,%%GPR%%,0750) var/db/tor
+@dir(%%OWN%%,%%GPR%%,0750) var/log/tor
+@dir(%%OWN%%,%%GPR%%,0750) var/run/tor
 
 
 [FILE:106:manifests/plist.docs]
@@ -126,7 +128,61 @@ share/man/man1/
  torify.1
 
 
-[FILE:4107:files/tor.in]
+[FILE:340:patches/patch-doc_asciidoc-helper.sh]
+--- doc/asciidoc-helper.sh.orig	2026-02-12 14:39:57 UTC
++++ doc/asciidoc-helper.sh
+@@ -12,11 +12,6 @@ if [ $# != 3 ]; then
+     exit 1
+ fi
+ 
+-if [ -z "$SOURCE_DATE_EPOCH" ]; then
+-    SOURCE_DATE_EPOCH="$(git -C "$(dirname "$0")" show --no-patch --format='%ct')"
+-    export SOURCE_DATE_EPOCH
+-fi
+-
+ output=$3
+ 
+ if [ "$1" = "html" ]; then
+
+
+[FILE:1552:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+  <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="0.1">
+    <create_default_instance enabled="false"/>
+    <single_instance/>
+    <dependency name="network" grouping="require_all" restart_on="error" type="service">
+      <service_fmri value="svc:/milestone/network:default"/>
+    </dependency>
+    <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+      <service_fmri value="svc:/system/filesystem/local"/>
+    </dependency>
+    <method_context>
+      <method_credential user="%%TOR_USR%%" group="%%TOR_GRP%%"/>
+    </method_context>
+    <exec_method type="method" name="start"
+    	exec="%%PREFIX%%/bin/tor --RunAsDaemon 1 --DataDirectory %%PREFIX%%/var/db/tor"
+    	timeout_seconds="60"/>
+    <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+    <property_group name="startd" type="framework">
+      <propval name="duration" type="astring" value="contract"/>
+      <propval name="ignore_error" type="astring" value="core,signal"/>
+    </property_group>
+    <property_group name="application" type="application">
+      <propval name="config_file" type="astring" value="%%PREFIX%%/etc/tor/torrc"/>
+    </property_group>
+    <stability value="Evolving"/>
+    <template>
+      <common_name>
+        <loctext xml:lang="C">The Onion Router</loctext>
+      </common_name>
+    </template>
+  </service>
+</service_bundle>
+
+
+[FILE:4157:files/tor.in]
 #!/bin/sh
 #
 # PROVIDE: tor
@@ -141,10 +197,10 @@ share/man/man1/
 # tor_instances (str):	List of instances. Default: ""
 # tor_conf (str):	Points to your torrc file.
 #			Default: %%PREFIX%%/etc/tor/torrc
-# tor_user (str):	Tor daemon user. Default: %%USER%%
-# tor_group (str):	Tor group. Default: %%GROUP%%
-# tor_pidfile (str):	Tor pid file.  Default: /var/run/tor/tor.pid
-# tor_datadir (str):	Tor datadir.  Default: /var/db/tor
+# tor_user (str):	Tor daemon user. Default: %%TOR_USR%%
+# tor_group (str):	Tor group. Default: %%TOR_GRP%%
+# tor_pidfile (str):	Tor pid file.  Default: %%PREFIX%%/var/run/tor/tor.pid
+# tor_datadir (str):	Tor datadir.  Default: %%PREFIX%%/var/db/tor
 # tor_disable_default_instance (str):	Doesn't run the default instance.
 #			Only valid when tor_instances is used.
 #			Default: NO
@@ -165,10 +221,10 @@ load_rc_config ${name}
 : ${tor_enable="NO"}
 : ${tor_instances=""}
 : ${tor_conf="%%PREFIX%%/etc/tor/torrc"}
-: ${tor_user="%%USER%%"}
-: ${tor_group="%%GROUP%%"}
-: ${tor_pidfile="/var/run/tor/tor.pid"}
-: ${tor_datadir="/var/db/tor"}
+: ${tor_user="%%TOR_USR%%"}
+: ${tor_group="%%TOR_GRP%%"}
+: ${tor_pidfile="%%PREFIX%%/var/run/tor/tor.pid"}
+: ${tor_datadir="%%PREFIX%%/var/db/tor"}
 : ${tor_disable_default_instance="NO"}
 : ${tor_setuid="NO"}
 

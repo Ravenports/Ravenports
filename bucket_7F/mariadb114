@@ -21,8 +21,9 @@ SPKGS[std]=		set
 			man
 			docs
 
-OPTIONS_AVAILABLE=	ROCKSDB
-OPTIONS_STANDARD=	ROCKSDB
+OPTIONS_AVAILABLE=	ROCKSDB LINUX
+OPTIONS_STANDARD=	ROCKSDB LINUX
+OPT_ON[linux]=		LINUX
 
 BUILD_DEPENDS=		bison:primary:std
 			msgpack:dev:std
@@ -80,6 +81,7 @@ SUB_LIST=		MARIADB_DBDIR="/var/db/mysql"
 			MARIADB_USER="mysql"
 			OPSYS="{{OPSYS}}"
 
+CFLAGS=			-I{{NCURSESINC}}
 CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_INCLUDEDIR=include/mysql
 			-DINSTALL_PLUGINDIR=lib/mysql/plugin
@@ -118,11 +120,16 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DWITH_LIBFMT=bundle
 			-Wno-dev
 VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
+VAR_OPSYS[sunos]=	CXXFLAGS=-fPIC
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
 
 [ROCKSDB].DESCRIPTION=			Build RocksDB LSM Engine
 [ROCKSDB].CMAKE_ARGS_OFF=		-DPLUGIN_ROCKSDB=NO
 [ROCKSDB].CMAKE_ARGS_ON=		-DPLUGIN_ROCKSDB=DYNAMIC
+
+[LINUX].DESCRIPTION=			Ensure linux-only modules are built
+[LINUX].CMAKE_ARGS_OFF=			-DPLUGIN_DISKS=NO
+[LINUX].CMAKE_ARGS_ON=			-DPLUGIN_DISKS=YES
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/lib/mysql/pkgconfig/mariadb.pc \
@@ -210,9 +217,10 @@ This package contains the client and related files.
 695fd197fa5aff8fc67b5f2bbc110490a875cdf7a41686ac8512fb480fa8ada7      1435256 fmt-12.1.0.zip
 
 
-[FILE:4547:manifests/plist.server]
+[FILE:4575:manifests/plist.server]
 @sample etc/mysql/conf.d/server.cnf.sample
 @sample etc/mysql/user_map.conf.sample
+%%LINUX-ON%%lib/mysql/plugin/disks.so
 %%ROCKSDB-ON%%bin/
  mariadb-ldb
  myrocks_hotbackup
@@ -306,7 +314,6 @@ lib/mysql/plugin/
  caching_sha2_password.so
  debug_key_management.so
  dialog_examples.so
- disks.so
  example_key_management.so
  file_key_management.so
  func_test.so
@@ -1426,6 +1433,29 @@ share/doc/%%PORTNAME%%/
  
 
 
+[FILE:748:patches/patch-mysys_my__largepage.c]
+$NetBSD: patch-mysys_my__largepage.c,v 1.2 2025/10/27 20:56:37 nia Exp $
+
+--- mysys/my_largepage.c.orig	2026-01-31 10:50:14 UTC
++++ mysys/my_largepage.c
+@@ -28,6 +28,7 @@
+ #endif
+ 
+ #ifdef HAVE_SOLARIS_LARGE_PAGES
++my_bool opt_super_large_pages= 0;
+ #if defined(__sun__) && defined(__GNUC__) && defined(__cplusplus) \
+     && defined(_XOPEN_SOURCE)
+ /* memcntl exist within sys/mman.h, but under-defines what is need to use it */
+@@ -203,7 +204,6 @@ int my_init_large_pages(void)
+   my_get_large_page_sizes(my_large_page_sizes);
+ 
+ #ifdef HAVE_SOLARIS_LARGE_PAGES
+-  extern my_bool opt_super_large_pages;
+   /*
+     tell the kernel that we want to use 4/256MB page for heap storage
+     and also for the stack. We use 4 MByte as default and if the
+
+
 [FILE:1167:patches/patch-oqgraph-MDEV-15291]
 --- storage/oqgraph/oqgraph_judy.cc.orig	2026-01-31 10:50:14 UTC
 +++ storage/oqgraph/oqgraph_judy.cc
@@ -1467,6 +1497,23 @@ share/doc/%%PORTNAME%%/
    };
  }
  
+
+
+[FILE:441:patches/patch-plugin_auth__pam_auth__pam__base.c]
+--- plugin/auth_pam/auth_pam_base.c.orig	2026-01-31 10:50:14 UTC
++++ plugin/auth_pam/auth_pam_base.c
+@@ -128,11 +128,7 @@ static int conv(int n, const struct pam_
+ 
+ #define DO(X) if ((status = (X)) != PAM_SUCCESS) goto end
+ 
+-#if defined(SOLARIS) || defined(__sun)
+-typedef void** pam_get_item_3_arg;
+-#else
+ typedef const void** pam_get_item_3_arg;
+-#endif
+ 
+ static int pam_auth_base(struct param *param, MYSQL_SERVER_AUTH_INFO *info)
+ {
 
 
 [FILE:759:patches/patch-scripts_CMakeLists.txt]
@@ -1546,9 +1593,18 @@ share/doc/%%PORTNAME%%/
                  fi
 
 
-[FILE:250:patches/patch-sql_mysqld.cc]
+[FILE:543:patches/patch-sql_mysqld.cc]
 --- sql/mysqld.cc.orig	2026-01-31 10:50:14 UTC
 +++ sql/mysqld.cc
+@@ -426,7 +426,7 @@ char* opt_secure_file_priv;
+ my_bool lower_case_file_system= 0;
+ my_bool opt_large_pages= 0;
+ #ifdef HAVE_SOLARIS_LARGE_PAGES
+-my_bool opt_super_large_pages= 0;
++extern my_bool opt_super_large_pages;
+ #endif
+ my_bool opt_myisam_use_mmap= 0;
+ uint   opt_large_page_size= 0;
 @@ -4682,8 +4682,9 @@ static void init_ssl()
          sql_print_warning("SSL error: %s",buf);
        }

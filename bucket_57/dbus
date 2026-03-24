@@ -2,7 +2,7 @@
 
 NAMEBASE=		dbus
 VERSION=		1.16.2
-REVISION=		4
+REVISION=		5
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Message bus system for IPC communication
@@ -30,7 +30,7 @@ USERS=			dbusmsg
 GROUPS=			dbusmsg
 USERGROUP_SPKG=		primary
 
-USES=			cpe meson expat python:build shebangfix
+USES=			cpe meson expat python:build shebangfix smf:primary
 GNOME_COMPONENTS=	glib
 XORG_COMPONENTS=	ice sm x11
 
@@ -49,19 +49,26 @@ MESON_ARGS=		-Dselinux=disabled
 			-Dsystemd=disabled
 			-Dtest_socket_dir="{{WRKDIR}}"
 			-Ddbus_user=dbusmsg
+			--localstatedir="{{PREFIX}}/var"
 SHEBANG_FILES=		tools/GetAllMatchRules.py
 
 SOVERSION=		3.38.3
 PLIST_SUB=		VERSION="1.0"
 			GROUPS={{GROUPS}}
+			USERS={{USERS}}
 			DTDDIR=share/xml/dbus-1
+			RUNDIR=var/run/dbus
+			LIBDIR=var/lib/dbus
 RC_SUBR=		dbus:primary
 SUB_FILES=		catalog
 			catalog.xml
+			manifest.xml
+			dbus_start.sh
 SUB_LIST=		DTDDIR={{PREFIX}}/share/xml/dbus-1
 
 VAR_OPSYS[sunos]=	CONFIGURE_ARGS=-Depoll=disabled
 			LDFLAGS=-lsocket
+SMF_METHODS=		dbus_start.sh
 
 post-install:
 	# install xmlcat catalogs
@@ -91,7 +98,7 @@ daemon).
 0ba2a1a4b16afe7bceb2c07e9ce99a8c2c3508e5dec290dbb643384bd6beb7e2      1115644 dbus-1.16.2.tar.xz
 
 
-[FILE:622:manifests/plist.primary]
+[FILE:670:manifests/plist.primary]
 bin/
  dbus-cleanup-sockets
  dbus-daemon
@@ -115,12 +122,12 @@ share/dbus-1/
 share/xml/dbus-1/
  busconfig.dtd
  introspect.dtd
-@dir /var/lib/dbus
-@dir /var/run/dbus
 @dir share/dbus-1/services
 @dir share/dbus-1/session.d
 @dir share/dbus-1/system-services
 @dir share/dbus-1/system.d
+@dir(%%USERS%%,%%GROUPS%%,0750) %%LIBDIR%%
+@dir(%%USERS%%,%%GROUPS%%,0750) %%RUNDIR%%
 @xmlcatmgr %%DTDDIR%%/catalog
 @xmlcatmgr %%DTDDIR%%/catalog.xml
 
@@ -353,10 +360,8 @@ PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN" "busconfig.dtd"
 </catalog>
 
 
-[FILE:618:files/dbus.in]
+[FILE:458:files/dbus.in]
 #!/bin/sh
-#
-# $FreeBSD: head/devel/dbus/files/dbus.in 431498 2017-01-14 22:48:49Z tijl $
 #
 # PROVIDE: dbus
 # REQUIRE: DAEMON ldconfig
@@ -374,15 +379,9 @@ name=dbus
 rcvar=dbus_enable
 
 command="%%PREFIX%%/bin/dbus-daemon"
-pidfile="/var/run/dbus/pid"
+pidfile="%%PREFIX%%/var/run/dbus/pid"
 
-start_precmd="dbus_prestart"
 stop_postcmd="dbus_poststop"
-
-dbus_prestart()
-{
-    %%PREFIX%%/bin/dbus-uuidgen --ensure
-}
 
 dbus_poststop()
 {
@@ -391,4 +390,105 @@ dbus_poststop()
 
 load_rc_config ${name}
 run_rc_command "$1"
+
+
+[FILE:527:files/dbus_start.sh.in]
+#!/bin/sh
+
+. /lib/svc/share/smf_include.sh
+
+PIDFILE=%%PREFIX%%/var/run/dbus/pid
+DEMON=%%PREFIX%%/bin/dbus-daemon
+
+if [ ! -x "${DEMON}" ]; then
+	echo "${DEMON} not found or not executable"
+	exit $SMF_EXIT_ERR_FATAL
+fi
+
+case "$1" in
+'start')
+	if [ -f "${PIDFILE}" ]; then
+	   rm -f "${PIDFILE}"
+	fi
+
+	${DEMON} --system
+	err=$?
+
+	if [ $err -ne 0 ]; then
+		echo "dbus failed to start: error $err"
+		exit $SMF_EXIT_ERR_FATAL
+	fi
+	;;
+*)
+        echo "Usage: $0 { start }"
+	exit $SMF_EXIT_ERR_FATAL
+        ;;
+esac
+
+exit $SMF_EXIT_OK
+
+
+[FILE:1025:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type='manifest' name='dbus'>
+  <service name='%%SMF_PREFIX%%/%%SMF_NAME%%' type='service' version='1'>
+    <create_default_instance enabled='false'/>
+    <single_instance/>
+    <dependency name='usr' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/minimal'/>
+    </dependency>
+    <exec_method name='start' type='method'
+        exec='%%PREFIX%%/lib/svc/method/dbus_start.sh start'
+        timeout_seconds='30'/>
+    <exec_method name='stop' type='method'
+        exec=':kill'
+        timeout_seconds='30'/>
+    <property_group name='startd' type='framework'>
+      <propval name='ignore_error' type='astring' value='core,signal'/>
+    </property_group>
+    <stability value='Unstable'/>
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>D-BUS message bus</loctext>
+      </common_name>
+    </template>
+  </service>
+</service_bundle>
+
+
+[FILE:932:files/scripts-primary.ucl]
+post-install-lua: [{
+     args: ""
+     code: <<EOS
+--  Standalone directories are created after these scripts are run.
+--  So this directory has to be created twice.  Once for the uuidgen command
+--  and the standalone creation which sets the ownership and permissions.
+local libdir  = pkg.prefixed_path("var/lib/dbus")
+local uuidgen = pkg.prefixed_path("bin/dbus-uuidgen")
+local st = pkg.stat("/bin/mkdir")
+if st then
+   pkg.exec({"/bin/mkdir", "-p", libdir})
+   pkg.exec({uuidgen, "--ensure"})
+else
+   st = pkg.stat("/usr/bin/mkdir")
+   if st then
+      pkg.exec({"/usr/bin/mkdir", "-p", libdir})
+      pkg.exec({uuidgen, "--ensure"})
+   else
+      pkg.print_msg("Unable to locate mkdir program, so machine-id won't get created")
+   end
+end
+EOS
+}]
+pre-deinstall-lua: [{
+     args: ""
+     code: <<EOS
+local macid = pkg.prefixed_path("var/lib/dbus/machine-id")
+local st = pkg.stat(macid)
+if st then
+   os.remove(macid)
+end
+EOS
+}]
 

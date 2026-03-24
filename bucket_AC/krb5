@@ -494,6 +494,41 @@ share/man/man8/
              Tprintf (("  down\n"));
 
 
+[FILE:1470:patches/patch-lib_apputils_net-server.c]
+--- lib/apputils/net-server.c.orig	2026-01-29 23:18:10 UTC
++++ lib/apputils/net-server.c
+@@ -938,7 +938,7 @@ setup_addresses(verto_ctx *ctx, void *ha
+     size_t i;
+     int err, bound_any;
+     struct bind_address addr;
+-    struct sockaddr_un sun;
++    struct sockaddr_un xsun;
+     struct addrinfo hints, *ai_list = NULL, *ai = NULL;
+     struct sockact_list sockacts = { 0 };
+     verto_callback vcb;
+@@ -967,16 +967,16 @@ setup_addresses(verto_ctx *ctx, void *ha
+         hints.ai_socktype = bind_socktypes[addr.type];
+ 
+         if (addr.type == UNX) {
+-            sun.sun_family = AF_UNIX;
+-            if (strlcpy(sun.sun_path, addr.address, sizeof(sun.sun_path)) >=
+-                sizeof(sun.sun_path)) {
++            xsun.sun_family = AF_UNIX;
++            if (strlcpy(xsun.sun_path, addr.address, sizeof(xsun.sun_path)) >=
++                sizeof(xsun.sun_path)) {
+                 ret = ENAMETOOLONG;
+                 krb5_klog_syslog(LOG_ERR,
+                                  _("UNIX domain socket path too long: %s"),
+                                  addr.address);
+                 goto cleanup;
+             }
+-            ret = setup_socket(&addr, (struct sockaddr *)&sun, &sockacts,
++            ret = setup_socket(&addr, (struct sockaddr *)&xsun, &sockacts,
+                                handle, prog, ctx, listen_backlog,
+                                verto_callbacks[addr.type],
+                                bind_conn_types[addr.type]);
+
+
 [FILE:525:patches/patch-lib_crypto_builtin_aes_brg__endian.h]
 --- lib/crypto/builtin/aes/brg_endian.h.orig	2025-08-20 19:44:32 UTC
 +++ lib/crypto/builtin/aes/brg_endian.h
@@ -552,6 +587,53 @@ Fix mmap/munmap -Werror=incompatible-pointer-types
  typedef unsigned char uchar;
  
  /* RFC 2865 */
+
+
+[FILE:629:patches/patch-lib_krb5_os_addr.c]
+--- lib/krb5/os/addr.c.orig	2026-01-29 23:18:10 UTC
++++ lib/krb5/os/addr.c
+@@ -62,10 +62,10 @@ k5_sockaddr_to_address(const struct sock
+         }
+ #ifndef _WIN32
+     } else if (sa->sa_family == AF_UNIX && local_use) {
+-        const struct sockaddr_un *sun = sa2sun(sa);
++        const struct sockaddr_un *xsun = sa2sun(sa);
+         out->addrtype = ADDRTYPE_UNIXSOCK;
+-        out->length = strlen(sun->sun_path);
+-        out->contents = (uint8_t *)sun->sun_path;
++        out->length = strlen(xsun->sun_path);
++        out->contents = (uint8_t *)xsun->sun_path;
+ #endif
+     } else {
+         return KRB5_PROG_ATYPE_NOSUPP;
+
+
+[FILE:1058:patches/patch-lib_krb5_os_locate__kdc.c]
+--- lib/krb5/os/locate_kdc.c.orig	2026-01-29 23:18:10 UTC
++++ lib/krb5/os/locate_kdc.c
+@@ -297,16 +297,16 @@ locate_srv_conf_1(krb5_context context,
+ 
+ #ifndef _WIN32
+         if (hostspec[0] == '/') {
+-            struct sockaddr_un sun = { 0 };
++            struct sockaddr_un xsun = { 0 };
+ 
+-            sun.sun_family = AF_UNIX;
+-            if (strlcpy(sun.sun_path, hostspec, sizeof(sun.sun_path)) >=
+-                sizeof(sun.sun_path)) {
++            xsun.sun_family = AF_UNIX;
++            if (strlcpy(xsun.sun_path, hostspec, sizeof(xsun.sun_path)) >=
++                sizeof(xsun.sun_path)) {
+                 code = ENAMETOOLONG;
+                 goto cleanup;
+             }
+-            code = add_addr_to_list(serverlist, UNIXSOCK, AF_UNIX, sizeof(sun),
+-                                    (struct sockaddr *)&sun);
++            code = add_addr_to_list(serverlist, UNIXSOCK, AF_UNIX, sizeof(xsun),
++                                    (struct sockaddr *)&xsun);
+             if (code)
+                 goto cleanup;
+             continue;
 
 
 [FILE:692:patches/patch-util_et_Makefile.in]

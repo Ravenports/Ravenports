@@ -19,8 +19,12 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+USERS=			fluent
+GROUPS=			fluent
+USERGROUP_SPKG=		primary
+
 USES=			cpe cmake bison zlib gmake pkgconfig ssl:openssl30
-			python:build cclibs:primary c++:primary
+			python:build cclibs:primary c++:primary smf:primary
 
 LICENSE=		APACHE20:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -33,7 +37,12 @@ CPE_PRODUCT=		fluent_bit
 CPE_VENDOR=		treasuredata
 FPC_EQUIVALENT=		sysutils/fluent-bit
 
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		fluent-bit:primary
+SUB_FILES=		manifest.xml
+SUB_LIST=		SRV_USR={{USERS}}
+			SRV_GRP={{GROUPS}}
 
 CFLAGS=			-Wno-deprecated-declarations
 CMAKE_ARGS=		-DFLB_DEBUG=Off
@@ -45,6 +54,13 @@ CMAKE_ARGS=		-DFLB_DEBUG=Off
 			-DFLB_CONFIG_YAML=Off
 			-DFLB_HTTP_SERVER=On
 VAR_OPSYS[freebsd]=	CMAKE_ARGS=-DFLB_WASM=Off
+VAR_OPSYS[sunos]=	CMAKE_ARGS=-DFLB_WASM=Off
+			CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
+			CFLAGS=-D__EXTENSIONS__
+			CFLAGS=-mimpure-text
+			CXXFLAGS=-mimpure-text
+			LDFLAGS=-lsocket
+			LDFLAGS=-lnsl
 VAR_OPSYS[linux]=	CFLAGS=-Wno-implicit-function-declaration
 VAR_OPSYS[netbsd]=	CMAKE_ARGS=-DFLB_WASM=Off
 			CFLAGS=-D_NETBSD_SOURCE
@@ -52,6 +68,8 @@ VAR_OPSYS[dragonfly]=	CMAKE_ARGS=-DFLB_WASM=Off
 VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DFLB_WASM=Off
 
 post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/fluent-bit
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/fluent-bit
 	${MV} ${STAGEDIR}${ETCDIR}/fluent-bit.conf \
 		${STAGEDIR}${ETCDIR}/fluent-bit.conf.sample
 	${MV} ${STAGEDIR}${ETCDIR}/parsers.conf \
@@ -81,12 +99,14 @@ Fluent Bit is part of the Fluentd project ecosystem.
 1b0a9abcb98b47951e21f9ae56dc49687adc8e4d40c05a3f8d1a846cec43048e     38807895 fluent-fluent-bit-4.2.3.1.tar.gz
 
 
-[FILE:164:manifests/plist.primary]
+[FILE:256:manifests/plist.primary]
 @sample etc/fluent-bit/fluent-bit.conf.sample
 @sample etc/fluent-bit/parsers.conf.sample
 bin/fluent-bit
 etc/fluent-bit/plugins.conf
 lib/fluent-bit/libfluent-bit.so
+@dir(%%OWN%%,%%GRP%%,0750) var/log/fluent-bit
+@dir(%%OWN%%,%%GRP%%,0750) var/run/fluent-bit
 
 
 [FILE:3446:manifests/plist.dev]
@@ -295,7 +315,7 @@ include/monkey/mk_core/
 
 
 [FILE:490:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2026-02-17 18:22:08 UTC
+--- CMakeLists.txt.orig	2026-02-19 03:26:01 UTC
 +++ CMakeLists.txt
 @@ -108,7 +108,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "ar
    set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -latomic")
@@ -308,11 +328,27 @@ include/monkey/mk_core/
    set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} -lutil")
 
 
+[FILE:275:patches/patch-conf_fluent-bit.conf]
+--- conf/fluent-bit.conf.orig	2026-02-19 03:26:01 UTC
++++ conf/fluent-bit.conf
+@@ -82,8 +82,8 @@
+     # storage.backlog.mem_limit 5M
+ 
+ [INPUT]
+-    name cpu
+-    tag  cpu.local
++    name dummy
++    tag  demo.local
+ 
+     # Read interval (sec) Default: 1
+     interval_sec 1
+
+
 [FILE:895:patches/patch-include_fluent-bit_flb__coro.h]
 NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
---- include/fluent-bit/flb_coro.h.orig	2026-02-17 18:22:08 UTC
+--- include/fluent-bit/flb_coro.h.orig	2026-02-19 03:26:01 UTC
 +++ include/fluent-bit/flb_coro.h
 @@ -20,11 +20,6 @@
  #ifndef FLB_CORO_H
@@ -344,7 +380,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 [FILE:496:patches/patch-include_fluent-bit_flb__endian.h]
 _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
---- include/fluent-bit/flb_endian.h.orig	2026-02-17 18:22:08 UTC
+--- include/fluent-bit/flb_endian.h.orig	2026-02-19 03:26:01 UTC
 +++ include/fluent-bit/flb_endian.h
 @@ -39,7 +39,7 @@
   */
@@ -358,7 +394,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:272:patches/patch-include_fluent-bit_flb__output.h]
---- include/fluent-bit/flb_output.h.orig	2026-02-17 18:22:08 UTC
+--- include/fluent-bit/flb_output.h.orig	2026-02-19 03:26:01 UTC
 +++ include/fluent-bit/flb_output.h
 @@ -20,10 +20,6 @@
  #ifndef FLB_OUTPUT_H
@@ -374,7 +410,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:337:patches/patch-include_fluent-bit_simdutf_flb__simdutf__connector.h]
---- include/fluent-bit/simdutf/flb_simdutf_connector.h.orig	2026-02-17 18:22:08 UTC
+--- include/fluent-bit/simdutf/flb_simdutf_connector.h.orig	2026-02-19 03:26:01 UTC
 +++ include/fluent-bit/simdutf/flb_simdutf_connector.h
 @@ -24,7 +24,7 @@
  extern "C" {
@@ -388,7 +424,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:388:patches/patch-lib_chunkio_deps_crc32_crc32.c]
---- lib/chunkio/deps/crc32/crc32.c.orig	2026-02-17 18:22:08 UTC
+--- lib/chunkio/deps/crc32/crc32.c.orig	2026-02-19 03:26:01 UTC
 +++ lib/chunkio/deps/crc32/crc32.c
 @@ -34,7 +34,7 @@
  #  define __BIG_ENDIAN 1
@@ -401,8 +437,126 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  # include <sys/byteorder.h>
 
 
+[FILE:1599:patches/patch-lib_chunkio_src_cio__scan.c]
+--- lib/chunkio/src/cio_scan.c.orig	2026-02-19 03:26:01 UTC
++++ lib/chunkio/src/cio_scan.c
+@@ -21,6 +21,9 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <sys/types.h>
++#if defined __sun__
++#include <sys/stat.h>
++#endif
+ 
+ #include <chunkio/chunkio_compat.h>
+ #include <chunkio/chunkio.h>
+@@ -47,6 +50,10 @@ static int cio_scan_stream_files(struct
+     char *path;
+     DIR *dir;
+     struct dirent *ent;
++#if defined __sun__
++    char full_path[1024];
++    struct stat stx;
++#endif
+ 
+     len = strlen(ctx->options.root_path) + strlen(st->name) + 2;
+     path = malloc(len);
+@@ -82,7 +89,12 @@ static int cio_scan_stream_files(struct
+         }
+ 
+         /* Look just for directories */
++#if defined __sun__
++        snprintf(full_path, sizeof(full_path), "%s/%s", path, ent->d_name);
++        if (stat(full_path, &stx) == -1 || !S_ISREG(stx.st_mode)) {
++#else
+         if (ent->d_type != DT_REG) {
++#endif
+             continue;
+         }
+ 
+@@ -129,6 +141,10 @@ int cio_scan_streams(struct cio_ctx *ctx
+     DIR *dir;
+     struct dirent *ent;
+     struct cio_stream *st;
++#if defined __sun__
++    char full_path[1024];
++    struct stat stx;
++#endif
+ 
+     dir = opendir(ctx->options.root_path);
+     if (!dir) {
+@@ -145,7 +161,12 @@ int cio_scan_streams(struct cio_ctx *ctx
+         }
+ 
+         /* Look just for directories */
++#if defined __sun__
++	snprintf(full_path, sizeof(full_path), "%s/%s", ctx->options.root_path, ent->d_name);
++	if (stat(full_path, &stx) == -1 || !S_ISDIR(stx.st_mode)) {
++#else
+         if (ent->d_type != DT_DIR) {
++#endif
+             continue;
+         }
+ 
+
+
+[FILE:674:patches/patch-lib_librdkafka-2.10.1_src_rdkafka__msgset__reader.c]
+--- lib/librdkafka-2.10.1/src/rdkafka_msgset_reader.c.orig	2026-02-19 03:26:01 UTC
++++ lib/librdkafka-2.10.1/src/rdkafka_msgset_reader.c
+@@ -408,7 +408,7 @@ rd_kafka_msgset_reader_decompress(rd_kaf
+                                             /* @warning Will modify compressed
+                                              *          if no proper HC */
+                                             (char *)compressed, compressed_size,
+-                                            &iov.iov_base, &iov.iov_len);
++                                            (void **)&iov.iov_base, &iov.iov_len);
+                 if (err)
+                         goto err;
+         } break;
+
+
+[FILE:1943:patches/patch-lib_librdkafka-2.10.1_src_rdkafka__msgset__writer.c]
+--- lib/librdkafka-2.10.1/src/rdkafka_msgset_writer.c.orig	2026-02-19 03:26:01 UTC
++++ lib/librdkafka-2.10.1/src/rdkafka_msgset_writer.c
+@@ -1039,7 +1039,7 @@ static int rd_kafka_msgset_writer_compre
+         int comp_level =
+             msetw->msetw_rktp->rktp_rkt->rkt_conf.compression_level;
+         err = rd_kafka_gzip_compress(msetw->msetw_rkb, comp_level, slice,
+-                                     &ciov->iov_base, &ciov->iov_len);
++                                     (void **)&ciov->iov_base, &ciov->iov_len);
+         return (err ? -1 : 0);
+ }
+ #endif
+@@ -1104,7 +1104,7 @@ rd_kafka_msgset_writer_compress_snappy(r
+                                        struct iovec *ciov) {
+         rd_kafka_resp_err_t err;
+         err = rd_kafka_snappy_compress_slice(msetw->msetw_rkb, slice,
+-                                             &ciov->iov_base, &ciov->iov_len);
++                                             (void **)&ciov->iov_base, &ciov->iov_len);
+         return (err ? -1 : 0);
+ }
+ #endif
+@@ -1121,7 +1121,7 @@ static int rd_kafka_msgset_writer_compre
+         err = rd_kafka_lz4_compress(msetw->msetw_rkb,
+                                     /* Correct or incorrect HC */
+                                     msetw->msetw_MsgVersion >= 1 ? 1 : 0,
+-                                    comp_level, slice, &ciov->iov_base,
++                                    comp_level, slice, (void **)&ciov->iov_base,
+                                     &ciov->iov_len);
+         return (err ? -1 : 0);
+ }
+@@ -1137,7 +1137,7 @@ static int rd_kafka_msgset_writer_compre
+         int comp_level =
+             msetw->msetw_rktp->rktp_rkt->rkt_conf.compression_level;
+         err = rd_kafka_zstd_compress(msetw->msetw_rkb, comp_level, slice,
+-                                     &ciov->iov_base, &ciov->iov_len);
++                                     (void **)&ciov->iov_base, &ciov->iov_len);
+         return (err ? -1 : 0);
+ }
+ #endif
+
+
 [FILE:413:patches/patch-lib_librdkafka-2.8.0_src_rd.h]
---- lib/librdkafka-2.10.1/src/rd.h.orig	2026-02-17 18:22:08 UTC
+--- lib/librdkafka-2.10.1/src/rd.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/librdkafka-2.10.1/src/rd.h
 @@ -40,10 +40,11 @@
  #define _DARWIN_C_SOURCE /* for strlcpy, pthread_setname_np, etc */
@@ -422,7 +576,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:376:patches/patch-lib_librdkafka-2.8.0_src_rdaddr.h]
---- lib/librdkafka-2.10.1/src/rdaddr.h.orig	2026-02-17 18:22:08 UTC
+--- lib/librdkafka-2.10.1/src/rdaddr.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/librdkafka-2.10.1/src/rdaddr.h
 @@ -39,7 +39,7 @@
  #include <ws2ipdef.h>
@@ -436,7 +590,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:318:patches/patch-lib_librdkafka-2.8.0_src_rdendian.h]
---- lib/librdkafka-2.10.1/src/rdendian.h.orig	2026-02-17 18:22:08 UTC
+--- lib/librdkafka-2.10.1/src/rdendian.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/librdkafka-2.10.1/src/rdendian.h
 @@ -40,7 +40,7 @@
   *   le64toh()
@@ -450,7 +604,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:464:patches/patch-lib_librdkafka-2.8.0_src_rdposix.h]
---- lib/librdkafka-2.10.1/src/rdposix.h.orig	2026-02-17 18:22:08 UTC
+--- lib/librdkafka-2.10.1/src/rdposix.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/librdkafka-2.10.1/src/rdposix.h
 @@ -65,12 +65,12 @@
  /**
@@ -470,7 +624,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:371:patches/patch-lib_librdkafka-2.8.0_src_snappy__compat.h]
---- lib/librdkafka-2.10.1/src/snappy_compat.h.orig	2026-02-17 18:22:08 UTC
+--- lib/librdkafka-2.10.1/src/snappy_compat.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/librdkafka-2.10.1/src/snappy_compat.h
 @@ -33,7 +33,7 @@
  
@@ -483,22 +637,24 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
  #  include <machine/endian.h>
 
 
-[FILE:692:patches/patch-lib_luajit-cmake_LuaJIT.cmake]
---- lib/luajit-cmake/LuaJIT.cmake.orig	2026-02-17 18:22:08 UTC
+[FILE:831:patches/patch-lib_luajit-cmake_LuaJIT.cmake]
+--- lib/luajit-cmake/LuaJIT.cmake.orig	2026-02-19 03:26:01 UTC
 +++ lib/luajit-cmake/LuaJIT.cmake
-@@ -351,6 +351,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL Hai
+@@ -351,6 +351,10 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL Hai
    set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_POSIX -DTARGET_OS_IPHONE=0)
  elseif(${CMAKE_SYSTEM_NAME} MATCHES "(Open|Free|Net)BSD")
    set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_BSD -DTARGET_OS_IPHONE=0)
 +elseif(${CMAKE_SYSTEM_NAME} MATCHES "DragonFly|MidnightBSD")
 +  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_BSD -DTARGET_OS_IPHONE=0)
++elseif(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
++  set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_POSIX -DTARGET_OS_IPHONE=0)
  elseif(${CMAKE_SYSTEM_NAME} STREQUAL iOS)
    set(TARGET_OS_FLAGS ${TARGET_OS_FLAGS} -DLUAJIT_OS=LUAJIT_OS_OSX -DTARGET_OS_IPHONE=1)
  else()
 
 
 [FILE:840:patches/patch-lib_monkey_CMakeLists.txt]
---- lib/monkey/CMakeLists.txt.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/CMakeLists.txt.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/CMakeLists.txt
 @@ -43,7 +43,7 @@ option(MK_LINUX_KQUEUE   "Use Linux kque
  option(MK_TRACE          "Enable Trace mode"            No)
@@ -521,7 +677,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 
 
 [FILE:599:patches/patch-lib_monkey_include_monkey_mk__core_mk__event.h]
---- lib/monkey/include/monkey/mk_core/mk_event.h.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/include/monkey/mk_core/mk_event.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/include/monkey/mk_core/mk_event.h
 @@ -84,7 +84,7 @@
      /* do our best based on the operating system */
@@ -537,7 +693,7 @@ _XOPEN_SOURCE is messing up sys/socket.h on NetBSD so remove it.
 [FILE:635:patches/patch-lib_monkey_include_monkey_mk__thread__libco.h]
 NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
---- lib/monkey/include/monkey/mk_thread_libco.h.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/include/monkey/mk_thread_libco.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/include/monkey/mk_thread_libco.h
 @@ -51,7 +51,12 @@ struct mk_thread {
      void (*cb_destroy) (void *);
@@ -555,7 +711,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
 
 [FILE:491:patches/patch-lib_monkey_mk__core_deps_libevent_buffer.c]
---- lib/monkey/mk_core/deps/libevent/buffer.c.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/mk_core/deps/libevent/buffer.c.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/mk_core/deps/libevent/buffer.c
 @@ -108,6 +108,9 @@
  #elif defined(EVENT__HAVE_SENDFILE) && defined(__FreeBSD__)
@@ -570,7 +726,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
 
 [FILE:828:patches/patch-lib_monkey_mk__core_deps_libevent_kqueue.c]
---- lib/monkey/mk_core/deps/libevent/kqueue.c.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/mk_core/deps/libevent/kqueue.c.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/mk_core/deps/libevent/kqueue.c
 @@ -50,7 +50,7 @@
  /* Some platforms apparently define the udata field of struct kevent as
@@ -584,7 +740,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
 
 [FILE:569:patches/patch-lib_monkey_mk__core_mk__event.c]
---- lib/monkey/mk_core/mk_event.c.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/mk_core/mk_event.c.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/mk_core/mk_event.c
 @@ -42,7 +42,7 @@
      /* do our best based on the operating system */
@@ -598,7 +754,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
 
 [FILE:440:patches/patch-lib_monkey_mk__server_CMakeLists.txt]
---- lib/monkey/mk_server/CMakeLists.txt.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/mk_server/CMakeLists.txt.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/mk_server/CMakeLists.txt
 @@ -47,10 +47,6 @@ if(MK_HAVE_LINUX_KQUEUE)
    target_link_libraries(monkey-core-static kqueue)
@@ -614,7 +770,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
 
 [FILE:365:patches/patch-lib_monkey_plugins_liana_liana.c]
---- lib/monkey/plugins/liana/liana.c.orig	2026-02-17 18:22:08 UTC
+--- lib/monkey/plugins/liana/liana.c.orig	2026-02-19 03:26:01 UTC
 +++ lib/monkey/plugins/liana/liana.c
 @@ -122,7 +122,7 @@ int mk_liana_send_file(struct mk_plugin
          return len;
@@ -628,7 +784,7 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 
 
 [FILE:319:patches/patch-lib_nghttp2-1.65.0_lib_nghttp2__net.h]
---- lib/nghttp2-1.65.0/lib/nghttp2_net.h.orig	2026-02-17 18:22:08 UTC
+--- lib/nghttp2-1.65.0/lib/nghttp2_net.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/nghttp2-1.65.0/lib/nghttp2_net.h
 @@ -29,9 +29,7 @@
  #  include <config.h>
@@ -642,8 +798,22 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  #  include <netinet/in.h>
 
 
+[FILE:378:patches/patch-lib_onigmo_regint.h]
+--- lib/onigmo/regint.h.orig	2026-02-19 03:26:01 UTC
++++ lib/onigmo/regint.h
+@@ -223,7 +223,7 @@
+ # define xsnprintf   sprintf_s
+ # define xstrcat(dest,src,size)   strcat_s(dest,size,src)
+ #else
+-# define xalloca     alloca
++# define xalloca     __builtin_alloca
+ # define xvsnprintf  vsnprintf
+ # define xsnprintf   snprintf
+ # define xstrcat(dest,src,size)	  strcat(dest,src)
+
+
 [FILE:341:patches/patch-lib_snappy-fef67ac_compat.h]
---- lib/snappy-fef67ac/compat.h.orig	2026-02-17 18:22:08 UTC
+--- lib/snappy-fef67ac/compat.h.orig	2026-02-19 03:26:01 UTC
 +++ lib/snappy-fef67ac/compat.h
 @@ -4,6 +4,8 @@
  
@@ -656,8 +826,78 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
  
 
 
+[FILE:545:patches/patch-plugins_in__collectd_netprot.c]
+--- plugins/in_collectd/netprot.c.orig	2026-02-19 03:26:01 UTC
++++ plugins/in_collectd/netprot.c
+@@ -34,6 +34,16 @@
+ #include "netprot.h"
+ #include "typesdb.h"
+ 
++#if defined __sun__
++#include <sys/byteorder.h>
++#define be16toh(x) BE_16(x)
++#define be32toh(x) BE_32(x)
++#define be64toh(x) BE_64(x)
++#define le16toh(x) LE_16(x)
++#define le32toh(x) LE_32(x)
++#define le64toh(x) LE_64(x)
++#endif
++
+ #define be16read(x) (be16toh(*(uint16_t *) (x)))
+ #define be32read(x) (be32toh(*(uint32_t *) (x)))
+ #define be64read(x) (be64toh(*(uint64_t *) (x)))
+
+
+[FILE:1173:patches/patch-plugins_out__plot_plot.c]
+--- plugins/out_plot/plot.c.orig	2026-02-19 03:26:01 UTC
++++ plugins/out_plot/plot.c
+@@ -27,6 +27,8 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
++#include <stdarg.h>
++#include <unistd.h>
+ 
+ struct flb_plot {
+     const char *out_file;
+@@ -34,6 +36,33 @@ struct flb_plot {
+     struct flb_output_instance *ins;
+ };
+ 
++#if defined(__sun__)
++static int dprintf(int fd, const char *format, ...) {
++    char buffer[1024];
++    va_list args;
++    int ret;
++
++    va_start(args, format);
++    // Format the string into our local buffer
++    ret = vsnprintf(buffer, sizeof(buffer), format, args);
++    va_end(args);
++
++    if (ret < 0) {
++        return -1;
++    }
++
++    // Handle potential truncation: vsnprintf returns the number of 
++    // characters that *would* have been written.
++    size_t len = (size_t)ret;
++    if (len >= sizeof(buffer)) {
++        len = sizeof(buffer) - 1;
++    }
++
++    // Write the formatted buffer to the file descriptor
++    return (int)write(fd, buffer, len);
++}
++#endif
++
+ static int cb_plot_init(struct flb_output_instance *ins,
+                         struct flb_config *config,
+                         void *data)
+
+
 [FILE:309:patches/patch-src_flb__gzip.c]
---- src/flb_gzip.c.orig	2026-02-17 18:22:08 UTC
+--- src/flb_gzip.c.orig	2026-02-19 03:26:01 UTC
 +++ src/flb_gzip.c
 @@ -108,7 +108,7 @@ static inline void flb_hex_dump(uint8_t
          line_length = 40;
@@ -670,15 +910,15 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
      {
 
 
-[FILE:1034:patches/patch-src_flb__network.c]
---- src/flb_network.c.orig	2026-02-17 18:22:08 UTC
+[FILE:946:patches/patch-src_flb__network.c]
+--- src/flb_network.c.orig	2026-02-19 03:26:01 UTC
 +++ src/flb_network.c
 @@ -1968,7 +1968,7 @@ static int net_address_unix_socket_peer_
                                                  int output_buffer_size,
                                                  size_t *output_data_size)
  {
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__) && !defined(__sun__)
      unsigned int peer_credentials_size;
      struct ucred peer_credentials;
  #endif
@@ -687,20 +927,13 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
      }
  
 -#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD)
-+#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__)
++#if !defined(FLB_SYSTEM_MACOS) && !defined(FLB_SYSTEM_FREEBSD) && !defined(__DragonFly__) && !defined(__NetBSD__) && !defined(__sun__)
      peer_credentials_size = sizeof(struct ucred);
  
      result = getsockopt(fd,
-@@ -2344,4 +2344,4 @@ uint64_t flb_net_htonll(uint64_t value)
- #else
-     return value;
- #endif
--}
-\ No newline at end of file
-+}
 
 
-[FILE:700:files/fluent-bit.in]
+[FILE:1380:files/fluent-bit.in]
 #!/bin/sh
 
 # PROVIDE: fluent-bit
@@ -715,7 +948,8 @@ NetBSD doesn't define THREAD_STACK_MIN, so pick an arbitrary 16 pages.
 # fluent_bit_config (str):	config files to use
 #				Default: %%ETCDIR%%/fluent-bit.conf
 # fluent_bit_flags (str):	Extra flags passed to fluent-bit
-# fluent_bit_user (str):        Default run as user nobody
+# fluent_bit_user (str):	Default run as user %%SRV_USR%%
+# fluent_bit_group (str):	Default run as group %%SRV_GRP%%
 
 . /etc/rc.subr
 
@@ -724,10 +958,76 @@ rcvar=${name}_enable
 load_rc_config $name
 
 : ${fluent_bit_enable:="NO"}
-: ${fluent_bit_user:="nobody"}
+: ${fluent_bit_user:="%%SRV_USR%%"}
+: ${fluent_bit_group:="%%SRV_GRP%%"}
+: ${fluent_bit_config:="%%ETCDIR%%/fluent-bit.conf"}
 
-command=%%PREFIX%%/bin/fluent-bit
-command_args="--quiet --daemon --config %%ETCDIR%%/fluent-bit.conf"
+pidfile=%%PREFIX/var/run/fluent-bit/${name}.pid
+logfile=%%PREFIX%%/var/log/fluent-bit/${name}.log
+procname="%%PREFIX%%/bin/fluent-bit"
+command="/usr/sbin/daemon"
+command_args="-H -p ${pidfile} -o ${logfile} -t ${name} ${procname} --quiet --config ${fluent_bit_config} ${fluent_bit_flags}"
+
+start_precmd="${name}_startprecmd"
+stop_postcmd="${name}_stoppostcmd"
+
+fluent_bit_startprecmd()
+{
+	install -o ${fluent_bit_user} -g ${fluent_bit_group} -d /var/log/${name}
+	if [ ! -e ${pidfile} ]; then
+		install -m 0600 -o ${fluent_bit_user} -g ${fluent_bit_group} /dev/null ${pidfile}
+	fi
+}
+
+fluent_bit_stoppostcmd()
+{
+	rm -f ${pidfile}
+}
 
 run_rc_command "$1"
+
+
+[FILE:2194:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+            <service_fmri value='file://localhost%%PREFIX%%/etc/fluent-bit/fluent-bit.conf'/>
+        </dependency>
+        <exec_method type="method" name="start"
+            exec='/usr/bin/bash -c "exec %%PREFIX%%/bin/fluent-bit --config=%{config_file} -l %%PREFIX%%/var/log/fluent-bit/service.log &amp;"'
+            timeout_seconds="60">
+            <method_context working_directory="%%PREFIX%%/var/run/fluent-bit">
+                 <method_credential user="%%SRV_USR%%" group="%%SRV_GRP%%"/>
+            </method_context>
+        </exec_method>
+        <exec_method type="method" name="stop"
+            exec='/usr/bin/pkill -9 -u fluent -f "%%PREFIX%%/bin/fluent-bit"'
+            timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/fluent-bit/fluent-bit.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Fluent Bit logging and data forwarder
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
 

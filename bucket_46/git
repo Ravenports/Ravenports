@@ -2,7 +2,7 @@
 
 NAMEBASE=		git
 VERSION=		2.53.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel net
 VARIANTS=		std
 SDESC[std]=		Distributed version control system
@@ -43,7 +43,7 @@ USERGROUP_SPKG=		primary
 
 USES=			cpe autoreconf gmake iconv ssl zlib shebangfix curl
 			pcre expat python:build perl:build gettext:build
-			tcl:tk,build
+			tcl:tk,build smf:primary
 
 EXTRACT_DIRTY=		3
 
@@ -69,6 +69,7 @@ SHEBANG_FILES=		*.perl
 			contrib/contacts/git-contacts
 			contrib/credential/netrc/git-credential-netrc.perl
 			templates/hooks/fsmonitor-watchman.sample
+SMF_NAME=		git-daemon
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-pthreads=-pthread
@@ -85,6 +86,7 @@ MAKE_ENV=		V=1
 INSTALL_REQ_TOOLCHAIN=	yes
 RC_SUBR=		git_daemon:primary
 SUB_FILES=		messages-primary.ucl
+			manifest.xml
 
 post-install:
 	(cd ${WRKDIR}/man1/ && ${COPYTREE_SHARE} . ${STAGEDIR}${MANPREFIX}/man/man1)
@@ -93,6 +95,9 @@ post-install:
 	# Strip got missed
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/scalar
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/libexec/git-core/scalar
+	# git daemon support
+	${MKDIR} ${STAGEDIR}${PREFIX}/srv/git
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/gitd
 	# p4 support
 	${INSTALL_SCRIPT} ${WRKSRC}/git-p4.py ${STAGEDIR}${PREFIX}/bin/
 	# contrib support
@@ -159,7 +164,7 @@ This package contains contributed scripts for git.
 994b93cbf25a9c13f1206dcc1751f0559633d5152155e16fc025ab776af08e0d      1675212 git-htmldocs-2.53.0.tar.xz
 
 
-[FILE:3437:manifests/plist.primary]
+[FILE:3512:manifests/plist.primary]
 bin/
  git
  git-receive-pack
@@ -384,6 +389,8 @@ share/git-core/templates/hooks/
  sendemail-validate.sample
  update.sample
 share/git-core/templates/info/exclude
+@dir(%%OWN%%,%%GRP%%,0755) srv/git
+@dir(%%OWN%%,%%GRP%%,0750) var/run/gitd
 
 
 [FILE:3492:manifests/plist.man]
@@ -1729,7 +1736,7 @@ share/git-core/contrib/vscode/
 +	(cd '$(DESTDIR_SQ)$(template_instdir_SQ)' && umask 022 && $(TAR) xof - --no-same-owner --no-same-permissions)
 
 
-[FILE:592:files/git_daemon.in]
+[FILE:632:files/git_daemon.in]
 #! /bin/sh
 #
 
@@ -1751,8 +1758,8 @@ load_rc_config $name
 : ${git_daemon_user:=gitdemon}
 : ${git_daemon_group:=gitdemon}
 : ${git_daemon_enable:=NO}
-: ${git_daemon_directory:=%%PREFIX%%/git}
-: ${git_daemon_flags:=--syslog --reuseaddr --detach}
+: ${git_daemon_directory:=%%PREFIX%%/srv/git}
+: ${git_daemon_flags:=--syslog --reuseaddr --detach --base-path={git_daemon_directory}/}
 
 command="%%PREFIX%%/libexec/git-core/git-daemon"
 command_args="${git_daemon_directory}"
@@ -1760,6 +1767,44 @@ command_args="${git_daemon_directory}"
 PATH="${PATH}:%%PREFIX%%/libexec/git-core"
 
 run_rc_command "$1"
+
+
+[FILE:1720:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+   <service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <method_context working_directory="%%PREFIX%%/var/run/gitd">
+            <method_credential user="gitdemon" group="gitdemon"/>
+        </method_context>
+        <exec_method type="method" name="start"
+           exec="%%PREFIX%%/libexec/git-core/git-daemon --syslog --reuseaddr --detach --base-path=%%PREFIX%%/srv/git/ %%PREFIX%%/srv/git"
+           timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Git Daemon
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
 
 
 [FILE:885:files/messages-primary.ucl.in]

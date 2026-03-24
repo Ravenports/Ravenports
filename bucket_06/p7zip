@@ -37,6 +37,7 @@ MAKEFILE=		makefile
 MAKE_ARGS=		OPTFLAGS="{{CXXFLAGS}}"
 SINGLE_JOB=		yes
 
+VAR_OPSYS[sunos]=	CXXFLAGS=-Drestrict=__restrict__
 CVE_FIXED=		CVE-2017-17969 CVE-2018-5996
 
 post-patch:
@@ -104,21 +105,17 @@ share/man/man1/
  7zr.1
 
 
-[FILE:554:patches/patch-CPP_7zip_Archive_Zip_ZipItem.cpp]
+[FILE:285:patches/patch-CPP_7zip_Archive_Zip_ZipItem.cpp]
 --- CPP/7zip/Archive/Zip/ZipItem.cpp.orig	2024-10-17 08:03:40 UTC
 +++ CPP/7zip/Archive/Zip/ZipItem.cpp
-@@ -425,7 +425,11 @@ void CItem::GetUnicodeString(UString &re
-       size_t dlen = slen * 4;
-       const char* dest = s_utf8.GetBuf_SetEnd(dlen + 1); // (source length * 4) + null termination
+@@ -3,6 +3,7 @@
+ #if (!defined _WIN32) && (!defined __CYGWIN__) && (!defined __APPLE__)
+ #include <iconv.h>
+ #include <locale.h>
++#include <strings.h>
+ #endif
  
-+#if defined(__sun)
-+      size_t done = iconv(cd, (const char**)&src, &slen, (char**)&dest, &dlen);
-+#else
-       size_t done = iconv(cd, (char**)&src, &slen, (char**)&dest, &dlen);
-+#endif
-       bzero((size_t*)dest + done, 1);
- 
-       iconv_close(cd);
+ #include "StdAfx.h"
 
 
 [FILE:386:patches/patch-CPP_Windows_System.cpp]
@@ -135,14 +132,14 @@ share/man/man1/
  				nbcpu = value;
 
 
-[FILE:277:patches/patch-C_hashes_hash.h]
+[FILE:299:patches/patch-C_hashes_hash.h]
 --- C/hashes/hash.h.orig	2024-10-17 08:03:40 UTC
 +++ C/hashes/hash.h
 @@ -42,6 +42,11 @@
  
  #include "../7zTypes.h"
  
-+#ifdef __NetBSD__
++#if defined __NetBSD__ || defined __sun
 +#include <stdint.h>
 +#define _UINT64_T_DECLARED
 +#endif

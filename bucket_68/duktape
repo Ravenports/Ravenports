@@ -38,12 +38,14 @@ MAKE_ARGS=		INSTALL_PREFIX={{PREFIX}}
 
 SOVERSION=		207.20700
 
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+
 post-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/duk ${STAGEDIR}${PREFIX}/bin
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 
 post-build:
-	(cd ${WRKSRC} && ${SETENV} ${MAKE_CMD} ${MAKE_FLAGS} \
+	(cd ${WRKSRC} && ${SETENVI} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
 		Makefile.cmdline duk)
 
 [FILE:45:descriptions/desc.primary]

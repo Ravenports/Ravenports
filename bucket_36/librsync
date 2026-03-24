@@ -83,7 +83,7 @@ share/man/man3/librsync.3
 
 
 [FILE:953:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2023-02-16 07:16:28 UTC
+--- CMakeLists.txt.orig	2023-02-19 05:08:08 UTC
 +++ CMakeLists.txt
 @@ -162,6 +162,12 @@ message (STATUS "PROJECT_NAME  = ${PROJE
  message (STATUS "BUILD_HOSTNAME = ${BUILD_HOSTNAME}")
@@ -98,7 +98,7 @@ share/man/man3/librsync.3
  # Find POPT
  find_package(POPT)
  if (POPT_FOUND)
-@@ -371,12 +377,6 @@ enable_testing()
+@@ -370,12 +376,6 @@ enable_testing()
  # Create conf files
  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
  
@@ -113,17 +113,22 @@ share/man/man3/librsync.3
  
 
 
-[FILE:303:patches/patch-src_fileutil.c]
+[FILE:411:patches/patch-src_fileutil.c]
+$NetBSD: patch-src_fileutil.c,v 1.1 2025/12/19 12:27:03 nia Exp $
+
+Maybe don't peek into internal libc symbols if we can avoid it.
+
+Fixes build on SunOS.
+
 --- src/fileutil.c.orig	2023-02-19 05:08:08 UTC
 +++ src/fileutil.c
-@@ -75,7 +75,9 @@
- 
- /* Use and prefer _fileno if it exists. */
- #ifdef HAVE__FILENO
-+# if !defined(__NetBSD__)
- #  define fileno(f) _fileno((f))
-+# endif
+@@ -74,7 +74,7 @@
  #endif
  
- FILE *rs_file_open(char const *filename, char const *mode, int force)
+ /* Use and prefer _fileno if it exists. */
+-#ifdef HAVE__FILENO
++#if defined(HAVE__FILENO) && !defined(HAVE_FILENO)
+ #  define fileno(f) _fileno((f))
+ #endif
+ 
 

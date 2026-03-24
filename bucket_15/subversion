@@ -32,8 +32,17 @@ BUILDRUN_DEPENDS=	apr-util:primary:std
 			serf:single:std
 			utf8proc:primary:std
 
+USERS=			svn
+GROUPS=			svn
+USERGROUP_SPKG=		primary
+
 USES=			bdb:5 cpe libtool pkgconfig gettext lz4 zlib sqlite
-			expat:build shebangfix mbsdfix
+			expat:build shebangfix mbsdfix smf:primary
+
+LICENSE=		APACHE20:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/NOTICE
+LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE
+LICENSE_SCHEME=		solo
 
 CPE_VENDOR=		apache
 FPC_EQUIVALENT=		devel/subversion
@@ -42,6 +51,7 @@ SHEBANG_FILES=		tools/server-side/svnpubsub/rc.d/svnpubsub.solaris
 SHEBANG_OLD_PYTHON=	{{LOCALBASE}}/bin/python2
 			"/bin/env python"
 SHEBANG_REGEX=		./tools/.*
+SMF_NAME=		svnserve
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-swig
@@ -56,7 +66,14 @@ CONFIGURE_ARGS=		--without-swig
 MAKE_ARGS=		pkgconfig_dir={{PREFIX}}/lib/pkgconfig
 
 INSTALL_REQ_TOOLCHAIN=	yes
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
+			REPOS_DIR=srv/svn/repos
 RC_SUBR=		svnserve:primary
+SUB_FILES=		manifest.xml
+SUB_LIST=		SVN_USR={{USERS}}
+			SVN_GRP={{GROUPS}}
+			SVN_REPOS=srv/svn/repos
 
 VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 			CONFIGURE_ENV=ac_cv_search_bindtextdomain="-lintl"
@@ -72,6 +89,8 @@ post-patch:
 	${FIND} ${WRKSRC} -name '*.bak' -delete
 
 post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/subversion
+	${MKDIR} ${STAGEDIR}${PREFIX}/srv/svn/repos
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/examples
 	(cd ${WRKSRC}/tools.examples && \
 		${COPYTREE_SHARE} . ${STAGEDIR}${PREFIX}/share/subversion)
@@ -117,7 +136,7 @@ This package contains contributed scripts for svn.
 e78a29e7766b8b7b354497d08f71a55641abc53675ce1875584781aae35644a1      8675355 subversion-1.14.5.tar.bz2
 
 
-[FILE:1061:manifests/plist.primary]
+[FILE:1144:manifests/plist.primary]
 bin/
  fsfs-access-map
  fsfs-stats
@@ -177,6 +196,8 @@ lib/
 share/subversion/xslt/
  svnindex.css
  svnindex.xsl
+@dir(%%OWN%%,%%GRP%%,0750) var/run/subversion
+@dir(%%OWN%%,%%GRP%%,) %%REPOS_DIR%%
 
 
 [FILE:1483:manifests/plist.dev]
@@ -683,7 +704,45 @@ share/subversion/server-side/svnpubsub/svnpubsub/
  	
 
 
-[FILE:1009:files/svnserve.in]
+[FILE:1720:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <method_context working_directory="%%PREFIX%%/var/run/subversion">
+            <method_credential user="%%SVN_USR%%" group="%%SVN_GRP%%"/>
+        </method_context>
+        <exec_method type="method" name="start"
+        	exec="%%PREFIX%%/bin/svnserve -d --listen-port=3690 --listen-host 0.0.0.0 -r %%PREFIX%%/%%SVN_REPOS%%"
+        	timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Subversion's svnserve daemon.
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:1170:files/svnserve.in]
 #!/bin/sh
 #
 # svnserve.sh for rc.d usage (c) 2005 Thomas E. Spanjaard.
@@ -698,9 +757,9 @@ share/subversion/server-side/svnpubsub/svnpubsub/
 #  svnserve_enable="YES"
 #  # optional
 #  svnserve_flags="-d --listen-port=3690 --listen-host 0.0.0.0"
-#  svnserve_data="/data/repositories"
-#  svnserve_user="svn"
-#  svnserve_group="svn"
+#  svnserve_data="%%PREFIX%%/%%SVN_REPOS%%"
+#  svnserve_user="%%SVN_USR%%"
+#  svnserve_group="%%SVN_GRP%%"
 #
 # Note:
 # svnserve bind per default at the ipv6 address!
@@ -712,15 +771,16 @@ share/subversion/server-side/svnpubsub/svnpubsub/
 # Set some defaults
 svnserve_enable=${svnserve_enable:-"NO"}
 svnserve_flags=${svnserve_flags:-"-d --listen-port=3690 --listen-host 0.0.0.0"}
-svnserve_data=${svnserve_data:-"/home/svn/repos"}
-svnserve_user=${svnserve_user:-"svn"}
-svnserve_group=${svnserve_group:-"svn"}
+svnserve_data=${svnserve_data:-"%%PREFIX%%/%%SVN_REPOS%%"}
+svnserve_user=${svnserve_user:-"%%SVN_USR%%"}
+svnserve_group=${svnserve_group:-"%%SVN_GRP%%"}
+svnserve_pidfile=${svnserve_pidfile:-"%%PREFIX%%/var/run/subversion/svnserve.pid"}
 
 name=svnserve
 rcvar=svnserve_enable
 load_rc_config $name
 command=%%PREFIX%%/bin/svnserve
-command_args="-r ${svnserve_data}"
+command_args="-r ${svnserve_data} --pid-file=${svnserve_pidfile}"
 
 run_rc_command "$1"
 

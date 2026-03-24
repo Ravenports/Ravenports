@@ -2,6 +2,7 @@
 
 NAMEBASE=		stunnel
 VERSION=		5.77
+REVISION=		2
 KEYWORDS=		security
 VARIANTS=		std
 SDESC[std]=		SSL/TLS offloading and load-balancing proxy
@@ -27,6 +28,7 @@ GROUPS=			stunnel
 USERGROUP_SPKG=		primary
 
 USES=			cpe libtool perl:build shebangfix ssl:openssl30
+			smf:primary
 
 LICENSE=		GPLv2+:primary
 LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING.md
@@ -37,7 +39,7 @@ FPC_EQUIVALENT=		security/stunnel
 SHEBANG_FILES=		src/stunnel3.in
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--localstatedir=/var/tmp
+CONFIGURE_ARGS=		--localstatedir={{PREFIX}}/var
 			--enable-static
 			--disable-systemd
 			--with-ssl="{{OPENSSLBASE}}"
@@ -46,35 +48,38 @@ CONFIGURE_ARGS=		--localstatedir=/var/tmp
 			--enable-ipv6
 
 INSTALL_TARGET=		install-strip
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		stunnel:primary
+SUB_FILES=		manifest.xml
+			pid.conf
+SUB_LIST=		STUNNEL_USER={{USERS}}
+			STUNNEL_GROUP={{GROUPS}}
+			STUNNEL_PIDFILE={{PREFIX}}/var/run/stunnel/stunnel.pid
 
 LDFLAGS=		-lpthread
 
-post-patch:
-	# place files under /var/tmp so that this can be run by an unprivileged
-	# user stunnel and group stunnel
-	${REINPLACE_CMD} -E -e 's|\@prefix\@/var/lib/stunnel/|/var/tmp/stunnel|; \
-		s|nobody|stunnel|;s|nogroup|stunnel|;s|;include |include |' \
-		${WRKSRC}/tools/stunnel.conf-sample.in
-	${REINPLACE_CMD} -E -e 's|\$$\(prefix\)/var/run/stunnel/stunnel.pid|$$(localstatedir)/stunnel.pid|' \
-		${WRKSRC}/src/Makefile.in
-	${FIND} ${WRKSRC} -type f -name Makefile.in | ${XARGS} \
-		${REINPLACE_CMD} -E \
-		-e 's,@(ACLOCAL|AUTO(MAKE|CONF|HEADER))@,/usr/bin/true,' \
-		-e 's,(COPYING|COPYRIGHT)[.]md,,g'
-	${REINPLACE_CMD} -E -e \
-		's|install-confDATA install-data-local|install-confDATA|g' \
-		${WRKSRC}/tools/Makefile.in
+post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/stunnel
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/stunnel
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/stunnel/conf.d/
+	${INSTALL_DATA} ${WRKDIR}/pid.conf \
+		${STAGEDIR}${PREFIX}/etc/stunnel/conf.d/00-pid.conf
+	${RM} ${STAGEDIR}${STD_DOCDIR}/COPYING.md
+	${RM} ${STAGEDIR}${STD_DOCDIR}/COPYRIGHT.md
+
+pre-configure:
+	${REINPLACE_CMD} -e '\
+	    s|@DEFAULT_GROUP@|${GROUPS}|g; \
+	    s|install-confDATA install-data-local|install-confDATA|g; \
+	    s|stunnel.logrotate||g; \
+	    s|stunnel.rh.init||g' \
+	    ${WRKSRC}/tools/Makefile.in
 	# don't add stack-protector
 	${REINPLACE_CMD} -e 's|-fstack-protector||' ${WRKSRC}/configure
 	# relocate examples
 	${REINPLACE_CMD} -E -e 's|\$$\(docdir\)/examples|${STD_EXAMPLESDIR}|g' \
 		${WRKSRC}/tools/Makefile.in
-
-post-install:
-	${MKDIR} ${STAGEDIR}${PREFIX}/etc/stunnel/conf.d/
-	${INSTALL_DATA} ${FILESDIR}/pid.conf \
-		${STAGEDIR}${PREFIX}/etc/stunnel/conf.d/00-pid.conf
 
 [FILE:440:descriptions/desc.primary]
 The stunnel program is designed to work as SSL encryption wrapper between
@@ -91,13 +96,15 @@ programs' code.
 ec026f4fae4e0d25b940cc7a9451d925e359e7fd59e9edad20baea66ce45f263       924510 stunnel-5.77.tar.gz
 
 
-[FILE:113:manifests/plist.primary]
+[FILE:199:manifests/plist.primary]
 bin/
  stunnel
  stunnel3
 etc/stunnel/stunnel.conf-sample
 etc/stunnel/conf.d/00-pid.conf
 lib/stunnel/libstunnel.so
+@dir(%%OWN%%,%%GRP%%,0750) var/log/stunnel
+@dir(%%OWN%%,%%GRP%%,0750) var/run/stunnel
 
 
 [FILE:25:manifests/plist.dev]
@@ -120,7 +127,7 @@ share/doc/stunnel/
  stunnel.pl.html
 
 
-[FILE:160:manifests/plist.examples]
+[FILE:124:manifests/plist.examples]
 share/examples/stunnel/
  ca.html
  ca.pl
@@ -128,8 +135,6 @@ share/examples/stunnel/
  importCA.sh
  script.sh
  stunnel.init
- stunnel.logrotate
- stunnel.rh.init
  stunnel.service
  stunnel.spec
 
@@ -140,29 +145,22 @@ share/man/man8/
  stunnel.pl.8
 
 
-[FILE:725:patches/patch-configure.ac]
---- configure.ac.orig	2025-07-02 11:04:50 UTC
-+++ configure.ac
-@@ -98,15 +98,6 @@ if test "${GCC}" = yes; then
-     AX_APPEND_COMPILE_FLAGS([-Wno-deprecated-declarations])
-     AX_APPEND_COMPILE_FLAGS([-Wno-unused-command-line-argument])
-     AX_APPEND_COMPILE_FLAGS([-fPIE])
--    case "${host}" in
--        avr-*.* | powerpc-*-aix* | rl78-*.* | visium-*.*)
--            ;;
--        *)
--            AX_APPEND_COMPILE_FLAGS([-fstack-protector-strong])
--            AX_APPEND_COMPILE_FLAGS([-fcf-protection=full])
--            AX_APPEND_COMPILE_FLAGS([-fstack-clash-protection])
--            ;;
--    esac
-     AX_APPEND_LINK_FLAGS([-fPIE -pie])
-     AX_APPEND_LINK_FLAGS([-Wl,-z,relro])
-     AX_APPEND_LINK_FLAGS([-Wl,-z,now])
+[FILE:277:patches/patch-Makefile.in]
+--- Makefile.in.orig	2025-11-04 10:41:54 UTC
++++ Makefile.in
+@@ -254,7 +254,7 @@ CPPFLAGS = @CPPFLAGS@
+ CSCOPE = @CSCOPE@
+ CTAGS = @CTAGS@
+ CYGPATH_W = @CYGPATH_W@
+-DEFAULT_GROUP = @DEFAULT_GROUP@
++DEFAULT_GROUP = stunnel
+ DEFS = @DEFS@
+ DEPDIR = @DEPDIR@
+ DLLTOOL = @DLLTOOL@
 
 
 [FILE:1163:patches/patch-src_log.c]
---- src/log.c.orig	2025-03-05 14:52:14 UTC
+--- src/log.c.orig	2025-11-14 12:52:51 UTC
 +++ src/log.c
 @@ -198,7 +198,7 @@ void s_vlog(int level, const char *forma
          len=vsnprintf(NULL, 0, format, ap);
@@ -194,7 +192,7 @@ share/man/man8/
 
 
 [FILE:396:patches/patch-src_sthreads.c]
---- src/sthreads.c.orig	2025-06-19 13:33:35 UTC
+--- src/sthreads.c.orig	2025-11-14 12:52:51 UTC
 +++ src/sthreads.c
 @@ -725,7 +725,7 @@ NOEXPORT size_t stack_num(size_t stack_s
      verify_area=(stack_size-STACK_RESERVE)&~(sizeof(TL)-1);
@@ -207,11 +205,127 @@ share/man/man8/
          for(i=0; i<verify_num; i++)
 
 
-[FILE:27:files/pid.conf]
-pid = /var/run/stunnel.pid
+[FILE:2210:patches/patch-tools_stunnel.conf-sample.in]
+--- tools/stunnel.conf-sample.in.orig	2025-01-31 12:36:54 UTC
++++ tools/stunnel.conf-sample.in
+@@ -8,16 +8,16 @@
+ ; **************************************************************************
+ 
+ ; It is recommended to drop root privileges if stunnel is started by root
+-;setuid = nobody
++;setuid = stunnel
+ ;setgid = @DEFAULT_GROUP@
+ 
+ ; PID file is created inside the chroot jail (if enabled)
+-;pid = @localstatedir@/run/stunnel.pid
++;pid = @localstatedir@/run/stunnel/stunnel.pid
+ 
+ ; Debugging stuff (may be useful for troubleshooting)
+ ;foreground = yes
+ ;debug = info
+-;output = @localstatedir@/log/stunnel.log
++;output = @localstatedir@/log/stunnel/stunnel.log
+ 
+ ; Enable FIPS 140-2 mode if needed for compliance
+ ;fips = yes
+@@ -46,7 +46,7 @@
+ ; * Include all configuration file fragments from the specified folder     *
+ ; **************************************************************************
+ 
+-;include = @sysconfdir@/stunnel/conf.d
++include = @sysconfdir@/stunnel/conf.d
+ 
+ ; **************************************************************************
+ ; * Service definitions (remove all services for inetd mode)               *
+@@ -54,7 +54,7 @@
+ 
+ ; ***************************************** Example TLS client mode services
+ 
+-; The following examples use /etc/ssl/certs, which is the common location
++; The following examples use @prefix@/share/certs, which is the common location
+ ; of a hashed directory containing trusted CA certificates.  This is not
+ ; a hardcoded path of the stunnel package, as it is not related to the
+ ; stunnel configuration in @sysconfdir@/stunnel/.
+@@ -64,7 +64,7 @@ client = yes
+ accept = 127.0.0.1:110
+ connect = pop.gmail.com:995
+ verifyChain = yes
+-CApath = /etc/ssl/certs
++CApath = @prefix@/share/certs
+ checkHost = pop.gmail.com
+ OCSPaia = yes
+ 
+@@ -73,7 +73,7 @@ client = yes
+ accept = 127.0.0.1:143
+ connect = imap.gmail.com:993
+ verifyChain = yes
+-CApath = /etc/ssl/certs
++CApath = @prefix@/share/certs
+ checkHost = imap.gmail.com
+ OCSPaia = yes
+ 
+@@ -82,7 +82,7 @@ client = yes
+ accept = 127.0.0.1:25
+ connect = smtp.gmail.com:465
+ verifyChain = yes
+-CApath = /etc/ssl/certs
++CApath = @prefix@/share/certs
+ checkHost = smtp.gmail.com
+ OCSPaia = yes
+ 
 
 
-[FILE:912:files/stunnel.in]
+[FILE:2080:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="true"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name='config_exists' grouping='require_all' restart_on='refresh' type='path'>
+            <service_fmri value='file://localhost/raven/etc/stunnel/stunnel.conf' />
+        </dependency>
+        <method_context working_directory="%%PREFIX%%/var/run/stunnel">
+            <method_credential
+                user="%%STUNNEL_USER%%"
+                group="%%STUNNEL_GROUP%%"
+                privileges="basic,net_privaddr"
+            />
+        </method_context>
+        <exec_method type="method" name="start"
+            exec="%%PREFIX%%/bin/stunnel %{config_file}"
+            timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/stunnel/stunnel.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Stunnel encryption wrapper service.
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:26:files/pid.conf.in]
+pid = %%STUNNEL_PIDFILE%%
+
+
+[FILE:1320:files/stunnel.in]
 #!/bin/sh
 
 # PROVIDE: stunnel
@@ -223,13 +337,15 @@ pid = /var/run/stunnel.pid
 # Add some of the following variables to /etc/rc.conf to configure stunnel:
 # stunnel_enable (bool):	Set to "NO" by default.
 #				Set it to "YES" to enable stunnel.
-# stunnel_config (str):		Default "%%ETCDIR%%/stunnel.conf"
+# stunnel_config (str):		Default "%%PREFIX%%/etc/stunnel/stunnel.conf"
 #				Set it to the full path to the config file
 #				that stunnel will use during the automated
 #				start-up.
-# stunnel_pidfile (str):	Default "%%PREFIX%%/var/stunnel/stunnel.pid"
+# stunnel_pidfile (str):	Default "%%STUNNEL_PIDFILE%%"
 #				Set it to the value of 'pid' in
 #				the stunnel.conf file.
+# stunnel_uid (str):		Default "%%STUNNEL_USER%%"
+# stunnel_gid (str):		Default "%%STUNNEL_GROUP%%"
 #
 
 . /etc/rc.subr
@@ -240,14 +356,26 @@ rcvar=stunnel_enable
 load_rc_config $name
 
 : ${stunnel_enable="NO"}
-: ${stunnel_config="%%ETCDIR%%/${name}.conf"}
-: ${stunnel_pidfile="/var/run/${name}.pid"}
+: ${stunnel_config="%%PREFIX%%/etc/stunnel/${name}.conf"}
+: ${stunnel_pidfile="%%STUNNEL_PIDFILE%%"}
+: ${stunnel_uid="%%STUNNEL_USER%%"}
+: ${stunnel_gid="%%STUNNEL_GROUP%%"}
 
 command="%%PREFIX%%/bin/stunnel"
 command_args=${stunnel_config}
 pidfile=${stunnel_pidfile}
 
 required_files="${stunnel_config}"
+
+start_precmd=stunnel_start_precmd
+
+stunnel_start_precmd () {
+	local piddir
+	piddir=`/usr/bin/dirname "${pidfile}"`
+	if [ ! -d "${piddir}" ] ; then
+		/usr/bin/install -d -o "${stunnel_uid}" -g "${stunnel_gid}" "${piddir}"
+	fi
+}
 
 run_rc_command "$1"
 

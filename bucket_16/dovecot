@@ -64,6 +64,7 @@ CONFIGURE_ARGS=		--localstatedir=/var
 			--without-icu
 			--without-solr
 			--without-textcat
+			--with-pam=no
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
@@ -75,6 +76,9 @@ SUB_LIST=		REQUIRE=LOGIN
 CPPFLAGS=		-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
 			{{ICONV_LIB}}
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			CONFIGURE_ARGS=--with-ioloop=poll
+			CONFIGURE_ARGS=--with-notify=none
 VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 VAR_OPSYS[dragonfly]=	CONFIGURE_ENV=i_cv_fd_passing=yes
 

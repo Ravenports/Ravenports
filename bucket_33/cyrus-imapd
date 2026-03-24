@@ -502,6 +502,35 @@ diff -u configure.orig configure
                      if (endptr == val || *endptr != '\0' ||
 
 
+[FILE:871:patches/patch-imap_mailbox.c]
+--- imap/mailbox.c.orig	2025-06-27 04:15:42 UTC
++++ imap/mailbox.c
+@@ -6046,6 +6046,10 @@ static void mailbox_delete_files(const c
+     struct dirent *f;
+     char buf[MAX_MAILBOX_PATH+1];
+     char *tail;
++#if defined(__sun)
++    struct stat st;
++    char mypath[1024];
++#endif
+ 
+     strlcpy(buf, path, sizeof(buf));
+ 
+@@ -6062,7 +6066,12 @@ static void mailbox_delete_files(const c
+     dirp = opendir(path);
+     if (dirp) {
+         while ((f = readdir(dirp))!=NULL) {
++#if defined(__sun)
++            snprintf(mypath, sizeof(mypath), "%s/%s", path, f->d_name);
++            if (stat(mypath, &st) == 0 && S_ISDIR(st.st_mode)) {
++#else
+             if (f->d_type == DT_DIR) {
++#endif
+                 /* xunlink() will fail on a directory and create syslog noise.
+                    We rmdir() later in mailbox_delete_cleanup() anyways */
+                 continue;
+
+
 [FILE:1367:patches/patch-imap_tls.c]
 --- imap/tls.c.orig	2025-05-09 00:07:20 UTC
 +++ imap/tls.c
@@ -650,10 +679,33 @@ diff -u -p lib/libcyr_cfg.c.orig lib/libcyr_cfg.c
  {
 
 
-[FILE:308:patches/patch-lib_util.c]
---- lib/util.c.orig	2025-05-09 00:07:20 UTC
+[FILE:198:patches/patch-lib_ptrarray.c]
+--- lib/ptrarray.c.orig	2025-06-27 03:40:02 UTC
++++ lib/ptrarray.c
+@@ -44,6 +44,7 @@
+  */
+ 
+ #include "ptrarray.h"
++#include <string.h>
+ #include <memory.h>
+ #include "util.h"
+ #include "xmalloc.h"
+
+
+[FILE:452:patches/patch-lib_util.c]
+--- lib/util.c.orig	2025-06-27 03:40:02 UTC
 +++ lib/util.c
-@@ -1056,6 +1056,7 @@ EXPORTED int parsehex(const char *p, con
+@@ -83,6 +83,9 @@
+ #include "zlib.h"
+ #endif
+ 
++#ifndef LOG_PRI
++#define LOG_PRI(p) ((p) & LOG_PRIMASK)
++#endif
+ 
+ #define BEAUTYBUFSIZE 4096
+ 
+@@ -1056,6 +1059,7 @@ EXPORTED int parsehex(const char *p, con
  
  /* buffer handling functions */
  

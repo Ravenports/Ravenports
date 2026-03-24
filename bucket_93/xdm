@@ -2,6 +2,7 @@
 
 NAMEBASE=		xdm
 VERSION=		1.1.17
+REVISION=		1
 KEYWORDS=		x11
 VARIANTS=		std
 SDESC[std]=		X.Org display manager (a.k.a. login manager)
@@ -41,13 +42,15 @@ MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-xdmconfigdir={{PREFIX}}/etc/X11/xdm
 			--with-xdmscriptdir={{PREFIX}}/etc/X11/xdm
 			--with-pixmapdir={{PREFIX}}/share/pixmaps
-			--with-authdir=/var/db/xdm
+			--with-authdir={{PREFIX}}/var/db/xdm
+			--with-pam=no
 			--disable-xdm-auth
+CONFIGURE_ENV=		ac_cv_file__usr_share_man_man7_attributes_7=yes
 
 INSTALL_TARGET=		install-strip
 
 post-install:
-	${MKDIR} ${STAGEDIR}/var/db/xdm
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/xdm
 .for f in GiveConsole TakeConsole Xaccess Xreset Xresources Xservers Xsession Xsetup_0 Xstartup Xwilling xdm-config
 	${MV} ${STAGEDIR}${PREFIX}/etc/X11/xdm/${f} \
 		${STAGEDIR}${PREFIX}/etc/X11/xdm/${f}.sample
@@ -66,7 +69,7 @@ authenticating the user, and running a "session."
 9494aef0911a031c53670725b5c8c9bb9d3f7c5ea7318b1f72ddd9dcbbeceb6a       425804 xdm-1.1.17.tar.xz
 
 
-[FILE:535:manifests/plist.primary]
+[FILE:534:manifests/plist.primary]
 @sample etc/X11/xdm/GiveConsole.sample
 @sample etc/X11/xdm/TakeConsole.sample
 @sample etc/X11/xdm/Xaccess.sample
@@ -86,7 +89,7 @@ share/X11/app-defaults/Chooser
 share/pixmaps/
  xorg-bw.xpm
  xorg.xpm
-@dir /var/db/xdm
+@dir var/db/xdm
 
 
 [FILE:21:manifests/plist.man]

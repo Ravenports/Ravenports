@@ -42,7 +42,6 @@ CPE_VENDOR=		llvm
 
 LDFLAGS=		-lpthread
 CMAKE_ARGS=		-DLLVM_COMMON_CMAKE_UTILS={{WRKDIR}}/cmake-21.1.8.src
-VAR_OPSYS[sunos]=	VAR1=socket;nsl;
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
@@ -113,60 +112,4 @@ lib/cmake/lld/
  LLDConfigVersion.cmake
  LLDTargets-release.cmake
  LLDTargets.cmake
-
-
-[FILE:503:patches/patch-MachO_ExportTrie.cpp]
---- MachO/ExportTrie.cpp.orig	2025-12-01 12:58:50 UTC
-+++ MachO/ExportTrie.cpp
-@@ -34,6 +34,22 @@
- //
- //===----------------------------------------------------------------------===//
- 
-+#ifdef __sun__
-+#include <string.h>
-+
-+extern "C" {
-+  static size_t
-+  strnlen(const char *s, size_t maxlen)
-+  {
-+       size_t len;
-+       for (len = 0; len < maxlen; len++, s++) {
-+               if (!*s) break;
-+       }
-+       return (len);
-+  }
-+}
-+#endif
-+
- #include "ExportTrie.h"
- #include "Symbols.h"
- 
-
-
-[FILE:521:patches/patch-MachO_InputFiles.cpp]
---- MachO/InputFiles.cpp.orig	2025-12-01 12:58:50 UTC
-+++ MachO/InputFiles.cpp
-@@ -41,6 +41,22 @@
- //
- //===----------------------------------------------------------------------===//
- 
-+#ifdef __sun__
-+#include <string.h>
-+
-+extern "C" {
-+  static size_t
-+  strnlen(const char *s, size_t maxlen)
-+  {
-+       size_t len;
-+       for (len = 0; len < maxlen; len++, s++) {
-+               if (!*s) break;
-+       }
-+       return (len);
-+  }
-+}
-+#endif
-+
- #include "InputFiles.h"
- #include "Config.h"
- #include "Driver.h"
 

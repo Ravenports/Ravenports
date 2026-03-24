@@ -2,6 +2,7 @@
 
 NAMEBASE=		net-snmp
 VERSION=		5.9.5.2
+REVISION=		1
 KEYWORDS=		net_mgmt
 VARIANTS=		std
 SDESC[std]=		Extensible SNMP implementation
@@ -20,7 +21,7 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe libtool perl ssl ncurses mbsdfix
+USES=			cpe libtool perl ssl ncurses mbsdfix smf:primary
 
 LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/COPYING
@@ -28,6 +29,7 @@ LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		net-snmp
 FPC_EQUIVALENT=		net-mgmt/net-snmp
+SMF_NAME=		snmp
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-shared
@@ -39,20 +41,28 @@ CONFIGURE_ARGS=		--enable-shared
 			--without-kmem-usage
 			--with-openssl="{{OPENSSLBASE}}"
 			--with-default-snmp-version="3"
-			--with-logfile="/var/log/snmpd.log"
-			--with-persistent-directory="/var/net-snmp"
+			--with-logfile="{{PREFIX}}/%{LOGDIR}/snmpd.log"
+			--with-persistent-directory="{{PREFIX}}/var/db/net-snmp"
 			--with-mib-modules="smux disman/event-mib mibII/mta_sendmail ucd-snmp/diskio{{OPSYS_MODS:S/,/ /}}"
 			--with-out-mib-modules="ucd_snmp host ucd-snmp/memory sctp-mib{{OPSYS_NOMODS:S/,/ /}}"
 			--with-sys-contact="default_user@contact.domain"
 			--with-sys-location="defaultlocation"
+			--localstatedir={{PREFIX}}/var
 CONFIGURE_ENV=		PERLPROG="{{PERL}}"
 			SED="{{SED}}"
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		45.0.0
+PLIST_SUB=		LOGDIR=var/log/net-snmp
+			RUNDIR=var/run/net-snmp
+			PERSISTENTDIR=var/db/net-snmp
+			CONFDIR=etc/net-snmp
+			%%OWN%%={{USERS}}
+			%%GROUP%%={{GROUPS}}
 RC_SUBR=		snmpd:primary
 			snmptrapd:primary
 SUB_FILES=		messages-primary.ucl
+			manifest.xml
 
 CFLAGS=			-Wno-declaration-missing-parameter-type
 VAR_OPSYS[freebsd]=	MAKEFILE_LINE=OPSYS_MODS=,mibII/tcpTable,mibII/ipv6
@@ -71,6 +81,10 @@ post-extract-linux:
 	done
 
 post-install:
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/net-snmp
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/net-snmp
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/net-snmp
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/net-snmp
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/sbin/*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/[ae]*
@@ -105,7 +119,7 @@ and handle SNMP traps, etc.
 16707719f833184a4b72835dac359ae188123b06b5e42817c00790d7dc1384bf      6826866 net-snmp-5.9.5.2.tar.gz
 
 
-[FILE:5416:manifests/plist.primary]
+[FILE:5554:manifests/plist.primary]
 %%SITE_ARCH%%/SNMP.pm
 %%SITE_ARCH%%/Bundle/MakefileSubs.pm
 %%SITE_ARCH%%/NetSNMP/
@@ -373,6 +387,10 @@ share/snmp/snmpconf-data/snmptrapd-data/
  runtime
  snmpconf-config
  traphandle
+@dir(%%OWN%%,%%GRP%%,0750) %%PERSISTENTDIR%%
+@dir(%%OWN%%,%%GRP%%,0750) %%LOGDIR%%
+@dir(%%OWN%%,%%GRP%%,0750) %%RUNDIR%%
+@dir %%CONFDIR%%
 
 
 [FILE:3016:manifests/plist.dev]
@@ -930,6 +948,66 @@ int netsnmp_cpu_arch_load( netsnmp_cache *cache, void *magic ) {
 }
 
 
+[FILE:2998:files/manifest.xml.in]
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='export'>
+  <service name='%%SMF_PREFIX%%/%%SMF_NAME%%' type='service' version='1'>
+    <dependency name='milestone' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/milestone/sysconfig'/>
+    </dependency>
+    <dependency name='fs-local' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/local'/>
+    </dependency>
+    <dependency name='name-services' grouping='optional_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/milestone/name-services'/>
+    </dependency>
+    <dependency name='system-log' grouping='optional_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/system-log'/>
+    </dependency>
+    <dependency name='rstat' grouping='optional_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/network/rpc/rstat'/>
+    </dependency>
+    <dependency name='cryptosvc' grouping='require_all' restart_on='restart' type='service'>
+      <service_fmri value='svc:/system/cryptosvc'/>
+    </dependency>
+    <dependency name='network' grouping='require_all' restart_on='restart' type='service'>
+      <service_fmri value='svc:/milestone/network'/>
+    </dependency>
+    <instance name='default' enabled='false'>
+      <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+        <service_fmri value='file://localhost/%%PREFIX%%/etc/net-snmp/snmpd.conf'/>
+      </dependency>
+      <exec_method name='start' type='method' exec='%%PREFIX%%/sbin/snmpd -c %{config_file} -Ls d' timeout_seconds='60'/>
+      <exec_method name='stop' type='method' exec=':kill' timeout_seconds='60'/>
+      <property_group name="application" type="application">
+        <propval name="config_file" type="astring" value="%%PREFIX%%/etc/net-snmp/snmpd.conf" />
+      </property_group>
+      <template>
+        <common_name>
+          <loctext xml:lang='C'>net-snmp SNMP daemon</loctext>
+        </common_name>
+      </template>
+    </instance>
+    <instance name='snmptrapd' enabled='false'>
+      <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+        <service_fmri value='file://localhost/%%PREFIX%%/etc/net-snmp/snmptrapd.conf'/>
+      </dependency>
+      <exec_method name='start' type='method' exec='%%PREFIX%%/sbin/snmptrapd -c %{config_file} -Ls 1' timeout_seconds='60'/>
+      <exec_method name='stop' type='method' exec=':kill' timeout_seconds='60'/>
+      <property_group name="application" type="application">
+        <propval name="config_file" type="astring" value="%%PREFIX%%/etc/net-snmp/snmptrapd.conf" />
+      </property_group>
+      <template>
+        <common_name>
+          <loctext xml:lang='C'>net-snmp SNMP trapper daemon</loctext>
+        </common_name>
+      </template>
+    </instance>
+  </service>
+</service_bundle>
+
+
 [FILE:419:files/messages-primary.ucl.in]
 primary: {
   type: "install"
@@ -949,7 +1027,7 @@ EOM
 }
 
 
-[FILE:1361:files/snmpd.in]
+[FILE:1393:files/snmpd.in]
 #!/bin/sh
 
 # PROVIDE: snmpd
@@ -971,7 +1049,7 @@ load_rc_config snmpd
 snmpd_enable=${snmpd_enable:-"NO"}
 snmpd_flush_cache=${snmpd_flush_cache-"NO"}
 
-pidfile=${snmpd_pidfile:-"/var/run/net_snmpd.pid"}
+pidfile=${snmpd_pidfile:-"%%PREFIX%%/var/run/net-snmp/net_snmpd.pid"}
 
 command=%%PREFIX%%/sbin/${name}
 
@@ -981,7 +1059,7 @@ net_snmpd_precmd () {
 	local flag conffile snmpd_conffile_set
 
 	if checkyesno snmpd_flush_cache; then
-		rm -vf /var/net-snmp/.snmp-exec-cache
+		rm -vf %%PREFIX%%/var/db/net-snmp/.snmp-exec-cache
 	fi
 
 	for flag in ${snmpd_flags}; do
@@ -1015,7 +1093,7 @@ net_snmpd_precmd () {
 run_rc_command "$1"
 
 
-[FILE:718:files/snmptrapd.in]
+[FILE:756:files/snmptrapd.in]
 #!/bin/sh
 
 # PROVIDE: snmptrapd
@@ -1027,7 +1105,7 @@ run_rc_command "$1"
 #
 
 snmptrapd_enable=${snmptrapd_enable-"NO"}
-snmptrapd_flags=${snmptrapd_flags-"-p /var/run/snmptrapd.pid"}
+snmptrapd_flags=${snmptrapd_flags-"-p %%PREFIX%%/var/run/net-smnp/snmptrapd.pid"}
 
 . /etc/rc.subr
 
@@ -1044,7 +1122,7 @@ name=snmptrapd
 rcvar=snmptrapd_enable
 
 command=%%PREFIX%%/sbin/${name}
-pidfile=/var/run/${name}.pid
+pidfile=%%PREFIX%%/var/run/net-snmp/${name}.pid
 
 load_rc_config ${name}
 run_rc_command "$1"

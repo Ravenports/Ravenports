@@ -69,8 +69,13 @@ INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		VERSION=3.69.6
 
 CFLAGS=			-Iputty
+VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfzclient-commonui-private.so
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfzclient-private.so
+
+pre-configure:
 	# Use libidn2 instead of libidn
 	${REINPLACE_CMD} \
 		-e 's/idna/idn2/g' \
@@ -81,10 +86,6 @@ post-patch:
 		-e 's/idna/idn2/g' \
 		-e '/<idn-free.h>/d' \
 		${WRKSRC}/src/engine/controlsocket.cpp
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfzclient-commonui-private.so
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libfzclient-private.so
 
 [FILE:730:descriptions/desc.primary]
 FileZilla Client is a fast and reliable cross-platform FTP, FTPS and SFTP
@@ -899,6 +900,23 @@ share/locale/uk_UA/LC_MESSAGES/filezilla.mo
 share/locale/vi_VN/LC_MESSAGES/filezilla.mo
 share/locale/zh_CN/LC_MESSAGES/filezilla.mo
 share/locale/zh_TW/LC_MESSAGES/filezilla.mo
+
+
+[FILE:363:patches/patch-src_engine_version.cpp]
+--- src/engine/version.cpp.orig	2025-09-26 03:30:01 UTC
++++ src/engine/version.cpp
+@@ -159,7 +159,11 @@ SystemVersion GetSystemVersion()
+ SystemVersion GetSystemVersion()
+ {
+ 	SystemVersion ret;
++#if defined(__sun__)
++	struct utsname buf{};
++#else
+ 	utsname buf{};
++#endif
+ 	if (!uname(&buf)) {
+ 		char const* p = buf.release;
+ 		while (*p >= '0' && *p <= '9') {
 
 
 [FILE:310:patches/patch-src_interface_Mainfrm.h]

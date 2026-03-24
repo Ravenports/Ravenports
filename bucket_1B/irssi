@@ -39,6 +39,7 @@ MESON_ARGS=		-Dwith-bot=yes
 PLIST_SUB=		MODULE={{BUNDLE:Uso}}
 
 LDFLAGS=		{{PERL_RPATH}}
+VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/ncurses
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/irssi.conf ${STAGEDIR}${PREFIX}/etc/irssi.conf.sample
@@ -374,6 +375,94 @@ share/doc/irssi/
  special_vars.txt
  startup-HOWTO.html
  startup-HOWTO.txt
+
+
+[FILE:209:patches/patch-meson.build]
+--- meson.build.orig	2023-10-01 13:46:33 UTC
++++ meson.build
+@@ -636,7 +636,6 @@ install_man('docs/irssi.1')
+ ###########
+ 
+ subdir('src')
+-subdir('tests')
+ subdir('docs')
+ subdir('scripts')
+ subdir('themes')
+
+
+[FILE:346:patches/patch-src_fe-fuzz_fe-common_core_meson.build]
+--- src/fe-fuzz/fe-common/core/meson.build.orig	2023-10-01 13:46:33 UTC
++++ src/fe-fuzz/fe-common/core/meson.build
+@@ -6,8 +6,8 @@ executable('theme-load-fuzz',
+     '../../../fe-text/module-formats.c',
+   ),
+   link_with : [
+-    libconfig_a,
+     libcore_a,
++    libconfig_a,
+     libfuzzer_fe_common_core_a,
+   ],
+   link_args : [fuzzer_lib],
+
+
+[FILE:326:patches/patch-src_fe-fuzz_irc_core_meson.build]
+--- src/fe-fuzz/irc/core/meson.build.orig	2023-10-01 13:46:33 UTC
++++ src/fe-fuzz/irc/core/meson.build
+@@ -7,8 +7,8 @@ executable('event-get-params-fuzz',
+     '../../../fe-text/module-formats.c',
+   ),
+   link_with : [
+-    libconfig_a,
+     libcore_a,
++    libconfig_a,
+     libirc_a,
+     libfuzzer_fe_common_core_a,
+   ],
+
+
+[FILE:313:patches/patch-src_fe-fuzz_meson.build]
+--- src/fe-fuzz/meson.build.orig	2023-10-01 13:46:33 UTC
++++ src/fe-fuzz/meson.build
+@@ -29,8 +29,8 @@ executable('server-fuzz',
+     '../fe-text/module-formats.c',
+   ),
+   link_with : [
+-    libconfig_a,
+     libcore_a,
++    libconfig_a,
+     libfuzzer_fe_common_core_a,
+     libirc_a,
+     libfe_common_irc_a,
+
+
+[FILE:297:patches/patch-src_fe-none_meson.build]
+--- src/fe-none/meson.build.orig	2023-10-01 13:46:33 UTC
++++ src/fe-none/meson.build
+@@ -8,8 +8,8 @@ executable('botti',
+   implicit_include_directories : false,
+   export_dynamic : true,
+   link_with : [
+-    libconfig_a,
+     libcore_a,
++    libconfig_a,
+     libirc_a,
+   ],
+   install : true,
+
+
+[FILE:325:patches/patch-src_fe-text_meson.build]
+--- src/fe-text/meson.build.orig	2023-10-01 13:46:33 UTC
++++ src/fe-text/meson.build
+@@ -32,8 +32,8 @@ executable('irssi',
+   implicit_include_directories : false,
+   export_dynamic : true,
+   link_with : [
+-    libconfig_a,
+     libcore_a,
++    libconfig_a,
+     libfe_common_core_a,
+     libirc_a,
+     libfe_common_irc_a,
 
 
 [FILE:260:patches/patch-utils_irssi-version.sh]

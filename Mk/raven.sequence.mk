@@ -141,6 +141,7 @@ _STAGE_SEQ+=		200:stage-dir \
 			550:do-install-opsys
 .endif
 _STAGE_SEQ+=		700:post-install \
+			710:post-install-module \
 			725:post-install-option \
 			750:post-install-opsys \
 			775:post-install-script \
