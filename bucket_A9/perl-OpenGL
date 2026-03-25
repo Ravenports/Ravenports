@@ -63,23 +63,23 @@ Perl bindings to the OpenGL API, GLU, and GLUT/FreeGLUT
 838d2ec084eacb0f9c9c5c5e816deddec94ce642e44c9182735d3953de0e6f5f       737019 OpenGL-0.7009.tar.gz
 
 
-[FILE:3114:patches/patch-Makefile.PL]
+[FILE:3112:patches/patch-Makefile.PL]
 Don't check current display for extensions, build all.
 Similar to gentoo portage.
 
---- Makefile.PL.orig	2025-04-14 04:33:29 UTC
+--- Makefile.PL.orig	2026-02-07 18:49:14 UTC
 +++ Makefile.PL
-@@ -181,8 +181,7 @@ WriteMakefile(
-       "lib/OpenGL/Config.pm ".
-       "gl_exclude.h ".
-       "utils/glversion.txt ".
--      "utils/glversion$Config{exe_ext} ".
+@@ -179,8 +179,7 @@ WriteMakefile(
+   clean => {
+     FILES => join(' ',
+       qw(lib/OpenGL/Config.pm gl_exclude.h utils/glversion.txt auto-xs.inc),
+-      "utils/glversion$Config{exe_ext}",
 -      "utils/glversion$Config{obj_ext}"
 +      ""
+     ),
    },
-   %$build_config,
-   INC => $INCS . ' -I'.curdir(),
-@@ -504,47 +503,7 @@ sub get_gldata {
+   depend => {
+@@ -509,47 +508,7 @@ sub get_gldata {
      ($found->{FREEGLUT32} || $found->{FREEGLUT}) ? "GLUT_DEF=HAVE_FREEGLUT " :
      ($found->{GLUT32} || $found->{GLUT}) ? "GLUT_DEF=HAVE_GLUT " :
      '';
@@ -127,7 +127,7 @@ Similar to gentoo portage.
    # Fix GLUT flags based on results
    if ($gldata->{FREEGLUT}) {
      print 'Found FreeGLUT v'.$gldata->{FREEGLUT}."\n";
-@@ -570,12 +529,10 @@ sub generate_excl {
+@@ -575,12 +534,10 @@ sub generate_excl {
      next if ($ext =~ m|^GL_VERSION_|);
      $no_ext->{$ext}++;
    }
@@ -145,9 +145,9 @@ Similar to gentoo portage.
 
 
 [FILE:324:patches/patch-gl_util.c]
---- gl_util.c.orig	2025-04-14 04:33:29 UTC
+--- gl_util.c.orig	2026-02-07 18:49:14 UTC
 +++ gl_util.c
-@@ -759,6 +759,12 @@ int gl_component_count(GLenum format, GL
+@@ -978,6 +978,12 @@ int gl_component_count(GLenum format, GL
  
  /* 18 */
  #ifdef GL_EXT_cmyka

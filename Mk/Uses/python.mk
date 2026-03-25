@@ -221,6 +221,8 @@ wheel-install:
 		--progress-bar off \
 		--root ${STAGEDIR} \
 		${DISTDIR}/${DIST_SUBDIR}/${DISTFILE_1:C/:.*//}
+
+	@${MK_SCRIPTS}/fix-python-shebang.sh "${STAGEDIR}" "${PREFIX}" "${PYTHON_CMD}"
 .    endif
 
 .    if !target(do-install)

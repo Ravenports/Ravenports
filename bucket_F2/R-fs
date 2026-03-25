@@ -19,6 +19,9 @@ SPKGS[std]=		single
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BUILD_DEPENDS=		libuv:dev:std
+BUILDRUN_DEPENDS=	libuv:primary:std
+
 USES=			cran gmake iconv:build zlib:build xz:build bz2:build
 			pcre2:build zstd:build
 
@@ -27,10 +30,6 @@ DISTNAME=		fs
 GENERATED=		yes
 
 INSTALL_REQ_TOOLCHAIN=	yes
-
-post-extract:
-	${CP} ${MK_TEMPLATES}/config.guess ${WRKSRC}/src/libuv-*/config.guess
-	${CP} ${MK_TEMPLATES}/config.sub ${WRKSRC}/src/libuv-*/config.sub
 
 [FILE:153:descriptions/desc.single]
 fs: Cross-Platform File System Operations Based on 'libuv'
@@ -43,15 +42,10 @@ A cross-platform interface to file system operations, built on top of the
 1d1706d748772d16fd1a8b7f667c761948bb931199f85fad081396847c07e0c2      1471271 CRAN/fs_2.0.1.tar.gz
 
 
-[FILE:1089:patches/patch-src_Makevars]
---- src/Makevars.orig	2024-10-27 13:47:33 UTC
-+++ src/Makevars
-@@ -10,10 +10,14 @@ OBJECTS = $(SOURCES:.cc=.o)
- ifeq ($(UNAME), SunOS)
- PKG_LIBS += -lkstat -lsendfile -lsocket -lxnet
- OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
-+CONFTGT = --build=i86-pc-solaris2.10
- endif
+[FILE:612:patches/patch-src_Makevars.in]
+--- src/Makevars.in.orig	2026-03-21 21:48:10 UTC
++++ src/Makevars.in
+@@ -8,12 +8,20 @@ UNAME := $(shell uname)
  ifeq ($(UNAME), FreeBSD)
  PKG_LIBS += -lkvm
  endif
@@ -61,61 +55,21 @@ A cross-platform interface to file system operations, built on top of the
  ifeq ($(UNAME), OpenBSD)
  PKG_LIBS += -lkvm
  endif
-@@ -35,7 +39,7 @@ $(SHLIB): $(LIBUV)/.libs/libuv.a
- $(LIBUV)/Makefile:
- 	touch $(LIBUV)/aclocal.m4 && touch $(LIBUV)/configure && touch $(LIBUV)/Makefile.in
- 	(cd $(LIBUV) \
--	&& CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY) -std=c99" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure $(R_CONFIGURE_FLAGS) --quiet)
-+	&& CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS) $(CPICFLAGS) $(C_VISIBILITY) -std=c99" AR="$(AR)" RANLIB="$(RANLIB)" LDFLAGS="$(LDFLAGS)" ./configure $(R_CONFIGURE_FLAGS) --quiet $(CONFTGT))
- 
- $(LIBUV)/.libs/libuv.a: $(LIBUV)/Makefile
- 	$(MAKE) --directory=$(LIBUV) \
-
-
-[FILE:247:patches/patch-src_libuv-1.44.2_configure]
---- src/libuv-1.44.2/configure.orig	2024-10-28 22:30:40 UTC
-+++ src/libuv-1.44.2/configure
-@@ -15005,7 +15005,7 @@ else
- fi
- 
-  if case $host_os in
--  *freebsd*) true ;;
-+  *freebsd*|*midnight*) true ;;
-   *) false ;;
- esac; then
-   FREEBSD_TRUE=
-
-
-[FILE:1592:patches/patch-src_libuv-1.44.2_src_unix_fs.c]
---- src/libuv-1.44.2/src/unix/fs.c.orig	2024-10-25 23:43:17 UTC
-+++ src/libuv-1.44.2/src/unix/fs.c
-@@ -1139,13 +1139,13 @@ static ssize_t uv__fs_sendfile(uv_fs_t*
- static ssize_t uv__fs_utime(uv_fs_t* req) {
- #if defined(__linux__)                                                         \
-     || defined(_AIX71)                                                         \
--    || defined(__sun)                                                          \
-     || defined(__HAIKU__)
-   struct timespec ts[2];
-   ts[0] = uv__fs_to_timespec(req->atime);
-   ts[1] = uv__fs_to_timespec(req->mtime);
-   return utimensat(AT_FDCWD, req->path, ts, 0);
- #elif defined(__APPLE__)                                                      \
-+    || defined(__sun)                                                         \
-     || defined(__DragonFly__)                                                 \
-     || defined(__FreeBSD__)                                                   \
-     || defined(__FreeBSD_kernel__)                                            \
-@@ -1179,7 +1179,6 @@ static ssize_t uv__fs_utime(uv_fs_t* req
- static ssize_t uv__fs_lutime(uv_fs_t* req) {
- #if defined(__linux__)            ||                                           \
-     defined(_AIX71)               ||                                           \
--    defined(__sun)                ||                                           \
-     defined(__HAIKU__)            ||                                           \
-     defined(__GNU__)              ||                                           \
-     defined(__OpenBSD__)
+ ifeq ($(UNAME), NetBSD)
+ PKG_LIBS += -lkvm
+ endif
++ifeq ($(UNAME), SunOS)
++PKG_LIBS += -lkstat -lsendfile -lsocket -lxnet
++OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
++CONFTGT = --build=i86-pc-solaris2.10
++endif
+ ifneq ($(filter $(UNAME), Linux AIX OS400),)
+ OBJECTS +=  bsd/setmode.o bsd/strmode.o bsd/reallocarray.o
+ endif
 
 
 [FILE:367:patches/patch-src_unix_getmode.cc]
---- src/unix/getmode.cc.orig	2024-10-25 10:46:21 UTC
+--- src/unix/getmode.cc.orig	2026-03-03 17:53:42 UTC
 +++ src/unix/getmode.cc
 @@ -2,6 +2,7 @@
  #include "utils.h"

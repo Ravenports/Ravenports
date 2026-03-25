@@ -776,7 +776,7 @@ www/nginx-dist/
 
 
 [FILE:1443:files/extra-patch-src_http_modules_ngx__http__upstream__hash__module.c]
---- src/http/modules/ngx_http_upstream_hash_module.c.orig	2024-04-23 14:04:32 UTC
+--- src/http/modules/ngx_http_upstream_hash_module.c.orig	2026-03-10 15:29:07 UTC
 +++ src/http/modules/ngx_http_upstream_hash_module.c
 @@ -9,6 +9,9 @@
  #include <ngx_core.h>
@@ -788,7 +788,7 @@ www/nginx-dist/
  
  typedef struct {
      uint32_t                            hash;
-@@ -238,6 +241,15 @@ ngx_http_upstream_get_hash_peer(ngx_peer
+@@ -261,6 +264,15 @@ ngx_http_upstream_get_hash_peer(ngx_peer
              goto next;
          }
  
@@ -804,7 +804,7 @@ www/nginx-dist/
          if (peer->max_fails
              && peer->fails >= peer->max_fails
              && now - peer->checked <= peer->fail_timeout)
-@@ -560,6 +572,15 @@ ngx_http_upstream_get_chash_peer(ngx_pee
+@@ -655,6 +667,15 @@ ngx_http_upstream_get_chash_peer(ngx_pee
                  continue;
              }
  
@@ -823,7 +823,7 @@ www/nginx-dist/
 
 
 [FILE:875:files/extra-patch-src_http_modules_ngx__http__upstream__ip__hash__module.c]
---- src/http/modules/ngx_http_upstream_ip_hash_module.c.orig	2024-04-23 14:04:32 UTC
+--- src/http/modules/ngx_http_upstream_ip_hash_module.c.orig	2026-03-10 15:29:07 UTC
 +++ src/http/modules/ngx_http_upstream_ip_hash_module.c
 @@ -9,6 +9,9 @@
  #include <ngx_core.h>
@@ -835,7 +835,7 @@ www/nginx-dist/
  
  typedef struct {
      /* the round robin data must be first */
-@@ -208,6 +211,15 @@ ngx_http_upstream_get_ip_hash_peer(ngx_p
+@@ -227,6 +230,15 @@ ngx_http_upstream_get_ip_hash_peer(ngx_p
              goto next;
          }
  
@@ -854,7 +854,7 @@ www/nginx-dist/
 
 
 [FILE:1493:files/extra-patch-src_http_modules_ngx__http__upstream__least__conn__module.c]
---- src/http/modules/ngx_http_upstream_least_conn_module.c.orig	2024-04-23 14:04:32 UTC
+--- src/http/modules/ngx_http_upstream_least_conn_module.c.orig	2026-03-10 15:29:07 UTC
 +++ src/http/modules/ngx_http_upstream_least_conn_module.c
 @@ -9,6 +9,9 @@
  #include <ngx_core.h>
@@ -866,7 +866,7 @@ www/nginx-dist/
  
  static ngx_int_t ngx_http_upstream_init_least_conn_peer(ngx_http_request_t *r,
      ngx_http_upstream_srv_conf_t *us);
-@@ -147,6 +150,16 @@ ngx_http_upstream_get_least_conn_peer(ng
+@@ -161,6 +164,16 @@ ngx_http_upstream_get_least_conn_peer(ng
              continue;
          }
  
@@ -883,7 +883,7 @@ www/nginx-dist/
          if (peer->max_fails
              && peer->fails >= peer->max_fails
              && now - peer->checked <= peer->fail_timeout)
-@@ -202,6 +215,16 @@ ngx_http_upstream_get_least_conn_peer(ng
+@@ -216,6 +229,16 @@ ngx_http_upstream_get_least_conn_peer(ng
                  continue;
              }
  
@@ -902,12 +902,12 @@ www/nginx-dist/
              }
 
 
-[FILE:3377:files/extra-patch-src_http_ngx__http__upstream__round__robin.c]
---- src/http/ngx_http_upstream_round_robin.c.orig	2024-04-23 14:04:32 UTC
+[FILE:2090:files/extra-patch-src_http_ngx__http__upstream__round__robin.c]
+--- src/http/ngx_http_upstream_round_robin.c.orig	2026-03-10 15:29:07 UTC
 +++ src/http/ngx_http_upstream_round_robin.c
-@@ -9,6 +9,9 @@
- #include <ngx_core.h>
+@@ -10,6 +10,9 @@
  #include <ngx_http.h>
+ #include <ngx_md5.h>
  
 +#if (NGX_HTTP_UPSTREAM_CHECK)
 +#include "ngx_http_upstream_check_module.h"
@@ -915,40 +915,7 @@ www/nginx-dist/
  
  #define ngx_http_upstream_tries(p) ((p)->tries                                \
                                      + ((p)->next ? (p)->next->tries : 0))
-@@ -103,7 +106,14 @@ ngx_http_upstream_init_round_robin(ngx_c
-                 peer[n].fail_timeout = server[i].fail_timeout;
-                 peer[n].down = server[i].down;
-                 peer[n].server = server[i].name;
--
-+#if (NGX_HTTP_UPSTREAM_CHECK)
-+                if (!server[i].down) {
-+                    peer[n].check_index =
-+                        ngx_http_upstream_check_add_peer(cf, us, &server[i].addrs[j]);
-+                } else {
-+                    peer[n].check_index = (ngx_uint_t) NGX_ERROR;
-+                }
-+#endif
-                 *peerp = &peer[n];
-                 peerp = &peer[n].next;
-                 n++;
-@@ -173,7 +183,15 @@ ngx_http_upstream_init_round_robin(ngx_c
-                 peer[n].fail_timeout = server[i].fail_timeout;
-                 peer[n].down = server[i].down;
-                 peer[n].server = server[i].name;
--
-+#if (NGX_HTTP_UPSTREAM_CHECK)
-+                if (!server[i].down) {
-+                    peer[n].check_index =
-+                        ngx_http_upstream_check_add_peer(cf, us, &server[i].addrs[j]);
-+                }
-+                else {
-+                    peer[n].check_index = (ngx_uint_t) NGX_ERROR;
-+                }
-+#endif
-                 *peerp = &peer[n];
-                 peerp = &peer[n].next;
-                 n++;
-@@ -241,6 +259,9 @@ ngx_http_upstream_init_round_robin(ngx_c
+@@ -442,6 +445,9 @@ ngx_http_upstream_init_round_robin(ngx_c
          peer[i].max_conns = 0;
          peer[i].max_fails = 1;
          peer[i].fail_timeout = 10;
@@ -958,7 +925,7 @@ www/nginx-dist/
          *peerp = &peer[i];
          peerp = &peer[i].next;
      }
-@@ -358,6 +379,9 @@ ngx_http_upstream_create_round_robin_pee
+@@ -624,6 +630,9 @@ ngx_http_upstream_create_round_robin_pee
          peer[0].max_conns = 0;
          peer[0].max_fails = 1;
          peer[0].fail_timeout = 10;
@@ -968,7 +935,7 @@ www/nginx-dist/
          peers->peer = peer;
  
      } else {
-@@ -392,6 +416,9 @@ ngx_http_upstream_create_round_robin_pee
+@@ -658,6 +667,9 @@ ngx_http_upstream_create_round_robin_pee
              peer[i].max_conns = 0;
              peer[i].max_fails = 1;
              peer[i].fail_timeout = 10;
@@ -978,9 +945,9 @@ www/nginx-dist/
              *peerp = &peer[i];
              peerp = &peer[i].next;
          }
-@@ -457,6 +484,12 @@ ngx_http_upstream_get_round_robin_peer(n
-             goto failed;
+@@ -737,6 +749,12 @@ ngx_http_upstream_get_round_robin_peer(n
          }
+ #endif
  
 +#if (NGX_HTTP_UPSTREAM_CHECK)
 +        if (ngx_http_upstream_check_peer_down(peer->check_index)) {
@@ -989,9 +956,9 @@ www/nginx-dist/
 +#endif
 +
          rrp->current = peer;
+         ngx_http_upstream_rr_peer_ref(peers, peer);
  
-     } else {
-@@ -551,6 +584,12 @@ ngx_http_upstream_get_peer(ngx_http_upst
+@@ -870,6 +888,12 @@ ngx_http_upstream_get_peer(ngx_http_upst
              continue;
          }
  
@@ -1006,11 +973,11 @@ www/nginx-dist/
              && now - peer->checked <= peer->fail_timeout)
 
 
-[FILE:390:files/extra-patch-src_http_ngx__http__upstream__round__robin.h]
---- src/http/ngx_http_upstream_round_robin.h.orig	2024-04-23 14:04:32 UTC
+[FILE:389:files/extra-patch-src_http_ngx__http__upstream__round__robin.h]
+--- src/http/ngx_http_upstream_round_robin.h.orig	2026-03-10 15:29:07 UTC
 +++ src/http/ngx_http_upstream_round_robin.h
-@@ -49,6 +49,10 @@ struct ngx_http_upstream_rr_peer_s {
-     ngx_atomic_t                    lock;
+@@ -89,6 +89,10 @@ struct ngx_http_upstream_rr_peer_s {
+     ngx_str_t                       sid;
  #endif
  
 +#if (NGX_HTTP_UPSTREAM_CHECK)
@@ -1019,7 +986,7 @@ www/nginx-dist/
 +
      ngx_http_upstream_rr_peer_t    *next;
  
-     NGX_COMPAT_BEGIN(32)
+     NGX_COMPAT_BEGIN(13)
 
 
 [FILE:1806:files/manifest.xml.in]
