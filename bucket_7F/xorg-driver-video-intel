@@ -2,7 +2,7 @@
 
 NAMEBASE=		xorg-driver-video-intel
 VERSION=		2.99.917.923
-REVISION=		1
+REVISION=		2
 EPOCH=			1
 KEYWORDS=		x11_drivers
 VARIANTS=		std
@@ -703,6 +703,20 @@ https://gitlab.freedesktop.org/E5ten/xf86-video-intel/-/commit/a92ccaf05efe8f11b
  
  	list_for_each_entry(bo, &kgem->next_request->buffers, request)
  		if (bo->target_handle == handle)
+
+
+[FILE:291:patches/patch-src_sna_sna__accel.c]
+--- src/sna/sna_accel.c.orig	2023-02-01 18:07:58 UTC
++++ src/sna/sna_accel.c
+@@ -8912,7 +8912,7 @@ sna_copy_plane(DrawablePtr src, Drawable
+ 		}
+ 
+ 		if (!kgem_bo_can_blt(&sna->kgem, arg.bo))
+-			return false;
++			return NULL;
+ 
+ 		RegionUninit(&region);
+ 		return sna_do_copy(src, dst, gc,
 
 
 [FILE:851:patches/patch-src_sna_sna__damage.c]

@@ -49,12 +49,10 @@ SINGLE_JOB=		yes
 
 SUB_FILES=		redcsl
 
-CPPFLAGS=		`freetype-config
-			--cflags`
+CPPFLAGS=		-I{{LOCALBASE}}/include/freetype2
 			-I{{NCURSESINC}}
 			-fcommon
-LDFLAGS=		`freetype-config
-			--libs`
+LDFLAGS=		-lfreetype
 			-ltinfo
 VAR_OPSYS[freebsd]=	VAR1={{ARCH_STANDARD}}-raven-freebsd{{MAJOR}}
 VAR_OPSYS[sunos]=	VAR1={{ARCH_STANDARD}}-raven-solaris2.10
@@ -258,6 +256,52 @@ share/doc/reduce/
  symbolic.tex
  title.tex
  util.tex
+
+
+[FILE:314:patches/patch-libraries_libedit-20140620-3.1_Makefile.am]
+--- libraries/libedit-20140620-3.1/Makefile.am.orig	2016-05-03 07:44:05 UTC
++++ libraries/libedit-20140620-3.1/Makefile.am
+@@ -2,10 +2,6 @@
+ AUTOMAKE_OPTIONS = foreign
+ ACLOCAL_AMFLAGS = -I m4
+ 
+-if ENABLE_EXAMPLES
+-  EXAMPLES_DIR=examples
+-endif
+-
+ SUBDIRS = src $(EXAMPLES_DIR) doc
+ 
+ EXTRA_DIST = libedit.pc.in
+
+
+[FILE:314:patches/patch-libraries_libedit-20210216-3.1_Makefile.am]
+--- libraries/libedit-20210216-3.1/Makefile.am.orig	2021-03-11 17:02:19 UTC
++++ libraries/libedit-20210216-3.1/Makefile.am
+@@ -2,10 +2,6 @@
+ AUTOMAKE_OPTIONS = foreign
+ ACLOCAL_AMFLAGS = -I m4
+ 
+-if ENABLE_EXAMPLES
+-  EXAMPLES_DIR=examples
+-endif
+-
+ SUBDIRS = src $(EXAMPLES_DIR) doc
+ 
+ EXTRA_DIST = libedit.pc.in
+
+
+[FILE:469:patches/patch-libraries_libedit-20210216-3.1_Makefile.in]
+--- libraries/libedit-20210216-3.1/Makefile.in.orig	2021-03-11 17:02:19 UTC
++++ libraries/libedit-20210216-3.1/Makefile.in
+@@ -189,7 +189,7 @@ am__define_uniq_tagged_files = \
+ ETAGS = etags
+ CTAGS = ctags
+ CSCOPE = cscope
+-DIST_SUBDIRS = src examples doc
++DIST_SUBDIRS = src doc
+ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
+ 	$(srcdir)/libedit.pc.in COPYING ChangeLog INSTALL THANKS \
+ 	compile config.guess config.sub install-sh ltmain.sh missing
 
 
 [FILE:342:patches/patch-scripts_make.sh]

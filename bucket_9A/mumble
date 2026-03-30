@@ -216,6 +216,38 @@ share/man/man1/
  mumble.1
 
 
+[FILE:543:patches/patch-src_Connection.cpp]
+Fix build with protobuf 34.x
+
+--- src/Connection.cpp.orig	2025-10-11 18:24:04 UTC
++++ src/Connection.cpp
+@@ -173,7 +173,7 @@ void Connection::messageToNetwork(const
+ 	qToBigEndian< quint16 >(static_cast< quint16 >(msgType), &uc[0]);
+ 	qToBigEndian< quint32 >(static_cast< unsigned int >(len), &uc[2]);
+ 
+-	msg.SerializeToArray(uc + 6, static_cast< int >(len));
++	if (!msg.SerializeToArray(uc + 6, static_cast< int >(len))) {}
+ }
+ 
+ void Connection::sendMessage(const ::google::protobuf::Message &msg, Mumble::Protocol::TCPMessageType msgType,
+
+
+[FILE:431:patches/patch-src_MumbleProtocol.cpp]
+Fix build with protobuf 34.x
+
+--- src/MumbleProtocol.cpp.orig	2025-10-11 18:24:04 UTC
++++ src/MumbleProtocol.cpp
+@@ -54,7 +54,7 @@ namespace Protocol {
+ 
+ 		buffer.resize(serializedSize + offset);
+ 
+-		message.SerializePartialToArray(buffer.data() + offset, static_cast< int >(serializedSize));
++		if (!message.SerializePartialToArray(buffer.data() + offset, static_cast< int >(serializedSize))) {}
+ 
+ 		return serializedSize;
+ 	}
+
+
 [FILE:1330:patches/patch-src_ProcessResolver.cpp]
 --- src/ProcessResolver.cpp.orig	2024-12-06 16:07:53 UTC
 +++ src/ProcessResolver.cpp
