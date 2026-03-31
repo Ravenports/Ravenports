@@ -72,7 +72,7 @@ _USES_POST+=	autoreconf
 # BUILD_DEPENDS+=	libtool:primary:std
 # -----------------------------------------------
 
-_AUTORECONF?=	2.72
+_AUTORECONF?=	2.73
 AUTORECONF?=	${LOCALBASE}/bin/autoreconf
 AUTORECONF_WRKSRC?=	${WRKSRC}
 

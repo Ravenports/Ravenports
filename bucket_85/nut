@@ -32,6 +32,10 @@ BUILDRUN_DEPENDS=	libltdl:primary:std
 			net-snmp:primary:std
 			neon:primary:std
 			freeipmi:primary:std
+B_DEPS[linux]=		libusb:dev:std
+B_DEPS[netbsd]=		libusb:dev:std
+BR_DEPS[linux]=		libusb:primary:std
+BR_DEPS[netbsd]=	libusb:primary:std
 
 USERS=			nut
 GROUPS=			nut
@@ -97,6 +101,8 @@ SUB_LIST=		STATEDIR=/var/db/nut
 			NUT_USER=nut
 			NUT_GROUP=nut
 
+VAR_OPSYS[linux]=	CFLAGS=-D_GNU_SOURCE
+
 pre-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/libexec/nut
 	${REINPLACE_CMD} -e 's/device-name\*/cdev/g' \
@@ -145,7 +151,7 @@ and connection media types.
 0130ba82ea79f04ba4f34c5249a85943977efd984ed7df6aec1a518d5a3594f8      6522704 nut-2.8.4.tar.gz
 
 
-[FILE:1854:manifests/plist.primary]
+[FILE:1888:manifests/plist.primary]
 @sample etc/nut/hosts.conf.sample
 @sample etc/nut/nut.conf.sample
 @sample etc/nut/ups.conf.sample
@@ -160,6 +166,7 @@ and connection media types.
  upsimage.cgi
  upsset.cgi
  upsstats.cgi
+%%ONLY-LINUX%%libexec/nut/nhs_ser
 %%PYTHON_SITELIBDIR%%/
  PyNUT.py
  test_nutclient.py
@@ -291,7 +298,8 @@ lib/pkgconfig/
  libupsclient.pc
 
 
-[FILE:3555:manifests/plist.man]
+[FILE:3594:manifests/plist.man]
+%%ONLY-LINUX%%share/man/man8/nhs_ser.8
 share/man/man3/
  libnutclient.3
  libnutclient_commands.3

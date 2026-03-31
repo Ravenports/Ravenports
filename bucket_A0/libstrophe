@@ -87,3 +87,141 @@ lib/pkgconfig/libstrophe.pc
  /** Max buffer size for compressed data (send & receive). */
  #define STROPHE_COMPRESSION_BUFFER_SIZE 4096
 
+
+[FILE:5953:patches/patch-src_handler.c]
+--- src/handler.c.orig	2025-03-13 13:44:37 UTC
++++ src/handler.c
+@@ -89,7 +89,7 @@ void handler_fire_stanza(xmpp_conn_t *co
+                 continue;
+             }
+ 
+-            ret = ((xmpp_handler)(item->handler))(conn, stanza, item->userdata);
++            ret = ((xmpp_handler)(void (*)(void))(item->handler))(conn, stanza, item->userdata);
+             next = item->next;
+             if (!ret) {
+                 /* handler is one-shot, so delete it */
+@@ -131,7 +131,7 @@ void handler_fire_stanza(xmpp_conn_t *co
+             (!item->u.name || (name && strcmp(name, item->u.name) == 0)) &&
+             (!item->u.type || (type && strcmp(type, item->u.type) == 0))) {
+ 
+-            ret = ((xmpp_handler)(item->handler))(conn, stanza, item->userdata);
++            ret = ((xmpp_handler)(void (*)(void))(item->handler))(conn, stanza, item->userdata);
+             /* list may be changed during execution of a handler */
+             next = item->next;
+             if (!ret) {
+@@ -190,7 +190,7 @@ uint64_t handler_fire_timed(xmpp_ctx_t *
+             if (elapsed >= item->u.period) {
+                 /* fire! */
+                 item->u.last_stamp = timestamp;
+-                ret = ((xmpp_timed_handler)item->handler)(conn, item->userdata);
++                ret = ((xmpp_timed_handler)(void (*)(void))item->handler)(conn, item->userdata);
+                 /* list may be changed during execution of a handler */
+                 next = item->next;
+                 if (!ret) {
+@@ -221,7 +221,7 @@ uint64_t handler_fire_timed(xmpp_ctx_t *
+             /* fire! */
+             item->u.last_stamp = timestamp;
+             ret =
+-                ((xmpp_global_timed_handler)item->handler)(ctx, item->userdata);
++                ((xmpp_global_timed_handler)(void (*)(void))item->handler)(ctx, item->userdata);
+             /* list may be changed during execution of a handler */
+             next = item->next;
+             if (!ret) {
+@@ -320,7 +320,7 @@ static void _timed_handler_delete(xmpp_c
+  */
+ void xmpp_timed_handler_delete(xmpp_conn_t *conn, xmpp_timed_handler handler)
+ {
+-    _timed_handler_delete(conn->ctx, &conn->timed_handlers, handler);
++    _timed_handler_delete(conn->ctx, &conn->timed_handlers, (xmpp_void_handler)(void *)handler);
+ }
+ 
+ static void _id_handler_add(xmpp_conn_t *conn,
+@@ -334,7 +334,7 @@ static void _id_handler_add(xmpp_conn_t
+     /* check if handler is already in the list */
+     item = (xmpp_handlist_t *)hash_get(conn->id_handlers, id);
+     while (item) {
+-        if (item->handler == handler && item->userdata == userdata) {
++        if (item->handler == (void *)handler && item->userdata == userdata) {
+             strophe_warn(conn->ctx, "xmpp", "Id handler already exists.");
+             break;
+         }
+@@ -349,7 +349,7 @@ static void _id_handler_add(xmpp_conn_t
+         return;
+ 
+     item->user_handler = user_handler;
+-    item->handler = handler;
++    item->handler = (xmpp_void_handler)(void *)handler;
+     item->userdata = userdata;
+     item->enabled = 0;
+     item->next = NULL;
+@@ -393,7 +393,7 @@ void xmpp_id_handler_delete(xmpp_conn_t
+     while (item) {
+         next = item->next;
+ 
+-        if (item->handler == handler) {
++        if (item->handler == (void *)handler) {
+             if (prev)
+                 prev->next = next;
+             else {
+@@ -436,7 +436,7 @@ static void _handler_add(xmpp_conn_t *co
+     for (item = conn->handlers; item; item = item->next) {
+         /* same handler function can process different stanzas and
+            distinguish them according to userdata. */
+-        if (item->handler == handler && item->userdata == userdata) {
++        if (item->handler == (void *)handler && item->userdata == userdata) {
+             strophe_warn(conn->ctx, "xmpp", "Stanza handler already exists.");
+             break;
+         }
+@@ -451,7 +451,7 @@ static void _handler_add(xmpp_conn_t *co
+ 
+     memset(item, 0, sizeof(*item));
+     item->user_handler = user_handler;
+-    item->handler = handler;
++    item->handler = (xmpp_void_handler)(void *)handler;
+     item->userdata = userdata;
+ 
+     if (_dup_string(conn->ctx, ns, &item->u.ns))
+@@ -494,7 +494,7 @@ void xmpp_handler_delete(xmpp_conn_t *co
+     prev = NULL;
+     item = conn->handlers;
+     while (item) {
+-        if (item->handler == handler) {
++        if (item->handler == (void *)handler) {
+             if (prev)
+                 prev->next = item->next;
+             else
+@@ -530,7 +530,7 @@ void xmpp_timed_handler_add(xmpp_conn_t
+                             unsigned long period,
+                             void *userdata)
+ {
+-    _timed_handler_add(conn->ctx, &conn->timed_handlers, handler, period,
++    _timed_handler_add(conn->ctx, &conn->timed_handlers, (xmpp_void_handler)(void *)handler, period,
+                        userdata, 1);
+ }
+ 
+@@ -548,7 +548,7 @@ void handler_add_timed(xmpp_conn_t *conn
+                        unsigned long period,
+                        void *userdata)
+ {
+-    _timed_handler_add(conn->ctx, &conn->timed_handlers, handler, period,
++    _timed_handler_add(conn->ctx, &conn->timed_handlers, (xmpp_void_handler)(void *)handler, period,
+                        userdata, 0);
+ }
+
+@@ -747,7 +747,7 @@ void xmpp_global_timed_handler_add(xmpp_
+                                    unsigned long period,
+                                    void *userdata)
+ {
+-    _timed_handler_add(ctx, &ctx->timed_handlers, handler, period, userdata, 1);
++    _timed_handler_add(ctx, &ctx->timed_handlers, (xmpp_void_handler)(void *)handler, period, userdata, 1);
+ }
+ 
+ /** Delete a global timed handler.
+@@ -760,5 +760,5 @@ void xmpp_global_timed_handler_add(xmpp_
+ void xmpp_global_timed_handler_delete(xmpp_ctx_t *ctx,
+                                       xmpp_global_timed_handler handler)
+ {
+-    _timed_handler_delete(ctx, &ctx->timed_handlers, handler);
++    _timed_handler_delete(ctx, &ctx->timed_handlers, (xmpp_void_handler)(void *)handler);
+ }
+
