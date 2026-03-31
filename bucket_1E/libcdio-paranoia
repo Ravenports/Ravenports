@@ -43,6 +43,9 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		2.0.0
 
+pre-configure:
+	${RM} ${WRKSRC}/src/getopt.h
+
 [FILE:275:descriptions/desc.primary]
 Libcdio-paranoia is a port of Xiph.org's CDDA Paranoia that uses libcdio 
 for CD-ROM access. The major benefit is better portability.
@@ -89,4 +92,32 @@ lib/pkgconfig/
 [FILE:61:manifests/plist.man]
 share/man/ja/man1/cd-paranoia.1
 share/man/man1/cd-paranoia.1
+
+
+[FILE:279:patches/patch-src_Makefile.am]
+--- src/Makefile.am.orig	2024-05-07 09:41:03 UTC
++++ src/Makefile.am
+@@ -5,7 +5,7 @@
+ 
+ transform = s,cd-paranoia,@CDPARANOIA_NAME@,
+ 
+-GETOPT_C = getopt1.c getopt.c
++GETOPT_C =
+ 
+ EXTRA_DIST = usage.txt.in usage-copy.h pod2c.pl \
+              $(GETOPT_C) getopt_int.h getopt.h
+
+
+[FILE:206:patches/patch-src_cd-paranoia.c]
+--- src/cd-paranoia.c.orig	2024-05-07 09:41:03 UTC
++++ src/cd-paranoia.c
+@@ -60,7 +60,7 @@
+ #include <fcntl.h>
+ #endif
+ 
+-#include "getopt.h"
++#include <getopt.h>
+ 
+ #ifdef HAVE_ERRNO_H
+ #include <errno.h>
 

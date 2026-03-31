@@ -48,17 +48,17 @@ CMAKE_ARGS=		-DENABLE_PYTHON3:BOOL=ON
 			-DENABLE_JAVASCRIPT:BOOL=OFF
 VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 
-post-patch:
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/* \
+		${STAGEDIR}${PREFIX}/lib/weechat/plugins/*
+
+pre-configure:
 	${GREP} -l '/usr/local' \
 		${WRKSRC}/CMakeLists.txt \
 		${WRKSRC}/src/CMakeLists.txt \
 		${WRKSRC}/src/core/CMakeLists.txt \
 		${WRKSRC}/cmake/*.cmake | ${XARGS} \
 		${REINPLACE_CMD} 's|/usr/local|${LOCALBASE}|'
-
-post-install:
-	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/* \
-		${STAGEDIR}${PREFIX}/lib/weechat/plugins/*
 
 [FILE:201:descriptions/desc.primary]
 WeeChat (Wee Enhanced Environment for Chat) is a fast and light chat
@@ -120,6 +120,20 @@ share/locale/pt_BR/LC_MESSAGES/weechat.mo
 share/locale/ru/LC_MESSAGES/weechat.mo
 share/locale/sr/LC_MESSAGES/weechat.mo
 share/locale/tr/LC_MESSAGES/weechat.mo
+
+
+[FILE:388:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2026-03-29 08:20:23 UTC
++++ CMakeLists.txt
+@@ -290,7 +290,7 @@ else()
+   add_custom_target(translations COMMAND true)
+ endif()
+ 
+-if(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
++if(${CMAKE_SYSTEM_NAME} STREQUAL "SKIP")
+   find_library(EXECINFO_LIB_PATH execinfo /usr/local/lib)
+   check_function_exists(backtrace HAVE_BACKTRACE)
+   list(APPEND EXTRA_LIBS "execinfo")
 
 
 [FILE:306:patches/patch-src_core_core-crypto.c]

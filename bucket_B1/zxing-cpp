@@ -2,6 +2,7 @@
 
 NAMEBASE=		zxing-cpp
 VERSION=		3.0.2
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		Zebra Crossing barcode scanning C++ library
@@ -39,9 +40,10 @@ SOVERSION=		3.0.2
 PLIST_SUB=		ZXING_SOMAJOR=4
 
 CMAKE_ARGS=		-DBUILD_SHARED_LIBS:BOOL=ON
-			-DBUILD_EXAMPLES:BOOL=OFF
-			-DBUILD_BLACKBOX_TESTS:BOOL=OFF
 			-DFETCHCONTENT_FULLY_DISCONNECTED:BOOL=ON
+			-DZXING_DISABLE_PCH:BOOL=ON
+			-DZXING_READERS:BOOL=ON
+			-DZXING_WRITERS:BOOL=ON
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
@@ -105,4 +107,17 @@ lib/pkgconfig/zxing.pc
 bin/
  ZXingReader
  ZXingWriter
+
+
+[FILE:479:patches/patch-core_CMakeLists.txt]
+--- core/CMakeLists.txt.orig	2026-02-17 21:58:16 UTC
++++ core/CMakeLists.txt
+@@ -520,7 +520,6 @@ if (ZXING_READERS OR ZXING_WRITERS_OLD)
+         src/libzueci/zueci.h
+     )
+     set_source_files_properties(${LIBZUECI_FILES} PROPERTIES
+-        COMPILE_FLAGS "$<$<NOT:$<BOOL:${ZXING_READERS}>>:-DZUECI_EMBED_NO_TO_UTF> $<$<NOT:$<BOOL:${ZXING_WRITERS_OLD}>>:-DZUECI_EMBED_NO_TO_ECI>"
+         SKIP_PRECOMPILE_HEADERS ON
+     )
+     target_sources(ZXing PRIVATE ${LIBZUECI_FILES})
 
