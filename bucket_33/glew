@@ -310,3 +310,32 @@ share/doc/glew/
  LIB.STATIC = lib$(NAME).a
  LDFLAGS.SO = -shared -Wl,-soname=$(LIB.SONAME)
 
+
+[FILE:695:patches/patch-config_Makefile.solaris]
+--- config/Makefile.solaris.orig	2026-01-23 23:00:13 UTC
++++ config/Makefile.solaris
+@@ -1,14 +1,15 @@
+ NAME = $(GLEW_NAME)
+-CC = cc
+-LD = ld
+-CFLAGS.EXTRA = -I/usr/openwin/include -Kpic
+-LDFLAGS.SO = -G
+-LDFLAGS.EXTRA = -L/usr/openwin/lib
++CC ?= cc
++LD = cc
++LDFLAGS.EXTRA ?= -L${LOCALBASE}/lib
++LDFLAGS.SO = -G -h$(LIB.SONAME)
+ LDFLAGS.GL = -lGL -lX11
++CFLAGS.EXTRA += -I${LOCALBASE}/include -fPIC
+ NAME = GLEW
+ BIN.SUFFIX =
+-POPT = -xO2
+-LIB.SONAME    = lib$(NAME).so.$(SO_MAJOR)
++POPT = -O2
++LIB.SONAME    = lib$(NAME).so.$(GLEW_MAJOR)
+ LIB.DEVLNK    = lib$(NAME).so
+-LIB.SHARED    = lib$(NAME).so.$(SO_VERSION)
++LIB.SHARED    = lib$(NAME).so.$(GLEW_VERSION)
+ LIB.STATIC    = lib$(NAME).a
++
+

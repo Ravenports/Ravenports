@@ -192,6 +192,11 @@ INSTALL_REQ_TOOLCHAIN=	yes
 
 CFLAGS=			-Wno-deprecated-declarations
 
+pre-configure-sunos:
+	# -lutil is hardcoded
+	${REINPLACE_CMD} -e 's|-lutil ||' ${WRKSRC}/debugger/src/Makefile.in
+	${REINPLACE_CMD} -s 's|-lutil||'  ${WRKSRC}/configure
+
 [FILE:591:descriptions/desc.addons]
 This plugin adds various small addons to Geany which aren't worth an own 
 plugin but might still useful for people.
@@ -1364,4 +1369,87 @@ share/doc/geany-plugins/xmlsnippets/
  ChangeLog
  NEWS
  README
+
+
+[FILE:1127:patches/patch-debugger_src_debug.c]
+--- debugger/src/debug.c.orig	2025-06-10 16:19:20 UTC
++++ debugger/src/debug.c
+@@ -48,6 +48,12 @@ int grantpt(int fd);
+ #elif defined(HAVE_PTY_H)
+ #include <pty.h>
+ #endif
++#if defined(__sun)
++#include <fcntl.h>
++#include <stropts.h>
++#include <sys/types.h>
++#include <sys/conf.h>
++#endif
+ #include <gtk/gtk.h>
+ #include <gdk/gdkkeysyms.h>
+ #include <vte/vte.h>
+@@ -1043,11 +1049,25 @@ void debug_init(void)
+ 	/* create debug terminal page */
+ 	terminal = vte_terminal_new();
+ 	/* create PTY */
++#ifdef __sun
++	pty_master = posix_openpt(O_RDWR | O_NOCTTY);
++	if (pty_master != -1) {
++		if (grantpt(pty_master) == 0 && unlockpt(pty_master) == 0) {
++			char *name = ptsname(pty_master);
++			pty_slave = open(name, O_RDWR | O_NOCTTY);
++			if (pty_slave != -1) {
++				ioctl(pty_slave, I_PUSH, "ptem");
++				ioctl(pty_slave, I_PUSH, "ldterm");
++			}
++		}
++	}
++#else
+ 	openpty(&pty_master, &pty_slave, NULL,
+ 		    NULL,
+ 		    NULL);
+ 	grantpt(pty_master);
+ 	unlockpt(pty_master);
++#endif
+ #if GTK_CHECK_VERSION(3, 0, 0)
+ 	pty = vte_pty_new_foreign_sync(pty_master, NULL, NULL);
+ 	vte_terminal_set_pty(VTE_TERMINAL(terminal), pty);
+
+
+[FILE:1012:patches/patch-scope_src_conterm.c]
+--- scope/src/conterm.c.orig	2025-06-10 16:19:20 UTC
++++ scope/src/conterm.c
+@@ -42,6 +42,11 @@
+ #elif defined(HAVE_PTY_H)
+ #include <pty.h>
+ #endif
++#if defined(__sun)
++#include <fcntl.h>
++#include <unistd.h>
++#include <stropts.h>
++#endif
+ int grantpt(int fd);
+ int unlockpt(int fd);
+ 
+@@ -522,10 +527,21 @@ void conterm_init(void)
+ 		pref_terminal_padding = FALSE;
+ 	}
+ 
++#ifdef __sun
++	pty_master = posix_openpt(O_RDWR | O_NOCTTY);
++	if (pty_master != -1 &&
++		grantpt(pty_master) == 0 && unlockpt(pty_master) == 0 &&
++		(pty_name = ptsname(pty_master)) != NULL &&
++		(pty_slave = open(pty_name, O_RDWR | O_NOCTTY)) != -1)
++	{
++		ioctl(pty_slave, I_PUSH, "ptem");
++		ioctl(pty_slave, I_PUSH, "ldterm");
++#else
+ 	if (openpty(&pty_master, &pty_slave, NULL, NULL, NULL) == 0 &&
+ 		grantpt(pty_master) == 0 && unlockpt(pty_master) == 0 &&
+ 		(pty_name = ttyname(pty_slave)) != NULL)
+ 	{
++#endif
+ #if VTE_CHECK_VERSION(0, 25, 0)
+ 		GError *gerror = NULL;
+ 		VtePty *pty = vte_pty_new_foreign(pty_master, &gerror);
 

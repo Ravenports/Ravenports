@@ -2,7 +2,7 @@
 
 NAMEBASE=		sndio
 VERSION=		1.10.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		Small audio and MIDI framework from OpenBSD
@@ -21,8 +21,6 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-BROKEN[sunos]=		Needs err.h which is not available on Sol10
 
 B_DEPS[linux]=		alsa-lib:dev:std libbsd:dev:std
 BR_DEPS[linux]=		libbsd:primary:std alsa-lib:primary:std
@@ -52,16 +50,11 @@ VAR_OPSYS[linux]=	CONFIGURE_ARGS=	--with-libbsd
 
 post-install:
 	${STRIP_CMD} \
-		${STAGEDIR}${PREFIX}/lib/libsndio.${LIBEXT} \
+		${STAGEDIR}${PREFIX}/lib/libsndio.so \
 		${STAGEDIR}${PREFIX}/bin/sndioctl \
 		${STAGEDIR}${PREFIX}/bin/sndiod \
 		${STAGEDIR}${PREFIX}/bin/aucat \
 		${STAGEDIR}${PREFIX}/bin/midicat
-
-pre-configure:
-	# Make sure sndiod can be started inside jails as root
-	${REINPLACE_CMD} 's|err(1, "setpriority")|warn("setpriority")|' \
-		${WRKSRC}/sndiod/sndiod.c
 
 [FILE:449:descriptions/desc.primary]
 Sndio is a small audio and MIDI framework part of the OpenBSD project.
@@ -164,7 +157,29 @@ share/man/man8/sndiod.8
   */
 
 
-[FILE:1784:patches/patch-configure]
+[FILE:379:patches/patch-bsd-compat_getpeereid.c]
+--- bsd-compat/getpeereid.c.orig	2024-08-01 15:36:54 UTC
++++ bsd-compat/getpeereid.c
+@@ -21,6 +21,9 @@
+ int
+ getpeereid(int s, uid_t *ruid, gid_t *rgid)
+ {
++  #if defined(__sun)
++	return -1;
++  #else
+ 	struct ucred cr;
+ 	socklen_t len = sizeof(cr);
+ 
+@@ -29,5 +32,6 @@ getpeereid(int s, uid_t *ruid, gid_t *rg
+ 	*ruid = cr.uid;
+ 	*rgid = cr.gid;
+ 	return 0;
++  #endif
+ }
+ #endif
+
+
+[FILE:1787:patches/patch-configure]
 --- configure.orig	2024-08-01 15:36:54 UTC
 +++ configure
 @@ -70,9 +70,9 @@ case `uname` in
@@ -215,55 +230,25 @@ share/man/man8/sndiod.8
 +		so_link="libsndio.so libsndio.so.\${MAJ}"
 +		defs='-DHAVE_ISSETUGID -DO_CLOEXEC=0 \\\
 +		-DHAVE_STRLCAT -DHAVE_STRLCPY \\\
-+		-DSOCK_CLOEXEC=0 -DHAVE_CLOCK_GETTIME'
++		-DHAVE_SOCK_CLOEXEC -DHAVE_CLOCK_GETTIME'
 +		;;
  	Darwin)
  		rmidi=no
  		so="libsndio.\${MAJ}.\${MIN}.dylib"
 
 
-[FILE:1039:patches/patch-libsndio_aucat.c]
---- libsndio/aucat.c.orig	2022-07-16 09:38:24 UTC
-+++ libsndio/aucat.c
-@@ -43,6 +43,26 @@
- #define DEV_RANDOM "/dev/urandom"
- #endif
- 
-+#ifdef __sun__
-+#include <libgen.h>
-+static const char *getprogname (void) {
-+    static const char *progname;
-+
-+    if (progname == NULL) {
-+        const char *e = getexecname();
-+        if (e != NULL) {
-+            /* Have to make a copy since getexecname can return a readonly
-+               string, but basename expects to be able to modify its arg. */
-+            char *n = strdup(e);
-+            if (n != NULL) {
-+                progname = basename(n);
-+            }
-+        }
-+    }
-+    return progname;
-+}
-+#endif
-+
- static int
- random_bytes(unsigned char *buf, int len)
- {
-@@ -472,7 +492,11 @@ parsestr(const char *str, char *rstr, un
- int
- _aucat_open(struct aucat *hdl, const char *str, unsigned int mode)
- {
-+#ifdef __sun__
-+	const char * __progname = getprogname();
-+#else
- 	extern char *__progname;
-+#endif
- 	int eof;
- 	char host[NI_MAXHOST], opt[AMSG_OPTMAX];
- 	const char *p;
+[FILE:471:patches/patch-libsndio_Makefile.in]
+--- libsndio/Makefile.in.orig	2024-08-01 15:36:54 UTC
++++ libsndio/Makefile.in
+@@ -62,7 +62,7 @@ install:
+ 		mkdir -p ${DESTDIR}${MAN3_DIR}
+ 		mkdir -p ${DESTDIR}${MAN7_DIR}
+ 		cp sndio.h ${DESTDIR}${INCLUDE_DIR}
+-		cp -R ${STATIC_LIB} ${SO} ${SO_LINK} ${DESTDIR}${LIB_DIR}
++		cp -RpP ${STATIC_LIB} ${SO} ${SO_LINK} ${DESTDIR}${LIB_DIR}
+ 		cp sndio.pc ${DESTDIR}${PKGCONF_DIR}
+ 		cp sio_open.3 ${DESTDIR}${MAN3_DIR}
+ 		ln -sf sio_open.3 ${DESTDIR}${MAN3_DIR}/sio_close.3
 
 
 [FILE:261:patches/patch-sndiod_defs.h]
@@ -282,6 +267,73 @@ share/man/man8/sndiod.8
  /*
   * MIDI buffer size
   */
+
+
+[FILE:1584:patches/patch-sndiod_sndiod.c]
+No libbbsd on solaris, so add support for err.h
+err=>warn: Make sure sndiod can be started inside jails as root
+
+--- sndiod/sndiod.c.orig	2024-08-01 15:36:54 UTC
++++ sndiod/sndiod.c
+@@ -19,7 +19,11 @@
+ #include <sys/resource.h>
+ #include <sys/socket.h>
+ 
++#if defined(__sun)
++#include <stdarg.h>
++#else
+ #include <err.h>
++#endif
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <grp.h>
+@@ -85,6 +89,37 @@
+ #define DEFAULT_BITS	16
+ #endif
+ 
++#if defined(__sun)
++/* warn: prints message + errno string, does NOT exit */
++static void warn(const char *fmt, ...) {
++    va_list ap;
++    va_start(ap, fmt);
++    vfprintf(stderr, fmt, ap);
++    fprintf(stderr, ": %s\n", strerror(errno));
++    va_end(ap);
++}
++
++/* errx: prints message, does NOT print errno, EXITS */
++static void errx(int eval, const char *fmt, ...) {
++    va_list ap;
++    va_start(ap, fmt);
++    vfprintf(stderr, fmt, ap);
++    fprintf(stderr, "\n");
++    va_end(ap);
++    exit(eval);
++}
++
++/* keeping err here just in case you still need it */
++static void err(int eval, const char *fmt, ...) {
++    va_list ap;
++    va_start(ap, fmt);
++    vfprintf(stderr, fmt, ap);
++    fprintf(stderr, ": %s\n", strerror(errno));
++    va_end(ap);
++    exit(eval);
++}
++#endif
++
+ void sigint(int);
+ void sighup(int);
+ void opt_ch(int *, int *);
+@@ -691,7 +726,7 @@ main(int argc, char **argv)
+ 	}
+ 	if (pw != NULL) {
+ 		if (setpriority(PRIO_PROCESS, 0, SNDIO_PRIO) == -1)
+-			err(1, "setpriority");
++			warn("setpriority");
+ 		if (setgroups(1, &pw->pw_gid) == -1 ||
+ 		    setgid(pw->pw_gid) == -1 ||
+ 		    setuid(pw->pw_uid) == -1)
 
 
 [FILE:465:files/sndiod.in]

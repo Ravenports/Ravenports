@@ -2,6 +2,7 @@
 
 NAMEBASE=		openldap
 VERSION=		2.6.13
+REVISION=		1
 KEYWORDS=		net databases
 VARIANTS=		std
 SDESC[std]=		Lightweight Directory Access Protocol server
@@ -21,8 +22,9 @@ SPKGS[std]=		set
 			man
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 BUILD_DEPENDS=		mandoc:primary:std
 			icu:dev:std
@@ -80,6 +82,8 @@ SUB_LIST=		LDAP_USER=ldap
 			LDAP_GROUP=ldap
 			LDAP_RUN_DIR=var/run/openldap
 			DATABASEDIR=var/db/openldap-data
+
+[SUNOS].LDFLAGS_OFF=			-Wl,--undefined-version
 
 post-patch:
 	${REINPLACE_CMD} -e 's|^OPT =.*|OPT = ${CFLAGS}|g' \

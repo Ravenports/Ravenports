@@ -58,6 +58,8 @@ SHEBANG_FILES=		meson_post_install.py
 MAKE_ENV=		GETTEXTDATADIRS={{PREFIX}}/share/gettext/0.20
 
 LDFLAGS=		{{PERL_RPATH}}
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			LDFLAGS=-lnsl
 
 post-patch:
 	# Do we need to find a way to pass ca_bundle to server.c?
@@ -246,7 +248,7 @@ share/man/man1/hexchat.1
  if not cc.links('''
 
 
-[FILE:497:patches/patch-plugins_sysinfo_meson.build]
+[FILE:506:patches/patch-plugins_sysinfo_meson.build]
 --- plugins/sysinfo/meson.build.orig	2022-02-12 18:30:55 UTC
 +++ plugins/sysinfo/meson.build
 @@ -13,7 +13,7 @@ sysinfo_includes = []
@@ -254,7 +256,7 @@ share/man/man1/hexchat.1
  
  system = host_machine.system()
 -if system == 'linux' or system == 'gnu' or system.startswith('gnu/') or system == 'darwin' or system == 'freebsd'
-+if ['linux','gnu','darwin','freebsd','dragonfly','midnightbsd','netbsd'].contains(system) or system.startswith('gnu/')
++if ['linux','gnu','darwin','freebsd','dragonfly','midnightbsd','netbsd', 'sunos'].contains(system) or system.startswith('gnu/')
    sysinfo_includes += 'shared'
    sysinfo_sources += [
      'shared/df.c'

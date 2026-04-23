@@ -17,8 +17,9 @@ SPKGS[std]=		set
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 USES=			gmake libtool pkgconfig fbsd10fix mbsdfix
 GNOME_COMPONENTS=	glib
@@ -46,7 +47,9 @@ CFLAGS=			-Wno-implicit-function-declaration
 			-Wno-incompatible-pointer-types
 			-Wno-deprecated-declarations
 CPPFLAGS=		-DHAVE_LINUX
-VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+
+[SUNOS].LDFLAGS_OFF=			-Wl,--undefined-version
+[SUNOS].LDFLAGS_ON=			-lsocket
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so*

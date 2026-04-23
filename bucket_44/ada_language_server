@@ -17,8 +17,9 @@ SPKGS[std]=		set
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 BUILD_DEPENDS=		ada_libfswatch:single:std
 			gtkada:dev:std
@@ -54,12 +55,17 @@ MAKE_ARGS=		BUILD_MODE=prod
 
 INSTALL_REQ_TOOLCHAIN=	yes
 
+[SUNOS].MAKEFILE_OFF=			DYNFLAGS="-Wl,--allow-shlib-undefined"
+
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gpr/manifests
 	# not sure why this happened
 	${RM} ${STAGEDIR}${PREFIX}/share/gpr/gnatcoll.gpr
 	# strip
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/*
+
+pre-configure:
+	${REINPLACE_CMD} -e 's|@DYNFLAGS@|${DYNFLAGS}|' ${WRKSRC}/gnat/lsp_server.gpr
 
 [FILE:451:descriptions/desc.primary]
 Ada_Language_Server an implementation of the Microsoft Language Server
@@ -261,7 +267,7 @@ share/gpr/
  tester.gpr
 
 
-[FILE:1877:patches/patch-Makefile]
+[FILE:1958:patches/patch-Makefile]
 --- Makefile.orig	2025-07-02 16:04:06 UTC
 +++ Makefile
 @@ -16,12 +16,7 @@ ifeq ($(OS),Windows_NT)
@@ -278,7 +284,7 @@ share/gpr/
     PYTHON=python3
     EXE=
  endif
-@@ -118,6 +113,8 @@ endif
+@@ -118,9 +113,11 @@ endif
  	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
  	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS) $(GPRBUILD_CARGS)
  	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
@@ -286,7 +292,11 @@ share/gpr/
 +		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE)
  ifdef NODE
  	mkdir -p integration/vscode/ada/$(NODE_ARCH_PLATFORM)
- 	cp -v -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
+-	cp -v -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
++	cp -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
+ endif
+ 
+ generate:
 @@ -140,16 +137,20 @@ ifneq ($(COVERAGE),)
  endif
  
@@ -349,6 +359,20 @@ Subject: [PATCH] Update due to recent LAL API change.
        end if;
  
        if Node.Kind in Libadalang.Common.Ada_Name then
+
+
+[FILE:364:patches/patch-gnat_lsp__server.gpr]
+--- gnat/lsp_server.gpr.orig	2025-07-02 16:04:06 UTC
++++ gnat/lsp_server.gpr
+@@ -80,7 +80,7 @@ project LSP_Server is
+                   for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc");
+              end case;
+          when "relocatable" =>
+-            null;
++            for Switches ("Ada") use (@DYNFLAGS@);
+       end case;
+    end Linker;
+ 
 
 
 [FILE:166:patches/patch-gnat_tester.gpr]

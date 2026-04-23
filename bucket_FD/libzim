@@ -2,6 +2,7 @@
 
 NAMEBASE=		libzim
 VERSION=		9.5.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Reference implementation of the ZIM specification
@@ -37,6 +38,8 @@ FPC_EQUIVALENT=		devel/libzim
 MESON_ARGS=		-Dtests=false
 
 SOVERSION=		9.5.1
+
+LDFLAGS=		-pthread
 
 [FILE:245:descriptions/desc.primary]
 The Libzim is the reference implementation for the ZIM file format. It's a 
@@ -78,4 +81,38 @@ include/zim/writer/
  item.h
 lib/libzim.so
 lib/pkgconfig/libzim.pc
+
+
+[FILE:1274:patches/patch-src_dirent__accessor.cpp]
+--- src/dirent_accessor.cpp.orig	2026-02-06 08:05:42 UTC
++++ src/dirent_accessor.cpp
+@@ -57,16 +57,16 @@ std::shared_ptr<const Dirent> DirectDire
+   return dirent;
+ }
+ 
+-offset_t DirectDirentAccessor::getOffset(entry_index_t idx) const
++zim::offset_t DirectDirentAccessor::getOffset(entry_index_t idx) const
+ {
+   if (idx >= m_direntCount) {
+     throw std::out_of_range("entry index out of range");
+   }
+-  offset_t offset(mp_pathPtrReader->read_uint<offset_type>(offset_t(sizeof(offset_type)*idx.v)));
++  zim::offset_t offset(mp_pathPtrReader->read_uint<zim::offset_type>(zim::offset_t(sizeof(zim::offset_type)*idx.v)));
+   return offset;
+ }
+ 
+-std::shared_ptr<const Dirent> DirectDirentAccessor::readDirent(offset_t offset) const
++std::shared_ptr<const Dirent> DirectDirentAccessor::readDirent(zim::offset_t offset) const
+ {
+   return mp_direntReader->readDirent(offset);
+ }
+@@ -83,7 +83,7 @@ entry_index_t IndirectDirentAccessor::ge
+   if (idx >= m_direntCount) {
+     throw std::out_of_range("entry index out of range");
+   }
+-  entry_index_t index(mp_indexReader->read_uint<entry_index_type>(offset_t(sizeof(entry_index_t)*idx.v)));
++  entry_index_t index(mp_indexReader->read_uint<entry_index_type>(zim::offset_t(sizeof(entry_index_t)*idx.v)));
+   return index;
+ }
+ 
 

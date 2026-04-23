@@ -2,6 +2,7 @@
 
 NAMEBASE=		ixion-0.20
 VERSION=		0.20.0
+REVISION=		1
 KEYWORDS=		math
 VARIANTS=		std
 SDESC[std]=		General purpose formula parser and interpreter
@@ -40,6 +41,7 @@ PLIST_SUB=		VER=0.20
 LDFLAGS=		-lboost_thread
 			-lboost_program_options
 			-lboost_filesystem
+			-pthread
 CMAKE_ARGS=		-DMDDS_INCLUDEDIR="{{LOCALBASE}}/include/mdds-1.2"
 			-DCMAKE_SKIP_BUILD_RPATH:BOOL=YES
 VAR_OPSYS[linux]=	LDFLAGS=-ldl
@@ -107,4 +109,20 @@ include/ixion-%%VER%%/ixion/
 include/ixion-%%VER%%/ixion/interface/
  session_handler.hpp
  table_handler.hpp
+
+
+[FILE:259:patches/patch-src_libixion_formula__lexer.cpp]
+--- src/libixion/formula_lexer.cpp.orig	2025-01-28 03:56:03 UTC
++++ src/libixion/formula_lexer.cpp
+@@ -16,6 +16,10 @@
+ #include <unordered_map>
+ #include <optional>
+ 
++#if defined(__sun)
++#undef _C
++#endif
++
+ #include <mdds/trie_map.hpp>
+ 
+ namespace ixion {
 

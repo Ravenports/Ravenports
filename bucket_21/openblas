@@ -24,8 +24,6 @@ OPTIONS_AVAILABLE=	OPENMP DYNAMIC_ARCH BIT64
 OPTIONS_STANDARD=	OPENMP DYNAMIC_ARCH BIT64
 OPT_ON[x86_64]=		OPENMP DYNAMIC_ARCH BIT64
 
-BROKEN[sunos]=		TEMP BREAKAGE
-
 USES=			cpe gmake pkgconfig perl:build fortran:primary
 
 EXTRACT_ONLY=		1
@@ -155,7 +153,58 @@ lib/pkgconfig/openblas.pc
  	$(LNCMD) $(LIBSONAME) $(LIBPREFIX).so
 
 
-[FILE:597:patches/patch-exports_Makefile]
+[FILE:350:patches/patch-Makefile.system]
+--- Makefile.system.orig	2026-03-23 22:53:57 UTC
++++ Makefile.system
+@@ -1695,17 +1695,10 @@ ifdef MIXED_MEMORY_ALLOCATION
+ CCOMMON_OPT	+= -DMIXED_MEMORY_ALLOCATION
+ endif
+ 
+-ifeq ($(OSNAME), SunOS)
+-TAR	= gtar
+-PATCH	= gpatch
+-GREP	= ggrep
+-AWK	= nawk
+-else
+ TAR	= tar
+ PATCH	= patch
+ GREP	= grep
+ AWK	= awk
+-endif
+ 
+ ifndef MD5SUM
+ MD5SUM	= md5sum
+
+
+[FILE:406:patches/patch-c__check]
+--- c_check.orig	2026-03-23 22:53:57 UTC
++++ c_check
+@@ -431,7 +431,7 @@ linker_a=""
+ 
+ link=`$compiler_name $flags -c ctest2.c -o ctest2.o 2>&1 && $compiler_name $flags $openmp -v ctest2.o -o ctest2 2>&1 && rm -f ctest2.o ctest2 ctest2.exe`
+ 
+-link=`echo "$link" | sed 's/\-Y[[:space:]]P\,/\-Y/g'`
++link=`echo "$link" | sed 's/-Y[[:space:]]*P,[^ ]*//g'`
+ 
+ 
+ flags=`echo $link | tr "'[[:space:]],\n" " "`
+
+
+[FILE:429:patches/patch-c__check.pl]
+--- c_check.pl.orig	2026-03-23 22:53:57 UTC
++++ c_check.pl
+@@ -401,7 +401,7 @@ $linker_a = "";
+ {
+     $link = `$compiler_name $flags -c ctest2.c -o ctest2.o 2>&1 && $compiler_name $flags $openmp -v ctest2.o -o ctest2 2>&1 && rm -f ctest2.o ctest2 ctest2.exe`;
+ 
+-    $link =~ s/\-Y\sP\,/\-Y/g;
++    $link =~ s/-Y\s*P,[^\s]*//g;
+ 
+     @flags = split(/[\s\,\n]/, $link);
+     # remove leading and trailing quotes from each flag.
+
+
+[FILE:1008:patches/patch-exports_Makefile]
 --- exports/Makefile.orig	2026-03-23 22:53:57 UTC
 +++ exports/Makefile
 @@ -175,7 +175,7 @@ endif
@@ -176,4 +225,56 @@ lib/pkgconfig/openblas.pc
  
  so : ../$(LIBSONAME)
  
+@@ -259,7 +259,8 @@ ifeq ($(OSNAME), SunOS)
+ 
+ so : ../$(LIBSONAME)
+ 	$(CC) $(CFLAGS) $(LDFLAGS)  -shared -o ../$(LIBSONAME) \
+-	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(EXTRALIB)
++	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive \
++	-Wl,-h,$(INTERNALNAME) $(EXTRALIB)
+ 	$(CC) $(CFLAGS) $(LDFLAGS) -w -o linktest linktest.c ../$(LIBSONAME) $(FEXTRALIB) && echo OK.
+ 	rm -f linktest
+ 
+
+
+[FILE:639:patches/patch-f__check]
+--- f_check.orig	2026-03-23 22:53:57 UTC
++++ f_check
+@@ -343,13 +343,8 @@ linker_a=""
+ 
+ if [ -n "$link" ]; then
+ 
+-    link=`echo " $link" | sed 's/ \-Y[[:space:]]P\,/ \-Y/g'`
+-
+-    link=`echo "$link" | sed 's/ \-R[[:space:]]*/ \-rpath\%/g'`
+-
+-    link=`echo "$link" | sed 's/ \-rpath[[:space:]]+/ \-rpath\%/g'`
+-
+-    link=`echo "$link" | sed 's/ \-rpath-link[[:space:]]+/ \-rpath-link\%/g'`
++    # Delete -Y, any space, and the following path string until the next space
++    link=`echo " $link" | sed 's/-Y[[:space:]]*P,[^ ]*//g'`
+ 
+     flags=`echo "$link" | tr "',\n" " "`
+     # remove leading and trailing quotes from each flag.
+
+
+[FILE:512:patches/patch-f__check.pl]
+--- f_check.pl.orig	2026-03-23 22:53:57 UTC
++++ f_check.pl
+@@ -322,13 +322,8 @@ $linker_a = "";
+ 
+ if ($link ne "") {
+ 
+-    $link =~ s/\-Y\sP\,/\-Y/g;
+-    
+-    $link =~ s/\-R\s*/\-rpath\%/g;
+-
+-    $link =~ s/\-rpath\s+/\-rpath\%/g;
+-
+-    $link =~ s/\-rpath-link\s+/\-rpath-link\%/g;
++    # Delete -Y, any whitespace, and the following path string until the next whitespace
++    $link =~ s/-Y\s*P,[^\s]*//g;
+ 
+     @flags = split(/[\s\,\n]/, $link);
+     # remove leading and trailing quotes from each flag.
 

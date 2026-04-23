@@ -27,13 +27,16 @@ LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
-post-patch:
-	${REINPLACE_CMD} 's!__PREFIX__!${PREFIX}!g' ${WRKSRC}/Makefile
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			LDFLAGS=-lnsl
 
 post-stage:
 	(cd ${WRKSRC} && \
 		${COPYTREE_SHARE} "CGI.md cgi-examples rc.d" ${STAGEDIR}${STD_EXAMPLESDIR})
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/geomyidae
+
+pre-configure:
+	${REINPLACE_CMD} 's!__PREFIX__!${PREFIX}!g' ${WRKSRC}/Makefile
 
 [FILE:232:descriptions/desc.primary]
 Geomyidae is a daemon for serving the protocol specified in RFC 1436 
@@ -75,21 +78,21 @@ share/examples/geomyidae/rc.d/
  rc.geomyidae
 
 
-[FILE:703:patches/patch-Makefile]
---- Makefile.orig	2023-08-26 14:42:28 UTC
+[FILE:841:patches/patch-Makefile]
+--- Makefile.orig	2025-07-30 07:47:54 UTC
 +++ Makefile
 @@ -5,7 +5,7 @@
  NAME = geomyidae
- VERSION = 0.96
+ VERSION = 0.99
  
 -PREFIX = /usr/local
 +PREFIX = __PREFIX__
  BINDIR = ${PREFIX}/bin
  MANDIR = ${PREFIX}/share/man/man8
  
-@@ -14,8 +14,8 @@ TLS_CFLAGS = -DENABLE_TLS
- # libtls is provided using for example LibreSSL.
- TLS_LDFLAGS = -ltls 
+@@ -16,14 +16,17 @@ TLS_CFLAGS = -DENABLE_TLS
+ TLS_LDFLAGS = -ltls
+ 
  
 -GEOM_CFLAGS = -D_DEFAULT_SOURCE -I. -I/usr/include ${TLS_CFLAGS} ${CFLAGS}
 -GEOM_LDFLAGS = -L/usr/lib -L. ${TLS_LDFLAGS} ${LDFLAGS}
@@ -98,4 +101,115 @@ share/examples/geomyidae/rc.d/
  
  # FreeBSD
  # GEOM_CFLAGS = -D_DEFAULT_SOURCE -I. -I/usr/local/include ${TLS_CFLAGS} ${CFLAGS}
+ # GEOM_LDFLAGS = -L/usr/local/lib -L. ${TLS_LDFLAGS} ${LDFLAGS}
+ 
+ SRC = main.c ind.c handlr.c
++.if "${OPSYS}" == "SunOS"
++SRC += dprintf.c
++.endif
+ OBJ = ${SRC:.c=.o}
+ 
+ all: ${NAME}
+
+
+[FILE:656:patches/patch-dprintf.c]
+--- /dev/null	2026-04-10 23:26:30 UTC
++++ dprintf.c
+@@ -0,0 +1,25 @@
++#include "dprintf.h"
++#include <stdio.h>
++#include <stdarg.h>
++#include <unistd.h>
++
++int dprintf(int fd, const char *format, ...) {
++    va_list args;
++    int result;
++
++    // Use fdopen to create a temporary stream. 
++    // "a" (append) is used to avoid truncating existing data in the descriptor.
++    FILE *fp = fdopen(dup(fd), "a");
++    if (!fp) {
++        return -1;
++    }
++
++    va_start(args, format);
++    result = vfprintf(fp, format, args);
++    va_end(args);
++
++    // Closing the stream created by fdopen also flushes it.
++    fclose(fp);
++    
++    return result;
++}
+
+
+[FILE:488:patches/patch-dprintf.h]
+--- /dev/null	2026-04-10 23:26:30 UTC
++++ dprintf.h
+@@ -0,0 +1,16 @@
++#ifndef DPRINTF_COMPAT_H
++#define DPRINTF_COMPAT_H
++
++#include <stdarg.h>
++
++/**
++ * dprintf - Print formatted output to a file descriptor.
++ * @fd: The file descriptor to write to.
++ * @format: The format string.
++ * @...: Variable arguments for the format string.
++ * 
++ * Returns the number of characters printed, or -1 on error.
++ */
++int dprintf(int fd, const char *format, ...);
++
++#endif /* DPRINTF_COMPAT_H */
+
+
+[FILE:225:patches/patch-handlr.c]
+--- handlr.c.orig	2025-07-30 07:47:54 UTC
++++ handlr.c
+@@ -18,6 +18,9 @@
+ #include <sys/wait.h>
+ #include <errno.h>
+ #include <libgen.h>
++#if defined(__sun)
++#include "dprintf.h"
++#endif
+ 
+ #include "ind.h"
+ #include "arg.h"
+
+
+[FILE:254:patches/patch-ind.c]
+--- ind.c.orig	2025-07-30 07:47:54 UTC
++++ ind.c
+@@ -34,6 +34,9 @@
+ #include "arg.h"
+ #include "ind.h"
+ #include "handlr.h"
++#if defined(__sun)
++#include "dprintf.h"
++#endif
+ 
+ /*
+  * Be careful, to look at handlerequest(), in case you add any executing
+
+
+[FILE:252:patches/patch-main.c]
+--- main.c.orig	2025-07-30 07:47:54 UTC
++++ main.c
+@@ -36,6 +36,13 @@
+ #include "ind.h"
+ #include "handlr.h"
+ #include "arg.h"
++#if defined(__sun)
++#include "dprintf.h"
++#endif
++
++#ifndef LOG_PERROR
++#define LOG_PERROR 0
++#endif
+ 
+ enum {
+ 	NOLOG	= 0,
 

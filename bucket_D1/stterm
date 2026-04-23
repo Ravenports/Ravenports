@@ -30,20 +30,25 @@ LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
-post-patch:
-	${REINPLACE_CMD} -e '/^PREFIX/s| = /usr/local| = /${PREFIX}| ; \
-		/^X11INC/s|/usr/X11R6/include|${PREFIX}/include/X11| ; \
-		/^X11LIB/s|/usr/X11R6|${PREFIX}|' ${WRKSRC}/config.mk
-	${SED} -e '/tic/d' Makefile
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/st
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/applications
 	${CP} ${FILESDIR}/st.desktop ${STAGEDIR}${PREFIX}/share/applications
 
+pre-configure:
+	${REINPLACE_CMD} -e '/^PREFIX/s| = /usr/local| = /${PREFIX}| ; \
+		/^X11INC/s|/usr/X11R6/include|${PREFIX}/include/X11| ; \
+		/^X11LIB/s|/usr/X11R6|${PREFIX}|' ${WRKSRC}/config.mk
+	${SED} -e '/tic/d' Makefile
+
 do-install:
 	( cd ${WRKSRC} ; \
 		${MAKE} DESTDIR=${STAGEDIR} install )
+
+pre-configure-sunos:
+	${REINPLACE_CMD} -e 's|-lutil ||' ${WRKSRC}/config.mk
 
 [FILE:607:descriptions/desc.primary]
 St is a simple terminal emulator implementation for X. It's maintained by 
@@ -101,6 +106,53 @@ share/man/man1/st.1
  	@echo Please see the README file regarding the terminfo entry of st.
  
  uninstall:
+
+
+[FILE:1110:patches/patch-st.c]
+--- st.c.orig	2025-08-09 13:00:58 UTC
++++ st.c
+@@ -26,6 +26,9 @@
+  #include <util.h>
+ #elif defined(__FreeBSD__) || defined(__DragonFly__)
+  #include <libutil.h>
++#elif defined(__sun)
++#include <stropts.h>
++#include <sys/termios.h>
+ #endif
+ 
+ /* Arbitrary sizes */
+@@ -776,9 +779,20 @@ ttynew(const char *line, char *cmd, cons
+ 		return cmdfd;
+ 	}
+ 
++#if defined(__sun)
++	if ((m = posix_openpt(O_RDWR | O_NOCTTY)) < 0)
++		die("out of pty devices\n");
++	grantpt(m);
++	unlockpt(m);
++	if ((s = open(ptsname(m), O_RDWR | O_NOCTTY)) < 0)
++		die("can't open slave pty\n");
++	ioctl(s, I_PUSH, "ptem");
++	ioctl(s, I_PUSH, "ldterm");
++#else
+ 	/* seems to work fine on linux, openbsd and freebsd */
+ 	if (openpty(&m, &s, NULL, NULL, NULL) < 0)
+ 		die("openpty failed: %s\n", strerror(errno));
++#endif
+ 
+ 	switch (pid = fork()) {
+ 	case -1:
+@@ -791,8 +805,10 @@ ttynew(const char *line, char *cmd, cons
+ 		dup2(s, 0);
+ 		dup2(s, 1);
+ 		dup2(s, 2);
++#if !defined(__sun)
+ 		if (ioctl(s, TIOCSCTTY, NULL) < 0)
+ 			die("ioctl TIOCSCTTY failed: %s\n", strerror(errno));
++#endif
+ 		if (s > 2)
+ 			close(s);
+ #ifdef __OpenBSD__
 
 
 [FILE:203:files/st.desktop]

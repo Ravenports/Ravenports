@@ -63,6 +63,7 @@ BUILDRUN_DEPENDS=	aspell:primary:std
 USES=			cmake cpe png jpeg pkgconfig python:build perl:build
 			shebangfix desktop-utils:primary gnome-icons:primary
 			freetype readline ncurses
+C_USES[sunos]=		iconv
 GNOME_COMPONENTS=	libxslt gtkmm30 cairomm10 pangomm14 glibmm24 atkmm16
 XORG_COMPONENTS=	x11
 
@@ -5183,6 +5184,25 @@ share/doc/inkscape/tutorials/
         int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
         char buf[MAXPATHLEN];
         size_t cb = sizeof(buf);
+
+
+[FILE:351:patches/patch-src_path_splinefit_splinefont.h]
+Avoid name collision on "extended" with SunOS
+
+--- src/path/splinefit/splinefont.h.orig	2025-12-26 00:35:50 UTC
++++ src/path/splinefit/splinefont.h
+@@ -3,6 +3,11 @@
+ #ifndef _SEEN_SPLINEFONT_H_
+ #define _SEEN_SPLINEFONT_H_
+ 
++#ifdef __sun
++#include <floatingpoint.h>
++#define extended ink_extended
++#endif
++
+ #include <glib.h>
+ 
+ typedef double real;
 
 
 [FILE:656:patches/patch-src_util_font-discovery.cpp]

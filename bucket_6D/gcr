@@ -61,7 +61,7 @@ PLIST_SUB=		SO_GCK=2.4.0
 			SO_GCR=4.4.0
 			GCR_MAJOR=4
 
-VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 [INTROSPECTION].DESCRIPTION=		Build doc and vala bindings with introspection
 [INTROSPECTION].BUILD_DEPENDS_ON=	python-gi-docgen:set:python_used
@@ -1063,28 +1063,6 @@ share/doc/gcr-4/
  type_func.Pkcs11Certificate.new_from_uri.html
  type_func.Pkcs11Certificate.new_from_uri_async.html
  type_func.Pkcs11Certificate.new_from_uri_finish.html
-
-
-[FILE:539:patches/patch-gcr_meson.build]
---- gcr/meson.build.orig	2025-03-18 22:21:14 UTC
-+++ gcr/meson.build
-@@ -164,6 +164,8 @@ gcr_linkflags = cc.get_supported_link_ar
-   '-Wl,--version-script,@0@'.format(gcr_symbolmap),
- )
- 
-+#SUNOS gcr_base_linkflags += '-lsocket'
-+
- gcr_lib = shared_library(gcr_basename,
-   gcr_sources,
-   dependencies: gcr_deps,
-@@ -245,6 +247,7 @@ gcr_ssh_askpass = executable('gcr4-ssh-a
-   include_directories: config_h_dir,
-   install: true,
-   install_dir: get_option('libexecdir'),
-+#SUNOS link_args: ['-lsocket'],
- )
- 
- if get_option('ssh_agent')
 
 
 [FILE:466:patches/patch-gcr_test-secure-memory.c]

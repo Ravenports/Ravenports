@@ -2,6 +2,7 @@
 
 NAMEBASE=		dovecot
 VERSION=		2.4.3
+REVISION=		1
 KEYWORDS=		mail
 VARIANTS=		std
 SDESC[std]=		Secure IMAP and POP3 server
@@ -95,10 +96,11 @@ THREAD and IDLE.
 
 
 [FILE:99:distinfo]
-e0b30330fe51e47ecfcf641bc16041184d91bdd0ac3db789b7cef54e3a75ac9b      8191547 dovecot-2.4.3.tar.gz
+ff0be85228122f250627b19e67505fdb7fb2f72a702ef6bf35f27fce54c072e5      8200648 dovecot-2.4.3.tar.gz
 
 
-[FILE:2141:manifests/plist.primary]
+[FILE:2201:manifests/plist.primary]
+%%ONLY-FREEBSD%%%%FREEBSD15%%libexec/dovecot/imap-hibernate
 %%ONLY-LINUX%%libexec/dovecot/imap-hibernate
 bin/
  doveadm
@@ -903,14 +905,16 @@ lib/dovecot/doveadm/
 share/aclocal/dovecot.m4
 
 
-[FILE:906:manifests/plist.man]
+[FILE:978:manifests/plist.man]
 share/man/man1/
  deliver.1
  doveadm-acl.1
  doveadm-altmove.1
  doveadm-auth.1
+ doveadm-backup.1
  doveadm-compress-connect.1
  doveadm-config.1
+ doveadm-copy.1
  doveadm-deduplicate.1
  doveadm-dict.1
  doveadm-dump.1
@@ -955,6 +959,7 @@ share/man/man1/
  dovecot-lda.1
  dovecot-sysreport.1
  dovecot.1
+share/man/man7/doveadm-search-query.7
 
 
 [FILE:164:manifests/plist.docs]
@@ -1122,4 +1127,14 @@ primary-out: {
   type: "remove"
   message: "To clear out remaining data manually, execute 'rm -rf /var/db/dovecot'"
 }
+
+
+[FILE:132:files/special.mk]
+.if "${OPSYS}" == "FreeBSD"
+. if "${MAJOR}" == "15"
+PLIST_SUB+=	FREEBSD15=
+. else
+PLIST_SUB+= 	FREEBSD15="@comment "
+. endif
+.endif
 

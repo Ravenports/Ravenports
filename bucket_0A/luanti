@@ -2,6 +2,7 @@
 
 NAMEBASE=		luanti
 VERSION=		5.15.1
+REVISION=		1
 KEYWORDS=		games
 VARIANTS=		std
 SDESC[std]=		Infinite-world block sandbox game
@@ -37,7 +38,6 @@ BUILD_DEPENDS=		doxygen:primary:std
 			jsoncpp:dev:std
 BUILDRUN_DEPENDS=	gmp:primary:std
 			hiredis:primary:std
-			irrlicht:single:std
 			jsoncpp:primary:std
 			leveldb:primary:std
 			libGLU:primary:std
@@ -70,6 +70,7 @@ INSTALL_REQ_TOOLCHAIN=	yes
 CMAKE_ARGS=		-DBUILD_SERVER=TRUE
 			-DENABLE_SYSTEM_JSONCPP=TRUE
 			-DCUSTOM_MANDIR:STRING="share/man"
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/minetest*
@@ -1957,6 +1958,150 @@ share/locale/zh_TW/LC_MESSAGES/luanti.mo
  	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -g")
  	set(CMAKE_CXX_FLAGS_SEMIDEBUG "-g -O1 ${WARNING_FLAGS} ${OTHER_FLAGS}")
  	set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 ${WARNING_FLAGS} ${OTHER_FLAGS}")
+
+
+[FILE:470:patches/patch-src_gui_touchcontrols.cpp]
+--- src/gui/touchcontrols.cpp.orig	2026-02-08 11:42:38 UTC
++++ src/gui/touchcontrols.cpp
+@@ -620,7 +620,7 @@ void TouchControls::translateEvent(const
+ 					(!m_fixed_joystick && distance_sq > touch_threshold_sq)) {
+ 				m_joystick_has_really_moved = true;
+ 
+-				m_joystick_direction = atan2(dir.X, -dir.Y);
++				m_joystick_direction = atan2((float)dir.X, (float)-dir.Y);
+ 
+ 				const double distance = sqrt(distance_sq);
+ 				if (distance <= m_touchscreen_threshold) {
+
+
+[FILE:1762:patches/patch-src_network_clientpackethandler.cpp]
+--- src/network/clientpackethandler.cpp.orig	2026-02-08 11:42:38 UTC
++++ src/network/clientpackethandler.cpp
+@@ -1329,7 +1329,7 @@ void Client::handleCommand_HudSetSky(Net
+ 		skybox.clouds = readU8(is) != 0;
+ 
+ 		// Use default skybox settings:
+-		SunParams sun = SkyboxDefaults::getSunDefaults();
++		SunParams xsun = SkyboxDefaults::getSunDefaults();
+ 		MoonParams moon = SkyboxDefaults::getMoonDefaults();
+ 		StarParams stars = SkyboxDefaults::getStarDefaults();
+ 
+@@ -1340,8 +1340,8 @@ void Client::handleCommand_HudSetSky(Net
+ 			skybox.fog_moon_tint = video::SColor(255, 255, 255, 255);
+ 			skybox.fog_sun_tint = video::SColor(255, 255, 255, 255);
+ 		} else {
+-			sun.visible = false;
+-			sun.sunrise_visible = false;
++			xsun.visible = false;
++			xsun.sunrise_visible = false;
+ 			moon.visible = false;
+ 			stars.visible = false;
+ 		}
+@@ -1354,7 +1354,7 @@ void Client::handleCommand_HudSetSky(Net
+ 
+ 		ClientEvent *sun_event = new ClientEvent();
+ 		sun_event->type = CE_SET_SUN;
+-		sun_event->sun_params = new SunParams(sun);
++		sun_event->sun_params = new SunParams(xsun);
+ 		m_client_event_queue.push(sun_event);
+ 
+ 		ClientEvent *moon_event = new ClientEvent();
+@@ -1408,14 +1408,14 @@ void Client::handleCommand_HudSetSky(Net
+ 
+ void Client::handleCommand_HudSetSun(NetworkPacket *pkt)
+ {
+-	SunParams sun;
++	SunParams xsun;
+ 
+-	*pkt >> sun.visible >> sun.texture>> sun.tonemap
+-		>> sun.sunrise >> sun.sunrise_visible >> sun.scale;
++	*pkt >> xsun.visible >> xsun.texture>> xsun.tonemap
++		>> xsun.sunrise >> xsun.sunrise_visible >> xsun.scale;
+ 
+ 	ClientEvent *event = new ClientEvent();
+ 	event->type        = CE_SET_SUN;
+-	event->sun_params  = new SunParams(sun);
++	event->sun_params  = new SunParams(xsun);
+ 	m_client_event_queue.push(event);
+ }
+ 
+
+
+[FILE:305:patches/patch-src_porting.cpp]
+--- src/porting.cpp.orig	2026-02-08 11:42:38 UTC
++++ src/porting.cpp
+@@ -14,6 +14,9 @@
+ 	#include <sys/types.h>
+ 	#include <sys/sysctl.h>
+ 	extern char **environ;
++#elif defined(__sun)
++	#include <sys/types.h>
++	extern char **environ;
+ #elif defined(_WIN32)
+ 	#include <windows.h>
+ 	#include <wincrypt.h>
+
+
+[FILE:611:patches/patch-src_skyparams.h]
+--- src/skyparams.h.orig	2026-02-08 11:42:38 UTC
++++ src/skyparams.h
+@@ -115,14 +115,14 @@ public:
+ 
+ 	static const SunParams getSunDefaults()
+ 	{
+-		SunParams sun;
+-		sun.visible = true;
+-		sun.sunrise_visible = true;
+-		sun.texture = "sun.png";
+-		sun.tonemap = "sun_tonemap.png";
+-		sun.sunrise = "sunrisebg.png";
+-		sun.scale = 1;
+-		return sun;
++		SunParams xsun;
++		xsun.visible = true;
++		xsun.sunrise_visible = true;
++		xsun.texture = "sun.png";
++		xsun.tonemap = "sun_tonemap.png";
++		xsun.sunrise = "sunrisebg.png";
++		xsun.scale = 1;
++		return xsun;
+ 	}
+ 
+ 	static const MoonParams getMoonDefaults()
+
+
+[FILE:955:patches/patch-src_threading_thread.cpp]
+--- src/threading/thread.cpp.orig	2026-02-08 11:42:38 UTC
++++ src/threading/thread.cpp
+@@ -33,6 +33,8 @@ DEALINGS IN THE SOFTWARE.
+ 	#include <sys/prctl.h>
+ #elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+ 	#include <pthread_np.h>
++#elif defined(__sun)
++	#include <pthread.h>
+ #elif defined(__NetBSD__)
+ 	#include <sched.h>
+ #elif defined(_MSC_VER)
+@@ -221,6 +223,10 @@ void Thread::setName(const std::string &
+ 
+ 	pthread_set_name_np(pthread_self(), name.c_str());
+ 
++#elif defined(__sun)
++
++	pthread_setname_np(pthread_self(), name.c_str());
++
+ #elif defined(__NetBSD__)
+ 
+ 	pthread_setname_np(pthread_self(), "%s", const_cast<char*>(name.c_str()));
+@@ -295,7 +301,7 @@ bool Thread::bindToProcessor(unsigned in
+ 	return r == 0;
+ #elif defined(__sun) || defined(sun)
+ 
+-	return processor_bind(P_LWPID, P_MYID, proc_number, NULL) == 0
++	return processor_bind(P_LWPID, P_MYID, proc_number, NULL) == 0;
+ 
+ #elif defined(_AIX)
+ 
 
 
 [FILE:22240:files/LICENSE_CC_BY_SA_30]

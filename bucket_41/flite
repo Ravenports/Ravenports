@@ -2,6 +2,7 @@
 
 NAMEBASE=		flite
 VERSION=		2.2
+REVISION=		1
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		Small run-time speech synthesis engine
@@ -41,6 +42,8 @@ CONFIGURE_ARGS=		--enable-shared=yes
 PLIST_SUB=		SOVERSION=2.2
 			SOMAJOR=1
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lnsl
+
 post-patch:
 	${REINPLACE_CMD} -e 's|-pd|-pR|g' ${WRKSRC}/main/Makefile
 	${REINPLACE_CMD} -e "/-shared -Wl/s/)$$/ -lm)/g" \
@@ -49,6 +52,13 @@ post-patch:
 post-install:
 	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
 	${INSTALL_DATA} ${WRKSRC}/README.md ${STAGEDIR}${STD_DOCDIR}
+	# Shared libraries are a disaster, 3 copies (no symlinks).  Crazy!!
+	(cd ${STAGEDIR}${PREFIX}/lib && ${FIND} . -name "lib*.so" -print0 |\
+		${XARGS} -0 -I {XX} ${SH} -c \
+		'${RM} "$$1" "$$1.1" && \
+		 ${LN} -s "$$1.2.2" "$$1.1" && \
+		 ${LN} -s "$$1.1" "$$1"' \
+		 ${SH} {XX})
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib*.so
 
 [FILE:495:descriptions/desc.primary]
@@ -276,6 +286,76 @@ share/doc/flite/README.md
 +	cp -pR $(SHAREDLIBS) $(VERSIONSHAREDLIBS) $(INSTALLLIBDIR)
  endif
  
+
+
+[FILE:1224:patches/patch-src_audio_au__sun.c]
+$NetBSD: patch-src_audio_au__sun.c,v 1.1 2024/02/20 18:24:55 wiz Exp $
+
+- Include missing header
+- Use AUDIO_INITINFO for parameter initialization
+
+--- src/audio/au_sun.c.orig	2020-08-13 00:17:09 UTC
++++ src/audio/au_sun.c
+@@ -45,12 +45,18 @@
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ #include <errno.h>
++#include <sys/ioctl.h>
+ #include <sys/filio.h>
+ #include <sys/audioio.h>
+ #include "cst_string.h"
+ #include "cst_wave.h"
+ #include "cst_audio.h"
+ 
++#ifdef __sun
++#include <stropts.h>
++#include <sys/conf.h>
++#endif
++
+ static const char *sun_audio_device = "/dev/audio";
+ 
+ cst_audiodev *audio_open_sun(int sps, int channels, cst_audiofmt fmt)
+@@ -76,7 +82,7 @@ cst_audiodev *audio_open_sun(int sps, in
+ 	    cst_error();
+ 	}
+     }
+-    ioctl(fd,AUDIO_GETINFO,&ainfo);
++    AUDIO_INITINFO(&ainfo);
+ 
+     switch (fmt)
+     {
+@@ -166,9 +172,11 @@ int audio_flush_sun(cst_audiodev *ad)
+     return ioctl((int)ad->platform_data, AUDIO_DRAIN, 0);
+ }
+ 
+-/* FIXME... */
+ int audio_drain_sun(cst_audiodev *ad)
+ {
+-    return ioctl((int)ad->platform_data, AUDIO_DRAIN, 0);
++#ifdef __sun
++    return ioctl((int)ad->platform_data, I_FLUSH, FLUSHW);
++#else
++    return ioctl((int)ad->platform_data, AUDIO_FLUSH, 0);
++#endif
+ }
+-
+
+
+[FILE:401:patches/patch-tools_find__sts__main.c]
+The standard headers must be included before the behavior gets undefined
+by the following macro definition.
+
+--- tools/find_sts_main.c.orig	2020-08-13 00:17:09 UTC
++++ tools/find_sts_main.c
+@@ -40,6 +40,8 @@
+ #include <stdio.h>
+ #include <math.h>
+ #include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
+ 
+ /* To allow some normally const fields to manipulated during building */
+ #define const
 
 
 [FILE:143:files/special.mk]

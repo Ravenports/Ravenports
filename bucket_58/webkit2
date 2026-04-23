@@ -700,20 +700,56 @@ lib/pkgconfig/
          uintptr_t current = reinterpret_cast<uintptr_t>(code);
 
 
-[FILE:316:patches/patch-Source_JavaScriptCore_runtime_JSCBytecodeCacheVersion.cpp]
+[FILE:1456:patches/patch-Source_JavaScriptCore_heap_BlockDirectory.cpp]
+--- Source/JavaScriptCore/heap/BlockDirectory.cpp.orig	2026-02-19 21:54:10 UTC
++++ Source/JavaScriptCore/heap/BlockDirectory.cpp
+@@ -74,6 +74,7 @@ void BlockDirectory::updatePercentageOfP
+     auto numberOfPagesInMarkedBlock = MarkedBlock::blockSize / pageSize;
+     // For some reason this can be unsigned char or char on different OSes...
+     using MincoreBufferType = std::remove_pointer_t<FunctionTraits<decltype(mincore)>::ArgumentType<2>>;
++    using MincoreAddressType = FunctionTraits<decltype(mincore)>::ArgumentType<0>;
+     static_assert(std::is_same_v<std::make_unsigned_t<MincoreBufferType>, unsigned char>);
+     Vector<MincoreBufferType, 16> pagedBits(numberOfPagesInMarkedBlock, MincoreBufferType { });
+ 
+@@ -85,7 +86,7 @@ void BlockDirectory::updatePercentageOfP
+         auto markedBlockSizeInBytes = handle->backingStorageSize();
+         RELEASE_ASSERT(markedBlockSizeInBytes / pageSize <= numberOfPagesInMarkedBlock);
+         // We could cache this in bulk (e.g. 25 MB chunks) but we haven't seen any data that it actually matters.
+-        auto result = mincore(pageStart, markedBlockSizeInBytes, pagedBits.mutableSpan().data());
++        auto result = mincore(reinterpret_cast<MincoreAddressType>(pageStart), markedBlockSizeInBytes, pagedBits.mutableSpan().data());
+         RELEASE_ASSERT(!result);
+         constexpr unsigned pageIsResidentAndNotCompressed = 1;
+         for (unsigned i = 0; i < numberOfPagesInMarkedBlock; ++i)
+
+
+[FILE:334:patches/patch-Source_JavaScriptCore_runtime_JSCBytecodeCacheVersion.cpp]
 --- Source/JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp.orig	2025-08-11 07:56:48 UTC
 +++ Source/JavaScriptCore/runtime/JSCBytecodeCacheVersion.cpp
 @@ -42,6 +42,10 @@
  #endif
  #endif
  
-+#if defined(__NetBSD__)
++#if defined(__NetBSD__) || defined(__sun)
 +#define NT_GNU_BUILD_ID 3
 +#endif
 +
  namespace JSC {
  
  namespace JSCBytecodeCacheVersionInternal {
+
+
+[FILE:620:patches/patch-Source_JavaScriptCore_runtime_PropertyTable.h]
+--- Source/JavaScriptCore/runtime/PropertyTable.h.orig	2026-02-19 21:54:11 UTC
++++ Source/JavaScriptCore/runtime/PropertyTable.h
+@@ -181,7 +181,7 @@ private:
+     template<typename Index, typename Entry>
+     void reinsert(Index*, Entry*, const ValueType& entry);
+ 
+-    static bool canFitInCompact(const ValueType& entry) { return entry.offset() <= UINT8_MAX; }
++    static bool canFitInCompact(const ValueType& entry) { return static_cast<unsigned>(entry.offset()) <= UINT8_MAX; }
+ 
+     // Rehash the table. Used to grow, or to recover deleted slots.
+     void rehash(VM&, unsigned newCapacity, bool canStayCompact);
 
 
 [FILE:597:patches/patch-Source_ThirdParty_ANGLE_src_common_aligned__memory.cpp]
@@ -773,15 +809,33 @@ lib/pkgconfig/
  #endif
 
 
-[FILE:601:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-macros-internal.h]
+[FILE:325:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-collector.c]
+--- Source/ThirdParty/libsysprof-capture/sysprof-collector.c.orig	2026-02-19 21:54:11 UTC
++++ Source/ThirdParty/libsysprof-capture/sysprof-collector.c
+@@ -56,6 +56,10 @@
+ 
+ #include "config.h"
+ 
++#if defined(__sun)
++#define _XPG4_2
++#define __EXTENSIONS__
++#endif
+ #include <assert.h>
+ #include <errno.h>
+ #include <fcntl.h>
+
+
+[FILE:645:patches/patch-Source_ThirdParty_libsysprof-capture_sysprof-macros-internal.h]
 --- Source/ThirdParty/libsysprof-capture/sysprof-macros-internal.h.orig	2025-08-11 07:56:49 UTC
 +++ Source/ThirdParty/libsysprof-capture/sysprof-macros-internal.h
-@@ -64,6 +64,13 @@
+@@ -64,6 +64,15 @@
  #ifdef __APPLE__
  # include <libkern/OSByteOrder.h>
  # include <architecture/byte_order.h>
 +#elif defined(__DragonFly__)
 +# include <sys/endian.h>
++#elif defined(__sun)
++# include <endian.h>
 +#elif defined(__FreeBSD__) || defined(__NetBSD__)
 +# include <sys/endian.h>
 +# define __BIG_ENDIAN            _BIG_ENDIAN
@@ -828,7 +882,7 @@ NetBSD does not support uselocale
  #define HAVE_LOCALE_T 1
 
 
-[FILE:994:patches/patch-Source_ThirdParty_skia_src_ports_SkMemory__malloc.cpp]
+[FILE:1012:patches/patch-Source_ThirdParty_skia_src_ports_SkMemory__malloc.cpp]
 --- Source/ThirdParty/skia/src/ports/SkMemory_malloc.cpp.orig	2025-08-11 07:56:53 UTC
 +++ Source/ThirdParty/skia/src/ports/SkMemory_malloc.cpp
 @@ -16,7 +16,11 @@
@@ -847,7 +901,7 @@ NetBSD does not support uselocale
      #if defined(SK_BUILD_FOR_MAC) || defined(SK_BUILD_FOR_IOS)
          // TODO: remove the max, when the chrome implementation of malloc_size doesn't return 0.
          completeSize = std::max(malloc_size(addr), size);
-+    #elif defined(__NetBSD__)
++    #elif defined(__NetBSD__) || defined(__sun)
 +	// leave completeSize == size
      #elif defined(SK_BUILD_FOR_ANDROID) && __ANDROID_API__ >= 17
          completeSize = malloc_usable_size(addr);
@@ -886,6 +940,20 @@ Use regular static_assert on SunOS.
  namespace WTF::FileSystemImpl {
  
  #if HAVE(STD_FILESYSTEM) || HAVE(STD_EXPERIMENTAL_FILESYSTEM)
+
+
+[FILE:536:patches/patch-Source_WTF_wtf_MathExtras.h]
+--- Source/WTF/wtf/MathExtras.h.orig	2026-02-19 21:54:13 UTC
++++ Source/WTF/wtf/MathExtras.h
+@@ -425,7 +425,7 @@ inline void doubleToInteger(double d, un
+         value = 0;
+     else {
+         // -2^{64} < fmodValue < 2^{64}.
+-        double fmodValue = fmod(trunc(d), maxPlusOne<unsigned long long>);
++        double fmodValue = fmod(trunc(d), static_cast<double>(maxPlusOne<unsigned long long>));
+         if (fmodValue >= 0) {
+             // 0 <= fmodValue < 2^{64}.
+             // 0 <= value < 2^{64}. This cast causes no loss.
 
 
 [FILE:721:patches/patch-Source_WTF_wtf_MemoryPressureHandler.cpp]
@@ -1021,6 +1089,79 @@ SunOS does not have pthread_getattr_np.
  
 
 
+[FILE:2481:patches/patch-Source_WTF_wtf_simde_arm_neon.h]
+--- Source/WTF/wtf/simde/arm/neon.h.orig	2025-08-11 07:56:53 UTC
++++ Source/WTF/wtf/simde/arm/neon.h
+@@ -6811,41 +6811,10 @@ HEDLEY_DIAGNOSTIC_POP
+  * will not be defined, so if you can handle that situation sensibly
+  * you may need to sprinkle some ifdefs into your code.
+  */
+-#if \
+-    (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)) || \
+-    (0 && HEDLEY_HAS_FEATURE(c_alignof))
+-  #define SIMDE_ALIGN_OF(Type) _Alignof(Type)
+-#elif \
+-    (defined(__cplusplus) && (__cplusplus >= 201103L)) || \
+-    (0 && HEDLEY_HAS_FEATURE(cxx_alignof))
+-  #define SIMDE_ALIGN_OF(Type) alignof(Type)
+-#elif \
+-    HEDLEY_GCC_VERSION_CHECK(2,95,0) || \
+-    HEDLEY_ARM_VERSION_CHECK(4,1,0) || \
+-    HEDLEY_INTEL_VERSION_CHECK(13,0,0) || \
+-    HEDLEY_SUNPRO_VERSION_CHECK(5,13,0) || \
+-    HEDLEY_TINYC_VERSION_CHECK(0,9,24) || \
+-    HEDLEY_PGI_VERSION_CHECK(19,10,0) || \
+-    HEDLEY_CRAY_VERSION_CHECK(10,0,0) || \
+-    HEDLEY_TI_ARMCL_VERSION_CHECK(16,9,0) || \
+-    HEDLEY_TI_CL2000_VERSION_CHECK(16,9,0) || \
+-    HEDLEY_TI_CL6X_VERSION_CHECK(8,0,0) || \
+-    HEDLEY_TI_CL7X_VERSION_CHECK(1,2,0) || \
+-    HEDLEY_TI_CL430_VERSION_CHECK(16,9,0) || \
+-    HEDLEY_TI_CLPRU_VERSION_CHECK(2,3,2) || \
+-    HEDLEY_MCST_LCC_VERSION_CHECK(1,25,10) || \
+-    defined(__IBM__ALIGNOF__) || \
+-    defined(__clang__)
++#if defined(__GNUC__) || defined(__clang__)
+   #define SIMDE_ALIGN_OF(Type) __alignof__(Type)
+-#elif \
+-  HEDLEY_IAR_VERSION_CHECK(8,40,0)
+-  #define SIMDE_ALIGN_OF(Type) __ALIGNOF__(Type)
+-#elif \
+-  HEDLEY_MSVC_VERSION_CHECK(19,0,0)
+-  /* Probably goes back much further, but MS takes down their old docs.
+-   * If you can verify that this works in earlier versions please let
+-   * me know! */
+-  #define SIMDE_ALIGN_OF(Type) __alignof(Type)
++#elif defined(__cplusplus) && (__cplusplus >= 201103L)
++  #define SIMDE_ALIGN_OF(Type) alignof(Type)
+ #endif
+ 
+ /* SIMDE_ALIGN_MAXIMUM:
+@@ -7744,7 +7713,7 @@ typedef SIMDE_POLY128_TYPE simde_poly128
+ #endif
+ 
+ /* TODO: detect compilers which support this outside of C11 mode */
+-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
++#if !defined(__cplusplus) && defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+   #define SIMDE_CHECKED_REINTERPRET_CAST(to, from, value) _Generic((value), to: (value), default: (_Generic((value), from: ((to) (value)))))
+   #define SIMDE_CHECKED_STATIC_CAST(to, from, value) _Generic((value), to: (value), default: (_Generic((value), from: ((to) (value)))))
+ #else
+
+
+[FILE:315:patches/patch-Source_WTF_wtf_simde_simde.h]
+--- Source/WTF/wtf/simde/simde.h.orig	2025-08-11 07:56:53 UTC
++++ Source/WTF/wtf/simde/simde.h
+@@ -34,6 +34,8 @@
+ #endif
+ 
+ IGNORE_WARNINGS_BEGIN("constant-conversion")
++IGNORE_WARNINGS_BEGIN("sign-compare")
+ #include <wtf/simde/arm/neon.h>
+ #include <wtf/simde/arm/sve.h>
+ IGNORE_WARNINGS_END
++IGNORE_WARNINGS_END
+
+
 [FILE:1495:patches/patch-Source_WTF_wtf_unix_MemoryPressureHandlerUnix.cpp]
 --- Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp.orig	2025-08-11 07:56:53 UTC
 +++ Source/WTF/wtf/unix/MemoryPressureHandlerUnix.cpp
@@ -1066,44 +1207,6 @@ SunOS does not have pthread_getattr_np.
  #elif OS(QNX)
      int fd = open("/proc/self/ctl", O_RDONLY);
      if (fd == -1)
-
-
-[FILE:863:patches/patch-Source_WebCore_Modules_fetch_FetchBodyConsumer.cpp]
---- Source/WebCore/Modules/fetch/FetchBodyConsumer.cpp.orig	2025-08-11 07:56:53 UTC
-+++ Source/WebCore/Modules/fetch/FetchBodyConsumer.cpp
-@@ -46,6 +46,32 @@
- #include <wtf/text/MakeString.h>
- #include <wtf/text/ParsingUtilities.h>
- 
-+#ifdef __sun
-+static void *memmem(
-+		const void *big, size_t big_len,
-+		const void *little, size_t little_len)
-+{
-+	const char *bp = (const char *)big;
-+	const char *lp = (const char *)little;
-+	size_t l;
-+
-+	if (big_len < little_len || little_len == 0 || big_len == 0)
-+		return NULL;
-+
-+	while (big_len > 0) {
-+		for (l = 0; l < little_len; l++) {
-+			if (bp[l] != lp[l])
-+				break;
-+		}
-+		if (l == little_len)
-+			return (void *)bp;
-+		bp++;
-+	}
-+
-+	return NULL;
-+}
-+#endif
-+
- namespace WebCore {
- 
- static inline Ref<Blob> blobFromData(ScriptExecutionContext* context, Vector<uint8_t>&& data, const String& contentType)
 
 
 [FILE:350:patches/patch-Source_WebCore_platform_network_DNS.h]
@@ -1221,14 +1324,14 @@ encountering EMSGSIZE.
              return false;
 
 
-[FILE:3038:patches/patch-Source_WebKit_UIProcess_Launcher_glib_ProcessLauncherGLib.cpp]
+[FILE:3055:patches/patch-Source_WebKit_UIProcess_Launcher_glib_ProcessLauncherGLib.cpp]
 --- Source/WebKit/UIProcess/Launcher/glib/ProcessLauncherGLib.cpp.orig	2025-08-11 07:56:57 UTC
 +++ Source/WebKit/UIProcess/Launcher/glib/ProcessLauncherGLib.cpp
 @@ -43,6 +43,13 @@
  #include <wtf/text/CString.h>
  #include <wtf/text/WTFString.h>
  
-+#if defined __DragonFly__ || defined __FreeBSD__ || defined __NetBSD__
++#if defined __DragonFly__ || defined __FreeBSD__ || defined __NetBSD__ || defined __sun
 +#  define TREAT_AS_LINUX 0
 +#  define RUNNING_ON_VALGRIND 0
 +#else

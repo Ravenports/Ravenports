@@ -380,8 +380,10 @@ share/locale/zh_CN/LC_MESSAGES/qemu.mo
                  h2g_old_sysctl(holdp, &holdlen, kind);
 
 
-[FILE:2936:patches/patch-meson.build]
---- meson.build.orig	2026-02-13 04:45:57 UTC
+[FILE:3491:patches/patch-meson.build]
+Stay of kqueue, something both FreeBSD 14 and 15 support.
+
+--- meson.build.orig	2026-03-18 01:27:50 UTC
 +++ meson.build
 @@ -49,8 +49,8 @@ qemu_icondir = get_option('datadir') / '
  genh = []
@@ -440,6 +442,20 @@ share/locale/zh_CN/LC_MESSAGES/qemu.mo
              break
            else
              msg = 'curses library not usable'
+@@ -2700,13 +2701,6 @@ have_inotify_init1 = cc.has_header_symbo
+ inotify = not_found
+ if (have_inotify_init or have_inotify_init1) and host_os == 'freebsd'
+   # libinotify-kqueue
+-  inotify = cc.find_library('inotify')
+-  if have_inotify_init
+-    have_inotify_init = inotify.found()
+-  endif
+-  if have_inotify_init1
+-    have_inotify_init1 = inotify.found()
+-  endif
+ endif
+ config_host_data.set('CONFIG_INOTIFY', have_inotify_init)
+ config_host_data.set('CONFIG_INOTIFY1', have_inotify_init1)
 
 
 [FILE:454:patches/patch-net_tap-bsd.c]

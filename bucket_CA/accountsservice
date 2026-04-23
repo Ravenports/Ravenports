@@ -55,6 +55,7 @@ PATCH_WRKSRC=		{{WRKDIR}}/accountsservice-1ad45945
 SOVERSION=		1.0.0
 
 CFLAGS=			-Wno-implicit-function-declaration
+VAR_OPSYS[sunos]=	CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
 
 [LINUX].DESCRIPTION=			Support for Linux system
 [LINUX].BUILDRUN_DEPENDS_ON=		json-c:primary:std
@@ -254,6 +255,24 @@ share/doc/accountsservice/spec/AccountsService.html
  for (dst_dir, dst_dir_mode) in dst_dirs:
 
 
+[FILE:840:patches/patch-src_daemon.c]
+--- src/daemon.c.orig	2023-08-12 19:01:30 UTC
++++ src/daemon.c
+@@ -245,7 +245,12 @@ static GHashTable* build_shadow_users_ha
+ 
+                 ShadowEntryBuffers *shadow_entry_buffers = g_malloc0 (sizeof(*shadow_entry_buffers));
+ 
++#if defined(__sun)
++                shadow_entry = fgetspent_r (fp, &shadow_entry_buffers->spbuf, shadow_entry_buffers->buf, sizeof(shadow_entry_buffers->buf));
++		ret = (shadow_entry != NULL) ? 0 : -1;
++#else
+                 ret = fgetspent_r (fp, &shadow_entry_buffers->spbuf, shadow_entry_buffers->buf, sizeof(shadow_entry_buffers->buf), &shadow_entry);
++#endif
+                 if (ret == 0) {
+                         g_hash_table_insert (shadow_users, g_strdup (shadow_entry->sp_namp), shadow_entry_buffers);
+                         g_hash_table_add (local_users, g_strdup (shadow_entry->sp_namp));
+
+
 [FILE:666:patches/patch-src_meson.build]
 --- src/meson.build.orig	2023-08-12 19:01:30 UTC
 +++ src/meson.build
@@ -268,6 +287,23 @@ share/doc/accountsservice/spec/AccountsService.html
  ]
  
  libaccounts_generated = static_library(
+
+
+[FILE:564:patches/patch-src_user.c]
+--- src/user.c.orig	2023-08-12 19:01:30 UTC
++++ src/user.c
+@@ -507,7 +507,11 @@ user_update_from_pwent (User          *u
+                 user->account_expiration_policy_known = TRUE;
+         }
+         else
++#if defined(__sun)
++                user->user_expiration_time = NULL;
++#else
+                 user->user_expiration_time = g_date_time_new_from_unix_utc(pwent->pw_expire);
++#endif
+ 
+         accounts_user_set_password_mode (ACCOUNTS_USER (user), mode);
+         is_system_account = !user_classify_is_human (accounts_user_get_uid (ACCOUNTS_USER (user)),
 
 
 [FILE:380:patches/patch-src_wtmp-helper.c]

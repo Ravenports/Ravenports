@@ -60,7 +60,6 @@ CMAKE_ARGS=		-DALSOFT_DLOPEN=Off
 			-DALSOFT_NO_CONFIG_UTIL=On
 VAR_OPSYS[freebsd]=	LDFLAGS=-lstdthreads
 VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
-			LDFLAGS=-lrt
 
 [C11THREADS].DESCRIPTION=		Install <threads.h> on platforms missing it
 [C11THREADS].DF_INDEX_ON=		2
@@ -127,4 +126,41 @@ lib/cmake/OpenAL/
  OpenALTargets-release.cmake
  OpenALTargets.cmake
 lib/pkgconfig/openal.pc
+
+
+[FILE:436:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2026-01-20 02:56:03 UTC
++++ CMakeLists.txt
+@@ -1714,7 +1714,7 @@ else()
+         endif()
+     endif()
+ 
+-    if(NOT WIN32 AND NOT APPLE)
++    if(NOT WIN32 AND NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES "SunOS")
+         # FIXME: This doesn't put a dependency on the version script. Changing
+         # the version script will not cause a relink as it should.
+         target_link_options(${IMPL_TARGET} PRIVATE
+
+
+[FILE:593:patches/patch-common_althreads.h]
+$NetBSD: patch-common_althreads.h,v 1.1 2026/04/13 18:07:26 tnn Exp $
+
+Kludge for Illumos: C11 <threads.h> is not supposed[1] to be used from C++11
+mode and it causes the C11 macro to be defined for thread_local.
+Undefine this, thread_local is a compiler builtin in C++11.
+We can't drop the include since that causes other issues.
+[1] C++20 N4860.pdf 16.5.1.2 Headers, footnote 165
+
+--- common/althreads.h.orig	2026-01-20 02:56:03 UTC
++++ common/althreads.h
+@@ -16,6 +16,9 @@
+ #else
+ 
+ #include <threads.h>
++#if defined(__sun) && defined(thread_local)
++#undef thread_local
++#endif
+ #endif
+ 
+ 
 

@@ -102,11 +102,13 @@ PLIST_SUB=		SO_CLIENT=3.2.9
 			SO_LIBDNS_MAJ=1
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--with-distro=freebsd
+VAR_OPSYS[sunos]=	CONFIGURE_ARGS=--with-distro=none
 VAR_OPSYS[linux]=	CONFIGURE_ARGS=--with-distro=debian
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=--with-distro=freebsd
 VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--with-distro=freebsd
 
 [SOLARIS].DESCRIPTION=			Build with Solaris characteristics
+[SOLARIS].LDFLAGS_ON=			-lintl
 
 [BSD].DESCRIPTION=			Build with BSD characteristics
 [BSD].CPPFLAGS_ON=			-DHAVE_KQUEUE
@@ -395,6 +397,33 @@ lib/
 include/avahi-compat-libdns_sd/dns_sd.h
 lib/libdns_sd.so
 lib/pkgconfig/avahi-compat-libdns_sd.pc
+
+
+[FILE:207:patches/patch-avahi-core_fdutil.c]
+--- avahi-core/fdutil.c.orig	2015-04-01 04:58:14 UTC
++++ avahi-core/fdutil.c
+@@ -23,6 +23,7 @@
+ 
+ #include <sys/select.h>
+ #include <unistd.h>
++#include <string.h>
+ #include <fcntl.h>
+ #include <assert.h>
+ 
+
+
+[FILE:482:patches/patch-avahi-core_iface-pfroute.c]
+--- avahi-core/iface-pfroute.c.orig	2020-02-17 04:46:57 UTC
++++ avahi-core/iface-pfroute.c
+@@ -519,7 +519,7 @@ void avahi_interface_monitor_sync(AvahiI
+             avahi_log_error("malloc failed in avahi_interface_monitor_sync");
+             goto end;
+     }
+-    lifc.lifc_family = NULL;
++    lifc.lifc_family = AF_UNSPEC;
+     lifc.lifc_flags = 0;
+     if(ioctl(sockfd, SIOCGLIFCONF, &lifc) < 0) {
+         avahi_log_error(__FILE__": ioctl(SIOCGLIFCONF): %s", strerror(errno));
 
 
 [FILE:553:patches/patch-avahi-core_socket.c]

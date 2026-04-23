@@ -47,6 +47,10 @@ MAKE_ARGS=		mansubdir=man
 RC_SUBR=		smtpd:primary
 SUB_FILES=		messages-primary.ucl
 
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			CFLAGS=-D_XOPEN_SOURCE=600
+			CFLAGS=-DHAVE_WAITPID
+
 post-install:
 	${LN} -sf ../../sbin/smtpctl \
 		${STAGEDIR}${PREFIX}/libexec/opensmtpd/makemap
@@ -156,6 +160,86 @@ share/man/man8/
  
  void
  arc4random_addrandom(u_char *dat, int datlen)
+
+
+[FILE:233:patches/patch-usr.sbin_smtpd_mta__session.c]
+--- usr.sbin/smtpd/mta_session.c.orig	2025-07-30 20:26:49 UTC
++++ usr.sbin/smtpd/mta_session.c
+@@ -35,6 +35,7 @@
+ #include <time.h>
+ #include <tls.h>
+ #include <unistd.h>
++#include <strings.h>
+ 
+ #include "smtpd.h"
+ #include "log.h"
+
+
+[FILE:1008:patches/patch-usr.sbin_smtpd_proxy.c]
+--- usr.sbin/smtpd/proxy.c.orig	2025-07-30 20:26:49 UTC
++++ usr.sbin/smtpd/proxy.c
+@@ -333,7 +333,7 @@ proxy_translate_ss(struct proxy_session
+ {
+ 	struct sockaddr_in *sin = (struct sockaddr_in *) &s->ss;
+ 	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) &s->ss;
+-	struct sockaddr_un *sun = (struct sockaddr_un *) &s->ss;
++	struct sockaddr_un *xsun = (struct sockaddr_un *) &s->ss;
+ 	size_t sun_len;
+ 
+ 	switch (s->hdr.fam) {
+@@ -362,13 +362,13 @@ proxy_translate_ss(struct proxy_session
+ 		memset(&s->ss, 0, sizeof(s->ss));
+ 		sun_len = strnlen(s->addr.un.src_addr,
+ 		    sizeof(s->addr.un.src_addr));
+-		if (sun_len > sizeof(sun->sun_path)) {
++		if (sun_len > sizeof(xsun->sun_path)) {
+ 			proxy_error(s, "address translation", "Unix socket path"
+ 			    " longer than supported");
+ 			return (-1);
+ 		}
+-		sun->sun_family = AF_UNIX;
+-		memcpy(sun->sun_path, s->addr.un.src_addr, sun_len);
++		xsun->sun_family = AF_UNIX;
++		memcpy(xsun->sun_path, s->addr.un.src_addr, sun_len);
+ 		break;
+ 
+ 	default:
+
+
+[FILE:360:patches/patch-usr.sbin_smtpd_smtp__client.c]
+--- usr.sbin/smtpd/smtp_client.c.orig	2025-07-30 20:26:49 UTC
++++ usr.sbin/smtpd/smtp_client.c
+@@ -62,8 +62,13 @@ enum {
+ 	STATE_LAST
+ };
+ 
++#ifdef __sun
++#define base64_encode 	b64_ntop
++#define base64_decode	b64_pton
++#else
+ #define base64_encode	__b64_ntop
+ #define base64_decode	__b64_pton
++#endif
+ 
+ #define FLAG_TLS		0x01
+ #define FLAG_TLS_VERIFIED	0x02
+
+
+[FILE:292:patches/patch-usr.sbin_smtpd_util.c]
+--- usr.sbin/smtpd/util.c.orig	2025-07-30 20:26:49 UTC
++++ usr.sbin/smtpd/util.c
+@@ -44,6 +44,11 @@
+ #include "smtpd.h"
+ #include "log.h"
+ 
++#ifdef __sun
++#define __b64_ntop b64_ntop
++#define __b64_pton b64_pton
++#endif
++
+ static int  parse_mailname_file(char *, size_t);
+ 
+ int	tracing = 0;
 
 
 [FILE:714:files/messages-primary.ucl.in]

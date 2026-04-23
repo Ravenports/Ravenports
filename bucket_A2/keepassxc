@@ -72,8 +72,9 @@ CMAKE_ARGS=		-DKEEPASSXC_BUILD_TYPE:STRING=Release
 			-DWITH_XC_SSHAGENT:BOOL=ON
 			-DWITH_XC_UPDATECHECK:BOOL=OFF
 			-Wno-dev
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e "s|__PREFIX__|${PREFIX}|" \
 		${WRKSRC}/CMakeLists.txt \
 		${WRKSRC}/src/autotype/CMakeLists.txt
@@ -185,9 +186,18 @@ share/doc/keepassxc/
  KeePassXC_UserGuide.html
 
 
-[FILE:484:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2025-11-23 22:15:03 UTC
+[FILE:991:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2026-03-10 00:27:46 UTC
 +++ CMakeLists.txt
+@@ -363,7 +363,7 @@ check_add_gcc_compiler_flag("-Werror=for
+ check_add_gcc_compiler_flag("-Werror=implicit-function-declaration" C)
+ check_add_gcc_compiler_flag("-Wcast-align")
+ 
+-if(UNIX AND NOT APPLE)
++if(UNIX AND NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES "SunOS")
+     check_add_gcc_compiler_flag("-Qunused-arguments")
+     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed -Wl,--no-undefined")
+     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,relro,-z,now -pie")
 @@ -515,7 +515,7 @@ if(UNIX AND NOT APPLE)
      if(WITH_XC_X11)
          list(APPEND QT_COMPONENTS X11Extras)
@@ -200,7 +210,7 @@ share/doc/keepassxc/
 
 
 [FILE:615:patches/patch-src_autotype_CMakeLists.txt]
---- src/autotype/CMakeLists.txt.orig	2025-11-23 22:15:03 UTC
+--- src/autotype/CMakeLists.txt.orig	2026-03-10 00:27:46 UTC
 +++ src/autotype/CMakeLists.txt
 @@ -1,7 +1,7 @@
  if(WITH_XC_AUTOTYPE)
@@ -214,7 +224,7 @@ share/doc/keepassxc/
 
 
 [FILE:298:patches/patch-src_core_Alloc.cpp]
---- src/core/Alloc.cpp.orig	2025-11-23 22:15:03 UTC
+--- src/core/Alloc.cpp.orig	2026-03-10 00:27:46 UTC
 +++ src/core/Alloc.cpp
 @@ -20,7 +20,7 @@
  #include <cstdlib>
@@ -225,4 +235,19 @@ share/doc/keepassxc/
  #include <malloc_np.h>
  #elif defined(HAVE_MALLOC_H)
  #include <malloc.h>
+
+
+[FILE:463:patches/patch-src_core_Totp.cpp]
+--- src/core/Totp.cpp.orig	2026-03-10 00:27:46 UTC
++++ src/core/Totp.cpp
+@@ -284,7 +284,8 @@ QString Totp::generateTotp(const QShared
+         direction = 1;
+         startpos = 0;
+     }
+-    quint32 digitsPower = pow(encoder.alphabet.size(), digits);
++    quint32 digitsPower = pow(static_cast<double>(encoder.alphabet.size()),
++		static_cast<int>(digits));
+ 
+     quint64 password = binary % digitsPower;
+     QString retval(int(digits), encoder.alphabet[0]);
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		redis
 VERSION=		8.6.2
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Persistent key-value database with net interface
@@ -222,10 +223,24 @@ bin/
  #define CJSON_MODNAME   "cjson"
 
 
-[FILE:681:patches/patch-src_Makefile]
+[FILE:1108:patches/patch-src_Makefile]
 --- src/Makefile.orig	2026-03-24 12:22:41 UTC
 +++ src/Makefile
-@@ -150,7 +150,6 @@ endif
+@@ -25,13 +25,6 @@ CLANG := $(findstring clang,$(shell sh -
+ # some automatic defaults are added to it. To specify optimization flags
+ # explicitly without any defaults added, pass the OPT variable instead.
+ OPTIMIZATION?=-O3
+-ifeq ($(OPTIMIZATION),-O3)
+-	ifeq (clang,$(CLANG))
+-		OPTIMIZATION+=-flto
+-	else
+-		OPTIMIZATION+=-flto=auto
+-	endif
+-endif
+ ifneq ($(OPTIMIZATION),-O0)
+ 	OPTIMIZATION+=-fno-omit-frame-pointer
+ endif
+@@ -150,7 +143,6 @@ endif
  FINAL_CFLAGS=$(STD) $(WARN) $(OPT) $(DEBUG) $(CFLAGS) $(REDIS_CFLAGS)
  FINAL_LDFLAGS=$(LDFLAGS) $(OPT) $(REDIS_LDFLAGS) $(DEBUG)
  FINAL_LIBS=-lm -lstdc++
@@ -233,7 +248,7 @@ bin/
  
  # Linux ARM32 needs -latomic at linking time
  ifneq (,$(findstring armv,$(uname_M)))
-@@ -235,12 +234,16 @@ ifeq ($(uname_S),Haiku)
+@@ -235,12 +227,16 @@ ifeq ($(uname_S),Haiku)
  	FINAL_LDFLAGS+= -lbsd -lnetwork
  	FINAL_LIBS+= -lpthread
  else

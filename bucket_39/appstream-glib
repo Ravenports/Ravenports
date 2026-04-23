@@ -22,20 +22,19 @@ SPKGS[std]=		set
 			man
 			docs
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SYSUUID
+OPTIONS_STANDARD=	SYSUUID
+OPT_ON[sunos]=		SYSUUID
 
 BUILD_DEPENDS=		gcab:dev:std
 			gperf:primary:std
 			harfbuzz:dev:std
 			json-glib:dev:std
 			libarchive:dev:std
-			libuuid:dev:std
 			libyaml:dev:std
 BUILDRUN_DEPENDS=	gcab:primary:std
 			json-glib:primary:std
 			libarchive:primary:std
-			libuuid:primary:std
 			libyaml:primary:std
 EXRUN[tools]=		primary
 EXRUN[dev]=		libarchive:dev:std
@@ -63,6 +62,10 @@ MESON_ARGS=		-Drpm=false
 INSTALL_TARGET=		install-strip
 SOVERSION=		8.0.10
 PLIST_SUB=		INTRO="@comment "
+
+[SYSUUID].DESCRIPTION=			Use system libuuid rather than from Ravenports
+[SYSUUID].BUILDRUN_DEPENDS_OFF=		libuuid:primary:std
+[SYSUUID].BUILD_DEPENDS_OFF=		libuuid:dev:std
 
 pre-configure:
 	${REINPLACE_CMD} -e "s|http://docbook.sourceforge.net/release/xsl/current/|file://${LOCALBASE}/share/xsl/docbook/|" \

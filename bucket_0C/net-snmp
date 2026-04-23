@@ -2,7 +2,7 @@
 
 NAMEBASE=		net-snmp
 VERSION=		5.9.5.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		net_mgmt
 VARIANTS=		std
 SDESC[std]=		Extensible SNMP implementation
@@ -393,7 +393,7 @@ share/snmp/snmpconf-data/snmptrapd-data/
 @dir %%CONFDIR%%
 
 
-[FILE:3016:manifests/plist.dev]
+[FILE:3042:manifests/plist.dev]
 include/net-snmp/
  config_api.h
  definitions.h
@@ -549,6 +549,8 @@ include/net-snmp/system/
  freebsd12.h
  freebsd13.h
  freebsd14.h
+ freebsd15.h
+ freebsd16.h
  freebsd2.h
  freebsd3.h
  freebsd4.h
@@ -750,13 +752,15 @@ share/man/man8/
  snmptrapd.8
 
 
-[FILE:422:patches/patch-Makefile.in]
---- Makefile.in.orig	2023-08-15 20:32:01 UTC
+[FILE:529:patches/patch-Makefile.in]
+--- Makefile.in.orig	2025-12-23 16:54:18 UTC
 +++ Makefile.in
-@@ -22,6 +22,7 @@ INCLUDESUBDIRHEADERS= aix.h bsd.h bsdi3.
+@@ -21,7 +21,8 @@ INCLUDESUBDIRHEADERS= aix.h bsd.h bsdi3.
+ 	darwin.h dragonfly.h dynix.h \
  	freebsd2.h freebsd3.h freebsd4.h freebsd5.h freebsd6.h \
  	freebsd7.h freebsd8.h freebsd9.h freebsd10.h freebsd11.h \
- 	freebsd12.h freebsd13.h freebsd14.h freebsd.h \
+-	freebsd12.h freebsd13.h freebsd14.h freebsd.h \
++	freebsd12.h freebsd13.h freebsd14.h freebsd15.h freebsd16.h freebsd.h \
 +	midnightbsd3.h \
  	generic.h \
  	hpux.h irix.h kfreebsd.h linux.h mingw32.h mingw32msvc.h mips.h \
@@ -836,8 +840,8 @@ share/man/man8/
  #include <sys/hashing.h>
 
 
-[FILE:525:patches/patch-agent_mibgroup_mibII_tcp.c]
---- agent/mibgroup/mibII/tcp.c.orig	2023-08-15 20:32:01 UTC
+[FILE:992:patches/patch-agent_mibgroup_mibII_tcp.c]
+--- agent/mibgroup/mibII/tcp.c.orig	2025-12-23 16:54:18 UTC
 +++ agent/mibgroup/mibII/tcp.c
 @@ -8,6 +8,14 @@
  #include <net-snmp/net-snmp-features.h>
@@ -854,6 +858,22 @@ share/man/man8/
  #ifdef HAVE_STDLIB_H
  #include <stdlib.h>
  #endif
+@@ -45,11 +53,13 @@
+ #define MSEC_2_TICKS(m) max(1, (uint32_t)((hz == 1000) ? \
+ 	(m) : ((uint64_t)(m) * (uint64_t)hz)/(uint64_t)1000)) 
+ #endif
++/* Force VNET_DECLARE to behave like a standard extern for userland */
++#ifndef VNET_DECLARE
++#define VNET_DECLARE(t, n) extern t n
++#endif
+ #include <netinet/tcp_timer.h>
+-#if __FreeBSD_version >= 1500048
+ #undef _KERNEL
+ #endif
+-#endif
+ #ifdef HAVE_NETINET_TCP_VAR_H
+ #ifdef openbsd7
+ #define _KERNEL /* OpenBSD 7.3 */
 
 
 [FILE:625:patches/patch-agent_mibgroup_mibII_udpTable.c]

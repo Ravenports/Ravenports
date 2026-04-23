@@ -249,6 +249,34 @@ Subject: [PATCH] Allow calls to CanSuspendThenHibernate
  typedef struct
 
 
+[FILE:302:patches/patch-src_ck-sysdeps-solaris.c]
+--- src/ck-sysdeps-solaris.c.orig	2023-08-11 16:26:44 UTC
++++ src/ck-sysdeps-solaris.c
+@@ -129,7 +129,7 @@ ck_process_stat_get_tty (CkProcessStat *
+ static int
+ get_system_vt_major ()
+ {
+-        static      ret = -1;
++        static int  ret = -1;
+         struct stat st;
+         int         res;
+ 
+
+
+[FILE:342:patches/patch-src_ck-vt-monitor.c]
+--- src/ck-vt-monitor.c.orig	2023-08-11 16:26:44 UTC
++++ src/ck-vt-monitor.c
+@@ -160,7 +160,7 @@ ck_vt_monitor_get_active (CkVtMonitor
+ 
+ #if defined (__sun) && defined (HAVE_SYS_VT_H)
+ static void
+-handle_vt_active (void)
++handle_vt_active (int sig __attribute__((__unused__)))
+ {
+         struct vt_stat state;
+         guint          num;
+
+
 [FILE:245:patches/patch-tools_Makefile.am]
 --- tools/Makefile.am.orig	2023-08-11 16:26:44 UTC
 +++ tools/Makefile.am

@@ -88,6 +88,7 @@ FPC_EQUIVALENT=		sysutils/kf6-baloo
 SOVERSION=		6.24.0
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
+			-DKF_IGNORE_PLATFORM_CHECK:BOOL=TRUE
 
 post-stage:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libKF6Baloo.so
@@ -796,19 +797,20 @@ share/locale/zh_TW/LC_MESSAGES/
  kio6_timeline.mo
 
 
-[FILE:269:patches/patch-metainfo.yaml]
---- metainfo.yaml.orig	2025-01-03 15:24:27 UTC
-+++ metainfo.yaml
-@@ -4,6 +4,9 @@ type: solution
- platforms:
-     - name: Linux
-     - name: FreeBSD
-+    - name: DragonFly
-+    - name: NetBSD
-+    - name: MidnightBSD
- portingAid: false
- deprecated: false
- release: true
+[FILE:258:patches/patch-src_file_kinotify.cpp]
+--- src/file/kinotify.cpp.orig	2026-03-07 20:28:47 UTC
++++ src/file/kinotify.cpp
+@@ -28,6 +28,10 @@
+ #include <cerrno>
+ #include <dirent.h>
+ 
++#ifdef __sun
++#include <sys/filio.h>
++#endif
++
+ namespace
+ {
+ QByteArray normalizeTrailingSlash(QByteArray&& path)
 
 
 [FILE:432:patches/patch-src_file_priority.cpp]
@@ -830,4 +832,18 @@ share/locale/zh_TW/LC_MESSAGES/
      if (syscall(SYS_ioprio_set, IOPRIO_WHO_PROCESS, 0, ioprio_value(IOPRIO_CLASS_IDLE, 0, IOPRIO_HINT_NONE)) >= 0) {
          return true;
      }
+
+
+[FILE:407:patches/patch-src_file_timeestimator.cpp]
+--- src/file/timeestimator.cpp.orig	2026-03-07 20:28:47 UTC
++++ src/file/timeestimator.cpp
+@@ -24,7 +24,7 @@ uint TimeEstimator::calculateTimeLeft()
+ 
+     int bufferIndex = m_bufferIndex;
+     for (int i = 0; i < BUFFER_SIZE; ++i) {
+-        float weight = sqrt(i + 1);
++        float weight = sqrt(i + 1.0);
+         totalWeight += weight;
+ 
+         totalTime += m_batchTimeBuffer[bufferIndex] * weight;
 

@@ -166,7 +166,6 @@ VAR_OPSYS[dragonfly]=	VAR1=--with-file-notification=kqueue
 					jpeg
 					tiff
 					gif
-					gold
 [X11GTK].XORG_COMPONENTS_ON=		xft
 					xrender
 					ice
@@ -4728,6 +4727,21 @@ share/emacs/info/
                 ebrowse${EXEEXT}
  
  # Things that Emacs runs internally, or during the build process,
+
+
+[FILE:324:patches/patch-src_inotify.c]
+--- src/inotify.c.orig	2025-01-04 11:05:30 UTC
++++ src/inotify.c
+@@ -30,6 +30,9 @@ along with GNU Emacs.  If not, see <http
+ 
+ #include <sys/inotify.h>
+ #include <sys/ioctl.h>
++#if defined(__sun)
++#include <sys/filio.h>
++#endif
+ 
+ /* Ignore bits that might be undefined on old GNU/Linux systems.  */
+ #ifndef IN_EXCL_UNLINK
 
 
 [FILE:253:patches/patch-src_process.h]

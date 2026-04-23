@@ -65,6 +65,7 @@ MAKE_ENV=		V=1
 			LC_ALL=en_US.UTF-8
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=--enable-precompiled-headers=no
+VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=--enable-precompiled-headers=no
 
 post-patch:
@@ -404,6 +405,20 @@ https://gitlab.com/mbunkus/mkvtoolnix/issues/2450
  #  define SYS_BSD
  # elif defined(__sun) && defined(__SUNPRO_CC)
  #  undef COMP_GCC
+
+
+[FILE:403:patches/patch-src_input_r__qtmp4.cpp]
+--- src/input/r_qtmp4.cpp.orig	2026-01-02 12:35:08 UTC
++++ src/input/r_qtmp4.cpp
+@@ -1615,7 +1615,7 @@ qtmp4_reader_c::handle_display_matrix(qt
+     dmx.yaw = 180;
+   else
+     return;
+-  dmx.roll = 180 / M_PI * atan2(matrix[1][0], matrix[1][1]);
++  dmx.roll = 180 / M_PI * atan2(static_cast<double>(matrix[1][0]), static_cast<double>(matrix[1][1]));
+   ignored = false;
+ 
+   if (!dmx.yaw && !dmx.roll)
 
 
 [FILE:761:patches/patch-src_mkvtoolnix-gui_util_sleep__inhibitor.cpp]

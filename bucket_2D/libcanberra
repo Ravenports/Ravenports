@@ -91,12 +91,7 @@ This subpackage contains tools based on libcanberra library.
 c2b671e67e0c288a69fc33dc1b6f1b534d07882c2aceed37004bf48c601afa72       318960 libcanberra-0.30.tar.xz
 
 
-[FILE:470:manifests/plist.primary]
-%%ONLY-DRAGONFLY%%lib/libcanberra-0.30/libcanberra-oss.so
-%%ONLY-FREEBSD%%lib/libcanberra-0.30/libcanberra-oss.so
-%%ONLY-LINUX%%lib/libcanberra-0.30/libcanberra-oss.so
-%%ONLY-MIDNIGHTBSD%%lib/libcanberra-0.30/libcanberra-oss.so
-%%ONLY-NETBSD%%lib/libcanberra-0.30/libcanberra-oss.so
+[FILE:207:manifests/plist.primary]
 lib/
  libcanberra.so.%%SOMAJOR%%
  libcanberra.so.%%SOVERSION%%
@@ -104,6 +99,7 @@ lib/libcanberra-0.30/
  libcanberra-gstreamer.so
  libcanberra-multi.so
  libcanberra-null.so
+ libcanberra-oss.so
 share/vala/vapi/libcanberra.vapi
 
 
@@ -153,16 +149,23 @@ share/gnome/autostart/libcanberra-login-sound.desktop
 share/gnome/shutdown/libcanberra-logout-sound.sh
 
 
-[FILE:360:patches/patch-src_oss.c]
+[FILE:515:patches/patch-src_oss.c]
+SunOS uses __BYTE_ORDER, BSD* uses _BYTE_ORDER.
+However, There are no big endian platforms in Ravenports, so just remove the
+check completely.
+
 --- src/oss.c.orig	2011-02-23 01:51:00 UTC
 +++ src/oss.c
-@@ -259,7 +259,7 @@ static int open_oss(ca_context *c, struc
+@@ -259,11 +259,7 @@ static int open_oss(ca_context *c, struc
                  val = AFMT_S16_NE;
                  break;
          case CA_SAMPLE_S16RE:
 -#if __BYTE_ORDER == __LITTLE_ENDIAN
-+#if _BYTE_ORDER == _LITTLE_ENDIAN
                  val = AFMT_S16_BE;
- #else
-                 val = AFMT_S16_LE;
+-#else
+-                val = AFMT_S16_LE;
+-#endif
+                 break;
+         }
+ 
 

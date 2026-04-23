@@ -19,6 +19,8 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
+BROKEN[sunos]=		Generated posix-c.ads structures overlap and have wrong sizes
+
 USES=			gprbuild gmake ada:primary
 
 LICENSE=		GPLv2+:primary
@@ -43,6 +45,11 @@ post-install:
 
 post-extract-dragonfly:
 	${CP} ${WRKSRC}/configs/pconfig.FreeBSD ${WRKSRC}/configs/pconfig.${OPSYS}
+
+post-extract-sunos:
+	${CP} ${WRKSRC}/configs/pconfig.FreeBSD ${WRKSRC}/configs/pconfig.${OPSYS}
+	${ECHO} "#define __EXTENSIONS__" >> ${WRKSRC}/configs/pconfig.${OPSYS}
+	${ECHO} "#define _POSIX_PTHREAD_SEMANTICS" >> ${WRKSRC}/configs/pconfig.${OPSYS}
 
 post-extract-netbsd:
 	${CP} ${WRKSRC}/configs/pconfig.FreeBSD ${WRKSRC}/configs/pconfig.${OPSYS}

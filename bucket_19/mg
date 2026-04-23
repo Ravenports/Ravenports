@@ -61,10 +61,10 @@ bin/mg
 share/man/man1/mg.1
 
 
-[FILE:1384:patches/patch-CMakeLists.txt]
+[FILE:1375:patches/patch-CMakeLists.txt]
 --- CMakeLists.txt.orig	2024-07-09 15:39:50 UTC
 +++ CMakeLists.txt
-@@ -9,20 +9,29 @@ set (MG_SRC autoexec.c basic.c bell.c bu
+@@ -9,20 +9,31 @@ set (MG_SRC autoexec.c basic.c bell.c bu
  	cmode.c cscope.c dired.c grep.c tags.c interpreter.c
  )
  
@@ -84,15 +84,16 @@ share/man/man1/mg.1
 +if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 +  target_link_libraries (mg socket)
 +  set (LIBBSD_FLAGS "-Wno-implicit-function-declaration")
++else()
++  target_link_libraries (mg util)
 +endif()
  
  if(CMAKE_SYSTEM_NAME MATCHES "Linux")
    pkg_check_modules (BSD REQUIRED libbsd-overlay)
    link_directories (${BSD_LIBRARY_DIRS})
    string (REPLACE ";" " " LIBBSD_FLAGS "${BSD_CFLAGS}")
--  target_link_libraries (mg ${BSD_LIBRARIES})
+   target_link_libraries (mg ${BSD_LIBRARIES})
 -  set (CMAKE_C_FLAGS "-Wall -DREGEX -D_GNU_SOURCE ${LIBBSD_FLAGS} ${NCURSES_FLAGS} -L${NCURSES_LIBRARY_DIRS}")
-+  target_link_libraries (mg util ${BSD_LIBRARIES})
 +  set (CMAKE_C_FLAGS "-Wall -DREGEX -D_GNU_SOURCE -DHAVE_PTY_H ${LIBBSD_FLAGS} ${NCURSES_FLAGS} -L${NCURSES_LIBRARY_DIRS}")
  else()
    set (CMAKE_C_FLAGS "-Wall -DREGEX ${LIBBSD_FLAGS} ${NCURSES_FLAGS} -L${NCURSES_LIBRARY_DIRS}")
@@ -211,7 +212,7 @@ $NetBSD: patch-openpty.c,v 1.1 2025/05/23 09:28:50 jperkin Exp $
 
 Implement openpty() for illumos.  Based on jclulow's patches for neovim.
 
---- /dev/null	2026-03-10 19:04:21 UTC
+--- /dev/null	2026-04-05 20:49:40 UTC
 +++ openpty.c
 @@ -0,0 +1,175 @@
 +#include <sys/types.h>

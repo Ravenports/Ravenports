@@ -109,8 +109,17 @@ post-patch:
 		${WRKSRC}/doc/sbcl.1 \
 		${WRKSRC}/doc/manual/start-stop.texinfo
 
+pre-build-freebsd:
+	# bootstrap looks for libutil.so.9, but freebsd15 moved to libutil.so.10
+	if [ ! -e "/usr/lib/libutil.so.9" ]; then \
+		${LN} -s /usr/lib/libutil.so.10 ${LOCALBASE}/lib/libutil.so.9 ;\
+	fi
+
 do-build:
 	(cd ${WRKSRC} && ${SETENVI} ${MAKE_ENV} ${SH} make.sh ${CMAKE_ARGS} || ${TRUE})
+
+post-install-freebsd:
+	${RM} ${LOCALBASE}/lib/libutil.so.9
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/sbcl

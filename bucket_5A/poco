@@ -1200,7 +1200,21 @@ lib/libPocoPrometheus.so.%%SOVERSION%%
  #elif POCO_OS == POCO_OS_LINUX
 
 
-[FILE:691:patches/patch-Foundation_src_Thread__POSIX.cpp]
+[FILE:343:patches/patch-Foundation_src_Path__UNIX.cpp]
+--- Foundation/src/Path_UNIX.cpp.orig	2025-05-12 09:00:11 UTC
++++ Foundation/src/Path_UNIX.cpp
+@@ -75,7 +75,7 @@ std::string PathImpl::selfImpl()
+ 	if (n > 0 && n < PATH_MAX)
+ 		path = buf;
+ #elif POCO_OS == POCO_OS_SOLARIS
+-	char * execName = getexecname();
++	const char * execName = getexecname();
+ 	if (execName)
+ 		path = execName;
+ 	else
+
+
+[FILE:1601:patches/patch-Foundation_src_Thread__POSIX.cpp]
 --- Foundation/src/Thread_POSIX.cpp.orig	2026-03-24 10:38:30 UTC
 +++ Foundation/src/Thread_POSIX.cpp
 @@ -24,7 +24,13 @@
@@ -1217,7 +1231,15 @@ lib/libPocoPrometheus.so.%%SOVERSION%%
  #    include <pthread_np.h>
  #    include <osreldate.h>
  #endif
-@@ -362,7 +368,11 @@ long ThreadImpl::currentOsTidImpl()
+@@ -34,6 +40,7 @@
+ #	if !defined(__EXTENSIONS__)
+ #		define __EXTENSIONS__
+ #	endif
++#      include <pthread.h>
+ #endif
+ #if POCO_OS == POCO_OS_LINUX || POCO_OS == POCO_OS_ANDROID || POCO_OS == POCO_OS_MAC_OS_X || POCO_OS == POCO_OS_QNX
+ #	include <time.h>
+@@ -362,7 +369,11 @@ long ThreadImpl::currentOsTidImpl()
  #elif POCO_OS == POCO_OS_MAC_OS_X
  	id = ::pthread_mach_thread_np(::pthread_self());
  #elif POCO_OS == POCO_OS_FREE_BSD
@@ -1229,6 +1251,24 @@ lib/libPocoPrometheus.so.%%SOVERSION%%
  #endif
  	return id;
  }
+@@ -394,6 +405,8 @@ void ThreadImpl::setCurrentNameImpl(cons
+ 		#endif
+ 	#elif (POCO_OS == POCO_OS_QNX)
+ 		pthread_setname_np(pthread_self(), truncateName(threadName, _NTO_THREAD_NAME_MAX).c_str());
++	#elif defined(__sun)
++		pthread_setname_np(pthread_self(), truncateName(threadName).c_str());
+ 	#else
+ 		prctl(PR_SET_NAME, truncateName(threadName).c_str());
+ 	#endif
+@@ -421,6 +434,8 @@ std::string ThreadImpl::getCurrentNameIm
+ 		#endif
+ 	#elif (POCO_OS == POCO_OS_QNX)
+ 		pthread_getname_np(pthread_self(), name, nameSize);
++	#elif defined (__sun)
++		pthread_getname_np(pthread_self(), name, nameSize);
+ 	#else
+ 		prctl(PR_GET_NAME, name);
+ 	#endif
 
 
 [FILE:1138:patches/patch-Foundation_src_Timezone__UNIX.cpp]
@@ -1266,4 +1306,55 @@ lib/libPocoPrometheus.so.%%SOVERSION%%
  	// SIGPIPE sends a signal that if unhandled (which is the default)
  	// will crash the process. This only happens on UNIX, and not Linux.
  	//
+
+
+[FILE:795:patches/patch-dependencies_quill_include_quill_backend_BackendUtilities.h]
+--- dependencies/quill/include/quill/backend/BackendUtilities.h.orig	2026-03-24 10:38:30 UTC
++++ dependencies/quill/include/quill/backend/BackendUtilities.h
+@@ -39,6 +39,11 @@
+   #include <pthread_np.h>
+   #include <sched.h>
+   #include <unistd.h>
++#elif defined(__sun)
++  #include <unistd.h>
++  #include <sys/types.h>
++  #include <sys/processor.h>
++  #include <sys/procset.h>
+ #else
+   // linux, anything else
+   #include <pthread.h>
+@@ -99,6 +104,8 @@ QUILL_ATTRIBUTE_COLD inline void set_cpu
+   // OpenBSD doesn't support CPU affinity, so we'll use a placeholder
+   (void)cpu_id;
+   auto const err = 0; // Assume success
++  #elif defined(__sun)
++  auto const err = processor_bind(P_LWPID, P_MYID, static_cast<processorid_t>(cpu_id), NULL);
+   #else
+   cpu_set_t cpuset;
+   CPU_ZERO(&cpuset);
+
+
+[FILE:757:patches/patch-dependencies_quill_include_quill_backend_ThreadUtilities.h]
+--- dependencies/quill/include/quill/backend/ThreadUtilities.h.orig	2026-03-24 10:38:30 UTC
++++ dependencies/quill/include/quill/backend/ThreadUtilities.h
+@@ -46,6 +46,10 @@
+ #elif defined(__OpenBSD__)
+   #include <pthread_np.h>
+   #include <unistd.h>
++#elif defined(__sun)
++  #include <sys/types.h>
++  #include <sys/lwp.h>
++  #include <unistd.h>
+ #else
+   // linux
+   #include <pthread.h>
+@@ -213,6 +217,8 @@ QUILL_NODISCARD QUILL_EXPORT QUILL_ATTRI
+   return static_cast<uint32_t>(lwp_gettid());
+ #elif defined(__OpenBSD__)
+   return static_cast<uint32_t>(getthrid());
++#elif defined(__sun)
++  return static_cast<uint32_t>(_lwp_self());
+ #else
+   return reinterpret_cast<uintptr_t>(pthread_self()); // (Ab)use pthread_self as a last resort option
+ #endif
 

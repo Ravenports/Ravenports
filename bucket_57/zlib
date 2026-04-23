@@ -31,7 +31,9 @@ LICENSE_SCHEME=		solo
 MUST_CONFIGURE=		yes
 CONFIGURE_ENV=		prefix="{{PREFIX}}"
 			cflags="{{CFLAGS}}"
+			LINKER=bfd
 
+MAKE_ENV=		LINKER=bfd
 SINGLE_JOB=		yes
 
 SOVERSION=		1.3.2
@@ -43,6 +45,7 @@ post-install:
 
 post-build:
 	# assemble PIC library
+	# BFD linker required because *.lo only produced with it
 	(cd ${WRKSRC} \
 	 && ${AR} -cq libz_pic.a *.lo \
 	 && ranlib libz_pic.a)

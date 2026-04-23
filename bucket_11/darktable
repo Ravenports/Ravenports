@@ -1219,6 +1219,21 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
    dt_mark_colormatrix_invalid(&profile_info->matrix_in[0][0]);
 
 
+[FILE:474:patches/patch-src_common_system__signal__handling.c]
+--- src/common/system_signal_handling.c.orig	2026-02-04 20:20:09 UTC
++++ src/common/system_signal_handling.c
+@@ -76,7 +76,9 @@ static void _dt_sigsegv_handler(int para
+   if((fout = g_file_open_tmp("darktable_bt_XXXXXX.txt", &name_used, NULL)) == -1)
+     fout = STDOUT_FILENO; // just print everything to stdout
+ 
++#if !defined(__sun)
+   dprintf(fout, "this is %s reporting a segfault:\n\n", darktable_package_string);
++#endif
+ 
+   if(fout != STDOUT_FILENO) close(fout);
+ 
+
+
 [FILE:245:patches/patch-src_common_utility.c]
 --- src/common/utility.c.orig	2026-02-04 20:20:09 UTC
 +++ src/common/utility.c
@@ -1333,10 +1348,10 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
    message(SEND_ERROR "Found unexpected prototype for zError() in <zlib.h>")
 
 
-[FILE:897:patches/patch-src_external_rawspeed_cmake_Modules_cpu-cache-line-size.cpp]
+[FILE:1145:patches/patch-src_external_rawspeed_cmake_Modules_cpu-cache-line-size.cpp]
 --- src/external/rawspeed/cmake/Modules/cpu-cache-line-size.cpp.orig	2025-12-11 00:57:45 UTC
 +++ src/external/rawspeed/cmake/Modules/cpu-cache-line-size.cpp
-@@ -11,7 +11,7 @@
+@@ -11,13 +11,17 @@
  #include <elf.h>
  #endif
  
@@ -1345,7 +1360,17 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
  static std::optional<int64_t> get_cachelinesize_from_sysconf() {
    long val = ::sysconf(_SC_LEVEL1_DCACHE_LINESIZE);
    if (val == -1) // On error, -1 is returned.
-@@ -39,7 +39,7 @@ static std::optional<int64_t> get_cachel
+     return std::nullopt;
+   return val;
+ }
++#elif defined(__sun)
++static std::optional<int64_t> get_cachelinesize_from_sysconf() {
++  return 64;
++}
+ #else
+ static std::optional<int64_t> get_cachelinesize_from_sysconf() {
+   return std::nullopt;
+@@ -39,7 +43,7 @@ static std::optional<int64_t> get_cachel
  }
  #endif
  
@@ -1368,6 +1393,23 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
  
  int main() {
    long val = ::sysconf(_SC_PAGESIZE);
+
+
+[FILE:532:patches/patch-src_external_rawspeed_cmake_compiler-flags.cmake]
+--- src/external/rawspeed/cmake/compiler-flags.cmake.orig	2025-12-11 00:57:45 UTC
++++ src/external/rawspeed/cmake/compiler-flags.cmake
+@@ -34,8 +34,10 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
+ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+ 
+-IF(NOT APPLE AND NOT WIN32)
++IF(NOT APPLE AND NOT WIN32 AND NOT CMAKE_SYSTEM_NAME MATCHES "SunOS")
+   set(linkerflags "-Wl,--as-needed")
++ELSEIF(CMAKE_SYSTEM_NAME MATCHES "SunOS")
++  set(linkerflags "-Wl,-z,ignore")
+ ELSE()
+   set(linkerflags "")
+ ENDIF()
 
 
 [FILE:1305:patches/patch-src_iop_channelmixerrgb.c]

@@ -61,6 +61,8 @@ CONFIGURE_ARGS=		--prefix={{PREFIX}}
 			--enable-cpustats
 
 LDFLAGS=		-ltinfo
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			LDFLAGS=-lnsl
 VAR_OPSYS[netbsd]=	LDFLAGS=-lossaudio
 
 post-patch:
@@ -1061,6 +1063,26 @@ share/zesarux/text_image_filters/
  dalle_text_to_image.bat
  dalle_text_to_image.sh
  dummy_dalle_text_to_image.sh
+
+
+[FILE:322:patches/patch-chardevice.c]
+--- chardevice.c.orig	2025-09-25 16:14:00 UTC
++++ chardevice.c
+@@ -22,6 +22,7 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <unistd.h>
++#include <string.h> // for memset for FD_ZERO
+ #include <fcntl.h>
+ 
+ #ifndef MINGW
+@@ -245,4 +246,4 @@ struct termios options;
+     }
+ #endif
+ 
+-}
+\ No newline at end of file
++}
 
 
 [FILE:206:patches/patch-cpus_m68kcpu.h]

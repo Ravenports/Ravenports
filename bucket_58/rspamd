@@ -54,6 +54,7 @@ CMAKE_ARGS=		-DCONFDIR={{PREFIX}}/etc/rspamd
 			-DCMAKE_INSTALL_PREFIX={{PREFIX}}
 			-DBUILD_PORT=yes
 			-DLIBDIR={{PREFIX}}/lib/rspamd
+VAR_OPSYS[sunos]=	CMAKE_ARGS=-DLINKER_NAME:STRING="ld"
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/rspamadm
@@ -550,6 +551,116 @@ share/man/man8/rspamd.8
  template <typename K, typename V> struct hashtable {
 
 
+[FILE:315:patches/patch-contrib_fpconv_fpconv.c]
+--- contrib/fpconv/fpconv.c.orig	2026-01-08 13:17:41 UTC
++++ contrib/fpconv/fpconv.c
+@@ -2,6 +2,14 @@
+ #include <string.h>
+ #include <sys/param.h>
+ 
++#ifndef MIN
++#define MIN(a,b) (((a)<(b))?(a):(b))
++#endif
++
++#ifndef MAX
++#define MAX(a,b) (((a)>(b))?(a):(b))
++#endif
++
+ #include "fpconv.h"
+ #include "powers.h"
+ 
+
+
+[FILE:1186:patches/patch-contrib_libev_ev.c]
+--- contrib/libev/ev.c.orig	2026-01-08 13:17:41 UTC
++++ contrib/libev/ev.c
+@@ -236,6 +236,9 @@
+ 
+ #include <signal.h>
+ 
++#ifdef __sun
++# include <sys/statvfs.h>
++#endif
+ #ifdef EV_H
+ # include EV_H
+ #else
+@@ -4812,6 +4815,20 @@ infy_add (EV_P_ ev_stat *w)
+ 
+       if (!fs_2625)
+         w->timer.repeat = w->interval ? w->interval : DEF_STAT_INTERVAL;
++#if defined(__sun)
++      else
++        {
++          struct statvfs svfs;
++          if (statvfs (w->path, &svfs) == 0 &&
++              strcmp(svfs.f_basetype, "nfs") != 0 &&
++              strcmp(svfs.f_basetype, "smb") != 0)
++            {
++              w->timer.repeat = 0.;
++            }
++          else
++            w->timer.repeat = w->interval ? w->interval : NFS_STAT_INTERVAL;
++        }
++#else
+       else if (!statfs (w->path, &sfs)
+                && (sfs.f_type == 0x1373 /* devfs */
+                    || sfs.f_type == 0x4006 /* fat */
+@@ -4828,6 +4845,7 @@ infy_add (EV_P_ ev_stat *w)
+         w->timer.repeat = 0.; /* filesystem is local, kernel new enough */
+       else
+         w->timer.repeat = w->interval ? w->interval : NFS_STAT_INTERVAL; /* remote, use reduced frequency */
++#endif
+     }
+   else
+     {
+
+
+[FILE:453:patches/patch-src_libserver_symcache_symcache__impl.cxx]
+--- src/libserver/symcache/symcache_impl.cxx.orig	2026-01-08 13:17:41 UTC
++++ src/libserver/symcache/symcache_impl.cxx
+@@ -1030,7 +1030,7 @@ auto symcache::counters() const -> ucl_o
+ {
+ 	auto *top = ucl_object_typed_new(UCL_ARRAY);
+ 	constexpr const auto round_float = [](const auto x, const int digits) -> auto {
+-		const auto power10 = ::pow(10, digits);
++		const auto power10 = ::pow(10.0, digits);
+ 		return (::floor(x * power10) / power10);
+ 	};
+ 
+
+
+[FILE:361:patches/patch-src_libstat_backends_redis__backend.cxx]
+Avoid macro definition collision on sunos.
+
+--- src/libstat/backends/redis_backend.cxx.orig	2026-01-08 13:17:41 UTC
++++ src/libstat/backends/redis_backend.cxx
+@@ -61,8 +61,8 @@ struct redis_stat_ctx {
+ 
+ 	ucl_object_t *cur_stat = nullptr;
+ 
+-	explicit redis_stat_ctx(lua_State *_L)
+-		: L(_L)
++	explicit redis_stat_ctx(lua_State *xxx_L)
++		: L(xxx_L)
+ 	{
+ 	}
+ 
+
+
+[FILE:328:patches/patch-src_rspamd.c]
+--- src/rspamd.c.orig	2026-01-08 13:17:41 UTC
++++ src/rspamd.c
+@@ -459,7 +459,7 @@ systemd_get_socket(struct rspamd_main *r
+ 	union {
+ 		struct sockaddr_storage ss;
+ 		struct sockaddr sa;
+-		struct sockaddr_un sun;
++		struct sockaddr_un xun;
+ 		struct sockaddr_in6 s6;
+ 	} addr_storage;
+ 	socklen_t slen = sizeof(addr_storage);
+
+
 [FILE:358:files/messages-primary.ucl.in]
 single: {
   type: "install"
@@ -638,4 +749,33 @@ run_rc_command "$1"
 #
 # logfilename          [owner:group]    mode count size when  flags [/pid_file] [sig_num]
 /var/log/rspamd/rspamd.log	rspamd:rspamd	644   7	   *	@T00  JC    /var/run/rspamd/rspamd.pid 30
+
+
+[FILE:782:sunos/patch-cmake_Toolset.cmake]
+--- cmake/Toolset.cmake.orig	2026-01-08 13:17:41 UTC
++++ cmake/Toolset.cmake
+@@ -85,9 +85,6 @@ endif ()
+ 
+ option(LINKER_NAME "Linker name or full path")
+ 
+-find_program(LLD_PATH NAMES "ld.lld" "lld")
+-find_program(GOLD_PATH NAMES "ld.gold" "gold")
+-
+ if(NOT LINKER_NAME)
+     if(LLD_PATH)
+         if (COMPILER_CLANG)
+@@ -108,13 +105,6 @@ if(NOT LINKER_NAME)
+     endif()
+ endif()
+ 
+-if(LINKER_NAME)
+-    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=${LINKER_NAME}")
+-    set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=${LINKER_NAME}")
+-
+-    message(STATUS "Using custom linker by name: ${LINKER_NAME}")
+-endif ()
+-
+ option (ENABLE_STATIC       "Enable static compiling [default: OFF]"             OFF)
+ 
+ if (ENABLE_STATIC MATCHES "ON")
 

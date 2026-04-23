@@ -2,6 +2,7 @@
 
 NAMEBASE=		thunderbird
 VERSION=		149.0.1
+REVISION=		1
 KEYWORDS=		mail net_im news
 VARIANTS=		std
 SDESC[std]=		Mozilla Thunderbird mail/newsgroup client
@@ -14,8 +15,9 @@ DISTFILE[1]=		thunderbird-149.0.1.source.tar.xz:main
 DF_INDEX=		1
 SPKGS[std]=		single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 BUILD_DEPENDS=		aom:dev:std
 			botan:dev:std
@@ -128,6 +130,10 @@ VAR_OPSYS[netbsd]=	QMAKE_ARGS=--enable-audio-backends=sndio
 			MAKEFILE_LINE=NBSD=-lrt
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
+[SUNOS].BUILD_DEPENDS_OFF=		lld:primary:std
+[SUNOS].MAKEFILE_OFF=			LLDFLAG=-Wl,--undefined-version
+[SUNOS].QMAKE_ARGS_OFF=			--enable-linker=lld
+
 post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \
 		${WRKSRC}/comm/mail/app/nsMailApp.cpp \
@@ -153,7 +159,7 @@ post-patch:
 		${ECHO_CMD} ".mozconfig <<  $$arg" ;\
 		${ECHO_CMD} ac_add_options $$arg >> ${WRKSRC}/.mozconfig ;\
 	done
-	@${ECHO_CMD} LDFLAGS=\"-lm ${NBSD} -Wl,-rpath,${PREFIX}/lib/thunderbird\" \
+	@${ECHO_CMD} LDFLAGS=\"-lm ${NBSD} ${LLDFLAG} -Wl,-rpath,${PREFIX}/lib/thunderbird\" \
 		>> ${WRKSRC}/.mozconfig
 	# disable rust checksums
 .for RD in mtu quinn-udp wgpu-hal minimal-lexical sfv glslopt wasi yaml-rust2 cubeb-sys

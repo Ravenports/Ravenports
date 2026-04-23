@@ -20,12 +20,7 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	X11 WAYLAND VULKAN
 OPTIONS_STANDARD=	X11 WAYLAND
-OPT_ON[freebsd]=	WAYLAND
-OPT_ON[linux]=		WAYLAND
-OPT_ON[all]=		X11
-OPT_ON[netbsd]=		WAYLAND
-OPT_ON[dragonfly]=	WAYLAND
-OPT_ON[midnightbsd]=	WAYLAND
+OPT_ON[all]=		X11 WAYLAND
 
 BUILD_DEPENDS=		cups:dev:std
 			elftoolchain:dev:std
@@ -94,6 +89,7 @@ CMAKE_ARGS=		-DFEATURE_system_zlib=ON
 			-DOPENSSL_ROOT_DIR:STRING="{{OPENSSLBASE}}"
 VAR_OPSYS[freebsd]=	VAR1=freebsd
 			CMAKE_ARGS=-DBUILD_WITH_PCH=OFF
+			CMAKE_ARGS=-DFEATURE_inotify=OFF
 VAR_OPSYS[sunos]=	VAR1=solaris
 			VAR2=" /lib/64"
 			MAKEFILE_LINE=FEAT_EVDEV="@comment "
@@ -4962,7 +4958,7 @@ share/doc/qt6/global/tools-doc-front-page/images/
  web-32x32.png
 
 
-[FILE:426:patches/patch-cmake_QtFlagHandlingHelpers.cmake]
+[FILE:822:patches/patch-cmake_QtFlagHandlingHelpers.cmake]
 --- cmake/QtFlagHandlingHelpers.cmake.orig	2025-11-12 10:17:57 UTC
 +++ cmake/QtFlagHandlingHelpers.cmake
 @@ -187,7 +187,6 @@ function(qt_internal_add_link_flags_no_u
@@ -4973,6 +4969,15 @@ share/doc/qt6/global/tools-doc-front-page/images/
      endif()
  endfunction()
  
+@@ -218,8 +217,6 @@ function(qt_internal_apply_gc_binaries t
+     if ((GCC OR CLANG) AND NOT WASM AND NOT UIKIT AND NOT MSVC)
+         if(APPLE)
+             set(gc_sections_flag "-Wl,-dead_strip")
+-        elseif(SOLARIS)
+-            set(gc_sections_flag "-Wl,-z,ignore")
+         elseif(LINUX OR BSD OR WIN32 OR ANDROID)
+             set(gc_sections_flag "-Wl,--gc-sections")
+         endif()
 
 
 [FILE:1221:patches/patch-cmake_QtPlatformSupport.cmake]
@@ -5275,6 +5280,37 @@ Fix build on SunOS.
  #endif
  
  QT_BEGIN_NAMESPACE
+
+
+[FILE:1266:patches/patch-src_corelib_plugin_qplugin.h]
+--- src/corelib/plugin/qplugin.h.orig	2025-11-12 10:17:57 UTC
++++ src/corelib/plugin/qplugin.h
+@@ -166,15 +166,23 @@ template <auto (&PluginMetaData)> class
+ #  define QT_PLUGIN_METADATAV2_SECTION
+     using Payload = StaticPayload;
+ #elif defined(Q_OF_ELF)
+-#  ifdef Q_CC_CLANG
++#  if defined(__sun)
++
++     // Solaris/OmniOS: Rename section to avoid ELF Note validation mangling
++#    define QT_PLUGIN_METADATAV2_SECTION \
++            __attribute__((section(".qtmetadata"), used, aligned(8)))
++     using Payload = RegularPayload; 
++
++#  elif defined Q_CC_CLANG
+ #    define QT_PLUGIN_METADATAV2_SECTION                                                            \
+             __attribute__((section(".note.qt.metadata"), used, aligned(alignof(void *)),            \
+                            no_sanitize("address")))
++     using Payload = ElfNotePayload;
+ #  else
+ #    define QT_PLUGIN_METADATAV2_SECTION                                                            \
+             __attribute__((section(".note.qt.metadata"), used, aligned(alignof(void *))))
++     using Payload = ElfNotePayload;
+ #  endif
+-    using Payload = ElfNotePayload;
+ #else
+ #  define QT_PLUGIN_METADATAV2_SECTION      QT_PLUGIN_METADATA_SECTION
+     using Payload = RegularPayload;
 
 
 [FILE:415:patches/patch-src_corelib_thread_qfutex__p.h]

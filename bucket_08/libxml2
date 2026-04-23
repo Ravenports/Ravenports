@@ -2,6 +2,7 @@
 
 NAMEBASE=		libxml2
 VERSION=		2.15.2
+REVISION=		1
 KEYWORDS=		textproc
 VARIANTS=		std
 SDESC[std]=		XML parser library for GNOME
@@ -49,6 +50,14 @@ post-patch:
 post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/share/gtk-doc
 	${RM} -r ${STAGEDIR}${STD_DOCDIR}
+	# install our PIC library
+	${INSTALL_DATA} ${WRKSRC}/.libs/libxml2_pic.a ${STAGEDIR}${PREFIX}/lib/
+
+post-build:
+	# assemble PIC library
+	(cd ${WRKSRC}/.libs \
+	 && ${AR} -cq libxml2_pic.a *.o \
+	 && ranlib libxml2_pic.a)
 
 [FILE:313:descriptions/desc.primary]
 Libxml2 is the XML C parser and toolkit developed for the Gnome project
@@ -71,7 +80,7 @@ lib/
  libxml2.so.%%SOVERSION%%
 
 
-[FILE:680:manifests/plist.dev]
+[FILE:695:manifests/plist.dev]
 bin/xml2-config
 include/libxml2/libxml/
  HTMLparser.h
@@ -123,6 +132,7 @@ include/libxml2/libxml/
 lib/
  libxml2.a
  libxml2.so
+ libxml2_pic.a
 lib/cmake/libxml2/libxml2-config.cmake
 lib/pkgconfig/libxml-2.0.pc
 

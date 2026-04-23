@@ -24,6 +24,8 @@ USES=			cmake readline libtool ncurses
 
 FPC_EQUIVALENT=		devel/avrdude
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+
 [FILE:452:descriptions/desc.primary]
 AVRDUDE - AVR Downloader Uploader - is a program for downloading and uploading t
 he on-chip memories of s AVR microcontrollers. It can program the Flash and EEPR
@@ -53,4 +55,60 @@ include/
  libavrdude-avrintel.h
  libavrdude.h
 lib/libavrdude.a
+
+
+[FILE:244:patches/patch-src_avrftdi.c]
+--- src/avrftdi.c.orig	2025-06-23 09:03:44 UTC
++++ src/avrftdi.c
+@@ -30,6 +30,9 @@
+ #include <unistd.h>
+ #include <stdint.h>
+ #include <stdarg.h>
++#if defined(__sun)
++#include <alloca.h>
++#endif
+ 
+ #include "avrdude.h"
+ #include "libavrdude.h"
+
+
+[FILE:483:patches/patch-src_buspirate.c]
+--- src/buspirate.c.orig	2025-06-23 09:03:44 UTC
++++ src/buspirate.c
+@@ -139,7 +139,7 @@ static int buspirate_recv_bin(const PROG
+ 
+ static int buspirate_expect_bin(const PROGRAMMER *pgm,
+   unsigned char *send_data, size_t send_len, unsigned char *expect_data, size_t expect_len) {
+-  unsigned char *recv_buf = alloca(expect_len);
++  unsigned char *recv_buf = __builtin_alloca(expect_len);
+ 
+   if((my.flag & BP_FLAG_IN_BINMODE) == 0) {
+     pmsg_error("called from ascii mode\n");
+
+
+[FILE:439:patches/patch-src_stk500.c]
+--- src/stk500.c.orig	2025-06-23 09:03:44 UTC
++++ src/stk500.c
+@@ -992,7 +992,7 @@ static int set_memchr_a_div(const PROGRA
+ 
+ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+-  unsigned char *buf = alloca(page_size + 16);
++  unsigned char *buf = __builtin_alloca(page_size + 16);
+   int memchr;
+   int a_div;
+   int block_size;
+
+
+[FILE:263:patches/patch-src_whereami.c]
+--- src/whereami.c.orig	2025-06-23 09:03:44 UTC
++++ src/whereami.c
+@@ -15,6 +15,7 @@ extern "C" {
+ 
+ #if !defined(WAI_MALLOC) || !defined(WAI_FREE) || !defined(WAI_REALLOC)
+ #include <stdlib.h>
++#include <limits.h>
+ 
+ #ifndef PATH_MAX
+ #define PATH_MAX _MAX_PATH
 

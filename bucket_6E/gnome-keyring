@@ -55,6 +55,8 @@ MESON_ARGS=		-Dselinux=disabled
 			-Dsystemd=disabled
 			-Dpam=true
 
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+
 pre-configure:
 	${REINPLACE_CMD} -e 's|__DBPATH__|${PREFIX}/share/xsl/docbook/manpages|' \
 		${WRKSRC}/docs/meson.build
@@ -257,4 +259,194 @@ set_local_creds() is missing on FreeBSD
  	snprintf (buffer, sizeof (buffer), "/proc/%d/file", (int)pid);
  #endif
  
+
+
+[FILE:1019:sunos/patch-daemon_meson.build]
+--- daemon/meson.build.orig	2026-03-15 23:11:07 UTC
++++ daemon/meson.build
+@@ -20,24 +20,24 @@ if get_option('ssh-agent')
+ endif
+ 
+ gkr_daemon_deps = [
++  libgkd_control_dep,
++  libgkd_dbus_dep,
++  libgkd_login_dep,
++  libgkm_gnome2_store_dep,
++  libgkm_rpc_layer_dep,
++  libgkm_secret_store_dep,
++  libgkm_ssh_store_dep,
++  libgkm_wrap_layer_dep,
++  libgkm_xdg_store_dep,
++  
+   gio_dep,
+   gio_unix_dep,
+   glib_dep,
+   gobject_dep,
+   libgcrypt_dep,
+   libsystemd_dep,
+-
+-  libegg_dep,
+   libgkm_dep,
+-  libgkm_gnome2_store_dep,
+-  libgkm_rpc_layer_dep,
+-  libgkm_secret_store_dep,
+-  libgkm_ssh_store_dep,
+-  libgkm_wrap_layer_dep,
+-  libgkm_xdg_store_dep,
+-  libgkd_control_dep,
+-  libgkd_dbus_dep,
+-  libgkd_login_dep,
++  libegg_dep,
+ ]
+ 
+ if get_option('ssh-agent')
+@@ -52,6 +52,7 @@ gkr_daemon = executable('gnome-keyring-d
+   gkr_daemon_sources,
+   dependencies: gkr_daemon_deps,
+   include_directories: config_h_inc,
++  link_args: ['-Wl,-z,rescan-now'], 
+   install: true,
+   install_rpath: gkr_pkglibdir,
+ )
+
+
+[FILE:247:sunos/patch-pam_meson.build]
+--- pam/meson.build.orig	2026-03-15 23:11:07 UTC
++++ pam/meson.build
+@@ -46,9 +46,9 @@ libpam_gkr_test_deps = [
+   gio_dep,
+   libpam_dep,
+ 
+-  libegg_dep,
+   libgkd_test_dep,
+   libgkd_control_dep,
++  libegg_dep,
+ ]
+ 
+ libpam_gkr_test_cflags = [
+
+
+[FILE:482:sunos/patch-pkcs11_gnome2-store_meson.build]
+--- pkcs11/gnome2-store/meson.build.orig	2026-03-15 23:11:07 UTC
++++ pkcs11/gnome2-store/meson.build
+@@ -12,8 +12,8 @@ libgkm_gnome2_store_deps = [
+   libgcrypt_dep,
+   gmodule_dep,
+ 
+-  libegg_dep,
+   libgkm_dep,
++  libegg_dep,
+ ]
+ 
+ # The gnome2-store component code
+@@ -64,8 +64,8 @@ libgkm_gnome2_store_tests_deps = [
+   gck_dep,
+   gcr_base_dep,
+ 
+-  libgkm_gnome2_store_deps,
+   libgkm_gnome2_store_dep,
++  libgkm_gnome2_store_deps,
+ ]
+ 
+ libgkm_gnome2_store_tests_cflags = [
+
+
+[FILE:482:sunos/patch-pkcs11_secret-store_meson.build]
+--- pkcs11/secret-store/meson.build.orig	2026-03-15 23:11:07 UTC
++++ pkcs11/secret-store/meson.build
+@@ -17,8 +17,8 @@ libgkm_secret_store_deps = [
+   libgcrypt_dep,
+   gmodule_dep,
+ 
+-  libegg_dep,
+   libgkm_dep,
++  libegg_dep,
+ ]
+ 
+ # The secret-store component code
+@@ -98,8 +98,8 @@ libgkm_secret_store_tests_deps = [
+   gck_dep,
+   gcr_base_dep,
+ 
+-  libgkm_secret_store_deps,
+   libgkm_secret_store_dep,
++  libgkm_secret_store_deps,
+ ]
+ 
+ libgkm_secret_store_tests_cflags = [
+
+
+[FILE:455:sunos/patch-pkcs11_ssh-store_meson.build]
+--- pkcs11/ssh-store/meson.build.orig	2026-03-15 23:11:07 UTC
++++ pkcs11/ssh-store/meson.build
+@@ -11,8 +11,8 @@ libgkm_ssh_store_deps = [
+   libgcrypt_dep,
+   gmodule_dep,
+ 
+-  libegg_dep,
+   libgkm_dep,
++  libegg_dep,
+ ]
+ 
+ # The ssh-store component code
+@@ -55,8 +55,8 @@ libgkm_ssh_store_tests_deps = [
+   gck_dep,
+   gcr_base_dep,
+ 
+-  libgkm_ssh_store_deps,
+   libgkm_ssh_store_dep,
++  libgkm_ssh_store_deps,
+ ]
+ 
+ libgkm_ssh_store_tests_cflags = [
+
+
+[FILE:494:sunos/patch-pkcs11_wrap-layer_meson.build]
+--- pkcs11/wrap-layer/meson.build.orig	2026-03-15 23:11:07 UTC
++++ pkcs11/wrap-layer/meson.build
+@@ -10,8 +10,8 @@ libgkm_wrap_layer_deps = [
+   gcr_base_dep,
+   libgcrypt_dep,
+ 
+-  libegg_dep,
+   libgkm_dep,
++  libegg_dep,
+ ]
+ 
+ libgkm_wrap_layer = static_library('gkm-wrap-layer',
+@@ -65,8 +65,8 @@ libgkm_wrap_layer_tests_deps = [
+   gcr_base_dep,
+ 
+   libgkd_test_dep,
+-  libgkm_wrap_layer_deps,
+   libgkm_wrap_layer_dep,
++  libgkm_wrap_layer_deps,
+ ]
+ 
+ libgkm_wrap_layer_tests_cflags = [
+
+
+[FILE:455:sunos/patch-pkcs11_xdg-store_meson.build]
+--- pkcs11/xdg-store/meson.build.orig	2026-03-15 23:11:07 UTC
++++ pkcs11/xdg-store/meson.build
+@@ -11,8 +11,8 @@ libgkm_xdg_store_deps = [
+   libgcrypt_dep,
+   gmodule_dep,
+ 
+-  libegg_dep,
+   libgkm_dep,
++  libegg_dep,
+ ]
+ 
+ # The xdg-store component code
+@@ -56,8 +56,8 @@ libgkm_xdg_store_tests_deps = [
+   gck_dep,
+   gcr_base_dep,
+ 
+-  libgkm_xdg_store_deps,
+   libgkm_xdg_store_dep,
++  libgkm_xdg_store_deps,
+ ]
+ 
+ libgkm_xdg_store_tests_cflags = [
 

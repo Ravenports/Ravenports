@@ -20,8 +20,6 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-ONLY_FOR_OPSYS=		dragonfly freebsd linux midnightbsd netbsd
-
 BUILD_DEPENDS=		libxslt:primary:std
 			libffi:dev:std
 BUILDRUN_DEPENDS=	libffi:primary:std
@@ -37,12 +35,16 @@ LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		graphics/wayland
 MESON_ARGS=		-Ddocumentation=false
+			-Dtests=false
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		0.25.0
 PLIST_SUB=		EGLSOVERSION=1.25.0
 			EGLSOMAJOR=1
+
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			LDFLAGS=-lsocket
 
 [FILE:131:descriptions/desc.primary]
 Wayland is intended as a simpler replacement for X, easier to develop
@@ -138,10 +140,16 @@ share/wayland/
  		epoll_dep = dependency('epoll-shim')
 
 
-[FILE:1084:patches/patch-src_wayland-os.c]
---- src/wayland-os.c.orig	2025-07-06 12:11:26 UTC
+[FILE:1546:patches/patch-src_wayland-os.c]
+--- src/wayland-os.c.orig	2026-03-19 16:03:08 UTC
 +++ src/wayland-os.c
-@@ -42,6 +42,10 @@
+@@ -39,9 +39,16 @@
+ #ifdef HAVE_SYS_UCRED_H
+ #include <sys/ucred.h>
+ #endif
++#ifdef __sun
++#include <ucred.h>
++#endif
  
  #include "wayland-os.h"
  
@@ -152,7 +160,7 @@ share/wayland/
  /* used by tests */
  int (*wl_fcntl)(int fildes, int cmd, ...) = fcntl;
  int (*wl_socket)(int domain, int type, int protocol) = socket;
-@@ -85,7 +89,7 @@ wl_os_socket_cloexec(int domain, int typ
+@@ -85,7 +92,7 @@ wl_os_socket_cloexec(int domain, int typ
  	return set_cloexec_or_close(fd);
  }
  
@@ -161,7 +169,7 @@ share/wayland/
  int
  wl_os_socket_peercred(int sockfd, uid_t *uid, gid_t *gid, pid_t *pid)
  {
-@@ -106,6 +110,21 @@ wl_os_socket_peercred(int sockfd, uid_t
+@@ -106,6 +113,36 @@ wl_os_socket_peercred(int sockfd, uid_t
  #endif
  	return 0;
  }
@@ -179,6 +187,21 @@ share/wayland/
 +	*gid = ucred.sc_gid;
 +	*pid = 0;
 +	return 0;
++}
++#elif defined(__sun)
++int
++wl_os_socket_peercred(int sockfd, uid_t *uid, gid_t *gid, pid_t *pid)
++{
++    ucred_t *ucred = NULL;
++
++    if (getpeerucred(sockfd, &ucred) == 0) {
++        *uid = ucred_geteuid(ucred);
++        *gid = ucred_getegid(ucred);
++        *pid = ucred_getpid(ucred);
++        ucred_free(ucred);
++        return 0;
++    }
++    return -1;
 +}
  #elif defined(SO_PEERCRED)
  int

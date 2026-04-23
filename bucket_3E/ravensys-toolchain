@@ -2,6 +2,7 @@
 
 NAMEBASE=		ravensys-toolchain
 VERSION=		7.0
+REVISION=		1
 KEYWORDS=		raven
 VARIANTS=		std
 SDESC[std]=		Compiler and binutils toolchain for Ravenports
@@ -14,8 +15,9 @@ DISTFILE[1]=		lld-single-standard-7.0.1.sunos.tar.zst:main
 DF_INDEX=		1
 SPKGS[std]=		single
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 BUILD_DEPENDS=		ravensys-binutils:single:std
 			rvn:primary:std
@@ -31,6 +33,7 @@ MAKE_ENV=		COMPVER=14.2.0
 			TARGET={{CONFIGURE_TARGET}}
 			OPSYS={{OPSYS}}
 			BUVER=2.43.1
+			LMAJMIN=22.1
 
 PLIST_SUB=		COMPVER=14.2.0
 			GCCVER=14.2.0
@@ -42,11 +45,15 @@ PLIST_SUB=		COMPVER=14.2.0
 			GPROF={{GPROF}}
 			CC1_SHARED={{CC1_SHARED}}
 			CC1_STATIC={{CC1_STATIC:U"@comment "}}
+			LMAJMIN=22.1
 
 INFRASTRUCTURE=		yes
 VAR_OPSYS[linux]=	MAKEFILE_LINE=SSP="@comment "
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=SSP="@comment "
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
+
+[SUNOS].BUILD_DEPENDS_OFF=		ravensys-utils:primary:std
+					lld:primary:std
 
 post-install:
 	${FIND} ${STAGEDIR}${PREFIX}/lib ! -type d | \
@@ -67,7 +74,7 @@ toolchain mount for build environments.
 e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 lld-single-standard-7.0.1.sunos.tar.zst
 
 
-[FILE:67018:manifests/plist.single]
+[FILE:67088:manifests/plist.single]
 %%CC1_SHARED%%ravensys-gcc/%%ASLIB%%/
  libcc1.so
  libcc1.so.0
@@ -96,6 +103,7 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
 %%ONLY-DRAGONFLY%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
 %%ONLY-FREEBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
+ crtbeginT.o
  crtendS.o
 %%ONLY-FREEBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-FREEBSD%%ravensys-gcc/lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
@@ -184,6 +192,8 @@ e868d7ab54dda8a8fed67ac4273c4fdc8449f41e494f295906b34f365bfff8b9     53838169 ll
  stdio.h
  string.h
  unistd.h
+%%SUNOS-OFF%%llvm/bin/ld.lld
+%%SUNOS-OFF%%llvm/lib/libLLVM.so.%%LMAJMIN%%
 bin/
  addr2line
  ar
@@ -195,8 +205,6 @@ bin/
  ld
  ld.bfd
  ld.gold
- ld.lld
- ld.mold
  nm
  objcopy
  objdump
@@ -4329,7 +4337,7 @@ share/
  ravensys-gcc~set~std~%%COMPVER%%.rvn
 
 
-[FILE:1088:files/Makefile]
+[FILE:1201:files/Makefile]
 # Relocate official toolchain
 
 all: toolchain
@@ -4356,12 +4364,15 @@ install:
 	cp -a /tmp/raven/toolchain/include      ${DESTDIR}${PREFIX}/
 	cp -a /tmp/raven/toolchain/ravensys-gcc ${DESTDIR}${PREFIX}/
 	rm -rf ${DESTDIR}${PREFIX}/ravensys-gcc/share/licenses
-	# create dangling symlinks to ld.mold and ld.lld
-	ln -s ../../bin/mold ${DESTDIR}${PREFIX}/bin/ld.mold
-	ln -s ../../bin/lld  ${DESTDIR}${PREFIX}/bin/ld.lld
 
-.if "${OPSYS}" == "SunOS"
 	rm ${DESTDIR}${PREFIX}/bin/ld
+.if "${OPSYS}" == "SunOS"
 	cp /usr/bin/ld.sun ${DESTDIR}${PREFIX}/bin/ld
+.else
+	cp ${LOCALBASE}/libexec/ld ${DESTDIR}${PREFIX}/bin/ld
+	mkdir -p ${DESTDIR}${PREFIX}/llvm/bin
+	mkdir -p ${DESTDIR}${PREFIX}/llvm/lib
+	cp ${LOCALBASE}/bin/ld.lld ${DESTDIR}${PREFIX}/llvm/bin/
+	cp ${LOCALBASE}/lib/libLLVM.so.${LMAJMIN} ${DESTDIR}${PREFIX}/llvm/lib/
 .endif
 

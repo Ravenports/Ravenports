@@ -77,6 +77,7 @@ SOVERSION=		5.15.18
 PLIST_SUB=		QTVER=5.15.18
 			SOMAJORMIN=5.15
 SUB_FILES=		qmake.conf
+			solaris.conf
 SUB_LIST=		CC={{CC:Q}}
 			CXX={{CXX:Q}}
 			LDFLAGS={{LDFLAGS:Q}}
@@ -90,6 +91,7 @@ SUB_LIST=		CC={{CC:Q}}
 
 LDFLAGS=		-Wl,-rpath,{{OPENSSLLIB}}
 VAR_OPSYS[freebsd]=	VAR1=freebsd
+			CONFIGURE_ARGS=-no-feature-inotify
 VAR_OPSYS[sunos]=	VAR1=solaris
 			CONFIGURE_ARGS=-L
 			CONFIGURE_ARGS=/lib/64
@@ -110,9 +112,11 @@ pre-configure:
 		${WRKSRC}/mkspecs/dragonfly-g++/
 	${INSTALL_DATA} ${WRKSRC}/mkspecs/freebsd-g++/qplatformdefs.h \
 		${WRKSRC}/mkspecs/midnightbsd-g++/
-.for MKS in dragonfly-g++ freebsd-g++ linux-g++ solaris-g++-64 netbsd-g++ midnightbsd-g++
+.for MKS in dragonfly-g++ freebsd-g++ linux-g++ netbsd-g++ midnightbsd-g++
 	${INSTALL_DATA} ${WRKDIR}/qmake.conf ${WRKSRC}/mkspecs/${MKS}/
 .endfor
+	${INSTALL_DATA} ${WRKDIR}/solaris.conf \
+		${WRKSRC}/mkspecs/solaris-g++-64/qmake.conf
 	# Clean up files created by patching
 	find ${WRKSRC}/mkspecs/ -name "*.orig" -delete
 
@@ -120,14 +124,6 @@ pre-configure-sunos:
 	# getauxval test triggers false positive on Solaris
 	${REINPLACE_CMD} -e 's|sys/auxv.h|sys/auxvnope.h|' \
 		${WRKSRC}/src/corelib/global/qconfig-bootstrapped.h
-	# sun linker doesn't support -O1
-	${REINPLACE_CMD} -e '/QMAKE_LFLAGS_RELEASE/d' \
-		${WRKSRC}/mkspecs/common/g++-unix.conf
-	# sun linker doesn't support GNU version scripts
-	${REINPLACE_CMD} \
-		-e '/QMAKE_LFLAGS_VERSION_SCRIPT/d' \
-		-e '/QMAKE_LFLAGS_RPATHLINK/d' \
-		${WRKSRC}/mkspecs/common/gcc-base-unix.conf
 
 [FILE:267:descriptions/desc.primary]
 Qt is a complete cross-platform software framework with ready-made UI
@@ -4339,32 +4335,23 @@ $NetBSD: patch-tests_auto_corelib_io_qprocess_qprocess.pro,v 1.1 2014/12/30 17:2
  
 
 
-[FILE:813:patches/patch-tests_auto_tools_moc_tst__moc.cpp]
-NetBSD compile problem:
-error: declaration of '__sF' as array of references
-  763 |         const QByteArray stderr = p.readAllStandardError(); \
-error: request for member 'data' in '& __sF[2]', which is of pointer type 'FILE*' (maybe you meant to use '->' ?)
-  764 |         QVERIFY2(stderr.isEmpty(), stderr.data()); \
+[FILE:602:patches/patch-tests_auto_tools_moc_tst__moc.cpp]
+Another example of coders picking the stupidest possible names for variables.
+Fixes NetBSD and SunOS.
 
 --- tests/auto/tools/moc/tst_moc.cpp.orig	2025-06-05 14:07:26 UTC
 +++ tests/auto/tools/moc/tst_moc.cpp
-@@ -758,12 +758,16 @@ private:
+@@ -760,8 +760,8 @@ private:
  
- };
- 
-+#if defined(__NetBSD__)
-+#define VERIFY_NO_ERRORS(proc)
-+#else
  #define VERIFY_NO_ERRORS(proc) do { \
          auto &&p = proc; \
-         const QByteArray stderr = p.readAllStandardError(); \
-         QVERIFY2(stderr.isEmpty(), stderr.data()); \
+-        const QByteArray stderr = p.readAllStandardError(); \
+-        QVERIFY2(stderr.isEmpty(), stderr.data()); \
++        const QByteArray xstderr = p.readAllStandardError(); \
++        QVERIFY2(xstderr.isEmpty(), xstderr.data()); \
          QCOMPARE(p.exitCode(), 0); \
      } while (false)
-+#endif
  
- 
- void tst_Moc::initTestCase()
 
 
 [FILE:2056:files/qmake.conf.in]
@@ -4417,6 +4404,84 @@ QMAKE_LIBS_X11		= -lXext -lX11 %%SYS_LIBS%%
 QMAKE_LIBS_OPENGL	= -lGL
 QMAKE_LIBS_OPENGL_QT	= -lGL
 QMAKE_LIBS_THREAD	= %%PTHREAD_LIBS%%
+
+QMAKE_AR		= /raven/toolchain/bin/ar cqs
+QMAKE_OBJCOPY           = /raven/toolchain/bin/objcopy
+QMAKE_NM		= /raven/toolchain/bin/nm -P
+QMAKE_RANLIB		= /raven/toolchain/bin/ranlib
+
+QMAKE_MOC		= $(QTDIR)/bin/moc
+QMAKE_UIC		= $(QTDIR)/bin/uic
+QMAKE_UIC3		= $(QTDIR)/bin/uic3
+QMAKE_RCC		= $(QTDIR)/bin/rcc
+
+QMAKE_MKDIR		= /bin/mkdir
+
+QMAKE_STRIP		= strip
+QMAKE_STRIPFLAGS_LIB   += --strip-unneeded
+QMAKE_INSTALL_FILE	= install -m 644 -p
+QMAKE_INSTALL_PROGRAM	= install -m 755 -p
+
+# stop message: Variable QMAKE_CXX.COMPILER_MACROS is not defined
+
+QMAKE_CXX.COMPILER_MACROS	=
+
+load(qt_config)
+
+
+[FILE:2138:files/solaris.conf.in]
+#
+# qmake configuration for Ravenports
+#
+
+MAKEFILE_GENERATOR	= UNIX
+QMAKE_PLATFORM          = %%PLATFORM%%
+CONFIG += qt warn_on release link_prl incremental gdb_dwarf_index
+QMAKE_INCREMENTAL_STYLE = sublib
+
+include(../common/gcc-base-unix.conf)
+include(../common/g++-unix.conf)
+include(../common/unix.conf)
+
+QMAKE_COMPILER		= %%CC%%
+
+QMAKE_CC		= %%CC%%
+QMAKE_CXX		= %%CXX%%
+QMAKE_CFLAGS		= %%CFLAGS%% -m64
+QMAKE_CXXFLAGS		= %%CXXFLAGS%%
+QMAKE_LEX		= /usr/bin/flex
+QMAKE_YACC		= /usr/bin/yacc
+
+QMAKE_INCDIR		= %%LOCALBASE%%/include
+QMAKE_LIBDIR		= %%LOCALBASE%%/lib
+QMAKE_INCDIR_X11	= %%LOCALBASE%%/include
+QMAKE_LIBDIR_X11	= %%LOCALBASE%%/lib
+QMAKE_INCDIR_OPENGL	= %%LOCALBASE%%/include
+QMAKE_LIBDIR_OPENGL	= %%LOCALBASE%%/lib
+
+QMAKE_REL_RPATH_BASE    = $ORIGIN
+QMAKE_LINK_SHLIB_CMD	= $$QMAKE_LINK_SHLIB $$QMAKE_LFLAGS_SHLIB $(LFLAGS) $$QMAKE_LFLAGS -o $(TARGETD) $(OBJECTS) $(OBJMOC) $(LIBS)
+
+QMAKE_LFLAGS		= %%LDFLAGS%% -m64
+QMAKE_LFLAGS_GCSECTIONS	= -Wl,-z,ignore
+QMAKE_LFLAGS_THREAD     = %%PTHREAD_LDFLAGS%%
+QMAKE_LFLAGS_NOUNDEF	= -Wl,-z defs
+QMAKE_LFLAGS_SONAME     = -h$$LITERAL_WHITESPACE
+QMAKE_LFLAGS_RPATH      = -Wl,-R,
+QMAKE_LFLAGS_REL_RPATH  = -Wl,-z,origin
+QMAKE_LFLAGS_RELEASE	=
+QMAKE_LFLAGS_RPATHLINK  =
+QMAKE_LFLAGS_BSYMBOLIC_FUNC =
+QMAKE_LFLAGS_VERSION_SCRIPT =
+
+QMAKE_LIBS		=
+QMAKE_LIBS_DYNLOAD      = -ldl
+QMAKE_LIBS_EXECINFO	= -lexecinfo
+QMAKE_LIBS_X11		= -lXext -lX11 %%SYS_LIBS%%
+QMAKE_LIBS_OPENGL	= -lGL
+QMAKE_LIBS_OPENGL_QT	= -lGL
+QMAKE_LIBS_THREAD	= %%PTHREAD_LIBS%%
+QMAKE_LIBS_NETWORK      = -lresolv -lsocket -lxnet -lnsl
 
 QMAKE_AR		= /raven/toolchain/bin/ar cqs
 QMAKE_OBJCOPY           = /raven/toolchain/bin/objcopy

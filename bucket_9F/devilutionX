@@ -53,6 +53,7 @@ CMAKE_ARGS=		-DBINARY_RELEASE:BOOL=ON
 			-DDISABLE_ZERO_TIER:BOOL=ON
 			-DFETCHCONTENT_FULLY_DISCONNECTED:BOOL=ON
 			-Wno-dev
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 post-extract:
 	${MKDIR} ${BUILD_WRKSRC}/_deps
@@ -107,8 +108,8 @@ bin/devilutionx
  endif()
 
 
-[FILE:318:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2025-11-07 15:53:10 UTC
+[FILE:768:patches/patch-CMakeLists.txt]
+--- CMakeLists.txt.orig	2026-04-17 00:54:35 UTC
 +++ CMakeLists.txt
 @@ -219,7 +219,6 @@ if(PIE)
    set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
@@ -118,6 +119,15 @@ bin/devilutionx
  if(CCACHE_PROGRAM)
    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+@@ -250,6 +249,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Cl
+   add_compile_options("$<$<NOT:$<CONFIG:Debug>>:-ffunction-sections;-fdata-sections>")
+   if(APPLE)
+     add_link_options("$<$<NOT:$<CONFIG:Debug>>:LINKER:-dead_strip>")
++  elseif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
++    add_link_options("$<$<NOT:$<CONFIG:Debug>>:LINKER:-z,ignore>")
+   else()
+     add_link_options("$<$<NOT:$<CONFIG:Debug>>:LINKER:--gc-sections,--as-needed>")
+   endif()
 
 
 [FILE:650:patches/patch-CMake_Platforms.cmake]

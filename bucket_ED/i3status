@@ -41,6 +41,9 @@ MESON_ARGS=		-Ddocs=true
 			-Dpulseaudio=false
 			-Ddocdir=share/docs/i3status
 
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			LDFLAGS=-lsocket
+
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/etc/i3status.conf \
 		${STAGEDIR}${PREFIX}/etc/i3status.conf.sample
@@ -71,6 +74,23 @@ bin/i3status
 share/man/man1/i3status.1
 
 
+[FILE:272:patches/patch-src__general.c]
+--- src//general.c.orig	2024-08-19 16:28:44 UTC
++++ src//general.c
+@@ -7,7 +7,11 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include <glob.h>
++#if defined(__sun)
++#include <fcntl.h>
++#else
+ #include <sys/fcntl.h>
++#endif
+ #include <sys/stat.h>
+ 
+ #include "i3status.h"
+
+
 [FILE:429:patches/patch-src_print__battery__info.c]
 --- src/print_battery_info.c.orig	2021-11-09 07:27:11 UTC
 +++ src/print_battery_info.c
@@ -85,10 +105,19 @@ share/man/man1/i3status.1
  #endif
 
 
-[FILE:333:patches/patch-src_print__disk__info.c]
+[FILE:936:patches/patch-src_print__disk__info.c]
 --- src/print_disk_info.c.orig	2024-08-19 16:28:44 UTC
 +++ src/print_disk_info.c
-@@ -135,7 +135,7 @@ void print_disk_info(disk_info_ctx_t *ct
+@@ -11,7 +11,7 @@
+ #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__)
+ #include <sys/param.h>
+ #include <sys/mount.h>
+-#elif defined(__NetBSD__)
++#elif defined(__NetBSD__) || defined(__sun)
+ #else
+ #include <mntent.h>
+ #endif
+@@ -135,11 +135,11 @@ void print_disk_info(disk_info_ctx_t *ct
  #if defined(__DragonFly__) || defined(__APPLE__)
      struct statfs buf;
  
@@ -97,4 +126,26 @@ share/man/man1/i3status.1
          return;
  
      mounted = true;
+-#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__)
++#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__sun)
+     struct statvfs buf;
+ 
+     if (statvfs(ctx->path, &buf) == -1)
+
+
+[FILE:307:patches/patch-src_print__file__contents.c]
+--- src/print_file_contents.c.orig	2024-08-19 16:28:44 UTC
++++ src/print_file_contents.c
+@@ -7,7 +7,11 @@
+ #include <yajl/yajl_version.h>
+ #include <sys/types.h>
+ 
++#if defined(__sun)
++#include <fcntl.h>
++#else
+ #include <sys/fcntl.h>
++#endif
+ #include <unistd.h>
+ #include <errno.h>
+ #include "i3status.h"
 

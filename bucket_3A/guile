@@ -1088,6 +1088,20 @@ Use correct mmap permissions for later PROT_WRITE mprotect.
    *is_read_only = 1;
 
 
+[FILE:369:patches/patch-libguile_numbers.c]
+--- libguile/numbers.c.orig	2024-04-15 17:58:25 UTC
++++ libguile/numbers.c
+@@ -6113,6 +6113,8 @@ scm_c_make_polar (double mag, double ang
+      details.  */
+ #if (defined HAVE_SINCOS) && (defined __GLIBC__) && (defined _GNU_SOURCE)
+   sincos (ang, &s, &c);
++#elif defined(__sun)
++  sincos (ang, &s, &c);
+ #elif (defined HAVE___SINCOS)
+   __sincos (ang, &s, &c);
+ #else
+
+
 [FILE:229:patches/patch-libguile_pthread-threads.h]
 --- libguile/pthread-threads.h.orig	2018-09-22 20:51:40 UTC
 +++ libguile/pthread-threads.h

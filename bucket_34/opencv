@@ -563,7 +563,7 @@ lib/
 
 
 [FILE:479:patches/patch-3rdparty_ittnotify_include_ittnotify.h]
---- 3rdparty/ittnotify/include/ittnotify.h.orig	2025-07-02 07:54:13 UTC
+--- 3rdparty/ittnotify/include/ittnotify.h.orig	2025-12-30 07:52:05 UTC
 +++ 3rdparty/ittnotify/include/ittnotify.h
 @@ -99,7 +99,7 @@ The same ID may not be reused for differ
  #    define ITT_OS ITT_OS_WIN
@@ -577,7 +577,7 @@ lib/
 
 
 [FILE:453:patches/patch-3rdparty_ittnotify_include_legacy_ittnotify.h]
---- 3rdparty/ittnotify/include/legacy/ittnotify.h.orig	2025-07-02 07:54:13 UTC
+--- 3rdparty/ittnotify/include/legacy/ittnotify.h.orig	2025-12-30 07:52:05 UTC
 +++ 3rdparty/ittnotify/include/legacy/ittnotify.h
 @@ -37,7 +37,7 @@
  #    define ITT_OS ITT_OS_WIN
@@ -591,7 +591,7 @@ lib/
 
 
 [FILE:465:patches/patch-3rdparty_ittnotify_src_ittnotify_ittnotify__config.h]
---- 3rdparty/ittnotify/src/ittnotify/ittnotify_config.h.orig	2025-07-02 07:54:13 UTC
+--- 3rdparty/ittnotify/src/ittnotify/ittnotify_config.h.orig	2025-12-30 07:52:05 UTC
 +++ 3rdparty/ittnotify/src/ittnotify/ittnotify_config.h
 @@ -32,7 +32,7 @@
  #    define ITT_OS ITT_OS_WIN
@@ -605,9 +605,9 @@ lib/
 
 
 [FILE:554:patches/patch-CMakeLists.txt]
---- CMakeLists.txt.orig	2025-07-02 07:54:13 UTC
+--- CMakeLists.txt.orig	2025-12-30 07:52:05 UTC
 +++ CMakeLists.txt
-@@ -728,7 +728,7 @@ if(UNIX OR MINGW)
+@@ -729,7 +729,7 @@ if(UNIX OR MINGW)
      CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD)
      if(ANDROID)
        set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} dl m log)
@@ -618,10 +618,21 @@ lib/
        # no need to link to system libs with emscripten
 
 
-[FILE:648:patches/patch-cmake_OpenCVCompilerOptions.cmake]
---- cmake/OpenCVCompilerOptions.cmake.orig	2025-07-02 07:54:13 UTC
+[FILE:1573:patches/patch-cmake_OpenCVCompilerOptions.cmake]
+--- cmake/OpenCVCompilerOptions.cmake.orig	2025-12-30 07:52:05 UTC
 +++ cmake/OpenCVCompilerOptions.cmake
-@@ -391,7 +391,6 @@ endif()
+@@ -250,6 +250,10 @@ if(CV_GCC OR CV_CLANG OR CV_ICX)
+           set(OPENCV_EXTRA_EXE_LINKER_FLAGS "${OPENCV_EXTRA_EXE_LINKER_FLAGS} -Wl,-dead_strip")
+           set(OPENCV_EXTRA_SHARED_LINKER_FLAGS "${OPENCV_EXTRA_SHARED_LINKER_FLAGS} -Wl,-dead_strip")
+           set(OPENCV_EXTRA_MODULE_LINKER_FLAGS "${OPENCV_EXTRA_MODULE_LINKER_FLAGS} -Wl,-dead_strip")
++        elseif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
++          set(OPENCV_EXTRA_EXE_LINKER_FLAGS "${OPENCV_EXTRA_EXE_LINKER_FLAGS} -Wl,-z,ignore")
++          set(OPENCV_EXTRA_SHARED_LINKER_FLAGS "${OPENCV_EXTRA_SHARED_LINKER_FLAGS} -Wl,-z,ignore")
++          set(OPENCV_EXTRA_MODULE_LINKER_FLAGS "${OPENCV_EXTRA_MODULE_LINKER_FLAGS} -Wl,-z,ignore")
+         else()
+           set(OPENCV_EXTRA_EXE_LINKER_FLAGS "${OPENCV_EXTRA_EXE_LINKER_FLAGS} -Wl,--gc-sections")
+           set(OPENCV_EXTRA_SHARED_LINKER_FLAGS "${OPENCV_EXTRA_SHARED_LINKER_FLAGS} -Wl,--gc-sections")
+@@ -391,7 +395,6 @@ endif()
  # Apply "-Wl,--no-undefined" linker flags: https://github.com/opencv/opencv/pull/21347
  if(NOT OPENCV_SKIP_LINK_NO_UNDEFINED)
    if(UNIX AND ((NOT APPLE OR NOT CMAKE_VERSION VERSION_LESS "3.2") AND NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD"))
@@ -632,7 +643,7 @@ lib/
 
 
 [FILE:574:patches/patch-modules_core_include_opencv2_core_utils_filesystem.private.hpp]
---- modules/core/include/opencv2/core/utils/filesystem.private.hpp.orig	2025-07-02 07:54:13 UTC
+--- modules/core/include/opencv2/core/utils/filesystem.private.hpp.orig	2025-12-30 07:52:05 UTC
 +++ modules/core/include/opencv2/core/utils/filesystem.private.hpp
 @@ -13,6 +13,7 @@
       /* not supported */
@@ -645,7 +656,7 @@ lib/
 
 
 [FILE:2548:patches/patch-modules_core_include_opencv2_core_utils_plugin__loader.private.hpp]
---- modules/core/include/opencv2/core/utils/plugin_loader.private.hpp.orig	2025-07-02 07:54:13 UTC
+--- modules/core/include/opencv2/core/utils/plugin_loader.private.hpp.orig	2025-12-30 07:52:05 UTC
 +++ modules/core/include/opencv2/core/utils/plugin_loader.private.hpp
 @@ -12,7 +12,7 @@
  
@@ -688,7 +699,7 @@ lib/
 [FILE:457:patches/patch-modules_core_src_downhill__simplex.cpp]
 Avoid DS conflict on SunOS
 
---- modules/core/src/downhill_simplex.cpp.orig	2025-07-02 07:54:13 UTC
+--- modules/core/src/downhill_simplex.cpp.orig	2025-12-30 07:52:05 UTC
 +++ modules/core/src/downhill_simplex.cpp
 @@ -449,7 +449,9 @@ protected:
      }
@@ -704,7 +715,7 @@ Avoid DS conflict on SunOS
 
 
 [FILE:391:patches/patch-modules_core_src_parallel.cpp]
---- modules/core/src/parallel.cpp.orig	2025-07-02 07:54:13 UTC
+--- modules/core/src/parallel.cpp.orig	2025-12-30 07:52:05 UTC
 +++ modules/core/src/parallel.cpp
 @@ -58,6 +58,7 @@
  
@@ -717,7 +728,7 @@ Avoid DS conflict on SunOS
 
 
 [FILE:1179:patches/patch-modules_core_src_system.cpp]
---- modules/core/src/system.cpp.orig	2025-07-02 07:54:13 UTC
+--- modules/core/src/system.cpp.orig	2025-12-30 07:52:05 UTC
 +++ modules/core/src/system.cpp
 @@ -129,7 +129,7 @@ void* allocSingletonNewBuffer(size_t siz
  #include <cstdlib>        // std::abort
@@ -728,7 +739,7 @@ Avoid DS conflict on SunOS
  #  include <unistd.h>
  #  include <fcntl.h>
  #if defined __QNX__
-@@ -264,7 +264,7 @@ std::wstring GetTempFileNameWinRT(std::w
+@@ -265,7 +265,7 @@ std::wstring GetTempFileNameWinRT(std::w
  #include "omp.h"
  #endif
  
@@ -740,7 +751,7 @@ Avoid DS conflict on SunOS
 
 
 [FILE:3006:patches/patch-modules_core_src_utils_filesystem.cpp]
---- modules/core/src/utils/filesystem.cpp.orig	2025-07-02 07:54:13 UTC
+--- modules/core/src/utils/filesystem.cpp.orig	2025-12-30 07:52:05 UTC
 +++ modules/core/src/utils/filesystem.cpp
 @@ -34,7 +34,7 @@
  #include <errno.h>
@@ -789,8 +800,241 @@ Avoid DS conflict on SunOS
          {
 
 
+[FILE:3830:patches/patch-modules_dnn_src_int8layers_convolution__layer.cpp]
+--- modules/dnn/src/int8layers/convolution_layer.cpp.orig	2025-12-30 07:52:05 UTC
++++ modules/dnn/src/int8layers/convolution_layer.cpp
+@@ -1050,15 +1050,15 @@ public:
+                                                 out_j = outW1 - out_delta;
+                                             }
+                                             int in_j = out_j * stride_w - pad_l;
+-                                            v_int8x16 v00 = v_load(imgptr0 + in_j),
+-                                                      v01 = v_load(imgptr0 + in_j + dilation_w),
+-                                                      v02 = v_load(imgptr0 + in_j + dilation_w*2),
+-                                                      v10 = v_load(imgptr1 + in_j),
+-                                                      v11 = v_load(imgptr1 + in_j + dilation_w),
+-                                                      v12 = v_load(imgptr1 + in_j + dilation_w*2),
+-                                                      v20 = v_load(imgptr2 + in_j),
+-                                                      v21 = v_load(imgptr2 + in_j + dilation_w),
+-                                                      v22 = v_load(imgptr2 + in_j + dilation_w*2);
++                                            v_int8x16 v00 = v_load((const schar*)imgptr0 + in_j),
++                                                      v01 = v_load((const schar*)imgptr0 + in_j + dilation_w),
++                                                      v02 = v_load((const schar*)imgptr0 + in_j + dilation_w*2),
++                                                      v10 = v_load((const schar*)imgptr1 + in_j),
++                                                      v11 = v_load((const schar*)imgptr1 + in_j + dilation_w),
++                                                      v12 = v_load((const schar*)imgptr1 + in_j + dilation_w*2),
++                                                      v20 = v_load((const schar*)imgptr2 + in_j),
++                                                      v21 = v_load((const schar*)imgptr2 + in_j + dilation_w),
++                                                      v22 = v_load((const schar*)imgptr2 + in_j + dilation_w*2);
+ 
+                                             vout0 = vout1 = vout2 = vout3 = vbias;
+                                             v_expand_mul_add(v00, vw00, vout0, vout1, vout2, vout3);
+@@ -1419,12 +1419,12 @@ public:
+                                           vs12 = v_setzero_s32(), vs13 = v_setzero_s32();
+                                 for( k = 0; k < vsz; k += 16, rptr += 16 )
+                                 {
+-                                    v_int8x16 w0 = v_load_aligned(wptr0 + k);
+-                                    v_int8x16 w1 = v_load_aligned(wptr1 + k);
+-                                    v_int8x16 r0 = v_load_aligned(rptr);
+-                                    v_int8x16 r1 = v_load_aligned(rptr + vsz_a);
+-                                    v_int8x16 r2 = v_load_aligned(rptr + vsz_a*2);
+-                                    v_int8x16 r3 = v_load_aligned(rptr + vsz_a*3);
++                                    v_int8x16 w0 = v_load_aligned((const schar*)wptr0 + k);
++                                    v_int8x16 w1 = v_load_aligned((const schar*)wptr1 + k);
++                                    v_int8x16 r0 = v_load_aligned((const schar*)rptr);
++                                    v_int8x16 r1 = v_load_aligned((const schar*)rptr + vsz_a);
++                                    v_int8x16 r2 = v_load_aligned((const schar*)rptr + vsz_a*2);
++                                    v_int8x16 r3 = v_load_aligned((const schar*)rptr + vsz_a*3);
+ 
+                                     vs00 = v_dotprod_expand_fast(w0, r0, vs00);
+                                     vs01 = v_dotprod_expand_fast(w0, r1, vs01);
+
+
+[FILE:1311:patches/patch-modules_dnn_src_int8layers_elementwise__layers.cpp]
+--- modules/dnn/src/int8layers/elementwise_layers.cpp.orig	2025-12-30 07:52:05 UTC
++++ modules/dnn/src/int8layers/elementwise_layers.cpp
+@@ -127,7 +127,7 @@ public:
+                                       table[srcptr[i+4] + 128], table[srcptr[i+5] + 128], table[srcptr[i+6] + 128], table[srcptr[i+7] + 128],
+                                       table[srcptr[i+8] + 128], table[srcptr[i+9] + 128], table[srcptr[i+10] + 128], table[srcptr[i+11] + 128],
+                                       table[srcptr[i+12] + 128], table[srcptr[i+13] + 128], table[srcptr[i+14] + 128], table[srcptr[i+15] + 128]);
+-                        v_store(dstptr + i, out);
++                        v_store((schar*)dstptr + i, out);
+                     }
+ #endif
+                     for( ; i < len; i++ )
+@@ -322,7 +322,7 @@ public:
+                               lut[src[i+4] + 128], lut[src[i+5] + 128], lut[src[i+6] + 128], lut[src[i+7] + 128],
+                               lut[src[i+8] + 128], lut[src[i+9] + 128], lut[src[i+10] + 128], lut[src[i+11] + 128],
+                               lut[src[i+12] + 128], lut[src[i+13] + 128], lut[src[i+14] + 128], lut[src[i+15] + 128]);
+-                v_store(dst + i, out);
++                v_store((schar*)dst + i, out);
+             }
+ #endif
+             for( ; i < len; i++ )
+
+
+[FILE:1417:patches/patch-modules_dnn_src_int8layers_fully__connected__layer.cpp]
+--- modules/dnn/src/int8layers/fully_connected_layer.cpp.orig	2025-12-30 07:52:05 UTC
++++ modules/dnn/src/int8layers/fully_connected_layer.cpp
+@@ -327,11 +327,11 @@ public:
+ 
+                         for( k = 0; k < vecsize; k += 16 )
+                         {
+-                            v_int8x16 v = v_load_aligned(sptr + k);
+-                            vs0 = v_dotprod_expand_fast(v, v_load_aligned(wptr + k), vs0);
+-                            vs1 = v_dotprod_expand_fast(v, v_load_aligned(wptr + wstep + k), vs1);
+-                            vs2 = v_dotprod_expand_fast(v, v_load_aligned(wptr + wstep*2 + k), vs2);
+-                            vs3 = v_dotprod_expand_fast(v, v_load_aligned(wptr + wstep*3 + k), vs3);
++                            v_int8x16 v = v_load_aligned((const schar*)sptr + k);
++                            vs0 = v_dotprod_expand_fast(v, v_load_aligned((const schar*)wptr + k), vs0);
++                            vs1 = v_dotprod_expand_fast(v, v_load_aligned((const schar*)wptr + wstep + k), vs1);
++                            vs2 = v_dotprod_expand_fast(v, v_load_aligned((const schar*)wptr + wstep*2 + k), vs2);
++                            vs3 = v_dotprod_expand_fast(v, v_load_aligned((const schar*)wptr + wstep*3 + k), vs3);
+                         }
+ 
+                         s = v_add(s, v_int32x4(v_reduce_sum(vs0), v_reduce_sum(vs1), v_reduce_sum(vs2), v_reduce_sum(vs3)));
+
+
+[FILE:2155:patches/patch-modules_dnn_src_int8layers_pooling__layer.cpp]
+--- modules/dnn/src/int8layers/pooling_layer.cpp.orig	2025-12-30 07:52:05 UTC
++++ modules/dnn/src/int8layers/pooling_layer.cpp
+@@ -519,7 +519,7 @@ public:
+                                     for (int k = 0; k < kernel_w*kernel_h; k++)
+                                     {
+                                         int index = ofsptr[k];
+-                                        v_int8x16 v0 = v_load(srcData1 + index);
++                                        v_int8x16 v0 = v_load((const schar*)srcData1 + index);
+                                         max_val0 = v_max(max_val0, v0);
+                                     }
+                                 else if( stride_w == 2 )
+@@ -527,7 +527,7 @@ public:
+                                     {
+                                         int index = ofsptr[k];
+                                         v_int8x16 v0, dummy;
+-                                        v_load_deinterleave(srcData1 + index, v0, dummy);
++                                        v_load_deinterleave((const schar*)srcData1 + index, v0, dummy);
+                                         max_val0 = v_max(max_val0, v0);
+                                     }
+                                 else
+@@ -564,7 +564,7 @@ public:
+                                     }
+                                 }
+                             }
+-                            v_store(dstData + x0, max_val0);
++                            v_store((schar *)dstData + x0, max_val0);
+                             x0 += 15;
+                         }
+                         else
+@@ -644,7 +644,7 @@ public:
+                             sum_val2 = v_add(v_round(v_mul(v_cvt_f32(sum_val2), ikarea)), voutzp);
+                             sum_val3 = v_add(v_round(v_mul(v_cvt_f32(sum_val3), ikarea)), voutzp);
+ 
+-                            v_store(dstData + x0, v_pack(v_pack(sum_val0, sum_val1), v_pack(sum_val2, sum_val3)));
++                            v_store((schar *)dstData + x0, v_pack(v_pack(sum_val0, sum_val1), v_pack(sum_val2, sum_val3)));
+                             x0 += 15;
+                         }
+                         else
+
+
+[FILE:795:patches/patch-modules_dnn_src_layers_accum__layer.cpp]
+--- modules/dnn/src/layers/accum_layer.cpp.orig	2025-12-30 07:52:05 UTC
++++ modules/dnn/src/layers/accum_layer.cpp
+@@ -64,8 +64,8 @@ public:
+             }
+             outShape.push_back(totalchannels);
+ 
+-            int out_h = divisor ? static_cast<int>(ceil(maxheight / divisor) * divisor) : top_height;
+-            int out_w = divisor ? static_cast<int>(ceil(maxwidth / divisor) * divisor) : top_width;
++            int out_h = divisor ? static_cast<int>(ceil(static_cast<double>(maxheight) / divisor) * divisor) : top_height;
++            int out_w = divisor ? static_cast<int>(ceil(static_cast<double>(maxwidth) / divisor) * divisor) : top_width;
+ 
+             // Layer can specify custom top size which is larger than default
+             if (out_h <= maxheight || out_w <= maxwidth)
+
+
+[FILE:1956:patches/patch-modules_dnn_src_layers_cpu__kernels_fast__gemm__kernels.default.hpp]
+--- modules/dnn/src/layers/cpu_kernels/fast_gemm_kernels.default.hpp.orig	2025-12-30 07:52:05 UTC
++++ modules/dnn/src/layers/cpu_kernels/fast_gemm_kernels.default.hpp
+@@ -198,7 +198,7 @@ void fastGemmKernel(int M, int N, int K,
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size));
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size));
+         char* packed_b = packed_a + KC * MC * esz;
+         int start = r.start;
+         int end = r.end;
+@@ -264,7 +264,7 @@ void fastGemmKernel(int M, int N, int K,
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size)); // TODO: use AutoBuffer
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size)); // TODO: use AutoBuffer
+         const char *packed_b_ = packed_B;
+         int start = r.start;
+         int end = r.end;
+@@ -332,7 +332,7 @@ void fastGemmBatchKernel(size_t batch, c
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size));
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size));
+         char* packed_b = packed_a + KC * MC * esz;
+         int start = r.start;
+         int end = r.end;
+@@ -406,7 +406,7 @@ void fastGemmBatchKernel(size_t batch, c
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size));
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size));
+         const char *packed_b = packed_B;
+         int start = r.start;
+         int end = r.end;
+
+
+[FILE:1950:patches/patch-modules_dnn_src_layers_cpu__kernels_fast__gemm__kernels.simd.hpp]
+--- modules/dnn/src/layers/cpu_kernels/fast_gemm_kernels.simd.hpp.orig	2025-12-30 07:52:05 UTC
++++ modules/dnn/src/layers/cpu_kernels/fast_gemm_kernels.simd.hpp
+@@ -586,7 +586,7 @@ void fastGemmKernel(int M, int N, int K,
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size));
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size));
+         char* packed_b = packed_a + KC * MC * esz;
+         int start = r.start;
+         int end = r.end;
+@@ -674,7 +674,7 @@ void fastGemmKernel(int M, int N, int K,
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size)); // TODO: use AutoBuffer
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size)); // TODO: use AutoBuffer
+         const char *packed_b_ = packed_B;
+         int start = r.start;
+         int end = r.end;
+@@ -753,7 +753,7 @@ void fastGemmBatchKernel(size_t batch, c
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size));
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size));
+         char* packed_b = packed_a + KC * MC * esz;
+         int start = r.start;
+         int end = r.end;
+@@ -843,7 +843,7 @@ void fastGemmBatchKernel(size_t batch, c
+     int total_tiles = m_tiles * n_tiles;
+ 
+     auto fn = [&](const Range &r) {
+-        char* packed_a = (char*)(use_stackbuff ? alloca(buff_size) : malloc(buff_size));
++        char* packed_a = (char*)(use_stackbuff ? __builtin_alloca(buff_size) : malloc(buff_size));
+         const char *packed_b = packed_B;
+         int start = r.start;
+         int end = r.end;
+
+
 [FILE:302:patches/patch-modules_flann_include_opencv2_flann_defines.h]
---- modules/flann/include/opencv2/flann/defines.h.orig	2025-07-02 07:54:13 UTC
+--- modules/flann/include/opencv2/flann/defines.h.orig	2025-12-30 07:52:05 UTC
 +++ modules/flann/include/opencv2/flann/defines.h
 @@ -60,6 +60,9 @@
  #define FLANN_PLATFORM_32_BIT
@@ -804,8 +1048,33 @@ Avoid DS conflict on SunOS
  #define FLANN_ARRAY_LEN(a) (sizeof(a)/sizeof(a[0]))
 
 
+[FILE:758:patches/patch-modules_imgproc_src_resize.cpp]
+On Illumos int8_t != ET, so be explicit about the cast to be used here.
+
+--- modules/imgproc/src/resize.cpp.orig	2025-12-30 07:52:05 UTC
++++ modules/imgproc/src/resize.cpp
+@@ -709,7 +709,7 @@ template <typename ET, typename FT>
+ void vlineSet(FT* src, ET* dst, int dst_width)
+ {
+     for (int i = 0; i < dst_width; i++)
+-        dst[i] = src[i];
++        dst[i] = int8_t(src[i]);
+ }
+ template <>
+ void vlineSet<uint8_t, ufixedpoint16>(ufixedpoint16* src, uint8_t* dst, int dst_width)
+@@ -741,7 +741,7 @@ void vlineResize(FT* src, size_t src_ste
+         typename FT::WT res = src[i] * m[0];
+         for (int k = 1; k < n; k++)
+             res = res + src[i + k*src_step] * m[k];
+-        dst[i] = res;
++        dst[i] = int8_t(res);
+     }
+ }
+ template <>
+
+
 [FILE:298:patches/patch-modules_videoio_src_cap__v4l.cpp]
---- modules/videoio/src/cap_v4l.cpp.orig	2025-07-02 07:54:13 UTC
+--- modules/videoio/src/cap_v4l.cpp.orig	2025-12-30 07:52:05 UTC
 +++ modules/videoio/src/cap_v4l.cpp
 @@ -227,7 +227,9 @@ make & enjoy!
  #include <poll.h>

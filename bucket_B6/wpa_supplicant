@@ -358,7 +358,7 @@ sbin/
 
 
 [FILE:851:patches/patch-src_drivers_driver__ndis.c]
---- src/drivers/driver_ndis.c.orig	2022-01-16 20:51:29 UTC
+--- src/drivers/driver_ndis.c.orig	2024-07-20 18:04:37 UTC
 +++ src/drivers/driver_ndis.c
 @@ -2118,7 +2118,11 @@ static int wpa_driver_ndis_get_names(str
  		dlen = dpos - desc;
@@ -416,8 +416,26 @@ sbin/
  #include <net/route.h>
 
 
+[FILE:379:patches/patch-src_utils_os__unix.c]
+--- src/utils/os_unix.c.orig	2024-07-20 18:04:37 UTC
++++ src/utils/os_unix.c
+@@ -103,10 +103,12 @@ int os_get_reltime(struct os_reltime *t)
+ 			break;
+ #endif
+ #ifdef CLOCK_MONOTONIC
++#if !(defined(CLOCK_BOOTTIME) && CLOCK_BOOTTIME == CLOCK_MONOTONIC)
+ 		case CLOCK_MONOTONIC:
+ 			clock_id = CLOCK_REALTIME;
+ 			break;
+ #endif
++#endif
+ 		case CLOCK_REALTIME:
+ 			return -1;
+ 		}
+
+
 [FILE:788:patches/patch-src_wps_wps__upnp.c]
---- src/wps/wps_upnp.c.orig	2022-01-16 20:51:29 UTC
+--- src/wps/wps_upnp.c.orig	2024-07-20 18:04:37 UTC
 +++ src/wps/wps_upnp.c
 @@ -862,7 +862,7 @@ fail:
  }
@@ -440,9 +458,9 @@ sbin/
 
 
 [FILE:624:patches/patch-wpa__supplicant_wpa__priv.c]
---- wpa_supplicant/wpa_priv.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/wpa_priv.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/wpa_priv.c
-@@ -1205,6 +1205,7 @@ static void usage(void)
+@@ -1210,6 +1210,7 @@ static void usage(void)
  int main(int argc, char *argv[])
  {
  	int c, i;
@@ -450,7 +468,7 @@ sbin/
  	int ret = -1;
  	char *pid_file = NULL;
  	int daemonize = 0;
-@@ -1247,6 +1248,7 @@ int main(int argc, char *argv[])
+@@ -1252,6 +1253,7 @@ int main(int argc, char *argv[])
  		usage();
  		goto out2;
  	}
@@ -458,7 +476,7 @@ sbin/
  
  	wpa_printf(MSG_DEBUG, "wpa_priv control directory: '%s'", ctrl_dir);
  
-@@ -1280,7 +1282,8 @@ out:
+@@ -1285,7 +1287,8 @@ out:
  		wpa_priv_interface_deinit(prev);
  	}
  
@@ -954,9 +972,9 @@ typedef char * PCHAR;
 
 
 [FILE:481:dragonfly/patch-wpa__supplicant_Makefile]
---- wpa_supplicant/Makefile.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/Makefile.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/Makefile
-@@ -123,6 +123,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
+@@ -140,6 +140,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
  OBJS_p += ../src/utils/os_$(CONFIG_OS).o
  OBJS_c += ../src/utils/os_$(CONFIG_OS).o
  
@@ -974,9 +992,9 @@ typedef char * PCHAR;
 
 
 [FILE:1269:dragonfly/patch-wpa__supplicant_main.c]
---- wpa_supplicant/main.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/main.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/main.c
-@@ -66,7 +66,7 @@ static void usage(void)
+@@ -67,7 +67,7 @@ static void usage(void)
  	       "  -c = Configuration file\n"
  	       "  -C = ctrl_interface parameter (only used if -c is not)\n"
  	       "  -d = increase debugging verbosity (-dd even more)\n"
@@ -985,7 +1003,7 @@ typedef char * PCHAR;
  	       "  -e = entropy file\n"
  #ifdef CONFIG_DEBUG_FILE
  	       "  -f = log output to debug file instead of stdout\n"
-@@ -105,8 +105,7 @@ static void usage(void)
+@@ -106,8 +106,7 @@ static void usage(void)
  	       "  -W = wait for a control interface monitor before starting\n");
  
  	printf("example:\n"
@@ -995,7 +1013,7 @@ typedef char * PCHAR;
  #endif /* CONFIG_NO_STDOUT_DEBUG */
  }
  
-@@ -199,6 +198,11 @@ int main(int argc, char *argv[])
+@@ -200,6 +199,11 @@ int main(int argc, char *argv[])
  
  	wpa_supplicant_fd_workaround(1);
  
@@ -1010,9 +1028,9 @@ typedef char * PCHAR;
 
 
 [FILE:328:dragonfly/patch-wpa__supplicant_wpa__supplicant.c]
---- wpa_supplicant/wpa_supplicant.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/wpa_supplicant.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/wpa_supplicant.c
-@@ -7311,7 +7311,7 @@ struct wpa_global * wpa_supplicant_init(
+@@ -7983,7 +7983,7 @@ struct wpa_global * wpa_supplicant_init(
  	if (params == NULL)
  		return NULL;
  
@@ -1024,9 +1042,9 @@ typedef char * PCHAR;
 
 
 [FILE:481:freebsd/patch-wpa__supplicant_Makefile]
---- wpa_supplicant/Makefile.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/Makefile.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/Makefile
-@@ -123,6 +123,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
+@@ -140,6 +140,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
  OBJS_p += ../src/utils/os_$(CONFIG_OS).o
  OBJS_c += ../src/utils/os_$(CONFIG_OS).o
  
@@ -1044,9 +1062,9 @@ typedef char * PCHAR;
 
 
 [FILE:1269:freebsd/patch-wpa__supplicant_main.c]
---- wpa_supplicant/main.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/main.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/main.c
-@@ -66,7 +66,7 @@ static void usage(void)
+@@ -67,7 +67,7 @@ static void usage(void)
  	       "  -c = Configuration file\n"
  	       "  -C = ctrl_interface parameter (only used if -c is not)\n"
  	       "  -d = increase debugging verbosity (-dd even more)\n"
@@ -1055,7 +1073,7 @@ typedef char * PCHAR;
  	       "  -e = entropy file\n"
  #ifdef CONFIG_DEBUG_FILE
  	       "  -f = log output to debug file instead of stdout\n"
-@@ -105,8 +105,7 @@ static void usage(void)
+@@ -106,8 +106,7 @@ static void usage(void)
  	       "  -W = wait for a control interface monitor before starting\n");
  
  	printf("example:\n"
@@ -1065,7 +1083,7 @@ typedef char * PCHAR;
  #endif /* CONFIG_NO_STDOUT_DEBUG */
  }
  
-@@ -199,6 +198,11 @@ int main(int argc, char *argv[])
+@@ -200,6 +199,11 @@ int main(int argc, char *argv[])
  
  	wpa_supplicant_fd_workaround(1);
  
@@ -1080,9 +1098,9 @@ typedef char * PCHAR;
 
 
 [FILE:328:freebsd/patch-wpa__supplicant_wpa__supplicant.c]
---- wpa_supplicant/wpa_supplicant.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/wpa_supplicant.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/wpa_supplicant.c
-@@ -7311,7 +7311,7 @@ struct wpa_global * wpa_supplicant_init(
+@@ -7983,7 +7983,7 @@ struct wpa_global * wpa_supplicant_init(
  	if (params == NULL)
  		return NULL;
  
@@ -1094,9 +1112,9 @@ typedef char * PCHAR;
 
 
 [FILE:481:netbsd/patch-wpa__supplicant_Makefile]
---- wpa_supplicant/Makefile.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/Makefile.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/Makefile
-@@ -123,6 +123,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
+@@ -140,6 +140,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
  OBJS_p += ../src/utils/os_$(CONFIG_OS).o
  OBJS_c += ../src/utils/os_$(CONFIG_OS).o
  
@@ -1114,9 +1132,9 @@ typedef char * PCHAR;
 
 
 [FILE:1269:netbsd/patch-wpa__supplicant_main.c]
---- wpa_supplicant/main.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/main.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/main.c
-@@ -66,7 +66,7 @@ static void usage(void)
+@@ -67,7 +67,7 @@ static void usage(void)
  	       "  -c = Configuration file\n"
  	       "  -C = ctrl_interface parameter (only used if -c is not)\n"
  	       "  -d = increase debugging verbosity (-dd even more)\n"
@@ -1125,7 +1143,7 @@ typedef char * PCHAR;
  	       "  -e = entropy file\n"
  #ifdef CONFIG_DEBUG_FILE
  	       "  -f = log output to debug file instead of stdout\n"
-@@ -105,8 +105,7 @@ static void usage(void)
+@@ -106,8 +106,7 @@ static void usage(void)
  	       "  -W = wait for a control interface monitor before starting\n");
  
  	printf("example:\n"
@@ -1135,7 +1153,7 @@ typedef char * PCHAR;
  #endif /* CONFIG_NO_STDOUT_DEBUG */
  }
  
-@@ -199,6 +198,11 @@ int main(int argc, char *argv[])
+@@ -200,6 +199,11 @@ int main(int argc, char *argv[])
  
  	wpa_supplicant_fd_workaround(1);
  
@@ -1150,9 +1168,9 @@ typedef char * PCHAR;
 
 
 [FILE:328:netbsd/patch-wpa__supplicant_wpa__supplicant.c]
---- wpa_supplicant/wpa_supplicant.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/wpa_supplicant.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/wpa_supplicant.c
-@@ -7311,7 +7311,7 @@ struct wpa_global * wpa_supplicant_init(
+@@ -7983,7 +7983,7 @@ struct wpa_global * wpa_supplicant_init(
  	if (params == NULL)
  		return NULL;
  
@@ -1164,9 +1182,9 @@ typedef char * PCHAR;
 
 
 [FILE:481:midnightbsd/patch-wpa__supplicant_Makefile]
---- wpa_supplicant/Makefile.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/Makefile.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/Makefile
-@@ -123,6 +123,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
+@@ -140,6 +140,14 @@ OBJS += ../src/utils/os_$(CONFIG_OS).o
  OBJS_p += ../src/utils/os_$(CONFIG_OS).o
  OBJS_c += ../src/utils/os_$(CONFIG_OS).o
  
@@ -1184,9 +1202,9 @@ typedef char * PCHAR;
 
 
 [FILE:1269:midnightbsd/patch-wpa__supplicant_main.c]
---- wpa_supplicant/main.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/main.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/main.c
-@@ -66,7 +66,7 @@ static void usage(void)
+@@ -67,7 +67,7 @@ static void usage(void)
  	       "  -c = Configuration file\n"
  	       "  -C = ctrl_interface parameter (only used if -c is not)\n"
  	       "  -d = increase debugging verbosity (-dd even more)\n"
@@ -1195,7 +1213,7 @@ typedef char * PCHAR;
  	       "  -e = entropy file\n"
  #ifdef CONFIG_DEBUG_FILE
  	       "  -f = log output to debug file instead of stdout\n"
-@@ -105,8 +105,7 @@ static void usage(void)
+@@ -106,8 +106,7 @@ static void usage(void)
  	       "  -W = wait for a control interface monitor before starting\n");
  
  	printf("example:\n"
@@ -1205,7 +1223,7 @@ typedef char * PCHAR;
  #endif /* CONFIG_NO_STDOUT_DEBUG */
  }
  
-@@ -199,6 +198,11 @@ int main(int argc, char *argv[])
+@@ -200,6 +199,11 @@ int main(int argc, char *argv[])
  
  	wpa_supplicant_fd_workaround(1);
  
@@ -1220,9 +1238,9 @@ typedef char * PCHAR;
 
 
 [FILE:328:midnightbsd/patch-wpa__supplicant_wpa__supplicant.c]
---- wpa_supplicant/wpa_supplicant.c.orig	2022-01-16 20:51:29 UTC
+--- wpa_supplicant/wpa_supplicant.c.orig	2024-07-20 18:04:37 UTC
 +++ wpa_supplicant/wpa_supplicant.c
-@@ -7311,7 +7311,7 @@ struct wpa_global * wpa_supplicant_init(
+@@ -7983,7 +7983,7 @@ struct wpa_global * wpa_supplicant_init(
  	if (params == NULL)
  		return NULL;
  

@@ -41,6 +41,7 @@ FPC_EQUIVALENT=		devel/kf6-extra-cmake-modules
 SHEBANG_FILES=		kde-modules/kde-git-commit-hooks/json-schema.py
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
+			-DKF_IGNORE_PLATFORM_CHECK:BOOL=TRUE
 			-DBUILD_WITH_QT6:BOOL=ON
 
 pre-configure:
@@ -486,10 +487,38 @@ share/doc/extra-cmake-modules/html/toolchain/Android.html
  set_package_properties(OpenEXR PROPERTIES
 
 
-[FILE:1098:patches/patch-kde-modules_KDEMetaInfoPlatformCheck.cmake]
+[FILE:1290:patches/patch-kde-modules_KDECompilerSettings.cmake]
+--- kde-modules/KDECompilerSettings.cmake.orig	2026-03-07 20:28:57 UTC
++++ kde-modules/KDECompilerSettings.cmake
+@@ -445,9 +445,11 @@ endif()
+ if (UNIX AND NOT APPLE AND NOT CYGWIN)
+     # Enable adding DT_RUNPATH, which means that LD_LIBRARY_PATH takes precedence
+     # over the built-in rPath
++  if (NOT CMAKE_SYSTEM_NAME MATCHES "SunOS") 
+     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--enable-new-dtags ${CMAKE_SHARED_LINKER_FLAGS}")
+     set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--enable-new-dtags ${CMAKE_MODULE_LINKER_FLAGS}")
+     set(CMAKE_EXE_LINKER_FLAGS    "-Wl,--enable-new-dtags ${CMAKE_EXE_LINKER_FLAGS}")
++  endif()
+ endif()
+ 
+ if (CMAKE_SYSTEM_NAME STREQUAL GNU)
+@@ -564,8 +566,10 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU
+         (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT APPLE) OR
+         (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND NOT WIN32))
+     # Linker warnings should be treated as errors
++  if (NOT CMAKE_SYSTEM_NAME MATCHES "SunOS")
+     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--fatal-warnings ${CMAKE_SHARED_LINKER_FLAGS}")
+     set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--fatal-warnings ${CMAKE_MODULE_LINKER_FLAGS}")
++  endif()
+ 
+     string(TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" compileflags)
+     if("${CMAKE_CXX_FLAGS} ${${compileflags}}" MATCHES "-fsanitize")
+
+
+[FILE:1298:patches/patch-kde-modules_KDEMetaInfoPlatformCheck.cmake]
 --- kde-modules/KDEMetaInfoPlatformCheck.cmake.orig	2026-01-02 17:40:05 UTC
 +++ kde-modules/KDEMetaInfoPlatformCheck.cmake
-@@ -48,6 +48,18 @@ if (NOT "${KF_IGNORE_PLATFORM_CHECK}")
+@@ -48,6 +48,22 @@ if (NOT "${KF_IGNORE_PLATFORM_CHECK}")
                  if (CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
                      set(_MetainfoFoundSupportedPlatform true)
                  endif()
@@ -505,24 +534,13 @@ share/doc/extra-cmake-modules/html/toolchain/Android.html
 +                if (CMAKE_SYSTEM_NAME MATCHES "MidnightBSD")
 +                    set(_MetainfoFoundSupportedPlatform true)
 +                endif()
++            elseif (${CMAKE_MATCH_1} STREQUAL "SunOS")
++                if (CMAKE_SYSTEM_NAME MATCHES "SunOS")
++                    set(_MetainfoFoundSupportedPlatform true)
++                endif()
              elseif (${CMAKE_MATCH_1} STREQUAL "Windows")
                  if (WIN32)
                      set(_MetainfoFoundSupportedPlatform true)
-
-
-[FILE:279:patches/patch-metainfo.yaml]
---- metainfo.yaml.orig	2026-01-02 17:40:05 UTC
-+++ metainfo.yaml
-@@ -4,6 +4,9 @@ type: functional
- platforms:
-     - name: Linux
-     - name: FreeBSD
-+    - name: DragonFly
-+    - name: NetBSD
-+    - name: MidnightBSD
-     - name: Windows
-     - name: macOS
-     - name: Android
 
 
 [FILE:693:patches/patch-modules_ECMGeneratePkgConfigFile.cmake]

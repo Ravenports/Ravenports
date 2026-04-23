@@ -2,7 +2,7 @@
 
 NAMEBASE=		langkit_support
 VERSION=		26.0.0
-REVISION=		2
+REVISION=		3
 EPOCH=			1
 KEYWORDS=		ada devel
 VARIANTS=		std
@@ -39,7 +39,6 @@ BUILDRUN_DEPENDS=	gnatcoll-core:primary:std
 			python-docutils:single:python_default
 			python-Mako:single:python_default
 			python-e3-core:single:python_default
-RUN_DEPENDS=		AdaSAT:primary:std
 EXRUN[dev]=		gnatcoll-bindings:dev:std
 			gnatcoll-core:dev:std
 			gmp:dev:std
@@ -57,7 +56,7 @@ LICENSE_AWK=		TERMS:"^$$"
 LICENSE_SOURCE=		TERMS:{{WRKSRC}}/langkit/support/langkit_support.ads
 LICENSE_SCHEME=		solo
 
-MAKE_ENV=		GPR_PROJECT_PATH={{LOCALBASE}}/share/gpr
+MAKE_ENV=		GPR_PROJECT_PATH={{LOCALBASE}}/share/gpr:{{WRKSRC}}/langkit/support
 
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		26.0.0
@@ -98,6 +97,9 @@ do-install:
 		--build-mode=prod \
 		--disable-all-mains \
 		${STAGEDIR}${PREFIX})
+	# manually install libAdaSAT for relocatable version
+	${INSTALL_LIB} ${WRKSRC}/langkit/support/lib/relocatable/prod/libadasat.so.26.0.0\
+		${STAGEDIR}${PREFIX}/lib/
 	# Construct python wheels
 	(cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} python -m build \
 		--no-isolation --wheel lkt/build/python)
@@ -141,8 +143,10 @@ This package contains Ada Langkit Python modules for ltk and libpython.
 de4fa5a74fd4b27cf3fead6e8c9491f22b0ab4b7b591b076073c6ba2a870162c        30714 AdaCore-AdaSAT-26.0.0.tar.gz
 
 
-[FILE:149:manifests/plist.primary]
-lib/liblangkit_support.so.%%SOVERSION%%
+[FILE:179:manifests/plist.primary]
+lib/
+ libadasat.so.%%SOVERSION%%
+ liblangkit_support.so.%%SOVERSION%%
 lib/langkit_support.relocatable/liblangkit_support.so.%%SOVERSION%%
 lib/liblktlang.relocatable/liblktlang.so
 
@@ -835,7 +839,7 @@ share/gpr/
  liblktlang.gpr
 
 
-[FILE:475:patches/patch-adasat.gpr]
+[FILE:797:patches/patch-langkit_support_adasat.gpr]
 --- langkit/support/adasat.gpr.orig	2024-01-03 17:00:52 UTC
 +++ langkit/support/adasat.gpr
 @@ -12,6 +12,7 @@ library project AdaSAT is
@@ -846,6 +850,15 @@ share/gpr/
     for Library_Kind use Library_Kind_Param;
  
     Common_Ada_Cargs := ("-gnatwa", "-gnatyg", "-fPIC");
+@@ -29,7 +30,7 @@ library project AdaSAT is
+ 
+          when "prod" =>
+             for Default_Switches ("Ada") use
+-               Common_Ada_Cargs & ("-g", "-Ofast", "-gnatp", "-gnatn2", "-flto");
++               Common_Ada_Cargs & ("-g", "-Ofast", "-gnatp", "-gnatn2");
+       end case;
+    end Compiler;
+ end AdaSAT;
 
 
 [FILE:811:patches/patch-langkit_support_langkit__support.gpr]

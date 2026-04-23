@@ -18,8 +18,9 @@ SPKGS[std]=		set
 			docs
 			examples
 
-OPTIONS_AVAILABLE=	DEBUG
-OPTIONS_STANDARD=	DEBUG
+OPTIONS_AVAILABLE=	DEBUG SUNOS
+OPTIONS_STANDARD=	DEBUG SUNOS
+OPT_ON[sunos]=		SUNOS
 OPT_ON[all]=		DEBUG
 
 BUILD_DEPENDS=		libadalang:dev:std
@@ -87,6 +88,8 @@ SUB_LIST=		ADA_PATH={{PREFIX}}/toolchain/ravensys-gcc/bin
 [DEBUG].MAKE_ARGS_OFF=			BUILD=Production
 [DEBUG].MAKE_ARGS_ON=			BUILD=Debug
 
+[SUNOS].MAKEFILE_OFF=			DYNFLAGS="-Wl,--allow-shlib-undefined"
+
 pre-install:
 	# .gitignore can't be removed after the build
 	${FIND} ${WRKSRC} -type f -name ".gitignore" -delete
@@ -121,7 +124,8 @@ post-install:
 		${SORT} >> ${WRKDIR}/.manifest.examples.mktmp)
 
 pre-configure:
-	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' \
+	${REINPLACE_CMD} -e 's|@PREFIX@|${PREFIX}|g' -e 's|@DYNFLAGS@|${DYNFLAGS}|' \
+		${WRKSRC}/shared.gpr.in \
 		${WRKSRC}/gnatstudio/gps.gpr \
 		${WRKSRC}/gnatdoc/gnatdoc.gpr \
 		${WRKSRC}/widgets/widgets.gpr
@@ -1427,7 +1431,7 @@ Issue: eng/toolchain/gnat#1696
  
 
 
-[FILE:504:patches/patch-gnatstudio_gps.gpr]
+[FILE:514:patches/patch-gnatstudio_gps.gpr]
 --- gnatstudio/gps.gpr.orig	2025-09-19 10:04:04 UTC
 +++ gnatstudio/gps.gpr
 @@ -37,6 +37,7 @@ with "../views/views";
@@ -1443,7 +1447,7 @@ Issue: eng/toolchain/gnat#1696
        --  for Switches ("Ada") use ("-lgmem");
        --  for Switches ("Ada") use ("-pg");
 +      for Switches ("Ada") use ("-lclang");
-+      for Linker_Options use ("-Wl,-rpath,@PREFIX@/lib");
++      for Linker_Options use ("-Wl,-rpath,@PREFIX@/lib"@DYNFLAGS@);
     end Linker;
  
     package CodePeer is
@@ -1898,7 +1902,7 @@ Issue: eng/toolchain/gnat#1696
          ids = []
 
 
-[FILE:1039:patches/patch-shared.gpr.in]
+[FILE:1334:patches/patch-shared.gpr.in]
 --- shared.gpr.in.orig	2025-09-19 10:04:04 UTC
 +++ shared.gpr.in
 @@ -49,8 +49,8 @@ project Shared is
@@ -1921,6 +1925,15 @@ Issue: eng/toolchain/gnat#1696
  	 when "AddressSanitizer" =>
              for Switches ("Ada") use Common &
                ("-O0", "-gnata", "-gnatVa", "-gnatQ", "-gnatygO",
+@@ -91,7 +91,7 @@ project Shared is
+             for Switches ("Ada") use Linker'Switches ("Ada")
+                & ("-Wl,-headerpad_max_install_names");
+          when others =>
+-            null;
++            for Switches ("Ada") use (@DYNFLAGS@);
+       end case;
+ 
+       case Enable_LTO is
 
 
 [FILE:557:patches/patch-widgets_widgets.gpr]

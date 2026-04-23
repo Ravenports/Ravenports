@@ -19,8 +19,9 @@ SPKGS[std]=		set
 			docs
 			examples
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	NOUSB
+OPTIONS_STANDARD=	NOUSB
+OPT_ON[sunos]=		NOUSB
 
 BUILD_DEPENDS=		libltdl:dev:std
 			libGD:dev:std
@@ -103,6 +104,8 @@ SUB_LIST=		STATEDIR=/var/db/nut
 
 VAR_OPSYS[linux]=	CFLAGS=-D_GNU_SOURCE
 
+[NOUSB].DESCRIPTION=			USB utilities are omitted
+
 pre-install:
 	${MKDIR} ${STAGEDIR}${PREFIX}/libexec/nut
 	${REINPLACE_CMD} -e 's/device-name\*/cdev/g' \
@@ -151,7 +154,7 @@ and connection media types.
 0130ba82ea79f04ba4f34c5249a85943977efd984ed7df6aec1a518d5a3594f8      6522704 nut-2.8.4.tar.gz
 
 
-[FILE:1888:manifests/plist.primary]
+[FILE:2041:manifests/plist.primary]
 @sample etc/nut/hosts.conf.sample
 @sample etc/nut/nut.conf.sample
 @sample etc/nut/ups.conf.sample
@@ -166,7 +169,19 @@ and connection media types.
  upsimage.cgi
  upsset.cgi
  upsstats.cgi
+%%NOUSB-OFF%%etc/devd/nut-usb.conf
+%%NOUSB-OFF%%libexec/nut/
+ bcmxcp_usb
+ blazer_usb
+ nutdrv_atcl_usb
+ powervar_cx_usb
+ richcomm_usb
+ riello_usb
+ tripplite_usb
+ usbhid-ups
 %%ONLY-LINUX%%libexec/nut/nhs_ser
+%%ONLY-SUNOS%%@sample etc/nut/solaris-init/reset-ups-usb-solaris.sh.sample
+%%ONLY-SUNOS%%etc/nut/solaris-init/nut
 %%PYTHON_SITELIBDIR%%/
  PyNUT.py
  test_nutclient.py
@@ -184,7 +199,6 @@ bin/
  upsrw
  upssched-cmd
 etc/bash_completion.d/nut.bash_completion
-etc/devd/nut-usb.conf
 etc/nut/
  cmdvartab
  driver.list
@@ -204,7 +218,6 @@ libexec/nut/
  apcsmart-old
  apcupsd-ups
  bcmxcp
- bcmxcp_usb
  belkin
  belkinunv
  bestfcom
@@ -213,7 +226,6 @@ libexec/nut/
  bestups
  bicker_ser
  blazer_ser
- blazer_usb
  clone
  clone-outlet
  dummy-ups
@@ -235,7 +247,6 @@ libexec/nut/
  microsol-apc
  netxml-ups
  nut-ipmipsu
- nutdrv_atcl_usb
  nutdrv_hashx
  nutdrv_qx
  nutdrv_siemens-sitop
@@ -244,21 +255,16 @@ libexec/nut/
  powercom
  powerpanel
  powervar_cx_ser
- powervar_cx_usb
  rhino
- richcomm_usb
  riello_ser
- riello_usb
  safenet
  skel
  sms_ser
  snmp-ups
  solis
  tripplite
- tripplite_usb
  tripplitesu
  upscode2
- usbhid-ups
  ve-direct
  victronups
 sbin/
@@ -298,7 +304,16 @@ lib/pkgconfig/
  libupsclient.pc
 
 
-[FILE:3594:manifests/plist.man]
+[FILE:3623:manifests/plist.man]
+%%NOUSB-OFF%%share/man/man8/
+ bcmxcp_usb.8
+ blazer_usb.8
+ nutdrv_atcl_usb.8
+ powervar_cx_usb.8
+ richcomm_usb.8
+ riello_usb.8
+ tripplite_usb.8
+ usbhid-ups.8
 %%ONLY-LINUX%%share/man/man8/nhs_ser.8
 share/man/man3/
  libnutclient.3
@@ -405,7 +420,6 @@ share/man/man8/
  apcsmart.8
  apcupsd-ups.8
  bcmxcp.8
- bcmxcp_usb.8
  belkin.8
  belkinunv.8
  bestfcom.8
@@ -414,7 +428,6 @@ share/man/man8/
  bestups.8
  bicker_ser.8
  blazer_ser.8
- blazer_usb.8
  clone-outlet.8
  clone.8
  dummy-ups.8
@@ -439,7 +452,6 @@ share/man/man8/
  nut-recorder.8
  nut-scanner.8
  nutconf.8
- nutdrv_atcl_usb.8
  nutdrv_hashx.8
  nutdrv_qx.8
  nutdrv_siemens_sitop.8
@@ -449,18 +461,14 @@ share/man/man8/
  powercom.8
  powerpanel.8
  powervar_cx_ser.8
- powervar_cx_usb.8
  rhino.8
- richcomm_usb.8
  riello_ser.8
- riello_usb.8
  safenet.8
  sms_ser.8
  snmp-ups.8
  sockdebug.8
  solis.8
  tripplite.8
- tripplite_usb.8
  tripplitesu.8
  upsc.8
  upscmd.8
@@ -474,7 +482,6 @@ share/man/man8/
  upssched.8
  upsset.cgi.8
  upsstats.cgi.8
- usbhid-ups.8
  ve-direct.8
  victronups.8
 
@@ -556,6 +563,20 @@ share/examples/nut/
  
  # --------------------------------------------------------------------------
  # SHUTDOWNEXIT <boolean|num>
+
+
+[FILE:308:patches/patch-configure]
+--- configure.orig	2025-08-08 11:05:18 UTC
++++ configure
+@@ -25125,7 +25125,7 @@ DEFAULT_MAN_SECTION_MISC="7"
+ DEFAULT_MAN_DIR_AS_BASE="yes"
+ 
+ case "${target_os}" in
+-    solaris*|sunos*|SunOS*|illumos*)
++    skip)
+         DEFAULT_MAN_SECTION_CMD_SYS="1m"
+         DEFAULT_MAN_DIR_AS_BASE="no"
+         ;;
 
 
 [FILE:639:patches/patch-drivers_libusb1.c]

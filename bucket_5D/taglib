@@ -247,3 +247,795 @@ lib/pkgconfig/
  if(WITH_APE)
    set(TAGLIB_WITH_APE TRUE)
 
+
+[FILE:1316:patches/patch-taglib_matroska_ebml_ebmlelement.cpp]
+--- taglib/matroska/ebml/ebmlelement.cpp.orig	2026-02-24 20:57:21 UTC
++++ taglib/matroska/ebml/ebmlelement.cpp
+@@ -44,7 +44,7 @@ using namespace TagLib;
+ std::unique_ptr<EBML::Element> EBML::Element::factory(File &file)
+ {
+   // Get the element ID
+-  const offset_t offset = file.tell();
++  const TagLib::offset_t offset = file.tell();
+   unsigned int uintId = readId(file);
+   if(!uintId) {
+     debug("Failed to parse EMBL ElementID");
+@@ -151,12 +151,12 @@ unsigned int EBML::Element::readId(File
+   return buffer.toUInt(true);
+ }
+ 
+-EBML::Element::Element(Id id, int sizeLength, offset_t dataSize):
++EBML::Element::Element(Id id, int sizeLength, TagLib::offset_t dataSize):
+   id(id), sizeLength(sizeLength), dataSize(dataSize)
+ {
+ }
+ 
+-EBML::Element::Element(Id id, int sizeLength, offset_t dataSize, offset_t):
++EBML::Element::Element(Id id, int sizeLength, TagLib::offset_t dataSize, TagLib::offset_t):
+   id(id), sizeLength(sizeLength), dataSize(dataSize)
+ {
+ }
+@@ -179,12 +179,12 @@ EBML::Element::Id EBML::Element::getId()
+   return id;
+ }
+ 
+-offset_t EBML::Element::headSize() const
++TagLib::offset_t EBML::Element::headSize() const
+ {
+   return idSize(id) + sizeLength;
+ }
+ 
+-offset_t EBML::Element::getSize() const
++TagLib::offset_t EBML::Element::getSize() const
+ {
+   return headSize() + dataSize;
+ }
+
+
+[FILE:1681:patches/patch-taglib_matroska_ebml_ebmlmasterelement.cpp]
+--- taglib/matroska/ebml/ebmlmasterelement.cpp.orig	2026-01-25 11:41:46 UTC
++++ taglib/matroska/ebml/ebmlmasterelement.cpp
+@@ -25,7 +25,7 @@
+ 
+ using namespace TagLib;
+ 
+-EBML::MasterElement::MasterElement(Id id, int sizeLength, offset_t dataSize, offset_t offset):
++EBML::MasterElement::MasterElement(Id id, int sizeLength, TagLib::offset_t dataSize, TagLib::offset_t offset):
+   Element(id, sizeLength, dataSize), offset(offset)
+ {
+ }
+@@ -37,7 +37,7 @@ EBML::MasterElement::MasterElement(Id id
+ 
+ EBML::MasterElement::~MasterElement() = default;
+ 
+-offset_t EBML::MasterElement::getOffset() const
++TagLib::offset_t EBML::MasterElement::getOffset() const
+ {
+   return offset;
+ }
+@@ -77,29 +77,29 @@ std::list<std::unique_ptr<EBML::Element>
+   return elements.cend();
+ }
+ 
+-offset_t EBML::MasterElement::getPadding() const
++TagLib::offset_t EBML::MasterElement::getPadding() const
+ {
+   return padding;
+ }
+ 
+-void EBML::MasterElement::setPadding(offset_t numBytes)
++void EBML::MasterElement::setPadding(TagLib::offset_t numBytes)
+ {
+   padding = numBytes;
+ }
+ 
+-offset_t EBML::MasterElement::getMinRenderSize() const
++TagLib::offset_t EBML::MasterElement::getMinRenderSize() const
+ {
+   return minRenderSize;
+ }
+ 
+-void EBML::MasterElement::setMinRenderSize(offset_t minimumSize)
++void EBML::MasterElement::setMinRenderSize(TagLib::offset_t minimumSize)
+ {
+   minRenderSize = minimumSize;
+ }
+ 
+ bool EBML::MasterElement::read(File &file)
+ {
+-  const offset_t maxOffset = file.tell() + dataSize;
++  const TagLib::offset_t maxOffset = file.tell() + dataSize;
+   std::unique_ptr<Element> element;
+   while((element = findNextElement(file, maxOffset))) {
+     if(!element->read(file))
+
+
+[FILE:1115:patches/patch-taglib_matroska_ebml_ebmlmksegment.cpp]
+--- taglib/matroska/ebml/ebmlmksegment.cpp.orig	2026-01-25 11:41:46 UTC
++++ taglib/matroska/ebml/ebmlmksegment.cpp
+@@ -30,26 +30,26 @@
+ 
+ using namespace TagLib;
+ 
+-EBML::MkSegment::MkSegment(int sizeLength, offset_t dataSize, offset_t offset):
++EBML::MkSegment::MkSegment(int sizeLength, TagLib::offset_t dataSize, TagLib::offset_t offset):
+   MasterElement(Id::MkSegment, sizeLength, dataSize, offset)
+ {
+ }
+ 
+-EBML::MkSegment::MkSegment(Id, int sizeLength, offset_t dataSize, offset_t offset):
++EBML::MkSegment::MkSegment(Id, int sizeLength, TagLib::offset_t dataSize, TagLib::offset_t offset):
+   MasterElement(Id::MkSegment, sizeLength, dataSize, offset)
+ {
+ }
+ 
+ EBML::MkSegment::~MkSegment() = default;
+ 
+-offset_t EBML::MkSegment::segmentDataOffset() const
++TagLib::offset_t EBML::MkSegment::segmentDataOffset() const
+ {
+   return offset + idSize(id) + sizeLength;
+ }
+ 
+ bool EBML::MkSegment::read(File &file)
+ {
+-  const offset_t maxOffset = file.tell() + dataSize;
++  const TagLib::offset_t maxOffset = file.tell() + dataSize;
+   std::unique_ptr<Element> element;
+   int i = 0;
+   int seekHeadIndex = -1;
+
+
+[FILE:1746:patches/patch-taglib_matroska_ebml_ebmlvoidelement.cpp]
+--- taglib/matroska/ebml/ebmlvoidelement.cpp.orig	2026-01-25 11:41:46 UTC
++++ taglib/matroska/ebml/ebmlvoidelement.cpp
+@@ -25,12 +25,12 @@
+ 
+ using namespace TagLib;
+ 
+-EBML::VoidElement::VoidElement(int sizeLength, offset_t dataSize):
++EBML::VoidElement::VoidElement(int sizeLength, TagLib::offset_t dataSize):
+   Element(Id::VoidElement, sizeLength, dataSize)
+ {
+ }
+ 
+-EBML::VoidElement::VoidElement(Id, int sizeLength, offset_t dataSize, offset_t):
++EBML::VoidElement::VoidElement(Id, int sizeLength, TagLib::offset_t dataSize, TagLib::offset_t):
+   Element(Id::VoidElement, sizeLength, dataSize)
+ {
+ }
+@@ -42,10 +42,10 @@ EBML::VoidElement::VoidElement():
+ 
+ ByteVector EBML::VoidElement::render()
+ {
+-  offset_t bytesNeeded = targetSize;
++  TagLib::offset_t bytesNeeded = targetSize;
+   ByteVector buffer = renderId();
+   bytesNeeded -= buffer.size();
+-  sizeLength = static_cast<int>(std::min(bytesNeeded, static_cast<offset_t>(8)));
++  sizeLength = static_cast<int>(std::min(bytesNeeded, static_cast<TagLib::offset_t>(8)));
+   bytesNeeded -= sizeLength;
+   dataSize = bytesNeeded;
+   buffer.append(renderVINT(dataSize, sizeLength));
+@@ -55,17 +55,17 @@ ByteVector EBML::VoidElement::render()
+   return buffer;
+ }
+ 
+-offset_t EBML::VoidElement::getTargetSize() const
++TagLib::offset_t EBML::VoidElement::getTargetSize() const
+ {
+   return targetSize;
+ }
+ 
+-void EBML::VoidElement::setTargetSize(offset_t size)
++void EBML::VoidElement::setTargetSize(TagLib::offset_t size)
+ {
+   this->targetSize = std::max(size, MIN_VOID_ELEMENT_SIZE);
+ }
+ 
+-ByteVector EBML::VoidElement::renderSize(offset_t targetSize)
++ByteVector EBML::VoidElement::renderSize(TagLib::offset_t targetSize)
+ {
+   VoidElement element;
+   element.setTargetSize(targetSize);
+
+
+[FILE:3890:patches/patch-taglib_matroska_matroskacues.cpp]
+--- taglib/matroska/matroskacues.cpp.orig	2026-01-25 11:41:46 UTC
++++ taglib/matroska/matroskacues.cpp
+@@ -29,7 +29,7 @@
+ 
+ using namespace TagLib;
+ 
+-Matroska::Cues::Cues(offset_t segmentDataOffset) :
++Matroska::Cues::Cues(TagLib::offset_t segmentDataOffset) :
+   Element(static_cast<ID>(EBML::Element::Id::MkCues)),
+   segmentDataOffset(segmentDataOffset)
+ {
+@@ -118,13 +118,13 @@ void Matroska::Cues::write(TagLib::File
+     Element::write(file);
+ }
+ 
+-bool Matroska::Cues::sizeChanged(Element &caller, offset_t delta)
++bool Matroska::Cues::sizeChanged(Element &caller, TagLib::offset_t delta)
+ {
+   // Adjust own offset
+   if(!Element::sizeChanged(caller, delta))
+     return false;
+ 
+-  const offset_t offset = caller.offset() - segmentDataOffset;
++  const TagLib::offset_t offset = caller.offset() - segmentDataOffset;
+   for(const auto &cuePoint : cuePoints) {
+     if(cuePoint->adjustOffset(offset, delta)) {
+       setNeedsRender(true);
+@@ -156,7 +156,7 @@ Matroska::CuePoint::CuePoint() = default
+ 
+ Matroska::CuePoint::~CuePoint() = default;
+ 
+-bool Matroska::CuePoint::isValid(TagLib::File &file, offset_t segmentDataOffset) const
++bool Matroska::CuePoint::isValid(TagLib::File &file, TagLib::offset_t segmentDataOffset) const
+ {
+   for(const auto &track : cueTracks) {
+     if(!track->isValid(file, segmentDataOffset))
+@@ -185,7 +185,7 @@ Matroska::CuePoint::Time Matroska::CuePo
+   return time;
+ }
+ 
+-bool Matroska::CuePoint::adjustOffset(offset_t offset, offset_t delta)
++bool Matroska::CuePoint::adjustOffset(TagLib::offset_t offset, TagLib::offset_t delta)
+ {
+   bool ret = false;
+   for(const auto &cueTrack : cueTracks)
+@@ -198,7 +198,7 @@ Matroska::CueTrack::CueTrack() = default
+ 
+ Matroska::CueTrack::~CueTrack() = default;
+ 
+-bool Matroska::CueTrack::isValid(TagLib::File &file, offset_t segmentDataOffset) const
++bool Matroska::CueTrack::isValid(TagLib::File &file, TagLib::offset_t segmentDataOffset) const
+ {
+   if(!trackNumber) {
+     debug("Cue track number not set");
+@@ -234,32 +234,32 @@ unsigned long long Matroska::CueTrack::g
+   return trackNumber;
+ }
+ 
+-void Matroska::CueTrack::setClusterPosition(offset_t clusterPos)
++void Matroska::CueTrack::setClusterPosition(TagLib::offset_t clusterPos)
+ {
+   clusterPosition = clusterPos;
+ }
+ 
+-offset_t Matroska::CueTrack::getClusterPosition() const
++TagLib::offset_t Matroska::CueTrack::getClusterPosition() const
+ {
+   return clusterPosition;
+ }
+ 
+-void Matroska::CueTrack::setRelativePosition(std::optional<offset_t> relativePos)
++void Matroska::CueTrack::setRelativePosition(std::optional<TagLib::offset_t> relativePos)
+ {
+   relativePosition = relativePos;
+ }
+ 
+-std::optional<offset_t> Matroska::CueTrack::getRelativePosition() const
++std::optional<TagLib::offset_t> Matroska::CueTrack::getRelativePosition() const
+ {
+   return relativePosition;
+ }
+ 
+-void Matroska::CueTrack::setCodecState(std::optional<offset_t> codecStatePos)
++void Matroska::CueTrack::setCodecState(std::optional<TagLib::offset_t> codecStatePos)
+ {
+   codecState = codecStatePos;
+ }
+ 
+-std::optional<offset_t> Matroska::CueTrack::getCodecState() const
++std::optional<TagLib::offset_t> Matroska::CueTrack::getCodecState() const
+ {
+   return codecState;
+ }
+@@ -294,7 +294,7 @@ const Matroska::CueTrack::ReferenceTimeL
+   return refTimes;
+ }
+ 
+-bool Matroska::CueTrack::adjustOffset(offset_t offset, offset_t delta)
++bool Matroska::CueTrack::adjustOffset(TagLib::offset_t offset, TagLib::offset_t delta)
+ {
+   bool ret = false;
+   if(clusterPosition > offset) {
+@@ -302,7 +302,7 @@ bool Matroska::CueTrack::adjustOffset(of
+     ret = true;
+   }
+   // operator*() used instead of value() to support restricted compilers
+-  if(offset_t codecStateValue;
++  if(TagLib::offset_t codecStateValue;
+      codecState.has_value() && (codecStateValue = *codecState) != 0 &&
+      codecStateValue > offset) {
+     codecState = codecStateValue + delta;
+
+
+[FILE:2349:patches/patch-taglib_matroska_matroskaelement.cpp]
+--- taglib/matroska/matroskaelement.cpp.orig	2026-01-25 11:41:46 UTC
++++ taglib/matroska/matroskaelement.cpp
+@@ -33,8 +33,8 @@ public:
+   ~ElementPrivate() = default;
+   ElementPrivate(const ElementPrivate &) = delete;
+   ElementPrivate &operator=(const ElementPrivate &) = delete;
+-  offset_t size = 0;
+-  offset_t offset = 0;
++  TagLib::offset_t size = 0;
++  TagLib::offset_t offset = 0;
+   ID id = 0;
+   ByteVector data;
+   List<Element *> sizeListeners;
+@@ -52,12 +52,12 @@ Matroska::Element::Element(ID id) :
+ 
+ Matroska::Element::~Element() = default;
+ 
+-offset_t Matroska::Element::size() const
++TagLib::offset_t Matroska::Element::size() const
+ {
+   return e->size;
+ }
+ 
+-offset_t Matroska::Element::offset() const
++TagLib::offset_t Matroska::Element::offset() const
+ {
+   return e->offset;
+ }
+@@ -72,17 +72,17 @@ const ByteVector &Matroska::Element::dat
+   return e->data;
+ }
+ 
+-void Matroska::Element::setOffset(offset_t offset)
++void Matroska::Element::setOffset(TagLib::offset_t offset)
+ {
+   e->offset = offset;
+ }
+ 
+-void Matroska::Element::adjustOffset(offset_t delta)
++void Matroska::Element::adjustOffset(TagLib::offset_t delta)
+ {
+   e->offset += delta;
+ }
+ 
+-void Matroska::Element::setSize(offset_t size)
++void Matroska::Element::setSize(TagLib::offset_t size)
+ {
+   e->size = size;
+ }
+@@ -135,7 +135,7 @@ bool Matroska::Element::needsRender() co
+   return e->needsRender;
+ }
+ 
+-bool Matroska::Element::emitSizeChanged(offset_t delta)
++bool Matroska::Element::emitSizeChanged(TagLib::offset_t delta)
+ {
+   for(const auto element : e->sizeListeners) {
+     if(!element->sizeChanged(*this, delta))
+@@ -144,7 +144,7 @@ bool Matroska::Element::emitSizeChanged(
+   return true;
+ }
+ 
+-bool Matroska::Element::sizeChanged(Element &caller, offset_t delta)
++bool Matroska::Element::sizeChanged(Element &caller, TagLib::offset_t delta)
+ {
+   // The equal case is needed when multiple new elements are added
+   // (e.g. Attachments and Tags), they will start with the same offset
+@@ -155,9 +155,9 @@ bool Matroska::Element::sizeChanged(Elem
+   return true;
+ }
+ 
+-offset_t Matroska::Element::sizeRenderedOrWritten() const
++TagLib::offset_t Matroska::Element::sizeRenderedOrWritten() const
+ {
+-  const offset_t dataSize = e->data.size();
++  const TagLib::offset_t dataSize = e->data.size();
+   return dataSize != 0 ? dataSize : e->size;
+ }
+ 
+
+
+[FILE:1514:patches/patch-taglib_matroska_matroskaseekhead.cpp]
+--- taglib/matroska/matroskaseekhead.cpp.orig	2026-01-25 11:41:46 UTC
++++ taglib/matroska/matroskaseekhead.cpp
+@@ -29,7 +29,7 @@
+ 
+ using namespace TagLib;
+ 
+-Matroska::SeekHead::SeekHead(offset_t segmentDataOffset) :
++Matroska::SeekHead::SeekHead(TagLib::offset_t segmentDataOffset) :
+   Element(static_cast<ID>(EBML::Element::Id::MkSeekHead)),
+   segmentDataOffset(segmentDataOffset)
+ {
+@@ -58,7 +58,7 @@ void Matroska::SeekHead::addEntry(const
+   setNeedsRender(true);
+ }
+ 
+-void Matroska::SeekHead::addEntry(ID id, offset_t offset)
++void Matroska::SeekHead::addEntry(ID id, TagLib::offset_t offset)
+ {
+   entries.append({id, offset});
+   setNeedsRender(true);
+@@ -95,7 +95,7 @@ void Matroska::SeekHead::sort()
+   entries.sort([](const auto &a, const auto &b) { return a.second < b.second; });
+ }
+ 
+-bool Matroska::SeekHead::sizeChanged(Element &caller, offset_t delta)
++bool Matroska::SeekHead::sizeChanged(Element &caller, TagLib::offset_t delta)
+ {
+   ID callerID = caller.id();
+   if(callerID == static_cast<ID>(EBML::Element::Id::MkSegment)) {
+@@ -105,7 +105,7 @@ bool Matroska::SeekHead::sizeChanged(Ele
+   // The equal case is needed when multiple new elements are added
+   // (e.g. Attachments and Tags), they will start with the same offset
+   // and are updated via size change handling.
+-  offset_t offset = caller.offset() - segmentDataOffset;
++  TagLib::offset_t offset = caller.offset() - segmentDataOffset;
+   auto it = entries.begin();
+   while(it != entries.end()) {
+     it = std::find_if(it,
+
+
+[FILE:898:patches/patch-taglib_matroska_matroskasegment.cpp]
+--- taglib/matroska/matroskasegment.cpp.orig	2026-01-25 11:41:46 UTC
++++ taglib/matroska/matroskasegment.cpp
+@@ -24,7 +24,7 @@
+ 
+ using namespace TagLib;
+ 
+-Matroska::Segment::Segment(offset_t sizeLength, offset_t dataSize, offset_t lengthOffset) :
++Matroska::Segment::Segment(TagLib::offset_t sizeLength, TagLib::offset_t dataSize, TagLib::offset_t lengthOffset) :
+   Element(static_cast<ID>(EBML::Element::Id::MkSegment)),
+   sizeLength(sizeLength), dataSize(dataSize)
+ {
+@@ -58,14 +58,14 @@ bool Matroska::Segment::render()
+   return true;
+ }
+ 
+-bool Matroska::Segment::sizeChanged(Element &, offset_t delta)
++bool Matroska::Segment::sizeChanged(Element &, TagLib::offset_t delta)
+ {
+   dataSize += delta;
+   setNeedsRender(true);
+   return true;
+ }
+ 
+-offset_t Matroska::Segment::dataOffset() const
++TagLib::offset_t Matroska::Segment::dataOffset() const
+ {
+   return offset() + sizeLength;
+ }
+
+
+[FILE:1638:patches/patch-taglib_mp4_mp4atom.cpp]
+--- taglib/mp4/mp4atom.cpp.orig	2026-01-31 07:25:47 UTC
++++ taglib/mp4/mp4atom.cpp
+@@ -44,9 +44,9 @@ namespace {
+ class MP4::Atom::AtomPrivate
+ {
+ public:
+-  explicit AtomPrivate(offset_t ofs) : offset(ofs) {}
+-  offset_t offset;
+-  offset_t length { 0 };
++  explicit AtomPrivate(TagLib::offset_t ofs) : offset(ofs) {}
++  TagLib::offset_t offset;
++  TagLib::offset_t length { 0 };
+   TagLib::ByteVector name;
+   AtomList children;
+ };
+@@ -94,7 +94,7 @@ MP4::Atom::Atom(File *file)
+   for(auto c : containers) {
+     if(d->name == c) {
+       if(d->name == "meta") {
+-        offset_t posAfterMeta = file->tell();
++        TagLib::offset_t posAfterMeta = file->tell();
+         static constexpr std::array metaChildrenNames {
+           "hdlr", "ilst", "mhdr", "ctry", "lang"
+         };
+@@ -162,7 +162,7 @@ MP4::Atom::path(MP4::AtomList &path, con
+   return it != d->children.cend() ? (*it)->path(path, name2, name3) : false;
+ }
+ 
+-void MP4::Atom::addToOffset(offset_t delta)
++void MP4::Atom::addToOffset(TagLib::offset_t delta)
+ {
+   d->offset += delta;
+ }
+@@ -182,12 +182,12 @@ bool MP4::Atom::removeChild(Atom *meta)
+   return false;
+ }
+ 
+-offset_t MP4::Atom::offset() const
++TagLib::offset_t MP4::Atom::offset() const
+ {
+   return d->offset;
+ }
+ 
+-offset_t MP4::Atom::length() const
++TagLib::offset_t MP4::Atom::length() const
+ {
+   return d->length;
+ }
+@@ -215,7 +215,7 @@ MP4::Atoms::Atoms(File *file) :
+   d->atoms.setAutoDelete(true);
+ 
+   file->seek(0, File::End);
+-  offset_t end = file->tell();
++  TagLib::offset_t end = file->tell();
+   file->seek(0);
+   while(file->tell() + 8 <= end) {
+     auto atom = new MP4::Atom(file);
+
+
+[FILE:377:patches/patch-taglib_mp4_mp4properties.cpp]
+--- taglib/mp4/mp4properties.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/mp4/mp4properties.cpp
+@@ -39,7 +39,7 @@ namespace
+   {
+     long long totalLength = 0;
+     for(const auto &atom : list) {
+-      offset_t length = atom->length();
++      TagLib::offset_t length = atom->length();
+       if(length == 0)
+         return 0; // for safety, see checkValid() in mp4file.cpp
+ 
+
+
+[FILE:1274:patches/patch-taglib_mpeg_mpegfile.cpp]
+--- taglib/mpeg/mpegfile.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/mpeg/mpegfile.cpp
+@@ -381,7 +381,7 @@ bool MPEG::File::strip(int tags, bool fr
+   return true;
+ }
+ 
+-offset_t MPEG::File::nextFrameOffset(offset_t position)
++TagLib::offset_t MPEG::File::nextFrameOffset(TagLib::offset_t position)
+ {
+   ByteVector frameSyncBytes(2, '\0');
+ 
+@@ -404,7 +404,7 @@ offset_t MPEG::File::nextFrameOffset(off
+   }
+ }
+ 
+-offset_t MPEG::File::previousFrameOffset(offset_t position)
++TagLib::offset_t MPEG::File::previousFrameOffset(TagLib::offset_t position)
+ {
+   ByteVector frameSyncBytes(2, '\0');
+ 
+@@ -428,7 +428,7 @@ offset_t MPEG::File::previousFrameOffset
+   return -1;
+ }
+ 
+-offset_t MPEG::File::firstFrameOffset()
++TagLib::offset_t MPEG::File::firstFrameOffset()
+ {
+   offset_t position = 0;
+ 
+@@ -438,7 +438,7 @@ offset_t MPEG::File::firstFrameOffset()
+   return nextFrameOffset(position);
+ }
+ 
+-offset_t MPEG::File::lastFrameOffset()
++TagLib::offset_t MPEG::File::lastFrameOffset()
+ {
+   offset_t position;
+ 
+@@ -510,7 +510,7 @@ void MPEG::File::read(bool readPropertie
+   ID3v1Tag(true);
+ }
+ 
+-offset_t MPEG::File::findID3v2(Properties::ReadStyle readStyle)
++TagLib::offset_t MPEG::File::findID3v2(Properties::ReadStyle readStyle)
+ {
+   if(!isValid())
+     return -1;
+
+
+[FILE:330:patches/patch-taglib_ogg_flac_oggflacfile.cpp]
+--- taglib/ogg/flac/oggflacfile.cpp.orig	2026-01-18 19:08:23 UTC
++++ taglib/ogg/flac/oggflacfile.cpp
+@@ -206,7 +206,7 @@ ByteVector Ogg::FLAC::File::xiphCommentD
+   return d->xiphCommentData;
+ }
+ 
+-offset_t Ogg::FLAC::File::streamLength()
++TagLib::offset_t Ogg::FLAC::File::streamLength()
+ {
+   scan();
+   return d->streamLength;
+
+
+[FILE:298:patches/patch-taglib_ogg_oggpage.cpp]
+--- taglib/ogg/oggpage.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/ogg/oggpage.cpp
+@@ -128,7 +128,7 @@ Ogg::Page::Page(Ogg::File *file, offset_
+ 
+ Ogg::Page::~Page() = default;
+ 
+-offset_t Ogg::Page::fileOffset() const
++TagLib::offset_t Ogg::Page::fileOffset() const
+ {
+   return d->fileOffset;
+ }
+
+
+[FILE:592:patches/patch-taglib_riff_rifffile.cpp]
+--- taglib/riff/rifffile.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/riff/rifffile.cpp
+@@ -36,7 +36,7 @@ using namespace TagLib;
+ struct Chunk
+ {
+   ByteVector   name;
+-  offset_t offset;
++  TagLib::offset_t offset;
+   unsigned int size;
+   unsigned int padding;
+ };
+@@ -103,7 +103,7 @@ unsigned int RIFF::File::chunkDataSize(u
+   return d->chunks[i].size;
+ }
+ 
+-offset_t RIFF::File::chunkOffset(unsigned int i) const
++TagLib::offset_t RIFF::File::chunkOffset(unsigned int i) const
+ {
+   if(i >= d->chunks.size()) {
+     debug("RIFF::File::chunkOffset() - Index out of range. Returning 0.");
+
+
+[FILE:2170:patches/patch-taglib_tagutils.cpp]
+--- taglib/tagutils.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/tagutils.cpp
+@@ -36,7 +36,7 @@
+ 
+ using namespace TagLib;
+ 
+-offset_t Utils::findID3v1(File *file)
++TagLib::offset_t Utils::findID3v1(File *file)
+ {
+   if(!file->isValid())
+     return -1;
+@@ -45,7 +45,7 @@ offset_t Utils::findID3v1(File *file)
+ 
+   if (file->length() >= 131) {
+     file->seek(-131, File::End);
+-    const offset_t p = file->tell() + 3;
++    const TagLib::offset_t p = file->tell() + 3;
+ 
+     if(const TagLib::ByteVector data = file->readBlock(8);
+        data.containsAt(ID3v1::Tag::fileIdentifier(), 3) &&
+@@ -58,7 +58,7 @@ offset_t Utils::findID3v1(File *file)
+       return p;
+   } else {
+     file->seek(-128, File::End);
+-    const offset_t p = file->tell();
++    const TagLib::offset_t p = file->tell();
+ 
+     if(file->readBlock(3) == ID3v1::Tag::fileIdentifier())
+       return p;
+@@ -67,7 +67,7 @@ offset_t Utils::findID3v1(File *file)
+   return -1;
+ }
+ 
+-offset_t Utils::findID3v2(File *file)
++TagLib::offset_t Utils::findID3v2(File *file)
+ {
+   if(!file->isValid())
+     return -1;
+@@ -80,7 +80,7 @@ offset_t Utils::findID3v2(File *file)
+   return -1;
+ }
+ 
+-offset_t Utils::findAPE(File *file, offset_t id3v1Location)
++TagLib::offset_t Utils::findAPE(File *file, TagLib::offset_t id3v1Location)
+ {
+   if(!file->isValid())
+     return -1;
+@@ -90,7 +90,7 @@ offset_t Utils::findAPE(File *file, offs
+   else
+     file->seek(-32, File::End);
+ 
+-  const offset_t p = file->tell();
++  const TagLib::offset_t p = file->tell();
+ 
+   if(file->readBlock(8) ==
+ #ifdef TAGLIB_WITH_APE
+@@ -105,13 +105,13 @@ offset_t Utils::findAPE(File *file, offs
+ }
+ 
+ ByteVector TagLib::Utils::readHeader(IOStream *stream, unsigned int length,
+-                                     bool skipID3v2, offset_t *headerOffset)
++                                     bool skipID3v2, TagLib::offset_t *headerOffset)
+ {
+   if(!stream || !stream->isOpen())
+     return ByteVector();
+ 
+-  const offset_t originalPosition = stream->tell();
+-  offset_t bufferOffset = 0;
++  const TagLib::offset_t originalPosition = stream->tell();
++  TagLib::offset_t bufferOffset = 0;
+ 
+   if(skipID3v2) {
+     stream->seek(0);
+
+
+[FILE:407:patches/patch-taglib_toolkit_tbytevectorstream.cpp]
+--- taglib/toolkit/tbytevectorstream.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/toolkit/tbytevectorstream.cpp
+@@ -138,12 +138,12 @@ void ByteVectorStream::clear()
+ {
+ }
+ 
+-offset_t ByteVectorStream::tell() const
++TagLib::offset_t ByteVectorStream::tell() const
+ {
+   return d->position;
+ }
+ 
+-offset_t ByteVectorStream::length()
++TagLib::offset_t ByteVectorStream::length()
+ {
+   return d->data.size();
+ }
+
+
+[FILE:1062:patches/patch-taglib_toolkit_tfile.cpp]
+--- taglib/toolkit/tfile.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/toolkit/tfile.cpp
+@@ -129,7 +129,7 @@ void File::writeBlock(const ByteVector &
+   d->stream->writeBlock(data);
+ }
+ 
+-offset_t File::find(const ByteVector &pattern, offset_t fromOffset, const ByteVector &before)
++TagLib::offset_t File::find(const ByteVector &pattern, offset_t fromOffset, const ByteVector &before)
+ {
+   if(!d->stream || pattern.size() > bufferSize())
+       return -1;
+@@ -224,7 +224,7 @@ offset_t File::find(const ByteVector &pa
+ }
+ 
+ 
+-offset_t File::rfind(const ByteVector &pattern, offset_t fromOffset, const ByteVector &before)
++TagLib::offset_t File::rfind(const ByteVector &pattern, offset_t fromOffset, const ByteVector &before)
+ {
+   if(!d->stream || pattern.size() > bufferSize())
+       return -1;
+@@ -337,12 +337,12 @@ void File::clear()
+   d->stream->clear();
+ }
+ 
+-offset_t File::tell() const
++TagLib::offset_t File::tell() const
+ {
+   return d->stream->tell();
+ }
+ 
+-offset_t File::length()
++TagLib::offset_t File::length()
+ {
+   return d->stream->length();
+ }
+
+
+[FILE:467:patches/patch-taglib_toolkit_tfilestream.cpp]
+--- taglib/toolkit/tfilestream.cpp.orig	2025-12-24 14:20:54 UTC
++++ taglib/toolkit/tfilestream.cpp
+@@ -431,7 +431,7 @@ void FileStream::clear()
+ #endif
+ }
+ 
+-offset_t FileStream::tell() const
++TagLib::offset_t FileStream::tell() const
+ {
+ #ifdef _WIN32
+ 
+@@ -452,7 +452,7 @@ offset_t FileStream::tell() const
+ #endif
+ }
+ 
+-offset_t FileStream::length()
++TagLib::offset_t FileStream::length()
+ {
+   if(!isOpen()) {
+     debug("FileStream::length() -- invalid file.");
+

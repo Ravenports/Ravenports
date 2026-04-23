@@ -30,6 +30,8 @@ FPC_EQUIVALENT=		devel/termbox
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		2.0.0
 
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
 VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 
 post-patch:
@@ -80,4 +82,28 @@ lib/
  
  termbox_cflags:=-std=c99 -Wall -Wextra -pedantic -Wno-unused-result -g -O0 -D_XOPEN_SOURCE -D_DEFAULT_SOURCE $(CFLAGS)
  termbox_demos:=$(patsubst demo/%.c,demo/%,$(wildcard demo/*.c))
+
+
+[FILE:578:patches/patch-termbox2.h]
+--- termbox2.h.orig	2024-12-28 02:24:19 UTC
++++ termbox2.h
+@@ -63,6 +63,18 @@ SOFTWARE.
+ extern "C" {
+ #endif
+ 
++#if defined(__sun)
++static void cfmakeraw(struct termios *t) {
++    t->c_iflag &= ~(IMAXBEL | IXOFF | INPCK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
++    t->c_oflag &= ~OPOST;
++    t->c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON | ISIG | IEXTEN | NOFLSH | TOSTOP);
++    t->c_cflag &= ~(CSIZE | PARENB);
++    t->c_cflag |= CS8;
++    t->c_cc[VMIN] = 1;
++    t->c_cc[VTIME] = 0;
++}
++#endif
++
+ // __ffi_start
+ 
+ #define TB_VERSION_STR "2.5.0"
 

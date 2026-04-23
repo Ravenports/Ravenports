@@ -29,8 +29,9 @@ SPKGS[std]=		set
 			primary
 			man
 
-OPTIONS_AVAILABLE=	GPGME
-OPTIONS_STANDARD=	GPGME
+OPTIONS_AVAILABLE=	GPGME SUNOS
+OPTIONS_STANDARD=	GPGME SUNOS
+OPT_ON[sunos]=		SUNOS
 OPT_ON[linux]=		GPGME
 
 BUILD_DEPENDS=		bash:primary:std
@@ -224,6 +225,10 @@ PLIST_SUB=		LOCALBASE="{{LOCALBASE}}"
 
 [GPGME].DESCRIPTION=			Build with embedded gpgme++
 [GPGME].CONFIGURE_ARGS_ON=		--with-system-gpgmepp=no
+
+[SUNOS].BUILD_DEPENDS_OFF=		lld:primary:std
+[SUNOS].CONFIGURE_ARGS_OFF=		--enable-ld=lld
+[SUNOS].LDFLAGS_OFF=			-Wl,--undefined-version
 
 post-patch:
 	@${ECHO_CMD} "Running post-patch target"

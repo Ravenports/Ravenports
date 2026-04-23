@@ -764,7 +764,7 @@ share/man/mann/
  	    do \
 
 
-[FILE:1874:patches/patch-configure]
+[FILE:2039:patches/patch-configure]
 --- configure.orig	2025-11-12 13:49:53 UTC
 +++ configure
 @@ -5204,9 +5204,13 @@ fi
@@ -782,24 +782,30 @@ share/man/mann/
  
  	    CFLAGS_OPTIMIZE="-O2"
  	    # egcs-2.91.66 on Redhat Linux 6.0 generates lots of warnings
-@@ -5215,12 +5219,15 @@ fi
+@@ -5215,16 +5219,19 @@ fi
  	    #CFLAGS_OPTIMIZE="${CFLAGS_OPTIMIZE} -D__NO_STRING_INLINES -D__NO_MATH_INLINES"
  
  	    SHLIB_LD='${CC} ${CFLAGS} ${LDFLAGS} -shared'
 +	    TK_SHLIB_LD_EXTRAS="-Wl,-soname,libtk${TCL_TRIM_DOTS}.so.1"
  	    DL_OBJS="tclLoadDl.o"
 -	    DL_LIBS="-ldl"
- 	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
+-	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
  
  	    case $system in
 -	    DragonFly-*|FreeBSD-*)
 +	    Linux-*|GNU*)
 +		DL_LIBS="-ldl"
++	        LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
 +		;;
 +	    DragonFly-*|FreeBSD-*|NetBSD-*|MidnightBSD-*)
  		# The -pthread needs to go in the LDFLAGS, not LIBS
  		LIBS=`echo $LIBS | sed s/-pthread//`
  		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+-		LDFLAGS="$LDFLAGS $PTHREAD_LIBS"
++		LDFLAGS="$LDFLAGS -Wl,--export-dynamic $PTHREAD_LIBS"
+ 	    ;;
+ 	    esac
+ 
 @@ -5342,7 +5349,7 @@ fi
  	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
  	    TCL_LIB_VERSIONS_OK=nodots

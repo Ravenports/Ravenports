@@ -61,7 +61,7 @@ VAR_OPSYS[netbsd]=	VAR1={{ARCH_STANDARD}}-raven-netbsd{{MAJOR}}
 VAR_OPSYS[dragonfly]=	VAR1={{ARCH_STANDARD}}-raven-dragonfly{{MAJOR}}
 VAR_OPSYS[midnightbsd]=	VAR1=x86_64-raven-freebsd12.3
 
-post-patch:
+pre-configure:
 	${REINPLACE_CMD} -e 's|/usr/pkg/|${LOCALBASE}/|' \
 		-e 's|`./config.guess`|${CONFIGURE_TARGET}|' \
 		${WRKSRC}/scripts/make.sh
@@ -73,8 +73,6 @@ post-patch:
 	${REINPLACE_CMD} -e "s|am__api_version='1.15'|am__api_version='1.16'|" \
 		${WRKSRC}/csl/cslbase/aclocal.m4 \
 		${WRKSRC}/psl/aclocal.m4
-
-pre-configure:
 	(cd ${WRKSRC} && ./autogen.sh --sequential --with-csl)
 
 post-configure:
@@ -258,6 +256,78 @@ share/doc/reduce/
  util.tex
 
 
+[FILE:218:patches/patch-csl_configure.ac]
+--- csl/configure.ac.orig	2023-03-06 17:02:46 UTC
++++ csl/configure.ac
+@@ -511,7 +511,7 @@ then
+ 
+ fi
+ 
+-if test "x$solaris" = "xyes"
++if test "x$solaris" = "xskip"
+ then
+   OLDCFLAGS="$CFLAGS"
+   CFLAGS="$CFLAGS -mt"
+
+
+[FILE:316:patches/patch-csl_cslbase_configure.ac]
+--- csl/cslbase/configure.ac.orig	2024-06-09 20:57:06 UTC
++++ csl/cslbase/configure.ac
+@@ -1206,7 +1206,7 @@ then
+   fi
+ fi
+ 
+-if test "$solaris" = "yes"
++if test "$solaris" = "skip"
+ then
+ # I believe that the Sun C compilers need a "-mt" flag so here I check if
+ # such a flag is accepted and if so I will use it.
+
+
+[FILE:252:patches/patch-csl_fox_src_FXGUISignal.cpp]
+--- csl/fox/src/FXGUISignal.cpp.orig	2015-12-14 20:30:04 UTC
++++ csl/fox/src/FXGUISignal.cpp
+@@ -43,6 +43,9 @@
+ #else
+ #include <process.h>
+ #endif
++#if defined(__sun)
++#include <sys/filio.h>		/* for FIONREAD */
++#endif
+ #include "FXGUISignal.h"
+ 
+ /*
+
+
+[FILE:320:patches/patch-csl_foxtests_configure.ac]
+--- csl/foxtests/configure.ac.orig	2023-03-06 17:02:46 UTC
++++ csl/foxtests/configure.ac
+@@ -428,7 +428,7 @@ then
+   fi
+ fi
+ 
+-if test "x$solaris" = "xyes"
++if test "x$solaris" = "xskip"
+ then
+ # I believe that the Sun C compilers need a "-mt" flag so here I check if
+ # such a flag is accepted and if so I will use it.
+
+
+[FILE:257:patches/patch-generic_newfront_redfront.h]
+--- generic/newfront/redfront.h.orig	2021-03-16 10:41:22 UTC
++++ generic/newfront/redfront.h
+@@ -81,6 +81,9 @@
+ #include <wchar.h>
+ #include <string.h>
+ #include <signal.h>
++#if defined(__sun)
++typedef void (*sig_t)(int);
++#endif
+ 
+ #ifdef NATIVE_WINDOWS
+ 
+
+
 [FILE:314:patches/patch-libraries_libedit-20140620-3.1_Makefile.am]
 --- libraries/libedit-20140620-3.1/Makefile.am.orig	2016-05-03 07:44:05 UTC
 +++ libraries/libedit-20140620-3.1/Makefile.am
@@ -272,6 +342,56 @@ share/doc/reduce/
  SUBDIRS = src $(EXAMPLES_DIR) doc
  
  EXTRA_DIST = libedit.pc.in
+
+
+[FILE:846:patches/patch-libraries_libedit-20140620-3.1_src_sys.h]
+--- libraries/libedit-20140620-3.1/src/sys.h.orig	2016-05-03 07:44:05 UTC
++++ libraries/libedit-20140620-3.1/src/sys.h
+@@ -44,6 +44,10 @@
+ #include <sys/cdefs.h>
+ #endif
+ 
++#if defined(__sun)
++#include <sys/types.h>
++#endif
++
+ #if !defined(__attribute__) && (defined(__cplusplus) || !defined(__GNUC__)  || __GNUC__ == 2 && __GNUC_MINOR__ < 8)
+ # define __attribute__(A)
+ #endif
+@@ -130,13 +134,5 @@ typedef unsigned int	u_int32_t;
+ #define	REGEX		/* Use POSIX.2 regular expression functions */
+ #undef	REGEXP		/* Use UNIX V8 regular expression functions */
+ 
+-#if defined(__sun)
+-extern int tgetent(char *, const char *);
+-extern int tgetflag(char *);
+-extern int tgetnum(char *);
+-extern int tputs(const char *, int, int (*)(int));
+-extern char* tgoto(const char*, int, int);
+-extern char* tgetstr(char*, char**);
+-#endif
+ 
+ #endif /* _h_sys */
+
+
+[FILE:579:patches/patch-libraries_libedit-20140620-3.1_src_terminal.h]
+--- libraries/libedit-20140620-3.1/src/terminal.h.orig	2016-05-03 07:44:05 UTC
++++ libraries/libedit-20140620-3.1/src/terminal.h
+@@ -82,14 +82,6 @@ typedef struct {
+ #define	A_K_DE		6
+ #define	A_K_NKEYS	7
+ 
+-#ifdef __sun
+-extern int tgetent(char *, const char *);
+-extern int tgetflag(char *);
+-extern int tgetnum(char *);
+-extern int tputs(const char *, int, int (*)(int));
+-extern char* tgoto(const char*, int, int);
+-extern char* tgetstr(char*, char**);
+-#endif
+ 
+ protected void	terminal_move_to_line(EditLine *, int);
+ protected void	terminal_move_to_char(EditLine *, int);
 
 
 [FILE:314:patches/patch-libraries_libedit-20210216-3.1_Makefile.am]
@@ -302,6 +422,20 @@ share/doc/reduce/
  am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
  	$(srcdir)/libedit.pc.in COPYING ChangeLog INSTALL THANKS \
  	compile config.guess config.sub install-sh ltmain.sh missing
+
+
+[FILE:394:patches/patch-libraries_libffi_acinclude.m4]
+--- libraries/libffi/acinclude.m4.orig	2021-03-13 09:18:00 UTC
++++ libraries/libffi/acinclude.m4
+@@ -382,7 +382,7 @@ if test x$enable_symvers = xyes ; then
+     else
+       case ${target_os} in
+         # Sun symbol versioning exists since Solaris 2.5.
+-        solaris2.[[5-9]]* | solaris2.1[[0-9]]*)
++        skip)
+           enable_symvers=sun ;;
+         *)
+           enable_symvers=no ;;
 
 
 [FILE:342:patches/patch-scripts_make.sh]

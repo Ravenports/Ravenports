@@ -97,6 +97,7 @@ VAR_OPSYS[sunos]=	CPPFLAGS=-D__EXTENSIONS__=1
 			CFLAGS=-Wno-incompatible-pointer-types
 			LDFLAGS=-lsocket
 			LDFLAGS=-lnsl
+			LDFLAGS=-Wl,-z,rescan
 
 [ARM_DRIVERS].DESCRIPTION=		Build drivers for aarch64 architecture
 [ARM_DRIVERS].MAKEFILE_ON=		GALLIUM_DRIVERS+={{GALLIUM_ARM64}}
@@ -240,7 +241,7 @@ lib/pkgconfig/
 
 
 [FILE:2938:patches/patch-meson.build]
---- meson.build.orig	2026-02-19 18:55:18 UTC
+--- meson.build.orig	2026-03-18 15:54:10 UTC
 +++ meson.build
 @@ -144,7 +144,7 @@ pre_args += '-DHAVE_OPENGL_ES_2=@0@'.for
  
@@ -251,7 +252,7 @@ lib/pkgconfig/
  
  gallium_drivers = get_option('gallium-drivers')
  if gallium_drivers.contains('auto')
-@@ -538,8 +538,8 @@ if not have_mtls_dialect
+@@ -573,8 +573,8 @@ if not have_mtls_dialect
    # cross-compiling, but because this is just an optimization we can skip it
    if meson.is_cross_build() and not meson.can_run_host_binaries()
      warning('cannot auto-detect -mtls-dialect when cross-compiling, using compiler default')
@@ -262,7 +263,7 @@ lib/pkgconfig/
    else
      # The way to specify the TLSDESC dialect is architecture-specific.
      # We probe both because there is not a fallback guaranteed to work for all
-@@ -1195,7 +1195,7 @@ else
+@@ -1261,7 +1261,7 @@ else
    endif
  
    # FreeBSD annotated <pthread.h> but Mesa isn't ready
@@ -271,7 +272,7 @@ lib/pkgconfig/
      _trial_c += ['-Werror=thread-safety']
    endif
  
-@@ -1419,34 +1419,34 @@ foreach f, prefix: functions_to_detect
+@@ -1491,34 +1491,34 @@ foreach f, prefix: functions_to_detect
  endforeach
  
  if cpp.links('''
@@ -318,9 +319,9 @@ lib/pkgconfig/
 
 
 [FILE:330:patches/patch-src_amd_common_ac__gpu__info.c]
---- src/amd/common/ac_gpu_info.c.orig	2026-02-19 18:55:18 UTC
+--- src/amd/common/ac_gpu_info.c.orig	2026-03-18 15:54:10 UTC
 +++ src/amd/common/ac_gpu_info.c
-@@ -85,7 +85,7 @@ static void set_custom_cu_en_mask(struct
+@@ -86,7 +86,7 @@ static void set_custom_cu_en_mask(struct
        return;
  
     int size = strlen(cu_env_var);
@@ -332,7 +333,7 @@ lib/pkgconfig/
 
 
 [FILE:289:patches/patch-src_amd_common_ac__linux__drm.h]
---- src/amd/common/ac_linux_drm.h.orig	2026-02-19 18:55:18 UTC
+--- src/amd/common/ac_linux_drm.h.orig	2026-03-18 15:54:10 UTC
 +++ src/amd/common/ac_linux_drm.h
 @@ -9,6 +9,10 @@
  #include <stdbool.h>
@@ -347,8 +348,8 @@ lib/pkgconfig/
  #include "amdgpu.h"
 
 
-[FILE:259:patches/patch-src_amd_compiler_aco__ir.h]
---- src/amd/compiler/aco_ir.h.orig	2026-02-19 18:55:18 UTC
+[FILE:287:patches/patch-src_amd_compiler_aco__ir.h]
+--- src/amd/compiler/aco_ir.h.orig	2026-03-18 15:54:10 UTC
 +++ src/amd/compiler/aco_ir.h
 @@ -25,6 +25,10 @@
  #include <memory>
@@ -359,12 +360,12 @@ lib/pkgconfig/
 +#endif
 +
  typedef struct nir_shader nir_shader;
+ typedef struct nir_parameter nir_parameter;
  
- namespace aco {
 
 
 [FILE:227:patches/patch-src_amd_llvm_ac__llvm__build.h]
---- src/amd/llvm/ac_llvm_build.h.orig	2026-02-19 18:55:18 UTC
+--- src/amd/llvm/ac_llvm_build.h.orig	2026-03-18 15:54:10 UTC
 +++ src/amd/llvm/ac_llvm_build.h
 @@ -16,6 +16,10 @@
  
@@ -382,9 +383,9 @@ lib/pkgconfig/
 [FILE:512:patches/patch-src_amd_vulkan_radv__device.c]
 - Define CLOCK_MONOTONIC_RAW if missing
 
---- src/amd/vulkan/radv_device.c.orig	2026-02-19 18:55:18 UTC
+--- src/amd/vulkan/radv_device.c.orig	2026-03-18 15:54:10 UTC
 +++ src/amd/vulkan/radv_device.c
-@@ -427,6 +427,14 @@ radv_parse_force_vrs_config_file(const c
+@@ -426,6 +426,14 @@ radv_parse_force_vrs_config_file(const c
  
  #define BUF_LEN ((10 * (sizeof(struct inotify_event) + NAME_MAX + 1)))
  
@@ -404,9 +405,9 @@ lib/pkgconfig/
 [FILE:404:patches/patch-src_amd_vulkan_winsys_amdgpu_radv__amdgpu__cs.c]
 - Define ETIME if missing
 
---- src/amd/vulkan/winsys/amdgpu/radv_amdgpu_cs.c.orig	2026-02-19 18:55:18 UTC
+--- src/amd/vulkan/winsys/amdgpu/radv_amdgpu_cs.c.orig	2026-03-18 15:54:10 UTC
 +++ src/amd/vulkan/winsys/amdgpu/radv_amdgpu_cs.c
-@@ -41,6 +41,10 @@
+@@ -42,6 +42,10 @@
  
  enum { VIRTUAL_BUFFER_HASH_TABLE_SIZE = 1024 };
  
@@ -420,9 +421,9 @@ lib/pkgconfig/
 
 
 [FILE:1017:patches/patch-src_egl_drivers_dri2_platform__wayland.c]
---- src/egl/drivers/dri2/platform_wayland.c.orig	2026-02-19 18:55:18 UTC
+--- src/egl/drivers/dri2/platform_wayland.c.orig	2026-03-18 15:54:10 UTC
 +++ src/egl/drivers/dri2/platform_wayland.c
-@@ -2289,6 +2289,7 @@ registry_handle_global_drm(void *data, s
+@@ -2300,6 +2300,7 @@ registry_handle_global_drm(void *data, s
        dri2_dpy->wl_drm_name = name;
     } else
  #endif
@@ -430,7 +431,7 @@ lib/pkgconfig/
     if (strcmp(interface, zwp_linux_dmabuf_v1_interface.name) == 0 &&
                version >= 3) {
        dri2_dpy->wl_dmabuf = wl_registry_bind(
-@@ -2296,7 +2297,9 @@ registry_handle_global_drm(void *data, s
+@@ -2307,7 +2308,9 @@ registry_handle_global_drm(void *data, s
           MIN2(version, ZWP_LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK_SINCE_VERSION));
        zwp_linux_dmabuf_v1_add_listener(dri2_dpy->wl_dmabuf, &dmabuf_listener,
                                         dri2_dpy);
@@ -444,7 +445,7 @@ lib/pkgconfig/
 
 
 [FILE:281:patches/patch-src_egl_main_eglglobals.c]
---- src/egl/main/eglglobals.c.orig	2026-02-19 18:55:18 UTC
+--- src/egl/main/eglglobals.c.orig	2026-03-18 15:54:10 UTC
 +++ src/egl/main/eglglobals.c
 @@ -40,6 +40,10 @@
  #include "util/macros.h"
@@ -460,7 +461,7 @@ lib/pkgconfig/
 
 
 [FILE:346:patches/patch-src_gallium_auxiliary_driver__ddebug_dd__draw.c]
---- src/gallium/auxiliary/driver_ddebug/dd_draw.c.orig	2026-02-19 18:55:18 UTC
+--- src/gallium/auxiliary/driver_ddebug/dd_draw.c.orig	2026-03-18 15:54:10 UTC
 +++ src/gallium/auxiliary/driver_ddebug/dd_draw.c
 @@ -91,7 +91,7 @@ dd_parse_apitrace_marker(const char *str
        return;
@@ -474,7 +475,7 @@ lib/pkgconfig/
 
 
 [FILE:314:patches/patch-src_gallium_auxiliary_pipe-loader_pipe__loader__drm.c]
---- src/gallium/auxiliary/pipe-loader/pipe_loader_drm.c.orig	2026-02-19 18:55:18 UTC
+--- src/gallium/auxiliary/pipe-loader/pipe_loader_drm.c.orig	2026-03-18 15:54:10 UTC
 +++ src/gallium/auxiliary/pipe-loader/pipe_loader_drm.c
 @@ -36,6 +36,7 @@
  #include <xf86drm.h>
@@ -487,7 +488,7 @@ lib/pkgconfig/
 
 
 [FILE:357:patches/patch-src_gallium_auxiliary_renderonly_renderonly.c]
---- src/gallium/auxiliary/renderonly/renderonly.c.orig	2026-02-19 18:55:18 UTC
+--- src/gallium/auxiliary/renderonly/renderonly.c.orig	2026-03-18 15:54:10 UTC
 +++ src/gallium/auxiliary/renderonly/renderonly.c
 @@ -37,6 +37,10 @@
  #include "util/u_inlines.h"
@@ -503,7 +504,7 @@ lib/pkgconfig/
 
 
 [FILE:403:patches/patch-src_gallium_drivers_llvmpipe_lp__scene.c]
---- src/gallium/drivers/llvmpipe/lp_scene.c.orig	2026-02-19 18:55:18 UTC
+--- src/gallium/drivers/llvmpipe/lp_scene.c.orig	2026-03-18 15:54:10 UTC
 +++ src/gallium/drivers/llvmpipe/lp_scene.c
 @@ -25,6 +25,10 @@
   *
@@ -519,9 +520,9 @@ lib/pkgconfig/
 
 
 [FILE:278:patches/patch-src_gallium_drivers_radeonsi_si__pipe.h]
---- src/gallium/drivers/radeonsi/si_pipe.h.orig	2026-02-19 18:55:18 UTC
+--- src/gallium/drivers/radeonsi/si_pipe.h.orig	2026-03-18 15:54:10 UTC
 +++ src/gallium/drivers/radeonsi/si_pipe.h
-@@ -23,6 +23,10 @@
+@@ -24,6 +24,10 @@
  #include "ac_spm.h"
  #include "si_perfetto.h"
  
@@ -537,7 +538,7 @@ lib/pkgconfig/
 [FILE:366:patches/patch-src_gallium_drivers_vc4_vc4__bufmgr.c]
 # define ETIME as ETIMEOUT same as in intel driver
 #
---- src/gallium/drivers/vc4/vc4_bufmgr.c.orig	2026-02-19 18:55:18 UTC
+--- src/gallium/drivers/vc4/vc4_bufmgr.c.orig	2026-03-18 15:54:10 UTC
 +++ src/gallium/drivers/vc4/vc4_bufmgr.c
 @@ -27,6 +27,9 @@
  #include <fcntl.h>
@@ -552,7 +553,7 @@ lib/pkgconfig/
 
 
 [FILE:291:patches/patch-src_gallium_winsys_virgl_vtest_virgl__vtest__socket.c]
---- src/gallium/winsys/virgl/vtest/virgl_vtest_socket.c.orig	2026-02-19 18:55:18 UTC
+--- src/gallium/winsys/virgl/vtest/virgl_vtest_socket.c.orig	2026-03-18 15:54:10 UTC
 +++ src/gallium/winsys/virgl/vtest/virgl_vtest_socket.c
 @@ -21,6 +21,7 @@
   * USE OR OTHER DEALINGS IN THE SOFTWARE.
@@ -564,10 +565,24 @@ lib/pkgconfig/
  #include <stdio.h>
 
 
+[FILE:363:patches/patch-src_intel_common_xe_intel__gem.c]
+--- src/intel/common/xe/intel_gem.c.orig	2026-03-18 15:54:10 UTC
++++ src/intel/common/xe/intel_gem.c
+@@ -71,7 +71,7 @@ xe_gem_read_correlate_cpu_gpu_timestamp(
+    case CLOCK_MONOTONIC_RAW:
+ #endif
+    case CLOCK_REALTIME:
+-#ifdef CLOCK_BOOTTIME
++#if defined(CLOCK_BOOTTIME) && CLOCK_BOOTTIME != CLOCK_MONOTONIC
+    case CLOCK_BOOTTIME:
+ #endif
+ #ifdef CLOCK_TAI
+
+
 [FILE:302:patches/patch-src_intel_tools_aubinator__error__decode.c]
 # expose getline in FreeBSD's stdio.h
 #
---- src/intel/tools/aubinator_error_decode.c.orig	2026-02-19 18:55:18 UTC
+--- src/intel/tools/aubinator_error_decode.c.orig	2026-03-18 15:54:10 UTC
 +++ src/intel/tools/aubinator_error_decode.c
 @@ -22,6 +22,9 @@
   *
@@ -582,7 +597,7 @@ lib/pkgconfig/
 
 
 [FILE:238:patches/patch-src_intel_tools_error2aub.c]
---- src/intel/tools/error2aub.c.orig	2026-02-19 18:55:18 UTC
+--- src/intel/tools/error2aub.c.orig	2026-03-18 15:54:10 UTC
 +++ src/intel/tools/error2aub.c
 @@ -22,6 +22,9 @@
   *
@@ -596,12 +611,12 @@ lib/pkgconfig/
  #include <inttypes.h>
 
 
-[FILE:328:patches/patch-src_util_build__id.c]
+[FILE:351:patches/patch-src_util_build__id.c]
 # Elf_ doesn't exist, use Elf32_ or Elf64_
 #
---- src/util/build_id.c.orig	2026-02-19 18:55:18 UTC
+--- src/util/build_id.c.orig	2026-03-18 15:54:10 UTC
 +++ src/util/build_id.c
-@@ -35,7 +35,11 @@
+@@ -43,7 +43,11 @@ struct build_id_note {
  #endif
  
  #ifndef ElfW
@@ -617,7 +632,7 @@ lib/pkgconfig/
 
 
 [FILE:251:patches/patch-src_util_libsync.h]
---- src/util/libsync.h.orig	2026-02-19 18:55:18 UTC
+--- src/util/libsync.h.orig	2026-03-18 15:54:10 UTC
 +++ src/util/libsync.h
 @@ -42,6 +42,10 @@
  #include "util/detect_os.h"
@@ -633,7 +648,7 @@ lib/pkgconfig/
 
 
 [FILE:253:patches/patch-src_util_os__drm.h]
---- src/util/os_drm.h.orig	2026-02-19 18:55:18 UTC
+--- src/util/os_drm.h.orig	2026-03-18 15:54:10 UTC
 +++ src/util/os_drm.h
 @@ -14,6 +14,7 @@
  #error "Windows shouldn't include this."
@@ -646,7 +661,7 @@ lib/pkgconfig/
 
 
 [FILE:230:patches/patch-src_util_os__file.c]
---- src/util/os_file.c.orig	2026-02-19 18:55:18 UTC
+--- src/util/os_file.c.orig	2026-03-18 15:54:10 UTC
 +++ src/util/os_file.c
 @@ -34,6 +34,9 @@
  #endif
@@ -661,7 +676,7 @@ lib/pkgconfig/
 
 
 [FILE:430:patches/patch-src_util_u__atomic.h]
---- src/util/u_atomic.h.orig	2026-02-19 18:55:18 UTC
+--- src/util/u_atomic.h.orig	2026-03-18 15:54:10 UTC
 +++ src/util/u_atomic.h
 @@ -20,11 +20,7 @@
   * locally coded assembly, compiler intrinsic or ultimately a
@@ -679,9 +694,9 @@ lib/pkgconfig/
 
 
 [FILE:188:patches/patch-src_util_u__math.h]
---- src/util/u_math.h.orig	2026-02-19 18:55:18 UTC
+--- src/util/u_math.h.orig	2026-03-18 15:54:10 UTC
 +++ src/util/u_math.h
-@@ -60,6 +60,7 @@
+@@ -59,6 +59,7 @@
  extern "C" {
  #endif
  
@@ -692,7 +707,7 @@ lib/pkgconfig/
 
 
 [FILE:430:patches/patch-src_util_u__qsort.h]
---- src/util/u_qsort.h.orig	2026-02-19 18:55:18 UTC
+--- src/util/u_qsort.h.orig	2026-03-18 15:54:10 UTC
 +++ src/util/u_qsort.h
 @@ -56,7 +56,7 @@ util_qsort_r(void *base, size_t nmemb, s
               int (*compar)(const void *, const void *, void *),
@@ -706,9 +721,9 @@ lib/pkgconfig/
 
 
 [FILE:455:patches/patch-src_util_u__thread.c]
---- src/util/u_thread.c.orig	2026-02-19 18:55:18 UTC
+--- src/util/u_thread.c.orig	2026-03-18 15:54:10 UTC
 +++ src/util/u_thread.c
-@@ -154,7 +154,7 @@ util_set_thread_affinity(thrd_t thread,
+@@ -150,7 +150,7 @@ util_set_thread_affinity(thrd_t thread,
  int64_t
  util_thread_get_time_nano(thrd_t thread)
  {
@@ -720,7 +735,7 @@ lib/pkgconfig/
 
 
 [FILE:442:patches/patch-src_util_u__thread.h]
---- src/util/u_thread.h.orig	2026-02-19 18:55:18 UTC
+--- src/util/u_thread.h.orig	2026-03-18 15:54:10 UTC
 +++ src/util/u_thread.h
 @@ -50,7 +50,7 @@
   * but not with __thread
@@ -734,7 +749,7 @@ lib/pkgconfig/
 
 
 [FILE:1043:patches/patch-src_util_xxhash.h]
---- src/util/xxhash.h.orig	2026-02-19 18:55:18 UTC
+--- src/util/xxhash.h.orig	2026-03-18 15:54:10 UTC
 +++ src/util/xxhash.h
 @@ -1704,7 +1704,7 @@ struct XXH64_state_s {
  
@@ -784,9 +799,9 @@ GALLIUM_ARM64=		V3D VC4 FREEDRENO ETNAVIV TEGRA LIMA PANFROST
 GALLIUM_ALL_LLVM=	IRIS
 
 [FILE:310:sunos/patch-src_util_meson.build]
---- src/util/meson.build.orig	2026-02-19 18:55:18 UTC
+--- src/util/meson.build.orig	2026-03-18 15:54:10 UTC
 +++ src/util/meson.build
-@@ -344,7 +344,6 @@ _libmesa_util = static_library(
+@@ -345,7 +345,6 @@ _libmesa_util = static_library(
    dependencies : deps_for_libmesa_util,
    link_with: libmesa_util_links,
    c_args : [c_msvc_compat_args],

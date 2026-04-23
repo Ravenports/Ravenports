@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-freebsd14_amd64
 VERSION=		14.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		raven
 VARIANTS=		std
 SDESC[std]=		FreeBSD/AMD64 14.2 builder system root
@@ -47,8 +47,8 @@ BUILD_DEPENDS=		nawk:primary:std
 			fetch:primary:std
 			ccache:primary:std
 			bzip2:tools:std
-			bmake:primary:std
-			ravensys-utils:primary:std
+			bmake:primary:prevfbsd
+			ravensys-utils:primary:prevfbsd
 
 EXTRACT_DIRTY=		2
 
@@ -1673,7 +1673,7 @@ a3c771e2fa958e922a5771047d524d7df3ce501e58bed5c65f0226e4d31ebd30   1310040064 Fr
 @dir %%BASE%%/usr/local
 
 
-[FILE:7436:files/freebsd.mk]
+[FILE:7328:files/freebsd.mk]
 # For FreeBSD
 
 Libexec_FreeBSD=	/libexec/ld-elf.so.1
@@ -2031,7 +2031,7 @@ install-platform: install-common
 		${DESTDIR}${BASE}/usr/share/rc.conf
 	/usr/sbin/pwd_mkdb -p -d ${DESTDIR}${BASE}/usr/share \
 		${DESTDIR}${BASE}/usr/share/master.passwd
-. if "${MAJOR}" == "14"
+
 	${MKDIR} ${DESTDIR}${BASE}/var/run
 	# handle ldconfig hints
 	${BSD_INSTALL_PROGRAM} ../${OPSYS:tl}/sbin/ldconfig \
@@ -2041,10 +2041,6 @@ install-platform: install-common
 	mv ${DESTDIR}${BASE}/var/run/ld-elf.so.hints \
 		${DESTDIR}${BASE}/usr/share/
 	rm -rf ${DESTDIR}${BASE}/var
-. else
-	# for QA purposes
-	touch ${DESTDIR}${BASE}/usr/share/ld-elf.so.hints
-. endif
 
 
 [FILE:349:files/special.mk]

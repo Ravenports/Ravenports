@@ -58,6 +58,10 @@ RC_SUBR=		minidlna:primary
 SUB_FILES=		messages-primary.ucl
 SUB_LIST=		USER=dlna
 
+VAR_OPSYS[freebsd]=	CONFIGURE_ENV=ac_cv_func_inotify_init=no
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			LDFLAGS=-lsendfile
+
 post-install:
 	${INSTALL_MAN} ${WRKSRC}/*.5 ${STAGEDIR}${PREFIX}/share/man/man5/
 	${INSTALL_MAN} ${WRKSRC}/*.8 ${STAGEDIR}${PREFIX}/share/man/man8/
@@ -217,6 +221,39 @@ Index: minidlna.conf.5
  .B minidlna
 
 
+[FILE:850:patches/patch-monitor.c]
+--- monitor.c.orig	2023-05-31 08:25:59 UTC
++++ monitor.c
+@@ -341,6 +341,19 @@ monitor_insert_directory(int fd, char *n
+ 			continue;
+ 		esc_name = escape_tag(e->d_name, 1);
+ 		snprintf(path_buf, sizeof(path_buf), "%s/%s", path, e->d_name);
++#if defined(__sun)
++		struct stat st;
++		type = TYPE_UNKNOWN;
++		if (stat(path_buf, &st) == 0)
++		{
++		    if (S_ISDIR(st.st_mode))
++			type = resolve_unknown_type(path_buf, dir_types);
++		    else if (S_ISREG(st.st_mode))
++			type = resolve_unknown_type(path_buf, dir_types);
++		    else if (S_ISLNK(st.st_mode))
++			type = resolve_unknown_type(path_buf, dir_types);
++		}
++#else
+ 		switch( e->d_type )
+ 		{
+ 			case DT_DIR:
+@@ -351,6 +364,7 @@ monitor_insert_directory(int fd, char *n
+ 			default:
+ 				break;
+ 		}
++#endif
+ 		if( type == TYPE_DIR )
+ 		{
+ 			monitor_insert_directory(fd, esc_name, path_buf);
+
+
 [FILE:467:patches/patch-utils.c]
 avoid mkdir /, from freebsd ports
 
@@ -233,6 +270,25 @@ avoid mkdir /, from freebsd ports
  			/* If we failed for any other reason than the directory
  			 * already exists, output a diagnostic and return -1.*/
  			if ((errno != EEXIST && errno != EISDIR)
+
+
+[FILE:347:patches/patch-utils.h]
+--- utils.h.orig	2023-05-31 08:25:59 UTC
++++ utils.h
+@@ -30,6 +30,13 @@
+ 
+ #include "minidlnatypes.h"
+ 
++#ifndef MIN
++#define MIN(a,b) (((a)<(b))?(a):(b))
++#endif
++#ifndef MAX
++#define MAX(a,b) (((a)>(b))?(a):(b))
++#endif
++
+ /* String functions */
+ /* We really want this one inlined, since it has a major performance impact */
+ static inline int
 
 
 [FILE:202:files/messages-primary.ucl.in]

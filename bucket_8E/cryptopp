@@ -35,6 +35,8 @@ MAKE_ENV=		CRYPTOPP_DATA_DIR=share/cryptopp/
 
 SOVERSION=		8.9.0
 
+VAR_OPSYS[sunos]=	CPPFLAGS=-DCRYPTOPP_DISABLE_ASM
+
 do-install:
 	${INSTALL_DATA} ${WRKSRC}/libcryptopp.a ${STAGEDIR}${PREFIX}/lib/
 	${INSTALL_LIB} ${WRKSRC}/libcryptopp.so.8.9.0 \
@@ -316,8 +318,10 @@ lib/pkgconfig/libcryptopp.pc
 share/cryptopp/TestData/usage.dat
 
 
-[FILE:506:patches/patch-GNUmakefile]
---- GNUmakefile.orig	2023-10-01 16:38:21 UTC
+[FILE:1043:patches/patch-GNUmakefile]
+Make SunOS have same soname has the other platforms.
+
+--- GNUmakefile.orig	2026-04-08 03:14:03 UTC
 +++ GNUmakefile
 @@ -70,7 +70,7 @@ ifeq ($(SYSTEMX),)
    SYSTEMX := $(shell uname -s 2>/dev/null)
@@ -328,4 +332,13 @@ share/cryptopp/TestData/usage.dat
  IS_HURD := $(shell echo "$(SYSTEMX)" | $(GREP) -i -c -E "GNU|Hurd")
  IS_MINGW := $(shell echo "$(SYSTEMX)" | $(GREP) -i -c "MinGW")
  IS_CYGWIN := $(shell echo "$(SYSTEMX)" | $(GREP) -i -c "Cygwin")
+@@ -1158,7 +1158,7 @@ ifeq ($(IS_SUN),1)
+ # Solaris uses major version suffix for shared library, but we use major.minor
+ # The minor version allows previous version to remain and not overwritten.
+ # https://blogs.oracle.com/solaris/how-to-name-a-solaris-shared-object-v2
+-SOLIB_VERSION_SUFFIX=.$(LIB_MAJOR).$(LIB_MINOR)
++SOLIB_VERSION_SUFFIX=.$(LIB_MAJOR).$(LIB_MINOR).$(LIB_PATCH)
+ SOLIB_FLAGS=-Wl,-h,libcryptopp.so$(SOLIB_COMPAT_SUFFIX)
+ endif # IS_SUN
+ endif # HAS_SOLIB_VERSION
 

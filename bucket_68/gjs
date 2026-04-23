@@ -50,6 +50,7 @@ SOVERSION=		0.0.0
 
 CXXFLAGS=		-DXP_UNIX
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=-Db_pch=false
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 VAR_OPSYS[midnightbsd]=	CONFIGURE_ARGS=-Db_pch=false
 
 [FILE:255:descriptions/desc.primary]
@@ -97,6 +98,80 @@ include/gjs-1.0/gjs/
  profiler.h
 lib/libgjs.so
 lib/pkgconfig/gjs-1.0.pc
+
+
+[FILE:550:patches/patch-gi_arg-inl.h]
+--- gi/arg-inl.h.orig	2026-03-14 03:48:09 UTC
++++ gi/arg-inl.h
+@@ -125,6 +125,16 @@ constexpr decltype(auto) gjs_arg_member(
+     }
+ }
+ 
++#if defined(__sun)
++inline void gjs_arg_set(GIArgument* arg, signed char v) {
++    arg->v_int8 = v;
++}
++
++inline signed char gjs_arg_get(const GIArgument* arg, signed char) {
++    return arg->v_int8;
++}
++#endif
++
+ template <typename TAG, typename = std::enable_if_t<
+                             std::is_arithmetic_v<Gjs::Tag::RealT<TAG>>>>
+ constexpr void gjs_arg_set(GIArgument* arg, Gjs::Tag::RealT<TAG> v) {
+
+
+[FILE:636:patches/patch-gi_arg-types-inl.h]
+--- gi/arg-types-inl.h.orig	2026-03-14 03:48:09 UTC
++++ gi/arg-types-inl.h
+@@ -70,6 +70,18 @@ struct MarshallingInfo<bool> {
+     static constexpr const char* name = "bool";
+ };
+ 
++#if defined(__sun)
++// Fix for signed char (which is distinct from int8_t/char on OmniOS)
++template <>
++struct MarshallingInfo<signed char> {
++    using real_type = signed char;
++    using containing_tag = int32_t;
++    using jsvalue_pack_type = int32_t;
++    static constexpr GITypeTag gi_tag = GI_TYPE_TAG_INT8;
++    static constexpr const char* name = "int8";
++};
++#endif
++
+ template <>
+ struct MarshallingInfo<int8_t> {
+     using real_type = int8_t;
+
+
+[FILE:745:patches/patch-gi_js-value-inl.h]
+--- gi/js-value-inl.h.orig	2026-03-14 03:48:09 UTC
++++ gi/js-value-inl.h
+@@ -106,6 +106,22 @@ inline bool js_value_to_c<unsigned short
+     return JS::ToUint32(cx, value, out);
+ }
+ 
++#if defined(__sun)
++template <>
++GJS_JSAPI_RETURN_CONVENTION
++inline bool js_value_to_c<char>(JSContext* cx, JS::HandleValue value,
++                                int32_t* out) {
++    return JS::ToInt32(cx, value, out);
++}
++
++template <>
++GJS_JSAPI_RETURN_CONVENTION
++inline bool js_value_to_c<char>(JSContext* cx, JS::HandleValue value,
++                                uint32_t* out) {
++    return JS::ToUint32(cx, value, out);
++}
++#endif
++
+ template <>
+ GJS_JSAPI_RETURN_CONVENTION
+ inline bool js_value_to_c<uint32_t>(JSContext* cx, JS::HandleValue value,
 
 
 [FILE:338:patches/patch-libgjs-private_gjs-util.c]

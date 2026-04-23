@@ -143,3 +143,103 @@ include/babl-0.1/babl/
 lib/libbabl-0.1.so
 lib/pkgconfig/babl-0.1.pc
 
+
+[FILE:657:patches/patch-babl_babl-conversion.c]
+--- babl/babl-conversion.c.orig	2026-03-10 15:56:45 UTC
++++ babl/babl-conversion.c
+@@ -52,8 +52,8 @@ babl_conversion_planar_process (const Ba
+   const BablImage *source = (void*)src;
+   BablImage       *destination = (void*)dst;
+ #ifdef USE_ALLOCA
+-  const char **src_data = alloca (sizeof (void *) * source->components);
+-  char **dst_data = alloca (sizeof (void *) * destination->components);
++  const char **src_data = __builtin_alloca (sizeof (void *) * source->components);
++  char **dst_data = __builtin_alloca (sizeof (void *) * destination->components);
+ #else
+   const char  *src_data[BABL_MAX_COMPONENTS];
+   char  *dst_data[BABL_MAX_COMPONENTS];
+
+
+[FILE:743:patches/patch-babl_babl-fish-path.c]
+--- babl/babl-fish-path.c.orig	2026-03-10 15:56:45 UTC
++++ babl/babl-fish-path.c
+@@ -1539,14 +1539,14 @@ process_conversion_path (BablList   *pat
+     {
+       long j;
+ 
+-      void *temp_buffer = align_16 (alloca (MIN(n, MAX_BUFFER_SIZE) *
++      void *temp_buffer = align_16 (__builtin_alloca (MIN(n, MAX_BUFFER_SIZE) *
+                                     sizeof (double) * 5 + 16));
+       void *temp_buffer2 = NULL;
+ 
+       if (conversions > 2)
+         {
+           /* We'll need one more auxiliary buffer */
+-          temp_buffer2 = align_16 (alloca (MIN(n, MAX_BUFFER_SIZE) *
++          temp_buffer2 = align_16 (__builtin_alloca (MIN(n, MAX_BUFFER_SIZE) *
+                                    sizeof (double) * 5 + 16));
+         }
+ 
+
+
+[FILE:460:patches/patch-babl_babl-polynomial.c]
+--- babl/babl-polynomial.c.orig	2026-03-10 15:56:45 UTC
++++ babl/babl-polynomial.c
+@@ -531,7 +531,7 @@ babl_polynomial_approximate_gamma (BablP
+   babl_assert (scale >= BABL_POLYNOMIAL_MIN_SCALE &&
+                scale <= BABL_POLYNOMIAL_MAX_SCALE);
+ 
+-  basis = alloca ((degree + 1) * sizeof (BablPolynomial));
++  basis = __builtin_alloca ((degree + 1) * sizeof (BablPolynomial));
+ 
+   babl_polynomial_orthonormal_basis (basis, degree + 1, x0, x1, scale);
+ 
+
+
+[FILE:459:patches/patch-babl_meson.build]
+$NetBSD: patch-babl_meson.build,v 1.5 2026/01/06 08:43:15 adam Exp $
+
+Not having --version-script is not an error.
+
+--- babl/meson.build.orig	2026-03-10 15:56:45 UTC
++++ babl/meson.build
+@@ -50,9 +50,7 @@ elif cc.get_argument_syntax() == 'msvc'
+     '/VERSION:' + api_version
+   ]
+ else
+-  error(
+-    'Linker doesn\'t support --version-script or -exported_symbols_list'
+-  )
++  babl_link_args = []
+ endif
+ if platform_win32
+   babl_link_args += no_undefined
+
+
+[FILE:524:patches/patch-extensions_sse2-float.c]
+--- extensions/sse2-float.c.orig	2026-03-10 15:56:45 UTC
++++ extensions/sse2-float.c
+@@ -397,7 +397,7 @@ static void conv_rgbaF_linear_rgbAF_gamm
+                                            float       *dst, 
+                                            long         samples)
+ {
+-  float *tmp = alloca (sizeof(float)*4*samples);
++  float *tmp = __builtin_alloca (sizeof(float)*4*samples);
+   conv_rgbaF_linear_rgbaF_gamma (conversion, src, tmp, samples);
+   conv_rgbaF_linear_rgbAF_linear (conversion, tmp, dst, samples);
+ }
+
+
+[FILE:410:patches/patch-meson.build]
+--- meson.build.orig	2026-03-10 15:56:45 UTC
++++ meson.build
+@@ -574,7 +574,7 @@ if build_docs
+ endif
+ subdir('bin')
+ 
+-if not platform_osx and host_cpu_family != 'x86'
++if not platform_osx and host_cpu_family != 'x86' and host_machine.system() != 'sunos'
+   # Verify .def files for Windows linking.
+   # We check this on non-Windows platform  on CI, and on Windows itself.
+   custom_target('check-def-files',
+

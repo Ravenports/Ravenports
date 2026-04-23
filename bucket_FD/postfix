@@ -2,6 +2,7 @@
 
 NAMEBASE=		postfix
 VERSION=		3.11.1
+REVISION=		1
 KEYWORDS=		mail
 VARIANTS=		std
 SDESC[std]=		Fast and robust mail transfer agent
@@ -95,15 +96,15 @@ QMAKE_ARGS=		-DDEF_CONFIG_DIR=\\\"{{PREFIX}}/etc/postfix\\\"
 			-DHAS_EAI
 			-DUSE_TLS
 			-DUSE_SASL_AUTH
+			-DNO_DB
+			-DDEF_DB_TYPE=\\\"lmbd\\\"
+			-DDEF_CACHE_DB_TYPE=\\\"lmdb\\\"
 			-Wmissing-prototypes
 			-Wformat
 			-Wno-comment
 VAR_OPSYS[sunos]=	CFLAGS=-D_LARGEFILE_SOURCE
 			CFLAGS=-D_FILE_OFFSET_BITS=64
 			MAKEFILE_LINE=ANYTHING=pie=no
-VAR_OPSYS[linux]=	QMAKE_ARGS=-DNO_DB
-			QMAKE_ARGS=-DDEF_DB_TYPE=\\\"lmbd\\\"
-			QMAKE_ARGS=-DDEF_CACHE_DB_TYPE=\\\"lmdb\\\"
 
 post-patch:
 	${ECHO_CMD} '$$manpage_directory/man1/posttls-finger.1:f:root:-:644' \
@@ -502,56 +503,95 @@ share/man/man8/
  virtual.8
 
 
-[FILE:3675:patches/patch-makedefs]
---- makedefs.orig	2025-12-05 19:42:26 UTC
+[FILE:3984:patches/patch-makedefs]
+--- makedefs.orig	2026-03-05 15:59:44 UTC
 +++ makedefs
-@@ -351,86 +351,78 @@ case "$SYSTEM.$RELEASE" in
+@@ -280,35 +280,7 @@ case "$SYSTEM.$RELEASE" in
+ 	      *) error "Seems to be UnixWare`uname -v`. Untested.";;
+ 		esac
+ 		;;
+-  FreeBSD.2*)	SYSTYPE=FREEBSD2
+-		;;
+-  FreeBSD.3*)	SYSTYPE=FREEBSD3
+-		;;
+-  FreeBSD.4*)	SYSTYPE=FREEBSD4
+-		;;
+-  FreeBSD.5*)	SYSTYPE=FREEBSD5
+-		;;
+-  FreeBSD.6*)	SYSTYPE=FREEBSD6
+-		;;
+-  FreeBSD.7*)	SYSTYPE=FREEBSD7
+-		;;
+-  FreeBSD.8*)	SYSTYPE=FREEBSD8
+-		: ${SHLIB_SUFFIX=.so}
+-		: ${SHLIB_CFLAGS=-fPIC}
+-		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
+-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+-		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+-		: ${PLUGIN_LD="${CC-gcc} -shared"}
+-		;;
+-  FreeBSD.9*)	SYSTYPE=FREEBSD9
+-		: ${SHLIB_SUFFIX=.so}
+-		: ${SHLIB_CFLAGS=-fPIC}
+-		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
+-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+-		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+-		: ${PLUGIN_LD="${CC-gcc} -shared"}
+-		;;
+-  FreeBSD.10*)	SYSTYPE=FREEBSD10
++  FreeBSD.12*|MidnightBSD*) SYSTYPE=FREEBSD12
+ 		: ${CC=cc}
+ 		: ${SHLIB_SUFFIX=.so}
+ 		: ${SHLIB_CFLAGS=-fPIC}
+@@ -317,7 +289,7 @@ case "$SYSTEM.$RELEASE" in
+ 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+ 		: ${PLUGIN_LD="${CC} -shared"}
+ 		;;
+-   FreeBSD.11*) SYSTYPE=FREEBSD11
++   FreeBSD.13*) SYSTYPE=FREEBSD13
+ 		: ${CC=cc}
+ 		: ${SHLIB_SUFFIX=.so}
+ 		: ${SHLIB_CFLAGS=-fPIC}
+@@ -326,7 +298,7 @@ case "$SYSTEM.$RELEASE" in
+ 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+ 		: ${PLUGIN_LD="${CC} -shared"}
+ 		;;
+-   FreeBSD.12*) SYSTYPE=FREEBSD12
++   FreeBSD.14*) SYSTYPE=FREEBSD14
+ 		: ${CC=cc}
+ 		: ${SHLIB_SUFFIX=.so}
+ 		: ${SHLIB_CFLAGS=-fPIC}
+@@ -335,7 +307,7 @@ case "$SYSTEM.$RELEASE" in
+ 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+ 		: ${PLUGIN_LD="${CC} -shared"}
+ 		;;
+-   FreeBSD.13*)	SYSTYPE=FREEBSD13
++   FreeBSD.15*) SYSTYPE=FREEBSD15
+ 		: ${CC=cc}
+ 		: ${SHLIB_SUFFIX=.so}
+ 		: ${SHLIB_CFLAGS=-fPIC}
+@@ -344,7 +316,7 @@ case "$SYSTEM.$RELEASE" in
+ 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+ 		: ${PLUGIN_LD="${CC} -shared"}
+ 		;;
+-   FreeBSD.14*)	SYSTYPE=FREEBSD14
++  DragonFly.*)	SYSTYPE=DRAGONFLY
+ 		: ${CC=cc}
+ 		: ${SHLIB_SUFFIX=.so}
+ 		: ${SHLIB_CFLAGS=-fPIC}
+@@ -353,8 +325,6 @@ case "$SYSTEM.$RELEASE" in
  		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
  		: ${PLUGIN_LD="${CC} -shared"}
  		;;
 - DragonFly.*)	SYSTYPE=DRAGONFLY
 -		;;
--  OpenBSD.2*)	SYSTYPE=OPENBSD2
--		;;
--  OpenBSD.3*)	SYSTYPE=OPENBSD3
--		;;
--  OpenBSD.4*)	SYSTYPE=OPENBSD4
--		;;
--  OpenBSD.5*)	SYSTYPE=OPENBSD5
-+  FreeBSD.11*)	SYSTYPE=FREEBSD11
- 		: ${CC=cc}
--		: ${SHLIB_SUFFIX=.so.1.0}
-+		: ${SHLIB_SUFFIX=.so}
- 		: ${SHLIB_CFLAGS=-fPIC}
- 		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
- 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
- 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
- 		: ${PLUGIN_LD="${CC} -shared"}
+   OpenBSD.2*)	SYSTYPE=OPENBSD2
  		;;
--  OpenBSD.6*)	SYSTYPE=OPENBSD6
-+  FreeBSD.12*|MidnightBSD*)	SYSTYPE=FREEBSD12
- 		: ${CC=cc}
--		: ${SHLIB_SUFFIX=.so.1.0}
-+		: ${SHLIB_SUFFIX=.so}
- 		: ${SHLIB_CFLAGS=-fPIC}
- 		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
- 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
- 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
- 		: ${PLUGIN_LD="${CC} -shared"}
+   OpenBSD.3*)	SYSTYPE=OPENBSD3
+@@ -390,49 +360,7 @@ case "$SYSTEM.$RELEASE" in
  		;;
--  OpenBSD.7*)	SYSTYPE=OPENBSD7
-+  FreeBSD.13*)	SYSTYPE=FREEBSD12
- 		: ${CC=cc}
--		: ${SHLIB_SUFFIX=.so.1.0}
-+		: ${SHLIB_SUFFIX=.so}
- 		: ${SHLIB_CFLAGS=-fPIC}
- 		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
- 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
- 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
- 		: ${PLUGIN_LD="${CC} -shared"}
+   ekkoBSD.1*)	SYSTYPE=EKKOBSD1
  		;;
--  ekkoBSD.1*)	SYSTYPE=EKKOBSD1
--		;;
 -   NetBSD.1*)	SYSTYPE=NETBSD1
 -		;;
 -   NetBSD.2*)	SYSTYPE=NETBSD2
@@ -563,64 +603,37 @@ share/man/man8/
 -   NetBSD.5*)	SYSTYPE=NETBSD5
 -		;;
 -   NetBSD.6*)	SYSTYPE=NETBSD6
-+ DragonFly.*)	SYSTYPE=DRAGONFLY
-+		: ${CC=cc}
- 		: ${SHLIB_SUFFIX=.so}
- 		: ${SHLIB_CFLAGS=-fPIC}
+-		: ${SHLIB_SUFFIX=.so}
+-		: ${SHLIB_CFLAGS=-fPIC}
 -		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
-+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
- 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
- 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+-		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 -		: ${PLUGIN_LD="${CC-gcc} -shared"}
-+		: ${PLUGIN_LD="${CC} -shared"}
- 		;;
+-		;;
 -   NetBSD.7*)	SYSTYPE=NETBSD7
 -		: ${SHLIB_SUFFIX=.so}
-+  OpenBSD.2*)	SYSTYPE=OPENBSD2
-+		;;
-+  OpenBSD.3*)	SYSTYPE=OPENBSD3
-+		;;
-+  OpenBSD.4*)	SYSTYPE=OPENBSD4
-+		;;
-+  OpenBSD.5*)	SYSTYPE=OPENBSD5
-+		: ${CC=cc}
-+		: ${SHLIB_SUFFIX=.so.1.0}
- 		: ${SHLIB_CFLAGS=-fPIC}
+-		: ${SHLIB_CFLAGS=-fPIC}
 -		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
-+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
- 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
- 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+-		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 -		: ${PLUGIN_LD="${CC-gcc} -shared"}
-+		: ${PLUGIN_LD="${CC} -shared"}
- 		;;
+-		;;
 -   NetBSD.8*)	SYSTYPE=NETBSD8
 -		: ${SHLIB_SUFFIX=.so}
-+  OpenBSD.6*)	SYSTYPE=OPENBSD6
-+		: ${CC=cc}
-+		: ${SHLIB_SUFFIX=.so.1.0}
- 		: ${SHLIB_CFLAGS=-fPIC}
+-		: ${SHLIB_CFLAGS=-fPIC}
 -		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
-+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
- 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
- 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+-		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 -		: ${PLUGIN_LD="${CC-gcc} -shared"}
-+		: ${PLUGIN_LD="${CC} -shared"}
- 		;;
+-		;;
 -   NetBSD.9*)	SYSTYPE=NETBSD9
 -		: ${SHLIB_SUFFIX=.so}
-+  OpenBSD.7*)	SYSTYPE=OPENBSD7
-+		: ${CC=cc}
-+		: ${SHLIB_SUFFIX=.so.1.0}
- 		: ${SHLIB_CFLAGS=-fPIC}
+-		: ${SHLIB_CFLAGS=-fPIC}
 -		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
-+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
- 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
- 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+-		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 -		: ${PLUGIN_LD="${CC-gcc} -shared"}
-+		: ${PLUGIN_LD="${CC} -shared"}
-+		;;
-+  ekkoBSD.1*)	SYSTYPE=EKKOBSD1
- 		;;
+-		;;
 -   NetBSD.10*)	SYSTYPE=NETBSD10
 +   NetBSD*)	SYSTYPE=NETBSD
  		: ${SHLIB_SUFFIX=.so}
@@ -628,10 +641,15 @@ share/man/man8/
  		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
 
 
-[FILE:825:patches/patch-src_util_sys__defs.h]
---- src/util/sys_defs.h.orig	2025-01-03 18:19:26 UTC
+[FILE:1120:patches/patch-src_util_sys__defs.h]
+--- src/util/sys_defs.h.orig	2026-02-26 00:29:13 UTC
 +++ src/util/sys_defs.h
-@@ -35,10 +35,7 @@
+@@ -31,14 +31,11 @@
+     || defined(FREEBSD5) || defined(FREEBSD6) || defined(FREEBSD7) \
+     || defined(FREEBSD8) || defined(FREEBSD9) || defined(FREEBSD10) \
+     || defined(FREEBSD11) || defined(FREEBSD12) || defined(FREEBSD13) \
+-    || defined(FREEBSD14) \
++    || defined(FREEBSD14) || defined(FREEBSD15) \
      || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
      || defined(OPENBSD2) || defined(OPENBSD3) || defined(OPENBSD4) \
      || defined(OPENBSD5) || defined(OPENBSD6) || defined(OPENBSD7) \

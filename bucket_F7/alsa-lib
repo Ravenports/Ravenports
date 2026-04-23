@@ -44,14 +44,18 @@ INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		2.0.0
 
 VAR_OPSYS[freebsd]=	CONFIGURE_ARGS=	ac_cv_header_endian_h=no
+VAR_OPSYS[sunos]=	CFLAGS=-Dalloca=__builtin_alloca
+			CFLAGS=-DO_ASYNC=0
+			CFLAGS=-D__EXTENSIONS__
+			CFLAGS=-D_XOPEN_SOURCE=600
+			CFLAGS=-Wno-incompatible-pointer-types
+			LDFLAGS=-lsocket
+			CONFIGURE_ARGS=--with-versioned=no
 VAR_OPSYS[dragonfly]=	CONFIGURE_ARGS=	ac_cv_header_endian_h=no
 
 [LINUX].DESCRIPTION=			Indicates built for Linux
 
-post-patch:
-	${REINPLACE_CMD} 's|/etc|${PREFIX}&|g' ${WRKSRC}/src/conf/alsa.conf
-
-post-patch-LINUX-OFF:
+pre-configure-LINUX-OFF:
 	${MKDIR} ${WRKSRC}/include/linux
 	${CP} ${FILESDIR}/byteswap.h ${WRKSRC}/include/
 	${CP} ${FILESDIR}/endian.h ${WRKSRC}/include/
@@ -61,6 +65,9 @@ post-patch-LINUX-OFF:
 	${REINPLACE_CMD} -E -e 's/__s([[:digit:]]+)/int\1_t/g' \
 		-e 's/__kernel_long_t/long/g' \
 		${WRKSRC}/include/sound/uapi/asound.h
+
+pre-configure:
+	${REINPLACE_CMD} 's|/etc|${PREFIX}&|g' ${WRKSRC}/src/conf/alsa.conf
 
 [FILE:574:descriptions/desc.primary]
 The Advanced Linux Sound Architecture (ALSA) provides audio and MIDI
@@ -273,6 +280,37 @@ share/aclocal/alsa.m4
  #endif
 
 
+[FILE:259:patches/patch-include_sound_uapi_asound.h]
+--- include/sound/uapi/asound.h.orig	2026-01-13 07:12:40 UTC
++++ include/sound/uapi/asound.h
+@@ -15,6 +15,9 @@
+ #include <endian.h>
+ #include <sys/ioctl.h>
+ #endif
++#if defined(__sun)
++#include <sys/ioccom.h>
++#endif
+ 
+ #include <stdlib.h>
+ #include <time.h>
+
+
+[FILE:285:patches/patch-src_conf.c]
+--- src/conf.c.orig	2026-01-13 07:12:40 UTC
++++ src/conf.c
+@@ -4103,8 +4103,10 @@ static int config_filename_filter(const
+ 
+ 	if (dirent == NULL)
+ 		return 0;
++#if !defined(__sun)
+ 	if (dirent->d_type == DT_DIR)
+ 		return 0;
++#endif
+ 
+ 	flen = strlen(dirent->d_name);
+ 	if (flen <= 5)
+
+
 [FILE:505:patches/patch-src_ucm_main.c]
 --- src/ucm/main.c.orig	2026-01-13 07:12:40 UTC
 +++ src/ucm/main.c
@@ -301,12 +339,40 @@ share/aclocal/alsa.m4
  	}
 
 
-[FILE:413:patches/patch-src_ucm_ucm__exec.c]
+[FILE:464:patches/patch-src_ucm_parser.c]
+--- src/ucm/parser.c.orig	2026-01-13 07:12:40 UTC
++++ src/ucm/parser.c
+@@ -3633,7 +3633,9 @@ static int filename_filter(const struct
+ {
+ 	if (dirent == NULL)
+ 		return 0;
++#if !defined(__sun)
+ 	if (dirent->d_type == DT_DIR) {
++#endif
+ 		if (dirent->d_name[0] == '.') {
+ 			if (dirent->d_name[1] == '\0')
+ 				return 0;
+@@ -3642,7 +3644,9 @@ static int filename_filter(const struct
+ 				return 0;
+ 		}
+ 		return 1;
++#if !defined(__sun)
+ 	}
++#endif
+ 	return 0;
+ }
+ 
+
+
+[FILE:574:patches/patch-src_ucm_ucm__exec.c]
 --- src/ucm/ucm_exec.c.orig	2026-01-13 07:12:40 UTC
 +++ src/ucm/ucm_exec.c
-@@ -35,8 +35,9 @@
+@@ -33,10 +33,11 @@
+ #include <limits.h>
+ #include <dirent.h>
  
- #if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+-#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
++#if defined(__NetBSD__) || defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__sun)
  #include <signal.h>
 -#if defined(__DragonFly__)
 -#define environ NULL /* XXX */

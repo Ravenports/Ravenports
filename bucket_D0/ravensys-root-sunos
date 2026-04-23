@@ -2,7 +2,7 @@
 
 NAMEBASE=		ravensys-root-sunos
 VERSION=		2
-REVISION=		8
+REVISION=		11
 KEYWORDS=		raven
 VARIANTS=		std
 SDESC[std]=		Solaris 2.11 system root for Ravenports build env
@@ -11,7 +11,7 @@ CONTACT=		John_Marino[draco@marino.st]
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		https://leaf.dragonflybsd.org/~marino/raven-distfiles/omnios-sysroot/
-DISTFILE[1]=		omnios-r151054-rev6-sysroot.tar.gz:main
+DISTFILE[1]=		omnios-r151054-rev7-sysroot.tar.gz:main
 DISTFILE[2]=		omnios-r151054-programs-rev5.tar.gz:main
 DF_INDEX=		1 2
 SPKGS[std]=		single
@@ -94,11 +94,11 @@ of OmniOS, excluding the toolchain.
 
 
 [FILE:227:distinfo]
-daf232528611cc1b11601329c4f32d2f0b0cd5780f20ec7115f7d2dd2108b622     36945077 omnios-r151054-rev6-sysroot.tar.gz
+ff3c644c7147ec5c22a2c62d1d76f70643d4cd6a5b8ca202df355df9820d8c49     36942305 omnios-r151054-rev7-sysroot.tar.gz
 ca01b5af9aebfd1b8991cf06f148a80e2405cf495b5fae25c1426003d15fa926       548326 omnios-r151054-programs-rev5.tar.gz
 
 
-[FILE:40128:manifests/plist.single]
+[FILE:40136:manifests/plist.single]
 %%BASE%%/bin/
  [
  bash
@@ -487,6 +487,7 @@ ca01b5af9aebfd1b8991cf06f148a80e2405cf495b5fae25c1426003d15fa926       548326 om
  install
  isainfo
  join
+ ld
  ld.sun
  ldd
  less
@@ -517,6 +518,7 @@ ca01b5af9aebfd1b8991cf06f148a80e2405cf495b5fae25c1426003d15fa926       548326 om
  sdiff
  sed
  seq
+ sh
  sort
  stat
  strip
@@ -1278,8 +1280,6 @@ ca01b5af9aebfd1b8991cf06f148a80e2405cf495b5fae25c1426003d15fa926       548326 om
 %%BASE%%/usr/include/security/
  auditd.h
  cryptoki.h
- pam_appl.h
- pam_modules.h
  pkcs11.h
  pkcs11f.h
  pkcs11t.h
@@ -2641,7 +2641,9 @@ ca01b5af9aebfd1b8991cf06f148a80e2405cf495b5fae25c1426003d15fa926       548326 om
  libxnet.so.1
  liby.so
  liby.so.1
+ libzfs.so
  libzfs.so.1
+ libzfs_core.so
  libzfs_core.so.1
  libzoneinfo.so
  libzoneinfo.so.1
@@ -3125,7 +3127,7 @@ RSYS=				${PREFIX}/${SYSPATH}
 FOS=				${WRKDIR}/${OPSYS:tl}
 
 
-[FILE:1828:files/sunos.mk]
+[FILE:2005:files/sunos.mk]
 # For SunOS (OmniOS)
 
 Libexec_SunOS=\
@@ -3201,4 +3203,10 @@ install-platform: install-common
 	# install libgcc_s for sysroot programs that need it
 	cp ${LOCALBASE}/toolchain/ravensys-gcc/lib/amd64/libgcc_s.so.1 \
 		${DESTDIR}${BASE}/usr/lib/amd64/libgcc_s.so.1
+
+	# install linker
+	cp ${CPA} ${DESTDIR}${BASE}/usr/bin/ld.sun ${DESTDIR}${BASE}/usr/bin/ld
+
+	# cover default bourne shell path
+	ln -s ../../bin/sh ${DESTDIR}${BASE}/usr/bin/sh
 

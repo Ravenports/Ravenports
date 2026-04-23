@@ -91,3 +91,18 @@ include/libayatana-indicator3-0.4/libayatana-indicator/
 lib/libayatana-indicator3.so
 lib/pkgconfig/ayatana-indicator3-0.4.pc
 
+
+[FILE:859:patches/patch-src_CMakeLists.txt]
+--- src/CMakeLists.txt.orig	2023-10-13 06:40:50 UTC
++++ src/CMakeLists.txt
+@@ -139,7 +139,9 @@ target_compile_definitions("${ayatana_in
+ target_include_directories("${ayatana_indicator_gtkver}" PUBLIC ${PROJECT_DEPS_INCLUDE_DIRS})
+ target_include_directories("${ayatana_indicator_gtkver}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+ target_include_directories("${ayatana_indicator_gtkver}" PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
++if (NOT CMAKE_SYSTEM_NAME MATCHES "SunOS")
+ target_link_options("${ayatana_indicator_gtkver}" PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/indicator.symbols")
++endif()
+ target_link_libraries("${ayatana_indicator_gtkver}" ${PROJECT_DEPS_LIBRARIES} ${EXTRA_LIBS})
+ add_dependencies("${ayatana_indicator_gtkver}" "src-generated")
+ install(TARGETS "${ayatana_indicator_gtkver}" LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}")
+

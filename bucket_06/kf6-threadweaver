@@ -41,6 +41,7 @@ FPC_EQUIVALENT=		devel/kf6-threadweaver
 SOVERSION=		6.24.0
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
+			-DKF_IGNORE_PLATFORM_CHECK:BOOL=TRUE
 
 post-stage:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libKF6ThreadWeaver.so
@@ -143,17 +144,18 @@ lib/cmake/KF6ThreadWeaver/
  KF6ThreadWeaverTargets.cmake
 
 
-[FILE:279:patches/patch-metainfo.yaml]
---- metainfo.yaml.orig	2024-08-02 11:17:17 UTC
-+++ metainfo.yaml
-@@ -4,6 +4,9 @@ type: functional
- platforms:
-     - name: Linux
-     - name: FreeBSD
-+    - name: DragonFly
-+    - name: NetBSD
-+    - name: MidnightBSD
-     - name: Windows
-     - name: macOS
-     - name: Android
+[FILE:342:patches/patch-examples_ThumbNailer_AverageLoadManager.cpp]
+--- examples/ThumbNailer/AverageLoadManager.cpp.orig	2026-03-07 20:34:13 UTC
++++ examples/ThumbNailer/AverageLoadManager.cpp
+@@ -8,6 +8,10 @@
+ 
+ #include "AverageLoadManager.h"
+ 
++#ifdef __sun
++#include <sys/loadavg.h>
++#endif
++
+ AverageLoadManager::AverageLoadManager(QObject *parent)
+     : QObject(parent)
+     , m_timer(new QTimer(this))
 

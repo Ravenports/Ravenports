@@ -2,6 +2,7 @@
 
 NAMEBASE=		netpbm
 VERSION=		11.13.03
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Toolkit for manipulation of graphic images
@@ -68,7 +69,6 @@ SOVERSION=		11.113
 CFLAGS=			-Wno-implicit-function-declaration
 			-Wno-incompatible-pointer-types
 VAR_OPSYS[sunos]=	MAKE_ARGS=NETWORKLD="-lsocket -lnsl"
-			MAKE_ARGS=LDSHLIB=-shared
 
 post-install:
 .if "${.MAKE.OS.NAME}" == "Darwin"
@@ -113,6 +113,9 @@ pre-configure-sunos:
 	${GREP} -rl "^#.*define.*_POSIX_SOURCE" ${WRKSRC} |\
 	${XARGS} ${SED} -i'' \
 		-e '/_POSIX_SOURCE/ s/_POSIX_SOURCE/_XOPEN_SOURCE 600/'
+
+post-configure-sunos:
+	${ECHO} 'LDSHLIB = -shared -fPIC -m64 -Wl,-h,$$(SONAME)' >> ${WRKSRC}/config.mk
 
 [FILE:429:descriptions/desc.primary]
 Netpbm is a toolkit for manipulation of graphic images, including

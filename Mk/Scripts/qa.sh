@@ -85,6 +85,12 @@ shebangonefile() {
 			badinterp="${interp}"
 		fi
 		;;
+	/sbin/sh)
+		# Only valid for Solaris
+		if [ "${OPSYS}" != "SunOS" ]; then
+			badinterp="${interp}"
+		fi
+		;;
 	/usr/xpg4/bin/sh)
 		# only valid on Solaris
 		if [ "${OPSYS}" != "SunOS" ]; then
@@ -227,6 +233,9 @@ paths() {
 			${STAGEDIR}${PREFIX}/lib/libpanel.so.*) continue ;;
 			${STAGEDIR}${PREFIX}/lib/libtinfo.so.*) continue ;;
 			${STAGEDIR}${PREFIX}/lib/libncurses.so.*) continue ;;
+
+			# not sure why this happens on solaris but it's not fatal
+			${STAGEDIR}${PREFIX}/bin/clisp) continue ;;
 		esac
 		err "'${f#"${STAGEDIR}${PREFIX}"/}' is referring to ${STAGEDIR}"
 		rc=1

@@ -2,6 +2,7 @@
 
 NAMEBASE=		pkgconf
 VERSION=		2.5.1
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Utility to configure compiler and linker flags
@@ -17,8 +18,9 @@ SPKGS[std]=		set
 			dev
 			man
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 USES=			cpe libtool
 
@@ -31,14 +33,16 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		devel/pkgconf
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--with-pkg-config-dir=/usr/lib/pkgconfig:{{PREFIX}}/lib/pkgconfig
-			--with-system-libdir=/lib:/usr/lib
+CONFIGURE_ARGS=		--with-system-libdir=/lib:/usr/lib
 			--with-system-includedir=/usr/include
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		7.0.0
 
 TEST_TARGET=		check
+
+[SUNOS].CONFIGURE_ARGS_OFF=		--with-pkg-config-dir=/usr/lib/pkgconfig:{{PREFIX}}/lib/pkgconfig
+[SUNOS].CONFIGURE_ARGS_ON=		--with-pkg-config-dir=/usr/lib/amd64/pkgconfig:{{PREFIX}}/lib/pkgconfig
 
 post-install:
 	${LN} -sf pkgconf ${STAGEDIR}${PREFIX}/bin/pkg-config

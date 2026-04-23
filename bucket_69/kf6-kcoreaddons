@@ -55,7 +55,9 @@ FPC_EQUIVALENT=		devel/kf6-kcoreaddons
 SOVERSION=		6.24.0
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
+			-DKF_IGNORE_PLATFORM_CHECK:BOOL=TRUE
 			-DBUILD_PYTHON_BINDINGS:BOOL=OFF
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 post-stage:
 	(cd ${STAGEDIR}${PREFIX}/lib && ${STRIP_CMD} libKF6CoreAddons.so \
@@ -302,21 +304,6 @@ share/locale/zh_HK/LC_MESSAGES/kcoreaddons6_qt.qm
 share/locale/zh_TW/LC_MESSAGES/kcoreaddons6_qt.qm
 
 
-[FILE:279:patches/patch-metainfo.yaml]
---- metainfo.yaml.orig	2025-01-03 15:25:42 UTC
-+++ metainfo.yaml
-@@ -4,6 +4,9 @@ type: functional
- platforms:
-     - name: Linux
-     - name: FreeBSD
-+    - name: DragonFly
-+    - name: NetBSD
-+    - name: MidnightBSD
-     - name: Windows
-     - name: macOS
-     - name: Android
-
-
 [FILE:366:patches/patch-src_lib_CMakeLists.txt]
 --- src/lib/CMakeLists.txt.orig	2025-01-03 15:25:42 UTC
 +++ src/lib/CMakeLists.txt
@@ -347,6 +334,37 @@ configuration.  This patch should be pushed upstream.
          } else {
              tempLock = std::make_unique<semaphoreLock>(tempSemaphore);
          }
+
+
+[FILE:783:patches/patch-src_lib_caching_ksdcmapping__p.h]
+--- src/lib/caching/ksdcmapping_p.h.orig	2026-03-07 20:29:56 UTC
++++ src/lib/caching/ksdcmapping_p.h
+@@ -192,7 +192,11 @@ private:
+             if (mapAddress != MAP_FAILED) {
+                 // Successful mmap doesn't actually mean that whole range is readable so ensure it is
+                 struct rlimit memlock;
++#ifdef RLIMIT_MEMLOCK
+                 if (getrlimit(RLIMIT_MEMLOCK, &memlock) == 0 && memlock.rlim_cur >= 2) {
++#else
++	        if (true) { // On OmniOS, assume the limit is managed by resource controls
++#endif
+                     // Half of limit in case something else has already locked some mem
+                     uint lockSize = qMin(memlock.rlim_cur / 2, (rlim_t)size);
+                     // Note that lockSize might be less than what we need to mmap
+
+
+[FILE:506:patches/patch-src_lib_io_kfilesystemtype.cpp]
+--- src/lib/io/kfilesystemtype.cpp.orig	2026-03-07 20:29:56 UTC
++++ src/lib/io/kfilesystemtype.cpp
+@@ -209,7 +209,7 @@ static KFileSystemType::Type determineFi
+ }
+ 
+ #elif defined(Q_OS_AIX) || defined(Q_OS_HPUX) || defined(Q_OS_QNX) || defined(Q_OS_SCO) || defined(Q_OS_UNIXWARE) || defined(Q_OS_RELIANT)                     \
+-    || defined(Q_OS_NETBSD)
++    || defined(Q_OS_NETBSD) || defined(__sun)
+ #include <sys/statvfs.h>
+ 
+ KFileSystemType::Type determineFileSystemTypeImpl(const QByteArray &path)
 
 
 [FILE:480:patches/patch-src_lib_util_kprocesslist__unix.cpp]

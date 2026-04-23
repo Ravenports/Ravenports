@@ -2,6 +2,7 @@
 
 NAMEBASE=		libvisual
 VERSION=		0.4.2
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Abstraction library between apps and visual plugin
@@ -17,13 +18,14 @@ SPKGS[std]=		set
 			tools
 			dev
 			man
+			nls
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 EXRUN[tools]=		libvisual:primary:std
 
-USES=			gmake libtool pkgconfig mbsdfix c++:tools
+USES=			gmake libtool pkgconfig gettext mbsdfix c++:tools
 SDL_COMPONENTS=		sdl1
 
 LICENSE=		LGPL21+:primary
@@ -36,12 +38,17 @@ LICENSE_SCHEME=		solo
 FPC_EQUIVALENT=		graphics/libvisual04
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--disable-nls
+CONFIGURE_ARGS=		--enable-nls
 
 SOVERSION=		0.0.0
 PLIST_SUB=		VER=0.4
 
 LDFLAGS=		-lpthread
+VAR_OPSYS[freebsd]=	LDFLAGS=-lintl
+VAR_OPSYS[sunos]=	LDFLAGS=-lintl
+VAR_OPSYS[netbsd]=	LDFLAGS=-lintl
+VAR_OPSYS[dragonfly]=	LDFLAGS=-lintl
+VAR_OPSYS[midnightbsd]=	LDFLAGS=-lintl
 
 pre-configure-netbsd:
 	${REINPLACE_CMD} -e 's/-no-undefined//' ${WRKSRC}/libvisual/Makefile.in
@@ -133,4 +140,65 @@ lib/pkgconfig/libvisual-%%VER%%.pc
 
 [FILE:29:manifests/plist.man]
 share/man/man1/lv-tool-0.4.1
+
+
+[FILE:153:manifests/plist.nls]
+share/locale/de/LC_MESSAGES/libvisual-%%VER%%.mo
+share/locale/es_AR/LC_MESSAGES/libvisual-%%VER%%.mo
+share/locale/es_ES/LC_MESSAGES/libvisual-%%VER%%.mo
+
+
+[FILE:344:patches/patch-libvisual_libvisual.h]
+$NetBSD: patch-libvisual_libvisual.h,v 1.1 2026/01/02 12:29:21 adam Exp $
+
+For integer types.
+
+--- libvisual/libvisual.h.orig	2026-01-02 11:17:46.741380162 +0000
++++ libvisual/libvisual.h
+@@ -24,6 +24,7 @@
+ #ifndef LV_LIBVISUAL_H
+ #define LV_LIBVISUAL_H
+ 
++#include <stdint.h>
+ #include <libvisual/lvconfig.h>
+ 
+ #include <libvisual/lv_bits.h>
+
+
+[FILE:404:patches/patch-libvisual_lv__defines.h]
+--- libvisual/lv_defines.h.orig	2023-03-20 02:04:17 UTC
++++ libvisual/lv_defines.h
+@@ -64,7 +64,9 @@
+ /* Compiler specific optimalization macros */
+ #if __GNUC__ >= 3
+ # define __malloc		__attribute__ ((malloc))
++#  if !defined(__sun)
+ # define __packed		__attribute__ ((packed))
++#  endif
+ # define VIS_LIKELY(x)		__builtin_expect (!!(x), 1)
+ # define VIS_UNLIKELY(x)	__builtin_expect (!!(x), 0)
+ #else
+
+
+[FILE:473:patches/patch-libvisual_lv__types.h]
+--- libvisual/lv_types.h.orig	2023-03-20 02:04:17 UTC
++++ libvisual/lv_types.h
+@@ -26,7 +26,7 @@
+ 
+ #include <libvisual/lv_defines.h>
+ 
+-#if defined(VISUAL_OS_WIN32)
++#if defined(VISUAL_OS_WIN32) || defined(__linux__)
+ #include <stdint.h>
+ #else
+ #include <sys/types.h>
+@@ -38,7 +38,7 @@ VISUAL_BEGIN_DECLS
+ 
+ #define VISUAL_TABLESIZE(table)			(sizeof (table) / sizeof (table[0]))
+ 
+-#if !defined(VISUAL_OS_WIN32)
++#if 0
+ #ifndef uint8_t
+ #define uint8_t		u_int8_t
+ #endif
 

@@ -279,46 +279,60 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
      ['_NETBSD_SOURCE', '1'],
 
 
-[FILE:703:patches/patch-src_app_app.cc]
---- src/app/app.cc.orig	2025-12-27 08:31:46 UTC
+[FILE:648:patches/patch-src_app_app.cc]
+--- src/app/app.cc.orig	2026-03-14 20:44:12 UTC
 +++ src/app/app.cc
-@@ -4874,7 +4874,15 @@ main(int argc,
-                struct termios tcattr;
-                if (tcgetattr(STDIN_FILENO, &tcattr) == 0) {
-                        saved_tcattr = tcattr;
-+#ifdef __sun__
-+	tcattr.c_iflag &= ~(IMAXBEL|IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
-+	tcattr.c_oflag &= ~OPOST;
-+	tcattr.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-+	tcattr.c_cflag &= ~(CSIZE|PARENB);
-+	tcattr.c_cflag |= CS8;
-+#else
-                        cfmakeraw(&tcattr);
+@@ -82,6 +82,22 @@ enum {
+         VL3
+ }; // Verbosity levels
+ 
++#if defined(__sun)
++#ifndef IMAXBEL
++#define IMAXBEL 0
 +#endif
-                        if (tcsetattr(STDIN_FILENO, TCSANOW, &tcattr) == 0)
-                                reset_termios = true;
-                }
++
++static void cfmakeraw(struct termios *t) {
++    t->c_iflag &= ~(IMAXBEL | IXOFF | INPCK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
++    t->c_oflag &= ~OPOST;
++    t->c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON | ISIG | IEXTEN | NOFLSH | TOSTOP);
++    t->c_cflag &= ~(CSIZE | PARENB);
++    t->c_cflag |= CS8;
++    t->c_cc[VMIN] = 1;
++    t->c_cc[VTIME] = 0;
++}
++#endif
++
+ static void
+ fprintln(FILE* fp,
+          int level,
 
 
-[FILE:549:patches/patch-src_dumpkeys.c]
---- src/dumpkeys.c.orig	2025-12-27 08:31:46 UTC
+[FILE:712:patches/patch-src_dumpkeys.c]
+--- src/dumpkeys.c.orig	2026-03-14 20:44:12 UTC
 +++ src/dumpkeys.c
-@@ -162,7 +162,15 @@ main(int argc, char **argv)
- 	}
- 	original = tcattr;
- 	signal(SIGINT, sigint_handler);
-+#ifdef __sun__
-+	tcattr.c_iflag &= ~(IMAXBEL|IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
-+	tcattr.c_oflag &= ~OPOST;
-+	tcattr.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-+	tcattr.c_cflag &= ~(CSIZE|PARENB);
-+	tcattr.c_cflag |= CS8;
-+#else
- 	cfmakeraw(&tcattr);
+@@ -40,6 +40,22 @@
+ #define MODE_APPLICATION_CURSOR_KEYS	1
+ #define MODE_ALTERNATE_SCREEN		1047
+ 
++#if defined(__sun)
++#ifndef IMAXBEL
++#define IMAXBEL 0
 +#endif
- 	if (tcsetattr(STDIN_FILENO, TCSANOW, &tcattr) != 0) {
- 		perror("tcsetattr");
- 		return 1;
++
++static void cfmakeraw(struct termios *t) {
++    t->c_iflag &= ~(IMAXBEL | IXOFF | INPCK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
++    t->c_oflag &= ~OPOST;
++    t->c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON | ISIG | IEXTEN | NOFLSH | TOSTOP);
++    t->c_cflag &= ~(CSIZE | PARENB);
++    t->c_cflag |= CS8;
++    t->c_cc[VMIN] = 1;
++    t->c_cc[VTIME] = 0;
++}
++#endif
++
+ enum {
+ 	normal = 0, application = 1
+ } keypad_mode = normal, cursor_mode = normal;
 
 
 [FILE:453:patches/patch-src_libc-glue.hh]
@@ -340,25 +354,32 @@ share/locale/zh_TW/LC_MESSAGES/vte-%%VERSION%%.mo
  }
 
 
-[FILE:537:patches/patch-src_mev.c]
---- src/mev.c.orig	2025-12-27 08:31:46 UTC
+[FILE:626:patches/patch-src_mev.c]
+--- src/mev.c.orig	2026-03-14 20:44:12 UTC
 +++ src/mev.c
-@@ -358,7 +358,15 @@ main(int argc, char **argv)
+@@ -31,6 +31,22 @@
+ #include <sys/select.h>
+ #endif
  
- 	original = tcattr;
- 	signal(SIGINT, sigint_handler);
-+#ifdef __sun__
-+	tcattr.c_iflag &= ~(IMAXBEL|IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
-+	tcattr.c_oflag &= ~OPOST;
-+	tcattr.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-+	tcattr.c_cflag &= ~(CSIZE|PARENB);
-+	tcattr.c_cflag |= CS8;
-+#else
- 	cfmakeraw(&tcattr);
++#if defined(__sun)
++#ifndef IMAXBEL
++#define IMAXBEL 0
 +#endif
- 	if (tcsetattr(STDIN_FILENO, TCSANOW, &tcattr) != 0) {
- 		perror("tcsetattr");
- 		return 1;
++
++static void cfmakeraw(struct termios *t) {
++    t->c_iflag &= ~(IMAXBEL | IXOFF | INPCK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
++    t->c_oflag &= ~OPOST;
++    t->c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON | ISIG | IEXTEN | NOFLSH | TOSTOP);
++    t->c_cflag &= ~(CSIZE | PARENB);
++    t->c_cflag |= CS8;
++    t->c_cc[VMIN] = 1;
++    t->c_cc[VTIME] = 0;
++}
++#endif
++
+ enum {
+ 	tracking_x10 = 9,
+ 	tracking_mouse = 1000,
 
 
 [FILE:491:patches/patch-src_missing.cc]

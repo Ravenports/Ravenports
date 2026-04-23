@@ -2,7 +2,7 @@
 
 NAMEBASE=		lame
 VERSION=		3.100
-REVISION=		1
+REVISION=		2
 KEYWORDS=		audio
 VARIANTS=		std
 SDESC[std]=		Fast MP3 encoder kit
@@ -41,16 +41,17 @@ CONFIGURE_ARGS=		--enable-nasm
 
 SOVERSION=		0.0.0
 
-post-patch:
-	${REINPLACE_CMD} -e 's,test -d \.libs || mkdir,mkdir -p,' \
-		${WRKSRC}/libmp3lame/i386/Makefile.in
-
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libmp3lame.so.0.0.0
 	${MKDIR} ${STAGEDIR}${PREFIX}/share/doc/lame
 .for file in API README TODO USAGE
 	${INSTALL_DATA} ${WRKSRC}/${file} ${STAGEDIR}${PREFIX}/share/doc/lame
 .endfor
+
+pre-configure:
+	${REINPLACE_CMD} -e 's,test -d \.libs || mkdir,mkdir -p,' \
+		${WRKSRC}/libmp3lame/i386/Makefile.in
+	${REINPLACE_CMD} -e '/lame_init_old/d' ${WRKSRC}/include/libmp3lame.sym
 
 [FILE:178:descriptions/desc.primary]
 LAME is a high quality MPEG Audio Layer III (MP3) encoder licensed under 

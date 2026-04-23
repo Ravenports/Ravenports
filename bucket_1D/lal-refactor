@@ -45,6 +45,20 @@ MAKE_ARGS=		PROCESSORS={{MAKE_JOBS_NUMBER}}
 INSTALL_REQ_TOOLCHAIN=	yes
 SOVERSION=		26.0.0
 
+do-build:
+	# This is while.  If the job number is say "8", it will start the
+	# makefile with 8 jobs, and each job can spawn 8 more jobs.  If we
+	# set single jobs, then we'd be single threaded.  So we have to
+	# create the standard do-build target to support single/8.
+	@${ECHO_MSG} "==> cd ${BUILD_WRKSRC};"
+	@${ECHO_MSG} "    ${MAKE_CMD} ${MAKE_FLAGS} ${MAKEFILE}"
+	@${ECHO_MSG} "    ${MAKE_ARGS:C,^${DESTDIRNAME}=.*,,g} ${BUILD_TARGET}"
+	@(cd ${BUILD_WRKSRC}; if ! ${SETENVI} ${MAKE_ENV} ${MAKE_CMD} ${MAKE_FLAGS} \
+		${MAKEFILE} ${MAKE_ARGS:C,^${DESTDIRNAME}=.*,,g} ${BUILD_TARGET}; then \
+		${ECHO_MSG} "===> Compilation failed unexpectedly."; \
+		${FALSE}; \
+	fi)
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lal_refactor.relocatable/liblal-refactor.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/lalrefactor

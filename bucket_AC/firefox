@@ -14,9 +14,9 @@ DISTFILE[1]=		firefox-149.0.source.tar.xz:main
 DF_INDEX=		1
 SPKGS[std]=		single
 
-OPTIONS_AVAILABLE=	MOLD
-OPTIONS_STANDARD=	MOLD
-OPT_ON[linux]=		MOLD
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 BUILD_DEPENDS=		cbindgen:single:std
 			clang:set:std
@@ -119,9 +119,8 @@ VAR_OPSYS[netbsd]=	QMAKE_ARGS=--enable-audio-backends=sndio
 			MAKEFILE_LINE=MOZLDFLAGS=-lrt
 VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=CONFIGURE_TARGET=x86_64-raven-freebsd12.3
 
-[MOLD].DESCRIPTION=			Link Firefox with MOLD rather than ports linker
-[MOLD].BUILD_DEPENDS_ON=		mold:primary:std
-[MOLD].QMAKE_ARGS_ON=			--enable-linker=mold
+[SUNOS].BUILD_DEPENDS_OFF=		lld:primary:std
+[SUNOS].QMAKE_ARGS_OFF=			--enable-linker=lld
 
 post-patch:
 	${REINPLACE_CMD} -e 's|%%LOCALBASE%%|${LOCALBASE}|g' \

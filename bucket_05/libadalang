@@ -20,8 +20,9 @@ SPKGS[std]=		set
 			tools
 			examples
 
-OPTIONS_AVAILABLE=	DEBUG REGULAR
-OPTIONS_STANDARD=	DEBUG REGULAR
+OPTIONS_AVAILABLE=	DEBUG REGULAR SUNOS
+OPTIONS_STANDARD=	DEBUG REGULAR SUNOS
+OPT_ON[sunos]=		SUNOS
 
 BUILD_DEPENDS=		langkit_support:dev:std
 			libgpr2:dev:std
@@ -64,9 +65,12 @@ VAR_OPSYS[midnightbsd]=	MAKEFILE_LINE=XTRALIB=,"-lutil"
 [REGULAR].MAKEFILE_OFF=			SALTYPE=standard
 [REGULAR].MAKEFILE_ON=			SALTYPE=no
 
+[SUNOS].MAKEFILE_OFF=			XTRALIB+=,"-Wl,--allow-shlib-undefined"
+
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
 		${PYTHON_CMD} -m langkit.scripts.lkm build \
+		--jobs=${MAKE_JOBS_NUMBER} \
 		--library-types=static,static-pic,relocatable)
 
 do-configure:

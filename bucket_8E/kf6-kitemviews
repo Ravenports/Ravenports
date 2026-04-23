@@ -41,6 +41,7 @@ FPC_EQUIVALENT=		x11-toolkits/kf6-kitemviews
 SOVERSION=		6.24.0
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
+			-DKF_IGNORE_PLATFORM_CHECK:BOOL=TRUE
 
 post-stage:
 	(cd ${STAGEDIR}${PREFIX}/lib && ${STRIP_CMD} libKF6ItemViews.so \
@@ -205,17 +206,16 @@ share/locale/zh_HK/LC_MESSAGES/kitemviews6_qt.qm
 share/locale/zh_TW/LC_MESSAGES/kitemviews6_qt.qm
 
 
-[FILE:279:patches/patch-metainfo.yaml]
---- metainfo.yaml.orig	2024-02-21 11:25:52 UTC
-+++ metainfo.yaml
-@@ -5,6 +5,9 @@ type: functional
- platforms:
-     - name: Linux
-     - name: FreeBSD
-+    - name: DragonFly
-+    - name: NetBSD
-+    - name: MidnightBSD
-     - name: Windows
-     - name: macOS
-     - name: Android
+[FILE:663:patches/patch-src_kcategorydrawer.cpp]
+--- src/kcategorydrawer.cpp.orig	2026-03-07 20:31:33 UTC
++++ src/kcategorydrawer.cpp
+@@ -78,7 +78,7 @@ void KCategoryDrawer::drawCategory(const
+         QRect backgroundRect(option.rect);
+         backgroundRect.setLeft(fontMetrics.horizontalAdvance(category) + sidePadding * 2);
+         backgroundRect.setRight(backgroundRect.right() - sidePadding);
+-        backgroundRect.setTop(backgroundRect.top() + topPadding + ceil(fontMetrics.height() / 2));
++        backgroundRect.setTop(backgroundRect.top() + topPadding + ceil(fontMetrics.height() / 2.0));
+         backgroundRect.setHeight(1);
+         painter->save();
+         painter->setBrush(backgroundColor);
 

@@ -33,8 +33,9 @@ SPKGS[std]=		set
 			utils
 			xindy
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	NOLUAJIT
+OPTIONS_STANDARD=	NOLUAJIT
+OPT_ON[sunos]=		NOLUAJIT
 
 BUILD_DEPENDS=		gmp:dev:std
 			mpfr:dev:std
@@ -177,6 +178,12 @@ PLIST_SUB=		LIBKPATHSEA=6.4.1
 			LIBTEXLUAJIT=2.1.81742
 			LIBTEXLUAJIT_MAJOR=2
 
+[NOLUAJIT].DESCRIPTION=			Disable LuaJIT functions
+[NOLUAJIT].CONFIGURE_ARGS_ON=		--disable-luajittex
+					--disable-luajithbtex
+					--disable-mfluajit
+					--disable-mfluajit-nowin
+
 post-patch:
 	${CP} ${FILESDIR}/pdftoepdf-poppler0.76.0.cc \
 		${WRKSRC}/texk/web2c/pdftexdir/
@@ -197,10 +204,16 @@ post-install:
 	for lx in ${PDFTEX_LINKS}; do \
 	   ${LN} -s pdftex ${STAGEDIR}${PREFIX}/bin/$$lx ;\
 	done
-	for x in kpathsea ptexenc synctex texlua53 texluajit; do \
+	for x in kpathsea ptexenc synctex texlua53; do \
 	   ${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/lib$$x.so ;\
 	done
 	for p in ${PROGRAMS0} ${PROGRAMS1} ${PROGRAMS2}; do \
+	   ${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/$$p ;\
+	done
+
+post-install-NOLUAJIT-OFF:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtexluajit.so
+	for p in ${PROGRAMS3}; do \
 	   ${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/$$p ;\
 	done
 
@@ -295,7 +308,7 @@ ea69cfecbc9b138acbc45476e8cb4d9357f5e4e45fd12b3bf9ceabbebd7669d2      2036440 te
 3d262cdf34dafa6955f703c634a8c238ec44109bc8dd6ef34fb7aa54809f7e66        19102 texlive/lppl.txt
 
 
-[FILE:10968:manifests/plist.primary]
+[FILE:10955:manifests/plist.primary]
 bin/
  a2ping
  a5toa4
@@ -444,7 +457,6 @@ bin/
  ltxfileinfo
  ltximg
  luahbtex
- luajithbtex
  lwarpmk
  m-tx
  mag
@@ -875,7 +887,16 @@ share/texmf-dist/xdvi/pixmap/
  toolbar2.xpm
 
 
-[FILE:966:manifests/plist.dev]
+[FILE:1030:manifests/plist.dev]
+%%NOLUAJIT-OFF%%include/texluajit/
+ lauxlib.h
+ lua.h
+ lua.hpp
+ luaconf.h
+ luajit_rolling.h
+ lualib.h
+%%NOLUAJIT-OFF%%lib/libtexluajit.so
+%%NOLUAJIT-OFF%%lib/pkgconfig/texluajit.pc
 include/kpathsea/
  absolute.h
  c-auto.h
@@ -937,25 +958,16 @@ include/texlua53/
  lua.hpp
  luaconf.h
  lualib.h
-include/texluajit/
- lauxlib.h
- lua.h
- lua.hpp
- luaconf.h
- luajit_rolling.h
- lualib.h
 lib/
  libkpathsea.so
  libptexenc.so
  libsynctex.so
  libtexlua53.so
- libtexluajit.so
 lib/pkgconfig/
  kpathsea.pc
  ptexenc.pc
  synctex.pc
  texlua53.pc
- texluajit.pc
 
 
 [FILE:2476:manifests/plist.man]
@@ -1285,30 +1297,33 @@ bin/
  hitex
 
 
-[FILE:1021:manifests/plist.engine_luatex]
+[FILE:1076:manifests/plist.engine_luatex]
+%%NOLUAJIT-OFF%%bin/
+ luajithbtex
+ luajittex
+ mfluajit
+ mfluajit-nowin
+ texluajit
+ texluajitc
+%%NOLUAJIT-OFF%%lib/
+ libtexluajit.so.%%LIBTEXLUAJIT%%
+ libtexluajit.so.%%LIBTEXLUAJIT_MAJOR%%
 bin/
  cllualatex
  dvilualatex
  dviluatex
  llmk
  luafindfont
- luajittex
  lualatex
  luaotfload-tool
  luatex
  mflua
  mflua-nowin
- mfluajit
- mfluajit-nowin
  texlua
  texluac
- texluajit
- texluajitc
 lib/
  libtexlua53.so.%%LIBTEXLUA53%%
  libtexlua53.so.%%LIBTEXLUA53_MAJOR%%
- libtexluajit.so.%%LIBTEXLUAJIT%%
- libtexluajit.so.%%LIBTEXLUAJIT_MAJOR%%
 share/texmf-dist/scripts/checkcites/checkcites.lua
 share/texmf-dist/scripts/cluttex/cluttex.lua
 share/texmf-dist/scripts/diadia/diadia.lua
@@ -1649,6 +1664,46 @@ share/texmf-dist/xindy/modules/styles/
  /* We should include something equivalent to */
  /* complex.h                                 */
  #else
+
+
+[FILE:570:patches/patch-texk_xdvik_encodings.c]
+--- texk/xdvik/encodings.c.orig	2014-06-23 09:36:07 UTC
++++ texk/xdvik/encodings.c
+@@ -3056,7 +3056,13 @@ cjk2unicode(unsigned char *cjk)
+ 	register_exit_handler(close_iconv, NULL);
+ 	
+     }
+-    if (iconv(m_iconv_gb_ucs4, (iconv_char_pptrT)&from_ptr, &from, &to_ptr, &to) == (size_t)(-1)) {
++    if (iconv(m_iconv_gb_ucs4,
++#if defined(__sun)
++	(const char **)&from_ptr,
++#else
++	(iconv_char_pptrT)&from_ptr,
++#endif
++	&from, &to_ptr, &to) == (size_t)(-1)) {
+ 	XDVI_ERROR((stderr, "cjk2unicode: can't convert GBK to unicode: %s", strerror(errno)));
+ 	return 0;
+     }
+
+
+[FILE:635:patches/patch-texk_xdvik_util.c]
+--- texk/xdvik/util.c.orig	2022-02-18 23:04:03 UTC
++++ texk/xdvik/util.c
+@@ -1858,7 +1858,13 @@ iconv_convert_string(const char *from_en
+     }
+ 
+     TRACE_FIND((stderr, "iconv_convert_string: from `%s', to `%s'", from_enc, to_enc));
+-    if (iconv(conv_desc, (iconv_char_pptrT)&in_ptr, &input_len, (char **)&out_ptr, &conv_len) == (size_t)(-1)) {
++    if (iconv(conv_desc,
++#if defined(__sun)
++	(const char **)&in_ptr,
++#else
++	(iconv_char_pptrT)&in_ptr,
++#endif
++	&input_len, (char **)&out_ptr, &conv_len) == (size_t)(-1)) {
+ 	popup_message(XtNameToWidget(globals.widgets.top_level, "*find_popup"),
+ 		      MSG_ERR,
+ 		      NULL,
 
 
 [FILE:226:files/messages-primary.ucl]
@@ -2987,7 +3042,7 @@ int main(int argc, char *argv[])
 }
 
 
-[FILE:1570:files/special.mk]
+[FILE:1582:files/special.mk]
 PDFTEX_LINKS=	amstex cslatex csplain eplain etex jadetex latex mex \
 		mllatex mltex pdfcslatex pdfcsplain pdfetex pdfjadetex \
 		pdflatex pdfmex pdfxmltex texsis utf8mex xmltex
@@ -3003,8 +3058,8 @@ PROGRAMS0=	afm2pl afm2tfm aleph autosp axohelp bbox bg5conv \
 		gregorio gsftopk ptekf
 
 PROGRAMS1=	hbf2gf hishrink histretch hitex kpseaccess kpsereadlink \
-		kpsestat kpsewhich lacheck luajittex luatex mag \
-		makeindex makejvf mendex mf mf-nowin mflua mfluajit mft \
+		kpsestat kpsewhich lacheck luatex mag \
+		makeindex makejvf mendex mf mf-nowin mflua mft \
 		mmafm mmpfb mpost msxlint odvicopy odvitype omfonts \
 		otangle otfinfo otftotfm otp2ocp outocp patgen pbibtex \
 		pdfclose pdfopen pdftex pdftosrc pdvitype pfb2pfa pk2bm \
@@ -3018,5 +3073,7 @@ PROGRAMS2=	ptex ptftopl scor2prt sjisconv synctex t1ascii t1asm \
 		ttf2tfm ttfdump ttftotype42 twill updvitype upbibtex \
 		upmendex upmpost uppltotf uptex uptftopl vftovp vlna \
 		vptovf weave wofm2opl wopl2ofm wovf2ovp wovp2ovf \
-		xdvi-xaw xdvipdfmx xetex luahbtex luajithbtex xml2pmx
+		xdvi-xaw xdvipdfmx xetex luahbtex xml2pmx
+
+PROGRAMS3=	luajittex mfluajit luajithbtex
 

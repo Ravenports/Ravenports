@@ -49,9 +49,13 @@ FPC_EQUIVALENT=		x11-toolkits/kf6-kirigami
 SOVERSION=		6.24.0
 
 CMAKE_ARGS=		-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt6/cmake
+			-DKF_IGNORE_PLATFORM_CHECK:BOOL=TRUE
+			-DOpenMP_C_LIB_NAMES:STRING=""
+			-DOpenMP_CXX_LIB_NAMES:STRING=""
+VAR_OPSYS[sunos]=	LDFLAGS=-Wl,-z,ignore
 
 post-stage:
-	(cd ${STAGEDIR}${PREFIX}/lib && ${STRIP_CMD} libKirigami.so \
+	(cd ${STAGEDIR}${PREFIX}/lib && ${STRIP_CMD} lib*.so \
 		libKirigamiDelegates.so \
 		libKirigamiPlatform.so \
 		qt6/qml/org/kde/kirigami/delegates/libKirigamiDelegatesplugin.so \
@@ -369,17 +373,27 @@ share/locale/zh_CN/LC_MESSAGES/libkirigami6_qt.qm
 share/locale/zh_TW/LC_MESSAGES/libkirigami6_qt.qm
 
 
-[FILE:277:patches/patch-metainfo.yaml]
---- metainfo.yaml.orig	2025-01-03 15:27:16 UTC
-+++ metainfo.yaml
-@@ -4,6 +4,9 @@ type: functional
- platforms:
-     - name: Linux
-     - name: FreeBSD
-+    - name: DragonFly
-+    - name: NetBSD
-+    - name: MidnightBSD
-     - name: Android
-     - name: iOS
-     - name: Windows
+[FILE:1072:patches/patch-src_imagecolors.cpp]
+--- src/imagecolors.cpp.orig	2026-03-07 20:31:28 UTC
++++ src/imagecolors.cpp
+@@ -250,13 +250,13 @@ static inline int squareDistance(QRgb co
+     // https://en.wikipedia.org/wiki/Color_difference
+     // Using RGB distance for performance, as CIEDE2000 is too complicated
+     if (qRed(color1) - qRed(color2) < 128) {
+-        return 2 * pow(qRed(color1) - qRed(color2), 2) //
+-            + 4 * pow(qGreen(color1) - qGreen(color2), 2) //
+-            + 3 * pow(qBlue(color1) - qBlue(color2), 2);
++        return 2 * pow(qRed(color1) - qRed(color2), 2.0) //
++            + 4 * pow(qGreen(color1) - qGreen(color2), 2.0) //
++            + 3 * pow(qBlue(color1) - qBlue(color2), 2.0);
+     } else {
+-        return 3 * pow(qRed(color1) - qRed(color2), 2) //
+-            + 4 * pow(qGreen(color1) - qGreen(color2), 2) //
+-            + 2 * pow(qBlue(color1) - qBlue(color2), 2);
++        return 3 * pow(qRed(color1) - qRed(color2), 2.0) //
++            + 4 * pow(qGreen(color1) - qGreen(color2), 2.0l) //
++            + 2 * pow(qBlue(color1) - qBlue(color2), 2.0);
+     }
+ }
+ 
 

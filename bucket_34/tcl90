@@ -1886,7 +1886,7 @@ share/man/mann/
  	@for i in tzdata; do \
 
 
-[FILE:1456:patches/patch-unix_configure]
+[FILE:1621:patches/patch-unix_configure]
 --- unix/configure.orig	2025-11-11 16:28:25 UTC
 +++ unix/configure
 @@ -6273,9 +6273,13 @@ fi
@@ -1904,24 +1904,30 @@ share/man/mann/
  
  	    CFLAGS_OPTIMIZE="-O2"
  	    # egcs-2.91.66 on Redhat Linux 6.0 generates lots of warnings
-@@ -6284,12 +6288,15 @@ fi
+@@ -6284,16 +6288,19 @@ fi
  	    #CFLAGS_OPTIMIZE="${CFLAGS_OPTIMIZE} -D__NO_STRING_INLINES -D__NO_MATH_INLINES"
  
  	    SHLIB_LD='${CC} ${CFLAGS} ${LDFLAGS} -shared'
 +	    TCL_SHLIB_LD_EXTRAS="-Wl,-soname,libtcl${TCL_TRIM_DOTS}.so.1"
  	    DL_OBJS="tclLoadDl.o"
 -	    DL_LIBS="-ldl"
- 	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
+-	    LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
  
  	    case $system in
 -	    DragonFly-*|FreeBSD-*)
 +	    Linux*|GNU*)
 +		DL_LIBS="-ldl"
++	        LDFLAGS="$LDFLAGS -Wl,--export-dynamic"
 +		;;
 +	    DragonFly-*|FreeBSD-*|NetBSD-*|MidnightBSD-*)
  		# The -pthread needs to go in the LDFLAGS, not LIBS
  		LIBS=`echo $LIBS | sed s/-pthread//`
  		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+-		LDFLAGS="$LDFLAGS $PTHREAD_LIBS"
++		LDFLAGS="$LDFLAGS -Wl,--export-dynamic $PTHREAD_LIBS"
+ 	    ;;
+ 	    esac
+ 
 @@ -6411,7 +6418,7 @@ fi
  	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
  	    TCL_LIB_VERSIONS_OK=nodots
@@ -1945,4 +1951,18 @@ share/man/mann/
      rm -f "$Dir/$Target" "$Dir/$Target.*"
      if test -z "$First" ; then
  	First=$Target
+
+
+[FILE:451:patches/patch-unix_tclUnixCompat.c]
+--- unix/tclUnixCompat.c.orig	2025-11-11 16:22:57 UTC
++++ unix/tclUnixCompat.c
+@@ -102,7 +102,7 @@ static Tcl_Mutex compatLock;
+ static int		CopyGrp(struct group *tgtPtr, char *buf, int buflen);
+ #endif
+ 
+-#if !defined(HAVE_GETPWNAM_R_5) && !defined(HAVE_GETPWNAM_R_4)
++#if !defined(HAVE_GETPWNAM_R_5) && !defined(HAVE_GETPWNAM_R_4) || defined(__sun)
+ #define NEED_COPYPWD 1
+ static int		CopyPwd(struct passwd *tgtPtr, char *buf, int buflen);
+ #endif
 

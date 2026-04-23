@@ -54,6 +54,9 @@ RC_SUBR=		shadowsocks_libev:primary
 
 LDFLAGS=		-lpthread
 CMAKE_ARGS=		-Wno-dev
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+			CFLAGS=-D__EXTENSIONS__
+			CFLAGS=-D_XOPEN_SOURCE=600
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/ss-[lmrt]*
@@ -201,13 +204,45 @@ share/doc/shadowsocks-libev/
  #endif
 
 
-[FILE:418:patches/patch-src_redir.c]
+[FILE:578:patches/patch-libcork_src_libcork_posix_subprocess.c]
+--- libcork/src/libcork/posix/subprocess.c.orig	2019-07-24 14:01:14 UTC
++++ libcork/src/libcork/posix/subprocess.c
+@@ -460,7 +460,7 @@ cork_subprocess_start(struct cork_subpro
+ #if defined(__APPLE__)
+ #include <pthread.h>
+ #define THREAD_YIELD   pthread_yield_np
+-#elif defined(__linux__) || defined(BSD) || defined(__FreeBSD_kernel__) || defined(__GNU__) || defined(__CYGWIN__)
++#elif defined(__linux__) || defined(BSD) || defined(__FreeBSD_kernel__) || defined(__GNU__) || defined(__CYGWIN__) || defined(__sun__)
+ #include <sched.h>
+ #define THREAD_YIELD   sched_yield
+ #else
+
+
+[FILE:237:patches/patch-src_local.c]
+--- src/local.c.orig	2026-02-09 01:15:12 UTC
++++ src/local.c
+@@ -39,6 +39,9 @@
+ #include <netdb.h>
+ #include <netinet/in.h>
+ #endif
++#if defined(__sun)
++#include <netinet/tcp.h>
++#endif
+ #ifdef LIB_ONLY
+ #include "shadowsocks.h"
+ #endif
+
+
+[FILE:474:patches/patch-src_redir.c]
 --- src/redir.c.orig	2026-02-09 01:15:12 UTC
 +++ src/redir.c
-@@ -37,9 +37,15 @@
+@@ -37,9 +37,18 @@
  #include <unistd.h>
  #include <getopt.h>
  #include <limits.h>
++#if defined(__sun__)
++#include <netinet/tcp.h>
++#endif
 +#if defined(__linux__)
  #include <linux/if.h>
  #include <linux/netfilter_ipv4.h>
@@ -220,6 +255,38 @@ share/doc/shadowsocks-libev/
  
  #include <libcork/core.h>
  
+
+
+[FILE:244:patches/patch-src_server.c]
+--- src/server.c.orig	2025-01-20 03:11:47 UTC
++++ src/server.c
+@@ -51,6 +51,10 @@
+ #define SET_INTERFACE
+ #endif
+ 
++#if defined(__sun__)
++#include <netinet/tcp.h>
++#endif
++
+ #ifdef USE_NFTABLES
+ #include <ctype.h>
+ #include <linux/netfilter.h>
+
+
+[FILE:225:patches/patch-src_tunnel.c]
+--- src/tunnel.c.orig	2025-01-20 03:11:47 UTC
++++ src/tunnel.c
+@@ -46,6 +46,10 @@
+ #define SET_INTERFACE
+ #endif
+ 
++#if defined(__sun__)
++#include <netinet/tcp.h>
++#endif
++
+ #include <libcork/core.h>
+ 
+ #include "netutils.h"
 
 
 [FILE:405:patches/patch-src_udprelay.c]

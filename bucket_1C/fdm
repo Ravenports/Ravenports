@@ -40,6 +40,8 @@ CONFIGURE_ARGS=		--sysconfdir={{PREFIX}}/etc
 
 CFLAGS=			-DPCRE
 LDFLAGS=		-lpcre
+VAR_OPSYS[sunos]=	CFLAGS=-DMAXHOSTNAMELEN=256
+			LDFLAGS=-lsocket
 VAR_OPSYS[netbsd]=	CFLAGS=-D_OPENBSD_SOURCE
 
 post-patch:
@@ -89,4 +91,100 @@ share/doc/fdm/
 [FILE:47:manifests/plist.man]
 share/man/man1/fdm.1
 share/man/man5/fdm.conf.5
+
+
+[FILE:848:patches/patch-fdm.h]
+--- fdm.h.orig	2023-01-09 11:20:17 UTC
++++ fdm.h
+@@ -38,6 +38,7 @@
+ #include <signal.h>
+ #include <stdarg.h>
+ #include <stdint.h>
++#include <limits.h>
+ #ifndef _PUBLIC_
+ #define _PUBLIC_
+ #endif
+@@ -695,12 +696,12 @@ enum cmp {
+ };
+ 
+ /* Configuration file (used by parser). */
+-struct file {
++struct fdm_file {
+ 	FILE		*f;
+ 	int		 line;
+ 	const char	*path;
+ };
+-ARRAY_DECL(files, struct file *);
++ARRAY_DECL(files, struct fdm_file *);
+ 
+ #ifndef HAVE_SETRESUID
+ #define setresuid(r, e, s) setreuid(r, e)
+@@ -746,7 +747,7 @@ int			yylex(void);
+ /* parse.y */
+ extern struct macros	parse_macros;
+ extern struct files	parse_filestack;
+-extern struct file     *parse_file;
++extern struct fdm_file *parse_file;
+ extern struct strb     *parse_tags;
+ int			parse_conf(const char *, struct strings *);
+ __dead printflike1 void yyerror(const char *, ...);
+
+
+[FILE:555:patches/patch-fetch-maildir.c]
+--- fetch-maildir.c.orig	2023-01-09 11:20:17 UTC
++++ fetch-maildir.c
+@@ -169,13 +169,15 @@ fetch_maildir_poll(struct account *a)
+ 		}
+ 
+ 		while ((dp = readdir(dirp)) != NULL) {
++#if defined(__sun)
++			if (fstatat(dirfd(dirp), dp->d_name, &sb, 0) == 0 &&
++			     S_ISREG(sb.st_mode)) {
++#else
+ 			if (dp->d_type == DT_REG) {
++#endif
+ 				data->total++;
+ 				continue;
+ 			}
+-			if (dp->d_type != DT_UNKNOWN)
+-				continue;
+-
+ 			if (ppath(entry, sizeof entry, "%s/%s", path,
+ 			    dp->d_name) != 0) {
+ 				log_warn("%s: %s: printpath", a->name, path);
+
+
+[FILE:470:patches/patch-mail-time.c]
+--- mail-time.c.orig	2023-01-09 11:20:17 UTC
++++ mail-time.c
+@@ -70,9 +70,15 @@ tzlookup(const char *tz, int *off)
+ 	tm = localtime(&t);
+ 
+ 	/* And work out the timezone. */
++#if defined(__sun)
++	if (strcmp(tz, tzname[tm->tm_isdst > 0 ? 1 : 0]) != 0)
++		goto error;
++	*off = -timezone + (tm->tm_isdst > 0 ? 3600 : 0);
++#else
+ 	if (strcmp(tz, tm->tm_zone) != 0)
+ 		goto error;
+ 	*off = tm->tm_gmtoff;
++#endif
+ 
+ 	/* Restore the old timezone. */
+ 	if (saved_tz != NULL) {
+
+
+[FILE:254:patches/patch-parse.y]
+--- parse.y.orig	2023-01-09 11:20:17 UTC
++++ parse.y
+@@ -44,7 +44,7 @@ ARRAY_DECL(, struct rule *) parse_rulest
+ struct rule	*parse_rule;
+ 
+ struct files	 parse_filestack;
+-struct file	*parse_file;
++struct fdm_file	*parse_file;
+ 
+ int		 yyparse(void);
+ 
 

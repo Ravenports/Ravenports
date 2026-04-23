@@ -79,6 +79,9 @@ CONFIGURE_ARGS=		--enable-languages="c,c++,ada,fortran"
 			--disable-libmpx
 			--disable-libcilkrts
 			--with-pkgversion="Ravenports"
+CONFIGURE_ENV=		LINKER=bfd
+
+MAKE_ENV=		LINKER=bfd
 
 INSTALL_TARGET=		install-strip
 PLIST_SUB=		GCCVER=14.2.0
@@ -144,6 +147,10 @@ post-patch-linux:
 	# undo BSD thin socket modification
 	${MV} ${WRKSRC}/gcc/ada/libgnat/g-socthi.ads.orig \
 		${WRKSRC}/gcc/ada/libgnat/g-socthi.ads
+
+post-install-freebsd:
+	# unclear why this is happened on freebsd 14.2.  Remove on next release of ravensys-gcc
+	(cd ${STAGEDIR}${PREFIX}/lib/gcc/${CONFIGURE_TARGET}/14.2.0 && ${CP} -a crtbegin.o crtbeginT.o)
 
 post-install:
 	cp ${STAGEDIR}${PREFIX}/bin/gcc ${STAGEDIR}${PREFIX}/bin/cc
@@ -225,7 +232,7 @@ f2f5e7f386a807b8ee28572360471bc222fef7d599cb7cbabbbc4fd6564deeea         6705 ra
 0c943f75b1c8d03233f3947148a0aaa2e083418b1e89a4cfed8e8cd401a51bba         1894 ravensys-gcc_mixed/patch-diff-gcc-testsuite
 
 
-[FILE:28738:manifests/plist.compilers]
+[FILE:28764:manifests/plist.compilers]
 %%ASLIB%%/
  libatomic.a
  libatomic.so
@@ -257,6 +264,7 @@ f2f5e7f386a807b8ee28572360471bc222fef7d599cb7cbabbbc4fd6564deeea         6705 ra
 %%ONLY-DRAGONFLY%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/i386/dragonfly.h
 %%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
+ crtbeginT.o
  crtendS.o
 %%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-FREEBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/
@@ -287,6 +295,7 @@ f2f5e7f386a807b8ee28572360471bc222fef7d599cb7cbabbbc4fd6564deeea         6705 ra
  linux64.h
 %%ONLY-MIDNIGHTBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/
  crtbeginS.o
+ crtbeginT.o
  crtendS.o
 %%ONLY-MIDNIGHTBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/include/tgmath.h
 %%ONLY-MIDNIGHTBSD%%lib/gcc/%%TARGET%%/%%GCCVER%%/plugin/include/config/

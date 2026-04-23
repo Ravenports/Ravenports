@@ -72,3 +72,77 @@ share/doc/fheroes2/
 share/doc/fheroes2/demo/download_demo_version.sh
 share/doc/fheroes2/homm2/extract_homm2_resources.sh
 
+
+[FILE:511:patches/patch-src_engine_math__tools.cpp]
+--- src/engine/math_tools.cpp.orig	2026-02-24 10:45:33 UTC
++++ src/engine/math_tools.cpp
+@@ -28,7 +28,7 @@ double fheroes2::GetAngle( const Point &
+ {
+     const int dx = target.x - start.x;
+     const int dy = target.y - start.y;
+-    double angle = atan2( -dy, dx ) * 180.0 / M_PI;
++    double angle = atan2( static_cast<double>(-dy), static_cast<double>(dx) ) * 180.0 / M_PI;
+     // we only care about two quadrants, normalize
+     if ( dx < 0 ) {
+         angle = ( dy <= 0 ) ? 180 - angle : -angle - 180;
+
+
+[FILE:743:patches/patch-src_engine_serialize.cpp]
+--- src/engine/serialize.cpp.orig	2026-02-24 10:45:33 UTC
++++ src/engine/serialize.cpp
+@@ -90,12 +90,14 @@ IStreamBase & IStreamBase::operator>>( c
+     return *this;
+ }
+ 
++#if !(defined(__sun) && defined(_CHAR_IS_SIGNED))
+ IStreamBase & IStreamBase::operator>>( int8_t & v )
+ {
+     v = static_cast<int8_t>( get8() );
+ 
+     return *this;
+ }
++#endif
+ 
+ IStreamBase & IStreamBase::operator>>( uint8_t & v )
+ {
+@@ -170,12 +172,14 @@ OStreamBase & OStreamBase::operator<<( c
+     return *this;
+ }
+ 
++#if !(defined(__sun) && defined(_CHAR_IS_SIGNED))
+ OStreamBase & OStreamBase::operator<<( const int8_t v )
+ {
+     put8( static_cast<uint8_t>( v ) );
+ 
+     return *this;
+ }
++#endif
+ 
+ OStreamBase & OStreamBase::operator<<( const uint8_t v )
+ {
+
+
+[FILE:825:patches/patch-src_engine_serialize.h]
+--- src/engine/serialize.h.orig	2026-02-24 10:45:33 UTC
++++ src/engine/serialize.h
+@@ -180,7 +180,9 @@ public:
+ 
+     IStreamBase & operator>>( bool & v );
+     IStreamBase & operator>>( char & v );
++#if !(defined(__sun) && defined(_CHAR_IS_SIGNED))
+     IStreamBase & operator>>( int8_t & v );
++#endif
+     IStreamBase & operator>>( uint8_t & v );
+     IStreamBase & operator>>( int16_t & v );
+     IStreamBase & operator>>( uint16_t & v );
+@@ -314,7 +316,9 @@ public:
+ 
+     OStreamBase & operator<<( const bool v );
+     OStreamBase & operator<<( const char v );
++#if !(defined(__sun) && defined(_CHAR_IS_SIGNED))
+     OStreamBase & operator<<( const int8_t v );
++#endif
+     OStreamBase & operator<<( const uint8_t v );
+     OStreamBase & operator<<( const int16_t v );
+     OStreamBase & operator<<( const uint16_t v );
+

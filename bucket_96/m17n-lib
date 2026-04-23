@@ -60,6 +60,11 @@ SOVERSION=		0.4.2
 pre-configure-netbsd:
 	${REINPLACE_CMD} -e 's/ -ldl//' ${WRKSRC}/src/Makefile.am
 
+pre-configure:
+	# alloca is not handled, and it's affecting more than a dozen files
+	${GREP} -lr "alloca (" ${WRKSRC}/src ${WRKSRC}/example | ${XARGS} \
+		${REINPLACE_CMD} -e 's|alloca (|__builtin_alloca (|'
+
 [FILE:730:descriptions/desc.primary]
 The m17n library provides following facilities to handle multilingual
 text.
