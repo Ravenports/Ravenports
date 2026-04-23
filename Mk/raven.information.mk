@@ -120,8 +120,8 @@ ICU_LX_REVISION=		0
 # libxml2
 # ------------------------------------------------------------------------
 
-LIBXML2_VERSION=		2.15.2
-LIBXML2_REVISION=		1
+LIBXML2_VERSION=		2.15.3
+LIBXML2_REVISION=		0
 LIBXML2_PYTHON_REVISION=	0
 
 # ------------------------------------------------------------------------
@@ -157,7 +157,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.52
-GTK4_PORT_VERSION=		4.22.1
+GTK4_PORT_VERSION=		4.22.3
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
