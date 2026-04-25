@@ -2,10 +2,11 @@
 
 NAMEBASE=		gobject-introspection
 VERSION=		1.86.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		devel
-VARIANTS=		std
+VARIANTS=		std bootstrap
 SDESC[std]=		Introspection data generator for GObject libraries
+SDESC[bootstrap]=	Version of introspection needed to build glib
 HOMEPAGE=		http://live.gnome.org/GObjectIntrospection
 CONTACT=		nobody
 
@@ -18,15 +19,21 @@ SPKGS[std]=		set
 			primary
 			dev
 			man
+SPKGS[bootstrap]=	set
+			primary
+			dev
+			man
 
-OPTIONS_AVAILABLE=	CAIRO
-OPTIONS_STANDARD=	CAIRO
+OPTIONS_AVAILABLE=	CAIRO BOOT
+OPTIONS_STANDARD=	CAIRO BOOT
+VOPTS[bootstrap]=	CAIRO=OFF BOOT=ON
 OPT_ON[all]=		CAIRO
 
 RUN_DEPENDS=		python-setuptools:single:python_used
+EXRUN[dev]=		glib:dev:bootstrap/bootstrap
 
-USES=			bison meson pkgconfig shebangfix
-GNOME_COMPONENTS=	glib
+USES=			bison meson pkgconfig shebangfix gettext
+			python:build
 
 LICENSE=		GPLv2+:primary LGPL21+:primary
 LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
@@ -43,6 +50,12 @@ INSTALL_TARGET=		install-strip
 
 MOUNT_PROCFS=		yes
 
+[BOOT].DESCRIPTION=			Variant exists to build glib (std)
+[BOOT].BUILDRUN_DEPENDS_OFF=		glib:primary:std
+[BOOT].BUILDRUN_DEPENDS_ON=		glib:primary:bootstrap
+[BOOT].BUILD_DEPENDS_OFF=		glib:dev:std
+[BOOT].BUILD_DEPENDS_ON=		glib:dev:bootstrap
+
 [CAIRO].DESCRIPTION=			Include cairo for tests
 [CAIRO].CONFIGURE_ARGS_OFF=		-Dcairo=disabled
 [CAIRO].GNOME_COMPONENTS_ON=		cairo
@@ -51,12 +64,6 @@ post-install:
 	# remove artifacts from doctemplates fix
 	${FIND} ${STAGEDIR}${PREFIX}/lib/gobject-introspection/giscanner/doctemplates \
 		-type f -name "meson.build*" -delete
-.for base in GLib GModule GObject Gio GioUnix
-	${INSTALL_DATA} ${WRKSRC}/${MESON_BUILD_DIR}/gir/${base}-2.0.typelib \
-		${STAGEDIR}${PREFIX}/lib/girepository-1.0/
-	${INSTALL_DATA} ${WRKSRC}/${MESON_BUILD_DIR}/gir/${base}-2.0.gir \
-		${STAGEDIR}${PREFIX}/share/gir-1.0/
-.endfor
 	# generate python cache to avoid leftover files
 	(cd ${STAGEDIR}${PREFIX}/lib/gobject-introspection/giscanner && python -m compileall -d / . ||:)
 
@@ -78,7 +85,7 @@ introspection data.
 920d1a3fcedeadc32acff95c2e203b319039dd4b4a08dd1a2dfd283d19c0b9ae      1083172 gnome3/gobject-introspection-1.86.0.tar.xz
 
 
-[FILE:4764:manifests/plist.primary]
+[FILE:4588:manifests/plist.primary]
 %%ONLY-DRAGONFLY%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-FREEBSD%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%.so
 %%ONLY-LINUX%%lib/gobject-introspection/giscanner/_giscanner.cpython-%%PYTHON_SUFFIX%%%%PYTHON_ABIVER%%-x86_64-linux-gnu.so
@@ -99,11 +106,6 @@ lib/girepository-1.0/
  DBusGLib-1.0.typelib
  GIRepository-2.0.typelib
  GL-1.0.typelib
- GLib-2.0.typelib
- GModule-2.0.typelib
- GObject-2.0.typelib
- Gio-2.0.typelib
- GioUnix-2.0.typelib
  Vulkan-1.0.typelib
  cairo-1.0.typelib
  fontconfig-2.0.typelib
@@ -244,11 +246,6 @@ share/gir-1.0/
  DBusGLib-1.0.gir
  GIRepository-2.0.gir
  GL-1.0.gir
- GLib-2.0.gir
- GModule-2.0.gir
- GObject-2.0.gir
- Gio-2.0.gir
- GioUnix-2.0.gir
  Vulkan-1.0.gir
  cairo-1.0.gir
  fontconfig-2.0.gir
@@ -324,55 +321,6 @@ share/man/man1/
  g-ir-scanner.1
 
 
-[FILE:1232:patches/patch-gir_meson.build]
-$NetBSD: patch-gir_meson.build,v 1.7 2026/01/05 14:49:02 ryoon Exp $
-
---- gir/meson.build.orig	2025-09-13 11:08:06 UTC
-+++ gir/meson.build
-@@ -384,7 +384,6 @@ gio_command = scanner_command + [
-   '--identifier-prefix=G',
-   '--symbol-prefix=g',
-   '--c-include=gio/gio.h',
--  '--namespace=Gio',
-   '--nsversion=2.0',
-   '--library=gio-2.0',
- ]
-@@ -470,12 +469,33 @@ gio_gir = custom_target('gir-gio',
-     '-DGIO_COMPILATION',
-     '-DG_SETTINGS_ENABLE_BACKEND',
-     '--cflags-end',
-+    '--namespace=Gio',
-     '@INPUT@',
-   ]
- )
- 
- uninstalled_gir_files += gio_gir
- 
-+gio_unix_gir = custom_target('gir-gio-unix',
-+  input: gio_files,
-+  output: 'GioUnix-2.0.gir',
-+  depends: [gobject_gir, gir_giscanner_pymod, gio_gir_dep, gdump],
-+  depend_files: gir_giscanner_built_files,
-+  env: g_ir_scanner_env,
-+  command: gio_command + [
-+    '--include-uninstalled=' + gobject_gir.full_path(),
-+    '--cflags-begin'] + glib_includes + extra_giscanner_cflags + [
-+    '-DGIO_COMPILATION',
-+    '-DG_SETTINGS_ENABLE_BACKEND',
-+    '--cflags-end',
-+    '--namespace=GioUnix',
-+    '--pkg-export=gio-unix-2.0',
-+    '@INPUT@',
-+  ]
-+)
-+
-+uninstalled_gir_files += gio_unix_gir
-+
- # GIRepository
- 
- girepository_command = scanner_command + [
-
-
 [FILE:933:patches/patch-giscanner_ast.py]
 $NetBSD: patch-giscanner_ast.py,v 1.4 2025/01/14 14:40:52 ryoon Exp $
 
@@ -424,24 +372,6 @@ $NetBSD: patch-giscanner_ast.py,v 1.4 2025/01/14 14:40:52 ryoon Exp $
              args.append('-Wl,--no-as-needed')
  
          for library in libraries:
-
-
-[FILE:692:patches/patch-giscanner_maintransformer.py]
-$NetBSD: patch-giscanner_maintransformer.py,v 1.1 2026/01/05 14:49:02 ryoon Exp $
-
-* For building GioUnix too.
-
---- giscanner/maintransformer.py.orig	2025-12-07 09:37:11.904841636 +0000
-+++ giscanner/maintransformer.py
-@@ -1215,7 +1215,7 @@ the ones that failed to resolve removed.
-             short = short[:-len('_quark')]
-             if full == "g_io_error":
-                 # Special case; GIOError was already taken forcing GIOErrorEnum
--                assert self._namespace.name == 'Gio'
-+                # assert self._namespace.name == 'Gio'
-                 enum = self._namespace.get('IOErrorEnum')
-             else:
-                 enum = self._uscore_type_names.get(short)
 
 
 [FILE:706:patches/patch-giscanner_scannerlexer.l]
