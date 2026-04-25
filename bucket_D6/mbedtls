@@ -3,8 +3,9 @@
 NAMEBASE=		mbedtls
 VERSION=		4.1.0
 KEYWORDS=		security devel
-VARIANTS=		std
+VARIANTS=		std threaded
 SDESC[std]=		Light-weight cryptographic and SSL/TLS library
+SDESC[threaded]=	Light-weight SSL/TLS library with thread support
 HOMEPAGE=		https://www.trustedfirmware.org/projects/mbed-tls/
 CONTACT=		nobody
 
@@ -16,12 +17,17 @@ SPKGS[std]=		set
 			primary
 			tools
 			dev
+SPKGS[threaded]=	set
+			primary
+			tools
+			dev
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	THREAD
+OPTIONS_STANDARD=	THREAD
+VOPTS[threaded]=	THREAD=ON
 
 BUILD_DEPENDS=		python-Jinja2:single:python_used
-EXRUN[tools]=		mbedtls:primary:std
+EXRUN[tools]=		primary
 
 USES=			cpe cmake perl:build python:build
 
@@ -47,6 +53,13 @@ PLIST_SUB=		SO_TLS=23
 CMAKE_ARGS=		-DENABLE_TESTING:BOOL=OFF
 			-DUSE_SHARED_MBEDTLS_LIBRARY:BOOL=ON
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
+
+[THREAD].DESCRIPTION=			Enable multithreading
+[THREAD].CMAKE_ARGS_ON=			-DLINK_WITH_PTHREAD:BOOL=ON
+
+pre-configure-THREAD-ON:
+	${PYTHON_CMD} ${WRKSRC}/scripts/config.py set MBEDTLS_THREADING_C
+	${PYTHON_CMD} ${WRKSRC}/scripts/config.py set MBEDTLS_THREADING_PTHREAD
 
 post-install:
 	# correct obvious bug in CMakeList.txt wrt DESTDIR
