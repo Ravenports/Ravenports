@@ -2,6 +2,7 @@
 
 NAMEBASE=		erlang
 VERSION=		28.5
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		std
 SDESC[std]=		Concurrent functional programming language
@@ -34,7 +35,11 @@ BUILD_DEPENDS=		autoconf:primary:std
 			wxWidgets:dev:std
 BUILDRUN_DEPENDS=	wxWidgets:primary:std
 
-USES=			cpe gmake ncurses perl:build ssl zlib
+USERS=			beam
+GROUPS=			beam
+USERGROUP_SPKG=		primary
+
+USES=			cpe gmake ncurses perl:build ssl zlib smf:primary
 XORG_COMPONENTS=	x11
 
 DISTNAME=		otp-OTP-28.5
@@ -46,6 +51,7 @@ LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE.txt
 LICENSE_SCHEME=		solo
 
 FPC_EQUIVALENT=		lang/erlang
+SMF_NAME=		epmd
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--without-dynamic-trace
@@ -136,9 +142,14 @@ PLIST_SUB=		COMPILER_VSN={{COMPILER_VSN}}
 			PARTOOLS_VSN={{PARTOOLS_VSN}}
 			PARTOOLS_DOC_VSN={{PARTOOLS_DOC_VSN}}
 			RELEASE=28
+			OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		epmd:primary
 SUB_FILES=		messages-primary.ucl
+			manifest.xml
 SUB_LIST=		TOOLS_VSN={{TOOLS_VSN}}
+			OWN={{USERS}}
+			GRP={{GROUPS}}
 
 CFLAGS=			-I{{NCURSESINC}}
 VAR_OPSYS[freebsd]=	CFLAGS=-DMAP_NORESERVE=0
@@ -191,6 +202,8 @@ post-install:
 	${FIND} ${STAGEDIR} -type d -name "chunks" | xargs ${RM} -r
 	# Do empty directory cleanup last
 	${FIND} ${STAGEDIR}${PREFIX}/lib/${ERLANG_LIB}/* -type d -empty -delete
+	# create var/run directory
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/epmd
 
 post-extract:
 	${AWK} '/%CopyrightBegin%/,/%CopyrightEnd%/' \
@@ -212,7 +225,7 @@ ef2fb9d15d35f3b1b602c8578e48618597477f9cfab2d103dc2e22372c46ca0a       883639 er
 da585b914eb07350e2d6f727db5eb0fb1551f49fc1270f7d4dc079f2c8c1ab7a       859249 erlang/armstrong_thesis_2003.pdf
 
 
-[FILE:66098:manifests/plist.primary]
+[FILE:66138:manifests/plist.primary]
 %%ONLY-SUNOS%%lib/erlang/lib/os_mon-%%OSMON_VSN%%/priv/bin/
  ferrule
  mod_syslog
@@ -3482,6 +3495,7 @@ lib/erlang/releases/%%RELEASE%%/
  start_sasl.boot
  start_sasl.rel
  start_sasl.script
+@dir(%%OWN%%,%%GRP%%,0750) var/run/epmd
 
 
 [FILE:3790:manifests/plist.dev]
@@ -7576,32 +7590,78 @@ lib/erlang/lib/wx-%%WX_DOC_VSN%%/examples/sudoku/
  leex_verbose = $(leex_verbose_$(V))
 
 
-[FILE:448:files/epmd.in]
+[FILE:571:files/epmd.in]
 #!/bin/sh
-#
-# $FreeBSD: head/lang/erlang/files/epmd.in 340872 2014-01-24 00:14:07Z mat $
-#
+
 # PROVIDE: epmd
-# REQUIRE: LOGIN
+# REQUIRE: DAEMON mountlate
 #
 # Add the following line to /etc/rc.conf to enable epmd:
 #
 # epmd_enable="YES"
 #
-
-epmd_enable=${epmd_enable:-"NO"}
+# Configure optional flags with:
+# epmd_opts="-address 127.0.0.1"
 
 . /etc/rc.subr
 
 name=epmd
 rcvar=epmd_enable
 
-procname=%%PREFIX%%/bin/epmd
-start_cmd="%%PREFIX%%/bin/epmd -daemon"
-stop_cmd="%%PREFIX%%/bin/epmd -kill >/dev/null"
-
 load_rc_config ${name}
+
+: ${epmd_enable="NO"}
+: ${epmd_opts:-""}
+: ${epmd_user="beam"}
+
+procname="daemon"
+pidfile="%%PREFIX%%/var/run/epmd/epmd.pid"
+command="/usr/sbin/daemon"
+command_args="-f -r -P ${pidfile} %%PREFIX%%/bin/epmd ${epmd_opts}"
+command_user="${epmd_user}"
+
+start_precmd="epmd_precmd"
+
 run_rc_command "$1"
+
+
+[FILE:1777:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <method_context working_directory="/">
+            <method_credential user="%%OWN%%" group="%%GRP%%"/>
+        </method_context>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/epmd -daemon -address %{config/address}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="config" type="application">
+            <propval name="address" type="astring" value="127.0.0.1" />
+        </property_group>
+        <property_group name="application" type="application">
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Erlang Port Mapper Daemon
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
 
 
 [FILE:176:files/messages-primary.ucl.in]

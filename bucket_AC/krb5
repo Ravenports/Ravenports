@@ -2,6 +2,7 @@
 
 NAMEBASE=		krb5
 VERSION=		1.22.2
+REVISION=		1
 KEYWORDS=		security
 VARIANTS=		std
 SDESC[std]=		MIT Kerberos 5 authentication system
@@ -25,7 +26,7 @@ OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 USES=			cpe gmake perl:build libtool:build pkgconfig
-			ssl:openssl30 gettext readline
+			ssl:openssl30 gettext readline smf:tools
 
 DISTNAME=		krb5-1.22.2/src
 
@@ -37,13 +38,14 @@ CPE_PRODUCT=		kerberos
 CPE_VENDOR=		mit
 CPE_VERSION=		5-1.22.2
 FPC_EQUIVALENT=		security/krb5
+SMF_NAME=		kpropd
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--enable-shared
 			--with-readline
 			--without-system-verto
 			--disable-rpath
-			--localstatedir="{{PREFIX}}/var"
+			--localstatedir="{{PREFIX}}/var/lib"
 			--runstatedir="{{PREFIX}}/var/run"
 CONFIGURE_ENV=		INSTALL="{{INSTALL}}"
 			INSTALL_LIB="{{INSTALL_LIB}}"
@@ -53,6 +55,7 @@ MAKE_ARGS=		INSTALL="{{INSTALL}}"
 			INSTALL_LIB="{{INSTALL_LIB}}"
 
 RC_SUBR=		kpropd:primary
+SUB_FILES=		manifest.xml
 
 CPPFLAGS=		-I{{OPENSSLINC}}
 LDFLAGS=		-L{{OPENSSLLIB}}
@@ -218,7 +221,7 @@ lib/pkgconfig/
  mit-krb5.pc
 
 
-[FILE:423:manifests/plist.tools]
+[FILE:427:manifests/plist.tools]
 bin/
  compile_et
  gss-client
@@ -253,7 +256,7 @@ share/et/
  et_h.awk
 @dir lib/krb5/plugins/authdata
 @dir lib/krb5/plugins/libkrb5
-@dir var/krb5kdc
+@dir var/lib/krb5kdc
 @dir var/run/krb5kdc
 
 
@@ -683,4 +686,40 @@ load_rc_config $name
 command=%%PREFIX%%/sbin/${name}
 
 run_rc_command "$1"
+
+
+[FILE:1672:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name="krb5_configuration_required" grouping="require_all" restart_on="none" type="path">
+           <service_fmri value="file://localhost%%PREFIX%%/etc/krb5.conf"/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/sbin/kpropd -S" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Kerberos database slave sync daemon
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
 

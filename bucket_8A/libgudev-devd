@@ -20,7 +20,7 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-ONLY_FOR_OPSYS=		dragonfly freebsd netbsd midnightbsd
+ONLY_FOR_OPSYS=		dragonfly freebsd netbsd midnightbsd sunos
 
 BUILD_DEPENDS=		libudev-devd:dev:std
 BUILDRUN_DEPENDS=	libudev-devd:primary:std
@@ -42,6 +42,10 @@ MESON_ARGS=		-Dgtk_doc=false
 
 INSTALL_TARGET=		install-strip
 SOVERSION=		0.3.0
+
+pre-configure-sunos:
+	${REINPLACE_CMD} -e '/version-script/d; /export-dynamic/d' \
+		${WRKSRC}/gudev/meson.build
 
 [FILE:147:descriptions/desc.primary]
 This library provides GObject bindings for libudev.

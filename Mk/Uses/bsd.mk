@@ -15,7 +15,7 @@ _INCLUDE_USES_BSD_MK=	yes
 # -----------------------------------------------------
 # Incorporated in ravenadm
 # -----------------------------------------------------
-#.if opsys in ["freebsd", "dragonfly", "netbsd", "midnightbsd", "openbsd"] 
+#.if opsys in ["freebsd", "dragonfly", "netbsd", "midnightbsd", "openbsd"]
 #
 #.  if ${bsd_ARGS:Mepoll}
 # BUILD_DEPENDS+=	libepoll-shim:dev:std
@@ -30,6 +30,10 @@ _INCLUDE_USES_BSD_MK=	yes
 # BUILD_DEPENDS+=	libinotify:dev:std
 # BUILDRUN_DEPENDS+=	libinotify:primary:std
 #.  endif
+#
+#.endif
+#
+#.if opsys in ["freebsd", "dragonfly", "netbsd", "midnightbsd", "openbsd", "sunos"]
 #
 #.  if ${bsd_ARGS:Mudev}
 # BUILD_DEPENDS+=	libudev-devd:dev:std

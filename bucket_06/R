@@ -2964,9 +2964,18 @@ share/doc/R/manual/images/
  ice.png
 
 
-[FILE:238:patches/patch-configure]
+[FILE:481:patches/patch-configure]
 --- configure.orig	2026-04-24 07:03:17 UTC
 +++ configure
+@@ -4629,7 +4629,7 @@ fi
+ ## As from R 3.2.0 split up -L... and -lR
+ if test "${want_R_shlib}" = yes; then
+   LIBR0="-L\"\$(R_HOME)/lib\$(R_ARCH)\""
+-  LIBR1=-lR
++  LIBR1="-Wl,-rpath,\"\$(R_HOME)/lib\$(R_ARCH)\" -lR"
+ else
+   LIBR0=
+   LIBR1=
 @@ -8662,6 +8662,7 @@ if test $ac_compiler_gnu = yes; then
  else
    GFC=
@@ -3048,6 +3057,36 @@ share/doc/R/manual/images/
  #ifdef TRE_DEBUG
 
 
+[FILE:341:patches/patch-src_include_R.h]
+--- src/include/R.h.orig	2025-03-13 23:02:03 UTC
++++ src/include/R.h
+@@ -78,6 +78,10 @@
+ #include <R_ext/RS.h>
+ /* for R_Calloc, R_Realloc, R_Free, Memcpy, F77_xxxx */
+ 
++/* Compatibility hack for older Rcpp vs newer R-devel */
++#ifndef R_NamespaceRegistry
++#define R_NamespaceRegistry R_NilValue
++#endif
+ 
+ #ifdef __cplusplus
+ extern "C" {
+
+
+[FILE:424:patches/patch-src_include_R__ext_Error.h]
+--- src/include/R_ext/Error.h.orig	2026-03-26 23:02:03 UTC
++++ src/include/R_ext/Error.h
+@@ -39,6 +39,8 @@ extern "C" {
+  * OTOH, '_Noreturn' is an obsolescent (in C23) function specifier.
+  */
+ #if defined NORET
++#elif defined(__cplusplus)
++#  define NORET __attribute__((noreturn))
+ #elif (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202301L)
+ // gcc 15 LLVM clang 19- and Apple clang 17
+ # define NORET [[noreturn]]
+
+
 [FILE:300:patches/patch-src_include_config.h.in]
 --- src/include/config.h.in.orig	2025-03-13 23:02:03 UTC
 +++ src/include/config.h.in
@@ -3074,6 +3113,47 @@ share/doc/R/manual/images/
                       openbsd = "/sbin/sysctl -n hw.ncpuonline 2>/dev/null")
              nm <- names(systems)
              m <- pmatch(nm, R.version$os); m <- nm[!is.na(m)]
+
+
+[FILE:2230:patches/patch-src_library_tools_R_install.R]
+--- src/library/tools/R/install.R.orig	2026-04-10 10:15:01 UTC
++++ src/library/tools/R/install.R
+@@ -756,7 +756,7 @@ if(FALSE) {
+                               nzchar(Sys.which("otool")) &&
+                               nzchar(Sys.which("install_name_tool"))
+             have_solaris_elfedit <- identical(os, "SunOS") &&
+-                                    nzchar(Sys.which("elfedit"))
++                                    file.exists("/usr/bin/elfedit")
+ 
+             hardcoded_paths <- FALSE
+             failed_fix <- FALSE
+@@ -770,7 +770,7 @@ if(FALSE) {
+                 ## changes both rpath and DT_NEEDED paths
+                 for (l in slibs) {
+                     out <- suppressWarnings(
+-                        system(paste("elfedit -re dyn:value", shQuote(l)), intern = TRUE))
++                        system(paste("/usr/bin/elfedit -re dyn:value", shQuote(l)), intern = TRUE))
+                     out <- grep("^[ \t]*\\[[0-9]+\\]", out, value = TRUE)
+                     re <- "^[ \t]*\\[([0-9]+)\\][ \t]+([^ \t]+)[ \t]+([^ \t]+)[ \t]*(.*)"
+                     paths <- gsub(re, "\\4", out)
+@@ -787,7 +787,7 @@ if(FALSE) {
+                         hardcoded_paths <- TRUE
+                         qp <- gsub('([" \\])', "\\\\\\1", paths[i])
+                         qp <- gsub("'", "\\\\'", qp)
+-                        cmd <- paste0("elfedit -e \"dyn:value -dynndx -s ",
++                        cmd <- paste0("/usr/bin/elfedit -e \"dyn:value -dynndx -s ",
+                                      idxs[i], " ", qp, "\" ", shQuote(l))
+                         message(cmd)
+                         ret <- suppressWarnings(system(cmd, intern = FALSE))
+@@ -795,7 +795,7 @@ if(FALSE) {
+                             message("NOTE: fixed path ", sQuote(old_paths[i]))
+                     }
+                     out <- suppressWarnings(
+-                        system(paste("elfedit -re dyn:value", shQuote(l)), intern = TRUE))
++                        system(paste("/usr/bin/elfedit -re dyn:value", shQuote(l)), intern = TRUE))
+                     out <- grep("^[ \t]*\\[", out, value = TRUE)
+                     paths <- gsub(re, "\\4", out)
+                     if (any(grepl(instdir, paths, fixed = TRUE)))
 
 
 [FILE:853:patches/patch-src_main_Makefile.in]

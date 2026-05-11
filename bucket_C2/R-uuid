@@ -37,3 +37,17 @@ Identifiers).
 [FILE:101:distinfo]
 b1b73b87180d7b15095e6b33092ccf9dbd7ed3177791682711b8151ebbe9025f        81189 CRAN/uuid_1.2-2.tar.gz
 
+
+[FILE:455:patches/patch-src_gen__uuid.c]
+--- src/gen_uuid.c.orig	2026-01-23 00:09:17 UTC
++++ src/gen_uuid.c
+@@ -145,7 +145,7 @@ static int get_node_id(unsigned char *no
+ 	for (i = 0; i < n; i+= ifreq_size(*ifrp) ) {
+ 		ifrp = (struct ifreq *)((char *) ifc.ifc_buf+i);
+ 		strncpy(ifr.ifr_name, ifrp->ifr_name, IFNAMSIZ);
+-#ifdef SIOCGIFHWADDR
++#if defined(SIOCGIFHWADDR) && !defined(__sun)
+ 		if (ioctl(sd, SIOCGIFHWADDR, &ifr) < 0)
+ 			continue;
+ 		a = (unsigned char *) &ifr.ifr_hwaddr.sa_data;
+

@@ -17,20 +17,18 @@ DISTFILE[3]=		bootstrap-golang-1.25.8-linux-x86_64.tzst:ravdist
 DISTFILE[4]=		bootstrap-golang-1.25.8-midnightbsd-x86_64.tzst:ravdist
 DISTFILE[5]=		bootstrap-golang-1.25.8-netbsd-x86_64.tzst:ravdist
 DISTFILE[6]=		bootstrap-golang-1.25.8-freebsd-x86_64.tzst:ravdist
+DISTFILE[7]=		bootstrap-golang-1.25.8-sunos-x86_64.tzst:ravdist
 DF_INDEX=		1
 SPKGS[std]=		single
 
-OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD MIDNIGHT
-			PORTBOOT
-OPTIONS_STANDARD=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD MIDNIGHT
-			PORTBOOT
+OPTIONS_AVAILABLE=	DRAGONFLY FREEBSD LINUX SUNOS NETBSD MIDNIGHT
+OPTIONS_STANDARD=	DRAGONFLY FREEBSD LINUX SUNOS NETBSD MIDNIGHT
 OPTGROUP_RADIO=		SYSTEM
 OPTDESCR[SYSTEM]=	Operating System
-OPTGROUP[SYSTEM]=	DRAGONFLY FREEBSD LINUX SUNOS MACOS NETBSD MIDNIGHT
+OPTGROUP[SYSTEM]=	DRAGONFLY FREEBSD LINUX SUNOS NETBSD MIDNIGHT
 OPT_ON[freebsd]=	FREEBSD
-OPT_ON[sunos]=		SUNOS PORTBOOT
+OPT_ON[sunos]=		SUNOS
 OPT_ON[linux]=		LINUX
-OPT_ON[darwin]=		MACOS PORTBOOT
 OPT_ON[netbsd]=		NETBSD
 OPT_ON[dragonfly]=	DRAGONFLY
 OPT_ON[midnightbsd]=	MIDNIGHT
@@ -67,13 +65,14 @@ SHEBANG_OLD_BASH=	"/usr/bin/env bash"
 
 PLIST_SUB=		opsys_ARCH={{GOSYS}}_{{GOARCH}}
 
+VAR_OPSYS[sunos]=	CPPFLAGS=-D__illumos__
+			MAKE_ENV=CGO_CFLAGS=-D__illumos__
+
 [NETBSD].DESCRIPTION=			build for NetBSD
 [NETBSD].DF_INDEX_ON=			5
 
 [MIDNIGHT].DESCRIPTION=			build for MidnightBSD
 [MIDNIGHT].DF_INDEX_ON=			4
-
-[MACOS].DESCRIPTION=			build for MacOS
 
 [DRAGONFLY].DESCRIPTION=		Build for DragonFly BSD
 [DRAGONFLY].DF_INDEX_ON=		2
@@ -82,13 +81,7 @@ PLIST_SUB=		opsys_ARCH={{GOSYS}}_{{GOARCH}}
 [FREEBSD].DF_INDEX_ON=			6
 
 [SUNOS].DESCRIPTION=			build for Solaris
-
-[PORTBOOT].DESCRIPTION=			Bootstrap with older golang in Ravenports
-[PORTBOOT].BROKEN_ON=			Requires new bootstrap
-[PORTBOOT].MAKEFILE_OFF=		BOOTSTRAP_DIR={{WRKDIR}}/bootstrap/go
-					PREPEND_PATH={{WRKDIR}}/bootstrap/go/bin
-[PORTBOOT].MAKEFILE_ON=			BOOTSTRAP_DIR={{LOCALBASE}}/go121
-					PREPEND_PATH={{LOCALBASE}}/go121/bin
+[SUNOS].DF_INDEX_ON=			7
 
 [LINUX].DESCRIPTION=			build for Linux
 [LINUX].DF_INDEX_ON=			3
@@ -96,7 +89,8 @@ PLIST_SUB=		opsys_ARCH={{GOSYS}}_{{GOARCH}}
 do-build:
 	cd ${WRKSRC}/src && ${SETENV} ${MAKE_ENV} \
 		XDG_CACHE_HOME=${WRKDIR} \
-		GOROOT_BOOTSTRAP=${BOOTSTRAP_DIR} \
+		GOROOT_BOOTSTRAP=${WRKDIR}/bootstrap/go \
+		GOMAXPROCS=${MAKE_JOBS_NUMBER} \
 		GOROOT=${WRKSRC} \
 		GOROOT_FINAL=${PREFIX}/go \
 		GOBIN= GOARCH=${GOARCH} \
@@ -134,13 +128,14 @@ Go is an open source programming language that makes it easy to build
 simple, reliable, and efficient software.
 
 
-[FILE:711:distinfo]
+[FILE:831:distinfo]
 2e91ebb6947a96e9436fb2b3926a8802efe63a6d375dffec4f82aa9dbd6fd43b     34120738 go1.26.2.src.tar.gz
 09e38977f47641e7a83ebfe8d21a42e387c2038ba7d566107a812a983210bc57     42646345 bootstrap-golang-1.25.8-dragonfly-x86_64.tzst
 d0452b3863dbe69926858f1bd00b44e501a3a425c103c77d28ce6fc3078ac2eb     42842256 bootstrap-golang-1.25.8-linux-x86_64.tzst
 16841e297d66e9a489b82c61aa4ef99c60f619ed4d66f16eb2d2d0c002208e18     42721766 bootstrap-golang-1.25.8-midnightbsd-x86_64.tzst
 111d3e9f3887277c2a5cb1758d21393d7718af60a148c90445f5a34e1148b26c     42092433 bootstrap-golang-1.25.8-netbsd-x86_64.tzst
 58400794db5dadeb925301556336165a822c520a28d7ba6bad9c941d64e17723     42462913 bootstrap-golang-1.25.8-freebsd-x86_64.tzst
+6d126b5ed96690dd7fb7f3714b222502e5d0d70f7ee75a291ec46329f29f59f5     42290687 bootstrap-golang-1.25.8-sunos-x86_64.tzst
 
 
 [FILE:143257:manifests/plist.single]
@@ -8350,7 +8345,7 @@ go/src/weak/
  func init() {
 
 
-[FILE:195:files/special.mk]
+[FILE:277:files/special.mk]
 .if ${ARCH_STANDARD} == "x86_64"
 GOARCH=amd64
 .elif ${ARCH_STANDARD} == "i386"
@@ -8361,9 +8356,13 @@ GOARCH=unknown
 
 .if ${OPSYS} == "MidnightBSD"
 GOSYS=freebsd
+.elif ${OPSYS} == "SunOS"
+GOSYS=illumos
 .else
 GOSYS=${OPSYS:tl}
 .endif
+
+PREPEND_PATH={{WRKDIR}}/bootstrap/go/bin
 
 
 [FILE:719:netbsd/patch-src_cmd_link_internal_ld_target.go]

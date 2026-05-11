@@ -2,7 +2,7 @@
 
 NAMEBASE=		dovecot
 VERSION=		2.4.3
-REVISION=		1
+REVISION=		3
 KEYWORDS=		mail
 VARIANTS=		std
 SDESC[std]=		Secure IMAP and POP3 server
@@ -28,12 +28,12 @@ BUILDRUN_DEPENDS=	krb5:primary:std
 			clucene:single:std
 			openldap:client:std
 
-USERS=			dovecot dovenull
-GROUPS=			dovecot dovenull
+USERS=			dovecot dovenull vmail
+GROUPS=			dovecot dovenull vmail
 USERGROUP_SPKG=		primary
 
 USES=			cpe iconv libtool pkgconfig ssl:openssl30 gmake
-			sqlite lz4 zlib perl:build
+			sqlite lz4 zlib perl:build smf:primary
 
 DISTNAME=		dovecot-2.4.3
 
@@ -44,10 +44,11 @@ LICENSE_FILE=		MIT:{{WRKSRC}}/COPYING.MIT
 LICENSE_SCHEME=		dual
 
 FPC_EQUIVALENT=		mail/dovecot
+SMF_NAME=		dovecot
 
 MUST_CONFIGURE=		gnu
-CONFIGURE_ARGS=		--localstatedir=/var
-			--with-statedir=/var/db/dovecot
+CONFIGURE_ARGS=		--localstatedir={{PREFIX}}/var
+			--with-statedir={{PREFIX}}/var/db/dovecot
 			--with-ssl=openssl
 			--with-gssapi
 			--with-lz4
@@ -69,9 +70,13 @@ CONFIGURE_ARGS=		--localstatedir=/var
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
-PLIST_SUB=		REQUIRE="LOGIN"
+PLIST_SUB=		OWN=dovecot
+			GRP=dovecot
+			VMOWN=vmail
+			VMGRP=vmail
 RC_SUBR=		dovecot:primary
 SUB_FILES=		messages-primary.ucl
+			manifest.xml
 SUB_LIST=		REQUIRE=LOGIN
 
 CPPFLAGS=		-I{{OPENSSLINC}}
@@ -82,6 +87,17 @@ VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 			CONFIGURE_ARGS=--with-notify=none
 VAR_OPSYS[netbsd]=	CFLAGS=-D_NETBSD_SOURCE
 VAR_OPSYS[dragonfly]=	CONFIGURE_ENV=i_cv_fd_passing=yes
+
+post-install:
+	# establish sample configuration file
+	${SED} 's|@PREFIX@|${PREFIX}|; s|@HIBERNATE@|${HIBERNATE}|' \
+		${STAGEDIR}${PREFIX}/etc/dovecot/dovecot.conf \
+		> ${STAGEDIR}${PREFIX}/etc/dovecot/dovecot.conf.sample
+	${RM} ${STAGEDIR}${PREFIX}/etc/dovecot/dovecot.conf
+	# create localstatedir
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/dovecot
+	# create vmail directory
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/mail
 
 [FILE:531:descriptions/desc.primary]
 Dovecot is an open source IMAP and POP3 email server for Linux/UNIX-like
@@ -99,14 +115,14 @@ THREAD and IDLE.
 ff0be85228122f250627b19e67505fdb7fb2f72a702ef6bf35f27fce54c072e5      8200648 dovecot-2.4.3.tar.gz
 
 
-[FILE:2201:manifests/plist.primary]
+[FILE:2298:manifests/plist.primary]
+@sample etc/dovecot/dovecot.conf.sample
 %%ONLY-FREEBSD%%%%FREEBSD15%%libexec/dovecot/imap-hibernate
 %%ONLY-LINUX%%libexec/dovecot/imap-hibernate
 bin/
  doveadm
  doveconf
  dovecot-sysreport
-etc/dovecot/dovecot.conf
 lib/dovecot/
  dovecot-config
  lib01_acl_plugin.so
@@ -208,6 +224,8 @@ share/dovecot/stopwords/
  stopwords_ru.txt
  stopwords_sv.txt
  stopwords_tr.txt
+@dir(%%OWN%%,%%GRP%%,0750) var/db/dovecot
+@dir(%%VMOWN%%,%%VMGRP%%,0750) var/mail
 
 
 [FILE:12796:manifests/plist.dev]
@@ -974,6 +992,40 @@ share/doc/dovecot/
  thread-refs.txt
 
 
+[FILE:679:patches/patch-doc_dovecot.conf.in]
+@HIBERNATE@ is replaced with either "#" or ""
+Currently only FreeBSD 15 and Linux support it.
+
+--- doc/dovecot.conf.in.orig	2026-03-25 12:35:43 UTC
++++ doc/dovecot.conf.in
+@@ -24,7 +24,7 @@ protocols {
+   lmtp = yes
+ }
+ 
+-mail_home = /srv/mail/%{user}
++mail_home = @PREFIX@/var/mail/%{user}
+ mail_driver = sdbox
+ mail_path = ~/mail
+ 
+@@ -44,7 +44,12 @@ namespace inbox {
+ passdb pam {
+ }
+ 
+-ssl_server {
+-  cert_file = /etc/dovecot/ssl-cert.pem
+-  key_file = /etc/dovecot/ssl-key.pem
+-}
++ssl = no
++#ssl_server {
++#  cert_file = /etc/dovecot/ssl-cert.pem
++#  key_file = /etc/dovecot/ssl-key.pem
++#}
++
++@HIBERNATE@service imap-hibernate {
++@HIBERNATE@  executable = 
++@HIBERNATE@}
+
+
 [FILE:368:patches/patch-src_lib_lib.h]
 --- src/lib/lib.h.orig	2026-03-25 12:35:43 UTC
 +++ src/lib/lib.h
@@ -1082,24 +1134,59 @@ for config in ${dovecot_config}; do
 done
 
 
-[FILE:1384:files/messages-primary.ucl.in]
+[FILE:1668:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name="dovecot_configuration_required" grouping="require_all" restart_on="none" type="path">
+           <service_fmri value="file://localhost%%PREFIX%%/etc/dovecot/dovecot.conf"/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/sbin/dovecot" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Dovecot IMAP Server
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:1089:files/messages-primary.ucl.in]
 primary-in: {
   type: "install"
   message: <<EOM
- You must create the configuration files yourself. Copy them over
- to %%ETCDIR%% and edit them as desired:
-
- 	cp -R %%ETCDIR%%/example-config/* \
- 		%%ETCDIR%%
+ The default configuration file should be customized.
+ Edit %%ETCDIR%%/dovecot.conf as desired.
 
  The default configuration includes IMAP and POP3 services, will
  authenticate users agains the system's passwd file, and will use
  the default /var/mail/$USER mbox files.
 
- Next, enable dovecot in /etc/rc.conf:
-
+ BSD:
+    Next, enable dovecot in /etc/rc.conf:
  	dovecot_enable="YES"
 
+ SunOS:
+    Use svcadm to enable the "dovecot" service.
 
 ---------------------------------------------------------------------
 
@@ -1112,29 +1199,25 @@ primary-in: {
  If you want to be able to search within attachments using the
  decode2text plugin, you'll need to install textproc/catdoc, and
  one of graphics/xpdf or graphics/poppler-utils.
-
----------------------------------------------------------------------
-
- There are some potentially breaking changes in Dovecot 2.3. If you
- are upgrading from Dovecot 2.2:
- 
-   * Read https://wiki2.dovecot.org/Upgrading/2.3
-   * Merge the configuration file changes from
-     %%ETCDIR%%/examples-config/
 EOM
 }
 primary-out: {
   type: "remove"
-  message: "To clear out remaining data manually, execute 'rm -rf /var/db/dovecot'"
+  message: "To clear out remaining data manually, execute 'rm -rf %%PREFIX%%/var/db/dovecot'"
 }
 
 
-[FILE:132:files/special.mk]
+[FILE:200:files/special.mk]
+HIBERNATE=
+
 .if "${OPSYS}" == "FreeBSD"
 . if "${MAJOR}" == "15"
 PLIST_SUB+=	FREEBSD15=
+HIBERNATE=	\#
 . else
 PLIST_SUB+= 	FREEBSD15="@comment "
 . endif
+.elif "${OPSYS}" == "Linux"
+HIBERNATE=	\#
 .endif
 

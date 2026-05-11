@@ -2,6 +2,7 @@
 
 NAMEBASE=		cyrus-imapd
 VERSION=		3.12.2
+REVISION=		1
 KEYWORDS=		mail
 VARIANTS=		std
 SDESC[std]=		High-performance mail store with IMAP support
@@ -18,10 +19,10 @@ SPKGS[std]=		set
 			dev
 			man
 			docs
-			examples
 
-OPTIONS_AVAILABLE=	none
-OPTIONS_STANDARD=	none
+OPTIONS_AVAILABLE=	SUNOS
+OPTIONS_STANDARD=	SUNOS
+OPT_ON[sunos]=		SUNOS
 
 BUILD_DEPENDS=		brotli:dev:std
 			cyrus-sasl:dev:std
@@ -48,7 +49,7 @@ GROUPS=			cyrus
 USERGROUP_SPKG=		primary
 
 USES=			cpe gmake libtool perl pkgconfig ssl:openssl30
-			shebangfix bison sqlite zlib zstd pcre
+			shebangfix bison sqlite zlib zstd pcre smf:tools
 GNOME_COMPONENTS=	libxml2
 
 LICENSE=		BSD4CLAUSE:primary
@@ -57,18 +58,20 @@ LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		imapd
 CPE_VENDOR=		cyrus
-FPC_EQUIVALENT=		mail/cyrus-imapd32
+FPC_EQUIVALENT=		mail/cyrus-imapd312
 SHEBANG_FILES=		imap/promdatagen
 			tools/config2header
 			tools/masssievec
 			tools/mkimap
 			perl/sieve/scripts/*.pl
 			imap/cyr_cd.sh
+SMF_NAME=		imapd
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--libexecdir={{PREFIX}}/cyrus/libexec
 			--sbindir={{PREFIX}}/cyrus/sbin
 			--sysconfdir={{PREFIX}}/etc
+			--localstatedir="{{PREFIX}}/var"
 			--with-cyrus-user=cyrus
 			--with-sasl={{LOCALBASE}}
 			--with-sqlite={{LOCALBASE}}
@@ -84,7 +87,6 @@ CONFIGURE_ARGS=		--libexecdir={{PREFIX}}/cyrus/libexec
 			--enable-gssapi={{LOCALBASE}}
 			--enable-http
 			--enable-jmap
-			--disable-backup
 			--disable-replication
 			--with-mysql=no
 			--with-pgsql=no
@@ -96,37 +98,33 @@ INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
 MANDIRS=		{{PREFIX}}/cyrus/man
 SOVERSION=		0.0.0
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		imapd:primary
-SUB_FILES=		messages-primary.ucl
-			scripts-primary.ucl
+SUB_FILES=		messages-tools.ucl
+			scripts-tools.ucl
 			cyrus-imapd-man.conf
+			imapd.conf
+			manifest.xml
 SUB_LIST=		CYRUS_USER=cyrus
 			CYRUS_GROUP=cyrus
 
-LDFLAGS=		-Wl,-z,execstack
-
-post-patch:
-	${REINPLACE_CMD} -e "s|/etc/|${PREFIX}/etc/|" \
-			  -e "s|%%CYRUS_USER%%|cyrus|g" \
-			  -e "s|%%CYRUS_GROUP%%|cyrus|g" \
-		${WRKSRC}/tools/mkimap
-	${REINPLACE_CMD} -e "s|/etc/|${PREFIX}/etc/|g" \
-			  -e "s|/usr/sieve|/var/imap/sieve|g" \
-		${WRKSRC}/tools/masssievec
-	${REINPLACE_CMD} \
-		-e 's|$$(mandir)/\(man[1358]\)|${PREFIX}/cyrus/man/\1|g' \
-		${WRKSRC}/Makefile.in
+[SUNOS].LDFLAGS_OFF=			-Wl,-z,execstack
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Cyrus/IMAP/IMAP.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/${SITE_ARCH_REL}/auto/Cyrus/SIEVE/managesieve/managesieve.so
-	${MKDIR} ${STAGEDIR}${STD_EXAMPLESDIR}
 	${MKDIR} ${STAGEDIR}${PREFIX}/etc/man.d
-	${INSTALL_DATA} ${FILESDIR}/imapd.conf \
-		${STAGEDIR}${STD_EXAMPLESDIR}
-	${SED} -e 's,/run/cyrus/socket,/var/imap/socket,' \
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/imap/sieve
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/lib/imap
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/imap/socket
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/spool/imap
+	${MKDIR} ${STAGEDIR}${PREFIX}/cyrus
+	${INSTALL_DATA} ${WRKDIR}/imapd.conf \
+		${STAGEDIR}${PREFIX}/etc/imapd.conf.sample
+	${SED} -e 's,/run/cyrus/socket,${PREFIX}/var/run/imap/socket,' \
 		${WRKSRC}/doc/examples/cyrus_conf/normal.conf \
-		> ${STAGEDIR}${STD_EXAMPLESDIR}/cyrus.conf
+		> ${STAGEDIR}${PREFIX}/etc/cyrus.conf.sample
 	${INSTALL_SCRIPT} ${WRKSRC}/tools/mkimap \
 		${STAGEDIR}${PREFIX}/cyrus/sbin/mkimap
 	${INSTALL_SCRIPT} ${WRKSRC}/tools/masssievec \
@@ -138,6 +136,20 @@ post-install:
 	cd ${WRKSRC}/doc && ${COPYTREE_SHARE} . ${STAGEDIR}${STD_DOCDIR} \
 		"! \( -path */html/_sources* -o -name .buildinfo \)"
 	${RM} -r ${STAGEDIR}${DOCSDIR}/rst ${STAGEDIR}${STD_DOCDIR}/source
+
+pre-configure:
+	${REINPLACE_CMD} -e "s|/etc/|${PREFIX}/etc/|" \
+			  -e "s|%%CYRUS_USER%%|cyrus|g" \
+			  -e "s|%%CYRUS_GROUP%%|cyrus|g" \
+		${WRKSRC}/tools/mkimap
+.for f in masssievec translatesieve
+	${REINPLACE_CMD} -e "s|/etc/|${PREFIX}/etc/|g" \
+			  -e "s|/usr/sieve|${PREFIX}/var/db/imap/sieve|g" \
+		${WRKSRC}/tools/${f}
+.endfor
+	${REINPLACE_CMD} \
+		-e 's|$$(mandir)/\(man[1358]\)|${PREFIX}/cyrus/man/\1|g' \
+		${WRKSRC}/Makefile.in
 
 [FILE:1060:descriptions/desc.primary]
 The Cyrus IMAP (Internet Message Access Protocol) server provides access to
@@ -183,7 +195,9 @@ lib/
  libcyrus_sieve.so.%%SOVERSION%%
 
 
-[FILE:1167:manifests/plist.tools]
+[FILE:1480:manifests/plist.tools]
+@sample etc/cyrus.conf.sample
+@sample etc/imapd.conf.sample
 %%SITE_ARCH%%/Cyrus/IMAP.pm
 %%SITE_ARCH%%/Cyrus/IMAP/
  Admin.pm
@@ -273,6 +287,12 @@ cyrus/sbin/
  tls_prune
  unexpunge
 etc/man.d/cyrus-imapd.conf
+@dir(%%OWN%%,%%GRP%%,0750) var/db/imap
+@dir(%%OWN%%,%%GRP%%,0750) var/db/imap/sieve
+@dir(%%OWN%%,%%GRP%%,0750) var/lib/imap
+@dir(%%OWN%%,%%GRP%%,0750) var/run/imap
+@dir(%%OWN%%,%%GRP%%,0750) var/run/imap/socket
+@dir(%%OWN%%,%%GRP%%,0750) var/spool/imap
 
 
 [FILE:798:manifests/plist.dev]
@@ -430,11 +450,6 @@ cyrus/man/man8/
  timsieved.8
  tls_prune.8
  unexpunge.8
-
-
-[FILE:122:manifests/plist.examples]
-@sample share/examples/cyrus-imapd/cyrus.conf etc/cyrus.conf
-@sample share/examples/cyrus-imapd/imapd.conf etc/imapd.conf
 
 
 [FILE:1300:patches/patch-configure]
@@ -762,17 +777,14 @@ diff -u tools/mkimap.orig tools/mkimap
 MANPATH %%PREFIX%%/cyrus/man
 
 
-[FILE:11294:files/imapd.conf]
-#
-# $FreeBSD: head/mail/cyrus-imapd32/files/imapd.conf 435817 2017-03-10 02:05:01Z ume $
-#
+[FILE:11282:files/imapd.conf.in]
 # Sample configurations file for Cyrus IMAPd
 # Most lines in this file are commented; in this case the default is used. 
 # The commented lines (usually) contain the default value
 
 # The pathname of the IMAP configuration directory
 #
-configdirectory: /var/imap
+configdirectory: %%PREFIX%%/var/lib/imap
 
 # The partition name used by default for new mailboxes
 #
@@ -780,7 +792,7 @@ configdirectory: /var/imap
 
 # The directory for the different partitions
 #
-partition-default: /var/spool/imap
+partition-default: %%PREFIX%%/var/spool/imap
 
 # Use the UNIX separator character '/' for delimiting levels of
 # mailbox hierarchy.  The default is to use the netnews separator
@@ -996,7 +1008,7 @@ sieveusehomedir: false
 # The active Sieve script is s called "default", placed in the users sieve
 # sieve directory (ie. /var/imap/sieve/u/user).
 #
-sievedir: /var/imap/sieve
+sievedir: %%PREFIX%%/var/db/imap/sieve
 
 # The pathname of the sendmail executable.  Sieve uses sendmail for
 # sending rejections, redirects and vaca- tion responses.
@@ -1126,48 +1138,43 @@ sasl_pwcheck_method: auxprop
 
 # Unix domain socket that lmtpd listens on, used by deliver(8).
 #
-#lmtpsocket: /var/imap/socket/lmtp
+#lmtpsocket: %%PREFIX%%/var/run/imap/socket/lmtp
 
 # Unix domain socket that idled listens on.
 #
-#idlesocket: /var/imap/socket/idle
+#idlesocket: %%PREFIX%%/var/run/imap/socket/idle
 
 # Unix domain socket that the new mail notification daemon listens on.
 #
-#notifysocket: /var/imap/socket/notify
+#notifysocket: %%PREFIX%%/var/run/imap/socket/notify
 
 #
 # EOF
 
 
-[FILE:966:files/imapd.in]
+[FILE:647:files/imapd.in]
 #!/bin/sh
 
 # Start or stop cyrus-imapd
-# $FreeBSD: head/mail/cyrus-imapd32/files/imapd.in 472520 2018-06-16 06:42:34Z ume $
 
 # PROVIDE: cyrus_imapd imap
 # REQUIRE: DAEMON
 # BEFORE: mail
 # KEYWORD: shutdown
 
-# Define these cyrus_imapd_* variables in one of these files:
-#	/etc/rc.conf
-#	/etc/rc.conf.local
-#	/etc/rc.conf.d/cyrus_imapd
+# Add the following line to /etc/rc.conf to enable Cyrus IMAP:
 #
-# DO NOT CHANGE THESE DEFAULT VALUES HERE
-#
-[ -z "$cyrus_imapd_enable" ] && cyrus_imapd_enable="NO"	# Enable imapd
-#cyrus_imapd_program="%%PREFIX%%/cyrus/libexec/master"	# Location of imapd
-[ -z "$cyrus_imapd_flags" ] && cyrus_imapd_flags="-d" # Flags to imapd program
+#  cyrus_imapd_enable="YES"
 
 . /etc/rc.subr
 
+: ${cyrus_imapd_enable="NO"}
+
 name="cyrus_imapd"
 rcvar=cyrus_imapd_enable
+pidfile="%%PREFIX%%/var/run/imap/master.pid"
 command="%%PREFIX%%/cyrus/libexec/master"
-pidfile="/var/run/cyrus-master.pid"
+command_args="-d -p ${pidfile}"
 required_files="%%PREFIX%%/etc/cyrus.conf %%PREFIX%%/etc/imapd.conf"
 stop_postcmd="cyrus_imapd_poststop"
 extra_commands="reload"
@@ -1180,44 +1187,68 @@ load_rc_config $name
 run_rc_command "$1"
 
 
-[FILE:244:files/messages-primary.ucl.in]
+[FILE:2007:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name="imap_configuration_required" grouping="require_all" restart_on="none" type="path">
+           <service_fmri value="file://localhost%%PREFIX%%/etc/imapd.conf"/>
+        </dependency>
+        <dependency name="cyrus_configuration_required" grouping="require_all" restart_on="none" type="path">
+           <service_fmri value="file://localhost%%PREFIX%%/etc/cyrus.conf"/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/cyrus/libexec/master -d -p %%PREFIX%%/var/run/imap/master.pid" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/imapd.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    Cyrus IMAP mail server
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:333:files/messages-tools.ucl.in]
 primary: {
   type: "install"
   message: <<EOM
-To setup mail spool, modify %%PREFIX%%/etc/imapd.conf appropriately,
-then run %%PREFIX%%/cyrus/sbin/mkimap.
-To run Cyrus IMAPd from startup, add cyrus_imapd_enable="YES" in your
-/etc/rc.conf.
+To setup mail spool, modify %%PREFIX%%/etc/imapd.conf as needed.
+
+To run Cyrus IMAPd from startup:
+   BSD:
+       Add cyrus_imapd_enable="YES" in your /etc/rc.conf and
+       start the imapd service in the typical fashion.
+   SunOS:
+       Use svcadm to start the "imapd" service.
 EOM
 }
 
 
-[FILE:1249:files/scripts-primary.ucl.in]
+[FILE:234:files/scripts-tools.ucl.in]
 post-install: [{
      args: ""
      code: <<EOS
 PKG_BATCH=${BATCH:=NO}
-PKG_PREFIX=${PKG_PREFIX:=%%PREFIX%%}
-CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
 
-#
-# Modify the 'cyrus' user created from the cyrus-sasl port
-#
-
-modify_cyrus_user() {
-	USER=${CYRUS_USER}
-	PW=/usr/sbin/pw
-	shell=/bin/csh
-	uhome=${PKG_PREFIX}/cyrus
-
-	if ! ${PW} mod user ${USER} -d "${uhome}" -s "${shell}"; then
-		echo "*** Failed to update user \`${USER}'."
-	else
-		echo "*** Updated user \`${USER}'."
-	fi
-}
-
-modify_cyrus_user
 if grep 'sieve' /etc/services; then
 	echo
 else
@@ -1226,38 +1257,6 @@ else
 	echo "   to /etc/services"
 	echo
 fi
-EOS
-}]
-pre-deinstall: [{
-     args: ""
-     code: <<EOS
-PKG_BATCH=${BATCH:=NO}
-CYRUS_USER=${CYRUS_USER:=%%CYRUS_USER%%}
-
-#
-# Modify the 'cyrus' user created from the cyrus-sasl port
-#
-
-modify_cyrus_user() {
-	USER=${CYRUS_USER}
-	PW=/usr/sbin/pw
-	if [ -x /usr/sbin/nologin ]; then
-		shell=/usr/sbin/nologin
-	elif [ -x /sbin/nologin ]; then
-		shell=/sbin/nologin
-	else
-		shell=/nonexistent
-	fi
-	uhome=/nonexistent
-
-	if ! ${PW} mod user ${USER} -d "${uhome}" -s "${shell}"; then
-		echo "*** Failed to update user \`${USER}'."
-	else
-		echo "*** Updated user \`${USER}'."
-	fi
-}
-
-modify_cyrus_user
 EOS
 }]
 

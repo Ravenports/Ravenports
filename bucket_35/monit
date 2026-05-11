@@ -2,6 +2,7 @@
 
 NAMEBASE=		monit
 VERSION=		5.35.2
+REVISION=		1
 KEYWORDS=		sysutils
 VARIANTS=		std
 SDESC[std]=		Unix system management and proactive monitoring
@@ -23,6 +24,7 @@ BUILD_DEPENDS=		openpam:dev:std
 BUILDRUN_DEPENDS=	openpam:primary:std
 
 USES=			cpe ssl:openssl30 bison gmake zlib mbsdfix
+			smf:primary
 
 LICENSE=		AGPLv3:primary
 LICENSE_TERMS=		primary:{{WRKDIR}}/TERMS
@@ -33,6 +35,7 @@ LICENSE_SCHEME=		solo
 
 CPE_VENDOR=		tildeslash
 FPC_EQUIVALENT=		sysutils/monit
+SMF_NAME=		monit
 
 MUST_CONFIGURE=		gnu
 CONFIGURE_ARGS=		--with-ssl-dir={{OPENSSLBASE}}
@@ -41,10 +44,12 @@ CONFIGURE_ENV=		ax_cv_check_cflags___fstack_protector_all=no
 INSTALL_REQ_TOOLCHAIN=	yes
 RC_SUBR=		monit:primary
 SUB_FILES=		messages-primary.ucl
+			manifest.xml
 
 post-install:
-	${INSTALL_DATA} ${WRKSRC}/monitrc \
+	${INSTALL} -m 600 ${WRKSRC}/monitrc \
 		${STAGEDIR}${PREFIX}/etc/monitrc.sample
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/monit
 
 [FILE:1088:descriptions/desc.primary]
 Monit is a utility for managing and monitoring processes,
@@ -74,9 +79,10 @@ monit supports:
 4dfef54329e63d9772a9e1c36ac99bc41173b79963dc0d8235f2c32f4b9e078f      1526704 monit-5.35.2.tar.gz
 
 
-[FILE:37:manifests/plist.primary]
+[FILE:56:manifests/plist.primary]
 @sample etc/monitrc.sample
 bin/monit
+@dir var/run/monit
 
 
 [FILE:23:manifests/plist.man]
@@ -162,22 +168,59 @@ share/man/man1/monit.1
  static int PAMquery(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr) {
 
 
-[FILE:268:files/messages-primary.ucl.in]
+[FILE:1778:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name="krb5_configuration_required" grouping="require_all" restart_on="none" type="path">
+           <service_fmri value="file://localhost%%PREFIX%%/etc/monitrc"/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/monit -c %{config_file}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/monitrc"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">
+                    System management and proactive monitoring
+                </loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:325:files/messages-primary.ucl.in]
 primary: {
   type: "install"
   message: <<EOM
 USAGE:
 
-To enable monit you need to add monit_enable="YES" to rc.conf file.
-Before running monit you have to configure monitrc file. There is
-example configuration file monitrc.sample.
+To enable monit on *BSD you need to add monit_enable="YES" to rc.conf file.
+To enable monit on a SunOS system, use "svcadm enable monit" command.
 
-%%PREFIX%%/etc/monitrc.sample
+Before running monit you may have to modify the provided monitrc
+configuration file located at %%PREFIX%%/etc/monitrc
 EOM
 }
 
 
-[FILE:864:files/monit.in]
+[FILE:879:files/monit.in]
 #!/bin/sh
 #
 # PROVIDE: monit
@@ -208,7 +251,7 @@ default_config=%%PREFIX%%/etc/monitrc
 required_files=${default_config}
 command="%%PREFIX%%/bin/monit"
 command_args="-c ${default_config}"
-pidfile=/var/run/monit.pid
+pidfile=%PREFIX%%/var/run/monit/monit.pid
 
 monit_checkconfig()
 {

@@ -2,6 +2,7 @@
 
 NAMEBASE=		mariadb114
 VERSION=		11.4.10
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Fast SQL database server, derived from MySQL
@@ -40,13 +41,14 @@ BUILDRUN_DEPENDS=	boost-libraries:primary:std
 			openpam:primary:std
 EXRUN[server]=		client
 
-USERS=			mysql
-GROUPS=			mysql
+USERS=			mariadb
+GROUPS=			mariadb
 USERGROUP_SPKG=		server
 
 USES=			cmake zlib readline ncurses pcre2 shebangfix cpe
 			python:build perl:build pkgconfig iconv:translit
 			curl zstd xz lz4 lzo bz2 execinfo ssl:openssl30
+			smf:server
 GNOME_COMPONENTS=	libxml2
 
 DISTNAME=		mariadb-11.4.10
@@ -63,23 +65,30 @@ CPE_VENDOR=		mariadb
 FPC_EQUIVALENT=		databases/mariadb114-server
 SHEBANG_FILES=		scripts/*.sh
 			support-files/*.sh
+SMF_NAME=		mariadb
 
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		PORTNAME=mariadb114
 			AUTHSOCKET={{AUTHSOCKET}}
-			MARIADB_USER="mysql"
-			MARIADB_GROUP="mysql"
-			MARIADB_LOGDIR="/var/log/mysql"
+			MARIADB_USER="mariadb"
+			MARIADB_GROUP="mariadb"
+			MARIADB_DBDIR="var/db/mariadb"
+			MARIADB_LOGDIR="var/log/mariadb"
+			MARIADB_RUNDIR="var/run/mariadb"
 RC_SUBR=		mysql:server
 SUB_FILES=		my.cnf.sample
 			client.cnf.sample
 			server.cnf.sample
-SUB_LIST=		MARIADB_DBDIR="/var/db/mysql"
-			MARIADB_RUNDIR="/var/run/mysql"
-			MARIADB_LOGDIR="/var/log/mysql"
-			MARIADB_SOCK="mysql.sock"
-			MARIADB_USER="mysql"
+			manifest.xml
+			maria_command.sh
+SUB_LIST=		MARIADB_DBDIR="{{PREFIX}}/var/db/mariadb"
+			MARIADB_RUNDIR="{{PREFIX}}/var/run/mariadb"
+			MARIADB_LOGDIR="{{PREFIX}}/var/log/mariadb"
+			MARIADB_SOCK="maria.sock"
+			MARIADB_USER="mariadb"
+			MARIADB_GROUP="mariadb"
 			OPSYS="{{OPSYS}}"
+			SMF_METHOD_SCRIPT=maria_command.sh
 
 CFLAGS=			-I{{NCURSESINC}}
 CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
@@ -95,10 +104,10 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_SCRIPTDIR=bin
 			-DINSTALL_MYSQLTESTDIR=
 			-DINSTALL_SQLBENCHDIR=
-			-DINSTALL_UNIX_ADDRDIR="/var/run/mysql/mysql.sock"
+			-DINSTALL_UNIX_ADDRDIR="{{PREFIX}}/var/run/mariadb/maria.sock"
 			-DINSTALL_SYSCONFDIR="etc/mysql"
 			-DINSTALL_SYSCONF2DIR="etc/mysql/conf.d"
-			-DINSTALL_MYSQLDATADIR="/var/db/mysql"
+			-DINSTALL_MYSQLDATADIR="{{PREFIX}}/var/db/mariadb"
 			-DINSTALL_PAMDATADIR="etc/mysql"
 			-DINSTALL_SBINDIR=libexec
 			-DDEFAULT_CHARSET=utf8mb4
@@ -122,6 +131,7 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 VAR_OPSYS[freebsd]=	CXXFLAGS=-DHAVE_POSIX_MEMALIGN=1
 VAR_OPSYS[sunos]=	CXXFLAGS=-fPIC
 VAR_OPSYS[netbsd]=	MAKEFILE_LINE=AUTHSOCKET="@comment "
+SMF_METHODS=		maria_command.sh
 
 [ROCKSDB].DESCRIPTION=			Build RocksDB LSM Engine
 [ROCKSDB].CMAKE_ARGS_OFF=		-DPLUGIN_ROCKSDB=NO
@@ -140,7 +150,9 @@ post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/etc/mysql/init.d
 	${RM} -r ${STAGEDIR}${PREFIX}/etc/mysql/logrotate.d
 	${RM} -r ${STAGEDIR}/suite
-	${MKDIR} ${STAGEDIR}/var/log/mysql
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/mariadb
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/mariadb
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/mariadb
 	# strip plugins and libraries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadb.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadbd.so
@@ -217,7 +229,7 @@ This package contains the client and related files.
 695fd197fa5aff8fc67b5f2bbc110490a875cdf7a41686ac8512fb480fa8ada7      1435256 fmt-12.1.0.zip
 
 
-[FILE:4575:manifests/plist.server]
+[FILE:4708:manifests/plist.server]
 @sample etc/mysql/conf.d/server.cnf.sample
 @sample etc/mysql/user_map.conf.sample
 %%LINUX-ON%%lib/mysql/plugin/disks.so
@@ -453,7 +465,9 @@ share/mysql/spanish/errmsg.sys
 share/mysql/swahili/errmsg.sys
 share/mysql/swedish/errmsg.sys
 share/mysql/ukrainian/errmsg.sys
-@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,) %%MARIADB_LOGDIR%%
+@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,0750) %%MARIADB_DBDIR%%
+@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,0750) %%MARIADB_LOGDIR%%
+@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,0750) %%MARIADB_RUNDIR%%
 
 
 [FILE:736:manifests/plist.client]
@@ -1914,6 +1928,73 @@ quick
 # Renamed from [mysqlslap]  starting with MariaDB 10.4.6.
 [mariadb-slap]
 
+
+
+[FILE:1393:files/manifest.xml.in]
+<?xml version='1.0'?>
+<!DOCTYPE service_bundle SYSTEM '/usr/share/lib/xml/dtd/service_bundle.dtd.1'>
+<service_bundle type='manifest' name='%%SMF_NAME%%'>
+  <service name='%%SMF_PREFIX%%/%%SMF_NAME%%' type='service' version='1'>
+    <create_default_instance enabled='false' />
+    <single_instance />
+    <dependency name='fs' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/system/filesystem/local' />
+    </dependency>
+    <dependency name='net' grouping='require_all' restart_on='none' type='service'>
+      <service_fmri value='svc:/network/loopback' />
+    </dependency>
+    <method_context working_directory='%%MARIADB_DBDIR%%'>
+      <method_credential user='%%MARIADB_USER%%' group='%%MARIADB_GROUP%%' />
+    </method_context>
+    <exec_method type='method' name='start' exec='%%PREFIX%%/lib/svc/method/%%SMF_METHOD_SCRIPT%% start' timeout_seconds='18446744073709551615' />
+    <exec_method type='method' name='stop' exec='%%PREFIX%%/lib/svc/method/%%SMF_METHOD_SCRIPT%% stop' timeout_seconds='18446744073709551615' />
+    <stability value='Evolving' />
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>MariaDB 11.4 database</loctext>
+      </common_name>
+      <documentation>
+        <doc_link name='mariadb.org' uri='https://mariadb.org/documentation/' />
+      </documentation>
+    </template>
+  </service>
+</service_bundle>
+
+
+[FILE:610:files/maria_command.sh.in]
+#!/bin/sh
+#
+# Init script for mariadbd.
+#
+
+. /lib/svc/share/smf_include.sh
+
+PIDFILE="%%MARIADB_RUNDIR%%/maria.pid"
+
+case "$1" in
+start)
+	if [ ! -d %%MARIADB_DBDIR%%/mysql ]; then
+		%%PREFIX%%/bin/mariadb-install-db \
+			--datadir=%%MARIADB_DBDIR%% \
+			--user=%%MARIADB_USER%%
+	fi
+
+	%%PREFIX%%/libexec/mariadbd --user=%%MARIADB_USER%% \
+		--basedir=%%PREFIX%% \
+		--datadir=%%MARIADB_DBDIR%% \
+		--pid-file=${PIDFILE} \
+		--log-error=%%MARIADB_LOGDIR%%/error.log &
+	;;
+stop)
+	[ -f ${PIDFILE} ] && kill `/usr/bin/head -1 ${PIDFILE}`
+	;;
+*)
+	echo "Usage: $0 {start|stop}" >&2
+	exit 1
+	;;
+esac
+
+exit $SMF_EXIT_OK
 
 
 [FILE:350:files/my.cnf.sample.in]

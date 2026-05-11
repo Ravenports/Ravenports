@@ -2,7 +2,6 @@
 
 NAMEBASE=		video4linux
 VERSION=		1.24.1
-REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Video device drivers
@@ -51,6 +50,8 @@ CONFIGURE_ARGS=		--disable-doxygen-doc
 
 INSTALL_TARGET=		install-strip
 INSTALL_REQ_TOOLCHAIN=	yes
+
+VAR_OPSYS[sunos]=	CFLAGS=-D_POSIX_PTHREAD_SEMANTICS
 
 [ARGP].DESCRIPTION=			Build with standalone version of argp from glibc
 [ARGP].BUILDRUN_DEPENDS_ON=		argp-standalone:primary:std
@@ -412,6 +413,68 @@ share/locale/uk/LC_MESSAGES/
  CPPFLAGS="-I\$(top_srcdir)/lib/include -Wall -Wpointer-arith -D_GNU_SOURCE $CPPFLAGS"
 
 
+[FILE:299:patches/patch-lib_libv4l1_libv4l1.c]
+--- lib/libv4l1/libv4l1.c.orig	2023-02-24 16:40:23 UTC
++++ lib/libv4l1/libv4l1.c
+@@ -472,7 +472,11 @@ int v4l1_dup(int fd)
+ 	int index = v4l1_get_index(fd);
+ 
+ 	if (index == -1)
++#if defined(__sun)
++		return dup(fd);
++#else
+ 		return syscall(SYS_dup, fd);
++#endif
+ 
+ 	devices[index].open_count++;
+ 
+
+
+[FILE:299:patches/patch-lib_libv4l2_libv4l2.c]
+--- lib/libv4l2/libv4l2.c.orig	2023-02-24 16:40:23 UTC
++++ lib/libv4l2/libv4l2.c
+@@ -880,7 +880,11 @@ int v4l2_dup(int fd)
+ 	int index = v4l2_get_index(fd);
+ 
+ 	if (index == -1)
++#if defined(__sun)
++		return dup(fd);
++#else
+ 		return syscall(SYS_dup, fd);
++#endif
+ 
+ 	devices[index].open_count++;
+ 
+
+
+[FILE:764:patches/patch-lib_libv4l2rds_libv4l2rds.c]
+--- lib/libv4l2rds/libv4l2rds.c.orig	2023-02-24 16:40:23 UTC
++++ lib/libv4l2rds/libv4l2rds.c
+@@ -1039,6 +1039,14 @@ static time_t rds_decode_mjd(const struc
+ 	new_time.tm_year = y;
+ 	/* offset (submitted by RDS) that was used to compute the local time,
+ 	 * expressed in multiples of half hours, bit 5 indicates -/+ */
++#if defined(__sun)
++	time_t res = mktime(&new_time);
++	if (priv_state->utc_offset & 0x20)
++		res -= offset * 1800;
++	else
++		res += offset * 1800;
++	return res;
++#else
+ 	if (priv_state->utc_offset & 0x20)
+ 		new_time.tm_gmtoff = -offset * 1800;
+ 	else
+@@ -1046,6 +1054,7 @@ static time_t rds_decode_mjd(const struc
+ 
+ 	/* convert tm struct to time_t value and return it */
+ 	return mktime(&new_time);
++#endif
+ }
+ 
+ /* group 4: Date and Time */
+
+
 [FILE:301:patches/patch-lib_libv4lconvert_control_libv4lcontrol.c]
 --- lib/libv4lconvert/control/libv4lcontrol.c.orig	2023-02-24 16:49:19 UTC
 +++ lib/libv4lconvert/control/libv4lcontrol.c
@@ -426,7 +489,7 @@ share/locale/uk/LC_MESSAGES/
  #include <sys/mman.h>
 
 
-[FILE:1722:patches/patch-lib_libv4lconvert_libv4lsyscall-priv.h]
+[FILE:2335:patches/patch-lib_libv4lconvert_libv4lsyscall-priv.h]
 --- lib/libv4lconvert/libv4lsyscall-priv.h.orig	2023-02-24 16:40:23 UTC
 +++ lib/libv4lconvert/libv4lsyscall-priv.h
 @@ -51,7 +51,7 @@
@@ -438,7 +501,7 @@ share/locale/uk/LC_MESSAGES/
  #include <sys/time.h>
  #include <sys/syscall.h>
  #include <sys/types.h>
-@@ -59,10 +59,27 @@
+@@ -59,10 +59,44 @@
  #define	_IOC_NR(cmd) ((cmd) & 0xFF)
  #define	_IOC_TYPE(cmd) IOCGROUP(cmd)
  #define	_IOC_SIZE(cmd) IOCPARM_LEN(cmd)
@@ -453,20 +516,37 @@ share/locale/uk/LC_MESSAGES/
 +#include <sys/syscall.h>
 +#include <sys/types.h>
 +#include <sys/ioctl.h>
-+# ifndef MAP_ANONYMOUS
-+#define	MAP_ANONYMOUS MAP_ANON
-+# endif
++#include <sys/ioccom.h>
++#include <sys/mman.h>
 +#define	MMAP2_PAGE_SHIFT 0
-+#define	_IOC_NR(cmd) ((cmd) & 0x1FFF)
-+#define	_IOC_SIZE(cmd) (((cmd) >> 16) & 0x1FFF)
-+#define	_IOC_TYPE(cmd) (((cmd) >> 8) & 0xFF)
-+typedef off_t __off_t;
++/* Linux-style ioctl encoding macros for compatibility */
++# undef _IOC
++# undef _IOR
++# undef _IOW
++# undef _IOWR
++# undef _IOC_TYPE
++# undef _IOC_SIZE
++# define _IOC(dir,type,nr,size) \
++    ((unsigned int)(((dir) << 30) | ((type) << 8) | ((nr) << 0) | ((size) << 16)))
++# define _IOR(type,nr,size)     _IOC(2U, (type), (nr), sizeof(size))
++# define _IOW(type,nr,size)     _IOC(1U, (type), (nr), sizeof(size))
++# define _IOWR(type,nr,size)    _IOC(3U, (type), (nr), sizeof(size))
++# define _IOC_NR(cmd) ((unsigned int)(cmd) & 0xFF)
++# define _IOC_TYPE(cmd) (((cmd) >> 8) & 0xFF)
++# define _IOC_SIZE(cmd) (((cmd) >> 16) & 0x3FFF)
++# ifndef MAP_ANONYMOUS
++#  define MAP_ANONYMOUS MAP_ANON
++# endif
++# ifndef __off_t_defined
++   typedef off_t __off_t;
++#  define __off_t_defined
++# endif
 +#endif
 +
  #if defined(__OpenBSD__)
  #include <sys/syscall.h>
  #include <sys/types.h>
-@@ -98,11 +115,11 @@
+@@ -98,11 +132,11 @@
  #define SYS_WRITE(fd, buf, len) \
  	syscall(SYS_write, (int)(fd), (const void *)(buf), (size_t)(len));
  

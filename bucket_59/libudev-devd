@@ -20,8 +20,6 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-NOT_FOR_OPSYS=		sunos
-
 BUILD_DEPENDS=		evdev-proto:single:std
 B_DEPS[linux]=		libbsd:dev:std libbsd:primary:std
 
@@ -39,6 +37,9 @@ MESON_ARGS=		-Denable-gpl=true
 SOVERSION=		0.0.0
 
 CFLAGS=			-Wno-error
+VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
+			LDFLAGS=-lsocket
+			LDFLAGS=-lnsl
 
 post-install:
 	${LN} -s ${PREFIX}/lib/pkgconfig/libudev.pc ${STAGEDIR}${PREFIX}/lib/pkgconfig/udev.pc
@@ -67,10 +68,57 @@ lib/pkgconfig/
  udev.pc
 
 
-[FILE:211:patches/patch-udev-dev.c]
+[FILE:351:patches/patch-tree.h]
+--- tree.h.orig	2024-09-20 07:46:46 UTC
++++ tree.h
+@@ -32,7 +32,16 @@
+ #ifndef	_SYS_TREE_H_
+ #define	_SYS_TREE_H_
+ 
++#ifdef __sun
++# ifndef __P
++#  define __P(protos) protos
++# endif
++# ifndef typeof
++#  define typeof __typeof__
++# endif
++#else
+ #include <sys/cdefs.h>
++#endif
+ 
+ /*
+  * This file defines data structures for different types of trees:
+
+
+[FILE:927:patches/patch-udev-dev.c]
 --- udev-dev.c.orig	2024-09-20 07:46:46 UTC
 +++ udev-dev.c
-@@ -54,6 +54,10 @@
+@@ -42,6 +42,24 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
++#ifndef _IOC
++#define _IOC(dir,type,nr,size) \
++        ((int)((((unsigned int)(dir)  & 0x3)  << 30) | \
++               (((unsigned int)(type) & 0xFF) << 8)  | \
++               (((unsigned int)(nr)   & 0xFF) << 0)  | \
++               (((unsigned int)(size) & 0x3FFF) << 16)))
++
++#define _IOR(type,nr,size)     _IOC(2UL, (type), (nr), sizeof(size))
++#define _IOW(type,nr,size)     _IOC(1UL, (type), (nr), sizeof(size))
++#endif
++
++/* Linux-specific ioctl direction constants used by input.h */
++#ifndef IOC_OUT
++#define IOC_OUT 2UL
++#endif
++#ifndef IOC_IN
++#define IOC_IN 1UL
++#endif
+ #ifdef HAVE_DEV_HID_HIDRAW_H
+ #include <dev/hid/hidraw.h>
+ #endif
+@@ -54,6 +72,10 @@
  #endif
  #endif
  
@@ -83,22 +131,42 @@ lib/pkgconfig/
  #ifdef HAVE_LINUX_INPUT_H
 
 
-[FILE:467:patches/patch-udev-net.c]
+[FILE:229:patches/patch-udev-device.c]
+--- udev-device.c.orig	2024-09-20 07:46:46 UTC
++++ udev-device.c
+@@ -28,6 +28,9 @@
+ #ifdef __linux__
+ #include <sys/sysmacros.h>
+ #endif
++#ifdef __sun__
++#include <sys/mkdev.h>
++#endif
+ 
+ #include <stdarg.h>
+ #include <stddef.h>
+
+
+[FILE:583:patches/patch-udev-net.c]
 --- udev-net.c.orig	2024-09-20 07:46:46 UTC
 +++ udev-net.c
-@@ -27,7 +27,11 @@
+@@ -27,7 +27,16 @@
  
  #include <sys/socket.h>
  #include <sys/stat.h>
 +#if defined(__NetBSD__)
 +#include <net/if_ether.h>
++#elif defined(__sun)
++#include <sys/ethernet.h>
++#ifndef ETHER_ADDR_LEN
++#define ETHER_ADDR_LEN ETHERADDRL
++#endif
 +#else
  #include <net/ethernet.h>
 +#endif
  #include <net/if.h>
  #ifdef HAVE_NET_IF_DL_H
  #include <net/if_dl.h>
-@@ -40,6 +44,10 @@
+@@ -40,6 +49,10 @@
  #define	AF_LINK	AF_PACKET
  #endif
  
@@ -111,20 +179,64 @@ lib/pkgconfig/
  {
 
 
-[FILE:250:patches/patch-utils.c]
+[FILE:1195:patches/patch-utils.c]
 --- utils.c.orig	2024-09-20 07:46:46 UTC
 +++ utils.c
-@@ -34,6 +34,10 @@
+@@ -33,6 +33,14 @@
+ #include <stdint.h>
  #include <string.h>
  #include <unistd.h>
- 
++#include <limits.h>
++
 +#ifdef __DragonFly__
 +#include <vfs/ufs/dir.h>
 +#endif
-+
++#ifdef __sun
++#include <fcntl.h>
++#endif
+ 
  #ifdef HAVE_LIBPROCSTAT_H
  #include <sys/sysctl.h>
- #include <sys/queue.h>
+@@ -182,6 +190,9 @@ scandir_sub(char *path, int off, int rem
+ 	DIR *dir;
+ 	struct dirent *ent;
+ 	int ret = 0;
++#if defined(__sun)
++	struct stat st;
++#endif
+ 
+ 	dir = opendir(path);
+ 	if (dir == NULL)
+@@ -200,7 +211,17 @@ scandir_sub(char *path, int off, int rem
+ 		off += len;
+ 		rem -= len;
+ 
++#if defined(__sun)
++		if (fstatat(dirfd(dir), ent->d_name, &st, AT_SYMLINK_NOFOLLOW) != 0) {
++			off -= len;
++			rem += len;
++			continue;
++		}
++
++		if ((ctx->recursive) && S_ISDIR(st.st_mode)) {
++#else
+ 		if ((ctx->recursive) && (ent->d_type == DT_DIR)) {
++#endif
+ 			if (rem < 1)
+ 				break;
+ 			path[off] = '/';
+@@ -212,7 +233,11 @@ scandir_sub(char *path, int off, int rem
+ 			off--;
+ 			rem++;
+ 		} else {
++#if defined(__sun)
++			ret = (ctx->cb)(path, st.st_mode, ctx->args);
++#else
+ 			ret = (ctx->cb)(path, DTTOIF(ent->d_type), ctx->args);
++#endif
+ 		}
+ 		off -= len;
+ 		rem += len;
 
 
 [FILE:207:patches/patch-utils.h]

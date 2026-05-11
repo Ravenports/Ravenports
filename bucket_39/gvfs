@@ -19,7 +19,6 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	NO-GUDEV
 OPTIONS_STANDARD=	NO-GUDEV
-OPT_ON[sunos]=		NO-GUDEV
 
 BUILD_DEPENDS=		dbus:dev:std
 			gcr:dev:std
@@ -69,7 +68,6 @@ MESON_ARGS=		-Dsystemduserunitdir="no"
 			-Donedrive=false
 			-Dsftp=false
 			-Dsmb=false
-			-Dudisks2=true
 			-Dburn=true
 
 LDFLAGS=		-Wl,-rpath,{{PREFIX}}/lib/gvfs
@@ -80,8 +78,10 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 [NO-GUDEV].BUILD_DEPENDS_OFF=		libcdio-paranoia:dev:std
 [NO-GUDEV].CONFIGURE_ARGS_OFF=		-Dgudev=true
 					-Dcdda=true
+					-Dudisks2=true
 [NO-GUDEV].CONFIGURE_ARGS_ON=		-Dgudev=false
 					-Dcdda=false
+					-Dudisks2=false
 [NO-GUDEV].USES_OFF=			iconv
 					bsd:gudev
 
@@ -102,9 +102,13 @@ required libraries are getting ported.
 648273f069e92c7e3c013b92148e82c901f08044e2b3b14c6cfbd52269f6b646      1297324 gnome4/gvfs-1.60.0.tar.xz
 
 
-[FILE:823:manifests/plist.primary]
-%%NO-GUDEV-OFF%%libexec/gvfsd-cdda
+[FILE:878:manifests/plist.primary]
+%%NO-GUDEV-OFF%%libexec/
+ gvfs-udisks2-volume-monitor
+ gvfsd-cdda
+%%NO-GUDEV-OFF%%share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service
 %%NO-GUDEV-OFF%%share/gvfs/mounts/cdda.mount
+%%NO-GUDEV-OFF%%share/gvfs/remote-volume-monitors/udisks2.monitor
 lib/gio/modules/
  libgioremote-volume-monitor.so
  libgvfsdbus.so
@@ -112,7 +116,6 @@ lib/gvfs/
  libgvfscommon.so
  libgvfsdaemon.so
 libexec/
- gvfs-udisks2-volume-monitor
  gvfsd
  gvfsd-afp
  gvfsd-afp-browse
@@ -131,7 +134,6 @@ libexec/
 share/dbus-1/services/
  org.gtk.vfs.Daemon.service
  org.gtk.vfs.Metadata.service
- org.gtk.vfs.UDisks2VolumeMonitor.service
 share/gvfs/mounts/
  afp-browse.mount
  afp.mount
@@ -148,7 +150,6 @@ share/gvfs/mounts/
  recent.mount
  trash.mount
  wsdd.mount
-share/gvfs/remote-volume-monitors/udisks2.monitor
 
 
 [FILE:2965:manifests/plist.nls]
