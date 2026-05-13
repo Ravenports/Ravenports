@@ -2,6 +2,7 @@
 
 NAMEBASE=		coinmp
 VERSION=		1.8.4
+REVISION=		1
 KEYWORDS=		math
 VARIANTS=		std
 SDESC[std]=		Linear Programming solver library
@@ -12,12 +13,17 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://www.coin-or.org/download/source/CoinMP/
 DISTFILE[1]=		CoinMP-1.8.4.tgz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			dev
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			libtool pkgconfig c++:single fbsd10fix mbsdfix
+EXRUN[tools]=		primary
+
+USES=			libtool pkgconfig c++:primary fbsd10fix mbsdfix
 
 DISTNAME=		CoinMP-1.8.4
 
@@ -67,21 +73,48 @@ post-install:
 	# Don't install useless documentation
 	${RM} -r ${STAGEDIR}${PREFIX}/share/doc/CoinMP
 
-[FILE:281:descriptions/desc.single]
+[FILE:281:descriptions/desc.primary]
 CoinMP is a C-API interface library that supports most of the functionality
 of the CLP (Coin LP), CBC (Coin Branch-and-Cut), and CGL (Cut Generation
 Library) projects. When compiled for Unix it generates a CoinMP.so library
 that can be similarly used in other Unix C/C++ projects.
 
 
+[FILE:60:descriptions/desc.tools]
+This subpackage contains tools based on the CoinMP library.
+
+
 [FILE:95:distinfo]
 3459fb0ccbdd39342744684338984ac4cc153fb0434f4cae8cf74bd67490a38d     10778373 CoinMP-1.8.4.tgz
 
 
-[FILE:5836:manifests/plist.single]
-bin/
- cbc
- clp
+[FILE:747:manifests/plist.primary]
+lib/
+ libCbc.so.%%CBC_SOMAJOR%%
+ libCbc.so.%%CBC_SOVERSION%%
+ libCbcSolver.so.%%SOLVER_SOMAJOR%%
+ libCbcSolver.so.%%SOLVER_SOVERSION%%
+ libCgl.so.%%CGL_SOMAJOR%%
+ libCgl.so.%%CGL_SOVERSION%%
+ libClp.so.%%CLP_SOMAJOR%%
+ libClp.so.%%CLP_SOVERSION%%
+ libClpSolver.so.%%CLPSOL_SOMAJOR%%
+ libClpSolver.so.%%CLPSOL_SOVERSION%%
+ libCoinMP.so.%%COINMP_SOMAJOR%%
+ libCoinMP.so.%%COINMP_SOVERSION%%
+ libCoinUtils.so.%%COINUTIL_SOMAJOR%%
+ libCoinUtils.so.%%COINUTIL_SOVERSION%%
+ libOsi.so.%%OSI_SOMAJOR%%
+ libOsi.so.%%OSI_SOVERSION%%
+ libOsiCbc.so.%%OSICBC_SOMAJOR%%
+ libOsiCbc.so.%%OSICBC_SOVERSION%%
+ libOsiClp.so.%%OSICLP_SOMAJOR%%
+ libOsiClp.so.%%OSICLP_SOVERSION%%
+ libOsiCommonTests.so.%%COMMTEST_SOMAJOR%%
+ libOsiCommonTests.so.%%COMMTEST_SOVERSION%%
+
+
+[FILE:5079:manifests/plist.dev]
 include/coin/
  CbcBranchActual.hpp
  CbcBranchAllDifferent.hpp
@@ -314,38 +347,16 @@ include/coin/
  OsiUnitTests.hpp
 lib/
  libCbc.so
- libCbc.so.%%CBC_SOMAJOR%%
- libCbc.so.%%CBC_SOVERSION%%
  libCbcSolver.so
- libCbcSolver.so.%%SOLVER_SOMAJOR%%
- libCbcSolver.so.%%SOLVER_SOVERSION%%
  libCgl.so
- libCgl.so.%%CGL_SOMAJOR%%
- libCgl.so.%%CGL_SOVERSION%%
  libClp.so
- libClp.so.%%CLP_SOMAJOR%%
- libClp.so.%%CLP_SOVERSION%%
  libClpSolver.so
- libClpSolver.so.%%CLPSOL_SOMAJOR%%
- libClpSolver.so.%%CLPSOL_SOVERSION%%
  libCoinMP.so
- libCoinMP.so.%%COINMP_SOMAJOR%%
- libCoinMP.so.%%COINMP_SOVERSION%%
  libCoinUtils.so
- libCoinUtils.so.%%COINUTIL_SOMAJOR%%
- libCoinUtils.so.%%COINUTIL_SOVERSION%%
  libOsi.so
- libOsi.so.%%OSI_SOMAJOR%%
- libOsi.so.%%OSI_SOVERSION%%
  libOsiCbc.so
- libOsiCbc.so.%%OSICBC_SOMAJOR%%
- libOsiCbc.so.%%OSICBC_SOVERSION%%
  libOsiClp.so
- libOsiClp.so.%%OSICLP_SOMAJOR%%
- libOsiClp.so.%%OSICLP_SOVERSION%%
  libOsiCommonTests.so
- libOsiCommonTests.so.%%COMMTEST_SOMAJOR%%
- libOsiCommonTests.so.%%COMMTEST_SOVERSION%%
 lib/pkgconfig/
  cbc.pc
  cgl.pc
@@ -357,6 +368,12 @@ lib/pkgconfig/
  osi-clp.pc
  osi-unittests.pc
  osi.pc
+
+
+[FILE:15:manifests/plist.tools]
+bin/
+ cbc
+ clp
 
 
 [FILE:504:patches/patch-Cbc_src_CbcSolver.cpp]
