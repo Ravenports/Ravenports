@@ -2,7 +2,7 @@
 
 NAMEBASE=		cyrus-imapd
 VERSION=		3.12.2
-REVISION=		1
+REVISION=		2
 KEYWORDS=		mail
 VARIANTS=		std
 SDESC[std]=		High-performance mail store with IMAP support
@@ -20,28 +20,21 @@ SPKGS[std]=		set
 			man
 			docs
 
-OPTIONS_AVAILABLE=	SUNOS
-OPTIONS_STANDARD=	SUNOS
+OPTIONS_AVAILABLE=	SUNOS HTTP
+OPTIONS_STANDARD=	SUNOS HTTP
 OPT_ON[sunos]=		SUNOS
 
-BUILD_DEPENDS=		brotli:dev:std
-			cyrus-sasl:dev:std
+BUILD_DEPENDS=		cyrus-sasl:dev:std
 			icu:dev:std
 			jansson:dev:std
 			krb5:dev:std
-			libical:dev:std
-			libnghttp2:dev:std
 			vim:xxd:std
-			xapian-core:dev:std
-BUILDRUN_DEPENDS=	brotli:primary:std
-			cyrus-sasl:primary:std
+			libical:dev:std
+BUILDRUN_DEPENDS=	cyrus-sasl:primary:std
 			icu:primary:std
 			jansson:primary:std
 			krb5:primary:std
-			libical:primary:std
-			libnghttp2:primary:std
 			rsync:primary:std
-			xapian-core:primary:std
 EXRUN[tools]=		cyrus-imapd:primary:std
 
 USERS=			cyrus
@@ -49,8 +42,7 @@ GROUPS=			cyrus
 USERGROUP_SPKG=		primary
 
 USES=			cpe gmake libtool perl pkgconfig ssl:openssl30
-			shebangfix bison sqlite zlib zstd pcre smf:tools
-GNOME_COMPONENTS=	libxml2
+			shebangfix bison sqlite zlib pcre2 smf:tools
 
 LICENSE=		BSD4CLAUSE:primary
 LICENSE_FILE=		BSD4CLAUSE:{{WRKSRC}}/COPYING
@@ -83,10 +75,7 @@ CONFIGURE_ARGS=		--libexecdir={{PREFIX}}/cyrus/libexec
 			--enable-idled
 			--enable-murder
 			--enable-squat
-			--enable-xapian
 			--enable-gssapi={{LOCALBASE}}
-			--enable-http
-			--enable-jmap
 			--disable-replication
 			--with-mysql=no
 			--with-pgsql=no
@@ -108,6 +97,23 @@ SUB_FILES=		messages-tools.ucl
 			manifest.xml
 SUB_LIST=		CYRUS_USER=cyrus
 			CYRUS_GROUP=cyrus
+
+[HTTP].DESCRIPTION=			Support several HTTP/DAV protocols
+[HTTP].BUILDRUN_DEPENDS_ON=		libical:primary:std
+					xapian-core:primary:std
+					brotli:primary:std
+					libnghttp2:primary:std
+[HTTP].BUILD_DEPENDS_ON=		xapian-core:dev:std
+					brotli:dev:std
+					libnghttp2:dev:std
+[HTTP].CONFIGURE_ENABLE_BOTH=		http
+					jmap
+					xapian
+					calalarmd
+[HTTP].CONFIGURE_WITH_BOTH=		brotli
+					nghttp2
+[HTTP].GNOME_COMPONENTS_ON=		libxml2
+[HTTP].USES_ON=				zstd
 
 [SUNOS].LDFLAGS_OFF=			-Wl,-z,execstack
 
@@ -195,9 +201,13 @@ lib/
  libcyrus_sieve.so.%%SOVERSION%%
 
 
-[FILE:1480:manifests/plist.tools]
+[FILE:1527:manifests/plist.tools]
 @sample etc/cyrus.conf.sample
 @sample etc/imapd.conf.sample
+%%HTTP-ON%%cyrus/libexec/httpd
+%%HTTP-ON%%cyrus/sbin/
+ ctl_zoneinfo
+ dav_reconstruct
 %%SITE_ARCH%%/Cyrus/IMAP.pm
 %%SITE_ARCH%%/Cyrus/IMAP/
  Admin.pm
@@ -229,7 +239,6 @@ bin/
  synctest
 cyrus/libexec/
  fud
- httpd
  idled
  imapd
  lmtpd
@@ -251,7 +260,6 @@ cyrus/sbin/
  ctl_cyrusdb
  ctl_deliver
  ctl_mboxlist
- ctl_zoneinfo
  cvt_cyrusdb
  cvt_xlist_specialuse
  cyr_buildinfo
@@ -268,7 +276,6 @@ cyrus/sbin/
  cyr_virusscan
  cyr_withlock_run
  cyrdump
- dav_reconstruct
  deliver
  ipurge
  masssievec

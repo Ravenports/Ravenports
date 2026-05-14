@@ -2,6 +2,7 @@
 
 NAMEBASE=		png
 VERSION=		1.6.58
+REVISION=		1
 KEYWORDS=		graphics
 VARIANTS=		std
 SDESC[std]=		Library for manipulating PNG images
@@ -18,9 +19,12 @@ SPKGS[std]=		set
 			primary
 			dev
 			man
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
+
+EXRUN[tools]=		primary
 
 USES=			cpe cmake zlib
 
@@ -41,6 +45,10 @@ SOVERSION=		16.58.0
 
 CMAKE_ARGS=		PNG_TESTS:BOOL=OFF
 
+post-install:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/png*
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libpng16.so
+
 [FILE:514:descriptions/desc.primary]
 Libpng was written as a companion to the PNG specification, as a
 way to reduce the amount of time and effort it takes to support
@@ -52,15 +60,16 @@ keeping the code easy to understand.  Currently, this library
 only supports C.  Support for other languages is being considered.
 
 
+[FILE:48:descriptions/desc.tools]
+This subpackage contains tools based on libpng.
+
+
 [FILE:205:distinfo]
 28eb403f51f0f7405249132cecfe82ea5c0ef97f1b32c5a65828814ae0d34775      1070096 libpng-1.6.58.tar.xz
 eee7dea22ed502868017971c86c63c4ed1e6085de0baebfdcc3d3322f00f3eb0        10671 libpng-1.6.58-apng.patch.gz
 
 
-[FILE:84:manifests/plist.primary]
-bin/
- png-fix-itxt
- pngfix
+[FILE:57:manifests/plist.primary]
 lib/
  libpng16.so.%%SOMAJOR%%
  libpng16.so.%%SOVERSION%%
@@ -101,4 +110,10 @@ share/man/man3/
  libpng.3
  libpngpf.3
 share/man/man5/png.5
+
+
+[FILE:27:manifests/plist.tools]
+bin/
+ png-fix-itxt
+ pngfix
 

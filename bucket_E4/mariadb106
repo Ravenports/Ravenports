@@ -2,6 +2,7 @@
 
 NAMEBASE=		mariadb106
 VERSION=		10.6.25
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Fast SQL database server, derived from MySQL
@@ -38,8 +39,8 @@ BUILDRUN_DEPENDS=	boost-libraries:primary:std
 			openpam:primary:std
 EXRUN[server]=		client
 
-USERS=			mysql
-GROUPS=			mysql
+USERS=			mariadb
+GROUPS=			mariadb
 USERGROUP_SPKG=		server
 
 USES=			cmake zlib readline ncurses pcre2 shebangfix cpe
@@ -64,18 +65,20 @@ SHEBANG_FILES=		scripts/*.sh
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		PORTNAME=mariadb106
 			AUTHSOCKET={{AUTHSOCKET}}
-			MARIADB_USER="mysql"
-			MARIADB_GROUP="mysql"
-			MARIADB_LOGDIR="/var/log/mysql"
+			MARIADB_USER="mariadb"
+			MARIADB_GROUP="mariadb"
+			MARIADB_DBDIR="var/db/mariadb"
+			MARIADB_LOGDIR="var/log/mariadb"
+			MARIADB_RUNDIR="var/run/mariadb"
 RC_SUBR=		mysql:server
 SUB_FILES=		my.cnf.sample
 			client.cnf.sample
 			server.cnf.sample
-SUB_LIST=		MARIADB_DBDIR="/var/db/mysql"
-			MARIADB_RUNDIR="/var/run/mysql"
-			MARIADB_LOGDIR="/var/log/mysql"
-			MARIADB_SOCK="mysql.sock"
-			MARIADB_USER="mysql"
+SUB_LIST=		MARIADB_DBDIR="var/db/mariadb"
+			MARIADB_RUNDIR="var/run/mariadb"
+			MARIADB_LOGDIR="var/log/mariadb"
+			MARIADB_SOCK="maria.sock"
+			MARIADB_USER="mariadb"
 			OPSYS="{{OPSYS}}"
 
 CFLAGS=			-I{{NCURSESINC}}
@@ -92,10 +95,10 @@ CMAKE_ARGS=		-DCOMPILATION_COMMENT="Ravenports"
 			-DINSTALL_SCRIPTDIR=bin
 			-DINSTALL_MYSQLTESTDIR=
 			-DINSTALL_SQLBENCHDIR=
-			-DINSTALL_UNIX_ADDRDIR="/var/run/mysql/mysql.sock"
+			-DINSTALL_UNIX_ADDRDIR="{{PREFIX}}/var/run/mariadb/maria.sock"
 			-DINSTALL_SYSCONFDIR="etc/mysql"
 			-DINSTALL_SYSCONF2DIR="etc/mysql/conf.d"
-			-DINSTALL_MYSQLDATADIR="/var/db/mysql"
+			-DINSTALL_MYSQLDATADIR="{{PREFIX}}/var/db/mariadb"
 			-DINSTALL_PAMDATADIR="etc/mysql"
 			-DINSTALL_SBINDIR=libexec
 			-DDEFAULT_CHARSET=utf8mb4
@@ -141,7 +144,9 @@ post-install:
 	${RM} -r ${STAGEDIR}${PREFIX}/etc/mysql/init.d
 	${RM} -r ${STAGEDIR}${PREFIX}/etc/mysql/logrotate.d
 	${RM} -r ${STAGEDIR}/suite
-	${MKDIR} ${STAGEDIR}/var/log/mysql
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/mariadb
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/mariadb
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/mariadb
 	# strip plugins and libraries
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadb.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/mysql/libmariadbd.so
@@ -217,7 +222,7 @@ This package contains the client and related files.
 ae221fbcaf3730070343e848e11e256092ba52c6fcf51a510374931720240a6c    108006288 mariadb-10.6.25.tar.gz
 
 
-[FILE:4209:manifests/plist.server]
+[FILE:4342:manifests/plist.server]
 @sample etc/mysql/conf.d/server.cnf.sample
 @sample etc/mysql/user_map.conf.sample
 %%LINUX-ON%%lib/mysql/plugin/disks.so
@@ -437,7 +442,9 @@ share/mysql/slovak/errmsg.sys
 share/mysql/spanish/errmsg.sys
 share/mysql/swedish/errmsg.sys
 share/mysql/ukrainian/errmsg.sys
-@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,) %%MARIADB_LOGDIR%%
+@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,0750) %%MARIADB_DBDIR%%
+@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,0750) %%MARIADB_LOGDIR%%
+@dir(%%MARIADB_USER%%,%%MARIADB_GROUP%%,0750) %%MARIADB_RUNDIR%%
 
 
 [FILE:736:manifests/plist.client]
