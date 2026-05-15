@@ -112,18 +112,27 @@ CARGO_ENV+=	SCCACHE_DIR=${CCACHE_DIR}/sccache
 . endif
 .endif
 
+_USES_extract+=		660:basic_config_toml
 
-.if !target(do-configure) && ${CARGO_SKIP_CONFIGURE:tl} == "no"
-# configure hook.  Place a config file for overriding crates-io index
-# by local source directory.
-do-configure:
-	@${ECHO_MSG} "===>   Cargo config:"
-	@${MKDIR} ${WRKDIR}/.cargo
-	@: > ${WRKDIR}/.cargo/config.toml
-	@${ECHO_CMD} "[source.cargo]" >> ${WRKDIR}/.cargo/config.toml
+# Place a config file for overriding crates-io index by local source directory.
+# If ${FILESDIR}/config.toml exists, append
+# If ${WRKDIR}/config.toml exists, append
+basic_config_toml:
+	${MKDIR} ${WRKDIR}/.cargo
+	@${ECHO_CMD} "[source.cargo]" > ${WRKDIR}/.cargo/config.toml
 	@${ECHO_CMD} "directory = '${CARGO_VENDOR_DIR}'" >> ${WRKDIR}/.cargo/config.toml
 	@${ECHO_CMD} "[source.crates-io]" >> ${WRKDIR}/.cargo/config.toml
 	@${ECHO_CMD} "replace-with = 'cargo'" >> ${WRKDIR}/.cargo/config.toml
+	@if [ -f "${FILESDIR}/config.toml" ]; then \
+		${CAT} "${FILESDIR}/config.toml" >> ${WRKDIR}/.cargo/config.toml;\
+	fi
+	@if [ -f "${WRKDIR}/config.toml" ]; then \
+		${CAT} "${WRKDIR}/config.toml" >> ${WRKDIR}/.cargo/config.toml;\
+	fi
+
+.if !target(do-configure) && ${CARGO_SKIP_CONFIGURE:tl} == "no"
+do-configure:
+	@${ECHO_MSG} "===>   Cargo config:"
 	@${CAT} ${WRKDIR}/.cargo/config.toml
 
 	@if ! ${GREP} -qF '[profile.release]' ${CARGO_CARGOTOML}; then \
@@ -141,6 +150,8 @@ do-configure:
 
 .if !target(do-build) && ${CARGO_SKIP_BUILD:tl} == "no"
 do-build:
+	@${ECHO_MSG} "===>   Cargo config:"
+	@${CAT} ${WRKDIR}/.cargo/config.toml
 	${CARGO_CARGO_RUN} build \
 		--manifest-path ${CARGO_CARGOTOML} \
 		--verbose \
@@ -149,6 +160,8 @@ do-build:
 
 .if !target(do-install) && ${CARGO_SKIP_INSTALL:tl} == "no"
 do-install:
+	@${ECHO_MSG} "===>   Cargo config:"
+	@${CAT} ${WRKDIR}/.cargo/config.toml
 	${CARGO_CARGO_RUN} install \
 		--path . \
 		--root "${STAGEDIR}${PREFIX}" \
