@@ -2,6 +2,7 @@
 
 NAMEBASE=		musikcube
 VERSION=		3.0.5
+REVISION=		1
 KEYWORDS=		multimedia audio
 VARIANTS=		std
 SDESC[std]=		Terminal-based music player, server & more
@@ -22,7 +23,6 @@ SPKGS[std]=		set
 			in_openmpt
 			out_alsa
 			out_sndio
-			out_pipewire
 			out_portaudio
 
 OPTIONS_AVAILABLE=	none
@@ -44,7 +44,6 @@ BUILD_DEPENDS=		alsa-lib:dev:std
 			portaudio:primary:std
 			sndio:dev:std
 			taglib:dev:std
-			pipewire:dev:std
 BUILDRUN_DEPENDS=	curl:primary:std
 			ffmpeg:primary:std
 			flac:primary:std
@@ -67,8 +66,6 @@ EXRUN[in_gme]=		primary
 			libgme:primary:std
 EXRUN[server]=		primary
 			libmicrohttpd:primary:std
-EXRUN[out_pipewire]=	primary
-			pipewire:primary:std
 
 USES=			cmake ncurses pkgconfig ssl zlib
 
@@ -84,6 +81,7 @@ CMAKE_ARGS=		-DCMAKE_INSTALL_PREFIX:PATH={{PREFIX}}
 			-DDISABLE_WIDE_NCURSES_LIB_SUFFIXES=true
 			-DLIBSSL={{PREFIX}}/libressl/lib/libssl.so
 			-DLIBCRYPTO={{PREFIX}}/libressl/lib/libcrypto.so
+			-DENABLE_PIPEWIRE:BOOL=FALSE
 
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/share/musikcube/libmusikcore.so
@@ -127,10 +125,6 @@ This subpackage contains the alsa output plugin.
 
 [FILE:50:descriptions/desc.out_sndio]
 This subpackage contains the sndio output plugin.
-
-
-[FILE:53:descriptions/desc.out_pipewire]
-This subpackage contains the pipewire output plugin.
 
 
 [FILE:54:descriptions/desc.out_portaudio]
@@ -246,10 +240,6 @@ share/musikcube/plugins/libalsaout.so
 
 [FILE:39:manifests/plist.out_sndio]
 share/musikcube/plugins/libsndioout.so
-
-
-[FILE:42:manifests/plist.out_pipewire]
-share/musikcube/plugins/libpipewireout.so
 
 
 [FILE:43:manifests/plist.out_portaudio]

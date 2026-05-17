@@ -2,7 +2,7 @@
 
 NAMEBASE=		miniupnpc
 VERSION=		2.3.3
-REVISION=		1
+REVISION=		2
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		UPnP client library for Internet Gateway Devices
@@ -24,7 +24,7 @@ OPTIONS_STANDARD=	none
 
 EXRUN[tools]=		primary
 
-USES=			cmake
+USES=			cmake smf:tools
 
 LICENSE=		BSD3CLAUSE:primary
 LICENSE_FILE=		BSD3CLAUSE:{{WRKSRC}}/LICENSE
@@ -34,7 +34,9 @@ FPC_EQUIVALENT=		net/miniupnpc
 
 SOVERSION=		2.3.3
 PLIST_SUB=		SOMAJOR=21
-RC_SUBR=		miniupnpc:primary
+RC_SUBR=		miniupnpc:tools
+SUB_FILES=		manifest.xml
+			messages-tools.ucl
 
 VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
@@ -129,6 +131,68 @@ share/man/man3/miniupnpc.3
 +                   include_dirs=['include'], libraries=["miniupnpc"])
        ])
  
+
+
+[FILE:1894:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/upnpc-static -r %{config/args}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec="%%PREFIX%%/bin/upnpc-static -d %{config/args}" timeout_seconds="60"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="transient"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <instance name="default" enabled="true">
+          <property_group name="config" type="application">
+            <property name="args" type="astring">
+              <astring_list>
+                <value_node value="define,"/>
+                <value_node value="e.g."/>
+                <value_node value="8080"/>
+                <value_node value="TCP"/>
+                <value_node value="9000"/>
+                <value_node value="UDP"/>
+              </astring_list>
+            </property>
+          </property_group>
+        </instance>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">MiniUPnP Internet Gateway Device</loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:640:files/messages-tools.ucl.in]
+primary: {
+  type: "install"
+  message: <<EOM
+To run miniupnpc as a daemon:
+   BSD:
+       1. Add miniupnc_enable="YES" in your /etc/rc.conf
+       2. Add miniupnc_config="<port> <protocol> [<port2> <protocol2>]"
+          e.g. miniupnc_config="8080 TCP 9000 UDP"
+       3. start service (e.g. "service start miniupnpc")
+   SunOS:
+       1. define arguments via config/args property.
+          e.g. svccfg -s ravenports/miniupnpc:default setprop config/args = astring: '("8080" "TCP")'
+       2. refresh configuration
+          e.g. svcadm refresh ravenports/miniupnpc:default
+       3. start service (e.g. "svcadm enable miniupnpc")
+EOM
+}
 
 
 [FILE:715:files/miniupnpc.in]

@@ -2,6 +2,7 @@
 
 NAMEBASE=		rspamd
 VERSION=		4.0.1
+REVISION=		2
 KEYWORDS=		mail
 VARIANTS=		std
 SDESC[std]=		Fast, free and open-source spam filtering system
@@ -25,6 +26,7 @@ BUILD_DEPENDS=		libsodium:dev:std
 			libarchive:dev:std
 			luajit-openresty:dev:std
 BUILDRUN_DEPENDS=	icu:primary:std
+			icu:data:std
 			libsodium:primary:std
 			luajit-openresty:primary:std
 			libarchive:primary:std
@@ -34,7 +36,7 @@ GROUPS=			rspamd
 USERGROUP_SPKG=		primary
 
 USES=			cmake perl:build pkgconfig sqlite ssl:openssl30 zlib
-			pcre2 rootca:primary
+			pcre2 rootca:primary smf:primary
 GNOME_COMPONENTS=	glib
 
 FPC_EQUIVALENT=		mail/rspamd
@@ -42,14 +44,19 @@ FPC_EQUIVALENT=		mail/rspamd
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		RSPAMDVERSION=4.0.1
 			JQUERY=3.7.1
+			OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		rspamd:primary
 SUB_FILES=		messages-primary.ucl
 			rspamd.newsyslog.conf.sample
+			manifest.xml
+SUB_LIST=		OWN={{USERS}}
+			GRP={{GROUPS}}
 
 CMAKE_ARGS=		-DCONFDIR={{PREFIX}}/etc/rspamd
-			-DLOGDIR=/var/log/rspamd
-			-DDBDIR=/var/db/rspamd
-			-DRUNDIR=/var/run/rspamd
+			-DLOGDIR={{PREFIX}}/var/log/rspamd
+			-DDBDIR={{PREFIX}}/var/db/rspamd
+			-DRUNDIR={{PREFIX}}/var/run/rspamd
 			-DMANDIR={{MANPREFIX}}/man
 			-DCMAKE_INSTALL_PREFIX={{PREFIX}}
 			-DBUILD_PORT=yes
@@ -62,9 +69,9 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/rspamd
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/rspamd/*.so
 	${MKDIR}\
-		${STAGEDIR}/var/log/rspamd \
-		${STAGEDIR}/var/db/rspamd \
-		${STAGEDIR}/var/run/rspamd \
+		${STAGEDIR}${PREFIX}/var/log/rspamd \
+		${STAGEDIR}${PREFIX}/var/db/rspamd \
+		${STAGEDIR}${PREFIX}/var/run/rspamd \
 		${STAGEDIR}${PREFIX}/etc/newsyslog.conf.d
 	${INSTALL_DATA} ${WRKDIR}/rspamd.newsyslog.conf.sample \
 		${STAGEDIR}${PREFIX}/etc/rspamd/
@@ -86,7 +93,7 @@ in lua.
 68b1c662c09817f962faebcd74f20afc0b64f6d7513c3782cd2bc2b2323a5cba      6998348 vstakhov-rspamd-4.0.1.tar.gz
 
 
-[FILE:7535:manifests/plist.primary]
+[FILE:7598:manifests/plist.primary]
 @sample etc/rspamd/local.d/antivirus.conf.sample
 @sample etc/rspamd/local.d/module.conf.sample
 @sample etc/rspamd/lua.local.d/module.lua.sample
@@ -541,9 +548,9 @@ share/rspamd/www/js/lib/
  require.min.js
  solid.min.js
  visibility.min.js
-@dir /var/db/rspamd
-@dir /var/log/rspamd
-@dir /var/run/rspamd
+@dir(%%OWN%%,%%GRP%%,0750) var/db/rspamd
+@dir(%%OWN%%,%%GRP%%,0750) var/log/rspamd
+@dir(%%OWN%%,%%GRP%%,0750) var/run/rspamd
 
 
 [FILE:62:manifests/plist.man]
@@ -676,6 +683,41 @@ Avoid macro definition collision on sunos.
  	socklen_t slen = sizeof(addr_storage);
 
 
+[FILE:1741:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+            <service_fmri value='file://localhost/%%PREFIX%%/etc/rspamd.conf'/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/rspamd -u %%OWN%% -g %%GRP%% -c %{config_file}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="30"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/rspamd.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">Rspamd filtering system</loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
 [FILE:358:files/messages-primary.ucl.in]
 single: {
   type: "install"
@@ -692,7 +734,7 @@ EOM
 }
 
 
-[FILE:1259:files/rspamd.in]
+[FILE:1273:files/rspamd.in]
 #!/bin/sh
 
 # PROVIDE: rspamd
@@ -705,9 +747,9 @@ EOM
 # rspamd_enable (bool):		Set to "NO" by default.
 #				Set it to "YES" to enable rspamd.
 #
-# rspamd_user (str):		Default to "rspamd".
+# rspamd_user (str):		Default to "%%OWN%%".
 #
-# rspamd_group (str):		Default to "rspamd".
+# rspamd_group (str):		Default to "%%GRP%%".
 #
 # rspamd_flags (str):		Default to "-c %%PREFIX%%/etc/rspamd.conf".
 
@@ -719,11 +761,11 @@ rcvar=rspamd_enable
 load_rc_config $name
 
 : ${rspamd_enable:="NO"}
-: ${rspamd_user="rspamd"}
-: ${rspamd_group="rspamd"}
+: ${rspamd_user="%%OWN%%"}
+: ${rspamd_group="%%GRP%%"}
 : ${rspamd_flags="-c %%PREFIX%%/etc/rspamd/rspamd.conf"}
 
-pidfile=${rspamd_pidfile:-"/var/run/rspamd/rspamd.pid"}
+pidfile=${rspamd_pidfile:-"%%PREFIX%%/var/run/rspamd/rspamd.pid"}
 
 command=%%PREFIX%%/bin/rspamd
 command_adm=%%PREFIX%%/bin/rspamadm

@@ -2,6 +2,7 @@
 
 NAMEBASE=		mosquitto
 VERSION=		2.1.2
+REVISION=		1
 KEYWORDS=		net
 VARIANTS=		std
 SDESC[std]=		Message broker implementing the MQTT protocol
@@ -38,11 +39,12 @@ BUILDRUN_DEPENDS=	cjson:primary:std
 EXRUN[cxx]=		mosquitto:primary:std
 EXRUN[tools]=		mosquitto:primary:std
 
-USERS=			nobody
+USERS=			mqtt
+GROUPS=			mqtt
 USERGROUP_SPKG=		primary
 
 USES=			cpe cmake ssl zlib sqlite readline c++:cxx
-			rootca:tools
+			rootca:tools smf:tools
 
 LICENSE=		CUSTOM1:tools CUSTOM2:tools
 LICENSE_TERMS=		tools:{{WRKSRC}}/LICENSE.txt
@@ -56,7 +58,12 @@ CPE_VENDOR=		eclipse
 FPC_EQUIVALENT=		net/mosquitto
 
 SOVERSION=		2.1.2
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		mosquitto:tools
+SUB_FILES=		manifest.xml
+SUB_LIST=		OWN={{USERS}}
+			GRP={{GROUPS}}
 
 CMAKE_ARGS=		-DWITH_SRV:BOOL=ON
 			-DWITH_WEBSOCKETS:BOOL=ON
@@ -77,9 +84,11 @@ post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.so
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/m*
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/sbin/mosquitto
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/mosquitto
 
 pre-configure:
-	${REINPLACE_CMD} -e 's|%%PREFIX%%|${PREFIX}|g' ${WRKSRC}/mosquitto.conf
+	${REINPLACE_CMD} -e 's|%%PREFIX%%|${PREFIX}|g; s|%%OWN%%|${USERS}|g' \
+		${WRKSRC}/mosquitto.conf
 
 [FILE:681:descriptions/desc.primary]
 Eclipse Mosquitto is an open source (EPL/EDL licensed) message broker that
@@ -120,7 +129,7 @@ lib/
  mosquitto_sparkplug_aware.so
 
 
-[FILE:289:manifests/plist.tools]
+[FILE:334:manifests/plist.tools]
 @sample etc/mosquitto/aclfile.sample
 @sample etc/mosquitto/mosquitto.conf.sample
 @sample etc/mosquitto/pskfile.sample
@@ -134,6 +143,7 @@ bin/
  mosquitto_signal
  mosquitto_sub
 sbin/mosquitto
+@dir(%%OWN%%,%%GRP%%,0750) var/run/mosquitto
 
 
 [FILE:59:manifests/plist.cxx]
@@ -308,7 +318,7 @@ share/man/man8/mosquitto.8
  #endif
 
 
-[FILE:1031:patches/patch-mosquitto.conf]
+[FILE:1053:patches/patch-mosquitto.conf]
 --- mosquitto.conf.orig	2026-02-09 09:29:46 UTC
 +++ mosquitto.conf
 @@ -186,7 +186,7 @@
@@ -316,7 +326,7 @@ share/man/man8/mosquitto.8
  # being run automatically on boot with an init script and
  # start-stop-daemon or similar.
 -#pid_file
-+pid_file /var/run/mosquitto.pid
++pid_file %%PREFIX%%/var/run/mosquitto/mosquitto.pid
  
  # Set to true to queue messages with QoS 0 when a persistent client is
  # disconnected. These messages are included in the limit imposed by
@@ -325,7 +335,7 @@ share/man/man8/mosquitto.8
  # Note that on Windows this has no effect and so mosquitto should be started by
  # the user you wish it to run as.
 -#user mosquitto
-+user nobody
++user %%OWN%%
  
  # =================================================================
  # Listeners
@@ -334,7 +344,7 @@ share/man/man8/mosquitto.8
  # "openssl rehash <path to capath>" each time you add/remove a certificate.
  # capath is not supported for websockets.
 -#cafile
-+cafile %%PREFIX%%/share/certs/ca-root-nss.crt
++#cafile %%PREFIX%%/share/certs/ca-root-nss.crt
  #capath
  
  
@@ -375,7 +385,43 @@ share/man/man8/mosquitto.8
  #endif
 
 
-[FILE:804:files/mosquitto.in]
+[FILE:1841:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+            <service_fmri value='file://localhost/%%PREFIX%%/etc/mosquitto/mosquitto.conf'/>
+        </dependency>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/sbin/mosquitto -d -c %{config_file}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="30"/>
+        <exec_method type="method" name="refresh" exec=":kill -HUP" timeout_seconds="30"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/mosquitto/mosquitto.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">Mosquitto MQTT Broker</loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:825:files/mosquitto.in]
 #!/bin/sh
 
 # PROVIDE: mosquitto
@@ -401,11 +447,11 @@ load_rc_config $name
 
 mosquitto_enable=${mosquitto_enable:="NO"}
 mosquitto_config=${mosquitto_config:="%%PREFIX%%/etc/mosquitto/mosquitto.conf"}
-mosquitto_user=${mosquitto_user:="nobody"}
+mosquitto_user=${mosquitto_user:="%%OWN%%"}
 
 command=%%PREFIX%%/sbin/mosquitto
 command_args="-c ${mosquitto_config} -d"
-pidfile=${mosquitto_pidfile:-"/var/run/mosquitto.pid"}
+pidfile=${mosquitto_pidfile:-"%%PREFIX%%/var/run/mosquitto/mosquitto.pid"}
 required_files=${mosquitto_config}
 
 extra_commands=reload

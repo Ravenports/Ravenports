@@ -2,6 +2,7 @@
 
 NAMEBASE=		redis
 VERSION=		8.6.3
+REVISION=		5
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Persistent key-value database with net interface
@@ -21,7 +22,7 @@ USERS=			redis
 GROUPS=			redis
 USERGROUP_SPKG=		single
 
-USES=			cpe gmake execinfo pkgconfig c++:single
+USES=			cpe gmake execinfo pkgconfig c++:single smf:single
 
 LICENSE=		CUSTOM1:single CUSTOM2:single
 LICENSE_TERMS=		single:{{WRKDIR}}/TERMS
@@ -36,9 +37,15 @@ FPC_EQUIVALENT=		databases/redis
 
 MAKE_ENV=		V=yo
 
+PLIST_SUB=		OWN={{USERS}}
+			GRP={{GROUPS}}
 RC_SUBR=		redis:single
 			sentinel:single
 SUB_FILES=		messages-single.ucl
+			scripts-single.ucl
+			manifest.xml
+SUB_LIST=		OWN={{USERS}}
+			GRP={{GROUPS}}
 
 CFLAGS=			-Wno-implicit-fallthrough
 LDFLAGS=		-lm
@@ -48,6 +55,9 @@ VAR_OPSYS[linux]=	LDFLAGS=-ldl
 pre-configure:
 	# skip module tests (at least one requires link fix)
 	${REINPLACE_CMD} -e '/all:/ s/module_tests//' ${WRKSRC}/src/Makefile
+	# adjust localstatedir
+	${REINPLACE_CMD} -e "s|%%PREFIX%%|${PREFIX}|g" \
+		${WRKSRC}/redis.conf ${WRKSRC}/sentinel.conf
 
 post-extract:
 	${SED} -n '/Redis Source Available License 2.0 (RSALv2)/!p;//q' \
@@ -61,13 +71,14 @@ do-install:
 	(cd ${WRKSRC}/src && \
 	${INSTALL_PROGRAM} redis-benchmark redis-check-aof redis-check-rdb \
 	redis-cli redis-sentinel redis-server ${STAGEDIR}${PREFIX}/bin/)
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/db/redis
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/run/redis
+	${MKDIR} ${STAGEDIR}${PREFIX}/var/log/redis
+	${MKDIR} ${STAGEDIR}${PREFIX}/etc/redis
 	${INSTALL_DATA} ${WRKSRC}/redis.conf \
-		${STAGEDIR}${PREFIX}/etc/redis.conf.sample
+		${STAGEDIR}${PREFIX}/etc/redis/redis.conf.sample
 	${INSTALL_DATA} ${WRKSRC}/sentinel.conf \
-		${STAGEDIR}${PREFIX}/etc/sentinel.conf.sample
-	${MKDIR} ${STAGEDIR}/var/db/redis \
-		${STAGEDIR}/var/run/redis \
-		${STAGEDIR}/var/log/redis
+		${STAGEDIR}${PREFIX}/etc/redis/sentinel.conf.sample
 
 [FILE:807:descriptions/desc.single]
 Redis is an open source, advanced key-value store.  It is often referred
@@ -93,9 +104,9 @@ and so forth.
 9f54d4458c52be5472cdd1347d737f1d488b520fc3d0911cba47302de8d836e2      4252312 redis-8.6.3.tar.gz
 
 
-[FILE:261:manifests/plist.single]
-@sample etc/redis.conf.sample
-@sample etc/sentinel.conf.sample
+[FILE:294:manifests/plist.single]
+@sample etc/redis/redis.conf.sample
+@sample etc/redis/sentinel.conf.sample
 bin/
  redis-benchmark
  redis-check-aof
@@ -103,9 +114,9 @@ bin/
  redis-cli
  redis-sentinel
  redis-server
-@dir(redis,redis,) /var/db/redis
-@dir(redis,redis,) /var/log/redis
-@dir(redis,redis,) /var/run/redis
+@dir(%%OWN%%,%%GRP%%,0750) var/db/redis
+@dir(%%OWN%%,%%GRP%%,0750) var/log/redis
+@dir(%%OWN%%,%%GRP%%,0750) var/run/redis
 
 
 [FILE:294:patches/patch-deps-linenoise-Makefile]
@@ -166,24 +177,35 @@ bin/
    DYLIB_MINOR_NAME=$(LIBNAME).$(HIREDIS_SONAME).$(DYLIBSUFFIX)
 
 
-[FILE:1472:patches/patch-redis.conf]
+[FILE:2135:patches/patch-redis.conf]
 --- redis.conf.orig	2026-05-05 13:23:21 UTC
 +++ redis.conf
-@@ -324,7 +324,7 @@ tcp-keepalive 300
+@@ -322,9 +322,9 @@ tcp-keepalive 300
+ ################################# GENERAL #####################################
+ 
  # By default Redis does not run as a daemon. Use 'yes' if you need it.
- # Note that Redis will write a pid file in /var/run/redis.pid when daemonized.
+-# Note that Redis will write a pid file in /var/run/redis.pid when daemonized.
++# Note that Redis will write a pid file in %%PREFIX%%/var/run/redis/redis.pid when daemonized.
  # When Redis is supervised by upstart or systemd, this parameter has no impact.
 -daemonize no
 +daemonize yes
  
  # If you run Redis from upstart or systemd, Redis can interact with your
  # supervision tree. Options:
-@@ -356,7 +356,7 @@ daemonize no
+@@ -349,14 +349,14 @@ daemonize no
+ #
+ # When the server runs non daemonized, no pid file is created if none is
+ # specified in the configuration. When the server is daemonized, the pid file
+-# is used even if not specified, defaulting to "/var/run/redis.pid".
++# is used even if not specified, defaulting to "%%PREFIX%%/var/run/redis/redis.pid".
+ #
+ # Creating a pid file is best effort: if Redis is not able to create it
+ # nothing bad happens, the server will start and run normally.
  #
  # Note that on modern Linux systems "/run/redis.pid" is more conforming
  # and should be used instead.
 -pidfile /var/run/redis_6379.pid
-+pidfile /var/run/redis/redis.pid
++pidfile %%PREFIX%%/var/run/redis/redis.pid
  
  # Specify the server verbosity level.
  # This can be one of:
@@ -192,7 +214,7 @@ bin/
  # Redis to log on the standard output. Note that if you use standard
  # output for logging but daemonize, logs will be sent to /dev/null
 -logfile ""
-+logfile /var/log/redis/redis.log
++logfile %%PREFIX%%/var/log/redis/redis.log
  
  # To enable logging to the system logger, just set 'syslog-enabled' to yes,
  # and optionally update the other syslog parameters to suit your needs.
@@ -201,10 +223,33 @@ bin/
  #
  # Note that you must specify a directory here, not a file name.
 -dir ./
-+dir /var/db/redis/
++dir %%PREFIX%%/var/db/redis/
  
  ################################# REPLICATION #################################
  
+
+
+[FILE:805:patches/patch-sentinel.conf]
+--- sentinel.conf.orig	2026-05-05 13:23:21 UTC
++++ sentinel.conf
+@@ -10,14 +10,14 @@ protected-mode no
+ port 26379
+ 
+ # By default Redis Sentinel does not run as a daemon. Use 'yes' if you need it.
+-# Note that Redis will write a pid file in /var/run/redis-sentinel.pid when
++# Note that Redis will write a pid file in %%PREFIX%%/var/run/redis/redis-sentinel.pid when
+ # daemonized.
+ daemonize no
+ 
+ # When running daemonized, Redis Sentinel writes a pid file in
+-# /var/run/redis-sentinel.pid by default. You can specify a custom pid file
++# %%PREFIX%%/var/run/redis/redis-sentinel.pid by default. You can specify a custom pid file
+ # location here.
+-pidfile /var/run/redis-sentinel.pid
++pidfile %%PREFIX%%/var/run/redis/redis-sentinel.pid
+ 
+ # Specify the server verbosity level.
+ # This can be one of:
 
 
 [FILE:275:patches/patch-src-lua_cjson.c]
@@ -294,7 +339,77 @@ bin/
  #ifndef _GNU_SOURCE
 
 
-[FILE:228:files/messages-single.ucl.in]
+[FILE:3808:files/manifest.xml.in]
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+<service_bundle type="manifest" name="%%SMF_NAME%%">
+    <service name="%%SMF_PREFIX%%/%%SMF_NAME%%" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+            <service_fmri value='file://localhost/%%PREFIX%%/etc/redis/redis.conf'/>
+        </dependency>
+        <method_context working_directory="%%PREFIX%%/var/db/redis">
+            <method_credential user="%%OWN%%" group="%%GRP%%" />
+        </method_context>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/redis-server %{config_file}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop" exec=":kill" timeout_seconds="30"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="contract"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/redis/redis.conf"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">Redis server</loctext>
+            </common_name>
+        </template>
+    </service>
+    <service name="%%SMF_PREFIX%%/sentinel" type="service" version="1">
+        <create_default_instance enabled="false"/>
+        <single_instance/>
+        <dependency name="network" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/milestone/network:default"/>
+        </dependency>
+        <dependency name="filesystem" grouping="require_all" restart_on="error" type="service">
+            <service_fmri value="svc:/system/filesystem/local"/>
+        </dependency>
+        <dependency name='config-file' grouping='require_all' restart_on='refresh' type='path'>
+            <service_fmri value='file://localhost/%%PREFIX%%/etc/redis/sentinel.conf'/>
+        </dependency>
+        <method_context working_directory="%%PREFIX%%/var/db/redis">
+            <method_credential user="%%OWN%%" group="%%GRP%%" />
+        </method_context>
+        <exec_method type="method" name="start" exec="%%PREFIX%%/bin/redis-sentinel %{config_file} --daemonize yes --pidfile %{pidfile}" timeout_seconds="60"/>
+        <exec_method type="method" name="stop"  exec="/usr/bin/sh -c '/usr/bin/cat %{pidfile} | /usr/bin/xargs /usr/bin/kill'" timeout_seconds="30"/>
+        <property_group name="startd" type="framework">
+            <propval name="duration" type="astring" value="transient"/>
+            <propval name="ignore_error" type="astring" value="core,signal"/>
+        </property_group>
+        <property_group name="application" type="application">
+            <propval name="config_file" type="astring" value="%%PREFIX%%/etc/redis/sentinel.conf"/>
+            <propval name="pidfile" type="astring" value="%%PREFIX%%/var/run/redis/sentinel.pid"/>
+        </property_group>
+        <stability value="Evolving"/>
+        <template>
+            <common_name>
+                <loctext xml:lang="C">Redis Sentinel service</loctext>
+            </common_name>
+        </template>
+    </service>
+</service_bundle>
+
+
+[FILE:423:files/messages-single.ucl.in]
 single: {
   type: "install"
   message: <<EOM
@@ -302,14 +417,21 @@ CONFIGURATION NOTE:
 
 To setup "redis" you need to edit the configuration file:
 %%PREFIX%%/etc/redis.conf
+%%PREFIX%%/etc/sentinel.conf
 
-To run redis from startup, add redis_enable="YES" in your /etc/rc.conf.
+To start redis and sentinel as a service:
+BSD
+   add redis_enable="YES" in your /etc/rc.conf file.
+   add sentinel_enable="YES" in your /etc/rc.conf file.
+
+SunOS
+   Use svcadm to enable ravenports/redis and ravenports/sentinel services.
 EOM
 }
 
-[FILE:1528:files/redis.in]
+
+[FILE:1554:files/redis.in]
 #!/bin/sh
-#
 
 # PROVIDE: redis
 # REQUIRE: LOGIN
@@ -334,13 +456,13 @@ rcvar="${name}_enable"
 extra_commands="reload"
 
 command="%%PREFIX%%/bin/redis-server"
-pidfile="/var/log/redis/$name.pid"
+pidfile="%%PREFIX%%/var/run/redis/$name.pid"
 
 # read configuration and set defaults
 load_rc_config "$name"
 : ${redis_enable="NO"}
-: ${redis_user="redis"}
-: ${redis_config="%%PREFIX%%/etc/$name.conf"}
+: ${redis_user="%%OWN%%"}
+: ${redis_config="%%PREFIX%%/etc/redis/$name.conf"}
 
 command_args="${redis_config}"
 required_files="${redis_config}"
@@ -363,7 +485,7 @@ if [ $# -eq 2 ]; then
 	echo "-- Profile: ${_profile} --"
 	config_file="%%PREFIX%%/etc/${name}-${_profile}.conf"
 	command_args="${config_file}"
-	pidfile="/var/log/redis/${_profile}.pid"
+	pidfile="%%PREFIX%%/var/run/redis/${_profile}.pid"
 	required_files="${config_file}"
 elif [ -n "${redis_profiles}" ]; then
 	_swap=$*; shift; _profiles=$*
@@ -378,7 +500,20 @@ fi
 run_rc_command "$1"
 
 
-[FILE:847:files/sentinel.in]
+[FILE:305:files/scripts-single.ucl.in]
+post-install-lua: [{
+    args: ""
+    code: <<EOS
+redir = pkg.prefixed_path("etc/redis")
+cfile = pkg.prefixed_path("etc/redis/sentinel.conf.sample")
+pkg.exec({"/usr/bin/chown", "%%OWN%%:%%GRP%%", redir})
+pkg.exec({"/usr/bin/chown", "%%OWN%%:%%GRP%%", cfile})
+pkg.exec({"/bin/chmod", "664", cfile})
+EOS
+}]
+
+
+[FILE:863:files/sentinel.in]
 #!/bin/sh
 #
 
@@ -397,14 +532,14 @@ run_rc_command "$1"
 name="sentinel"
 rcvar="${name}_enable"
 
-command="/usr/local/bin/redis-sentinel"
-pidfile="/var/run/redis/$name.pid"
+command="%%PREFIX%%/bin/redis-sentinel"
+pidfile="%%PREFIX%%/var/run/redis/$name.pid"
 
 # read configuration and set defaults
 load_rc_config "$name"
 : ${sentinel_enable="NO"}
 : ${sentinel_user="redis"}
-: ${sentinel_config="%%PREFIX%%/etc/$name.conf"}
+: ${sentinel_config="%%PREFIX%%/etc/redis/$name.conf"}
 
 command_args="${sentinel_config} --daemonize yes --pidfile ${pidfile}"
 required_files="${sentinel_config}"
