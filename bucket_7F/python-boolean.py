@@ -7,7 +7,7 @@ VARIANTS=		v13 v14
 SDESC[v13]=		Boolean expression and algebra library (3.13)
 SDESC[v14]=		Boolean expression and algebra library (3.14)
 HOMEPAGE=		https://github.com/bastikr/boolean.py
-CONTACT=		Python_Automaton[python@ironwolf.systems]
+CONTACT=		Python_Automaton[python@ravenports.com]
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		PYPIWHL/e5/ca/78d423b324b8d77900030fa59c4aa9054261ef0925631cd2501dd015b7b7

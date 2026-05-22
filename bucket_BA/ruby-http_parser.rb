@@ -8,7 +8,7 @@ SDESC[v40]=		Http-parser bindings (v40)
 SDESC[v33]=		Http-parser bindings (v33)
 SDESC[v34]=		Http-parser bindings (v34)
 HOMEPAGE=		https://github.com/tmm1/http_parser.rb
-CONTACT=		Ruby_Automaton[ruby@ironwolf.systems]
+CONTACT=		Ruby_Automaton[ruby@ravenports.com]
 
 DOWNLOAD_GROUPS=	main
 SITES[main]=		RUBYGEMS/
