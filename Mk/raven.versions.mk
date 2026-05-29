@@ -37,8 +37,8 @@ PERL_5.42_VERSION=	5.42.2
 
 RUBY_DEFAULT?=		3.4
 
-RUBY_3.3_VERSION=	3.3.10
-RUBY_3.4_VERSION=	3.4.8
+RUBY_3.3_VERSION=	3.3.11
+RUBY_3.4_VERSION=	3.4.9
 RUBY_4.0_VERSION=	4.0.4
 
 #-------------------------------------------------------------------------
@@ -90,11 +90,11 @@ TCL_9.0_VERSION=	9.0.3
 
 PGSQL_DEFAULT?=		17
 
-PGSQL_14_VERSION=	14.22	# EOL 12 NOV 2026
-PGSQL_15_VERSION=	15.17	# EOL 11 NOV 2027
-PGSQL_16_VERSION=	16.13	# EOL 09 NOV 2028
-PGSQL_17_VERSION=	17.9	# EOL 08 NOV 2029
-PGSQL_18_VERSION=	18.3	# EOL 14 NOV 2030
+PGSQL_14_VERSION=	14.23	# EOL 12 NOV 2026
+PGSQL_15_VERSION=	15.18	# EOL 11 NOV 2027
+PGSQL_16_VERSION=	16.14	# EOL 09 NOV 2028
+PGSQL_17_VERSION=	17.10	# EOL 08 NOV 2029
+PGSQL_18_VERSION=	18.4	# EOL 14 NOV 2030
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
@@ -115,10 +115,10 @@ MYSQL_DEFAULT=			oracle-8.0
 MYSQL_oracle-8.0_VERSION=	8.0.46
 MYSQL_oracle-8.4_VERSION=	8.4.9
 MYSQL_innovation_VERSION=	9.7.0
-MYSQL_mariadb-10.6_VERSION=	10.6.25
-MYSQL_mariadb-10.11_VERSION=	10.11.16
-MYSQL_mariadb-11.4_VERSION=	11.4.10
-MYSQL_mariadb-11.8_VERSION=	11.8.6
+MYSQL_mariadb-10.6_VERSION=	10.6.26
+MYSQL_mariadb-10.11_VERSION=	10.11.17
+MYSQL_mariadb-11.4_VERSION=	11.4.11
+MYSQL_mariadb-11.8_VERSION=	11.8.7
 MYSQL_mariadb-BE_VERSION=	12.2.2		# Bleeding Edge
 
 #-------------------------------------------------------------------------
