@@ -2,9 +2,10 @@
 
 NAMEBASE=		hickory-dns
 VERSION=		0.26.1
+REVISION=		2
 KEYWORDS=		rust dns
 VARIANTS=		std
-SDESC[std]=		Rust based DNS server with DNSSEC support
+SDESC[std]=		Rust-based DNS server with DNSSEC support + utils
 HOMEPAGE=		https://hickory-dns.org/
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
@@ -777,33 +778,63 @@ DF_INDEX=		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 			339 340 341 342 343 344 345 346 347 348 349 350 351
 			352 353 354 355 356 357 358 359 360 361 362 363 364
 			365 366 367 368 369 370
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			utils
+			examples
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			c++:single cargo
+USERS=			hickory
+GROUPS=			hickory
+USERGROUP_SPKG=		primary
 
-LICENSE=		APACHE20:single MIT:single
-LICENSE_TERMS=		single:{{WRKSRC}}/copyright.txt
+USES=			c++:primary,utils cargo
+
+LICENSE=		APACHE20:primary MIT:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/copyright.txt
 LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE-APACHE
 			MIT:{{WRKSRC}}/LICENSE-MIT
 LICENSE_SCHEME=		dual
 
-CARGO_BUILD_ARGS=	--package hickory-dns
+RC_SUBR=		hickory:primary
+
+do-build:
+	(cd ${WRKSRC} && ${CARGO_CARGO_RUN} build --package hickory-dns --release \
+		--verbose &&  ${CARGO_CARGO_RUN} build --package hickory-util \
+		--release --verbose)
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/.crates*
+	(cd ${WRKSRC}/tests/test-data && ${COPYTREE_SHARE} test_configs ${STAGEDIR}${STD_EXAMPLESDIR}/)
+	${MV} ${STAGEDIR}${PREFIX}/bin/hickory-dns ${STAGEDIR}${PREFIX}/sbin/
+	${MKDIR} -p ${STAGEDIR}${PREFIX}/var/named/default
+.for f in 0.zone 127.0.0.1.zone 255.zone ipv6_1.zone localhost.zone
+	${INSTALL_DATA} ${WRKSRC}/tests/test-data/test_configs/default/${f} ${STAGEDIR}${PREFIX}/var/named/default/
+.endfor
+	${INSTALL_DATA} ${WRKSRC}/tests/test-data/test_configs/example.toml ${STAGEDIR}${PREFIX}/etc/hickory.toml-dist
 
 do-install:
 	(cd ${WRKSRC} && ${CARGO_CARGO_RUN} install --path bin --root \
-		"${STAGEDIR}${PREFIX}" --verbose)
+		"${STAGEDIR}${PREFIX}" --verbose && ${CARGO_CARGO_RUN} \
+		install --path util --root "${STAGEDIR}${PREFIX}" --verbose)
 
-[FILE:261:descriptions/desc.single]
+[FILE:261:descriptions/desc.primary]
 Hickory-DNS (formerly "Trust-DNS") is an authoritative DNS server. Its 
 main distinguishing feature from other Open-Source nameserver software is 
 that Hickory is written in 100% safe Rust. It supports DNSSEC and already 
 implemented most of the relevant RFCs.
+
+
+[FILE:323:descriptions/desc.utils]
+This subpackage contains the utilities that come with Hickory-DNS:
+
+* recurse: CLI interface for hickory-dns-recursor
+* resolv: CLI interface for hickory-resolver (a lookup tool similar to 
+host)
+* dns: CLI interface for hickory-client (providing query functionality 
+similar to dig as well as subcommands to manage zones)
 
 
 [FILE:42907:distinfo]
@@ -1179,6 +1210,141 @@ b97154e67e32c85465826e8bcc1c59429aaaf107c1e4a9e53c8d8ccd5eff88d0        20907 ru
 b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa        26665 rust/crates/zmij-1.0.21.tar.gz
 
 
-[FILE:16:manifests/plist.single]
-bin/hickory-dns
+[FILE:121:manifests/plist.primary]
+etc/hickory.toml-dist
+sbin/hickory-dns
+var/named/default/
+ 0.zone
+ 127.0.0.1.zone
+ 255.zone
+ ipv6_1.zone
+ localhost.zone
+
+
+[FILE:28:manifests/plist.utils]
+bin/
+ dns
+ recurse
+ resolve
+
+
+[FILE:1188:manifests/plist.examples]
+share/examples/hickory-dns/test_configs/
+ all_supported_dnssec.toml
+ chained_blocklist.toml
+ consulting_blocklist.toml
+ dns_over_https.toml
+ dns_over_quic.toml
+ dns_over_tls.toml
+ dns_over_tls_rustls_and_openssl.toml
+ dnssec_with_update.toml
+ dnssec_with_update_2.toml
+ example.com.zone
+ example.toml
+ example_allow_networks.toml
+ example_deny_allow_networks.toml
+ example_deny_networks.toml
+ example_forwarder.toml
+ example_recursor.toml
+ example_recursor_dnssec.toml
+ example_recursor_opportunistic_enc.toml
+ example_recursor_opportunistic_enc_2.toml
+ include.example.com.zone
+ ipv4_and_ipv6.toml
+ ipv4_only.toml
+ ipv6_only.toml
+share/examples/hickory-dns/test_configs/default/
+ 0.zone
+ 127.0.0.1.zone
+ 255.zone
+ blocklist.txt
+ blocklist2.txt
+ blocklist3.txt
+ implicitclass.zone
+ ipv6_1.zone
+ localhost.zone
+ nonewline.zone
+ root.zone
+ test.local.zone
+share/examples/hickory-dns/test_configs/dnssec/
+ ecdsa_p256.pem
+ ecdsa_p256.pk8
+ ecdsa_p384.pem
+ ecdsa_p384.pk8
+ ed25519.pk8
+ example.com.zone
+ gen-keys.sh
+ rsa_2048.pem
+ rsa_2048.pk8
+ tsig_update.key
+share/examples/hickory-dns/test_configs/sec/
+ example.cert
+ example.cert.pem
+ example.key
+ example.key.pem
+ example.p12
+ gen-keys.sh
+
+
+[FILE:1952:files/hickory.in]
+#!/bin/sh
+
+# PROVIDE: hickory
+# REQUIRE: NETWORKING ldconfig syslogd
+# BEFORE: SERVERS
+# KEYWORD: shutdown
+
+# Add the following lines to /etc/rc.conf to enable Hickory DNS:
+# hickory_enable (bool):            Run the Hickory DNS server (or NO).
+# hickory_program (str):            Path to the Hickory executable, if you want a custom one.
+# hickory_conf (str):               Path to the configuration file (default: %%PREFIX%%/etc/hickory.toml).
+# hickory_workers (int):            Set worker count (default: number of CPU cores).
+# hickory_port (int):               Override DNS port defined in the configuration file.
+# hickory_zonedir (str):            Override zone directory defined in the configuration file.
+
+. /etc/rc.subr
+
+name="hickory"
+desc="Hickory DNS startup script"
+rcvar="hickory_enable"
+extra_commands="reload"
+pidfile="/var/run/hickory/hickory.pid"
+start_precmd=hickory_prestart
+
+: ${hickory_enable:="NO"}
+: ${hickory_program:="%%PREFIX%%/sbin/hickory-dns"}
+: ${hickory_conf:="%%PREFIX%%/etc/hickory.toml"}
+: ${hickory_port:=""}
+: ${hickory_zonedir:=""}
+: ${hickory_workers:=""}
+
+hickory_prestart()
+{
+    pidfile_dir=$(dirname "${pidfile}")
+    if [ ! -d "${pidfile_dir}" ]; then
+        if ! mkdir -p "${pidfile_dir}"; then
+            warn "Failed to create ${pidfile_dir}"
+            return 1
+        fi
+    fi
+
+    local hickory_args="-c ${hickory_conf}"
+    [ -n "${hickory_port}" ] && hickory_args="${hickory_args} -p ${hickory_port}"
+    [ -n "${hickory_zonedir}" ] && hickory_args="${hickory_args} -z ${hickory_zonedir}"
+    [ -n "${hickory_workers}" ] && hickory_args="${hickory_args} --workers ${hickory_workers}"
+
+    command="/usr/sbin/daemon -f -p ${pidfile} ${hickory_program} ${hickory_args}"
+}
+
+hickory_reload()
+{
+    if [ -f "${pidfile}" ]; then
+        kill -HUP $(cat "${pidfile}") 2>/dev/null
+    else
+        warn "PID file ${pidfile} not found; cannot reload"
+    fi
+}
+
+load_rc_config $name
+run_rc_command "$1"
 
