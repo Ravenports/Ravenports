@@ -115,11 +115,11 @@ MYSQL_DEFAULT=			oracle-8.0
 MYSQL_oracle-8.0_VERSION=	8.0.46
 MYSQL_oracle-8.4_VERSION=	8.4.9
 MYSQL_innovation_VERSION=	9.7.0
-MYSQL_mariadb-10.6_VERSION=	10.6.26
-MYSQL_mariadb-10.11_VERSION=	10.11.17
-MYSQL_mariadb-11.4_VERSION=	11.4.11
-MYSQL_mariadb-11.8_VERSION=	11.8.7
-MYSQL_mariadb-BE_VERSION=	12.2.2		# Bleeding Edge
+MYSQL_mariadb-10.6_VERSION=	10.6.27
+MYSQL_mariadb-10.11_VERSION=	10.11.18
+MYSQL_mariadb-11.4_VERSION=	11.4.12
+MYSQL_mariadb-11.8_VERSION=	11.8.8
+MYSQL_mariadb-BE_VERSION=	12.3.2		# Bleeding Edge
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
