@@ -2,6 +2,7 @@
 
 NAMEBASE=		qt6-qtbase
 VERSION=		6.11.1
+REVISION=		1
 KEYWORDS=		x11_toolkits devel
 VARIANTS=		std
 SDESC[std]=		Qt6 - QtBase component
@@ -5217,6 +5218,23 @@ share/doc/qt6/global/tools-doc-front-page/images/
      SOURCES
          io/qfilesystemwatcher_kqueue.cpp io/qfilesystemwatcher_kqueue_p.h
  )
+
+
+[FILE:540:patches/patch-src_corelib_global_qfloat16.h]
+--- src/corelib/global/qfloat16.h.orig	2026-05-07 07:50:01 UTC
++++ src/corelib/global/qfloat16.h
+@@ -102,7 +102,11 @@ public:
+     // Support for std::numeric_limits<qfloat16>
+ #ifdef __STDCPP_FLOAT16_T__
+ private:
++#if QFLOAT16_IS_NATIVE
+     using Bounds = std::numeric_limits<NativeType>;
++#else
++    using Bounds = std::numeric_limits<float>;
++#endif
+ public:
+     static constexpr qfloat16 _limit_epsilon()    noexcept { return Bounds::epsilon(); }
+     static constexpr qfloat16 _limit_min()        noexcept { return Bounds::min(); }
 
 
 [FILE:494:patches/patch-src_corelib_global_qgettid__p.h]
