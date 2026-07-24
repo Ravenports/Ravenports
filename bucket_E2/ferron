@@ -2,7 +2,7 @@
 
 NAMEBASE=		ferron
 VERSION=		2.8.1
-REVISION=		1
+REVISION=		3
 KEYWORDS=		rust www
 VARIANTS=		std
 SDESC[std]=		Fast, memory-safe web server written in Rust
@@ -1162,36 +1162,51 @@ DF_INDEX=		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 			521 522 523 524 525 526 527 528 529 530 531 532 533
 			534 535 536 537 538 539 540 541 542 543 544 545 546
 			547 548 549 550 551 552 553 554 555
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			tools
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
 ONLY_FOR_OPSYS=		linux freebsd
 
+BUILD_DEPENDS=		sccache:primary:std
+
 USERS=			wwwraven
 GROUPS=			wwwraven
-USERGROUP_SPKG=		single
+USERGROUP_SPKG=		primary
 
-USES=			cargo clang cmake:build
+USES=			c++:primary cargo clang cmake:build
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
 MAKE_ENV=		LIBCLANG_PATH={{PREFIX}}/lib
 
-RC_SUBR=		ferron:single
+RC_SUBR=		ferron:primary
+
+do-build:
+	(cd ${WRKSRC} && ${CARGO_CARGO_RUN} build --package ferron --release \
+		--verbose && ${CARGO_CARGO_RUN} build --package ferron-passwd \
+		--release --verbose && ${CARGO_CARGO_RUN} build  --package \
+		ferron-yaml2kdl --release --verbose && ${CARGO_CARGO_RUN} \
+		build --package ferron-precompress --release --verbose)
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/.crates2.json
 	${RM} ${STAGEDIR}${PREFIX}/.crates.toml
 
 do-install:
-	cd ${WRKSRC} && ${CARGO_CARGO_RUN} install --path ferron --root \
-		"${STAGEDIR}${PREFIX}" --verbose
+	(cd ${WRKSRC} && ${CARGO_CARGO_RUN} install --path ferron --root \
+		"${STAGEDIR}${PREFIX}" --verbose && ${CARGO_CARGO_RUN} install \
+		--path ferron-passwd --root "${STAGEDIR}${PREFIX}" --verbose && \
+		${CARGO_CARGO_RUN} install --path ferron-yaml2kdl --root \
+		"${STAGEDIR}${PREFIX}" --verbose && ${CARGO_CARGO_RUN} install \
+		 --path ferron-precompress --root "${STAGEDIR}${PREFIX}" --verbose)
 
-[FILE:774:descriptions/desc.single]
+[FILE:774:descriptions/desc.primary]
 Ferron is a fast, production-ready web server with automatic TLS and 
 configuration that stays readable. Some of its features are:
 
@@ -1212,6 +1227,10 @@ configuration that stays readable. Some of its features are:
  * Reliable
    Predictable behavior under load, with automatic retries and optional 
    health checks.
+
+
+[FILE:51:descriptions/desc.tools]
+Various tools that come with the Ferron webserver.
 
 
 [FILE:64205:distinfo]
@@ -1772,8 +1791,15 @@ e91ee311a569c327171651566e07972200e76fcfe2242a4fa446149a3881c08a        30514 ru
 ca5d5250f1c8f0ab1cccd7af4e7cd26123516bc526191a40885a12de5c923168      2856760 rust/crates/DorianNiemiecSVRJS-monoio-7955c1356585d7ebd45d67f5932620c09ac0a701.tar.gz
 
 
-[FILE:11:manifests/plist.single]
+[FILE:11:manifests/plist.primary]
 bin/ferron
+
+
+[FILE:57:manifests/plist.tools]
+bin/
+ ferron-yaml2kdl
+ ferron-passwd
+ ferron-precompress
 
 
 [FILE:693:patches/patch-Cargo.toml]

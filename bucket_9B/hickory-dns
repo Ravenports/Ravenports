@@ -2,7 +2,7 @@
 
 NAMEBASE=		hickory-dns
 VERSION=		0.26.1
-REVISION=		2
+REVISION=		3
 KEYWORDS=		rust dns
 VARIANTS=		std
 SDESC[std]=		Rust-based DNS server with DNSSEC support + utils
@@ -798,19 +798,20 @@ LICENSE_FILE=		APACHE20:{{WRKSRC}}/LICENSE-APACHE
 			MIT:{{WRKSRC}}/LICENSE-MIT
 LICENSE_SCHEME=		dual
 
+INSTALL_REQ_TOOLCHAIN=	yes
 RC_SUBR=		hickory:primary
 
 do-build:
 	(cd ${WRKSRC} && ${CARGO_CARGO_RUN} build --package hickory-dns --release \
-		--verbose &&  ${CARGO_CARGO_RUN} build --package hickory-util \
-		--release --verbose)
+		--features recursor --verbose && ${CARGO_CARGO_RUN} build --package \
+		hickory-util --release --verbose)
 
 post-install:
 	${RM} ${STAGEDIR}${PREFIX}/.crates*
 	(cd ${WRKSRC}/tests/test-data && ${COPYTREE_SHARE} test_configs ${STAGEDIR}${STD_EXAMPLESDIR}/)
 	${MV} ${STAGEDIR}${PREFIX}/bin/hickory-dns ${STAGEDIR}${PREFIX}/sbin/
 	${MKDIR} -p ${STAGEDIR}${PREFIX}/var/named/default
-.for f in 0.zone 127.0.0.1.zone 255.zone ipv6_1.zone localhost.zone
+.for f in 0.zone 127.0.0.1.zone 255.zone ipv6_1.zone localhost.zone root.zone
 	${INSTALL_DATA} ${WRKSRC}/tests/test-data/test_configs/default/${f} ${STAGEDIR}${PREFIX}/var/named/default/
 .endfor
 	${INSTALL_DATA} ${WRKSRC}/tests/test-data/test_configs/example.toml ${STAGEDIR}${PREFIX}/etc/hickory.toml-dist
@@ -1210,7 +1211,7 @@ b97154e67e32c85465826e8bcc1c59429aaaf107c1e4a9e53c8d8ccd5eff88d0        20907 ru
 b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa        26665 rust/crates/zmij-1.0.21.tar.gz
 
 
-[FILE:121:manifests/plist.primary]
+[FILE:132:manifests/plist.primary]
 etc/hickory.toml-dist
 sbin/hickory-dns
 var/named/default/
@@ -1219,6 +1220,7 @@ var/named/default/
  255.zone
  ipv6_1.zone
  localhost.zone
+ root.zone
 
 
 [FILE:28:manifests/plist.utils]
