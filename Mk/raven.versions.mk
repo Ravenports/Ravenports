@@ -116,10 +116,10 @@ MYSQL_oracle-8.0_VERSION=	8.0.46
 MYSQL_oracle-8.4_VERSION=	8.4.11
 MYSQL_innovation_VERSION=	9.7.2
 MYSQL_mariadb-10.6_VERSION=	10.6.28
-MYSQL_mariadb-10.11_VERSION=	10.11.18
-MYSQL_mariadb-11.4_VERSION=	11.4.12
-MYSQL_mariadb-11.8_VERSION=	11.8.8
-MYSQL_mariadb-BE_VERSION=	12.3.2		# Bleeding Edge
+MYSQL_mariadb-10.11_VERSION=	10.11.19
+MYSQL_mariadb-11.4_VERSION=	11.4.13
+MYSQL_mariadb-11.8_VERSION=	11.8.9
+MYSQL_mariadb-BE_VERSION=	12.3.3		# Bleeding Edge
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
@@ -129,8 +129,8 @@ MYSQL_mariadb-BE_VERSION=	12.3.2		# Bleeding Edge
 PHP_DEFAULT?=		8.4
 
 PHP_8.3_VERSION=	8.3.33
-PHP_8.4_VERSION=	8.4.24
-PHP_8.5_VERSION=	8.5.9
+PHP_8.4_VERSION=	8.4.25
+PHP_8.5_VERSION=	8.5.10
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
