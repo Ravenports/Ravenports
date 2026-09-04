@@ -59,3 +59,108 @@ bin/
  vkcubepp
  vulkaninfo
 
+
+[FILE:1888:patches/patch-cube_CMakeLists.txt]
+--- cube/CMakeLists.txt.orig	2026-08-28 03:05:46 UTC
++++ cube/CMakeLists.txt
+@@ -75,7 +75,7 @@ endif()
+ 
+ option(BUILD_WSI_DISPLAY_SUPPORT "Build DISPLAY WSI support" ${WSI_DISPLAY_DEFAULT_SETTING})
+ 
+-if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
++if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU|Dragon")
+     option(BUILD_WSI_XCB_SUPPORT "Build XCB WSI support" ON)
+     option(BUILD_WSI_XLIB_SUPPORT "Build Xlib WSI support" ON)
+     option(BUILD_WSI_WAYLAND_SUPPORT "Build Wayland WSI support" ON)
+@@ -179,7 +179,7 @@ elseif(ANDROID)
+     list(APPEND ENABLED_CUBE_PLATFORMS VK_USE_PLATFORM_ANDROID_KHR)
+ elseif(APPLE)
+     list(APPEND ENABLED_CUBE_PLATFORMS VK_USE_PLATFORM_METAL_EXT)
+-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
++elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU|Dragon")
+     if(BUILD_WSI_XCB_SUPPORT)
+         list(APPEND ENABLED_CUBE_PLATFORMS VK_USE_PLATFORM_XCB_KHR)
+     endif()
+@@ -230,7 +230,7 @@ endif()
+ # a missing dependency on libpthread. While newer Ubuntu versions use a glibc version where libpthread
+ # is integrated into libc, older ubuntu's do not so we need to link threads directly in order for
+ # validation layers to be loadable.
+-if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
++if (CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU|Dragon")
+     find_package(Threads REQUIRED)
+ endif()
+ 
+@@ -246,7 +246,7 @@ elseif (ANDROID)
+ 
+     add_subdirectory(android)
+ 
+-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
++elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU|Dragon")
+     add_executable(vkcube)
+     target_sources(vkcube PRIVATE
+         cube.c
+@@ -318,7 +318,7 @@ endif()
+ 
+ if(APPLE)
+     add_subdirectory(macOS/cubepp)
+-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
++elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU|Dragon")
+     add_executable(vkcubepp
+                    cube.cpp
+                    ${PROJECT_SOURCE_DIR}/cube/cube.vert
+
+
+[FILE:459:patches/patch-cube_cube.c]
+--- cube/cube.c.orig	2026-08-28 03:05:46 UTC
++++ cube/cube.c
+@@ -5108,7 +5108,7 @@ void android_main(struct android_app *ap
+         }
+     }
+ }
+-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__) || defined(__GNU__)
++#elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__) || defined(__GNU__) || defined(__DragonFly__)
+ int main(int argc, char **argv) {
+     struct demo demo;
+ 
+
+
+[FILE:349:patches/patch-cube_cube.cpp]
+--- cube/cube.cpp.orig	2026-08-28 03:05:46 UTC
++++ cube/cube.cpp
+@@ -4153,6 +4153,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
+ }
+ 
+ #elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__QNX__) || defined(__GNU__) || \
++    defined(__DragonFly__) || \
+     defined(__Fuchsia__)
+ 
+ template <WsiPlatform WSI_PLATFORM>
+
+
+[FILE:568:patches/patch-cube_gettime.h]
+--- cube/gettime.h.orig	2026-08-28 03:05:46 UTC
++++ cube/gettime.h
+@@ -26,7 +26,7 @@
+ 
+ #include <windows.h>
+ 
+-#elif defined(__unix__) || defined(__linux) || defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__ANDROID__) || defined(__EPOC32__) || defined(__QNX__) || defined(__APPLE__)
++#elif defined(__unix__) || defined(__linux) || defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__ANDROID__) || defined(__EPOC32__) || defined(__QNX__) || defined(__APPLE__) || defined(__DragonFly__)
+ 
+ #include <time.h>
+ 
+
+
+[FILE:439:patches/patch-icd_CMakeLists.txt]
+--- icd/CMakeLists.txt.orig	2026-08-28 03:05:46 UTC
++++ icd/CMakeLists.txt
+@@ -38,7 +38,7 @@ elseif(APPLE)
+     endif()
+ elseif(BUILD_MOCK_ANDROID_SUPPORT)
+     add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR)
+-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU")
++elseif(CMAKE_SYSTEM_NAME MATCHES "Linux|BSD|GNU|Dragon")
+     if(BUILD_WSI_XCB_SUPPORT)
+         add_definitions(-DVK_USE_PLATFORM_XCB_KHR -DVK_USE_PLATFORM_XCB_KHX)
+     endif()
+

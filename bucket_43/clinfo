@@ -27,6 +27,8 @@ USES=			gmake
 
 FPC_EQUIVALENT=		devel/clinfo
 
+MAKE_ARGS=		OS={{OPSYS}}
+
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/bin/clinfo
 
@@ -53,10 +55,10 @@ bin/clinfo
 man/man1/clinfo.1
 
 
-[FILE:307:freebsd/patch-Makefile]
---- Makefile.orig	2026-08-30 10:27:20.921912000 +0200
-+++ Makefile	2025-02-14 17:39:10.000000000 +0100
-@@ -62,7 +62,7 @@
+[FILE:431:patches/patch-Makefile]
+--- Makefile.orig	2025-02-14 16:39:10 UTC
++++ Makefile
+@@ -62,11 +62,12 @@ LDFLAGS_Android += -Wl,-rpath-link=${AND
  LDFLAGS += $(LDFLAGS_$(OS))
  
  # Common library includes
@@ -65,4 +67,9 @@ man/man1/clinfo.1
  
  # OS-specific library includes
  LDLIBS_Darwin = -framework OpenCL
+ LDLIBS_Darwin_exclude = -lOpenCL
++LDLIBS_Linux = -ldl
+ 
+ LDLIBS += $(LDLIBS_${OS}) $(LDLIBS__common:$(LDLIBS_${OS}_exclude)=)
+ 
 
