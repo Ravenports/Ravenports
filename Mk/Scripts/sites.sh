@@ -477,13 +477,7 @@ expand_SAVANNAH()
     local SUBDIR=${1##SAVANNAH/}
     local cluster="\
     http://download.savannah.gnu.org/releases \
-    http://download-mirror.savannah.gnu.org/releases \
-    http://nongnu.askapache.com \
-    http://mirror.lihnidos.org/GNU/savannah \
-    http://ftp.twaren.net/Unix/NonGNU \
-    ftp://ftp.twaren.net/Unix/NonGNU \
-    http://gnu.mirrors.pair.com/savannah/savannah \
-    ftp://gnu.mirrors.pair.com/savannah"
+    http://download-mirror.savannah.gnu.org/releases"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
     done
