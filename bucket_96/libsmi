@@ -2,7 +2,7 @@
 
 NAMEBASE=		libsmi
 VERSION=		0.5.0
-REVISION=		1
+REVISION=		2
 KEYWORDS=		net_mgmt
 VARIANTS=		std
 SDESC[std]=		Library to access SMI management information
@@ -569,4 +569,100 @@ share/man/man3/
  smi_type.3
  smi_util.3
  yang_node.3
+
+
+[FILE:257:patches/patch-lib_parser-smi.h]
+$NetBSD: patch-lib_parser-smi.h,v 1.1 2025/04/28 19:34:48 tnn Exp $
+
+Replace K&R prototype.
+
+--- lib/parser-smi.h.orig	2013-06-04 12:34:00 UTC
++++ lib/parser-smi.h
+@@ -24,7 +24,7 @@
+ 
+ 
+ 
+-extern int smiparse();
++extern int smiparse(struct Parser *);
+ 
+ 
+ 
+
+
+[FILE:278:patches/patch-lib_parser-yang.h]
+$NetBSD: patch-lib_parser-yang.h,v 1.2 2025/04/29 07:46:55 wiz Exp $
+
+Replace K&R prototype.
+
+--- lib/parser-yang.h.orig	2013-06-04 12:34:00 UTC
++++ lib/parser-yang.h
+@@ -13,7 +13,8 @@
+ 
+ 
+ 
+-extern int yangparse();
++struct Parser;
++extern int yangparse(struct Parser *);
+ 
+ 
+ 
+
+
+[FILE:341:patches/patch-lib_parser-yang.y]
+$NetBSD: patch-lib_parser-yang.y,v 1.1 2024/08/05 08:19:59 tnn Exp $
+
+Add missing prototypes.
+
+--- lib/parser-yang.y.orig	2014-10-11 15:58:53 UTC
++++ lib/parser-yang.y
+@@ -35,6 +35,8 @@
+ #endif
+ 
+ #include "yang.h"
++#include "yang-check.h"
++#include "smi-check.h"
+ #include "yang-data.h"
+ #include "parser-yang.h"
+ #include "scanner-yang.h"
+
+
+[FILE:456:patches/patch-lib_smi-data.c]
+$NetBSD: patch-lib_smi-data.c,v 1.1 2025/04/28 19:34:48 tnn Exp $
+
+Replace K&R prototype.
+
+--- lib/smi-data.c.orig	2013-06-04 12:34:00 UTC
++++ lib/smi-data.c
+@@ -39,12 +39,12 @@
+ 
+ #ifdef BACKEND_SMI
+ #include "scanner-smi.h"
+-extern int smiparse();
++extern int smiparse(struct Parser *);
+ #endif
+ 
+ #ifdef BACKEND_SMING
+ #include "scanner-sming.h"
+-extern int smingparse();
++extern int smingparse(struct Parser *);
+ #endif
+ 
+ #define stringKind(kind) ( \
+
+
+[FILE:471:patches/patch-lib_yang-data.h]
+$NetBSD: patch-lib_yang-data.h,v 1.1 2024/08/05 08:19:59 tnn Exp $
+
+Add missing prototypes.
+
+--- lib/yang-data.h.orig	2013-06-04 12:34:00 UTC
++++ lib/yang-data.h
+@@ -164,6 +164,7 @@ int removeYangNode(_YangNode* target, _Y
+ 
+ _YangModuleInfo *createModuleInfo(_YangNode *modulePtr);
+ 
++void createIdentifierRef(_YangNode *node, char* prefix, char* ident);
+ void createTypeInfo(_YangNode *node);
+ 
+ _YangNode *findYangModuleByName(const char *modulename, char* revision);
 

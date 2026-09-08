@@ -105,7 +105,7 @@ share/man/man7/
  yasm_parsers.7
 
 
-[FILE:881:patches/patch-address-CVE-2023-30402]
+[FILE:876:patches/patch-address-CVE-2023-30402]
 From ecb47f1c8786b4628d5cd718cdccf134ad96e0cb Mon Sep 17 00:00:00 2001
 From: dataisland <dataisland@outlook.com>
 Date: Fri, 22 Sep 2023 00:21:10 -0500
@@ -117,9 +117,9 @@ Subject: [PATCH] Fix handle_dot_label heap-out-of-bound (#243)
 
  CVE-2023-30402 is disputed to be a bug, not a security flaw
 
---- modules/parsers/nasm/nasm-token.re
+--- modules/parsers/nasm/nasm-token.re.orig	2011-09-03 06:10:12 UTC
 +++ modules/parsers/nasm/nasm-token.re
-@@ -79,7 +79,7 @@ handle_dot_label(YYSTYPE *lvalp, char *tok, size_t toklen, size_t zeropos,
+@@ -79,7 +79,7 @@ handle_dot_label(YYSTYPE *lvalp, char *t
          lvalp->str_val = yasm__xstrndup(tok+zeropos+(parser_nasm->tasm?2:0),
              toklen-zeropos-(parser_nasm->tasm?2:0));
          /* check for special non-local ..@label */
@@ -130,7 +130,7 @@ Subject: [PATCH] Fix handle_dot_label heap-out-of-bound (#243)
      }
 
 
-[FILE:1206:patches/patch-address-CVE-2023-31975]
+[FILE:1150:patches/patch-address-CVE-2023-31975]
 From 84be2ee6c310607fddbe8154696c9386364679ea Mon Sep 17 00:00:00 2001
 From: dataisland <dataisland@outlook.com>
 Date: Fri, 22 Sep 2023 00:20:58 -0500
@@ -143,9 +143,9 @@ Subject: [PATCH] Fix use-after-free in yasm_intnum_destroy (#242)
  libyasm/intnum.c | 2 ++
  2 files changed, 3 insertions(+)
 
---- libyasm/expr.c
+--- libyasm/expr.c.orig	2011-08-27 23:13:19 UTC
 +++ libyasm/expr.c
-@@ -687,6 +687,7 @@ expr_level_op(/*@returned@*/ /*@only@*/ yasm_expr *e, int fold_const,
+@@ -687,6 +687,7 @@ expr_level_op(/*@returned@*/ /*@only@*/
                  level_numterms--;
                  /* make sure to delete folded intnum */
                  yasm_intnum_destroy(e->terms[i].data.intn);
@@ -153,11 +153,9 @@ Subject: [PATCH] Fix use-after-free in yasm_intnum_destroy (#242)
              } else if (o != i) {
                  /* copy term if it changed places */
                  e->terms[o++] = e->terms[i];
-diff --git a/libyasm/intnum.c b/libyasm/intnum.c
-index 6feba3348..794c0723f 100644
---- libyasm/intnum.c
+--- libyasm/intnum.c.orig	2011-08-27 23:13:19 UTC
 +++ libyasm/intnum.c
-@@ -412,6 +412,8 @@ yasm_intnum_copy(const yasm_intnum *intn)
+@@ -412,6 +412,8 @@ yasm_intnum_copy(const yasm_intnum *intn
  void
  yasm_intnum_destroy(yasm_intnum *intn)
  {
@@ -166,4 +164,23 @@ index 6feba3348..794c0723f 100644
      if (intn->type == INTNUM_BV)
          BitVector_Destroy(intn->val.bv);
      yasm_xfree(intn);
+
+
+[FILE:533:patches/patch-libyasm_bitvect.h]
+$NetBSD: patch-libyasm_bitvect.h,v 1.1 2025/04/28 19:27:15 tnn Exp $
+
+Don't conflict with C23 true & false.
+
+--- libyasm/bitvect.h.orig	2011-08-27 23:13:19 UTC
++++ libyasm/bitvect.h
+@@ -82,6 +82,9 @@ typedef  Z_longword         *Z_longwordp
+ #else
+     #ifdef MACOS_TRADITIONAL
+         #define boolean Boolean
++    #elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
++        #include <stdbool.h>
++        typedef bool boolean;
+     #else
+         typedef enum boolean { false = FALSE, true = TRUE } boolean;
+     #endif
 

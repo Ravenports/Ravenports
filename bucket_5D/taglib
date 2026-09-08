@@ -702,7 +702,103 @@ lib/pkgconfig/
  
 
 
-[FILE:1516:patches/patch-taglib_matroska_matroskaseekhead.cpp]
+[FILE:4342:patches/patch-taglib_matroska_matroskafile.cpp]
+--- taglib/matroska/matroskafile.cpp.orig	2026-07-05 08:55:01 UTC
++++ taglib/matroska/matroskafile.cpp
+@@ -147,7 +147,7 @@ PropertyMap Matroska::File::setPropertie
+ 
+ namespace {
+ 
+-  constexpr offset_t FAST_SCAN_LIMIT = static_cast<offset_t>(512 * 1024);
++  constexpr TagLib::offset_t FAST_SCAN_LIMIT = static_cast<TagLib::offset_t>(512 * 1024);
+ 
+   String keyForAttachedFile(const Matroska::AttachedFile &attachedFile)
+   {
+@@ -364,7 +364,7 @@ Matroska::Chapters *Matroska::File::chap
+ 
+ void Matroska::File::read(bool readProperties, Properties::ReadStyle readStyle)
+ {
+-  const offset_t fileLength = length();
++  const TagLib::offset_t fileLength = length();
+ 
+   // Find the EBML Header
+   const auto head = EBML::element_cast<EBML::Element::Id::EBMLHeader>(
+@@ -381,7 +381,7 @@ void Matroska::File::read(bool readPrope
+     head->skipData(*this);
+   }
+ 
+-  offset_t maxOffset = fileLength;
++  TagLib::offset_t maxOffset = fileLength;
+   if (readStyle == Properties::ReadStyle::Fast && maxOffset > FAST_SCAN_LIMIT) {
+     maxOffset = FAST_SCAN_LIMIT;
+   }
+@@ -539,9 +539,9 @@ bool Matroska::File::save(WriteStyle wri
+     // (Cues are always after the last Cluster). A value of 0 means
+     // "no boundary" – any offset compares >= 0, so the boundary check is
+     // a no-op in non-AvoidInsert modes.
+-    offset_t audioBoundary = 0;
++    TagLib::offset_t audioBoundary = 0;
+     if(writeStyle == WriteStyle::AvoidInsert && d->cues) {
+-      const offset_t segDataOffset = d->segment->dataOffset();
++      const TagLib::offset_t segDataOffset = d->segment->dataOffset();
+       for(const auto &cp : d->cues->cuePointList()) {
+         for(const auto &ct : cp->cueTrackList()) {
+           audioBoundary = std::max(audioBoundary,
+@@ -569,7 +569,7 @@ bool Matroska::File::save(WriteStyle wri
+     // so a trailing void would be wasted space.
+     if(writeStyle == WriteStyle::AvoidInsert) {
+       Element *trailing = nullptr;
+-      offset_t maxOffset = 0;
++      TagLib::offset_t maxOffset = 0;
+       const auto consider = [&](Element *e) {
+         if(e && e->size() > 0 && e->offset() > maxOffset) {
+           maxOffset = e->offset();
+@@ -633,7 +633,7 @@ bool Matroska::File::save(WriteStyle wri
+     rendering = false;
+     // Initialize appendOffset for AvoidInsert elements at the start of each round.
+     if(writeStyle == WriteStyle::AvoidInsert) {
+-      const offset_t appendOffset = d->segment->endOffset();
++      const TagLib::offset_t appendOffset = d->segment->endOffset();
+       for(const auto element : renderList)
+         element->setAppendOffset(appendOffset);
+     }
+@@ -655,20 +655,20 @@ bool Matroska::File::save(WriteStyle wri
+     // Collect moved elements in render order (= ascending original-offset order
+     // = order they appear in renderList before any re-sort).
+     List<Element *> movedElements;
+-    offset_t totalMovedSize = 0;
++    TagLib::offset_t totalMovedSize = 0;
+     for(const auto element : renderList) {
+       if(element->wasMoved()) {
+         movedElements.append(element);
+-        totalMovedSize += static_cast<offset_t>(element->data().size());
++        totalMovedSize += static_cast<TagLib::offset_t>(element->data().size());
+       }
+     }
+     if(!movedElements.isEmpty()) {
+       // The segment end includes in-place growths AND all moved element sizes.
+       // The moved elements start right after all in-place content.
+-      offset_t appendAt = d->segment->endOffset() - totalMovedSize;
++      TagLib::offset_t appendAt = d->segment->endOffset() - totalMovedSize;
+       for(const auto element : movedElements) {
+         element->setOffset(appendAt);
+-        appendAt += static_cast<offset_t>(element->data().size());
++        appendAt += static_cast<TagLib::offset_t>(element->data().size());
+       }
+     }
+   }
+@@ -676,7 +676,7 @@ bool Matroska::File::save(WriteStyle wri
+   // For elements that were moved to the end by AvoidInsert, update their
+   // seek head entry to reflect the new file position.
+   if(writeStyle == WriteStyle::AvoidInsert && d->seekHead) {
+-    const offset_t segDataOffset = d->segment->dataOffset();
++    const TagLib::offset_t segDataOffset = d->segment->dataOffset();
+     for(const auto element : renderList) {
+       if(element->wasMoved()) {
+         d->seekHead->updateEntry(element->id(), element->offset() - segDataOffset);
+
+
+[FILE:1998:patches/patch-taglib_matroska_matroskaseekhead.cpp]
 --- taglib/matroska/matroskaseekhead.cpp.orig	2026-05-17 12:40:31 UTC
 +++ taglib/matroska/matroskaseekhead.cpp
 @@ -32,7 +32,7 @@
@@ -714,7 +810,7 @@ lib/pkgconfig/
    Element(static_cast<ID>(EBML::Element::Id::MkSeekHead)),
    segmentDataOffset(segmentDataOffset)
  {
-@@ -60,7 +60,7 @@ void Matroska::SeekHead::addEntry(const
+@@ -60,13 +60,13 @@ void Matroska::SeekHead::addEntry(const
    setNeedsRender(true);
  }
  
@@ -723,6 +819,22 @@ lib/pkgconfig/
  {
    entries.append({id, offset});
    setNeedsRender(true);
+ }
+ 
+-void Matroska::SeekHead::updateEntry(ID id, offset_t newOffset)
++void Matroska::SeekHead::updateEntry(ID id, TagLib::offset_t newOffset)
+ {
+   for(auto &entry : entries) {
+     if(entry.first == id) {
+@@ -77,7 +77,7 @@ void Matroska::SeekHead::updateEntry(ID
+   }
+ }
+ 
+-const List<std::pair<unsigned int, offset_t>> &Matroska::SeekHead::entryList() const
++const List<std::pair<unsigned int, TagLib::offset_t>> &Matroska::SeekHead::entryList() const
+ {
+   return entries;
+ }
 @@ -113,7 +113,7 @@ void Matroska::SeekHead::sort()
    entries.sort([](const auto &a, const auto &b) { return a.second < b.second; });
  }
@@ -743,7 +855,7 @@ lib/pkgconfig/
      it = std::find_if(it,
 
 
-[FILE:898:patches/patch-taglib_matroska_matroskasegment.cpp]
+[FILE:1043:patches/patch-taglib_matroska_matroskasegment.cpp]
 --- taglib/matroska/matroskasegment.cpp.orig	2026-05-04 14:43:04 UTC
 +++ taglib/matroska/matroskasegment.cpp
 @@ -24,7 +24,7 @@
@@ -755,7 +867,7 @@ lib/pkgconfig/
    Element(static_cast<ID>(EBML::Element::Id::MkSegment)),
    sizeLength(sizeLength), dataSize(dataSize)
  {
-@@ -58,14 +58,14 @@ bool Matroska::Segment::render()
+@@ -58,19 +58,19 @@ bool Matroska::Segment::render()
    return true;
  }
  
@@ -771,6 +883,12 @@ lib/pkgconfig/
 +TagLib::offset_t Matroska::Segment::dataOffset() const
  {
    return offset() + sizeLength;
+ }
+ 
+-offset_t Matroska::Segment::endOffset() const
++TagLib::offset_t Matroska::Segment::endOffset() const
+ {
+   return dataOffset() + dataSize;
  }
 
 
@@ -834,6 +952,80 @@ lib/pkgconfig/
      auto atom = new MP4::Atom(file);
 
 
+[FILE:3167:patches/patch-taglib_mp4_mp4nerochapterlist.cpp]
+--- taglib/mp4/mp4nerochapterlist.cpp.orig	2026-05-04 14:43:04 UTC
++++ taglib/mp4/mp4nerochapterlist.cpp
+@@ -42,7 +42,7 @@ namespace
+   // Update parent atom sizes along a path when child size changes by delta.
+   // Mirrors MP4::Tag::updateParents().
+   void updateParentSizes(TagLib::File *file, const MP4::AtomList &path,
+-                         offset_t delta, int ignore = 0)
++                         TagLib::offset_t delta, int ignore = 0)
+   {
+     if(static_cast<int>(path.size()) <= ignore)
+       return;
+@@ -70,7 +70,7 @@ namespace
+   // Update stco/co64/tfhd chunk offsets when file content shifts.
+   // Mirrors MP4::Tag::updateOffsets().
+   void updateChunkOffsets(TagLib::File *file, const MP4::Atoms *atoms,
+-                          offset_t delta, offset_t offset)
++                          TagLib::offset_t delta, TagLib::offset_t offset)
+   {
+     if(const MP4::Atom *moov = atoms->find("moov")) {
+       const MP4::AtomList stco = moov->findall("stco", true);
+@@ -84,7 +84,7 @@ namespace
+         unsigned int pos = 4;
+         const unsigned int maxPos = data.size() - 4;
+         while(count-- && pos <= maxPos) {
+-          auto o = static_cast<offset_t>(data.toUInt(pos));
++          auto o = static_cast<TagLib::offset_t>(data.toUInt(pos));
+           if(o > offset)
+             o += delta;
+           file->writeBlock(ByteVector::fromUInt(static_cast<unsigned int>(o)));
+@@ -248,9 +248,9 @@ bool MP4::NeroChapterList::write(TagLib:
+ 
+   if(const Atom *existingChpl = atoms.find("moov", "udta", "chpl")) {
+     // Replace existing chpl atom
+-    const offset_t offset = existingChpl->offset();
+-    const offset_t oldLength = existingChpl->length();
+-    const offset_t delta = static_cast<offset_t>(chplAtom.size()) - oldLength;
++    const TagLib::offset_t offset = existingChpl->offset();
++    const TagLib::offset_t oldLength = existingChpl->length();
++    const TagLib::offset_t delta = static_cast<TagLib::offset_t>(chplAtom.size()) - oldLength;
+ 
+     file->insert(chplAtom, offset, oldLength);
+ 
+@@ -266,7 +266,7 @@ bool MP4::NeroChapterList::write(TagLib:
+ 
+     if(AtomList udtaPath = atoms.path("moov", "udta"); udtaPath.size() == 2) {
+       // udta exists -- insert chpl at the beginning of udta's content
+-      const offset_t insertOffset = udtaPath.back()->offset() + 8;
++      const TagLib::offset_t insertOffset = udtaPath.back()->offset() + 8;
+       file->insert(chplAtom, insertOffset, 0);
+ 
+       updateParentSizes(file, udtaPath, chplAtom.size());
+@@ -282,7 +282,7 @@ bool MP4::NeroChapterList::write(TagLib:
+         return false;
+       }
+ 
+-      const offset_t insertOffset = moovPath.back()->offset() + 8;
++      const TagLib::offset_t insertOffset = moovPath.back()->offset() + 8;
+       file->insert(udtaAtom, insertOffset, 0);
+ 
+       updateParentSizes(file, moovPath, udtaAtom.size());
+@@ -306,8 +306,8 @@ bool MP4::NeroChapterList::remove(TagLib
+     return true;
+   }
+ 
+-  const offset_t offset = chpl->offset();
+-  const offset_t length = chpl->length();
++  const TagLib::offset_t offset = chpl->offset();
++  const TagLib::offset_t length = chpl->length();
+ 
+   file->removeBlock(offset, length);
+ 
+
+
 [FILE:377:patches/patch-taglib_mp4_mp4properties.cpp]
 --- taglib/mp4/mp4properties.cpp.orig	2026-05-04 14:43:04 UTC
 +++ taglib/mp4/mp4properties.cpp
@@ -845,6 +1037,198 @@ lib/pkgconfig/
 +      TagLib::offset_t length = atom->length();
        if(length == 0)
          return 0; // for safety, see checkValid() in mp4file.cpp
+ 
+
+
+[FILE:8360:patches/patch-taglib_mp4_mp4qtchapterlist.cpp]
+--- taglib/mp4/mp4qtchapterlist.cpp.orig	2026-07-17 03:23:37 UTC
++++ taglib/mp4/mp4qtchapterlist.cpp
+@@ -57,7 +57,7 @@ namespace
+   // -- Parent / offset fixup (mirrors mp4chapterlist.cpp) -------------------
+ 
+   void updateParentSizes(TagLib::File *file, const MP4::AtomList &path,
+-                         offset_t delta, int ignore = 0)
++                         TagLib::offset_t delta, int ignore = 0)
+   {
+     if(static_cast<int>(path.size()) <= ignore)
+       return;
+@@ -81,7 +81,7 @@ namespace
+   }
+ 
+   void updateChunkOffsets(TagLib::File *file, const MP4::Atoms *atoms,
+-                          offset_t delta, offset_t offset)
++                          TagLib::offset_t delta, TagLib::offset_t offset)
+   {
+     if(const MP4::Atom *moov = atoms->find("moov")) {
+       const MP4::AtomList stco = moov->findall("stco", true);
+@@ -95,7 +95,7 @@ namespace
+         unsigned int pos = 4;
+         const unsigned int maxPos = data.size() - 4;
+         while(count-- && pos <= maxPos) {
+-          auto o = static_cast<offset_t>(data.toUInt(pos));
++          auto o = static_cast<TagLib::offset_t>(data.toUInt(pos));
+           if(o > offset)
+             o += delta;
+           file->writeBlock(ByteVector::fromUInt(static_cast<unsigned int>(o)));
+@@ -296,10 +296,10 @@ namespace
+     for(const auto &child : audioTrak->children()) {
+       if(child->name() == "tref") {
+         file->seek(child->offset() + 8);
+-        const offset_t trefEnd = child->offset() + child->length();
++        const TagLib::offset_t trefEnd = child->offset() + child->length();
+ 
+         while(file->tell() + 8 <= trefEnd) {
+-          const offset_t boxStart = file->tell();
++          const TagLib::offset_t boxStart = file->tell();
+           ByteVector header = file->readBlock(8);
+           if(header.size() < 8)
+             break;
+@@ -529,7 +529,7 @@ namespace
+                               long long durationMs,
+                               const MP4::ChapterList &chapters,
+                               const std::vector<unsigned int> &sampleSizes,
+-                              offset_t textDataOffset,
++                              TagLib::offset_t textDataOffset,
+                               unsigned int movieDuration)
+   {
+     unsigned int count = chapters.size();
+@@ -922,8 +922,8 @@ namespace
+       if(child->name() != "tref")
+         continue;
+ 
+-      const offset_t trefOff = child->offset();
+-      const offset_t trefLen = child->length();
++      const TagLib::offset_t trefOff = child->offset();
++      const TagLib::offset_t trefLen = child->length();
+ 
+       file->removeBlock(trefOff, trefLen);
+ 
+@@ -942,13 +942,13 @@ namespace
+   }
+ 
+   //! Finds the top-level mdat atom that covers the given file offset.
+-  const MP4::Atom *findMdatContaining(const MP4::Atoms *atoms, offset_t fileOffset)
++  const MP4::Atom *findMdatContaining(const MP4::Atoms *atoms, TagLib::offset_t fileOffset)
+   {
+     for(const auto *atom : atoms->atoms()) {
+       if(atom->name() != "mdat")
+         continue;
+-      const offset_t dataStart = atom->offset() + 8;
+-      const offset_t end = atom->offset() + atom->length();
++      const TagLib::offset_t dataStart = atom->offset() + 8;
++      const TagLib::offset_t end = atom->offset() + atom->length();
+       if(fileOffset >= dataStart && fileOffset < end)
+         return atom;
+     }
+@@ -959,10 +959,10 @@ namespace
+   //! Used to detect mdats that are shared with other tracks (audio data + chapter
+   //! text co-located in a single mdat) so we never delete live track data.
+   bool mdatIsUsedByAnyTrack(TagLib::File *file, const MP4::Atoms *atoms,
+-                            offset_t mdatStart, offset_t mdatSize)
++                            TagLib::offset_t mdatStart, TagLib::offset_t mdatSize)
+   {
+-    const offset_t dataStart = mdatStart + 8;
+-    const offset_t dataEnd = mdatStart + mdatSize;
++    const TagLib::offset_t dataStart = mdatStart + 8;
++    const TagLib::offset_t dataEnd = mdatStart + mdatSize;
+ 
+     const MP4::Atom *moov = atoms->find("moov");
+     if(!moov)
+@@ -977,7 +977,7 @@ namespace
+       unsigned int pos = 4;
+       const unsigned int maxPos = data.size() - 4;
+       while(count-- && pos <= maxPos) {
+-        const auto o = static_cast<offset_t>(data.toUInt(pos));
++        const auto o = static_cast<TagLib::offset_t>(data.toUInt(pos));
+         if(o >= dataStart && o < dataEnd)
+           return true;
+         pos += 4;
+@@ -993,7 +993,7 @@ namespace
+       unsigned int pos = 4;
+       const unsigned int maxPos = data.size() - 8;
+       while(count-- && pos <= maxPos) {
+-        const offset_t o = data.toLongLong(pos);
++        const TagLib::offset_t o = data.toLongLong(pos);
+         if(o >= dataStart && o < dataEnd)
+           return true;
+         pos += 8;
+@@ -1018,13 +1018,13 @@ namespace
+                              const MP4::Atom *audioTrak)
+   {
+     // Identify the chapter text mdat BEFORE removal (while stco is still valid).
+-    offset_t chapterMdatOffset = -1;
+-    offset_t chapterMdatSize = 0;
++    TagLib::offset_t chapterMdatOffset = -1;
++    TagLib::offset_t chapterMdatSize = 0;
+     {
+       const std::vector<unsigned int> stco = readStco(file, chapterTrak);
+       if(!stco.empty()) {
+         if(const MP4::Atom *mdat = findMdatContaining(atoms,
+-                                                     static_cast<offset_t>(stco[0]))) {
++                                                     static_cast<TagLib::offset_t>(stco[0]))) {
+           chapterMdatOffset = mdat->offset();
+           chapterMdatSize = mdat->length();
+         }
+@@ -1032,8 +1032,8 @@ namespace
+     }
+ 
+     // Capture tref/chapter trak locations for mdat offset fix-up below.
+-    offset_t trefOff = -1;
+-    offset_t trefLen = 0;
++    TagLib::offset_t trefOff = -1;
++    TagLib::offset_t trefLen = 0;
+     for(const auto &child : audioTrak->children()) {
+       if(child->name() == "tref") {
+         trefOff = child->offset();
+@@ -1043,8 +1043,8 @@ namespace
+     }
+ 
+     // Remove chapter trak FIRST (higher offset in file).
+-    const offset_t chapterOff = chapterTrak->offset();
+-    const offset_t chapterLen = chapterTrak->length();
++    const TagLib::offset_t chapterOff = chapterTrak->offset();
++    const TagLib::offset_t chapterLen = chapterTrak->length();
+ 
+     // Remove from in-memory tree so updateChunkOffsets skips its stco.
+     moov->removeChild(chapterTrak);
+@@ -1065,7 +1065,7 @@ namespace
+ 
+     // Shift the original mdat offset by however much of the removed bytes
+     // preceded it in the file.
+-    offset_t adjustedOffset = chapterMdatOffset;
++    TagLib::offset_t adjustedOffset = chapterMdatOffset;
+     if(chapterMdatOffset > chapterOff)
+       adjustedOffset -= chapterLen;
+     if(trefOff >= 0 && chapterMdatOffset > trefOff)
+@@ -1081,7 +1081,7 @@ namespace
+     const ByteVector header = file->readBlock(8);
+     if(header.size() != 8 || header.mid(4, 4) != "mdat")
+       return;
+-    if(static_cast<offset_t>(header.toUInt()) != chapterMdatSize)
++    if(static_cast<TagLib::offset_t>(header.toUInt()) != chapterMdatSize)
+       return;
+ 
+     file->removeBlock(adjustedOffset, chapterMdatSize);
+@@ -1232,9 +1232,9 @@ bool MP4::QtChapterList::write(TagLib::F
+   const ByteVector trakMeasure = buildChapterTrak(
+     chapterTrackId, timescale, durationMs, workingChapters, sampleSizes, 0,
+     movieInfo.duration);
+-  const auto totalInsert = static_cast<offset_t>(trefAtom.size() + trakMeasure.size());
++  const auto totalInsert = static_cast<TagLib::offset_t>(trefAtom.size() + trakMeasure.size());
+   // Text samples go inside an mdat atom at EOF.  stco offsets point past the 8-byte mdat header.
+-  const offset_t textDataOffset = file->length() + totalInsert + 8;
++  const TagLib::offset_t textDataOffset = file->length() + totalInsert + 8;
+ 
+   // Build final trak with correct stco offsets pointing to where text data will land.
+   const ByteVector trakAtom = buildChapterTrak(
+@@ -1247,7 +1247,7 @@ bool MP4::QtChapterList::write(TagLib::F
+ 
+   // Insert at the end of the audio trak boundary.
+   // tref is logically inside audio trak; chapter trak is logically after it.
+-  const offset_t insertOffset = audio.trak->offset() + audio.trak->length();
++  const TagLib::offset_t insertOffset = audio.trak->offset() + audio.trak->length();
+ 
+   file->insert(combinedPayload, insertOffset, 0);
  
 
 

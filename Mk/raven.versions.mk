@@ -22,13 +22,13 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 
 #-------------------------------------------------------------------------
 # PERL5
-# Possible values: 5.40 and 5.42
+# Possible values: 5.42 and 5.44
 #-------------------------------------------------------------------------
 
-PERL5_DEFAULT?=		5.40
+PERL5_DEFAULT?=		5.42
 
-PERL_5.40_VERSION=	5.40.3
 PERL_5.42_VERSION=	5.42.2
+PERL_5.44_VERSION=	5.44.0
 
 #-------------------------------------------------------------------------
 # RUBY
@@ -98,28 +98,27 @@ PGSQL_18_VERSION=	18.6	# EOL 14 NOV 2030
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
-# Possible values: oracle-(8.0,8.4),innovation,mariadb(,-10.6, -10.11, -11.[48])
+# Possible values: oracle-(8.4,9.7),innovation,mariadb(,-10.11, -11.[48], 12.3)
 #
 # MariaDB releases:
-#   MariaDB 10.6   EOL 06 JUL 2026 (STABLE-LTS)
 #   MariaDB 10.11  EOL 16 Feb 2028 (STABLE-LTS)
 #   MariaDB 11.4   EOL 29 May 2029 (STABLE-LTS)
 #   MariaDB 11.8   EOL 04 JUN 2028 (STABLE-LTS)
-#   MariaDB 12.0   EST     Q3 2025 (12.3 EST LTS)
+#   MariaDB 12.3   EOL 12 JUN 2029 (STABLE-LTS)
 #   MariaDB 13.0   EST     Q3 2026 (13.3 EST LTS)
 #   MariaDB 14.0   EST     Q3 2027 (14.3 EST LTS)
 #-------------------------------------------------------------------------
 
-MYSQL_DEFAULT=			oracle-8.0
+MYSQL_DEFAULT=			oracle-8.4
 
-MYSQL_oracle-8.0_VERSION=	8.0.46
 MYSQL_oracle-8.4_VERSION=	8.4.11
-MYSQL_innovation_VERSION=	9.7.2
-MYSQL_mariadb-10.6_VERSION=	10.6.28
+MYSQL_oracle-9.7_VERSION=	9.7.2
+MYSQL_innovation_VERSION=	26.7.0
 MYSQL_mariadb-10.11_VERSION=	10.11.19
 MYSQL_mariadb-11.4_VERSION=	11.4.13
 MYSQL_mariadb-11.8_VERSION=	11.8.9
-MYSQL_mariadb-BE_VERSION=	12.3.3		# Bleeding Edge
+MYSQL_mariadb-12.3_VERSION=	12.3.3
+MYSQL_mariadb-BE_VERSION=	13.0.1		# Bleeding Edge
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)

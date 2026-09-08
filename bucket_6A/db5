@@ -2,7 +2,7 @@
 
 NAMEBASE=		db5
 VERSION=		5.3.28
-REVISION=		5
+REVISION=		6
 KEYWORDS=		databases java
 VARIANTS=		std
 SDESC[std]=		Oracle Berkeley DB, revision 5
@@ -59,6 +59,8 @@ PLIST_SUB=		BDBMAJ=5
 			BDBVER=5.3
 
 CFLAGS=			-fPIC
+			-Wno-old-style-definition
+			-Wno-incompatible-pointer-types
 VAR_OPSYS[darwin]=	CONFIGURE_ARGS=lt_cv_apple_cc_single_mod=yes
 VAR_ARCH[aarch64]=	CONFIGURE_ARGS=--enable-posixmutexes
 			CONFIGURE_ARGS=--with-mutex=POSIX/pthreads
@@ -2512,6 +2514,20 @@ Fixes "No appropriate TLS modifier defined." error on GCC 14
  
  # Configure JDBC if --enable-jdbc
  if test "$db_cv_jdbc" != "no"; then
+
+
+[FILE:244:patches/patch-lang_sql_sqlite_src_shell.c]
+--- lang/sql/sqlite/src/shell.c.orig	2013-09-09 15:35:06 UTC
++++ lang/sql/sqlite/src/shell.c
+@@ -73,7 +73,7 @@
+ #else
+ /* Make sure isatty() has a prototype.
+ */
+-extern int isatty();
++extern int isatty(int);
+ #endif
+ 
+ #if defined(_WIN32_WCE)
 
 
 [FILE:1054:patches/patch-lang_tcl_tcl__db.c]

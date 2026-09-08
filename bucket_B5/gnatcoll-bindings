@@ -124,6 +124,12 @@ do-install:
 		"${ICONV_LIB_PIC}"
 .endfor
 
+pre-configure-sunos:
+	# The execstack is gnu-linker only.
+	# Solaris linker defaults to executable, so it's not needed here
+	${REINPLACE_CMD} -s 's/-Wl,-z,execstack//' \
+		${WRKSRC}/readline/gnatcoll_readline.gpr
+
 [FILE:102:descriptions/desc.gmp]
 This is the bindings module of the GNAT Components Collection.
 This subpackage contains gmp bindings.

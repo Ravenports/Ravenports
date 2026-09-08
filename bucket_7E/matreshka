@@ -2,7 +2,7 @@
 
 NAMEBASE=		matreshka
 VERSION=		21.0
-REVISION=		2
+REVISION=		3
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Ada framework for information systems development
@@ -17,7 +17,7 @@ SPKGS[std]=		single
 
 OPTIONS_AVAILABLE=	SQLITE PGSQL MYSQL AMF
 OPTIONS_STANDARD=	SQLITE PGSQL MYSQL AMF
-OPT_ON[all]=		SQLITE PGSQL MYSQL AMF
+OPT_ON[all]=		SQLITE PGSQL AMF
 
 USES=			gmake pkgconfig gprbuild ada:single
 
@@ -37,6 +37,7 @@ PLIST_SUB=		LIBSUFFIX=210
 [SQLITE].USES_ON=			sqlite
 					zstd
 
+[MYSQL].BROKEN_ON=			Requires MySQL 8.0 which is EOL
 [MYSQL].CONFIGURE_ENABLE_BOTH=		mysql
 [MYSQL].USES_ON=			mysql:client
 					zlib:build
@@ -98,7 +99,7 @@ Modeling framework:
 24bee1b61091211d513f7cfa53a3be479078a32dab90da83b5ccb2c9c9103218     40700684 godunko-matreshka-21.0.tar.gz
 
 
-[FILE:239016:manifests/plist.single]
+[FILE:239054:manifests/plist.single]
 %%AMF-ON%%include/matreshka/sql_amf/
  amf-boolean_collections-internals.adb
  amf-boolean_collections-internals.ads
@@ -4852,6 +4853,10 @@ Modeling framework:
  matreshka-internals-sql_drivers-mysql.ads
  matreshka-internals-sql_parameter_rewriters-mysql.adb
  matreshka-internals-sql_parameter_rewriters-mysql.ads
+%%MYSQL-ON%%lib/
+ libmatreshka-sql-mysql-%%LIBSUFFIX%%.so
+ libmatreshka-sql-mysql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
+ libmatreshka-sql-mysql-%%LIBSUFFIX%%.so.%%SOVERSION%%
 %%MYSQL-ON%%lib/matreshka/sql_mysql/
  libmatreshka-sql-mysql-%%LIBSUFFIX%%.so
  libmatreshka-sql-mysql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
@@ -4861,6 +4866,7 @@ Modeling framework:
  matreshka-internals-sql_drivers-mysql-queries.ali
  matreshka-internals-sql_drivers-mysql.ali
  matreshka-internals-sql_parameter_rewriters-mysql.ali
+%%MYSQL-ON%%share/gpr/matreshka_sql_mysql.gpr
 %%PGSQL-ON%%include/matreshka/sql_postgresql/
  matreshka-internals-sql_drivers-postgresql-databases.adb
  matreshka-internals-sql_drivers-postgresql-databases.ads
@@ -5708,9 +5714,6 @@ lib/
  libmatreshka-sql-%%LIBSUFFIX%%.so
  libmatreshka-sql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
  libmatreshka-sql-%%LIBSUFFIX%%.so.%%SOVERSION%%
- libmatreshka-sql-mysql-%%LIBSUFFIX%%.so
- libmatreshka-sql-mysql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
- libmatreshka-sql-mysql-%%LIBSUFFIX%%.so.%%SOVERSION%%
  libmatreshka-sql-postgresql-%%LIBSUFFIX%%.so
  libmatreshka-sql-postgresql-%%LIBSUFFIX%%.so.%%SOMAJOR%%
  libmatreshka-sql-postgresql-%%LIBSUFFIX%%.so.%%SOVERSION%%
@@ -6291,7 +6294,6 @@ share/gpr/
  matreshka_spikedog_api.gpr
  matreshka_spikedog_core.gpr
  matreshka_sql.gpr
- matreshka_sql_mysql.gpr
  matreshka_sql_postgresql.gpr
  matreshka_sql_sqlite3.gpr
  matreshka_xml.gpr

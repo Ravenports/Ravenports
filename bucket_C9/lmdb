@@ -91,7 +91,7 @@ share/man/man1/
  mdb_stat.1
 
 
-[FILE:3208:patches/patch-Makefile]
+[FILE:3338:patches/patch-Makefile]
 --- Makefile.orig	2026-08-06 17:11:09 UTC
 +++ Makefile
 @@ -23,12 +23,12 @@ AR	= ar
@@ -125,12 +125,14 @@ share/man/man1/
 -	for f in $(IPROGS); do cp $$f $(DESTDIR)$(bindir); done
 -	for f in $(ILIBS); do cp $$f $(DESTDIR)$(libdir); done
 -	for f in $(ILIBS2); do cp $$f $(DESTDIR)$(libdir); \
+-		i=`basename -s .$(ABIVER) $$f`; rm -f $(DESTDIR)$(libdir)/$$i; \
 +	for f in $(IPROGS); do ${INSTALL_PROGRAM} $$f $(DESTDIR)$(bindir); done
 +	for f in $(ILIBS); do $(INSTALL_LIB) $$f $(DESTDIR)$(libdir); done
 +	for f in $(ILIBS2); do ${INSTALL_LIB} $$f $(DESTDIR)$(libdir); \
- 		i=`basename -s .$(ABIVER) $$f`; rm -f $(DESTDIR)$(libdir)/$$i; \
++		i=`basename $$f .$(ABIVER)`; rm -f $(DESTDIR)$(libdir)/$$i; \
  		ln -s $$f $(DESTDIR)$(libdir)/$$i; \
- 		i=`basename -s .$(LIBVER) $$i`; rm -f $(DESTDIR)$(libdir)/$$i; \
+-		i=`basename -s .$(LIBVER) $$i`; rm -f $(DESTDIR)$(libdir)/$$i; \
++		i=`basename $$i .$(LIBVER)`; rm -f $(DESTDIR)$(libdir)/$$i; \
  		ln -s $$f $(DESTDIR)$(libdir)/$$i; done
 -	for f in $(IHDRS); do cp $$f $(DESTDIR)$(includedir); done
 -	for f in $(IDOCS); do cp $$f $(DESTDIR)$(mandir)/man1; done

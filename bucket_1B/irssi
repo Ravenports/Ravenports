@@ -2,6 +2,7 @@
 
 NAMEBASE=		irssi
 VERSION=		1.4.5
+REVISION=		1
 KEYWORDS=		irc
 VARIANTS=		std
 SDESC[std]=		Modular IRC client with many features
@@ -38,6 +39,7 @@ MESON_ARGS=		-Dwith-bot=yes
 
 PLIST_SUB=		MODULE={{BUNDLE:Uso}}
 
+CFLAGS=			-std=gnu17
 LDFLAGS=		{{PERL_RPATH}}
 VAR_OPSYS[sunos]=	CFLAGS=-I{{LOCALBASE}}/include/ncurses
 
@@ -464,6 +466,19 @@ share/doc/irssi/
      libirc_a,
      libfe_common_irc_a,
 
+
+[FILE:316:patches/patch-utils_file2header.sh]
+--- utils/file2header.sh.orig	2023-10-01 13:46:33 UTC
++++ utils/file2header.sh
+@@ -1,5 +1,5 @@
+ #!/bin/sh
+ 
+-echo "const char *$2 ="
+-cat $1|sed 's/\\/\\\\/g'|sed 's/"/\\"/g'|sed 's/^/\"/'|sed 's/$/\\n\"/'
+-echo ";"
++printf 'const char *%s =\n' "$2"
++perl -pe 's/([\\"])/\\$1/g; s/^/"/; s/$/\\n"/' "$1"
++printf ';\n'
 
 [FILE:260:patches/patch-utils_irssi-version.sh]
 --- utils/irssi-version.sh.orig	2023-10-01 13:46:33 UTC

@@ -40,7 +40,9 @@
 .if !defined(_INCLUDE_USES_PERL_MK)
 _INCLUDE_USES_PERL_MK=	yes
 
-.  if ${perl_ARGS:M542}
+.  if ${perl_ARGS:M544}
+PERL_VERSION=	${PERL_5.44_VERSION}
+.  elif ${perl_ARGS:M542}
 PERL_VERSION=	${PERL_5.42_VERSION}
 .  elif ${perl_ARGS:M540}
 PERL_VERSION=	${PERL_5.40_VERSION}

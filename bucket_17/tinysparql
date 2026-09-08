@@ -2,6 +2,7 @@
 
 NAMEBASE=		tinysparql
 VERSION=		3.11.1
+REVISION=		1
 KEYWORDS=		databases
 VARIANTS=		std
 SDESC[std]=		Low-footprint RDF triple store (SPARQL 1.1)
@@ -45,6 +46,11 @@ EXRUN[dev]=		glib:dev:std
 USES=			meson gettext pkgconfig sqlite python:build
 GNOME_COMPONENTS=	glib introspection libxml2
 
+LICENSE=		LGPL21+:primary
+LICENSE_TERMS=		primary:{{WRKSRC}}/COPYING
+LICENSE_FILE=		LGPL21+:{{WRKSRC}}/COPYING.LGPL
+LICENSE_SCHEME=		solo
+
 FPC_EQUIVALENT=		devel/tinysparql
 MESON_ARGS=		-Dsystemd_user_services=false
 			-Dintrospection=enabled
@@ -61,6 +67,12 @@ VAR_OPSYS[sunos]=	CFLAGS=-D__EXTENSIONS__
 
 post-install:
 	${MV} ${STAGEDIR}${PREFIX}/share/doc/Tsparql-3.0 ${STAGEDIR}${STD_DOCDIR}
+	# symlink-libtracker-sparql.sh is malfunctioning.
+	# It was patched out. handle it manually
+	${CP} ${STAGEDIR}${PREFIX}/lib/libtinysparql-3.0.so.0.1101.0 \
+		${STAGEDIR}${PREFIX}/lib/libtracker-sparql-3.0.so.0.1101.0
+	${LN} -s libtracker-sparql-3.0.so.0.1101.0     ${STAGEDIR}${PREFIX}/lib/libtracker-sparql-3.0.so.0
+	${LN} -s libtracker-sparql-3.0.so.0 ${STAGEDIR}${PREFIX}/lib/libtracker-sparql-3.0.so
 
 [FILE:228:descriptions/desc.primary]
 The TinySPARQL library offers a complete RDF triplestore with SPARQL 1.1
@@ -546,6 +558,18 @@ share/dbus-1/services/org.freedesktop.portal.Tracker.service
  
  #include "tracker-ontologies.h"
  #include "tracker-vtab-triples.h"
+
+
+[FILE:361:patches/patch-src_libtinysparql_meson.build]
+--- src/libtinysparql/meson.build.orig	2026-04-14 21:01:56 UTC
++++ src/libtinysparql/meson.build
+@@ -248,6 +248,5 @@ endif
+ 
+ tracker_sparql_uninstalled_dir = meson.current_build_dir()
+ 
+-meson.add_install_script('symlink-libtracker-sparql.sh', get_option('libdir'), meson.current_build_dir())
+ 
+ meson.override_dependency('tinysparql-3.0', tracker_sparql_dep)
 
 
 [FILE:280:patches/patch-src_libtinysparql_tracker-resource.c]

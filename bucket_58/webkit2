@@ -118,6 +118,7 @@ CMAKE_ARGS=		-DPORT=GTK
 			-DUSE_SKIA_OPENTYPE_SVG:BOOL=OFF
 			-DENABLE_WEBGL:BOOL=OFF
 			-DUSE_GBM:BOOL=OFF
+VAR_OPSYS[sunos]=	LDFLAGS=-lsocket
 
 [API41].DESCRIPTION=			Build WebKit2 API 4.1 variant
 [API41].BUILDRUN_DEPENDS_ON=		libsoup:primary:std
@@ -837,6 +838,19 @@ lib/pkgconfig/
  #else
 
 
+[FILE:364:patches/patch-Source_ThirdParty_skia_CMakeLists.txt]
+--- Source/ThirdParty/skia/CMakeLists.txt.orig	2026-02-23 14:40:53 UTC
++++ Source/ThirdParty/skia/CMakeLists.txt
+@@ -189,6 +189,7 @@ add_library(Skia STATIC
+     src/core/SkPath.cpp
+     src/core/SkPathBuilder.cpp
+     src/core/SkPathData.cpp
++    src/core/SkPathDump.cpp
+     src/core/SkPathEffect.cpp
+     src/core/SkPathIter.cpp
+     src/core/SkPathMeasure.cpp
+
+
 [FILE:494:patches/patch-Source_ThirdParty_skia_src_gpu_ganesh_GrAutoLocaleSetter.h]
 NetBSD does not support uselocale
 
@@ -1446,4 +1460,22 @@ encountering EMSGSIZE.
  
      bool removed = pas_ptr_hash_map_remove(&pas_pgm_hash_map, key, NULL, &pas_large_utility_free_heap_allocation_config);
      PAS_ASSERT(removed);
+
+
+[FILE:384:netbsd/patch-Source_WTF_wtf_WTFConfig.cpp]
+--- Source/WTF/wtf/WTFConfig.cpp.orig	2026-02-23 14:40:54 UTC
++++ Source/WTF/wtf/WTFConfig.cpp
+@@ -43,12 +43,6 @@
+ #include "unistd.h"
+ #endif
+ 
+-#if defined(__has_include)
+-#if __has_include(<libproc.h>)
+-#include <libproc.h>
+-#endif // __has_include(<libproc.h>)
+-#endif // defined(__has_include)
+-
+ #if PLATFORM(COCOA)
+ #include <wtf/spi/cocoa/MachVMSPI.h>
+ #include <mach/mach.h>
 

@@ -30,22 +30,6 @@ BOOST_LIBRARIES_REVISION=	0
 # Only keep the open branches of GCC
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-# gcc13
-# ------------------------------------------------------------------------
-
-GCC13_BRANCH=			13
-GCC13_POINT=			4.0
-GCC13_VERSION=			${GCC13_BRANCH}.${GCC13_POINT}
-GCC13_REVISION=			2
-GCC13_GNATCROSS_REVISION=	0
-GCC13_BOOTSTRAP_REVISION=	0
-
-GCC13_PORTVERSION=		${GCC13_VERSION}
-GCC13_IDENTIFICATION=		gcc-${GCC13_VERSION}
-GCC13_MS_SUBDIR=		releases/gcc-${GCC13_VERSION}
-GCC13_PHASE=			release
-
-# ------------------------------------------------------------------------
 # gcc14
 # ------------------------------------------------------------------------
 
@@ -99,8 +83,8 @@ GCC15_PHASE=			release
 # Ravenports base compiler
 # ------------------------------------------------------------------------
 
-GCCBASE_BRANCH=			14
-GCCBASE_POINT=			2.0
+GCCBASE_BRANCH=			15
+GCCBASE_POINT=			3.0
 GCCBASE_VERSION=		${GCCBASE_BRANCH}.${GCCBASE_POINT}
 GCCBASE_REVISION=		0
 GCCBASE_PORTVERSION=		${GCCBASE_VERSION}
@@ -165,7 +149,7 @@ GTK4_PORT_VERSION=		4.22.4
 
 BINUTILS_VERSION=		2.47
 BINUTILS_GOLD_VERSION=		2.46.1
-RPBASE_BINUTILS=		2.43.1
+RPBASE_BINUTILS=		2.46.1
 
 # ------------------------------------------------------------------------
 # aspell

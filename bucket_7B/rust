@@ -89,6 +89,8 @@ CONFIGURE_ARGS=		--release-channel=stable
 			rust.new-symbol-mangling=true
 			--set
 			rust.download-rustc=false
+			--set
+			rust.deny-warnings=false
 
 MAKE_ENV=		LD_LIBRARY_PATH={{WRKDIR}}/bootstrap/lib
 			LIBSSH2_SYS_USE_PKG_CONFIG=1
@@ -136,6 +138,9 @@ pre-build-freebsd:
 pre-build-linux:
 	# copy libz.so.1 because it's deleted in pre-configure
 	${CP} ${LOCALBASE}/lib/libz.so.1 ${WRKDIR}/bootstrap/lib
+
+post-install-SUNOS-OFF:
+	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/rustlib/*/bin/rust-lld
 
 do-build:
 	(cd ${BUILD_WRKSRC} && ${SETENV} ${MAKE_ENV} \
@@ -202,7 +207,6 @@ post-install:
 		${STAGEDIR}${PREFIX}/lib/rustlib/*/bin/ll* \
 		${STAGEDIR}${PREFIX}/lib/rustlib/*/bin/opt \
 		${STAGEDIR}${PREFIX}/lib/rustlib/*/bin/rust-objcopy \
-		${STAGEDIR}${PREFIX}/lib/rustlib/*/bin/rust-lld \
 		${STAGEDIR}${PREFIX}/lib/rustlib/*/bin/self-contained/llvm-bitcode-linker \
 		${STAGEDIR}${PREFIX}/lib/rustlib/*/lib/*.so
 
@@ -705,7 +709,7 @@ fatal runtime error: assertion failed: key as usize != KEY_SENTVAL, aborting
              let bindir = sysroot.join("bin");
 
 
-[FILE:765:patches/patch-src_bootstrap_src_core_builder_cargo.rs]
+[FILE:1402:patches/patch-src_bootstrap_src_core_builder_cargo.rs]
 --- src/bootstrap/src/core/builder/cargo.rs.orig	2026-08-18 19:58:58 UTC
 +++ src/bootstrap/src/core/builder/cargo.rs
 @@ -314,12 +314,13 @@ impl Cargo {
@@ -724,6 +728,15 @@ fatal runtime error: assertion failed: key as usize != KEY_SENTVAL, aborting
              }
          }
  
+@@ -353,7 +354,7 @@ impl Cargo {
+                 // Do not enable Zlib compression on:
+                 // - Windows, because MSVC/PDB doesn't support it
+                 // - macOS, because its linker doesn't know the flag
+-                if !self.target.is_windows() && !self.target.is_apple() {
++                if !self.target.is_windows() && !self.target.is_apple() && !target.contains("illumos") && !target.contains("solaris") {
+                     // If we link through cc, we need the -Wl prefix.
+                     // If we don't, then we must not add it, because the linker wouldn't
+                     // understand it.
 
 
 [FILE:606:patches/patch-src_llvm-project_llvm_cmake_modules_AddLLVM.cmake]
