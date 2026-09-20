@@ -52,6 +52,7 @@ CONFIGURE_ARGS=		--disable-werror
 			--enable-targets=all
 			--enable-x86-relax-relocations=no
 			--enable-gprofng=no
+			--enable-plugins
 
 INSTALL_TARGET=		install-strip
 PLIST_SUB=		PLUGINAPI={{PLUGINAPI}}
@@ -72,11 +73,10 @@ VAR_OPSYS[linux]=	VAR1=/lib/ld64.so.1
 			VAR2=/lib/ldx32.so.1
 			MAKEFILE_LINE=BUILD_GOLD=yes
 			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold
-VAR_OPSYS[darwin]=	VAR1=/libexec/ld-elf.so.1
-			VAR2=/libexec/ld-elf.so.1
-			MAKEFILE_LINE=LINKER="@comment "
-			MAKEFILE_LINE=ASSEMBLER="@comment "
-			MAKEFILE_LINE=GPROF="@comment "
+VAR_OPSYS[netbsd]=	VAR1=/libexec/ld.elf_so
+			VAR2=/libexec/ld.elf_so
+			MAKEFILE_LINE=BUILD_GOLD=yes
+			MAKEFILE_LINE=GOLD_CONFIG=--enable-gold
 VAR_OPSYS[openbsd]=	MAKEFILE_LINE=PLUGINAPI="@comment "
 VAR_OPSYS[dragonfly]=	VAR1=/libexec/ld-elf.so.2
 			VAR2=/libexec/ld-elf.so.2
@@ -434,6 +434,36 @@ For loader.efi linking support.
     but current usage would allow all of _bfd_std_section to be zero.  */
 
 
+[FILE:254:patches/patch-gold_output.cc]
+--- gold/output.cc.orig	2026-06-07 23:00:00 UTC
++++ gold/output.cc
+@@ -29,7 +29,9 @@
+ #include <unistd.h>
+ #include <sys/stat.h>
+ #include <algorithm>
++#if !defined(__NetBSD__)
+ #include <uchar.h>
++#endif
+ 
+ #ifdef HAVE_SYS_MMAN_H
+ #include <sys/mman.h>
+
+
+[FILE:256:patches/patch-gold_stringpool.cc]
+--- gold/stringpool.cc.orig	2026-06-07 23:00:00 UTC
++++ gold/stringpool.cc
+@@ -25,7 +25,9 @@
+ #include <cstring>
+ #include <algorithm>
+ #include <vector>
++#if !defined(__NetBSD__)
+ #include <uchar.h>
++#endif
+ 
+ #include "output.h"
+ #include "parameters.h"
+
+
 [FILE:963:patches/patch-gold_x86__64.cc]
 --- gold/x86_64.cc.orig	2026-02-08 00:00:00 UTC
 +++ gold/x86_64.cc
@@ -477,14 +507,12 @@ For loader.efi linking support.
  #endif /* SAFE_CTYPE_H */
 
 
-[FILE:417:files/special.mk]
+[FILE:348:files/special.mk]
 .if defined(BUILD_GOLD)
 CONFIGURE_ARGS+=	${GOLD_CONFIG}
-CONFIGURE_ARGS+=	--enable-plugins
 PLIST_SUB+=		GOLD=""
 .else
 CONFIGURE_ARGS+=	--disable-gold
-CONFIGURE_ARGS+=	--disable-plugins
 PLIST_SUB+=		GOLD="@comment "
 .endif
 

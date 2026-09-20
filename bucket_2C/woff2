@@ -41,6 +41,10 @@ post-install:
 	${INSTALL_PROGRAM} ${WRKDIR}/.build/woff2_* ${STAGEDIR}${PREFIX}/bin
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/*.${LIBEXT}
 
+pre-configure:
+	# Remove patch backups.  They get installed.
+	${FIND} ${WRKSRC} -name "*.orig" -delete
+
 [FILE:176:descriptions/desc.primary]
 The reference implementation of the Web Open Font Format 2.0, including
 libraries for decoding and encoding fonts, and command line utilities
@@ -82,4 +86,21 @@ bin/
  woff2_compress
  woff2_decompress
  woff2_info
+
+
+[FILE:312:patches/patch-include_woff2_output.h]
+$NetBSD: patch-include_woff2_output.h,v 1.1 2025/04/28 19:19:39 tnn Exp $
+
+Include <cstdint> for uint8_t.
+
+--- include/woff2/output.h.orig	2017-11-13 18:31:28 UTC
++++ include/woff2/output.h
+@@ -11,6 +11,7 @@
+ 
+ #include <algorithm>
+ #include <cstring>
++#include <cstdint>
+ #include <memory>
+ #include <string>
+ 
 

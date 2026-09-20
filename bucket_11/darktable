@@ -87,6 +87,7 @@ VAR_OPSYS[linux]=	LDFLAGS=-L{{LOCALBASE}}/lib
 			LDFLAGS=-Wl,-rpath,{{LOCALBASE}}/lib
 VAR_OPSYS[netbsd]=	CMAKE_ARGS=-DRAWSPEED_CACHELINESIZE=64
 			CFLAGS=-D_NETBSD_SOURCE
+			CFLAGS='-Duselocale(locale)=NULL'
 VAR_OPSYS[midnightbsd]=	CMAKE_ARGS=-DRAWSPEED_CACHELINESIZE=64
 
 pre-configure-netbsd:
@@ -1242,22 +1243,6 @@ share/locale/zh_TW/LC_MESSAGES/darktable.mo
 +#endif
  
    if(fout != STDOUT_FILENO) close(fout);
- 
-
-
-[FILE:245:patches/patch-src_common_utility.c]
---- src/common/utility.c.orig	2026-06-21 08:20:23 UTC
-+++ src/common/utility.c
-@@ -40,6 +40,10 @@
-   #include <FileAPI.h>
- #endif
- 
-+#if defined(__NetBSD__)
-+#define uselocale(locale) NULL
-+#endif
-+
- #include <math.h>
- #include <glib/gi18n.h>
  
 
 

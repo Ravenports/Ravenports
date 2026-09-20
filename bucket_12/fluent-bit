@@ -86,6 +86,10 @@ pre-configure:
 	# seems several platforms have issue with entropy
 	${REINPLACE_CMD} -e '/#define LJ_TARGET_HAS_GETENTROPY/s@1@0@g' \
 		${WRKSRC}/lib/luajit-*/src/lj_prng.c
+	# avoid name pollution (seen in omnios's index_t)
+	${REINPLACE_CMD} -E 's/\bindex_t\b/ripser_index_t/g' \
+		${WRKSRC}/lib/ripser-1.2.1/ripser.cpp \
+		${WRKSRC}/lib/ripser-1.2.1/ripser_internal.hpp
 
 [FILE:284:descriptions/desc.primary]
 Fluent Bit is a Fast and Lightweight Data Forwarder for Linux, OSX and BSD

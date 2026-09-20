@@ -57,6 +57,19 @@ post-install:
 pre-configure:
 	${CP} ${LOCALBASE}/share/gettext/config.rpath ${WRKSRC}
 
+pre-configure-freebsd:
+	${REINPLACE_CMD} \
+		-e '/compat1;/d' \
+		-e '/compat2;/d' \
+		-e '/fuse_lowlevel_new_compat;/d' \
+		-e '/fuse_main_real_compat22;/d' \
+		-e '/fuse_mount_compat22;/d' \
+		-e '/fuse_new_compat22;/d' \
+		-e '/fuse_reply_open_compat;/d' \
+		-e '/fuse_reply_statfs_compat;/d' \
+		-e '/fuse_setup_compat22;/d' \
+		${WRKSRC}/lib/fuse_versionscript
+
 [FILE:1174:descriptions/desc.primary]
 FUSE (Filesystem in Userspace) is an interface for userspace programs to 
 export a filesystem to the kernel. The FUSE project consists of two

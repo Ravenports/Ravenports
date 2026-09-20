@@ -63,7 +63,7 @@ LICENSE_SCHEME=		solo
 
 CPE_PRODUCT=		openjdk
 CPE_VENDOR=		oracle
-FPC_EQUIVALENT=		java/openjdk20
+FPC_EQUIVALENT=		java/openjdk21
 SKIP_CCACHE=		yes
 
 MUST_CONFIGURE=		yes
@@ -909,6 +909,20 @@ This package contains the license information of the jdk components.
      SET_SHARED_LIBRARY_ORIGIN="-Wl,-z,origin $SET_EXECUTABLE_ORIGIN"
      SET_SHARED_LIBRARY_NAME='-Wl,-soname=[$]1'
      SET_SHARED_LIBRARY_MAPFILE='-Wl,-version-script=[$]1'
+
+
+[FILE:391:patches/patch-make_autoconf_flags-ldflags.m4]
+--- make/autoconf/flags-ldflags.m4.orig	2024-04-29 14:34:19 UTC
++++ make/autoconf/flags-ldflags.m4
+@@ -75,7 +75,7 @@ AC_DEFUN([FLAGS_SETUP_LDFLAGS_HELPER],
+       fi
+     fi
+ 
+-    BASIC_LDFLAGS_JVM_ONLY=""
++    BASIC_LDFLAGS_JVM_ONLY="-Wl,--undefined-version"
+ 
+   elif test "x$TOOLCHAIN_TYPE" = xclang; then
+     BASIC_LDFLAGS_JVM_ONLY="-mno-omit-leaf-frame-pointer -mstack-alignment=16 \
 
 
 [FILE:517:patches/patch-make_autoconf_libraries.m4]
