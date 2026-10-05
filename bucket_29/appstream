@@ -1247,6 +1247,21 @@ share/doc/appstream/html/static/js/INFO.md
  	int mib[2] = { CTL_HW, HW_PHYSMEM };
 
 
+[FILE:543:patches/patch-src_meson.build]
+Work around multibyte bug on NetBSD (standards/60369)
+
+--- src/meson.build.orig	2026-08-29 00:57:48 UTC
++++ src/meson.build
+@@ -256,6 +256,7 @@ pc_fixup = run_command(sed_prog,
+                        '-i.old',
+                        '/^Requires.private\|^Libs.private/ d',
+                        meson.global_build_root() / 'meson-private' / 'appstream.pc',
++                       env: {'LC_ALL': 'C'},
+                        check: false)
+ if pc_fixup.returncode() != 0
+     error('Unable to fix up the .pc file:\n' + pc_fixup.stderr())
+
+
 [FILE:164:files/hack.sh]
 #/bin/sh
 # Nasty hack for appstreamcli bug using relative paths

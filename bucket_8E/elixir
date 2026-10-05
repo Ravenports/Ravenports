@@ -810,11 +810,13 @@ share/man/man1/
  mix.1
 
 
-[FILE:435:patches/patch-Makefile]
+[FILE:880:patches/patch-Makefile]
 Not sure why the version checks fails starting with Erlang 28.1
 When run manually, the check passes.  Just skip it for now.
 
---- Makefile.orig	2026-08-04 14:31:51 UTC
+Work around multibyte bug on NetBSD (standards/60369)
+
+--- Makefile.orig	2026-08-28 10:02:55 UTC
 +++ Makefile
 @@ -86,7 +86,6 @@ compile: erlang elixir
  
@@ -823,5 +825,16 @@ When run manually, the check passes.  Just skip it for now.
 -	$(Q) if [ ! -f $(APP) ]; then $(call CHECK_ERLANG_RELEASE); fi
  	$(Q) cd lib/elixir && mkdir -p ebin && $(ERL_MAKE)
  	$(Q) $(GENERATE_APP) $(VERSION)
+ 
+@@ -328,8 +327,8 @@ build_man: man/iex.1 man/elixir.1
+ define BUILD_MANPAGES
+ man/$(APP).1:
+ 	$(Q) cp man/$(APP).1.in man/$(APP).1
+-	$(Q) sed -i.bak "/{COMMON}/r man/common" man/$(APP).1
+-	$(Q) sed -i.bak "/{COMMON}/d" man/$(APP).1
++	$(Q) LC_ALL=C sed -i.bak "/{COMMON}/r man/common" man/$(APP).1
++	$(Q) LC_ALL=C sed -i.bak "/{COMMON}/d" man/$(APP).1
+ 	$(Q) rm -f man/$(APP).1.bak
+ endef
  
 
