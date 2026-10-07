@@ -426,18 +426,10 @@ expand_RUBYGEMS()
 expand_PHP()
 {
     # pattern [element]/%SUBDIR%/
+    # Mirror program discontinued 1 April 2019
+    # https://github.com/php/web-php/commit/b2b48ca1e053eae9ed0ace036b69ff3ab6926869
     local SUBDIR=${1##PHP/}
-    local cluster="\
-    http://us2.php.net \
-    http://de.php.net \
-    http://es.php.net \
-    http://fr.php.net \
-    http://it.php.net \
-    http://jp.php.net \
-    http://se.php.net \
-    http://uk3.php.net \
-    http://br.php.net \
-    http://cn.php.net"
+    local cluster="https://www.php.net"
     for site in ${cluster}; do
 	echo ${site}/${SUBDIR}/
     done
