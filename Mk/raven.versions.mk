@@ -39,7 +39,7 @@ RUBY_DEFAULT?=		3.4
 
 RUBY_3.3_VERSION=	3.3.12
 RUBY_3.4_VERSION=	3.4.10
-RUBY_4.0_VERSION=	4.0.7
+RUBY_4.0_VERSION=	4.0.8
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -111,7 +111,7 @@ PGSQL_18_VERSION=	18.6	# EOL 14 NOV 2030
 
 MYSQL_DEFAULT=			oracle-8.4
 
-MYSQL_oracle-8.4_VERSION=	8.4.11
+MYSQL_oracle-8.4_VERSION=	8.4.13
 MYSQL_oracle-9.7_VERSION=	9.7.2
 MYSQL_innovation_VERSION=	26.7.0
 MYSQL_mariadb-10.11_VERSION=	10.11.19
@@ -127,9 +127,9 @@ MYSQL_mariadb-BE_VERSION=	13.0.2		# Bleeding Edge
 
 PHP_DEFAULT?=		8.4
 
-PHP_8.3_VERSION=	8.3.35
-PHP_8.4_VERSION=	8.4.26
-PHP_8.5_VERSION=	8.5.11
+PHP_8.3_VERSION=	8.3.36
+PHP_8.4_VERSION=	8.4.27
+PHP_8.5_VERSION=	8.5.12
 
 #-------------------------------------------------------------------------
 # Ravenports system root versions per platform
