@@ -37,9 +37,9 @@ PERL_5.44_VERSION=	5.44.0
 
 RUBY_DEFAULT?=		3.4
 
-RUBY_3.3_VERSION=	3.3.12
-RUBY_3.4_VERSION=	3.4.10
-RUBY_4.0_VERSION=	4.0.8
+RUBY_3.3_VERSION=	3.3.13
+RUBY_3.4_VERSION=	3.4.12
+RUBY_4.0_VERSION=	4.0.9
 
 #-------------------------------------------------------------------------
 # PYTHON
@@ -48,11 +48,11 @@ RUBY_4.0_VERSION=	4.0.8
 
 PYTHON3_DEFAULT?=	3.13
 
-PYTHON_3.13_VERSION=	3.13.16
-PYTHON_3.14_VERSION=	3.14.8
+PYTHON_3.13_VERSION=	3.13.17
+PYTHON_3.14_VERSION=	3.14.9
 
-PIP_3.13_VERSION=	26.2.1
-PIP_3.14_VERSION=	26.2.1
+PIP_3.13_VERSION=	26.2.2
+PIP_3.14_VERSION=	26.2.2
 
 #-------------------------------------------------------------------------
 # SSL
