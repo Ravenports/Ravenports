@@ -12,7 +12,9 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://ziglang.org/download/0.17.0/
 DISTFILE[1]=		zig-0.17.0.tar.xz:main
 DF_INDEX=		1
-SPKGS[std]=		single
+SPKGS[std]=		set
+			primary
+			docs
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
@@ -31,7 +33,7 @@ BUILDRUN_DEPENDS=	clang22:dynlibs:std
 USES=			cmake ncurses execinfo zlib
 GNOME_COMPONENTS=	libxml2
 
-LICENSE=		MIT:single
+LICENSE=		MIT:primary
 LICENSE_FILE=		MIT:{{WRKSRC}}/LICENSE
 LICENSE_SCHEME=		solo
 
@@ -62,7 +64,10 @@ post-install:
 		lib/zig/libtsan \
 		lib/zig/libunwind \
 	\( -type f -o -type l \) 2>/dev/null | ${SORT}) \
-	>> ${WRKDIR}/.manifest.single.mktmp
+	>> ${WRKDIR}/.manifest.primary.mktmp
+	${MKDIR} ${STAGEDIR}${STD_DOCDIR}
+	${MV} ${STAGEDIR}${PREFIX}/doc/* ${STAGEDIR}${STD_DOCDIR}/
+	${RM} -r ${STAGEDIR}${PREFIX}/doc
 
 pre-configure:
 	${REINPLACE_CMD} \
@@ -75,7 +80,7 @@ pre-configure:
 		${WRKSRC}/build.zig
 	${FIND} ${WRKSRC} -name "*.orig" -o -name "*.bak" -delete
 
-[FILE:94:descriptions/desc.single]
+[FILE:94:descriptions/desc.primary]
 General purpose programming language designed for robustness, optimality, and maintainability
 
 
@@ -83,7 +88,7 @@ General purpose programming language designed for robustness, optimality, and ma
 b6c7f1728f043700d6529bac980800792f824256a9d2f1839b3d62beed0b8abd     23049960 zig-0.17.0.tar.xz
 
 
-[FILE:3006:manifests/plist.single]
+[FILE:3700:manifests/plist.primary]
 @comment lib/zig autolist: compiler_rt, include, libc, libcxx, libcxxabi, libtsan, libunwind, std
 bin/zig
 lib/zig/
@@ -106,6 +111,7 @@ lib/zig/c/
  inttypes.zig
  malloc.zig
  math.zig
+ pthread.zig
  search.zig
  stdlib.zig
  string.zig
@@ -123,14 +129,42 @@ lib/zig/c/sys/
  reboot.zig
  utsname.zig
 lib/zig/compiler/
- build_runner.zig
- libc.zig
+ Maker.zig
+ configurer.zig
  objcopy.zig
  objdump.zig
  reduce.zig
  std-docs.zig
  test_runner.zig
  util.zig
+lib/zig/compiler/Maker/
+ Fetch.zig
+ Fuzz.zig
+ Graph.zig
+ Package.zig
+ PkgConfig.zig
+ ScannedConfig.zig
+ Step.zig
+ Watch.zig
+ WebServer.zig
+lib/zig/compiler/Maker/Fetch/git.zig
+lib/zig/compiler/Maker/Package/Manifest.zig
+lib/zig/compiler/Maker/Step/
+ CheckFile.zig
+ Compile.zig
+ ConfigHeader.zig
+ FindProgram.zig
+ Fmt.zig
+ InstallArtifact.zig
+ InstallDir.zig
+ InstallFile.zig
+ ObjCopy.zig
+ Options.zig
+ Run.zig
+ TranslateC.zig
+ UpdateSourceFiles.zig
+ WriteFile.zig
+lib/zig/compiler/Maker/Watch/FsEvents.zig
 lib/zig/compiler/aro/
  aro.zig
  assembly_backend.zig
@@ -165,7 +199,11 @@ lib/zig/compiler/aro/aro/
  record_layout.zig
  text_literal.zig
  tracy.zig
-lib/zig/compiler/aro/aro/Attribute/names.zig
+lib/zig/compiler/aro/aro/Attribute/
+ Diagnostic.zig
+ Map.zig
+ Wip.zig
+ names.zig
 lib/zig/compiler/aro/aro/Builtins/
  TypeDescription.zig
  aarch64.zig
@@ -177,12 +215,14 @@ lib/zig/compiler/aro/aro/Builtins/
  hexagon.zig
  loongarch.zig
  mips.zig
+ neon.zig
  nvptx.zig
  powerpc.zig
  properties.zig
  riscv.zig
  s390x.zig
  ve.zig
+ wasm.zig
  x86.zig
  x86_64.zig
  xcore.zig
@@ -192,7 +232,12 @@ lib/zig/compiler/aro/aro/Driver/
  GCCVersion.zig
  Multilib.zig
 lib/zig/compiler/aro/aro/Parser/Diagnostic.zig
-lib/zig/compiler/aro/aro/Preprocessor/Diagnostic.zig
+lib/zig/compiler/aro/aro/Preprocessor/
+ Diagnostic.zig
+ Parser.zig
+lib/zig/compiler/aro/aro/Tokenizer/
+ number_literal.zig
+ text_literal.zig
 lib/zig/compiler/aro/aro/Tree/number_affixes.zig
 lib/zig/compiler/aro/aro/char_info/identifier_tables.zig
 lib/zig/compiler/aro/aro/pragmas/
@@ -275,6 +320,11 @@ lib/zig/init/
 lib/zig/init/src/
  main.zig
  root.zig
+lib/zig/lldb/pretty_printers.py
+
+
+[FILE:27:manifests/plist.docs]
+share/doc/zig/langref.html
 
 
 [FILE:2150:patches/patch-build.zig]
