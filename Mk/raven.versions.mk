@@ -48,11 +48,13 @@ RUBY_4.0_VERSION=	4.0.9
 
 PYTHON3_DEFAULT?=	3.13
 
-PYTHON_3.13_VERSION=	3.13.17
-PYTHON_3.14_VERSION=	3.14.9
+PYTHON_3.13_VERSION=	3.13.18
+PYTHON_3.14_VERSION=	3.14.10
+PYTHON_3.15_VERSION=	3.15.2
 
 PIP_3.13_VERSION=	26.2.2
 PIP_3.14_VERSION=	26.2.2
+PIP_3.15_VERSION=	26.2.2
 
 #-------------------------------------------------------------------------
 # SSL
@@ -82,6 +84,7 @@ TCL_DEFAULT?=		8.6
 
 TCL_8.6_VERSION=	8.6.16
 TCL_9.0_VERSION=	9.0.4
+TCL_9.1_VERSION=	9.1.0
 
 #-------------------------------------------------------------------------
 # PGSQL
