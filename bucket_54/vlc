@@ -2,7 +2,7 @@
 
 NAMEBASE=		vlc
 VERSION=		3.0.24
-REVISION=		1
+REVISION=		2
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		Qt based multimedia player and streaming server
@@ -132,10 +132,8 @@ BUILD_DEPENDS=		a52dec:set:std
 			musepack:set:std
 			opus:set:std
 			protobuf:set:std
-			qt5-qtbase:dev:std
-			qt5-qtsvg:dev:std
-			qt5-qtx11extras:dev:std
-			qt5-qtxmlpatterns:dev:std
+			qt6-qtbase:dev:std
+			qt6-qtsvg:dev:std
 			readline:dev:std
 			sndio:set:std
 			speexdsp:dev:std
@@ -158,10 +156,8 @@ BUILDRUN_DEPENDS=	fribidi:primary:std
 			libidn:primary:std
 			libvdpau:primary:std
 			libxkbcommon:primary:std
-			qt5-qtbase:primary:std
-			qt5-qtsvg:primary:std
-			qt5-qtx11extras:primary:std
-			qt5-qtxmlpatterns:primary:std
+			qt6-qtbase:primary:std
+			qt6-qtsvg:primary:std
 			readline:primary:std
 			libnotify:primary:std
 B_DEPS[linux]=		libusb:dev:std
@@ -424,7 +420,10 @@ CONFIGURE_ARGS=		--enable-a52
 			LUA_CFLAGS="-I{{LUA_INCDIR}}"
 			LUA_LIBS="-L{{LUA_LIBDIR}} -llua-{{LUA_VER}}"
 			BUILDCC="{{CC}}"
-			PKG_CONFIG_PATH={{LOCALBASE}}/lib/qt5/pkgconfig:{{LOCALBASE}}/libressl/lib/pkgconfig
+			PKG_CONFIG_PATH={{LOCALBASE}}/lib/qt6/pkgconfig:{{LOCALBASE}}/libressl/lib/pkgconfig
+			MOC={{LOCALBASE}}/libexec/qt6/moc
+			RCC={{LOCALBASE}}/libexec/qt6/rcc
+			UIC={{LOCALBASE}}/libexec/qt6/uic
 
 INSTALL_REQ_TOOLCHAIN=	yes
 PLIST_SUB=		SO_LIBVLC=5.6.1
@@ -437,6 +436,7 @@ PLIST_SUB=		SO_LIBVLC=5.6.1
 			SO_LIBXCBE_MAJ=0
 
 CFLAGS=			-Wno-deprecated-declarations
+LDFLAGS=		-Wl,-rpath,{{LOCALBASE}}/lib/qt6
 
 [BSD].DESCRIPTION=			Support BSD platform
 [BSD].BUILD_DEPENDS_ON=			libudev-devd:dev:std
@@ -454,6 +454,8 @@ pre-configure:
 	${REINPLACE_CMD} -e 's/ncursesw/ncurses/g' \
 		-e 's/libprojectM/projectM-4/g' \
 		${WRKSRC}/configure
+	# force to qt6
+	${REINPLACE_CMD} 's|Qt5|Qt6|g;s|qt5|qt6|g' ${WRKSRC}/configure
 
 post-extract:
 	${ECHO} "Terms extracted from 'modules/lua/libs.h':" > ${WRKDIR}/TERMS
