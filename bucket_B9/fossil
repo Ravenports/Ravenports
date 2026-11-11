@@ -2,6 +2,7 @@
 
 NAMEBASE=		fossil
 VERSION=		2.28
+REVISION=		1
 KEYWORDS=		devel
 VARIANTS=		std
 SDESC[std]=		Distributed source control management system
@@ -19,7 +20,7 @@ SPKGS[std]=		set
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
 
-USES=			cpe ssl tcl zlib
+USES=			cpe ssl tcl:9.0 zlib
 
 DISTNAME=		fossil-src-2.28
 
@@ -57,4 +58,32 @@ bin/fossil
 
 [FILE:24:manifests/plist.man]
 share/man/man1/fossil.1
+
+
+[FILE:612:patches/patch-autosetup_autosetup-find-tclsh]
+--- autosetup/autosetup-find-tclsh.orig	2026-03-11 11:31:46 UTC
++++ autosetup/autosetup-find-tclsh
+@@ -4,7 +4,7 @@
+ # Prefer $autosetup_tclsh if is set in the environment (unless ./jimsh0 works)
+ # If an argument is given, use that as the test instead of autosetup-test-tclsh
+ d="`dirname "$0"`"
+-for tclsh in ./jimsh0 $autosetup_tclsh jimsh tclsh tclsh8.5 tclsh8.6 tclsh8.7; do
++for tclsh in ./jimsh0 $autosetup_tclsh jimsh tclsh tclsh9.1 tchsh9.0 tclsh8.6; do
+     { $tclsh "$d/${1-autosetup-test-tclsh}"; } 2>/dev/null && exit 0
+ done
+ echo 1>&2 "No installed jimsh or tclsh, building local bootstrap jimsh0"
+
+
+[FILE:497:patches/patch-autosetup_local.tcl]
+--- autosetup/local.tcl.orig	2026-03-11 11:31:46 UTC
++++ autosetup/local.tcl
+@@ -12,7 +12,7 @@ proc parse-tclconfig-sh {args} {
+ 			return [parse-tclconfig-sh-file $p/tclConfig.sh]
+ 		}
+ 		# Some systems allow for multiple versions
+-		foreach libpath {lib/tcl8.6 lib/tcl8.5 lib/tcl8.4 lib/tcl tcl lib}  {
++		foreach libpath {lib/tcl9.1 lib/tcl9.0 lib/tcl8.6 lib/tcl tcl lib}  {
+ 			if {[file exists $p/$libpath/tclConfig.sh]} {
+ 				return [parse-tclconfig-sh-file $p/$libpath/tclConfig.sh]
+ 			}
 

@@ -2,6 +2,7 @@
 
 NAMEBASE=		tcl90
 VERSION=		9.0.4
+REVISION=		1
 KEYWORDS=		lang
 VARIANTS=		std
 SDESC[std]=		Tool Command Language
@@ -52,7 +53,7 @@ MAKE_ENV=		TCL_VER=9.0
 
 INSTALL_WRKSRC=		{{BUILD_WRKSRC}}
 INSTALL_TARGET=		install-strip install-libraries install-tzdata
-			install-doc
+			install-doc install-private-headers
 PLIST_SUB=		TCL_VER=9.0
 			SUFFIX=90
 
@@ -61,6 +62,10 @@ TEST_TARGET=		test-tcl
 post-install:
 	${STRIP_CMD} ${STAGEDIR}${PREFIX}/lib/libtcl90.so
 
+post-build:
+	# fix private header
+	${REINPLACE_CMD} 's|../unix/||' ${WRKSRC}/generic/tclPort.h
+
 pre-configure:
 	${REINPLACE_CMD} -e \
 	    's|@TCL_BUILD_LIB_SPEC@|@TCL_LIB_SPEC@|; \
@@ -68,11 +73,6 @@ pre-configure:
 	     s|@TCL_BUILD_STUB_LIB_PATH@|@TCL_STUB_LIB_PATH@|; \
 	     s|@TCL_SRC_DIR@|${PREFIX}/include/tcl9.0|' \
 	     ${PATCH_WRKSRC}/unix/tclConfig.sh.in
-
-post-configure:
-	${REINPLACE_CMD} \
-		-e 's,-DNO_MEMMOVE=1,,' -e 's,-DNO_STRING_H=1,,' \
-		-e 's,^COMPAT_OBJS.*,,' ${BUILD_WRKSRC}/Makefile
 
 [FILE:431:descriptions/desc.primary]
 This is Tcl version 9.0, an embeddable tool command language.
@@ -830,15 +830,22 @@ lib/tcl%%TCL_VER%%/tzdata/US/
  Samoa
 
 
-[FILE:196:manifests/plist.dev]
+[FILE:295:manifests/plist.dev]
 include/tcl%%TCL_VER%%/
  tcl.h
  tclDecls.h
+ tclInt.h
+ tclIntDecls.h
+ tclIntPlatDecls.h
  tclOO.h
  tclOODecls.h
+ tclOOInt.h
+ tclOOIntDecls.h
  tclPlatDecls.h
+ tclPort.h
  tclTomMath.h
  tclTomMathDecls.h
+ tclUnixPort.h
 lib/
  libtcl%%SUFFIX%%.a
  libtcl%%SUFFIX%%.so
@@ -1717,7 +1724,7 @@ share/man/mann/
 
 
 [FILE:241:patches/patch-generic-tclPort.h]
---- generic/tclPort.h.orig	2025-11-11 16:22:56 UTC
+--- generic/tclPort.h.orig	2026-05-28 18:27:07 UTC
 +++ generic/tclPort.h
 @@ -20,7 +20,7 @@
  #if defined(_WIN32)
@@ -1730,10 +1737,10 @@ share/man/mann/
  
 
 
-[FILE:6019:patches/patch-unix_Makefile.in]
---- unix/Makefile.in.orig	2026-06-28 13:49:17.014297000 +0200
-+++ unix/Makefile.in	2026-06-28 14:28:00.036382000 +0200
-@@ -54,10 +54,12 @@
+[FILE:6278:patches/patch-unix_Makefile.in]
+--- unix/Makefile.in.orig	2026-05-28 18:27:07 UTC
++++ unix/Makefile.in
+@@ -54,10 +54,12 @@ DLL_INSTALL_DIR		= @DLL_INSTALL_DIR@
  SCRIPT_INSTALL_DIR	= $(INSTALL_ROOT)$(TCL_LIBRARY)
  
  # Path name to use when installing Tcl modules.
@@ -1747,7 +1754,7 @@ share/man/mann/
  
  # Path to the private tcl header dir:
  PRIVATE_INCLUDE_DIR	= @PRIVATE_INCLUDE_DIR@
-@@ -84,10 +86,10 @@
+@@ -84,10 +86,10 @@ HTML_DIR		= @HTML_DIR@
  HTML_INSTALL_DIR	= $(INSTALL_ROOT)$(HTML_DIR)
  
  # Directory in which to install the configuration file tclConfig.sh
@@ -1760,7 +1767,7 @@ share/man/mann/
  
  # Package search path.
  TCL_PACKAGE_PATH	= @TCL_PACKAGE_PATH@
-@@ -769,9 +771,9 @@
+@@ -769,9 +771,9 @@ ZIP_INSTALL_OBJS	= @ZIP_INSTALL_OBJS@
  # Start of rules
  #--------------------------------------------------------------------------
  
@@ -1772,7 +1779,7 @@ share/man/mann/
  
  libraries:
  
-@@ -810,6 +812,12 @@
+@@ -810,6 +812,12 @@ ${LIB_FILE}: ${STUB_LIB_FILE} ${OBJS} ${
  		 mv /tmp/macher_output ${LIB_FILE}; chmod u+x ${LIB_FILE}; \
  	    fi; \
  	fi
@@ -1785,7 +1792,7 @@ share/man/mann/
  
  ${STUB_LIB_FILE}: ${STUB_LIB_OBJS}
  	@if [ "x${LIB_FILE}" = "xcygtcl${MAJOR_VERSION}.${MINOR_VERSION}.dll" ] ; then \
-@@ -996,13 +1004,12 @@
+@@ -996,13 +1004,12 @@ trace-test: ${TCLTEST_EXE}
  # Installation rules
  #--------------------------------------------------------------------------
  
@@ -1801,7 +1808,7 @@ share/man/mann/
  
  install: $(INSTALL_TARGETS)
  
-@@ -1021,6 +1028,11 @@
+@@ -1021,6 +1028,11 @@ install-binaries: binaries
  	done
  	@echo "Installing $(LIB_FILE) to $(DLL_INSTALL_DIR)/"
  	@@INSTALL_LIB@
@@ -1813,7 +1820,7 @@ share/man/mann/
  	@echo "Installing ${TCL_EXE} as $(BIN_INSTALL_DIR)/tclsh$(VERSION)${EXE_SUFFIX}"
  	@$(INSTALL_PROGRAM) ${TCL_EXE} "$(BIN_INSTALL_DIR)/tclsh$(VERSION)${EXE_SUFFIX}"
  	@echo "Installing tclConfig.sh to $(CONFIG_INSTALL_DIR)/"
-@@ -1036,6 +1048,11 @@
+@@ -1036,6 +1048,11 @@ install-binaries: binaries
  	@echo "Installing pkg-config file to $(LIB_INSTALL_DIR)/pkgconfig/"
  	@$(INSTALL_DATA_DIR) "$(LIB_INSTALL_DIR)/pkgconfig"
  	@$(INSTALL_DATA) tcl.pc "$(LIB_INSTALL_DIR)/pkgconfig/tcl.pc"
@@ -1825,7 +1832,7 @@ share/man/mann/
  
  install-libraries: libraries
  	@for i in "$(SCRIPT_INSTALL_DIR)" "$(MODULE_INSTALL_DIR)"; \
-@@ -1053,13 +1070,6 @@
+@@ -1053,13 +1070,6 @@ install-libraries: libraries
  		else true; \
  		fi; \
  	    done;
@@ -1839,7 +1846,7 @@ share/man/mann/
  	@echo "Installing library files to $(SCRIPT_INSTALL_DIR)/"
  	@for i in $(TOP_DIR)/library/*.tcl $(TOP_DIR)/library/tclIndex \
  		$(UNIX_DIR)/tclAppInit.c @LDAIX_SRC@ @DTRACE_SRC@ ; do \
-@@ -1073,28 +1083,27 @@
+@@ -1073,28 +1083,27 @@ install-libraries: libraries
  	    done
  	@echo "Installing package http 2.10.2 as a Tcl Module"
  	@$(INSTALL_DATA) $(TOP_DIR)/library/http/http.tcl \
@@ -1873,7 +1880,7 @@ share/man/mann/
  	    echo "Customizing tcl module path"; \
  	    echo "if {![interp issafe]} {" >> \
  		"$(SCRIPT_INSTALL_DIR)/tm.tcl"; \
-@@ -1108,7 +1117,6 @@
+@@ -1108,7 +1117,6 @@ install-libraries: libraries
  		"$(SCRIPT_INSTALL_DIR)/tm.tcl"; \
  	    echo "}" >> \
  		"$(SCRIPT_INSTALL_DIR)/tm.tcl"; \
@@ -1884,9 +1891,9 @@ share/man/mann/
 
 
 [FILE:1621:patches/patch-unix_configure]
---- unix/configure.orig	2025-11-11 16:28:25 UTC
+--- unix/configure.orig	2026-05-28 18:27:07 UTC
 +++ unix/configure
-@@ -6273,9 +6273,13 @@ fi
+@@ -6446,9 +6446,13 @@ fi
  
  fi
  	    ;;
@@ -1901,7 +1908,7 @@ share/man/mann/
  
  	    CFLAGS_OPTIMIZE="-O2"
  	    # egcs-2.91.66 on Redhat Linux 6.0 generates lots of warnings
-@@ -6284,16 +6288,19 @@ fi
+@@ -6457,16 +6461,19 @@ fi
  	    #CFLAGS_OPTIMIZE="${CFLAGS_OPTIMIZE} -D__NO_STRING_INLINES -D__NO_MATH_INLINES"
  
  	    SHLIB_LD='${CC} ${CFLAGS} ${LDFLAGS} -shared'
@@ -1925,7 +1932,7 @@ share/man/mann/
  	    ;;
  	    esac
  
-@@ -6411,7 +6418,7 @@ fi
+@@ -6584,7 +6591,7 @@ fi
  	    UNSHARED_LIB_SUFFIX='${TCL_TRIM_DOTS}.a'
  	    TCL_LIB_VERSIONS_OK=nodots
  	    ;;
@@ -1937,7 +1944,7 @@ share/man/mann/
 
 
 [FILE:303:patches/patch-unix_installManPage]
---- unix/installManPage.orig	2025-10-22 13:14:34 UTC
+--- unix/installManPage.orig	2026-05-28 18:27:07 UTC
 +++ unix/installManPage
 @@ -124,7 +124,7 @@ done
  
@@ -1951,7 +1958,7 @@ share/man/mann/
 
 
 [FILE:451:patches/patch-unix_tclUnixCompat.c]
---- unix/tclUnixCompat.c.orig	2025-11-11 16:22:57 UTC
+--- unix/tclUnixCompat.c.orig	2026-05-28 18:27:07 UTC
 +++ unix/tclUnixCompat.c
 @@ -102,7 +102,7 @@ static Tcl_Mutex compatLock;
  static int		CopyGrp(struct group *tgtPtr, char *buf, int buflen);

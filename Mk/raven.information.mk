@@ -163,7 +163,7 @@ ASPELL_INSTALL_VERSION=		0.60
 # ------------------------------------------------------------------------
 
 APR1_VERSION=			1.7.6
-APR1_UTIL_VERSION=		1.6.5
+APR1_UTIL_VERSION=		1.6.6
 SUBVERSION_VERSION=		1.15.0
 
 # ------------------------------------------------------------------------
@@ -194,7 +194,7 @@ ANCIENT_UNDERSCORE=		1.3.1
 LATEST_JQUERY=			3.6.0
 PECL_YAML=			2.3.0
 LINUX_UTILS_VERSION=		2.42.4
-VULKAN_VERSION=			1.4.367
+VULKAN_VERSION=			1.4.368
 
 # ------------------------------------------------------------------------
 # Gnatcross options
@@ -216,4 +216,4 @@ QT6_VERSION=			6.11.2
 LUMINA_VERSION=			1.6.2
 LUMINA_RELEASE_TAG=		1.6.2
 KDE6_FRAMEWORKS_VERSION=	6.31.0
-KDE6_APPLICATIONS_VERSION=	26.08.2
+KDE6_APPLICATIONS_VERSION=	26.08.3
