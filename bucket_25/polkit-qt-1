@@ -3,8 +3,7 @@
 NAMEBASE=		polkit-qt-1
 VERSION=		0.201.1
 KEYWORDS=		sysutils
-VARIANTS=		qt5 qt6
-SDESC[qt5]=		Qt5 wrapper around polkit-1
+VARIANTS=		qt6
 SDESC[qt6]=		Qt6 wrapper around polkit-1
 HOMEPAGE=		https://invent.kde.org/libraries/polkit-qt-1
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
@@ -13,17 +12,13 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		https://download.kde.org/stable/polkit-qt-1/
 DISTFILE[1]=		polkit-qt-1-0.201.1.tar.xz:main
 DF_INDEX=		1
-SPKGS[qt5]=		set
-			primary
-			dev
 SPKGS[qt6]=		set
 			primary
 			dev
 
-OPTIONS_AVAILABLE=	QT5 QT6
+OPTIONS_AVAILABLE=	QT6
 OPTIONS_STANDARD=	none
-VOPTS[qt5]=		QT5=ON QT6=OFF
-VOPTS[qt6]=		QT5=OFF QT6=ON
+VOPTS[qt6]=		QT6=ON
 
 BUILD_DEPENDS=		polkit:dev:std
 BUILDRUN_DEPENDS=	polkit:primary:std
@@ -42,12 +37,6 @@ FPC_EQUIVALENT=		sysutils/polkit-qt-1
 
 SOVERSION=		1.201.1
 
-[QT5].DESCRIPTION=			Built Qt5 variant
-[QT5].BUILDRUN_DEPENDS_ON=		qt5-qtbase:primary:std
-[QT5].BUILD_DEPENDS_ON=			qt5-qtbase:dev:std
-[QT5].CMAKE_ARGS_ON=			-DQT_MAJOR_VERSION=5
-					-DCMAKE_PREFIX_PATH:PATH={{PREFIX}}/lib/qt5/cmake
-
 [QT6].DESCRIPTION=			Built Qt6 variant
 [QT6].BUILDRUN_DEPENDS_ON=		qt6-qtbase:primary:std
 [QT6].BUILD_DEPENDS_ON=			qt6-qtbase:dev:std
@@ -59,11 +48,6 @@ post-stage-QT6-ON:
 		libpolkit-qt6-core-1.so \
 		libpolkit-qt6-gui-1.so)
 
-post-stage-QT5-ON:
-	(cd ${STAGEDIR}${PREFIX}/lib && ${STRIP_CMD} libpolkit-qt5-agent-1.so \
-		libpolkit-qt5-core-1.so \
-		libpolkit-qt5-gui-1.so)
-
 [FILE:221:descriptions/desc.primary]
 Polkit-Qt is a library that lets developers use the Polkit API through a 
 nice Qt-style API. It is basically a wrapper around QAction and 
@@ -73,63 +57,6 @@ Polkit.
 
 [FILE:105:distinfo]
 95d8e2cae530c546d9437459deb8a1bea38d572f0f9772cc2860dc143637f256        58492 polkit-qt-1-0.201.1.tar.xz
-
-
-[FILE:233:manifests/plist.primary]
-lib/
- libpolkit-qt5-agent-1.so.%%SOMAJOR%%
- libpolkit-qt5-agent-1.so.%%SOVERSION%%
- libpolkit-qt5-core-1.so.%%SOMAJOR%%
- libpolkit-qt5-core-1.so.%%SOVERSION%%
- libpolkit-qt5-gui-1.so.%%SOMAJOR%%
- libpolkit-qt5-gui-1.so.%%SOVERSION%%
-
-
-[FILE:974:manifests/plist.dev]
-include/polkit-qt5-1/
- polkitqt1-actiondescription.h
- polkitqt1-agent-export.h
- polkitqt1-agent-listener.h
- polkitqt1-agent-session.h
- polkitqt1-authority.h
- polkitqt1-core-export.h
- polkitqt1-details.h
- polkitqt1-gui-action.h
- polkitqt1-gui-actionbutton.h
- polkitqt1-gui-actionbuttons.h
- polkitqt1-gui-export.h
- polkitqt1-identity.h
- polkitqt1-subject.h
- polkitqt1-temporaryauthorization.h
- polkitqt1-version.h
-include/polkit-qt5-1/PolkitQt1/
- ActionDescription
- Authority
- Details
- Identity
- Subject
- TemporaryAuthorization
-include/polkit-qt5-1/PolkitQt1/Agent/
- Listener
- Session
-include/polkit-qt5-1/PolkitQt1/Gui/
- Action
- ActionButton
- ActionButtons
-lib/
- libpolkit-qt5-agent-1.so
- libpolkit-qt5-core-1.so
- libpolkit-qt5-gui-1.so
-lib/cmake/PolkitQt5-1/
- PolkitQt5-1Config.cmake
- PolkitQt5-1ConfigVersion.cmake
- PolkitQt5-1Targets-release.cmake
- PolkitQt5-1Targets.cmake
-lib/pkgconfig/
- polkit-qt5-1.pc
- polkit-qt5-agent-1.pc
- polkit-qt5-core-1.pc
- polkit-qt5-gui-1.pc
 
 
 [FILE:233:manifests/plist.primary.qt6]
