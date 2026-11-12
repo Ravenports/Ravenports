@@ -3,7 +3,7 @@
 # Feature:	tcl
 # Usage:	USES=tcl
 # Valid ARGS:	[version],[build,run],tea,tk
-#               (version 8.6 implicit), (buildrun implicit)
+#               (version 9.0 implicit), (buildrun implicit)
 
 .if !defined(_INCLUDE_USES_TCL_MK)
 _INCLUDE_USES_TCL_MK=	yes
@@ -37,8 +37,8 @@ _INCLUDE_USES_TCL_MK=	yes
 # -----------------------------------------------
 
 
-.  if ${tcl_ARGS:M8.6}
-TCL_VER=	8.6
+.  if ${tcl_ARGS:M9.1}
+TCL_VER=	9.1
 .  elif ${tcl_ARGS:M9.0}
 TCL_VER=	9.0
 .  else
