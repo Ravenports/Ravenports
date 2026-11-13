@@ -2,6 +2,7 @@
 
 NAMEBASE=		phonon
 VERSION=		4.12.0
+REVISION=		1
 KEYWORDS=		multimedia
 VARIANTS=		std
 SDESC[std]=		KDE multimedia framework
@@ -442,4 +443,102 @@ lib/cmake/phonon4qt6/
  PhononTargets.cmake
 lib/pkgconfig/phonon4qt6.pc
 lib/qt6/plugins/designer/phonon4qt6widgets.so
+
+
+[FILE:586:patches/patch-phonon_audiodataoutput.h]
+--- phonon/audiodataoutput.h.orig	2023-11-02 14:02:07 UTC
++++ phonon/audiodataoutput.h
+@@ -54,7 +54,6 @@ namespace Phonon
+     {
+         Q_OBJECT
+         P_DECLARE_PRIVATE(AudioDataOutput)
+-        Q_ENUMS(Channel)
+         Q_PROPERTY(int dataSize READ dataSize WRITE setDataSize)
+         PHONON_HEIR(AudioDataOutput)
+         public:
+@@ -70,6 +69,7 @@ namespace Phonon
+                 RightSurroundChannel,
+                 SubwooferChannel
+             };
++            Q_ENUM(Channel)
+ 
+             /**
+              * Returns the currently used number of samples passed through
+
+
+[FILE:892:patches/patch-phonon_experimental_audiodataoutput.h]
+--- phonon/experimental/audiodataoutput.h.orig	2023-11-02 14:02:07 UTC
++++ phonon/experimental/audiodataoutput.h
+@@ -60,7 +60,6 @@ namespace Experimental
+     {
+         Q_OBJECT
+         P_DECLARE_PRIVATE(AudioDataOutput)
+-        Q_ENUMS(Channel Format)
+         Q_PROPERTY(Format format READ format WRITE setFormat)
+         Q_PROPERTY(int dataSize READ dataSize WRITE setDataSize)
+         PHONON_HEIR(AudioDataOutput)
+@@ -77,6 +76,7 @@ namespace Experimental
+                 RightSurroundChannel,
+                 SubwooferChannel
+             };
++            Q_ENUM(Channel)
+ 
+             /**
+              * Used for telling the object whether you want 16 bit Integers or
+@@ -100,6 +100,7 @@ namespace Experimental
+                  */
+                 FloatFormat = 2
+             };
++            Q_ENUM(Format)
+ 
+             /**
+              * Returns the currently used format.
+
+
+[FILE:735:patches/patch-phonon_videowidget.h]
+--- phonon/videowidget.h.orig	2023-11-02 14:02:07 UTC
++++ phonon/videowidget.h
+@@ -55,7 +55,6 @@ class AbstractVideoOutput;
+     {
+         P_DECLARE_PRIVATE(VideoWidget)
+         Q_OBJECT
+-        Q_ENUMS(AspectRatio ScaleMode)
+         /**
+          * This property holds whether the video is shown using the complete
+          * screen.
+@@ -152,11 +151,13 @@ class AbstractVideoOutput;
+ //X                  */
+ //X                 AspectRatioSquare = 4,
+             };
++            Q_ENUM(AspectRatio)
+ 
+             enum ScaleMode {
+                 FitInView = 0,
+                 ScaleAndCrop = 1
+             };
++            Q_ENUM(ScaleMode)
+ 
+             /**
+              * Constructs a new video widget with a \p parent.
+
+
+[FILE:625:patches/patch-phonon_volumefadereffect.h]
+--- phonon/volumefadereffect.h.orig	2023-11-02 14:02:07 UTC
++++ phonon/volumefadereffect.h
+@@ -50,7 +50,6 @@ namespace Phonon
+         Q_OBJECT
+         P_DECLARE_PRIVATE(VolumeFaderEffect)
+         PHONON_HEIR(VolumeFaderEffect)
+-        Q_ENUMS(FadeCurve)
+         /**
+          * This is the current volume of the output as voltage factor.
+          * Setting this property changes the volume immediately.
+@@ -121,6 +120,7 @@ namespace Phonon
+                  */
+                 Fade12Decibel
+             };
++            Q_ENUM(FadeCurve)
+ 
+             float volume() const;
+             double volumeDecibel() const;
 

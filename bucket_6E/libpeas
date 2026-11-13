@@ -3,9 +3,9 @@
 NAMEBASE=		libpeas
 VERSION=		2.2.1
 KEYWORDS=		devel
-VARIANTS=		v14 v13
-SDESC[v13]=		GObject-based plugins engine (3.13)
+VARIANTS=		v14 v15
 SDESC[v14]=		GObject-based plugins engine (3.14)
+SDESC[v15]=		GObject-based plugins engine (3.15)
 HOMEPAGE=		https://wiki.gnome.org/Projects/Libpeas
 CONTACT=		Michael_Reim[kraileth@elderlinux.org]
 
@@ -13,23 +13,23 @@ DOWNLOAD_GROUPS=	main
 SITES[main]=		GNOME/libpeas/2.2/
 DISTFILE[1]=		libpeas-2.2.1.tar.xz:main
 DF_INDEX=		1
-SPKGS[v13]=		set
-			primary
-			dev
-			python
-			nls
-			docs
 SPKGS[v14]=		set
 			primary
 			dev
 			python
 			nls
 			docs
+SPKGS[v15]=		set
+			primary
+			dev
+			python
+			nls
+			docs
 
-OPTIONS_AVAILABLE=	PY314 PY313 INTROSPECTION
+OPTIONS_AVAILABLE=	PY314 PY315 INTROSPECTION
 OPTIONS_STANDARD=	INTROSPECTION
-VOPTS[v13]=		PY314=OFF PY313=ON INTROSPECTION=OFF
-VOPTS[v14]=		PY314=ON PY313=OFF INTROSPECTION=OFF
+VOPTS[v14]=		PY314=ON PY315=OFF INTROSPECTION=OFF
+VOPTS[v15]=		PY314=OFF PY315=ON INTROSPECTION=OFF
 
 BUILD_DEPENDS=		harfbuzz:dev:std
 			gjs:dev:std
@@ -68,13 +68,13 @@ VAR_OPSYS[sunos]=	LDFLAGS=-lintl
 [INTROSPECTION].GNOME_COMPONENTS_ON=	introspection
 [INTROSPECTION].USES_ON=		gtk-doc
 
-[PY313].USES_ON=			python:v13
-
 [PY314].USES_ON=			python:v14
+
+[PY315].USES_ON=			python:v15
 
 post-patch:
 	${REINPLACE_CMD} \
-		-e "/python3_dep =/ s|'python3|'python-${PYTHON_VER}|" \
+		-e "/'-Werror=undef',/d" \
 		${WRKSRC}/meson.build
 
 post-install:
