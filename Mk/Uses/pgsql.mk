@@ -23,7 +23,7 @@ _INCLUDE_USES_POSTGRESQL_MK=	yes
 # Incorporated in ravenadm
 # -----------------------------------------------
 
-# Detected MySQL version (read-only)
+# Detected PGSQL version (read-only)
 PGSQL_VER=	${PGSQL_${PGSQL_DEFAULT}_VERSION}
 
 .endif
