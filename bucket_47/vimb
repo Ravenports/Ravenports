@@ -2,6 +2,7 @@
 
 NAMEBASE=		vimb
 VERSION=		4.0.0
+REVISION=		1
 KEYWORDS=		www
 VARIANTS=		std
 SDESC[std]=		Vim-like browser
@@ -18,8 +19,6 @@ SPKGS[std]=		set
 
 OPTIONS_AVAILABLE=	none
 OPTIONS_STANDARD=	none
-
-BROKEN[all]=		gtk4 upgrade error: Only <gdk/gdk.h> can be included directly.
 
 BUILD_DEPENDS=		webkit2:dev:api60
 BUILDRUN_DEPENDS=	webkit2:primary:api60
@@ -75,4 +74,34 @@ share/metainfo/vimb.metainfo.xml
 
 [FILE:22:manifests/plist.man]
 share/man/man1/vimb.1
+
+
+[FILE:593:patches/patch-fix-headers]
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mateusz Åukasik <mati75@linuxmint.pl>
+Date: paź, 02 2026 19:09:44 +0200
+Subject: [PATCH] Fix include for gdk
+
+--- src/map.c.orig
++++ src/map.c
+@@ -18,7 +18,7 @@
+  */
+
+ /* GTK4: gdkkeysyms-compat.h removed - all keys use GDK_KEY_ prefix now */
+-#include <gdk/gdkkeysyms.h>
++#include <gdk/gdk.h>
+ #include <string.h>
+
+ #include "ascii.h"
+--- src/normal.c.orig
++++ src/normal.c
+@@ -18,7 +18,7 @@
+  */
+
+ #include <ctype.h>
+-#include <gdk/gdkkeysyms.h>
++#include <gdk/gdk.h>
+ #include <string.h>
+
+ #include "ascii.h"
 
