@@ -212,5 +212,5 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # ------------------------------------------------------------------------
 
 QT6_VERSION=			6.12.0
-KDE6_FRAMEWORKS_VERSION=	6.31.0
+KDE6_FRAMEWORKS_VERSION=	6.32.0
 KDE6_APPLICATIONS_VERSION=	26.08.3
