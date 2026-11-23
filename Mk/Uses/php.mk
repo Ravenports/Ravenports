@@ -3,7 +3,7 @@
 # Feature:	php
 # Usage:	USES=php or USES=php:ARGS
 # Valid ARGS:	phpize, ext, zend, build, cli, (cgi|mod), web, embed,
-#               (83|84|85)
+#               (84|85|86)
 #
 #  phpize   : Use to build a PHP extension.
 #  ext      : Use to build, install and register a PHP extension.
@@ -14,7 +14,6 @@
 #  mod      : Require the Apache Module for PHP.
 #  web      : Require the Apache Module or the CGI version of PHP.
 #  embed    : Require the embedded library version of PHP.
-#  83       : Specify latest PHP 8.3.x (otherwise use default PHP)
 #  84       : Specify latest PHP 8.4.x (otherwise use default PHP)
 #  85       : Specify latest PHP 8.5.x (otherwise use default PHP)
 #  86       : Specify latest PHP 8.6.x (otherwise use default PHP)
@@ -58,9 +57,6 @@ PHP_DOTVER=	8.5
 .  elif ${php_ARGS:M84}
 PHP_SUFFIX=	84
 PHP_DOTVER=	8.4
-.  elif ${php_ARGS:M83}
-PHP_SUFFIX=	83
-PHP_DOTVER=	8.3
 .  else
 PHP_SUFFIX=	${PHP_DEFAULT:S/.//}
 PHP_DOTVER=	${PHP_DEFAULT}
@@ -90,9 +86,6 @@ PHP_EXT_DIR=	20250925
 PHP_EXT_INC=	hash json opcache pcre spl
 .    elif ${PHP_SUFFIX} == 84
 PHP_EXT_DIR=	20240924
-PHP_EXT_INC=	hash json pcre spl
-.    elif ${PHP_SUFFIX} == 83
-PHP_EXT_DIR=	20230831
 PHP_EXT_INC=	hash json pcre spl
 .    endif
 .  endif
@@ -131,27 +124,22 @@ USAGE_ERROR+=	"This port requires the embedded PHP library, but the installed PH
 .    endif
 .  endif
 .  if ${php_ARGS:M86}
-.    if ${php_ARGS:M83} || ${php_ARGS:M84} || ${php_ARGS:M85} 
+.    if ${php_ARGS:M84} || ${php_ARGS:M85} 
 MULTIPLE_PHP=	yes
 .    endif
 .  endif
 .  if ${php_ARGS:M85}
-.    if ${php_ARGS:M83} || ${php_ARGS:M84} || ${php_ARGS:M86} 
+.    if ${php_ARGS:M84} || ${php_ARGS:M86} 
 MULTIPLE_PHP=	yes
 .    endif
 .  endif
 .  if ${php_ARGS:M84}
-.    if ${php_ARGS:M83} || ${php_ARGS:M85} || ${php_ARGS:M86} 
-MULTIPLE_PHP=  yes
-.    endif
-.  endif
-.  if ${php_ARGS:M83}
-.    if ${php_ARGS:M84} || ${php_ARGS:M85}  || ${php_ARGS:M86} 
+.    if ${php_ARGS:M85} || ${php_ARGS:M86} 
 MULTIPLE_PHP=  yes
 .    endif
 .  endif
 .  if defined(MULTIPLE_PHP)
-USAGE_ERROR+=	"Multiple versions detected.  Pick 83, 84, or 85 ONLY."
+USAGE_ERROR+=	"Multiple versions detected.  Pick 84, 85, or 86 ONLY."
 .  endif
 
 .  if defined(DEV_WARNING)
