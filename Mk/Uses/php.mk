@@ -17,6 +17,7 @@
 #  83       : Specify latest PHP 8.3.x (otherwise use default PHP)
 #  84       : Specify latest PHP 8.4.x (otherwise use default PHP)
 #  85       : Specify latest PHP 8.5.x (otherwise use default PHP)
+#  86       : Specify latest PHP 8.6.x (otherwise use default PHP)
 #
 # If the port requires a predefined set of PHP extensions, they can be
 # listed in this way:
@@ -48,7 +49,10 @@
 .if !defined(_INCLUDE_USES_PHP_MK)
 _INCLUDE_USES_PHP_MK=	yes
 
-.  if ${php_ARGS:M85}
+.  if ${php_ARGS:M86}
+PHP_SUFFIX=	86
+PHP_DOTVER=	8.6
+.  elif ${php_ARGS:M85}
 PHP_SUFFIX=	85
 PHP_DOTVER=	8.5
 .  elif ${php_ARGS:M84}
@@ -78,7 +82,10 @@ PHP_EXT_DIR!=	${LOCALBASE}/bin/php-config --extension-dir | \
 PHP_VER=	${PHP_SUFFIX}
 PHP_VERSION=	${PHP_${PHP_DOTVER}_VERSION}
 PHP_SAPI=	# assume none
-.      if ${PHP_SUFFIX} == 85
+.      if ${PHP_SUFFIX} == 86
+PHP_EXT_DIR=	20261112
+PHP_EXT_INC=	hash json opcache pcre spl
+.    elif ${PHP_SUFFIX} == 85
 PHP_EXT_DIR=	20250925
 PHP_EXT_INC=	hash json opcache pcre spl
 .    elif ${PHP_SUFFIX} == 84
@@ -123,18 +130,23 @@ USAGE_ERROR+=	"This port requires the CLI version of PHP, but the installed PHP 
 USAGE_ERROR+=	"This port requires the embedded PHP library, but the installed PHP does not contain it."
 .    endif
 .  endif
+.  if ${php_ARGS:M86}
+.    if ${php_ARGS:M83} || ${php_ARGS:M84} || ${php_ARGS:M85} 
+MULTIPLE_PHP=	yes
+.    endif
+.  endif
 .  if ${php_ARGS:M85}
-.    if ${php_ARGS:M83} || ${php_ARGS:M84}
+.    if ${php_ARGS:M83} || ${php_ARGS:M84} || ${php_ARGS:M86} 
 MULTIPLE_PHP=	yes
 .    endif
 .  endif
 .  if ${php_ARGS:M84}
-.    if ${php_ARGS:M83} || ${php_ARGS:M85}
+.    if ${php_ARGS:M83} || ${php_ARGS:M85} || ${php_ARGS:M86} 
 MULTIPLE_PHP=  yes
 .    endif
 .  endif
 .  if ${php_ARGS:M83}
-.    if ${php_ARGS:M84} || ${php_ARGS:M85}
+.    if ${php_ARGS:M84} || ${php_ARGS:M85}  || ${php_ARGS:M86} 
 MULTIPLE_PHP=  yes
 .    endif
 .  endif
