@@ -96,7 +96,7 @@ PGSQL_15_VERSION=	15.20	# EOL 11 NOV 2027
 PGSQL_16_VERSION=	16.16	# EOL 09 NOV 2028
 PGSQL_17_VERSION=	17.12	# EOL 08 NOV 2029
 PGSQL_18_VERSION=	18.7	# EOL 14 NOV 2030
-PGSQL_19_VERSION=	19rc2	# TBD
+PGSQL_19_VERSION=	19.0	# TBD
 
 #-------------------------------------------------------------------------
 # MYSQL and derivatives
