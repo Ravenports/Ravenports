@@ -10,7 +10,9 @@ validate_env dp_DISTDIR dp_DISTINFO_FILE dp_DISABLE_CHECKSUM dp_DISABLE_SIZE \
 	dp_MASTER_SITE_BACKUP dp_MASTER_SITE_OVERRIDE \
 	dp_MASTER_SORT_AWK dp_TARGET dp_FETCH_ENV dp_OPSYS
 
-[ -n "${DEBUG_MK_SCRIPTS}" ] || [ -n "${DEBUG_MK_SCRIPTS_DO_FETCH}" ] && set -x
+if [ -n "${DEBUG_MK_SCRIPTS:-}" ] || [ -n "${DEBUG_MK_SCRIPTS_DO_FETCH:-}" ]; then
+	set -x
+fi
 
 . "${dp_SCRIPTSDIR}/sites.sh"
 
@@ -106,14 +108,31 @@ for _file in "${@}"; do
 	${dp_ECHO_MSG} "=> ${file} is not cached."
 
 	__MASTER_SITES_TMP=
+	# Site definitions and expanded URLs can contain private GitHub tokens.
+	restore_fetch_trace=no
+	case $- in
+		*x*) restore_fetch_trace=yes; set +x ;;
+	esac
 	# Disable nounset for this, it may come up empty, but
 	# we don't want to fail with a strange error here.
 	set +u
 	eval __MASTER_SITES_TMP3="\${_DOWNLOAD_SITES_${sitegroup}}"
 	set -u
+	case "${__MASTER_SITES_TMP3} ${dp_MASTER_SITE_OVERRIDE} ${dp_MASTER_SITE_BACKUP}" in
+		*GITHUB_PRIVATE/*|*GHPRIV/*|*access_token=*) ;;
+		*)
+			if [ "${restore_fetch_trace}" = yes ]; then
+				restore_fetch_trace=no
+				set -x
+			fi
+			;;
+	esac
 	if [ -n "${__MASTER_SITES_TMP3}" ] ; then
 		for MS3 in ${__MASTER_SITES_TMP3}; do
-			__MASTER_SITES_TMP4="$(process_site "${MS3}")"
+			if ! __MASTER_SITES_TMP4="$(process_site "${MS3}")"; then
+				${dp_ECHO_MSG} "=> Skipping malformed download site in group ${sitegroup}"
+				continue
+			fi
 			__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${__MASTER_SITES_TMP4}"
 		done
 	else
@@ -126,9 +145,9 @@ for _file in "${@}"; do
 	fi
 	__MASTER_SITES_TMP3=
 	__MASTER_SITES_TMP4=
-	SORTED_MASTER_SITES_CMD_TMP="echo ${dp_MASTER_SITE_OVERRIDE} $(/bin/echo -n "${__MASTER_SITES_TMP}" | awk "${dp_MASTER_SORT_AWK}") ${dp_MASTER_SITE_BACKUP}"
+	sorted_sites=$(printf '%s' "${__MASTER_SITES_TMP}" | awk "${dp_MASTER_SORT_AWK}")
 	sites_remaining=0
-	sites="$(${SORTED_MASTER_SITES_CMD_TMP})"
+	sites="${dp_MASTER_SITE_OVERRIDE} ${sorted_sites} ${dp_MASTER_SITE_BACKUP}"
 	for site in ${sites}; do
 		sites_remaining=$((sites_remaining + 1))
 	done
@@ -148,8 +167,26 @@ for _file in "${@}"; do
 		fi
 
 		# Always - because ${dp_TARGET} is limited to (do-fetch|makesum)
-		${dp_ECHO_MSG} "=> Attempting to fetch ${site}${file}"
-		if env ${dp_FETCH_ENV} ${_fetch_cmd}; then
+		private_site=no
+		case ${site} in
+			https://api.github.com/repos/*\?access_token=*)
+				private_site=yes
+				${dp_ECHO_MSG} "=> Attempting to fetch ${file} from private GitHub"
+				;;
+			*) ${dp_ECHO_MSG} "=> Attempting to fetch ${site}${file}" ;;
+		esac
+		fetched=no
+		if [ "${private_site}" = yes ]; then
+			# The downloader may include the URL in its diagnostics.
+			if env ${dp_FETCH_ENV} ${_fetch_cmd} >/dev/null 2>&1; then
+				fetched=yes
+			else
+				${dp_ECHO_MSG} "=> Private GitHub download failed"
+			fi
+		elif env ${dp_FETCH_ENV} ${_fetch_cmd}; then
+			fetched=yes
+		fi
+		if [ "${fetched}" = yes ]; then
 			chmod 644 "${download_path}"
 
 			if [ -z "${dp_DISABLE_SIZE}" ]; then
@@ -183,6 +220,9 @@ for _file in "${@}"; do
 			# considered a good download.  Relocate to final destination
 			mv "${download_path}" "${final_path}"
 			rm -f "${lockfile}"
+			if [ "${restore_fetch_trace}" = yes ]; then
+				set -x
+			fi
 			continue 2
 		fi
 	done

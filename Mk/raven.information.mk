@@ -120,9 +120,6 @@ LIBXSLT_PYTHON_REVISION=	0
 # ruby
 # ------------------------------------------------------------------------
 
-RUBY_3.2_REVISION=		2
-RUBY_3.2_PATCHLEVEL=		0
-
 RUBY_3.3_REVISION=		0
 RUBY_3.3_PATCHLEVEL=		0
 
@@ -141,7 +138,7 @@ GTK3_VERSION=			3.0.0
 GTK4_VERSION=			4.0.0
 GTK2_PORT_VERSION=		2.24.33
 GTK3_PORT_VERSION=		3.24.52
-GTK4_PORT_VERSION=		4.24.1
+GTK4_PORT_VERSION=		4.24.2
 
 # ------------------------------------------------------------------------
 # Ravenports binutils
@@ -211,6 +208,6 @@ MIDNIGHT32_CC_TARGET=		i386-raven-freebsd12.3
 # Qt and Qt-based desktops
 # ------------------------------------------------------------------------
 
-QT6_VERSION=			6.12.0
+QT6_VERSION=			6.12.1
 KDE6_FRAMEWORKS_VERSION=	6.32.0
 KDE6_APPLICATIONS_VERSION=	26.08.3
