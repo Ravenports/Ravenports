@@ -27,7 +27,7 @@ ${_l:tu}_DEFAULT=	${base:C/.*=//g}
 
 PERL5_DEFAULT?=		5.42
 
-PERL_5.42_VERSION=	5.42.2
+PERL_5.42_VERSION=	5.42.3
 PERL_5.44_VERSION=	5.44.0
 
 #-------------------------------------------------------------------------
@@ -107,7 +107,7 @@ PGSQL_19_VERSION=	19.0	# TBD
 #   MariaDB 11.4   EOL 29 May 2029 (STABLE-LTS)
 #   MariaDB 11.8   EOL 04 JUN 2028 (STABLE-LTS)
 #   MariaDB 12.3   EOL 12 JUN 2029 (STABLE-LTS)
-#   MariaDB 13.0   EST     Q3 2026 (13.3 EST LTS)
+#   MariaDB 13.2   ??
 #   MariaDB 14.0   EST     Q3 2027 (14.3 EST LTS)
 #-------------------------------------------------------------------------
 
@@ -116,20 +116,19 @@ MYSQL_DEFAULT=			oracle-8.4
 MYSQL_oracle-8.4_VERSION=	8.4.13
 MYSQL_oracle-9.7_VERSION=	9.7.4
 MYSQL_innovation_VERSION=	26.10.0
-MYSQL_mariadb-10.11_VERSION=	10.11.19
-MYSQL_mariadb-11.4_VERSION=	11.4.13
-MYSQL_mariadb-11.8_VERSION=	11.8.9
-MYSQL_mariadb-12.3_VERSION=	12.3.3
-MYSQL_mariadb-BE_VERSION=	13.0.2		# Bleeding Edge
+MYSQL_mariadb-10.11_VERSION=	10.11.20
+MYSQL_mariadb-11.4_VERSION=	11.4.14
+MYSQL_mariadb-11.8_VERSION=	11.8.10
+MYSQL_mariadb-12.3_VERSION=	12.3.4
+MYSQL_mariadb-BE_VERSION=	13.2.1		# Bleeding Edge
 
 #-------------------------------------------------------------------------
 # PHP (restricted to branches still receiving updates)
-# Possible values: 8.3, 8.4, 8.5
+# Possible values: 8.4, 8.5, 8.6
 #-------------------------------------------------------------------------
 
-PHP_DEFAULT?=		8.4
+PHP_DEFAULT?=		8.5
 
-PHP_8.3_VERSION=	8.3.37
 PHP_8.4_VERSION=	8.4.28
 PHP_8.5_VERSION=	8.5.13
 PHP_8.6_VERSION=	8.6.0
