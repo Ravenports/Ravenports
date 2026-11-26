@@ -130,7 +130,7 @@ for _file in "${@}"; do
 	if [ -n "${__MASTER_SITES_TMP3}" ] ; then
 		for MS3 in ${__MASTER_SITES_TMP3}; do
 			if ! __MASTER_SITES_TMP4="$(process_site "${MS3}")"; then
-				${dp_ECHO_MSG} "=> Skipping malformed download site in group ${sitegroup}"
+				${dp_ECHO_MSG} "=> Skipping malformed download site in group ${sitegroup} (${MS3})"
 				continue
 			fi
 			__MASTER_SITES_TMP="${__MASTER_SITES_TMP} ${__MASTER_SITES_TMP4}"

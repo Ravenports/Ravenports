@@ -2,6 +2,7 @@
 
 NAMEBASE=		python-afdko
 VERSION=		5.0.1
+REVISION=		1
 KEYWORDS=		python
 VARIANTS=		v15 v14
 SDESC[v14]=		Adobe Font Development Kit for OpenType (3.14)
@@ -177,7 +178,21 @@ e688d7a40095c571b228d5c1457fe36d1e463eb73d9ee14be80b0161e55b3db9      4172368 py
 +install(TARGETS _internal LIBRARY DESTINATION ${Python_SITELIB}/afdko)
 
 
-[FILE:333:files/special.mk]
+[FILE:421:patches/patch-python_afdko_otfautohint_hinter.py]
+--- python/afdko/otfautohint/hinter.py.orig	2022-11-09 12:37:21 UTC
++++ python/afdko/otfautohint/hinter.py
+@@ -2007,7 +2007,7 @@ class dimensionHinter(ABC):
+                 lo = lo + 21
+                 hi = lo - 21
+             elif isG == 'high':
+-                assert lo is not None and hi is not None
++                assert hi is not None
+                 lo = hi
+                 hi = lo - 20
+             else:
+
+
+[FILE:377:files/special.mk]
 CMARGS=		-DANTLR4_ZIP_REPOSITORY="${ANTREP}"
 CMARGS+=	-DCMAKE_FIND_PACKAGE_TARGETS_GLOBAL:BOOL=ON
 CMARGS+=	-DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=ALWAYS
@@ -185,4 +200,5 @@ CMARGS+=	-DCMAKE_REQUIRE_FIND_PACKAGE_LibXml2:BOOL=ON
 CMARGS+=	-DLibXml2_DIR:STRING="${LOCALBASE}/lib/cmake/libxml2"
 MAKE_ENV+=	CMAKE_ARGS="${CMARGS}"
 MAKE_ENV+=	DESTDIR=${STAGEDIR}
+MAKE_ENV+=	CMAKE_GENERATOR="Unix Makefiles"
 

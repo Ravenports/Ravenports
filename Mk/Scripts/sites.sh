@@ -121,7 +121,7 @@ expand_GITHUB()
     set -f
     IFS=:
     set -- ${SUBDIR}
-    [ "$#" -eq 3 ] && [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] || return 1
+    [ "$#" -ge 3 ] && [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] || return 1
     printf '%s\n' "https://codeload.github.com/${1}/${2}/tar.gz/${3}?dummy=/"
 )
 
@@ -135,7 +135,7 @@ expand_GITHUB_PRIVATE()
     set -f
     IFS=:
     set -- ${SUBDIR}
-    [ "$#" -eq 5 ] && [ -n "$1" ] && [ -n "$2" ] &&
+    [ "$#" -ge 5 ] && [ -n "$1" ] && [ -n "$2" ] &&
         [ -n "$3" ] && [ -n "$5" ] || return 1
     printf '%s\n' "https://api.github.com/repos/${1}/${2}/tarball/${3}?access_token=${5}&dummy=/"
 )
@@ -261,10 +261,10 @@ expand_FREELOCAL()
     done
 }
 
-expand_LEAFDIST()
+expand_RAVEN()
 {
     # pattern [element]/%SUBDIR%/
-    local SUBDIR="${1##LEAFDIST/}"
+    local SUBDIR="${1##RAVEN/}"
     local site="https://leaf.dragonflybsd.org/~marino/raven-distfiles"
     site_directory_url "${site}" "${SUBDIR}"
 }
@@ -317,6 +317,19 @@ expand_MYSQL()
     esac
     site_directory_url "https://cdn.mysql.com/Downloads" "${SUBDIR}"
     site_directory_url "https://cdn.mysql.com/archives" "${ARCHIVE_SUBDIR}"
+}
+
+expand_MARIADB()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR="mariadb-${1##MARIADB/}/source"
+    local cluster="\
+    https://mariadb.mirror.globo.tech \
+    https://archive.mariadb.org"
+    local site
+    for site in ${cluster}; do
+	site_directory_url "${site}" "${SUBDIR}"
+    done
 }
 
 expand_MOZILLA()
@@ -563,7 +576,7 @@ process_site()
 	GNUPG/*)                   expand_GNUPG "${1}" ;;
 	ISC/*)                     expand_ISC "${1}" ;;
 	KERNEL_ORG/*)              expand_KERNEL_ORG "${1}" ;;
-	LEAFDIST/*)                expand_LEAFDIST "${1}" ;;
+	MARIADB/*)                 expand_MARIADB "${1}" ;;
 	MOZILLA/*)                 expand_MOZILLA "${1}" ;;
 	MYSQL/*)                   expand_MYSQL "${1}" ;;
 	OPENBSD/*)                 expand_OPENBSD "${1}" ;;
@@ -572,6 +585,7 @@ process_site()
 	PHP/*)                     expand_PHP "${1}" ;;
 	PYPI/*)			   expand_PYPI "${1}" ;;
 	PYPIWHL/*)		   expand_PYPIWHL "${1}" ;;
+	RAVEN/*)                   expand_RAVEN "${1}" ;;
 	RUBY/*)			   expand_RUBY "${1}" ;;
 	RUBYGEMS/*)                expand_RUBYGEMS "${1}" ;;
 	SAVANNAH/*)                expand_SAVANNAH "${1}" ;;

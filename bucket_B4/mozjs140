@@ -841,6 +841,128 @@ void js::UnsafeTraceManuallyBarrieredEdge<JS::Value>(JSTracer*, JS::Value*, char
  // This is the largest number which satisfies various alignment static
 
 
+[FILE:5332:patches/patch-python314-compat]
+Python 3.14 compatibility backports for Firefox 140 ESR, as used by Arch Linux js140.
+Ravenports applies this from js/src, so paths are relative to that directory.
+
+Mozilla Bug 1969769 (Mike Hommey): https://phabricator.services.mozilla.com/D261512
+Mozilla Bug 1983713 (Mike Hommey): https://phabricator.services.mozilla.com/D261511
+Mozilla Bug 1983736 (Jan-Erik Rediger): https://phabricator.services.mozilla.com/D262335
+Mozilla Bug 1993797 (Alex Hochheiden): https://phabricator.services.mozilla.com/D268646
+
+--- ../../python/mozbuild/mozbuild/frontend/reader.py.orig
++++ ../../python/mozbuild/mozbuild/frontend/reader.py
+@@ -470,7 +470,7 @@ class TemplateFunction:
+             return c(
+                 ast.Subscript(
+                     value=c(ast.Name(id=self._global_name, ctx=ast.Load())),
+-                    slice=c(ast.Index(value=c(ast.Str(s=node.id)))),
++                    slice=c(ast.Index(value=c(ast.Constant(value=node.id)))),
+                     ctx=node.ctx,
+                 )
+             )
+@@ -1039,23 +1039,23 @@ class BuildReader:
+                 else:
+                     # Others
+                     assert isinstance(target.slice, ast.Index)
+-                    assert isinstance(target.slice.value, ast.Str)
+-                    key = target.slice.value.s
++                    assert isinstance(target.slice.value, ast.Constant)
++                    key = target.slice.value.value
+             elif isinstance(target, ast.Attribute):
+                 assert isinstance(target.attr, str)
+                 key = target.attr
+ 
+             return name, key
+ 
+         def assigned_values(node):
+             value = node.value
+             if isinstance(value, ast.List):
+                 for v in value.elts:
+-                    assert isinstance(v, ast.Str)
+-                    yield v.s
++                    assert isinstance(v, ast.Constant)
++                    yield v.value
+             else:
+-                assert isinstance(value, ast.Str)
+-                yield value.s
++                assert isinstance(value, ast.Constant)
++                yield value.value
+ 
+         assignments = []
+ 
+--- ../../python/mozbuild/mozbuild/vendor/rewrite_mozbuild.py.orig
++++ ../../python/mozbuild/mozbuild/vendor/rewrite_mozbuild.py
+@@ -327,15 +327,13 @@ def assignment_node_to_source_filename_list(code, node):
+     """
+     if isinstance(node.value, ast.List) and "elts" in node.value._fields:
+         for f in node.value.elts:
+-            if not isinstance(f, ast.Constant) and not isinstance(f, ast.Str):
++            if not isinstance(f, ast.Constant):
+                 log(
+                     "Found non-constant source file name in list: ",
+                     ast_get_source_segment(code, f),
+                 )
+                 return []
+-        return [
+-            f.value if isinstance(f, ast.Constant) else f.s for f in node.value.elts
+-        ]
++        return [f.value for f in node.value.elts]
+     elif isinstance(node.value, ast.ListComp):
+         # SOURCES += [f for f in foo if blah]
+         log("Could not find the files for " + ast_get_source_segment(code, node.value))
+--- ../../python/mach/mach/command_util.py.orig
++++ ../../python/mach/mach/command_util.py
+@@ -292,7 +292,7 @@ class DecoratorVisitor(ast.NodeVisitor):
+             kwarg_dict = {}
+ 
+             for name, arg in zip(["command", "subcommand"], decorator.args):
+-                kwarg_dict[name] = arg.s
++                kwarg_dict[name] = arg.value
+ 
+             for keyword in decorator.keywords:
+                 if keyword.arg not in relevant_kwargs:
+--- ../../python/mozbuild/mozbuild/vendor/vendor_python.py.orig
++++ ../../python/mozbuild/mozbuild/vendor/vendor_python.py
+@@ -40,6 +40,10 @@ EXCLUDED_PACKAGES = {
+     # modified 'dummy' version of it so that the dependency checks still succeed, but
+     # if it ever is attempted to be used, it will fail gracefully.
+     "ansicon",
++    # jsonschema 4.17.3 is incompatible with Python 3.14+,
++    # but later versions use a dependency with Rust components, which we thus can't vendor.
++    # For now we apply the minimal patch to jsonschema to make it work again.
++    "jsonschema",
+ }
+ 
+ 
+--- ../../third_party/python/jsonschema/jsonschema/validators.py.orig
++++ ../../third_party/python/jsonschema/jsonschema/validators.py
+@@ -875,8 +875,11 @@ class RefResolver:
+             return None
+         uri, fragment = urldefrag(url)
+         for subschema in subschemas:
++            id = subschema["$id"]
++            if not isinstance(id, str):
++                continue
+             target_uri = self._urljoin_cache(
+-                self.resolution_scope, subschema["$id"],
++                self.resolution_scope, id,
+             )
+             if target_uri.rstrip("/") == uri.rstrip("/"):
+                 if fragment:
+--- ../../python/mach/mach/command_util.py.orig
++++ ../../python/mach/mach/command_util.py
+@@ -299,7 +299,7 @@ class DecoratorVisitor(ast.NodeVisitor):
+                     # We only care about these 3 kwargs, so we can safely skip the rest
+                     continue
+ 
+-                kwarg_dict[keyword.arg] = getattr(keyword.value, "s", "")
++                kwarg_dict[keyword.arg] = keyword.value.value
+ 
+             command = kwarg_dict.pop("command")
+             self.results.setdefault(command, {})
+
+
 [FILE:500:patches/patch-testing_mozbase_mozinfo_mozinfo_mozinfo.py]
 --- ../../testing/mozbase/mozinfo/mozinfo/mozinfo.py.orig	2026-06-09 18:34:14 UTC
 +++ ../../testing/mozbase/mozinfo/mozinfo/mozinfo.py
