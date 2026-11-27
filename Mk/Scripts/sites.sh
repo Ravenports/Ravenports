@@ -552,6 +552,23 @@ expand_KERNEL_ORG()
 }
 
 
+expand_TEXLIVE()
+{
+    # pattern [element]/%SUBDIR%/
+    local SUBDIR="${1##TEXLIVE/}"
+    local cluster="\
+    https://ftp.math.utah.edu/pub/texlive/historic/systems/texlive \
+    https://ftp.tu-chemnitz.de/pub/tug/historic/systems/texlive \
+    https://texlive.info/historic/systems/texlive \
+    https://mirrors.tuna.tsinghua.edu.cn/tex-historic-archive/systems/texlive"
+    local site
+    for site in ${cluster}; do
+	site_directory_url "${site}" "${SUBDIR}"
+    done
+}
+
+
+
 process_site()
 {
     case "${1}" in
@@ -592,6 +609,7 @@ process_site()
 	SOURCEFORGE/*)             expand_SOURCEFORGE "${1}" 1 ;;
 	SF/*)                      expand_SOURCEFORGE "${1}" 2 ;;
 	SOURCEWARE/*)              expand_SOURCEWARE "${1}" ;;
+	TEXLIVE/*)                 expand_TEXLIVE "${1}" ;;
 	TOR/*)                     expand_TOR "${1}" ;;
 	UBUNTU/*)                  expand_UBUNTU "${1}" ;;
 	XORG/*)                    expand_XORG "${1}" ;;
